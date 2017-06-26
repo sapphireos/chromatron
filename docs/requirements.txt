@@ -1,2 +1,2 @@
 chromatron
-git+git://github.com/sapphireos/sphinx-click@master#egg=sphinx-click
+git+git://github.com/sapphireos/sphinx-click@ce4f9ba#egg=sphinx-click
