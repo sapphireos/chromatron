@@ -1,2 +1,2 @@
 chromatron
-sphinx-click==1.0.2
+git+git://github.com/sapphireos/sphinx-click@master#egg=sphinx-click
