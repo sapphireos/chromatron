@@ -90,7 +90,7 @@ class Pixel():
     def is_fading(self):
         """Check if pixel is fading.
 
-        :returns: 0 - pixels is not fading
+        :returns: 0 - pixel is not fading
 
                   1 - pixel is fading
 

@@ -125,7 +125,7 @@ Most programs will also need a loop() function. loop() is called repeatedly by t
 Variables
 ^^^^^^^^^
 
-There is only one basic data type, Number, which is a signed 32 bit integer, ranging from –2,147,483,648 to 2,147,483,647.
+There is only one basic data type, Number, which is a signed 32 bit integer. Number ranges from \-2,147,483,648 to 2,147,483,647.
 
 Variables must be declared:
     
@@ -310,7 +310,7 @@ The graphics system has a number of dimmers and faders built in.
 Dimmers
 """""""
 
-There are two global dimmers, called master and sub. Each affects the brightness of all pixels. Additionally, each pixel's val will further modulate the brightness for each pixel. The dimmer values multiply to achieve the final dimming level for each pixel:
+There are two global dimmers, called master and sub. Each affects the brightness of all pixels. Additionally, each pixel's val will further modulate the brightness for that pixel. The dimmer values multiply to achieve the final dimming level for each pixel:
 
 pixel_brightness = master * sub * pixel val
 
@@ -347,6 +347,9 @@ Faders
 
 Each pixel has two time based faders. One fader is shared between hue and sat, the other is used for val. This allows FX to produce smooth timed fades automatically.
 
+The fader system runs every 20 ms, regardless of the frame rate of the FX VM.
+
+
 .. code:: python
     
     # assumes pixels start fully off
@@ -354,7 +357,7 @@ Each pixel has two time based faders. One fader is shared between hue and sat, t
     pixels.v_fade = 1000 # set val fader to 1000 ms fade
     pixels.val = 1.0 # set all pixels to max brightness
 
-This code will instruct each pixel to fade up to max brightness over the course of one second. Note that each time you set val will recompute the fader (thus resetting the one second timer from wherever val is at the time). If the frame rate is faster than once per second, you can ensure a one second fade by doing something like this:
+This code will instruct each pixel to fade up to max brightness over the course of one second. Note that each time you set val it will recompute the fader (thus resetting the one second timer from wherever val is at the time). If the frame rate is faster than once per second, you can ensure a one second fade by doing something like this:
 
 .. code:: python
     
@@ -399,10 +402,66 @@ See :doc:`cli` for more information on how to use the command line interface.
 Performance Notes
 -----------------
 
+The FX VM is designed to be as fast as possible, but the fact is that a VM incurs some overhead that would normally be done by hardware in machine code. The processor has a tremendous amount of work to do: process the FX script itself, run faders over 300 LEDs with 3 information channels each 50 times per second (this is 45,000 channel updates per second), do 15,000 HSV to RGB conversions per second, and also manage the Wifi connection.
+
+You can check the performance of your script with the following command:
+
+.. code:: bash
+
+    $ chromatron keys get vm_loop_time
+
+This will return the number of microseconds your loop function takes to execute.
+
+You can also check the timing of the fader system:
+
+.. code:: bash
+
+    $ chromatron keys get vm_fade_time
 
 
+For reference, with 300 pixels and running the default rainbow script, the faders will run in 800 to 900 microseconds and the script loop itself around 1,000 microseconds.
+
+If your script is running slow, there are a few things you can do to help.
+
+Try lowering the frame rate.  If you are using a high frame rate to achieve smooth fades, consider that the fader system is already trying to do this for you
+.
+
+Make sure you use array operations where possible, they are much faster than looping in the script.
+
+Be aware that the compiler only does *very* basic optimizations. For instance, it will optimize expressions that only involve constants:
+
+.. code:: python
+
+    a = Number()
+    a = 1 + 2 + 3 
+
+The compiler will evaluate this expression and just assign 6 to variable a.
+
+However, it currently does not do more sophisticated optimizations:
+
+.. code:: python
+    
+    a = Number()
+
+    for i in pixels.count:
+        pixels[i].hue = a
+
+        a += 1.0 / pixels.count
+
+In this case, the 1.0 / pixels.count is computed *every* iteration. A faster way is this:
+
+.. code:: python
+    
+    a = Number()
+    b = Number()
+    b = 1.0 / pixels.count
+
+    for i in pixels.count:
+        pixels[i].hue = a
+
+        a += b
+
+Just that change in the rainbow script saves almost 400 microseconds.
 
 
-
-
-
+Finally, note that memory is also constrained. The FX compiler will impose a limit of 128 variables (which includes all of the elements in arrays). The .fxb file format is a somewhat self-contained VM image, so you can use the file size as a reference for how much memory (code and data) your script uses.  The rainbow demo is less than 200 bytes. The VM itself has 4096 bytes allocated, however, a script that actually uses that much memory is unlikely to perform well at high pixel counts.

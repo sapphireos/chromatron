@@ -1,5 +1,5 @@
-Command Line Interface
-======================
+Command Line Interface Reference
+================================
 
 .. click:: chromatron:cli
     :prog: chromatron

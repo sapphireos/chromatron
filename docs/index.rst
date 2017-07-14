@@ -13,6 +13,8 @@ Welcome to Chromatron's documentation!
    overview
    getting_started
    fx_script_guide
+   hardware
+   keyvalue
    cli
 
 Indices and tables
