@@ -7,6 +7,13 @@ Chromatron API Examples
 FX Script
 ---------
 
+Rainbow
+^^^^^^^
+
+.. image:: img/screenshot_rainbow.png
+    :target: https://youtu.be/3myK_MlTOAU
+
+
 .. code-block:: python
 
     # rainbow.fx
@@ -45,10 +52,6 @@ FX Script
             # across the entire array.
             a += 1.0 / pixels.count
 
-.. raw:: html
-
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/bv1z3aF-_1o" frameborder="0" allowfullscreen>
-    </iframe>
 
 
 
