@@ -1,9 +1,7 @@
 Chromatron API Examples
 =======================
 
-.. contents::
 
-   FX Script
 
 
 FX Script
@@ -47,4 +45,44 @@ FX Script
             # across the entire array.
             a += 1.0 / pixels.count
 
+.. raw:: html
 
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/bv1z3aF-_1o" frameborder="0" allowfullscreen>
+    </iframe>
+
+
+
+Command Line
+------------
+
+.. code:: bash
+
+    # Install Python library
+    pip install chromatron
+
+    # Discover devices in living room
+    chromatron --query living_room discover
+
+    # Load rainbow FX script to previous group
+    chromatron vm load rainbow.fx
+
+    # Set master dimmer to 50%
+    chromatron dimmer master 0.5
+                  
+
+Python
+------
+
+.. code-block:: python
+
+    from chromatron import *
+
+    # Discover devices in living room
+    group = DeviceGroup('living_room')
+
+    # Load rainbow effect script
+    group.load_vm('rainbow.fx')
+
+    # Set master dimmer to 50%
+    group.dimmer = 0.5
+                  
