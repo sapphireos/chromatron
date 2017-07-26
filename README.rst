@@ -1,7 +1,7 @@
 Chromatron API Examples
 =======================
 
-
+`Chromatron Wifi Pixel Controller <http://chromatron.io>`_
 
 
 FX Script
