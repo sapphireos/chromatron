@@ -1,0 +1,95 @@
+
+# this is a comment
+# alias var1 as motion_timeout
+
+# alias var2 as motion_detected # also a comment
+# downcounter motion_timeout
+# downcounter timeout2
+var motion_detected
+
+# receive motion_detected from sensors_motion@['motion']
+# send motion_timeout to motion_status@['monitor', 'living_room']
+
+at(day='Monday', hour=8):
+    motion_detected = 1
+end
+
+every(hour=1):
+    motion_detected = 1
+end
+
+
+# when:
+#     motion_detected == 1
+    
+# do:
+#     motion_timeout = 240
+#     # timeout2 = 4
+#     #fx_sat = 0.0
+#     gfx_master_dimmer = 1.0
+# end
+
+
+# when:
+#     motion_detected == 1
+    
+# do:
+#     fx_sat = 1.0
+#     fx_hue = rand()
+# end
+
+
+# when:
+#     motion_detected == 0
+    
+# do:
+#     motion_timeout = 0
+#     # a = Number()
+#     # a = 1.0
+#     # fx_sat = a
+#     gfx_master_dimmer = 0.0
+# end
+
+
+# when:
+#     motion_detected == True or \
+#     motion_timeout > 30
+    
+# do:
+#     motion_timeout = 30
+#     dimmer = 1.0
+#     a_number = Number()
+#     if meow == 3:
+#         dimmer = 0.5 + a_number
+# end
+
+# when: 
+#     every(seconds=1)
+
+# do:
+#     if motion_timeout > 0:
+#         motion_timeout -= 1
+# end
+
+# when:
+#     motion_timeout == 0
+
+# do:
+#     gfx_master_dimmer = 0.0    
+# end
+
+
+# when:
+#     timeout2 == 0
+
+# do:
+#     #fx_sat = 1.0
+#     #fx_hue = rand()
+#     motion_timeout = 4
+# end
+
+# when: 
+#     time(day='Monday', hour=8)
+# do:
+#     motion_detected = True
+# end

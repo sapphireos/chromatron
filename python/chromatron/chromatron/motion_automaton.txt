@@ -1,0 +1,1 @@
+send sensors_motion to motion_detected@['automaton']

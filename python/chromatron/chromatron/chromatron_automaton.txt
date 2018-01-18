@@ -1,0 +1,150 @@
+
+# Chromatron Automaton
+# 
+# Automaton is a rules-engine for automating stuff on Chromatron.
+# The idea is create a simple but flexible way to schedule events and
+# interact with other devices over the network without needing to write
+# custom C code or run a full secondary virtual machine. This system can 
+# be really memory efficient, as it will only have to pull code into memory
+# in response to specific events, and it will only load code that it 
+# actually needs.
+#
+# The are three reasons not to run a second VM:
+# 1. The main CPU is critically low on memory.  VM scripts are entirely
+#    memory resident and we just don't have enough space to do anything 
+#    interesting with it.
+# 2. A rules engine can be fully event driven and execute much more 
+#    efficiently than a general purpose scripting engine.
+# 3. It is preferable to do automation with a declarative syntax, rather
+#    than in a procedural style.
+#
+# What will be really fun with this is that we'll be able to update 
+# automaton scripts live, just like we can with the graphics VM.
+
+
+# Ok, here's what an example script would look like.
+# This script would be triggering the dimmer to turn on
+# in response to a motion sensor from some other node
+# on the network. It will also send it's timeout value
+# to a monitoring node.
+
+alias var1 as motion_timeout
+alias var2 as motion_detected
+
+receive motion_detected from motion@['living_room']
+send motion_timeout to motion_status@['monitor', 'living_room']
+
+when motion_detected == True:
+    motion_timeout = 30
+    dimmer = 1.0
+
+when every(seconds=1):
+    if motion_timeout > 0:
+        motion_timeout -= 1
+
+when motion_timeout == 0:
+    dimmer = 0.0    
+
+when time(day='Monday', hour=8):
+    motion_detected = True
+
+
+
+# Next, I annotate each section to explain my thinking behind the syntax.
+
+# var1 and var2 are general purpose variables in the automation engine.
+# There would be several of these available.
+# They can be used as counters, or to receive or send data to/from the
+# network, etc.
+# One of the major differences between the automation engine and the 
+# graphics VM is the automation engine keeps as little state as possible.
+# The nice thing with this is we can expose these variables in the KV
+# database, making it easy to access them with the command line tools
+# for debugging.
+
+# The alias directive renames a general purpose variable
+alias var1 as motion_timeout
+alias var2 as motion_detected
+
+
+
+# The receive directive tells the link system to receive data
+# from a source query and store it to a local variable.
+# In this case, we're receiving the variable 'motion' from
+# any nodes tagged with 'living_room'.
+#
+# Since you can receive data from multiple sources this way,
+# there would be additional syntax available to choose how to
+# aggregate the received values (such as min, max, average, any, random)
+#
+# Since motion_detected is aliased, the data actually ends up
+# in var2.
+receive motion_detected from motion@['living_room']
+
+# The send directive does the exact reverse of receive.
+# In this case, sending motion_timeout to the destination key
+# of motion_status on any nodes matching both 'monitor' and
+# 'living_room'.
+send motion_timeout to motion_status@['monitor', 'living_room']
+
+# The send/receive commands hook in to an automated pub/sub system
+# built in to the KV database. Basically, we can dynamically link 
+# keys together on any set of Chromatron nodes (and anything use the
+# accompanying Python library) on the local network. This part of the 
+# system is already implemented.
+
+
+# Here we have our actual rules. The automation engine will know which keys
+# trigger which rules and run them accordingly when they change.
+# Rules are basically if/then statements. However, it will be possible
+# to have additional if/then statements within the action part of the rule,
+# but only the first level will be event-driven.
+# So, a rule is "if condition, then action". The conditions are event 
+# driven, but you can still do if/then statements within an action.
+# We use 'when' instead of 'if' for a condition, to help differentiate
+# from an 'if' within an action.
+
+# If we've received an indication from the motion sensor (which is on
+# a different network device), we will reset our timeout variable
+# and turn the lighting dimmer to maximum.
+when motion_detected == True:
+    motion_timeout = 30
+    dimmer = 1.0
+
+# This sets up a time triggered rule, to run every 1 second.
+# The idea here is to have syntax that's cleaner than writing
+# the if logic directly.
+# This rule decrements our timeout counter every 1 second, but only
+# if motion_timeout is greater than 0.
+# The "if motion_timeout > 0" is part of the rule's action, so it would 
+# not be triggered by motion_timeout changing somewhere else.
+when every(seconds=1):
+    if motion_timeout > 0:
+        motion_timeout -= 1
+
+# This rule will trigger any time motion_timeout changes. If it is 0, 
+# we set dimmer to off.
+when motion_timeout == 0:
+    dimmer = 0.0    
+
+# This rule will run every Monday at 8 am and set motion_detected to True,
+# which will trigger the first rule and turn on the dimmer.
+when time(day='Monday', hour=8):
+    motion_detected = True
+
+
+
+# Other things you'd be able to do in actions:
+# basic math expressions
+# looping
+# pretty much anything the graphics VM can do, without the graphics stuff.
+# probably we won't allow function calls for now, unless there's a really
+# good use case for it.
+
+# That's it mostly. The idea is to be able to do high level coordination and
+# scheduling between devices with relative ease. Make it simple to do 90% 
+# of the things. Complex stuff, like making a fuzzy logic controlled
+# thermostat for instance, would be better done in C.
+
+
+

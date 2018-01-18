@@ -1,0 +1,35 @@
+motion == True ->
+    occupied = True
+
+
+
+(photocell > 100) and (room_is_occupied == True) ->
+    dimmer = photocell * 100 + 10
+
+motion == False ->
+    dimmer = 0.0
+
+
+photocell ->
+    dimmer = photocell * 100 + 10
+
+# every(second=1) ->
+#     dimmer = photocell * 100 + 10
+
+if photocell > 100:
+    dimmer = photocell * 100 + 10
+
+
+
+
+at(hour=8, day='Monday') ->
+    dimmer = 1.0
+
+every(hour=1) -> 
+    fx_hue = rand()
+
+
+
+
+
+

@@ -1,0 +1,88 @@
+
+{
+    "LOG_FILENAME": "build.log",
+
+    "CC": "avr-gcc",
+    "AR": "avr-ar",
+        
+    "C_FLAGS": [
+        "-mmcu=atmega128rfa1",
+        "-gdwarf-2",
+        "-DF_CPU=16000000UL",
+        "-D__DELAY_BACKWARD_COMPATIBLE__",        
+        "-Os",
+        "-fstack-usage",
+        "-funsigned-char",
+        "-funsigned-bitfields",
+        "-fpack-struct",
+        "-fshort-enums",
+        "-finline-limit=3",
+        "-fno-inline-small-functions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fconserve-stack",
+        "-mcall-prologues",
+        "-ffreestanding",
+        "-Wall",
+        "-Wsizeof-pointer-memaccess",
+        "-Wsign-compare",
+        "-Wtype-limits",
+        "-Wstrict-prototypes",
+        "-Wundef",
+        "-Wno-uninitialized",
+        "-Wno-unused-but-set-variable",
+        "-Wa,-adhlns=%(OBJ_DIR)/%(SOURCE_FNAME).lst",
+        "-std=gnu99",
+        "-MD",
+        "-MP",
+        "-MF"
+    ],
+    
+    "AR_FLAGS": [
+        "--plugin /usr/local/avr/lib/liblto_plugin.so",
+        "-rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-lm",
+        "-Wl,-u,vfprintf -lprintf_flt",
+        "-Wl,--section-start=.noinit=0x800200",
+        "-Wl,--section-start=.data=0x800208", 
+        "-Wl,--section-start=.fwinfo=0x120",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ],
+    
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".zip",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "OS_PROJECT": "sapphire",
+    "LOADER_PROJECT": "loader",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt"
+}
+
+
+
+
