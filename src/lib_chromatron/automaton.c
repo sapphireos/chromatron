@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#ifdef ENABLE_AUTOMATON
+
 #include "vm_core.h"
 
 #include "hash.h"
@@ -642,3 +644,5 @@ void kv_v_notify_hash_set( uint32_t hash ){
 
     _auto_v_trigger( hash );    
 }
+
+#endif

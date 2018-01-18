@@ -35,7 +35,7 @@
 // #define NO_LOGGING
 #include "logging.h"
 
-
+#ifdef ENABLE_CATBUS_LINK
 typedef struct{
     uint8_t flags;
     catbus_hash_t32 source_hash;
@@ -62,12 +62,14 @@ typedef struct{
 } catbus_receive_data_entry_t;
 
 static bool link_enable;
-static socket_t sock;
 static list_t links;
 static list_t send_list;
 static list_t receive_cache;
 static uint16_t sequence;
 static uint8_t send_list_locked;
+#endif
+
+static socket_t sock;
 static thread_t file_session_thread = -1;
 
 static catbus_hash_t32 meta_tag_hashes[CATBUS_QUERY_LEN];
@@ -117,7 +119,7 @@ static const PROGMEM catbus_hash_t32 meta_tag_names[CATBUS_QUERY_LEN] = {
     CFG_PARAM_META_TAG_7,
 };
 
-
+#ifdef ENABLE_CATBUS_LINK
 static uint16_t links_vfile_handler(
     vfile_op_t8 op,
     uint32_t pos,
@@ -204,6 +206,7 @@ static uint16_t receive_cache_vfile_handler(
 
     return len;
 }
+#endif
 
 static void _catbus_v_setup_tag_hashes( void ){
     
@@ -332,6 +335,7 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+    #ifdef ENABLE_CATBUS_LINK
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         link_enable = FALSE;
@@ -348,6 +352,7 @@ void catbus_v_init( void ){
         fs_f_create_virtual( PSTR("kvrxcache"), receive_cache_vfile_handler );
         fs_f_create_virtual( PSTR("kvsend"), sendlist_vfile_handler );
     }
+    #endif
 
     thread_t_create( catbus_server_thread,
                      PSTR("catbus_server"),
@@ -362,6 +367,7 @@ void catbus_v_init( void ){
 
 void catbus_v_set_options( uint32_t options ){
 
+    #ifdef ENABLE_CATBUS_LINK
     if( options & CATBUS_OPTION_LINK_DISABLE ){
         
         link_enable = FALSE;
@@ -370,6 +376,7 @@ void catbus_v_set_options( uint32_t options ){
 
         link_enable = TRUE;
     }
+    #endif
 }
 
 static void _catbus_v_msg_init( catbus_header_t *header, 
@@ -433,6 +440,7 @@ static bool _catbus_b_query_self( catbus_query_t *query ){
     return TRUE;
 }
 
+#ifdef ENABLE_CATBUS_LINK
 static bool _catbus_b_hash_in_query( catbus_hash_t32 hash, catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
@@ -466,6 +474,7 @@ static bool _catbus_b_compare_queries( catbus_query_t *query1, catbus_query_t *q
 
     return TRUE;
 }
+#endif
 
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
@@ -487,6 +496,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
     sock_i16_sendto_m( sock, h, raddr );
 }
 
+#ifdef ENABLE_CATBUS_LINK
 static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash_t32 dest_hash, sock_addr_t *raddr ){
 
     // check if entry already exists
@@ -525,7 +535,6 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
 
     list_v_insert_tail( &send_list, ln );
 }
-
 
 static bool _catbus_b_compare_links( catbus_link_state_t *state, catbus_link_t link ){
 
@@ -626,7 +635,7 @@ static void _catbus_v_send_link( catbus_link_t link ){
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
-
+#endif
 
 union type_converter{
     bool b;
@@ -851,6 +860,7 @@ int8_t catbus_i8_get(
     return 0;
 }
 
+#ifdef ENABLE_CATBUS_LINK
 catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, catbus_hash_t32 dest_hash, catbus_query_t *dest_query ){
 
     if( !link_enable ){
@@ -928,10 +938,11 @@ end:
     
 PT_END( pt );
 }
-
+#endif
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash ){
 
+    #ifdef ENABLE_CATBUS_LINK
     if( !link_enable ){
 
         return 0;
@@ -981,6 +992,8 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
                      &state,
                      sizeof(state) );
     
+    #endif
+
     return 0;   
 }
 
@@ -1471,6 +1484,7 @@ PT_BEGIN( pt );
             sock_i16_sendto_m( sock, h, 0 );
         }
 
+        #ifdef ENABLE_CATBUS_LINK
         // LINK SYSTEM MESSAGES
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK ){
 
@@ -1596,6 +1610,8 @@ PT_BEGIN( pt );
                 }
             }
         }
+        #endif
+
         // FILE SYSTEM MESSAGES
         else if( header->msg_type == CATBUS_MSG_TYPE_FILE_OPEN ){
 
@@ -1948,9 +1964,10 @@ PT_THREAD( catbus_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    #ifdef ENABLE_CATBUS_LINK
     static list_node_t ln;
     static list_node_t next_ln;
-
+    #endif
 
     while(1){
 
@@ -1976,6 +1993,8 @@ PT_BEGIN( pt );
 
         _catbus_v_send_announce( &raddr, 0 );
 
+
+        #ifdef ENABLE_CATBUS_LINK
         TMR_WAIT( pt, 2 );
 
         if( !link_enable ){
@@ -2096,6 +2115,7 @@ next_send:
 
             ln = next_ln;
         }  
+        #endif
     }
 
 PT_END( pt );

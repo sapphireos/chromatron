@@ -107,7 +107,9 @@ void app_v_init( void ){
 
     time_v_init();
 
+    #ifdef ENABLE_AUTOMATON
     auto_v_init();
+    #endif
 
     svr_v_init();
 }

@@ -23,6 +23,10 @@
 #ifndef _AUTOMATON_H
 #define _AUTOMATON_H
 
+#include "target.h"
+
+#ifdef ENABLE_AUTOMATON
+
 #include "catbus.h"
 
 #define AUTOMATON_KV_TAG            0x40
@@ -105,4 +109,5 @@ void auto_v_init( void );
 
 
 
+#endif
 #endif
