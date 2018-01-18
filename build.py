@@ -22,12 +22,12 @@ def clean():
             pass
 
     for proj in projects:
-        os.system('sapphiremake.py -p %s -c' % (proj))
+        os.system('sapphiremake -p %s -c' % (proj))
 
 
 def build():
     for proj in projects:
-        os.system('sapphiremake.py -p %s -t chromatron' % (proj))
+        os.system('sapphiremake -p %s -t chromatron' % (proj))
 
 
 if __name__ == '__main__':

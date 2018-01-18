@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='sapphire',
 
-    version='0.6.1',
+    version='0.6.2',
 
     packages=['sapphire',
               'sapphire.fields',
