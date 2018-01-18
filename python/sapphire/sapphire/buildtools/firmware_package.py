@@ -175,6 +175,12 @@ def get_most_recent_release():
     return releases[most_recent]
 
 def update_releases():
+    # make sure the package dir exists
+    try:
+        os.makedirs(firmware_package_dir())
+
+    except OSError:
+        pass
     
     # get local releases
     local_releases = get_releases()
@@ -192,7 +198,7 @@ def update_releases():
 
     for release in releases:
         # check if we already have this release
-        if release['name'] in local_releases:
+        if release['tag_name'] in local_releases:
             continue
         
         # we don't have it, let's download it
@@ -208,7 +214,7 @@ def update_releases():
                 f.write(r.content)
 
             # unzip it
-            filedir = os.path.join(firmware_package_dir())
+            filedir = os.path.join(firmware_package_dir(), release['tag_name'])
 
             zf = zipfile.ZipFile(filename)
             zf.extractall(filedir)
@@ -219,9 +225,12 @@ def update_releases():
             # I *really* hate Mac sometimes.
 
             macosx_dir = os.path.join(filedir, "__MACOSX")
-            shutil.rmtree(macosx_dir)
+            try:
+                shutil.rmtree(macosx_dir)
+            except OSError:
+                pass
 
-        new_releases.append(release['name'])
+        new_releases.append(release['tag_name'])
 
     return new_releases
 
