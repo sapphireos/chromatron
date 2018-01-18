@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='chromatron',
 
-    version='0.5.1',
+    version='0.6.2',
 
     packages=['chromatron',
               'chromatron.midi',
@@ -45,6 +45,7 @@ setup(
     long_description=open('README.txt').read(),
 
     install_requires=[
+        "catbus",
         "crcmod == 1.7",
         "click >= 6.6",
         "sapphire >= 0.5",

@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='sapphire',
 
-    version='0.6.2',
+    version='0.6.3',
 
     packages=['sapphire',
               'sapphire.fields',
@@ -47,6 +47,7 @@ setup(
     long_description=open('README.txt').read(),
 
     install_requires=[
+        "catbus",
         "appdirs==1.4.3",
         "requests==2.18.4",
         "setuptools == 34.2.0",
