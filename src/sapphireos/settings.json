@@ -1,0 +1,10 @@
+{
+    "FULL_NAME": "SapphireOS",
+
+    "PROJ_NAME": "sapphire",
+    "PROJ_VERSION": "0.9",
+    
+    "BUILD_TYPE": "os",
+    
+    "FWID": "3b8f8662-6134-436a-94c2-799795183915"
+}

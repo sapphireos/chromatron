@@ -1,0 +1,71 @@
+
+{
+    "LOG_FILENAME": "build.log",
+
+    "CC": "gcc",
+    "AR": "llvm-ar",
+
+    "C_FLAGS": [
+        "-fprofile-arcs",
+        "-ftest-coverage",
+        "-gdwarf-2",
+        "-D__SIM__",
+        "-DF_CPU=16000000UL",
+        "-O0",
+        "-funsigned-char",
+        "-fpack-struct",
+        "-fshort-enums",
+        "-ffunction-sections",
+        "-fno-strict-aliasing",
+        "-fdata-sections",
+        "-ffreestanding",
+        "-Wall",
+        "-Wsizeof-pointer-memaccess",
+        "-Wsign-compare",
+        "-Wtype-limits",
+        "-Wstrict-prototypes",
+        "-Wundef",
+        "-Wno-uninitialized",
+        "-Wno-int-to-pointer-cast",
+        "-Wno-format",
+        "-std=gnu99",
+        "-MD",
+        "-MP",
+        "-MF"
+    ],
+
+    "AR_FLAGS": [
+        "rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "-lm"
+    ],
+
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "OS_PROJECT": "sapphire",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": ["sim"]
+}

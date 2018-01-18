@@ -1,0 +1,21 @@
+{
+    "FULL_NAME": "SapphireOS Bootloader",
+    "PROJ_NAME": "loader_xmega128a4u",
+
+    "FWID": "c08a0f7a-ccf8-43fa-be8a-a065923b637c",
+
+    "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-lm",
+        "-Wl,--section-start=.noinit=0x802000",
+        "-Wl,--section-start=.data=0x802008",
+        "-Wl,--section-start=.fwinfo=0x1FC",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ],
+
+    "BUILD_TYPE": "loader",
+    "DEFINES": ["BOOTLOADER"]
+}
