@@ -22,6 +22,10 @@
 // </license>
  */
 
+#include "target.h"
+
+#ifdef ENABLE_CMD2
+
 #include "cpu.h"
 
 #include "system.h"
@@ -588,4 +592,5 @@ cleanup:
 
 PT_END( pt );
 }
+#endif
 #endif

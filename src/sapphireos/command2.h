@@ -25,6 +25,10 @@
 #ifndef _COMMAND2_H
 #define _COMMAND2_H
 
+#include "target.h"
+
+#ifdef ENABLE_CMD2
+
 #include "config.h"
 #include "keyvalue.h"
 #include "types.h"
@@ -123,4 +127,5 @@ mem_handle_t cmd2_h_process_cmd( const cmd2_header_t *cmd,
                                  int16_t len,
                                  sock_addr_t *src_addr );
 
+#endif
 #endif

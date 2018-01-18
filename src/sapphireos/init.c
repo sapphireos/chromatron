@@ -172,8 +172,10 @@ int8_t sapphire_i8_init( void ){
 
     #endif
 
+    #ifdef ENABLE_CMD2
     // init command interface
     cmd2_v_init();
+    #endif
 
     // init random number generator
     rnd_v_init();

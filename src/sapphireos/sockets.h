@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "netmsg.h"
 
-#define ENABLE_UDPX
+// #define ENABLE_UDPX
 
 #define SOCK_MEM_BUSY_THRESHOLD         1024
 
