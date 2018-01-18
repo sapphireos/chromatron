@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#ifdef ENABLE_TIME_SYNC
+
 #include "config.h"
 #include "graphics.h"
 #include "timesync.h"
@@ -688,3 +690,4 @@ PT_END( pt );
 // }
 
 
+#endif

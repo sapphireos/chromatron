@@ -449,6 +449,7 @@ static int8_t send_run_fader_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
 }
 
+#ifdef ENABLE_TIME_SYNC
 static int8_t send_request_frame_sync_cmd( void ){
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -459,9 +460,8 @@ static int8_t send_request_frame_sync_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, 0, 0 );   
 }
 
-
 static uint16_t current_frame;
-
+#endif
 
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     
@@ -503,6 +503,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         vm_v_received_info( (vm_info_t *)data );
     }
+    #ifdef ENABLE_TIME_SYNC
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
         
         wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
@@ -533,6 +534,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         // current_frame = msg->frame_number;
     }
+    #endif
     else if( data_id == WIFI_DATA_ID_KV_BATCH ){
 
         wifi_msg_kv_batch_t *msg = (wifi_msg_kv_batch_t *)data;
@@ -573,6 +575,7 @@ void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, void *data ){
 }
 
 
+#ifdef ENABLE_TIME_SYNC
 static bool frame_sync;
 static int8_t frame_adjust;
 
@@ -627,17 +630,20 @@ void gfx_v_frame_sync(
         wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
     }
 }
+#endif
 
 void gfx_v_sync_params( void ){
 
     send_params( TRUE );    
 }
 
+#ifdef ENABLE_TIME_SYNC
 void gfx_v_reset_frame_sync( void ){
 
     current_frame = 0;
     frame_sync = FALSE;
 }
+#endif
 
 void gfx_v_set_subscribed_keys( mem_handle_t h ){
 
@@ -658,8 +664,11 @@ void gfx_v_reset_subscribed( void ){
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
+    
+    #ifdef ENABLE_TIME_SYNC
     static uint32_t last_frame_sync_time;
+    #endif
+
     static uint8_t flags;
 
     // wait until wifi is attached before starting up pixel driver
@@ -687,6 +696,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
+            #ifdef ENABLE_TIME_SYNC
             if( frame_adjust < 0 ){
 
                 frame_adjust++;
@@ -696,12 +706,15 @@ PT_BEGIN( pt );
                 // skip this frame
                 goto end;
             }
+            #endif
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_read_keys();
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_run_vm_cmd();
+
+            #ifdef ENABLE_TIME_SYNC
             current_frame++;
 
             if( frame_adjust > 0 ){
@@ -728,6 +741,13 @@ PT_BEGIN( pt );
                 send_request_frame_sync_cmd();
                 last_frame_sync_time = tmr_u32_get_system_time_ms();
             }
+            #else
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            send_read_keys();
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            send_run_vm_cmd();
+            #endif
         }
 
 end:

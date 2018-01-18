@@ -23,6 +23,9 @@
 #ifndef _TIMESYNC_H_
 #define _TIMESYNC_H_
 
+#include "target.h"
+
+#ifdef ENABLE_TIME_SYNC
 
 #include "wifi_cmd.h"
 
@@ -61,4 +64,5 @@ void time_v_init( void );
 void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
 uint32_t time_u32_get_network_time( void );
 
+#endif
 #endif

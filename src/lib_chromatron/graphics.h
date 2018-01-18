@@ -23,6 +23,7 @@
 #ifndef _GRAPHICS_H
 #define _GRAPHICS_H
 
+#include "target.h"
 #include "gfx_lib.h"
 #include "wifi_cmd.h"
 #include "keyvalue.h"
@@ -39,6 +40,7 @@ bool gfx_b_running( void );
 void gfx_v_pixel_bridge_enable( void );
 void gfx_v_pixel_bridge_disable( void );
 
+#ifdef ENABLE_TIME_SYNC
 void gfx_v_frame_sync(
     uint16_t frame_number,
     uint64_t rng_seed,
@@ -47,9 +49,10 @@ void gfx_v_frame_sync(
     int32_t *data
 );
 
+void gfx_v_reset_frame_sync( void );
+#endif
 
 void gfx_v_sync_params( void );
-void gfx_v_reset_frame_sync( void );
 
 void gfx_v_set_subscribed_keys( mem_handle_t h );
 void gfx_v_reset_subscribed( void );
