@@ -4,6 +4,12 @@ Chromatron
 `Chromatron Wifi Pixel Controller <http://chromatron.io>`_
 
 
+Support
+-------
+
+`Chromatron Google Group <https://groups.google.com/forum/#!forum/chromatron>`_
+
+
 Build Instructions
 ------------------
 
