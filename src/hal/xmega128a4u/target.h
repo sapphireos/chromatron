@@ -38,7 +38,7 @@
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
-// #define ENABLE_POWER
+#define ENABLE_POWER
 #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
 

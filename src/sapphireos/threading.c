@@ -753,10 +753,8 @@ void thread_start( void ){
             usb_v_poll();
             #endif
 		}
-
-        // EVENT( EVENT_ID_DEBUG_6, 0 );
+        
         mem2_v_collect_garbage();
-        // EVENT( EVENT_ID_DEBUG_6, 1 );
 
 		// ********************************************************************
 		// Check for sleep conditions
@@ -768,10 +766,8 @@ void thread_start( void ){
             ( thread_u16_get_signals() == 0 ) ){
 
             uint32_t ticks = tmr_u32_get_ticks();
-
-            // EVENT( EVENT_ID_DEBUG_6, 2 );
+            
             pwr_v_sleep();
-            // EVENT( EVENT_ID_DEBUG_6, 3 );
             // zzzzzzzzzzzzz
 
             sleep_us += tmr_u32_ticks_to_us( tmr_u32_elapsed_ticks( ticks ) );

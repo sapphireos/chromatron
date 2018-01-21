@@ -175,9 +175,6 @@ OS_IRQ_BEGIN(TCC1_CCA_vect);
     // reset alarm
     alarm_armed = FALSE;
 
-    #ifdef ENABLE_POWER
-    pwr_v_wake_up( PWR_WAKE_SOURCE_TIMER );
-    #endif
 
 end:
 OS_IRQ_END();
