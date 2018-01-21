@@ -160,4 +160,6 @@ void loop(){
 
         stats->mem_max_time = stats->mem_run_time;
     }
+
+    delay(1);
 }
