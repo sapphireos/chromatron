@@ -72,7 +72,7 @@ void setup(){
 
     Serial.end();
 
-    system_update_cpu_freq( SYS_CPU_160MHZ );
+    system_update_cpu_freq( SYS_CPU_80MHZ );
 
     rnd_v_init();
 
@@ -159,6 +159,16 @@ void loop(){
     if( stats->mem_run_time > stats->mem_max_time ){
 
         stats->mem_max_time = stats->mem_run_time;
+    }
+
+    if( stats->vm_max_time > 2000 ){
+
+        intf_v_printf( "CPU CLK -> 160 MHz" );
+
+        system_update_cpu_freq( SYS_CPU_160MHZ );        
+
+        // reset max time so we compute a new one with the new clock frequency
+        stats->vm_max_time = 0;
     }
 
     delay(1);
