@@ -1971,7 +1971,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
+        TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
         // check if there is received data pending
         THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock) > 0 );
@@ -2084,7 +2084,7 @@ next_send:
 
             catbus_send_data_entry_t *entry = (catbus_send_data_entry_t *)list_vp_get_data( ln );
 
-            entry->ttl -= 4;
+            entry->ttl -= CATBUS_ANNOUNCE_INTERVAL;
 
             if( entry->ttl < 0 ){
 
@@ -2105,7 +2105,7 @@ next_send:
 
             catbus_receive_data_entry_t *entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
 
-            entry->ttl -= 4;
+            entry->ttl -= CATBUS_ANNOUNCE_INTERVAL;
 
             if( entry->ttl < 0 ){
 

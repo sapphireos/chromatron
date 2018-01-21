@@ -33,7 +33,7 @@
 #define CATBUS_DISCOVERY_PORT               44632
 #define CATBUS_VERSION                      1
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
-
+#define CATBUS_ANNOUNCE_INTERVAL            8 // in seconds
 
 typedef struct __attribute__((packed)){
     catbus_meta_t meta;
