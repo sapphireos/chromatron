@@ -3814,13 +3814,16 @@ class CodeGeneratorPass7(object):
             padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
             meta_data += padded_string
 
-        # compute crc for meta
-        meta_crc = crc16_func(meta_data)
-        # print meta_crc, type(meta_crc), type(meta_data)
-        meta_data += struct.pack('>H', meta_crc)
+        # # compute crc for meta
+        # meta_crc = crc16_func(meta_data)
+        # # print meta_crc, type(meta_crc), type(meta_data)
+        # meta_data += struct.pack('>H', meta_crc)
 
         # add meta data to end of stream
         stream += meta_data
+
+        file_hash = catbus_string_hash(stream)
+        stream += struct.pack('<L', file_hash)
 
         self.state.update(
                {'stream': stream,
