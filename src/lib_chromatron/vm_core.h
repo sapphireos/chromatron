@@ -60,6 +60,8 @@
 #define VM_STATUS_PUBLISH_VARS_MISALIGN -46
 #define VM_STATUS_PIXEL_MISALIGN        -47
 
+#define VM_STATUS_RESTRICTED_KEY        -70
+
 #define VM_STATUS_ASSERT                -99
 #define VM_STATUS_TRAP                  -100
 #define VM_STATUS_HALT                  1

@@ -99,6 +99,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 static thread_t vm_thread;
 #endif
 
+static const PROGMEM uint32_t restricted_keys[] = {
+    __KV__reboot,
+};
 
 static void reset_published_data( void ){
 
@@ -322,6 +325,40 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         gfx_v_set_subscribed_keys( h );        
     }
 
+    // check write keys
+    fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
+
+    for( uint8_t i = 0; i < state.write_keys_count; i++ ){
+
+        uint32_t write_hash = 0;
+        fs_i16_read( f, (uint8_t *)&write_hash, sizeof(write_hash) );
+
+        if( write_hash == 0 ){
+
+            continue;
+        }
+
+        for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
+
+            uint32_t restricted_key = 0;
+            memcpy_P( (uint8_t *)&restricted_key, &restricted_keys[j], sizeof(restricted_key) );
+
+            if( restricted_key == 0 ){
+
+                continue;
+            }   
+
+            // check for match
+            if( restricted_key == write_hash ){
+
+                vm_info.status = VM_STATUS_RESTRICTED_KEY;
+
+                log_v_debug_P( PSTR("Restricted key: %lu"), write_hash );
+
+                goto error;
+            }
+        }        
+    }
 
     fs_f_close( f );
 
