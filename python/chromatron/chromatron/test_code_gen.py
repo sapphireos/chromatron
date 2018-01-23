@@ -1140,9 +1140,35 @@ def init():
 """
 
 
+test_db_access = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    a = 2
+    a += db.kv_test_key + 1
+
+    b = db.kv_test_key
+    
+    db.kv_test_key = a
+
+"""
+
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_db_access(self):
+        self.run_test(test_db_access,
+            expected={
+                'a': 126,
+                'b': 123,
+                'kv_test_key': 126,
+            })
 
     def test_empty(self):
         self.run_test(empty_program,
@@ -1886,7 +1912,11 @@ class CGTestsOnDevice(CGTestsBase):
         ct.init_scan()
 
         for reg, expected_value in expected.iteritems():
-            actual = ct.get_vm_reg(str(reg))
+            if reg == 'kv_test_key':
+                actual = ct.get_key(reg)
+
+            else:
+                actual = ct.get_vm_reg(str(reg))
 
             self.assertEqual(expected_value, actual)
             
