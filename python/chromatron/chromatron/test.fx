@@ -16,4 +16,4 @@ def init():
     e += test(1, 2) + test(3, 4)
 
 def loop():
-    pass
+    halt()
