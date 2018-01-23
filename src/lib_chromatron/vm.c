@@ -99,8 +99,20 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 static thread_t vm_thread;
 #endif
 
+// keys that we really don't want the VM be to be able to write to.
+// generally, these are going to be things that would allow it to 
+// brick hardware, mess up the wifi connection, or mess up the pixel 
+// array.
 static const PROGMEM uint32_t restricted_keys[] = {
     __KV__reboot,
+    __KV__wifi_enable_ap,
+    __KV__wifi_fw_len,
+    __KV__wifi_md5,
+    __KV__wifi_router,
+    __KV__pix_clock,
+    __KV__pix_count,
+    __KV__pix_mode,
+    __KV__catbus_data_port,    
 };
 
 static void reset_published_data( void ){
