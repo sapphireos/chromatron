@@ -484,6 +484,8 @@ static int8_t load_vm_local( kv_id_t8 prog_id ){
 
 error:
 
+    reset_published_data();
+
     fs_f_close( f );
 
     return -1;
