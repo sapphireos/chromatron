@@ -3,7 +3,7 @@ FX Script Guide
 
 FX Script is a scripting language for creating graphics on LED pixels (such as WS2801, APA102, Neopixels, etc).  It is a simple, procedural language that uses Python syntax and runs on a custom designed virtual machine.
 
-The language is designed for simplicity.  This makes it easy to learn and easy to run on resource constrained hardware (low power microcontrollers with less than 10 KB of RAM).  The virtual machine has a built in graphics system and optimizes common operations for pixel graphics to allow it to run as fast as possible.
+The language is designed for simplicity.  This makes it easy to learn and easy to run on resource constrained hardware (low power microcontrollers with less than 10 KB of RAM).  The virtual machine has a built in graphics system and optimizes common operations for pixel graphics to allow it to run as fast as possible.  The compiler can operate in a live mode to allow instant code updates to any devices on the network.
 
 The memory constraints and speed optimizations mean the language must be limited in many respects.  Object oriented programming, advanced data structures, exception handling, strings, floating point math, and even recursion are not supported.  The goal is to enable rapid development of pixel graphics for small to moderately sized projects (generally 300 pixels or less). If you need full 3D graphics across 20,000 pixels, FX Script is probably not the tool for you.  However, if you want to do live code updates on more modest projects, FX Script can dramatically improve productivity.
 
@@ -178,7 +178,7 @@ Floats
 
 Floating point numbers are a shortcut to represent integer values in the graphics system. They do *not* behave like normal floating point numbers in Python.  Remember - the underlying virtual machine only understands integers.
 
-All internal graphics parameters are represented as 16 bit integers (0 to 65535). However, it is often simpler to represent these values as a floating point number between 0.0 and 1.0. Thus, in FX Script the number 0.5 represents the integer 32768. You can use these special floats in expressions, such as 0.1 + 0.1, but be aware that something like 0.5 * 0.5 may not do what you expect.  Instead of yielding 16384 (0.25), you will actually get 32768 * 32768 = 1,073,741,824.  It is generally best to avoid complex math with the floating point representation.
+Most internal graphics parameters are represented as 16 bit integers (0 to 65535). However, it is often simpler to represent these values as a floating point number between 0.0 and 1.0. Thus, in FX Script the number 0.5 represents the integer 32768. You can use these special floats in expressions, such as 0.1 + 0.1, but be aware that something like 0.5 * 0.5 may not do what you expect.  Instead of yielding 16384 (0.25), you will actually get 32768 * 32768 = 1,073,741,824.  It is generally best to avoid complex math with the floating point representation.
 
 
 Graphics System
