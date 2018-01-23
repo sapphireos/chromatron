@@ -1640,13 +1640,22 @@ def reload(ctx):
     for ct in group.itervalues():
         echo_name(ct, nl=False)
 
-        prog = ct.get_key('vm_prog')
+        try:
+            prog = ct.get_key('vm_prog')
 
-        filename, ext = os.path.splitext(prog)
-        filename += '.fx'        
+            filename, ext = os.path.splitext(prog)
+            filename += '.fx'        
 
-        click.echo(" %s" % (filename))
-        ct.load_vm(filename)
+            ct.load_vm(filename)
+
+            click.echo(" %s" % (filename))
+            
+        except KeyError:
+            click.echo(" No VM program - skipping")
+
+        except IOError:
+            click.echo(" File not found: %s" % (filename))
+
 
 
 @cli.command()
