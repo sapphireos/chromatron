@@ -541,8 +541,8 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         for( uint8_t i = 0; i < msg->count; i++ ){
 
-            log_v_debug_P( PSTR("from ESP: %lu %ld"), msg->entries[i].hash, msg->entries[i].data );
-            
+            // log_v_debug_P( PSTR("from ESP: %lx %ld"), msg->entries[i].hash, msg->entries[i].data );
+
             catbus_i8_set( msg->entries[i].hash, msg->entries[i].data );
         }
     }
@@ -571,9 +571,9 @@ void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, void *data ){
     
     uint8_t msg_size = ( sizeof(batch) - sizeof(batch.entries) ) + sizeof(batch.entries[0]);
 
-    log_v_debug_P(PSTR("set to ESP: %lu %ld"), hash, i32_data);
+    // log_v_debug_P(PSTR("set to ESP: %lx %ld"), hash, i32_data);
 
-    // wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, msg_size );     
+    wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, msg_size );     
 }
 
 

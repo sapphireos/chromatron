@@ -351,9 +351,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
             
             // load hash to database
-            int8_t status = kvdb_i8_add( hash_u32_string( meta_string ), 0, VM_KV_TAG, meta_string );
-
-            log_v_debug_P( PSTR("%s %lx -> %d"), meta_string, hash_u32_string( meta_string ), status);
+            kvdb_i8_add( hash_u32_string( meta_string ), 0, VM_KV_TAG, meta_string );
 
             memset( meta_string, 0, sizeof(meta_string) );
         }
@@ -570,10 +568,11 @@ PT_BEGIN( pt );
         }
 
         if( vm_info.return_code == VM_STATUS_HALT ){
-            
+
+            vm_run = FALSE;
             vm_mode = VM_FINISHED;
         }
-        
+
         if( vm_mode == VM_STARTUP ){
 
             vm_mode = VM_RUNNING;
