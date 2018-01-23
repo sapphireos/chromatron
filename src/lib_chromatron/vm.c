@@ -569,6 +569,11 @@ PT_BEGIN( pt );
             goto error;
         }
 
+        if( vm_info.return_code == VM_STATUS_HALT ){
+            
+            vm_mode = VM_FINISHED;
+        }
+        
         if( vm_mode == VM_STARTUP ){
 
             vm_mode = VM_RUNNING;

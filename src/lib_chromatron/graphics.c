@@ -541,9 +541,9 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         for( uint8_t i = 0; i < msg->count; i++ ){
 
-            catbus_i8_set( msg->entries[i].hash, msg->entries[i].data );
-
             log_v_debug_P( PSTR("from ESP: %lu %ld"), msg->entries[i].hash, msg->entries[i].data );
+            
+            catbus_i8_set( msg->entries[i].hash, msg->entries[i].data );
         }
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){

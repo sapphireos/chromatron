@@ -694,6 +694,11 @@ void intf_v_request_status( void ){
     request_status = true;
 }
 
+void intf_v_request_vm_info( void ){
+
+    request_vm_info = true;
+}
+
 void intf_v_request_rgb_pix0( void ){
 
     request_rgb_pix0 = true;

@@ -57,6 +57,12 @@ static int8_t _vm_i8_run_vm( bool init ){
         return -20;
     }
 
+    // check that VM has not halted:
+    if( vm_info.return_code == VM_STATUS_HALT ){
+
+        return 0;
+    }
+
     int32_t *data_table = (int32_t *)&vm_slab[vm_state.data_start];
 
     // init pixel array pointer
@@ -89,6 +95,12 @@ static int8_t _vm_i8_run_vm( bool init ){
     else{
 
         return_code = vm_i8_run_loop( vm_slab, &vm_state );
+    }
+
+    // if return is anything other than OK, send status immediately
+    if( return_code != 0 ){
+
+        intf_v_request_vm_info();
     }
 
     uint32_t end_time = micros();
