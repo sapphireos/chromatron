@@ -1072,20 +1072,6 @@ def init():
 
 """
 
-kv_set_get_key = """
-
-a = Number(publish=True)
-b = Number(publish=True)
-
-def init():
-    setkey('kv_test_key', 32767)
-    a = getkey('kv_test_key')
-
-    setkey('kv_test_key', 1)
-    b = getkey('kv_test_key')
-
-"""
-
 
 pixel_array = """
 
@@ -1409,13 +1395,6 @@ class CGTestsBase(unittest.TestCase):
         # we can compile without a loop function.
         self.run_test(no_loop_function,
             expected={
-            })
-
-    def test_kv_set_get_key(self):
-        self.run_test(kv_set_get_key,
-            expected={
-                'a': 32767,
-                'b': 1,
             })
 
     def test_pixel_array(self):
@@ -1889,21 +1868,24 @@ class CGTestsLocal(CGTestsBase):
                 raise
 
 
-# import chromatron
-# import time
+import chromatron
+import time
 
-# class CGTestsOnDevice(CGTestsBase):
-#     def run_test(self, program, expected={}):
-#         ct = chromatron.Chromatron(host='usb', force_network=True)
+class CGTestsOnDevice(CGTestsBase):
+    def run_test(self, program, expected={}):
+        # ct = chromatron.Chromatron(host='usb', force_network=True)
+        ct = chromatron.Chromatron(host='10.0.0.108',)
 
-#         ct.load_vm(bin_data=program)
+        ct.load_vm(bin_data=program)
 
-#         time.sleep(0.2)
+        time.sleep(0.5)
 
-#         for reg, expected_value in expected.iteritems():
-#             actual = ct.get_vm_reg(str(reg))
+        ct.init_scan()
 
-#             self.assertEqual(expected_value, actual)
+        for reg, expected_value in expected.iteritems():
+            actual = ct.get_vm_reg(str(reg))
+
+            self.assertEqual(expected_value, actual)
             
 
 

@@ -303,12 +303,18 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         // skip first string, it's the script name
         fs_v_seek( f, fs_i32_tell( f ) + sizeof(meta_string) );
 
-        while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
+        int16_t status = fs_i16_read( f, meta_string, sizeof(meta_string) );
+        // while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
+        while( status == sizeof(meta_string) ){
             
             // load hashes
             kvdb_i8_add( hash_u32_string( meta_string ), 0, VM_KV_TAG, meta_string );
 
+            log_v_debug_P(PSTR("load var: %s %d"), meta_string, status);
+
             memset( meta_string, 0, sizeof(meta_string) );
+
+            status = fs_i16_read( f, meta_string, sizeof(meta_string) );
         }
     }
     else{

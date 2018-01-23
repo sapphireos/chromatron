@@ -1155,9 +1155,6 @@ class CodeGeneratorPass1(object):
             return ConstantNode(tree.n, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Str):
-            if tree.s in parameters:
-                return ParameterNode(name=tree.s, line_no=tree.lineno)
-
             return StringNode(tree.s)
 
         elif isinstance(tree, ast.Tuple):
@@ -4888,7 +4885,7 @@ if __name__ == '__main__':
     with open(path) as f:
         text = f.read()
 
-    stream = compile_text(text, debug_print=True)['stream']
+    stream = compile_text(text, debug_print=True, script_name=script_name)['stream']
 
     try:
         output_path = sys.argv[2]
