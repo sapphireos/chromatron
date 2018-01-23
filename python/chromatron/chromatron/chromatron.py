@@ -1630,6 +1630,25 @@ def load(ctx, filename, live):
         watcher.stop()
 
 
+@vm.command()
+@click.pass_context
+def reload(ctx):
+    """Recompile and reload the FX script on device"""
+
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        echo_name(ct, nl=False)
+
+        prog = ct.get_key('vm_prog')
+
+        filename, ext = os.path.splitext(prog)
+        filename += '.fx'        
+
+        click.echo(" %s" % (filename))
+        ct.load_vm(filename)
+
+
 @cli.command()
 @click.pass_context
 @click.argument('filename')
