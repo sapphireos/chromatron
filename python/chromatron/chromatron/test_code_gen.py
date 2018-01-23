@@ -1077,10 +1077,10 @@ pixel_array = """
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-a = Number()
-b = Number()
-c = Number()
-d = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
     a = p1.index
@@ -1092,14 +1092,14 @@ def init():
 
 multiple_comparison = """
    
-a = Number()
-b = Number()
-c = Number()
-d = Number()
-e = Number()
-f = Number()
-g = Number()
-h = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+g = Number(publish=True)
+h = Number(publish=True)
 
 def init():
     a = 1
@@ -1124,10 +1124,10 @@ def init():
 
 test_not = """
 
-a = Number()
-b = Number()
-c = Number()
-d = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
     a = not 1
