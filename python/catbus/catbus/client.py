@@ -683,12 +683,12 @@ if __name__ == '__main__':
 
     c = Client()
 
-    c.discover()
+    # c.discover()
 
-    # for node in c.discover('arc2').values():
-    #     pprint(node)
+    # for node in c.discover().values():
+        # pprint(node)
 
-    # c.connect(('10.0.0.137', 44632))
+    c.connect(('10.0.0.122', 44632))
 
     # c.delete_file('rainbow.fxb')
 
