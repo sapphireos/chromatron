@@ -1268,7 +1268,7 @@ PT_BEGIN( pt );
 
                 item_count = CATBUS_MAX_KEY_META;
             }
-            else if( item_count < 1 ){
+            else if( item_count < 0 ){
 
                 error = CATBUS_ERROR_PROTOCOL_ERROR;
                 goto end;
