@@ -1130,7 +1130,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
         for i in xrange(50):
             try:
-                ct.get_key('wifi_status_reg')
+                ct.get_key('ip')
 
                 click.echo('Finished rebooting, waiting for connection')
                 break
@@ -1142,7 +1142,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
         for i in xrange(50):
             try:
-                if ct.get_key('wifi_status_reg') > 0:
+                if ct.get_key('ip') != '0.0.0.0':
                     connected = True
                     break
 
