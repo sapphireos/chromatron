@@ -152,6 +152,7 @@ extern bool cfg_b_is_gateway( void ) __attribute__((weak));
 
 bool cfg_b_get_boolean( catbus_hash_t32 parameter );
 
+void cfg_v_reset_on_next_boot( void );
 void cfg_v_default_all( void );
 
 void cfg_v_write_config( void );

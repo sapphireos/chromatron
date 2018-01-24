@@ -906,6 +906,10 @@ void cfg_v_set_key128( catbus_hash_t32 parameter, uint8_t *value ){
     cfg_v_set( parameter, value );
 }
 
+void cfg_v_reset_on_next_boot( void ){
+
+    cfg_v_erase( CFG_PARAM_VERSION );
+}
 
 // write default values to all config items
 void cfg_v_default_all( void ){
