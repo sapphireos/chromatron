@@ -57,6 +57,12 @@ static int8_t _vm_i8_run_vm( bool init ){
         return -20;
     }
 
+    // check that VM has not halted:
+    if( vm_info.return_code == VM_STATUS_HALT ){
+
+        return 0;
+    }
+
     int32_t *data_table = (int32_t *)&vm_slab[vm_state.data_start];
 
     // init pixel array pointer
@@ -91,6 +97,12 @@ static int8_t _vm_i8_run_vm( bool init ){
         return_code = vm_i8_run_loop( vm_slab, &vm_state );
     }
 
+    // if return is anything other than OK, send status immediately
+    if( return_code != 0 ){
+
+        intf_v_request_vm_info();
+    }
+
     uint32_t end_time = micros();
     uint32_t elapsed;
 
@@ -113,7 +125,20 @@ static int8_t _vm_i8_run_vm( bool init ){
     // reset send list
     list_v_destroy( &kv_send_list );
 
-    // load published vars
+    // store published vars back to DB
+    publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
+
+    count = vm_state.publish_count;
+
+    while( count > 0 ){
+
+        kvdb_i8_set( publish->hash, data_table[publish->addr] );
+
+        publish++;
+        count--;
+    }
+
+    // load published vars to messages for transport
     publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
 
     count = vm_state.publish_count;
@@ -337,13 +362,13 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
         }
 
         count = vm_state.publish_count;
-        hash = (uint32_t *)&vm_slab[vm_state.publish_start];
+        vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
     
         while( count > 0 ){        
 
-            kvdb_i8_add( *hash, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( publish->hash, 0, KVDB_VM_RUNNER_TAG, 0 );
 
-            hash++;
+            publish++;
             count--;
         }
 

@@ -135,13 +135,13 @@ def decode_warnings(flags):
 
     return warnings
 
-SYS_REBOOT_NORMAL    = 1
-SYS_REBOOT_SAFE     = -2
-SYS_REBOOT_NOAPP    = -3 # not yet supported
-SYS_REBOOT_LOADFW   = -4
-SYS_REBOOT_FORMATFS = -5
-SYS_REBOOT_RECOVERY = -6
-
+SYS_REBOOT_NORMAL           = 1
+SYS_REBOOT_SAFE             = -2
+SYS_REBOOT_NOAPP            = -3 # not yet supported
+SYS_REBOOT_LOADFW           = -4
+SYS_REBOOT_FORMATFS         = -5
+SYS_REBOOT_RECOVERY         = -6
+SYS_REBOOT_RESET_CONFIG     = -7
 
 
 CLI_PREFIX = 'cli_'
@@ -513,10 +513,6 @@ class Device(object):
 
         return responses
 
-    def reset_config(self):
-        raise NotImplementedError
-        
-
     def set_security_key(self, key_id, key):
         raise NotImplementedError
         
@@ -541,6 +537,9 @@ class Device(object):
 
     def reboot_recovery(self):
         return self.set_key('reboot', SYS_REBOOT_RECOVERY)
+
+    def reset_config(self):
+        return self.set_key('reboot', SYS_REBOOT_RESET_CONFIG)
 
     def delete_file(self, filename):
         self._client.delete_file(filename)

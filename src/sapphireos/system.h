@@ -66,11 +66,12 @@ typedef struct{
 	uint16_t rev;
 } hw_info_t;
 
-#define SYS_REBOOT_SAFE     -2
-#define SYS_REBOOT_NOAPP    -3 // not yet supported
-#define SYS_REBOOT_LOADFW   -4
-#define SYS_REBOOT_FORMATFS -5
-#define SYS_REBOOT_RECOVERY -6
+#define SYS_REBOOT_SAFE         -2
+#define SYS_REBOOT_NOAPP        -3 // not yet supported
+#define SYS_REBOOT_LOADFW       -4
+#define SYS_REBOOT_FORMATFS     -5
+#define SYS_REBOOT_RECOVERY     -6
+#define SYS_REBOOT_RESET_CONFIG -7
 
 typedef uint8_t sys_mode_t8;
 #define SYS_MODE_NORMAL     0

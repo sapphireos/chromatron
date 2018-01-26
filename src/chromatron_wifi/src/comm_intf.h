@@ -42,6 +42,7 @@ void intf_v_led_off( void );
 void intf_v_init( void );
 void intf_v_process( void );
 void intf_v_request_status( void );
+void intf_v_request_vm_info( void );
 void intf_v_request_rgb_pix0( void );
 void intf_v_request_rgb_array( void );
 void intf_v_request_vm_frame_sync( void );

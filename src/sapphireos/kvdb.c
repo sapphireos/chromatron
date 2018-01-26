@@ -421,6 +421,7 @@ int8_t kvdb_i8_delete( catbus_hash_t32 hash ){
 
         _kvdb_v_sort();
 
+        // reset cache
         cached_index = -1;
 
         return KVDB_STATUS_OK;
@@ -451,6 +452,9 @@ void kvdb_v_delete_tag( uint8_t tag ){
             kv_count--;
         }
     }
+
+    // reset cache
+    cached_index = -1;
 
     _kvdb_v_sort();
 }

@@ -1155,9 +1155,6 @@ class CodeGeneratorPass1(object):
             return ConstantNode(tree.n, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Str):
-            if tree.s in parameters:
-                return ParameterNode(name=tree.s, line_no=tree.lineno)
-
             return StringNode(tree.s)
 
         elif isinstance(tree, ast.Tuple):
@@ -3817,13 +3814,16 @@ class CodeGeneratorPass7(object):
             padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
             meta_data += padded_string
 
-        # compute crc for meta
-        meta_crc = crc16_func(meta_data)
-        # print meta_crc, type(meta_crc), type(meta_data)
-        meta_data += struct.pack('>H', meta_crc)
+        # # compute crc for meta
+        # meta_crc = crc16_func(meta_data)
+        # # print meta_crc, type(meta_crc), type(meta_data)
+        # meta_data += struct.pack('>H', meta_crc)
 
         # add meta data to end of stream
         stream += meta_data
+
+        file_hash = catbus_string_hash(stream)
+        stream += struct.pack('<L', file_hash)
 
         self.state.update(
                {'stream': stream,
@@ -4888,7 +4888,7 @@ if __name__ == '__main__':
     with open(path) as f:
         text = f.read()
 
-    stream = compile_text(text, debug_print=True)['stream']
+    stream = compile_text(text, debug_print=True, script_name=script_name)['stream']
 
     try:
         output_path = sys.argv[2]

@@ -99,6 +99,21 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 static thread_t vm_thread;
 #endif
 
+// keys that we really don't want the VM be to be able to write to.
+// generally, these are going to be things that would allow it to 
+// brick hardware, mess up the wifi connection, or mess up the pixel 
+// array.
+static const PROGMEM uint32_t restricted_keys[] = {
+    __KV__reboot,
+    __KV__wifi_enable_ap,
+    __KV__wifi_fw_len,
+    __KV__wifi_md5,
+    __KV__wifi_router,
+    __KV__pix_clock,
+    __KV__pix_count,
+    __KV__pix_mode,
+    __KV__catbus_data_port,    
+};
 
 static void reset_published_data( void ){
 
@@ -225,7 +240,52 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         goto error;
     }
 
+    // buffer for reading file data
+    uint8_t chunk[64];
+
+    fs_v_seek( f, 0 );    
+    int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
+
+    uint32_t computed_file_hash = hash_u32_start();
+
+    // check file hash
+    while( check_len > 0 ){
+
+        uint16_t copy_len = sizeof(chunk);
+
+        if( copy_len > check_len ){
+
+            copy_len = check_len;
+        }
+
+        int16_t read = fs_i16_read( f, chunk, copy_len );
+
+        if( read < 0 ){
+
+            // this should not happen. famous last words.
+            goto error;
+        }
+
+        // update hash
+        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
+        
+        check_len -= read;
+    }
+
+    // read file hash
+    uint32_t file_hash = 0;
+    fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
+
+    // check hashes
+    if( file_hash != computed_file_hash ){
+
+        log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
+        vm_run = FALSE;
+        goto error;
+    }
+
     // read header
+    fs_v_seek( f, sizeof(vm_size) );    
     vm_program_header_t header;
     fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
 
@@ -236,6 +296,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
     if( status < 0 ){
 
         log_v_debug_P( PSTR("VM load error: %d"), status );
+        vm_run = FALSE;
         goto error;
     }
 
@@ -244,7 +305,6 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
     while( vm_size > 0 ){
 
-        uint8_t chunk[64];
         uint16_t copy_len = sizeof(chunk);
 
         if( copy_len > vm_size ){
@@ -290,7 +350,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
         while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
             
-            // load hashes
+            // load hash to database
             kvdb_i8_add( hash_u32_string( meta_string ), 0, VM_KV_TAG, meta_string );
 
             memset( meta_string, 0, sizeof(meta_string) );
@@ -322,6 +382,40 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         gfx_v_set_subscribed_keys( h );        
     }
 
+    // check write keys
+    fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
+
+    for( uint8_t i = 0; i < state.write_keys_count; i++ ){
+
+        uint32_t write_hash = 0;
+        fs_i16_read( f, (uint8_t *)&write_hash, sizeof(write_hash) );
+
+        if( write_hash == 0 ){
+
+            continue;
+        }
+
+        for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
+
+            uint32_t restricted_key = 0;
+            memcpy_P( (uint8_t *)&restricted_key, &restricted_keys[j], sizeof(restricted_key) );
+
+            if( restricted_key == 0 ){
+
+                continue;
+            }   
+
+            // check for match
+            if( restricted_key == write_hash ){
+
+                vm_info.status = VM_STATUS_RESTRICTED_KEY;
+
+                log_v_debug_P( PSTR("Restricted key: %lu"), write_hash );
+
+                goto error;
+            }
+        }        
+    }
 
     fs_f_close( f );
 
@@ -389,6 +483,8 @@ static int8_t load_vm_local( kv_id_t8 prog_id ){
     return 0;
 
 error:
+
+    reset_published_data();
 
     fs_f_close( f );
 
@@ -469,6 +565,12 @@ PT_BEGIN( pt );
         if( vm_info.return_code < 0 ){
 
             goto error;
+        }
+
+        if( vm_info.return_code == VM_STATUS_HALT ){
+
+            vm_run = FALSE;
+            vm_mode = VM_FINISHED;
         }
 
         if( vm_mode == VM_STARTUP ){

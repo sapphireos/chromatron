@@ -1130,7 +1130,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
         for i in xrange(50):
             try:
-                ct.get_key('wifi_status_reg')
+                ct.get_key('ip')
 
                 click.echo('Finished rebooting, waiting for connection')
                 break
@@ -1142,7 +1142,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
         for i in xrange(50):
             try:
-                if ct.get_key('wifi_status_reg') > 0:
+                if ct.get_key('ip') != '0.0.0.0':
                     connected = True
                     break
 
@@ -1628,6 +1628,34 @@ def load(ctx, filename, live):
             pass
 
         watcher.stop()
+
+
+@vm.command()
+@click.pass_context
+def reload(ctx):
+    """Recompile and reload the FX script on device"""
+
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        echo_name(ct, nl=False)
+
+        try:
+            prog = ct.get_key('vm_prog')
+
+            filename, ext = os.path.splitext(prog)
+            filename += '.fx'        
+
+            ct.load_vm(filename)
+
+            click.echo(" %s" % (filename))
+            
+        except KeyError:
+            click.echo(" No VM program - skipping")
+
+        except IOError:
+            click.echo(" File not found: %s" % (filename))
+
 
 
 @cli.command()

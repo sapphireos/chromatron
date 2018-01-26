@@ -519,11 +519,16 @@ class Client(object):
 
         return file_data
 
-    def write_file(self, filename, file_data=None, progress=None):
+    def write_file(self, filename, file_data=None, progress=None, delete_existing=True):
         if file_data is None:
             f = open(filename, 'r')
             file_data = f.read()
             f.close()
+
+        if delete_existing:
+            # delete existing file first
+            self.delete_file(filename)
+
 
         msg = FileOpenMsg(
                 flags=CATBUS_MSG_FILE_FLAG_WRITE,
@@ -678,12 +683,12 @@ if __name__ == '__main__':
 
     c = Client()
 
-    c.discover()
+    # c.discover()
 
-    # for node in c.discover('arc2').values():
-    #     pprint(node)
+    # for node in c.discover().values():
+        # pprint(node)
 
-    # c.connect(('10.0.0.137', 44632))
+    c.connect(('10.0.0.122', 44632))
 
     # c.delete_file('rainbow.fxb')
 

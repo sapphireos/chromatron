@@ -14,6 +14,15 @@ Power
 
 **Vin** - 4 to 16V power supply connection
 
+Vin must match the supply voltage required for the LEDs.  Thus, if you are using 5V LEDs, Vin needs to be 5V.  The same goes with 12V LEDs.
+
+.. warning::
+    Double check your supply voltage before powering on for the first time! If you're powering Chromatron on 12V and plug in 5V LEDs, you're going to damage the LED strip (Chromatron itself will be fine).
+
+.. note::
+    Note that in the case of the WS2811 at 12V, the data and clock drivers with limit their output to less than 6V (the WS2811 power is 12V, but signalling is nominally 5V).
+
+
 **GND** - Ground connection
 
 There are two sets of power pins. Both Vins and both GNDs are shorted together in the PCB with thick traces.  You can supply power to the board with one set, and use the other as power connections for the LED strip.

@@ -139,6 +139,11 @@ int8_t sys_kv_reboot_handler(
                     sys_v_load_recovery();
                     break;
 
+                case SYS_REBOOT_RESET_CONFIG:
+                    cfg_v_reset_on_next_boot();
+                    sys_v_reboot_delay( SYS_MODE_NORMAL );
+                    break;
+
                 default:
                     break;
             }

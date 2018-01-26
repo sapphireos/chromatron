@@ -82,10 +82,10 @@ PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( catbus_announce_thread( pt_t *pt, void *state ) );
 
 
-static uint32_t test_array[8];
-KV_SECTION_META kv_meta_t catbus_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  KV_ARRAY_LEN(8), 0, &test_array,  0, "catbus_test_array" },
-};
+// static uint32_t test_array[8];
+// KV_SECTION_META kv_meta_t catbus_kv[] = {
+//     { SAPPHIRE_TYPE_UINT32,  KV_ARRAY_LEN(8), 0, &test_array,  0, "catbus_test_array" },
+// };
 
 
 static int8_t _catbus_i8_meta_handler(
@@ -1268,7 +1268,7 @@ PT_BEGIN( pt );
 
                 item_count = CATBUS_MAX_KEY_META;
             }
-            else if( item_count < 1 ){
+            else if( item_count < 0 ){
 
                 error = CATBUS_ERROR_PROTOCOL_ERROR;
                 goto end;

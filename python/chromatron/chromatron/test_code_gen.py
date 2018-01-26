@@ -1072,29 +1072,15 @@ def init():
 
 """
 
-kv_set_get_key = """
-
-a = Number(publish=True)
-b = Number(publish=True)
-
-def init():
-    setkey('kv_test_key', 32767)
-    a = getkey('kv_test_key')
-
-    setkey('kv_test_key', 1)
-    b = getkey('kv_test_key')
-
-"""
-
 
 pixel_array = """
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-a = Number()
-b = Number()
-c = Number()
-d = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
     a = p1.index
@@ -1106,14 +1092,14 @@ def init():
 
 multiple_comparison = """
    
-a = Number()
-b = Number()
-c = Number()
-d = Number()
-e = Number()
-f = Number()
-g = Number()
-h = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+g = Number(publish=True)
+h = Number(publish=True)
 
 def init():
     a = 1
@@ -1138,10 +1124,10 @@ def init():
 
 test_not = """
 
-a = Number()
-b = Number()
-c = Number()
-d = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
     a = not 1
@@ -1154,9 +1140,35 @@ def init():
 """
 
 
+test_db_access = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    a = 2
+    a += db.kv_test_key + 1
+
+    b = db.kv_test_key
+    
+    db.kv_test_key = a
+
+"""
+
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_db_access(self):
+        self.run_test(test_db_access,
+            expected={
+                'a': 126,
+                'b': 123,
+                'kv_test_key': 126,
+            })
 
     def test_empty(self):
         self.run_test(empty_program,
@@ -1409,13 +1421,6 @@ class CGTestsBase(unittest.TestCase):
         # we can compile without a loop function.
         self.run_test(no_loop_function,
             expected={
-            })
-
-    def test_kv_set_get_key(self):
-        self.run_test(kv_set_get_key,
-            expected={
-                'a': 32767,
-                'b': 1,
             })
 
     def test_pixel_array(self):
@@ -1889,21 +1894,31 @@ class CGTestsLocal(CGTestsBase):
                 raise
 
 
-# import chromatron
-# import time
+import chromatron
+import time
 
-# class CGTestsOnDevice(CGTestsBase):
-#     def run_test(self, program, expected={}):
-#         ct = chromatron.Chromatron(host='usb', force_network=True)
+ct = chromatron.Chromatron(host='10.0.0.108')
 
-#         ct.load_vm(bin_data=program)
+class CGTestsOnDevice(CGTestsBase):
+    def run_test(self, program, expected={}):
+        global ct
+        # ct = chromatron.Chromatron(host='usb', force_network=True)
+        # ct = chromatron.Chromatron(host='10.0.0.108')
 
-#         time.sleep(0.2)
+        ct.load_vm(bin_data=program)
 
-#         for reg, expected_value in expected.iteritems():
-#             actual = ct.get_vm_reg(str(reg))
+        time.sleep(0.2)
 
-#             self.assertEqual(expected_value, actual)
+        ct.init_scan()
+
+        for reg, expected_value in expected.iteritems():
+            if reg == 'kv_test_key':
+                actual = ct.get_key(reg)
+
+            else:
+                actual = ct.get_vm_reg(str(reg))
+
+            self.assertEqual(expected_value, actual)
             
 
 

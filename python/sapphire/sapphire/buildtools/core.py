@@ -79,9 +79,10 @@ KV_CHARS.extend(digits)
     
 SETTINGS_DIR = os.path.dirname(os.path.abspath(global_settings.__file__))
 SETTINGS_FILE = 'settings.json'
-PROJECTS_FILE = 'projects.json'
-PROJECTS_FILE_PATH = os.getcwd()
-BUILD_CONFIGS_DIR = os.path.join(PROJECTS_FILE_PATH, 'configurations')
+PROJECTS_FILE_NAME = 'projects.json'
+PROJECTS_FILE_PATH = firmware_package.data_dir()
+PROJECTS_FILE = os.path.join(PROJECTS_FILE_PATH, PROJECTS_FILE_NAME)
+BUILD_CONFIGS_DIR = os.path.join(os.getcwd(), 'configurations')
 BUILD_CONFIGS_FWID_FILE = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
 BASE_DIR = os.getcwd()
 MASTER_HASH_DB_FILE = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
@@ -1169,7 +1170,7 @@ def get_project_info_dir():
     return settings.get_app_dir()
 
 def get_project_info_file():
-    return os.path.join(get_project_info_dir(), PROJECTS_FILE)
+    return PROJECTS_FILE
 
 def get_build_configs():
     build_configs = {}
