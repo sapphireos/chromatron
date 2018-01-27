@@ -1469,14 +1469,13 @@ def main():
 
     # check if discovering
     if args["discover"]:
-        # remove old project listing
+        # load old project listing
         try:
-            os.remove(get_project_info_file())
+            with open(get_project_info_file(), 'r') as f:
+                projects = json.loads(f.read())
 
-        except OSError:
-            pass
-
-        projects = {}
+        except IOError:
+            projects = {}
 
         for root, dirs, files in os.walk(os.getcwd()):
             if SETTINGS_FILE in files:
