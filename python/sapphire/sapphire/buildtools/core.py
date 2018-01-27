@@ -605,7 +605,8 @@ class Builder(object):
             logging.info("Compiling file %s" % (compile_path))
 
             # build command string
-            cmd = self.settings["CC"] + ' -c %s ' % (compile_path)
+            cmd = '"' + self.settings["CC"] + '"'
+            cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
                 include_dir = get_project_builder(include, target=self.target_type).target_dir
@@ -807,7 +808,9 @@ class HexBuilder(Builder):
         logging.info("Linking %s" % (self.proj_name))
 
         # build command string
-        cmd = self.settings["CC"] + ' '
+        # enclose in quotes so we can handle spaces in the command filepath
+        cmd = '"' + self.settings["CC"] + '"'
+        cmd += ' '
 
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
@@ -863,11 +866,12 @@ class HexBuilder(Builder):
 
         logging.info("Generating output files")
 
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
-        # runcmd('avr-size -C main.elf --mcu=atmega128rfa1') # the -C option is a hack from WinAVR and is not present in the standard distribution of binutils
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-size -B main.elf'))
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-nm -n main.elf'), tofile='main.sym')
+        # enclose in quotes so we can handle spaces in the command filepath
+        bintools = '"' + self.settings["BINTOOLS"] + '"'
+        runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
+        runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
+        runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
+        runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
 
         # change back to working dir
         os.chdir(cwd)
@@ -1111,7 +1115,8 @@ class ExeBuilder(Builder):
         logging.info("Linking %s" % (self.proj_name))
 
         # build command string
-        cmd = self.settings["CC"] + ' '
+        cmd = '"' + self.settings["CC"] + '"'
+        cmd += ' '
 
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
