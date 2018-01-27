@@ -86,6 +86,7 @@ BUILD_CONFIGS_DIR = os.path.join(os.getcwd(), 'configurations')
 BUILD_CONFIGS_FWID_FILE = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
 BASE_DIR = os.getcwd()
 MASTER_HASH_DB_FILE = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
+TOOLS_DIR = os.path.join(PROJECTS_FILE_PATH, 'tools')
 
 def get_build_package_dir():
     return firmware_package.firmware_package_dir('build')
@@ -114,14 +115,14 @@ build_tool_archives = {
 
 def get_tools():
     try:
-        os.mkdir('tools')
+        os.mkdir(TOOLS_DIR)
 
     except OSError:
         pass # already exists
 
     cwd = os.getcwd()
 
-    os.chdir('tools')
+    os.chdir(TOOLS_DIR)
 
     for tool in build_tool_archives[sys.platform]:
         urllib.URLopener().retrieve(tool[0] + tool[1], tool[1])
@@ -279,10 +280,10 @@ class Builder(object):
                 settings[k] = v
 
         if "CC" not in settings:
-            settings["CC"] = os.path.join(os.getcwd(), 'tools', 'avr', 'bin', 'avr-gcc')
+            settings["CC"] = os.path.join(TOOLS_DIR, 'avr', 'bin', 'avr-gcc')
 
         if "BINTOOLS" not in settings:
-            settings["BINTOOLS"] = os.path.join(os.getcwd(), 'tools', 'avr', 'bin')
+            settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'avr', 'bin')
 
         if 'FULL_NAME' not in settings:
             try:
