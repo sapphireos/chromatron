@@ -96,6 +96,7 @@ void io_v_init( void ){
     // init hw rev pins
     HW_REV0_PORT.DIRCLR = ( 1 << HW_REV0_PIN );
     HW_REV1_PORT.DIRCLR = ( 1 << HW_REV1_PIN );
+    
     // enable pullups
     HW_REV0_PORT.HW_REV0_PINCTRL = PORT_OPC_PULLUP_gc;
     HW_REV1_PORT.HW_REV1_PINCTRL = PORT_OPC_PULLUP_gc;
@@ -264,16 +265,12 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 
     if( mode >= IO_MODE_OUTPUT ){
 
-        // port.DIRSET = ( 1 << pin_mask );
-
         if( mode == IO_MODE_OUTPUT_OPEN_DRAIN ){
 
             pinctrl = PORT_OPC_WIREDAND_gc;
         }
     }
     else{
-
-        // port.DIRCLR = ( 1 << pin_mask );
 
         if( mode == IO_MODE_INPUT_PULLUP ){
 
