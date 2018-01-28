@@ -32,6 +32,7 @@
 #include "energy.h"
 #include "timesync.h"
 #include "automaton.h"
+#include "io_kv.h"
 
 
 SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
@@ -100,6 +101,8 @@ void app_v_init( void ){
     //                  PSTR("dma_test"),
     //                  0,
     //                  0 );
+
+    iokv_v_init();
 
     gfx_v_init();
 
