@@ -85,33 +85,31 @@ PT_BEGIN( pt );
         }
         else if( wifi_b_connected() ){
 
-            status_led_v_set( 0, STATUS_LED_BLUE );
+            if( wifi_b_ap_mode() ){
+
+                status_led_v_set( 0, STATUS_LED_PURPLE );
+            }
+            else{
+
+                status_led_v_set( 0, STATUS_LED_BLUE );
+            }
 
             TMR_WAIT( pt, 500 );
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
 
-                status_led_v_set( 1, STATUS_LED_BLUE );
-            }
+                if( wifi_b_ap_mode() ){
 
-            TMR_WAIT( pt, 500 );
-
-            // add white blink in AP mode
-            if( wifi_b_ap_mode() ){
-
-                status_led_v_set( 0, STATUS_LED_WHITE );
-
-                TMR_WAIT( pt, 500 );
-
-                if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
-                      ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
-
-                    status_led_v_set( 1, STATUS_LED_WHITE );
+                    status_led_v_set( 1, STATUS_LED_PURPLE );
                 }
+                else{
 
-                TMR_WAIT( pt, 500 );
+                    status_led_v_set( 1, STATUS_LED_BLUE );
+                }
             }
+        
+            TMR_WAIT( pt, 500 );
         }
         else{
 
