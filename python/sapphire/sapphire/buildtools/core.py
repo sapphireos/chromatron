@@ -723,7 +723,8 @@ void libs_v_init( void ){
 """
 
         for init in inits:
-            lib_init += '\n%s();\n' % (init)
+            if len(init) > 0:
+                lib_init += '\n%s();\n' % (init)
 
         lib_init += '\n}\n'
 
