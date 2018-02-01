@@ -3,6 +3,17 @@ Chromatron
 
 `Chromatron Wifi Pixel Controller <http://chromatron.io>`_
 
+Chromatron is an open source Wifi pixel controller. It is a complete hardware and software toolkit designed specifically for making projects with LED pixel strips.
+
+Supported LED types:
+
+- APA102
+- WS2801
+- WS2811/WS2812/WS2812b
+- SK6812 (RGB and RGBW)
+- Analog/PWM (RGB only - post an issue if you need RGBW support)
+- `Adafruit Pixie <https://https://www.adafruit.com/product/2741>`_
+
 
 Documentation
 -------------

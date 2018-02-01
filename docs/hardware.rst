@@ -75,3 +75,5 @@ Specifications
 
 **PWM channels** - Max. 3 amps each
 
+**Pixel channels** - 320 addressable channels
+
