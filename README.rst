@@ -4,6 +4,12 @@ Chromatron
 `Chromatron Wifi Pixel Controller <http://chromatron.io>`_
 
 
+Documentation
+-------------
+
+`chromatron.readthedocs.io <https://chromatron.readthedocs.io>`_
+
+
 Support
 -------
 
@@ -11,12 +17,12 @@ Support
 
 
 Build Instructions
-------------------
+-------------------
 
 Install Python tools:
 
-.. note::
-    The build system only works with Python 2.7 (for now).
+
+The build system only works with Python 2.7 (for now).
 
 
 .. code:: bash
