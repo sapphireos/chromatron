@@ -13,9 +13,52 @@ Support
 Build Instructions
 ------------------
 
-coming soon! :-P
+Install Python tools:
+
+.. note::
+    The build system only works with Python 2.7 (for now).
 
 
+.. code:: bash
+
+    $ pip install chromatron
+
+You will also need PlatformIO (which is needed to build the wifi firmware):
+
+.. code:: bash
+
+    $ pip install platformio
+
+
+Make sure you are in the root folder of the repository for the remaining steps.
+
+
+Install compiler toolchain:
+
+.. code:: bash
+
+    $ sapphiremake --install_build_tools
+
+
+Scan for firmware projects.  This searchs the folder structure for all of the projects so the build tools can find everything.
+
+.. code:: bash
+
+    $ sapphiremake --discover
+
+
+Build the bootloader project:
+
+.. code:: bash
+
+    $ sapphiremake -p loader_xmega128a4u
+
+
+Build everything else:
+
+.. code:: bash
+
+    $ python make_fw_package.py
 
 
 
