@@ -116,7 +116,7 @@ build_tool_archives = {
 
 def get_tools():
     try:
-        os.mkdir(TOOLS_DIR)
+        os.makedirs(TOOLS_DIR)
 
     except OSError:
         pass # already exists
