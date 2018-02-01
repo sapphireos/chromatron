@@ -1,0 +1,2 @@
+v1.0.0
+- VM sends run loop command twice per loop.  This will cause the chaser.fx demo to skip LEDs.
