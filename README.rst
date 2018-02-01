@@ -33,7 +33,7 @@ Build Instructions
 Install Python tools:
 
 
-The build system only works with Python 2.7 (for now).
+The build system only works with Python 2.7 (for now).  Additionally, building on Windows is also broken (for now).  Official releases are built on Mac OS X.  Builds on Ubuntu should also work.
 
 
 .. code:: bash
