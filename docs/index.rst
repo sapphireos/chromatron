@@ -15,6 +15,7 @@ Welcome to Chromatron's documentation!
    fx_script_guide
    hardware
    status_led
+   firmware_update
    keyvalue
    cli
 
