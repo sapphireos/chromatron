@@ -1421,6 +1421,15 @@ def main():
 
     logging.info("Target dir: %s" % (target_dir))
 
+    # make sure projects dir exists
+    try:
+        os.makedirs(PROJECTS_FILE_PATH)
+
+    except OSError:
+        pass
+
+    logging.info("Projects dir: %s" % (PROJECTS_FILE_PATH))
+
     # check if making a release
     if args["make_release"]:
         
