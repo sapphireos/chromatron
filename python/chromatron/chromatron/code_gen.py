@@ -3828,6 +3828,7 @@ class CodeGeneratorPass7(object):
         self.state.update(
                {'stream': stream,
                 'crc': crc,
+                'file_hash': file_hash,
                 'data_len': data_len,
                 'code_len': code_len,
                 'image_len': image_len})
