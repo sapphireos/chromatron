@@ -109,6 +109,7 @@ tools_windows = [
 
 build_tool_archives = {
     'linux': tools_linux,
+    'linux2': tools_linux,
     'darwin': tools_darwin,
     'win32': tools_windows
 }
