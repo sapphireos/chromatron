@@ -941,7 +941,7 @@ class AppBuilder(HexBuilder):
         # create lookups by 32 bit hash
         index = 0
         for kv in kv_meta_data:
-            hash32 = fnv1a_32(kv.param_name)
+            hash32 = fnv1a_32(str(kv.param_name))
 
             if hash32 in kv_meta_by_hash:
                 raise Exception("Hash collision!")
