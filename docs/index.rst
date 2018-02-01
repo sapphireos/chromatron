@@ -14,6 +14,7 @@ Welcome to Chromatron's documentation!
    getting_started
    fx_script_guide
    hardware
+   status_led
    keyvalue
    cli
 
