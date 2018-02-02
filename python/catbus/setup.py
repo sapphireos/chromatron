@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='catbus',
 
-    version='0.2.1',
+    version='1.0.0',
 
     packages=['catbus'],
 
