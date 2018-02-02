@@ -208,6 +208,8 @@ hue   color   16 bit integer value
 1.000 red     0
 ===== ======  ====================
 
+.. image:: led_rainbow.jpg
+
 Note that 1.0 is the same as 0.0, hue wraps around as a circle.  Thus, the value 1.5 would be the same as 0.5, etc.  As you'll see in the rainbow demo, this wraparound behavior is incredibly useful in doing continuous, smooth color shifts.
 
 Sat
@@ -215,12 +217,14 @@ Sat
 
 Saturation (sat for shorthand) is the whiteness value.  1.0 is full saturation, meaning you get all of the colors of the rainbow.  0.0 is no saturation, which is full white.  The pastel colors are created by selecting a hue, and then adjusting the saturation.
 
+.. image:: saturation.jpg
 
 Val
 """
 
-Value (val for shorthand) is brightness.
+Value (val for shorthand) is brightness.  0.0 is off, 1.0 is maximum.
 
+.. image:: brightness.jpg
 
 Pixel Array
 ^^^^^^^^^^^
