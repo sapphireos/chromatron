@@ -306,6 +306,8 @@ API
     :members:
 
 
+.. _dimmer-reference:
+
 Dimmers and Faders 
 ^^^^^^^^^^^^^^^^^^
 

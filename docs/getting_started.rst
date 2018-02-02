@@ -137,7 +137,40 @@ Got your LEDs connected?  Double check your wiring before you power up!  Everyth
 This will walk you through the pixel setup, and also get the RGB order configured.
 
 
+Dimmer Controls
+---------------
+
+You can control the dimmers via the command line:
+
+.. code:: bash
+
+    $ chromatron -q meow dimmer master 1.0
 
 
+Will set to full brightness.
+
+See :ref:`dimmer-reference` for more detailed information about how the dimmer controls work.
+
+
+
+FX Script
+---------
+
+Example scripts are in the FX folder in the Github repository.  You can download it here if you are not using git: `https://github.com/sapphireos/chromatron/archive/master.zip <https://github.com/sapphireos/chromatron/archive/master.zip>`_
+
+
+The LED setup loads the rainbow demo.  You can load different scripts:
+
+
+.. code:: bash
+
+    $ chromatron -q meow vm load script_name.fx
+
+
+.. note::
+    The chaser.fx example will not work properly on firmware v1.0, due to a slight bug in the virtual machine (it runs the loop twice per iteration, instead of only once).  This will be fixed in the next release. The update procedure is documented here: :doc:`firmware_update`
+
+
+If you're ready for more, FX script has its own guide: :doc:`fx_script_guide`
 
 

@@ -18,6 +18,7 @@ Welcome to Chromatron's documentation!
    firmware_update
    keyvalue
    cli
+   to_do
 
 Indices and tables
 ==================
