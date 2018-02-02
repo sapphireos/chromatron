@@ -20,7 +20,7 @@ Vin must match the supply voltage required for the LEDs.  Thus, if you are using
     Double check your supply voltage before powering on for the first time! If you're powering Chromatron on 12V and plug in 5V LEDs, you're going to damage the LED strip (Chromatron itself will be fine).
 
 .. note::
-    Note that in the case of the WS2811 at 12V, the data and clock drivers with limit their output to less than 6V (the WS2811 power is 12V, but signalling is nominally 5V).
+    Note that in the case of the WS2811 at 12V, the data and clock drivers with automatically limit their output to less than 6V (the WS2811 power is 12V, but signalling is nominally 5V).
 
 
 **GND** - Ground connection
@@ -74,4 +74,6 @@ Specifications
 **Vin** - 4V to 16V
 
 **PWM channels** - Max. 3 amps each
+
+**Pixel channels** - 320 addressable channels
 

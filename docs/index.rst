@@ -14,8 +14,11 @@ Welcome to Chromatron's documentation!
    getting_started
    fx_script_guide
    hardware
+   status_led
+   firmware_update
    keyvalue
    cli
+   to_do
 
 Indices and tables
 ==================

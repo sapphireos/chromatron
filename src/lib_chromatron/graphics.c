@@ -710,12 +710,6 @@ PT_BEGIN( pt );
             }
             #endif
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_read_keys();
-
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_run_vm_cmd();
-
             #ifdef ENABLE_TIME_SYNC
             current_frame++;
 

@@ -201,9 +201,7 @@ def makeConsole(targets=[], devices=[], device=None):
 
     return aConsole(targets=targets, devices=devices)
 
-
-if __name__ == '__main__':
-
+def main():
     try:
         host = sys.argv[1]
         sys.argv[1] = '' # prevents an unknown syntax error in the command loop
@@ -223,3 +221,7 @@ if __name__ == '__main__':
 
     except IndexError:
         print "No device specified"
+
+
+if __name__ == '__main__':
+    main()

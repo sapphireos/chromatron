@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='sapphire',
 
-    version='0.6.3',
+    version='1.0.0',
 
     packages=['sapphire',
               'sapphire.fields',
@@ -35,8 +35,6 @@ setup(
               'sapphire.devices',
               'sapphire.buildtools',
               ],
-
-    scripts=['scripts/sapphireconsole.py'],
 
     package_data={'sapphire.buildtools': ['settings.json', 'linker.x', 'project_template/*']},
 
@@ -66,5 +64,6 @@ setup(
     entry_points='''
         [console_scripts]
         sapphiremake=sapphire.buildtools.core:main
+        sapphireconsole=sapphire.devices.sapphireconsole:main
     ''',
 )

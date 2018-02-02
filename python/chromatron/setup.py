@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='chromatron',
 
-    version='0.6.2',
+    version='1.0.0',
 
     packages=['chromatron',
               'chromatron.midi',

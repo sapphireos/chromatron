@@ -86,6 +86,7 @@ BUILD_CONFIGS_DIR = os.path.join(os.getcwd(), 'configurations')
 BUILD_CONFIGS_FWID_FILE = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
 BASE_DIR = os.getcwd()
 MASTER_HASH_DB_FILE = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
+TOOLS_DIR = os.path.join(PROJECTS_FILE_PATH, 'tools')
 
 def get_build_package_dir():
     return firmware_package.firmware_package_dir('build')
@@ -108,20 +109,21 @@ tools_windows = [
 
 build_tool_archives = {
     'linux': tools_linux,
+    'linux2': tools_linux,
     'darwin': tools_darwin,
     'win32': tools_windows
 }
 
 def get_tools():
     try:
-        os.mkdir('tools')
+        os.makedirs(TOOLS_DIR)
 
     except OSError:
         pass # already exists
 
     cwd = os.getcwd()
 
-    os.chdir('tools')
+    os.chdir(TOOLS_DIR)
 
     for tool in build_tool_archives[sys.platform]:
         urllib.URLopener().retrieve(tool[0] + tool[1], tool[1])
@@ -279,10 +281,10 @@ class Builder(object):
                 settings[k] = v
 
         if "CC" not in settings:
-            settings["CC"] = os.path.join(os.getcwd(), 'tools', 'avr', 'bin', 'avr-gcc')
+            settings["CC"] = os.path.join(TOOLS_DIR, 'avr', 'bin', 'avr-gcc')
 
         if "BINTOOLS" not in settings:
-            settings["BINTOOLS"] = os.path.join(os.getcwd(), 'tools', 'avr', 'bin')
+            settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'avr', 'bin')
 
         if 'FULL_NAME' not in settings:
             try:
@@ -604,7 +606,8 @@ class Builder(object):
             logging.info("Compiling file %s" % (compile_path))
 
             # build command string
-            cmd = self.settings["CC"] + ' -c %s ' % (compile_path)
+            cmd = '"' + self.settings["CC"] + '"'
+            cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
                 include_dir = get_project_builder(include, target=self.target_type).target_dir
@@ -721,7 +724,8 @@ void libs_v_init( void ){
 """
 
         for init in inits:
-            lib_init += '\n%s();\n' % (init)
+            if len(init) > 0:
+                lib_init += '\n%s();\n' % (init)
 
         lib_init += '\n}\n'
 
@@ -806,7 +810,9 @@ class HexBuilder(Builder):
         logging.info("Linking %s" % (self.proj_name))
 
         # build command string
-        cmd = self.settings["CC"] + ' '
+        # enclose in quotes so we can handle spaces in the command filepath
+        cmd = '"' + self.settings["CC"] + '"'
+        cmd += ' '
 
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
@@ -862,11 +868,12 @@ class HexBuilder(Builder):
 
         logging.info("Generating output files")
 
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
-        # runcmd('avr-size -C main.elf --mcu=atmega128rfa1') # the -C option is a hack from WinAVR and is not present in the standard distribution of binutils
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-size -B main.elf'))
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
-        runcmd(os.path.join(self.settings["BINTOOLS"], 'avr-nm -n main.elf'), tofile='main.sym')
+        # enclose in quotes so we can handle spaces in the command filepath
+        bintools = '"' + self.settings["BINTOOLS"] + '"'
+        runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
+        runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
+        runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
+        runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
 
         # change back to working dir
         os.chdir(cwd)
@@ -934,7 +941,7 @@ class AppBuilder(HexBuilder):
         # create lookups by 32 bit hash
         index = 0
         for kv in kv_meta_data:
-            hash32 = fnv1a_32(kv.param_name)
+            hash32 = fnv1a_32(str(kv.param_name))
 
             if hash32 in kv_meta_by_hash:
                 raise Exception("Hash collision!")
@@ -1110,7 +1117,8 @@ class ExeBuilder(Builder):
         logging.info("Linking %s" % (self.proj_name))
 
         # build command string
-        cmd = self.settings["CC"] + ' '
+        cmd = '"' + self.settings["CC"] + '"'
+        cmd += ' '
 
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
@@ -1413,6 +1421,15 @@ def main():
 
     logging.info("Target dir: %s" % (target_dir))
 
+    # make sure projects dir exists
+    try:
+        os.makedirs(PROJECTS_FILE_PATH)
+
+    except OSError:
+        pass
+
+    logging.info("Projects dir: %s" % (PROJECTS_FILE_PATH))
+
     # check if making a release
     if args["make_release"]:
         
@@ -1469,14 +1486,13 @@ def main():
 
     # check if discovering
     if args["discover"]:
-        # remove old project listing
+        # load old project listing
         try:
-            os.remove(get_project_info_file())
+            with open(get_project_info_file(), 'r') as f:
+                projects = json.loads(f.read())
 
-        except OSError:
-            pass
-
-        projects = {}
+        except IOError:
+            projects = {}
 
         for root, dirs, files in os.walk(os.getcwd()):
             if SETTINGS_FILE in files:

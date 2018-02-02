@@ -2189,15 +2189,19 @@ def pixel_get_clock(ctx):
         # check if analog, if so,
         # indicate that we aren't using the
         # pixel clock
-        pix_mode = ct.get_pixel_mode()
-        if pix_mode == 'analog' or pix_mode == 'off':
-            actual_clock_s = click.style('%s' % ('N/A'), fg=VAL_COLOR)
+        try:
+            pix_mode = ct.get_pixel_mode()
+            if pix_mode == 'analog' or pix_mode == 'off':
+                actual_clock_s = click.style('%s' % ('N/A'), fg=VAL_COLOR)
 
-        else:
-            actual = ct.get_pixel_clock()
-            actual_clock_s = click.style('%d Hz' % (actual), fg=VAL_COLOR)
+            else:
+                actual = ct.get_pixel_clock()
+                actual_clock_s = click.style('%d Hz' % (actual), fg=VAL_COLOR)
 
-        click.echo(" %s" % (actual_clock_s))
+            click.echo(" %s" % (actual_clock_s))
+
+        except KeyError:
+            click.echo(" No pixel drivers")            
 
 @pixels.command('show_settings')
 @click.pass_context
@@ -2220,24 +2224,28 @@ def pixel_show_settings(ctx):
     for ct in group.itervalues():
         echo_name(ct, nl=False)
 
-        # check if analog, if so,
-        # indicate that we aren't using the
-        # pixel clock
-        pix_mode = ct.get_pixel_mode()
-        if pix_mode == 'analog' or pix_mode == 'off':
-            actual_clock_s = click.style('%s' % ('N/A'), fg=VAL_COLOR)
+        try:
+            # check if analog, if so,
+            # indicate that we aren't using the
+            # pixel clock
+            pix_mode = ct.get_pixel_mode()
+            if pix_mode == 'analog' or pix_mode == 'off':
+                actual_clock_s = click.style('%s' % ('N/A'), fg=VAL_COLOR)
 
-        else:
-            actual = ct.get_pixel_clock()
-            actual_clock_s = click.style('%d Hz' % (actual), fg=VAL_COLOR)
+            else:
+                actual = ct.get_pixel_clock()
+                actual_clock_s = click.style('%d Hz' % (actual), fg=VAL_COLOR)
 
 
-        mode_s = click.style('%s' % (pix_mode), fg=VAL_COLOR)
+            mode_s = click.style('%s' % (pix_mode), fg=VAL_COLOR)
 
-        pix_count = ct.get_key('pix_count')
-        count_s = click.style('%s' % (pix_count), fg=VAL_COLOR)
+            pix_count = ct.get_key('pix_count')
+            count_s = click.style('%s' % (pix_count), fg=VAL_COLOR)
 
-        click.echo(" Mode: %16s Clock: %20s Count: %s" % (mode_s, actual_clock_s, count_s))
+            click.echo(" Mode: %16s Clock: %20s Count: %s" % (mode_s, actual_clock_s, count_s))
+
+        except KeyError:
+            click.echo(" No pixel drivers")            
 
 
 
