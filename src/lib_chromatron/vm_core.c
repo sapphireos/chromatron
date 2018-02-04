@@ -1085,21 +1085,6 @@ opcode_rand:
     goto dispatch;
 
 
-// opcode_noise:
-
-//     dest = *pc++;
-//     op1 = data[*pc++];
-
-//      #ifdef VM_ENABLE_GFX
-
-//     op1 %= 65536;
-
-//     data[dest] = gfx_u16_noise( op1 );
-
-//     #endif
-
-//     goto dispatch;
-
 opcode_lib_call:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
     hash        |= (catbus_hash_t32)(*pc++) << 16;
@@ -1155,61 +1140,6 @@ opcode_is_fading:
     #endif
 
     goto dispatch;
-
-
-// opcode_sine_wave:
-//     op1 = data[*pc++];
-
-//     data[RETURN_VAL_ADDR] = sine( op1 );
-
-//     goto dispatch;
-
-
-// opcode_cosine_wave:
-//     op1 = data[*pc++];
-
-//     data[RETURN_VAL_ADDR] = cosine( op1 );
-
-//     goto dispatch;
-
-
-// opcode_triangle_wave:
-//     op1 = data[*pc++];
-
-//     data[RETURN_VAL_ADDR] = triangle( op1 );
-
-//     goto dispatch;
-
-
-// opcode_getkey:
-//     op1 = data[*pc++];
-//     data[RETURN_VAL_ADDR] = 0;
-
-//     #ifdef VM_ENABLE_KV
-//     catbus_i8_get( op1, &data[RETURN_VAL_ADDR] );
-//     #endif
-
-//     // #ifdef VM_ENABLE_GFX
-//     // data[RETURN_VAL_ADDR] = gfx_i32_get_param( op1 );
-//     // #endif
-
-//     goto dispatch;
-
-
-// opcode_setkey:
-//     op1 = data[*pc++];
-//     op2 = data[*pc++];
-
-//     #ifdef VM_ENABLE_KV
-//     catbus_i8_set( op1, op2 );
-//     #endif
-
-//     // #ifdef VM_ENABLE_GFX
-//     // gfx_v_set_param( op1, op2 );
-//     // #endif
-
-//     goto dispatch;
-
 
 opcode_obj_load:
     obj         = *pc++;
