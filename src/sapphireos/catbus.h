@@ -180,7 +180,7 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     uint16_t sequence;
-    int32_t data;
+    catbus_data_t data;
 } catbus_msg_link_data_t;
 #define CATBUS_MSG_TYPE_LINK_DATA               ( 2 + CATBUS_MSG_LINK_GROUP_OFFSET )
 

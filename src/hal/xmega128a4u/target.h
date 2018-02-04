@@ -30,7 +30,7 @@
 
 // modules
 // #define ENABLE_AUTOMATON
-// #define ENABLE_CATBUS_LINK
+#define ENABLE_CATBUS_LINK
 // #define ENABLE_CMD2
 // #define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
