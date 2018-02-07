@@ -620,8 +620,6 @@ class SerialUDPChannel(Channel):
     def __init__(self, host):
         super(SerialUDPChannel, self).__init__(host, 'serial_udp')
 
-        self.open(host)
-
         # set up crc function
         self.crc_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
 
