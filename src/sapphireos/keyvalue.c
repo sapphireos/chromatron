@@ -42,6 +42,9 @@
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
 
+static int16_t cached_index = -1;
+static catbus_hash_t32 cached_hash;
+
 static const PROGMEM char kv_data_fname[] = "kv_data";
 
 #if defined(__SIM__) || defined(BOOTLOADER)
@@ -210,6 +213,18 @@ uint16_t kv_u16_count( void ){
 
 int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
+    // check if hash exists
+    if( hash == 0 ){
+
+        return -1;
+    }
+
+    // check cache
+    if( cached_hash == hash ){
+
+        return cached_index;
+    }
+
     // get address of hash index
     uint32_t kv_index_start = ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
                               ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
@@ -229,6 +244,10 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
             first = middle + 1;
         }
         else if( index_entry.hash == hash ){
+
+            // update cache
+            cached_hash = hash;
+            cached_index = index_entry.index;
 
             return index_entry.index;
         }
