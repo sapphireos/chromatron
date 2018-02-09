@@ -109,9 +109,6 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
 #else
     #define KV_SECTION_DYNAMIC_END         __attribute__ ((section (".kv_dynamic_end"), used))
 #endif
-// KV_SECTION_DYNAMIC_START kv_dynamic_t dynamic_start[] = {{0, 0, 0}};
-// KV_SECTION_DYNAMIC_END kv_dynamic_t dynamic_end[] = {{0, 0, 0}};
-
 
 #ifdef __SIM__
     #define SERVICE_SECTION_START
@@ -149,35 +146,6 @@ static int8_t _kv_i8_persist_set_internal(
     catbus_hash_t32 hash,
     const void *data,
     uint16_t len );
-
-// static uint16_t kv_meta_vfile_handler(
-//     vfile_op_t8 op,
-//     uint32_t pos,
-//     void *ptr,
-//     uint16_t len )
-// {
-
-//     // the pos and len values are already bounds checked by the FS driver
-//     switch( op ){
-
-//         case FS_VFILE_OP_READ:
-//             memcpy_P( ptr, (void *)kv_start + sizeof(kv_meta_t) + pos, len );
-//             break;
-
-//         case FS_VFILE_OP_SIZE:
-//             len = ( (void *)kv_end - (void *)kv_start ) - sizeof(kv_meta_t);
-//             break;
-
-//         case FS_VFILE_OP_DELETE:
-//             break;
-
-//         default:
-//             len = 0;
-//             break;
-//     }
-
-//     return len;
-// }
 
 static int8_t _kv_i8_dynamic_handler(
     kv_op_t8 op,
@@ -469,8 +437,6 @@ retry:;
 
 
 void kv_v_init( void ){
-
-    // fs_f_create_virtual( PSTR("kvmeta"), kv_meta_vfile_handler );
 
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){

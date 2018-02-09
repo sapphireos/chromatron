@@ -67,10 +67,8 @@ typedef struct __attribute__((packed)){
 
 void type_v_convert( 
     catbus_type_t8 dest_type,
-    uint8_t dest_count,
     void *dest_data,
     catbus_type_t8 src_type,
-    uint8_t src_count,
     void *src_data );
 
 #endif

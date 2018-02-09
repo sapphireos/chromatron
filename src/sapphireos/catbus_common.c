@@ -177,20 +177,9 @@ void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data ){
 
 void type_v_convert( 
     catbus_type_t8 dest_type,
-    uint8_t dest_count,
     void *dest_data,
     catbus_type_t8 src_type,
-    uint8_t src_count,
     void *src_data ){
-
-    // limit count whichever is smaller
-    uint8_t count = dest_count;
-
-    if( src_count < dest_count ){
-
-        count = src_count;
-    }
-
 
     // check for strings
     bool dst_string = type_b_is_string( dest_type );
@@ -203,17 +192,13 @@ void type_v_convert(
 
     // numeric to numeric
     if( !dst_string && !src_string ){
+    
+        int64_t temp = specific_to_i64( src_type, src_data );
+        i64_to_specific( temp, dest_type, dest_data );
 
-        // iterate through array
-        for( uint8_t i = 0; i < count; i++ ){
-
-            int64_t temp = specific_to_i64( src_type, src_data );
-            i64_to_specific( temp, dest_type, dest_data );
-
-            // advance pointers
-            dest_data += dst_size;
-            src_data += src_size;
-        }
+        // advance pointers
+        dest_data += dst_size;
+        src_data += src_size;    
     }
     // string to string
     else if( dst_string && src_string ){
@@ -224,49 +209,36 @@ void type_v_convert(
 
             size = dst_size;
         }
+    
+        // set dest to 0s
+        memset( dest_data, 0, dst_size );
 
-        // iterate through array
-        for( uint8_t i = 0; i < count; i++ ){
+        // copy src to dest
+        memcpy( dest_data, src_data, size );
 
-            // set dest to 0s
-            memset( dest_data, 0, dst_size );
-
-            // copy src to dest
-            memcpy( dest_data, src_data, size );
-
-            // advance pointers
-            dest_data += dst_size;
-            src_data += src_size;
-        }
+        // advance pointers
+        dest_data += dst_size;
+        src_data += src_size;    
     }
     // string to numeric
     else if( src_string ){
 
-        // for now, we just set 0s on the destination
-        for( uint8_t i = 0; i < count; i++ ){
+        // set dest to 0s
+        memset( dest_data, 0, dst_size );
 
-            // set dest to 0s
-            memset( dest_data, 0, dst_size );
-
-            dest_data += dst_size;
-        }
+        dest_data += dst_size;
     }
     // numeric to string
     else if( dst_string ){
 
-        // for now, we just set 0s on the destination
-        for( uint8_t i = 0; i < count; i++ ){
-
-            // set dest to 0s
-            memset( dest_data, 0, dst_size );
+        // set dest to 0s
+        memset( dest_data, 0, dst_size );
             
-            dest_data += dst_size;
-        }
+        dest_data += dst_size;
     }
     else{
 
         // shouldn't get here!
-
     }
 }
 
