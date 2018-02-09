@@ -26,6 +26,7 @@
 #define __CATBUS_TYPES_H
 
 #include <inttypes.h>
+#include "bool.h"
 
 typedef int8_t catbus_type_t8;
 
@@ -55,5 +56,6 @@ typedef int8_t catbus_type_t8;
 
 #define CATBUS_TYPE_INVALID           65535
 uint16_t type_u16_size( catbus_type_t8 type );
+bool type_b_is_string( catbus_type_t8 type );
 
 #endif

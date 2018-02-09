@@ -56,7 +56,6 @@ typedef struct{
 typedef struct{
     sock_addr_t raddr;
     catbus_hash_t32 dest_hash;
-    int32_t data;
     uint16_t sequence;
     int8_t ttl;
 } catbus_receive_data_entry_t;
@@ -652,7 +651,7 @@ union type_converter{
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
-    int32_t data )
+    void *data )
 {
 
     // look up parameter
@@ -664,113 +663,21 @@ int8_t catbus_i8_set(
 
         return status;
     }
+    
+    
+    // status = kv_i8_set_by_hash( hash, &converter, type_u16_size( meta.type ) );
 
-    union type_converter converter;
-    memset( &converter, 0, sizeof(converter) );
+    // if( status == 0 ){
 
-    switch( meta.type ){
-        case SAPPHIRE_TYPE_BOOL:
-            converter.b = ( data != 0 );
-            break;
-
-        case SAPPHIRE_TYPE_UINT8:
-            if( data > UINT8_MAX ){
-
-                data = UINT8_MAX;
-            }
-            else if( data < 0 ){
-
-                data = 0;
-            }
-
-            converter.u8 = data;
-            break;
-
-        case SAPPHIRE_TYPE_INT8:
-            if( data > INT8_MAX ){
-
-                data = INT8_MAX;
-            }
-            else if( data < INT8_MIN ){
-
-                data = INT8_MIN;
-            }
-
-            converter.i8 = data;
-            break;
-
-        case SAPPHIRE_TYPE_UINT16:
-            if( data > UINT16_MAX ){
-
-                data = UINT16_MAX;
-            }
-            else if( data < 0 ){
-
-                data = 0;
-            }
-
-            converter.u16 = data;
-            break;
-
-        case SAPPHIRE_TYPE_INT16:
-            if( data > INT16_MAX ){
-
-                data = INT16_MAX;
-            }
-            else if( data < INT16_MIN ){
-
-                data = INT16_MIN;
-            }
-
-            converter.i16 = data;
-            break;
-
-        case SAPPHIRE_TYPE_UINT32:
-            if( data < 0 ){
-
-                data = 0;
-            }
-
-            converter.u32 = data;
-            break;
-
-        case SAPPHIRE_TYPE_INT32:
-            converter.i32 = data;
-            break;
-
-        case SAPPHIRE_TYPE_UINT64:
-            if( data < 0 ){
-
-                data = 0;
-            }
-
-            converter.u64 = data;
-            break;
-
-        case SAPPHIRE_TYPE_INT64:
-            converter.i64 = data;
-            break;
-
-        default:
-            return -1;
-            break;
-    }
-
-    status = kv_i8_set_by_hash( hash, &converter, type_u16_size( meta.type ) );
-
-    if( status == 0 ){
-
-        catbus_i8_publish( hash );
-    }
+    //     catbus_i8_publish( hash );
+    // }
 
     return status;
 }
 
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
-    int32_t *data ){
-
-    *data = 0;
+    void *data ){
 
     // look up parameter
     kv_meta_t meta;
@@ -782,80 +689,81 @@ int8_t catbus_i8_get(
         return status;
     }
 
-    union type_converter converter;
-    memset( &converter, 0, sizeof(converter) );
+    
+    // union type_converter converter;
+    // memset( &converter, 0, sizeof(converter) );
 
-    status = kv_i8_get_by_hash( hash, &converter, sizeof(converter) );
+    // status = kv_i8_get_by_hash( hash, &converter, sizeof(converter) );
 
-    if( status < 0 ){
+    // if( status < 0 ){
 
-        return status;
-    }
+    //     return status;
+    // }
 
-    // coerce value to i32
-    switch( meta.type ){
-        case CATBUS_TYPE_BOOL:
-            *data = converter.b;
-            break;
+    // // coerce value to i32
+    // switch( meta.type ){
+    //     case CATBUS_TYPE_BOOL:
+    //         *data = converter.b;
+    //         break;
 
-        case CATBUS_TYPE_UINT8:
-            *data = converter.u8;
-            break;
+    //     case CATBUS_TYPE_UINT8:
+    //         *data = converter.u8;
+    //         break;
 
-        case CATBUS_TYPE_UINT16:
-            *data = converter.u16;
-            break;
+    //     case CATBUS_TYPE_UINT16:
+    //         *data = converter.u16;
+    //         break;
 
-        case CATBUS_TYPE_INT8:
-            *data = converter.i8;
-            break;
+    //     case CATBUS_TYPE_INT8:
+    //         *data = converter.i8;
+    //         break;
 
-        case CATBUS_TYPE_INT16:
-            *data = converter.i16;
-            break;
+    //     case CATBUS_TYPE_INT16:
+    //         *data = converter.i16;
+    //         break;
 
-        case CATBUS_TYPE_INT32:
-            *data = converter.i32;
-            break;
+    //     case CATBUS_TYPE_INT32:
+    //         *data = converter.i32;
+    //         break;
             
-        case CATBUS_TYPE_UINT32:
-            if( converter.u32 > INT32_MAX ){
+    //     case CATBUS_TYPE_UINT32:
+    //         if( converter.u32 > INT32_MAX ){
 
-                converter.u32 = INT32_MAX;
-            }
+    //             converter.u32 = INT32_MAX;
+    //         }
 
-            *data = converter.u32;
+    //         *data = converter.u32;
 
-            break;
+    //         break;
 
-        case CATBUS_TYPE_UINT64:
-            if( converter.u64 > INT32_MAX ){
+    //     case CATBUS_TYPE_UINT64:
+    //         if( converter.u64 > INT32_MAX ){
 
-                converter.u64 = INT32_MAX;
-            }
+    //             converter.u64 = INT32_MAX;
+    //         }
 
-            *data = converter.u64;
+    //         *data = converter.u64;
 
-            break;
+    //         break;
 
-        case CATBUS_TYPE_INT64:
-            if( converter.i64 > INT32_MAX ){
+    //     case CATBUS_TYPE_INT64:
+    //         if( converter.i64 > INT32_MAX ){
 
-                converter.i64 = INT32_MAX;
-            }
-            else if( converter.i64 < INT32_MIN ){
+    //             converter.i64 = INT32_MAX;
+    //         }
+    //         else if( converter.i64 < INT32_MIN ){
 
-                converter.i64 = INT32_MIN;
-            }
+    //             converter.i64 = INT32_MIN;
+    //         }
 
-            *data = converter.i64;
+    //         *data = converter.i64;
 
-            break;
+    //         break;
 
-        default:
-            return -1;
-            break;
-    }
+    //     default:
+    //         return -1;
+    //         break;
+    // }
 
     return 0;
 }
@@ -1566,9 +1474,6 @@ PT_BEGIN( pt );
 
                     cached_sequence = entry->sequence;
 
-                    // update recorded data
-                    entry->data = msg->data;
-
                     // update recorded sequence
                     entry->sequence = msg->sequence;
 
@@ -1588,7 +1493,6 @@ PT_BEGIN( pt );
                 catbus_receive_data_entry_t entry;
                 entry.raddr         = raddr;
                 entry.dest_hash     = msg->dest_hash;
-                entry.data          = msg->data;
                 entry.sequence      = msg->sequence;
                 entry.ttl           = 32;
 
@@ -1602,7 +1506,7 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                catbus_i8_set( msg->dest_hash, msg->data );
+                catbus_i8_set( msg->dest_hash, (void *)&msg->data.data );
 
                 if( kv_v_notify_hash_set != 0 ){
 

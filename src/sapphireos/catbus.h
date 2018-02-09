@@ -289,11 +289,11 @@ void catbus_v_purge_links( void );
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
-    int32_t data );
+    void *data );
 
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
-    int32_t *data );
+    void *data );
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash );
 
