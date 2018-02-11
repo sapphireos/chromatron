@@ -485,6 +485,8 @@ void intf_v_process( void ){
         mem_rt_data_t rt_data;
         mem2_v_get_rt_data( &rt_data );
 
+        info_msg.comm_errors            = comm_errors;
+
         info_msg.mem_heap_peak          = rt_data.peak_usage;
 
         info_msg.intf_max_time          = process_stats.intf_max_time;
