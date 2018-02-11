@@ -1225,7 +1225,14 @@ int8_t vm_i8_run_init(
 
     uint16_t offset = state->init_start;
 
-    return _vm_i8_run_stream( code, offset, &state->rng_seed, data );
+    int8_t status = _vm_i8_run_stream( code, offset, &state->rng_seed, data );
+
+    if( cycles > state->max_cycles ){
+
+        state->max_cycles = cycles;        
+    }
+
+    return status;
 }
 
 
@@ -1241,7 +1248,14 @@ int8_t vm_i8_run_loop(
 
     uint16_t offset = state->loop_start;
 
-    return _vm_i8_run_stream( code, offset, &state->rng_seed, data );
+    int8_t status = _vm_i8_run_stream( code, offset, &state->rng_seed, data );
+
+    if( cycles > state->max_cycles ){
+
+        state->max_cycles = cycles;        
+    }
+
+    return status;
 }
 
 

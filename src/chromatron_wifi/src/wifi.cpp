@@ -134,7 +134,24 @@ void wifi_v_init( void ){
     ap_mode = false;
     WiFi.mode( WIFI_STA );
 
-    // wifi_v_scan();
+
+    // set host name
+    uint8_t mac[6];
+    WiFi.macAddress( mac );
+
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", mac[5] );
+
+    char host_str[32];
+    memset( host_str, 0, sizeof(host_str) );
+    strlcpy( host_str, "Chromatron_", sizeof(host_str) );
+
+    strncat( host_str, mac_str, sizeof(host_str) );
+
+    WiFi.hostname(host_str);
 }
 
 void wifi_v_process( void ){
