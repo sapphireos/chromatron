@@ -74,8 +74,9 @@
 typedef struct __attribute__((packed)){
     int8_t status;
     int8_t return_code;
-    uint32_t loop_time;
-    uint32_t fader_time;
+    uint16_t loop_time;
+    uint16_t fader_time;
+    uint16_t max_cycles;
 } vm_info_t;
 
 // note this needs to pad to 32 bit alignment!
@@ -119,6 +120,8 @@ typedef struct{
 
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
+
+    uint16_t max_cycles;
 
     uint8_t read_keys_count;
     uint16_t read_keys_start;
