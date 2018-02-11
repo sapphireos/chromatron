@@ -48,9 +48,18 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 hash;
     catbus_type_t8 type;
     catbus_flags_t8 flags;
+    uint8_t count;
     uint8_t tag;
     int32_t data;
 } db_entry32_t;
+// 8 bytes of meta data
+// N bytes for data
+// 5 bytes for mem block
+// 2 byets for list node
+// in linked list: 15 bytes of overhead per item
+// 19 bytes for i32
+// 26 items in less than 512 bytes of RAM
+
 
 
 #ifdef KVDB_ENABLE_NAME_LOOKUP
