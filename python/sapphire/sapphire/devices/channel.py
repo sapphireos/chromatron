@@ -620,8 +620,6 @@ class SerialUDPChannel(Channel):
     def __init__(self, host):
         super(SerialUDPChannel, self).__init__(host, 'serial_udp')
 
-        self.open(host)
-
         # set up crc function
         self.crc_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
 
@@ -869,7 +867,8 @@ class USBUDPChannel(SerialUDPChannel):
             self.host = self.port.port
 
         except serial.serialutil.SerialException:
-            raise ChannelInvalidHostException("Could not find attached device: %s" % (host))
+            raise
+            # raise ChannelInvalidHostException("Could not find attached device: %s" % (host))
 
 
 
@@ -936,15 +935,20 @@ def createChannel(host, port=None):
         ports = list(serial.tools.list_ports.comports())
 
         for port in ports:
-            if port.vid == ATMEL_VID and port.pid == ATMEL_PID and port.manufacturer == MFG_NAME:
-                comport = port.device
-                porttype = 'legacy'
-                break
+            # if port.vid == ATMEL_VID and port.pid == ATMEL_PID and port.manufacturer == MFG_NAME:
+            #     comport = port.device
+            #     porttype = 'legacy'
+            #     break
 
-            elif port.vid == CHROMATRON_VID and port.pid == CHROMATRON_PID and port.manufacturer == MFG_NAME:
-                comport = port.device
-                porttype = 'udp_transport'
-                break
+            # elif port.vid == CHROMATRON_VID and port.pid == CHROMATRON_PID and port.manufacturer == MFG_NAME:
+            #     comport = port.device
+            #     porttype = 'udp_transport'
+            #     break
+
+            if port.vid == CHROMATRON_VID and port.pid == CHROMATRON_PID:
+                    comport = port.device
+                    porttype = 'udp_transport'
+                    break
 
         if comport == None:
             raise ChannelInvalidHostException("Could not find attached device")
@@ -964,7 +968,7 @@ def createChannel(host, port=None):
                 ch.close()
 
                 # fallback to legacy
-                return LegacyUSBUDPChannel(comport)
+                # return LegacyUSBUDPChannel(comport)
 
     try:
         socket.inet_aton(host)
