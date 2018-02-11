@@ -33,10 +33,10 @@ import zipfile
 import hashlib
 import pkg_resources
 from filewatcher import Watcher
-import firmware_package
+from sapphire.buildtools import firmware_package
 import json
 
-from sapphire.devices.legacydevice import LegacyDevice, DeviceUnreachableException
+from sapphire.devices.legacydevice import Device, DeviceUnreachableException
 from elysianfields import *
 from sapphire.common.util import now
 
