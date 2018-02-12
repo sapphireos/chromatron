@@ -352,7 +352,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
             
             // load hash to database
-            kvdb_i8_add( hash_u32_string( meta_string ), 0, VM_KV_TAG, meta_string );
+            kvdb_i8_add( hash_u32_string( meta_string ), CATBUS_TYPE_INT32, 0, VM_KV_TAG, meta_string );
 
             memset( meta_string, 0, sizeof(meta_string) );
         }
