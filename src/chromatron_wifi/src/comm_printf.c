@@ -24,12 +24,18 @@
 
 #include "list.h"
 #include "memory.h"
+#include "comm_printf.h"
 
 extern list_t print_list;
 
 
 
 void intf_v_printf( const char *format, ... ){
+
+    if( list_u8_count( &print_list ) > MAX_PRINT_QUEUE ){
+
+        return;
+    }
 
     char debug_print_buf[128];
     memset( debug_print_buf, 0, sizeof(debug_print_buf) );

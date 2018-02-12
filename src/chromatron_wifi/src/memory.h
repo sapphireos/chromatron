@@ -45,7 +45,7 @@ typedef struct{
     mem_handle_t handle;
     mem_type_t8 type;
     uint8_t padding_len;
-
+    uint16_t header_padding;
     #ifdef ENABLE_RECORD_CREATOR
     uint16_t creator_address;
     #endif

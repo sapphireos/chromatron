@@ -162,6 +162,17 @@ void *list_vp_get_data( list_node_t node ){
     // atomic
 	list_node_state_t *state = mem2_vp_get_ptr( node );
 
+    if( ( (uint32_t)state & 3 ) != 0 ){
+
+        intf_v_printf("list NODE align error: %lx", (uint32_t)&state->data);  
+    }
+
+    if( ( (uint32_t)&state->data & 3 ) != 0 ){
+
+        intf_v_printf("list DATA align error: %lx", (uint32_t)&state->data);  
+    }
+
+
     return &state->data;
 }
 

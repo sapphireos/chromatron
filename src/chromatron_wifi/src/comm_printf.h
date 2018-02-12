@@ -25,6 +25,8 @@
 #ifndef _COMM_PRINTF_H
 #define _COMM_PRINTF_H
 
+#define MAX_PRINT_QUEUE     8
+
 void intf_v_printf( const char *format, ... );
 
 #endif
