@@ -38,11 +38,11 @@
 #include "hash.h"
 #endif
 
-#ifndef ESP8266
+#ifdef ESP8266
+#include "comm_printf.h"
+#else
 #include "logging.h"
 #endif
-
-#include "comm_printf.h"
 
 
 static list_t db_list;
