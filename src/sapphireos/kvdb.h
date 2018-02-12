@@ -36,10 +36,10 @@ uint16_t kvdb_u16_db_size( void );
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
-    void *data,
+    const void *data,
     uint8_t tag, 
     char name[CATBUS_STRING_LEN] );
-int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, void *data );
+int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data );
 int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data );
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 void kvdb_v_delete( catbus_hash_t32 hash );
@@ -51,14 +51,14 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 catbus_hash_t32 kvdb_h_get_hash_for_index( uint16_t index );
 int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash );
 
-uint16_t kvdb_u16_read( catbus_hash_t32 hash );
-uint8_t kvdb_u8_read( catbus_hash_t32 hash );
-int8_t kvdb_i8_read( catbus_hash_t32 hash );
-int16_t kvdb_i16_read( catbus_hash_t32 hash );
-int32_t kvdb_i32_read( catbus_hash_t32 hash );
-bool kvdb_b_read( catbus_hash_t32 hash );
+// uint16_t kvdb_u16_read( catbus_hash_t32 hash );
+// uint8_t kvdb_u8_read( catbus_hash_t32 hash );
+// int8_t kvdb_i8_read( catbus_hash_t32 hash );
+// int16_t kvdb_i16_read( catbus_hash_t32 hash );
+// int32_t kvdb_i32_read( catbus_hash_t32 hash );
+// bool kvdb_b_read( catbus_hash_t32 hash );
 
-extern void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, void *data ) __attribute__((weak));
+extern void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ) __attribute__((weak));
 extern int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ) __attribute__((weak));
 
 #define KVDB_STATUS_OK                  0

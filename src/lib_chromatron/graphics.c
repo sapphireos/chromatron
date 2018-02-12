@@ -556,7 +556,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     return 0;    
 }
 
-void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, void *data ){
+void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
 
     // right now, this only works for the i32 that the VM supports.
     if( meta->type != CATBUS_TYPE_INT32 ){

@@ -25,8 +25,10 @@
 #include <string.h>
 #include "catbus_common.h"
 
+// #include "system.h"
+// #include "logging.h"
 
-int64_t specific_to_i64( catbus_type_t8 type, void *data ){
+int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
 
     int64_t i64_data;
     uint64_t u64_data;
@@ -179,16 +181,15 @@ int8_t type_i8_convert(
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
-    void *src_data ){
+    const void *src_data ){
 
     // check for strings
     bool dst_string = type_b_is_string( dest_type );
     bool src_string = type_b_is_string( src_type );
 
     // get type sizes
-    uint8_t src_size = type_u16_size( src_type );
-    uint8_t dst_size = type_u16_size( dest_type );
-
+    uint16_t src_size = type_u16_size( src_type );
+    uint16_t dst_size = type_u16_size( dest_type );
 
     // numeric to numeric
     if( !dst_string && !src_string ){
@@ -197,10 +198,6 @@ int8_t type_i8_convert(
         int64_t dst_i64 = specific_to_i64( dest_type, dest_data );
 
         i64_to_specific( src_i64, dest_type, dest_data );
-
-        // advance pointers
-        dest_data += dst_size;
-        src_data += src_size;
 
         // check if changing
         if( src_i64 > dst_i64 ){
@@ -227,26 +224,18 @@ int8_t type_i8_convert(
 
         // copy src to dest
         memcpy( dest_data, src_data, size );
-
-        // advance pointers
-        dest_data += dst_size;
-        src_data += src_size;  
     }
     // string to numeric
     else if( src_string ){
 
         // set dest to 0s
         memset( dest_data, 0, dst_size );
-
-        dest_data += dst_size;
     }
     // numeric to string
     else if( dst_string ){
 
         // set dest to 0s
         memset( dest_data, 0, dst_size );
-            
-        dest_data += dst_size;
     }
     else{
 

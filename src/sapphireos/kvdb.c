@@ -38,7 +38,9 @@
 #include "hash.h"
 #endif
 
+#ifndef ESP8266
 #include "logging.h"
+#endif
 
 
 static list_t db_list;
@@ -164,16 +166,19 @@ uint16_t kvdb_u16_db_size( void ){
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
-    void *data,
+    const void *data,
     uint8_t tag, 
     char name[CATBUS_STRING_LEN] ){
 
     // try a set first
-    int8_t status = kvdb_i8_set( hash, type, data );
+    if( data != 0 ){
+        
+        int8_t status = kvdb_i8_set( hash, type, data );
 
-    if( status == KVDB_STATUS_OK ){
+        if( status == KVDB_STATUS_OK ){
 
-        return status;
+            return status;
+        }
     }
 
     if( hash == 0 ){
@@ -182,7 +187,11 @@ int8_t kvdb_i8_add(
     }
 
     // not found, we need to add this entry
+    #ifdef MEM_TYPE_KVDB_ENTRY
     list_node_t ln = list_ln_create_node2( 0, sizeof(db_entry_t) + type_u16_size(type), MEM_TYPE_KVDB_ENTRY );
+    #else
+    list_node_t ln = list_ln_create_node( 0, sizeof(db_entry_t) + type_u16_size(type) );
+    #endif
 
     if( ln < 0 ){
 
@@ -201,7 +210,7 @@ int8_t kvdb_i8_add(
 
     if( data != 0 ){
         
-        memcpy( data_ptr, &data, type_u16_size(type) );
+        memcpy( data_ptr, data, type_u16_size(type) );
     }
     else{
 
@@ -221,14 +230,12 @@ int8_t kvdb_i8_add(
     return KVDB_STATUS_OK;
 }
 
-int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, void *data ){
+int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data ){
 
     if( hash == 0 ){
 
         return KVDB_STATUS_INVALID_HASH;    
     }
-
-    // log_v_debug_P(PSTR("DB set: %lx = %ld"), hash, data);
 
     // get entry for hash
     db_entry_t *entry = _kvdb_dbp_search_hash( hash );
@@ -244,8 +251,13 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, void *data ){
         type = entry->type;
     }
 
+    // log_v_debug_P(PSTR("DB set: %lx type: %d"), hash, (uint16_t)type);
+
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
-    bool changed = type_i8_convert( entry->type, data_ptr, type, &data ) != 0;
+    int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
+    bool changed = ( convert != 0 );
+
+    // log_v_debug_P(PSTR("SET: %lx = %ld src: %ld"), hash, *(int32_t*)data_ptr, *(int32_t*)data);
 
     // check if there is a notifier and data is changing
     if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
@@ -253,7 +265,7 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, void *data ){
         catbus_meta_t meta;
         kvdb_i8_get_meta( hash, &meta );
 
-        kvdb_v_notify_set( hash, &meta, &data );
+        kvdb_v_notify_set( hash, &meta, data );
     }
 
     return KVDB_STATUS_OK;
@@ -434,51 +446,52 @@ int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash ){
     return -1;
 }
 
-// direct retrieval functions, for those who like to throw caution to the wind!
-uint16_t kvdb_u16_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+// // direct retrieval functions, for those who like to throw caution to the wind!
+// uint16_t kvdb_u16_read( catbus_hash_t32 hash ){
 
-    return data;
-}
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-uint8_t kvdb_u8_read( catbus_hash_t32 hash ){
+//     return data;
+// }
 
-    int32_t data;
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+// uint8_t kvdb_u8_read( catbus_hash_t32 hash ){
 
-    return data;
-}
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-int8_t kvdb_i8_read( catbus_hash_t32 hash ){
+//     return data;
+// }
 
-    int32_t data;
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+// int8_t kvdb_i8_read( catbus_hash_t32 hash ){
 
-    return data;
-}
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-int16_t kvdb_i16_read( catbus_hash_t32 hash ){
+//     return data;
+// }
 
-    int32_t data;
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+// int16_t kvdb_i16_read( catbus_hash_t32 hash ){
 
-    return data;
-}
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-int32_t kvdb_i32_read( catbus_hash_t32 hash ){
+//     return data;
+// }
 
-    int32_t data;
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+// int32_t kvdb_i32_read( catbus_hash_t32 hash ){
 
-    return data;
-}
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-bool kvdb_b_read( catbus_hash_t32 hash ){
+//     return data;
+// }
 
-    int32_t data;
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+// bool kvdb_b_read( catbus_hash_t32 hash ){
 
-    return data;
-}
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
+
+//     return data;
+// }
