@@ -189,7 +189,7 @@ static file_t get_program_handle( catbus_hash_t32 hash ){
 
     char program_fname[KV_NAME_LEN];
 
-    if( kv_i8_get_by_hash( hash, program_fname, sizeof(program_fname) ) < 0 ){
+    if( kv_i8_get( hash, program_fname, sizeof(program_fname) ) < 0 ){
 
         return -1;
     }
@@ -727,7 +727,7 @@ void vm_v_set_program_P( PGM_P ptr ){
 
 void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] ){
 
-    kv_i8_set_by_hash( __KV__vm_prog, progname, VM_MAX_FILENAME_LEN );
+    kv_i8_set( __KV__vm_prog, progname, VM_MAX_FILENAME_LEN );
 }
 
 void vm_v_received_info( vm_info_t *info ){

@@ -1439,15 +1439,15 @@ PT_BEGIN( pt );
             //     network_hashes[0] = hash_u32_string( ssid );
 
             //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get_by_hash( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
             //     network_hashes[1] = hash_u32_string( ssid );
 
             //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get_by_hash( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
             //     network_hashes[2] = hash_u32_string( ssid );
 
             //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get_by_hash( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
             //     network_hashes[3] = hash_u32_string( ssid );
 
 
@@ -1501,18 +1501,18 @@ PT_BEGIN( pt );
 
             if( router == 1 ){
 
-                kv_i8_get_by_hash( __KV__wifi_ssid2, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get_by_hash( __KV__wifi_password2, msg.pass, sizeof(msg.pass) );  
+                kv_i8_get( __KV__wifi_ssid2, msg.ssid, sizeof(msg.ssid) );
+                kv_i8_get( __KV__wifi_password2, msg.pass, sizeof(msg.pass) );  
             }
             else if( router == 2 ){
 
-                kv_i8_get_by_hash( __KV__wifi_ssid3, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get_by_hash( __KV__wifi_password3, msg.pass, sizeof(msg.pass) );  
+                kv_i8_get( __KV__wifi_ssid3, msg.ssid, sizeof(msg.ssid) );
+                kv_i8_get( __KV__wifi_password3, msg.pass, sizeof(msg.pass) );  
             }
             else if( router == 3 ){
 
-                kv_i8_get_by_hash( __KV__wifi_ssid4, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get_by_hash( __KV__wifi_password4, msg.pass, sizeof(msg.pass) );  
+                kv_i8_get( __KV__wifi_ssid4, msg.ssid, sizeof(msg.ssid) );
+                kv_i8_get( __KV__wifi_password4, msg.pass, sizeof(msg.pass) );  
             }
             else{
 

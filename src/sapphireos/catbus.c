@@ -658,7 +658,7 @@ int8_t catbus_i8_set(
 
     // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
 
-    status = kv_i8_set_by_hash( hash, buf, type_u16_size( meta.type ) );
+    status = kv_i8_set( hash, buf, type_u16_size( meta.type ) );
 
     if( status == 0 ){
 
@@ -685,7 +685,7 @@ int8_t catbus_i8_get(
 
     uint8_t buf[CATBUS_STRING_LEN];
 
-    status = kv_i8_get_by_hash( hash, buf, sizeof(buf) );
+    status = kv_i8_get( hash, buf, sizeof(buf) );
 
     if( status < 0 ){
 
@@ -1234,7 +1234,7 @@ PT_BEGIN( pt );
                     data->meta.flags    = meta.flags;
                     data->meta.reserved = 0;
 
-                    if( kv_i8_get_by_hash( *hash, &data->data, type_len ) != KV_ERR_STATUS_OK ){
+                    if( kv_i8_get( *hash, &data->data, type_len ) != KV_ERR_STATUS_OK ){
 
                         error = CATBUS_ERROR_KEY_NOT_FOUND;
                         mem2_v_free( h );
@@ -1296,7 +1296,7 @@ PT_BEGIN( pt );
                 uint16_t type_size = kv_u16_get_size_meta( &meta );
                     
                 // set value
-                if( kv_i8_set_by_hash( data->meta.hash, &data->data, type_size ) != KV_ERR_STATUS_OK ){
+                if( kv_i8_set( data->meta.hash, &data->data, type_size ) != KV_ERR_STATUS_OK ){
 
                     error = CATBUS_ERROR_KEY_NOT_FOUND;
                     goto end;
@@ -1308,7 +1308,7 @@ PT_BEGIN( pt );
                 }
 
                 // get value, so we'll return what actually got set.
-                if( kv_i8_get_by_hash( data->meta.hash, &data->data, type_size ) != KV_ERR_STATUS_OK ){
+                if( kv_i8_get( data->meta.hash, &data->data, type_size ) != KV_ERR_STATUS_OK ){
 
                     error = CATBUS_ERROR_KEY_NOT_FOUND;
                     goto end;

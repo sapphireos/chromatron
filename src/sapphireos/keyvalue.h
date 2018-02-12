@@ -131,23 +131,15 @@ int8_t kv_i8_persist( catbus_hash_t32 hash );
     
 uint16_t kv_u16_get_size_meta( kv_meta_t *meta );
 
-int8_t kv_i8_set_by_hash(
+int8_t kv_i8_set(
     catbus_hash_t32 hash,
     const void *data,
     uint16_t len );
 
-int8_t kv_i8_get_by_hash(
+int8_t kv_i8_get(
     catbus_hash_t32 hash,
     void *data,
     uint16_t max_len );
-
-int8_t kv_i8_link_get(
-    catbus_hash_t32 hash,
-    int32_t *data );
-
-int8_t kv_i8_link_set(
-    catbus_hash_t32 hash,
-    int32_t data );
 
 int16_t kv_i16_search_hash( catbus_hash_t32 hash );
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );

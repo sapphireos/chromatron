@@ -622,7 +622,7 @@ static int8_t _kv_i8_internal_set(
     return status;
 }
 
-int8_t kv_i8_set_by_hash(
+int8_t kv_i8_set(
     catbus_hash_t32 hash,
     const void *data,
     uint16_t len )
@@ -748,7 +748,7 @@ static int8_t _kv_i8_internal_get(
     return status;
 }
 
-int8_t kv_i8_get_by_hash(
+int8_t kv_i8_get(
     catbus_hash_t32 hash,
     void *data,
     uint16_t max_len )

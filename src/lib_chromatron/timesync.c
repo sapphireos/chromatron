@@ -183,7 +183,7 @@ void time_v_init( void ){
 static uint32_t get_sync_group_hash( void ){
 
     char sync_group[32];
-    if( kv_i8_get_by_hash( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
+    if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
 
         return 0;
     }
