@@ -175,7 +175,7 @@ void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data ){
 }
 
 
-void type_v_convert( 
+int8_t type_i8_convert( 
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
@@ -193,12 +193,24 @@ void type_v_convert(
     // numeric to numeric
     if( !dst_string && !src_string ){
     
-        int64_t temp = specific_to_i64( src_type, src_data );
-        i64_to_specific( temp, dest_type, dest_data );
+        int64_t src_i64 = specific_to_i64( src_type, src_data );
+        int64_t dst_i64 = specific_to_i64( dest_type, dest_data );
+
+        i64_to_specific( src_i64, dest_type, dest_data );
 
         // advance pointers
         dest_data += dst_size;
-        src_data += src_size;    
+        src_data += src_size;
+
+        // check if changing
+        if( src_i64 > dst_i64 ){
+
+            return 1;
+        }
+        else if( src_i64 < dst_i64 ){
+
+            return -1;
+        }
     }
     // string to string
     else if( dst_string && src_string ){
@@ -218,7 +230,7 @@ void type_v_convert(
 
         // advance pointers
         dest_data += dst_size;
-        src_data += src_size;    
+        src_data += src_size;  
     }
     // string to numeric
     else if( src_string ){
@@ -240,6 +252,8 @@ void type_v_convert(
 
         // shouldn't get here!
     }
+
+    return 0;
 }
 
 

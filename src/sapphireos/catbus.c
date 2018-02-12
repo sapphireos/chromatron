@@ -654,7 +654,7 @@ int8_t catbus_i8_set(
     }
 
     uint8_t buf[CATBUS_STRING_LEN];
-    type_v_convert( meta.type, buf, type, data );
+    type_i8_convert( meta.type, buf, type, data );
 
     // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
 
@@ -692,7 +692,7 @@ int8_t catbus_i8_get(
         return status;
     }
 
-    type_v_convert( type, data, meta.type, buf );
+    type_i8_convert( type, data, meta.type, buf );
 
     return 0;
 }

@@ -37,7 +37,7 @@ int8_t kvdb_i8_add( catbus_hash_t32 hash, int32_t data, uint8_t tag, char name[C
 int8_t kvdb_i8_set( catbus_hash_t32 hash, int32_t data );
 int8_t kvdb_i8_get( catbus_hash_t32 hash, int32_t *data );
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
-int8_t kvdb_i8_delete( catbus_hash_t32 hash );
+void kvdb_v_delete( catbus_hash_t32 hash );
 void kvdb_v_delete_tag( uint8_t tag );
 int8_t kvdb_i8_publish( catbus_hash_t32 hash );
 #ifdef KVDB_ENABLE_NAME_LOOKUP

@@ -65,7 +65,7 @@ typedef struct __attribute__((packed)){
 } catbus_file_meta_t;
 
 
-void type_v_convert( 
+int8_t type_i8_convert( 
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
