@@ -32,6 +32,7 @@
 #include "ffs_fw.h"
 #include "crc.h"
 #include "kvdb.h"
+#include "catbus_common.h"
 
 // #define NO_LOGGING
 #include "logging.h"

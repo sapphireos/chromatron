@@ -238,6 +238,12 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, void *data ){
         return KVDB_STATUS_NOT_FOUND;    
     }
 
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
     bool changed = type_i8_convert( entry->type, data_ptr, type, &data ) != 0;
 
@@ -263,8 +269,13 @@ int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data ){
         return KVDB_STATUS_NOT_FOUND;
     }
 
-    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
 
+        type = entry->type;
+    }
+
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
     type_i8_convert( type, data, entry->type, data_ptr );
 
     return KVDB_STATUS_OK;
