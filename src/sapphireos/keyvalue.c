@@ -240,26 +240,6 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 }
 
 
-uint32_t kv_u32_get_hash_from_index( uint16_t index ){
-
-    uint32_t kv_index_start = ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
-                              ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-
-    kv_hash_index_t index_entry;
-
-    for( uint16_t i = 0; i < _kv_u16_fixed_count(); i++ ){
-    
-        memcpy_PF( &index_entry, kv_index_start + ( (uint32_t)i * sizeof(kv_hash_index_t) ), sizeof(index_entry) );    
-
-        if( index_entry.index == index ){
-
-            return index_entry.hash;
-        }
-    }
-
-    return 0;
-}
-
 int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
 {
 

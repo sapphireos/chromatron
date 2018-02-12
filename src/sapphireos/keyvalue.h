@@ -153,7 +153,6 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash );
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );
 uint16_t kv_u16_count( void );
 int8_t kv_i8_publish( catbus_hash_t32 hash );
-uint32_t kv_u32_get_hash_from_index( uint16_t index );
 int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags );
 int8_t kv_i8_lookup_hash(
     catbus_hash_t32 hash,
