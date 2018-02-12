@@ -38,7 +38,7 @@
 #include "hash.h"
 #endif
 
-// #include "logging.h"
+#include "logging.h"
 
 static uint16_t kv_count;
 static uint16_t db_size;
@@ -326,6 +326,8 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, int32_t data ){
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
     
+    // log_v_debug_P(PSTR("DB set: %lx = %ld"), hash, data);
+
     // get index for hash
     int16_t index = _kvdb_i16_search_hash( hash );
 

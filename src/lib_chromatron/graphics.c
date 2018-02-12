@@ -438,6 +438,8 @@ static int8_t send_read_keys( void ){
 
         catbus_i8_get( *read_key, CATBUS_TYPE_INT32, &batch.entries[i].data );
 
+        // log_v_debug_P(PSTR("GET: %lx = %ld"), *read_key, batch.entries[i].data);
+
         batch.count++;
     }
 

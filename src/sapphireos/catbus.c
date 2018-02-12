@@ -656,6 +656,8 @@ int8_t catbus_i8_set(
     uint8_t buf[CATBUS_STRING_LEN];
     type_v_convert( meta.type, buf, type, data );
 
+    // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
+
     status = kv_i8_set_by_hash( hash, buf, type_u16_size( meta.type ) );
 
     if( status == 0 ){
@@ -696,7 +698,10 @@ int8_t catbus_i8_get(
 }
 
 #ifdef ENABLE_CATBUS_LINK
-catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, catbus_hash_t32 dest_hash, catbus_query_t *dest_query ){
+catbus_link_t catbus_l_send( 
+    catbus_hash_t32 source_hash, 
+    catbus_hash_t32 dest_hash, 
+    catbus_query_t *dest_query ){
 
     if( !link_enable ){
 
@@ -706,7 +711,10 @@ catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, catbus_hash_t32 dest_h
     return _catbus_l_create_link( TRUE, source_hash, dest_hash, dest_query );
 }
 
-catbus_link_t catbus_l_recv( catbus_hash_t32 dest_hash, catbus_hash_t32 source_hash, catbus_query_t *source_query ){
+catbus_link_t catbus_l_recv( 
+    catbus_hash_t32 dest_hash, 
+    catbus_hash_t32 source_hash, 
+    catbus_query_t *source_query ){
 
     if( !link_enable ){
 
