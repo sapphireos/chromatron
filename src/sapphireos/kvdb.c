@@ -42,11 +42,13 @@
 #include "logging.h"
 #endif
 
+#include "comm_printf.h"
+
 
 static list_t db_list;
 
 
-typedef struct __attribute__((packed)){
+typedef struct{
     catbus_hash_t32 hash;
     catbus_type_t8 type;
     catbus_flags_t8 flags;
@@ -172,7 +174,7 @@ int8_t kvdb_i8_add(
 
     // try a set first
     if( data != 0 ){
-        
+
         int8_t status = kvdb_i8_set( hash, type, data );
 
         if( status == KVDB_STATUS_OK ){
@@ -200,24 +202,35 @@ int8_t kvdb_i8_add(
 
     db_entry_t *entry = list_vp_get_data( ln );
 
-    entry->hash      = hash;
-    entry->type      = type;
-    entry->flags     = CATBUS_FLAGS_DYNAMIC;
-    entry->tag       = tag;
-    entry->count     = 1;
+    if( ((uint32_t)entry % 4) == 0 ){
 
-    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+        entry->hash      = hash;
+        entry->type      = type;
+        entry->flags     = CATBUS_FLAGS_DYNAMIC;
+        entry->tag       = tag;
+        entry->count     = 1;
 
-    if( data != 0 ){
-        
-        memcpy( data_ptr, data, type_u16_size(type) );
+        intf_v_printf("align OK: %lx", (uint32_t)entry);
     }
     else{
 
-        memset( data_ptr, 0, type_u16_size(type) );
+        intf_v_printf("align error: %lx", (uint32_t)entry);
     }
 
-    list_v_insert_tail( &db_list, ln );
+    // uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+
+    // if( data != 0 ){
+        
+    //     memcpy( data_ptr, data, type_u16_size(type) );
+    // }
+    // else{
+
+    //     memset( data_ptr, 0, type_u16_size(type) );
+    // }
+
+    list_v_release_node( ln );
+
+    // list_v_insert_tail( &db_list, ln );
 
     #ifdef KVDB_ENABLE_NAME_LOOKUP
     // add name
@@ -253,20 +266,20 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data 
 
     // log_v_debug_P(PSTR("DB set: %lx type: %d"), hash, (uint16_t)type);
 
-    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
-    int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
-    bool changed = ( convert != 0 );
+    // uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+    // int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
+    // bool changed = ( convert != 0 );
 
-    // log_v_debug_P(PSTR("SET: %lx = %ld src: %ld"), hash, *(int32_t*)data_ptr, *(int32_t*)data);
+    // // log_v_debug_P(PSTR("SET: %lx = %ld src: %ld"), hash, *(int32_t*)data_ptr, *(int32_t*)data);
 
-    // check if there is a notifier and data is changing
-    if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
+    // // check if there is a notifier and data is changing
+    // if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
 
-        catbus_meta_t meta;
-        kvdb_i8_get_meta( hash, &meta );
+    //     catbus_meta_t meta;
+    //     kvdb_i8_get_meta( hash, &meta );
 
-        kvdb_v_notify_set( hash, &meta, data );
-    }
+    //     kvdb_v_notify_set( hash, &meta, data );
+    // }
 
     return KVDB_STATUS_OK;
 }

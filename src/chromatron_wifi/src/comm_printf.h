@@ -1,4 +1,5 @@
- // <license>
+/*
+// <license>
 // 
 //     This file is part of the Sapphire Operating System.
 // 
@@ -19,40 +20,11 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#ifndef _COMM_INTF_H
-#define _COMM_INTF_H
+#ifndef _COMM_PRINTF_H
+#define _COMM_PRINTF_H
 
-#define LED_GPIO 2
-#define BUF_READY_GPIO 14
-
-extern "C"{
-    #include "comm_printf.h"
-}
-
-typedef struct{
-    uint16_t intf_run_time;
-    uint16_t intf_max_time;
-    uint16_t vm_run_time;
-    uint16_t vm_max_time;
-    uint16_t wifi_run_time;
-    uint16_t wifi_max_time;
-    uint16_t mem_run_time;
-    uint16_t mem_max_time;
-} process_stats_t;
-
-void intf_v_led_on( void );
-void intf_v_led_off( void );
-void intf_v_init( void );
-void intf_v_process( void );
-void intf_v_request_status( void );
-void intf_v_request_vm_info( void );
-void intf_v_request_rgb_pix0( void );
-void intf_v_request_rgb_array( void );
-void intf_v_request_vm_frame_sync( void );
-void intf_v_get_mac( uint8_t mac[6] );
 void intf_v_printf( const char *format, ... );
-int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
-void intf_v_get_proc_stats( process_stats_t **stats );
 
 #endif

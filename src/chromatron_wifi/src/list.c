@@ -28,6 +28,8 @@
 
 #include "list.h"
 
+#include "comm_printf.h"
+
 #define ASSERT(a)
 #define ASSERT_MSG(a, b)
 

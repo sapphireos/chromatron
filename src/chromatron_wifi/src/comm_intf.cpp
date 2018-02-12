@@ -40,7 +40,7 @@ extern "C"{
     #include "memory.h"
 }
 
-static list_t print_list;
+list_t print_list;
 
 static uint32_t start_timeout( void ){
 
@@ -726,35 +726,6 @@ void intf_v_get_mac( uint8_t mac[6] ){
 int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ){
 
     return 0;
-}
-
-
-void intf_v_printf( const char *format, ... ){
-
-    char debug_print_buf[WIFI_MAX_DATA_LEN];
-    memset( debug_print_buf, 0, sizeof(debug_print_buf) );
-    
-    va_list ap;
-
-    // parse variable arg list
-    va_start( ap, format );
-
-    // print string
-    uint32_t len = vsnprintf_P( debug_print_buf, sizeof(debug_print_buf), format, ap );
-
-    va_end( ap );
-
-    len++; // add null terminator
-
-    // alloc memory
-    list_node_t ln = list_ln_create_node( debug_print_buf, len );
-
-    if( ln < 0 ){
-
-        return;
-    }
-
-    list_v_insert_head( &print_list, ln );
 }
 
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){

@@ -29,7 +29,7 @@
 
 typedef mem_handle_t list_node_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     list_node_t prev;
     list_node_t next;
     uint8_t     data; // first byte of data
