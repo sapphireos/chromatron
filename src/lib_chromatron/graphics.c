@@ -436,7 +436,7 @@ static int8_t send_read_keys( void ){
     
         batch.entries[i].hash = *read_key;
 
-        catbus_i8_get( *read_key, &batch.entries[i].data );
+        catbus_i8_get( *read_key, CATBUS_TYPE_INT32, &batch.entries[i].data );
 
         batch.count++;
     }
@@ -543,7 +543,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
             // log_v_debug_P( PSTR("from ESP: %lx %ld"), msg->entries[i].hash, msg->entries[i].data );
 
-            catbus_i8_set( msg->entries[i].hash, msg->entries[i].data );
+            catbus_i8_set( msg->entries[i].hash, CATBUS_TYPE_INT32, (void *)&msg->entries[i].data );
         }
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){

@@ -28,6 +28,7 @@
 #include "bool.h"
 #include "kvdb.h"
 #include "memory.h"
+#include "list.h"
 
 #include "kvdb_config.h"
 
@@ -55,10 +56,11 @@ typedef struct __attribute__((packed)){
 // 8 bytes of meta data
 // N bytes for data
 // 5 bytes for mem block
-// 2 byets for list node
+// 2 bytes for list node
 // in linked list: 15 bytes of overhead per item
 // 19 bytes for i32
 // 26 items in less than 512 bytes of RAM
+// we will have to do linear searches for linked list. binary would require a tree or array.
 
 
 

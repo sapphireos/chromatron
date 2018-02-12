@@ -636,21 +636,10 @@ static void _catbus_v_send_link( catbus_link_t link ){
 }
 #endif
 
-union type_converter{
-    bool b;
-    uint8_t u8;
-    int8_t i8;
-    uint16_t u16;
-    int16_t i16;
-    uint32_t u32;
-    int32_t i32;
-    uint64_t u64;
-    int64_t i64;
-};
-
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
+    catbus_type_t8 type,
     void *data )
 {
 
@@ -677,6 +666,7 @@ int8_t catbus_i8_set(
 
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
+    catbus_type_t8 type,
     void *data ){
 
     // look up parameter
@@ -885,7 +875,7 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
 
     state.msg.source_hash = hash;
     
-    if( catbus_i8_get( hash, &state.msg.data ) < 0 ){
+    if( catbus_i8_get( hash, CATBUS_TYPE_INT32, &state.msg.data ) < 0 ){
 
         return -1;
     }
@@ -1506,7 +1496,7 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                catbus_i8_set( msg->dest_hash, (void *)&msg->data.data );
+                catbus_i8_set( msg->dest_hash, CATBUS_TYPE_INT32, (void *)&msg->data.data );
 
                 if( kv_v_notify_hash_set != 0 ){
 
