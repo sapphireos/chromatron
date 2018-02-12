@@ -365,7 +365,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
     }
 
     // read through database keys
-    mem_handle_t h = mem2_h_alloc( sizeof(uint32_t) * state.read_keys_count );
+    mem_handle_t h = mem2_h_alloc2( sizeof(uint32_t) * state.read_keys_count, MEM_TYPE_SUBSCRIBED_KEYS );
 
     if( h > 0 ){
 

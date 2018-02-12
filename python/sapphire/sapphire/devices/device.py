@@ -1046,6 +1046,8 @@ class Device(object):
             15: "kv_link",
             16: "kv_send",
             17: "kv_rx_cache",
+            18: "kv_db_entry",
+            19: "subscribed_keys",
         }
 
         total_size = 0

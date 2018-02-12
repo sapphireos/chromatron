@@ -180,7 +180,7 @@ int8_t kvdb_i8_add(
     // not found, we need to add this entry
     catbus_type_t8 type = CATBUS_TYPE_INT32;
 
-    list_node_t ln = list_ln_create_node( 0, sizeof(db_entry_t) + type_u16_size(type) );
+    list_node_t ln = list_ln_create_node2( 0, sizeof(db_entry_t) + type_u16_size(type), MEM_TYPE_KVDB_ENTRY );
 
     if( ln < 0 ){
 
