@@ -652,14 +652,16 @@ int8_t catbus_i8_set(
 
         return status;
     }
-    
-    
-    // status = kv_i8_set_by_hash( hash, &converter, type_u16_size( meta.type ) );
 
-    // if( status == 0 ){
+    uint8_t buf[CATBUS_STRING_LEN];
+    type_v_convert( meta.type, buf, type, data );
 
-    //     catbus_i8_publish( hash );
-    // }
+    status = kv_i8_set_by_hash( hash, buf, type_u16_size( meta.type ) );
+
+    if( status == 0 ){
+
+        catbus_i8_publish( hash );
+    }
 
     return status;
 }
@@ -679,81 +681,16 @@ int8_t catbus_i8_get(
         return status;
     }
 
-    
-    // union type_converter converter;
-    // memset( &converter, 0, sizeof(converter) );
+    uint8_t buf[CATBUS_STRING_LEN];
 
-    // status = kv_i8_get_by_hash( hash, &converter, sizeof(converter) );
+    status = kv_i8_get_by_hash( hash, buf, sizeof(buf) );
 
-    // if( status < 0 ){
+    if( status < 0 ){
 
-    //     return status;
-    // }
+        return status;
+    }
 
-    // // coerce value to i32
-    // switch( meta.type ){
-    //     case CATBUS_TYPE_BOOL:
-    //         *data = converter.b;
-    //         break;
-
-    //     case CATBUS_TYPE_UINT8:
-    //         *data = converter.u8;
-    //         break;
-
-    //     case CATBUS_TYPE_UINT16:
-    //         *data = converter.u16;
-    //         break;
-
-    //     case CATBUS_TYPE_INT8:
-    //         *data = converter.i8;
-    //         break;
-
-    //     case CATBUS_TYPE_INT16:
-    //         *data = converter.i16;
-    //         break;
-
-    //     case CATBUS_TYPE_INT32:
-    //         *data = converter.i32;
-    //         break;
-            
-    //     case CATBUS_TYPE_UINT32:
-    //         if( converter.u32 > INT32_MAX ){
-
-    //             converter.u32 = INT32_MAX;
-    //         }
-
-    //         *data = converter.u32;
-
-    //         break;
-
-    //     case CATBUS_TYPE_UINT64:
-    //         if( converter.u64 > INT32_MAX ){
-
-    //             converter.u64 = INT32_MAX;
-    //         }
-
-    //         *data = converter.u64;
-
-    //         break;
-
-    //     case CATBUS_TYPE_INT64:
-    //         if( converter.i64 > INT32_MAX ){
-
-    //             converter.i64 = INT32_MAX;
-    //         }
-    //         else if( converter.i64 < INT32_MIN ){
-
-    //             converter.i64 = INT32_MIN;
-    //         }
-
-    //         *data = converter.i64;
-
-    //         break;
-
-    //     default:
-    //         return -1;
-    //         break;
-    // }
+    type_v_convert( type, data, meta.type, buf );
 
     return 0;
 }
