@@ -540,7 +540,7 @@ PT_BEGIN( pt );
         // wait for VM to finish loading
         TMR_WAIT( pt, 1000 );
 
-        log_v_debug_P( PSTR("sts: %d ret: %d loop: %ld fade: %ld"),
+        log_v_debug_P( PSTR("sts: %d ret: %d loop: %u fade: %u"),
                        vm_info.status,
                        vm_info.return_code,
                        vm_info.loop_time,
