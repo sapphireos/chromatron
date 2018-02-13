@@ -3316,6 +3316,45 @@ class DBStoreInstruction(Instruction):
         return [self.opcode, (kv_hash >> 24) & 0xff, (kv_hash >> 16) & 0xff, (kv_hash >> 8) & 0xff, (kv_hash >> 0) & 0xff, self.op1.addr]
 
 
+class DBIndexLoadInstruction(Instruction):
+    mnemonic = 'DB_IDX_LOAD'
+    opcode = 0x3B
+
+    def __init__(self, result, op1, index):
+        super(DBIndexLoadInstruction, self).__init__()
+        self.result = result
+        self.op1 = op1
+        self.index = index
+
+    def __str__(self):
+        return "%-16s %16s[%s] <- %16s" % (self.mnemonic, self.result, self.index, self.op1)
+
+    def assemble(self):
+        kv_hash = string_hash_func(self.op1.attr)
+
+        return [self.opcode, (kv_hash >> 24) & 0xff, (kv_hash >> 16) & 0xff, (kv_hash >> 8) & 0xff, (kv_hash >> 0) & 0xff, self.result.addr, self.index.addr]
+
+
+class DBIndexStoreInstruction(Instruction):
+    mnemonic = 'DB_IDX_STORE'
+    opcode = 0x3C
+
+    def __init__(self, result, op1, index):
+        super(DBIndexStoreInstruction, self).__init__()
+        self.result = result
+        self.op1 = op1
+        self.index = index
+
+    def __str__(self):
+        return "%-16s %16s[%s] <- %16s" % (self.mnemonic, self.result, self.index, self.op1)
+
+    def assemble(self):
+        kv_hash = string_hash_func(self.result.attr)
+
+        return [self.opcode, (kv_hash >> 24) & 0xff, (kv_hash >> 16) & 0xff, (kv_hash >> 8) & 0xff, (kv_hash >> 0) & 0xff, self.op1.addr, self.index.addr]
+
+
+
 conditional_jumps = [
     JmpIfZero,
 ]
@@ -3529,11 +3568,17 @@ class CodeGeneratorPass5(object):
                     ins = index_load_irs[ir.src.attr](ir.dest, ir.x, ir.y, obj=ir.src)
 
                 except KeyError:
-                    if ir.y < 0:
-                        ins = LoadFromArray(ir.dest, ir.src, ir.x)
+                    if ir.src.obj == 'db':
+                        ins = DBIndexLoadInstruction(ir.dest, ir.src, ir.x)
 
-                    else:
-                        ins = LoadFromArray2D(ir.dest, ir.src, ir.x, ir.y)
+                        # add to read keys
+                        self.read_keys[ins.op1.attr] = string_hash_func(ins.op1.attr)
+
+                    # if ir.y < 0:
+                    #     ins = LoadFromArray(ir.dest, ir.src, ir.x)
+
+                    # else:
+                    #     ins = LoadFromArray2D(ir.dest, ir.src, ir.x, ir.y)
 
                 self.append_code(ins)
 
@@ -3550,11 +3595,18 @@ class CodeGeneratorPass5(object):
                     ins = index_store_irs[ir.dest.attr](ir.src, ir.x, ir.y, obj=ir.dest)
 
                 except KeyError:
-                    if ir.y < 0:
-                        ins = LoadToArray(ir.src, ir.src, ir.x)
+                    if ir.dest.obj == 'db':
+                        ins = DBIndexStoreInstruction(ir.dest, ir.src, ir.x)
 
-                    else:
-                        ins = LoadToArray2D(ir.src, ir.src, ir.x, ir.y)
+                        # add to write keys
+                        self.write_keys[ins.result.attr] = string_hash_func(ins.result.attr)
+
+
+                    # if ir.y < 0:
+                    #     ins = LoadToArray(ir.src, ir.src, ir.x)
+
+                    # else:
+                    #     ins = LoadToArray2D(ir.src, ir.src, ir.x, ir.y)
 
                 self.append_code(ins)
 
