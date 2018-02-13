@@ -36,6 +36,7 @@ uint16_t kvdb_u16_db_size( void );
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
+    uint16_t count,
     const void *data,
     uint8_t tag, 
     char name[CATBUS_STRING_LEN] );

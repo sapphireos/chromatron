@@ -83,7 +83,7 @@ PT_THREAD( catbus_announce_thread( pt_t *pt, void *state ) );
 
 static uint32_t test_array[8];
 KV_SECTION_META kv_meta_t catbus_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  KV_ARRAY_LEN(8), 0, &test_array,  0, "catbus_test_array" },
+    { SAPPHIRE_TYPE_UINT32,  KV_ARRAY_LEN(8), 0, &test_array,  0, "kv_test_array" },
 };
 
 

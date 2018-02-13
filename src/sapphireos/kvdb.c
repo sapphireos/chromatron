@@ -147,7 +147,14 @@ void kvdb_v_init( void ){
     list_v_init( &db_list );
 
     int32_t temp = 123;
-    kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, &temp, 0, "test_meow" );    
+    kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, 0, &temp, 0, "test_meow" );    
+
+    uint8_t array[4];
+    array[0] = 1;
+    array[1] = 2;
+    array[2] = 3;
+    array[3] = 4;
+    kvdb_i8_add( __KV__test_woof, CATBUS_TYPE_UINT8, cnt_of_array(array), array, 0, "test_woof" );        
 
     // kvdb_i8_add( __KV__test_meow, 123, 0, "test_meow" );
     // kvdb_i8_add( __KV__test_woof, 456, 0, "test_woof" );
@@ -168,6 +175,7 @@ uint16_t kvdb_u16_db_size( void ){
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
+    uint16_t count,
     const void *data,
     uint8_t tag, 
     char name[CATBUS_STRING_LEN] ){
@@ -188,11 +196,25 @@ int8_t kvdb_i8_add(
         return KVDB_STATUS_INVALID_HASH;    
     }
 
+    if( count > 256 ){
+
+        count = 256;
+    }
+
+    if( count == 0 ){
+
+        count = 1;
+    }
+
+    uint16_t data_len = type_u16_size(type) * count;
+
+    count--;
+
     // not found, we need to add this entry
     #ifdef MEM_TYPE_KVDB_ENTRY
-    list_node_t ln = list_ln_create_node2( 0, sizeof(db_entry_t) + type_u16_size(type), MEM_TYPE_KVDB_ENTRY );
+    list_node_t ln = list_ln_create_node2( 0, sizeof(db_entry_t) + data_len, MEM_TYPE_KVDB_ENTRY );
     #else
-    list_node_t ln = list_ln_create_node( 0, sizeof(db_entry_t) + type_u16_size(type) );
+    list_node_t ln = list_ln_create_node( 0, sizeof(db_entry_t) + data_len );
     #endif
 
     if( ln < 0 ){
@@ -206,17 +228,17 @@ int8_t kvdb_i8_add(
     entry->type      = type;
     entry->flags     = CATBUS_FLAGS_DYNAMIC;
     entry->tag       = tag;
-    entry->count     = 1;
+    entry->count     = count;
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
     if( data != 0 ){
         
-        memcpy( data_ptr, data, type_u16_size(type) );
+        memcpy( data_ptr, data, data_len );
     }
     else{
 
-        memset( data_ptr, 0, type_u16_size(type) );
+        memset( data_ptr, 0, data_len );
     }
 
     list_v_insert_tail( &db_list, ln );
@@ -311,7 +333,7 @@ int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
     }
 
     meta->hash      = hash;
-    meta->count     = 0;
+    meta->count     = entry->count;
     meta->flags     = entry->flags;
     meta->type      = entry->type;
     meta->reserved  = 0;
