@@ -1206,7 +1206,7 @@ opcode_db_idx_load:
     index       = data[*pc++];
 
     #ifdef VM_ENABLE_KVDB
-    // kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest], sizeof(data[dest]) );
+    kvdb_i8_array_get( hash, CATBUS_TYPE_INT32, index, &data[dest], sizeof(data[dest]) );
     #endif
 
     goto dispatch;
@@ -1221,8 +1221,8 @@ opcode_db_idx_store:
     index       = data[*pc++];
 
     #ifdef VM_ENABLE_KVDB
-    // kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr], sizeof(data[op1_addr]) );
-    // kvdb_i8_publish( hash );
+    kvdb_i8_array_set( hash, CATBUS_TYPE_INT32, index, &data[op1_addr], sizeof(data[op1_addr]) );
+    kvdb_i8_publish( hash );
     #endif
 
     goto dispatch;

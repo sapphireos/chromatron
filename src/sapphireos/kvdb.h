@@ -43,6 +43,8 @@ int8_t kvdb_i8_add(
     char name[CATBUS_STRING_LEN] );
 int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len );
 int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data, uint16_t max_len );
+int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, const void *data, uint16_t len );
+int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, void *data, uint16_t max_len );
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 void kvdb_v_delete( catbus_hash_t32 hash );
 void kvdb_v_delete_tag( uint8_t tag );

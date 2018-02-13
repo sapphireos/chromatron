@@ -312,6 +312,7 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
     return KVDB_STATUS_OK;
 }
 
+
 int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data, uint16_t max_len ){
 
     // get entry for hash
@@ -347,6 +348,95 @@ int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data, uint1
 
     return KVDB_STATUS_OK;
 }
+
+int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, const void *data, uint16_t len ){
+
+    if( hash == 0 ){
+
+        return KVDB_STATUS_INVALID_HASH;    
+    }
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return KVDB_STATUS_NOT_FOUND;    
+    }
+
+    uint16_t data_len = type_u16_size(type);
+
+    if( len < data_len ){
+
+        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+    }
+
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
+    // wrap around index
+    index %= ( entry->count + 1 );
+
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+    bool changed = FALSE;
+
+    int8_t convert = type_i8_convert( entry->type, &data_ptr[index], type, data );
+
+    if( convert != 0 ){
+
+        changed = TRUE;
+    }
+
+    // check if there is a notifier and data is changing
+    if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
+
+        catbus_meta_t meta;
+        kvdb_i8_get_meta( hash, &meta );
+
+        kvdb_v_notify_set( hash, &meta, data );
+    }
+
+    return KVDB_STATUS_OK;
+}
+
+
+// get a single item from an array
+int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, void *data, uint16_t max_len ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+        
+        return KVDB_STATUS_NOT_FOUND;
+    }
+
+    uint16_t data_len = type_u16_size(type);
+
+    if( max_len < data_len ){
+
+        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+    }
+
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
+    // wrap around index
+    index %= ( entry->count + 1 );
+
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+        
+    type_i8_convert( type, data, entry->type, &data_ptr[index] );
+
+    return KVDB_STATUS_OK;
+}
+
 
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 
