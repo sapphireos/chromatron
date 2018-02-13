@@ -102,9 +102,6 @@ static bool default_ap_mode;
 static uint16_t wifi_comm_errors;
 static uint8_t wifi_connects;
 
-static uint32_t wifi_echo_sent;
-static uint32_t wifi_echo_recv;
-
 static uint16_t wifi_rx_udp_fifo_overruns;
 static uint16_t wifi_rx_udp_port_overruns;
 static uint32_t wifi_udp_received;
@@ -163,9 +160,6 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_fifo_overruns,        0,   "wifi_comm_rx_udp_fifo_overruns" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_sent,                    0,   "wifi_udp_sent" },
-
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_echo_sent,                   0,   "wifi_echo_sent" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_echo_recv,                   0,   "wifi_echo_recv" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_port_overruns,        0,   "wifi_comm_rx_udp_port_overruns" },
 
@@ -2268,24 +2262,12 @@ PT_BEGIN( pt );
 
     while(1){
 
-        // sock_addr_t raddr;
-        // raddr.ipaddr = ip_a_addr(255,255,255,255);
-        // raddr.port = 12345;
-        // uint8_t data[256];
-        //
-        // sock_i16_sendto( sock, data, sizeof(data), &raddr );
-        //
-        // THREAD_YIELD( pt );
-
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        wifi_echo_recv++;
 
         EVENT( EVENT_ID_DEBUG_0, 2 );
 
         if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
-
-            wifi_echo_sent++;
+            
         }
     }
 
