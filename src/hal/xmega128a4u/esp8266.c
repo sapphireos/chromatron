@@ -126,6 +126,10 @@ static uint16_t rx_netmsg_crc;
 
 static uint8_t router;
 
+static uint32_t ready_time_start;
+static volatile uint16_t max_ready_wait_isr;
+static uint16_t max_ready_wait;
+
 // static mem_handle_t wifi_networks_handle = -1;
 
 
@@ -171,6 +175,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_max_time,                      0,   "wifi_proc_vm_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_max_time,                    0,   "wifi_proc_wifi_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_max_time,                     0,   "wifi_proc_mem_max_time" },
+
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &max_ready_wait,                   0,   "wifi_max_ready_wait" },
 };
 
 
@@ -445,6 +451,16 @@ static int8_t wifi_i8_rx_data_received( void ){
     return -2;
 }
 
+static void clear_rx_ready( void ){
+
+    ATOMIC;
+    wifi_rx_ready = FALSE;
+
+    ready_time_start = tmr_u32_get_system_time_us();
+
+    END_ATOMIC;
+}
+
 bool wifi_b_comm_ready( void ){
 
     ATOMIC;
@@ -492,9 +508,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     header.crc = crc_u16_finish( crc );
 
 
-    ATOMIC;
-    wifi_rx_ready = FALSE;
-    END_ATOMIC;
+    clear_rx_ready();
 
     _wifi_v_usart_send_char( WIFI_COMM_DATA );
     _wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
@@ -1891,9 +1905,7 @@ restart:
     
     _wifi_v_enter_normal_mode();
 
-    ATOMIC;
-    wifi_rx_ready = FALSE;
-    END_ATOMIC;
+    clear_rx_ready();
 
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
@@ -1946,6 +1958,10 @@ restart:
             log_v_debug_P( PSTR("control: %x %c"), control_byte, control_byte );
             wifi_v_set_rx_ready();
         }
+
+        ATOMIC;
+        max_ready_wait = max_ready_wait_isr;
+        END_ATOMIC;
     
         THREAD_YIELD( pt );
     }
@@ -2381,6 +2397,18 @@ ISR(WIFI_IRQ_VECTOR){
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
     wifi_rx_ready = TRUE;
+
+    uint32_t elapsed_ready_time = tmr_u32_elapsed_time_us( ready_time_start );
+
+    if( elapsed_ready_time > 60000 ){
+
+        return;
+    }
+
+    if( elapsed_ready_time > max_ready_wait_isr ){
+
+        max_ready_wait_isr = elapsed_ready_time;
+    }
 
 // OS_IRQ_END();
 }
