@@ -295,8 +295,8 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
             changed = TRUE;
         }
 
-        data += type_u16_size( type );
-        data_ptr += type_u16_size( entry->type );
+        data = (uint8_t *)data + type_u16_size( type );
+        data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
     }
     
 
@@ -341,8 +341,8 @@ int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data, uint1
         
         type_i8_convert( type, data, entry->type, data_ptr );
 
-        data += type_u16_size( type );
-        data_ptr += type_u16_size( entry->type );
+        data = (uint8_t *)data + type_u16_size( type );
+        data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
     }
 
     return KVDB_STATUS_OK;
