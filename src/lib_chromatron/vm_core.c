@@ -109,8 +109,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_not,	            // 56
         &&opcode_db_load,	        // 57
         &&opcode_db_store,	        // 58
-        &&opcode_trap,	            // 59
-        &&opcode_trap,	            // 60
+        &&opcode_db_idx_load,	    // 59
+        &&opcode_db_idx_store,	    // 60
         &&opcode_trap,	            // 61
         &&opcode_trap,	            // 62
         &&opcode_trap,	            // 63
@@ -1196,6 +1196,36 @@ opcode_db_store:
 
     goto dispatch;
 
+opcode_db_idx_load:
+    hash        =  (catbus_hash_t32)(*pc++) << 24;
+    hash        |= (catbus_hash_t32)(*pc++) << 16;
+    hash        |= (catbus_hash_t32)(*pc++) << 8;
+    hash        |= (catbus_hash_t32)(*pc++) << 0;
+
+    dest        = *pc++;
+    index       = data[*pc++];
+
+    #ifdef VM_ENABLE_KVDB
+    // kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest], sizeof(data[dest]) );
+    #endif
+
+    goto dispatch;
+
+opcode_db_idx_store:
+    hash        =  (catbus_hash_t32)(*pc++) << 24;
+    hash        |= (catbus_hash_t32)(*pc++) << 16;
+    hash        |= (catbus_hash_t32)(*pc++) << 8;
+    hash        |= (catbus_hash_t32)(*pc++) << 0;
+
+    op1_addr    = *pc++;
+    index       = data[*pc++];
+
+    #ifdef VM_ENABLE_KVDB
+    // kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr], sizeof(data[op1_addr]) );
+    // kvdb_i8_publish( hash );
+    #endif
+
+    goto dispatch;
 
 opcode_trap:
     return VM_STATUS_TRAP;
