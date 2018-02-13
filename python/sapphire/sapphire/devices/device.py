@@ -465,7 +465,7 @@ class Device(object):
             if filter_unchanged:
                 # filter out keys which are not changing
                 if kwargs[key] == self._keys[key].value:
-                   continue
+                    continue
 
             # check if key is set to read only
             if 'read_only' in self._keys[key].flags:
@@ -1142,7 +1142,13 @@ class Device(object):
         if str(value) == '__null__':
             value = ''
 
-        self.set_key(param, value)
+        value_tok = value.split(' ')
+
+        if len(value_tok) == 1:
+            self.set_key(param, value)
+            
+        else:
+            self.set_key(param, value_tok)
 
         new_param = self.get_key(param)
 

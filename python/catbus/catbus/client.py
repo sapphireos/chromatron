@@ -312,7 +312,7 @@ class Client(object):
 
             try:
                 response, sender = self._exchange(msg)
-
+                
                 if len(response.data) == 0:
                     raise KeyError
 
@@ -384,7 +384,7 @@ class Client(object):
         # send each batch
         for batch in batches:
             msg = SetKeysMsg(data=batch)
-
+            
             response, sender = self._exchange(msg)
             
             for item in response.data:
@@ -669,18 +669,7 @@ if __name__ == '__main__':
 
     import sys
     from pprint import pprint
-    from sapphire.devices.device import Device
-    # d = Device(host='10.0.0.119')
-
-    # try:
-    #     d.delete_file('wifi_firmware.bin')
-    #     time.sleep(8.0) # wait for file to delete
-    # except IOError:
-    #     pass
-
-    # with open('wifi_firmware.bin', 'r') as f:
-        # file_data = f.read()
-
+    
     c = Client()
 
     # c.discover()
@@ -688,112 +677,17 @@ if __name__ == '__main__':
     # for node in c.discover().values():
         # pprint(node)
 
-    c.connect(('10.0.0.122', 44632))
+    c.connect(('10.0.0.106', 44632))
 
-    # c.delete_file('rainbow.fxb')
+    # print c.get_key('test_meow')
 
-    # print c.get_keys(*BACKUP_SETTINGS)
+    # c.set_key('test_meow', '4')
 
-    # # c.delete_file('wifi_firmware.bin')
-    # # time.sleep(8.0) # wait for file to delete
-    
-    # # for k, v in c.get_meta().iteritems():
-    #     # print k, v
-    # # c.get_meta()
-
-    # # pprint(c.get_all_keys())
-    # # print c.lookup_hash(2786708953)
-
-    # # with open('wifi_firmware.bin', 'r') as f:
-    #     # print hex(catbus_string_hash(f.read()))
-
-    # # print ''
-
-    # # print hex(c.check_file('firmware.bin')['crc'])
-
-    # # with open('firmware.bin', 'r') as f:
-    # #     print hex(crc_func(f.read()))
-
-    # # print "catbus:"
-
-    # start = time.time()
-
-    # # # pprint(c.get_meta())
-
-    # # file_data = c.read_file('wifi_firmware.bin')
-    # # data_len = len(file_data)
-
-    # # # data_len = len(c.read_file('threadinfo'))
-    # # # data = c.read_file('log.txt')
-    # # # data_len = len(data)
-    # file_data = c.write_file('wifi_firmware.bin')
-    # data_len = len(file_data)
-    # # # pprint(c.list_files())
-
-    # # # print data
-
-    # print ''
-    # print data_len
-
-    # elapsed = time.time() - start
-    # print elapsed
-    # print data_len / elapsed
-
-    # print ''
-    # print hex(c.check_file('wifi_firmware.bin')['hash'])
-    # print hex(catbus_string_hash(file_data))
-        
-    # c.delete_file('wifi_firmware.bin')
-    # time.sleep(8.0) # wait for file to delete
-    
-
-    # print ''
-    # print "cmd2:"
-
-    # start = time.time()
-
-    # # d.get_file('wifi_firmware.bin')
-    # d.put_file('wifi_firmware.bin', file_data)
-
-    # elapsed = time.time() - start
-    # print elapsed
-    # print data_len / elapsed
-
-    # pprint(d.list_files())
-
-    # print c.read_file('log.txt')
-
-    # c.connect(('10.0.0.109', 11632))
-
-    # c.get_meta()
-    # print c.get_key('gfx_master_dimmer')
-    # print c.ping()
-    # print c.lookup_hash('kv_test_key', 'device_id')
-    # print c.lookup_hash(3178472999)
-    # print c.get_tags()
-
-    # print c.get_meta()['gfx_master_dimmer']
-    # for key, item in c.get_meta().iteritems():
-        # print key
-        # print item
-
-    # meta = c.get_meta()
-    # print meta.keys()
-
-    # print c.get_keys('catbus_test_array')
-    # pprint(c.get_keys(meta.keys()))
-
-    # print "SET"
-    # c.set_key('catbus_test_array', [123,0,0,0,0,0,0,456])
-
-    # print "GET"
-    # print c.get_keys('catbus_test_array')
-
-    # print c.get_key('kv_test_key')
-    # c.set_keys(kv_test_key=123)
-    # c.set_key('kv_test_key', 123)
-
-    # print c.get_key('kv_test_key')
+    # print c.get_key('test_woof')
+    c.set_key('test_woof', ['4','5','6','7'])
 
 
-    # print c.get_key('pix_count')
+
+
+
+
