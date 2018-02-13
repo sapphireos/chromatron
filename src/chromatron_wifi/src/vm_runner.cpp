@@ -75,7 +75,7 @@ static int8_t _vm_i8_run_vm( bool init ){
 
     while( count > 0 ){
 
-        kvdb_i8_get( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr] );
+        kvdb_i8_get( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
 
         publish++;
         count--;
@@ -132,7 +132,7 @@ static int8_t _vm_i8_run_vm( bool init ){
 
     while( count > 0 ){
 
-        kvdb_i8_set( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr] );
+        kvdb_i8_set( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
 
         publish++;
         count--;
@@ -188,7 +188,7 @@ static int8_t _vm_i8_run_vm( bool init ){
             // access the data this way prevents an alignment error when
             // loading the batch array
             int32_t data = 0;
-            kvdb_i8_get( *hash, CATBUS_TYPE_INT32, &data );
+            kvdb_i8_get( *hash, CATBUS_TYPE_INT32, &data, sizeof(data) );
             batch.entries[i].data = data;
 
             hash++;
@@ -344,7 +344,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     
         while( count > 0 ){        
 
-            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, KVDB_VM_RUNNER_TAG, 0 );
 
             hash++;
             count--;
@@ -355,7 +355,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     
         while( count > 0 ){        
 
-            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, KVDB_VM_RUNNER_TAG, 0 );
 
             hash++;
             count--;
@@ -366,7 +366,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     
         while( count > 0 ){        
 
-            kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0, KVDB_VM_RUNNER_TAG, 0 );
 
             publish++;
             count--;

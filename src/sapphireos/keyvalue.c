@@ -156,11 +156,11 @@ static int8_t _kv_i8_dynamic_handler(
     
     if( op == KV_OP_GET ){
 
-        return kvdb_i8_get( hash, CATBUS_TYPE_NONE, data );
+        return kvdb_i8_get( hash, CATBUS_TYPE_NONE, data, len );
     }
     else if( op == KV_OP_SET ){
 
-        return kvdb_i8_set( hash, CATBUS_TYPE_NONE, data );   
+        return kvdb_i8_set( hash, CATBUS_TYPE_NONE, data, len );   
     }
 
     return -1;

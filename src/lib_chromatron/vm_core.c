@@ -1176,7 +1176,7 @@ opcode_db_load:
     dest        = *pc++;
 
     #ifdef VM_ENABLE_KVDB
-    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest] );
+    kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest], sizeof(data[dest]) );
     #endif
 
     goto dispatch;
@@ -1190,7 +1190,7 @@ opcode_db_store:
     op1_addr    = *pc++;
 
     #ifdef VM_ENABLE_KVDB
-    kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr] );
+    kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr], sizeof(data[op1_addr]) );
     kvdb_i8_publish( hash );
     #endif
 
