@@ -686,6 +686,7 @@ if __name__ == '__main__':
     # print c.get_key('test_woof')
     c.set_key('test_woof', ['4','5','6','7'])
 
+    print c.get_key('test_woof')
 
 
 

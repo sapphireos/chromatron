@@ -1055,7 +1055,41 @@ class CodeGeneratorPass1(object):
                 return ObjNode(obj, attr, store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Subscript):
-            raise SyntaxNotSupported(tree)
+            # this is basically a syntax rewrite.
+            # the code for ast.Attribute already does what we want here,
+            # so we are rearranging the syntax to match and then reusing
+            # that code.
+            sub = tree
+            attr = tree.value
+            attr_value = tree.value.value
+            ctx = sub.ctx
+
+            sub.value = attr_value
+
+            attr.value = sub
+            attr.ctx = ctx
+
+            return self.generate(attr)
+
+
+            # raise SyntaxNotSupported(tree)
+
+            # if isinstance(tree.ctx, ast.Store):
+            #     return IndexStoreNode(
+            #             self.generate(tree.value),
+            #             self.generate(tree.slice.value),
+            #             line_no=tree.lineno)
+
+            # elif isinstance(tree.ctx, ast.Load):
+            #     # return IndexLoadNode(
+            #     #         self.generate(tree.value),
+            #     #         self.generate(tree.slice.value),
+            #     #         line_no=tree.lineno)
+            #     raise SyntaxNotSupported(tree)
+
+            # else:
+            #     raise SyntaxNotSupported(tree)
+
             # if isinstance(tree.value, ast.Subscript):
             #     y_subscript = tree.value
 
