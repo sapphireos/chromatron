@@ -283,13 +283,22 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
         type = entry->type;
     }
 
-    // log_v_debug_P(PSTR("DB set: %lx type: %d"), hash, (uint16_t)type);
-
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
-    int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
-    bool changed = ( convert != 0 );
+    bool changed = FALSE;
 
-    // log_v_debug_P(PSTR("SET: %lx = %ld src: %ld"), hash, *(int32_t*)data_ptr, *(int32_t*)data);
+    for( uint8_t i = 0; i <= entry->count; i++ ){
+
+        int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
+
+        if( convert != 0 ){
+
+            changed = TRUE;
+        }
+
+        data += type_u16_size( type );
+        data_ptr += type_u16_size( entry->type );
+    }
+    
 
     // check if there is a notifier and data is changing
     if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
