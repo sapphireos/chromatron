@@ -147,14 +147,14 @@ void kvdb_v_init( void ){
     list_v_init( &db_list );
 
     int32_t temp = 123;
-    kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, 0, &temp, sizeof(temp), 0, "test_meow" );
+    kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, 0, &temp, sizeof(temp), "test_meow" );
 
     uint8_t array[4];
     array[0] = 1;
     array[1] = 2;
     array[2] = 3;
     array[3] = 4;
-    kvdb_i8_add( __KV__test_woof, CATBUS_TYPE_UINT8, cnt_of_array(array), array, sizeof(array), 0, "test_woof" );        
+    kvdb_i8_add( __KV__test_woof, CATBUS_TYPE_UINT8, cnt_of_array(array), array, sizeof(array), "test_woof" );        
 
     // kvdb_i8_add( __KV__test_meow, 123, 0, "test_meow" );
     // kvdb_i8_add( __KV__test_woof, 456, 0, "test_woof" );
@@ -178,7 +178,6 @@ int8_t kvdb_i8_add(
     uint16_t count,
     const void *data,
     uint16_t len,
-    uint8_t tag, 
     char name[CATBUS_STRING_LEN] ){
 
     // try a set first
@@ -228,7 +227,7 @@ int8_t kvdb_i8_add(
     entry->hash      = hash;
     entry->type      = type;
     entry->flags     = CATBUS_FLAGS_DYNAMIC;
-    entry->tag       = tag;
+    entry->tag       = 0;
     entry->count     = count;
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
@@ -253,6 +252,19 @@ int8_t kvdb_i8_add(
     #endif
 
     return KVDB_STATUS_OK;
+}
+
+void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return;
+    }
+
+    entry->tag = tag;
 }
 
 int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len ){

@@ -254,7 +254,7 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
 
         for( uint32_t i = 0; i < msg->count; i++ ){
             
-            kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0, 0 );
+            kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0 );
         }
     }
     // else if( data_id == WIFI_DATA_ID_KV_DATA ){

@@ -344,7 +344,8 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     
         while( count > 0 ){        
 
-            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
+            kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
 
             hash++;
             count--;
@@ -355,7 +356,8 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     
         while( count > 0 ){        
 
-            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
+            kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
 
             hash++;
             count--;
@@ -366,7 +368,8 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     
         while( count > 0 ){        
 
-            kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0, KVDB_VM_RUNNER_TAG, 0 );
+            kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
+            kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
 
             publish++;
             count--;
