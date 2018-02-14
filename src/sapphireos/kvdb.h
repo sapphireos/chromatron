@@ -30,9 +30,15 @@
 #include "catbus_types.h"
 #include "kvdb_config.h"
 
+typedef void ( *kvdb_notifier_t )(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    const void *data );
+
 void kvdb_v_init( void );
 uint16_t kvdb_u16_count( void );
 uint16_t kvdb_u16_db_size( void );
+
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
@@ -40,18 +46,24 @@ int8_t kvdb_i8_add(
     const void *data,
     uint16_t len,
     char name[CATBUS_STRING_LEN] );
+
 void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag );
+void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier );
+
 int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len );
 int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data, uint16_t max_len );
 int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, const void *data, uint16_t len );
 int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, void *data, uint16_t max_len );
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
+
 void kvdb_v_delete( catbus_hash_t32 hash );
 void kvdb_v_delete_tag( uint8_t tag );
+
 int8_t kvdb_i8_publish( catbus_hash_t32 hash );
 #ifdef KVDB_ENABLE_NAME_LOOKUP
 int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );
 #endif
+
 catbus_hash_t32 kvdb_h_get_hash_for_index( uint16_t index );
 int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash );
 
@@ -69,5 +81,7 @@ extern int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ) __attribute__((weak
 #define KVDB_STATUS_NOT_FOUND           -1
 #define KVDB_STATUS_NOT_ENOUGH_SPACE    -2
 #define KVDB_STATUS_INVALID_HASH        -3
+
+
 
 #endif

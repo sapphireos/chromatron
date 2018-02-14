@@ -54,6 +54,7 @@ typedef struct{
     catbus_flags_t8 flags;
     uint8_t count;
     uint8_t tag;
+    kvdb_notifier_t notifier;
 } db_entry_t;
 // 8 bytes of meta data
 // N bytes for data
@@ -229,6 +230,7 @@ int8_t kvdb_i8_add(
     entry->flags     = CATBUS_FLAGS_DYNAMIC;
     entry->tag       = 0;
     entry->count     = count;
+    entry->notifier  = 0;
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
@@ -265,6 +267,19 @@ void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
     }
 
     entry->tag = tag;
+}
+
+void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return;
+    }
+
+    entry->notifier = notifier;
 }
 
 int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len ){
@@ -313,12 +328,20 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
     
 
     // check if there is a notifier and data is changing
-    if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
+    if( changed ){
 
-        catbus_meta_t meta;
-        kvdb_i8_get_meta( hash, &meta );
+        if( kvdb_v_notify_set != 0 ){
 
-        kvdb_v_notify_set( hash, &meta, data );
+            catbus_meta_t meta;
+            kvdb_i8_get_meta( hash, &meta );
+
+            kvdb_v_notify_set( hash, &meta, data );
+        }
+
+        if( entry->notifier != 0 ){
+
+            entry->notifier( hash, entry->type, data );
+        }
     }
 
     return KVDB_STATUS_OK;
