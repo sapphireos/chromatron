@@ -200,6 +200,14 @@ typedef struct __attribute__((packed)){
     wifi_kv_batch_entry_t entries[WIFI_KV_BATCH_LEN];
 } wifi_msg_kv_batch_t;
 
+
+typedef struct __attribute__((packed)){
+    uint16_t data_len;
+    uint16_t offset;
+} wifi_kv_data_t;
+#define WIFI_DATA_ID_KV_DATA            0x32
+
+
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40
 
 #endif

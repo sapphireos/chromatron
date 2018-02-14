@@ -71,4 +71,6 @@ int8_t type_i8_convert(
     catbus_type_t8 src_type,
     const void *src_data );
 
+uint16_t type_u16_size_meta( catbus_meta_t *meta );
+
 #endif

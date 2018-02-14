@@ -412,6 +412,43 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
+static void send_kv_data( catbus_meta_t *meta, const void *data ){
+
+    uint16_t data_len = type_u16_size_meta( meta );
+
+    uint8_t buf[WIFI_MAX_DATA_LEN];
+
+    #define CHUNK_SIZE (sizeof(buf) - sizeof(wifi_kv_data_t))
+    
+    wifi_kv_data_t *msg = (wifi_kv_data_t *)buf;
+    msg->data_len = data_len;
+    msg->offset = 0;
+
+    uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+    while( data_len > 0 ){
+
+        uint8_t copy_len = CHUNK_SIZE;
+
+        if( copy_len > data_len ){
+
+            copy_len = data_len;
+        }
+
+        memcpy( ptr, data, copy_len );
+
+        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, copy_len + sizeof(wifi_kv_data_t) ) < 0 ){
+
+            log_v_debug_P( PSTR("KV msg fail") );
+
+            return;
+        }
+
+        data_len -= copy_len;
+        data += copy_len;
+    }      
+}
+
 static int8_t send_read_keys( void ){
 
     if( subscribed_keys_h < 0 ){
@@ -558,24 +595,40 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
 void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
 
-    // right now, this only works for the i32 that the VM supports.
-    if( meta->type != CATBUS_TYPE_INT32 ){
+    send_kv_data( meta, data );
 
-        return;
-    }
 
-    int32_t i32_data = *(int32_t *)data;
+    // // check valid types
 
-    wifi_msg_kv_batch_t batch;
-    batch.count = 1;
-    batch.entries[0].hash = hash;
-    batch.entries[0].data = i32_data;
-    
-    uint8_t msg_size = ( sizeof(batch) - sizeof(batch.entries) ) + sizeof(batch.entries[0]);
+    // // i32 and below (not counting u32), and no arrays
+    // if( ( meta->count == 0 ) &&
+    //     ( ( meta->type == CATBUS_TYPE_BOOL ) ||
+    //       ( meta->type == CATBUS_TYPE_UINT8 ) ||
+    //       ( meta->type == CATBUS_TYPE_INT8 ) ||
+    //       ( meta->type == CATBUS_TYPE_UINT16 ) ||
+    //       ( meta->type == CATBUS_TYPE_INT32 ) ) ){
 
-    // log_v_debug_P(PSTR("set to ESP: %lx %ld"), hash, i32_data);
+    //     // convert to i32
+    //     int32_t i32_data;
+    //     type_i8_convert( CATBUS_TYPE_INT32, &i32_data, meta->type, data );
 
-    wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, msg_size );     
+    //     wifi_msg_kv_batch_t batch;
+    //     batch.count = 1;
+    //     batch.entries[0].hash = hash;
+    //     batch.entries[0].data = i32_data;
+        
+    //     uint8_t msg_size = ( sizeof(batch) - sizeof(batch.entries) ) + sizeof(batch.entries[0]);
+
+    //     // log_v_debug_P(PSTR("set to ESP: %lx %ld"), hash, i32_data);
+
+    //     wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, msg_size );     
+    // }
+    // // everything else
+    // else{
+
+    //     // can't use the batch message
+    //     send_kv_data( meta, data );
+    // }
 }
 
 

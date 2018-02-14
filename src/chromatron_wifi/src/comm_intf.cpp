@@ -252,6 +252,17 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
             kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0, 0 );
         }
     }
+    else if( data_id == WIFI_DATA_ID_KV_DATA ){
+
+        // wifi_kv_data_t *msg = (wifi_kv_data_t *)data;
+
+        // if( msg->data_len < ( WIFI_MAX_DATA_LEN - sizeof(wifi_kv_data_t) ) ){
+
+            
+
+        //     kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0, 0 );
+        // }                 
+    }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
         if( len != sizeof(wifi_msg_udp_header_t) ){

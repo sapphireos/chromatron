@@ -246,4 +246,9 @@ int8_t type_i8_convert(
 }
 
 
+uint16_t type_u16_size_meta( catbus_meta_t *meta ){
+
+    return ( meta->count + 1 ) * type_u16_size( meta->type );
+}
+
 
