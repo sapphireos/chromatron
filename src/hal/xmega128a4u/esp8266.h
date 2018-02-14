@@ -84,6 +84,7 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg );
 bool wifi_b_running( void );
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
+int8_t wifi_i8_send_msg_multi( uint8_t data_id, uint8_t *data, uint16_t len );
 int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len );
 int8_t wifi_i8_send_msg_response( 
     uint8_t data_id, 

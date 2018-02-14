@@ -414,39 +414,39 @@ static int8_t send_run_vm_cmd( void ){
 
 static void send_kv_data( catbus_meta_t *meta, const void *data ){
 
-    uint16_t data_len = type_u16_size_meta( meta );
+    // uint16_t data_len = type_u16_size_meta( meta );
 
-    uint8_t buf[WIFI_MAX_DATA_LEN];
+    // uint8_t buf[WIFI_MAX_DATA_LEN];
 
-    #define CHUNK_SIZE (sizeof(buf) - sizeof(wifi_kv_data_t))
+    // #define CHUNK_SIZE (sizeof(buf) - sizeof(wifi_kv_data_t))
     
-    wifi_kv_data_t *msg = (wifi_kv_data_t *)buf;
-    msg->data_len = data_len;
-    msg->offset = 0;
+    // wifi_kv_data_t *msg = (wifi_kv_data_t *)buf;
+    // msg->data_len = data_len;
+    // msg->offset = 0;
 
-    uint8_t *ptr = (uint8_t *)( msg + 1 );
+    // uint8_t *ptr = (uint8_t *)( msg + 1 );
 
-    while( data_len > 0 ){
+    // while( data_len > 0 ){
 
-        uint8_t copy_len = CHUNK_SIZE;
+    //     uint8_t copy_len = CHUNK_SIZE;
 
-        if( copy_len > data_len ){
+    //     if( copy_len > data_len ){
 
-            copy_len = data_len;
-        }
+    //         copy_len = data_len;
+    //     }
 
-        memcpy( ptr, data, copy_len );
+    //     memcpy( ptr, data, copy_len );
 
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, copy_len + sizeof(wifi_kv_data_t) ) < 0 ){
+    //     if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, copy_len + sizeof(wifi_kv_data_t) ) < 0 ){
 
-            log_v_debug_P( PSTR("KV msg fail") );
+    //         log_v_debug_P( PSTR("KV msg fail") );
 
-            return;
-        }
+    //         return;
+    //     }
 
-        data_len -= copy_len;
-        data += copy_len;
-    }      
+    //     data_len -= copy_len;
+    //     data += copy_len;
+    // }      
 }
 
 static int8_t send_read_keys( void ){
