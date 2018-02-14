@@ -474,62 +474,62 @@ bool wifi_b_wait_comm_ready( void ){
     return wifi_b_comm_ready();
 }
 
-int8_t wifi_i8_send_msg_multi( uint8_t data_id, uint8_t *data, uint16_t len ){
+// int8_t wifi_i8_send_msg_multi( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    // verify len
-    if( len > MAX_MULTI_LEN ){
+//     // verify len
+//     if( len > MAX_MULTI_LEN ){
 
-        return -1;
-    }
+//         return -1;
+//     }
 
-    // set up and send initial message
-    uint8_t buf[WIFI_MAX_DATA_LEN];
+//     // set up and send initial message
+//     uint8_t buf[WIFI_MAX_DATA_LEN];
 
-    wifi_msg_multi_0_t *msg = (wifi_msg_multi_0_t *)buf;
-    msg->data_len   = len;
-    msg->data_id    = data_id;
-    msg->padding    = 0;
+//     wifi_msg_multi_0_t *msg = (wifi_msg_multi_0_t *)buf;
+//     msg->data_len   = len;
+//     msg->data_id    = data_id;
+//     msg->padding    = 0;
 
-    uint8_t copy_len = WIFI_MAX_DATA_LEN - sizeof(wifi_msg_multi_0_t);
+//     uint8_t copy_len = WIFI_MAX_DATA_LEN - sizeof(wifi_msg_multi_0_t);
 
-    if( copy_len > len ){
+//     if( copy_len > len ){
 
-        copy_len = len;
-    }
+//         copy_len = len;
+//     }
 
-    memcpy( &buf[sizeof(wifi_msg_multi_0_t)], data, copy_len );
+//     memcpy( &buf[sizeof(wifi_msg_multi_0_t)], data, copy_len );
 
-    if( wifi_i8_send_msg( WIFI_DATA_ID_MULTI_0, buf, sizeof(wifi_msg_multi_0_t) + copy_len ) < 0 ){
+//     if( wifi_i8_send_msg( WIFI_DATA_ID_MULTI_0, buf, sizeof(wifi_msg_multi_0_t) + copy_len ) < 0 ){
 
-        return -2;
-    }
+//         return -2;
+//     }
 
-    len -= copy_len;
-    data += copy_len;
+//     len -= copy_len;
+//     data += copy_len;
 
-    uint8_t next_data_id = WIFI_DATA_ID_MULTI_0 + 1;
+//     uint8_t next_data_id = WIFI_DATA_ID_MULTI_0 + 1;
 
-    while( len > 0 ){
+//     while( len > 0 ){
 
-        copy_len = WIFI_MAX_DATA_LEN;
+//         copy_len = WIFI_MAX_DATA_LEN;
 
-        if( copy_len > len ){
+//         if( copy_len > len ){
 
-            copy_len = len;
-        }
+//             copy_len = len;
+//         }
 
-        if( wifi_i8_send_msg( next_data_id, data, copy_len ) < 0 ){
+//         if( wifi_i8_send_msg( next_data_id, data, copy_len ) < 0 ){
 
-            return -3;
-        }
+//             return -3;
+//         }
 
-        len -= copy_len;
-        data += copy_len;
-        next_data_id++;
-    }
+//         len -= copy_len;
+//         data += copy_len;
+//         next_data_id++;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
 

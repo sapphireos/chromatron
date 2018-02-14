@@ -211,14 +211,14 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40
 
 
-#define MAX_MULTI_LEN                   1024
+// #define MAX_MULTI_LEN                   1024
 
-typedef struct __attribute__((packed)){
-    uint16_t data_len;
-    uint8_t data_id;
-    uint8_t padding;
-} wifi_msg_multi_0_t;
-#define WIFI_DATA_ID_MULTI_0            0xC0
+// typedef struct __attribute__((packed)){
+//     uint16_t data_len;
+//     uint8_t data_id;
+//     uint8_t padding;
+// } wifi_msg_multi_0_t;
+// #define WIFI_DATA_ID_MULTI_0            0xC0
 
 
 
