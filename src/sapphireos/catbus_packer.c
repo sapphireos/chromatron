@@ -167,6 +167,7 @@ int8_t test_packer( void ){
 
     catbus_pack_ctx_t ctx;
     uint8_t buf[31];
+    memset( buf, 0x99, sizeof(buf) );
     catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)buf;
     uint8_t *data = (uint8_t *)( hdr + 1 );
     int8_t status;
@@ -187,7 +188,10 @@ int8_t test_packer( void ){
 
     int16_t written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
 
-    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu"), written, hdr->hash, hdr->index, hdr->count, *(uint32_t *)data );
+    uint32_t *i32_data = (uint32_t *)data;
+
+    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
 
     // change hash
     hdr->hash = __KV__test_array2;

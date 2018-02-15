@@ -399,9 +399,10 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
         return KVDB_STATUS_NOT_FOUND;    
     }
 
-    uint16_t data_len = type_u16_size(type);
+    uint16_t type_len = type_u16_size( type );
+    uint16_t array_len = entry->count + 1;
 
-    if( len < data_len ){
+    if( len < type_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
@@ -413,12 +414,15 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
     }
 
     // wrap around index
-    index %= ( entry->count + 1 );
+    if( index >= array_len ){
+        
+        index %= array_len;
+    }
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
     bool changed = FALSE;
 
-    int8_t convert = type_i8_convert( entry->type, &data_ptr[index], type, data );
+    int8_t convert = type_i8_convert( entry->type, data_ptr + ( index * type_len ), type, data );
 
     if( convert != 0 ){
 
@@ -449,9 +453,10 @@ int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
         return KVDB_STATUS_NOT_FOUND;
     }
 
-    uint16_t data_len = type_u16_size(type);
+    uint16_t type_len = type_u16_size( type );
+    uint16_t array_len = entry->count + 1;
 
-    if( max_len < data_len ){
+    if( max_len < type_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
@@ -463,11 +468,16 @@ int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
     }
 
     // wrap around index
-    index %= ( entry->count + 1 );
+    if( index >= array_len ){
+        
+        index %= array_len;
+    }
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
         
-    type_i8_convert( type, data, entry->type, &data_ptr[index] );
+    type_i8_convert( type, data, entry->type, data_ptr + ( index * type_len ) );
+
+    log_v_debug_P(PSTR("%d %lu %lu"), index, *(uint32_t *)data, *(uint32_t *)(data_ptr + ( index * type_len )) );
 
     return KVDB_STATUS_OK;
 }

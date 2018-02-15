@@ -30,8 +30,8 @@
 
 int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
 
-    int64_t i64_data;
-    uint64_t u64_data;
+    int64_t i64_data = 0;
+    uint64_t u64_data = 0;
 
     switch( type ){
         case CATBUS_TYPE_BOOL:
