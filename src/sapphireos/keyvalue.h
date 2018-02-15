@@ -136,8 +136,22 @@ int8_t kv_i8_set(
     const void *data,
     uint16_t len );
 
+int8_t kv_i8_array_set(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    const void *data,
+    uint16_t len );
+
 int8_t kv_i8_get(
     catbus_hash_t32 hash,
+    void *data,
+    uint16_t max_len );
+
+int8_t kv_i8_array_get(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     void *data,
     uint16_t max_len );
 

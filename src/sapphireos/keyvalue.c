@@ -562,6 +562,8 @@ static int8_t _kv_i8_persist_set(
 static int8_t _kv_i8_internal_set(
     kv_meta_t *meta,
     catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     const void *data,
     uint16_t len )
 {
@@ -572,12 +574,67 @@ static int8_t _kv_i8_internal_set(
         return KV_ERR_STATUS_READONLY;
     }
 
-    // set copy length
-    uint16_t copy_len = kv_u16_get_size_meta( meta );
+    uint16_t array_len = meta->array_len + 1;
 
+    // wrap index
+    if( index > array_len ){
+
+        index %= array_len;
+    }
+
+    // set copy length
+    uint16_t copy_len = type_u16_size( meta->type );
+
+    // check if count and index are 0, if so, that requests the entire array/item
+    if( ( index == 0 ) && ( count == 0 ) ){
+
+        copy_len *= array_len;
+
+        // set count to 1 so our loop works
+        count = 1;
+    }
+
+    // do we have enough data?
     if( copy_len > len ){
 
-        copy_len = len;
+        return KV_ERR_STATUS_TYPE_MISMATCH;
+    }
+
+    // check if parameter has a pointer
+    if( meta->ptr != 0 ){
+
+        ATOMIC;
+
+        for( uint16_t i = 0; i < count; i++ ){
+
+            // set data
+            memcpy( meta->ptr + index, data, copy_len );
+
+            meta->ptr += copy_len;
+            data += copy_len;
+            index++;
+
+            // check for overflow
+            if( index >= array_len ){
+
+                break;
+            }
+        }
+
+        END_ATOMIC;
+    }
+
+    int8_t status = KV_ERR_STATUS_OK;
+
+    // check if parameter has a notifier
+    if( meta->handler != 0 ){
+
+        ATOMIC;
+
+        // call handler
+        status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
+
+        END_ATOMIC;
     }
 
     // check if persist flag is set
@@ -595,35 +652,22 @@ static int8_t _kv_i8_internal_set(
         }
     }
 
-    // check if parameter has a pointer
-    if( meta->ptr != 0 ){
-
-        ATOMIC;
-
-        // set data
-        memcpy( meta->ptr, data, copy_len );
-
-        END_ATOMIC;
-    }
-
-    // check if parameter has a notifier
-    if( meta->handler == 0 ){
-
-        return KV_ERR_STATUS_OK;
-    }
-
-    ATOMIC;
-
-    // call handler
-    int8_t status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
-
-    END_ATOMIC;
-
     return status;
 }
 
 int8_t kv_i8_set(
     catbus_hash_t32 hash,
+    const void *data,
+    uint16_t len )
+{
+
+    return kv_i8_array_set( hash, 0, 0, data, len );
+}
+
+int8_t kv_i8_array_set(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     const void *data,
     uint16_t len )
 {
@@ -638,7 +682,7 @@ int8_t kv_i8_set(
         return status;
     }
 
-    return _kv_i8_internal_set( &meta, hash, data, len );
+    return _kv_i8_internal_set( &meta, hash, index, count, data, len );
 }
 
 
@@ -695,17 +739,36 @@ static int8_t _kv_i8_persist_get(
 static int8_t _kv_i8_internal_get(
     kv_meta_t *meta,
     catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     void *data,
     uint16_t max_len )
 {
 
+    uint16_t array_len = meta->array_len + 1;
+
+    // wrap index
+    if( index > array_len ){
+
+        index %= array_len;
+    }
 
     // set copy length
-    uint16_t copy_len = kv_u16_get_size_meta( meta );
+    uint16_t copy_len = type_u16_size( meta->type );
 
+    // check if count and index are 0, if so, that requests the entire array/item
+    if( ( index == 0 ) && ( count == 0 ) ){
+
+        copy_len *= array_len;
+
+        // set count to 1 so our loop works
+        count = 1;
+    }
+
+    // do we have enough data?
     if( copy_len > max_len ){
 
-        copy_len = max_len;
+        return KV_ERR_STATUS_TYPE_MISMATCH;
     }
 
     // check if parameter has a pointer
@@ -714,8 +777,21 @@ static int8_t _kv_i8_internal_get(
         // atomic because interrupts may access RAM data
         ATOMIC;
 
-        // get data
-        memcpy( data, meta->ptr, copy_len );
+        for( uint16_t i = 0; i < count; i++ ){
+            
+            // get data
+            memcpy( data, meta->ptr, copy_len );
+
+            meta->ptr += copy_len;
+            data += copy_len;
+            index++;
+
+            // check for overflow
+            if( index >= array_len ){
+
+                break;
+            }
+        }
 
         END_ATOMIC;
     }
@@ -754,6 +830,17 @@ int8_t kv_i8_get(
     uint16_t max_len )
 {
 
+    return kv_i8_array_get( hash, 0, 0, data, max_len );
+}
+
+int8_t kv_i8_array_get(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    void *data,
+    uint16_t max_len )
+{
+
     // look up parameter
     kv_meta_t meta;
 
@@ -764,7 +851,7 @@ int8_t kv_i8_get(
         return status;
     }
 
-    return _kv_i8_internal_get( &meta, hash, data, max_len );
+    return _kv_i8_internal_get( &meta, hash, index, count, data, max_len );
 }
 
 
@@ -822,7 +909,7 @@ int8_t kv_i8_persist( catbus_hash_t32 hash )
 
     // get parameter data
     uint8_t data[KV_PERSIST_MAX_DATA_LEN];
-    _kv_i8_internal_get( &meta, hash, data, sizeof(data) );
+    _kv_i8_internal_get( &meta, hash, 0, 1, data, sizeof(data) );
 
     // get parameter length
     uint16_t param_len = kv_u16_get_size_meta( &meta );

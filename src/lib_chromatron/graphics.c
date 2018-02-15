@@ -412,7 +412,7 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-static void send_kv_data( catbus_meta_t *meta, const void *data ){
+// static void send_kv_data( catbus_meta_t *meta, const void *data ){
 
     // uint16_t data_len = type_u16_size_meta( meta );
 
@@ -447,7 +447,7 @@ static void send_kv_data( catbus_meta_t *meta, const void *data ){
     //     data_len -= copy_len;
     //     data += copy_len;
     // }      
-}
+// }
 
 static int8_t send_read_keys( void ){
 
@@ -593,9 +593,9 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     return 0;    
 }
 
-void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
+// void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
 
-    send_kv_data( meta, data );
+    // send_kv_data( meta, data );
 
 
     // // check valid types
@@ -629,7 +629,7 @@ void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *d
     //     // can't use the batch message
     //     send_kv_data( meta, data );
     // }
-}
+// }
 
 
 #ifdef ENABLE_TIME_SYNC

@@ -626,6 +626,18 @@ int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash ){
     return -1;
 }
 
+// typedef struct{
+//     db_entry_t *entry;
+
+// } kvdb_pack_ctx_t;
+
+// int8_t kvdb_i8_init_pack_ctx( catbus_hash_t32 hash, kvdb_pack_ctx_t *ctx ){
+
+//     ctx->entry = 
+// }
+
+// int16_t kvdb_i16_pack( catbus_hash_t32 hash, 
+
 
 // // direct retrieval functions, for those who like to throw caution to the wind!
 // uint16_t kvdb_u16_read( catbus_hash_t32 hash ){
