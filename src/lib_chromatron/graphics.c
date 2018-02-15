@@ -723,10 +723,10 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-        test_packer();
-    }
+    //     test_packer();
+    // }
     
     #ifdef ENABLE_TIME_SYNC
     static uint32_t last_frame_sync_time;
