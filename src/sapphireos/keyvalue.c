@@ -301,6 +301,23 @@ int8_t kv_i8_lookup_hash(
     return kv_i8_lookup_index( index, meta, flags );
 }
 
+int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
+
+    kv_meta_t kv_meta;
+    if( kv_i8_lookup_hash( hash, &kv_meta, 0 ) < 0 ){
+
+        return -1;
+    }
+
+    meta->hash      = hash;
+    meta->type      = kv_meta.type;
+    meta->count     = kv_meta.array_len;
+    meta->flags     = kv_meta.flags;
+    meta->reserved  = 0;
+
+    return 0;
+}
+
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[KV_NAME_LEN] ){
 
     kv_meta_t meta;
@@ -566,10 +583,10 @@ static int8_t _kv_i8_internal_set(
 
     uint16_t array_len = meta->array_len + 1;
 
-    // wrap index
-    if( index > array_len ){
+    // bound index
+    if( index >= array_len ){
 
-        index %= array_len;
+        return KV_ERR_STATUS_OUT_OF_BOUNDS;
     }
 
     // set copy length
@@ -744,10 +761,10 @@ static int8_t _kv_i8_internal_get(
 
     uint16_t array_len = meta->array_len + 1;
 
-    // wrap index
-    if( index > array_len ){
+    // bound index
+    if( index >= array_len ){
 
-        index %= array_len;
+        return KV_ERR_STATUS_OUT_OF_BOUNDS;
     }
 
     // set copy length

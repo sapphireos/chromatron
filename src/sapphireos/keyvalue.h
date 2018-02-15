@@ -89,6 +89,7 @@ typedef uint8_t kv_flags_t8;
 #define KV_ERR_STATUS_SAFE_MODE                 -7
 #define KV_ERR_STATUS_PARAMETER_NOT_SET         -8
 #define KV_ERR_STATUS_CANNOT_CONVERT_TYPES      -9
+#define KV_ERR_STATUS_OUT_OF_BOUNDS            -10
 
 typedef struct{
     uint32_t magic;
@@ -164,7 +165,7 @@ int8_t kv_i8_lookup_hash(
     catbus_hash_t32 hash,
     kv_meta_t *meta,
     uint8_t flags );
-
+int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 
 // dynamic keys
 #define KV_META_FLAGS_GET_NAME      0x01

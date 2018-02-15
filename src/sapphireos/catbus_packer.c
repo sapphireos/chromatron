@@ -27,15 +27,19 @@
 #include "catbus_common.h"
 #include "catbus_types.h"
 
-#include "kvdb.h"
+#include "keyvalue.h"
 
+
+#include "kvdb.h"
+#include "system.h"
+#include "logging.h"
 
 
 int8_t catbus_i8_init_pack_ctx( catbus_hash_t32 hash, catbus_pack_ctx_t *ctx ){
 
     catbus_meta_t meta;
 
-    if( kvdb_i8_get_meta( hash, &meta ) < 0 ){
+    if( kv_i8_get_meta( hash, &meta ) < 0 ){
 
         return -1;
     }
@@ -73,9 +77,9 @@ int16_t catbus_i16_pack( catbus_pack_ctx_t *ctx, void *buf, int16_t max_len ){
 
     uint8_t *data = (uint8_t *)( hdr + 1 );
 
-    while( max_len >= type_len ){
+    while( ( max_len >= type_len ) && ( ctx->index < ctx->count ) ){
 
-        if( kvdb_i8_array_get( ctx->hash, ctx->type, ctx->index, data, type_len ) < 0 ){
+        if( kv_i8_array_get( ctx->hash, ctx->index, 1, data, type_len ) < 0 ){
 
             break;
         }
@@ -96,7 +100,7 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
     
     catbus_meta_t meta;
 
-    if( kvdb_i8_get_meta( hdr->hash, &meta ) < 0 ){
+    if( kv_i8_get_meta( hdr->hash, &meta ) < 0 ){
 
         return -1;
     }
@@ -127,7 +131,7 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
             break;
         }
 
-        if( kvdb_i8_array_set( hdr->hash, hdr->type, hdr->index, data, type_len ) < 0 ){
+        if( kv_i8_array_set( hdr->hash, hdr->index, 1, data, type_len ) < 0 ){
 
             break;
         }
@@ -143,8 +147,6 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
 }
 
 
-#include "system.h"
-#include "logging.h"
 
 int8_t test_packer( void ){
 
