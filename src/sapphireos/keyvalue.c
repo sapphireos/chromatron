@@ -148,24 +148,6 @@ static int8_t _kv_i8_persist_set_internal(
     const void *data,
     uint16_t len );
 
-static int8_t _kv_i8_dynamic_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len ){
-    
-    if( op == KV_OP_GET ){
-
-        return kvdb_i8_get( hash, CATBUS_TYPE_NONE, data, len );
-    }
-    else if( op == KV_OP_SET ){
-
-        return kvdb_i8_set( hash, CATBUS_TYPE_NONE, data, len );   
-    }
-
-    return -1;
-}
-
 static uint16_t _kv_u16_fixed_count( void ){
 
     return ( kv_end - kv_start ) - 1;
@@ -276,11 +258,11 @@ int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
             kvdb_i8_lookup_name( hash, meta->name );
         }
 
-        // attach handler
-        meta->handler   = _kv_i8_dynamic_handler;
+        meta->handler   = 0;
         meta->type      = catbus_meta.type;
         meta->flags     = catbus_meta.flags;
         meta->array_len = catbus_meta.count;
+        meta->ptr       = kvdb_vp_get_ptr( hash );
     }
     else{
 

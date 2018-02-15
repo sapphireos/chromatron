@@ -28,6 +28,7 @@
 #include "timers.h"
 #include "catbus_common.h"
 #include "catbus.h"
+#include "catbus_packer.h"
 
 #include "trig.h"
 #include "pixel.h"
@@ -721,6 +722,11 @@ void gfx_v_reset_subscribed( void ){
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        test_packer();
+    }
     
     #ifdef ENABLE_TIME_SYNC
     static uint32_t last_frame_sync_time;

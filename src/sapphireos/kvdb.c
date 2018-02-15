@@ -480,7 +480,6 @@ int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 
     if( entry == 0 ){
 
-
         // not found
         // set data to 0 so we at least have a sane default
         memset( meta, 0, sizeof(catbus_meta_t) );
@@ -495,6 +494,18 @@ int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
     meta->reserved  = 0;
 
     return KVDB_STATUS_OK;
+}
+
+void *kvdb_vp_get_ptr( catbus_hash_t32 hash ){
+
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return 0;
+    }
+
+    return entry + 1;
 }
 
 
