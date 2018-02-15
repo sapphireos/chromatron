@@ -132,9 +132,9 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
             break;
         }
 
-        buf             += type_len;
         len             -= type_len;
         data_written    += type_len;
+        data            += type_len;
         hdr->count--;
         hdr->index++;
     }
@@ -151,7 +151,7 @@ int8_t test_packer( void ){
     uint32_t array[16];
     for( uint8_t i = 0; i < cnt_of_array(array); i++ ){
 
-        array[i] = i;
+        array[i] = i + 1;
     }
 
     kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, cnt_of_array(array), array, sizeof(array), "test_array" );

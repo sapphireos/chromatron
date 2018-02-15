@@ -183,6 +183,15 @@ int8_t type_i8_convert(
     catbus_type_t8 src_type,
     const void *src_data ){
 
+    // check if types are identical
+    // DEBUG - does not check for changes
+    if( dest_type == src_type ){
+
+        memcpy( dest_data, src_data, type_u16_size( dest_type ) );
+
+        return 0;
+    }
+
     // check for strings
     bool dst_string = type_b_is_string( dest_type );
     bool src_string = type_b_is_string( src_type );
