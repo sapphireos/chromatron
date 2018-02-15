@@ -25,9 +25,6 @@
 #include <string.h>
 #include "catbus_common.h"
 
-// #include "system.h"
-// #include "logging.h"
-
 int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
 
     int64_t i64_data = 0;
@@ -59,7 +56,7 @@ int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
             break;
             
         case CATBUS_TYPE_UINT32:
-            i64_data = *(int64_t *)data;
+            i64_data = *(uint32_t *)data;
             break;
 
         case CATBUS_TYPE_UINT64:
@@ -176,21 +173,11 @@ void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data ){
     }
 }
 
-
 int8_t type_i8_convert( 
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
     const void *src_data ){
-
-    // check if types are identical
-    // DEBUG - does not check for changes
-    if( dest_type == src_type ){
-
-        memcpy( dest_data, src_data, type_u16_size( dest_type ) );
-
-        return 0;
-    }
 
     // check for strings
     bool dst_string = type_b_is_string( dest_type );

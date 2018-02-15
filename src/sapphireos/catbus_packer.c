@@ -108,7 +108,7 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
     }
 
     int16_t type_len = type_u16_size( hdr->type );
-    int16_t data_written = 0;
+    int16_t data_read = sizeof(catbus_pack_hdr_t);
 
     // need enough space for at least one entry
     int16_t minimum_space = sizeof(catbus_pack_hdr_t) + type_len;
@@ -133,13 +133,13 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
         }
 
         len             -= type_len;
-        data_written    += type_len;
+        data_read       += type_len;
         data            += type_len;
         hdr->count--;
         hdr->index++;
     }
 
-    return data_written;
+    return data_read;
 }
 
 
@@ -198,7 +198,30 @@ int8_t test_packer( void ){
 
     written = catbus_i16_unpack( buf, sizeof(buf) );
 
-    log_v_debug_P( PSTR("unpacker wrote: %d data0: %lu"), written, *(uint32_t *)data );
+    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+
+
+    written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+    hdr->hash = __KV__test_array2;
+    written = catbus_i16_unpack( buf, sizeof(buf) );
+    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+
+    written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+    hdr->hash = __KV__test_array2;
+    written = catbus_i16_unpack( buf, sizeof(buf) );
+    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+
+
+    written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+    hdr->hash = __KV__test_array2;
+    written = catbus_i16_unpack( buf, sizeof(buf) );
+    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
 
 
 
