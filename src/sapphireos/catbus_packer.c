@@ -51,7 +51,7 @@ int8_t catbus_i8_init_pack_ctx( catbus_hash_t32 hash, catbus_pack_ctx_t *ctx ){
 int16_t catbus_i16_pack( catbus_pack_ctx_t *ctx, void *buf, int16_t max_len ){
 
     int16_t type_len = type_u16_size( ctx->type );
-    int16_t data_written = 0;
+    int16_t data_written = sizeof(catbus_pack_hdr_t);
 
     // need enough space for at least one entry
     int16_t minimum_space = sizeof(catbus_pack_hdr_t) + type_len;
@@ -165,37 +165,38 @@ int8_t test_packer( void ){
     log_v_debug_P( PSTR("testing packer...") );    
 
 
-    // catbus_pack_ctx_t ctx;
-    // uint8_t buf[32];
-    // catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)buf;
-    // int8_t status;
+    catbus_pack_ctx_t ctx;
+    uint8_t buf[31];
+    catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)buf;
+    uint8_t *data = (uint8_t *)( hdr + 1 );
+    int8_t status;
 
-    // status = catbus_i8_init_pack_ctx( 1, &ctx );
-    // if( status >= 0 ){
+    status = catbus_i8_init_pack_ctx( 1, &ctx );
+    if( status >= 0 ){
 
-    //     log_v_debug_P( PSTR("pack error") );        
-    //     return -1;
-    // }
+        log_v_debug_P( PSTR("pack error") );        
+        return -1;
+    }
 
-    // status = catbus_i8_init_pack_ctx( __KV__test_array, &ctx );
-    // if( status < 0 ){
+    status = catbus_i8_init_pack_ctx( __KV__test_array, &ctx );
+    if( status < 0 ){
 
-    //     log_v_debug_P( PSTR("pack error") );        
-    //     return -1;
-    // }
+        log_v_debug_P( PSTR("pack error") );        
+        return -1;
+    }
 
-    // int16_t written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+    int16_t written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
 
-    // log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u"), written, hdr->hash, hdr->index, hdr->count );
+    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu"), written, hdr->hash, hdr->index, hdr->count, *(uint32_t *)data );
 
-    // // change hash
-    // hdr->hash = __KV__test_array2;
+    // change hash
+    hdr->hash = __KV__test_array2;
 
-    // written = catbus_i16_unpack( buf, sizeof(buf) );
+    written = catbus_i16_unpack( buf, sizeof(buf) );
 
-    // log_v_debug_P( PSTR("unpacker wrote: %d"), written );
+    log_v_debug_P( PSTR("unpacker wrote: %d data0: %lu"), written, *(uint32_t *)data );
 
-    
+
 
     return 0;
 }
