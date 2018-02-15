@@ -643,6 +643,17 @@ int8_t catbus_i8_set(
     void *data )
 {
 
+    return catbus_i8_array_set( hash, type, 0, 1, data );
+}
+
+int8_t catbus_i8_array_set(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    uint16_t index,
+    uint16_t count,
+    void *data )
+{
+
     // look up parameter
     kv_meta_t meta;
 
@@ -653,12 +664,33 @@ int8_t catbus_i8_set(
         return status;
     }
 
+    uint16_t array_len = meta.array_len + 1;
+
+    // wrap index
+    if( index > array_len ){
+
+        index %= array_len;
+    }
+
     uint8_t buf[CATBUS_STRING_LEN];
-    type_i8_convert( meta.type, buf, type, data );
 
-    // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
+    for( uint16_t i = 0; i < count; i++ ){
 
-    status = kv_i8_set( hash, buf, type_u16_size( meta.type ) );
+        type_i8_convert( meta.type, buf, type, data );
+
+        // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
+
+        status = kv_i8_array_set( hash, index, 1, buf, type_u16_size( meta.type ) );
+
+        index++;
+
+        if( index >= array_len ){
+
+            break;
+        }
+
+        data += type_u16_size( meta.type );
+    }
 
     if( status == 0 ){
 
@@ -671,8 +703,19 @@ int8_t catbus_i8_set(
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
-    void *data ){
+    void *data )
+{
 
+    return catbus_i8_array_get( hash, type, 0, 1, data );
+}
+
+int8_t catbus_i8_array_get(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    uint16_t index,
+    uint16_t count,
+    void *data )
+{
     // look up parameter
     kv_meta_t meta;
 
@@ -683,16 +726,31 @@ int8_t catbus_i8_get(
         return status;
     }
 
-    uint8_t buf[CATBUS_STRING_LEN];
+    uint16_t array_len = meta.array_len + 1;
 
-    status = kv_i8_get( hash, buf, sizeof(buf) );
+    // wrap index
+    if( index > array_len ){
 
-    if( status < 0 ){
-
-        return status;
+        index %= array_len;
     }
 
-    type_i8_convert( type, data, meta.type, buf );
+    uint8_t buf[CATBUS_STRING_LEN];
+
+    for( uint16_t i = 0; i < count; i++ ){
+
+        status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );
+   
+        type_i8_convert( type, data, meta.type, buf );
+
+        index++;
+
+        if( index >= array_len ){
+
+            break;
+        }
+
+        data += type_u16_size( meta.type );   
+    }
 
     return 0;
 }

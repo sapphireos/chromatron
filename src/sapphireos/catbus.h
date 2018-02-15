@@ -292,9 +292,23 @@ int8_t catbus_i8_set(
     catbus_type_t8 type,
     void *data );
 
+int8_t catbus_i8_array_set(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    uint16_t index,
+    uint16_t count,
+    void *data );
+
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
+    void *data );
+
+int8_t catbus_i8_array_get(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    uint16_t index,
+    uint16_t count,
     void *data );
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash );
