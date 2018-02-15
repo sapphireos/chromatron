@@ -394,11 +394,13 @@ retry:;
 
         // look up meta data, verify type matches, and check if there is
         // a memory pointer
+        // AND not an array.
         int8_t status = kv_i8_lookup_hash( hdr->hash, &meta, 0 );
 
         if( ( status >= 0 ) &&
             ( meta.type == hdr->type ) &&
-            ( meta.ptr != 0 ) ){
+            ( meta.ptr != 0 ) &&
+            ( meta.array_len == 0 ) ){
 
             uint16_t type_size = kv_u16_get_size_meta( &meta );
 
@@ -452,6 +454,12 @@ static int8_t _kv_i8_persist_set_internal(
 {
 
     if( persist_fail ){
+
+        return 0;
+    }
+
+    // check that we aren't persisting an array
+    if( meta->array_len > 0 ){
 
         return 0;
     }
@@ -603,12 +611,14 @@ static int8_t _kv_i8_internal_set(
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
+        meta->ptr += ( index * type_u16_size( meta->type ) );
+
         ATOMIC;
 
         for( uint16_t i = 0; i < count; i++ ){
 
             // set data
-            memcpy( meta->ptr + index, data, copy_len );
+            memcpy( meta->ptr, data, copy_len );
 
             meta->ptr += copy_len;
             data += copy_len;
@@ -626,29 +636,34 @@ static int8_t _kv_i8_internal_set(
 
     int8_t status = KV_ERR_STATUS_OK;
 
-    // check if parameter has a notifier
-    if( meta->handler != 0 ){
+    // check if array
+    // we don't support the function mapping or persistence for arrays
+    if( array_len == 1 ){
 
-        ATOMIC;
+        // check if parameter has a notifier
+        if( meta->handler != 0 ){
 
-        // call handler
-        status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
+            ATOMIC;
 
-        END_ATOMIC;
-    }
+            // call handler
+            status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
 
-    // check if persist flag is set
-    if( meta->flags & KV_FLAGS_PERSIST ){
-
-        // check if we *don't* have a RAM pointer
-        if( meta->ptr == 0 ){
-
-            _kv_i8_persist_set( meta, hash, data, copy_len );
+            END_ATOMIC;
         }
-        else{
 
-            // signal thread to persist in background
-            run_persist = TRUE;
+        // check if persist flag is set
+        if( meta->flags & KV_FLAGS_PERSIST ){
+
+            // check if we *don't* have a RAM pointer
+            if( meta->ptr == 0 ){
+
+                _kv_i8_persist_set( meta, hash, data, copy_len );
+            }
+            else{
+
+                // signal thread to persist in background
+                run_persist = TRUE;
+            }
         }
     }
 
@@ -774,6 +789,8 @@ static int8_t _kv_i8_internal_get(
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
+        meta->ptr += ( index * type_u16_size( meta->type ) );
+
         // atomic because interrupts may access RAM data
         ATOMIC;
 
@@ -798,7 +815,9 @@ static int8_t _kv_i8_internal_get(
     // didn't have a ram pointer:
     // check if persist flag is set, if it is,
     // we'll try to get data from the file.
-    else if( meta->flags & KV_FLAGS_PERSIST ){
+    // also check if array:
+    // we don't have persistence on arrays
+    else if( ( meta->flags & KV_FLAGS_PERSIST ) && ( array_len == 1 ) ){
 
         // check data from file system
         if( _kv_i8_persist_get( meta, hash, data, max_len ) < 0 ){
@@ -808,18 +827,19 @@ static int8_t _kv_i8_internal_get(
         }
     }
 
+    int8_t status = KV_ERR_STATUS_OK;
+
     // check if parameter has a notifier
-    if( meta->handler == 0 ){
+    // AND is not an array
+    if( ( meta->handler != 0 ) && ( array_len == 1 ) ){
 
-        return KV_ERR_STATUS_OK;
+        ATOMIC;
+
+        // call handler
+        status = meta->handler( KV_OP_GET, hash, data, copy_len );
+
+        END_ATOMIC;    
     }
-
-    ATOMIC;
-
-    // call handler
-    int8_t status = meta->handler( KV_OP_GET, hash, data, copy_len );
-
-    END_ATOMIC;
 
     return status;
 }
