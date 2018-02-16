@@ -181,8 +181,6 @@ int8_t kvdb_i8_add(
     uint16_t len,
     char name[CATBUS_STRING_LEN] ){
 
-    // intf_v_printf( "add: hash: %lx type %d cnt %d", hash, type, count ); 
-
     // try a set first
     if( data != 0 ){
 
@@ -234,7 +232,7 @@ int8_t kvdb_i8_add(
     entry->count     = count;
     entry->notifier  = 0;
 
-    intf_v_printf( "add: hash: %lx type %d cnt %d", hash, type, count ); 
+    // intf_v_printf( "add: hash: %lx type %d cnt %d", hash, type, count ); 
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
@@ -699,3 +697,4 @@ int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash ){
 
 //     return data;
 // }
+
