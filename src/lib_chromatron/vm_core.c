@@ -1236,6 +1236,7 @@ opcode_db_len:
     dest        = *pc++;
 
     catbus_meta_t meta;
+    meta.count = 0;
     kvdb_i8_get_meta( hash, &meta );
 
     data[dest] = meta.count + 1;
