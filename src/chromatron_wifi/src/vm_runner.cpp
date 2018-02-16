@@ -271,37 +271,37 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
         // init database
         kvdb_v_delete_tag( KVDB_VM_RUNNER_TAG );
 
-        uint32_t count = vm_state.write_keys_count;
-        uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
+        // uint32_t count = vm_state.write_keys_count;
+        // uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
     
-        while( count > 0 ){        
+        // while( count > 0 ){        
 
-            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
-            kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
+        //     kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
+        //     kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
 
-            hash++;
-            count--;
-        }
+        //     hash++;
+        //     count--;
+        // }
 
-        count = vm_state.read_keys_count;
-        hash = (uint32_t *)&vm_slab[vm_state.read_keys_start];
+        // count = vm_state.read_keys_count;
+        // hash = (uint32_t *)&vm_slab[vm_state.read_keys_start];
     
-        while( count > 0 ){        
+        // while( count > 0 ){        
 
-            kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
-            kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
+        //     kvdb_i8_add( *hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
+        //     kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
 
-            hash++;
-            count--;
-        }
+        //     hash++;
+        //     count--;
+        // }
 
-        count = vm_state.publish_count;
+        uint32_t count = vm_state.publish_count;
         vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
     
         while( count > 0 ){        
 
             kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0, 0 );
-            kvdb_v_set_tag( *hash, KVDB_VM_RUNNER_TAG );
+            kvdb_v_set_tag( publish->hash, KVDB_VM_RUNNER_TAG );
 
             publish++;
             count--;
