@@ -465,6 +465,8 @@ static int8_t send_keys( catbus_hash_t32 *hash, uint8_t count ){
             buf_ptr = 0;
         }        
     }
+
+    return 0;
 }
 
 static int8_t send_read_keys( void ){
@@ -608,6 +610,37 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
+        int16_t status = 0;
+
+        while( status >= 0 ){
+
+            data += status;
+            len -= status;
+            status = catbus_i16_unpack( data, len );       
+
+            log_v_debug_P( PSTR("KV sts: %d len %d"), 
+                status, len );      
+        }
+
+        // catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
+            
+        
+        // int16_t status = catbus_i16_unpack( data, len );
+
+        // log_v_debug_P( PSTR("KV len: %d hash: %lx type %d idx %d count %d sts: %d"), 
+        //     len, hdr->hash, hdr->type, hdr->index, hdr->count, status );
+
+        // status = catbus_i16_unpack( data, len );
+
+        // log_v_debug_P( PSTR("KV sts: %d"), 
+        //     status );
+        
+        // status = catbus_i16_unpack( data, len );
+
+        // log_v_debug_P( PSTR("KV sts: %d"), 
+        //     status );
+        
+        
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
@@ -750,18 +783,23 @@ PT_BEGIN( pt );
     // test_packer();
 
     
-    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, "test_array" );
+    // kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, "test_array" );
 
-    catbus_hash_t32 read_keys[] = {
-        __KV__test_array,
-        __KV__kv_test_key,
-        __KV__kv_test_array,
-    };
+    // catbus_hash_t32 read_keys[] = {
+    //     __KV__test_array,
+    //     __KV__kv_test_key,
+    //     __KV__kv_test_array,
+    // };
     
-    subscribed_keys_h = mem2_h_alloc( sizeof(read_keys) );
-    memcpy( mem2_vp_get_ptr_fast(subscribed_keys_h), read_keys, sizeof(read_keys) );
+    // subscribed_keys_h = mem2_h_alloc( sizeof(read_keys) );
+    // memcpy( mem2_vp_get_ptr_fast(subscribed_keys_h), read_keys, sizeof(read_keys) );
 
-    send_read_keys();
+    // send_read_keys();
+
+    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, "test_array" );
+    kvdb_i8_add( __KV__test_data,  CATBUS_TYPE_UINT32, 1, 0, 0, "test_data" );
+    kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, 0, 0, "test_meow" );
+
 
     
     #ifdef ENABLE_TIME_SYNC

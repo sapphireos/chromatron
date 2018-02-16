@@ -125,7 +125,7 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
 
     if( len < minimum_space ){
 
-        return -1;
+        return -3;
     }
 
     uint8_t *data = (uint8_t *)( hdr + 1 );

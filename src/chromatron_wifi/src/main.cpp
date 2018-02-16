@@ -90,10 +90,21 @@ void setup(){
 
     //SPIFFS.begin();
 
+    uint32_t array[64];
+    for( uint32_t i = 0; i < 64; i++ ){
 
-    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, 0 );
+        array[i] = i + 1;
+    }
+
+    uint32_t array2[16];
+    for( uint32_t i = 0; i < 16; i++ ){
+
+        array2[i] = i + 3;
+    }
+
+    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, array, sizeof(array), 0 );
     kvdb_i8_add( __KV__test_data,  CATBUS_TYPE_UINT32, 1, 0, 0, 0 );
-    kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, 0, 0, 0 );
+    kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, array2, sizeof(array2), 0 );
 
     intf_v_send_kv( __KV__test_array );
     intf_v_send_kv( __KV__test_data );
