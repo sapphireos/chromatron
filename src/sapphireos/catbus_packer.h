@@ -50,6 +50,6 @@ int16_t catbus_i16_unpack( const void *buf, int16_t max_len );
 
 
 
-int8_t test_packer( void );
+// int8_t test_packer( void );
 
 #endif

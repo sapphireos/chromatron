@@ -803,8 +803,6 @@ void intf_v_init( void ){
     request_debug = true;
 
     list_v_init( &print_list );
-
-    test_packer();
 }
 
 void intf_v_request_status( void ){

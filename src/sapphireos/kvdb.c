@@ -232,8 +232,6 @@ int8_t kvdb_i8_add(
     entry->count     = count;
     entry->notifier  = 0;
 
-    // intf_v_printf( "add: hash: %lx type %d cnt %d", hash, type, count ); 
-
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
     if( data != 0 ){
@@ -502,8 +500,6 @@ int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
     meta->flags     = entry->flags;
     meta->type      = entry->type;
     meta->reserved  = 0;
-
-    intf_v_printf( "meta: hash: %lx type %d cnt %d", hash, meta->type, meta->count ); 
 
     return KVDB_STATUS_OK;
 }
