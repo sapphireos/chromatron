@@ -147,15 +147,15 @@ void kvdb_v_init( void ){
 
     list_v_init( &db_list );
 
-    int32_t temp = 123;
-    kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, 0, &temp, sizeof(temp), "test_meow" );
+    // int32_t temp = 123;
+    // kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, 0, &temp, sizeof(temp), "test_meow" );
 
-    uint8_t array[4];
-    array[0] = 1;
-    array[1] = 2;
-    array[2] = 3;
-    array[3] = 4;
-    kvdb_i8_add( __KV__test_woof, CATBUS_TYPE_UINT8, cnt_of_array(array), array, sizeof(array), "test_woof" );        
+    // uint8_t array[4];
+    // array[0] = 1;
+    // array[1] = 2;
+    // array[2] = 3;
+    // array[3] = 4;
+    // kvdb_i8_add( __KV__test_woof, CATBUS_TYPE_UINT8, cnt_of_array(array), array, sizeof(array), "test_woof" );        
 
     // kvdb_i8_add( __KV__test_meow, 123, 0, "test_meow" );
     // kvdb_i8_add( __KV__test_woof, 456, 0, "test_woof" );
@@ -180,6 +180,8 @@ int8_t kvdb_i8_add(
     const void *data,
     uint16_t len,
     char name[CATBUS_STRING_LEN] ){
+
+    // intf_v_printf( "add: hash: %lx type %d cnt %d", hash, type, count ); 
 
     // try a set first
     if( data != 0 ){
@@ -207,7 +209,7 @@ int8_t kvdb_i8_add(
         count = 1;
     }
 
-    uint16_t data_len = type_u16_size(type) * count;
+    uint16_t data_len = type_u16_size( type ) * count;
 
     count--;
 
@@ -231,6 +233,8 @@ int8_t kvdb_i8_add(
     entry->tag       = 0;
     entry->count     = count;
     entry->notifier  = 0;
+
+    intf_v_printf( "add: hash: %lx type %d cnt %d", hash, type, count ); 
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
@@ -399,18 +403,18 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
         return KVDB_STATUS_NOT_FOUND;    
     }
 
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
     uint16_t type_len = type_u16_size( type );
     uint16_t array_len = entry->count + 1;
 
     if( len < type_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
-    }
-
-    // send type NONE indicates that source and destination types match
-    if( type == CATBUS_TYPE_NONE ){
-
-        type = entry->type;
     }
 
     // wrap around index
@@ -453,18 +457,18 @@ int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
         return KVDB_STATUS_NOT_FOUND;
     }
 
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
     uint16_t type_len = type_u16_size( type );
     uint16_t array_len = entry->count + 1;
 
     if( max_len < type_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
-    }
-
-    // send type NONE indicates that source and destination types match
-    if( type == CATBUS_TYPE_NONE ){
-
-        type = entry->type;
     }
 
     // wrap around index
@@ -500,6 +504,8 @@ int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
     meta->flags     = entry->flags;
     meta->type      = entry->type;
     meta->reserved  = 0;
+
+    intf_v_printf( "meta: hash: %lx type %d cnt %d", hash, meta->type, meta->count ); 
 
     return KVDB_STATUS_OK;
 }

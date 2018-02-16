@@ -27,6 +27,10 @@
 
 #include <inttypes.h>
 
+#ifndef cnt_of_array
+    #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
+#endif
+
 #include "catbus_types.h"
 
 typedef uint8_t catbus_flags_t8;

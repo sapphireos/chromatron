@@ -30,3 +30,32 @@ This is just an API wrapper for vm_core and catbus_packer, among others.
 
 #include "keyvalue.h"
 #include "kvdb.h"
+
+int8_t kv_i8_array_set(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    const void *data,
+    uint16_t len )
+{
+    return kvdb_i8_array_set( hash, CATBUS_TYPE_NONE, index, data, len );
+}
+
+int8_t kv_i8_array_get(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    void *data,
+    uint16_t max_len )
+{
+
+    return kvdb_i8_array_get( hash, CATBUS_TYPE_NONE, index, data, max_len );
+}
+
+int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta )
+{
+
+    return kvdb_i8_get_meta( hash, meta );
+}
+
+

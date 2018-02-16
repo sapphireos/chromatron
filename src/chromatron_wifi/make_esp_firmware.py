@@ -21,6 +21,8 @@ def build():
     flags = ''.join(defines)
     os.environ['PLATFORMIO_BUILD_FLAGS'] = flags
 
+    print flags
+
     os.system('platformio run')
 
 def create_firmware_image():

@@ -48,4 +48,8 @@ int8_t catbus_i8_init_pack_ctx( catbus_hash_t32 hash, catbus_pack_ctx_t *ctx );
 int16_t catbus_i16_pack( catbus_pack_ctx_t *ctx, void *buf, int16_t max_len );
 int16_t catbus_i16_unpack( const void *buf, int16_t max_len );
 
+
+
+int8_t test_packer( void );
+
 #endif

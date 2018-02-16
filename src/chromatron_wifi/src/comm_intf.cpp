@@ -38,6 +38,7 @@ extern "C"{
     #include "vm_core.h"
     #include "list.h"
     #include "memory.h"
+    #include "catbus_packer.h"
 }
 
 list_t print_list;
@@ -802,6 +803,8 @@ void intf_v_init( void ){
     request_debug = true;
 
     list_v_init( &print_list );
+
+    test_packer();
 }
 
 void intf_v_request_status( void ){
