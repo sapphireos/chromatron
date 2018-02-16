@@ -325,7 +325,7 @@ class Builder(object):
 
         for d in self.source_dirs:
             for f in os.listdir(d):
-                if f.endswith('.c'):
+                if f.endswith('.c') or f.endswith('.cpp'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
                     if fpath not in source_files:
