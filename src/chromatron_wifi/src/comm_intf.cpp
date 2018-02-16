@@ -258,17 +258,9 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
             kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0 );
         }
     }
-    // else if( data_id == WIFI_DATA_ID_KV_DATA ){
+    else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
-        // wifi_kv_data_t *msg = (wifi_kv_data_t *)data;
-
-        // if( msg->data_len < ( WIFI_MAX_DATA_LEN - sizeof(wifi_kv_data_t) ) ){
-
-
-
-        //     kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0, 0 );
-        // }                 
-    // }
+    }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
         if( len != sizeof(wifi_msg_udp_header_t) ){
@@ -320,103 +312,6 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
             wifi_v_send_udp( &udp_header, udp_data );
         }
     }
-    // else if( data_id == WIFI_DATA_ID_MULTI_0 ){
-
-    //     wifi_msg_multi_0_t *msg = (wifi_msg_multi_0_t *)data;
-
-    //     // clear handle, if exists
-    //     if( multi_h > 0 ){
-
-    //         mem2_v_free( multi_h );
-    //     }
-
-    //     // clear data ID and offset
-    //     multi_data_id = 0;
-    //     multi_offset = 0;
-    //     multi_next = WIFI_DATA_ID_MULTI_0 + 1;
-
-    //     // verify message ID
-    //     if( msg->data_id >= WIFI_DATA_ID_MULTI_0 ){
-
-    //         // bail out, because recursion is bad
-    //         return;
-    //     }
-
-    //     // verify data len
-    //     if( msg->data_len > MAX_MULTI_LEN ){
-
-    //         return;
-    //     } 
-
-    //     // allocate memory
-    //     multi_h = mem2_h_alloc( msg->data_len );
-
-    //     if( multi_h > 0 ){
-
-    //         multi_data_id = msg->data_id;
-
-    //         uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( multi_h );
-    //         uint8_t *msg_data = (uint8_t *)( msg + 1 );
-    //         uint8_t data_len = len - sizeof(wifi_msg_multi_0_t);
-
-    //         memcpy( ptr, msg_data, data_len );
-
-    //         multi_offset += data_len;
-
-    //         // are we done?
-    //         if( multi_offset >= msg->data_len ){
-
-    //             process_data( multi_data_id, 0, ptr, data_len );
-
-    //             // release
-    //             mem2_v_free( multi_h );
-    //             multi_h = -1;
-    //             multi_data_id = 0;
-    //             multi_offset = 0;
-    //             multi_next = 0;
-    //         }
-    //     }
-    // }
-    // else if( data_id > WIFI_DATA_ID_MULTI_0 ){
-            
-    //     // check if this is the correct message in the sequence
-    //     if( data_id != multi_next ){
-
-    //         return;
-    //     }
-
-    //     // check if we have data allocated
-    //     if( multi_h < 0 ){
-
-    //         return;
-    //     }    
-
-    //     uint16_t handle_len = mem2_u16_get_size( multi_h );
-
-    //     // bounds check
-    //     if( ( len + multi_offset ) > handle_len ){
-
-    //         return;
-    //     }
-
-    //     uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( multi_h );
-    //     memcpy( ptr, data, len );
-
-    //     multi_offset += len;
-
-    //     // check if we're done
-    //     if( multi_offset >= handle_len ){
-
-    //         process_data( multi_data_id, 0, ptr, handle_len );
-
-    //         // release
-    //         mem2_v_free( multi_h );
-    //         multi_h = -1;
-    //         multi_data_id = 0;
-    //         multi_offset = 0;
-    //         multi_next = 0;
-    //     }
-    // }
 }
 
 static void set_rx_ready( void ){

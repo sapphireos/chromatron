@@ -413,43 +413,6 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-// static void send_kv_data( catbus_meta_t *meta, const void *data ){
-
-    // uint16_t data_len = type_u16_size_meta( meta );
-
-    // uint8_t buf[WIFI_MAX_DATA_LEN];
-
-    // #define CHUNK_SIZE (sizeof(buf) - sizeof(wifi_kv_data_t))
-    
-    // wifi_kv_data_t *msg = (wifi_kv_data_t *)buf;
-    // msg->data_len = data_len;
-    // msg->offset = 0;
-
-    // uint8_t *ptr = (uint8_t *)( msg + 1 );
-
-    // while( data_len > 0 ){
-
-    //     uint8_t copy_len = CHUNK_SIZE;
-
-    //     if( copy_len > data_len ){
-
-    //         copy_len = data_len;
-    //     }
-
-    //     memcpy( ptr, data, copy_len );
-
-    //     if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, copy_len + sizeof(wifi_kv_data_t) ) < 0 ){
-
-    //         log_v_debug_P( PSTR("KV msg fail") );
-
-    //         return;
-    //     }
-
-    //     data_len -= copy_len;
-    //     data += copy_len;
-    // }      
-// }
-
 static int8_t send_read_keys( void ){
 
     if( subscribed_keys_h < 0 ){
@@ -457,31 +420,84 @@ static int8_t send_read_keys( void ){
         return 0;
     }
 
-    wifi_msg_kv_batch_t batch;
-    batch.count = 0;
+    uint8_t buf[WIFI_MAX_DATA_LEN];
 
     uint32_t read_keys_count = mem2_u16_get_size( subscribed_keys_h ) / sizeof(uint32_t);
-    uint32_t *read_key = mem2_vp_get_ptr_fast( subscribed_keys_h );
+    uint32_t *read_hash = mem2_vp_get_ptr_fast( subscribed_keys_h );
 
-    if( read_keys_count > WIFI_KV_BATCH_LEN ){
+    uint8_t buf_ptr = 0;
 
-        read_keys_count = WIFI_KV_BATCH_LEN;
+    while( read_keys_count > 0 ){
 
-        log_v_debug_P( PSTR("read keys limited to %d"), WIFI_KV_BATCH_LEN );
-    }
+        catbus_pack_ctx_t ctx;
+        if( catbus_i8_init_pack_ctx( *read_hash, &ctx ) < 0 ){
 
-    for( uint8_t i = 0; i < read_keys_count; i++ ){
+            read_keys_count--;
+            read_hash++;
+            continue;
+        }
+
+        int16_t packed = -1;
+
+        do{
+            packed = catbus_i16_pack( &ctx, &buf[buf_ptr], WIFI_MAX_DATA_LEN - buf_ptr );
+
+            log_v_debug_P( PSTR("packed: %lx len: %d index: %d sts: %d"), *read_hash, buf_ptr, ctx.index, packed );
     
-        batch.entries[i].hash = *read_key;
+            if( packed < 0 ){
 
-        catbus_i8_get( *read_key, CATBUS_TYPE_INT32, &batch.entries[i].data );
+                wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+                log_v_debug_P( PSTR("send len: %d"), buf_ptr );
 
-        // log_v_debug_P(PSTR("GET: %lx = %ld"), *read_key, batch.entries[i].data);
+                buf_ptr = 0;
+            }
+            else{
 
-        batch.count++;
+                buf_ptr += packed;
+            }
+
+        } while( !catbus_b_pack_complete( &ctx ) );
+
+        if( catbus_b_pack_complete( &ctx ) ){
+
+            read_keys_count--;
+            read_hash++;
+        }
+
+        // check if buffer full
+        if( ( buf_ptr >= sizeof(buf) ) || ( read_keys_count == 0 ) || ( packed < 0 ) ){
+
+            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+            log_v_debug_P( PSTR("send len: %d"), buf_ptr );
+
+            buf_ptr = 0;
+        }        
     }
 
-    return wifi_i8_send_msg( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, sizeof(batch) );  
+    
+
+    // wifi_msg_kv_batch_t batch;
+    // batch.count = 0;
+
+    // if( read_keys_count > WIFI_KV_BATCH_LEN ){
+
+    //     read_keys_count = WIFI_KV_BATCH_LEN;
+
+    //     log_v_debug_P( PSTR("read keys limited to %d"), WIFI_KV_BATCH_LEN );
+    // }
+
+    // for( uint8_t i = 0; i < read_keys_count; i++ ){
+    
+    //     batch.entries[i].hash = *read_key;
+
+    //     catbus_i8_get( *read_key, CATBUS_TYPE_INT32, &batch.entries[i].data );
+
+    //     // log_v_debug_P(PSTR("GET: %lx = %ld"), *read_key, batch.entries[i].data);
+
+    //     batch.count++;
+    // }
+
+    // return wifi_i8_send_msg( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, sizeof(batch) );  
 }
 
 static int8_t send_run_fader_cmd( void ){
@@ -585,6 +601,9 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
             catbus_i8_set( msg->entries[i].hash, CATBUS_TYPE_INT32, (void *)&msg->entries[i].data );
         }
+    }
+    else if( data_id == WIFI_DATA_ID_KV_DATA ){
+
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
@@ -723,10 +742,23 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-    //     test_packer();
-    // }
+    test_packer();
+
+    
+    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, "test_array" );
+
+    catbus_hash_t32 read_keys[] = {
+        __KV__test_array,
+        __KV__kv_test_key,
+        __KV__kv_test_array,
+    };
+    
+    subscribed_keys_h = mem2_h_alloc( sizeof(read_keys) );
+    memcpy( mem2_vp_get_ptr_fast(subscribed_keys_h), read_keys, sizeof(read_keys) );
+
+    send_read_keys();
+
     
     #ifdef ENABLE_TIME_SYNC
     static uint32_t last_frame_sync_time;
