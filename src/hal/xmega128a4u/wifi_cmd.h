@@ -186,20 +186,6 @@ typedef struct __attribute__((packed)){
 } wifi_msg_vm_frame_sync_status_t;
 #define WIFI_DATA_ID_FRAME_SYNC_STATUS  0x29
 
-
-#define WIFI_DATA_ID_KV_BATCH           0x31
-#define WIFI_KV_BATCH_LEN               14
-typedef struct __attribute__((packed)){
-    uint32_t hash;
-    int32_t data;
-} wifi_kv_batch_entry_t;
-
-typedef struct __attribute__((packed)){
-    uint8_t count;
-    uint8_t padding[3];
-    wifi_kv_batch_entry_t entries[WIFI_KV_BATCH_LEN];
-} wifi_msg_kv_batch_t;
-
 #define WIFI_DATA_ID_KV_DATA            0x32
 
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40

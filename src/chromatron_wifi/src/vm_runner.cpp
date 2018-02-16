@@ -46,8 +46,6 @@ static uint32_t last_frame_sync;
 static bool run_vm;
 static bool run_faders;
 
-static list_t kv_send_list;
-
 
 static int8_t _vm_i8_run_vm( bool init ){
 
@@ -119,13 +117,7 @@ static int8_t _vm_i8_run_vm( bool init ){
     vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
-    wifi_msg_kv_batch_t batch;
-    list_node_t ln = -1;
-
-    // reset send list
-    list_v_destroy( &kv_send_list );
-
-    // store published vars back to DB
+    // store published vars back to DB, also queue for transport
     publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
 
     count = vm_state.publish_count;
@@ -134,42 +126,10 @@ static int8_t _vm_i8_run_vm( bool init ){
 
         kvdb_i8_set( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
 
+        intf_v_send_kv( publish->hash );
+
         publish++;
         count--;
-    }
-
-    // load published vars to messages for transport
-    publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
-
-    count = vm_state.publish_count;
-
-    while( count > 0 ){
-
-        memset( &batch, 0, sizeof(batch) );
-
-        for( uint32_t i = 0; i < WIFI_KV_BATCH_LEN; i++ ){
-
-            batch.count++;
-            batch.entries[i].hash = publish->hash;
-            batch.entries[i].data = data_table[publish->addr];
-
-            publish++;
-            count--;
-
-            if( count == 0 ){
-
-                break;
-            }
-        }
-
-        ln = list_ln_create_node( &batch, sizeof(batch) );
-
-        if( ln < 0 ){
-
-            break;
-        }
-
-        list_v_insert_head( &kv_send_list, ln );
     }
 
     // load write keys from DB
@@ -178,36 +138,10 @@ static int8_t _vm_i8_run_vm( bool init ){
 
     while( count > 0 ){
 
-        memset( &batch, 0, sizeof(batch) );
+        intf_v_send_kv( *hash );
 
-        for( uint32_t i = 0; i < WIFI_KV_BATCH_LEN; i++ ){
-
-            batch.count++;
-            batch.entries[i].hash = *hash;
-
-            // access the data this way prevents an alignment error when
-            // loading the batch array
-            int32_t data = 0;
-            kvdb_i8_get( *hash, CATBUS_TYPE_INT32, &data, sizeof(data) );
-            batch.entries[i].data = data;
-
-            hash++;
-            count--;
-
-            if( count == 0 ){
-
-                break;
-            }
-        }
-
-        ln = list_ln_create_node( &batch, sizeof(batch) );
-
-        if( ln < 0 ){
-
-            break;
-        }
-
-        list_v_insert_head( &kv_send_list, ln );
+        hash++;
+        count--;
     }
 
 
@@ -224,8 +158,6 @@ void vm_v_init( void ){
 
     gfxlib_v_init();
     gfx_v_reset();
-
-    list_v_init( &kv_send_list );
 }
 
 void vm_v_run_faders( void ){
@@ -482,11 +414,4 @@ uint16_t vm_u16_get_frame_number( void ){
 
     return vm_state.frame_number;
 }
-
-void vm_v_get_send_list( list_t **list ){
-
-    *list = &kv_send_list;
-}
-
-
 

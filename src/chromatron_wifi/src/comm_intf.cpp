@@ -267,15 +267,15 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
 
         vm_v_run_faders();
     }
-    else if( data_id == WIFI_DATA_ID_KV_BATCH ){
+    // else if( data_id == WIFI_DATA_ID_KV_BATCH ){
 
-        wifi_msg_kv_batch_t *msg = (wifi_msg_kv_batch_t *)data;
+    //     wifi_msg_kv_batch_t *msg = (wifi_msg_kv_batch_t *)data;
 
-        for( uint32_t i = 0; i < msg->count; i++ ){
+    //     for( uint32_t i = 0; i < msg->count; i++ ){
             
-            kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0 );
-        }
-    }
+    //         kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0 );
+    //     }
+    // }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
         int16_t status = 0;
@@ -470,10 +470,6 @@ void intf_v_process( void ){
 
         goto done;
     }
-
-    list_t *vm_send_list;
-    vm_v_get_send_list( &vm_send_list );
-
 
     if( request_status ){
 
@@ -675,14 +671,6 @@ void intf_v_process( void ){
             }
         }
     }
-    else if( list_u8_count( vm_send_list ) > 0 ){
-
-        list_node_t ln = list_ln_remove_tail( vm_send_list );
-
-        _intf_i8_send_msg( WIFI_DATA_ID_KV_BATCH, (uint8_t *)list_vp_get_data( ln ), sizeof(wifi_msg_kv_batch_t) );
-
-        list_v_release_node( ln );
-    }
     else if( list_u8_count( &kv_data_list ) > 0 ){
 
         uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
@@ -696,6 +684,7 @@ void intf_v_process( void ){
         while( read_keys_count > 0 ){
 
             uint32_t *read_hash = (uint32_t *)list_vp_get_data( ln );
+            list_v_release_node( ln );
 
             catbus_pack_ctx_t ctx;
             if( catbus_i8_init_pack_ctx( *read_hash, &ctx ) < 0 ){

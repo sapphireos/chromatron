@@ -47,6 +47,5 @@ int32_t vm_i32_get_reg( uint8_t addr );
 void vm_v_set_reg( uint8_t addr, int32_t data );
 
 void vm_v_run_fader( void );
-void vm_v_get_send_list( list_t **list );
 
 #endif
