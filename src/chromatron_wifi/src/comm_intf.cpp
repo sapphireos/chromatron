@@ -100,6 +100,8 @@ static uint16_t udp_len;
 static wifi_msg_udp_header_t rx_udp_header;
 static uint16_t rx_udp_index;
 
+static list_t kv_data_list;
+
 #define COMM_STATE_IDLE          0
 #define COMM_STATE_RX_HEADER     1
 #define COMM_STATE_RX_DATA       2
@@ -170,6 +172,22 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     Serial.write( data, len );
 
     return 0;
+}
+
+static int8_t _intf_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len ){
+
+    uint32_t start = micros();
+
+    while( !wifi_ready() ){
+
+        if( elapsed( start ) > 10000 ){
+
+            comm_errors++;
+            return -1;
+        }
+    }
+
+    return _intf_i8_send_msg( data_id, data, len );    
 }
 
 static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16_t len ){
@@ -648,6 +666,67 @@ void intf_v_process( void ){
 
         list_v_release_node( ln );
     }
+    else if( list_u8_count( &kv_data_list ) > 0 ){
+
+        uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
+
+        uint8_t read_keys_count = list_u8_count( &kv_data_list );
+
+        list_node_t ln = list_ln_remove_tail( &kv_data_list );
+        
+        uint8_t buf_ptr = 0;
+
+        while( read_keys_count > 0 ){
+
+            uint32_t *read_hash = (uint32_t *)list_vp_get_data( ln );
+
+            catbus_pack_ctx_t ctx;
+            if( catbus_i8_init_pack_ctx( *read_hash, &ctx ) < 0 ){
+
+                read_keys_count--;
+                ln = list_ln_remove_tail( &kv_data_list );
+
+                continue;
+            }
+
+            int16_t packed = -1;
+
+            do{
+                packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
+
+                // intf_v_printf( "packed: %lx len: %d index: %d sts: %d", *read_hash, buf_ptr, ctx.index, packed );
+        
+                if( packed < 0 ){
+
+                    _intf_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+                    // intf_v_printf( "send len: %d", buf_ptr );
+
+                    buf_ptr = 0;
+                }
+                else{
+
+                    buf_ptr += packed;
+                }
+
+            } while( !catbus_b_pack_complete( &ctx ) );
+
+            if( catbus_b_pack_complete( &ctx ) ){
+
+                read_keys_count--;
+                ln = list_ln_remove_tail( &kv_data_list );
+            }
+
+            // check if buffer full
+            if( ( buf_ptr >= sizeof(buf) ) || ( read_keys_count == 0 ) || ( packed < 0 ) ){
+
+                _intf_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+                // intf_v_printf( "send len: %d", buf_ptr );
+
+                buf_ptr = 0;
+            }        
+        }
+
+    }
     else if( list_u8_count( &print_list ) > 0 ){
 
         list_node_t ln = list_ln_remove_tail( &print_list );
@@ -698,6 +777,7 @@ void intf_v_init( void ){
     request_debug = true;
 
     list_v_init( &print_list );
+    list_v_init( &kv_data_list );
 }
 
 void intf_v_request_status( void ){
@@ -746,3 +826,16 @@ void intf_v_get_proc_stats( process_stats_t **stats ){
 
     *stats = &process_stats;
 }
+
+void intf_v_send_kv( catbus_hash_t32 hash ){
+
+    list_node_t ln = list_ln_create_node( &hash, sizeof(hash) );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_head( &kv_data_list, ln );
+}
+

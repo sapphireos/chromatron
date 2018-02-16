@@ -153,100 +153,100 @@ int16_t catbus_i16_unpack( const void *buf, int16_t len ){
 }
 
 
-#include "kvdb.h"
-#include "system.h"
-#include "logging.h"
+// #include "kvdb.h"
+// #include "system.h"
+// #include "logging.h"
 
-// #include "comm_printf.h"
-// #define PSTR(a) a
-// #define log_v_debug_P intf_v_printf
+// // #include "comm_printf.h"
+// // #define PSTR(a) a
+// // #define log_v_debug_P intf_v_printf
 
-int8_t test_packer( void ){
-    return 0;
+// int8_t test_packer( void ){
+//     return 0;
 
-    uint32_t array[16];
+//     uint32_t array[16];
 
-    for( uint8_t i = 0; i < cnt_of_array(array); i++ ){
+//     for( uint8_t i = 0; i < cnt_of_array(array); i++ ){
 
-        array[i] = i + 1;
-    }
+//         array[i] = i + 1;
+//     }
 
-    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, cnt_of_array(array), array, sizeof(array), "test_array" );
+//     kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, cnt_of_array(array), array, sizeof(array), "test_array" );
 
-    for( uint8_t i = 0; i < cnt_of_array(array); i++ ){
+//     for( uint8_t i = 0; i < cnt_of_array(array); i++ ){
 
-        array[i] = 0;
-    }
-    kvdb_i8_add( __KV__test_array2, CATBUS_TYPE_UINT32, cnt_of_array(array), array, sizeof(array), "test_array2" );
-
-
-    log_v_debug_P( PSTR("testing packer...") );    
+//         array[i] = 0;
+//     }
+//     kvdb_i8_add( __KV__test_array2, CATBUS_TYPE_UINT32, cnt_of_array(array), array, sizeof(array), "test_array2" );
 
 
-    catbus_pack_ctx_t ctx;
-    uint8_t buf[31];
-    memset( buf, 0x99, sizeof(buf) );
-    catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)buf;
-    uint8_t *data = (uint8_t *)( hdr + 1 );
-    int8_t status;
-
-    status = catbus_i8_init_pack_ctx( 1, &ctx );
-    if( status >= 0 ){
-
-        log_v_debug_P( PSTR("pack error 1") );        
-        return -1;
-    }
-
-    status = catbus_i8_init_pack_ctx( __KV__test_array, &ctx );
-    if( status < 0 ){
-
-        log_v_debug_P( PSTR("pack error 2") );        
-        return -1;
-    }
-
-    log_v_debug_P( PSTR("ctx: type %d idx %d cnt %d"), ctx.type, ctx.index, ctx.count ); 
-
-    int16_t written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
-
-    uint32_t *i32_data = (uint32_t *)data;
-
-    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
-        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
-
-    // change hash
-    hdr->hash = __KV__test_array2;
-
-    written = catbus_i16_unpack( buf, sizeof(buf) );
-
-    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+//     log_v_debug_P( PSTR("testing packer...") );    
 
 
-    written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
-    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
-        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
-    hdr->hash = __KV__test_array2;
-    written = catbus_i16_unpack( buf, sizeof(buf) );
-    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+//     catbus_pack_ctx_t ctx;
+//     uint8_t buf[31];
+//     memset( buf, 0x99, sizeof(buf) );
+//     catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)buf;
+//     uint8_t *data = (uint8_t *)( hdr + 1 );
+//     int8_t status;
 
-    written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
-    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
-        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
-    hdr->hash = __KV__test_array2;
-    written = catbus_i16_unpack( buf, sizeof(buf) );
-    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+//     status = catbus_i8_init_pack_ctx( 1, &ctx );
+//     if( status >= 0 ){
+
+//         log_v_debug_P( PSTR("pack error 1") );        
+//         return -1;
+//     }
+
+//     status = catbus_i8_init_pack_ctx( __KV__test_array, &ctx );
+//     if( status < 0 ){
+
+//         log_v_debug_P( PSTR("pack error 2") );        
+//         return -1;
+//     }
+
+//     log_v_debug_P( PSTR("ctx: type %d idx %d cnt %d"), ctx.type, ctx.index, ctx.count ); 
+
+//     int16_t written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+
+//     uint32_t *i32_data = (uint32_t *)data;
+
+//     log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+//         written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+
+//     // change hash
+//     hdr->hash = __KV__test_array2;
+
+//     written = catbus_i16_unpack( buf, sizeof(buf) );
+
+//     log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
 
 
-    written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
-    log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
-        written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
-    hdr->hash = __KV__test_array2;
-    written = catbus_i16_unpack( buf, sizeof(buf) );
-    log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+//     written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+//     log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+//         written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+//     hdr->hash = __KV__test_array2;
+//     written = catbus_i16_unpack( buf, sizeof(buf) );
+//     log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+
+//     written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+//     log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+//         written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+//     hdr->hash = __KV__test_array2;
+//     written = catbus_i16_unpack( buf, sizeof(buf) );
+//     log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
+
+
+//     written = catbus_i16_pack( &ctx, buf, sizeof(buf) );
+//     log_v_debug_P( PSTR("packer wrote: %d hash: %lx idx: %u count: %u data0: %lu data1: %lu data2: %lu data3: %lu"), 
+//         written, hdr->hash, hdr->index, hdr->count, i32_data[0], i32_data[1], i32_data[2], i32_data[3] );
+//     hdr->hash = __KV__test_array2;
+//     written = catbus_i16_unpack( buf, sizeof(buf) );
+//     log_v_debug_P( PSTR("unpacker read: %d data0: %lu"), written, *(uint32_t *)data );
 
 
 
-    return 0;
-}
+//     return 0;
+// }
 
 
 

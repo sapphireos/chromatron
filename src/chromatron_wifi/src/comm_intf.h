@@ -28,6 +28,7 @@
 
 extern "C"{
     #include "comm_printf.h"
+    #include "catbus_common.h"
 }
 
 typedef struct{
@@ -54,5 +55,6 @@ void intf_v_get_mac( uint8_t mac[6] );
 void intf_v_printf( const char *format, ... );
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
 void intf_v_get_proc_stats( process_stats_t **stats );
+void intf_v_send_kv( catbus_hash_t32 hash );
 
 #endif

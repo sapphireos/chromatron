@@ -90,6 +90,16 @@ void setup(){
 
     //SPIFFS.begin();
 
+
+    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, 0 );
+    kvdb_i8_add( __KV__test_data,  CATBUS_TYPE_UINT32, 1, 0, 0, 0 );
+    kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, 0, 0, 0 );
+
+    intf_v_send_kv( __KV__test_array );
+    intf_v_send_kv( __KV__test_data );
+    intf_v_send_kv( __KV__test_meow );
+
+
     wifi_set_sleep_type( MODEM_SLEEP_T );
 }
 
