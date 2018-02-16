@@ -454,6 +454,15 @@ class PixelArrayNode(Node):
     def __str__(self):
         return "PIXARRAY:%s" % (self.name)
 
+class LenNode(CodeNode):
+    def __init__(self, value, **kwargs):
+        super(LenNode, self).__init__(**kwargs)
+        self.value = value
+
+    def __str__(self):
+        return "LEN:%s" % (self.value)
+
+
 class ASTWalker(object):
     def __init__(self):
         pass
@@ -733,6 +742,9 @@ class ASTPrinter(object):
         elif isinstance(node, PixelArrayNode):
             self.echo('PIXARRAY(%s)' % (node.name))
 
+        elif isinstance(node, LenNode):
+            self.echo('LEN(%s)' % (node.value))
+
         elif isinstance(node, basestring):
             pass
 
@@ -884,6 +896,10 @@ class CodeGeneratorPass1(object):
             #     size = tree.args[0].n
             #     fields = [a.s for a in tree.args[1:]]
             #     return RecordArrayNode(size, fields, line_no=tree.lineno, scope=self.current_function)
+
+            elif tree.func.id == "len":
+                node = self.generate(tree.args[0])
+                return LenNode(node, line_no=tree.lineno)
 
             params = []
 
@@ -1042,7 +1058,7 @@ class CodeGeneratorPass1(object):
 
                 return ObjIndexNode(obj, attr, x, y, store, line_no=tree.lineno)
 
-            else:
+            else:                
                 obj = tree.value.id
                 attr = tree.attr
 
@@ -1642,6 +1658,24 @@ class ObjectStoreIR(IntermediateNode):
 
     def __str__(self):
         return '%3d %s OBJ_STORE %s <- %s' % (self.line_no, self.indent * self.level, self.dest, self.src)
+
+class ObjectLenIR(IntermediateNode):
+    def __init__(self, dest, src, **kwargs):
+        super(ObjectLenIR, self).__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+        
+    def get_data_nodes(self):
+        return [self.dest, self.src]
+
+    def is_constant_op(self):
+        return False
+
+    def replace_dest(self, new_dest):
+        self.dest = new_dest
+
+    def __str__(self):
+        return '%3d %s OBJ_LEN %s -> %s' % (self.line_no, self.indent * self.level, self.src, self.dest)
 
 
 class IndexLoadIR(IntermediateNode):
@@ -2286,6 +2320,13 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, basestring):
                 return node
+
+            elif isinstance(node, LenNode):
+                dest = self.get_unique_register(line_no=node.line_no)
+                obj = ObjIR(node.value.name, line_no=node.line_no)
+                ir = ObjectLenIR(dest, obj, level=self.level, line_no=node.line_no)
+
+                return [ir]
 
             else:
                 raise Exception(node)
@@ -3353,6 +3394,23 @@ class DBIndexStoreInstruction(Instruction):
 
         return [self.opcode, (kv_hash >> 24) & 0xff, (kv_hash >> 16) & 0xff, (kv_hash >> 8) & 0xff, (kv_hash >> 0) & 0xff, self.op1.addr, self.index.addr]
 
+class DBLenInstruction(Instruction):
+    mnemonic = 'DB_LEN'
+    opcode = 0x3D
+
+    def __init__(self, result, op1):
+        super(DBLenInstruction, self).__init__()
+        self.result = result
+        self.op1 = op1
+
+    def __str__(self):
+        return "%-16s %16s <- %16s" % (self.mnemonic, self.result, self.op1)
+
+    def assemble(self):
+        kv_hash = string_hash_func(self.op1.attr)
+
+        return [self.opcode, (kv_hash >> 24) & 0xff, (kv_hash >> 16) & 0xff, (kv_hash >> 8) & 0xff, (kv_hash >> 0) & 0xff, self.result.addr]
+
 
 
 conditional_jumps = [
@@ -3552,6 +3610,15 @@ class CodeGeneratorPass5(object):
                 else:
                     ins = ObjectStoreInstruction(ir.dest, ir.src)
 
+                self.append_code(ins)
+
+            elif isinstance(ir, ObjectLenIR):
+                if ir.src.obj == 'db':
+                    ins = DBLenInstruction(ir.dest, ir.src)
+
+                    # add to read keys
+                    self.read_keys[ins.op1.attr] = string_hash_func(ins.op1.attr)
+                
                 self.append_code(ins)
 
             elif isinstance(ir, IndexLoadIR):

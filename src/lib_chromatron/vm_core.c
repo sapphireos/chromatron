@@ -111,7 +111,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_db_store,	        // 58
         &&opcode_db_idx_load,	    // 59
         &&opcode_db_idx_store,	    // 60
-        &&opcode_trap,	            // 61
+        &&opcode_db_len,	        // 61
         &&opcode_trap,	            // 62
         &&opcode_trap,	            // 63
         &&opcode_trap,	            // 64
@@ -1224,6 +1224,21 @@ opcode_db_idx_store:
     kvdb_i8_array_set( hash, CATBUS_TYPE_INT32, index, &data[op1_addr], sizeof(data[op1_addr]) );
     kvdb_i8_publish( hash );
     #endif
+
+    goto dispatch;
+
+opcode_db_len:
+    hash        =  (catbus_hash_t32)(*pc++) << 24;
+    hash        |= (catbus_hash_t32)(*pc++) << 16;
+    hash        |= (catbus_hash_t32)(*pc++) << 8;
+    hash        |= (catbus_hash_t32)(*pc++) << 0;
+
+    dest        = *pc++;
+
+    catbus_meta_t meta;
+    kvdb_i8_get_meta( hash, &meta );
+
+    data[dest] = meta.count + 1;
 
     goto dispatch;
 
