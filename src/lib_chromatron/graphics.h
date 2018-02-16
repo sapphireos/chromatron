@@ -40,6 +40,8 @@ bool gfx_b_running( void );
 void gfx_v_pixel_bridge_enable( void );
 void gfx_v_pixel_bridge_disable( void );
 
+int8_t gfx_i8_send_keys( catbus_hash_t32 *hash, uint8_t count );
+
 #ifdef ENABLE_TIME_SYNC
 void gfx_v_frame_sync(
     uint16_t frame_number,

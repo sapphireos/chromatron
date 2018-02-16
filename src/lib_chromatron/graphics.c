@@ -413,7 +413,7 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-static int8_t send_keys( catbus_hash_t32 *hash, uint8_t count ){
+int8_t gfx_i8_send_keys( catbus_hash_t32 *hash, uint8_t count ){
 
     uint8_t buf[WIFI_MAX_DATA_LEN];
 
@@ -479,7 +479,7 @@ static int8_t send_read_keys( void ){
     uint32_t read_keys_count = mem2_u16_get_size( subscribed_keys_h ) / sizeof(uint32_t);
     uint32_t *read_hash = mem2_vp_get_ptr_fast( subscribed_keys_h );
 
-    return send_keys( read_hash, read_keys_count );
+    return gfx_i8_send_keys( read_hash, read_keys_count );
 }
 
 static int8_t send_run_fader_cmd( void ){
@@ -583,8 +583,8 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
             len -= status;
             status = catbus_i16_unpack( data, len );       
 
-            log_v_debug_P( PSTR("KV sts: %d len %d"), 
-                status, len );      
+            // log_v_debug_P( PSTR("KV sts: %d len %d"), 
+            //     status, len );      
         }        
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){

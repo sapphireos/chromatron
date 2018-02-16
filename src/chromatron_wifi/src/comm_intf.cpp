@@ -700,12 +700,12 @@ void intf_v_process( void ){
             do{
                 packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
 
-                intf_v_printf( "packed: %lx len: %d index: %d sts: %d", *read_hash, buf_ptr, ctx.index, packed );
+                // intf_v_printf( "packed: %lx len: %d index: %d sts: %d", *read_hash, buf_ptr, ctx.index, packed );
         
                 if( packed < 0 ){
 
                     _intf_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-                    intf_v_printf( "send len: %d", buf_ptr );
+                    // intf_v_printf( "send len: %d", buf_ptr );
 
                     buf_ptr = 0;
                 }
@@ -726,7 +726,7 @@ void intf_v_process( void ){
             if( ( buf_ptr >= sizeof(buf) ) || ( read_keys_count == 0 ) || ( packed < 0 ) ){
 
                 _intf_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-                intf_v_printf( "send len: %d", buf_ptr );
+                // intf_v_printf( "send len: %d", buf_ptr );
 
                 buf_ptr = 0;
             }        

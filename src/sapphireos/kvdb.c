@@ -430,12 +430,20 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
     }
 
     // check if there is a notifier and data is changing
-    if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
+    if( changed ){
 
-        catbus_meta_t meta;
-        kvdb_i8_get_meta( hash, &meta );
+        if( kvdb_v_notify_set != 0 ){
 
-        kvdb_v_notify_set( hash, &meta, data );
+            catbus_meta_t meta;
+            kvdb_i8_get_meta( hash, &meta );
+
+            kvdb_v_notify_set( hash, &meta, data );
+        }
+
+        if( entry->notifier != 0 ){
+
+            entry->notifier( hash, entry->type, data );
+        }
     }
 
     return KVDB_STATUS_OK;
@@ -480,6 +488,23 @@ int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
     return KVDB_STATUS_OK;
 }
 
+int8_t kvdb_i8_notify( catbus_hash_t32 hash ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+        
+        return -1;
+    }    
+
+    if( entry->notifier != 0 ){
+
+        entry->notifier( hash, entry->type, (void *)( entry + 1 ) );
+    }
+
+    return 0;
+}
 
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 

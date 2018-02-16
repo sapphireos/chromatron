@@ -184,6 +184,13 @@ static void reset_published_data( void ){
 // PT_END( pt );
 // }
 
+void published_var_notifier(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    const void *data )
+{
+    gfx_i8_send_keys( &hash, 1 );
+}
 
 static file_t get_program_handle( catbus_hash_t32 hash ){
 
@@ -355,6 +362,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
             uint32_t hash = hash_u32_string( meta_string );
             kvdb_i8_add( hash, CATBUS_TYPE_INT32, 1, 0, 0, meta_string );
             kvdb_v_set_tag( hash, VM_KV_TAG );
+            kvdb_v_set_notifier( hash, published_var_notifier );
 
             memset( meta_string, 0, sizeof(meta_string) );
         }

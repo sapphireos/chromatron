@@ -612,9 +612,16 @@ static int8_t _kv_i8_internal_set(
 
         meta->ptr += ( index * type_u16_size( meta->type ) );
 
+        int diff = 0;
+
         ATOMIC;
 
         for( uint16_t i = 0; i < count; i++ ){
+
+            if( diff == 0 ){
+
+                diff = memcmp( meta->ptr, data, copy_len );
+            }
 
             // set data
             memcpy( meta->ptr, data, copy_len );
@@ -628,6 +635,12 @@ static int8_t _kv_i8_internal_set(
 
                 break;
             }
+        }   
+
+        // check if dynamic and changed
+        if( ( meta->flags & CATBUS_FLAGS_DYNAMIC ) && ( diff != 0 ) ){
+
+            kvdb_i8_notify( hash );
         }
 
         END_ATOMIC;
