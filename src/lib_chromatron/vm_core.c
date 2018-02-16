@@ -1236,10 +1236,15 @@ opcode_db_len:
     dest        = *pc++;
 
     catbus_meta_t meta;
-    meta.count = 0;
-    kvdb_i8_get_meta( hash, &meta );
+    
+    if( kvdb_i8_get_meta( hash, &meta ) < 0 ){
 
-    data[dest] = meta.count + 1;
+        data[dest] = 0;        
+    }
+    else{
+
+        data[dest] = meta.count + 1;
+    }
 
     goto dispatch;
 
