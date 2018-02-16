@@ -278,6 +278,23 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
+        int16_t status = 0;
+
+        while( status >= 0 ){
+
+            data += status;
+            len -= status;
+
+            catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
+
+            // intf_v_printf( "KV hash: %lx idx %d count %d", 
+                // hdr->hash, hdr->index, hdr->count );      
+
+            status = catbus_i16_unpack( data, len );       
+
+            // intf_v_printf( "KV sts: %d len %d", 
+                // status, len );      
+        }
     }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
