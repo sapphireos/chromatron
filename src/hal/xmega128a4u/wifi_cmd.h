@@ -187,6 +187,7 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_FRAME_SYNC_STATUS  0x29
 
 #define WIFI_DATA_ID_KV_DATA            0x32
+#define WIFI_DATA_ID_KV_ADD             0x33
 
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40
 

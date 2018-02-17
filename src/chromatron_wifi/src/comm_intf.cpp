@@ -282,6 +282,18 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
                 // status, len );      
         }
     }
+    else if( data_id == WIFI_DATA_ID_KV_ADD ){
+
+        if( len != sizeof(catbus_meta_t) ){
+
+            return;
+        }
+
+        catbus_meta_t *meta = (catbus_meta_t *)data;
+
+        kvdb_i8_add( meta->hash, meta->type, meta->count + 1, 0, 0 );
+        kvdb_v_set_tag( meta->hash, KVDB_VM_RUNNER_TAG );
+    }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
         if( len != sizeof(wifi_msg_udp_header_t) ){

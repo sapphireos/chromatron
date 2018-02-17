@@ -375,6 +375,8 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         goto error;
     }
 
+    catbus_meta_t meta;
+
     // read through database keys
     mem_handle_t h = mem2_h_alloc2( sizeof(uint32_t) * state.read_keys_count, MEM_TYPE_SUBSCRIBED_KEYS );
 
@@ -387,6 +389,11 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         for( uint16_t i = 0; i < state.read_keys_count; i++ ){
 
             fs_i16_read( f, (uint8_t *)read_key_hashes, sizeof(uint32_t) );
+
+            if( kv_i8_get_meta( *read_key_hashes, &meta ) >= 0 ){
+
+                wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
+            }
             
             read_key_hashes++;
         }
@@ -405,6 +412,11 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         if( write_hash == 0 ){
 
             continue;
+        }
+
+        if( kv_i8_get_meta( write_hash, &meta ) >= 0 ){
+
+            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
         }
 
         for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
