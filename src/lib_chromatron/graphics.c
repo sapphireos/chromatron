@@ -595,44 +595,6 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     return 0;    
 }
 
-// void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
-
-    // send_kv_data( meta, data );
-
-
-    // // check valid types
-
-    // // i32 and below (not counting u32), and no arrays
-    // if( ( meta->count == 0 ) &&
-    //     ( ( meta->type == CATBUS_TYPE_BOOL ) ||
-    //       ( meta->type == CATBUS_TYPE_UINT8 ) ||
-    //       ( meta->type == CATBUS_TYPE_INT8 ) ||
-    //       ( meta->type == CATBUS_TYPE_UINT16 ) ||
-    //       ( meta->type == CATBUS_TYPE_INT32 ) ) ){
-
-    //     // convert to i32
-    //     int32_t i32_data;
-    //     type_i8_convert( CATBUS_TYPE_INT32, &i32_data, meta->type, data );
-
-    //     wifi_msg_kv_batch_t batch;
-    //     batch.count = 1;
-    //     batch.entries[0].hash = hash;
-    //     batch.entries[0].data = i32_data;
-        
-    //     uint8_t msg_size = ( sizeof(batch) - sizeof(batch.entries) ) + sizeof(batch.entries[0]);
-
-    //     // log_v_debug_P(PSTR("set to ESP: %lx %ld"), hash, i32_data);
-
-    //     wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, msg_size );     
-    // }
-    // // everything else
-    // else{
-
-    //     // can't use the batch message
-    //     send_kv_data( meta, data );
-    // }
-// }
-
 
 #ifdef ENABLE_TIME_SYNC
 static bool frame_sync;

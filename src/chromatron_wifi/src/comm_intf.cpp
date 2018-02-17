@@ -102,15 +102,10 @@ static uint16_t rx_udp_index;
 
 static list_t kv_data_list;
 
+
 #define COMM_STATE_IDLE          0
 #define COMM_STATE_RX_HEADER     1
 #define COMM_STATE_RX_DATA       2
-
-// // fragmented message handling
-// static mem_handle_t multi_h = -1;
-// static uint8_t multi_data_id;
-// static uint16_t multi_offset;
-// static uint8_t multi_next;
 
 
 void intf_v_led_on(){
@@ -267,15 +262,6 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
 
         vm_v_run_faders();
     }
-    // else if( data_id == WIFI_DATA_ID_KV_BATCH ){
-
-    //     wifi_msg_kv_batch_t *msg = (wifi_msg_kv_batch_t *)data;
-
-    //     for( uint32_t i = 0; i < msg->count; i++ ){
-            
-    //         kvdb_i8_add( msg->entries[i].hash, CATBUS_TYPE_INT32, 0, &msg->entries[i].data, sizeof(msg->entries[i].data), 0 );
-    //     }
-    // }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
         int16_t status = 0;
@@ -815,12 +801,6 @@ void intf_v_request_vm_frame_sync( void ){
 void intf_v_get_mac( uint8_t mac[6] ){
 
     WiFi.macAddress( mac );
-}
-
-
-int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ){
-
-    return 0;
 }
 
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
