@@ -1235,6 +1235,7 @@ opcode_db_len:
 
     dest        = *pc++;
 
+    #ifdef VM_ENABLE_KVDB
     catbus_meta_t meta;
     
     if( kvdb_i8_get_meta( hash, &meta ) < 0 ){
@@ -1245,6 +1246,9 @@ opcode_db_len:
 
         data[dest] = meta.count + 1;
     }
+    #else
+    data[dest] = 0;        
+    #endif
 
     goto dispatch;
 

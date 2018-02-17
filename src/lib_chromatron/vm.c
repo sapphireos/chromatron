@@ -360,7 +360,8 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
             
             // load hash to database
             uint32_t hash = hash_u32_string( meta_string );
-            kvdb_i8_add( hash, CATBUS_TYPE_INT32, 1, 0, 0, meta_string );
+            kvdb_i8_add( hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+            kvdb_v_set_name( meta_string );
             kvdb_v_set_tag( hash, VM_KV_TAG );
             kvdb_v_set_notifier( hash, published_var_notifier );
 

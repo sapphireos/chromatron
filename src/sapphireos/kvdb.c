@@ -178,8 +178,7 @@ int8_t kvdb_i8_add(
     catbus_type_t8 type,
     uint16_t count,
     const void *data,
-    uint16_t len,
-    char name[CATBUS_STRING_LEN] ){
+    uint16_t len ){
 
     // try a set first
     if( data != 0 ){
@@ -245,15 +244,14 @@ int8_t kvdb_i8_add(
 
     list_v_insert_tail( &db_list, ln );
 
-    #ifdef KVDB_ENABLE_NAME_LOOKUP
-    // add name
-    if( name != 0 ){
-
-        _kvdb_v_add_name( name );
-    }
-    #endif
-
     return KVDB_STATUS_OK;
+}
+
+void kvdb_v_set_name( char name[CATBUS_STRING_LEN] ){
+    
+    #ifdef KVDB_ENABLE_NAME_LOOKUP
+    _kvdb_v_add_name( name );   
+    #endif 
 }
 
 void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
