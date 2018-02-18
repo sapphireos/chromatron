@@ -45,8 +45,8 @@
 
 
 typedef struct __attribute__((packed)){
-    uint32_t source_hash;
-    uint32_t dest_hash;
+    catbus_hash_t32 source_hash;
+    catbus_hash_t32 dest_hash;
     catbus_query_t query;
 } automaton_link_t;
 

@@ -33,6 +33,7 @@
 
 static int8_t automaton_status;
 static bool automaton_enable;
+static uint8_t automaton_seconds;
 static int32_t trigger = 0;
 
 static mem_handle_t trigger_index_handle = -1;
@@ -41,6 +42,7 @@ static file_t f = -1;
 KV_SECTION_META kv_meta_t automaton_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,      0, 0,                   &automaton_status,    0,   "automaton_status" },
     { SAPPHIRE_TYPE_BOOL,      0, 0,                   &automaton_enable,    0,   "automaton_enable" },
+    { SAPPHIRE_TYPE_UINT8,     0, 0,                   &automaton_seconds,   0,   "seconds" },
 };
 
 
@@ -197,7 +199,7 @@ int8_t _auto_i8_load_file( void ){
             goto end;
         }
 
-        kvdb_i8_add( kv.hash, 0, AUTOMATON_KV_TAG, kv.name );
+        // kvdb_i8_add( kv.hash, 0, AUTOMATON_KV_TAG, kv.name );
     }    
 
     // purge all locally created links
@@ -344,12 +346,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
             goto end;      
         }
 
-        if( catbus_i8_get( kv_load.hash, &registers[kv_load.addr] ) < 0 ){
+        // if( catbus_i8_get( kv_load.hash, &registers[kv_load.addr] ) < 0 ){
 
-            // status = -7;
-            // goto end;
-            registers[kv_load.addr] = 0;
-        }
+        //     // status = -7;
+        //     // goto end;
+        //     registers[kv_load.addr] = 0;
+        // }
     }
     
     // load code
@@ -412,12 +414,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
             goto end;      
         }
 
-        if( catbus_i8_get( kv_load.hash, &registers[kv_load.addr] ) < 0 ){
+        // if( catbus_i8_get( kv_load.hash, &registers[kv_load.addr] ) < 0 ){
 
-            // status = -24;
-            registers[kv_load.addr] = 0;
-            // goto end;
-        }
+        //     // status = -24;
+        //     registers[kv_load.addr] = 0;
+        //     // goto end;
+        // }
     }
 
     // load code
@@ -457,21 +459,21 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         // check if item changed
         int32_t data = 0;
 
-        if( catbus_i8_get( kv_load.hash, &data ) < 0 ){        
+        // if( catbus_i8_get( kv_load.hash, &data ) < 0 ){        
 
-            // status = -29;
-            // goto end;
-        }
-        else{
-            if( registers[kv_load.addr] != data ){
+        //     // status = -29;
+        //     // goto end;
+        // }
+        // else{
+        //     if( registers[kv_load.addr] != data ){
                 
-                if( catbus_i8_set( kv_load.hash, registers[kv_load.addr] ) < 0 ){
+        //         if( catbus_i8_set( kv_load.hash, registers[kv_load.addr] ) < 0 ){
 
-                    // status = -30;
-                    // goto end;
-                }
-            }
-        }
+        //             // status = -30;
+        //             // goto end;
+        //         }
+        //     }
+        // }
     }
 
     // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
@@ -488,7 +490,7 @@ end:
     return status;
 }
 
-void _auto_v_trigger( uint32_t hash ){
+void _auto_v_trigger( catbus_hash_t32 hash ){
 
     if( trigger_index_handle < 0 ){
 
@@ -614,6 +616,10 @@ PT_BEGIN( pt );
     while(1){
 
         TMR_WAIT( pt, 1000 );
+
+        automaton_seconds++;
+        _auto_v_trigger( __KV__seconds );
+
 
         // for( uint8_t i = 0; i < cnt_of_array(var_type); i++ ){
 
