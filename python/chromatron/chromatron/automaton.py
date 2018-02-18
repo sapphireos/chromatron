@@ -44,7 +44,6 @@ var_name = Word(alphanums + '_')
 
 alias = Group(Suppress(Keyword('alias')) + var_name + Suppress(Keyword('as')) + var_name).setResultsName('alias', listAllMatches=True)
 var = Group(Suppress(Keyword('var')) + var_name).setResultsName('var', listAllMatches=True)
-downcounter = Group(Suppress(Keyword('downcounter')) + var_name).setResultsName('downcounter', listAllMatches=True)
 
 day_of_week = Or([CaselessLiteral('Monday'), 
                   CaselessLiteral('Tuesday'), 
@@ -94,7 +93,7 @@ at_rule = Group(at + action + end_).setResultsName('at_rule', listAllMatches=Tru
 every_rule = Group(every + action + end_).setResultsName('every_rule', listAllMatches=True)
 
 
-directives = ZeroOrMore(Or([var, downcounter, alias, receive, send, rule, at_rule, every_rule]))
+directives = ZeroOrMore(Or([var, alias, receive, send, rule, at_rule, every_rule]))
 
 automaton_file = directives().ignore(pythonStyleComment)
 
@@ -104,7 +103,6 @@ AUTOMATON_RULE_MAGIC       = 0x454C5552  # 'RULE'
 AUTOMATON_VERSION          = 1
 
 AUTOMATON_VAR_TYPE_KV               = 0
-AUTOMATON_VAR_TYPE_DOWNCOUNTER      = 1
 
 
 class AutomatonVar(StructField):
@@ -246,12 +244,6 @@ def compile_file(filename):
         for v in results['var']:
             v = v[0]
             kv = AutomatonVar(hash=catbus_string_hash(v), type=AUTOMATON_VAR_TYPE_KV, name=v)
-            kv_vars.append(kv)
-
-    if 'downcounter' in results:
-        for v in results['downcounter']:
-            v = v[0]
-            kv = AutomatonVar(hash=catbus_string_hash(v), type=AUTOMATON_VAR_TYPE_DOWNCOUNTER, name=v)
             kv_vars.append(kv)
 
     print "Vars:"

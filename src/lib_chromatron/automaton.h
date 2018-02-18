@@ -41,7 +41,6 @@
 #define AUTOMATON_VERSION           1
 
 #define AUTOMATON_VAR_TYPE_KV               0
-#define AUTOMATON_VAR_TYPE_DOWNCOUNTER      1
 
 
 typedef struct __attribute__((packed)){
