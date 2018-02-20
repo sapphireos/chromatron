@@ -407,7 +407,7 @@ static void _catbus_v_msg_init( catbus_header_t *header,
 
     header->universe        = 0;
 
-    header->origin_id       = 0;
+    header->origin_id       = origin_id;
 }
 
 static void _catbus_v_get_query( catbus_query_t *query ){
