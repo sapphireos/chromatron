@@ -373,7 +373,7 @@ class Server(Ribbon):
         self._send_announce_msg(msg, host)
 
     def _handle_error(self, msg, host):
-        print msg
+        print msg, host
 
     def _handle_discover(self, msg, host):
         if (self._database.query(*msg.query) or (msg.flags & CATBUS_DISC_FLAG_QUERY_ALL)):
@@ -414,7 +414,7 @@ class Server(Ribbon):
 
         reply_msg = KeyMetaMsg(page=msg.page, page_count=page_count, item_count=item_count, meta=meta)
 
-        return reply_msg
+        return reply_msg, host
 
     def _handle_get_keys(self, msg, host):
         if msg.count == 0:
@@ -427,7 +427,7 @@ class Server(Ribbon):
 
         reply_msg = KeyDataMsg(data=items)
 
-        return reply_msg
+        return reply_msg, host
 
     def _handle_set_keys(self, msg, host):
         reply_items = []
@@ -455,7 +455,7 @@ class Server(Ribbon):
 
         reply_msg = KeyDataMsg(data=reply_items)
 
-        return reply_msg
+        return reply_msg, host
 
     def _handle_link(self, msg, host):
         # check flags
@@ -475,12 +475,16 @@ class Server(Ribbon):
 
             # change link flags and echo message back to sender
             reply_msg = LinkMsg(flags=CATBUS_MSG_LINK_FLAGS_DEST,
+                                data_port=self._data_port,
                                 source_hash=msg.source_hash,
                                 dest_hash=msg.dest_hash,
                                 query=msg.query)
             reply_msg.header.transaction_id = msg.header.transaction_id
 
-            return reply_msg
+            # change host reply port to data port
+            host = (host[0], msg.data_port)
+
+            return reply_msg, host
 
         # receiver link
         else:
@@ -553,9 +557,13 @@ class Server(Ribbon):
 
 
     def _process_msg(self, msg, host):
-        response = self._msg_handlers[type(msg)](msg, host)
+        try:
+            response, host = self._msg_handlers[type(msg)](msg, host)
 
-        return response
+            return response, host
+
+        except TypeError:
+            return None, None
 
     def loop(self):
         try:
@@ -579,7 +587,7 @@ class Server(Ribbon):
                     except KeyError:
                         pass
 
-                    response = self._process_msg(msg, host)
+                    response, host = self._process_msg(msg, host)
 
                     if response:
                         response.header.transaction_id = msg.header.transaction_id

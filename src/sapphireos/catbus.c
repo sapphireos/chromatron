@@ -877,19 +877,17 @@ PT_BEGIN( pt );
         // set up link message
         catbus_msg_link_t msg;
 
+        _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_LINK, 0 );
+
         msg.source_hash    = link_state->source_hash;
         msg.dest_hash      = link_state->dest_hash;
         msg.flags          = link_state->flags;
         msg.query          = link_state->query;
-
+        msg.data_port      = sock_u16_get_lport( sock );
 
         sock_addr_t raddr;
         raddr.ipaddr    = ip_a_addr(255,255,255,255);
         raddr.port      = CATBUS_DISCOVERY_PORT;
-
-
-        raddr.port = 12345;
-
 
         // broadcast to network
 
@@ -1517,6 +1515,8 @@ PT_BEGIN( pt );
 
                 sock_addr_t raddr;
                 sock_v_get_raddr( sock, &raddr );
+
+                raddr.port = msg->data_port;
 
                 _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
             }

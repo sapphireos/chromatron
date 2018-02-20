@@ -166,6 +166,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     catbus_header_t header;
     uint8_t flags;
+    uint16_t data_port;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;

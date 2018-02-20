@@ -210,6 +210,7 @@ class LinkMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MsgHeader(_name="header"),
                   Uint8Field(_name="flags"),
+                  Uint16Field(_name="data_port"),
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
                   CatbusQuery(_name="query")]

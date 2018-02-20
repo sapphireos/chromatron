@@ -377,24 +377,24 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    # main()
 
-    # from pprint import pprint
+    from pprint import pprint
 
-    # kv1 = CatbusService(data_port=11632, tags=['meow'])
-    # kv1['woof'] = 0
+    kv1 = CatbusService(data_port=11632, tags=['stuff'])
+    kv1['kv_test_key'] = 0
 
-    # # kv1.receive('woof', 'kv_test_key', ['sender'])
+    # kv1.receive('woof', 'kv_test_key', ['stuff'])
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
 
-    # try:
-    #     while True:
-    #         time.sleep(0.5)
-    #         # print kv1['woof']
-    #         kv1['woof'] += 1
+    try:
+        while True:
+            time.sleep(1.0)
+            print kv1['kv_test_key']
+            # kv1['woof'] += 1
 
-    # except KeyboardInterrupt:
-    #     pass
+    except KeyboardInterrupt:
+        pass
 
 
 
