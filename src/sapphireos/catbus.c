@@ -843,11 +843,19 @@ PT_END( pt );
 
 typedef struct{
     list_node_t ln;
+    socket_t sock;
 } link_broadcast_thread_state_t;
 
 PT_THREAD( link_broadcast_thread( pt_t *pt, link_broadcast_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+    
+    state->sock = sock_s_create( SOCK_DGRAM );
+
+    if( state-> sock < 0 ){
+
+        THREAD_EXIT( pt );
+    }
 
     state->ln = links.head;
 
@@ -885,13 +893,15 @@ PT_BEGIN( pt );
 
         // broadcast to network
 
-        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+        sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
         TMR_WAIT( pt, 10 );
 
 end:
         state->ln = next_ln;
     }
+
+    sock_v_release( state->sock );
 
 PT_END( pt );
 }
@@ -1961,7 +1971,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
         // check if there is received data pending
-        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock) > 0 );
+        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock ) > 0 );
         // The reason to wait is to avoid a race condition that arises in
         // using one socket for send and receive between two threads.
         // The socket only stores one remote socket address.  When you send,
@@ -2032,7 +2042,7 @@ next_send:
                          PSTR("catbus_link_broadcast"),
                          0,
                          sizeof(link_broadcast_thread_state_t) );        
-        
+
         THREAD_WAIT_WHILE( pt, send_list_locked );
 
         // expire any send entries
