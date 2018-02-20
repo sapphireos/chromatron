@@ -609,32 +609,32 @@ static catbus_link_t _catbus_l_create_link(
 }
 
 
-static void _catbus_v_send_link( catbus_link_t link ){
+// static void _catbus_v_send_link( catbus_link_t link ){
 
-    mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_link_t) );
+//     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_link_t) );
 
-    if( h < 0 ){
+//     if( h < 0 ){
 
-        return;
-    }
+//         return;
+//     }
 
-    catbus_link_state_t *state = list_vp_get_data( link );
+//     catbus_link_state_t *state = list_vp_get_data( link );
 
-    catbus_msg_link_t *msg = mem2_vp_get_ptr( h );
+//     catbus_msg_link_t *msg = mem2_vp_get_ptr( h );
 
-    _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK, 0 );
+//     _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK, 0 );
 
-    msg->source_hash    = state->source_hash;
-    msg->dest_hash      = state->dest_hash;
-    msg->flags          = state->flags;
-    msg->query          = state->query;
+//     msg->source_hash    = state->source_hash;
+//     msg->dest_hash      = state->dest_hash;
+//     msg->flags          = state->flags;
+//     msg->query          = state->query;
 
-    sock_addr_t raddr;
-    raddr.ipaddr    = ip_a_addr(255,255,255,255);
-    raddr.port      = CATBUS_DISCOVERY_PORT;
+//     sock_addr_t raddr;
+//     raddr.ipaddr    = ip_a_addr(255,255,255,255);
+//     raddr.port      = CATBUS_DISCOVERY_PORT;
 
-    sock_i16_sendto_m( sock, h, &raddr );
-}
+//     sock_i16_sendto_m( sock, h, &raddr );
+// }
 #endif
 
 
@@ -840,11 +840,65 @@ end:
     
 PT_END( pt );
 }
+
+typedef struct{
+    list_node_t ln;
+} link_broadcast_thread_state_t;
+
+PT_THREAD( link_broadcast_thread( pt_t *pt, link_broadcast_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+
+    state->ln = links.head;
+
+    while( state->ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( state->ln );
+
+        catbus_link_state_t *link_state = list_vp_get_data( state->ln );
+
+        // check if deleting link
+        if( link_state->flags & CATBUS_LINK_FLAGS_DELETE ){
+
+            list_v_remove( &links, state->ln );
+            list_v_release_node( state->ln );
+
+            goto end;
+        }
+
+        // set up link message
+        catbus_msg_link_t msg;
+
+        msg.source_hash    = link_state->source_hash;
+        msg.dest_hash      = link_state->dest_hash;
+        msg.flags          = link_state->flags;
+        msg.query          = link_state->query;
+
+
+        sock_addr_t raddr;
+        raddr.ipaddr    = ip_a_addr(255,255,255,255);
+        raddr.port      = CATBUS_DISCOVERY_PORT;
+
+
+        raddr.port = 12345;
+
+
+        // broadcast to network
+
+        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+
+        TMR_WAIT( pt, 10 );
+
+end:
+        state->ln = next_ln;
+    }
+
+PT_END( pt );
+}
+
 #endif
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash ){
-
-    return 0;
 
     #ifdef ENABLE_CATBUS_LINK
     if( !link_enable ){
@@ -1973,37 +2027,43 @@ next_send:
             ln = next_ln;
         }  
 
-        // check for deleted links
-        ln = links.head;
-        next_ln = -1;
+        // // check for deleted links
+        // ln = links.head;
+        // next_ln = -1;
 
-        while( ln > 0 ){
+        // while( ln > 0 ){
 
-            next_ln = list_ln_next( ln );
+        //     next_ln = list_ln_next( ln );
             
-            catbus_link_state_t *state = list_vp_get_data( ln );
+        //     catbus_link_state_t *state = list_vp_get_data( ln );
 
-            if( state->flags & CATBUS_LINK_FLAGS_DELETE ){
+        //     if( state->flags & CATBUS_LINK_FLAGS_DELETE ){
 
-                list_v_remove( &links, ln );
-                list_v_release_node( ln );
-            }
+        //         list_v_remove( &links, ln );
+        //         list_v_release_node( ln );
+        //     }
 
-            ln = next_ln;
-        }
+        //     ln = next_ln;
+        // }
 
-        // broadcast links to network    
-        ln = links.head;
+        // broadcast links to network
+        thread_t_create( THREAD_CAST(link_broadcast_thread),
+                         PSTR("catbus_link_broadcast"),
+                         0,
+                         sizeof(link_broadcast_thread_state_t) );        
 
-        while( ln > 0 ){
 
-            // send link to network
-            _catbus_v_send_link( ln );
+        // ln = links.head;
 
-            TMR_WAIT( pt, 5 );
+        // while( ln > 0 ){
 
-            ln = list_ln_next( ln );
-        }
+        //     // send link to network
+        //     _catbus_v_send_link( ln );
+
+        //     TMR_WAIT( pt, 5 );
+
+        //     ln = list_ln_next( ln );
+        // }
 
         THREAD_WAIT_WHILE( pt, send_list_locked );
 
