@@ -68,6 +68,8 @@ static uint16_t sequence;
 static uint8_t send_list_locked;
 #endif
 
+static uint64_t origin_id;
+
 static socket_t sock;
 static thread_t file_session_thread = -1;
 
@@ -396,8 +398,7 @@ static void _catbus_v_msg_init( catbus_header_t *header,
 
     header->universe        = 0;
 
-    cfg_i8_get( CFG_PARAM_DEVICE_ID, &header->origin_id );
-
+    header->origin_id       = 0;
 }
 
 static void _catbus_v_get_query( catbus_query_t *query ){
@@ -1046,6 +1047,14 @@ PT_BEGIN( pt );
 
     sock_v_set_timeout( sock, 1 );
 
+    // wait for device id
+    while( origin_id == 0 ){
+
+        cfg_i8_get( CFG_PARAM_DEVICE_ID, &origin_id );
+
+        TMR_WAIT( pt, 100 );
+    }
+
     // set up tag hashes
     _catbus_v_setup_tag_hashes();
 
@@ -1068,6 +1077,12 @@ PT_BEGIN( pt );
         }
 
         if( header->version != CATBUS_VERSION ){
+
+            goto end;
+        }
+
+        // filter our own messages
+        if( header->origin_id == origin_id ){
 
             goto end;
         }
