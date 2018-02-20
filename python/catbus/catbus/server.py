@@ -28,6 +28,7 @@ import select
 from client import Client
 
 from messages import *
+from catbustypes import *
 
 from sapphire.common import Ribbon, MsgQueueEmptyException
 
@@ -257,6 +258,10 @@ class Server(Ribbon):
             if link not in self._links:
                 self._links.append(link)
 
+                # add link hashes to lookup cache
+                self._hash_lookup[link.source_hash] = link.source_key
+                self._hash_lookup[link.dest_hash] = link.dest_key
+
     def receive(self, dest_key=None, source_key=None, source_query=[], callback=None):
         link = Link(source=False,
                     source_key=source_key,
@@ -264,15 +269,13 @@ class Server(Ribbon):
                     query=source_query,
                     callback=callback)
 
-        try:
-            self._database.add_item(dest_key, 0, data_type='int32')
-
-        except KeyError: # key already exists
-            pass
-
         with self.__lock:
             if link not in self._links:
                 self._links.append(link)
+
+                # add link hashes to lookup cache
+                self._hash_lookup[link.source_hash] = link.source_key
+                self._hash_lookup[link.dest_hash] = link.dest_key
 
     def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
@@ -287,7 +290,7 @@ class Server(Ribbon):
                     c = Client()
                     c.connect(host)
 
-                    key = c.lookup_hash(hashed_key)[0]
+                    key = c.lookup_hash(hashed_key)[hashed_key]
 
                     if len(key) == 0:
                         raise KeyError(hashed_key)
@@ -373,7 +376,8 @@ class Server(Ribbon):
         self._send_announce_msg(msg, host)
 
     def _handle_error(self, msg, host):
-        print msg, host
+        if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
+            print msg, host
 
     def _handle_discover(self, msg, host):
         if (self._database.query(*msg.query) or (msg.flags & CATBUS_DISC_FLAG_QUERY_ALL)):
@@ -517,7 +521,26 @@ class Server(Ribbon):
             item = self._database.get_item(msg.dest_hash)
 
         except KeyError:
-            return
+            # entry not in data base
+
+            # check if we have a link requesting this item
+            found = False
+            with self.__lock:
+                for link in self._links:
+                    if link.dest_hash == msg.dest_hash:
+                        found = True
+
+            if found:
+                self._database.add_item(
+                            self.resolve_hash(msg.dest_hash),
+                            msg.data.value, 
+                            data_type=get_type_name(msg.data.meta.type),
+                            count=msg.data.meta.array_len + 1)
+
+                item = self._database.get_item(msg.dest_hash)
+
+            else:
+                return
 
         # check read only flag
         if item.meta.flags & CATBUS_FLAGS_READ_ONLY:
@@ -532,6 +555,8 @@ class Server(Ribbon):
         except KeyError:
             # set data
             self._database[msg.dest_hash] = msg.data.value
+
+        print self._database[msg.dest_hash]
 
         with self.__lock:
             if msg.dest_hash not in self._receive_cache:

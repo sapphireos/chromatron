@@ -137,7 +137,7 @@ class Database(DictMixin, object):
         else:
             raise TypeError(value)
 
-    def add_item(self, key, value, data_type=None, readonly=False, persist=False):
+    def add_item(self, key, value, data_type=None, readonly=False, persist=False, count=1):
         """Add new KV item to database"""
 
         if len(key) > CatbusStringField()._length:
@@ -162,7 +162,7 @@ class Database(DictMixin, object):
 
             # add new item
             hashed_key = catbus_string_hash(key)
-            meta = CatbusMeta(hash=hashed_key, flags=flags, type=data_type)
+            meta = CatbusMeta(hash=hashed_key, flags=flags, type=data_type, array_len=count - 1)
             kv_item = CatbusData(meta=meta, value=value)
             self._kv_items[key] = kv_item
             self._hashes[hashed_key] = key

@@ -384,7 +384,8 @@ if __name__ == '__main__':
     kv1 = CatbusService(data_port=11632, tags=['stuff'])
     # kv1['kv_test_key'] = 0
 
-    kv1.receive('woof', 'kv_test_key', ['test'])
+    # kv1.receive('woof', 'kv_test_key', ['test'])
+    kv1.receive('woof', 'kv_test_array', ['test'])
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
 
     try:
@@ -392,7 +393,7 @@ if __name__ == '__main__':
             time.sleep(1.0)
             # print kv1['kv_test_key']
             # kv1['woof'] += 1
-            print kv1['woof']
+            # print kv1['woof']
 
     except KeyboardInterrupt:
         pass
