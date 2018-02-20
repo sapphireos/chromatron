@@ -515,7 +515,7 @@ class Server(Ribbon):
 
     def _handle_link_data(self, msg, host):
         print msg
-        
+
         # setup timestamp
         if (msg.flags & CATBUS_MSG_LINK_FLAGS_DEST) == 0:
             timestamp = util.now()
@@ -666,6 +666,7 @@ class Server(Ribbon):
                     msg = LinkMsg(
                             msg_flags=0,
                             flags=link_flags,
+                            data_port=self._data_port,
                             source_hash=link.source_hash,
                             dest_hash=link.dest_hash,
                             query=query)
