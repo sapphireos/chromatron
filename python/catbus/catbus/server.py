@@ -527,11 +527,11 @@ class Server(Ribbon):
         try:
             if self._receive_cache[msg.dest_hash][host]['sequence'] != msg.sequence:
                 # set data
-                self._database[msg.dest_hash] = msg.data
+                self._database[msg.dest_hash] = msg.data.value
 
         except KeyError:
             # set data
-            self._database[msg.dest_hash] = msg.data
+            self._database[msg.dest_hash] = msg.data.value
 
         with self.__lock:
             if msg.dest_hash not in self._receive_cache:
@@ -556,15 +556,22 @@ class Server(Ribbon):
                 link.callback(link.source_key, msg.data, source_query, timestamp)
 
 
-    def _process_msg(self, msg, host):
-        try:
-            response, host = self._msg_handlers[type(msg)](msg, host)
+    def _process_msg(self, msg, host):        
+        tokens = self._msg_handlers[type(msg)](msg, host)
 
-            return response, host
-
-        except TypeError:
+        # normally, you'd just try to access the tuple and
+        # handle the exception. However, that will raise a TypeError, 
+        # and if we handle a TypeError here, then any TypeError generated
+        # in the message handler will essentially get eaten.
+        if not isinstance(tokens, tuple):
             return None, None
 
+        if len(tokens) < 2:
+            return None, None
+
+        return tokens[0], tokens[1]
+
+        
     def loop(self):
         try:
             readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
