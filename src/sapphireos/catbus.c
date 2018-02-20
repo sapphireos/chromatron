@@ -1843,6 +1843,20 @@ PT_BEGIN( pt );
             // send reply
             sock_i16_sendto_m( sock, h, 0 );
         }
+        else if( header->msg_type == CATBUS_MSG_TYPE_ERROR ){
+
+            catbus_msg_error_t *msg = (catbus_msg_error_t *)header;
+
+            sock_addr_t raddr;
+            sock_v_get_raddr( sock, &raddr );
+
+            log_v_debug_P( PSTR("error: %u from %d.%d.%d.%d"), 
+                msg->error_code,
+                raddr.ipaddr.ip3,
+                raddr.ipaddr.ip2,
+                raddr.ipaddr.ip1,
+                raddr.ipaddr.ip0 );
+        }
         // unknown message type
         else{
 
@@ -1859,12 +1873,17 @@ end:
                 log_v_debug_P( PSTR("error: %u msg: %u"), error, header->msg_type );
             }
 
-            catbus_msg_error_t msg;
-            _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_ERROR, header->transaction_id );
+            // don't send unknown message errors. it just causes a ton of extra traffic
+            // when adding new broadcast messages that older nodes don't recognize.
+            if( error != CATBUS_ERROR_UNKNOWN_MSG ){
 
-            msg.error_code = error;
+                catbus_msg_error_t msg;
+                _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_ERROR, header->transaction_id );
 
-            sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+                msg.error_code = error;
+
+                sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+            }
         }        
 
         THREAD_YIELD( pt );
@@ -1979,7 +1998,7 @@ next_send:
         while( ln > 0 ){
 
             // send link to network
-            // _catbus_v_send_link( ln );
+            _catbus_v_send_link( ln );
 
             TMR_WAIT( pt, 5 );
 
