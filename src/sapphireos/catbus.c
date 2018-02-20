@@ -826,8 +826,6 @@ typedef struct{
 PT_THREAD( publish_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    static list_node_t ln;
     
     while(1){
 
@@ -837,7 +835,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock ) > 0 );
         // see catbus_announce_thread for explanation on why we do a wait here
 
-        ln = list_ln_remove_tail( &publish_list );
+        list_node_t ln = list_ln_remove_tail( &publish_list );
 
         publish_state_t *pub_state = (publish_state_t *)list_vp_get_data( ln );
 
@@ -889,10 +887,10 @@ PT_BEGIN( pt );
 
         sock_i16_sendto_m( sock, h, 0 );        
         
-        TMR_WAIT( pt, 5 );
-
 done:
         list_v_release_node( ln );
+
+        TMR_WAIT( pt, 5 );
     }
 
     

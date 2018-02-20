@@ -382,16 +382,17 @@ if __name__ == '__main__':
     from pprint import pprint
 
     kv1 = CatbusService(data_port=11632, tags=['stuff'])
-    kv1['kv_test_key'] = 0
+    # kv1['kv_test_key'] = 0
 
-    # kv1.receive('woof', 'kv_test_key', ['stuff'])
+    kv1.receive('woof', 'kv_test_key', ['test'])
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
 
     try:
         while True:
             time.sleep(1.0)
-            print kv1['kv_test_key']
+            # print kv1['kv_test_key']
             # kv1['woof'] += 1
+            print kv1['woof']
 
     except KeyboardInterrupt:
         pass

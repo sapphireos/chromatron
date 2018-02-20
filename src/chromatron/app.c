@@ -118,12 +118,12 @@ void app_v_init( void ){
 
     svr_v_init();
 
-    catbus_query_t query;
-    memset( &query, 0, sizeof(query) );
+    // catbus_query_t query;
+    // memset( &query, 0, sizeof(query) );
 
-    query.tags[0] = __KV__stuff;
+    // query.tags[0] = __KV__stuff;
 
-    catbus_l_send( __KV__kv_test_key, __KV__kv_test_key, &query );
+    // catbus_l_send( __KV__kv_test_key, __KV__kv_test_key, &query );
     
 
     // kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT16, 1, 0, 0 );
