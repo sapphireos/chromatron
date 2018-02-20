@@ -183,10 +183,12 @@ class Publisher(Ribbon):
 
 
 class Server(Ribbon):
-    def initialize(self, data_port=None, database=None):
+    def initialize(self, data_port=None, database=None, visible=True):
         self._database = database
 
         self.name = '%s.%s' % (self._database[META_TAG_NAME], 'server')
+
+        self.visible = visible
 
         self.__announce_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -380,8 +382,9 @@ class Server(Ribbon):
             print msg, host
 
     def _handle_discover(self, msg, host):
-        if (self._database.query(*msg.query) or (msg.flags & CATBUS_DISC_FLAG_QUERY_ALL)):
-            self._send_announce(host=host, discovery_id=msg.header.transaction_id)
+        if self.visible:
+            if (self._database.query(*msg.query) or (msg.flags & CATBUS_DISC_FLAG_QUERY_ALL)):
+                self._send_announce(host=host, discovery_id=msg.header.transaction_id)
 
     def _handle_announce(self, msg, host):
         pass
@@ -644,7 +647,8 @@ class Server(Ribbon):
 
             self._database['uptime'] += 4
 
-            self._send_announce()
+            if self.visible:
+                self._send_announce()
 
             # broadcast links
             with self.__lock:
