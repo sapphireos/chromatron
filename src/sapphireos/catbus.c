@@ -1845,17 +1845,17 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_ERROR ){
 
-            catbus_msg_error_t *msg = (catbus_msg_error_t *)header;
+            // catbus_msg_error_t *msg = (catbus_msg_error_t *)header;
 
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
+            // sock_addr_t raddr;
+            // sock_v_get_raddr( sock, &raddr );
 
-            log_v_debug_P( PSTR("error: %u from %d.%d.%d.%d"), 
-                msg->error_code,
-                raddr.ipaddr.ip3,
-                raddr.ipaddr.ip2,
-                raddr.ipaddr.ip1,
-                raddr.ipaddr.ip0 );
+            // log_v_debug_P( PSTR("error: %u from %d.%d.%d.%d"), 
+            //     msg->error_code,
+            //     raddr.ipaddr.ip3,
+            //     raddr.ipaddr.ip2,
+            //     raddr.ipaddr.ip1,
+            //     raddr.ipaddr.ip0 );
         }
         // unknown message type
         else{
