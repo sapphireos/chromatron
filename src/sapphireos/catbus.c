@@ -745,29 +745,30 @@ int8_t catbus_i8_array_get(
 
     uint16_t type_size = type_u16_size( type );
 
-    uint8_t buf[CATBUS_STRING_LEN];
-
-    for( uint16_t i = 0; i < count; i++ ){
-   
-        // check if conversion is necessary
-        if( type != meta.type ){
+    // check if conversion is necessary
+    if( type != meta.type ){
             
+        uint8_t buf[CATBUS_STRING_LEN];
+
+        for( uint16_t i = 0; i < count; i++ ){
+       
             status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );         
             type_i8_convert( type, data, meta.type, buf );
+            
+            index++;
+
+            if( index >= array_len ){
+
+                break;
+            }
+
+            data += type_size;   
         }
-        else{
+    }
+    // conversion not necessary, so we don't need our own loop
+    else{
 
-            status = kv_i8_array_get( hash, index, 1, data, type_size );
-        }
-
-        index++;
-
-        if( index >= array_len ){
-
-            break;
-        }
-
-        data += type_size;   
+        status = kv_i8_array_get( hash, index, count, data, type_size );
     }
 
     return 0;
