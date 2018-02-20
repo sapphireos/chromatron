@@ -833,16 +833,65 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, list_b_is_empty( &publish_list ) );
 
+
+        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock ) > 0 );
+        // see catbus_announce_thread for explanation on why we do a wait here
+
         ln = list_ln_remove_tail( &publish_list );
 
         publish_state_t *pub_state = (publish_state_t *)list_vp_get_data( ln );
 
-        log_v_debug_P( PSTR("send %lx"), pub_state->hash );
+        int16_t data_len = kv_i16_len( pub_state->hash );
+
+        if( ( data_len < 0 ) || ( data_len > CATBUS_MAX_DATA ) ){
+
+            goto done;
+        }
+
+        // allocate memory
+        mem_handle_t h = mem2_h_alloc( data_len + sizeof(catbus_msg_link_data_t) - 1 );
+
+        if( h < 0 ){
+
+            goto done;
+        }
+
+        // set up message
+        catbus_msg_link_data_t *msg = (catbus_msg_link_data_t *)mem2_vp_get_ptr( h );
+
+        _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK_DATA, 0 );
+
+        msg->flags = 0;
+
+        #ifdef LIB_SNTP
+        msg->ntp_timestamp = sntp_t_now();
+
+        if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+            
+            msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
+        }
+        #endif
+
+        _catbus_v_get_query( &msg->source_query );
+        msg->source_hash    = pub_state->hash;
+        msg->dest_hash      = pub_state->dest_hash;
+        msg->sequence       = pub_state->sequence;
+
+        kv_i8_get_meta( pub_state->hash, &msg->data.meta );
+
+        catbus_i8_array_get( 
+            pub_state->hash, 
+            msg->data.meta.type, 
+            0, 
+            msg->data.meta.count + 1, 
+            &msg->data.data );
 
 
+        sock_i16_sendto_m( sock, h, 0 );        
         
         TMR_WAIT( pt, 5 );
 
+done:
         list_v_release_node( ln );
     }
 
