@@ -75,6 +75,7 @@
 void wifi_v_init( void );
 bool wifi_b_connected( void );
 bool wifi_b_ap_mode( void );
+bool wifi_b_ap_mode_enabled( void );
 bool wifi_b_attached( void );
 int8_t wifi_i8_get_status( void );
 uint32_t wifi_u32_get_received( void );
