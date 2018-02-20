@@ -514,6 +514,8 @@ class Server(Ribbon):
             self._send_list.append(entry)
 
     def _handle_link_data(self, msg, host):
+        print msg
+        
         # setup timestamp
         if (msg.flags & CATBUS_MSG_LINK_FLAGS_DEST) == 0:
             timestamp = util.now()
@@ -559,7 +561,7 @@ class Server(Ribbon):
             # set data
             self._database[msg.dest_hash] = msg.data.value
 
-        print self._database[msg.dest_hash]
+        # print self._database[msg.dest_hash]
 
         with self.__lock:
             if msg.dest_hash not in self._receive_cache:

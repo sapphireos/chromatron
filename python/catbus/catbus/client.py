@@ -480,6 +480,7 @@ class Client(object):
 
                 elif not isinstance(data_msg, FileDataMsg):
                     self.flush()
+                    print data_msg
                     raise ProtocolErrorException("invalid message")
 
                 if data_msg.session_id != session_id:

@@ -884,7 +884,7 @@ PT_BEGIN( pt );
             &msg->data.data );
 
 
-        sock_i16_sendto_m( sock, h, 0 );        
+        sock_i16_sendto_m( sock, h, &pub_state->dest_addr );        
         
 done:
         list_v_release_node( ln );
@@ -2063,8 +2063,8 @@ PT_BEGIN( pt );
 
         // process link system periodic tasks        
 
-        catbus_hash_t32 hashes_published[16];
-        uint8_t hashes_published_index = 0;
+        static catbus_hash_t32 hashes_published[16];
+        static  uint8_t hashes_published_index = 0;
         memset( hashes_published, 0, sizeof(hashes_published) );
         
         ln = send_list.head;

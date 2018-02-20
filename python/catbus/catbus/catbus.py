@@ -385,8 +385,10 @@ if __name__ == '__main__':
     # kv1['kv_test_key'] = 0
 
     # kv1.receive('woof', 'kv_test_key', ['test'])
-    kv1.receive('woof', 'kv_test_array', ['test'])
+    # kv1.receive('woof', 'kv_test_array', ['test'])
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
+
+    kv1.receive('amg_data', 'amg_data', ['test'])
 
     try:
         while True:
