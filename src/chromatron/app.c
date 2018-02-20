@@ -117,5 +117,12 @@ void app_v_init( void ){
     #endif
 
     svr_v_init();
+
+    catbus_query_t query;
+    memset( &query, 0, sizeof(query) );
+
+    query.tags[0] = __KV__stuff;
+
+    catbus_l_send( __KV__test_key, __KV__test_key, &query );
 }
 

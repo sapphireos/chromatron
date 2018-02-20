@@ -843,6 +843,8 @@ PT_END( pt );
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash ){
 
+    return 0;
+
     #ifdef ENABLE_CATBUS_LINK
     if( !link_enable ){
 
@@ -1962,7 +1964,7 @@ next_send:
         while( ln > 0 ){
 
             // send link to network
-            _catbus_v_send_link( ln );
+            // _catbus_v_send_link( ln );
 
             TMR_WAIT( pt, 5 );
 
