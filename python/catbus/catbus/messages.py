@@ -228,7 +228,7 @@ class LinkDataMsg(StructField):
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
                   Uint16Field(_name="sequence"),
-                  Int32Field(_name="data")]
+                  CatbusData(_name="data")]
 
         super(LinkDataMsg, self).__init__(_name="link_data_msg", _fields=fields, **kwargs)
 

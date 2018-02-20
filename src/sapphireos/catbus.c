@@ -64,8 +64,11 @@ static bool link_enable;
 static list_t links;
 static list_t send_list;
 static list_t receive_cache;
+static list_t publish_list;
 static uint16_t sequence;
 static uint8_t send_list_locked;
+
+PT_THREAD( publish_thread( pt_t *pt, void *state ) );
 #endif
 
 static uint64_t origin_id;
@@ -348,10 +351,16 @@ void catbus_v_init( void ){
         list_v_init( &links );
         list_v_init( &send_list );
         list_v_init( &receive_cache );
+        list_v_init( &publish_list );
 
         fs_f_create_virtual( PSTR("kvlinks"), links_vfile_handler );
         fs_f_create_virtual( PSTR("kvrxcache"), receive_cache_vfile_handler );
         fs_f_create_virtual( PSTR("kvsend"), sendlist_vfile_handler );
+
+        thread_t_create( publish_thread,
+                         PSTR("catbus_publish"),
+                         0,
+                         0 );
     }
     #endif
 
@@ -805,38 +814,87 @@ void catbus_v_purge_links( void ){
 
 
 typedef struct{
-    catbus_msg_link_data_t msg;
-    list_node_t ln;
-} publish_thread_state_t;
+    catbus_hash_t32 hash;
+    uint16_t sequence;
+    sock_addr_t dest_addr;
+    catbus_hash_t32 dest_hash;
+    #ifdef LIB_SNTP
+    ntp_ts_t ntp_timestamp;
+    #endif
+} publish_state_t;
 
-PT_THREAD( publish_thread( pt_t *pt, publish_thread_state_t *state ) )
+PT_THREAD( publish_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    send_list_locked++;
+    static list_node_t ln;
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, list_b_is_empty( &publish_list ) );
+
+        ln = list_ln_remove_tail( &publish_list );
+
+        publish_state_t *pub_state = (publish_state_t *)list_vp_get_data( ln );
+
+        log_v_debug_P( PSTR("send %lx"), pub_state->hash );
+
+
         
-    state->ln = send_list.head;
+        TMR_WAIT( pt, 5 );
 
-    while( state->ln > 0 ){
-
-        catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( state->ln );
-
-        if( send_state->source_hash != state->msg.source_hash ){
-
-            goto end;
-        }
-
-        state->msg.dest_hash = send_state->dest_hash;
-
-        sock_i16_sendto( sock, (uint8_t *)&state->msg, sizeof(state->msg), &send_state->raddr );
-
-        TMR_WAIT( pt, 2 );
-
-end:
-        state->ln = list_ln_next( state->ln );
+        list_v_release_node( ln );
     }
 
-    send_list_locked--;
+
+//     send_list_locked++;
+        
+//     state->ln = send_list.head;
+
+//     while( state->ln > 0 ){
+
+//         catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( state->ln );
+
+//         if( send_state->source_hash != state->msg.source_hash ){
+
+//             goto end;
+//         }
+
+//     //     _catbus_v_msg_init( &state.msg.header, CATBUS_MSG_TYPE_LINK_DATA, 0 );
+//     // state.msg.flags = 0;
+
+//     // #ifdef LIB_SNTP
+//     // state.msg.ntp_timestamp = sntp_t_now();
+
+//     // if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+        
+//     //     state.msg.flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
+//     // }
+//     // #endif
+
+//     // _catbus_v_get_query( &state.msg.source_query );
+
+//     // state.msg.source_hash = hash;
+    
+//     // if( catbus_i8_get( hash, CATBUS_TYPE_INT32, &state.msg.data ) < 0 ){
+
+//     //     return -1;
+//     // }
+
+
+//         // state->msg.dest_hash = send_state->dest_hash;
+
+//         // catbus_msg_link_data_t msg;
+
+//         sock_i16_sendto( sock, (uint8_t *)&state->msg, sizeof(state->msg), &send_state->raddr );
+
+//         TMR_WAIT( pt, 2 );
+
+// end:
+//         state->ln = list_ln_next( state->ln );
+//     }
+
+//     send_list_locked--;
     
 PT_END( pt );
 }
@@ -925,39 +983,45 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
         kv_v_notify_hash_set( hash );
     }
 
-    publish_thread_state_t state;
 
-    _catbus_v_msg_init( &state.msg.header, CATBUS_MSG_TYPE_LINK_DATA, 0 );
-    state.msg.flags = 0;
+    publish_state_t state;
+
+    state.sequence = sequence;
+    state.hash = hash;
 
     #ifdef LIB_SNTP
-    state.msg.ntp_timestamp = sntp_t_now();
-
-    if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
-        
-        state.msg.flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
-    }
+    // update timestamp
+    state.ntp_timestamp = sntp_t_now();
     #endif
 
-    _catbus_v_get_query( &state.msg.source_query );
+    list_node_t sender_ln = send_list.head;    
 
-    state.msg.source_hash = hash;
-    
-    if( catbus_i8_get( hash, CATBUS_TYPE_INT32, &state.msg.data ) < 0 ){
+    while( sender_ln >= 0 ){
 
-        return -1;
+        catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
+
+        if( send_state->source_hash != hash ){
+
+            goto next;
+        }
+
+
+        state.dest_addr = send_state->raddr;
+        state.dest_hash = send_state->dest_hash;
+
+        list_node_t ln = list_ln_create_node( &state, sizeof(state) );
+
+        if( ln < 0 ){
+
+            return 0;
+        }
+
+        list_v_insert_head( &publish_list, ln );
+
+next:
+        sender_ln = list_ln_next( sender_ln );
     }
 
-    sequence++;
-    state.msg.sequence = sequence;
-
-    // we're not checking for success, since there is nothing we
-    // can do about it.
-    thread_t_create( THREAD_CAST(publish_thread),
-                     PSTR("catbus_publish"),
-                     &state,
-                     sizeof(state) );
-    
     #endif
 
     return 0;   
