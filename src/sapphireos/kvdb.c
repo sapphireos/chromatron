@@ -254,6 +254,19 @@ void kvdb_v_set_name( char name[CATBUS_STRING_LEN] ){
     #endif 
 }
 
+
+#ifdef PGM_P
+void kvdb_v_set_name_P( PGM_P name ){
+
+    char buf[CATBUS_STRING_LEN];
+    strlcpy_P( buf, name, sizeof(buf) );
+
+    #ifdef KVDB_ENABLE_NAME_LOOKUP
+    _kvdb_v_add_name( buf );   
+    #endif 
+}
+#endif
+
 void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
 
     // get entry for hash

@@ -25,6 +25,8 @@
 #ifndef _KVDB_CONFIG_H
 #define _KVDB_CONFIG_H
 
+#include "system.h"
+
 #define KVDB_MAX_ENTRIES                128
 
 #define KVDB_ENABLE_NAME_LOOKUP         

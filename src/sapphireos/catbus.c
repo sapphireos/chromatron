@@ -2027,44 +2027,12 @@ next_send:
             ln = next_ln;
         }  
 
-        // // check for deleted links
-        // ln = links.head;
-        // next_ln = -1;
-
-        // while( ln > 0 ){
-
-        //     next_ln = list_ln_next( ln );
-            
-        //     catbus_link_state_t *state = list_vp_get_data( ln );
-
-        //     if( state->flags & CATBUS_LINK_FLAGS_DELETE ){
-
-        //         list_v_remove( &links, ln );
-        //         list_v_release_node( ln );
-        //     }
-
-        //     ln = next_ln;
-        // }
-
         // broadcast links to network
         thread_t_create( THREAD_CAST(link_broadcast_thread),
                          PSTR("catbus_link_broadcast"),
                          0,
                          sizeof(link_broadcast_thread_state_t) );        
-
-
-        // ln = links.head;
-
-        // while( ln > 0 ){
-
-        //     // send link to network
-        //     _catbus_v_send_link( ln );
-
-        //     TMR_WAIT( pt, 5 );
-
-        //     ln = list_ln_next( ln );
-        // }
-
+        
         THREAD_WAIT_WHILE( pt, send_list_locked );
 
         // expire any send entries

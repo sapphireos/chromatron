@@ -47,6 +47,9 @@ int8_t kvdb_i8_add(
     uint16_t len );
 
 void kvdb_v_set_name( char name[CATBUS_STRING_LEN] );
+#ifdef PGM_P
+void kvdb_v_set_name_P( PGM_P name );
+#endif
 void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag );
 void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier );
 
