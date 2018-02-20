@@ -1406,7 +1406,7 @@ PT_BEGIN( pt );
         
         THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
-        bool ap_mode = wifi_b_ap_mode();
+        bool ap_mode = wifi_b_ap_mode_enabled();
 
 
         char ssid[WIFI_SSID_LEN];
@@ -1630,7 +1630,7 @@ end:
 
         if( !connected ){
 
-            if( !wifi_b_ap_mode() ){
+            if( !wifi_b_ap_mode_enabled() ){
 
                 wifi_connects++;
                 connected = TRUE;
@@ -2345,6 +2345,11 @@ bool wifi_b_connected( void ){
 }
 
 bool wifi_b_ap_mode( void ){
+
+    return ( wifi_status_reg & WIFI_STATUS_AP_MODE ) != 0;
+}
+
+bool wifi_b_ap_mode_enabled( void ){
 
     if( default_ap_mode ){
 

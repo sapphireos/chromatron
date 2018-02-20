@@ -225,6 +225,8 @@ void wifi_v_process( void ){
 
         request_connect = false;
         request_disconnect = false;
+
+        wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
     }
     else if( request_ap_mode ){
 
@@ -241,6 +243,8 @@ void wifi_v_process( void ){
         request_ap_mode = false;
         request_connect = false;
         request_disconnect = false;
+
+        wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
     }
     else if( request_disconnect ){
 
@@ -248,6 +252,8 @@ void wifi_v_process( void ){
 
         request_connect = false;
         request_disconnect = false;
+
+        wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
     }
 
 
