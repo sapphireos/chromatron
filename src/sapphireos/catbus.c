@@ -66,7 +66,6 @@ static list_t send_list;
 static list_t receive_cache;
 static list_t publish_list;
 static uint16_t sequence;
-static uint8_t send_list_locked;
 
 PT_THREAD( publish_thread( pt_t *pt, void *state ) );
 #endif
@@ -2105,8 +2104,6 @@ next_send:
                          PSTR("catbus_link_broadcast"),
                          0,
                          sizeof(link_broadcast_thread_state_t) );        
-
-        THREAD_WAIT_WHILE( pt, send_list_locked );
 
         // expire any send entries
         ln = send_list.head;
