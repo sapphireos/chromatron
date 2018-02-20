@@ -31,6 +31,10 @@ This is just an API wrapper for vm_core and catbus_packer, among others.
 #include "keyvalue.h"
 #include "kvdb.h"
 
+void kv_v_reset_cache( void ){
+
+}
+
 int8_t kv_i8_array_set(
     catbus_hash_t32 hash,
     uint16_t index,

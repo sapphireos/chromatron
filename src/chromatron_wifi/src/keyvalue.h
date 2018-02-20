@@ -28,6 +28,8 @@
 #include <stdint.h>
 #include "catbus_common.h"
 
+void kv_v_reset_cache( void );
+
 int8_t kv_i8_array_set(
     catbus_hash_t32 hash,
     uint16_t index,

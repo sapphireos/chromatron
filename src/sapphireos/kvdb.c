@@ -29,6 +29,7 @@
 #include "kvdb.h"
 #include "memory.h"
 #include "list.h"
+#include "keyvalue.h"
 
 #include "kvdb_config.h"
 
@@ -570,6 +571,8 @@ void kvdb_v_delete( catbus_hash_t32 hash ){
 
         ln = list_ln_next( ln );
     }   
+
+    kv_v_reset_cache();
 }
 
 void kvdb_v_delete_tag( uint8_t tag ){
@@ -591,6 +594,8 @@ void kvdb_v_delete_tag( uint8_t tag ){
 
         ln = next_ln;
     }   
+
+    kv_v_reset_cache();
 }
 
 int8_t kvdb_i8_publish( catbus_hash_t32 hash ){

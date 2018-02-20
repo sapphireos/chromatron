@@ -200,7 +200,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
             cached_hash = hash;
             cached_index = index_entry.index;
 
-            return index_entry.index;
+            return cached_index;
         }
         else{
 
@@ -215,11 +215,21 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     if( index >= 0 ){
 
-        return _kv_u16_fixed_count() + index;
+        // update cache
+        cached_hash = hash;
+        cached_index = _kv_u16_fixed_count() + index;
+
+        return cached_index;
     }
 
     return KV_ERR_STATUS_NOT_FOUND;
 }
+
+void kv_v_reset_cache( void ){
+
+    cached_hash = 0;
+}
+
 
 
 int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
@@ -1004,7 +1014,6 @@ end:
 
 PT_END( pt );
 }
-
 
 int8_t kv_i8_publish( catbus_hash_t32 hash ){
     

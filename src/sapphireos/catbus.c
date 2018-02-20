@@ -743,13 +743,22 @@ int8_t catbus_i8_array_get(
         index %= array_len;
     }
 
+    uint16_t type_size = type_u16_size( type );
+
     uint8_t buf[CATBUS_STRING_LEN];
 
     for( uint16_t i = 0; i < count; i++ ){
-
-        status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );
    
-        type_i8_convert( type, data, meta.type, buf );
+        // check if conversion is necessary
+        if( type != meta.type ){
+            
+            status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );         
+            type_i8_convert( type, data, meta.type, buf );
+        }
+        else{
+
+            status = kv_i8_array_get( hash, index, 1, data, type_size );
+        }
 
         index++;
 
@@ -758,7 +767,7 @@ int8_t catbus_i8_array_get(
             break;
         }
 
-        data += type_u16_size( meta.type );   
+        data += type_size;   
     }
 
     return 0;
@@ -838,9 +847,15 @@ PT_BEGIN( pt );
 
         publish_state_t *pub_state = (publish_state_t *)list_vp_get_data( ln );
 
-        int16_t data_len = kv_i16_len( pub_state->hash );
+        catbus_meta_t meta;
+        if( kv_i8_get_meta( pub_state->hash, &meta ) < 0 ){
 
-        if( ( data_len < 0 ) || ( data_len > CATBUS_MAX_DATA ) ){
+            goto done;
+        }
+
+        uint16_t data_len = type_u16_size_meta( &meta );
+
+        if( data_len > CATBUS_MAX_DATA ){
 
             goto done;
         }
@@ -873,16 +888,14 @@ PT_BEGIN( pt );
         msg->source_hash    = pub_state->hash;
         msg->dest_hash      = pub_state->dest_hash;
         msg->sequence       = pub_state->sequence;
-
-        kv_i8_get_meta( pub_state->hash, &msg->data.meta );
-
+        msg->data.meta      = meta;
+        
         catbus_i8_array_get( 
             pub_state->hash, 
             msg->data.meta.type, 
             0, 
             msg->data.meta.count + 1, 
             &msg->data.data );
-
 
         sock_i16_sendto_m( sock, h, &pub_state->dest_addr );        
         
