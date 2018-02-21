@@ -1937,14 +1937,14 @@ restart:
 
             if( thread_b_alarm() ){
 
-                log_v_debug_P( PSTR("Wifi rx timeout") );
+                // log_v_debug_P( PSTR("Wifi rx timeout") );
 
                 wifi_v_set_rx_ready();
             }
         }
         else if( control_byte == WIFI_COMM_QUERY_READY ){
 
-            log_v_debug_P( PSTR("query ready") );
+            // log_v_debug_P( PSTR("query ready") );
             wifi_v_set_rx_ready();
         }
         else{
