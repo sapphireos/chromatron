@@ -579,7 +579,7 @@ class Server(Ribbon):
                 for hashed_key in msg.source_query:
                     source_query.append(self.resolve_hash(hashed_key, host))
 
-                link.callback(link.source_key, msg.data, source_query, timestamp)
+                link.callback(link.source_key, msg.data.value, source_query, timestamp)
 
 
     def _process_msg(self, msg, host):        
