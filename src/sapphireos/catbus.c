@@ -2037,11 +2037,6 @@ PT_THREAD( catbus_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    #ifdef ENABLE_CATBUS_LINK
-    static list_node_t ln;
-    static list_node_t next_ln;
-    #endif
-
     while(1){
 
         TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
@@ -2075,53 +2070,11 @@ PT_BEGIN( pt );
             continue;
         }
 
-        // process link system periodic tasks        
-
-        static catbus_hash_t32 hashes_published[16];
-        static  uint8_t hashes_published_index = 0;
-        memset( hashes_published, 0, sizeof(hashes_published) );
-        
-        ln = send_list.head;
-        next_ln = -1;
-
-        while( ln > 0 ){
-
-            next_ln = list_ln_next( ln );
-
-            catbus_send_data_entry_t *state = (catbus_send_data_entry_t *)list_vp_get_data( ln );
-            
-            // check if we've already published this one
-            for( uint8_t i = 0; i < hashes_published_index; i++ ){
-
-                if( hashes_published[i] == state->source_hash ){
-
-                    goto next_send;
-                }
-            }
-
-            if( hashes_published_index < cnt_of_array(hashes_published) ){
-
-                hashes_published[hashes_published_index] = state->source_hash;
-                hashes_published_index++;
-            }
-
-            catbus_i8_publish( state->source_hash );
-
-            TMR_WAIT( pt, 2 );
-             
-next_send:
-            ln = next_ln;
-        }  
-
-        // broadcast links to network
-        thread_t_create( THREAD_CAST(link_broadcast_thread),
-                         PSTR("catbus_link_broadcast"),
-                         0,
-                         sizeof(link_broadcast_thread_state_t) );        
+        // process link system periodic tasks  
 
         // expire any send entries
-        ln = send_list.head;
-        next_ln = -1;
+        list_node_t ln = send_list.head;
+        list_node_t next_ln = -1;
 
         while( ln > 0 ){
 
@@ -2159,7 +2112,46 @@ next_send:
             } 
 
             ln = next_ln;
+        }        
+
+        // broadcast links to network
+        thread_t_create( THREAD_CAST(link_broadcast_thread),
+                         PSTR("catbus_link_broadcast"),
+                         0,
+                         sizeof(link_broadcast_thread_state_t) );
+
+        // publish data
+        catbus_hash_t32 hashes_published[32];
+        uint8_t hashes_published_index = 0;
+        memset( hashes_published, 0, sizeof(hashes_published) );
+        
+        ln = send_list.head;
+
+        while( ln > 0 ){
+
+            catbus_send_data_entry_t *state = (catbus_send_data_entry_t *)list_vp_get_data( ln );
+            
+            // check if we've already published this one
+            for( uint8_t i = 0; i < hashes_published_index; i++ ){
+
+                if( hashes_published[i] == state->source_hash ){
+
+                    goto next_send;
+                }
+            }
+
+            if( hashes_published_index < cnt_of_array(hashes_published) ){
+
+                hashes_published[hashes_published_index] = state->source_hash;
+                hashes_published_index++;
+            }
+
+            catbus_i8_publish( state->source_hash );
+             
+next_send:
+            ln = list_ln_next( ln );
         }  
+        
         #endif
     }
 
