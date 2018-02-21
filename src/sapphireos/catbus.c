@@ -962,10 +962,11 @@ PT_BEGIN( pt );
 
         sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-        TMR_WAIT( pt, 10 );
-
 end:
         state->ln = next_ln;
+
+
+        TMR_WAIT( pt, 10 );
     }
 
     sock_v_release( state->sock );
