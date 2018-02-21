@@ -346,12 +346,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
             goto end;      
         }
 
-        // if( catbus_i8_get( kv_load.hash, &registers[kv_load.addr] ) < 0 ){
+        if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
-        //     // status = -7;
-        //     // goto end;
-        //     registers[kv_load.addr] = 0;
-        // }
+            // status = -7;
+            // goto end;
+            registers[kv_load.addr] = 0;
+        }
     }
     
     // load code
@@ -414,12 +414,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
             goto end;      
         }
 
-        // if( catbus_i8_get( kv_load.hash, &registers[kv_load.addr] ) < 0 ){
+        if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
-        //     // status = -24;
-        //     registers[kv_load.addr] = 0;
-        //     // goto end;
-        // }
+            // status = -24;
+            registers[kv_load.addr] = 0;
+            // goto end;
+        }
     }
 
     // load code
@@ -459,21 +459,21 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         // check if item changed
         int32_t data = 0;
 
-        // if( catbus_i8_get( kv_load.hash, &data ) < 0 ){        
+        if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &data ) < 0 ){        
 
-        //     // status = -29;
-        //     // goto end;
-        // }
-        // else{
-        //     if( registers[kv_load.addr] != data ){
+            // status = -29;
+            // goto end;
+        }
+        else{
+            if( registers[kv_load.addr] != data ){
                 
-        //         if( catbus_i8_set( kv_load.hash, registers[kv_load.addr] ) < 0 ){
+                if( catbus_i8_set( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
-        //             // status = -30;
-        //             // goto end;
-        //         }
-        //     }
-        // }
+                    // status = -30;
+                    // goto end;
+                }
+            }
+        }
     }
 
     // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
