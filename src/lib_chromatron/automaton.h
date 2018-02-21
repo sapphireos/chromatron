@@ -40,8 +40,6 @@
 #define AUTOMATON_RULE_MAGIC        0x454C5552  // 'RULE'
 #define AUTOMATON_VERSION           1
 
-#define AUTOMATON_VAR_TYPE_KV               0
-
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 source_hash;
@@ -57,7 +55,6 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 hash;
-    uint8_t type;
     char name[KV_NAME_LEN];
 } automaton_var_t;
 

@@ -619,27 +619,6 @@ PT_BEGIN( pt );
 
         automaton_seconds++;
         _auto_v_trigger( __KV__seconds );
-
-
-        // for( uint8_t i = 0; i < cnt_of_array(var_type); i++ ){
-
-        //     if( hashes[i] == 0 ){
-
-        //         continue;
-        //     }
-
-        //     if( var_type[i] == AUTOMATON_VAR_TYPE_DOWNCOUNTER ){
-
-        //         if( vars[i] > 0 ){
-
-        //             vars[i]--;
-
-        //             kv_i8_publish( hashes[i] );
-
-        //             _auto_v_trigger( hashes[i] );
-        //         }
-        //     }
-        // }    
     }
 
 PT_END( pt );

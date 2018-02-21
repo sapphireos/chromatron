@@ -102,13 +102,10 @@ AUTOMATON_FILE_MAGIC       = 0x4F545541  # 'AUTO'
 AUTOMATON_RULE_MAGIC       = 0x454C5552  # 'RULE'
 AUTOMATON_VERSION          = 1
 
-AUTOMATON_VAR_TYPE_KV               = 0
-
 
 class AutomatonVar(StructField):
     def __init__(self, **kwargs):
         fields = [CatbusHash(_name="hash"),
-                  Uint8Field(_name="type"),
                   CatbusStringField(_name="name")]
 
         super(AutomatonVar, self).__init__(_name="automaton_var", _fields=fields, **kwargs)
@@ -243,7 +240,7 @@ def compile_file(filename):
     if 'var' in results:
         for v in results['var']:
             v = v[0]
-            kv = AutomatonVar(hash=catbus_string_hash(v), type=AUTOMATON_VAR_TYPE_KV, name=v)
+            kv = AutomatonVar(hash=catbus_string_hash(v), name=v)
             kv_vars.append(kv)
 
     print "Vars:"
