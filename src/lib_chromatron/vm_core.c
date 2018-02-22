@@ -28,9 +28,12 @@
 #include "trig.h"
 #include "vm_config.h"
 
-#ifdef VM_ENABLE_KVDB
+#ifdef VM_ENABLE_KV
 #include "keyvalue.h"
 #include "kvdb.h"
+#ifndef ESP8266
+#include "catbus.h"
+#endif
 #endif
 
 static uint16_t cycles;
@@ -1172,11 +1175,18 @@ opcode_db_load:
 
     dest        = *pc++;
 
-    #ifdef VM_ENABLE_KVDB
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
     if( kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest], sizeof(data[dest]) ) < 0 ){
 
         data[dest] = 0;        
     }
+    #else
+    if( catbus_i8_get( hash, CATBUS_TYPE_INT32, &data[dest] ) < 0 ){
+
+        data[dest] = 0;        
+    }
+    #endif
     #endif
 
     goto dispatch;
@@ -1189,9 +1199,14 @@ opcode_db_store:
 
     op1_addr    = *pc++;
 
-    #ifdef VM_ENABLE_KVDB
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
     kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr], sizeof(data[op1_addr]) );
     kvdb_i8_publish( hash );
+    #else
+    catbus_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr] );
+    catbus_i8_publish( hash );
+    #endif
     #endif
 
     goto dispatch;
@@ -1205,11 +1220,18 @@ opcode_db_idx_load:
     dest        = *pc++;
     index       = data[*pc++];
 
-    #ifdef VM_ENABLE_KVDB
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
     if( kvdb_i8_array_get( hash, CATBUS_TYPE_INT32, index, &data[dest], sizeof(data[dest]) ) < 0 ){
 
         data[dest] = 0;        
     }
+    #else
+    if( catbus_i8_array_get( hash, CATBUS_TYPE_INT32, index, 1, &data[dest] ) < 0 ){
+
+        data[dest] = 0;        
+    }
+    #endif
     #endif
 
     goto dispatch;
@@ -1223,9 +1245,14 @@ opcode_db_idx_store:
     op1_addr    = *pc++;
     index       = data[*pc++];
 
-    #ifdef VM_ENABLE_KVDB
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
     kvdb_i8_array_set( hash, CATBUS_TYPE_INT32, index, &data[op1_addr], sizeof(data[op1_addr]) );
     kvdb_i8_publish( hash );
+    #else
+    catbus_i8_array_set( hash, CATBUS_TYPE_INT32, index, 1, &data[op1_addr] );
+    catbus_i8_publish( hash );
+    #endif
     #endif
 
     goto dispatch;
@@ -1238,10 +1265,10 @@ opcode_db_len:
 
     dest        = *pc++;
 
-    #ifdef VM_ENABLE_KVDB
+    #ifdef VM_ENABLE_KV
     catbus_meta_t meta;
     
-    if( kvdb_i8_get_meta( hash, &meta ) < 0 ){
+    if( kv_i8_get_meta( hash, &meta ) < 0 ){
 
         data[dest] = 0;        
     }
