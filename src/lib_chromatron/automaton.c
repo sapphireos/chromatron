@@ -46,8 +46,8 @@ KV_SECTION_META kv_meta_t automaton_info_kv[] = {
 };
 
 
+PT_THREAD( automaton_runner_thread( pt_t *pt, void *state ) );
 PT_THREAD( automaton_thread( pt_t *pt, void *state ) );
-PT_THREAD( automaton_clock_thread( pt_t *pt, void *state ) );
 
 void auto_v_init( void ){
 
@@ -60,11 +60,6 @@ void auto_v_init( void ){
 
     thread_t_create( automaton_thread,
                  PSTR("automaton"),
-                 0,
-                 0 );
-
-    thread_t_create( automaton_clock_thread,
-                 PSTR("automaton_clock"),
                  0,
                  0 );
 }
@@ -497,6 +492,71 @@ void _auto_v_trigger( catbus_hash_t32 hash ){
     }
 }
 
+PT_THREAD( automaton_runner_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    ASSERT( file_handle >= 0 );
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, ( !triggered ) &&
+                               ( fs_i32_get_size( file_handle ) >= 0 ) &&
+                               ( automaton_enable ) );
+
+        if( !triggered ){
+
+            automaton_status = AUTOMATON_STATUS_STOPPED;
+
+            // this means our file got deleted, or we disabled the automaton
+            THREAD_EXIT( pt );
+        }
+
+        // elapsed = tmr_u64_get_system_time_us();
+
+        int8_t status = 0;
+
+        // scan triggers and process rules
+        automaton_trigger_index_t *index = mem2_vp_get_ptr( trigger_index_handle );
+
+        uint8_t count = mem2_u16_get_size( trigger_index_handle ) / sizeof(automaton_trigger_index_t);
+
+        for( uint8_t i = 0; i < count; i++ ){
+
+            if( index[i].status != 0 ){
+
+                index[i].status = 0;
+
+                status = _auto_i8_process_rule( index[i].condition_offset );
+
+                if( status < 0 ){
+
+                    break;
+                }
+            }
+        }
+
+        if( status < 0 ){
+
+            log_v_error_P( PSTR("status: %d"), status );
+
+            automaton_status = AUTOMATON_STATUS_ERROR;
+
+            THREAD_EXIT( pt );
+        }
+
+        // elapsed = tmr_u64_elapsed_time_us( elapsed );
+
+        // log_v_debug_P( PSTR("elapsed: %lu"), (uint32_t)elapsed );        
+
+        triggered = FALSE;
+    }
+
+PT_END( pt );
+}
+
+
+
 PT_THREAD( automaton_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -514,65 +574,24 @@ PT_BEGIN( pt );
             goto restart;
         }
 
-        // log_v_debug_P( PSTR("Automaton ready") );        
+        // start runner thread
+        if( thread_t_create( automaton_runner_thread, PSTR("automaton_runner"), 0, 0 ) < 0 ){
 
-        while(1){
-
-            THREAD_WAIT_WHILE( pt, ( !triggered ) &&
-                                   ( fs_i32_get_size( file_handle ) >= 0 ) &&
-                                   ( automaton_enable ) );
-
-            if( !triggered ){
-
-                automaton_status = AUTOMATON_STATUS_STOPPED;
-
-                // this means our file got deleted, or we disabled the automaton
-                goto restart;
-            }
-
-            // elapsed = tmr_u64_get_system_time_us();
-
-            int8_t status = 0;
-
-            // scan triggers and process rules
-            automaton_trigger_index_t *index = mem2_vp_get_ptr( trigger_index_handle );
-
-            uint8_t count = mem2_u16_get_size( trigger_index_handle ) / sizeof(automaton_trigger_index_t);
-
-            for( uint8_t i = 0; i < count; i++ ){
-
-                if( index[i].status != 0 ){
-
-                    index[i].status = 0;
-
-                    status = _auto_i8_process_rule( index[i].condition_offset );
-
-                    if( status < 0 ){
-
-                        break;
-                    }
-                }
-            }
-
-            if( status < 0 ){
-
-                log_v_error_P( PSTR("status: %d"), status );
-
-                goto restart;
-            }
-
-            // elapsed = tmr_u64_elapsed_time_us( elapsed );
-
-            // log_v_debug_P( PSTR("elapsed: %lu"), (uint32_t)elapsed );        
-
-
-            triggered = FALSE;
-
-            // prevent runaway thread
-            TMR_WAIT( pt, 10 );
+            automaton_status = AUTOMATON_STATUS_ERROR;
+            goto restart;
         }
 
+        while( automaton_status == AUTOMATON_STATUS_RUNNING ){
+
+            TMR_WAIT( pt, 1000 );
+
+            automaton_seconds++;
+            _auto_v_trigger( __KV__seconds );
+        }
+
+        
 restart:
+
         // log_v_debug_P( PSTR("Automaton restarting") );        
 
         // clear file handle
@@ -594,23 +613,6 @@ restart:
         catbus_v_purge_links();
 
         TMR_WAIT( pt, 2000 );
-    }
-
-PT_END( pt );
-}
-
-PT_THREAD( automaton_clock_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, automaton_status != AUTOMATON_STATUS_RUNNING );
-
-        TMR_WAIT( pt, 1000 );
-
-        automaton_seconds++;
-        _auto_v_trigger( __KV__seconds );
     }
 
 PT_END( pt );
