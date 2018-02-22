@@ -201,7 +201,7 @@ int8_t _auto_i8_load_file( void ){
 
         if( kvdb_i8_add( kv.hash, CATBUS_TYPE_INT32, 1, 0, 0 ) < 0 ){
 
-            automaton_status = AUTOMATON_STATUS_DB_ADD_FAIL;
+            status = AUTOMATON_STATUS_DB_ADD_FAIL;
             goto end;
         }
         kvdb_v_set_tag( kv.hash, AUTOMATON_KV_TAG );
@@ -253,10 +253,10 @@ int8_t _auto_i8_load_file( void ){
     }
 
 end:
-    if( status < 0 ){
+    // if( status < 0 ){
 
-        log_v_error_P( PSTR("error: %d"), status );
-    }
+    //     log_v_error_P( PSTR("error: %d"), status );
+    // }
 
     return status;
 }
