@@ -199,7 +199,9 @@ int8_t _auto_i8_load_file( void ){
             goto end;
         }
 
-        // kvdb_i8_add( kv.hash, 0, AUTOMATON_KV_TAG, kv.name );
+        kvdb_i8_add( kv.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        kvdb_v_set_tag( kv.hash, AUTOMATON_KV_TAG );
+        kvdb_v_set_name( kv.name );
     }    
 
     // purge all locally created links
