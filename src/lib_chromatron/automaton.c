@@ -34,7 +34,7 @@
 static int8_t automaton_status;
 static bool automaton_enable;
 static uint8_t automaton_seconds;
-static int32_t trigger = 0;
+static bool triggered;
 
 static mem_handle_t trigger_index_handle = -1;
 static file_t f = -1;
@@ -511,7 +511,7 @@ void _auto_v_trigger( catbus_hash_t32 hash ){
 
             index[i].status = 1;
 
-            trigger = 1;
+            triggered = TRUE;
         }
     }
 }
@@ -537,11 +537,11 @@ PT_BEGIN( pt );
 
         while(1){
 
-            THREAD_WAIT_WHILE( pt, ( trigger == 0 ) &&
+            THREAD_WAIT_WHILE( pt, ( !triggered ) &&
                                    ( fs_i32_get_size( f ) >= 0 ) &&
                                    ( automaton_enable ) );
 
-            if( trigger == 0 ){
+            if( !triggered ){
 
                 // this means our file got deleted, or we disabled the automaton
                 goto restart;
@@ -583,7 +583,7 @@ PT_BEGIN( pt );
             // log_v_debug_P( PSTR("elapsed: %lu"), (uint32_t)elapsed );        
 
 
-            trigger = 0;
+            triggered = FALSE;
 
             // prevent runaway thread
             TMR_WAIT( pt, 10 );
