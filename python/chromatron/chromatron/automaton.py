@@ -244,6 +244,8 @@ def compile_file(filename):
             kv_vars.append(kv)
 
     print "Vars:"
+    for v in kv_vars:
+        print v
 
     send_links = []
 
@@ -263,8 +265,8 @@ def compile_file(filename):
             
             send_links.append(info)
 
-    # print "Send:"
-    # print send_links
+    print "Send:"
+    print send_links
 
     receive_links = []
 
@@ -284,8 +286,8 @@ def compile_file(filename):
             
             receive_links.append(info)
 
-    # print "Recv:"
-    # print receive_links
+    print "Recv:"
+    print receive_links
 
     
     rules = []
@@ -298,7 +300,7 @@ def compile_file(filename):
             condition = format_code(rule['condition'][0])
 
             print "Condition:"
-            # print condition
+            print condition
 
             condition = compile_vm_code(condition)
 
@@ -319,7 +321,7 @@ def compile_file(filename):
 
 
             print "Action:"
-            # print action
+            print action
 
             action = compile_vm_code(action, condition=False)
             pprint(action)

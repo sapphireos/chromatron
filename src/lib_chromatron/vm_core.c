@@ -28,11 +28,8 @@
 #include "trig.h"
 #include "vm_config.h"
 
-#ifdef VM_ENABLE_KV
-#include "keyvalue.h"
-#endif
-
 #ifdef VM_ENABLE_KVDB
+#include "keyvalue.h"
 #include "kvdb.h"
 #endif
 
