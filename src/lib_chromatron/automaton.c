@@ -56,7 +56,7 @@ void auto_v_init( void ){
         return;
     }
 
-    automaton_status = -1;
+    automaton_status = AUTOMATON_STATUS_STOPPED;
 
     thread_t_create( automaton_thread,
                  PSTR("automaton"),
@@ -154,7 +154,7 @@ int8_t _auto_i8_load_file( void ){
         return -1;
     }
 
-    int8_t status = -1;
+    int8_t status = AUTOMATON_STATUS_LOAD_ERROR;
 
     automaton_file_t header;
 
@@ -166,7 +166,6 @@ int8_t _auto_i8_load_file( void ){
     // verify magic number
     if( header.magic != AUTOMATON_FILE_MAGIC ){
 
-        status = -2;
         log_v_error_P( PSTR("bad magic") );
 
         goto end;
@@ -175,7 +174,7 @@ int8_t _auto_i8_load_file( void ){
     // verify version
     if( header.version != AUTOMATON_VERSION ){
 
-        status = -3;
+        status = AUTOMATON_STATUS_BAD_VERSION;
         log_v_error_P( PSTR("wrong version") );
 
         goto end;
@@ -183,7 +182,7 @@ int8_t _auto_i8_load_file( void ){
 
     if( header.var_len > AUTOMATON_MAX_VARS ){
 
-        status = -4;
+        status = AUTOMATON_STATUS_DATA_OVERFLOW;
         log_v_error_P( PSTR("too many vars") );
 
         goto end;
@@ -197,11 +196,14 @@ int8_t _auto_i8_load_file( void ){
         // read data
         if( fs_i16_read( f, (uint8_t *)&kv, sizeof(kv) ) < 0 ){
 
-            status = -5;
             goto end;
         }
 
-        kvdb_i8_add( kv.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        if( kvdb_i8_add( kv.hash, CATBUS_TYPE_INT32, 1, 0, 0 ) < 0 ){
+
+            automaton_status = AUTOMATON_STATUS_DB_ADD_FAIL;
+            goto end;
+        }
         kvdb_v_set_tag( kv.hash, AUTOMATON_KV_TAG );
         kvdb_v_set_name( kv.name );
     }    
@@ -220,7 +222,6 @@ int8_t _auto_i8_load_file( void ){
         // read data
         if( fs_i16_read( f, (uint8_t *)&link, sizeof(link) ) < 0 ){
 
-            status = -6;
             goto end;
         }
 
@@ -235,7 +236,6 @@ int8_t _auto_i8_load_file( void ){
         // read data
         if( fs_i16_read( f, (uint8_t *)&link, sizeof(link) ) < 0 ){
 
-            status = -7;
             goto end;
         }
 
@@ -248,7 +248,7 @@ int8_t _auto_i8_load_file( void ){
 
     if( _auto_i8_load_trigger_index() < 0 ){
 
-        status = -8;
+        status = AUTOMATON_STATUS_TRIGGER_INDEX_FAIL;
         goto end;
     }
 
@@ -275,7 +275,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     fs_v_seek( f, 0 );
 
-    int8_t status = -1;
+    int8_t status = AUTOMATON_STATUS_LOAD_ERROR;
 
     automaton_file_t header;
 
@@ -286,8 +286,6 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     // verify magic number
     if( header.magic != AUTOMATON_FILE_MAGIC ){
-
-        status = -1;
 
         goto end;
     }
@@ -312,7 +310,6 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     if( rule.magic != AUTOMATON_RULE_MAGIC ){
 
-        status = -2;
         goto end;
     }
 
@@ -324,13 +321,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     if( rule.condition_data_len > cnt_of_array(registers) ){
 
-        status = -3;
+        status = AUTOMATON_STATUS_DATA_OVERFLOW;
         goto end;
     }
 
     if( fs_i16_read( f, (uint8_t *)registers, ( rule.condition_data_len * sizeof(int32_t) ) ) < 0 ){
 
-        status = -4;
         goto end;
     }
 
@@ -340,20 +336,17 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         automaton_kv_load_t kv_load;
         if( fs_i16_read( f, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
 
-            status = -5;
             goto end;
         }
 
         if( kv_load.addr >= cnt_of_array(registers) ){
 
-            status = -6;
+            status = AUTOMATON_STATUS_DATA_OVERFLOW;
             goto end;      
         }
 
         if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
-            // status = -7;
-            // goto end;
             registers[kv_load.addr] = 0;
         }
     }
@@ -361,13 +354,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     // load code
     if( rule.condition_code_len > sizeof(code) ){
 
-        status = -8;
+        status = AUTOMATON_STATUS_CODE_OVERFLOW;
         goto end;
     }
 
     if( fs_i16_read( f, code, rule.condition_code_len ) < 0 ){
 
-        status = -9;
         goto end;
     }
 
@@ -389,13 +381,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     if( rule.action_data_len > cnt_of_array(registers) ){
 
-        status = -20;
+        status = AUTOMATON_STATUS_DATA_OVERFLOW;
         goto end;
     }
 
     if( fs_i16_read( f, (uint8_t *)registers, ( rule.action_data_len * sizeof(int32_t) ) ) < 0 ){
 
-        status = -21;
         goto end;
     }
 
@@ -408,34 +399,30 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         automaton_kv_load_t kv_load;
         if( fs_i16_read( f, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
 
-            status = -22;
             goto end;
         }
 
         if( kv_load.addr >= cnt_of_array(registers) ){
 
-            status = -23;
+            status = AUTOMATON_STATUS_DATA_OVERFLOW;
             goto end;      
         }
 
         if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
-            // status = -24;
             registers[kv_load.addr] = 0;
-            // goto end;
         }
     }
 
     // load code
     if( rule.action_code_len > sizeof(code) ){
 
-        status = -25;
+        status = AUTOMATON_STATUS_CODE_OVERFLOW;
         goto end;
     }
 
     if( fs_i16_read( f, code, rule.action_code_len ) < 0 ){
 
-        status = -26;
         goto end;
     }
 
@@ -450,13 +437,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         automaton_kv_load_t kv_load;
         if( fs_i16_read( f, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
 
-            status = -27;
             goto end;
         }
 
         if( kv_load.addr >= cnt_of_array(registers) ){
 
-            status = -28;
+            status = AUTOMATON_STATUS_DATA_OVERFLOW;
             goto end;      
         }
 
@@ -465,23 +451,18 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
         if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &data ) < 0 ){        
 
-            // status = -29;
-            // goto end;
         }
         else{
             if( registers[kv_load.addr] != data ){
                 
                 if( catbus_i8_set( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
-                    // status = -30;
-                    // goto end;
                 }
             }
         }
     }
 
     // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
-
 
     status = 0;
 
@@ -526,14 +507,14 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !automaton_enable );
 
-        while( _auto_i8_load_file() < 0 ){
+        automaton_status = _auto_i8_load_file();
+        
+        if( automaton_status < 0 ){
 
-            TMR_WAIT( pt, 2000 );
+            THREAD_RESTART( pt );
         }
 
         log_v_debug_P( PSTR("Automaton ready") );        
-
-        automaton_status = 0;
 
         while(1){
 
@@ -590,7 +571,7 @@ PT_BEGIN( pt );
         }
 
 restart:
-        automaton_status = -1;
+        automaton_status = AUTOMATON_STATUS_STOPPED;
         log_v_debug_P( PSTR("Automaton restarting") );        
 
         // clear file handle
@@ -624,6 +605,8 @@ PT_THREAD( automaton_clock_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     while(1){
+
+        THREAD_WAIT_WHILE( pt, automaton_status != AUTOMATON_STATUS_RUNNING );
 
         TMR_WAIT( pt, 1000 );
 

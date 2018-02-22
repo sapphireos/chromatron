@@ -87,6 +87,7 @@ extern int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ) __attribute__((weak
 #define KVDB_STATUS_NOT_FOUND           -1
 #define KVDB_STATUS_NOT_ENOUGH_SPACE    -2
 #define KVDB_STATUS_INVALID_HASH        -3
+#define KVDB_STATUS_HASH_CONFLICT       -4
 
 
 #endif

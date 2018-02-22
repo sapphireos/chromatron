@@ -40,6 +40,15 @@
 #define AUTOMATON_RULE_MAGIC        0x454C5552  // 'RULE'
 #define AUTOMATON_VERSION           1
 
+#define AUTOMATON_STATUS_RUNNING            0
+#define AUTOMATON_STATUS_STOPPED            -1
+#define AUTOMATON_STATUS_LOAD_ERROR         -2
+#define AUTOMATON_STATUS_DATA_OVERFLOW      -3
+#define AUTOMATON_STATUS_DB_ADD_FAIL        -4
+#define AUTOMATON_STATUS_CODE_OVERFLOW      -5
+#define AUTOMATON_STATUS_BAD_VERSION        -6
+#define AUTOMATON_STATUS_TRIGGER_INDEX_FAIL -7
+
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 source_hash;
