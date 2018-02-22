@@ -33,7 +33,7 @@
 
 #define AUTOMATON_REG_COUNT         32
 #define AUTOMATON_MAX_VARS          16
-#define AUTOMATON_CODE_LEN          192
+#define AUTOMATON_CODE_LEN          255
 
 #define AUTOMATON_FILE_MAGIC        0x4F545541  // 'AUTO'
 #define AUTOMATON_RULE_MAGIC        0x454C5552  // 'RULE'
