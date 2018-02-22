@@ -360,12 +360,22 @@ class Server(Ribbon):
     def _send_data_msg(self, msg, host):
         msg.header.origin_id = self._origin_id
         s = self.__data_sock
-        s.sendto(serialize(msg), host)
+
+        try:
+            s.sendto(serialize(msg), host)
+
+        except socket.error:
+            pass
 
     def _send_announce_msg(self, msg, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
         msg.header.origin_id = self._origin_id
         s = self.__announce_sock
-        s.sendto(serialize(msg), host)
+
+        try:
+            s.sendto(serialize(msg), host)
+
+        except socket.error:
+            pass
 
     def _send_announce(self, host=('<broadcast>', CATBUS_DISCOVERY_PORT), discovery_id=None):
         msg = AnnounceMsg(
