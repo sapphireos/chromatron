@@ -1575,11 +1575,18 @@ PT_BEGIN( pt );
                 // change link flags and echo message back to sender
                 msg->flags = CATBUS_LINK_FLAGS_DEST;
 
+                sock_addr_t raddr;
+                sock_v_get_raddr( sock, &raddr );
+
+                raddr.port = msg->data_port;
+
+                msg->data_port = sock_u16_get_lport( sock );
+
                 // update header
                 _catbus_v_msg_init( header, CATBUS_MSG_TYPE_LINK, header->transaction_id );
 
                 // send reply message
-                sock_i16_sendto( sock, (uint8_t *)msg, sizeof(catbus_msg_link_t), 0 );   
+                sock_i16_sendto( sock, (uint8_t *)msg, sizeof(catbus_msg_link_t), &raddr );   
             }
             // receiver link
             else{
