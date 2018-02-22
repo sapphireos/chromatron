@@ -511,10 +511,10 @@ PT_BEGIN( pt );
         
         if( automaton_status < 0 ){
 
-            THREAD_RESTART( pt );
+            goto restart;
         }
 
-        log_v_debug_P( PSTR("Automaton ready") );        
+        // log_v_debug_P( PSTR("Automaton ready") );        
 
         while(1){
 
@@ -523,6 +523,8 @@ PT_BEGIN( pt );
                                    ( automaton_enable ) );
 
             if( !triggered ){
+
+                automaton_status = AUTOMATON_STATUS_STOPPED;
 
                 // this means our file got deleted, or we disabled the automaton
                 goto restart;
@@ -571,8 +573,7 @@ PT_BEGIN( pt );
         }
 
 restart:
-        automaton_status = AUTOMATON_STATUS_STOPPED;
-        log_v_debug_P( PSTR("Automaton restarting") );        
+        // log_v_debug_P( PSTR("Automaton restarting") );        
 
         // clear file handle
         if( file_handle > 0 ){
@@ -592,7 +593,7 @@ restart:
         // so this will also destroy any app-created links!!!
         catbus_v_purge_links();
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 2000 );
     }
 
 PT_END( pt );
