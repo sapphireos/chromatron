@@ -453,6 +453,10 @@ int8_t _auto_i8_process_rule( uint16_t index ){
                 if( catbus_i8_set( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
 
                 }
+                else{
+
+                    catbus_i8_publish( kv_load.hash );
+                }
             }
         }
     }
