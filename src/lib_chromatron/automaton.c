@@ -41,7 +41,7 @@ static file_t f = -1;
 
 KV_SECTION_META kv_meta_t automaton_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,      0, 0,                   &automaton_status,    0,   "automaton_status" },
-    { SAPPHIRE_TYPE_BOOL,      0, 0,                   &automaton_enable,    0,   "automaton_enable" },
+    { SAPPHIRE_TYPE_BOOL,      0, KV_FLAGS_PERSIST,    &automaton_enable,    0,   "automaton_enable" },
     { SAPPHIRE_TYPE_UINT8,     0, 0,                   &automaton_seconds,   0,   "seconds" },
 };
 
@@ -55,6 +55,8 @@ void auto_v_init( void ){
 
         return;
     }
+
+    automaton_status = -1;
 
     thread_t_create( automaton_thread,
                  PSTR("automaton"),
@@ -522,6 +524,8 @@ PT_BEGIN( pt );
     
     while(1){
 
+        THREAD_WAIT_WHILE( pt, !automaton_enable );
+
         while( _auto_i8_load_file() < 0 ){
 
             TMR_WAIT( pt, 2000 );
@@ -529,15 +533,18 @@ PT_BEGIN( pt );
 
         log_v_debug_P( PSTR("Automaton ready") );        
 
+        automaton_status = 0;
+
         while(1){
 
-            THREAD_WAIT_WHILE( pt, ( trigger == 0 ) && ( fs_i32_get_size( f ) >= 0 ) );
+            THREAD_WAIT_WHILE( pt, ( trigger == 0 ) &&
+                                   ( fs_i32_get_size( f ) >= 0 ) &&
+                                   ( automaton_enable ) );
 
             if( trigger == 0 ){
 
-                // this means our file got deleted
+                // this means our file got deleted, or we disabled the automaton
                 goto restart;
-
             }
 
             // elapsed = tmr_u64_get_system_time_us();
@@ -583,6 +590,7 @@ PT_BEGIN( pt );
         }
 
 restart:
+        automaton_status = -1;
         log_v_debug_P( PSTR("Automaton restarting") );        
 
         // clear file handle
