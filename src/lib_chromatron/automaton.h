@@ -48,6 +48,7 @@
 #define AUTOMATON_STATUS_CODE_OVERFLOW      -5
 #define AUTOMATON_STATUS_BAD_VERSION        -6
 #define AUTOMATON_STATUS_TRIGGER_INDEX_FAIL -7
+#define AUTOMATON_STATUS_FILE_NOT_FOUND     -8
 
 
 typedef struct __attribute__((packed)){

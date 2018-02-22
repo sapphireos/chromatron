@@ -37,7 +37,7 @@ static uint8_t automaton_seconds;
 static bool triggered;
 
 static mem_handle_t trigger_index_handle = -1;
-static file_t f = -1;
+static file_t file_handle = -1;
 
 KV_SECTION_META kv_meta_t automaton_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,      0, 0,                   &automaton_status,    0,   "automaton_status" },
@@ -78,18 +78,18 @@ int8_t _auto_i8_load_trigger_index( void ){
         trigger_index_handle = -1;
     }
 
-    if( f < 0 ){
+    if( file_handle < 0 ){
 
         return -1;
     }
 
-    fs_v_seek( f, 0 );
+    fs_v_seek( file_handle, 0 );
 
     int8_t status = -1;
 
     automaton_file_t header;
 
-    if( fs_i16_read( f, (uint8_t *)&header, sizeof(header) ) < 0 ){
+    if( fs_i16_read( file_handle, (uint8_t *)&header, sizeof(header) ) < 0 ){
 
         goto end;
     }
@@ -108,7 +108,7 @@ int8_t _auto_i8_load_trigger_index( void ){
                    ( header.send_len * sizeof(automaton_link_t) ) +
                    ( header.recv_len * sizeof(automaton_link_t) );
 
-    fs_v_seek( f, pos );
+    fs_v_seek( file_handle, pos );
 
     uint32_t index_size = header.trigger_index_len * sizeof(automaton_trigger_index_t);
 
@@ -123,7 +123,7 @@ int8_t _auto_i8_load_trigger_index( void ){
 
     uint8_t *ptr = mem2_vp_get_ptr( trigger_index_handle );
 
-    if( fs_i16_read( f, ptr, index_size ) < 0 ){
+    if( fs_i16_read( file_handle, ptr, index_size ) < 0 ){
 
         status = -3;
         goto end;
@@ -147,18 +147,18 @@ int8_t _auto_i8_load_file( void ){
     kvdb_v_delete_tag( AUTOMATON_KV_TAG );
 
 
-    f = fs_f_open_P( PSTR("automaton.auto"), FS_MODE_READ_ONLY );
+    file_handle = fs_f_open_P( PSTR("automaton.auto"), FS_MODE_READ_ONLY );
 
-    if( f < 0 ){
+    if( file_handle < 0 ){
 
-        return -1;
+        return AUTOMATON_STATUS_FILE_NOT_FOUND;
     }
 
     int8_t status = AUTOMATON_STATUS_LOAD_ERROR;
 
     automaton_file_t header;
 
-    if( fs_i16_read( f, (uint8_t *)&header, sizeof(header) ) < 0 ){
+    if( fs_i16_read( file_handle, (uint8_t *)&header, sizeof(header) ) < 0 ){
 
         goto end;
     }
@@ -194,7 +194,7 @@ int8_t _auto_i8_load_file( void ){
         automaton_var_t kv;
 
         // read data
-        if( fs_i16_read( f, (uint8_t *)&kv, sizeof(kv) ) < 0 ){
+        if( fs_i16_read( file_handle, (uint8_t *)&kv, sizeof(kv) ) < 0 ){
 
             goto end;
         }
@@ -220,7 +220,7 @@ int8_t _auto_i8_load_file( void ){
         automaton_link_t link;
 
         // read data
-        if( fs_i16_read( f, (uint8_t *)&link, sizeof(link) ) < 0 ){
+        if( fs_i16_read( file_handle, (uint8_t *)&link, sizeof(link) ) < 0 ){
 
             goto end;
         }
@@ -234,7 +234,7 @@ int8_t _auto_i8_load_file( void ){
         automaton_link_t link;
 
         // read data
-        if( fs_i16_read( f, (uint8_t *)&link, sizeof(link) ) < 0 ){
+        if( fs_i16_read( file_handle, (uint8_t *)&link, sizeof(link) ) < 0 ){
 
             goto end;
         }
@@ -268,18 +268,18 @@ end:
 
 int8_t _auto_i8_process_rule( uint16_t index ){
 
-    if( f < 0 ){
+    if( file_handle < 0 ){
 
         return -1;
     }
 
-    fs_v_seek( f, 0 );
+    fs_v_seek( file_handle, 0 );
 
     int8_t status = AUTOMATON_STATUS_LOAD_ERROR;
 
     automaton_file_t header;
 
-    if( fs_i16_read( f, (uint8_t *)&header, sizeof(header) ) < 0 ){
+    if( fs_i16_read( file_handle, (uint8_t *)&header, sizeof(header) ) < 0 ){
 
         goto end;
     }
@@ -302,11 +302,11 @@ int8_t _auto_i8_process_rule( uint16_t index ){
                    ( header.trigger_index_len * sizeof(automaton_trigger_index_t) ) +
                    index;
 
-    fs_v_seek( f, pos );
+    fs_v_seek( file_handle, pos );
 
     // read magic to verify we got to the right place
     automaton_rule_t rule;
-    fs_i16_read( f, (uint8_t *)&rule, sizeof(rule) );
+    fs_i16_read( file_handle, (uint8_t *)&rule, sizeof(rule) );
 
     if( rule.magic != AUTOMATON_RULE_MAGIC ){
 
@@ -325,7 +325,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         goto end;
     }
 
-    if( fs_i16_read( f, (uint8_t *)registers, ( rule.condition_data_len * sizeof(int32_t) ) ) < 0 ){
+    if( fs_i16_read( file_handle, (uint8_t *)registers, ( rule.condition_data_len * sizeof(int32_t) ) ) < 0 ){
 
         goto end;
     }
@@ -334,7 +334,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     for( uint8_t i = 0; i < rule.condition_kv_len; i++ ){
 
         automaton_kv_load_t kv_load;
-        if( fs_i16_read( f, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
+        if( fs_i16_read( file_handle, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
 
             goto end;
         }
@@ -358,7 +358,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         goto end;
     }
 
-    if( fs_i16_read( f, code, rule.condition_code_len ) < 0 ){
+    if( fs_i16_read( file_handle, code, rule.condition_code_len ) < 0 ){
 
         goto end;
     }
@@ -385,19 +385,19 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         goto end;
     }
 
-    if( fs_i16_read( f, (uint8_t *)registers, ( rule.action_data_len * sizeof(int32_t) ) ) < 0 ){
+    if( fs_i16_read( file_handle, (uint8_t *)registers, ( rule.action_data_len * sizeof(int32_t) ) ) < 0 ){
 
         goto end;
     }
 
     // load KV
     // remember our file position, we'll come back to this
-    int32_t kv_load_pos = fs_i32_tell( f );
+    int32_t kv_load_pos = fs_i32_tell( file_handle );
 
     for( uint8_t i = 0; i < rule.action_kv_len; i++ ){
 
         automaton_kv_load_t kv_load;
-        if( fs_i16_read( f, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
+        if( fs_i16_read( file_handle, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
 
             goto end;
         }
@@ -421,7 +421,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         goto end;
     }
 
-    if( fs_i16_read( f, code, rule.action_code_len ) < 0 ){
+    if( fs_i16_read( file_handle, code, rule.action_code_len ) < 0 ){
 
         goto end;
     }
@@ -430,12 +430,12 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     vm_status = vm_i8_eval( code, registers, &result );
 
     // write KV to database
-    fs_v_seek( f, kv_load_pos );
+    fs_v_seek( file_handle, kv_load_pos );
 
     for( uint8_t i = 0; i < rule.action_kv_len; i++ ){
 
         automaton_kv_load_t kv_load;
-        if( fs_i16_read( f, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
+        if( fs_i16_read( file_handle, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
 
             goto end;
         }
@@ -519,7 +519,7 @@ PT_BEGIN( pt );
         while(1){
 
             THREAD_WAIT_WHILE( pt, ( !triggered ) &&
-                                   ( fs_i32_get_size( f ) >= 0 ) &&
+                                   ( fs_i32_get_size( file_handle ) >= 0 ) &&
                                    ( automaton_enable ) );
 
             if( !triggered ){
@@ -575,9 +575,9 @@ restart:
         log_v_debug_P( PSTR("Automaton restarting") );        
 
         // clear file handle
-        if( f > 0 ){
+        if( file_handle > 0 ){
 
-            fs_f_close( f );
+            file_handle = fs_f_close( file_handle );
         }
 
         if( trigger_index_handle > 0 ){
@@ -585,8 +585,6 @@ restart:
             mem2_v_free( trigger_index_handle );
             trigger_index_handle = -1;
         }
-
-        f = -1;
 
         // purge all locally created links
         // NOTE:
