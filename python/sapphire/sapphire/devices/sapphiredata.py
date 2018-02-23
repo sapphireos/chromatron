@@ -155,7 +155,6 @@ class KVReceiveCacheField(StructField):
         fields = [Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
                   Int32Field(_name="dest_hash"),
-                  Int32Field(_name="data"),
                   Uint16Field(_name="sequence"),
                   Int8Field(_name="ttl")]
 

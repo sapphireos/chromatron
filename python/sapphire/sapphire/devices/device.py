@@ -884,15 +884,14 @@ class Device(object):
     def cli_rxcacheinfo(self, line):
         info = self.get_kvreceivecache_info()
 
-        s = "\nTTL IP:             Port  Dest         Data         Sequence\n"
+        s = "\nTTL IP:             Port  Dest         Sequence\n"
 
         for n in info:
-            s += "%3d %15s %5u %-12d %-12d %5u" % \
+            s += "%3d %15s %5u %-12d %5u" % \
                 (n.ttl,
                  n.ip,
                  n.port,
                  n.dest_hash,
-                 n.data,
                  n.sequence)
 
 
