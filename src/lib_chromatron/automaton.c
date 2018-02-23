@@ -467,32 +467,46 @@ PT_BEGIN( pt );
 
         uint8_t count = mem2_u16_get_size( trigger_index_handle ) / sizeof(automaton_trigger_index_t);
 
-        for( uint8_t i = 0; i < count; i++ ){
+        #define MAX_PASSES 8
+        uint8_t passes = MAX_PASSES;
 
-            if( index[i].status != 0 ){
+        while( triggered && ( passes > 0 ) ){
 
-                index[i].status = 0;
+            passes--;
+            triggered = FALSE;
 
-                int32_t registers[AUTOMATON_REG_COUNT];
+            for( uint8_t i = 0; i < count; i++ ){
 
-                status = _auto_i8_process_rule( 
-                    index[i].condition_offset, 
-                    &header, 
-                    registers, 
-                    sizeof(registers),
-                    state,
-                    header.local_vars_len * sizeof(int32_t) );
+                if( index[i].status != 0 ){
 
-                if( status < 0 ){
+                    index[i].status = 0;
 
-                    break;
+                    int32_t registers[AUTOMATON_REG_COUNT];
+
+                    status = _auto_i8_process_rule( 
+                        index[i].condition_offset, 
+                        &header, 
+                        registers, 
+                        sizeof(registers),
+                        state,
+                        header.local_vars_len * sizeof(int32_t) );
+
+                    if( status < 0 ){
+
+                        break;
+                    }
                 }
             }
         }
 
+        // if( ( MAX_PASSES - passes ) > 1 ){
+
+        //     log_v_debug_P( PSTR("Passes: %d"), MAX_PASSES - passes );
+        // }
+
         if( status < 0 ){
 
-            // log_v_error_P( PSTR("status: %d"), status );
+            log_v_error_P( PSTR("status: %d"), status );
 
             goto error;
         }
@@ -501,7 +515,7 @@ PT_BEGIN( pt );
 
         // log_v_debug_P( PSTR("elapsed: %lu"), (uint32_t)elapsed );        
 
-        triggered = FALSE;
+        // triggered = FALSE;
     }
 
 error:
