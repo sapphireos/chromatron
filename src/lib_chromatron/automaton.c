@@ -378,6 +378,9 @@ int8_t _auto_i8_process_rule(
     result = 0;
     vm_status = vm_i8_eval( code, registers, &result );
 
+    // store local vars
+    memcpy( local_vars, &registers[1], local_vars_len );
+
     // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
 
     status = 0;
@@ -431,7 +434,7 @@ PT_BEGIN( pt );
             automaton_status = AUTOMATON_STATUS_STOPPED;
 
             // this means our file got deleted, or we disabled the automaton
-            THREAD_EXIT( pt );
+            goto end;
         }
 
         // elapsed = tmr_u64_get_system_time_us();
@@ -504,6 +507,10 @@ PT_BEGIN( pt );
 error:
     automaton_status = AUTOMATON_STATUS_ERROR;
 
+end:
+    // delete existing database entries
+    kvdb_v_delete_tag( AUTOMATON_KV_TAG );
+
 PT_END( pt );
 }
 
@@ -533,11 +540,15 @@ PT_BEGIN( pt );
         uint16_t local_var_len = status * sizeof(int32_t);
 
         // start runner thread
-        if( thread_t_create( THREAD_CAST(automaton_runner_thread), PSTR("automaton_runner"), 0, local_var_len ) < 0 ){
+        thread_t t = thread_t_create( THREAD_CAST(automaton_runner_thread), PSTR("automaton_runner"), 0, local_var_len );
+        if( t < 0 ){
 
             automaton_status = AUTOMATON_STATUS_ERROR;
             goto restart;
         }
+
+        // clear thread state
+        memset( thread_vp_get_data( t ), 0, local_var_len );
 
         while( automaton_status == AUTOMATON_STATUS_RUNNING ){
 
