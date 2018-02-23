@@ -99,7 +99,7 @@ int8_t _auto_i8_load_trigger_index( void ){
 
     // skip to trigger index
     uint32_t pos = sizeof(header) + 
-                   ( header.var_len * sizeof(automaton_var_t) ) +
+                   ( header.db_vars_len * sizeof(automaton_db_var_t) ) +
                    ( header.send_len * sizeof(automaton_link_t) ) +
                    ( header.recv_len * sizeof(automaton_link_t) );
 
@@ -175,18 +175,26 @@ int8_t _auto_i8_load_file( void ){
         goto end;
     }
 
-    if( header.var_len > AUTOMATON_MAX_VARS ){
+    if( header.local_vars_len > AUTOMATON_MAX_LOCAL_VARS ){
 
         status = AUTOMATON_STATUS_DATA_OVERFLOW;
-        log_v_error_P( PSTR("too many vars") );
+        log_v_error_P( PSTR("too many local vars") );
 
         goto end;
     }
 
-    // read KV vars
-    for( uint8_t i = 0; i < header.var_len; i++ ){
+    if( header.db_vars_len > AUTOMATON_MAX_DB_VARS ){
 
-        automaton_var_t kv;
+        status = AUTOMATON_STATUS_DATA_OVERFLOW;
+        log_v_error_P( PSTR("too many db vars") );
+
+        goto end;
+    }
+
+    // read DB vars
+    for( uint8_t i = 0; i < header.db_vars_len; i++ ){
+
+        automaton_db_var_t kv;
 
         // read data
         if( fs_i16_read( file_handle, (uint8_t *)&kv, sizeof(kv) ) < 0 ){
@@ -248,10 +256,10 @@ int8_t _auto_i8_load_file( void ){
     }
 
 end:
-    // if( status < 0 ){
+    if( status < 0 ){
 
-    //     log_v_error_P( PSTR("error: %d"), status );
-    // }
+        log_v_error_P( PSTR("error: %d"), status );
+    }
 
     return status;
 }
@@ -291,7 +299,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     // skip to condition index
     uint32_t pos = sizeof(header) + 
-                   ( header.var_len * sizeof(automaton_var_t) ) +
+                   ( header.db_vars_len * sizeof(automaton_db_var_t) ) +
                    ( header.send_len * sizeof(automaton_link_t) ) +
                    ( header.recv_len * sizeof(automaton_link_t) ) +
                    ( header.trigger_index_len * sizeof(automaton_trigger_index_t) ) +
@@ -324,27 +332,6 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
         goto end;
     }
-
-    // load KV
-    for( uint8_t i = 0; i < rule.condition_kv_len; i++ ){
-
-        automaton_kv_load_t kv_load;
-        if( fs_i16_read( file_handle, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
-
-            goto end;
-        }
-
-        if( kv_load.addr >= cnt_of_array(registers) ){
-
-            status = AUTOMATON_STATUS_DATA_OVERFLOW;
-            goto end;      
-        }
-
-        if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
-
-            registers[kv_load.addr] = 0;
-        }
-    }
     
     // load code
     if( rule.condition_code_len > sizeof(code) ){
@@ -361,7 +348,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     int32_t result = 0;
     int8_t vm_status = vm_i8_eval( code, registers, &result );
 
-    // log_v_debug_P( PSTR("Condition status: %d result: %ld"), vm_status, result );
+    log_v_debug_P( PSTR("Condition status: %d result: %ld"), vm_status, result );
 
     if( result == FALSE ){
 
@@ -385,30 +372,6 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         goto end;
     }
 
-    // load KV
-    // remember our file position, we'll come back to this
-    int32_t kv_load_pos = fs_i32_tell( file_handle );
-
-    for( uint8_t i = 0; i < rule.action_kv_len; i++ ){
-
-        automaton_kv_load_t kv_load;
-        if( fs_i16_read( file_handle, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
-
-            goto end;
-        }
-
-        if( kv_load.addr >= cnt_of_array(registers) ){
-
-            status = AUTOMATON_STATUS_DATA_OVERFLOW;
-            goto end;      
-        }
-
-        if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
-
-            registers[kv_load.addr] = 0;
-        }
-    }
-
     // load code
     if( rule.action_code_len > sizeof(code) ){
 
@@ -424,44 +387,7 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     result = 0;
     vm_status = vm_i8_eval( code, registers, &result );
 
-    // write KV to database
-    fs_v_seek( file_handle, kv_load_pos );
-
-    for( uint8_t i = 0; i < rule.action_kv_len; i++ ){
-
-        automaton_kv_load_t kv_load;
-        if( fs_i16_read( file_handle, (uint8_t *)&kv_load, sizeof(kv_load) ) < 0 ){
-
-            goto end;
-        }
-
-        if( kv_load.addr >= cnt_of_array(registers) ){
-
-            status = AUTOMATON_STATUS_DATA_OVERFLOW;
-            goto end;      
-        }
-
-        // check if item changed
-        int32_t data = 0;
-
-        if( catbus_i8_get( kv_load.hash, CATBUS_TYPE_INT32, &data ) < 0 ){        
-
-        }
-        else{
-            if( registers[kv_load.addr] != data ){
-                
-                if( catbus_i8_set( kv_load.hash, CATBUS_TYPE_INT32, &registers[kv_load.addr] ) < 0 ){
-
-                }
-                else{
-
-                    catbus_i8_publish( kv_load.hash );
-                }
-            }
-        }
-    }
-
-    // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
+    log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
 
     status = 0;
 
