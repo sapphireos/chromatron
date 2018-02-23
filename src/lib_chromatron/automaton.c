@@ -46,7 +46,7 @@ KV_SECTION_META kv_meta_t automaton_info_kv[] = {
 };
 
 
-PT_THREAD( automaton_runner_thread( pt_t *pt, void *state ) );
+PT_THREAD( automaton_runner_thread( pt_t *pt, int32_t *state ) );
 PT_THREAD( automaton_thread( pt_t *pt, void *state ) );
 
 void auto_v_init( void ){
@@ -247,7 +247,7 @@ int8_t _auto_i8_load_file( void ){
 
     // load OK
 
-    status = 0;
+    status = header.local_vars_len;
 
     if( _auto_i8_load_trigger_index() < 0 ){
 
@@ -269,40 +269,25 @@ end:
 // elapsed = tmr_u64_elapsed_time_us( elapsed );
 
 
-int8_t _auto_i8_process_rule( uint16_t index ){
-
-    if( file_handle < 0 ){
-
-        return -1;
-    }
-
-    fs_v_seek( file_handle, 0 );
+int8_t _auto_i8_process_rule( 
+    uint16_t index, 
+    automaton_file_t *header, 
+    int32_t *registers, 
+    uint16_t registers_len,
+    int32_t *local_vars, 
+    uint16_t local_vars_len ){
 
     int8_t status = AUTOMATON_STATUS_LOAD_ERROR;
 
-    automaton_file_t header;
-
-    if( fs_i16_read( file_handle, (uint8_t *)&header, sizeof(header) ) < 0 ){
-
-        goto end;
-    }
-
-    // verify magic number
-    if( header.magic != AUTOMATON_FILE_MAGIC ){
-
-        goto end;
-    }
-
-    int32_t registers[AUTOMATON_REG_COUNT];
     uint8_t code[AUTOMATON_CODE_LEN];
     memset( code, 0xff, sizeof(code) );
 
     // skip to condition index
-    uint32_t pos = sizeof(header) + 
-                   ( header.db_vars_len * sizeof(automaton_db_var_t) ) +
-                   ( header.send_len * sizeof(automaton_link_t) ) +
-                   ( header.recv_len * sizeof(automaton_link_t) ) +
-                   ( header.trigger_index_len * sizeof(automaton_trigger_index_t) ) +
+    uint32_t pos = sizeof(automaton_file_t) + 
+                   ( header->db_vars_len * sizeof(automaton_db_var_t) ) +
+                   ( header->send_len * sizeof(automaton_link_t) ) +
+                   ( header->recv_len * sizeof(automaton_link_t) ) +
+                   ( header->trigger_index_len * sizeof(automaton_trigger_index_t) ) +
                    index;
 
     fs_v_seek( file_handle, pos );
@@ -319,10 +304,10 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     
     // CONDITION
 
-    // load registers
+    // init registers
     memset( registers, 0, sizeof(registers) );
 
-    if( rule.condition_data_len > cnt_of_array(registers) ){
+    if( rule.condition_data_len > AUTOMATON_REG_COUNT ){
 
         status = AUTOMATON_STATUS_DATA_OVERFLOW;
         goto end;
@@ -345,10 +330,13 @@ int8_t _auto_i8_process_rule( uint16_t index ){
         goto end;
     }
 
+    // load local vars
+    memcpy( &registers[1], local_vars, local_vars_len );
+
     int32_t result = 0;
     int8_t vm_status = vm_i8_eval( code, registers, &result );
 
-    log_v_debug_P( PSTR("Condition status: %d result: %ld"), vm_status, result );
+    // log_v_debug_P( PSTR("Condition status: %d result: %ld"), vm_status, result );
 
     if( result == FALSE ){
 
@@ -358,10 +346,10 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
     // ACTION
 
-    // load registers
+    // init registers
     memset( registers, 0, sizeof(registers) );
 
-    if( rule.action_data_len > cnt_of_array(registers) ){
+    if( rule.action_data_len > AUTOMATON_REG_COUNT ){
 
         status = AUTOMATON_STATUS_DATA_OVERFLOW;
         goto end;
@@ -371,6 +359,9 @@ int8_t _auto_i8_process_rule( uint16_t index ){
 
         goto end;
     }
+
+    // load local vars
+    memcpy( &registers[1], local_vars, local_vars_len );
 
     // load code
     if( rule.action_code_len > sizeof(code) ){
@@ -387,14 +378,14 @@ int8_t _auto_i8_process_rule( uint16_t index ){
     result = 0;
     vm_status = vm_i8_eval( code, registers, &result );
 
-    log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
+    // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
 
     status = 0;
 
 end:
     if( status < 0 ){
 
-        log_v_error_P( PSTR("error: %d"), status );
+        // log_v_error_P( PSTR("error: %d"), status );
     }
 
     return status;
@@ -422,7 +413,8 @@ void _auto_v_trigger( catbus_hash_t32 hash ){
     }
 }
 
-PT_THREAD( automaton_runner_thread( pt_t *pt, void *state ) )
+
+PT_THREAD( automaton_runner_thread( pt_t *pt, int32_t *state ) )
 {
 PT_BEGIN( pt );
 
@@ -446,6 +438,27 @@ PT_BEGIN( pt );
 
         int8_t status = 0;
 
+        if( file_handle < 0 ){
+
+            goto error;
+        }
+
+        fs_v_seek( file_handle, 0 );
+
+        automaton_file_t header;
+
+        if( fs_i16_read( file_handle, (uint8_t *)&header, sizeof(header) ) < 0 ){
+
+            goto error;
+        }
+
+        // verify magic number
+        if( header.magic != AUTOMATON_FILE_MAGIC ){
+
+            goto error;
+        }
+
+
         // scan triggers and process rules
         automaton_trigger_index_t *index = mem2_vp_get_ptr( trigger_index_handle );
 
@@ -457,7 +470,15 @@ PT_BEGIN( pt );
 
                 index[i].status = 0;
 
-                status = _auto_i8_process_rule( index[i].condition_offset );
+                int32_t registers[AUTOMATON_REG_COUNT];
+
+                status = _auto_i8_process_rule( 
+                    index[i].condition_offset, 
+                    &header, 
+                    registers, 
+                    sizeof(registers),
+                    state,
+                    header.local_vars_len * sizeof(int32_t) );
 
                 if( status < 0 ){
 
@@ -468,11 +489,9 @@ PT_BEGIN( pt );
 
         if( status < 0 ){
 
-            log_v_error_P( PSTR("status: %d"), status );
+            // log_v_error_P( PSTR("status: %d"), status );
 
-            automaton_status = AUTOMATON_STATUS_ERROR;
-
-            THREAD_EXIT( pt );
+            goto error;
         }
 
         // elapsed = tmr_u64_elapsed_time_us( elapsed );
@@ -481,6 +500,9 @@ PT_BEGIN( pt );
 
         triggered = FALSE;
     }
+
+error:
+    automaton_status = AUTOMATON_STATUS_ERROR;
 
 PT_END( pt );
 }
@@ -497,15 +519,21 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !automaton_enable );
 
-        automaton_status = _auto_i8_load_file();
-        
-        if( automaton_status < 0 ){
+        int8_t status = _auto_i8_load_file();
 
+        if( status < 0 ){
+
+            automaton_status = status;
             goto restart;
         }
 
+        automaton_status = AUTOMATON_STATUS_RUNNING;
+
+        // load file returns number of local vars
+        uint16_t local_var_len = status * sizeof(int32_t);
+
         // start runner thread
-        if( thread_t_create( automaton_runner_thread, PSTR("automaton_runner"), 0, 0 ) < 0 ){
+        if( thread_t_create( THREAD_CAST(automaton_runner_thread), PSTR("automaton_runner"), 0, local_var_len ) < 0 ){
 
             automaton_status = AUTOMATON_STATUS_ERROR;
             goto restart;
