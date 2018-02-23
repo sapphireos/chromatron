@@ -1025,3 +1025,8 @@ uint8_t kv_u8_get_dynamic_count( void ){
 
     return kvdb_u16_count();
 }
+
+void kv_v_shutdown( void ){
+
+    
+}

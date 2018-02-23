@@ -2165,3 +2165,8 @@ next_send:
 
 PT_END( pt );
 }
+
+void catbus_v_shutdown( void ){
+
+    
+}

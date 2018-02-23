@@ -172,6 +172,7 @@ int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 #define KV_META_FLAGS_GET_NAME      0x01
 
 uint8_t kv_u8_get_dynamic_count( void );
+void kv_v_shutdown( void );
 
 extern void kv_v_notify_hash_set( catbus_hash_t32 hash ) __attribute__((weak));
 

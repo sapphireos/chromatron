@@ -317,6 +317,8 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash );
 void catbus_v_set_options( uint32_t options );
 #define CATBUS_OPTION_LINK_DISABLE      0x00000001
 
+void catbus_v_shutdown( void );
+
 #endif
 
 

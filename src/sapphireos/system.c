@@ -39,15 +39,8 @@
 #include "watchdog.h"
 #include "hal_cpu.h"
 #include "usb_intf.h"
-
-#ifdef ENABLE_WCOM
-#include "wcom_neighbors.h"
-#endif
-
-#ifdef ENABLE_PRESENCE
-#include "presence.h"
-#endif
-
+#include "catbus.h"
+#include "keyvalue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -527,16 +520,6 @@ void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
 
     sys_v_disable_watchdog();
 
-    #ifdef ENABLE_WCOM
-    // get timer information
-    uint32_t sym_count = rf_u32_read_symbol_counter();
-    uint32_t sym_count_irq_status = rf_u8_get_sym_count_irq_status();
-    uint32_t sym_count_irq_mask = rf_u8_get_sym_count_irq_mask();
-    uint32_t sym_cmp_1 = rf_u32_get_sym_count_compare( 1 );
-    uint32_t sym_cmp_2 = rf_u32_get_sym_count_compare( 2 );
-    uint32_t sym_cmp_3 = rf_u32_get_sym_count_compare( 3 );
-    #endif
-
     // create error log
     cfg_error_log_t error_log;
     memset( &error_log, 0, sizeof(error_log) );
@@ -609,20 +592,6 @@ void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     }
     #endif
 
-    #ifdef ENABLE_WCOM
-    // write timer info
-    ptr += sprintf_P(
-            ptr,
-            PSTR("SymCount: %lu IRQS: %lu IRQM: %lu CMP1: %lu CMP2: %lu CMP3: %lu\r\n"),
-            sym_count,
-            sym_count_irq_status,
-            sym_count_irq_mask,
-            sym_cmp_1,
-            sym_cmp_2,
-            sym_cmp_3
-            );
-    #endif
-
     // write error log
     cfg_v_write_error_log( &error_log );
 
@@ -667,11 +636,9 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // shutdown presence
-    #ifdef ENABLE_PRESENCE
-    presence_v_shutdown();
-    #endif
-
+    catbus_v_shutdown();
+    kv_v_shutdown();
+    
     // notify boot mode
     kv_i8_publish( __KV__boot_mode );
 
@@ -680,16 +647,6 @@ PT_BEGIN( pt );
 	   TMR_WAIT( pt, 1000 );
 
        reboot_delay--;
-    }
-
-    // check for safe mode.  wcom is disabled in safe mode for now,
-    // so a call to wcom will crash.
-    if( sys_mode != SYS_MODE_SAFE ){
-
-        #ifdef ENABLE_WCOM
-        // shutdown network
-        wcom_neighbors_v_shutdown();
-        #endif
     }
 
     #ifdef ENABLE_USB
