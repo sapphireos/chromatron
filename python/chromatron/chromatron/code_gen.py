@@ -2484,7 +2484,7 @@ class CodeGeneratorPass4(object):
 
         self.optimize_register_usage = True
 
-    def generate(self, state):
+    def generate(self, state, global_registers=[]):
         register_usage = {}
 
         code = state['code']
@@ -2510,15 +2510,25 @@ class CodeGeneratorPass4(object):
         # second pass, assign addresses to registers
         registers = {}
         address_pool = []
-        addr = 0
 
-        # assign return value
+        # assign return value at address 0
         ret_val = VarIR(RETURN_VAL_NAME, line_no=0)
-        ret_val.addr = addr
+        ret_val.addr = 0
         ret_val.function = self.current_function
         registers[ret_val.name] = ret_val
 
-        addr += 1
+        addr = 1
+
+        # assign any global registers
+        # this is used for the automaton
+        for reg in global_registers:
+            registers[reg] = VarIR(reg, line_no=0)
+            registers[reg].addr = addr
+            registers[reg].function = self.current_function
+            addr += 1
+
+        print "MEOW"
+        print registers
 
         for i in xrange(len(code)):
             ir = code[i]
@@ -2621,36 +2631,38 @@ class CodeGeneratorPass4(object):
         return state
 
 
-class CodeGeneratorPassAutomaton4(object):
-    def __init__(self):
-        pass
+# class CodeGeneratorPassAutomaton4(object):
+#     def __init__(self):
+#         pass
 
-    def generate(self, state, condition=True):
-        updated_code = []
+#     def generate(self, state, condition=True):
+#         updated_code = []
 
-        # code = state['code']
+#         # code = state['code']
 
-        # assert isinstance(code[0], FunctionIR)
-        state['automaton_kv'] = {}
+#         # assert isinstance(code[0], FunctionIR)
+#         state['automaton_kv'] = {}
 
-        kv_regs = {}
+#         kv_regs = {}
 
-        for reg in state['data']['registers'].itervalues():
-            if isinstance(reg, VarIR) and \
-               not reg.declared and \
-               reg.function != '_global':
+#         pprint(state)
 
-                kv_regs[reg.name] = reg
-                state['automaton_kv'][reg.name] = reg.addr
+#         for reg in state['data']['registers'].itervalues():
+#             if isinstance(reg, VarIR) and \
+#                not reg.declared and \
+#                reg.function != '_global':
 
-        # for reg, varir in kv_regs.iteritems():
-        #     ins = CallIR('getkey', varir, [KeyIR(reg)])
+#                 kv_regs[reg.name] = reg
+#                 state['automaton_kv'][reg.name] = reg.addr
 
-        #     print ins
-        #     code.insert(1, ins)
+#         # for reg, varir in kv_regs.iteritems():
+#         #     ins = CallIR('getkey', varir, [KeyIR(reg)])
+
+#         #     print ins
+#         #     code.insert(1, ins)
 
 
-        return state
+#         return state
 
 
 class Instruction(object):
@@ -4033,7 +4045,6 @@ class CodeGeneratorPassAutomaton7(object):
         del self.state['vm_data']
         del self.state['objects']
         del self.state['code']
-        del self.state['data']
 
         self.state.update(
                {'code_stream': code_stream,
@@ -4867,7 +4878,7 @@ def compile_text(text, debug_print=False, script_name=''):
 
     return state7
 
-def compile_automaton_text(text, debug_print=False, script_name='', condition=True):
+def compile_automaton_text(text, debug_print=False, script_name='', condition=True, local_vars=[]):
     if condition:
         tree = ast.parse(text, mode='eval')
 
@@ -4918,7 +4929,7 @@ def compile_automaton_text(text, debug_print=False, script_name='', condition=Tr
             print i
 
     cg4 = CodeGeneratorPass4()
-    state4 = cg4.generate(state3)
+    state4 = cg4.generate(state3, global_registers=local_vars)
 
     if debug_print:
         print ''
@@ -4936,19 +4947,19 @@ def compile_automaton_text(text, debug_print=False, script_name='', condition=Tr
         # for k, v in state4['keys'].iteritems():
         #     print '%3d %32s %s' % (v.line_no, k, v)
 
-    cg_auto4 = CodeGeneratorPassAutomaton4()
-    state_auto4 = cg_auto4.generate(state4, condition=condition)
+    # cg_auto4 = CodeGeneratorPassAutomaton4()
+    # state_auto4 = cg_auto4.generate(state4, condition=condition)
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS AUTOMATON 4'
-        for i in state_auto4['code']:
-            print i
+    # if debug_print:
+    #     print ''
+    #     print ''
+    #     print 'PASS AUTOMATON 4'
+    #     for i in state_auto4['code']:
+    #         print i
 
 
-    cg5 = CodeGeneratorPass5(state_auto4)
-    state5 = cg5.generate(state_auto4)
+    cg5 = CodeGeneratorPass5(state4)
+    state5 = cg5.generate(state4)
 
     if debug_print:
         print ''
