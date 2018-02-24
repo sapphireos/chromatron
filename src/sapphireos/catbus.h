@@ -185,6 +185,19 @@ typedef struct __attribute__((packed)){
 } catbus_msg_link_data_t;
 #define CATBUS_MSG_TYPE_LINK_DATA               ( 2 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
+typedef struct __attribute__((packed)){
+    catbus_header_t header;
+    uint16_t index;
+} catbus_msg_link_get_t;
+#define CATBUS_MSG_TYPE_LINK_GET                ( 3 + CATBUS_MSG_LINK_GROUP_OFFSET )
+
+// same messages as catbus_msg_link_get_t
+#define CATBUS_MSG_TYPE_LINK_DELETE             ( 4 + CATBUS_MSG_LINK_GROUP_OFFSET )
+
+// message is the same as catbus_msg_link_t
+#define CATBUS_MSG_TYPE_LINK_ADD                ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
+
+
 
 // FILE
 typedef struct __attribute__((packed)){

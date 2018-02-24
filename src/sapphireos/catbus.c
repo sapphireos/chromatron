@@ -703,6 +703,15 @@ int8_t catbus_i8_array_set(
 
     if( status == 0 ){
 
+        /*
+    
+        Change detection?
+
+
+        OR, always require explicit publish?
+
+        */
+
         catbus_i8_publish( hash );
     }
 
@@ -1672,6 +1681,37 @@ PT_BEGIN( pt );
                 }
             }
         }
+        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_GET ){
+
+            if( !link_enable ){
+
+                goto end;
+            }
+
+            catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
+
+        }
+        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_DELETE ){
+
+            if( !link_enable ){
+
+                goto end;
+            }
+
+            catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
+
+        }
+        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_ADD ){
+
+            if( !link_enable ){
+
+                goto end;
+            }
+
+            catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
+            
+        }
+
         #endif
 
         // FILE SYSTEM MESSAGES
