@@ -41,7 +41,7 @@ typedef struct __attribute__((packed)){
     uint8_t data; // convenient dereferencing point to first byte
 } catbus_data_t;
 
-typedef list_node_t catbus_link_t;
+typedef int16_t catbus_link_t;
 
 typedef struct __attribute__((packed)){
     uint32_t meow;

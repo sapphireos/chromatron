@@ -42,10 +42,11 @@ typedef struct{
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
+    uint8_t reserved[8];
 } catbus_link_state_t;
 #define CATBUS_LINK_FLAGS_SOURCE        0x01
 #define CATBUS_LINK_FLAGS_DEST          0x04
-#define CATBUS_LINK_FLAGS_DELETE        0x80
+#define CATBUS_LINK_FLAGS_VALID         0x80
 
 typedef struct{
     sock_addr_t raddr;
@@ -62,7 +63,6 @@ typedef struct{
 } catbus_receive_data_entry_t;
 
 static bool link_enable;
-static list_t links;
 static list_t send_list;
 static list_t receive_cache;
 static list_t publish_list;
@@ -124,35 +124,6 @@ static const PROGMEM catbus_hash_t32 meta_tag_names[CATBUS_QUERY_LEN] = {
 };
 
 #ifdef ENABLE_CATBUS_LINK
-static uint16_t links_vfile_handler(
-    vfile_op_t8 op,
-    uint32_t pos,
-    void *ptr,
-    uint16_t len )
-{
-
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-
-        case FS_VFILE_OP_READ:
-            list_u16_flatten( &links, pos, ptr, len );
-            break;
-
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &links );
-            break;
-
-        case FS_VFILE_OP_DELETE:
-            break;
-
-        default:
-            len = 0;
-            break;
-    }
-
-    return len;
-}
-
 static uint16_t sendlist_vfile_handler(
     vfile_op_t8 op,
     uint32_t pos,
@@ -348,12 +319,17 @@ void catbus_v_init( void ){
 
         link_enable = TRUE;
 
-        list_v_init( &links );
         list_v_init( &send_list );
         list_v_init( &receive_cache );
         list_v_init( &publish_list );
 
-        fs_f_create_virtual( PSTR("kvlinks"), links_vfile_handler );
+        file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
+
+        if( f > 0 ){
+
+            f = fs_f_close( f );
+        }
+
         fs_f_create_virtual( PSTR("kvrxcache"), receive_cache_vfile_handler );
         fs_f_create_virtual( PSTR("kvsend"), sendlist_vfile_handler );
 
@@ -545,9 +521,7 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
     list_v_insert_tail( &send_list, ln );
 }
 
-static bool _catbus_b_compare_links( catbus_link_state_t *state, catbus_link_t link ){
-
-    catbus_link_state_t *state2 = list_vp_get_data( link );
+static bool _catbus_b_compare_links( catbus_link_state_t *state, catbus_link_state_t *state2 ){
 
     if( state->flags != state2->flags ){
 
@@ -580,10 +554,17 @@ static catbus_link_t _catbus_l_create_link(
     catbus_query_t *query,
     uint8_t tag ){
 
+    file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
+
+    if( f < 0 ){
+
+        return -1;
+    }
+
     catbus_link_state_t state;
 
     state.tag = tag;
-    state.flags = 0;
+    state.flags = CATBUS_LINK_FLAGS_VALID;
 
     if( source ){
 
@@ -593,59 +574,44 @@ static catbus_link_t _catbus_l_create_link(
     state.source_hash       = source_hash;
     state.dest_hash         = dest_hash;
     state.query             = *query;
+    memset( state.reserved, 0, sizeof(state.reserved) );
     
     // check if we already have this link
-    catbus_link_t ln = links.head;
+    catbus_link_state_t state2;
+    int32_t free_pos = -1;
 
-    while( ln > 0 ){
+    while( fs_i16_read( f, (uint8_t *)&state2, sizeof(state2) ) == sizeof(state2) ){
 
-        if( _catbus_b_compare_links( &state, ln ) ){
+        if( ( state2.flags & CATBUS_LINK_FLAGS_VALID ) == 0 ){
 
-            return ln;
+            if( free_pos < 0 ){
+
+                // mark this location as free
+                free_pos = fs_i32_tell( f );
+            }
+
+            continue;
         }
 
-        ln = list_ln_next( ln );
+        if( _catbus_b_compare_links( &state, &state2 ) ){
+
+            return 0;
+        }
     }
 
-    ln = list_ln_create_node2( &state, sizeof(state), MEM_TYPE_CATBUS_LINK );
+    // new link
+    if( free_pos >= 0 ){
 
-    if( ln < 0 ){
-
-        return -1;
+        fs_v_seek( f, free_pos );
     }
 
-    list_v_insert_tail( &links, ln );
+    fs_i16_write( f, (uint8_t *)&state, sizeof(state) );
 
-    return ln;
+    fs_f_close( f );
+
+    return 0;
 }
 
-
-// static void _catbus_v_send_link( catbus_link_t link ){
-
-//     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_link_t) );
-
-//     if( h < 0 ){
-
-//         return;
-//     }
-
-//     catbus_link_state_t *state = list_vp_get_data( link );
-
-//     catbus_msg_link_t *msg = mem2_vp_get_ptr( h );
-
-//     _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK, 0 );
-
-//     msg->source_hash    = state->source_hash;
-//     msg->dest_hash      = state->dest_hash;
-//     msg->flags          = state->flags;
-//     msg->query          = state->query;
-
-//     sock_addr_t raddr;
-//     raddr.ipaddr    = ip_a_addr(255,255,255,255);
-//     raddr.port      = CATBUS_DISCOVERY_PORT;
-
-//     sock_i16_sendto_m( sock, h, &raddr );
-// }
 #endif
 
 
@@ -823,18 +789,25 @@ void catbus_v_purge_links( uint8_t tag ){
         return;
     }
 
-    list_node_t link = links.head;
+    file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
 
-    while( link > 0 ){
+    if( f < 0 ){
 
-        catbus_link_state_t *state = list_vp_get_data( link );
+        return;
+    }
 
-        if( state->tag == tag ){
-            
-            state->flags |= CATBUS_LINK_FLAGS_DELETE;
-        }
+    catbus_link_state_t state;
+    while( fs_i16_read( f, (uint8_t *)&state, sizeof(state) ) == sizeof(state) ){
 
-        link = list_ln_next( link );
+        if( state.tag == tag ){
+
+            // back up 
+            fs_v_seek( f, fs_i32_tell( f ) - sizeof(state) );
+
+            // write 0s
+            memset( &state, 0, sizeof(state) );
+            fs_i16_write( f, (uint8_t *)&state, sizeof(state) );
+        }    
     }
 }
 
@@ -928,7 +901,7 @@ PT_END( pt );
 }
 
 typedef struct{
-    list_node_t ln;
+    file_t f;
     socket_t sock;
 } link_broadcast_thread_state_t;
 
@@ -938,26 +911,31 @@ PT_BEGIN( pt );
     
     state->sock = sock_s_create( SOCK_DGRAM );
 
-    if( state-> sock < 0 ){
+    if( state->sock < 0 ){
 
-        THREAD_EXIT( pt );
+        goto cleanup;
     }
 
-    state->ln = links.head;
+    state->f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
 
-    while( state->ln > 0 ){
+    if( state->f < 0 ){
 
-        list_node_t next_ln = list_ln_next( state->ln );
+        goto cleanup;
+    }
 
-        catbus_link_state_t *link_state = list_vp_get_data( state->ln );
+    while(1){
 
-        // check if deleting link
-        if( link_state->flags & CATBUS_LINK_FLAGS_DELETE ){
+        catbus_link_state_t link_state;
+        if( fs_i16_read( state->f, (uint8_t *)&link_state, sizeof(link_state) ) < (int16_t)sizeof(link_state) ){
 
-            list_v_remove( &links, state->ln );
-            list_v_release_node( state->ln );
+            // end of file
+            goto cleanup;
+        }
 
-            goto end;
+        // check if link is valid
+        if( ( link_state.flags & CATBUS_LINK_FLAGS_VALID ) == 0 ){
+
+            continue;
         }
 
         // set up link message
@@ -965,10 +943,10 @@ PT_BEGIN( pt );
 
         _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_LINK, 0 );
 
-        msg.source_hash    = link_state->source_hash;
-        msg.dest_hash      = link_state->dest_hash;
-        msg.flags          = link_state->flags;
-        msg.query          = link_state->query;
+        msg.source_hash    = link_state.source_hash;
+        msg.dest_hash      = link_state.dest_hash;
+        msg.flags          = link_state.flags;
+        msg.query          = link_state.query;
         msg.data_port      = sock_u16_get_lport( sock );
 
         sock_addr_t raddr;
@@ -979,14 +957,20 @@ PT_BEGIN( pt );
 
         sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-end:
-        state->ln = next_ln;
-
-
         TMR_WAIT( pt, 10 );
     }
 
-    sock_v_release( state->sock );
+cleanup:
+
+    if( state->f > 0 ){
+        
+        fs_f_close( state->f );
+    }
+
+    if( state->sock > 0 ){
+        
+        sock_v_release( state->sock );
+    }
 
 PT_END( pt );
 }
