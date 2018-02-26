@@ -121,10 +121,12 @@ class NTPTimestampField(StructField):
 
 class KVLinkField(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
+        fields = [Uint8Field(_name="tag"),
+                  Uint8Field(_name="flags"),
                   Uint32Field(_name="source_hash"),
                   Uint32Field(_name="dest_hash"),
-                  ArrayField(_name="query", _field=Uint32Field, _length=8)]
+                  ArrayField(_name="query", _field=Uint32Field, _length=8),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=8)]
 
         super(KVLinkField, self).__init__(_fields=fields, **kwargs)
 

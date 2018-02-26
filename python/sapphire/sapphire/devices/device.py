@@ -833,9 +833,14 @@ class Device(object):
         s = "\nFlags Source     Dest       Query ->\n"
 
         KV_MSG_LINK_FLAG_SOURCE             = 0x01
+        KV_MSG_LINK_FLAG_DEST               = 0x04
+        KV_MSG_LINK_FLAG_VALID              = 0x80
 
         for n in info:
             flags = ''
+
+            if n.flags & KV_MSG_LINK_FLAG_VALID == 0:
+                continue
 
             if n.flags & KV_MSG_LINK_FLAG_SOURCE:
                 flags += 'S'
