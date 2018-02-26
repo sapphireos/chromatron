@@ -295,11 +295,14 @@ void catbus_v_init( void );
 
 catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, 
                              catbus_hash_t32 dest_hash, 
-                             catbus_query_t *dest_query );
+                             catbus_query_t *dest_query,
+                             uint8_t tag );
 catbus_link_t catbus_l_recv( catbus_hash_t32 dest_hash, 
                              catbus_hash_t32 source_hash, 
-                             catbus_query_t *source_query );
-void catbus_v_purge_links( void );
+                             catbus_query_t *source_query,
+                             uint8_t tag );
+
+void catbus_v_purge_links( uint8_t tag );
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,

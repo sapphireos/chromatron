@@ -215,7 +215,7 @@ int8_t _auto_i8_load_file( void ){
     // NOTE:
     // right now, we are not flagging links from the automaton,
     // so this will also destroy any app-created links!!!
-    catbus_v_purge_links();
+    catbus_v_purge_links( AUTOMATON_KV_TAG );
 
     // process sends
     for( uint8_t i = 0; i < header.send_len; i++ ){
@@ -228,7 +228,7 @@ int8_t _auto_i8_load_file( void ){
             goto end;
         }
 
-        catbus_l_send( link.source_hash, link.dest_hash, &link.query );
+        catbus_l_send( link.source_hash, link.dest_hash, &link.query, AUTOMATON_KV_TAG );
     }
 
     // process receives
@@ -242,7 +242,7 @@ int8_t _auto_i8_load_file( void ){
             goto end;
         }
 
-        catbus_l_recv( link.dest_hash, link.source_hash, &link.query );
+        catbus_l_recv( link.dest_hash, link.source_hash, &link.query, AUTOMATON_KV_TAG );
     }
 
     // load OK
@@ -593,7 +593,7 @@ restart:
         // NOTE:
         // right now, we are not flagging links from the automaton,
         // so this will also destroy any app-created links!!!
-        catbus_v_purge_links();
+        catbus_v_purge_links( AUTOMATON_KV_TAG );
 
         TMR_WAIT( pt, 2000 );
     }

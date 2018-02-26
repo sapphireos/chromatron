@@ -37,6 +37,7 @@
 
 #ifdef ENABLE_CATBUS_LINK
 typedef struct{
+    uint8_t tag;
     uint8_t flags;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
@@ -576,10 +577,12 @@ static catbus_link_t _catbus_l_create_link(
     bool source, 
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
-    catbus_query_t *query ){
+    catbus_query_t *query,
+    uint8_t tag ){
 
     catbus_link_state_t state;
 
+    state.tag = tag;
     state.flags = 0;
 
     if( source ){
@@ -787,31 +790,33 @@ int8_t catbus_i8_array_get(
 catbus_link_t catbus_l_send( 
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
-    catbus_query_t *dest_query ){
+    catbus_query_t *dest_query,
+    uint8_t tag ){
 
     if( !link_enable ){
 
         return -1;
     }
 
-    return _catbus_l_create_link( TRUE, source_hash, dest_hash, dest_query );
+    return _catbus_l_create_link( TRUE, source_hash, dest_hash, dest_query, tag );
 }
 
 catbus_link_t catbus_l_recv( 
     catbus_hash_t32 dest_hash, 
     catbus_hash_t32 source_hash, 
-    catbus_query_t *source_query ){
+    catbus_query_t *source_query,
+    uint8_t tag ){
 
     if( !link_enable ){
 
         return -1;
     }
 
-    return _catbus_l_create_link( FALSE, source_hash, dest_hash, source_query );
+    return _catbus_l_create_link( FALSE, source_hash, dest_hash, source_query, tag );
 }
 
 // destroy all links created on this node
-void catbus_v_purge_links( void ){
+void catbus_v_purge_links( uint8_t tag ){
 
     if( !link_enable ){
 
@@ -824,7 +829,10 @@ void catbus_v_purge_links( void ){
 
         catbus_link_state_t *state = list_vp_get_data( link );
 
-        state->flags |= CATBUS_LINK_FLAGS_DELETE;
+        if( state->tag == tag ){
+            
+            state->flags |= CATBUS_LINK_FLAGS_DELETE;
+        }
 
         link = list_ln_next( link );
     }
@@ -1688,7 +1696,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
+            // catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
 
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_DELETE ){
@@ -1698,7 +1706,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
+            // catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
 
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_ADD ){
@@ -1708,8 +1716,8 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
-            
+            // catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
+
         }
 
         #endif
