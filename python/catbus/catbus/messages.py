@@ -217,7 +217,8 @@ class LinkMsg(StructField):
                   Uint16Field(_name="data_port"),
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
-                  CatbusQuery(_name="query")]
+                  CatbusQuery(_name="query"),
+                  CatbusHash(_name="tag")]
 
         super(LinkMsg, self).__init__(_name="link_msg", _fields=fields, **kwargs)
 

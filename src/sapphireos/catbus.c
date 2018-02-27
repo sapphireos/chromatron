@@ -1037,6 +1037,7 @@ PT_BEGIN( pt );
         msg.dest_hash      = link_state.dest_hash;
         msg.flags          = link_state.flags;
         msg.query          = link_state.query;
+        msg.tag            = link_state.tag;
         msg.data_port      = sock_u16_get_lport( sock );
 
         sock_addr_t raddr;
