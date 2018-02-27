@@ -37,7 +37,7 @@
 
 #ifdef ENABLE_CATBUS_LINK
 typedef struct{
-    uint8_t tag;
+    catbus_hash_t32 tag;
     uint8_t flags;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
@@ -47,6 +47,14 @@ typedef struct{
 #define CATBUS_LINK_FLAGS_SOURCE        0x01
 #define CATBUS_LINK_FLAGS_DEST          0x04
 #define CATBUS_LINK_FLAGS_VALID         0x80
+
+typedef struct{
+    uint32_t magic;
+    uint8_t version;
+    uint8_t reserved[11];
+} catbus_link_file_header_t;
+#define CATBUS_LINK_FILE_MAGIC          0x4b4e494c // 'LINK'
+#define CATBUS_LINK_FILE_VERSION        1
 
 typedef struct{
     sock_addr_t raddr;
@@ -332,6 +340,31 @@ void catbus_v_init( void ){
 
         if( f > 0 ){
 
+            catbus_link_file_header_t header;
+            memset( &header, 0, sizeof(header) );
+            fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
+
+            if( ( header.magic != CATBUS_LINK_FILE_MAGIC ) ||
+                ( header.version != CATBUS_LINK_FILE_VERSION ) ){
+
+                fs_v_delete( f );
+                fs_f_close( f );
+
+                f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
+
+                if( f > 0 ){
+
+                    header.magic = CATBUS_LINK_FILE_MAGIC;
+                    header.version = CATBUS_LINK_FILE_VERSION;
+                    memset( header.reserved, 0, sizeof(header.reserved) );
+
+                    fs_i16_write( f, (uint8_t *)&header, sizeof(header) );
+                }
+            }
+        }
+
+        if( f > 0 ){
+
             f = fs_f_close( f );
         }
 
@@ -557,7 +590,7 @@ static catbus_link_t _catbus_l_create_link(
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
     catbus_query_t *query,
-    uint8_t tag ){
+    catbus_hash_t32 tag ){
 
     file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
 
@@ -565,6 +598,8 @@ static catbus_link_t _catbus_l_create_link(
 
         return -1;
     }
+
+    fs_v_seek( f, sizeof(catbus_link_file_header_t) );
 
     catbus_link_state_t state;
 
@@ -762,7 +797,7 @@ catbus_link_t catbus_l_send(
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
     catbus_query_t *dest_query,
-    uint8_t tag ){
+    catbus_hash_t32 tag ){
 
     if( !link_enable ){
 
@@ -776,7 +811,7 @@ catbus_link_t catbus_l_recv(
     catbus_hash_t32 dest_hash, 
     catbus_hash_t32 source_hash, 
     catbus_query_t *source_query,
-    uint8_t tag ){
+    catbus_hash_t32 tag ){
 
     if( !link_enable ){
 
@@ -787,7 +822,7 @@ catbus_link_t catbus_l_recv(
 }
 
 // destroy all links created on this node
-void catbus_v_purge_links( uint8_t tag ){
+void catbus_v_purge_links( catbus_hash_t32 tag ){
 
     if( !link_enable ){
 
@@ -950,6 +985,8 @@ PT_BEGIN( pt );
 
         goto cleanup;
     }
+
+    fs_v_seek( state->f, sizeof(catbus_link_file_header_t) );
 
     while(1){
 

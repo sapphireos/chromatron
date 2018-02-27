@@ -215,7 +215,7 @@ int8_t _auto_i8_load_file( void ){
     // NOTE:
     // right now, we are not flagging links from the automaton,
     // so this will also destroy any app-created links!!!
-    catbus_v_purge_links( AUTOMATON_KV_TAG );
+    catbus_v_purge_links( __KV__automaton );
 
     // process sends
     for( uint8_t i = 0; i < header.send_len; i++ ){
@@ -593,7 +593,7 @@ restart:
         // NOTE:
         // right now, we are not flagging links from the automaton,
         // so this will also destroy any app-created links!!!
-        catbus_v_purge_links( AUTOMATON_KV_TAG );
+        catbus_v_purge_links( __KV__automaton );
 
         TMR_WAIT( pt, 2000 );
     }

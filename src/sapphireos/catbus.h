@@ -170,6 +170,7 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
+    catbus_hash_t32 tag;
 } catbus_msg_link_t;
 #define CATBUS_MSG_TYPE_LINK                    ( 1 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
@@ -191,11 +192,17 @@ typedef struct __attribute__((packed)){
 } catbus_msg_link_get_t;
 #define CATBUS_MSG_TYPE_LINK_GET                ( 3 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-// same messages as catbus_msg_link_get_t
-#define CATBUS_MSG_TYPE_LINK_DELETE             ( 4 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// same message as catbus_msg_link_t
+#define CATBUS_MSG_TYPE_LINK_META               ( 4 + CATBUS_MSG_LINK_GROUP_OFFSET )
+
+typedef struct __attribute__((packed)){
+    catbus_header_t header;
+    catbus_hash_t32 tag;
+} catbus_msg_link_delete_t;
+#define CATBUS_MSG_TYPE_LINK_DELETE             ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
 // message is the same as catbus_msg_link_t
-#define CATBUS_MSG_TYPE_LINK_ADD                ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
+#define CATBUS_MSG_TYPE_LINK_ADD                ( 6 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
 
 
@@ -296,13 +303,13 @@ void catbus_v_init( void );
 catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, 
                              catbus_hash_t32 dest_hash, 
                              catbus_query_t *dest_query,
-                             uint8_t tag );
+                             catbus_hash_t32 tag );
 catbus_link_t catbus_l_recv( catbus_hash_t32 dest_hash, 
                              catbus_hash_t32 source_hash, 
                              catbus_query_t *source_query,
-                             uint8_t tag );
+                             catbus_hash_t32 tag );
 
-void catbus_v_purge_links( uint8_t tag );
+void catbus_v_purge_links( catbus_hash_t32 tag );
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,

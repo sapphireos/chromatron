@@ -58,6 +58,10 @@ CATBUS_MSG_TYPE_KEY_DATA                   = CATBUS_MSG_DATABASE_GROUP_OFFSET + 
 
 CATBUS_MSG_TYPE_LINK                       = CATBUS_MSG_LINK_GROUP_OFFSET + 1
 CATBUS_MSG_TYPE_LINK_DATA                  = CATBUS_MSG_LINK_GROUP_OFFSET + 2
+CATBUS_MSG_TYPE_LINK_GET                   = CATBUS_MSG_LINK_GROUP_OFFSET + 3
+CATBUS_MSG_TYPE_LINK_META                  = CATBUS_MSG_LINK_GROUP_OFFSET + 4
+CATBUS_MSG_TYPE_LINK_DELETE                = CATBUS_MSG_LINK_GROUP_OFFSET + 5
+CATBUS_MSG_TYPE_LINK_ADD                   = CATBUS_MSG_LINK_GROUP_OFFSET + 6
 
 CATBUS_MSG_TYPE_FILE_OPEN                  = ( 1 + CATBUS_MSG_FILE_GROUP_OFFSET )
 CATBUS_MSG_TYPE_FILE_CONFIRM               = ( 2 + CATBUS_MSG_FILE_GROUP_OFFSET )
@@ -233,6 +237,36 @@ class LinkDataMsg(StructField):
         super(LinkDataMsg, self).__init__(_name="link_data_msg", _fields=fields, **kwargs)
 
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_DATA
+
+class LinkGetMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  Uint16Field(_name="index")]
+
+        super(LinkGetMsg, self).__init__(_name="link_get_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_GET
+
+class LinkMetaMsg(LinkMsg):
+    def __init__(self, **kwargs):
+        super(LinkMetaMsg, self).__init__(_name="link_meta_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_META
+
+class LinkDeleteMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  CatbusHash(_name="tag")]
+
+        super(LinkDeleteMsg, self).__init__(_name="link_delete_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_DELETE
+
+class LinkAddMsg(LinkMsg):
+    def __init__(self, **kwargs):
+        super(LinkAddMsg, self).__init__(_name="link_add_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_ADD
 
 
 class FileOpenMsg(StructField):
