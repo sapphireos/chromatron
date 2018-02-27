@@ -447,11 +447,14 @@ CATBUS_ERROR_ALLOC_FAIL                     = 0x0002
 CATBUS_ERROR_KEY_NOT_FOUND                  = 0x0003
 CATBUS_ERROR_INVALID_TYPE                   = 0x0004
 CATBUS_ERROR_READ_ONLY                      = 0x0005
+CATBUS_ERROR_GENERIC_ERROR                  = 0x0006
 
 CATBUS_ERROR_FILE_NOT_FOUND                 = 0x0101
 CATBUS_ERROR_FILESYSTEM_FULL                = 0x0102
 CATBUS_ERROR_FILESYSTEM_BUSY                = 0x0103
 CATBUS_ERROR_INVALID_FILE_SESSION           = 0x0104
+
+CATBUS_ERROR_LINK_EOF                       = 0x0201
 
 error_codes = {
     CATBUS_ERROR_OK:                "OK",
@@ -461,10 +464,12 @@ error_codes = {
     CATBUS_ERROR_KEY_NOT_FOUND:     "Key not found",
     CATBUS_ERROR_INVALID_TYPE:      "Invalid type",
     CATBUS_ERROR_READ_ONLY:         "Read only",
+    CATBUS_ERROR_GENERIC_ERROR:     "Generic error",
     CATBUS_ERROR_FILE_NOT_FOUND:    "File not found",
     CATBUS_ERROR_FILESYSTEM_FULL:   "Filesystem full",
     CATBUS_ERROR_FILESYSTEM_BUSY:   "Filesystem busy",
     CATBUS_ERROR_INVALID_FILE_SESSION: "Invalid file session",
+    CATBUS_ERROR_LINK_EOF:          "Link end of file",
 }
 
 def lookup_error_msg(error):

@@ -963,6 +963,31 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
+int8_t _catbus_i8_get_link( uint16_t index, catbus_link_state_t *link ){
+
+    file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_READ_ONLY );
+
+    if( f < 0 ){
+
+        return -1;
+    }
+
+    fs_v_seek( f, sizeof(catbus_link_file_header_t) + ( index * sizeof(catbus_link_state_t) ) );
+
+    if( fs_i16_read( f, (uint8_t *)link, sizeof(catbus_link_state_t) ) < 0 ){
+
+        fs_f_close( f );
+        return -2;
+    }
+
+    fs_f_close( f );
+
+    return 0;
+}
+
+
+
 typedef struct{
     file_t f;
     socket_t sock;
@@ -1734,8 +1759,27 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            // catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
+            catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
 
+            catbus_link_state_t link;
+
+            if( _catbus_i8_get_link( msg->index, &link ) < 0 ){
+
+                error = CATBUS_ERROR_LINK_EOF;
+                goto end;
+            }
+
+            catbus_msg_link_t reply_msg;
+            _catbus_v_msg_init( &reply_msg.header, CATBUS_MSG_TYPE_LINK_META, header->transaction_id );
+
+            reply_msg.flags       = link.flags;
+            reply_msg.data_port   = 0; // this field is unused in this message
+            reply_msg.source_hash = link.source_hash;
+            reply_msg.dest_hash   = link.dest_hash;
+            reply_msg.query       = link.query;
+            reply_msg.tag         = link.tag;
+
+            sock_i16_sendto( sock, (uint8_t *)&reply_msg, sizeof(reply_msg), 0 );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_DELETE ){
 
@@ -1744,8 +1788,9 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            // catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
+            catbus_msg_link_delete_t *msg = (catbus_msg_link_delete_t *)header;
 
+            catbus_v_purge_links( msg->tag );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_ADD ){
 
@@ -1754,8 +1799,26 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            // catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
+            catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
 
+            bool source = FALSE;
+            if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
+
+                source = TRUE;
+            }
+
+            catbus_link_t l = _catbus_l_create_link( 
+                                source, 
+                                msg->source_hash, 
+                                msg->dest_hash,
+                                &msg->query,
+                                msg->tag );
+
+            if( l < 0 ){
+
+                error = CATBUS_ERROR_ALLOC_FAIL;
+                goto end;
+            }
         }
 
         #endif

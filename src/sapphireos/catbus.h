@@ -67,12 +67,14 @@ typedef struct __attribute__((packed)){
 #define CATBUS_ERROR_KEY_NOT_FOUND              0x0003
 #define CATBUS_ERROR_INVALID_TYPE               0x0004
 #define CATBUS_ERROR_READ_ONLY                  0x0005
+#define CATBUS_ERROR_GENERIC_ERROR              0x0006
 
 #define CATBUS_ERROR_FILE_NOT_FOUND             0x0101
 #define CATBUS_ERROR_FILESYSTEM_FULL            0x0102
 #define CATBUS_ERROR_FILESYSTEM_BUSY            0x0103
 #define CATBUS_ERROR_INVALID_FILE_SESSION       0x0104
 
+#define CATBUS_ERROR_LINK_EOF                   0x0201
 
 
 // GENERAL
