@@ -838,6 +838,20 @@ PT_BEGIN( pt );
 
             catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
 
+            // check if expired
+            if( send_state->ttl < 0 ){
+
+                // get next
+                list_node_t remove_ln = sender_ln;
+                sender_ln = list_ln_next( sender_ln );
+
+                // now we can remove this entry
+                list_v_remove( &send_list, remove_ln );
+                list_v_release_node( remove_ln );
+
+                continue;
+            }
+
             // check if sending
             if( ( send_state->flags & SEND_ENTRY_FLAGS_PUBLISH ) == 0 ){
 
@@ -2115,7 +2129,7 @@ PT_BEGIN( pt );
 
         // process link system periodic tasks  
 
-        // expire any send entries
+        // expire any send entries, also mark for transmission
         list_node_t ln = send_list.head;
         list_node_t next_ln = -1;
 
@@ -2129,9 +2143,13 @@ PT_BEGIN( pt );
 
             if( entry->ttl < 0 ){
 
-                list_v_remove( &send_list, ln );
-                list_v_release_node( ln );
+                // run the publish thread, it will take care of cleaning up expired entries
+                run_publish = TRUE;
             } 
+            else{
+
+                catbus_i8_publish( entry->source_hash );
+            }
 
             ln = next_ln;
         }  
@@ -2164,36 +2182,36 @@ PT_BEGIN( pt );
                          sizeof(link_broadcast_thread_state_t) );
 
         // publish data
-        catbus_hash_t32 hashes_published[32];
-        uint8_t hashes_published_index = 0;
-        memset( hashes_published, 0, sizeof(hashes_published) );
+        // catbus_hash_t32 hashes_published[32];
+        // uint8_t hashes_published_index = 0;
+        // memset( hashes_published, 0, sizeof(hashes_published) );
         
-        ln = send_list.head;
+        // ln = send_list.head;
 
-        while( ln > 0 ){
+        // while( ln > 0 ){
 
-            catbus_send_data_entry_t *state = (catbus_send_data_entry_t *)list_vp_get_data( ln );
+            // catbus_send_data_entry_t *state = (catbus_send_data_entry_t *)list_vp_get_data( ln );
             
             // check if we've already published this one
-            for( uint8_t i = 0; i < hashes_published_index; i++ ){
+            // for( uint8_t i = 0; i < hashes_published_index; i++ ){
 
-                if( hashes_published[i] == state->source_hash ){
+            //     if( hashes_published[i] == state->source_hash ){
 
-                    goto next_send;
-                }
-            }
+            //         goto next_send;
+            //     }
+            // }
 
-            if( hashes_published_index < cnt_of_array(hashes_published) ){
+            // if( hashes_published_index < cnt_of_array(hashes_published) ){
 
-                hashes_published[hashes_published_index] = state->source_hash;
-                hashes_published_index++;
-            }
+            //     hashes_published[hashes_published_index] = state->source_hash;
+            //     hashes_published_index++;
+            // }
 
-            catbus_i8_publish( state->source_hash );
+            // catbus_i8_publish( state->source_hash );
              
-next_send:
-            ln = list_ln_next( ln );
-        }  
+// next_send:
+            // ln = list_ln_next( ln );
+        // }  
         
         #endif
     }
