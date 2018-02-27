@@ -140,9 +140,12 @@ class KVSendField(StructField):
     def __init__(self, **kwargs):
         fields = [Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
-                  Int32Field(_name="source_hash"),
-                  Int32Field(_name="dest_hash"),
-                  Int8Field(_name="ttl")]
+                  Uint32Field(_name="source_hash"),
+                  Uint32Field(_name="dest_hash"),
+                  Uint16Field(_name="sequence"),
+                  #NTPTimestampField(_name="ntp_timestamp"),
+                  Int8Field(_name="ttl"),
+                  Uint8Field(_name="flags")]
 
         super(KVSendField, self).__init__(_fields=fields, **kwargs)
 
@@ -156,7 +159,7 @@ class KVReceiveCacheField(StructField):
     def __init__(self, **kwargs):
         fields = [Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
-                  Int32Field(_name="dest_hash"),
+                  Uint32Field(_name="dest_hash"),
                   Uint16Field(_name="sequence"),
                   Int8Field(_name="ttl")]
 

@@ -52,8 +52,14 @@ typedef struct{
     sock_addr_t raddr;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
+    uint16_t sequence;
+    #ifdef LIB_SNTP
+    ntp_ts_t ntp_timestamp;
+    #endif
     int8_t ttl;
+    uint8_t flags;
 } catbus_send_data_entry_t;
+#define SEND_ENTRY_FLAGS_PUBLISH        0x01
 
 typedef struct{
     sock_addr_t raddr;
@@ -65,8 +71,8 @@ typedef struct{
 static bool link_enable;
 static list_t send_list;
 static list_t receive_cache;
-static list_t publish_list;
-static uint16_t sequence;
+
+static bool run_publish;
 
 PT_THREAD( publish_thread( pt_t *pt, void *state ) );
 #endif
@@ -321,7 +327,6 @@ void catbus_v_init( void ){
 
         list_v_init( &send_list );
         list_v_init( &receive_cache );
-        list_v_init( &publish_list );
 
         file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -812,88 +817,97 @@ void catbus_v_purge_links( uint8_t tag ){
 }
 
 
-typedef struct{
-    catbus_hash_t32 hash;
-    uint16_t sequence;
-    sock_addr_t dest_addr;
-    catbus_hash_t32 dest_hash;
-    #ifdef LIB_SNTP
-    ntp_ts_t ntp_timestamp;
-    #endif
-} publish_state_t;
-
 PT_THREAD( publish_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    static list_node_t sender_ln;
     
     while(1){
 
-        THREAD_WAIT_WHILE( pt, list_b_is_empty( &publish_list ) );
-
+        THREAD_WAIT_WHILE( pt, run_publish == FALSE );
 
         THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock ) > 0 );
         // see catbus_announce_thread for explanation on why we do a wait here
 
-        list_node_t ln = list_ln_remove_tail( &publish_list );
+        run_publish = FALSE;
 
-        publish_state_t *pub_state = (publish_state_t *)list_vp_get_data( ln );
+        sender_ln = send_list.head;    
 
-        catbus_meta_t meta;
-        if( kv_i8_get_meta( pub_state->hash, &meta ) < 0 ){
+        while( sender_ln >= 0 ){
 
-            goto done;
-        }
+            catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
 
-        uint16_t data_len = type_u16_size_meta( &meta );
+            // check if sending
+            if( ( send_state->flags & SEND_ENTRY_FLAGS_PUBLISH ) == 0 ){
 
-        if( data_len > CATBUS_MAX_DATA ){
+                goto next;
+            }
 
-            goto done;
-        }
+            // clear flag
+            send_state->flags &= ~SEND_ENTRY_FLAGS_PUBLISH;
 
-        // allocate memory
-        mem_handle_t h = mem2_h_alloc( data_len + sizeof(catbus_msg_link_data_t) - 1 );
+            catbus_meta_t meta;
+            if( kv_i8_get_meta( send_state->source_hash, &meta ) < 0 ){
 
-        if( h < 0 ){
+                goto next;
+            }
 
-            goto done;
-        }
+            uint16_t data_len = type_u16_size_meta( &meta );
 
-        // set up message
-        catbus_msg_link_data_t *msg = (catbus_msg_link_data_t *)mem2_vp_get_ptr( h );
+            if( data_len > CATBUS_MAX_DATA ){
 
-        _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK_DATA, 0 );
+                goto next;
+            }
 
-        msg->flags = 0;
+            // allocate memory
+            mem_handle_t h = mem2_h_alloc( data_len + sizeof(catbus_msg_link_data_t) - 1 );
 
-        #ifdef LIB_SNTP
-        msg->ntp_timestamp = sntp_t_now();
+            if( h < 0 ){
 
-        if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+                // alloc fail, this is bad news.
+                TMR_WAIT( pt, 500 ); // long delay, hopefully we can recover
+
+                goto next;
+            }
+
+            // set up message
+            catbus_msg_link_data_t *msg = (catbus_msg_link_data_t *)mem2_vp_get_ptr( h );
+
+            _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK_DATA, 0 );
+
+            msg->flags = 0;
+
+            #ifdef LIB_SNTP
+            msg->ntp_timestamp = send_state->ntp_timestamp;
+
+            if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+                
+                msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
+            }
+            #endif
+
+            _catbus_v_get_query( &msg->source_query );
+            msg->source_hash    = send_state->source_hash;
+            msg->dest_hash      = send_state->dest_hash;
+            msg->sequence       = send_state->sequence;
+            msg->data.meta      = meta;
             
-            msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
+            catbus_i8_array_get( 
+                send_state->source_hash, 
+                msg->data.meta.type, 
+                0, 
+                msg->data.meta.count + 1, 
+                &msg->data.data );
+
+            sock_i16_sendto_m( sock, h, &send_state->raddr );      
+
+
+            TMR_WAIT( pt, 5 );
+
+    next:
+            sender_ln = list_ln_next( sender_ln );
         }
-        #endif
-
-        _catbus_v_get_query( &msg->source_query );
-        msg->source_hash    = pub_state->hash;
-        msg->dest_hash      = pub_state->dest_hash;
-        msg->sequence       = pub_state->sequence;
-        msg->data.meta      = meta;
-        
-        catbus_i8_array_get( 
-            pub_state->hash, 
-            msg->data.meta.type, 
-            0, 
-            msg->data.meta.count + 1, 
-            &msg->data.data );
-
-        sock_i16_sendto_m( sock, h, &pub_state->dest_addr );        
-        
-done:
-        list_v_release_node( ln );
-
-        TMR_WAIT( pt, 5 );
     }
 
     
@@ -997,15 +1011,8 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
     }
 
 
-    publish_state_t state;
-
-    sequence++;
-    state.sequence = sequence;
-    state.hash = hash;
-
     #ifdef LIB_SNTP
-    // update timestamp
-    state.ntp_timestamp = sntp_t_now();
+    ntp_ts_t ntp_timestamp = sntp_t_now();
     #endif
 
     list_node_t sender_ln = send_list.head;    
@@ -1019,18 +1026,14 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
             goto next;
         }
 
+        #ifdef LIB_SNTP
+        send_state->ntp_timestamp = ntp_timestamp;
+        #endif
 
-        state.dest_addr = send_state->raddr;
-        state.dest_hash = send_state->dest_hash;
+        send_state->sequence++;
+        send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
 
-        list_node_t ln = list_ln_create_node( &state, sizeof(state) );
-
-        if( ln < 0 ){
-
-            return 0;
-        }
-
-        list_v_insert_head( &publish_list, ln );
+        run_publish = TRUE;
 
 next:
         sender_ln = list_ln_next( sender_ln );
