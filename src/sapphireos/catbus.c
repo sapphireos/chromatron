@@ -1282,13 +1282,14 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
+        uint16_t error = CATBUS_ERROR_OK;
+
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
             goto end;
         }
 
         catbus_header_t *header = sock_vp_get_data( sock );
-        uint16_t error = CATBUS_ERROR_OK;
 
         // verify message
         if( header->meow != CATBUS_MEOW ){
