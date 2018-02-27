@@ -2168,7 +2168,7 @@ end:
             if( error != CATBUS_ERROR_FILE_NOT_FOUND ){
                 // file not found is a normal condition, so lets not log it.
 
-                log_v_debug_P( PSTR("error: %u msg: %u"), error, header->msg_type );
+                log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
             }
 
             // don't send unknown message errors. it just causes a ton of extra traffic

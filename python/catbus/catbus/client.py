@@ -664,6 +664,14 @@ class Client(object):
 
         return d
 
+    def get_links(self):
+        msg = LinkGetMsg(index=0)
+
+        response, host = self._exchange(msg)
+
+        print response
+
+
 
 if __name__ == '__main__':
 
@@ -677,16 +685,18 @@ if __name__ == '__main__':
     # for node in c.discover().values():
         # pprint(node)
 
-    c.connect(('10.0.0.106', 44632))
+    c.connect(('10.0.0.121', 44632))
+
+    print c.get_links()
 
     # print c.get_key('test_meow')
 
     # c.set_key('test_meow', '4')
 
     # print c.get_key('test_woof')
-    c.set_key('test_woof', ['4','5','6','7'])
+    # c.set_key('test_woof', ['4','5','6','7'])
 
-    print c.get_key('test_woof')
+    # print c.get_key('test_woof')
 
 
 

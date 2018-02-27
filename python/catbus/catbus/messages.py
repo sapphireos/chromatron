@@ -250,8 +250,9 @@ class LinkGetMsg(StructField):
 
 class LinkMetaMsg(LinkMsg):
     def __init__(self, **kwargs):
-        super(LinkMetaMsg, self).__init__(_name="link_meta_msg", _fields=fields, **kwargs)
+        super(LinkMetaMsg, self).__init__(**kwargs)
 
+        self._name = "link_meta_msg"
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_META
 
 class LinkDeleteMsg(StructField):
@@ -259,14 +260,16 @@ class LinkDeleteMsg(StructField):
         fields = [MsgHeader(_name="header"),
                   CatbusHash(_name="tag")]
 
-        super(LinkDeleteMsg, self).__init__(_name="link_delete_msg", _fields=fields, **kwargs)
+        super(LinkDeleteMsg, self).__init__(**kwargs)
 
+        self._name = "link_delete_msg"
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_DELETE
 
 class LinkAddMsg(LinkMsg):
     def __init__(self, **kwargs):
-        super(LinkAddMsg, self).__init__(_name="link_add_msg", _fields=fields, **kwargs)
+        super(LinkAddMsg, self).__init__(**kwargs)
 
+        self._name = "link_add_msg"
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_ADD
 
 
@@ -408,6 +411,10 @@ messages = {
 
     CATBUS_MSG_TYPE_LINK:                   LinkMsg,
     CATBUS_MSG_TYPE_LINK_DATA:              LinkDataMsg,
+    CATBUS_MSG_TYPE_LINK_META:              LinkMetaMsg,
+    CATBUS_MSG_TYPE_LINK_ADD:               LinkAddMsg,
+    CATBUS_MSG_TYPE_LINK_GET:               LinkGetMsg,
+    CATBUS_MSG_TYPE_LINK_DELETE:            LinkDeleteMsg,
 
     CATBUS_MSG_TYPE_FILE_OPEN:              FileOpenMsg,
     CATBUS_MSG_TYPE_FILE_CONFIRM:           FileConfirmMsg,
