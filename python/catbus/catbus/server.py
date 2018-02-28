@@ -250,6 +250,8 @@ class Server(Ribbon):
 
         self.__lock = threading.Lock()
 
+        self._default_callback = None
+
     def send(self, source_key=None, dest_key=None, dest_query=[]):
         link = Link(source=True,
                     source_key=source_key,
@@ -486,8 +488,8 @@ class Server(Ribbon):
 
         # source link
         if msg.flags & CATBUS_MSG_LINK_FLAG_SOURCE:
-            # check if we have dest key
-            if msg.dest_hash not in self._database:
+            # check if we have dest key OR a default callback
+            if (msg.dest_hash not in self._database) and (self._default_callback == None):
                 return
 
             # change link flags and echo message back to sender
@@ -552,7 +554,14 @@ class Server(Ribbon):
 
                 item = self._database.get_item(msg.dest_hash)
 
-            else:
+            elif self._default_callback != None:
+
+                # resolve hashes
+                source_key = self.resolve_hash(msg.source_hash, host=host)
+                # dest_key = self.resolve_hash(msg.dest_hash, host=host)
+                source_query = [self.resolve_hash(a, host=host) for a in msg.source_query]
+
+                self._default_callback(source_key, msg.data.value, source_query, timestamp)
                 return
 
         # check read only flag

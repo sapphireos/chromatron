@@ -754,7 +754,7 @@ if __name__ == '__main__':
     c.connect(('10.0.0.121', 44632))
     # pprint(c.get_links())
 
-    c.add_link(True, "kv_test_key", "kv_test_key", ["meow"], "test")
+    c.add_link(True, "wifi_rssi", "wifi_rssi", ["datalog"], "datalog")
 
     # c.delete_link("test")
 

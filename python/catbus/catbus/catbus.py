@@ -87,10 +87,18 @@ class CatbusService(Database):
 
         self._callbacks = {}
 
+        self.default_callback = None
+
+        self._server._default_callback = self._default_callback
+
         # self.add_item('ip', self.host[0], 'ipv4', readonly=True) # getting source IP is not reliable
         self.add_item('process_name', sys.argv[0], 'string64', readonly=True)
         self.add_item('process_id', os.getpid(), 'uint32', readonly=True)
         self.add_item('kv_test_key', os.getpid(), 'uint32')
+
+    def _default_callback(self, key, value, query, timestamp):    
+        if self.default_callback != None:
+            self.default_callback(key, value, query, timestamp)
 
     def _item_notify(self, key, value):
         try:
