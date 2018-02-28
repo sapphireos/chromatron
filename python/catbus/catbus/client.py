@@ -169,8 +169,13 @@ class Client(object):
                 # try computing hash from meta tags
                 if tags is None:
                     tags = {catbus_string_hash(v): v for v in self.get_tags().itervalues() if len(v) > 0}
+                
+                try:
+                    resolved_keys[k] = tags[k]
 
-                resolved_keys[k] = tags[k]
+                except KeyError:
+                    # can't find anything, just return hash itself
+                    resolved_keys[k] = k
 
         return resolved_keys
 
@@ -691,7 +696,7 @@ class Client(object):
             else:
                 source = False
 
-            # look up hashes
+            # look up hashes    
             resolved_keys = self.lookup_hash(response.source_hash, response.dest_hash, response.tag, *response.query)
 
             link = {
