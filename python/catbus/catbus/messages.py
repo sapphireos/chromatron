@@ -267,11 +267,18 @@ class LinkDeleteMsg(StructField):
 
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_DELETE
 
-class LinkAddMsg(LinkMsg):
-    def __init__(self, **kwargs):
-        super(LinkAddMsg, self).__init__(**kwargs)
 
-        self._name = "link_add_msg"
+class LinkAddMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  Uint8Field(_name="flags"),
+                  CatbusStringField(_name="source_key"),
+                  CatbusStringField(_name="dest_key"),
+                  FixedArrayField(_name="query", _length=CATBUS_QUERY_TAG_LEN, _field=CatbusStringField),
+                  CatbusStringField(_name="tag")]
+
+        super(LinkAddMsg, self).__init__(_name="link_add_msg", _fields=fields, **kwargs)
+
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_ADD
 
 class LinkOkMsg(StructField):

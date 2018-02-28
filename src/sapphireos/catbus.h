@@ -203,7 +203,14 @@ typedef struct __attribute__((packed)){
 } catbus_msg_link_delete_t;
 #define CATBUS_MSG_TYPE_LINK_DELETE             ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-// message is the same as catbus_msg_link_t
+typedef struct __attribute__((packed)){
+    catbus_header_t header;
+    uint8_t flags;
+    catbus_string_t source_key;
+    catbus_string_t dest_key;
+    catbus_string_t query[CATBUS_QUERY_LEN];
+    catbus_string_t tag;
+} catbus_msg_link_add_t;
 #define CATBUS_MSG_TYPE_LINK_ADD                ( 6 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
 // empty message

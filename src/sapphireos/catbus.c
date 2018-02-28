@@ -638,6 +638,7 @@ static catbus_link_t _catbus_l_create_link(
 
         if( _catbus_b_compare_links( &state, &state2 ) ){
 
+            // link already exists
             return 0;
         }
     }
@@ -1829,7 +1830,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
+            catbus_msg_link_add_t *msg = (catbus_msg_link_add_t *)header;
 
             bool source = FALSE;
             if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
@@ -1837,12 +1838,26 @@ PT_BEGIN( pt );
                 source = TRUE;
             }
 
+            catbus_query_t query;
+            for( uint8_t i = 0; i < cnt_of_array(query.tags); i++ ){
+
+                query.tags[i] = hash_u32_string( msg->query[i].str );
+
+                // add names to hash lookup
+                kvdb_v_set_name( msg->query[i].str );
+            }
+
+            // add names to hash lookup
+            kvdb_v_set_name( msg->source_key.str );
+            kvdb_v_set_name( msg->dest_key.str );
+            kvdb_v_set_name( msg->tag.str );
+
             catbus_link_t l = _catbus_l_create_link( 
                                 source, 
-                                msg->source_hash, 
-                                msg->dest_hash,
-                                &msg->query,
-                                msg->tag );
+                                hash_u32_string( msg->source_key.str ), 
+                                hash_u32_string( msg->dest_key.str ),
+                                &query,
+                                hash_u32_string( msg->tag.str ) );
 
             if( l < 0 ){
 

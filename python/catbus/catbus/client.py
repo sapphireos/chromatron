@@ -691,12 +691,15 @@ class Client(object):
             else:
                 source = False
 
+            # look up hashes
+            resolved_keys = self.lookup_hash(response.source_hash, response.dest_hash, response.tag, *response.query)
+
             link = {
                 "source": source,
-                "source_hash": response.source_hash,
-                "dest_hash": response.dest_hash,
-                "query": response.query,
-                "tag": response.tag
+                "source_key": resolved_keys[response.source_hash],
+                "dest_key": resolved_keys[response.dest_hash],
+                "query": [resolved_keys[a] for a in response.query],
+                "tag": resolved_keys[response.tag]
             }
 
             links.append(link)
@@ -718,10 +721,10 @@ class Client(object):
 
         msg = LinkAddMsg(
                 flags=flags,
-                source_hash=catbus_string_hash(source_key),
-                dest_hash=catbus_string_hash(dest_key),
-                query=[catbus_string_hash(a) for a in query],
-                tag=catbus_string_hash(tag))
+                source_key=source_key,
+                dest_key=dest_key,
+                query=query,
+                tag=tag)
 
         response, host = self._exchange(msg)
 
@@ -744,11 +747,11 @@ if __name__ == '__main__':
         # pprint(node)
 
     c.connect(('10.0.0.121', 44632))
-    pprint(c.get_links())
+    # pprint(c.get_links())
 
     c.add_link(True, "kv_test_key", "kv_test_key", ["meow"], "test")
 
-    c.delete_link("test")
+    # c.delete_link("test")
 
     pprint(c.get_links())
 

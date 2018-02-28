@@ -105,6 +105,14 @@ static db_entry_t * _kvdb_dbp_search_hash( catbus_hash_t32 hash ){
 #ifdef KVDB_ENABLE_NAME_LOOKUP
 static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
 
+    uint32_t hash = hash_u32_string( name );
+
+    // check if we have this name already
+    if( kvdb_i8_lookup_name( hash, 0 ) == KVDB_STATUS_OK ){
+
+        return;
+    }
+
     file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
 
     if( f < 0 ){
@@ -113,7 +121,7 @@ static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
     }
 
     name_entry_t entry;
-    entry.hash = hash_u32_string( name );
+    entry.hash = hash;
     memset( entry.name, 0, sizeof(entry.name) );
     strlcpy( entry.name, name, sizeof(entry.name) );
 
@@ -134,15 +142,17 @@ void kvdb_v_init( void ){
 
     #ifdef KVDB_ENABLE_NAME_LOOKUP
 
-    // delete name file
-    file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+    // don't delete name file, this would break hash lookups on manually installed links
 
-    if( f > 0 ){
+    // // delete name file
+    // file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
 
-        fs_v_delete( f );
+    // if( f > 0 ){
+
+    //     fs_v_delete( f );
             
-        fs_f_close( f );
-    }
+    //     fs_f_close( f );
+    // }
 
     #endif
 
@@ -633,7 +643,10 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 
         if( entry.hash == hash ){
 
-            strlcpy( name, entry.name, CATBUS_STRING_LEN );
+            if( name != 0 ){
+                
+                strlcpy( name, entry.name, CATBUS_STRING_LEN );
+            }
 
             status = KVDB_STATUS_OK;
 

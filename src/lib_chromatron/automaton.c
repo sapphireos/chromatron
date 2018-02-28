@@ -535,6 +535,9 @@ PT_THREAD( automaton_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     TMR_WAIT( pt, 2000 );
+
+    // add tag name to database hash lookup
+    kvdb_v_set_name_P( PSTR("automaton") );
     
     while(1){
 
