@@ -62,6 +62,7 @@ CATBUS_MSG_TYPE_LINK_GET                   = CATBUS_MSG_LINK_GROUP_OFFSET + 3
 CATBUS_MSG_TYPE_LINK_META                  = CATBUS_MSG_LINK_GROUP_OFFSET + 4
 CATBUS_MSG_TYPE_LINK_DELETE                = CATBUS_MSG_LINK_GROUP_OFFSET + 5
 CATBUS_MSG_TYPE_LINK_ADD                   = CATBUS_MSG_LINK_GROUP_OFFSET + 6
+CATBUS_MSG_TYPE_LINK_OK                    = CATBUS_MSG_LINK_GROUP_OFFSET + 7
 
 CATBUS_MSG_TYPE_FILE_OPEN                  = ( 1 + CATBUS_MSG_FILE_GROUP_OFFSET )
 CATBUS_MSG_TYPE_FILE_CONFIRM               = ( 2 + CATBUS_MSG_FILE_GROUP_OFFSET )
@@ -262,9 +263,8 @@ class LinkDeleteMsg(StructField):
         fields = [MsgHeader(_name="header"),
                   CatbusHash(_name="tag")]
 
-        super(LinkDeleteMsg, self).__init__(**kwargs)
+        super(LinkDeleteMsg, self).__init__(_name="link_delete_msg", _fields=fields, **kwargs)
 
-        self._name = "link_delete_msg"
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_DELETE
 
 class LinkAddMsg(LinkMsg):
@@ -273,6 +273,14 @@ class LinkAddMsg(LinkMsg):
 
         self._name = "link_add_msg"
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_ADD
+
+class LinkOkMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header")]
+
+        super(LinkOkMsg, self).__init__(_name="link_ok_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_OK
 
 
 class FileOpenMsg(StructField):
@@ -417,6 +425,7 @@ messages = {
     CATBUS_MSG_TYPE_LINK_ADD:               LinkAddMsg,
     CATBUS_MSG_TYPE_LINK_GET:               LinkGetMsg,
     CATBUS_MSG_TYPE_LINK_DELETE:            LinkDeleteMsg,
+    CATBUS_MSG_TYPE_LINK_OK:                LinkOkMsg,
 
     CATBUS_MSG_TYPE_FILE_OPEN:              FileOpenMsg,
     CATBUS_MSG_TYPE_FILE_CONFIRM:           FileConfirmMsg,

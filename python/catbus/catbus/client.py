@@ -683,20 +683,20 @@ class Client(object):
                 break
 
             # check flags
-            if msg.flags & CATBUS_LINK_FLAGS_VALID == 0:
+            if response.flags & CATBUS_LINK_FLAGS_VALID == 0:
                 continue
 
-            if msg.flags & CATBUS_LINK_FLAGS_SOURCE:
+            if response.flags & CATBUS_LINK_FLAGS_SOURCE:
                 source = True
             else:
                 source = False
 
             link = {
                 "source": source,
-                "source_hash": msg.source_hash,
-                "dest_hash": msg.dest_hash,
-                "query": msg.query,
-                "tag": msg.tag
+                "source_hash": response.source_hash,
+                "dest_hash": response.dest_hash,
+                "query": response.query,
+                "tag": response.tag
             }
 
             links.append(link)
@@ -725,6 +725,11 @@ class Client(object):
 
         response, host = self._exchange(msg)
 
+    def delete_link(self, tag):
+        msg = LinkDeleteMsg(tag=catbus_string_hash(tag))
+
+        response, host = self._exchange(msg)
+
 
 if __name__ == '__main__':
 
@@ -739,11 +744,13 @@ if __name__ == '__main__':
         # pprint(node)
 
     c.connect(('10.0.0.121', 44632))
-    print c.get_links()
+    pprint(c.get_links())
 
     c.add_link(True, "kv_test_key", "kv_test_key", ["prox1"], "test")
 
-    print c.get_links()
+    # c.delete_link("test")
+
+    pprint(c.get_links())
 
     # print c.get_key('test_meow')
 

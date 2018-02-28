@@ -836,6 +836,8 @@ void catbus_v_purge_links( catbus_hash_t32 tag ){
         return;
     }
 
+    fs_v_seek( f, sizeof(catbus_link_file_header_t) );
+
     catbus_link_state_t state;
     while( fs_i16_read( f, (uint8_t *)&state, sizeof(state) ) == sizeof(state) ){
 
@@ -2176,7 +2178,8 @@ end:
     
         if( error != CATBUS_ERROR_OK ){
 
-            if( error != CATBUS_ERROR_FILE_NOT_FOUND ){
+            if( ( error != CATBUS_ERROR_FILE_NOT_FOUND ) &&
+                ( error != CATBUS_ERROR_LINK_EOF ) ){
                 // file not found is a normal condition, so lets not log it.
 
                 log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
