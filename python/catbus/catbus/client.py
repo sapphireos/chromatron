@@ -746,9 +746,9 @@ if __name__ == '__main__':
     c.connect(('10.0.0.121', 44632))
     pprint(c.get_links())
 
-    c.add_link(True, "kv_test_key", "kv_test_key", ["prox1"], "test")
+    c.add_link(True, "kv_test_key", "kv_test_key", ["meow"], "test")
 
-    # c.delete_link("test")
+    c.delete_link("test")
 
     pprint(c.get_links())
 

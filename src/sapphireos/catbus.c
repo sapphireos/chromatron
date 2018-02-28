@@ -42,7 +42,8 @@ typedef struct{
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
-    uint8_t reserved[11];
+    uint8_t reserved[7];
+    uint32_t check_hash;
 } catbus_link_state_t;
 #define CATBUS_LINK_FLAGS_SOURCE        0x01
 #define CATBUS_LINK_FLAGS_DEST          0x04
@@ -615,6 +616,8 @@ static catbus_link_t _catbus_l_create_link(
     state.dest_hash         = dest_hash;
     state.query             = *query;
     memset( state.reserved, 0, sizeof(state.reserved) );
+
+    state.check_hash = hash_u32_data( (uint8_t *)&state, sizeof(state) - sizeof(state.check_hash) );
     
     // check if we already have this link
     catbus_link_state_t state2;
@@ -983,6 +986,15 @@ int8_t _catbus_i8_get_link( uint16_t index, catbus_link_state_t *link ){
         return -2;
     }
 
+    // check link
+    uint32_t hash = hash_u32_data( (uint8_t *)link, sizeof(catbus_link_state_t) - sizeof(uint32_t) );
+
+    if( hash != link->check_hash ){
+
+        // mark as invalid
+        link->flags &= ~CATBUS_LINK_FLAGS_VALID;
+    }
+
     fs_f_close( f );
 
     return 0;
@@ -1026,6 +1038,15 @@ PT_BEGIN( pt );
 
         // check if link is valid
         if( ( link_state.flags & CATBUS_LINK_FLAGS_VALID ) == 0 ){
+
+            continue;
+        }
+
+        // check link hash
+        uint32_t hash = hash_u32_data( (uint8_t *)&link_state, sizeof(link_state) - sizeof(link_state.check_hash) );
+        if( link_state.check_hash != hash ){
+
+            log_v_debug_P( PSTR("skipping broken link") );
 
             continue;
         }
