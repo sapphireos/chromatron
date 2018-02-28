@@ -206,6 +206,9 @@ typedef struct __attribute__((packed)){
 // message is the same as catbus_msg_link_t
 #define CATBUS_MSG_TYPE_LINK_ADD                ( 6 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
+// empty message
+#define CATBUS_MSG_TYPE_LINK_OK                 ( 7 + CATBUS_MSG_LINK_GROUP_OFFSET )
+
 
 
 // FILE

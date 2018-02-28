@@ -228,7 +228,7 @@ int8_t _auto_i8_load_file( void ){
             goto end;
         }
 
-        catbus_l_send( link.source_hash, link.dest_hash, &link.query, AUTOMATON_KV_TAG );
+        catbus_l_send( link.source_hash, link.dest_hash, &link.query, __KV__automaton );
     }
 
     // process receives
@@ -242,7 +242,7 @@ int8_t _auto_i8_load_file( void ){
             goto end;
         }
 
-        catbus_l_recv( link.dest_hash, link.source_hash, &link.query, AUTOMATON_KV_TAG );
+        catbus_l_recv( link.dest_hash, link.source_hash, &link.query, __KV__automaton );
     }
 
     // load OK

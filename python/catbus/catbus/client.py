@@ -665,12 +665,65 @@ class Client(object):
         return d
 
     def get_links(self):
-        msg = LinkGetMsg(index=0)
+        index = 0
+
+        exc = None
+
+        links = []
+
+        while True:
+            msg = LinkGetMsg(index=index)
+            index += 1
+
+            try:
+                response, host = self._exchange(msg)
+
+            except ProtocolErrorException as e:
+                exc = e
+                break
+
+            # check flags
+            if msg.flags & CATBUS_LINK_FLAGS_VALID == 0:
+                continue
+
+            if msg.flags & CATBUS_LINK_FLAGS_SOURCE:
+                source = True
+            else:
+                source = False
+
+            link = {
+                "source": source,
+                "source_hash": msg.source_hash,
+                "dest_hash": msg.dest_hash,
+                "query": msg.query,
+                "tag": msg.tag
+            }
+
+            links.append(link)
+
+
+        if exc.error_code != CATBUS_ERROR_LINK_EOF:
+            raise exc
+
+        return links
+
+    def add_link(self, source, source_key, dest_key, query, tag):
+        if source:
+            flags = CATBUS_LINK_FLAGS_SOURCE
+
+        else:
+            flags = 0
+
+        flags |= CATBUS_LINK_FLAGS_VALID
+
+        msg = LinkAddMsg(
+                flags=flags,
+                source_hash=catbus_string_hash(source_key),
+                dest_hash=catbus_string_hash(dest_key),
+                query=[catbus_string_hash(a) for a in query],
+                tag=catbus_string_hash(tag))
 
         response, host = self._exchange(msg)
-
-        print response
-
 
 
 if __name__ == '__main__':
@@ -686,6 +739,9 @@ if __name__ == '__main__':
         # pprint(node)
 
     c.connect(('10.0.0.121', 44632))
+    print c.get_links()
+
+    c.add_link(True, "kv_test_key", "kv_test_key", ["prox1"], "test")
 
     print c.get_links()
 

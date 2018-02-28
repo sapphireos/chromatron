@@ -42,7 +42,7 @@ typedef struct{
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
-    uint8_t reserved[8];
+    uint8_t reserved[11];
 } catbus_link_state_t;
 #define CATBUS_LINK_FLAGS_SOURCE        0x01
 #define CATBUS_LINK_FLAGS_DEST          0x04
@@ -975,7 +975,7 @@ int8_t _catbus_i8_get_link( uint16_t index, catbus_link_state_t *link ){
 
     fs_v_seek( f, sizeof(catbus_link_file_header_t) + ( index * sizeof(catbus_link_state_t) ) );
 
-    if( fs_i16_read( f, (uint8_t *)link, sizeof(catbus_link_state_t) ) < 0 ){
+    if( fs_i16_read( f, (uint8_t *)link, sizeof(catbus_link_state_t) ) < (int16_t)sizeof(catbus_link_state_t) ){
 
         fs_f_close( f );
         return -2;
@@ -1793,6 +1793,11 @@ PT_BEGIN( pt );
             catbus_msg_link_delete_t *msg = (catbus_msg_link_delete_t *)header;
 
             catbus_v_purge_links( msg->tag );
+
+            catbus_header_t reply_hdr;
+            _catbus_v_msg_init( &reply_hdr, CATBUS_MSG_TYPE_LINK_OK, header->transaction_id );
+
+            sock_i16_sendto( sock, (uint8_t *)&reply_hdr, sizeof(reply_hdr), 0 );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_ADD ){
 
@@ -1821,6 +1826,11 @@ PT_BEGIN( pt );
                 error = CATBUS_ERROR_ALLOC_FAIL;
                 goto end;
             }
+
+            catbus_header_t reply_hdr;
+            _catbus_v_msg_init( &reply_hdr, CATBUS_MSG_TYPE_LINK_OK, header->transaction_id );
+            
+            sock_i16_sendto( sock, (uint8_t *)&reply_hdr, sizeof(reply_hdr), 0 );
         }
 
         #endif

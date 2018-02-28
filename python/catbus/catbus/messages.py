@@ -80,6 +80,8 @@ CATBUS_MSG_FILE_FLAG_WRITE                 = 0x02
 
 CATBUS_DISC_FLAG_QUERY_ALL                 = 0x01
 
+CATBUS_LINK_FLAGS_SOURCE                   = 0x01
+CATBUS_LINK_FLAGS_VALID                    = 0x80
 
 
 class MsgHeader(StructField):
