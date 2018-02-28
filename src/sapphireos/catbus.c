@@ -630,7 +630,7 @@ static catbus_link_t _catbus_l_create_link(
             if( free_pos < 0 ){
 
                 // mark this location as free
-                free_pos = fs_i32_tell( f );
+                free_pos = fs_i32_tell( f ) - sizeof(state2);
             }
 
             continue;

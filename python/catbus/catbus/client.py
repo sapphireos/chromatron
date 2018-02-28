@@ -752,9 +752,11 @@ if __name__ == '__main__':
         # pprint(node)
 
     c.connect(('10.0.0.121', 44632))
+    # c.connect(('10.0.0.102', 44632))
     # pprint(c.get_links())
 
-    c.add_link(True, "wifi_rssi", "wifi_rssi", ["datalog"], "datalog")
+    # c.add_link(True, "wifi_rssi", "wifi_rssi", ["datalog"], "datalog")
+    # c.add_link(True, "supply_voltage", "supply_voltage", ["datalog"], "datalog")
 
     # c.delete_link("test")
 
