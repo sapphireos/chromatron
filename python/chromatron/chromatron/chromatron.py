@@ -2427,7 +2427,8 @@ def restore(ctx):
 @click.option('--force', default=False, is_flag=True, help='Force firmware upgrade even if versions match.')
 @click.option('--change_firmware', default=None, help='Change firmware on device.')
 @click.option('--yes', default=False, is_flag=True, help='Answer yes to all firmware change confirmation prompts.')
-def upgrade(ctx, release, force, change_firmware, yes):
+@click.option('--skip_verify', default=False, is_flag=True, help='Skip verification.  Do not use this unless you have a really good reason.')
+def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
     """Upgrade firmware on selected devices"""
     # this weirdness is to deal with the difference in how Click handles progress updates
     # vs the device driver.
@@ -2475,7 +2476,8 @@ def upgrade(ctx, release, force, change_firmware, yes):
         if not click.confirm(click.style("Are you sure you want to do this?\nThere will be no further confirmation prompts.", fg='red')):
             click.echo("Firmware change cancelled")
             return
-                
+
+    click.style("Skip verification enabled!!!", fg='white')
 
     # we're going to manually run though the update sequence,
     # since it is kind of messy to try to get the click progress bar
@@ -2541,17 +2543,18 @@ def upgrade(ctx, release, force, change_firmware, yes):
             with click.progressbar(length=len(ct_fw_data), label='Loading main CPU firmware  ') as progress_bar:
                 ct.put_file('firmware.bin', ct_fw_data, progress=Progress(progress_bar))
 
-            # verify
-            try:
-                click.echo("Verifying... ", nl=False)
+            if not skip_verify:
+                # verify
+                try:
+                    click.echo("Verifying... ", nl=False)
 
-                ct.check_file('firmware.bin', ct_fw_data)
+                    ct.check_file('firmware.bin', ct_fw_data)
 
-                click.echo("OK")
+                    click.echo("OK")
 
-            except IOError:
-                click.echo(click.style("Firmware verify fail!", fg='red'))
-                return
+                except IOError:
+                    click.echo(click.style("Firmware verify fail!", fg='red'))
+                    return
 
         # get firmware version
         wifi_md5 = ct.get_key('wifi_md5')
@@ -2582,16 +2585,17 @@ def upgrade(ctx, release, force, change_firmware, yes):
 
 
             # verify
-            try:
-                click.echo("Verifying... ", nl=False)
+            if not skip_verify:
+                try:
+                    click.echo("Verifying... ", nl=False)
 
-                ct.check_file('wifi_firmware.bin', ct_wifi_fw_data)
+                    ct.check_file('wifi_firmware.bin', ct_wifi_fw_data)
 
-                click.echo("OK")
+                    click.echo("OK")
 
-            except IOError:
-                click.echo(click.style("Firmware verify fail!", fg='red'))
-                return
+                except IOError:
+                    click.echo(click.style("Firmware verify fail!", fg='red'))
+                    return
 
             wifi_fw_len = len(ct_wifi_fw_data) - 16
             ct.set_key('wifi_fw_len', wifi_fw_len)
