@@ -204,7 +204,7 @@ def format_code(s, condition=True):
 def compile_vm_code(text, debug_print=True, condition=True, local_vars=[]):
     return code_gen.compile_automaton_text(text, debug_print=debug_print, condition=condition, local_vars=local_vars)
 
-def compile_file(filename):
+def compile_file(filename, debug_print=False):
     global automaton_file
 
     with open(filename) as f:
@@ -213,9 +213,10 @@ def compile_file(filename):
     scriptname = os.path.split(filename)[1]
 
     results = automaton_file.parseString(data, parseAll=True).asDict()
-    pprint(results)
 
-    print '\n'
+    if debug_print:
+        pprint(results)
+        print '\n'
         
     # aliases = results['alias']
 
@@ -230,9 +231,10 @@ def compile_file(filename):
             kv = AutomatonDBVar(hash=catbus_string_hash(v), name=v)
             db_vars.append(kv)
 
-    print "DB Vars:"
-    for v in db_vars:
-        print v
+    if debug_print:
+        print "DB Vars:"
+        for v in db_vars:
+            print v
 
 
     local_vars = []
@@ -242,9 +244,10 @@ def compile_file(filename):
             local_vars.append(v)
 
 
-    print "Local Vars:"
-    for v in local_vars:
-        print v
+    if debug_print:
+        print "Local Vars:"
+        for v in local_vars:
+            print v
 
     send_links = []
 
@@ -264,8 +267,9 @@ def compile_file(filename):
             
             send_links.append(info)
 
-    print "Send:"
-    print send_links
+    if debug_print:
+        print "Send:"
+        print send_links
 
     receive_links = []
 
@@ -285,8 +289,9 @@ def compile_file(filename):
             
             receive_links.append(info)
 
-    print "Recv:"
-    print receive_links
+    if debug_print:
+        print "Recv:"
+        print receive_links
 
     
     rules = []
@@ -299,10 +304,11 @@ def compile_file(filename):
             action = format_code(rule['action'][0], False)
             condition = format_code(rule['condition'][0])
 
-            print "\n\nCondition:"
-            print condition
+            if debug_print:
+                print "\n\nCondition:"
+                print condition
 
-            condition = compile_vm_code(condition, local_vars=local_vars)
+            condition = compile_vm_code(condition, local_vars=local_vars, debug_print=debug_print)
 
             pprint(condition)
 
@@ -321,11 +327,11 @@ def compile_file(filename):
             if len(condition_code) > largest_code:
                 largest_code = len(condition_code)
 
+            if debug_print:
+                print "\n\nAction:"
+                print action
 
-            print "\n\nAction:"
-            print action
-
-            action = compile_vm_code(action, condition=False, local_vars=local_vars)
+            action = compile_vm_code(action, condition=False, local_vars=local_vars, debug_print=debug_print)
             pprint(action)
 
             action_data = action['data_stream']
@@ -366,28 +372,32 @@ def compile_file(filename):
                         trigger_index=trigger_index,
                         rules=rules)
 
-    print ''
-    print ''
-    print ''
-    print ''
-    print automaton_file
+    if debug_print:
+        print ''
+        print ''
+        print ''
+        print ''
+        print automaton_file
 
-    # bin_filename = scriptname + '.bin'
-    bin_filename = 'automaton.auto'
+    bin_filename = scriptname + '.auto'
+    # bin_filename = 'automaton.auto'
     with open(bin_filename, 'wb+') as f:
         f.write(automaton_file.pack())
 
-    print "Saved as %s" % (bin_filename)
+    if debug_print:
+        print "Saved as %s" % (bin_filename)
 
-    print "%d bytes" % (automaton_file.size())
+        print "%d bytes" % (automaton_file.size())
 
-    print "Max code: %d bytes" % (largest_code)
-    print "Max data: %d bytes" % (largest_data * 4)
+        print "Max code: %d bytes" % (largest_code)
+        print "Max data: %d bytes" % (largest_data * 4)
 
+
+    return bin_filename
 
 
 if __name__ == "__main__":
     filename = sys.argv[1]
 
-    compile_file(filename)
+    compile_file(filename, debug_print=True)
     # pass

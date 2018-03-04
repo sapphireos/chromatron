@@ -43,6 +43,7 @@ KV_SECTION_META kv_meta_t automaton_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,      0, 0,                   &automaton_status,    0,   "automaton_status" },
     { SAPPHIRE_TYPE_BOOL,      0, KV_FLAGS_PERSIST,    &automaton_enable,    0,   "automaton_enable" },
     { SAPPHIRE_TYPE_UINT8,     0, 0,                   &automaton_seconds,   0,   "seconds" },
+    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_PERSIST,    0,                    0,   "automaton_prog" },
 };
 
 
@@ -141,8 +142,14 @@ int8_t _auto_i8_load_file( void ){
     // delete existing database entries
     kvdb_v_delete_tag( AUTOMATON_KV_TAG );
 
+    char program_fname[KV_NAME_LEN];
 
-    file_handle = fs_f_open_P( PSTR("automaton.auto"), FS_MODE_READ_ONLY );
+    if( kv_i8_get( __KV__automaton_prog, program_fname, sizeof(program_fname) ) < 0 ){
+
+        return -1;
+    }
+
+    file_handle = fs_f_open( program_fname, FS_MODE_READ_ONLY );
 
     if( file_handle < 0 ){
 

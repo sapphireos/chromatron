@@ -533,6 +533,20 @@ class Chromatron(object):
     def reboot(self):
         self._device.reboot()
 
+    def load_automaton(self, filename=None):
+        self.set_key("automaton_enable", False)
+
+        automaton_file = automaton.compile_file(filename)
+
+        with open(automaton_file) as f:
+            data = f.read()
+
+        self.put_file(auto, data)
+
+        self.set_key("automaton_prog", automaton_file)
+
+        self.set_key("automaton_enable", True)
+
     def load_vm(self, filename=None, start=True, bin_data=None):
         self.stop_vm()
 
@@ -1498,12 +1512,7 @@ def automaton_load(ctx, filename, live):
 
 
     try:
-        automaton.compile_file(filename)
-
-        with open('automaton.auto') as f:
-            data = f.read()
-
-        group.put_file('automaton.auto', data)
+        group.load_automaton(filename)
         
         click.echo('Loaded %s on:' % (click.style(filename, fg=VAL_COLOR)))
 
@@ -1523,13 +1532,8 @@ def automaton_load(ctx, filename, live):
 
                 if watcher.changed():
                     try:
-                        automaton.compile_file(filename)   
-                        
-                        with open('automaton.auto') as f:
-                            data = f.read()
-
-                        group.put_file('automaton.auto', data)
-
+                        group.load_automaton(filename)
+                     
                         click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
 
                     except Exception as e:
@@ -2668,6 +2672,31 @@ def version(ctx):
         s = '%s %s' % (name_s, val_s)
 
         click.echo(s)
+
+@cli.group()
+@click.pass_context
+def link(ctx):
+    """Link system commands"""
+
+@link.command('show')
+@click.pass_context
+def link_show(ctx):
+    """Show links"""
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        links = ct.client.get_links()
+
+        for link in links:
+            tag_s = '%32s' % (click.style('%s' % (link['tag']), fg='white'))
+
+            print link
+            # s = '%s: %s -> %s @ %s' % (tag_s)
+            
+            # click.echo(s)
 
 
 def main():

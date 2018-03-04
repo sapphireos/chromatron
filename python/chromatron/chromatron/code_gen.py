@@ -2527,9 +2527,6 @@ class CodeGeneratorPass4(object):
             registers[reg].function = self.current_function
             addr += 1
 
-        print "MEOW"
-        print registers
-
         for i in xrange(len(code)):
             ir = code[i]
         
