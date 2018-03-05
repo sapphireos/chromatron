@@ -72,9 +72,10 @@ query = Group(var_name + Suppress(Literal('@')) + tags).setResultsName('query')
 
 dest_var = var_name.setResultsName('dest_var')
 source_var = var_name.setResultsName('source_var')
+link_tag = Group(var_name + Suppress(Literal(':'))).setResultsName('tag')
 
-receive = Group(Keyword('receive') + dest_var + Keyword('from') + query).setResultsName('receive', listAllMatches=True)
-send = Group(Keyword('send') + source_var + Keyword('to') + query).setResultsName('send', listAllMatches=True)
+receive = Group(Keyword('receive') + Optional(link_tag) + dest_var + Keyword('from') + query).setResultsName('receive', listAllMatches=True)
+send = Group(Keyword('send') + Optional(link_tag) + source_var + Keyword('to') + query).setResultsName('send', listAllMatches=True)
 
 when_ = Keyword('when')
 do_ = Keyword('do')

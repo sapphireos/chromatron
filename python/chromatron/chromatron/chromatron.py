@@ -2710,6 +2710,66 @@ def link_show(ctx):
             
             click.echo(s)
 
+@link.command('send')
+@click.pass_context
+@click.argument('link')
+def link_send(ctx, link):
+    """Add a sender link"""
+    group = ctx.obj['GROUP']()
+
+    import automaton
+    link = automaton.send.parseString('send ' + link, parseAll=True).asDict()['send'][0]
+
+    source = True
+
+    if 'tag' not in link:
+        link['tag'] = ['manual']
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        # note dest var is actually query[0]
+        ct.client.add_link(source, link['source_var'], link['query'][0], link['query'][1], link['tag'][0])
+
+
+@link.command('receive')
+@click.pass_context
+@click.argument('link')
+def link_receive(ctx, link):
+    """Add a receiver link"""
+    group = ctx.obj['GROUP']()
+
+    import automaton
+    link = automaton.receive.parseString('receive ' + link, parseAll=True).asDict()['receive'][0]
+
+    source = False
+
+    if 'tag' not in link:
+        link['tag'] = ['manual']
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        # note source var is actually query[0]
+        ct.client.add_link(source, link['query'][0], link['dest_var'], link['query'][1], link['tag'][0])
+        
+@link.command('delete')
+@click.pass_context
+@click.argument('tag')
+def link_delete(ctx, tag):
+    """Delete links matching tag"""
+
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        ct.client.delete_link(tag)
+
+
 
 def main():
     cli(obj={})
