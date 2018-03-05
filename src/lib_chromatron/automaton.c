@@ -139,6 +139,8 @@ end:
 
 int8_t _auto_i8_load_file( void ){
 
+    
+
     // delete existing database entries
     kvdb_v_delete_tag( AUTOMATON_KV_TAG );
 
@@ -414,7 +416,7 @@ int8_t _auto_i8_process_rule(
     vm_status = vm_i8_eval( code, registers, &result );
 
     // store local vars
-    for( uint8_t i = 0; i < local_vars_len; i++ ){
+    for( uint8_t i = 0; i < local_vars_len / sizeof(int32_t); i++ ){
 
         // check for changes
         if( local_vars[i] != registers[i + 1] ){
