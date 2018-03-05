@@ -855,6 +855,8 @@ void catbus_v_purge_links( catbus_hash_t32 tag ){
             fs_i16_write( f, (uint8_t *)&state, sizeof(state) );
         }    
     }
+
+    fs_f_close( f );
 }
 
 

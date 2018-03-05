@@ -265,6 +265,11 @@ int8_t _auto_i8_load_file( void ){
 end:
     if( status < 0 ){
 
+        if( file_handle > 0 ){
+
+            file_handle = fs_f_close( file_handle );
+        }
+
         log_v_error_P( PSTR("error: %d"), status );
     }
 
