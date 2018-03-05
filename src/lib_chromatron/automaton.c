@@ -276,6 +276,29 @@ end:
 // elapsed = tmr_u64_elapsed_time_us( elapsed );
 
 
+void _auto_v_trigger( catbus_hash_t32 hash ){
+
+    if( trigger_index_handle < 0 ){
+
+        return;
+    }
+
+    automaton_trigger_index_t *index = mem2_vp_get_ptr( trigger_index_handle );
+
+    uint8_t count = mem2_u16_get_size( trigger_index_handle ) / sizeof(automaton_trigger_index_t);
+
+    for( uint8_t i = 0; i < count; i++ ){
+
+        if( index[i].hash == hash ){
+
+            index[i].status = 1;
+
+            triggered = TRUE;
+        }
+    }
+}
+
+
 int8_t _auto_i8_process_rule( 
     uint16_t index, 
     automaton_file_t *header, 
@@ -413,27 +436,6 @@ end:
     return status;
 }
 
-void _auto_v_trigger( catbus_hash_t32 hash ){
-
-    if( trigger_index_handle < 0 ){
-
-        return;
-    }
-
-    automaton_trigger_index_t *index = mem2_vp_get_ptr( trigger_index_handle );
-
-    uint8_t count = mem2_u16_get_size( trigger_index_handle ) / sizeof(automaton_trigger_index_t);
-
-    for( uint8_t i = 0; i < count; i++ ){
-
-        if( index[i].hash == hash ){
-
-            index[i].status = 1;
-
-            triggered = TRUE;
-        }
-    }
-}
 
 
 PT_THREAD( automaton_runner_thread( pt_t *pt, int32_t *state ) )

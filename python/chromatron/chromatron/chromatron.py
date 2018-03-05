@@ -536,12 +536,13 @@ class Chromatron(object):
     def load_automaton(self, filename=None):
         self.set_key("automaton_enable", False)
 
+        import automaton
         automaton_file = automaton.compile_file(filename)
 
         with open(automaton_file) as f:
             data = f.read()
 
-        self.put_file(auto, data)
+        self.put_file(automaton_file, data)
 
         self.set_key("automaton_prog", automaton_file)
 
@@ -1495,6 +1496,24 @@ def reboot(ctx):
 @click.pass_context
 def automaton(ctx):
     """Automaton controls"""
+
+@automaton.command('start')
+@click.pass_context
+def automaton_start(ctx):
+    """Start automaton"""
+
+    group = ctx.obj['GROUP']()
+    group.set_key('automaton_enable', True)
+    echo_group(group)
+
+@automaton.command('stop')
+@click.pass_context
+def automaton_stop(ctx):
+    """Stop automaton"""
+
+    group = ctx.obj['GROUP']()
+    group.set_key('automaton_enable', False)
+    echo_group(group)
 
 
 @automaton.command('load')
