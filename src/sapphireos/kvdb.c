@@ -133,13 +133,6 @@ static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
 
 void kvdb_v_init( void ){
 
-    #ifdef KVDB_ENABLE_SAFE_MODE_CHECK
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-    #endif
-
     #ifdef KVDB_ENABLE_NAME_LOOKUP
 
     // don't delete name file, this would break hash lookups on manually installed links
@@ -157,21 +150,6 @@ void kvdb_v_init( void ){
     #endif
 
     list_v_init( &db_list );
-
-    // int32_t temp = 123;
-    // kvdb_i8_add( __KV__test_meow, CATBUS_TYPE_INT32, 0, &temp, sizeof(temp), "test_meow" );
-
-    // uint8_t array[4];
-    // array[0] = 1;
-    // array[1] = 2;
-    // array[2] = 3;
-    // array[3] = 4;
-    // kvdb_i8_add( __KV__test_woof, CATBUS_TYPE_UINT8, cnt_of_array(array), array, sizeof(array), "test_woof" );        
-
-    // kvdb_i8_add( __KV__test_meow, 123, 0, "test_meow" );
-    // kvdb_i8_add( __KV__test_woof, 456, 0, "test_woof" );
-    // kvdb_i8_add( __KV__test_stuff, 999, 0, "test_stuff" );
-    // kvdb_i8_add( __KV__test_things, 777, 0, "test_things" );
 }
 
 uint16_t kvdb_u16_count( void ){

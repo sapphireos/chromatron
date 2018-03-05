@@ -30,6 +30,5 @@
 #define KVDB_MAX_ENTRIES                128
 
 #define KVDB_ENABLE_NAME_LOOKUP         
-#define KVDB_ENABLE_SAFE_MODE_CHECK
 
 #endif
