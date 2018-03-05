@@ -1525,6 +1525,8 @@ def automaton_load(ctx, filename, live):
 
     group = ctx.obj['GROUP']()
 
+    click.echo('Loading...')
+
     if live:
         click.secho('Live mode', fg='magenta')
 
@@ -1536,9 +1538,8 @@ def automaton_load(ctx, filename, live):
         echo_group(group)
 
     except Exception as e:
-        # click.secho("Error:", fg='magenta')
-        # click.secho(str(e), fg=ERROR_COLOR)
-        raise
+        click.secho("Error:", fg='magenta')
+        click.secho(str(e), fg=ERROR_COLOR)
 
 
     if live:
