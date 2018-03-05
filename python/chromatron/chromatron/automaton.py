@@ -317,15 +317,11 @@ def compile_file(filename, debug_print=False):
             for name, hashed_val in condition['data']['read_keys'].iteritems():
                 condition_triggers.append(hashed_val)
 
-            local_var_triggers = []
-            for name in condition['data']['local_registers']:
+            for name, reg in condition['data']['local_registers'].iteritems():
                 if name in local_vars:
-                    local_var_triggers.append(name)
+                    condition_triggers.append(reg.addr)
 
             triggers.append(condition_triggers)
-
-            print "MEOW"
-            print local_var_triggers
 
             condition_data = condition['data_stream']
             condition_code = condition['code_stream']

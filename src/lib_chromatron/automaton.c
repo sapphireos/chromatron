@@ -393,8 +393,9 @@ int8_t _auto_i8_process_rule(
 
             // store updated value
             local_vars[i] = registers[i + 1];
-            
-            
+
+            // trigger conditions for this local var
+            _auto_v_trigger( i + 1 );
         }
     }
     // memcpy( local_vars, &registers[1], local_vars_len );
