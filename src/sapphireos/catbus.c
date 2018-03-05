@@ -1772,7 +1772,7 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                catbus_i8_set( msg->dest_hash, CATBUS_TYPE_INT32, (void *)&msg->data.data );
+                catbus_i8_set( msg->dest_hash, msg->data.meta.type, (void *)&msg->data.data );
 
                 if( kv_v_notify_hash_set != 0 ){
 
