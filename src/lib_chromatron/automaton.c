@@ -386,7 +386,18 @@ int8_t _auto_i8_process_rule(
     vm_status = vm_i8_eval( code, registers, &result );
 
     // store local vars
-    memcpy( local_vars, &registers[1], local_vars_len );
+    for( uint8_t i = 0; i < local_vars_len; i++ ){
+
+        // check for changes
+        if( local_vars[i] != registers[i + 1] ){
+
+            // store updated value
+            local_vars[i] = registers[i + 1];
+            
+            
+        }
+    }
+    // memcpy( local_vars, &registers[1], local_vars_len );
 
     // log_v_debug_P( PSTR("Action status: %d result: %ld"), vm_status, result );
 

@@ -2527,7 +2527,7 @@ class CodeGeneratorPass4(object):
             registers[reg].function = self.current_function
             addr += 1
 
-        local_registers = []
+        local_registers = {}
 
         for i in xrange(len(code)):
             ir = code[i]
@@ -2542,8 +2542,7 @@ class CodeGeneratorPass4(object):
                 if not isinstance(reg, ConstIR):
                     # add to locals.
                     # automaton uses this.
-                    if reg.name not in local_registers:
-                        local_registers.append(reg.name)
+                    local_registers[reg.name] = reg
 
                 # check type
                 if not isinstance(reg, DataIR):
