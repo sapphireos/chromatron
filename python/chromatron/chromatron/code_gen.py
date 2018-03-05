@@ -5000,7 +5000,7 @@ def compile_automaton_text(text, debug_print=False, script_name='', condition=Tr
         print 'PASS 7'
         pprint(state7)
 
-    print "VM ISA: %d" % (VM_ISA_VERSION)
+        print "VM ISA: %d" % (VM_ISA_VERSION)
 
     return state7
 

@@ -206,8 +206,6 @@ def compile_vm_code(text, debug_print=True, condition=True, local_vars=[]):
     return code_gen.compile_automaton_text(text, debug_print=debug_print, condition=condition, local_vars=local_vars)
 
 def compile_file(filename, debug_print=False):
-    global automaton_file
-
     with open(filename) as f:
         data = f.read()
 
@@ -311,7 +309,7 @@ def compile_file(filename, debug_print=False):
 
             condition = compile_vm_code(condition, local_vars=local_vars, debug_print=debug_print)
 
-            pprint(condition)
+            # pprint(condition)
 
             condition_triggers = []
             for name, hashed_val in condition['data']['read_keys'].iteritems():
@@ -369,7 +367,7 @@ def compile_file(filename, debug_print=False):
 
         index += rules[i].size()
 
-    automaton_file = AutomatonFile(
+    automaton_data = AutomatonFile(
                         local_vars_len=len(local_vars),
                         db_vars=db_vars,
                         send_links=send_links,
@@ -382,17 +380,17 @@ def compile_file(filename, debug_print=False):
         print ''
         print ''
         print ''
-        print automaton_file
+        print automaton_data
 
     bin_filename = scriptname + '.auto'
     # bin_filename = 'automaton.auto'
     with open(bin_filename, 'wb+') as f:
-        f.write(automaton_file.pack())
+        f.write(automaton_data.pack())
 
     if debug_print:
         print "Saved as %s" % (bin_filename)
 
-        print "%d bytes" % (automaton_file.size())
+        print "%d bytes" % (automaton_data.size())
 
         print "Max code: %d bytes" % (largest_code)
         print "Max data: %d bytes" % (largest_data * 4)

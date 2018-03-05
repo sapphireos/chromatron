@@ -35,6 +35,7 @@ import pkg_resources
 from filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 import json
+import automaton as automaton_code_gen
 
 from sapphire.devices.device import Device, DeviceUnreachableException
 from elysianfields import *
@@ -536,8 +537,7 @@ class Chromatron(object):
     def load_automaton(self, filename=None):
         self.set_key("automaton_enable", False)
 
-        import automaton
-        automaton_file = automaton.compile_file(filename)
+        automaton_file = automaton_code_gen.compile_file(filename)
 
         with open(automaton_file) as f:
             data = f.read()
@@ -1523,12 +1523,10 @@ def automaton_stop(ctx):
 def automaton_load(ctx, filename, live):
     """Compile and load script to automaton"""
 
-    import automaton
     group = ctx.obj['GROUP']()
 
     if live:
         click.secho('Live mode', fg='magenta')
-
 
     try:
         group.load_automaton(filename)
@@ -1538,8 +1536,9 @@ def automaton_load(ctx, filename, live):
         echo_group(group)
 
     except Exception as e:
-        click.secho("Error:", fg='magenta')
-        click.secho(str(e), fg=ERROR_COLOR)
+        # click.secho("Error:", fg='magenta')
+        # click.secho(str(e), fg=ERROR_COLOR)
+        raise
 
 
     if live:
@@ -2736,8 +2735,7 @@ def link_send(ctx, link):
     """Add a sender link"""
     group = ctx.obj['GROUP']()
 
-    import automaton
-    link = automaton.send.parseString('send ' + link, parseAll=True).asDict()['send'][0]
+    link = automaton_code_gen.send.parseString('send ' + link, parseAll=True).asDict()['send'][0]
 
     source = True
 
@@ -2759,8 +2757,7 @@ def link_receive(ctx, link):
     """Add a receiver link"""
     group = ctx.obj['GROUP']()
 
-    import automaton
-    link = automaton.receive.parseString('receive ' + link, parseAll=True).asDict()['receive'][0]
+    link = automaton_code_gen.receive.parseString('receive ' + link, parseAll=True).asDict()['receive'][0]
 
     source = False
 
