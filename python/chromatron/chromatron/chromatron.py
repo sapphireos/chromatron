@@ -2691,12 +2691,24 @@ def link_show(ctx):
         links = ct.client.get_links()
 
         for link in links:
-            tag_s = '%32s' % (click.style('%s' % (link['tag']), fg='white'))
+            tag_s = '%s' % (click.style('%s' % (link['tag']), fg='white'))
+            source_key_s = '%s' % (click.style('%s' % (link['source_key']), fg='green'))
+            dest_key_s = '%s' % (click.style('%s' % (link['dest_key']), fg='cyan'))
 
-            print link
-            # s = '%s: %s -> %s @ %s' % (tag_s)
+            query_s = ''
+            for tag in link['query']:
+                if tag == None:
+                    continue
+
+                query_s += '%s, ' % (click.style('%s' % (tag), fg='magenta'))
+
+            # print link
+            if link['source']:
+                s = '%32s: Send %32s -> %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
+            else:
+                s = '%32s: Recv %32s <- %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
             
-            # click.echo(s)
+            click.echo(s)
 
 
 def main():
