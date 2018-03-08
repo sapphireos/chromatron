@@ -28,7 +28,7 @@
 
 static const PROGMEM uint8_t bsel_table[] = {
     12,
-    12,
+    12, // 4800
     12,
     138,
     12,
@@ -48,7 +48,7 @@ static const PROGMEM uint8_t bsel_table[] = {
 
 static const PROGMEM int8_t bscale_table[] = {
     6,
-    5,
+    5, // 4800 
     4,
     0,
     3,
