@@ -1696,7 +1696,7 @@ def fs(ctx):
 
 @fs.command('list')
 @click.pass_context
-def ct_list(ctx):
+def fs_list(ctx):
     """List files"""
     group = ctx.obj['GROUP']()
 
@@ -1720,10 +1720,10 @@ def ct_list(ctx):
 
             click.echo(s)
 
-@fs.command()
+@fs.command("cat")
 @click.pass_context
 @click.argument('filename')
-def cat(ctx, filename):
+def fs_cat(ctx, filename):
     """View a file"""
     group = ctx.obj['GROUP']()
 
@@ -1738,10 +1738,10 @@ def cat(ctx, filename):
         except IOError:
             click.echo(" %s not found" % (click.style(filename, fg=ERROR_COLOR)))
 
-@fs.command()
+@fs.command("rm")
 @click.pass_context
 @click.argument('filename')
-def rm(ctx, filename):
+def fs_rm(ctx, filename):
     """Remove a file"""
     group = ctx.obj['GROUP']()
 
@@ -1755,10 +1755,10 @@ def rm(ctx, filename):
         except IOError:
             click.echo(" %s not found" % (click.style(filename, fg=ERROR_COLOR)))
 
-@fs.command()
+@fs.command("put")
 @click.pass_context
 @click.argument('filename')
-def put(ctx, filename):
+def fs_put(ctx, filename):
     """Put a file"""
     group = ctx.obj['GROUP']()
 
@@ -1775,6 +1775,38 @@ def put(ctx, filename):
 
         except IOError:
             click.echo(" %s not loaded" % (click.style(filename, fg=ERROR_COLOR)))
+
+@fs.command("get")
+@click.pass_context
+@click.argument('filename')
+def fs_get(ctx, filename):
+    """Get a file"""
+    group = ctx.obj['GROUP']()
+
+    f = open(filename, 'rb')
+    data = f.read()
+    f.close()
+
+    for ct in group.itervalues():
+        echo_name(ct, nl=False)
+
+        # create folder for device name
+        try:
+            os.mkdir(ct.name)
+
+        except OSError:
+            pass
+
+        try:
+            data = ct.get_file(filename, data)
+
+            with open(os.path.join(ct.name, filename), 'w+') as f:
+                f.write(data)
+
+            click.echo("Received %s" % (click.style(filename, fg=VAL_COLOR)))
+
+        except IOError:
+            click.echo(" %s not found" % (click.style(filename, fg=ERROR_COLOR)))
 
 
 @cli.group()
