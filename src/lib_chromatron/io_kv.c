@@ -30,77 +30,77 @@
 PT_THREAD( io_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t hash_to_pin( catbus_hash_t32 hash ){
+// static uint8_t hash_to_pin( catbus_hash_t32 hash ){
 
-    switch( hash ){
-        case __KV__io_cfg_gpio_0:
-            return IO_PIN_0_GPIO;
-            break;
+//     switch( hash ){
+//         case __KV__io_cfg_gpio_0:
+//             return IO_PIN_0_GPIO;
+//             break;
 
-        case __KV__io_cfg_xck_1:
-            return IO_PIN_1_XCK;
-            break;
+//         case __KV__io_cfg_xck_1:
+//             return IO_PIN_1_XCK;
+//             break;
 
-        case __KV__io_cfg_txd_2:
-            return IO_PIN_2_TXD;
-            break;
+//         case __KV__io_cfg_txd_2:
+//             return IO_PIN_2_TXD;
+//             break;
 
-        case __KV__io_cfg_rxd_3:
-            return IO_PIN_3_RXD;
-            break;
+//         case __KV__io_cfg_rxd_3:
+//             return IO_PIN_3_RXD;
+//             break;
 
-        case __KV__io_cfg_adc0_4:
-            return IO_PIN_4_ADC0;
-            break;
+//         case __KV__io_cfg_adc0_4:
+//             return IO_PIN_4_ADC0;
+//             break;
 
-        case __KV__io_cfg_adc1_5:
-            return IO_PIN_5_ADC1;
-            break;
+//         case __KV__io_cfg_adc1_5:
+//             return IO_PIN_5_ADC1;
+//             break;
 
-        case __KV__io_cfg_dac0_6:
-            return IO_PIN_6_DAC0;
-            break;
+//         case __KV__io_cfg_dac0_6:
+//             return IO_PIN_6_DAC0;
+//             break;
 
-        case __KV__io_cfg_dac1_7:
-            return IO_PIN_7_DAC1;
-            break;
+//         case __KV__io_cfg_dac1_7:
+//             return IO_PIN_7_DAC1;
+//             break;
 
-        case __KV__io_val_gpio_0:
-            return IO_PIN_0_GPIO;
-            break;
+//         case __KV__io_val_gpio_0:
+//             return IO_PIN_0_GPIO;
+//             break;
 
-        case __KV__io_val_xck_1:
-            return IO_PIN_1_XCK;
-            break;
+//         case __KV__io_val_xck_1:
+//             return IO_PIN_1_XCK;
+//             break;
 
-        case __KV__io_val_txd_2:
-            return IO_PIN_2_TXD;
-            break;
+//         case __KV__io_val_txd_2:
+//             return IO_PIN_2_TXD;
+//             break;
 
-        case __KV__io_val_rxd_3:
-            return IO_PIN_3_RXD;
-            break;
+//         case __KV__io_val_rxd_3:
+//             return IO_PIN_3_RXD;
+//             break;
 
-        case __KV__io_val_adc0_4:
-            return IO_PIN_4_ADC0;
-            break;
+//         case __KV__io_val_adc0_4:
+//             return IO_PIN_4_ADC0;
+//             break;
 
-        case __KV__io_val_adc1_5:
-            return IO_PIN_5_ADC1;
-            break;
+//         case __KV__io_val_adc1_5:
+//             return IO_PIN_5_ADC1;
+//             break;
 
-        case __KV__io_val_dac0_6:
-            return IO_PIN_6_DAC0;
-            break;
+//         case __KV__io_val_dac0_6:
+//             return IO_PIN_6_DAC0;
+//             break;
 
-        case __KV__io_val_dac1_7:
-            return IO_PIN_7_DAC1;
-            break;
+//         case __KV__io_val_dac1_7:
+//             return IO_PIN_7_DAC1;
+//             break;
 
-        default:
-            return 0;
-    }
-}
+//         default:
+//             return 0;
+//     }
+// }
 
 static int8_t _iokv_i8_cfg_handler(
     kv_op_t8 op,

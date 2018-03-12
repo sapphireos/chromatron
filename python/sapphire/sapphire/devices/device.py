@@ -474,19 +474,8 @@ class Device(object):
             if isinstance(kwargs[key], basestring):
                 # we do not support unicode, and things break if leaks into the system
                 kwargs[key] = str(kwargs[key])
-
-            if self._client:
-                data[key] = kwargs[key]
-
-            else:
-                param = sapphiredata.KVParamField(group=self._keys[key].group,
-                                                  id=self._keys[key].id,
-                                                  type=self._keys[key].type,
-                                                  param_value=kwargs[key])
-                params.append(param)
-
-                keys[(param.group, param.id)] = key
-
+            
+            data[key] = kwargs[key]
         
         self._client.set_keys(**data)
 
@@ -568,21 +557,7 @@ class Device(object):
         return fileinfo
 
     def list_files(self):
-        try:
-            return self._client.list_files()
-
-        except (NoResponseFromHost):
-            fileinfo = self.list_files_raw()
-
-            d = {}
-
-            # iterate over file listing, filtering out empty files
-            for f in [f for f in fileinfo if f.filesize >= 0]:
-                d[f.filename] = {'filename': f.filename,
-                                 'flags': f.flags,
-                                 'size': f.filesize}
-
-            return d
+        return self._client.list_files()
 
     def check_file(self, filename, data):
         filehash = catbus_string_hash(data)
@@ -746,55 +721,37 @@ class Device(object):
 
         return "Removed: %s" % (line)
 
-    def cli_ls(self, line):
-        if self._client:
-            fileinfo = self.list_files()
+    def cli_ls(self, line):    
+        fileinfo = self.list_files()
 
-            s = "\n"
+        s = "\n"
 
-            # sort between disk and virtual files
-            disk_files = sorted([f for f in fileinfo.values() if (f['flags'] & 1) == 0], key=lambda a: a['filename'])
-            vfiles = sorted([f for f in fileinfo.values() if (f['flags'] & 1) != 0], key=lambda a: a['filename'])
+        # sort between disk and virtual files
+        disk_files = sorted([f for f in fileinfo.values() if (f['flags'] & 1) == 0], key=lambda a: a['filename'])
+        vfiles = sorted([f for f in fileinfo.values() if (f['flags'] & 1) != 0], key=lambda a: a['filename'])
 
-            # iterate over file listing
-            for f in disk_files:
-                v = ''
+        # iterate over file listing
+        for f in disk_files:
+            v = ''
 
-                if f['flags'] == 1:
-                    v = 'V'
+            if f['flags'] == 1:
+                v = 'V'
 
-                s += "%1s %6d %s\n" % \
-                    (v,
-                     f['size'],
-                     f['filename'])
+            s += "%1s %6d %s\n" % \
+                (v,
+                 f['size'],
+                 f['filename'])
 
-            for f in vfiles:
-                v = ''
+        for f in vfiles:
+            v = ''
 
-                if f['flags'] == 1:
-                    v = 'V'
+            if f['flags'] == 1:
+                v = 'V'
 
-                s += "%1s %6d %s\n" % \
-                    (v,
-                     f['size'],
-                     f['filename'])
-
-        else:
-            fileinfo = self.list_files_raw()
-
-            s = "\n"
-
-            # iterate over file listing, filtering out empty files
-            for f in [f for f in fileinfo if f.filesize >= 0]:
-                v = ''
-
-                if f.flags == 1:
-                    v = 'V'
-
-                s += "%1s %6d %s\n" % \
-                    (v,
-                     f.filesize,
-                     f.filename)
+            s += "%1s %6d %s\n" % \
+                (v,
+                 f['size'],
+                 f['filename'])
 
         return s
 

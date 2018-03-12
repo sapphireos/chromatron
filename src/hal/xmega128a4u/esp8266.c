@@ -138,7 +138,7 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password3" },
     { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid4" },
     { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password4" },
-    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &router,       0,                   "wifi_router" },
+    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &router,            0,                   "wifi_router" },
     { SAPPHIRE_TYPE_BOOL,          0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_enable_ap" },    
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_ssid" },
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
@@ -1399,7 +1399,7 @@ PT_BEGIN( pt );
         
         THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
-        bool ap_mode = wifi_b_ap_mode();
+        bool ap_mode = wifi_b_ap_mode_enabled();
 
 
         char ssid[WIFI_SSID_LEN];
@@ -1623,7 +1623,7 @@ end:
 
         if( !connected ){
 
-            if( !wifi_b_ap_mode() ){
+            if( !wifi_b_ap_mode_enabled() ){
 
                 wifi_connects++;
                 connected = TRUE;
@@ -2348,6 +2348,11 @@ bool wifi_b_connected( void ){
 }
 
 bool wifi_b_ap_mode( void ){
+
+    return ( wifi_status_reg & WIFI_STATUS_AP_MODE ) != 0;
+}
+
+bool wifi_b_ap_mode_enabled( void ){
 
     if( default_ap_mode ){
 

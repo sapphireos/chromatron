@@ -90,8 +90,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_shutdown_prog" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_info.status,       0,                  "vm_status" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_info.return_code,  0,                  "vm_retval" },
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm_info.loop_time,    0,                  "vm_loop_time" },
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm_info.fader_time,   0,                  "vm_fade_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.loop_time,    0,                  "vm_loop_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.fader_time,   0,                  "vm_fade_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.max_cycles,   0,                  "vm_max_cycles" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
@@ -539,7 +540,7 @@ PT_BEGIN( pt );
         // wait for VM to finish loading
         TMR_WAIT( pt, 1000 );
 
-        log_v_debug_P( PSTR("sts: %d ret: %d loop: %ld fade: %ld"),
+        log_v_debug_P( PSTR("sts: %d ret: %d loop: %u fade: %u"),
                        vm_info.status,
                        vm_info.return_code,
                        vm_info.loop_time,

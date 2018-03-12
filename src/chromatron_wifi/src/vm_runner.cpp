@@ -116,7 +116,7 @@ static int8_t _vm_i8_run_vm( bool init ){
     }
 
     vm_info.loop_time = elapsed;
-
+    vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
     wifi_msg_kv_batch_t batch;

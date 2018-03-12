@@ -33,10 +33,10 @@ import zipfile
 import hashlib
 import pkg_resources
 from filewatcher import Watcher
-import firmware_package
+from sapphire.buildtools import firmware_package
 import json
 
-from sapphire.devices.legacydevice import LegacyDevice, DeviceUnreachableException
+from sapphire.devices.legacydevice import Device, DeviceUnreachableException
 from elysianfields import *
 from sapphire.common.util import now
 
@@ -1629,6 +1629,31 @@ def load(ctx, filename, live):
 
         watcher.stop()
 
+@vm.command()
+@click.pass_context
+def reload(ctx):
+    """Recompile and reload the FX script on device"""
+
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        echo_name(ct, nl=False)
+
+        try:
+            prog = ct.get_key('vm_prog')
+
+            filename, ext = os.path.splitext(prog)
+            filename += '.fx'        
+
+            ct.load_vm(filename)
+
+            click.echo(" %s" % (filename))
+            
+        except KeyError:
+            click.echo(" No VM program - skipping")
+
+        except IOError:
+            click.echo(" File not found: %s" % (filename))
 
 @cli.command()
 @click.pass_context
@@ -2265,13 +2290,57 @@ def firmware(ctx):
 
 @firmware.command()
 @click.pass_context
-def manifest(ctx):
+def update(ctx):
+    """Update releases"""
+
+    new_releases = firmware_package.update_releases()
+
+    if len(new_releases) == 0:
+        click.echo('No updates found')
+
+    else:
+        click.echo('Updated releases:')
+
+        for release in new_releases:
+            click.echo(click.style('%-32s' % (release), fg='white'))
+
+@firmware.command()
+@click.pass_context
+def releases(ctx):
+    """List available releases"""
+
+    releases = firmware_package.get_releases(use_date_for_key=True)
+
+    if len(releases) == 0:
+        click.echo("No firmware releases found.  Try running 'chromatron firmware update' to update packages.")
+
+    else:
+        for published in reversed(sorted(releases.keys())):
+            name = releases[published]
+            name_s = click.style('%s' % (name), fg='white')
+            timestamp_s = click.style('%s' % (published), fg='magenta')
+
+            click.echo('%-32s Published :%32s' % (name_s, timestamp_s))   
+
+@firmware.command()
+@click.pass_context
+@click.option('--release', '-r', default=None, help='Name of release to display')
+def manifest(ctx, release):
     """Show manifest for current firmware package"""
 
-    # fw = FirmwarePackage()
-    # click.echo(fw)
+    if release == None:
+        release = firmware_package.get_most_recent_release()
 
-    firmwares = firmware_package.get_firmware(include_firmware_image=True)
+    release_date = firmware_package.get_releases()[release]
+    
+    name_s = click.style('%s' % (release), fg='white')
+    timestamp_s = click.style('%s' % (release_date), fg='magenta')
+
+    click.echo('Release: %-32s Published :%32s\n' % (name_s, timestamp_s))   
+
+    click.echo('Contents:')   
+
+    firmwares = firmware_package.get_firmware(include_firmware_image=True, release=release)
 
     for name, info in firmwares.iteritems():
         name_s = click.style('%s' % (info['manifest']['name']), fg='white')
@@ -2343,10 +2412,11 @@ def restore(ctx):
 
 @firmware.command()
 @click.pass_context
+@click.option('--release', '-r', default=None, help='Name of release to load. Default is latest.')
 @click.option('--force', default=False, is_flag=True, help='Force firmware upgrade even if versions match.')
 @click.option('--change_firmware', default=None, help='Change firmware on device.')
 @click.option('--yes', default=False, is_flag=True, help='Answer yes to all firmware change confirmation prompts.')
-def upgrade(ctx, force, change_firmware, yes):
+def upgrade(ctx, release, force, change_firmware, yes):
     """Upgrade firmware on selected devices"""
     # this weirdness is to deal with the difference in how Click handles progress updates
     # vs the device driver.
@@ -2369,9 +2439,22 @@ def upgrade(ctx, force, change_firmware, yes):
 
     group = ctx.obj['GROUP']()
 
-    # fw = FirmwarePackage()
-    # click.echo(fw)
-    firmwares = firmware_package.get_firmware(include_firmware_image=True, sort_fwid=True)
+    if release == None:
+        release = firmware_package.get_most_recent_release()
+
+    release_date = firmware_package.get_releases()[release]
+    
+    name_s = click.style('%s' % (release), fg='white')
+    timestamp_s = click.style('%s' % (release_date), fg='magenta')
+
+    click.echo('\nRelease: %-32s Published :%32s\n' % (name_s, timestamp_s))   
+
+    if not click.confirm(click.style("Is this the release you intend to use?", fg='white')):
+        click.echo("Firmware upgrade cancelled")
+        return
+        
+
+    firmwares = firmware_package.get_firmware(include_firmware_image=True, sort_fwid=True, release=release)
 
     # check if the yes option is enabled, and get a final confirmation
     if change_firmware and yes:
@@ -2570,6 +2653,7 @@ def version(ctx):
         s = '%s %s' % (name_s, val_s)
 
         click.echo(s)
+
 
 
 def main():
