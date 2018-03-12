@@ -12,7 +12,7 @@ Supported LED types:
 - WS2811/WS2812/WS2812b
 - SK6812 (RGB and RGBW)
 - Analog/PWM (RGB only - post an issue if you need RGBW support)
-- `Adafruit Pixie <https://https://www.adafruit.com/product/2741>`_
+- `Adafruit Pixie <https://www.adafruit.com/product/2741>`_
 
 
 Documentation
