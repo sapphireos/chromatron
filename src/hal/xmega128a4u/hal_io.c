@@ -161,6 +161,22 @@ io_port_t* io_p_get_port( uint8_t pin ){
             return &IO_PIN7_PORT;
             break;
 
+        case IO_PIN_PWM_0:
+            return &IO_PWM0_PORT;
+            break;
+
+        case IO_PIN_PWM_1:
+            return &IO_PWM1_PORT;
+            break;
+
+        case IO_PIN_PWM_2:
+            return &IO_PWM2_PORT;
+            break;
+
+        case IO_PIN_PWM_3:
+            return &IO_PWM3_PORT;
+            break;
+
         default:
             return &IO_PIN0_PORT;
             break;
@@ -201,6 +217,22 @@ uint8_t io_u8_get_pin( uint8_t pin ){
 
         case IO_PIN_7_DAC1:
             return IO_PIN7_PIN;
+            break;
+
+        case IO_PIN_PWM_0:
+            return IO_PWM0_PIN;
+            break;
+
+        case IO_PIN_PWM_1:
+            return IO_PWM1_PIN;
+            break;
+
+        case IO_PIN_PWM_2:
+            return IO_PWM2_PIN;
+            break;
+
+        case IO_PIN_PWM_3:
+            return IO_PWM3_PIN;
             break;
 
         default:
@@ -256,6 +288,26 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
             pin_mask = IO_PIN7_PIN;
             break;
 
+        case IO_PIN_PWM_0:
+            port = &IO_PWM0_PORT;
+            pin_mask = IO_PWM0_PIN;
+            break;
+
+        case IO_PIN_PWM_1:
+            port = &IO_PWM1_PORT;
+            pin_mask = IO_PWM1_PIN;
+            break;
+        
+        case IO_PIN_PWM_2:
+            port = &IO_PWM2_PORT;
+            pin_mask = IO_PWM2_PIN;
+            break;
+        
+        case IO_PIN_PWM_3:
+            port = &IO_PWM3_PORT;
+            pin_mask = IO_PWM3_PIN;
+            break;
+        
         default:
             return;
             break;
@@ -376,6 +428,26 @@ void io_v_digital_write( uint8_t pin, bool state ){
             pin_mask = IO_PIN7_PIN;
             break;
 
+        case IO_PIN_PWM_0:
+            port = &IO_PWM0_PORT;
+            pin_mask = IO_PWM0_PIN;
+            break;
+
+        case IO_PIN_PWM_1:
+            port = &IO_PWM1_PORT;
+            pin_mask = IO_PWM1_PIN;
+            break;
+
+        case IO_PIN_PWM_2:
+            port = &IO_PWM2_PORT;
+            pin_mask = IO_PWM2_PIN;
+            break;
+
+        case IO_PIN_PWM_3:
+            port = &IO_PWM3_PORT;
+            pin_mask = IO_PWM3_PIN;
+            break;
+
         default:
             return;
             break;
@@ -436,6 +508,26 @@ bool io_b_digital_read( uint8_t pin ){
         case IO_PIN_7_DAC1:
             port = &IO_PIN7_PORT;
             pin_mask = IO_PIN7_PIN;
+            break;
+
+        case IO_PIN_PWM_0:
+            port = &IO_PWM0_PORT;
+            pin_mask = IO_PWM0_PIN;
+            break;
+
+        case IO_PIN_PWM_1:
+            port = &IO_PWM1_PORT;
+            pin_mask = IO_PWM1_PIN;
+            break;
+
+        case IO_PIN_PWM_2:
+            port = &IO_PWM2_PORT;
+            pin_mask = IO_PWM2_PIN;
+            break;
+
+        case IO_PIN_PWM_3:
+            port = &IO_PWM3_PORT;
+            pin_mask = IO_PWM3_PIN;
             break;
 
         default:
