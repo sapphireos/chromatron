@@ -1176,7 +1176,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
             return
 
-        click.echo('Connected!')
+        click.echo('Connected! IP: %s' % (ct.get_key('ip')))
 
 
 
