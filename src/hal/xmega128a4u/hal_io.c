@@ -381,6 +381,146 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
     }
 }
 
+
+io_mode_t8 io_u8_get_mode( uint8_t pin ){
+
+    PORT_t *port;
+    uint8_t pin_mask = 0;
+
+    switch( pin ){
+
+        case IO_PIN_0_GPIO:
+            port = &IO_PIN0_PORT;
+            pin_mask = IO_PIN0_PIN;
+            break;
+
+        case IO_PIN_1_XCK:
+            port = &IO_PIN1_PORT;
+            pin_mask = IO_PIN1_PIN;
+            break;
+
+        case IO_PIN_2_TXD:
+            port = &IO_PIN2_PORT;
+            pin_mask = IO_PIN2_PIN;
+            break;
+
+        case IO_PIN_3_RXD:
+            port = &IO_PIN3_PORT;
+            pin_mask = IO_PIN3_PIN;
+            break;
+
+        case IO_PIN_4_ADC0:
+            port = &IO_PIN4_PORT;
+            pin_mask = IO_PIN4_PIN;
+            break;
+
+        case IO_PIN_5_ADC1:
+            port = &IO_PIN5_PORT;
+            pin_mask = IO_PIN5_PIN;
+            break;
+
+        case IO_PIN_6_DAC0:
+            port = &IO_PIN6_PORT;
+            pin_mask = IO_PIN6_PIN;
+            break;
+
+        case IO_PIN_7_DAC1:
+            port = &IO_PIN7_PORT;
+            pin_mask = IO_PIN7_PIN;
+            break;
+
+        case IO_PIN_PWM_0:
+            port = &IO_PWM0_PORT;
+            pin_mask = IO_PWM0_PIN;
+            break;
+
+        case IO_PIN_PWM_1:
+            port = &IO_PWM1_PORT;
+            pin_mask = IO_PWM1_PIN;
+            break;
+        
+        case IO_PIN_PWM_2:
+            port = &IO_PWM2_PORT;
+            pin_mask = IO_PWM2_PIN;
+            break;
+        
+        case IO_PIN_PWM_3:
+            port = &IO_PWM3_PORT;
+            pin_mask = IO_PWM3_PIN;
+            break;
+        
+        default:
+            return 0;
+            break;
+    }
+
+    uint8_t pinctrl = 0;
+
+    switch( pin_mask ){
+        case 0:
+            pinctrl = port->PIN0CTRL;
+            break;
+
+        case 1:
+            pinctrl = port->PIN1CTRL;
+            break;
+
+        case 2:
+            pinctrl = port->PIN2CTRL;
+            break;
+
+        case 3:
+            pinctrl = port->PIN3CTRL;
+            break;
+
+        case 4:
+            pinctrl = port->PIN4CTRL;
+            break;
+
+        case 5:
+            pinctrl = port->PIN5CTRL;
+            break;
+
+        case 6:
+            pinctrl = port->PIN6CTRL;
+            break;
+
+        case 7:
+            pinctrl = port->PIN7CTRL;
+            break;
+
+        default:
+            break;
+    }
+
+    // check if output
+    if( port->DIR & ( 1 << pin_mask ) ){
+
+        if( pinctrl & PORT_OPC_WIREDAND_gc ){
+
+            return IO_MODE_OUTPUT_OPEN_DRAIN;
+        }
+
+        return IO_MODE_OUTPUT;
+    }
+    // input
+    else{
+
+        if( pinctrl & PORT_OPC_PULLUP_gc ){
+
+            return IO_MODE_INPUT_PULLUP;
+        }
+        else if( pinctrl & PORT_OPC_PULLDOWN_gc ){
+
+            return IO_MODE_INPUT_PULLDOWN;
+        }
+
+        return IO_MODE_INPUT;
+    }
+
+    return 0;
+}
+
 void io_v_digital_write( uint8_t pin, bool state ){
 
     PORT_t *port;
