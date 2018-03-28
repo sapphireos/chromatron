@@ -1939,18 +1939,26 @@ end:
     
         if( error != CATBUS_ERROR_OK ){
 
-            if( error != CATBUS_ERROR_FILE_NOT_FOUND ){
+            if( ( error != CATBUS_ERROR_FILE_NOT_FOUND ) && 
+                ( error != CATBUS_ERROR_UNKNOWN_MSG ) ){
                 // file not found is a normal condition, so lets not log it.
+                // also don't log unknown messages, it creates a lot of noise when
+                // this is a normal condition when adding new protocol features
 
                 log_v_debug_P( PSTR("error: %u msg: %u"), error, header->msg_type );
             }
 
-            catbus_msg_error_t msg;
-            _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_ERROR, header->transaction_id );
+            // don't send unknown message errors. it just causes a ton of extra traffic
+            // when adding new broadcast messages that older nodes don't recognize.
+            if( error != CATBUS_ERROR_UNKNOWN_MSG ){
 
-            msg.error_code = error;
+                catbus_msg_error_t msg;
+                _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_ERROR, header->transaction_id );
 
-            sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+                msg.error_code = error;
+
+                sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+            }
         }        
 
         THREAD_YIELD( pt );
