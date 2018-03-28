@@ -52,7 +52,7 @@
 #define ADC_CHANNEL_TEMP        15 // internal temperature sensor
 
 #define ADC_VREF_INT1V          ADC_REFSEL_INT1V_gc
-#define ADC_VREF_INTVCC         ADC_REFSEL_INTVCC_gc
+#define ADC_VREF_INTVCC_DIV1V6  ADC_REFSEL_INTVCC_gc // VCC / 1.6V (approx 2.0V at 3.3VCC)
 
 // channels - on board
 #define ANALOG_CHANNEL_ADC0     ADC_CHANNEL_1

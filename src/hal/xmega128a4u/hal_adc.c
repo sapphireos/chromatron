@@ -74,7 +74,7 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
         }
         else{
 
-            adc_v_set_ref( ADC_VREF_INTVCC );
+            adc_v_set_ref( ADC_VREF_INTVCC_DIV1V6 );
         }
 
         ADCA.CH0.CTRL = ADC_CH_INPUTMODE_DIFF_gc;
@@ -251,7 +251,7 @@ uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
     	millivolts = (uint32_t)raw_value * 1000;
         millivolts /= 2048;
     }
-    else if( ( ADCA.REFCTRL & ADC_REFSEL_gm ) == ADC_VREF_INTVCC ){
+    else if( ( ADCA.REFCTRL & ADC_REFSEL_gm ) == ADC_VREF_INTVCC_DIV1V6 ){
 
         // uint16_t mv = adc_u16_read_vcc();
 
