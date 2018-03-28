@@ -27,8 +27,6 @@
 #include "io_kv.h"
 #include "io_intf.h"
 
-// PT_THREAD( io_thread( pt_t *pt, void *state ) );
-
 
 static uint8_t analog_mode;
 
@@ -265,19 +263,19 @@ static int8_t _iokv_i8_val_handler(
         uint16_t io_data = 0;
 
         // check analog mode
-        if( ( hash == __KV__io_cfg_adc0_4 ) && ( analog_mode & 0x01 ) ){
+        if( ( hash == __KV__io_val_adc0_4 ) && ( analog_mode & 0x01 ) ){
 
             io_data = adc_u16_read_mv( ANALOG_CHANNEL_ADC0 );
         }
-        else if( ( hash == __KV__io_cfg_adc1_5 ) && ( analog_mode & 0x02 ) ){
+        else if( ( hash == __KV__io_val_adc1_5 ) && ( analog_mode & 0x02 ) ){
 
             io_data = adc_u16_read_mv( ANALOG_CHANNEL_ADC1 );
         }
-        else if( ( hash == __KV__io_cfg_dac0_6 ) && ( analog_mode & 0x04 ) ){
+        else if( ( hash == __KV__io_val_dac0_6 ) && ( analog_mode & 0x04 ) ){
 
             io_data = adc_u16_read_mv( ANALOG_CHANNEL_DAC0 );
         }
-        else if( ( hash == __KV__io_cfg_dac1_7 ) && ( analog_mode & 0x08 ) ){
+        else if( ( hash == __KV__io_val_dac1_7 ) && ( analog_mode & 0x08 ) ){
 
             io_data = adc_u16_read_mv( ANALOG_CHANNEL_DAC1 );
         }
@@ -342,6 +340,9 @@ KV_SECTION_META kv_meta_t iokv_val[] = {
     { SAPPHIRE_TYPE_UINT16,  0, 0, 0,  _iokv_i8_val_handler, "io_val_dac1_7" },
 };
 
+
+
+// PT_THREAD( io_thread( pt_t *pt, void *state ) );
 
 void iokv_v_init( void ){
 

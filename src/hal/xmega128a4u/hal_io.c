@@ -496,7 +496,7 @@ io_mode_t8 io_u8_get_mode( uint8_t pin ){
     // check if output
     if( port->DIR & ( 1 << pin_mask ) ){
 
-        if( pinctrl & PORT_OPC_WIREDAND_gc ){
+        if( ( pinctrl & PORT_OPC_gm ) ==PORT_OPC_WIREDAND_gc ){
 
             return IO_MODE_OUTPUT_OPEN_DRAIN;
         }
@@ -506,13 +506,13 @@ io_mode_t8 io_u8_get_mode( uint8_t pin ){
     // input
     else{
 
-        if( pinctrl & PORT_OPC_PULLUP_gc ){
+        if( ( pinctrl & PORT_OPC_gm ) == PORT_OPC_PULLUP_gc ){
 
-            return IO_MODE_INPUT_PULLUP;
+            return IO_MODE_INPUT_PULLUP;            
         }
-        else if( pinctrl & PORT_OPC_PULLDOWN_gc ){
+        else if( ( pinctrl & PORT_OPC_gm ) == PORT_OPC_PULLDOWN_gc ){
 
-            return IO_MODE_INPUT_PULLDOWN;
+            return IO_MODE_INPUT_PULLDOWN;            
         }
 
         return IO_MODE_INPUT;
