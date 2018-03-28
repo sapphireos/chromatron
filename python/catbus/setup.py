@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='catbus',
 
-    version='1.0.0',
+    version='1.0.1',
 
     packages=['catbus'],
 
@@ -44,7 +44,8 @@ setup(
         "click >= 6.6",
         "elysianfields >= 1.0",
         "fnvhash==0.1.0",
-        "crcmod==1.7"
+        "crcmod==1.7",
+        "netifaces==0.10.6",
     ],
 
     entry_points='''
