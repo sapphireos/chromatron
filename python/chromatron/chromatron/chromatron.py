@@ -1087,7 +1087,10 @@ def setup_wifi(wifi_ssid, wifi_password):
 
     You can pass the SSID and password on the command line as a shortcut.
 
+    The SSID and password must be 32 characters or less.
+
     """
+
     try:
         ct = Chromatron('usb')
 
@@ -1118,6 +1121,14 @@ def setup_wifi(wifi_ssid, wifi_password):
                 click.echo("No password specified!")
                 return
 
+        # validate lengths
+        if (len(wifi_ssid) > 32):
+            click.secho("SSID must be 32 characters or less", fg=ERROR_COLOR)
+            return
+
+        elif (len(wifi_password) > 32):
+            click.secho("Password must be 32 characters or less", fg=ERROR_COLOR)
+            return
 
         ct.set_wifi(wifi_ssid, wifi_password)
 
