@@ -49,7 +49,7 @@ def create_firmware_image():
     data += md5.digest()
     sha256 = hashlib.sha256(data)
 
-    with open('wifi_firmware.bin', 'w') as f:
+    with open('wifi_firmware.bin', 'wb') as f:
         f.write(data)
 
     return md5, sha256
@@ -120,7 +120,7 @@ def make_manifest(version, md5, sha256):
         f.write(json.dumps(data))
 
 def make_firmware_zip(version):
-    zf = zipfile.ZipFile('chromatron_wifi_fw.zip', 'w')
+    zf = zipfile.ZipFile('chromatron_wifi_fw.zip', 'wb')
     zf.write('manifest.txt')
     zf.write('wifi_firmware.bin')
     zf.close()

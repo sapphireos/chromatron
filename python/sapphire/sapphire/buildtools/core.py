@@ -1024,7 +1024,7 @@ class AppBuilder(HexBuilder):
             f.write(json.dumps(data))
 
         # create firmware zip file
-        zf = zipfile.ZipFile('chromatron_main_fw.zip', 'w')
+        zf = zipfile.ZipFile('chromatron_main_fw.zip', 'wb')
         zf.write('manifest.txt')
         zf.write('firmware.bin')
         zf.close()
@@ -1032,7 +1032,7 @@ class AppBuilder(HexBuilder):
         # create second, project specific zip
         # we'll remove the first zip after
         # we update the firmware tools
-        zf = zipfile.ZipFile('%s.zip' % (self.settings['PROJ_NAME']), 'w')
+        zf = zipfile.ZipFile('%s.zip' % (self.settings['PROJ_NAME']), 'wb')
         zf.write('manifest.txt')
         zf.write('firmware.bin')
         zf.close()
