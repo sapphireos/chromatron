@@ -449,7 +449,6 @@ class Client(object):
 
         i = 3
         while i > 0:
-            i -= 1
             try:
                 response, host = self._exchange(msg)
 
@@ -469,6 +468,11 @@ class Client(object):
 
                 else:
                     raise
+
+            i -= 1
+
+        if i == 0:
+            raise ProtocolErrorException
                     
         session_id = response.session_id
         requested_offset = 0
