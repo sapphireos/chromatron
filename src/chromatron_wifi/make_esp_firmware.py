@@ -120,7 +120,7 @@ def make_manifest(version, md5, sha256):
         f.write(json.dumps(data))
 
 def make_firmware_zip(version):
-    zf = zipfile.ZipFile('chromatron_wifi_fw.zip', 'wb')
+    zf = zipfile.ZipFile('chromatron_wifi_fw.zip', 'w')
     zf.write('manifest.txt')
     zf.write('wifi_firmware.bin')
     zf.close()
