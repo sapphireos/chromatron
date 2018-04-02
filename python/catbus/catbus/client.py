@@ -25,8 +25,26 @@ from data_structures import *
 from messages import *
 from options import *
 import time
+import netifaces
 
 import random
+
+def get_broadcast_addresses():
+    addrs = []
+    for interface in netifaces.interfaces():
+        try:
+            for addr in netifaces.ifaddresses(interface)[socket.AF_INET]:
+                try:
+                    addrs.append(addr['broadcast'])
+
+                except KeyError:
+                    pass
+
+        except KeyError:
+            pass
+
+
+    return addrs
 
 class Client(object):
     def __init__(self):
@@ -193,8 +211,6 @@ class Client(object):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
-        host = ('<broadcast>', CATBUS_DISCOVERY_PORT)
-
         # note we're creating a new socket for discovery.
         # the reason to do this is we may get a stray response after
         # we've completed discovery, and that may interfere with
@@ -206,8 +222,11 @@ class Client(object):
 
         discover_sock.settimeout(0.3)
 
+        broadcast_addrs = get_broadcast_addresses()
+
         for i in xrange(3):
-            discover_sock.sendto(msg.pack(), host)
+            for addr in broadcast_addrs:
+                discover_sock.sendto(msg.pack(), (addr, CATBUS_DISCOVERY_PORT))
 
             start = time.time()
 
@@ -435,7 +454,6 @@ class Client(object):
 
         i = 3
         while i > 0:
-            i -= 1
             try:
                 response, host = self._exchange(msg)
 
@@ -455,6 +473,11 @@ class Client(object):
 
                 else:
                     raise
+
+            i -= 1
+
+        if i == 0:
+            raise ProtocolErrorException
                     
         session_id = response.session_id
         requested_offset = 0

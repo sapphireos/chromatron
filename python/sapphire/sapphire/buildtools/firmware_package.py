@@ -210,7 +210,7 @@ def update_releases():
             r = requests.get(asset['url'], headers=headers)
 
             filename = os.path.join(firmware_package_dir(), asset['name'])
-            with open(filename, 'w') as f:            
+            with open(filename, 'wb') as f: # must be in binary mode or Windows will break
                 f.write(r.content)
 
             # unzip it

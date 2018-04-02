@@ -1,0 +1,14 @@
+v1.0
+
+- initial release
+
+
+v1.0.1
+
+- set wifi hostname in DHCP
+- track max cycles used in FX VM
+- change AP mode LED to purple
+- fixed double VM loop bug
+- added IO control to KV database
+- fixed bug that only one KV item could be sent to FX
+- streaming now supports RGB streaming, PWM pixels, and SK6812 RGBW

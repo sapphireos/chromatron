@@ -76,6 +76,12 @@ PT_BEGIN( pt );
             continue;
         }
 
+        // check if pixel driver is off
+        if( pixel_u8_get_mode() == PIX_MODE_OFF ){
+
+            continue;
+        }
+
         uint8_t *data = sock_vp_get_data( sock );
         uint8_t type = *data;
 
@@ -93,68 +99,164 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            uint8_t array_r[CHROMA_SVR_MAX_PIXELS];
-            uint8_t array_g[CHROMA_SVR_MAX_PIXELS];
-            uint8_t array_b[CHROMA_SVR_MAX_PIXELS];
-            uint8_t array_d[CHROMA_SVR_MAX_PIXELS];
-                
-            // check if HSV
-            if( type == CHROMA_MSG_TYPE_HSV ){
+            if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
-                // unpack HSV pointers
-                uint16_t *h = &msg->data0;
-                uint16_t *s = h + 1;
-                uint16_t *v = s + 1;
+                uint16_t r, g, b;
 
-                // convert to RGB
-                for( uint8_t i = 0; i < msg->count; i++ ){
+                // check if HSV
+                if( type == CHROMA_MSG_TYPE_HSV ){
 
-                    // update in place
-                    gfx_v_hsv_to_rgb( *h, *s, *v, h, s, v );
+                    // unpack HSV pointers
+                    uint16_t *h = &msg->data0;
+                    uint16_t *s = h + 1;
+                    uint16_t *v = s + 1;
 
-                    h += 3;
-                    s += 3;
-                    v += 3;
+                    // convert to RGB
+                    gfx_v_hsv_to_rgb( *h, *s, *v, &r, &g, &b );
                 }
+                else{
+
+                    r = msg->data0;
+                    g = *( &msg->data0 + 1 );
+                    b = *( &msg->data0 + 2 );
+                }
+
+                pixel_v_set_analog_rgb( r, g, b );
             }
+            else{
+                 
+                uint8_t array_r[CHROMA_SVR_MAX_PIXELS];
+                uint8_t array_g[CHROMA_SVR_MAX_PIXELS];
+                uint8_t array_b[CHROMA_SVR_MAX_PIXELS];
+                uint8_t array_d[CHROMA_SVR_MAX_PIXELS];
+                    
+                // check if HSV
+                if( type == CHROMA_MSG_TYPE_HSV ){
 
-            // unpack RGB pointers
-            uint16_t *r = &msg->data0;
-            uint16_t *g = r + 1;
-            uint16_t *b = g + 1;
-            uint8_t dither;
+                    uint16_t r, g, b, w;
 
-            for( uint8_t i = 0; i < msg->count; i++ ){
+                    // unpack HSV pointers
+                    uint16_t *h = &msg->data0;
+                    uint16_t *s = h + 1;
+                    uint16_t *v = s + 1;
 
-                *r /= 64;
-                *g /= 64;
-                *b /= 64;
+                    // convert to RGBW
+                    if( pixel_u8_get_mode() == PIX_MODE_SK6812_RGBW ){
 
-                dither =  ( *r & 0x0003 ) << 4;
-                dither |= ( *g & 0x0003 ) << 2;
-                dither |= ( *b & 0x0003 );
+                        // RGBW mode doesn't support dithering, it uses this
+                        // channel for white instead.
+                        for( uint8_t i = 0; i < msg->count; i++ ){
 
-                *r /= 4;
-                *g /= 4;
-                *b /= 4;
-            
-                array_r[i] = *r;
-                array_g[i] = *g;
-                array_b[i] = *b;
-                array_d[i] = dither;
+                            gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
 
-                r += 3;
-                g += 3;
-                b += 3;
+                            h += 3;
+                            s += 3;
+                            v += 3;
+
+                            array_r[i] = r / 256;
+                            array_g[i] = g / 256;
+                            array_b[i] = b / 256;
+                            array_d[i] = w / 256;
+                        }
+                    }
+                    // convert to RGB
+                    else{
+
+                        uint8_t dither;
+
+                        for( uint8_t i = 0; i < msg->count; i++ ){
+
+                            // update in place
+                            gfx_v_hsv_to_rgb( *h, *s, *v, &r, &g, &b );
+
+                            h += 3;
+                            s += 3;
+                            v += 3;
+
+                            r /= 64;
+                            g /= 64;
+                            b /= 64;
+
+                            dither =  ( r & 0x0003 ) << 4;
+                            dither |= ( g & 0x0003 ) << 2;
+                            dither |= ( b & 0x0003 );
+
+                            r /= 4;
+                            g /= 4;
+                            b /= 4;
+
+                            array_r[i] = r;
+                            array_g[i] = g;
+                            array_b[i] = b;
+                            array_d[i] = dither;
+                        }
+                    }
+                }
+                // RGB
+                else{
+
+                    // unpack RGB pointers
+                    uint16_t *r = &msg->data0;
+                    uint16_t *g = r + 1;
+                    uint16_t *b = g + 1;
+                    uint8_t dither;
+
+                    if( pixel_u8_get_mode() == PIX_MODE_SK6812_RGBW ){
+
+                        for( uint8_t i = 0; i < msg->count; i++ ){
+
+                            *r /= 256;
+                            *g /= 256;
+                            *b /= 256;
+
+                            dither = 0;
+                            
+                            array_r[i] = *r;
+                            array_g[i] = *g;
+                            array_b[i] = *b;
+                            array_d[i] = dither;
+
+                            r += 3;
+                            g += 3;
+                            b += 3;
+                        }
+                    }
+                    else{
+
+                        for( uint8_t i = 0; i < msg->count; i++ ){
+
+                            *r /= 64;
+                            *g /= 64;
+                            *b /= 64;
+
+                            dither =  ( *r & 0x0003 ) << 4;
+                            dither |= ( *g & 0x0003 ) << 2;
+                            dither |= ( *b & 0x0003 );
+
+                            *r /= 4;
+                            *g /= 4;
+                            *b /= 4;
+
+                            array_r[i] = *r;
+                            array_g[i] = *g;
+                            array_b[i] = *b;
+                            array_d[i] = dither;
+
+                            r += 3;
+                            g += 3;
+                            b += 3;
+                        }
+                    }
+                }
+
+                pixel_v_load_rgb( 
+                    msg->index, 
+                    msg->count, 
+                    array_r, 
+                    array_g, 
+                    array_b, 
+                    array_d );
             }
-
-            pixel_v_load_rgb( 
-                msg->index, 
-                msg->count, 
-                array_r, 
-                array_g, 
-                array_b, 
-                array_d );
         }
     }
 

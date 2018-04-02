@@ -63,10 +63,6 @@ class PixelHSVMsg(StructField):
 
         super(PixelHSVMsg, self).__init__(_name="pixel_hsv_msg", _fields=fields, **kwargs)
 
-        # self.count = len(self.pixels)
-
-        # assert self.count <= PIXEL_MSG_MAX_LEN
-
         self.type = CHROMA_MSG_TYPE_HSV
 
 CHROMA_MSG_TYPE_RGB = 2
@@ -80,10 +76,6 @@ class PixelRGBMsg(StructField):
                   # ArrayField(_name="pixels", _field=Uint16Field)]
 
         super(PixelRGBMsg, self).__init__(_name="pixel_rgb_msg", _fields=fields, **kwargs)
-
-        # self.count = len(self.pixels)
-
-        # assert self.count <= PIXEL_MSG_MAX_LEN
 
         self.type = CHROMA_MSG_TYPE_RGB
 
@@ -198,7 +190,6 @@ class RGBArray(PixelArray):
         super(RGBArray, self).__init__(*args, **kwargs)
 
 
-
 class Streamer(object):
     def __init__(self, host=None):
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -270,6 +261,58 @@ class Streamer(object):
             # get last message
             if len(pixels) >= 3:
                 msg = PixelHSVMsg(pixels=pixels, index=index, count=len(pixels) / 3).pack()
+                msg += struct.pack('<%dH' % (len(pixels)), *pixels)
+
+                msgs.append(msg)
+        
+        # rgb mode
+        elif self.mode == 'rgb':
+            r = self.arrays['r']
+            g = self.arrays['g']
+            b = self.arrays['b']
+
+            r._lock()
+            g._lock()
+            b._lock()
+
+            r_list = r._get_list()
+            g_list = g._get_list()
+            b_list = b._get_list()
+
+            pixels = []
+
+            i = 0
+            index = 0
+            for i in xrange(len(r_list)):
+                pix_r = r_list[i]
+                pix_g = g_list[i]
+                pix_b = b_list[i]
+
+                # convert to 16 bit integers
+                pix_r *= 65535
+                pix_g *= 65535
+                pix_b *= 65535
+                
+                pixels.append(int(pix_r))
+                pixels.append(int(pix_g))
+                pixels.append(int(pix_b))
+
+                if len(pixels) >= PIXEL_MSG_MAX_LEN * 3:
+                    msg = PixelRGBMsg(index=index, count=len(pixels) / 3).pack()    
+                    msg += struct.pack('<%dH' % (len(pixels)), *pixels)
+
+                    msgs.append(msg)
+                    index += (len(pixels) / 3)
+
+                    pixels = []
+
+            r._release()
+            g._release()
+            b._release()
+
+            # get last message
+            if len(pixels) >= 3:
+                msg = PixelRGBMsg(pixels=pixels, index=index, count=len(pixels) / 3).pack()
                 msg += struct.pack('<%dH' % (len(pixels)), *pixels)
 
                 msgs.append(msg)

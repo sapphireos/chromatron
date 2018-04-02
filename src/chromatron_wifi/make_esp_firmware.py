@@ -69,7 +69,7 @@ def create_firmware_image():
     data += md5.digest()
     sha256 = hashlib.sha256(data)
 
-    with open('wifi_firmware.bin', 'w') as f:
+    with open('wifi_firmware.bin', 'wb') as f:
         f.write(data)
 
     return md5, sha256

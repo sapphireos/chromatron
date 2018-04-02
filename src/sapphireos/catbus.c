@@ -2219,6 +2219,8 @@ end:
             if( ( error != CATBUS_ERROR_FILE_NOT_FOUND ) &&
                 ( error != CATBUS_ERROR_LINK_EOF ) ){
                 // file not found is a normal condition, so lets not log it.
+                // also don't log unknown messages, it creates a lot of noise when
+                // this is a normal condition when adding new protocol features
 
                 log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
             }

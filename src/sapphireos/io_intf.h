@@ -54,8 +54,9 @@ void io_v_init( void );
 uint8_t io_u8_get_board_rev( void );
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode );
-void io_v_digital_write( uint8_t pin, bool state );
+io_mode_t8 io_u8_get_mode( uint8_t pin );
 
+void io_v_digital_write( uint8_t pin, bool state );
 bool io_b_digital_read( uint8_t pin );
 
 bool io_b_button_down( void );

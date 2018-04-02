@@ -771,7 +771,7 @@ class Device(object):
 
         data = self.get_file(line, progress=progress)
 
-        f = open(line, 'w')
+        f = open(line, 'wb')
         f.write(data)
         f.close()
 
