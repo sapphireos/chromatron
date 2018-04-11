@@ -537,6 +537,11 @@ void intf_v_process( void ){
         info_msg.wifi_max_time          = process_stats.wifi_max_time;
         info_msg.mem_max_time           = process_stats.mem_max_time;
 
+        info_msg.intf_avg_time          = process_stats.intf_avg_time;
+        info_msg.vm_avg_time            = process_stats.vm_avg_time;
+        info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
+        info_msg.mem_avg_time           = process_stats.mem_avg_time;
+
         _intf_i8_send_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );
     }
     else if( request_vm_info ){

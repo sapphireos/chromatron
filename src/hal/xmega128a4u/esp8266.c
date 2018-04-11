@@ -111,6 +111,10 @@ static uint16_t intf_max_time;
 static uint16_t vm_max_time;
 static uint16_t wifi_max_time;
 static uint16_t mem_max_time;
+static uint16_t intf_avg_time;
+static uint16_t vm_avg_time;
+static uint16_t wifi_avg_time;
+static uint16_t mem_avg_time;
 
 
 static uint16_t wifi_version;
@@ -169,6 +173,11 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_max_time,                      0,   "wifi_proc_vm_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_max_time,                    0,   "wifi_proc_wifi_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_max_time,                     0,   "wifi_proc_mem_max_time" },
+
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &intf_avg_time,                    0,   "wifi_proc_intf_avg_time" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_avg_time,                      0,   "wifi_proc_vm_avg_time" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_avg_time,                    0,   "wifi_proc_wifi_avg_time" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_avg_time,                     0,   "wifi_proc_mem_avg_time" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &max_ready_wait,                   0,   "wifi_max_ready_wait" },
 };
@@ -1735,6 +1744,11 @@ static int8_t process_rx_data( void ){
         vm_max_time                 = msg->vm_max_time;
         wifi_max_time               = msg->wifi_max_time;
         mem_max_time                = msg->mem_max_time;
+
+        intf_avg_time               = msg->intf_avg_time;
+        vm_avg_time                 = msg->vm_avg_time;
+        wifi_avg_time               = msg->wifi_avg_time;
+        mem_avg_time                = msg->mem_avg_time;
     }
     else if( header->data_id == WIFI_DATA_ID_DEBUG ){
 

@@ -137,6 +137,9 @@ uint32_t elapsed_time( uint32_t start_time ){
     return elapsed;
 }
 
+#define FILTER_CURRENT ( PROCESS_STATS_AVG_FILTER * 256 )
+#define FILTER_MEMORY ( 256 - FILTER_CURRENT )
+
 void loop(){
 
     uint32_t start, elapsed;
@@ -166,19 +169,23 @@ void loop(){
 
         stats->intf_max_time = stats->intf_run_time;
     }
+    stats->intf_avg_time = ( ( FILTER_CURRENT * stats->intf_run_time ) + ( FILTER_MEMORY * stats->intf_avg_time ) ) / 256;
 
     if( stats->wifi_run_time > stats->wifi_max_time ){
 
         stats->wifi_max_time = stats->wifi_run_time;
     }
+    stats->wifi_avg_time = ( ( FILTER_CURRENT * stats->wifi_run_time ) + ( FILTER_MEMORY * stats->wifi_avg_time ) ) / 256;
 
     if( stats->vm_run_time > stats->vm_max_time ){
 
         stats->vm_max_time = stats->vm_run_time;
     }
+    stats->vm_avg_time = ( ( FILTER_CURRENT * stats->vm_run_time ) + ( FILTER_MEMORY * stats->vm_avg_time ) ) / 256;
 
     if( stats->mem_run_time > stats->mem_max_time ){
 
         stats->mem_max_time = stats->mem_run_time;
     }
+    stats->mem_avg_time = ( ( FILTER_CURRENT * stats->mem_run_time ) + ( FILTER_MEMORY * stats->mem_avg_time ) ) / 256;
 }

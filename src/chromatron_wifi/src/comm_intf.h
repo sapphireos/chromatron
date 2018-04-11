@@ -34,13 +34,19 @@ extern "C"{
 typedef struct{
     uint16_t intf_run_time;
     uint16_t intf_max_time;
+    uint16_t intf_avg_time;
     uint16_t vm_run_time;
     uint16_t vm_max_time;
+    uint16_t vm_avg_time;
     uint16_t wifi_run_time;
     uint16_t wifi_max_time;
+    uint16_t wifi_avg_time;
     uint16_t mem_run_time;
     uint16_t mem_max_time;
+    uint16_t mem_avg_time;
 } process_stats_t;
+
+#define PROCESS_STATS_AVG_FILTER ( 0.1 )
 
 void intf_v_led_on( void );
 void intf_v_led_off( void );
