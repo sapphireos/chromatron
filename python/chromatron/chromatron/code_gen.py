@@ -2960,99 +2960,99 @@ class Call(Instruction):
         return [self.opcode, ('addr', self.target), 0]
 
 # load a value to an array by index
-class LoadToArray(Instruction):
-    mnemonic = 'LTA'
-    opcode = 0x18
+# class LoadToArray(Instruction):
+#     mnemonic = 'LTA'
+#     opcode = 0x18
 
-    def __init__(self, dest, src, index):
-        self.dest = dest
-        self.src = src
+#     def __init__(self, dest, src, index):
+#         self.dest = dest
+#         self.src = src
 
-        self.print_index = index
+#         self.print_index = index
 
-        if isinstance(self.dest, RecordNode):
-            self.index = self.dest.translate_field(index)
+#         if isinstance(self.dest, RecordNode):
+#             self.index = self.dest.translate_field(index)
 
-        else:
-            self.index = index
+#         else:
+#             self.index = index
 
-        self.size = ConstantNode(self.dest.size)
+#         self.size = ConstantNode(self.dest.size)
 
-    def __str__(self):
-        return "%s %s[%s] <- %s" % (self.mnemonic, self.dest.name, self.print_index, self.src)
+#     def __str__(self):
+#         return "%s %s[%s] <- %s" % (self.mnemonic, self.dest.name, self.print_index, self.src)
 
-    def assemble(self):
-        return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
-
-
-# load a value from an array by index
-class LoadFromArray(Instruction):
-    mnemonic = 'LFA'
-    opcode = 0x19
-
-    def __init__(self, dest, src, index):
-        self.dest = dest
-        self.src = src
-
-        self.print_index = index
-
-        if isinstance(self.src, RecordNode):
-            self.index = self.src.translate_field(index)
-
-        else:
-            self.index = index
-
-        self.size = ConstantNode(self.src.size)
-
-    def __str__(self):
-        return "%s %s <- %s[%s]" % (self.mnemonic, self.dest, self.src.name, self.print_index)
-
-    def assemble(self):
-        return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
+#     def assemble(self):
+#         return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
 
 
-# load a value from an array by index
-class LoadFromArray2D(Instruction):
-    mnemonic = 'LFA2D'
-    opcode = 0x1A
+# # load a value from an array by index
+# class LoadFromArray(Instruction):
+#     mnemonic = 'LFA'
+#     opcode = 0x19
 
-    def __init__(self, dest, src, index_x, index_y):
-        self.dest = dest
-        self.src = src
+#     def __init__(self, dest, src, index):
+#         self.dest = dest
+#         self.src = src
 
-        self.index_x = index_x
-        self.index_y = index_y
+#         self.print_index = index
 
-        self.size_x = ConstantNode(self.src.array_len)
-        self.size_y = ConstantNode(self.src.fields_len)
+#         if isinstance(self.src, RecordNode):
+#             self.index = self.src.translate_field(index)
 
-    def __str__(self):
-        return "%s %s <- %s[%s][%s]" % (self.mnemonic, self.dest, self.src.name, self.index_x, self.index_y)
+#         else:
+#             self.index = index
 
-    def assemble(self):
-        return [self.opcode, self.dest.addr, self.src.addr, self.index_x.addr, self.index_y.addr, self.size_x.addr, self.size_y.addr]
+#         self.size = ConstantNode(self.src.size)
+
+#     def __str__(self):
+#         return "%s %s <- %s[%s]" % (self.mnemonic, self.dest, self.src.name, self.print_index)
+
+#     def assemble(self):
+#         return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
 
 
-# load a value to an array by index
-class LoadToArray2D(Instruction):
-    mnemonic = 'LTA2D'
-    opcode = 0x1B
+# # load a value from an array by index
+# class LoadFromArray2D(Instruction):
+#     mnemonic = 'LFA2D'
+#     opcode = 0x1A
 
-    def __init__(self, dest, src, index_x, index_y):
-        self.dest = dest
-        self.src = src
+#     def __init__(self, dest, src, index_x, index_y):
+#         self.dest = dest
+#         self.src = src
 
-        self.index_x = index_x
-        self.index_y = index_y
+#         self.index_x = index_x
+#         self.index_y = index_y
 
-        self.size_x = ConstantNode(self.dest.array_len)
-        self.size_y = ConstantNode(self.dest.fields_len)
+#         self.size_x = ConstantNode(self.src.array_len)
+#         self.size_y = ConstantNode(self.src.fields_len)
 
-    def __str__(self):
-        return "%s %s[%s][%s] <- %s" % (self.mnemonic, self.dest.name, self.index_x, self.index_y, self.src)
+#     def __str__(self):
+#         return "%s %s <- %s[%s][%s]" % (self.mnemonic, self.dest, self.src.name, self.index_x, self.index_y)
 
-    def assemble(self):
-        return [self.opcode, self.dest.addr, self.src.addr, self.index_x.addr, self.index_y.addr, self.size_x.addr, self.size_y.addr]
+#     def assemble(self):
+#         return [self.opcode, self.dest.addr, self.src.addr, self.index_x.addr, self.index_y.addr, self.size_x.addr, self.size_y.addr]
+
+
+# # load a value to an array by index
+# class LoadToArray2D(Instruction):
+#     mnemonic = 'LTA2D'
+#     opcode = 0x1B
+
+#     def __init__(self, dest, src, index_x, index_y):
+#         self.dest = dest
+#         self.src = src
+
+#         self.index_x = index_x
+#         self.index_y = index_y
+
+#         self.size_x = ConstantNode(self.dest.array_len)
+#         self.size_y = ConstantNode(self.dest.fields_len)
+
+#     def __str__(self):
+#         return "%s %s[%s][%s] <- %s" % (self.mnemonic, self.dest.name, self.index_x, self.index_y, self.src)
+
+#     def assemble(self):
+#         return [self.opcode, self.dest.addr, self.src.addr, self.index_x.addr, self.index_y.addr, self.size_x.addr, self.size_y.addr]
 
 
 class LoadToPixArray(Instruction):

@@ -100,10 +100,13 @@ typedef struct __attribute__((packed)){
     uint16_t init_start;
     uint16_t loop_start;
     // variable length data:
-    // read keys
-    // write keys
-    // publish vars
-    // pixel objects
+    // - read keys
+    // - write keys
+    // - publish vars
+    // - pixel objects
+    // - code stream
+    // - data table
+    // - array/object storage
 } vm_program_header_t;
 
 // do not set packed on this struct, will crash the Xtensa
