@@ -4780,6 +4780,24 @@ class VM(object):
             elif isinstance(ins, ObjectStoreInstruction):
                 raise UnknownInstruction(ins)
 
+            elif isinstance(ins, DBLoadInstruction):
+                self.memory[ins.result.name] = self.kv[ins.op1.attr]
+
+            elif isinstance(ins, DBStoreInstruction):
+                self.kv[ins.result.attr] = self.memory[ins.op1.name]
+
+            elif isinstance(ins, DBLenInstruction):
+                print ins
+                raise UnknownInstruction(ins)
+
+            elif isinstance(ins, DBIndexStoreInstruction):
+                print ins
+                raise UnknownInstruction(ins)
+
+            elif isinstance(ins, DBIndexLoadInstruction):
+                print ins
+                raise UnknownInstruction(ins)
+        
             else:
                 raise UnknownInstruction(ins)
 

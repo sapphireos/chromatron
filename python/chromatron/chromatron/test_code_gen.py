@@ -1887,7 +1887,12 @@ class CGTestsLocal(CGTestsBase):
 
         for reg, value in expected.iteritems():
             try:
-                self.assertEqual(regs[reg], value)
+                try:
+                    self.assertEqual(regs[reg], value)
+
+                except KeyError:
+                    # try database
+                    self.assertEqual(vm.kv[reg], value)
 
             except AssertionError:
                 print reg, regs[reg], value
