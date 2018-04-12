@@ -306,14 +306,62 @@ void gfx_v_get_params( gfx_params_t *params ){
     params->virtual_array_length    = virtual_array_length;
 }
 
+uint16_t urand( int32_t *params, uint16_t param_len ){
+
+    uint16_t op1, op2;
+
+    if( param_len == 0 ){
+
+        return rnd_u16_get_int();
+    }
+    else if( param_len == 1 ){
+
+        op2 = params[0];
+        op1 = 0;
+    }
+    else if( param_len == 2 ){
+
+        op2 = params[1];
+        op1 = params[0];   
+    }
+    else{ 
+        // invalid param len
+
+        return 0;
+    }
+
+    uint16_t diff = op2 - op1;
+
+    return ( rnd_u16_get_int() % diff ) + op1;
+}
+
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len ){
+
+    uint16_t temp0, temp1;
 
     switch( func_hash ){
 
         case __KV__test_lib_call:
+            if( param_len != 2 ){
+
+                return 0;
+            }
+
             return params[0] + params[1];
             break;
 
+        // unique random
+        // this works the same as the rand() call
+        // in the FX VM, however, it always uses
+        // the system rng seed instead of the VM
+        // seed.
+        // this allows scripts to get random numbers
+        // unique to themselves when doing a frame sync
+        // with other nodes (which syncs the VM rng)
+        case __KV__urand:
+            return urand( params, param_len );
+    
+            break;
 
         case __KV__noise:
             return gfx_u16_noise( params[0] % 65536 );

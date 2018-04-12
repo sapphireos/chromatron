@@ -2423,6 +2423,9 @@ class CodeGeneratorPass3(object):
                     elif len(ir.params) == 1:
                         ir.params.insert(0, ConstIR(0, line_no=ir.line_no))
 
+                    elif len(ir.params) > 2:
+                        raise SyntaxNotSupported(message='too many parameters for function', line=ir.line_no)
+
                 elif ir.name == 'halt':
                     assert len(ir.params) == 0
 
