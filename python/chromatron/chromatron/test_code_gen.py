@@ -1157,6 +1157,31 @@ def init():
 """
 
 
+test_db_array_access = """
+
+db_len = Number(publish=True)
+db_len2 = Number(publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+
+def init():
+    db_len = len(db.kv_test_array)
+    db_len2 = len(db.kv_test_key)
+
+    db.kv_test_array[0] = 1
+    db.kv_test_array[8] = 2
+    db.kv_test_array[5] = 3
+    
+    a = db.kv_test_array[0]
+    b = db.kv_test_array[8]
+    c = db.kv_test_array[5]
+
+"""
+
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
@@ -1168,6 +1193,16 @@ class CGTestsBase(unittest.TestCase):
                 'a': 126,
                 'b': 123,
                 'kv_test_key': 126,
+            })
+
+    def test_db_array_access(self):
+        self.run_test(test_db_array_access,
+            expected={
+                'db_len': 8,
+                'db_len2': 1,
+                'a': 2,
+                'b': 2,
+                'c': 3,
             })
 
     def test_empty(self):

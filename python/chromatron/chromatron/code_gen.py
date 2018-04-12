@@ -4094,6 +4094,8 @@ class VM(object):
         self.kv['pix_size_x'] = pix_size_x
         self.kv['pix_size_y'] = pix_size_y
         self.kv['pix_count'] = self.pix_count
+        self.kv['kv_test_array'] = [0] * 8
+        self.kv['kv_test_key'] = 0
 
         self.hue        = [0 for i in xrange(self.pix_count)]
         self.sat        = [0 for i in xrange(self.pix_count)]
@@ -4787,17 +4789,20 @@ class VM(object):
                 self.kv[ins.result.attr] = self.memory[ins.op1.name]
 
             elif isinstance(ins, DBLenInstruction):
-                print ins
-                raise UnknownInstruction(ins)
+                try:
+                    self.memory[ins.result.name] = len(self.kv[ins.op1.attr])
 
+                except TypeError:
+                    self.memory[ins.result.name] = 1
+                
             elif isinstance(ins, DBIndexStoreInstruction):
-                print ins
-                raise UnknownInstruction(ins)
+                index = self.memory[ins.index.name] % len(self.kv[ins.result.attr])
+                self.kv[ins.result.attr][index] = self.memory[ins.op1.name]
 
             elif isinstance(ins, DBIndexLoadInstruction):
-                print ins
-                raise UnknownInstruction(ins)
-        
+                index = self.memory[ins.index.name] % len(self.kv[ins.op1.attr])
+                self.memory[ins.result.name] = self.kv[ins.op1.attr][index]
+
             else:
                 raise UnknownInstruction(ins)
 
