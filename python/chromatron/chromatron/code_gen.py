@@ -3658,6 +3658,9 @@ class CodeGeneratorPass5(object):
                         # add to read keys
                         self.read_keys[ins.op1.attr] = string_hash_func(ins.op1.attr)
 
+                    else:
+                        raise SyntaxNotSupported(line=ir.line_no)
+
                     # if ir.y < 0:
                     #     ins = LoadFromArray(ir.dest, ir.src, ir.x)
 
@@ -3685,7 +3688,9 @@ class CodeGeneratorPass5(object):
                         # add to write keys
                         self.write_keys[ins.result.attr] = string_hash_func(ins.result.attr)
 
-
+                    else:
+                        raise SyntaxNotSupported(line=ir.line_no)
+                    
                     # if ir.y < 0:
                     #     ins = LoadToArray(ir.src, ir.src, ir.x)
 
