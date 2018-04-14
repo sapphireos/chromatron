@@ -2,7 +2,10 @@
 # a = Array(4)
 # b = Array(3, 3)
 
-r = Record('meow', 'stuff')
+MyRecord = Record(meow=Number(), 
+                  stuff=Array(2))
+
+# MyRecord = Record(meow=Number())
 
 def init():
     pass
