@@ -885,11 +885,14 @@ class CodeGeneratorPass1(object):
 
                 return ArrayNode(size, line_no=tree.lineno, scope=self.current_function)
 
-            # elif tree.func.id == "Record":
-            #     # print tree, tree.args
-            #     fields = [a.s for a in tree.args]
+            elif tree.func.id == "Record":
+                # print tree, tree.args
+                fields = [a.s for a in tree.args]
 
-            #     return RecordNode(fields, line_no=tree.lineno, scope=self.current_function)
+                if len(fields) == 0:
+                    raise SyntaxNotSupported(message='Cannot create empty record', line_no=tree.lineno)
+
+                return RecordNode(fields, line_no=tree.lineno, scope=self.current_function)
 
             # elif tree.func.id == "RecordArray":
             #     # print tree, tree.args
@@ -2317,6 +2320,9 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, ArrayNode):
                 return [ArrayIR(node.name, node.array_len)]
+
+            elif isinstance(node, RecordNode):
+                print node
 
             elif isinstance(node, basestring):
                 return node
