@@ -297,6 +297,25 @@ class ArrayNode(DataNode):
     def __str__(self):
         return "Array:%s [%s] (%s)" % (self.name, self.array_len, self.scope)
 
+
+class ArrayIndexNode(DataNode):
+    def __init__(self, obj, i=ConstantNode(0), store=False, **kwargs):
+        super(ArrayIndexNode, self).__init__(**kwargs)
+    
+        self.name = '%s' % (obj)
+
+        self.obj = obj
+        self.i = i
+        self.store = store
+
+    def __str__(self):
+        if self.store:
+            return "ArrayIndex<Store>:%s[%s]" % (self.name, self.i)
+
+        else:
+            return "ArrayIndex<Load>:%s[%s]" % (self.name, self.i)
+
+
 class RecordNode(DataNode):
     def __init__(self, fields, **kwargs):
         super(RecordNode, self).__init__(**kwargs)
@@ -690,6 +709,9 @@ class ASTPrinter(object):
         elif isinstance(node, ArrayNode):
             self.echo('ARRAY(%s)' % (node.name))
 
+        elif isinstance(node, ArrayIndexNode):
+            self.echo(node)
+
         elif isinstance(node, VarNode):
             self.echo('VAR(%s)' % (node.name))
 
@@ -855,7 +877,8 @@ class CodeGeneratorPass1(object):
                 if len(tree.args) != 1:
                     raise SyntaxNotSupported(line_no=tree.lineno)
 
-                return ArrayNode(size, line_no=tree.lineno, scope=self.current_function)
+                array = ArrayNode(size, line_no=tree.lineno, scope=self.current_function)
+                return array
 
             elif tree.func.id == "Record":
 
@@ -1047,21 +1070,36 @@ class CodeGeneratorPass1(object):
                 return ObjNode(obj, attr, store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Subscript):
-            # this is basically a syntax rewrite.
-            # the code for ast.Attribute already does what we want here,
-            # so we are rearranging the syntax to match and then reusing
-            # that code.
-            sub = tree
-            attr = tree.value
-            attr_value = tree.value.value
-            ctx = sub.ctx
+            try:
+                # this is basically a syntax rewrite.
+                # the code for ast.Attribute already does what we want here,
+                # so we are rearranging the syntax to match and then reusing
+                # that code.
+                sub = tree
+                attr = tree.value
+                attr_value = tree.value.value
+                ctx = sub.ctx
 
-            sub.value = attr_value
+                sub.value = attr_value
 
-            attr.value = sub
-            attr.ctx = ctx
+                attr.value = sub
+                attr.ctx = ctx
 
-            return self.generate(attr)
+                return self.generate(attr)
+
+            except AttributeError:
+                # unless we are indexing an array
+
+                obj = VarNode(tree.value.id)
+                index = self.generate(tree.slice.value)
+
+                if isinstance(tree.ctx, ast.Store):
+                    store = True
+
+                else:
+                    store = False
+
+                return ArrayIndexNode(obj, i=index, store=store, line_no=tree.lineno)
 
 
             # raise SyntaxNotSupported(tree)
@@ -1663,7 +1701,12 @@ class IndexLoadIR(IntermediateNode):
         self.y = y
 
     def get_data_nodes(self):
-        return [self.dest, self.src, self.x, self.y]
+        nodes = [self.dest, self.src, self.x]
+
+        if self.y != None:
+            nodes.append(self.y)
+
+        return nodes
 
     def is_constant_op(self):
         return False
@@ -1687,7 +1730,12 @@ class IndexStoreIR(IntermediateNode):
         self.y = y
 
     def get_data_nodes(self):
-        return [self.dest, self.src, self.x, self.y]
+        nodes = [self.dest, self.src, self.x]
+
+        if self.y != None:
+            nodes.append(self.y)
+
+        return nodes
 
     def __str__(self):
         if self.y < 0:
@@ -2164,6 +2212,7 @@ class CodeGeneratorPass2(object):
                 elif isinstance(dest, IndexStoreIR):
                     dest.src = src
                     code.append(dest)
+                    print "MEOW"
 
                 else:
                     code.append(CopyIR(dest, src, level=self.level, line_no=node.line_no))
@@ -2294,6 +2343,29 @@ class CodeGeneratorPass2(object):
             elif isinstance(node, ArrayNode):
                 return [ArrayIR(node.name, node.array_len)]
 
+            elif isinstance(node, ArrayIndexNode):
+                code = []
+                index_code = self.generate(node.i)
+
+                try:
+                    index_dest = index_code[-1].dest
+                    code.extend(index_code)
+
+                except TypeError:
+                    index_dest = index_code                
+
+                if node.store:
+                    dest = self.generate(node.obj)
+
+                    code.append(IndexStoreIR(dest, None, index_dest, None, level=self.level, line_no=node.line_no))
+
+                else:
+                    src = self.generate(node.obj)
+                
+                    code.append(IndexLoadIR(None, src, index_dest, None, level=self.level, line_no=node.line_no))
+
+                return code
+                
             elif isinstance(node, RecordNode):
                 print node
 
@@ -2492,6 +2564,7 @@ class CodeGeneratorPass4(object):
         # second pass, assign addresses to registers
         registers = {}
         address_pool = []
+        arrays = {}
 
         # assign return value at address 0
         ret_val = VarIR(RETURN_VAL_NAME, line_no=0)
@@ -2589,8 +2662,11 @@ class CodeGeneratorPass4(object):
             if isinstance(ir, DefineIR):
                 registers[ir.name].declared = True
 
+            elif isinstance(ir, ArrayIR):
+                arrays[ir.name] = ir
 
         data_table = {
+            'arrays': arrays,
             'registers': {},
             'read_keys': {},
             'write_keys': {},
@@ -3643,6 +3719,10 @@ class CodeGeneratorPass5(object):
                     else:
                         raise SyntaxNotSupported(line=ir.line_no)
 
+                except AttributeError:
+                    # array indexing lands here
+                    ins = None
+
                     # if ir.y < 0:
                     #     ins = LoadFromArray(ir.dest, ir.src, ir.x)
 
@@ -3672,7 +3752,11 @@ class CodeGeneratorPass5(object):
 
                     else:
                         raise SyntaxNotSupported(line=ir.line_no)
-                    
+                
+                except AttributeError:
+                    # array indexing lands here
+                    ins = None
+
                     # if ir.y < 0:
                     #     ins = LoadToArray(ir.src, ir.src, ir.x)
 
@@ -4833,6 +4917,11 @@ def compile_text(text, debug_print=False, script_name=''):
         for k, v in state4['data']['registers'].iteritems():
             print '%3d %32s %s' % (v.line_no, k, v)
 
+        print ''
+        print 'Arrays:'
+        for k, v in state4['data']['arrays'].iteritems():
+            print '%3d %32s %s' % (v.line_no, k, v)
+
         # print 'Strings:'
         # for k, v in state4['strings'].iteritems():
         #     print '%3d %32s %s' % (v.line_no, k, v)
@@ -4941,7 +5030,7 @@ def compile_automaton_text(text, debug_print=False, script_name='', condition=Tr
         print 'Registers:'
         for k, v in state4['data']['registers'].iteritems():
             print '%3d %32s %s' % (v.line_no, k, v)
-
+        
         # print 'Strings:'
         # for k, v in state4['strings'].iteritems():
         #     print '%3d %32s %s' % (v.line_no, k, v)
