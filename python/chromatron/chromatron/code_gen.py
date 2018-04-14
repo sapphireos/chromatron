@@ -79,7 +79,6 @@ META_MAGIC = 0x4154454d # 'META'
 
 VM_STRING_LEN = 32
 
-VM_MAX_PUBLISHED_VARS = 8
 PUBLISHED_VAR_NAME_PREFIX = 'fx_'
 
 DATA_LEN = 4
@@ -317,27 +316,6 @@ class RecordNode(DataNode):
     def __str__(self):
         return "Record:%s [%s] (%s)" % (self.name, self.size, self.scope)
 
-class RecordArrayNode(DataNode):
-    def __init__(self, array_len, fields, **kwargs):
-        super(RecordArrayNode, self).__init__(**kwargs)
-
-        self.array_len = array_len
-        self.fields = fields
-        self.fields_len = len(self.fields)
-        self.size = len(self.fields) * array_len
-
-    def translate_field(self, field):
-        i = 0
-        for f in self.fields:
-            if f == field:
-                return i
-            i += 1
-
-        raise KeyError(field)
-
-    def __str__(self):
-        return "RecordArray:%s [%s] (%s)" % (self.name, self.array_len, self.scope)
-
 class ParameterNode(DataNode):
     def __init__(self, **kwargs):
         super(ParameterNode, self).__init__(**kwargs)
@@ -561,9 +539,6 @@ class ASTWalker(object):
         elif isinstance(node, RecordNode):
             pass
 
-        elif isinstance(node, RecordArrayNode):
-            pass
-
         elif isinstance(node, basestring):
             pass
 
@@ -736,9 +711,6 @@ class ASTPrinter(object):
         elif isinstance(node, RecordNode):
             self.echo('RECORD(%s)' % (node.name))
 
-        elif isinstance(node, RecordArrayNode):
-            self.echo('RECORDARRAY(%s)' % (node.name))
-
         elif isinstance(node, PixelArrayNode):
             self.echo('PIXARRAY(%s)' % (node.name))
 
@@ -894,12 +866,6 @@ class CodeGeneratorPass1(object):
 
                 return RecordNode(fields, line_no=tree.lineno, scope=self.current_function)
 
-            # elif tree.func.id == "RecordArray":
-            #     # print tree, tree.args
-            #     size = tree.args[0].n
-            #     fields = [a.s for a in tree.args[1:]]
-            #     return RecordArrayNode(size, fields, line_no=tree.lineno, scope=self.current_function)
-
             elif tree.func.id == "len":
                 node = self.generate(tree.args[0])
                 return LenNode(node, line_no=tree.lineno)
@@ -977,8 +943,7 @@ class CodeGeneratorPass1(object):
             if isinstance(value, NumberNode) or \
                isinstance(value, PixelArrayNode) or \
                isinstance(value, ArrayNode) or \
-               isinstance(value, RecordNode) or \
-               isinstance(value, RecordArrayNode):
+               isinstance(value, RecordNode):
 
                 value.name = dest.name
 
@@ -2322,7 +2287,7 @@ class CodeGeneratorPass2(object):
                 return [ArrayIR(node.name, node.array_len)]
 
             elif isinstance(node, RecordNode):
-                print node
+                print nodek
 
             elif isinstance(node, basestring):
                 return node
@@ -3836,18 +3801,6 @@ class CodeGeneratorPass7(object):
 
         # sort registers by address
         sorted_regs = sorted(self.registers['registers'].values(), key=lambda a: a.addr)
-
-        # # get published registers
-        # published_regs = [reg for reg in sorted_regs if reg.publish]
-
-        # # bounds check
-        # if len(published_regs) > VM_MAX_PUBLISHED_VARS:
-        #     raise TooManyPublishedVars(len(published_regs))
-
-        # # pad published regs
-        # published_reg_addrs = [reg.addr for reg in published_regs]
-        # while len(published_reg_addrs) < VM_MAX_PUBLISHED_VARS:
-        #     published_reg_addrs.append(0xff)
 
         # remove duplicates
         regs = []
