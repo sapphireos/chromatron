@@ -207,7 +207,19 @@ class VarNode(DataNode):
         self.value = self.name
 
     def __str__(self):
-        return "Var:%s" % (self.name)
+        return "Var{%s}" % (self.name)
+
+class ArrayVarNode(DataNode):
+    def __init__(self, value, **kwargs):
+        super(ArrayVarNode, self).__init__(**kwargs)
+
+        if value:
+            self.name = value
+
+        self.value = self.name
+
+    def __str__(self):
+        return "Array{%s}" % (self.name)
 
 class StringNode(DataNode):
     def __init__(self, value, **kwargs):
@@ -219,7 +231,7 @@ class StringNode(DataNode):
         self.value = self.name
 
     def __str__(self):
-        return "String:%s" % (self.name)
+        return "String{%s}" % (self.name)
 
 class NumberNode(DataNode):
     def __init__(self, **kwargs):
@@ -230,10 +242,10 @@ class NumberNode(DataNode):
 
     def __str__(self):
         if self.publish:
-            return "Number:%s (%s) [publish]" % (self.name, self.scope)
+            return "Number{%s} (%s) [publish]" % (self.name, self.scope)
 
         else:
-            return "Number:%s (%s)" % (self.name, self.scope)
+            return "Number{%s} (%s)" % (self.name, self.scope)
 
 class ConstantNode(DataNode):
     def __init__(self, value=None, **kwargs):
@@ -288,9 +300,9 @@ class ObjIndexNode(DataNode):
         else:
             return "ObjIndex<Load>:%s[%s][%s]" % (self.name, self.x, self.y)
 
-class ArrayNode(DataNode):
+class ArrayDeclareNode(DataNode):
     def __init__(self, size=0, **kwargs):
-        super(ArrayNode, self).__init__(**kwargs)
+        super(ArrayDeclareNode, self).__init__(**kwargs)
         self.size = size
         self.array_len = size
 
@@ -459,6 +471,16 @@ class LenNode(CodeNode):
     def __str__(self):
         return "LEN:%s" % (self.value)
 
+class ArrayFuncNode(CodeNode):
+    def __init__(self, func, op1, **kwargs):
+        super(ArrayFuncNode, self).__init__(**kwargs)
+        self.func = func
+        self.op1 = op1
+
+    def __str__(self):
+        return "ArrayFunc:%s -> %s" % (self.func, self.op1)
+
+
 
 class ASTWalker(object):
     def __init__(self):
@@ -543,10 +565,13 @@ class ASTWalker(object):
         elif isinstance(node, NumberNode):
             pass
 
-        elif isinstance(node, ArrayNode):
+        elif isinstance(node, ArrayDeclareNode):
             pass
 
         elif isinstance(node, VarNode):
+            pass
+
+        elif isinstance(node, ArrayVarNode):
             pass
 
         elif isinstance(node, ConstantNode):
@@ -706,7 +731,7 @@ class ASTPrinter(object):
         elif isinstance(node, NumberNode):
             self.echo('NUMBER(%s)' % (node.name))
 
-        elif isinstance(node, ArrayNode):
+        elif isinstance(node, ArrayDeclareNode):
             self.echo('ARRAY(%s)' % (node.name))
 
         elif isinstance(node, ArrayIndexNode):
@@ -742,6 +767,9 @@ class ASTPrinter(object):
         elif isinstance(node, basestring):
             pass
 
+        elif isinstance(node, ArrayFuncNode):
+            self.echo(node)
+
         elif node is None:
             self.echo('NONE')
 
@@ -757,6 +785,8 @@ class ASTPrinter(object):
 class CodeGeneratorPass1(object):
     def __init__(self):
         self.current_function = "_global"
+
+        self.arrays = []
 
     def generate(self, tree):
         if isinstance(tree, ast.Module):
@@ -832,6 +862,8 @@ class CodeGeneratorPass1(object):
             return ReturnNode(return_val, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Call):
+            array_funcs = ['min', 'max', 'avg']
+
             if tree.func.id == "Number":
                 node = NumberNode(scope=self.current_function, line_no=tree.lineno)
 
@@ -877,7 +909,7 @@ class CodeGeneratorPass1(object):
                 if len(tree.args) != 1:
                     raise SyntaxNotSupported(line_no=tree.lineno)
 
-                array = ArrayNode(size, line_no=tree.lineno, scope=self.current_function)
+                array = ArrayDeclareNode(size, line_no=tree.lineno, scope=self.current_function)
                 return array
 
             elif tree.func.id == "Record":
@@ -900,6 +932,10 @@ class CodeGeneratorPass1(object):
             elif tree.func.id == "len":
                 node = self.generate(tree.args[0])
                 return LenNode(node, line_no=tree.lineno)
+
+            elif tree.func.id in array_funcs:
+                node = self.generate(tree.args[0])
+                return ArrayFuncNode(tree.func.id, node, line_no=tree.lineno)
 
             params = []
 
@@ -973,10 +1009,13 @@ class CodeGeneratorPass1(object):
 
             if isinstance(value, NumberNode) or \
                isinstance(value, PixelArrayNode) or \
-               isinstance(value, ArrayNode) or \
+               isinstance(value, ArrayDeclareNode) or \
                isinstance(value, RecordNode):
 
                 value.name = dest.name
+
+                if isinstance(value, ArrayDeclareNode):
+                    self.arrays.append(value.name)
 
                 return value
 
@@ -1090,7 +1129,7 @@ class CodeGeneratorPass1(object):
             except AttributeError:
                 # unless we are indexing an array
 
-                obj = VarNode(tree.value.id)
+                obj = ArrayVarNode(tree.value.id)
                 index = self.generate(tree.slice.value)
 
                 if isinstance(tree.ctx, ast.Store):
@@ -1213,7 +1252,11 @@ class CodeGeneratorPass1(object):
             elif tree.id == 'False':
                 return ConstantNode(0, line_no=tree.lineno)                
 
-            return VarNode(tree.id, line_no=tree.lineno, scope=self.current_function)
+            if tree.id in self.arrays:
+                return ArrayVarNode(tree.id, line_no=tree.lineno, scope=self.current_function)
+
+            else:
+                return VarNode(tree.id, line_no=tree.lineno, scope=self.current_function)
 
         elif isinstance(tree, ast.Num):
             return ConstantNode(tree.n, line_no=tree.lineno)
@@ -1264,6 +1307,15 @@ class VarIR(DataIR):
 
         else:
             return 'Var(%s)<%s>@%d' % (self.name, self.function, self.addr)
+
+class ArrayVarIR(DataIR):
+    def __init__(self, name, **kwargs):
+        super(ArrayVarIR, self).__init__(**kwargs)
+        
+        self.name = name
+
+    def __str__(self):
+        return 'ArrayVar(%s)<%s>@%d' % (self.name, self.function, self.addr)
 
 class ObjIR(DataIR):
     def __init__(self, name, **kwargs):
@@ -1691,6 +1743,25 @@ class ObjectLenIR(IntermediateNode):
     def __str__(self):
         return '%3d %s OBJ_LEN %s -> %s' % (self.line_no, self.indent * self.level, self.src, self.dest)
 
+class ArrayFuncIR(IntermediateNode):
+    def __init__(self, dest, src, func, **kwargs):
+        super(ArrayFuncIR, self).__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+        self.func = func
+        
+    def get_data_nodes(self):
+        return [self.dest, self.src]
+
+    def is_constant_op(self):
+        return False
+
+    def replace_dest(self, new_dest):
+        self.dest = new_dest
+
+    def __str__(self):
+        return '%3d %s ARRAYFUNC(%s) %s -> %s' % (self.line_no, self.indent * self.level, self.func, self.src, self.dest)
+
 
 class IndexLoadIR(IntermediateNode):
     def __init__(self, dest, src, x, y=65535, **kwargs):
@@ -1854,9 +1925,9 @@ class NopIR(IntermediateNode):
     def __str__(self):
         return '%3d %s NOP' % (self.line_no, self.indent * self.level)
 
-class ArrayIR(IntermediateNode):
+class DefineArrayIR(IntermediateNode):
     def __init__(self, name, length, **kwargs):
-        super(ArrayIR, self).__init__(**kwargs)
+        super(DefineArrayIR, self).__init__(**kwargs)
         self.name = name
         self.length = length
         
@@ -2212,7 +2283,6 @@ class CodeGeneratorPass2(object):
                 elif isinstance(dest, IndexStoreIR):
                     dest.src = src
                     code.append(dest)
-                    print "MEOW"
 
                 else:
                     code.append(CopyIR(dest, src, level=self.level, line_no=node.line_no))
@@ -2323,6 +2393,9 @@ class CodeGeneratorPass2(object):
             elif isinstance(node, VarNode):
                 return VarIR(node.name, level=self.level, line_no=node.line_no)
 
+            elif isinstance(node, ArrayVarNode):
+                return ArrayVarIR(node.name, level=self.level, line_no=node.line_no)
+
             elif isinstance(node, StringNode):
                 return StringIR(node.name, level=self.level, line_no=node.line_no)
 
@@ -2340,8 +2413,8 @@ class CodeGeneratorPass2(object):
 
                 return [ir]
 
-            elif isinstance(node, ArrayNode):
-                return [ArrayIR(node.name, node.array_len)]
+            elif isinstance(node, ArrayDeclareNode):
+                return [DefineArrayIR(node.name, node.array_len)]
 
             elif isinstance(node, ArrayIndexNode):
                 code = []
@@ -2374,8 +2447,21 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, LenNode):
                 dest = self.get_unique_register(line_no=node.line_no)
-                obj = ObjIR(node.value.name, line_no=node.line_no)
-                ir = ObjectLenIR(dest, obj, level=self.level, line_no=node.line_no)
+
+                try:
+                    obj = ObjIR(node.value.name, line_no=node.line_no)
+                    ir = ObjectLenIR(dest, obj, level=self.level, line_no=node.line_no)
+
+                except IndexError:
+                    src = self.generate(node.value)
+                    ir = ArrayFuncIR(dest, src, 'len', level=self.level, line_no=node.line_no)
+
+                return [ir]
+
+            elif isinstance(node, ArrayFuncNode):
+                dest = self.get_unique_register(line_no=node.line_no)
+                src = self.generate(node.op1)
+                ir = ArrayFuncIR(dest, src, node.func, level=self.level, line_no=node.line_no)
 
                 return [ir]
 
@@ -2582,6 +2668,7 @@ class CodeGeneratorPass4(object):
             registers[reg].function = self.current_function
             addr += 1
 
+
         local_registers = {}
 
         for i in xrange(len(code)):
@@ -2608,6 +2695,10 @@ class CodeGeneratorPass4(object):
                         # assign object address
                         reg.addr = state['objects']['pixel_arrays'][reg.obj].addr
 
+                    continue
+
+                # check if array
+                if isinstance(reg, ArrayVarIR):
                     continue
 
                 # only add if we haven't seen this register before
@@ -2662,7 +2753,7 @@ class CodeGeneratorPass4(object):
             if isinstance(ir, DefineIR):
                 registers[ir.name].declared = True
 
-            elif isinstance(ir, ArrayIR):
+            elif isinstance(ir, DefineArrayIR):
                 arrays[ir.name] = ir
 
         data_table = {
@@ -3802,7 +3893,10 @@ class CodeGeneratorPass5(object):
             elif isinstance(ir, PixelArrayIR):
                 pass
 
-            elif isinstance(ir, ArrayIR):
+            elif isinstance(ir, DefineArrayIR):
+                pass
+
+            elif isinstance(ir, ArrayFuncIR):
                 pass
 
             else:

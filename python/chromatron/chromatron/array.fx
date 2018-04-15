@@ -15,7 +15,9 @@ def loop():
     # pass
     
     # a[1] = 2
-    b = a[1 + b]
+    # b = a[1]
+    b = len(a)
+    b = max(a)
     # pixels[1].hue = 2
 
     # b[0][1] = 3
