@@ -64,10 +64,11 @@ ARRAY_ATTRS = [
     'is_fading',
 ]
 
-ARRAY_FUNCS = ['min', 'max', 'avg']
-
 PIX_OBJ_TYPE = 1
 
+ARRAY_FUNCS = ['min', 'max', 'avg']
+
+SYS_CALLS = {'sys_call_test': 0}
 
 
 FILE_MAGIC = 0x20205846 # 'FX  '
@@ -482,7 +483,13 @@ class ArrayFuncNode(CodeNode):
     def __str__(self):
         return "ArrayFunc:%s -> %s" % (self.func, self.op1)
 
+class SysCallNode(CodeNode):
+    def __init__(self, name, params, **kwargs):
+        super(SysCallNode, self).__init__(**kwargs)
+        self.name = name
+        self.params = params
 
+    
 
 class ASTWalker(object):
     def __init__(self):
@@ -640,6 +647,12 @@ class ASTPrinter(object):
 
         elif isinstance(node, CallNode):
             self.echo('CALL %s' % (node.name))
+
+            for param in node.params:
+                self.generate(param)
+
+        elif isinstance(node, SysCallNode):
+            self.echo('SYSCALL %s' % (node.name))
 
             for param in node.params:
                 self.generate(param)
@@ -941,6 +954,10 @@ class CodeGeneratorPass1(object):
 
             for arg in tree.args:
                 params.append(self.generate(arg))
+
+            if tree.func.id in SYS_CALLS:
+                return SysCallNode(tree.func.id, params, line_no=tree.lineno)
+
 
             return CallNode(tree.func.id, params, line_no=tree.lineno)
 
@@ -1440,6 +1457,19 @@ class CallIR(IntermediateNode):
             s += '\n    %s %s' % (self.indent * (self.level + 1), param)
 
         return s
+
+class SysCallIR(CallIR):
+    def __init__(self, *args, **kwargs):
+        super(SysCallIR, self).__init__(*args, **kwargs)
+
+    def __str__(self):
+        s = '%3d %s SYSCALL %s -> %s' % (self.line_no, self.indent * self.level, self.name, self.dest)
+
+        for param in self.params:
+            s += '\n    %s %s' % (self.indent * (self.level + 1), param)
+
+        return s
+
 
 class ParamIR(IntermediateNode):
     def __init__(self, name, **kwargs):
@@ -2057,6 +2087,26 @@ class CodeGeneratorPass2(object):
                     params.append(param)
 
                 ir.append(CallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
+
+                return ir
+
+            elif isinstance(node, SysCallNode):
+                ir = []
+
+                params = []
+                for i in node.params:
+                    param_code = self.generate(i)
+
+                    try:
+                        ir.extend(param_code)
+                        param = param_code[-1].dest
+
+                    except TypeError:
+                        param = param_code
+
+                    params.append(param)
+
+                ir.append(SysCallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
 
                 return ir
 
@@ -3420,6 +3470,32 @@ class LibCall(Instruction):
         data.extend(encoded_params)
         return data
 
+class SysCall(Instruction):
+    opcode = 0x2D
+    mnemonic = 'SYSCALL'
+
+    def __init__(self, func, dest=None, params=[]):
+        super(SysCall, self).__init__()
+        self.func = func
+        self.func_id = SYS_CALLS[func]
+        self.dest   = dest
+        self.params = params
+
+    def __str__(self):
+        return "%s %s -> %s" % (self.mnemonic, self.func, self.dest)
+
+    def assemble(self):
+        
+        data = [self.opcode, 
+                self.func_id, 
+                self.dest.addr,
+                len(self.params)]
+
+        encoded_params = [a.addr for a in self.params]
+
+        data.extend(encoded_params)
+        return data
+
 
 class ObjectLoadInstruction(Instruction):
     mnemonic = 'OBJ_LOAD'
@@ -3661,6 +3737,14 @@ class CodeGeneratorPass5(object):
                     # ins.trigger_params = ir.params
 
                 self.append_code(ins)
+
+            elif isinstance(ir, SysCallIR):
+                assert ir.name in SYS_CALLS
+
+                ins = SysCall(ir.name, ir.dest, ir.params)
+
+                self.append_code(ins)
+
 
             elif isinstance(ir, CallIR):
                 if ir.name == 'halt':

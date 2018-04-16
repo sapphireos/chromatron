@@ -102,7 +102,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_halt,	            // 42
         &&opcode_is_fading,	        // 43
         &&opcode_lib_call,	        // 44
-        &&opcode_trap,	            // 45
+        &&opcode_trap,	            // 45 // SYS CALL
         &&opcode_trap,	            // 46
         &&opcode_trap,	            // 47
         &&opcode_trap,	            // 48
