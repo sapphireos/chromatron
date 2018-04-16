@@ -221,7 +221,13 @@ void wifi_v_process( void ){
         WiFi.mode( WIFI_STA );
         ap_mode = false;
 
+        uint32_t ms = millis();
+
         WiFi.begin( ssid, pass );    
+
+        ms = millis() - ms;
+
+        intf_v_printf( "Connect func time: %lu", ms );
 
         request_connect = false;
         request_disconnect = false;
