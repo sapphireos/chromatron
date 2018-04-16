@@ -68,7 +68,11 @@ PIX_OBJ_TYPE = 1
 
 ARRAY_FUNCS = ['min', 'max', 'avg']
 
-SYS_CALLS = {'sys_call_test': 0}
+SYS_CALLS = {'sys_call_test':   0,
+             'delay':           1,
+             'start_thread':    10,
+             'stop_thread':     11,
+             'thread_running':  12}
 
 
 FILE_MAGIC = 0x20205846 # 'FX  '
