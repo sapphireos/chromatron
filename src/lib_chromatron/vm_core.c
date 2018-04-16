@@ -317,7 +317,8 @@ static int8_t _vm_i8_run_stream(
 
     uint8_t *pc = stream + offset;
     uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len;
-    int32_t op1, op2, index, index_x32, index_y32, size_x32, size_y32, size;
+    int32_t op1, op2, index, size;
+    //index_x32, index_y32, size_x32, size_y32
     int32_t params[8];
     uint16_t addr;
     catbus_hash_t32 hash;
