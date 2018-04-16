@@ -116,6 +116,10 @@ static uint16_t vm_avg_time;
 static uint16_t wifi_avg_time;
 static uint16_t mem_avg_time;
 
+static uint32_t comm_rx_rate;
+static uint32_t comm_tx_rate;
+static uint32_t current_tx_bytes;
+static uint32_t current_rx_bytes;
 
 static uint16_t wifi_version;
 
@@ -180,17 +184,24 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_avg_time,                     0,   "wifi_proc_mem_avg_time" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &max_ready_wait,                   0,   "wifi_max_ready_wait" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_tx_rate" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rx_rate" },
 };
 
 
 static void _wifi_v_usart_send_char( uint8_t b ){
 
     usart_v_send_byte( &WIFI_USART, b );
+
+    current_tx_bytes += 1;
 }
 
 static void _wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
 
     usart_v_send_data( &WIFI_USART, data, len );
+
+    current_tx_bytes += len;
 }
 
 static int16_t _wifi_i16_usart_get_char( void ){
@@ -437,7 +448,7 @@ static uint8_t wifi_u8_get_control_byte( void ){
     return rx_buf[0];
 }
 
-static int8_t wifi_i8_rx_data_received( void ){
+static int16_t wifi_i16_rx_data_received( void ){
 
     if( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ){
 
@@ -446,9 +457,10 @@ static int8_t wifi_i8_rx_data_received( void ){
 
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
-    if( dma_rx_bytes() >= ( 1 + sizeof(wifi_data_header_t) + header->len ) ){
+    uint16_t rx_bytes = dma_rx_bytes();
+    if( rx_bytes >= ( 1 + sizeof(wifi_data_header_t) + header->len ) ){
 
-        return 0;
+        return rx_bytes;
     }
 
     return -2;
@@ -553,13 +565,16 @@ int8_t wifi_i8_send_msg_response(
         goto end;
     }
 
-    SAFE_BUSY_WAIT( ( tmr_u32_elapsed_time_us( timeout ) < WIFI_USART_TIMEOUT ) && ( wifi_i8_rx_data_received() < 0 ) );
+    SAFE_BUSY_WAIT( ( tmr_u32_elapsed_time_us( timeout ) < WIFI_USART_TIMEOUT ) && ( wifi_i16_rx_data_received() < 0 ) );
 
-    if( wifi_i8_rx_data_received() < 0 ){
+    int16_t rx_bytes = wifi_i16_rx_data_received();
+    if( rx_bytes < 0 ){
 
         status = -2;
         goto end;
     }
+
+    current_rx_bytes += rx_bytes;
 
 
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
@@ -1668,11 +1683,14 @@ PT_END( pt );
 
 static int8_t process_rx_data( void ){
 
-    if( wifi_i8_rx_data_received() < 0 ){
+    int16_t rx_bytes = wifi_i16_rx_data_received();
+
+    if( rx_bytes < 0 ){
 
         return -1;
     }
 
+    current_rx_bytes += rx_bytes;
     
     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
@@ -1907,7 +1925,7 @@ error:
 PT_THREAD( wifi_comm_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
 restart:
     
     _wifi_v_enter_normal_mode();
@@ -1983,16 +2001,24 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-
         TMR_WAIT( pt, 1000 );
 
-        wifi_uptime += 1;
+        if( wifi_b_connected() ){
 
-        if( !wifi_b_connected() ){
+            wifi_uptime += 1;
+        }
+        else{
 
             wifi_uptime = 0;
         }
+
+        // update comm traffic counters
+        comm_rx_rate = current_rx_bytes;
+        comm_tx_rate = current_tx_bytes;
+
+        // reset counters
+        current_rx_bytes = 0;
+        current_tx_bytes = 0;
     }
 
 PT_END( pt );
