@@ -64,6 +64,8 @@ ARRAY_ATTRS = [
     'is_fading',
 ]
 
+ARRAY_FUNCS = ['min', 'max', 'avg']
+
 PIX_OBJ_TYPE = 1
 
 
@@ -862,8 +864,6 @@ class CodeGeneratorPass1(object):
             return ReturnNode(return_val, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Call):
-            array_funcs = ['min', 'max', 'avg']
-
             if tree.func.id == "Number":
                 node = NumberNode(scope=self.current_function, line_no=tree.lineno)
 
@@ -933,7 +933,7 @@ class CodeGeneratorPass1(object):
                 node = self.generate(tree.args[0])
                 return LenNode(node, line_no=tree.lineno)
 
-            elif tree.func.id in array_funcs:
+            elif tree.func.id in ARRAY_FUNCS:
                 node = self.generate(tree.args[0])
                 return ArrayFuncNode(tree.func.id, node, line_no=tree.lineno)
 
