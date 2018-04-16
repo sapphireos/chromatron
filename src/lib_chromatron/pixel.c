@@ -778,6 +778,37 @@ void pixel_v_load_rgb(
     END_ATOMIC;
 }
 
+
+void pixel_v_load_hsv(
+    uint16_t index,
+    uint16_t len,
+    uint16_t *h,
+    uint16_t *s,
+    uint16_t *v ){
+
+    uint16_t transfer_count = len;
+
+    if( ( index + transfer_count ) > MAX_PIXELS ){
+
+        transfer_count = MAX_PIXELS - index;
+    }
+
+    // bounds check
+    if( ( index + transfer_count ) > MAX_PIXELS ){
+
+        log_v_debug_P( PSTR("pix transfer out of bounds") );
+        return;
+    }
+
+    // need to do the copy with interrupts disabled,
+    // so that way we have access into the arrays without
+    // the pixel driver touching them
+    ATOMIC;
+
+
+    END_ATOMIC;
+}
+
 void pixel_v_get_rgb_totals( uint16_t *r, uint16_t *g, uint16_t *b ){
 
     *r = 0;

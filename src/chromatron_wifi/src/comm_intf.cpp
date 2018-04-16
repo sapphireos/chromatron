@@ -666,8 +666,13 @@ void intf_v_process( void ){
         ptr += count;
         memcpy( ptr, s + hsv_index, count );
         ptr += count;
-        memcpy( ptr, v + hsv_index, count );
-        
+
+        uint16_t *val = (uint16_t *)ptr;
+        for( uint32_t i = hsv_index; i < ( count + hsv_index ); i++ ){
+
+            val[i] = gfx_u16_get_dimmed_val( v[i] );
+        }
+
         _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
                            (uint8_t *)&msg, 
                            sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
