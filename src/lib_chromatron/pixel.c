@@ -786,6 +786,26 @@ void pixel_v_load_hsv(
     uint16_t *s,
     uint16_t *v ){
 
+
+    uint16_t r, g, b, w;
+
+    // if first pixel and analog mode:
+    if( ( index == 0 ) && ( pix_mode == PIX_MODE_ANALOG ) ){
+
+        gfx_v_hsv_to_rgb(
+                h[0],
+                s[0],
+                v[0],
+                &r,
+                &g,
+                &b
+            );
+
+        pixel_v_set_analog_rgb( r, g, b );
+
+        return;
+    }
+
     uint16_t transfer_count = len;
 
     if( ( index + transfer_count ) > MAX_PIXELS ){
@@ -800,13 +820,75 @@ void pixel_v_load_hsv(
         return;
     }
 
-    // need to do the copy with interrupts disabled,
-    // so that way we have access into the arrays without
-    // the pixel driver touching them
-    ATOMIC;
+    if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
+        for( uint16_t i = 0; i < len; i++ ){
 
-    END_ATOMIC;
+            gfx_v_hsv_to_rgbw(
+                h[i],
+                s[i],
+                v[i],
+                &r,
+                &g,
+                &b,
+                &w
+            );
+      
+            r /= 256;
+            g /= 256;
+            b /= 256;
+            w /= 256;
+            
+            // need to do the copy with interrupts disabled,
+            // so that way we have access into the arrays without
+            // the pixel driver touching them
+            ATOMIC;
+            array_r[i + index] = r;
+            array_g[i + index] = g;
+            array_b[i + index] = b;
+            array_misc.white[i + index] = w;
+            END_ATOMIC;
+        }
+    }
+    else{
+
+        uint8_t dither;
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            gfx_v_hsv_to_rgb(
+                h[i],
+                s[i],
+                v[i],
+                &r,
+                &g,
+                &b
+            );
+      
+            r /= 64;
+            g /= 64;
+            b /= 64;
+
+            dither =  ( r & 0x0003 ) << 4;
+            dither |= ( g & 0x0003 ) << 2;
+            dither |= ( b & 0x0003 );
+
+            r /= 4;
+            g /= 4;
+            b /= 4;
+            
+            // need to do the copy with interrupts disabled,
+            // so that way we have access into the arrays without
+            // the pixel driver touching them
+            ATOMIC;
+            array_r[i + index] = r;
+            array_g[i + index] = g;
+            array_b[i + index] = b;
+            array_misc.dither[i + index] = dither;
+            END_ATOMIC;
+        }
+    }
+
 }
 
 void pixel_v_get_rgb_totals( uint16_t *r, uint16_t *g, uint16_t *b ){

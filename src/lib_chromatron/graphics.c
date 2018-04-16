@@ -511,7 +511,12 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
             wifi_msg_hsv_array_t *msg = (wifi_msg_hsv_array_t *)data;
 
-            
+            // unpack HSV pointers
+            uint16_t *h = (uint16_t *)msg->hsv_array;
+            uint16_t *s = h + ( msg->count * 2 );
+            uint16_t *v = s + ( msg->count * 2 );
+
+            pixel_v_load_hsv( msg->index, msg->count, h, s, v );   
         }
     }
     #else
