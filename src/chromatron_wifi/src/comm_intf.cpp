@@ -837,7 +837,6 @@ void intf_v_init( void ){
     intf_v_led_off();
 
     Serial.begin( 4000000 );
-    Serial.setRxBufferSize( 640 );
 
     // flush serial buffers
     _intf_v_flush();
