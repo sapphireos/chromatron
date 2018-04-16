@@ -70,15 +70,20 @@ static bool request_status;
 static bool request_info;
 static bool request_debug;
 static bool request_vm_info;
-static bool request_rgb_pix0;
-static bool request_rgb_array;
 static bool request_vm_frame_sync;
 static uint8_t vm_frame_sync_index;
 static bool request_vm_frame_sync_status;
 static uint8_t vm_frame_sync_status;
 static volatile bool request_reset_ready_timeout;
 
+#ifdef USE_HSV_BRIDGE
+static uint16_t hsv_index;
+static bool request_hsv_array;
+#else
 static uint16_t rgb_index;
+static bool request_rgb_pix0;
+static bool request_rgb_array;
+#endif
 
 static uint16_t comm_errors;
 
@@ -579,6 +584,7 @@ void intf_v_process( void ){
 
         _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
     }
+    #ifndef USE_HSV_BRIDGE
     else if( request_rgb_pix0 ){
 
         request_rgb_pix0 = false;
@@ -633,6 +639,48 @@ void intf_v_process( void ){
             request_rgb_array = false;
         }
     }
+    #else
+    else if( request_hsv_array ){
+
+        // get pointers to the arrays
+        uint16_t *h = gfx_u16p_get_hue();
+        uint16_t *s = gfx_u16p_get_sat();
+        uint16_t *v = gfx_u16p_get_val();
+
+        uint16_t pix_count = gfx_u16_get_pix_count();
+
+        wifi_msg_hsv_array_t msg;
+
+        uint16_t remaining = pix_count - hsv_index;
+        uint8_t count = WIFI_HSV_DATA_N_PIXELS;
+
+        if( count > remaining ){
+
+            count = remaining;
+        }
+
+        msg.index = hsv_index;
+        msg.count = count;
+        uint8_t *ptr = msg.hsv_array;
+        memcpy( ptr, h + hsv_index, count );
+        ptr += count;
+        memcpy( ptr, s + hsv_index, count );
+        ptr += count;
+        memcpy( ptr, v + hsv_index, count );
+        
+        _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
+                           (uint8_t *)&msg, 
+                           sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
+
+        hsv_index += count;
+
+        if( hsv_index >= pix_count ){
+
+            hsv_index = 0;
+            request_hsv_array = false;
+        }
+    }
+    #endif
     else if( request_debug ){
 
         request_debug = false;
@@ -804,6 +852,7 @@ void intf_v_request_vm_info( void ){
     request_vm_info = true;
 }
 
+#ifndef USE_HSV_BRIDGE
 void intf_v_request_rgb_pix0( void ){
 
     request_rgb_pix0 = true;
@@ -813,6 +862,13 @@ void intf_v_request_rgb_array( void ){
 
     request_rgb_array = true;
 }
+
+#else
+void intf_v_request_hsv_array( void ){
+
+    request_hsv_array = true;
+}
+#endif
 
 void intf_v_request_vm_frame_sync( void ){
 

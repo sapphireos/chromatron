@@ -37,6 +37,7 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_PASS_LEN               32
 
 #define WIFI_RGB_DATA_N_PIXELS      60
+#define WIFI_HSV_DATA_N_PIXELS      40
 
 
 
@@ -136,6 +137,13 @@ typedef struct __attribute__((packed)){
     uint32_t free_heap;
 } wifi_msg_debug_t;
 #define WIFI_DATA_ID_DEBUG              0x09
+
+typedef struct __attribute__((packed)){
+    uint16_t index;
+    uint8_t count;
+    uint8_t hsv_array[WIFI_HSV_DATA_N_PIXELS * 6];
+} wifi_msg_hsv_array_t;
+#define WIFI_DATA_ID_HSV_ARRAY          0x0A
 
 
 typedef struct __attribute__((packed)){

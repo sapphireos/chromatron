@@ -29,6 +29,7 @@
 extern "C"{
     #include "comm_printf.h"
     #include "catbus_common.h"
+    #include "gfx_lib.h"
 }
 
 typedef struct{
@@ -54,8 +55,12 @@ void intf_v_init( void );
 void intf_v_process( void );
 void intf_v_request_status( void );
 void intf_v_request_vm_info( void );
+#ifndef USE_HSV_BRIDGE
 void intf_v_request_rgb_pix0( void );
 void intf_v_request_rgb_array( void );
+#else
+void intf_v_request_hsv_array( void );
+#endif
 void intf_v_request_vm_frame_sync( void );
 void intf_v_get_mac( uint8_t mac[6] );
 void intf_v_printf( const char *format, ... );

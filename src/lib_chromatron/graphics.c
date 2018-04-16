@@ -503,6 +503,18 @@ static uint16_t current_frame;
 
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     
+    
+    #ifdef USE_HSV_BRIDGE
+    if( data_id == WIFI_DATA_ID_HSV_ARRAY ){
+
+        if( pixel_transfer_enable ){
+
+            wifi_msg_hsv_array_t *msg = (wifi_msg_hsv_array_t *)data;
+
+            
+        }
+    }
+    #else
     if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
 
         if( pixel_transfer_enable ){
@@ -532,6 +544,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
             pixel_v_load_rgb( msg->index, msg->count, r, g, b, d );   
         }
     }
+    #endif
     else if( data_id == WIFI_DATA_ID_VM_INFO ){
 
         if( len != sizeof(vm_info_t) ){

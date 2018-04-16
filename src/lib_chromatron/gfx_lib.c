@@ -38,6 +38,7 @@
 #define pgm_read_word(a) *a
 #endif
 
+#ifndef USE_HSV_BRIDGE
 static uint8_t array_red[MAX_PIXELS];
 static uint8_t array_green[MAX_PIXELS];
 static uint8_t array_blue[MAX_PIXELS];
@@ -46,6 +47,7 @@ static uint8_t array_misc[MAX_PIXELS];
 static uint16_t pix0_16bit_red;
 static uint16_t pix0_16bit_green;
 static uint16_t pix0_16bit_blue;
+#endif
 
 static uint16_t hue[MAX_PIXELS];
 static uint16_t sat[MAX_PIXELS];
@@ -953,19 +955,19 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
 uint16_t *gfx_u16p_get_hue( void ){
 
-    return target_hue;
+    return hue;
 }
 
 uint16_t *gfx_u16p_get_sat( void ){
 
-    return target_sat;
+    return sat;
 }
 
 uint16_t *gfx_u16p_get_val( void ){
 
-    return target_val;
+    return val;
 }
-
+#ifndef USE_HSV_BRIDGE
 uint8_t *gfx_u8p_get_red( void ){
 
     return array_red;
@@ -1000,6 +1002,7 @@ uint16_t gfx_u16_get_pix0_blue( void ){
 
     return pix0_16bit_blue;
 }
+#endif
 
 void gfx_v_set_background_hsv( int32_t h, int32_t s, int32_t v ){
 
@@ -1566,6 +1569,10 @@ void gfxlib_v_init( void ){
 // convert all HSV to RGB
 void gfx_v_sync_array( void ){
 
+    #ifdef USE_HSV_BRIDGE
+
+    #else
+
     uint16_t r, g, b, w;
     uint8_t dither;
     uint16_t dimmed_val;
@@ -1648,6 +1655,8 @@ void gfx_v_sync_array( void ){
             array_misc[i] = dither;
         }
     }
+
+    #endif
 }
 
 

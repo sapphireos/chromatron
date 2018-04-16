@@ -185,8 +185,12 @@ void vm_v_process( void ){
         gfx_v_process_faders();
         gfx_v_sync_array();
 
+        #ifdef USE_HSV_BRIDGE
+        intf_v_request_hsv_array();
+        #else
         intf_v_request_rgb_pix0();
         intf_v_request_rgb_array();
+        #endif
 
         // TODO this will have rollover issues
         uint32_t elapsed = micros() - start;
