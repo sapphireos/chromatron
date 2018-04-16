@@ -778,6 +778,36 @@ void pixel_v_load_rgb(
     END_ATOMIC;
 }
 
+void pixel_v_load_rgb16(
+    uint16_t index,
+    uint16_t r,
+    uint16_t g,
+    uint16_t b ){
+
+    uint8_t dither;
+
+    r /= 64;
+    g /= 64;
+    b /= 64;
+
+    dither =  ( r & 0x0003 ) << 4;
+    dither |= ( g & 0x0003 ) << 2;
+    dither |= ( b & 0x0003 );
+
+    r /= 4;
+    g /= 4;
+    b /= 4;
+    
+    // need to do the copy with interrupts disabled,
+    // so that way we have access into the arrays without
+    // the pixel driver touching them
+    ATOMIC;
+    array_r[index] = r;
+    array_g[index] = g;
+    array_b[index] = b;
+    array_misc.dither[index] = dither;
+    END_ATOMIC;
+}
 
 void pixel_v_load_hsv(
     uint16_t index,
@@ -852,8 +882,6 @@ void pixel_v_load_hsv(
     }
     else{
 
-        uint8_t dither;
-
         for( uint16_t i = 0; i < len; i++ ){
 
             gfx_v_hsv_to_rgb(
@@ -864,28 +892,8 @@ void pixel_v_load_hsv(
                 &g,
                 &b
             );
-      
-            r /= 64;
-            g /= 64;
-            b /= 64;
-
-            dither =  ( r & 0x0003 ) << 4;
-            dither |= ( g & 0x0003 ) << 2;
-            dither |= ( b & 0x0003 );
-
-            r /= 4;
-            g /= 4;
-            b /= 4;
-            
-            // need to do the copy with interrupts disabled,
-            // so that way we have access into the arrays without
-            // the pixel driver touching them
-            ATOMIC;
-            array_r[i + index] = r;
-            array_g[i + index] = g;
-            array_b[i + index] = b;
-            array_misc.dither[i + index] = dither;
-            END_ATOMIC;
+        
+            pixel_v_load_rgb16( i + index, r, g, b );
         }
     }
 

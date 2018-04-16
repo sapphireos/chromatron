@@ -84,6 +84,12 @@ void pixel_v_load_rgb(
     uint8_t *b,
     uint8_t *d );
 
+void pixel_v_load_rgb16(
+    uint16_t index,
+    uint16_t r,
+    uint16_t g,
+    uint16_t b );
+
 void pixel_v_load_hsv(
     uint16_t index,
     uint16_t len,
