@@ -1048,7 +1048,12 @@ class CodeGeneratorPass1(object):
 
         elif isinstance(tree, ast.AugAssign):
             try:
-                left = VarNode(tree.target.id, line_no=tree.lineno, scope=self.current_function)
+                if tree.target.id in self.arrays:
+                    left = ArrayVarNode(tree.target.id, line_no=tree.lineno, scope=self.current_function)
+
+                else:
+                    left = VarNode(tree.target.id, line_no=tree.lineno, scope=self.current_function)
+                    
             except AttributeError:
                 left = self.generate(tree.target)
 
@@ -2260,7 +2265,9 @@ class CodeGeneratorPass2(object):
             elif isinstance(node, AugAssignNode):
                 name = self.generate(node.name)
                    
-                if isinstance(name, ObjIR) and (name.obj in self.pixel_arrays) and (name.attr in ARRAY_ATTRS):
+                if (isinstance(name, ObjIR) and (name.obj in self.pixel_arrays) and (name.attr in ARRAY_ATTRS)) or \
+                   (isinstance(name, ArrayVarIR)):
+
                     array_binop = node.value
 
                     right_code = self.generate(array_binop.right)
