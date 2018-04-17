@@ -759,6 +759,9 @@ class ASTPrinter(object):
         elif isinstance(node, VarNode):
             self.echo('VAR(%s)' % (node.name))
 
+        elif isinstance(node, ArrayVarNode):
+            self.echo('ARRAY(%s)' % (node.name))
+
         elif isinstance(node, ObjNode):
             self.echo(node)
 
@@ -2256,7 +2259,7 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, AugAssignNode):
                 name = self.generate(node.name)
-                
+                   
                 if isinstance(name, ObjIR) and (name.obj in self.pixel_arrays) and (name.attr in ARRAY_ATTRS):
                     array_binop = node.value
 
@@ -2333,6 +2336,9 @@ class CodeGeneratorPass2(object):
 
                     else:
                         code.append(ObjectStoreIR(dest, src, level=self.level, line_no=node.line_no))
+
+                elif isinstance(dest, ArrayVarIR):
+                    code.append(ArrayOpIR(dest, 'eq', src, level=self.level, line_no=node.line_no))
 
                 elif isinstance(dest, IndexStoreIR):
                     dest.src = src
@@ -3340,7 +3346,7 @@ class ArrayOpInstruction(Instruction):
         self.result = result
         self.op1 = op1
 
-        self.size = ConstIR(self.result.size)
+        # self.size = ConstIR(self.result.size)
 
     def __str__(self):
         return "%-16s %16s %1s= %16s" % (self.mnemonic, self.result, self.symbol, self.op1)
