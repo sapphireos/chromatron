@@ -642,7 +642,7 @@ void intf_v_process( void ){
     #else
     else if( request_hsv_array ){
 
-        // get pointers to the arrays
+        // // get pointers to the arrays
         uint16_t *h = gfx_u16p_get_hue();
         uint16_t *s = gfx_u16p_get_sat();
         uint16_t *v = gfx_u16p_get_val();
@@ -661,21 +661,29 @@ void intf_v_process( void ){
 
         msg.index = hsv_index;
         msg.count = count;
+        
+        uint8_t transfer_bytes = count * 2;
+
         uint8_t *ptr = msg.hsv_array;
-        memcpy( ptr, h + hsv_index, count );
-        ptr += count;
-        memcpy( ptr, s + hsv_index, count );
-        ptr += count;
+        memcpy( ptr, h + hsv_index, transfer_bytes );
+        ptr += transfer_bytes;
+        memcpy( ptr, s + hsv_index, transfer_bytes );
+        ptr += transfer_bytes;
 
         uint16_t *val = (uint16_t *)ptr;
-        for( uint32_t i = hsv_index; i < ( count + hsv_index ); i++ ){
+        for( uint32_t i = 0; i < count; i++ ){
 
-            val[i] = gfx_u16_get_dimmed_val( v[i] );
+            *val = gfx_u16_get_dimmed_val( *v );
+            v++;
+            val++;
         }
 
         _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
                            (uint8_t *)&msg, 
-                           sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
+                           sizeof(msg.index) + 
+                           sizeof(msg.count) + 
+                           sizeof(msg.padding) + 
+                           ( count * 6 ) );
 
         hsv_index += count;
 

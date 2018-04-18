@@ -141,6 +141,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint16_t index;
     uint8_t count;
+    uint8_t padding;
     uint8_t hsv_array[WIFI_HSV_DATA_N_PIXELS * 6];
 } wifi_msg_hsv_array_t;
 #define WIFI_DATA_ID_HSV_ARRAY          0x0A
