@@ -242,18 +242,19 @@ class StringNode(DataNode):
         return "String{%s}" % (self.name)
 
 class NumberNode(DataNode):
-    def __init__(self, **kwargs):
+    def __init__(self, number_type='int32', **kwargs):
         super(NumberNode, self).__init__(**kwargs)
 
         self.value = self.name
         self.publish = False
+        self.type = number_type
 
     def __str__(self):
         if self.publish:
-            return "Number{%s} (%s) [publish]" % (self.name, self.scope)
+            return "Number{%s, %s} (%s) [publish]" % (self.name, self.type, self.scope)
 
         else:
-            return "Number{%s} (%s)" % (self.name, self.scope)
+            return "Number{%s, %s} (%s)" % (self.name, self.type, self.scope)
 
 class ConstantNode(DataNode):
     def __init__(self, value=None, **kwargs):
@@ -270,7 +271,6 @@ class ConstantNode(DataNode):
 
     def __str__(self):
         return "Const:%s (%s)" % (self.value, self.scope)
-
 
 class ObjNode(DataNode):
     def __init__(self, obj, attr, store=False, **kwargs):
@@ -579,6 +579,9 @@ class ASTWalker(object):
         elif isinstance(node, NumberNode):
             pass
 
+        elif isinstance(node, Fixed16Node):
+            pass
+
         elif isinstance(node, ArrayDeclareNode):
             pass
 
@@ -589,6 +592,9 @@ class ASTWalker(object):
             pass
 
         elif isinstance(node, ConstantNode):
+            pass
+
+        elif isinstance(node, ConstantFixed16Node):
             pass
 
         elif isinstance(node, ParameterNode):
@@ -749,7 +755,7 @@ class ASTPrinter(object):
             self.generate(node.test)
 
         elif isinstance(node, NumberNode):
-            self.echo('NUMBER(%s)' % (node.name))
+            self.echo(node)
 
         elif isinstance(node, ArrayDeclareNode):
             self.echo('ARRAY(%s)' % (node.name))
@@ -885,7 +891,7 @@ class CodeGeneratorPass1(object):
             return ReturnNode(return_val, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Call):
-            if tree.func.id == "Number":
+            if tree.func.id == "Number" or tree.func.id == "Fixed16":
                 node = NumberNode(scope=self.current_function, line_no=tree.lineno)
 
                 if len(tree.keywords) == 1:
@@ -893,6 +899,9 @@ class CodeGeneratorPass1(object):
                        tree.keywords[0].value.id == 'True':
 
                        node.publish = True
+
+                if tree.func.id == "Fixed16":
+                    node.type = 'fixed16'
 
                 return node
             
@@ -1322,21 +1331,22 @@ class DataIR(IntermediateNode):
         self.publish = False
 
 class VarIR(DataIR):
-    def __init__(self, name, publish=False, declared=False, **kwargs):
+    def __init__(self, name, publish=False, declared=False, number_type='int32', **kwargs):
         super(VarIR, self).__init__(**kwargs)
         self.name = name
         self.publish = publish
         self.declared = declared
+        self.type = number_type
 
         if self.name in reserved:
             raise ReservedKeyword(self.name)
 
     def __str__(self):
         if self.publish:
-            return 'Var(%s)<%s>@%d (publish)' % (self.name, self.function, self.addr)
+            return 'Var(%s, %s)<%s>@%d (publish)' % (self.name, self.type, self.function, self.addr)
 
         else:
-            return 'Var(%s)<%s>@%d' % (self.name, self.function, self.addr)
+            return 'Var(%s, %s)<%s>@%d' % (self.name, self.type, self.function, self.addr)
 
 class ArrayVarIR(DataIR):
     def __init__(self, name, **kwargs):
@@ -1399,20 +1409,21 @@ class KeyIR(StringIR):
         return 'Key(%s)@%d' % (self.name, self.addr)
 
 class DefineIR(IntermediateNode):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, number_type="int32", **kwargs):
         super(DefineIR, self).__init__(**kwargs)
         self.name = name
         self.publish = False
+        self.type = number_type
 
     def __str__(self):
         if self.publish:
-            return '%3d %s DEFINE %s (publish)' % (self.line_no, self.indent * self.level, self.name)
+            return '%3d %s DEFINE %s %s (publish)' % (self.line_no, self.indent * self.level, self.type, self.name)
 
         else:
-            return '%3d %s DEFINE %s' % (self.line_no, self.indent * self.level, self.name)
+            return '%3d %s DEFINE %s %s' % (self.line_no, self.indent * self.level, self.type, self.name)
 
     def get_data_nodes(self):
-        return [VarIR(self.name, publish=self.publish)]
+        return [VarIR(self.name, publish=self.publish, number_type=self.type)]
 
 class UndefineIR(IntermediateNode):
     def __init__(self, name, **kwargs):
@@ -2452,7 +2463,7 @@ class CodeGeneratorPass2(object):
                 return code
 
             elif isinstance(node, NumberNode):
-                define_ir = DefineIR(node.name, level=self.level, line_no=node.line_no)
+                define_ir = DefineIR(node.name, number_type=node.type, level=self.level, line_no=node.line_no)
 
                 define_ir.publish = node.publish
 
@@ -2732,7 +2743,7 @@ class CodeGeneratorPass4(object):
         # assign any global registers
         # this is used for the automaton
         for reg in global_registers:
-            registers[reg] = VarIR(reg, line_no=0)
+            registers[reg] = VarIR(reg, number_type=reg.type, line_no=0)
             registers[reg].addr = addr
             registers[reg].function = self.current_function
             addr += 1
