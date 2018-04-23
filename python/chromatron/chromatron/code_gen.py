@@ -264,13 +264,15 @@ class ConstantNode(DataNode):
             self.name = value
 
         self.value = self.name
+        self.type = 'int32'
 
         if isinstance(self.value, float):
-            self.value = int(self.value * 65535)
+            self.value = int(self.value * 65535) # will need to remove this when fixed16 is actually working
             self.name = self.value
+            self.type = 'fixed16'
 
     def __str__(self):
-        return "Const:%s (%s)" % (self.value, self.scope)
+        return "Const(%s):%s (%s)" % (self.type, self.value, self.scope)
 
 class ObjNode(DataNode):
     def __init__(self, obj, attr, store=False, **kwargs):
@@ -779,7 +781,7 @@ class ASTPrinter(object):
             self.echo('STR(%s)' % (node.name))
 
         elif isinstance(node, ConstantNode):
-            self.echo('CONST(%s)' % (node.name))
+            self.echo(node)
 
         elif isinstance(node, ParameterNode):
             pass
@@ -1383,12 +1385,13 @@ class TempIR(DataIR):
         return 'Temp(%s)<%s>@%d' % (self.name, self.function, self.addr)
 
 class ConstIR(DataIR):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, number_type='int32', **kwargs):
         super(ConstIR, self).__init__(**kwargs)
         self.name = name
+        self.type = number_type
 
     def __str__(self):
-        return 'Const(%s)<%s>@%d' % (self.name, self.function, self.addr)
+        return 'Const(%s, %s)<%s>@%d' % (self.name, self.type, self.function, self.addr)
 
 class StringIR(DataIR):
     def __init__(self, name, **kwargs):
@@ -2479,7 +2482,7 @@ class CodeGeneratorPass2(object):
                 return StringIR(node.name, level=self.level, line_no=node.line_no)
 
             elif isinstance(node, ConstantNode):
-                return ConstIR(node.name, level=self.level, line_no=node.line_no)
+                return ConstIR(node.name, number_type=node.type, level=self.level, line_no=node.line_no)
 
             elif isinstance(node, ParameterNode):
                 return node
@@ -2819,6 +2822,7 @@ class CodeGeneratorPass4(object):
                 else:
                     reg.function = registers[reg.name].function
                     reg.addr = registers[reg.name].addr
+                    reg.type = registers[reg.name].type
 
                     if not reg.line_no:
                         reg.line_no = ir.line_no
