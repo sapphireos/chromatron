@@ -1377,12 +1377,13 @@ class PixelObjIR(ObjIR):
     pass
 
 class TempIR(DataIR):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, number_type='int32',**kwargs):
         super(TempIR, self).__init__(**kwargs)
         self.name = name
+        self.type = number_type
 
     def __str__(self):
-        return 'Temp(%s)<%s>@%d' % (self.name, self.function, self.addr)
+        return 'Temp(%s, %s)<%s>@%d' % (self.name, self.type, self.function, self.addr)
 
 class ConstIR(DataIR):
     def __init__(self, name, number_type='int32', **kwargs):
@@ -2503,21 +2504,22 @@ class CodeGeneratorPass2(object):
                 index_code = self.generate(node.i)
 
                 try:
-                    index_dest = index_code[-1].dest
+                    index = index_code[-1].dest
                     code.extend(index_code)
 
                 except TypeError:
-                    index_dest = index_code                
+                    index = index_code                
 
                 if node.store:
                     dest = self.generate(node.obj)
 
-                    code.append(IndexStoreIR(dest, None, index_dest, None, level=self.level, line_no=node.line_no))
+                    code.append(IndexStoreIR(dest, None, index, None, level=self.level, line_no=node.line_no))
 
                 else:
+                    temp_dest = self.get_unique_register(line_no=node.line_no)
                     src = self.generate(node.obj)
                 
-                    code.append(IndexLoadIR(None, src, index_dest, None, level=self.level, line_no=node.line_no))
+                    code.append(IndexLoadIR(temp_dest, src, index, None, level=self.level, line_no=node.line_no))
 
                 return code
                 
@@ -3197,6 +3199,48 @@ class Call(Instruction):
 
     def assemble(self):
         return [self.opcode, ('addr', self.target), 0]
+
+class IndexLoad(Instruction):
+    mnemonic = 'IDX_LOAD'
+    opcode = 0x18
+
+    def __init__(self, dest, src, index):
+        self.dest = dest
+        self.src = src
+
+        self.print_index = index    
+        self.index = index
+
+        # self.size = ConstantNode(self.src.size)
+
+    def __str__(self):
+        return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.print_index)
+
+    def assemble(self):
+        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
+        return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+
+
+class IndexStore(Instruction):
+    mnemonic = 'IDX_STORE'
+    opcode = 0x19
+
+    def __init__(self, dest, src, index):
+        self.dest = dest
+        self.src = src
+
+        self.print_index = index    
+        self.index = index
+
+        # self.size = ConstantNode(self.src.size)
+
+    def __str__(self):
+        return "%s %s[%s] <- %s" % (self.mnemonic, self.dest.name, self.print_index, self.src)
+
+    def assemble(self):
+        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
+        return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+
 
 # load a value to an array by index
 # class LoadToArray(Instruction):
@@ -3941,8 +3985,10 @@ class CodeGeneratorPass5(object):
                         raise SyntaxNotSupported(line=ir.line_no)
 
                 except AttributeError:
+                    assert ir.y < 0
+
                     # array indexing lands here
-                    ins = None
+                    ins = IndexLoad(ir.dest, ir.src, ir.x)
 
                     # if ir.y < 0:
                     #     ins = LoadFromArray(ir.dest, ir.src, ir.x)
@@ -3975,8 +4021,10 @@ class CodeGeneratorPass5(object):
                         raise SyntaxNotSupported(line=ir.line_no)
                 
                 except AttributeError:
+                    assert ir.y < 0
+
                     # array indexing lands here
-                    ins = None
+                    ins = IndexStore(ir.dest, ir.src, ir.x)
 
                     # if ir.y < 0:
                     #     ins = LoadToArray(ir.src, ir.src, ir.x)

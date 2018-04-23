@@ -80,8 +80,8 @@ static int8_t _vm_i8_run_stream(
         //&&opcode_lfa2d,	        // 26
         //&&opcode_lta2d,	        // 27
 
-        &&opcode_trap,              // 24
-        &&opcode_trap,              // 25
+        &&opcode_trap,              // 24 // index load
+        &&opcode_trap,              // 25 // index store
         &&opcode_trap,              // 26
         &&opcode_trap,              // 27
 
