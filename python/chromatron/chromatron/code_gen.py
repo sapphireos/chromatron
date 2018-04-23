@@ -64,6 +64,7 @@ ARRAY_ATTRS = [
     'is_fading',
 ]
 
+ARRAY_OBJ_TYPE = 0
 PIX_OBJ_TYPE = 1
 
 ARRAY_FUNCS = ['min', 'max', 'avg']
@@ -2481,7 +2482,7 @@ class CodeGeneratorPass2(object):
                 return [ir]
 
             elif isinstance(node, ArrayDeclareNode):
-                return [DefineArrayIR(node.name, node.array_len)]
+                return [DefineArrayIR(node.name, node.array_len, level=self.level, line_no=node.line_no)]
 
             elif isinstance(node, ArrayIndexNode):
                 code = []
@@ -2684,7 +2685,7 @@ class CodeGeneratorPass3(object):
 
         return state
 
-# collect registers
+# collect registers and data structures
 class CodeGeneratorPass4(object):
     def __init__(self):
         self.current_function = '_global'
@@ -2718,6 +2719,7 @@ class CodeGeneratorPass4(object):
         registers = {}
         address_pool = []
         arrays = {}
+        array_addr = 0
 
         # assign return value at address 0
         ret_val = VarIR(RETURN_VAL_NAME, line_no=0)
@@ -2766,6 +2768,10 @@ class CodeGeneratorPass4(object):
 
                 # check if array
                 if isinstance(reg, ArrayVarIR):
+
+                    # assign address
+                    reg.addr = arrays[reg.name].addr
+
                     continue
 
                 # only add if we haven't seen this register before
@@ -2821,7 +2827,12 @@ class CodeGeneratorPass4(object):
                 registers[ir.name].declared = True
 
             elif isinstance(ir, DefineArrayIR):
-                arrays[ir.name] = ir
+                if ir.name not in arrays:
+                    arrays[ir.name] = ArrayVarIR(ir.name, line_no=ir.line_no)
+                    arrays[ir.name].function = self.current_function
+                    arrays[ir.name].addr = array_addr
+                    array_addr += 1
+
 
         data_table = {
             'arrays': arrays,
@@ -3366,6 +3377,9 @@ class ArrayOpInstruction(Instruction):
             obj_type = PIX_OBJ_TYPE
             attr = PIX_ATTRS[self.result.attr]
 
+        elif isinstance(self.result, ArrayVarIR):
+            obj_type = ARRAY_OBJ_TYPE
+            attr = 0
 
         # Array op format is:
         # opcode - object type - object address - attribute address - operand - size

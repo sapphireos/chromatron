@@ -1,7 +1,7 @@
 
 a = Array(4)
 b = Number()
-# b = Array(3, 3)
+c = Array(3)
 
 # MyRecord = Record(meow=Number(), 
                   # stuff=Array(2))
