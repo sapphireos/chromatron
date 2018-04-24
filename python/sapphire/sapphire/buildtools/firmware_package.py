@@ -147,15 +147,31 @@ def get_releases(use_date_for_key=False):
                 continue
 
             os.chdir(filename)
-            with open(PUBLISHED_AT_FILENAME, 'r') as f:
-                # published_at = util.iso_to_datetime(f.read())
-                published_at = f.read()
+            try:
+                with open(PUBLISHED_AT_FILENAME, 'r') as f:
+                    # published_at = util.iso_to_datetime(f.read())
+                    published_at = f.read()
 
-            if use_date_for_key:
-                releases[published_at] = filename
+                # check if there are any zip files (there should be!)
+                has_zip = False
+                for f in os.listdir(os.getcwd()):
+                    if os.path.splitext(f)[1] == '.zip':
+                        has_zip = True
+                        break
 
-            else:
-                releases[filename] = published_at
+                # no zips at all? this is definitely not the folder we're looking for.
+                if not has_zip:
+                    raise IOError
+
+                if use_date_for_key:
+                    releases[published_at] = filename
+
+                else:
+                    releases[filename] = published_at
+
+            except IOError:
+                # the published_at file does not exist, possibly some other folder got in somehow.
+                pass
 
     except OSError:
         # firmware dir does not exist
