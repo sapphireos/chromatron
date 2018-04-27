@@ -106,7 +106,6 @@ typedef struct __attribute__((packed)){
     // - pixel objects
     // - code stream
     // - data table
-    // - array/object storage
 } vm_program_header_t;
 
 // do not set packed on this struct, will crash the Xtensa
@@ -139,11 +138,11 @@ typedef struct{
     uint16_t pix_obj_start;
 } vm_state_t;
 
-int8_t vm_i8_run(
-    uint8_t *stream,
-    uint16_t offset,
-    vm_state_t *state,
-    int32_t *data );
+// int8_t vm_i8_run(
+//     uint8_t *stream,
+//     uint16_t offset,
+//     vm_state_t *state,
+//     int32_t *data );
 
 int8_t vm_i8_run_init(
     uint8_t *stream,

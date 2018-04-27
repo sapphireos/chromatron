@@ -37,11 +37,12 @@
 #endif
 
 static uint16_t cycles;
+static uint8_t call_depth;
 
 static int8_t _vm_i8_run_stream(
-    uint8_t *code,
+    uint8_t *stream,
     uint16_t offset,
-    uint64_t *rng_seed,
+    vm_state_t *state,
     int32_t *data ){
 
 #ifdef ESP8266
@@ -313,8 +314,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,	            // 253
         &&opcode_trap,	            // 254
         &&opcode_trap,	            // 255
-     };
+    };
 
+    uint8_t *code = (uint8_t *)( stream + state->code_start );
     uint8_t *pc = code + offset;
     uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len;
     int32_t op1, op2, index, size;
@@ -649,7 +651,7 @@ opcode_call:
     addr += ( *pc++ ) << 8;
 
     // call function, by recursively calling into VM
-    int8_t status = _vm_i8_run_stream( code, addr, rng_seed, data );
+    int8_t status = _vm_i8_run_stream( stream, addr, state, data );
     if( status < 0 ){
 
         return status;
@@ -1085,7 +1087,7 @@ opcode_rand:
     }
     else{
 
-        val = rnd_u16_get_int_with_seed( rng_seed ) % diff;
+        val = rnd_u16_get_int_with_seed( &state->rng_seed ) % diff;
     }
 
     data[dest] = val + data[op1_addr];
@@ -1298,27 +1300,14 @@ opcode_trap:
 int8_t vm_i8_run(
     uint8_t *stream,
     uint16_t offset,
-    vm_state_t *state,
-    int32_t *data ){
-
-    return _vm_i8_run_stream( stream, offset, &state->rng_seed, data );
-}
-
-
-int8_t vm_i8_run_init(
-    uint8_t *stream,
     vm_state_t *state ){
 
     cycles = 0;
+    call_depth = 0;
 
-    state->frame_number = 0;
-
-    uint8_t *code = (uint8_t *)( stream + state->code_start );
     int32_t *data = (int32_t *)( stream + state->data_start );
 
-    uint16_t offset = state->init_start;
-
-    int8_t status = _vm_i8_run_stream( code, offset, &state->rng_seed, data );
+    int8_t status = _vm_i8_run_stream( stream, offset, state, data );
 
     if( cycles > state->max_cycles ){
 
@@ -1326,6 +1315,16 @@ int8_t vm_i8_run_init(
     }
 
     return status;
+}
+
+
+int8_t vm_i8_run_init(
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    state->frame_number = 0;
+
+    return vm_i8_run( stream, state->init_start, state );
 }
 
 
@@ -1334,21 +1333,10 @@ int8_t vm_i8_run_loop(
     vm_state_t *state ){
 
     cycles = 0;
+    call_depth = 0;
     state->frame_number++;
 
-    uint8_t *code = (uint8_t *)( stream + state->code_start );
-    int32_t *data = (int32_t *)( stream + state->data_start );
-
-    uint16_t offset = state->loop_start;
-
-    int8_t status = _vm_i8_run_stream( code, offset, &state->rng_seed, data );
-
-    if( cycles > state->max_cycles ){
-
-        state->max_cycles = cycles;        
-    }
-
-    return status;
+    return vm_i8_run( stream, state->loop_start, state );
 }
 
 
@@ -1543,17 +1531,20 @@ int8_t vm_i8_load_program(
 
 int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
 
-    uint64_t rng_seed = rnd_u64_get_seed();
+    // this is broken
 
-    cycles = 0;
+    return -1;
+    // uint64_t rng_seed = rnd_u64_get_seed();
 
-    int8_t status = _vm_i8_run_stream( stream, 0, &rng_seed, data );
+    // cycles = 0;
 
-    rnd_v_seed( rng_seed );
+    // int8_t status = _vm_i8_run_stream( stream, 0, state, data );
 
-    *result = data[RETURN_VAL_ADDR];
+    // rnd_v_seed( rng_seed );
 
-    return status;
+    // *result = data[RETURN_VAL_ADDR];
+
+    // return status;
 }
 
 
