@@ -1441,14 +1441,9 @@ class FunctionIR(IntermediateNode):
     def __init__(self, name, **kwargs):
         super(FunctionIR, self).__init__(**kwargs)
         self.name = name
-        self.is_trigger = False
-
-    def __str__(self):
-        if self.is_trigger:
-            return '%3d %s FUNCTION %s (trigger)' % (self.line_no, self.indent * self.level, self.name)
-
-        else:
-            return '%3d %s FUNCTION %s' % (self.line_no, self.indent * self.level, self.name)
+        
+    def __str__(self):    
+        return '%3d %s FUNCTION %s' % (self.line_no, self.indent * self.level, self.name)
 
 class EndFunctionIR(IntermediateNode):
     def __init__(self, name, **kwargs):
@@ -2051,10 +2046,6 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, FunctionNode):
                 f = FunctionIR(node.name, level=self.level, line_no=node.line_no)
-
-                if 'trigger' in node.decorators:
-                    f.is_trigger = True
-
                 ir = [f]
 
                 params = []
@@ -2957,17 +2948,9 @@ class Function(Instruction):
 
     def __init__(self, name):
         self.name = name
-        self.trigger_params = []
-
-    def is_trigger(self):
-        return len(self.trigger_params) > 0
-
-    def __str__(self):
-        if self.is_trigger():
-            return "Function(%s) (trigger)" % (self.name)
-
-        else:
-            return "Function(%s)" % (self.name)
+        
+    def __str__(self):    
+        return "Function(%s)" % (self.name)
 
 # pseudo instruction - does not actually produce an opcode
 class Addr(Instruction):
@@ -3831,10 +3814,6 @@ class CodeGeneratorPass5(object):
             elif isinstance(ir, FunctionIR):
                 self.current_function = ir.name
                 ins = Function(ir.name)
-
-                if ir.is_trigger:
-                    pass
-                    # ins.trigger_params = ir.params
 
                 self.append_code(ins)
 
