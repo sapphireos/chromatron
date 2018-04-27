@@ -40,8 +40,6 @@ static vm_state_t vm_state;
 static vm_info_t vm_info;
 
 static uint32_t fader_time_start;
-static uint32_t vm_time_start;
-static uint32_t last_frame_sync;
 
 static bool run_vm;
 static bool run_faders;

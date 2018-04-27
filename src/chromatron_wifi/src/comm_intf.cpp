@@ -95,7 +95,6 @@ static uint32_t last_status_ts;
 
 static wifi_data_header_t intf_data_header;
 static uint8_t intf_comm_buf[WIFI_BUF_LEN];
-static uint16_t intf_comm_len;
 static uint8_t intf_comm_state;
 
 static wifi_msg_udp_header_t udp_header;
