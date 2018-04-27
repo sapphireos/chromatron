@@ -36,6 +36,9 @@
 #endif
 #endif
 
+
+static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len );
+
 static uint16_t cycles;
 static uint8_t call_depth;
 
@@ -103,7 +106,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_halt,	            // 42
         &&opcode_is_fading,	        // 43
         &&opcode_lib_call,	        // 44
-        &&opcode_trap,	            // 45 // SYS CALL
+        &&opcode_sys_call,	        // 45
         &&opcode_trap,	            // 46
         &&opcode_trap,	            // 47
         &&opcode_trap,	            // 48
@@ -318,7 +321,7 @@ static int8_t _vm_i8_run_stream(
 
     uint8_t *code = (uint8_t *)( stream + state->code_start );
     uint8_t *pc = code + offset;
-    uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len;
+    uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
     int32_t op1, op2, index, size;
     //index_x32, index_y32, size_x32, size_y32
     int32_t params[8];
@@ -1102,6 +1105,21 @@ opcode_rand:
 
 
 opcode_lib_call:
+    func_id     = *pc++;
+    dest        = *pc++;
+    param_len   = *pc++;    
+
+    for( uint32_t i = 0; i < param_len; i++ ){
+
+        params[i] = data[*pc];
+        pc++;
+    }
+
+    data[dest] = _vm_i32_sys_call( func_id, params, param_len );
+
+    goto dispatch;
+
+opcode_sys_call:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
     hash        |= (catbus_hash_t32)(*pc++) << 16;
     hash        |= (catbus_hash_t32)(*pc++) << 8;
@@ -1556,4 +1574,9 @@ int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
     // return status;
 }
 
+
+static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len ){
+
+    return -1;    
+}
 
