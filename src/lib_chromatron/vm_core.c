@@ -325,11 +325,15 @@ static int8_t _vm_i8_run_stream(
     uint16_t addr;
     catbus_hash_t32 hash;
 
+
+    call_depth++;
+
 dispatch:
     cycles++;
 
     if( cycles > VM_MAX_CYCLES ){
 
+        call_depth--;
         return VM_STATUS_ERR_MAX_CYCLES;
     }
 
@@ -643,6 +647,7 @@ opcode_ret:
     op1_addr = *pc++;
     data[RETURN_VAL_ADDR] = data[op1_addr];
 
+    call_depth--;
     return VM_STATUS_OK;
 
 
@@ -654,6 +659,7 @@ opcode_call:
     int8_t status = _vm_i8_run_stream( stream, addr, state, data );
     if( status < 0 ){
 
+        call_depth--;
         return status;
     }
 
@@ -1127,13 +1133,15 @@ opcode_assert:
         #ifndef VM_TARGET_ESP
         // log_v_debug_P( PSTR("VM assertion failed") );
         #endif
+        call_depth--;
         return VM_STATUS_ASSERT;
     }
 
     goto dispatch;
 
 opcode_halt:
-
+    
+    call_depth--;
     return VM_STATUS_HALT;
 
     goto dispatch;
@@ -1293,6 +1301,7 @@ opcode_db_len:
     goto dispatch;
 
 opcode_trap:
+    call_depth--;
     return VM_STATUS_TRAP;
 }
 
