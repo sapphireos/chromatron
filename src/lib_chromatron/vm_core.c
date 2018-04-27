@@ -39,7 +39,7 @@
 static uint16_t cycles;
 
 static int8_t _vm_i8_run_stream(
-    uint8_t *stream,
+    uint8_t *code,
     uint16_t offset,
     uint64_t *rng_seed,
     int32_t *data ){
@@ -315,7 +315,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,	            // 255
      };
 
-    uint8_t *pc = stream + offset;
+    uint8_t *pc = code + offset;
     uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len;
     int32_t op1, op2, index, size;
     //index_x32, index_y32, size_x32, size_y32
@@ -535,7 +535,7 @@ opcode_jmp:
     addr = *pc++;
     addr += ( *pc ) << 8;
 
-    pc = stream + addr;
+    pc = code + addr;
 
     goto dispatch;
 
@@ -549,7 +549,7 @@ opcode_jmp_if_z:
 
     if( data[op1_addr] == 0 ){
 
-        pc = stream + addr;
+        pc = code + addr;
     }
 
     goto dispatch;
@@ -564,7 +564,7 @@ opcode_jmp_if_not_z:
 
     if( data[op1_addr] != 0 ){
 
-        pc = stream + addr;
+        pc = code + addr;
     }
 
     goto dispatch;
@@ -579,7 +579,7 @@ opcode_jmp_if_z_dec:
 
     if( data[op1_addr] == 0 ){
 
-        pc = stream + addr;
+        pc = code + addr;
     }
     else{
 
@@ -599,7 +599,7 @@ opcode_jmp_if_gte:
 
     if( data[op1_addr] >= data[op2_addr] ){
 
-        pc = stream + addr;
+        pc = code + addr;
     }
 
     goto dispatch;
@@ -617,7 +617,7 @@ opcode_jmp_if_l_pre_inc:
         addr = *pc++;
         addr += ( *pc ) << 8;
 
-        pc = stream + addr;
+        pc = code + addr;
     }
     else{
 
@@ -649,7 +649,7 @@ opcode_call:
     addr += ( *pc++ ) << 8;
 
     // call function, by recursively calling into VM
-    int8_t status = _vm_i8_run_stream( stream, addr, rng_seed, data );
+    int8_t status = _vm_i8_run_stream( code, addr, rng_seed, data );
     if( status < 0 ){
 
         return status;
