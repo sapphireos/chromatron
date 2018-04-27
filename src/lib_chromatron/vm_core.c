@@ -1105,21 +1105,6 @@ opcode_rand:
 
 
 opcode_lib_call:
-    func_id     = *pc++;
-    dest        = *pc++;
-    param_len   = *pc++;    
-
-    for( uint32_t i = 0; i < param_len; i++ ){
-
-        params[i] = data[*pc];
-        pc++;
-    }
-
-    data[dest] = _vm_i32_sys_call( func_id, params, param_len );
-
-    goto dispatch;
-
-opcode_sys_call:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
     hash        |= (catbus_hash_t32)(*pc++) << 16;
     hash        |= (catbus_hash_t32)(*pc++) << 8;
@@ -1141,7 +1126,21 @@ opcode_sys_call:
     #endif
 
     goto dispatch;
+    
+opcode_sys_call:
+    func_id     = *pc++;
+    dest        = *pc++;
+    param_len   = *pc++;    
 
+    for( uint32_t i = 0; i < param_len; i++ ){
+
+        params[i] = data[*pc];
+        pc++;
+    }
+
+    data[dest] = _vm_i32_sys_call( func_id, params, param_len );
+
+    goto dispatch;
 
 opcode_assert:
     op1 = data[*pc++];
