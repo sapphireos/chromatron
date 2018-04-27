@@ -1988,6 +1988,9 @@ class DefineArrayIR(IntermediateNode):
         super(DefineArrayIR, self).__init__(**kwargs)
         self.name = name
         self.length = length
+        self.type = 'int32'
+
+        self.data_size = self.length
         
     def __str__(self):
         s = '%3d %s ARRAY %s(%d)' % (self.line_no, self.indent * self.level, self.name, self.length)
@@ -2735,7 +2738,6 @@ class CodeGeneratorPass4(object):
         registers = {}
         address_pool = []
         arrays = {}
-        array_addr = 0
 
         # assign return value at address 0
         ret_val = VarIR(RETURN_VAL_NAME, line_no=0)
@@ -2847,8 +2849,9 @@ class CodeGeneratorPass4(object):
                 if ir.name not in arrays:
                     arrays[ir.name] = ArrayVarIR(ir.name, line_no=ir.line_no)
                     arrays[ir.name].function = self.current_function
-                    arrays[ir.name].addr = array_addr
-                    array_addr += 1
+                    arrays[ir.name].addr = addr
+                    
+                    addr += ir.data_size
 
 
         data_table = {
