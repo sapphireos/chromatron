@@ -144,8 +144,6 @@ static int8_t _vm_i8_run_vm( bool init ){
         count--;
     }
 
-
-end:
     return return_code;
 }
 
@@ -296,7 +294,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
 
 void vm_v_run_loop( void ){
 
-    int8_t status = _vm_i8_run_vm( false );    
+    _vm_i8_run_vm( false );    
 }
 
 int32_t vm_i32_get_reg( uint8_t addr ){

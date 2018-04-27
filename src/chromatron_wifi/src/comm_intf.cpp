@@ -281,7 +281,7 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
                 break;
             }
 
-            catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
+            // catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
 
             // intf_v_printf( "KV hash: %lx idx %d count %d", 
             //     hdr->hash, hdr->index, hdr->count );      
@@ -415,7 +415,7 @@ void intf_v_process( void ){
     }
     else if( intf_comm_state == COMM_STATE_RX_HEADER ){    
         
-        if( Serial.available() >= (sizeof(wifi_data_header_t) ) ){
+        if( Serial.available() >= (int32_t)(sizeof(wifi_data_header_t) ) ){
 
             Serial.readBytes( (uint8_t *)&intf_data_header, sizeof(intf_data_header) );
 

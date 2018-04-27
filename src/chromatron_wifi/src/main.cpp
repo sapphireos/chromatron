@@ -142,7 +142,7 @@ uint32_t elapsed_time( uint32_t start_time ){
 
 void loop(){
 
-    uint32_t start, elapsed;
+    uint32_t start;
 
     process_stats_t *stats;
     intf_v_get_proc_stats( &stats );
