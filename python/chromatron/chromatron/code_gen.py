@@ -70,7 +70,8 @@ PIX_OBJ_TYPE = 1
 ARRAY_FUNCS = ['min', 'max', 'avg']
 
 SYS_CALLS = {'sys_call_test':   0,
-             'delay':           1,
+             'yield':           1,
+             'delay':           2,
              'start_thread':    10,
              'stop_thread':     11,
              'thread_running':  12}

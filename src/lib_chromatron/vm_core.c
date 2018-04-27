@@ -37,7 +37,7 @@
 #endif
 
 
-static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len );
+static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len, bool *yield );
 
 static uint16_t cycles;
 static uint8_t call_depth;
@@ -323,6 +323,7 @@ static int8_t _vm_i8_run_stream(
     uint8_t *pc = code + offset;
     uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
     int32_t op1, op2, index, size;
+    bool yield;
     //index_x32, index_y32, size_x32, size_y32
     int32_t params[8];
     uint16_t addr;
@@ -1138,7 +1139,17 @@ opcode_sys_call:
         pc++;
     }
 
-    data[dest] = _vm_i32_sys_call( func_id, params, param_len );
+    yield = FALSE;
+    data[dest] = _vm_i32_sys_call( func_id, params, param_len, &yield );
+
+    if( yield && ( call_depth == 1 ) ){
+
+        // store code offset
+
+
+        call_depth--;
+        return VM_STATUS_YIELDED;
+    }
 
     goto dispatch;
 
@@ -1574,7 +1585,7 @@ int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
 }
 
 
-static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len ){
+static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len, bool *yield ){
 
     return -1;    
 }
