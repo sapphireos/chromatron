@@ -2231,8 +2231,15 @@ class CodeGeneratorPass2(object):
                 test = self.generate(node.test)
 
                 ir.append(top_label)
-                ir.extend(test)
-                ir.append(JumpIfZeroIR(test[-1].dest, end_label, level=self.level, line_no=node.line_no))
+                try:
+                    ir.extend(test)    
+                    test_dest = test[-1].dest
+
+                except TypeError:
+                    # test is a single variable, not an expression
+                    test_dest = test
+                
+                ir.append(JumpIfZeroIR(test_dest, end_label, level=self.level, line_no=node.line_no)) 
 
                 for i in node.body:
                     ir.extend(self.generate(i))
