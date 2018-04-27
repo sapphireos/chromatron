@@ -4136,6 +4136,14 @@ class CodeGeneratorPass6(object):
 
         self.state['code'] = code_stage2
         self.state['functions'] = functions
+
+        # stage 3:
+        # check for any vars which are actually a function name.
+        # in that case, replace them with a const with that function addr.
+        for func in functions:
+            if func in self.registers:
+                self.state['data']['registers'][func] = ConstIR(functions[func])
+
         return self.state
 
 
@@ -5217,6 +5225,12 @@ def compile_text(text, debug_print=False, script_name=''):
         for i in state6['code']:
             print addr, hex(i)
             addr += 1
+
+        print ''
+        print 'Registers:'
+        for k, v in state6['data']['registers'].iteritems():
+            print '%3d %32s %s' % (v.line_no, k, v)
+
 
     cg7 = CodeGeneratorPass7(state6, script_name=script_name)
     state7 = cg7.generate()
