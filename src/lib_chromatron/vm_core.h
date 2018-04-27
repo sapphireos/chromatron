@@ -137,8 +137,6 @@ typedef struct{
 
     uint8_t pix_obj_count;
     uint16_t pix_obj_start;
-
-    uint8_t byte0;
 } vm_state_t;
 
 int8_t vm_i8_run(
