@@ -1344,11 +1344,37 @@ int8_t vm_i8_run(
 
     int32_t *data = (int32_t *)( stream + state->data_start );
 
+    // load published vars
+    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+
+    uint32_t count = state->publish_count;
+
+    while( count > 0 ){
+
+        kvdb_i8_get( publish->hash, CATBUS_TYPE_INT32, &data[publish->addr], sizeof(data[publish->addr]) );
+
+        publish++;
+        count--;
+    }
+
     int8_t status = _vm_i8_run_stream( stream, offset, state, data );
 
     if( cycles > state->max_cycles ){
 
         state->max_cycles = cycles;        
+    }
+
+    // store published vars back to DB
+    publish = (vm_publish_t *)&stream[state->publish_start];
+
+    count = state->publish_count;
+
+    while( count > 0 ){
+
+        kvdb_i8_set( publish->hash, CATBUS_TYPE_INT32, &data[publish->addr], sizeof(data[publish->addr]) );
+
+        publish++;
+        count--;
     }
 
     return status;
@@ -1360,6 +1386,15 @@ int8_t vm_i8_run_init(
     vm_state_t *state ){
 
     state->frame_number = 0;
+
+    #ifdef VM_ENABLE_GFX
+
+    // init pixel array pointer
+    gfx_pixel_array_t *pix_array = (gfx_pixel_array_t *)( stream + state->pix_obj_start );
+
+    gfx_v_init_pixel_arrays( pix_array, state->pix_obj_count );
+
+    #endif
 
     return vm_i8_run( stream, state->init_start, state );
 }

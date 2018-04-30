@@ -59,32 +59,11 @@ static int8_t _vm_i8_run_vm( bool init ){
         return 0;
     }
 
-    int32_t *data_table = (int32_t *)&vm_slab[vm_state.data_start];
-
-    // init pixel array pointer
-    gfx_pixel_array_t *pix_array = (gfx_pixel_array_t *)( vm_slab + vm_state.pix_obj_start );
-
-    // load published vars
-    vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
-
-    uint32_t count = vm_state.publish_count;
-
-    while( count > 0 ){
-
-        kvdb_i8_get( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
-
-        publish++;
-        count--;
-    }
-
     uint32_t start_time = micros();
 
     int8_t return_code;
 
     if( init ){
-
-        // gfx_v_reset();
-        gfx_v_init_pixel_arrays( pix_array, vm_state.pix_obj_count );
 
         return_code = vm_i8_run_init( vm_slab, &vm_state );
     }
@@ -115,14 +94,12 @@ static int8_t _vm_i8_run_vm( bool init ){
     vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
-    // store published vars back to DB, also queue for transport
-    publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
+    // queue published vars for transport
+    vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
 
-    count = vm_state.publish_count;
+    uint32_t count = vm_state.publish_count;
 
     while( count > 0 ){
-
-        kvdb_i8_set( publish->hash, CATBUS_TYPE_INT32, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
 
         intf_v_send_kv( publish->hash );
 
@@ -130,7 +107,7 @@ static int8_t _vm_i8_run_vm( bool init ){
         count--;
     }
 
-    // load write keys from DB
+    // load write keys from DB for transport
     count = vm_state.write_keys_count;
     uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
 
