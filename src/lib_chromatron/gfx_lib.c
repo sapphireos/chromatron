@@ -106,8 +106,6 @@ static uint8_t smootherstep_lookup[DIMMER_LOOKUP_SIZE] = {
 #define NOISE_TABLE_SIZE 256
 static uint8_t noise_table[NOISE_TABLE_SIZE];
 
-static int32_t kv_test_key;
-
 
 static void compute_dimmer_lookup( void ){
 
@@ -338,8 +336,6 @@ uint16_t urand( int32_t *params, uint16_t param_len ){
 }
 
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len ){
-
-    uint16_t temp0, temp1;
 
     switch( func_hash ){
 

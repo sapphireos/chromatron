@@ -57,7 +57,6 @@ static uint16_t connects;
 
 static bool request_ap_mode;
 static bool request_connect;
-static bool request_connect_multi;
 static bool request_disconnect;
 static bool request_ports;
 static bool ap_mode;
@@ -192,7 +191,7 @@ void wifi_v_process( void ){
             int32_t network_rssi;
             // int32_t channel;
 
-            for( uint32_t i = 0; i < networks_found; i++ ){
+            for( int32_t i = 0; i < networks_found; i++ ){
 
                 network_ssid = WiFi.SSID( i );
                 network_rssi = WiFi.RSSI( i );
