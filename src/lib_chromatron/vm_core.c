@@ -1646,6 +1646,81 @@ int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
 
 static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len, bool *yield ){
 
-    return -1;    
+    *yield = FALSE;
+
+    if( func_id == VM_SYS_CALL_TEST ){
+
+        if( param_len != 2 ){
+
+            return -2;
+        }
+
+        return params[0] + params[1];
+    }
+    else if( func_id == VM_SYS_CALL_YIELD ){
+
+        if( param_len != 0 ){
+
+            return -2;
+        }
+
+        *yield = TRUE;
+    }
+    else if( func_id == VM_SYS_CALL_DELAY ){
+
+        if( param_len != 1 ){
+
+            return -2;
+        }
+
+        // set up delay
+        // param[0]
+
+        *yield = TRUE;
+
+    }
+    else if( func_id == VM_SYS_CALL_START_THREAD ){
+
+        if( param_len != 1 ){
+
+            return -2;
+        }
+
+        // thread addr
+        // param[0]
+
+    }
+    else if( func_id == VM_SYS_CALL_STOP_THREAD ){
+
+        if( param_len != 1 ){
+
+            return -2;
+        }
+
+        // thread addr
+        // param[0]
+
+
+    }
+    else if( func_id == VM_SYS_CALL_THREAD_RUNNING ){
+
+        if( param_len != 1 ){
+
+            return -2;
+        }
+
+        // thread addr
+        // param[0]
+        
+
+    }
+    else{
+
+        return -1;
+    }
+
+
+
+    return 0;    
 }
 

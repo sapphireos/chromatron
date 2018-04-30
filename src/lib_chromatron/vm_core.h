@@ -72,6 +72,13 @@
 #define VM_LOAD_FLAGS_CHECK_HEADER      1
 
 
+#define VM_SYS_CALL_TEST                0
+#define VM_SYS_CALL_YIELD               1
+#define VM_SYS_CALL_DELAY               2
+#define VM_SYS_CALL_START_THREAD        10
+#define VM_SYS_CALL_STOP_THREAD         11
+#define VM_SYS_CALL_THREAD_RUNNING      12
+
 typedef struct __attribute__((packed)){
     int8_t status;
     int8_t return_code;
