@@ -269,21 +269,9 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
         vm_state.rng_seed = rng_seed;
 
         // init database
-        kvdb_v_delete_tag( KVDB_VM_RUNNER_TAG );
-
-        // load published vars to DB
-        uint32_t count = vm_state.publish_count;
-        vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
-    
-        while( count > 0 ){        
-
-            kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0 );
-            kvdb_v_set_tag( publish->hash, KVDB_VM_RUNNER_TAG );
-
-            publish++;
-            count--;
-        }
-
+        vm_i8_init_db( vm_slab, &vm_state, KVDB_VM_RUNNER_TAG );
+        
+        // run init function
         status = _vm_i8_run_vm( true );
     }
 

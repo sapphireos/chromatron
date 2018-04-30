@@ -1566,6 +1566,30 @@ int8_t vm_i8_load_program(
 }
 
 
+int8_t vm_i8_init_db(
+    uint8_t *stream,
+    vm_state_t *state,
+    uint8_t tag ){
+
+    // delete existing entries
+    kvdb_v_delete_tag( tag );
+
+    // add published vars to DB
+    uint32_t count = state->publish_count;
+    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+
+    while( count > 0 ){        
+
+        kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        kvdb_v_set_tag( publish->hash, tag );
+
+        publish++;
+        count--;
+    }
+
+    return 0;
+}
+
 int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
 
     // this is broken

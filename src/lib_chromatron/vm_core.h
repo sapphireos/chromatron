@@ -176,6 +176,11 @@ int8_t vm_i8_load_program(
     uint16_t len,
     vm_state_t *state );
 
+int8_t vm_i8_init_db(
+    uint8_t *stream,
+    vm_state_t *state,
+    uint8_t tag );
+
 int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result );
 
 #endif
