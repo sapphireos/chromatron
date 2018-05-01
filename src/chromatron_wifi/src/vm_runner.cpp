@@ -123,7 +123,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
     }
     else{
 
-        return_code = vm_i8_run_threads( vm_slab, &vm_state );   
+        return_code = vm_i8_run_threads( vm_slab, &vm_state, millis() );   
     }
 
     // if return is anything other than OK, send status immediately

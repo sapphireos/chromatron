@@ -1416,7 +1416,8 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state ){
+    vm_state_t *state,
+    uint32_t timer_tick ){
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 

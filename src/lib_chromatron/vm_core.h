@@ -172,7 +172,8 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state );
+    vm_state_t *state,
+    uint32_t timer_tick );
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,
