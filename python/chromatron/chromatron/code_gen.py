@@ -4143,7 +4143,9 @@ class CodeGeneratorPass6(object):
         # in that case, replace them with a const with that function addr.
         for func in functions:
             if func in self.registers:
-                self.state['data']['registers'][func] = ConstIR(functions[func])
+                new_const = ConstIR(functions[func])
+                new_const.addr = self.registers[func].addr
+                self.state['data']['registers'][func] = new_const
 
         return self.state
 
@@ -4168,6 +4170,8 @@ class CodeGeneratorPass7(object):
         regs = []
         used_addrs = []
         for reg in sorted_regs:
+            assert reg.addr >= 0
+
             if reg.addr not in used_addrs:
                 used_addrs.append(reg.addr)
                 regs.append(reg)

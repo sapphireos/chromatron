@@ -1427,8 +1427,6 @@ int8_t vm_i8_run_threads(
 
         state->current_thread = i;
 
-        // intf_v_printf("%d %d", state->threads[i].func_addr, state->threads[i].pc_offset);
-
         int8_t status = vm_i8_run( stream, state->threads[i].func_addr + state->threads[i].pc_offset, state );
 
         state->current_thread = -1;
@@ -1740,8 +1738,6 @@ static int32_t _vm_i32_sys_call(
         }
 
         // params[0] - thread addr
-
-        intf_v_printf("start %d", params[0]);
 
         // search for an empty slot
         for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
