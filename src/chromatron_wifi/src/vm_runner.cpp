@@ -39,8 +39,6 @@ static vm_state_t vm_state;
 
 static vm_info_t vm_info;
 
-static uint32_t fader_time_start;
-
 static bool run_vm;
 static bool run_faders;
 
@@ -101,7 +99,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
     vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
-    if( ( mode == VM_RUN_INIT ) || ( mode == VM_RUN_LOOP ) ){
+    // if( ( mode == VM_RUN_INIT ) || ( mode == VM_RUN_LOOP ) ){
         
         // queue published vars for transport
         vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
@@ -127,7 +125,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
             hash++;
             count--;
         }
-    }
+    // }
 
     return return_code;
 }
@@ -136,8 +134,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
 void vm_v_init( void ){
 
     vm_v_reset();
-
-    fader_time_start = millis();
 
     gfxlib_v_init();
     gfx_v_reset();
