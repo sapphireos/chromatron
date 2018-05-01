@@ -1147,10 +1147,10 @@ opcode_sys_call:
     yield = FALSE;
     data[dest] = _vm_i32_sys_call( state, func_id, params, param_len, &yield );
 
-    if( yield && ( call_depth == 1 ) ){
+    if( yield && ( call_depth == 1 ) && ( state->current_thread >= 0 ) ){
 
         // store code offset
-
+        state->threads[state->current_thread].pc_offset = pc - code;
 
         call_depth--;
         return VM_STATUS_YIELDED;
@@ -1409,11 +1409,44 @@ int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state ){
 
-    cycles = 0;
-    call_depth = 0;
     state->frame_number++;
 
     return vm_i8_run( stream, state->loop_start, state );
+}
+
+int8_t vm_i8_run_threads(
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        state->current_thread = i;
+
+        int8_t status = vm_i8_run( stream, state->threads[i].func_addr + state->threads[i].pc_offset, state );
+
+        state->current_thread = -1;
+
+        if( status == VM_STATUS_OK ){
+
+            // thread returned, kill it
+            state->threads[i].func_addr = 0xffff;
+        }
+        else if( status == VM_STATUS_YIELDED ){
+
+
+        }
+        else if( status == VM_STATUS_HALT ){
+
+            return status;
+        }
+    }
+
+    return VM_STATUS_OK;
 }
 
 
@@ -1489,6 +1522,8 @@ int8_t vm_i8_load_program(
 
         state->threads[i].func_addr = 0xffff;
     }
+
+    state->current_thread = -1;
 
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) == 0 ){
 
@@ -1755,15 +1790,11 @@ static int32_t _vm_i32_sys_call(
                 return TRUE;
             }
         }
-
-
     }
     else{
 
         return -1;
     }
-
-
 
     return 0;    
 }

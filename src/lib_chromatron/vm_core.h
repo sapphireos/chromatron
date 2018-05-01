@@ -140,6 +140,7 @@ typedef struct{
 
     vm_thread_t threads[VM_MAX_THREADS];
 
+    int8_t current_thread;
     uint16_t max_cycles;
 
     uint8_t read_keys_count;
