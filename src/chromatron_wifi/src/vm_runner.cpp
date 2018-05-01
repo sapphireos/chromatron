@@ -44,8 +44,11 @@ static uint32_t fader_time_start;
 static bool run_vm;
 static bool run_faders;
 
+#define VM_RUN_INIT     0
+#define VM_RUN_LOOP     1
+#define VM_RUN_THREADS  2
 
-static int8_t _vm_i8_run_vm( bool init ){
+static int8_t _vm_i8_run_vm( uint8_t mode ){
 
     // check that VM was loaded with no errors
     if( vm_info.status < 0 ){
@@ -63,13 +66,17 @@ static int8_t _vm_i8_run_vm( bool init ){
 
     int8_t return_code;
 
-    if( init ){
+    if( mode == VM_RUN_INIT ){
 
         return_code = vm_i8_run_init( vm_slab, &vm_state );
     }
-    else{
+    else if( mode == VM_RUN_LOOP ){
 
         return_code = vm_i8_run_loop( vm_slab, &vm_state );
+    }
+    else{
+
+        return_code = vm_i8_run_threads( vm_slab, &vm_state );   
     }
 
     // if return is anything other than OK, send status immediately
@@ -94,29 +101,32 @@ static int8_t _vm_i8_run_vm( bool init ){
     vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
-    // queue published vars for transport
-    vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
+    if( ( mode == VM_RUN_INIT ) || ( mode == VM_RUN_LOOP ) ){
+        
+        // queue published vars for transport
+        vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
 
-    uint32_t count = vm_state.publish_count;
+        uint32_t count = vm_state.publish_count;
 
-    while( count > 0 ){
+        while( count > 0 ){
 
-        intf_v_send_kv( publish->hash );
+            intf_v_send_kv( publish->hash );
 
-        publish++;
-        count--;
-    }
+            publish++;
+            count--;
+        }
 
-    // load write keys from DB for transport
-    count = vm_state.write_keys_count;
-    uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
+        // load write keys from DB for transport
+        count = vm_state.write_keys_count;
+        uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
 
-    while( count > 0 ){
+        while( count > 0 ){
 
-        intf_v_send_kv( *hash );
+            intf_v_send_kv( *hash );
 
-        hash++;
-        count--;
+            hash++;
+            count--;
+        }
     }
 
     return return_code;
@@ -147,7 +157,7 @@ void vm_v_process( void ){
 
     if( run_vm ){
 
-        vm_v_run_loop();
+        _vm_i8_run_vm( VM_RUN_LOOP ); 
         run_vm = false;
     }
 
@@ -172,6 +182,8 @@ void vm_v_process( void ){
 
         run_faders = false;
     }
+
+    _vm_i8_run_vm( VM_RUN_THREADS );
 }
 
 void vm_v_reset( void ){
@@ -249,15 +261,10 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
         vm_i8_init_db( vm_slab, &vm_state, KVDB_VM_RUNNER_TAG );
         
         // run init function
-        status = _vm_i8_run_vm( true );
+        status = _vm_i8_run_vm( VM_RUN_INIT );
     }
 
     return status;
-}
-
-void vm_v_run_loop( void ){
-
-    _vm_i8_run_vm( false );    
 }
 
 int32_t vm_i32_get_reg( uint8_t addr ){
