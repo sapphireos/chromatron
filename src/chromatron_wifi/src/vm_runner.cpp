@@ -134,37 +134,42 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
 
     uint32_t elapsed = elapsed_time_micros( start_time );
 
-    vm_info.loop_time = elapsed;
+    if( mode == VM_RUN_LOOP ){
+    
+        vm_info.loop_time = elapsed;
+    }
+    else if( mode == VM_RUN_THREADS ){
+    
+        vm_info.thread_time = elapsed;
+    }
+
     vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
-    // if( ( mode == VM_RUN_INIT ) || ( mode == VM_RUN_LOOP ) ){
+    // queue published vars for transport
+    vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
 
-        // queue published vars for transport
-        vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
+    uint32_t count = vm_state.publish_count;
 
-        uint32_t count = vm_state.publish_count;
+    while( count > 0 ){
 
-        while( count > 0 ){
+        intf_v_send_kv( publish->hash );
 
-            intf_v_send_kv( publish->hash );
+        publish++;
+        count--;
+    }
 
-            publish++;
-            count--;
-        }
+    // load write keys from DB for transport
+    count = vm_state.write_keys_count;
+    uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
 
-        // load write keys from DB for transport
-        count = vm_state.write_keys_count;
-        uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
+    while( count > 0 ){
 
-        while( count > 0 ){
+        intf_v_send_kv( *hash );
 
-            intf_v_send_kv( *hash );
-
-            hash++;
-            count--;
-        }
-    // }
+        hash++;
+        count--;
+    }
 
     return return_code;
 }

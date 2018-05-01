@@ -92,6 +92,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_info.return_code,  0,                  "vm_retval" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.loop_time,    0,                  "vm_loop_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.fader_time,   0,                  "vm_fade_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.thread_time,  0,                 "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.max_cycles,   0,                  "vm_max_cycles" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
