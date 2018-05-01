@@ -30,6 +30,8 @@
 
 #define KVDB_VM_RUNNER_TAG      70
 
+#define VM_RUNNER_THREAD_RATE 	10
+
 void vm_v_init( void );
 void vm_v_run_faders( void );
 void vm_v_run_vm( void );

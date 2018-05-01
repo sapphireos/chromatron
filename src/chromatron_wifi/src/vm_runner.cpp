@@ -42,9 +42,58 @@ static vm_info_t vm_info;
 static bool run_vm;
 static bool run_faders;
 
+static uint32_t thread_tick;
+
 #define VM_RUN_INIT     0
 #define VM_RUN_LOOP     1
 #define VM_RUN_THREADS  2
+
+
+uint32_t elapsed_time_millis( uint32_t start_time ){
+
+    uint32_t end_time = millis();
+
+    uint32_t elapsed;
+
+    if( end_time >= start_time ){
+        
+        elapsed = end_time - start_time;
+    }
+    else{
+        
+        elapsed = UINT32_MAX - ( start_time - end_time );
+    }
+
+    if( elapsed > UINT16_MAX ){
+
+        elapsed = UINT16_MAX;
+    }
+
+    return elapsed;
+}
+
+uint32_t elapsed_time_micros( uint32_t start_time ){
+
+    uint32_t end_time = micros();
+
+    uint32_t elapsed;
+
+    if( end_time >= start_time ){
+        
+        elapsed = end_time - start_time;
+    }
+    else{
+        
+        elapsed = UINT32_MAX - ( start_time - end_time );
+    }
+
+    if( elapsed > UINT16_MAX ){
+
+        elapsed = UINT16_MAX;
+    }
+
+    return elapsed;
+}
 
 static int8_t _vm_i8_run_vm( uint8_t mode ){
 
@@ -83,24 +132,14 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
         intf_v_request_vm_info();
     }
 
-    uint32_t end_time = micros();
-    uint32_t elapsed;
-
-    if( end_time >= start_time ){
-        
-        elapsed = end_time - start_time;
-    }
-    else{
-        
-        elapsed = UINT32_MAX - ( start_time - end_time );
-    }
+    uint32_t elapsed = elapsed_time_micros( start_time );
 
     vm_info.loop_time = elapsed;
     vm_info.max_cycles = vm_state.max_cycles;
     vm_info.return_code = return_code;
 
     // if( ( mode == VM_RUN_INIT ) || ( mode == VM_RUN_LOOP ) ){
-        
+
         // queue published vars for transport
         vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
 
@@ -179,7 +218,12 @@ void vm_v_process( void ){
         run_faders = false;
     }
 
-    _vm_i8_run_vm( VM_RUN_THREADS );
+    if( elapsed_time_millis( thread_tick ) >= VM_RUNNER_THREAD_RATE ){
+
+        thread_tick = millis();
+
+        _vm_i8_run_vm( VM_RUN_THREADS );
+    }
 }
 
 void vm_v_reset( void ){
