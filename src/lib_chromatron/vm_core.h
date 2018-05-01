@@ -40,6 +40,7 @@
 
 #define DATA_LEN                    4
 
+#define VM_MAX_THREADS              4
 
 #define VM_STATUS_OK                    0
 #define VM_STATUS_ERR_BAD_CRC           -1
@@ -116,6 +117,12 @@ typedef struct __attribute__((packed)){
     // - data table
 } vm_program_header_t;
 
+typedef struct{
+    uint16_t func_addr;
+    uint16_t pc_offset;
+    uint32_t delay;
+} vm_thread_t;
+
 // do not set packed on this struct, will crash the Xtensa
 typedef struct{
     uint16_t code_start;
@@ -130,6 +137,8 @@ typedef struct{
 
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
+
+    vm_thread_t threads[VM_MAX_THREADS];
 
     uint16_t max_cycles;
 

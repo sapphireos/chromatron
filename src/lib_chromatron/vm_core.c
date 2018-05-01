@@ -37,7 +37,12 @@
 #endif
 
 
-static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len, bool *yield );
+static int32_t _vm_i32_sys_call( 
+    vm_state_t *state, 
+    uint8_t func_id, 
+    int32_t *params, 
+    uint16_t param_len,
+    bool *yield );
 
 static uint16_t cycles;
 static uint8_t call_depth;
@@ -1140,7 +1145,7 @@ opcode_sys_call:
     }
 
     yield = FALSE;
-    data[dest] = _vm_i32_sys_call( func_id, params, param_len, &yield );
+    data[dest] = _vm_i32_sys_call( state, func_id, params, param_len, &yield );
 
     if( yield && ( call_depth == 1 ) ){
 
@@ -1479,6 +1484,12 @@ int8_t vm_i8_load_program(
 
     memset( state, 0, sizeof(vm_state_t) );
 
+    // reset thread state
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        state->threads[i].func_addr = 0xffff;
+    }
+
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) == 0 ){
 
         // verify crc
@@ -1644,7 +1655,12 @@ int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
 }
 
 
-static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t param_len, bool *yield ){
+static int32_t _vm_i32_sys_call( 
+    vm_state_t *state, 
+    uint8_t func_id, 
+    int32_t *params, 
+    uint16_t param_len,
+    bool *yield ){
 
     *yield = FALSE;
 
@@ -1674,7 +1690,7 @@ static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t para
         }
 
         // set up delay
-        // param[0]
+        // params[0]
 
         *yield = TRUE;
 
@@ -1686,9 +1702,20 @@ static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t para
             return -2;
         }
 
-        // thread addr
-        // param[0]
+        // params[0] - thread addr
 
+        // search for an empty slot
+        for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+            if( state->threads[i].func_addr == 0xffff ){
+
+                memset( &state->threads[i], 0, sizeof(state->threads[i]) );
+
+                state->threads[i].func_addr = params[0];
+
+                break;
+            }
+        }
     }
     else if( func_id == VM_SYS_CALL_STOP_THREAD ){
 
@@ -1697,9 +1724,18 @@ static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t para
             return -2;
         }
 
-        // thread addr
-        // param[0]
+        // params[0] - thread addr
 
+        // search for matching threads
+        for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+            if( state->threads[i].func_addr == params[0] ){
+
+                state->threads[i].func_addr = 0xffff;
+
+                break;
+            }
+        }
 
     }
     else if( func_id == VM_SYS_CALL_THREAD_RUNNING ){
@@ -1709,9 +1745,17 @@ static int32_t _vm_i32_sys_call( uint8_t func_id, int32_t *params, uint16_t para
             return -2;
         }
 
-        // thread addr
-        // param[0]
-        
+        // params[0] - thread addr
+
+        // search for matching threads
+        for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+            if( state->threads[i].func_addr == params[0] ){
+
+                return TRUE;
+            }
+        }
+
 
     }
     else{
