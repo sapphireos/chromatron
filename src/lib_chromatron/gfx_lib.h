@@ -35,7 +35,7 @@
 
 #define GFX_VERSION             1
 
-#define USE_HSV_BRIDGE
+// #define USE_HSV_BRIDGE
 
 typedef struct  __attribute__((packed)){
     uint8_t version;
