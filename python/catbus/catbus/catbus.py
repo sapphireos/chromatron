@@ -389,7 +389,8 @@ if __name__ == '__main__':
 
     from pprint import pprint
 
-    kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
+    # kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
+    kv1 = CatbusService(tags=['stuff'], visible=False)
     # kv1['kv_test_key'] = 0
 
     # kv1.receive('woof', 'kv_test_key', ['test'])
@@ -400,10 +401,16 @@ if __name__ == '__main__':
 
     try:
         while True:
-            time.sleep(1.0)
+            # time.sleep(0.1)
             # print kv1['kv_test_key']
             # kv1['woof'] += 1
             # print kv1['woof']
+
+            try:
+                print kv1['amg_data']
+                
+            except KeyError:
+                pass
 
     except KeyboardInterrupt:
         pass
