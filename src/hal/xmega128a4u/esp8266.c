@@ -1963,20 +1963,20 @@ restart:
 
         if( control_byte == WIFI_COMM_DATA ){
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 20 );    
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 50 );    
             THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&
                                    ( thread_b_alarm_set() ) );
 
             if( thread_b_alarm() ){
 
-                // log_v_debug_P( PSTR("Wifi rx timeout") );
+                log_v_debug_P( PSTR("Wifi rx timeout") );
 
                 wifi_v_set_rx_ready();
             }
         }
         else if( control_byte == WIFI_COMM_QUERY_READY ){
 
-            // log_v_debug_P( PSTR("query ready") );
+            log_v_debug_P( PSTR("query ready") );
             wifi_v_set_rx_ready();
         }
         else{
