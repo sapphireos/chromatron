@@ -20,10 +20,19 @@
 # 
 # </license>
 
-import rtmidi
+import sys
+
+try:
+    import rtmidi
+
+except ImportError:
+    print "Missing dependency!"
+    print "Install rtmidi: pip install python-rtmidi"
+    sys.exit(0)
+
 import time
 import midi_config
-from sapphire.keyvalue import KVService
+from catbus import CatbusService
 
 
 NOTE_OFF            = 0x80
@@ -146,7 +155,7 @@ class KVMidi(Midi):
             CONTROL_CHANGE: self.kv_on_controlchange,
         }
 
-        self.kv = KVService(name=name, tags=['midi'])
+        self.kv = CatbusService(tags=['midi'], visible=False)
 
         self.convert_16_bit = convert_16_bit
         self.convert_float_1 = convert_float_1

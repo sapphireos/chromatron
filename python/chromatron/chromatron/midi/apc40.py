@@ -190,7 +190,7 @@ if __name__ == "__main__":
                 apc40.kv.send('track_4_fader', 'gfx_master_dimmer', ['lantern_5'])
                 apc40.kv.send('track_5_fader', 'gfx_master_dimmer', ['lantern_1'])
 
-                apc40.kv.send('track_8_fader', 'gfx_master_dimmer', ['pixelator'])
+                # apc40.kv.send('track_8_fader', 'gfx_master_dimmer', ['pixelator'])
 
 
                 while True:

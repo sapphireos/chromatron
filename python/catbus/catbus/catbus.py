@@ -397,20 +397,27 @@ if __name__ == '__main__':
     # kv1.receive('woof', 'kv_test_array', ['test'])
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
 
-    kv1.receive('amg_data', 'amg_data', ['test'])
+    # kv1.receive('amg_data', 'amg_data', ['test'])
+    kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
+
+    kv1['track_1_fader'] = 0
 
     try:
         while True:
-            # time.sleep(0.1)
+            time.sleep(1.0)
+            kv1['track_1_fader'] += 256
+
+            # print kv1['track_1_fader']
+
             # print kv1['kv_test_key']
             # kv1['woof'] += 1
             # print kv1['woof']
 
-            try:
-                print kv1['amg_data']
+            # try:
+                # print kv1['amg_data']
                 
-            except KeyError:
-                pass
+            # except KeyError:
+                # pass
 
     except KeyboardInterrupt:
         pass
