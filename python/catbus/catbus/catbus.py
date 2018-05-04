@@ -404,7 +404,7 @@ if __name__ == '__main__':
 
     try:
         while True:
-            time.sleep(1.0)
+            time.sleep(0.1)
             kv1['track_1_fader'] += 1024
 
             # print kv1['track_1_fader']

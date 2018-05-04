@@ -345,13 +345,20 @@ class Server(Ribbon):
 
             for sender in senders:
                 try:
+                    try:
+                        data = self._database._kv_items[key]
+
+                    except KeyError:
+                        data = self._database._kv_items[self._database.lookup_hash(key)]
+
+
                     msg = LinkDataMsg(
                             flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
                             ntp_timestamp=ntp_timestamp,
                             source_query=source_query,
                             source_hash=key_hash,
                             dest_hash=sender['dest_hash'],
-                            data=self._database._kv_items[self._database.lookup_hash(key)],
+                            data=data,
                             sequence=self._sequences[key_hash])
 
                     self._publisher.post_msg((msg, sender['host']))
