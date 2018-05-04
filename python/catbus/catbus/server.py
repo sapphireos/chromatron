@@ -350,7 +350,7 @@ class Server(Ribbon):
                         source_query=source_query,
                         source_hash=key_hash,
                         dest_hash=sender['dest_hash'],
-                        data=self._database._kv_items[key],
+                        data=self._database._kv_items[self._database.lookup_hash(key)],
                         sequence=self._sequences[key_hash])
 
                 self._publisher.post_msg((msg, sender['host']))
