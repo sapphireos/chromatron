@@ -342,7 +342,7 @@ class Server(Ribbon):
 
             # check send list
             senders = [a for a in self._send_list if a['source_hash'] == key_hash]
-
+            # print senders
             for sender in senders:
                 try:
                     try:
@@ -521,13 +521,13 @@ class Server(Ribbon):
             # check if we have the source key
             if msg.source_hash not in self._database:
                 return
-
+            
             # remove current entries for this host
             self._send_list = [a for a in self._send_list if 
-                                (a['host'] != host) and
-                                (a['dest_hash'] != msg.dest_hash) and
+                                (a['host'] != host) or
+                                (a['dest_hash'] != msg.dest_hash) or
                                 (a['source_hash'] != msg.source_hash)]
-
+            
             # add to sender list
             entry = {'host': host, 
                      'dest_hash': msg.dest_hash, 

@@ -399,13 +399,17 @@ if __name__ == '__main__':
 
     # kv1.receive('amg_data', 'amg_data', ['test'])
     kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
+    kv1.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
+
 
     kv1['track_1_fader'] = 0
+    kv1['track_2_fader'] = 0
 
     try:
         while True:
             time.sleep(0.1)
             kv1['track_1_fader'] += 1024
+            kv1['track_2_fader'] += 1024
 
             # print kv1['track_1_fader']
 
