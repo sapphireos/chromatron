@@ -344,16 +344,20 @@ class Server(Ribbon):
             senders = [a for a in self._send_list if a['source_hash'] == key_hash]
 
             for sender in senders:
-                msg = LinkDataMsg(
-                        flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
-                        ntp_timestamp=ntp_timestamp,
-                        source_query=source_query,
-                        source_hash=key_hash,
-                        dest_hash=sender['dest_hash'],
-                        data=self._database._kv_items[self._database.lookup_hash(key)],
-                        sequence=self._sequences[key_hash])
+                try:
+                    msg = LinkDataMsg(
+                            flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
+                            ntp_timestamp=ntp_timestamp,
+                            source_query=source_query,
+                            source_hash=key_hash,
+                            dest_hash=sender['dest_hash'],
+                            data=self._database._kv_items[self._database.lookup_hash(key)],
+                            sequence=self._sequences[key_hash])
 
-                self._publisher.post_msg((msg, sender['host']))
+                    self._publisher.post_msg((msg, sender['host']))
+
+                except KeyError:
+                    pass
 
         finally:
             if _lock:
