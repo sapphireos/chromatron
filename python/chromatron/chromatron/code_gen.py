@@ -366,6 +366,9 @@ class ParameterNode(DataNode):
 class CodeNode(Node):
     pass
 
+class NoOpCodeNode(CodeNode):
+    pass
+
 class ModuleNode(CodeNode):
     def __init__(self, body, **kwargs):
         super(ModuleNode, self).__init__(**kwargs)
@@ -802,11 +805,62 @@ class ASTPrinter(object):
         elif node is None:
             self.echo('NONE')
 
+        elif isinstance(node, NoOpCodeNode):
+            pass
+
         else:
             raise Exception(node)
 
         self.level -= 1
 
+#
+# Pass 0
+# Initial pass
+# Process source text through Python's compiler.
+# Handle import statements.
+#
+class CodeGeneratorPass0(object):
+    def __init__(self):
+        pass
+
+    def generate(self, text):
+        tree = ast.parse(text)
+
+        assert isinstance(tree, ast.Module)
+
+        imported_modules = []
+
+        for i in xrange(len(tree.body)):
+            node = tree.body[i]
+        
+            # self.process_tree(node)
+            
+            if isinstance(node, ast.Import):
+                for file in [a.name for a in node.names]:
+                
+                    with open(file, 'r') as f:
+                        module = self.generate(f.read())
+
+                        imported_modules.append(module)
+
+
+                # remove imports from module level
+                tree.body[i] = None
+
+        # strip nones
+        tree.body = [a for a in tree.body if a != None]
+
+        # rewrite top level module body with contents from imported modules,
+        # followed by the original top level body
+        imported_modules.append(copy(tree))
+        tree.body = []
+
+        for module in imported_modules:
+            tree.body.extend(module.body)
+
+        return tree
+
+        
 #
 # Pass 1
 # Translates Python's AST to a simpler form
@@ -833,6 +887,17 @@ class CodeGeneratorPass1(object):
                     temp_code.append(self.generate(node))
 
             return ModuleNode(temp_code, line_no=0)
+
+        elif tree == None:
+            # None is ok, we get these when imports
+            # are stripped out.
+            return NoOpCodeNode()
+
+        elif isinstance(tree, ast.Import):
+            # this is a syntax error.
+            # this would generally be an import that is
+            # not at module level
+            raise SyntaxNotSupported("Imports can only be at module level.", line_no=tree.lineno)
 
         # This is somewhat special handling for expressions.
         # We shouldn't get this in a normal program.
@@ -2547,6 +2612,9 @@ class CodeGeneratorPass2(object):
                 ir = ArrayFuncIR(dest, src, node.func, level=self.level, line_no=node.line_no)
 
                 return [ir]
+
+            elif isinstance(node, NoOpCodeNode):
+                return []
 
             else:
                 raise Exception(node)
@@ -5133,7 +5201,9 @@ class VM(object):
 
 
 def compile_text(text, debug_print=False, script_name=''):
-    tree = ast.parse(text)
+    cg0 = CodeGeneratorPass0()
+
+    tree = cg0.generate(text)
 
     if debug_print:
         import astpp
