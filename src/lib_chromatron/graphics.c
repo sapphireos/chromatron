@@ -433,13 +433,10 @@ int8_t gfx_i8_send_keys( catbus_hash_t32 *hash, uint8_t count ){
 
         do{
             packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
-
-            // log_v_debug_P( PSTR("packed: %lx len: %d index: %d sts: %d"), *hash, buf_ptr, ctx.index, packed );
     
             if( packed < 0 ){
 
                 wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-                // log_v_debug_P( PSTR("send len: %d"), buf_ptr );
 
                 buf_ptr = 0;
             }

@@ -37,9 +37,6 @@ VM_ISA_VERSION  = 8
 RETURN_VAL_ADDR = 0
 RETURN_VAL_NAME = '___return_val'
 
-MAXIMUM_VARS = 128
-
-
 
 reserved = ['pixels']
 
