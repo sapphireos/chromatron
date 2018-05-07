@@ -11,7 +11,7 @@ projects = [
     'lib_sntp',
     'lib_chromatron',
     'chromatron',
-    'chromatron_recovery',
+    #'chromatron_recovery',
 ]
 
 def clean():
