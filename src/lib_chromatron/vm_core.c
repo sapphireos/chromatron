@@ -1416,12 +1416,17 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state,
-    uint32_t timer_tick ){
+    vm_state_t *state ){
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
         if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        // check thread delay
+        if( state->threads[i].delay_ticks > 0 ){
 
             continue;
         }
@@ -1525,6 +1530,7 @@ int8_t vm_i8_load_program(
     }
 
     state->current_thread = -1;
+    state->tick_rate = 1; // set default tick rate
 
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) == 0 ){
 
@@ -1726,7 +1732,7 @@ static int32_t _vm_i32_sys_call(
         }
 
         // set up delay
-        // params[0]
+        state->threads[state->current_thread].delay_ticks = params[0] / state->tick_rate;
 
         *yield = TRUE;
 

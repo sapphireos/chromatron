@@ -263,9 +263,10 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
     // length of 0 indicates loading is finished
     if( len == 0 ){
 
-        vm_state.prog_size = vm_len;
-
         status = vm_i8_load_program( 0, vm_slab, vm_len, &vm_state );
+
+        vm_state.prog_size = vm_len;
+        vm_state.tick_rate = VM_RUNNER_THREAD_RATE;
 
         uint8_t *ptr = vm_slab;
         uint8_t *code_start = (uint8_t *)( ptr + vm_state.code_start );

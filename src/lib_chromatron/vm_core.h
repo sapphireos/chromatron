@@ -121,7 +121,7 @@ typedef struct __attribute__((packed)){
 typedef struct{
     uint16_t func_addr;
     uint16_t pc_offset;
-    uint32_t delay;
+    uint16_t delay_ticks;
 } vm_thread_t;
 
 // do not set packed on this struct, will crash the Xtensa
@@ -138,6 +138,8 @@ typedef struct{
 
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
+
+    uint8_t tick_rate;
 
     vm_thread_t threads[VM_MAX_THREADS];
 
@@ -172,8 +174,7 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state,
-    uint32_t timer_tick );
+    vm_state_t *state );
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,
