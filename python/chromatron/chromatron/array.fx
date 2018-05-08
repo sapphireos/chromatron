@@ -21,9 +21,16 @@ def loop():
     # a[1] = 2
     # b = a[1]
     # c[2] = a[b]
-    b = len(a)
+    # b = len(a)
     # b = max(a)
     # pixels[1].hue = 2
 
     # b[0][1] = 3
     
+    # for i in a:
+    # a[0] += 1
+    # b += 1
+
+    # a[0] = a[0] + 1
+
+    b += 1

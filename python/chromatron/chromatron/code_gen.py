@@ -1130,6 +1130,9 @@ class CodeGeneratorPass1(object):
                 return AssignNode(dest, value, line_no=tree.lineno)
 
         elif isinstance(tree, ast.AugAssign):
+
+            print tree
+
             try:
                 if tree.target.id in self.arrays:
                     left = ArrayVarNode(tree.target.id, line_no=tree.lineno, scope=self.current_function)
@@ -1251,62 +1254,6 @@ class CodeGeneratorPass1(object):
                     store = False
 
                 return ArrayIndexNode(obj, i=index, store=store, line_no=tree.lineno)
-
-
-            # raise SyntaxNotSupported(tree)
-
-            # if isinstance(tree.ctx, ast.Store):
-            #     return IndexStoreNode(
-            #             self.generate(tree.value),
-            #             self.generate(tree.slice.value),
-            #             line_no=tree.lineno)
-
-            # elif isinstance(tree.ctx, ast.Load):
-            #     # return IndexLoadNode(
-            #     #         self.generate(tree.value),
-            #     #         self.generate(tree.slice.value),
-            #     #         line_no=tree.lineno)
-            #     raise SyntaxNotSupported(tree)
-
-            # else:
-            #     raise SyntaxNotSupported(tree)
-
-            # if isinstance(tree.value, ast.Subscript):
-            #     y_subscript = tree.value
-
-            #     if isinstance(tree.ctx, ast.Store):
-            #         return IndexStoreNode(
-            #                 self.generate(y_subscript.value),
-            #                 self.generate(y_subscript.slice.value),
-            #                 self.generate(tree.slice.value),
-            #                 line_no=tree.lineno)
-
-            #     elif isinstance(tree.ctx, ast.Load):
-            #         return IndexLoadNode(
-            #                 self.generate(y_subscript.value),
-            #                 self.generate(y_subscript.slice.value),
-            #                 self.generate(tree.slice.value),
-            #                 line_no=tree.lineno)
-
-            #     else:
-            #         raise Exception(tree)
-
-            # else:
-            #     if isinstance(tree.ctx, ast.Store):
-            #         return IndexStoreNode(
-            #                 self.generate(tree.value),
-            #                 self.generate(tree.slice.value),
-            #                 line_no=tree.lineno)
-
-            #     elif isinstance(tree.ctx, ast.Load):
-            #         return IndexLoadNode(
-            #                 self.generate(tree.value),
-            #                 self.generate(tree.slice.value),
-            #                 line_no=tree.lineno)
-
-            #     else:
-            #         raise Exception(tree)
-
 
         elif isinstance(tree, ast.Eq):
             return 'eq'
@@ -1934,6 +1881,9 @@ class IndexStoreIR(IntermediateNode):
 
         return nodes
 
+    def is_constant_op(self):
+        return False
+
     def __str__(self):
         if self.y < 0:
             return '%3d %s INDEX_STORE %s[%s] = %s' % (self.line_no, self.indent * self.level, self.dest, self.x, self.src)
@@ -2384,6 +2334,7 @@ class CodeGeneratorPass2(object):
 
                 else:
                     value = self.generate(node.value)
+                    
                     return self.generate(AssignNode(node.name, node.value, line_no=node.line_no))
 
             elif isinstance(node, AssignNode):
@@ -4069,12 +4020,6 @@ class CodeGeneratorPass5(object):
                     # array indexing lands here
                     ins = IndexLoad(ir.dest, ir.src, ir.x)
 
-                    # if ir.y < 0:
-                    #     ins = LoadFromArray(ir.dest, ir.src, ir.x)
-
-                    # else:
-                    #     ins = LoadFromArray2D(ir.dest, ir.src, ir.x, ir.y)
-
                 self.append_code(ins)
 
             elif isinstance(ir, IndexStoreIR):
@@ -4104,12 +4049,6 @@ class CodeGeneratorPass5(object):
 
                     # array indexing lands here
                     ins = IndexStore(ir.dest, ir.src, ir.x)
-
-                    # if ir.y < 0:
-                    #     ins = LoadToArray(ir.src, ir.src, ir.x)
-
-                    # else:
-                    #     ins = LoadToArray2D(ir.src, ir.src, ir.x, ir.y)
 
                 self.append_code(ins)
 
@@ -4154,6 +4093,8 @@ class CodeGeneratorPass5(object):
                 pass
 
             elif isinstance(ir, ArrayFuncIR):
+                print "MEOW"
+                print ir
                 pass
 
             else:
