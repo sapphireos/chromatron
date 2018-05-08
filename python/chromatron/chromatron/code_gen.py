@@ -4984,7 +4984,11 @@ class VM(object):
                 else:
                     # look up array
                     ary = self.memory[ins.result.name]
-                    self.set_var(ins.result.name, [(self.get_var(ins.op1.name) % 65536) for a in ary])
+
+                    data = self.memory[ins.op1.name]
+
+                    ary.array = [data] * ary.length
+
 
             elif isinstance(ins, ArrayAdd):
                 if isinstance(ins.result, PixelObjIR):
@@ -5020,7 +5024,12 @@ class VM(object):
                 else:
                     # look up array
                     ary = self.memory[ins.result.name]
-                    self.set_var(ins.result.name, [(a + self.get_var(ins.op1.name)) % 65536 for a in ary])
+
+                    data = self.memory[ins.op1.name]
+
+                    for i in xrange(ary.length):
+                        ary.array[i] += data
+
 
             elif isinstance(ins, ArraySub):
                 if isinstance(ins.result, PixelObjIR):
@@ -5056,7 +5065,11 @@ class VM(object):
                 else:
                     # look up array
                     ary = self.memory[ins.result.name]
-                    self.set_var(ins.result.name, [(a - self.get_var(ins.op1.name)) % 65536 for a in ary])
+
+                    data = self.memory[ins.op1.name]
+
+                    for i in xrange(ary.length):
+                        ary.array[i] -= data
 
             elif isinstance(ins, ArrayMul):
                 if isinstance(ins.result, PixelObjIR):
@@ -5091,8 +5104,12 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary =self.get_var(ins.result.name)
-                    self.set_var(ins.result.name, [(a * self.get_var(ins.op1.name)) % 65536 for a in ary])
+                    ary = self.memory[ins.result.name]
+
+                    data = self.memory[ins.op1.name]
+
+                    for i in xrange(ary.length):
+                        ary.array[i] *= data
 
             elif isinstance(ins, ArrayDiv):
                 if isinstance(ins.result, PixelObjIR):
@@ -5128,7 +5145,11 @@ class VM(object):
                 else:
                     # look up array
                     ary = self.memory[ins.result.name]
-                    self.set_var(ins.result.name, [(a / self.get_var(ins.op1.name)) % 65536 for a in ary])
+
+                    data = self.memory[ins.op1.name]
+
+                    for i in xrange(ary.length):
+                        ary.array[i] /= data
 
             elif isinstance(ins, ArrayMod):
                 if isinstance(ins.result, PixelObjIR):
@@ -5164,7 +5185,11 @@ class VM(object):
                 else:
                     # look up array
                     ary = self.memory[ins.result.name]
-                    self.set_var(ins.result.name, [(a % self.get_var(ins.op1.name)) % 65536 for a in ary])
+
+                    data = self.memory[ins.op1.name]
+
+                    for i in xrange(ary.length):
+                        ary.array[i] %= data
 
             elif isinstance(ins, Assert):
                 if not self.memory[ins.op1.name]:

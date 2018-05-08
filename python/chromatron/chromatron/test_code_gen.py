@@ -1207,11 +1207,236 @@ def init():
 
 """
 
+test_array_assign = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+
+    ary = 123
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
+test_array_add = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+
+    ary[0] = 1
+    ary[1] = 2
+    ary[2] = 3
+    ary[3] = 4
+    ary[4] = 5
+
+    ary += 123
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
+
+test_array_sub = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+
+    ary[0] = 1
+    ary[1] = 2
+    ary[2] = 3
+    ary[3] = 4
+    ary[4] = 5
+
+    ary -= 123
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+test_array_mul = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+
+    ary[0] = 1
+    ary[1] = 2
+    ary[2] = 3
+    ary[3] = 4
+    ary[4] = 5
+
+    ary *= 123
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+test_array_div = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+
+    ary[0] = 100
+    ary[1] = 200
+    ary[2] = 300
+    ary[3] = 400
+    ary[4] = 500
+
+    ary /= 100
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
+test_array_mod = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+
+    ary[0] = 101
+    ary[1] = 102
+    ary[2] = 103
+    ary[3] = 104
+    ary[4] = 105
+
+    ary %= 100
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
 
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_mod(self):
+        self.run_test(test_array_mod,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
+
+    def test_array_div(self):
+        self.run_test(test_array_div,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
+
+    def test_array_mul(self):
+        self.run_test(test_array_mul,
+            expected={
+                'a': 615,
+                'b': 246,
+                'c': 369,
+                'd': 492,
+                'e': 615,
+            })
+
+    def test_array_sub(self):
+        self.run_test(test_array_sub,
+            expected={
+                'a': -118,
+                'b': -121,
+                'c': -120,
+                'd': -119,
+                'e': -118,
+            })
+
+    def test_array_add(self):
+        self.run_test(test_array_add,
+            expected={
+                'a': 128,
+                'b': 125,
+                'c': 126,
+                'd': 127,
+                'e': 128,
+            })
+
+    def test_array_assign(self):
+        self.run_test(test_array_assign,
+            expected={
+                'a': 123,
+                'b': 123,
+                'c': 123,
+                'd': 123,
+                'e': 123,
+            })
 
     def test_array_index(self):
         self.run_test(test_array_index,
@@ -1222,7 +1447,6 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
                 'e': 5,
             })
-
 
     # def test_db_access(self):
     #     self.run_test(test_db_access,
