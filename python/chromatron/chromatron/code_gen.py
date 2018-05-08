@@ -350,19 +350,18 @@ class RecordNode(DataNode):
         super(RecordNode, self).__init__(**kwargs)
 
         self.fields = fields
-        self.size = len(self.fields)
 
-    def translate_field(self, field):
-        i = 0
-        for f in self.fields:
-            if f == field:
-                return i
-            i += 1
+    # def translate_field(self, field):
+    #     i = 0
+    #     for f in self.fields:
+    #         if f == field:
+    #             return i
+    #         i += 1
 
-        raise KeyError(field)
+    #     raise KeyError(field)
 
     def __str__(self):
-        return "Record:%s [%s] (%s)" % (self.name, self.size, self.scope)
+        return "Record:%s [%s] (%s)" % (self.name, len(self.fields), self.scope)
 
 class ParameterNode(DataNode):
     def __init__(self, **kwargs):
@@ -856,11 +855,11 @@ class CodeGeneratorPass0(object):
                 tree.body[i] = None
 
             elif isinstance(node, ast.Assign):
-                print "RECORD"
-                
-                print node
-             # and node.func.id == "Record":
-                # print "RECORD"
+                if node.value.func.id == 'Record':
+                    # replace item with record node
+                    tree.body[i] = RecordNode(node.value.keywords, line_no=node.lineno)
+                    tree.body[i].name = node.targets[0].id
+
 
         # strip nones
         tree.body = [a for a in tree.body if a != None]
@@ -1030,18 +1029,8 @@ class CodeGeneratorPass1(object):
                 return array
 
             elif tree.func.id == "Record":
-                fields = []
-                for kw in tree.keywords:
-                    field = self.generate(kw.value)
-                    field.name = kw.arg
-
-                    fields.append(field)
-
-                if len(fields) == 0:
-                    raise SyntaxNotSupported(message='Cannot create empty record', line_no=tree.lineno)
-
-                return RecordNode(fields, line_no=tree.lineno, scope=self.current_function)
-
+                raise SyntaxNotSupported("Records must be declared at module level", line_no=tree.lineno)
+                
             elif tree.func.id == "len":
                 node = self.generate(tree.args[0])
                 return LenNode(node, line_no=tree.lineno)
@@ -1337,6 +1326,22 @@ class CodeGeneratorPass1(object):
         elif isinstance(tree, ast.Assert):
             return AssertNode(self.generate(tree.test), line_no=tree.lineno)
 
+        elif isinstance(tree, RecordNode):
+            fields = []
+
+            for kw in tree.fields:
+                field = self.generate(kw.value)
+                field.name = kw.arg
+
+                fields.append(field)
+
+            tree.fields = fields
+
+            if len(fields) == 0:
+                raise SyntaxNotSupported(message='Cannot create empty record', line_no=node.value.lineno)
+
+            return tree
+
         else:
             raise UnknownASTNode(tree)
 
@@ -1386,6 +1391,16 @@ class ArrayVarIR(DataIR):
 
     def __str__(self):
         return 'ArrayVar(%s)[%d/%d]<%s>@%d' % (self.name, self.stride, self.length, self.function, self.addr)
+
+class RecordVarIR(DataIR):
+    def __init__(self, name, record_type=None, **kwargs):
+        super(RecordVarIR, self).__init__(**kwargs)
+        
+        self.name = name
+        self.record_type = record_type
+        
+    def __str__(self):
+        return 'RecordVar(%s)[%s]<%s>@%d' % (self.name, self.record_type.name, self.function, self.addr)
 
 class ObjIR(DataIR):
     def __init__(self, name, **kwargs):
@@ -2029,13 +2044,13 @@ class DefineArrayIR(IntermediateNode):
         return s
 
 class DefineRecordIR(IntermediateNode):
-    def __init__(self, name, fields, **kwargs):
+    def __init__(self, name, record_type, **kwargs):
         super(DefineRecordIR, self).__init__(**kwargs)
         self.name = name
-        self.fields = fields
+        self.record_type = record_type
         
     def __str__(self):
-        s = '%3d %s RECORD %s' % (self.line_no, self.indent * self.level, self.name)
+        s = '%3d %s RECORD(%s) %s' % (self.line_no, self.indent * self.level, self.record_type.name, self.name)
         
     
         return s
@@ -2066,6 +2081,7 @@ class CodeGeneratorPass2(object):
         self.next_pixel_array_addr = 0
         self.pixel_arrays = {'pixels': PixelArrayIR('pixels', 0, 65535)}
         self.objects = {'pixel_arrays': self.pixel_arrays}
+        self.records = {}
 
         self.include_return = include_return
 
@@ -2090,7 +2106,8 @@ class CodeGeneratorPass2(object):
                     code.extend(ir)
 
                 return {'code': [c for c in code if c != None and isinstance(c, IntermediateNode)],
-                        'objects': self.objects}
+                        'objects': self.objects,
+                        'records': self.records}
 
             elif isinstance(node, FunctionNode):
                 f = FunctionIR(node.name, level=self.level, line_no=node.line_no)
@@ -2156,7 +2173,14 @@ class CodeGeneratorPass2(object):
 
                     params.append(param)
 
-                ir.append(CallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
+
+                if node.name in self.records:
+                    define_record_ir = DefineRecordIR(node.name, self.records[node.name])
+
+                    ir = [define_record_ir]
+
+                else:
+                    ir.append(CallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
 
                 return ir
 
@@ -2372,7 +2396,7 @@ class CodeGeneratorPass2(object):
                 try:
                     src = value[-1].dest
 
-                except TypeError:
+                except (TypeError, AttributeError):
                     src = value
 
                 # there's a special case for storing to an array,
@@ -2389,12 +2413,20 @@ class CodeGeneratorPass2(object):
                     dest = name
 
 
+
+                # check if defining a record
+                if isinstance(src[0], DefineRecordIR):
+                    ir = src[0]
+
+                    ir.name = dest.name
+                    return [ir]
+
                 # check if previous codepath has a destination specified,
                 # if so, we can skip the copy, as the VM instruction set
                 # can usually directly target a destination without
                 # an intermediate copy.
                 # this only works on Vars, not objects
-                if isinstance(dest, VarIR):
+                elif isinstance(dest, VarIR):
                     try:
                         value[-1].replace_dest(dest)
 
@@ -2554,6 +2586,11 @@ class CodeGeneratorPass2(object):
 
                 return [define_array_ir]
 
+            elif isinstance(node, RecordNode):
+                self.records[node.name] = node
+
+                return []
+
             elif isinstance(node, ArrayIndexNode):
                 code = []
                 index_code = self.generate(node.i)
@@ -2578,11 +2615,6 @@ class CodeGeneratorPass2(object):
 
                 return code
                 
-            elif isinstance(node, RecordNode):
-                define_record_ir = DefineRecordIR(node.name, node.fields)
-
-                return [define_record_ir]
-
             elif isinstance(node, basestring):
                 return node
 
@@ -2902,20 +2934,41 @@ class CodeGeneratorPass4(object):
                 registers[ir.name].declared = True
 
             elif isinstance(ir, DefineArrayIR):
-                if ir.name not in registers:
-                    registers[ir.name] = ArrayVarIR(ir.name, line_no=ir.line_no)
-                    registers[ir.name].function = self.current_function
-                    registers[ir.name].addr = addr
-                    registers[ir.name].publish = ir.publish
+                assert ir.name not in registers
 
-                    if ir.type == 'int32':
-                        registers[ir.name].stride = 1
+                registers[ir.name] = ArrayVarIR(ir.name, line_no=ir.line_no)
+                registers[ir.name].function = self.current_function
+                registers[ir.name].addr = addr
+                registers[ir.name].publish = ir.publish
 
-                    registers[ir.name].length = ir.length
+                if ir.type == 'int32':
+                    registers[ir.name].stride = 1
 
-                    data_size = registers[ir.name].stride * registers[ir.name].length
-                        
-                    addr += (data_size + 1) # extra slot for array meta
+                registers[ir.name].length = ir.length
+
+                data_size = registers[ir.name].stride * registers[ir.name].length
+                    
+                addr += (data_size + 1) # extra slot for array meta
+
+            elif isinstance(ir, DefineRecordIR):
+                assert ir.name not in registers
+
+                registers[ir.name] = RecordVarIR(ir.name, line_no=ir.line_no)
+                registers[ir.name].function = self.current_function
+                registers[ir.name].addr = addr
+                registers[ir.name].record_type = ir.record_type
+
+
+                # if ir.type == 'int32':
+                #     registers[ir.name].stride = 1
+
+                # registers[ir.name].length = ir.length
+
+                # data_size = registers[ir.name].stride * registers[ir.name].length
+                    
+                # addr += (data_size + 1) # extra slot for array meta
+                addr += 1
+            
 
 
         data_table = {
@@ -4112,9 +4165,10 @@ class CodeGeneratorPass5(object):
             elif isinstance(ir, DefineArrayIR):
                 pass
 
+            elif isinstance(ir, DefineRecordIR):
+                pass
+
             elif isinstance(ir, ArrayFuncIR):
-                print "MEOW"
-                print ir
                 pass
 
             else:
@@ -5224,6 +5278,12 @@ def compile_text(text, debug_print=False, script_name=''):
         for i in state2['objects']:
             print i
 
+        print ''
+        print 'Records:'
+
+        for i in state2['records'].values():
+            print i
+
     cg3 = CodeGeneratorPass3()
     state3 = cg3.generate(state2)
 
@@ -5290,126 +5350,126 @@ def compile_text(text, debug_print=False, script_name=''):
 
     return state7
 
-def compile_automaton_text(text, debug_print=False, script_name='', condition=True, local_vars=[]):
-    if condition:
-        tree = ast.parse(text, mode='eval')
+# def compile_automaton_text(text, debug_print=False, script_name='', condition=True, local_vars=[]):
+#     if condition:
+#         tree = ast.parse(text, mode='eval')
 
-    else:
-        tree = ast.parse(text)
+#     else:
+#         tree = ast.parse(text)
 
-    if debug_print:
-        import astpp
-        print 'AST'
-        print astpp.dump(tree)
+#     if debug_print:
+#         import astpp
+#         print 'AST'
+#         print astpp.dump(tree)
 
-    cg1 = CodeGeneratorPass1()
-    state1 = cg1.generate(tree)
+#     cg1 = CodeGeneratorPass1()
+#     state1 = cg1.generate(tree)
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 1'
-        printer = ASTPrinter(state1)
-        printer.render()
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 1'
+#         printer = ASTPrinter(state1)
+#         printer.render()
 
 
-    cg2 = CodeGeneratorPass2()
+#     cg2 = CodeGeneratorPass2()
 
-    state2 = cg2.generate(state1)
+#     state2 = cg2.generate(state1)
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 2'
-        for i in state2['code']:
-            print i
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 2'
+#         for i in state2['code']:
+#             print i
 
-        print ''
-        print 'Objects:'
+#         print ''
+#         print 'Objects:'
 
-        for i in state2['objects']:
-            print i
+#         for i in state2['objects']:
+#             print i
 
-    cg3 = CodeGeneratorPass3()
-    state3 = cg3.generate(state2, include_loop=False)
+#     cg3 = CodeGeneratorPass3()
+#     state3 = cg3.generate(state2, include_loop=False)
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 3'
-        for i in state3['code']:
-            print i
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 3'
+#         for i in state3['code']:
+#             print i
 
-    cg4 = CodeGeneratorPass4()
-    state4 = cg4.generate(state3, global_registers=local_vars)
+#     cg4 = CodeGeneratorPass4()
+#     state4 = cg4.generate(state3, global_registers=local_vars)
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 4'
-        print 'Registers:'
-        for k, v in state4['data']['registers'].iteritems():
-            print '%3d %32s %s' % (v.line_no, k, v)
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 4'
+#         print 'Registers:'
+#         for k, v in state4['data']['registers'].iteritems():
+#             print '%3d %32s %s' % (v.line_no, k, v)
         
-        # print 'Strings:'
-        # for k, v in state4['strings'].iteritems():
-        #     print '%3d %32s %s' % (v.line_no, k, v)
-        #
-        # print 'Keys:'
-        # for k, v in state4['keys'].iteritems():
-        #     print '%3d %32s %s' % (v.line_no, k, v)
+#         # print 'Strings:'
+#         # for k, v in state4['strings'].iteritems():
+#         #     print '%3d %32s %s' % (v.line_no, k, v)
+#         #
+#         # print 'Keys:'
+#         # for k, v in state4['keys'].iteritems():
+#         #     print '%3d %32s %s' % (v.line_no, k, v)
 
-    # cg_auto4 = CodeGeneratorPassAutomaton4()
-    # state_auto4 = cg_auto4.generate(state4, condition=condition)
+#     # cg_auto4 = CodeGeneratorPassAutomaton4()
+#     # state_auto4 = cg_auto4.generate(state4, condition=condition)
 
-    # if debug_print:
-    #     print ''
-    #     print ''
-    #     print 'PASS AUTOMATON 4'
-    #     for i in state_auto4['code']:
-    #         print i
+#     # if debug_print:
+#     #     print ''
+#     #     print ''
+#     #     print 'PASS AUTOMATON 4'
+#     #     for i in state_auto4['code']:
+#     #         print i
 
 
-    cg5 = CodeGeneratorPass5(state4)
-    state5 = cg5.generate(state4)
+#     cg5 = CodeGeneratorPass5(state4)
+#     state5 = cg5.generate(state4)
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 5'
-        for func in state5['code']:
-            print func
-            for ins in state5['code'][func]:
-                print '    ', ins
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 5'
+#         for func in state5['code']:
+#             print func
+#             for ins in state5['code'][func]:
+#                 print '    ', ins
 
-    cg6 = CodeGeneratorPass6(state5)
-    state6 = cg6.generate()
+#     cg6 = CodeGeneratorPass6(state5)
+#     state6 = cg6.generate()
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 6'
-        print state6['functions']
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 6'
+#         print state6['functions']
 
-        addr = 0
-        for i in state6['code']:
-            print addr, hex(i)
-            addr += 1
+#         addr = 0
+#         for i in state6['code']:
+#             print addr, hex(i)
+#             addr += 1
 
-    # return state6
+#     # return state6
 
-    cg7 = CodeGeneratorPassAutomaton7(state6)
-    state7 = cg7.generate()
+#     cg7 = CodeGeneratorPassAutomaton7(state6)
+#     state7 = cg7.generate()
 
-    if debug_print:
-        print ''
-        print ''
-        print 'PASS 7'
-        pprint(state7)
+#     if debug_print:
+#         print ''
+#         print ''
+#         print 'PASS 7'
+#         pprint(state7)
 
-        print "VM ISA: %d" % (VM_ISA_VERSION)
+#         print "VM ISA: %d" % (VM_ISA_VERSION)
 
-    return state7
+#     return state7
 
 
 # returns address to registers mapping
