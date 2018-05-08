@@ -32,7 +32,7 @@ from catbus import catbus_string_hash
 import trig
 from copy import copy
 
-VM_ISA_VERSION  = 8
+VM_ISA_VERSION  = 9
 
 RETURN_VAL_ADDR = 0
 RETURN_VAL_NAME = '___return_val'

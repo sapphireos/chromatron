@@ -883,7 +883,7 @@ opcode_array_add:
 
         for( uint16_t i = 0; i < size; i++ ){
 
-            data[dest + i] += op1;
+            data[dest + i + 1] += op1;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -908,7 +908,7 @@ opcode_array_sub:
 
         for( uint16_t i = 0; i < size; i++ ){
 
-            data[dest + i] -= op1;
+            data[dest + i + 1] -= op1;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -933,7 +933,7 @@ opcode_array_mul:
 
         for( uint16_t i = 0; i < size; i++ ){
 
-            data[dest + i] *= op1;
+            data[dest + i + 1] *= op1;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -958,7 +958,7 @@ opcode_array_div:
 
         for( uint16_t i = 0; i < size; i++ ){
 
-            data[dest + i] /= op1;
+            data[dest + i + 1] /= op1;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -983,7 +983,7 @@ opcode_array_mod:
 
         for( uint16_t i = 0; i < size; i++ ){
 
-            data[dest + i] %= op1;
+            data[dest + i + 1] %= op1;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -1007,7 +1007,7 @@ opcode_array_mov:
 
         for( uint16_t i = 0; i < size; i++ ){
 
-            data[dest + i] = op1;
+            data[dest + i + 1] = op1;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){

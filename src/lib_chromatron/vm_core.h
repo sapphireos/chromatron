@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 
-#define VM_ISA_VERSION              8
+#define VM_ISA_VERSION              9
 
 #define RETURN_VAL_ADDR             0
 
