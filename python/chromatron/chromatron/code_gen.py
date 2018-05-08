@@ -827,6 +827,7 @@ class ASTPrinter(object):
 # Initial pass
 # Process source text through Python's compiler.
 # Handle import statements.
+# Handle record declarations.
 #
 class CodeGeneratorPass0(object):
     def __init__(self):
@@ -842,8 +843,6 @@ class CodeGeneratorPass0(object):
         for i in xrange(len(tree.body)):
             node = tree.body[i]
         
-            # self.process_tree(node)
-            
             if isinstance(node, ast.Import):
                 for file in [a.name for a in node.names]:
                 
@@ -855,6 +854,13 @@ class CodeGeneratorPass0(object):
 
                 # remove imports from module level
                 tree.body[i] = None
+
+            elif isinstance(node, ast.Assign):
+                print "RECORD"
+                
+                print node
+             # and node.func.id == "Record":
+                # print "RECORD"
 
         # strip nones
         tree.body = [a for a in tree.body if a != None]
@@ -1024,7 +1030,6 @@ class CodeGeneratorPass1(object):
                 return array
 
             elif tree.func.id == "Record":
-
                 fields = []
                 for kw in tree.keywords:
                     field = self.generate(kw.value)
@@ -1034,9 +1039,6 @@ class CodeGeneratorPass1(object):
 
                 if len(fields) == 0:
                     raise SyntaxNotSupported(message='Cannot create empty record', line_no=tree.lineno)
-
-                for f in fields:
-                    print f
 
                 return RecordNode(fields, line_no=tree.lineno, scope=self.current_function)
 
@@ -2026,6 +2028,18 @@ class DefineArrayIR(IntermediateNode):
             
         return s
 
+class DefineRecordIR(IntermediateNode):
+    def __init__(self, name, fields, **kwargs):
+        super(DefineRecordIR, self).__init__(**kwargs)
+        self.name = name
+        self.fields = fields
+        
+    def __str__(self):
+        s = '%3d %s RECORD %s' % (self.line_no, self.indent * self.level, self.name)
+        
+    
+        return s
+
 class PixelArrayIR(IntermediateNode):
     def __init__(self, name, index, length, size_x=65535, size_y=65535, reverse=False, addr=0, **kwargs):
         super(PixelArrayIR, self).__init__(**kwargs)
@@ -2565,7 +2579,9 @@ class CodeGeneratorPass2(object):
                 return code
                 
             elif isinstance(node, RecordNode):
-                print node
+                define_record_ir = DefineRecordIR(node.name, node.fields)
+
+                return [define_record_ir]
 
             elif isinstance(node, basestring):
                 return node
