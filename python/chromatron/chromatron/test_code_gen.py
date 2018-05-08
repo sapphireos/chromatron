@@ -1374,6 +1374,24 @@ def init():
 """
 
 
+test_array_aug_assign = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+
+    ary[0] = 1
+
+    ary[0] += 123
+
+    a = ary[0]
+    b = ary[1]
+
+"""
+
 test_array_len = """
 
 ary = Array(4, publish=True)
@@ -1391,6 +1409,14 @@ def init():
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+    
+    def test_array_aug_assign(self):
+        self.run_test(test_array_aug_assign,
+            expected={
+                'a': 124,
+                'b': 0,
+            })
+
 
     # def test_array_len(self):
     #     self.run_test(test_array_len,

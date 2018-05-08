@@ -1130,9 +1130,6 @@ class CodeGeneratorPass1(object):
                 return AssignNode(dest, value, line_no=tree.lineno)
 
         elif isinstance(tree, ast.AugAssign):
-
-            print tree
-
             try:
                 if tree.target.id in self.arrays:
                     left = ArrayVarNode(tree.target.id, line_no=tree.lineno, scope=self.current_function)
@@ -1145,10 +1142,11 @@ class CodeGeneratorPass1(object):
 
             dest = copy(left)
 
-            if isinstance(left, ObjNode) or isinstance(left, ObjIndexNode):
+            if isinstance(left, ObjNode) or isinstance(left, ObjIndexNode) or isinstance(left, ArrayIndexNode):
                 left.store = False
 
             right = self.generate(tree.value)
+            
             op_code = self.generate(tree.op)
 
             return AugAssignNode(dest, BinOpNode(op_code, left, right, line_no=tree.lineno), line_no=tree.lineno)
