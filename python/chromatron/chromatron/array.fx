@@ -1,5 +1,5 @@
 
-a = Array(4)
+a = Array(4, publish=True)
 b = Number()
 c = Array(3)
 

@@ -852,7 +852,7 @@ def loop():
 """
 
 
-array_indexing = """
+gfx_array_indexing = """
 
 a = Number(publish=True)
 
@@ -870,7 +870,7 @@ def loop():
 
 """
 
-array_load = """
+gfx_array_load = """
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1178,6 +1178,20 @@ def init():
     a = db.kv_test_array[0]
     b = db.kv_test_array[8]
     c = db.kv_test_array[5]
+
+"""
+
+test_array_index = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def init():
+
+
 
 """
 
@@ -1884,8 +1898,8 @@ class CGHSVArrayTests(unittest.TestCase):
             self.assertEqual(a, 2)
 
 
-    def test_array_indexing(self):
-        code = code_gen.compile_text(array_indexing, debug_print=False)
+    def test_gfx_array_indexing(self):
+        code = code_gen.compile_text(gfx_array_indexing, debug_print=False)
         vm = code_gen.VM(code['vm_code'], code['vm_data'])
 
         vm.run_once()
@@ -1897,8 +1911,8 @@ class CGHSVArrayTests(unittest.TestCase):
         self.assertEqual(hsv['val'][2], 3)
         self.assertEqual(hsv['val'][3], 4)
 
-    def test_array_load(self):
-        code = code_gen.compile_text(array_load, debug_print=False)
+    def test_gfx_array_load(self):
+        code = code_gen.compile_text(gfx_array_load, debug_print=False)
         vm = code_gen.VM(code['vm_code'], code['vm_data'])
 
         vm.run_once()

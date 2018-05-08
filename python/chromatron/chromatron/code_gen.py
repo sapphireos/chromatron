@@ -313,6 +313,7 @@ class ArrayDeclareNode(DataNode):
         super(ArrayDeclareNode, self).__init__(**kwargs)
         self.size = size
         self.array_len = size
+        self.publish = False
 
     def __str__(self):
         return "Array:%s [%s] (%s)" % (self.name, self.array_len, self.scope)
@@ -1005,6 +1006,13 @@ class CodeGeneratorPass1(object):
                     raise SyntaxNotSupported(line_no=tree.lineno)
 
                 array = ArrayDeclareNode(size, line_no=tree.lineno, scope=self.current_function)
+
+                if len(tree.keywords) == 1:
+                    if tree.keywords[0].arg == 'publish' and \
+                       tree.keywords[0].value.id == 'True':
+
+                       array.publish = True
+
                 return array
 
             elif tree.func.id == "Record":
@@ -2049,10 +2057,15 @@ class DefineArrayIR(IntermediateNode):
         self.type = 'int32'
 
         self.data_size = self.length
+
+        self.publish = False
         
     def __str__(self):
         s = '%3d %s ARRAY %s(%d)' % (self.line_no, self.indent * self.level, self.name, self.length)
-
+        
+        if self.publish:
+            s += ' [publish]'
+            
         return s
 
 class PixelArrayIR(IntermediateNode):
@@ -2561,7 +2574,12 @@ class CodeGeneratorPass2(object):
                 return [ir]
 
             elif isinstance(node, ArrayDeclareNode):
-                return [DefineArrayIR(node.name, node.array_len, level=self.level, line_no=node.line_no)]
+                define_array_ir = DefineArrayIR(node.name, node.array_len, level=self.level, line_no=node.line_no)
+
+                if node.publish:
+                    define_array_ir.publish = node.publish
+
+                return [define_array_ir]
 
             elif isinstance(node, ArrayIndexNode):
                 code = []
@@ -2801,7 +2819,6 @@ class CodeGeneratorPass4(object):
         # second pass, assign addresses to registers
         registers = {}
         address_pool = []
-        arrays = {}
 
         # assign return value at address 0
         ret_val = VarIR(RETURN_VAL_NAME, line_no=0)
@@ -2852,7 +2869,7 @@ class CodeGeneratorPass4(object):
                 if isinstance(reg, ArrayVarIR):
 
                     # assign address
-                    reg.addr = arrays[reg.name].addr
+                    reg.addr = registers[reg.name].addr
 
                     continue
 
@@ -2910,16 +2927,16 @@ class CodeGeneratorPass4(object):
                 registers[ir.name].declared = True
 
             elif isinstance(ir, DefineArrayIR):
-                if ir.name not in arrays:
-                    arrays[ir.name] = ArrayVarIR(ir.name, line_no=ir.line_no)
-                    arrays[ir.name].function = self.current_function
-                    arrays[ir.name].addr = addr
+                if ir.name not in registers:
+                    registers[ir.name] = ArrayVarIR(ir.name, line_no=ir.line_no)
+                    registers[ir.name].function = self.current_function
+                    registers[ir.name].addr = addr
+                    registers[ir.name].publish = ir.publish
                     
                     addr += ir.data_size
 
 
         data_table = {
-            'arrays': arrays,
             'registers': {},
             'read_keys': {},
             'write_keys': {},
@@ -5257,20 +5274,6 @@ def compile_text(text, debug_print=False, script_name=''):
         print 'Registers:'
         for k, v in state4['data']['registers'].iteritems():
             print '%3d %32s %s' % (v.line_no, k, v)
-
-        print ''
-        print 'Arrays:'
-        for k, v in state4['data']['arrays'].iteritems():
-            print '%3d %32s %s' % (v.line_no, k, v)
-
-        # print 'Strings:'
-        # for k, v in state4['strings'].iteritems():
-        #     print '%3d %32s %s' % (v.line_no, k, v)
-        #
-        # print 'Keys:'
-        # for k, v in state4['keys'].iteritems():
-        #     print '%3d %32s %s' % (v.line_no, k, v)
-
 
     cg5 = CodeGeneratorPass5(state4)
     state5 = cg5.generate(state4)
