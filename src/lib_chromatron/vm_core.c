@@ -84,8 +84,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_ret,	            // 22
         &&opcode_call,	            // 23
         
-        &&opcode_trap,              // 24 // index load
-        &&opcode_trap,              // 25 // index store
+        &&opcode_idx_load,          // 24
+        &&opcode_idx_store,         // 25
         &&opcode_trap,              // 26
         &&opcode_trap,              // 27
 
@@ -666,6 +666,33 @@ opcode_call:
         call_depth--;
         return status;
     }
+
+    goto dispatch;
+
+
+opcode_idx_load:
+    dest = *pc++;
+    src = *pc++;
+    index = data[*pc++];
+
+    array_meta = (vm_array_meta_t *)&data[src];
+
+    index %= array_meta->length;
+
+    data[dest] = data[src + index + 1];
+
+    goto dispatch;
+
+opcode_idx_store:
+    dest = *pc++;
+    src = *pc++;
+    index = data[*pc++];
+
+    array_meta = (vm_array_meta_t *)&data[dest];
+
+    index %= array_meta->length;
+
+    data[dest + index + 1] = data[src];
 
     goto dispatch;
 
