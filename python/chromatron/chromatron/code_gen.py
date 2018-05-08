@@ -1426,9 +1426,11 @@ class ArrayVarIR(DataIR):
         super(ArrayVarIR, self).__init__(**kwargs)
         
         self.name = name
+        self.length = -1
+        self.stride = -1
 
     def __str__(self):
-        return 'ArrayVar(%s)<%s>@%d' % (self.name, self.function, self.addr)
+        return 'ArrayVar(%s)[%d/%d]<%s>@%d' % (self.name, self.stride, self.length, self.function, self.addr)
 
 class ObjIR(DataIR):
     def __init__(self, name, **kwargs):
@@ -2932,8 +2934,15 @@ class CodeGeneratorPass4(object):
                     registers[ir.name].function = self.current_function
                     registers[ir.name].addr = addr
                     registers[ir.name].publish = ir.publish
-                    
-                    addr += ir.data_size
+
+                    if ir.type == 'int32':
+                        registers[ir.name].stride = 1
+
+                    registers[ir.name].length = ir.length
+
+                    data_size = registers[ir.name].stride * registers[ir.name].length
+                        
+                    addr += (data_size + 1) # extra slot for array meta
 
 
         data_table = {
@@ -3284,13 +3293,12 @@ class IndexLoad(Instruction):
         self.dest = dest
         self.src = src
 
-        self.print_index = index    
         self.index = index
 
         # self.size = ConstantNode(self.src.size)
 
     def __str__(self):
-        return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.print_index)
+        return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.index)
 
     def assemble(self):
         # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
@@ -3305,13 +3313,12 @@ class IndexStore(Instruction):
         self.dest = dest
         self.src = src
 
-        self.print_index = index    
         self.index = index
 
         # self.size = ConstantNode(self.src.size)
 
     def __str__(self):
-        return "%s %s[%s] <- %s" % (self.mnemonic, self.dest.name, self.print_index, self.src)
+        return "%s %s[%s] <- %s" % (self.mnemonic, self.dest.name, self.index, self.src)
 
     def assemble(self):
         # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
@@ -4532,6 +4539,10 @@ class VM(object):
             if isinstance(data, ConstIR):
                 self.memory[data.name] = data.name
 
+            elif isinstance(data, ArrayVarIR):
+                data.array = [0] * data.length
+                self.memory[data.name] = data
+
             else:
                 self.memory[data.name] = 0
         
@@ -4635,6 +4646,24 @@ class VM(object):
 
             elif isinstance(ins, Clr):
                 self.memory[ins.dest.name] = 0
+
+            elif isinstance(ins, IndexStore):
+                ary = self.memory[ins.dest.name]
+                src = self.memory[ins.src.name]
+                index = self.memory[ins.index.name]
+
+                index %= ary.length
+            
+                ary.array[index] = src
+
+            elif isinstance(ins, IndexLoad):
+                ary = self.memory[ins.src.name]
+            
+                index = self.memory[ins.index.name]
+
+                index %= ary.length
+                
+                self.memory[ins.dest.name] = ary.array[index]
 
             # elif isinstance(ins, LoadToArray):
             #     index = self.memory[ins.index.name]
