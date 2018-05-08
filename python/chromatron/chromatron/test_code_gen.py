@@ -1183,7 +1183,7 @@ def init():
 
 test_array_index = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1209,7 +1209,7 @@ def init():
 
 test_array_assign = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1232,7 +1232,7 @@ def init():
 
 test_array_add = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1262,7 +1262,7 @@ def init():
 
 test_array_sub = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1290,7 +1290,7 @@ def init():
 
 test_array_mul = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1318,7 +1318,7 @@ def init():
 
 test_array_div = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1347,7 +1347,7 @@ def init():
 
 test_array_mod = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1376,7 +1376,7 @@ def init():
 
 test_array_aug_assign = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1394,7 +1394,7 @@ def init():
 
 test_array_len = """
 
-ary = Array(4, publish=True)
+ary = Array(4)
 
 a = Number(publish=True)
 
