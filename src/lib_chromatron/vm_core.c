@@ -84,11 +84,6 @@ static int8_t _vm_i8_run_stream(
         &&opcode_ret,	            // 22
         &&opcode_call,	            // 23
         
-        //&&opcode_lta,	            // 24
-        //&&opcode_lfa,	            // 25
-        //&&opcode_lfa2d,	        // 26
-        //&&opcode_lta2d,	        // 27
-
         &&opcode_trap,              // 24 // index load
         &&opcode_trap,              // 25 // index store
         &&opcode_trap,              // 26
@@ -673,67 +668,6 @@ opcode_call:
     }
 
     goto dispatch;
-
-
-// opcode_lta:
-
-//     dest = *pc++;
-//     src  = *pc++;
-//     index = data[*pc++];
-//     size = data[*pc++];
-
-//     index %= size;
-
-//     data[dest + index] = data[src];
-
-//     goto dispatch;
-
-
-// opcode_lfa:
-
-//     dest = *pc++;
-//     src  = *pc++;
-//     index = data[*pc++];
-//     size = data[*pc++];
-
-//     index %= size;
-
-//     data[dest] = data[src + index];
-
-//     goto dispatch;
-
-
-// opcode_lfa2d:
-
-//     dest = *pc++;
-//     src  = *pc++;
-//     index_x32 = data[*pc++];
-//     index_y32 = data[*pc++];
-//     size_x32 = data[*pc++];
-//     size_y32 = data[*pc++];
-
-//     index_x32 %= size_x32;
-//     index_y32 %= size_y32;
-
-//     data[dest] = data[src + index_x32 + (index_y32 * size_x32)];
-
-//     goto dispatch;
-
-// opcode_lta2d:
-
-//     dest = *pc++;
-//     src  = *pc++;
-//     index_x32 = data[*pc++];
-//     index_y32 = data[*pc++];
-//     size_x32 = data[*pc++];
-//     size_y32 = data[*pc++];
-
-//     index_x32 %= size_x32;
-//     index_y32 %= size_y32;
-
-//     data[dest + index_x32 + (index_y32 * size_x32)] = data[src];
-
-//     goto dispatch;
 
 
 opcode_ltah:

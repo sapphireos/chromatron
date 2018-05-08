@@ -20,8 +20,8 @@ def loop():
     # pixels.val = 1
     # a[1] = 2
     # b = a[1]
-    c[2] = a[b]
-    # b = len(a)
+    # c[2] = a[b]
+    b = len(a)
     # b = max(a)
     # pixels[1].hue = 2
 

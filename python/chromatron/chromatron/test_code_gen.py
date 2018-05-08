@@ -1374,9 +1374,29 @@ def init():
 """
 
 
+test_array_len = """
+
+ary = Array(4, publish=True)
+
+a = Number(publish=True)
+
+def init():
+
+    a = len(art)
+
+"""
+
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_len(self):
+        self.run_test(test_array_len,
+            expected={
+                'a': 4,
+            })
 
     def test_array_mod(self):
         self.run_test(test_array_mod,

@@ -4665,48 +4665,6 @@ class VM(object):
                 
                 self.memory[ins.dest.name] = ary.array[index]
 
-            # elif isinstance(ins, LoadToArray):
-            #     index = self.memory[ins.index.name]
-            #     size = self.memory[ins.size.name]
-
-            #     index %= size
-
-            #     self.set_var(ins.dest.name, self.get_var(ins.src.name), index=index)
-
-            # elif isinstance(ins, LoadFromArray):
-            #     index = self.get_var(ins.index.name)
-            #     size = self.get_var(ins.size.name)
-
-            #     index %= size
-
-            #     self.set_var(ins.dest.name, self.get_var(ins.src.name)[index])
-
-            # elif isinstance(ins, LoadToArray2D):
-            #     index_x = self.get_var(ins.index_x.name)
-            #     index_y = self.get_var(ins.index_y.name)
-            #     size_x = self.get_var(ins.size_x.name)
-            #     size_y = self.get_var(ins.size_x.name)
-
-            #     index_x %= size_x
-            #     index_y %= size_y
-
-            #     index = index_x + (index_y * size_x)
-
-            #     self.set_var(ins.dest.name, self.get_var(ins.src.name), index=index)
-
-            # elif isinstance(ins, LoadFromArray2D):
-            #     index_x = self.get_var(ins.index_x.name)
-            #     index_y = self.get_var(ins.index_y.name)
-            #     size_x = self.get_var(ins.size_x.name)
-            #     size_y = self.get_var(ins.size_x.name)
-
-            #     index_x %= size_x
-            #     index_y %= size_y
-
-            #     index = index_x + (index_y * size_x)
-
-            #     self.set_var(ins.dest.name, self.get_var(ins.src.name)[index])
-
             elif isinstance(ins, LoadToArrayHue):
                 index_x = self.memory[ins.index_x.name]
                 index_y = self.memory[ins.index_y.name]
@@ -4931,14 +4889,6 @@ class VM(object):
 
                 val = random.randint(start, end)
                 self.memory[ins.dest.name] = val
-
-            # elif isinstance(ins, Noise):
-                # start = self.get_var(ins.start.name)
-                # end = self.get_var(ins.end.name)
-
-                # val = random.randint(start, end)
-                # self.set_var(ins.dest.name, val)
-                # print ins
 
             elif isinstance(ins, Return):
                 # load return value to global data
