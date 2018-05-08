@@ -120,6 +120,14 @@ class PixelArrayObject(StructField):
         super(PixelArrayObject, self).__init__(_name="pixel_array", _fields=fields, **kwargs)
 
 
+class ArrayMeta(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="length"),
+                  Uint16Field(_name="stride"),]
+
+        super(ArrayMeta, self).__init__(_name="array_meta", _fields=fields, **kwargs)
+
+
 class VMPublishVar(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="hash"),
@@ -3455,8 +3463,6 @@ class ArrayOpInstruction(Instruction):
         self.result = result
         self.op1 = op1
 
-        # self.size = ConstIR(self.result.size)
-
     def __str__(self):
         return "%-16s %16s %1s= %16s" % (self.mnemonic, self.result, self.symbol, self.op1)
 
@@ -3473,8 +3479,8 @@ class ArrayOpInstruction(Instruction):
             attr = 0
 
         # Array op format is:
-        # opcode - object type - object address - attribute address - operand - size
-        return [self.opcode, obj_type, self.result.addr, attr, self.op1.addr, 0]
+        # opcode - object type - object address - attribute address - operand
+        return [self.opcode, obj_type, self.result.addr, attr, self.op1.addr]
 
 class ArrayAdd(ArrayOpInstruction):
     mnemonic = 'ARRAY_ADD'
@@ -4302,6 +4308,11 @@ class CodeGeneratorPass7(object):
         for reg in regs:
             if isinstance(reg, ConstIR):
                 stream += struct.pack('<l', int(reg.name)) # int32
+
+            elif isinstance(reg, ArrayVarIR):
+                ary_meta = ArrayMeta(length=reg.length, stride=reg.stride)
+
+                stream += ary_meta.pack()
 
             else:
                 stream += struct.pack('<l', 0) # int32

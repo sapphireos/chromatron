@@ -322,12 +322,12 @@ static int8_t _vm_i8_run_stream(
     uint8_t *code = (uint8_t *)( stream + state->code_start );
     uint8_t *pc = code + offset;
     uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
-    int32_t op1, op2, index, size;
+    int32_t op1, op2, index;
     bool yield;
-    //index_x32, index_y32, size_x32, size_y32
     int32_t params[8];
     uint16_t addr;
     catbus_hash_t32 hash;
+    vm_array_meta_t *array_meta;
 
 
     call_depth++;
@@ -877,11 +877,11 @@ opcode_array_add:
     dest = *pc++;
     attr = *pc++;
     op1 = data[*pc++];
-    size = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
+        array_meta = (vm_array_meta_t *)&data[dest];
 
-        for( uint16_t i = 0; i < size; i++ ){
+        for( uint16_t i = 0; i < array_meta->length; i++ ){
 
             data[dest + i + 1] += op1;
         }
@@ -902,11 +902,11 @@ opcode_array_sub:
     dest = *pc++;
     attr = *pc++;
     op1 = data[*pc++];
-    size = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
+        array_meta = (vm_array_meta_t *)&data[dest];
 
-        for( uint16_t i = 0; i < size; i++ ){
+        for( uint16_t i = 0; i < array_meta->length; i++ ){
 
             data[dest + i + 1] -= op1;
         }
@@ -927,11 +927,11 @@ opcode_array_mul:
     dest = *pc++;
     attr = *pc++;
     op1 = data[*pc++];
-    size = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
+        array_meta = (vm_array_meta_t *)&data[dest];
 
-        for( uint16_t i = 0; i < size; i++ ){
+        for( uint16_t i = 0; i < array_meta->length; i++ ){
 
             data[dest + i + 1] *= op1;
         }
@@ -952,11 +952,11 @@ opcode_array_div:
     dest = *pc++;
     attr = *pc++;
     op1 = data[*pc++];
-    size = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
+        array_meta = (vm_array_meta_t *)&data[dest];
 
-        for( uint16_t i = 0; i < size; i++ ){
+        for( uint16_t i = 0; i < array_meta->length; i++ ){
 
             data[dest + i + 1] /= op1;
         }
@@ -977,11 +977,11 @@ opcode_array_mod:
     dest = *pc++;
     attr = *pc++;
     op1 = data[*pc++];
-    size = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
+        array_meta = (vm_array_meta_t *)&data[dest];
 
-        for( uint16_t i = 0; i < size; i++ ){
+        for( uint16_t i = 0; i < array_meta->length; i++ ){
 
             data[dest + i + 1] %= op1;
         }
@@ -1001,11 +1001,11 @@ opcode_array_mov:
     dest = *pc++;
     attr = *pc++;
     op1 = data[*pc++];
-    size = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
+        array_meta = (vm_array_meta_t *)&data[dest];
 
-        for( uint16_t i = 0; i < size; i++ ){
+        for( uint16_t i = 0; i < array_meta->length; i++ ){
 
             data[dest + i + 1] = op1;
         }
