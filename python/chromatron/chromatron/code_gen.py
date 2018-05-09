@@ -1443,7 +1443,7 @@ class ArrayVarIR(DataIR):
         return self.length * self.stride
 
     def __str__(self):
-        return 'ArrayVar(%s)[%d/%d]<%s>@%d' % (self.name, self.stride, self.length, self.function, self.addr)
+        return 'ArrayVar(%s)[%d/%d+%d]<%s>@%d' % (self.name, self.length, self.size(), self.stride, self.function, self.addr)
 
 class RecordVarIR(DataIR):
     def __init__(self, name, record_type=None, **kwargs):
@@ -3076,6 +3076,8 @@ class CodeGeneratorPass4(object):
                 registers[ir.name].function = self.current_function
                 registers[ir.name].addr = addr
                 registers[ir.name].publish = ir.publish
+
+                registers[ir.name].type = ir.type
 
                 registers[ir.name].length = ir.length
 
