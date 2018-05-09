@@ -1997,13 +1997,13 @@ class IndexStoreIR(IntermediateNode):
 
 
 class OffsetIR(IntermediateNode):
-    def __init__(self, dest, target, index, **kwargs):
+    def __init__(self, dest, target, index, base=ConstIR(0), **kwargs):
         super(OffsetIR, self).__init__(**kwargs)
 
         self.dest = dest
         self.target = target
         self.index = index
-        self.base = ConstIR(0)
+        self.base = base
 
     def get_data_nodes(self):
         nodes = [self.dest, self.index, self.base]
@@ -2014,7 +2014,7 @@ class OffsetIR(IntermediateNode):
         return False
 
     def __str__(self):
-        return '%3d %s OFFSET %s = addr(%s[%s + %s])' % (self.line_no, self.indent * self.level, self.dest, self.target, self.base, self.index)
+        return '%3d %s OFFSET %s = [%s + %s] (array: %s)' % (self.line_no, self.indent * self.level, self.dest, self.base, self.index, self.target.name)
 
 
 class LabelIR(IntermediateNode):
@@ -2521,11 +2521,28 @@ class CodeGeneratorPass2(object):
                         return code
 
                     elif isinstance(name[0], OffsetIR):
-                        code.extend(name)
+                        prev_base = None
+                        for ir in name:
+                            try:
+                                for ir2 in ir.index:
+                                    code.append(ir2)
+
+                                ir.index = ir.index[0].dest
+
+                            except TypeError:
+                                pass
+
+                            current_base = ir.dest
+                            if prev_base != None:
+                                ir.base = prev_base
+
+                            prev_base = current_base
+
+                            code.append(ir)
 
                         dest = name[0]
 
-                        ir = IndexStoreIR(dest.target, src, dest.dest, y=None, level=self.level, line_no=node.line_no)
+                        ir = IndexStoreIR(dest.target, src, name[-1].dest, y=None, level=self.level, line_no=node.line_no)
 
                         code.append(ir)
                         return code
@@ -2811,7 +2828,6 @@ class CodeGeneratorPass2(object):
 
                 elif isinstance(target, ArrayVarIR):
                     # update array length from declaration
-                    
                     target.length = self.arrays[target.name].length
 
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
@@ -3523,9 +3539,9 @@ class OffsetArray(Instruction):
     mnemonic = 'OFFSET_ARRAY'
     opcode = 0x1A
 
-    def __init__(self, dest, src, index, ary_length, ary_stride):
+    def __init__(self, dest, base, index, ary_length, ary_stride):
         self.dest = dest
-        self.src = src
+        self.base = base
 
         self.index = index
 
@@ -3533,10 +3549,10 @@ class OffsetArray(Instruction):
         self.ary_stride = ary_stride
 
     def __str__(self):
-        return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.index)
+        return "%s %s <- *[%s + %s] (%d/%d)" % (self.mnemonic, self.dest.name, self.base, self.index, self.ary_stride.name, self.ary_length.name)
 
     def assemble(self):
-        return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+        return [self.opcode, self.dest.addr, self.base.addr, self.index.addr]
 
 
 class LoadToPixArray(Instruction):
@@ -4293,7 +4309,7 @@ class CodeGeneratorPass5(object):
                 ary_length = self.registers[ary.length]
                 ary_stride = self.registers[ary.stride]
 
-                ins = OffsetArray(ir.dest, ir.target, ir.index, ary_length, ary_stride)
+                ins = OffsetArray(ir.dest, ir.base, ir.index, ary_length, ary_stride)
 
                 self.append_code(ins)
 
@@ -4793,17 +4809,21 @@ class VM(object):
 
                 index %= self.memory[ins.ary_length.addr]
 
-                self.memory[ins.dest.addr] = ins.src.addr + index
+                base = self.memory[ins.base.addr]
+
+                self.memory[ins.dest.addr] = base + index
 
             elif isinstance(ins, IndexStore):
                 index = self.memory[ins.index.addr]
+                base = ins.dest.addr
 
-                self.memory[index] = self.memory[ins.src.addr]
+                self.memory[index + base] = self.memory[ins.src.addr]
             
             elif isinstance(ins, IndexLoad):
                 index = self.memory[ins.index.addr]
+                base = ins.src.addr
 
-                self.memory[ins.dest.addr] = self.memory[index]
+                self.memory[ins.dest.addr] = self.memory[index + base]
 
             elif isinstance(ins, LoadToArrayHue):
                 index_x = self.memory[ins.index_x.addr]
