@@ -525,14 +525,6 @@ class OffsetNode(CodeNode):
         super(OffsetNode, self).__init__(**kwargs)
         self.target = target
         self.index = index
-
-        # print "OFFSET"
-        # print target, index
-
-        # if isinstance(target, OffsetNode):
-            # print "---PARENT"
-            # self.target = target.target.type
-
     
 
 class ASTWalker(object):
@@ -1294,12 +1286,6 @@ class CodeGeneratorPass1(object):
                 # unless we are indexing an array
                 obj = self.generate(tree.value)
                 index = self.generate(tree.slice.value)
-
-                # if isinstance(obj, OffsetNode):
-
-                #     array_type = self.arrays[obj.target.name].type
-
-                #     print "MEOW", array_type, obj.target
                 
                 return OffsetNode(obj, index, line_no=tree.lineno)
 
@@ -2020,7 +2006,7 @@ class OffsetIR(IntermediateNode):
         self.base = ConstIR(0)
 
     def get_data_nodes(self):
-        nodes = [self.dest, self.target, self.index, self.base]
+        nodes = [self.dest, self.index, self.base]
 
         return nodes
 
@@ -2149,6 +2135,10 @@ class DefineArrayIR(IntermediateNode):
         self.type = data_type
 
         self.publish = False
+
+    @property
+    def stride(self):
+        return self.type.size()
         
     def size(self):
         return self.length * self.type.size()
@@ -2226,6 +2216,7 @@ class CodeGeneratorPass2(object):
 
                 return {'code': [c for c in code if c != None and isinstance(c, IntermediateNode)],
                         'objects': self.objects,
+                        'arrays': self.arrays,
                         'record_types': self.record_types,
                         'records': self.records}
 
@@ -2529,9 +2520,11 @@ class CodeGeneratorPass2(object):
                         code.extend(name)
                         return code
 
-                    elif isinstance(dest, OffsetIR):
+                    elif isinstance(name[0], OffsetIR):
                         code.extend(name)
-                        
+
+                        dest = name[0]
+
                         ir = IndexStoreIR(dest.target, src, dest.dest, y=None, level=self.level, line_no=node.line_no)
 
                         code.append(ir)
@@ -2805,14 +2798,21 @@ class CodeGeneratorPass2(object):
                     for ir in target:
                         code.append(ir)
 
-                    # target = target[-1].dest
                     target = target[-1].target.type
 
                 except TypeError:
                     pass
 
-                # print self.arrays
-                # print dest, target, type(target)
+                if isinstance(target, DefineArrayIR):
+                    new_target = ArrayVarIR(target.name, data_type=target.type)
+                    new_target.length = target.length
+
+                    target = new_target
+
+                elif isinstance(target, ArrayVarIR):
+                    # update array length from declaration
+                    
+                    target.length = self.arrays[target.name].length
 
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
 
@@ -3987,6 +3987,7 @@ class CodeGeneratorPass5(object):
         for reg, data in registers.iteritems():
             self.registers[reg] = data
 
+        self.arrays = state['arrays']
         self.records = state['records']
 
         self.functions = {}
@@ -4287,7 +4288,7 @@ class CodeGeneratorPass5(object):
                 pass
 
             elif isinstance(ir, OffsetIR):
-                ary = self.registers[ir.target.name]
+                ary = self.arrays[ir.target.name]
 
                 ary_length = self.registers[ary.length]
                 ary_stride = self.registers[ary.stride]

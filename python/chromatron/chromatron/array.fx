@@ -10,10 +10,10 @@ d = Array(3, type=Array(2, type=Array(4)))
 # MyRecord = Record(meow=Number())
 
 def init():
-    c[1][2] = 456
+    # c[1][2] = 456
     # a[1] = 1
     # a[1] += 2        
-    # d[1][2][3] = 456
+    d[1][2][3] = 456
 
     # b = a[5]
 
