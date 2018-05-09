@@ -2429,20 +2429,23 @@ class CodeGeneratorPass2(object):
                     dest = name
 
 
+                try:
+                    # check if defining a record
+                    if isinstance(src[0], DefineRecordIR):
+                        ir = src[0]
 
-                # check if defining a record
-                if isinstance(src[0], DefineRecordIR):
-                    ir = src[0]
+                        ir.name = dest.name
+                        return [ir]
 
-                    ir.name = dest.name
-                    return [ir]
+                except TypeError:
+                    pass
 
                 # check if previous codepath has a destination specified,
                 # if so, we can skip the copy, as the VM instruction set
                 # can usually directly target a destination without
                 # an intermediate copy.
                 # this only works on Vars, not objects
-                elif isinstance(dest, VarIR):
+                if isinstance(dest, VarIR):
                     try:
                         value[-1].replace_dest(dest)
 
