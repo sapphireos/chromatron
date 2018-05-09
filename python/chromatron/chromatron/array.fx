@@ -1,7 +1,7 @@
 
 a = Array(4, publish=True)
-b = Number()
-c = Array(3)
+# b = Number()
+# c = Array(3, type=Array(2))
 
 # MyRecord = Record(meow=Number(), 
                   # stuff=Array(2))
@@ -9,9 +9,11 @@ c = Array(3)
 # MyRecord = Record(meow=Number())
 
 def init():
-    pass
+    # c[0][1] = 2
+    a[1] = 2        
 
-def loop():
+
+# def loop():
     # pass
     
     # a += 2
@@ -32,7 +34,7 @@ def loop():
     # b += 1
 
     # a[0] = a[0] + 1
-    a[0] += 1 + 2 + b
+    # a[0] += 1 + 2 + b
 
     # a += 1
 

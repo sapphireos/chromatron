@@ -519,6 +519,13 @@ class SysCallNode(CodeNode):
         self.name = name
         self.params = params
 
+
+class OffsetNode(CodeNode):
+    def __init__(self, target, index, **kwargs):
+        super(OffsetNode, self).__init__(**kwargs)
+        self.target = target
+        self.index = index
+
     
 
 class ASTWalker(object):
@@ -829,6 +836,9 @@ class ASTPrinter(object):
 
         elif isinstance(node, NoOpCodeNode):
             pass
+
+        elif isinstance(node, OffsetNode):
+            self.echo('OFFSET %s[%s]' % (node.target, node.index))
 
         else:
             raise Exception(node)
@@ -1250,6 +1260,10 @@ class CodeGeneratorPass1(object):
                 attr.value = sub
                 attr.ctx = ctx
 
+                # check for multiple dimensions
+                if isinstance(attr, ast.Subscript):
+                    raise AttributeError
+
                 return self.generate(attr)
 
             except AttributeError:
@@ -1258,13 +1272,15 @@ class CodeGeneratorPass1(object):
                 obj = ArrayVarNode(tree.value.id)
                 index = self.generate(tree.slice.value)
 
-                if isinstance(tree.ctx, ast.Store):
-                    store = True
+                return OffsetNode(obj, index, line_no=tree.lineno)
 
-                else:
-                    store = False
+                # if isinstance(tree.ctx, ast.Store):
+                #     store = True
 
-                return ArrayIndexNode(obj, i=index, store=store, line_no=tree.lineno)
+                # else:
+                #     store = False
+
+                # return ArrayIndexNode(obj, i=index, store=store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Eq):
             return 'eq'
@@ -1960,6 +1976,24 @@ class IndexStoreIR(IntermediateNode):
         else:
             return '%3d %s INDEX_STORE %s[%s][%s] = %s' % (self.line_no, self.indent * self.level, self.dest, self.x, self.y, self.src)
 
+
+class OffsetIR(IntermediateNode):
+    def __init__(self, dest, target, index, **kwargs):
+        super(OffsetIR, self).__init__(**kwargs)
+
+        self.dest = dest
+        self.target = target
+        self.index = index
+
+    def get_data_nodes(self):
+        nodes = [self.dest, self.target, self.index]
+
+        return nodes
+
+    def __str__(self):
+        return '%3d %s OFFSET %s = addr(%s[%s])' % (self.line_no, self.indent * self.level, self.dest, self.target, self.index)
+
+
 class LabelIR(IntermediateNode):
     def __init__(self, name, **kwargs):
         super(LabelIR, self).__init__(**kwargs)
@@ -2450,9 +2484,18 @@ class CodeGeneratorPass2(object):
                 # Copy
                 try:
                     dest = name[-1]
+
                     if isinstance(dest, IndexStoreIR):
                         dest.src = src
                         code.extend(name)
+                        return code
+
+                    elif isinstance(dest, OffsetIR):
+                        code.append(dest)
+
+                        ir = IndexStoreIR(dest.target, src, dest.dest, y=None, level=self.level, line_no=node.line_no)
+
+                        code.append(ir)
                         return code
 
                 except TypeError:
@@ -2698,6 +2741,17 @@ class CodeGeneratorPass2(object):
             elif isinstance(node, NoOpCodeNode):
                 return []
 
+            elif isinstance(node, OffsetNode):
+                dest = self.get_unique_register(line_no=node.line_no)
+                target = self.generate(node.target)
+                index = self.generate(node.index)
+
+                return [OffsetIR(dest, target, index, level=self.level, line_no=node.line_no)]
+
+            elif isinstance(node, ArrayVarIR):
+                print node
+
+
             else:
                 raise Exception(node)
 
@@ -2774,7 +2828,7 @@ class CodeGeneratorPass3(object):
                 ins = JumpIR(current_context.continue_label, level=ir.level, line_no=ir.line_no)
                 updated_code[i] = ins
 
-            i +=1
+            i += 1
 
         # remove the loop markers from code
         updated_code = [_ir for _ir in updated_code if not isinstance(_ir, LoopIR)]
@@ -2831,8 +2885,12 @@ class CodeGeneratorPass3(object):
                     if isinstance(node, StringIR):
                         continue
 
-                    if node.name in [a.name.name for a in params]:
-                        node.name = '%s.%s' % (current_function, node.name)
+                    try:
+                        if node.name in [a.name.name for a in params]:
+                            node.name = '%s.%s' % (current_function, node.name)
+
+                    except AttributeError:
+                        pass
 
         # fifth pass, remove useless index loads
         for i in xrange(len(updated_code)):
@@ -3361,13 +3419,10 @@ class IndexLoad(Instruction):
 
         self.index = index
 
-        # self.size = ConstantNode(self.src.size)
-
     def __str__(self):
         return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.index)
 
     def assemble(self):
-        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
         return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
 
 
@@ -3381,13 +3436,27 @@ class IndexStore(Instruction):
 
         self.index = index
 
-        # self.size = ConstantNode(self.src.size)
-
     def __str__(self):
         return "%s %s[%s] <- %s" % (self.mnemonic, self.dest.name, self.index, self.src)
 
     def assemble(self):
-        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr, self.size.addr]
+        return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+
+
+class OffsetArray(Instruction):
+    mnemonic = 'OFFSET_ARRAY'
+    opcode = 0x1A
+
+    def __init__(self, dest, src, index):
+        self.dest = dest
+        self.src = src
+
+        self.index = index
+
+    def __str__(self):
+        return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.index)
+
+    def assemble(self):
         return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
 
 
@@ -4233,6 +4302,10 @@ class CodeGeneratorPass5(object):
 
             elif isinstance(ir, ArrayFuncIR):
                 pass
+
+            elif isinstance(ir, OffsetIR):
+                ins = OffsetArray(ir.dest, ir.target, ir.index)
+                self.append_code(ins)
 
             else:
                 raise Unknown(ir)
