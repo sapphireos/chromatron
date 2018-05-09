@@ -2494,6 +2494,13 @@ class CodeGeneratorPass2(object):
                 try:
                     src = value[-1].dest
 
+                    # if isinstance(value[-1], OffsetIR):
+
+                    #     print src
+                    #     print value[-1]
+
+                    #     ir = IndexLoadIR(dest.target, value[-1].target, src, y=None, level=self.level, line_no=node.line_no)
+
                 except (TypeError, AttributeError):
                     src = value
 
@@ -2510,7 +2517,7 @@ class CodeGeneratorPass2(object):
 
                     elif isinstance(dest, OffsetIR):
                         code.extend(name)
-
+                        
                         ir = IndexStoreIR(dest.target, src, dest.dest, y=None, level=self.level, line_no=node.line_no)
 
                         code.append(ir)
@@ -2518,7 +2525,6 @@ class CodeGeneratorPass2(object):
 
                 except TypeError:
                     dest = name
-
 
                 try:
                     # check if defining a record
@@ -2534,6 +2540,18 @@ class CodeGeneratorPass2(object):
 
                 except TypeError:
                     pass
+
+                try:
+                    # check if loading from an array
+                    if isinstance(value[-1], OffsetIR):
+                        ir = IndexLoadIR(dest, value[-1].target, src, y=None, level=self.level, line_no=node.line_no)
+
+                        code.append(ir)
+                        return code
+
+                except TypeError:
+                    pass
+
 
                 # check if previous codepath has a destination specified,
                 # if so, we can skip the copy, as the VM instruction set
@@ -2559,9 +2577,9 @@ class CodeGeneratorPass2(object):
                 elif isinstance(dest, ArrayVarIR):
                     code.append(ArrayOpIR(dest, 'eq', src, level=self.level, line_no=node.line_no))
 
-                elif isinstance(dest, IndexStoreIR):
-                    dest.src = src
-                    code.append(dest)
+                # elif isinstance(dest, IndexStoreIR):
+                #     dest.src = src
+                #     code.append(dest)
 
                 else:
                     code.append(CopyIR(dest, src, level=self.level, line_no=node.line_no))
@@ -2779,10 +2797,6 @@ class CodeGeneratorPass2(object):
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
 
                 return code
-
-            elif isinstance(node, ArrayVarIR):
-                print node
-
 
             else:
                 raise Exception(node)
@@ -4833,24 +4847,23 @@ class VM(object):
                 self.memory[ins.dest.addr] = 0
 
             elif isinstance(ins, OffsetArray):
+                ary = self.registers[ins.src.name]
+
                 index = self.memory[ins.index.addr]
+
+                index %= ary.length
 
                 self.memory[ins.dest.addr] = ins.src.addr + index
 
             elif isinstance(ins, IndexStore):
-                src = self.memory[ins.src.addr]
                 index = self.memory[ins.index.addr]
 
-                self.memory[index] = src
+                self.memory[index] = self.memory[ins.src.addr]
             
             elif isinstance(ins, IndexLoad):
-                ary = self.memory[ins.src.addr]
-            
                 index = self.memory[ins.index.addr]
-
-                index %= ary.length
                 
-                self.memory[ins.dest.addr] = ary.array[index]
+                self.memory[ins.dest.addr] = self.memory[index]
 
             elif isinstance(ins, LoadToArrayHue):
                 index_x = self.memory[ins.index_x.addr]
@@ -5120,11 +5133,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.addr]
+                    ary = self.registers[ins.result.name]
 
                     data = self.memory[ins.op1.addr]
 
-                    ary.array = [data] * ary.length
+                    addr = ins.result.addr
+
+                    for i in xrange(ary.length):
+                        self.memory[addr] = data
+
+                        addr += ary.stride
 
 
             elif isinstance(ins, ArrayAdd):
@@ -5160,12 +5178,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.addr]
+                    ary = self.registers[ins.result.name]
 
                     data = self.memory[ins.op1.addr]
 
+                    addr = ins.result.addr
+
                     for i in xrange(ary.length):
-                        ary.array[i] += data
+                        self.memory[addr] += data
+
+                        addr += ary.stride
 
 
             elif isinstance(ins, ArraySub):
@@ -5201,12 +5223,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.addr]
+                    ary = self.registers[ins.result.name]
 
                     data = self.memory[ins.op1.addr]
 
+                    addr = ins.result.addr
+
                     for i in xrange(ary.length):
-                        ary.array[i] -= data
+                        self.memory[addr] -= data
+
+                        addr += ary.stride
 
             elif isinstance(ins, ArrayMul):
                 if isinstance(ins.result, PixelObjIR):
@@ -5241,12 +5267,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.addr]
+                    ary = self.registers[ins.result.name]
 
                     data = self.memory[ins.op1.addr]
 
+                    addr = ins.result.addr
+
                     for i in xrange(ary.length):
-                        ary.array[i] *= data
+                        self.memory[addr] *= data
+
+                        addr += ary.stride
 
             elif isinstance(ins, ArrayDiv):
                 if isinstance(ins.result, PixelObjIR):
@@ -5281,12 +5311,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.addr]
+                    ary = self.registers[ins.result.name]
 
                     data = self.memory[ins.op1.addr]
 
+                    addr = ins.result.addr
+
                     for i in xrange(ary.length):
-                        ary.array[i] /= data
+                        self.memory[addr] /= data
+
+                        addr += ary.stride
 
             elif isinstance(ins, ArrayMod):
                 if isinstance(ins.result, PixelObjIR):
@@ -5321,12 +5355,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.addr]
+                    ary = self.registers[ins.result.name]
 
                     data = self.memory[ins.op1.addr]
 
+                    addr = ins.result.addr
+
                     for i in xrange(ary.length):
-                        ary.array[i] %= data
+                        self.memory[addr] %= data
+
+                        addr += ary.stride
 
             elif isinstance(ins, Assert):
                 if not self.memory[ins.op1.addr]:

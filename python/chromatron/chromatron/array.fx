@@ -1,6 +1,6 @@
 
 a = Array(4, publish=True)
-# b = Number()
+b = Number()
 # c = Array(3, type=Array(2))
 # d = Array(3, type=Array(2, type=Array(4)))
 
@@ -11,8 +11,12 @@ a = Array(4, publish=True)
 
 def init():
     # c[1][2] = 456
-    a[1] = 2        
+    # a[1] = 2        
     # d[1][2][3] = 456
+
+    # b = a[5]
+
+    a += 1
 
     # c[0][1] += 1
 
