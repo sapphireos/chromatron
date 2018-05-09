@@ -1255,6 +1255,11 @@ class CodeGeneratorPass1(object):
                 # that code.
                 sub = tree
                 attr = tree.value
+
+                # check for multiple dimensions - that would be an array access
+                if isinstance(attr, ast.Subscript):
+                    raise AttributeError
+
                 attr_value = tree.value.value
                 ctx = sub.ctx
 
@@ -1263,18 +1268,17 @@ class CodeGeneratorPass1(object):
                 attr.value = sub
                 attr.ctx = ctx
 
-                # check for multiple dimensions
-                if isinstance(attr, ast.Subscript):
-                    raise AttributeError
-
                 return self.generate(attr)
 
             except AttributeError:
                 # unless we are indexing an array
-
-                obj = ArrayVarNode(tree.value.id)
+                obj = self.generate(tree.value)
                 index = self.generate(tree.slice.value)
 
+                # print obj, index
+                # if isinstance(obj, OffsetNode):
+                #     print "MEWAGE"
+                
                 return OffsetNode(obj, index, line_no=tree.lineno)
 
                 # if isinstance(tree.ctx, ast.Store):
@@ -2496,7 +2500,7 @@ class CodeGeneratorPass2(object):
                         return code
 
                     elif isinstance(dest, OffsetIR):
-                        code.append(dest)
+                        code.extend(name)
 
                         ir = IndexStoreIR(dest.target, src, dest.dest, y=None, level=self.level, line_no=node.line_no)
 
@@ -2748,11 +2752,24 @@ class CodeGeneratorPass2(object):
                 return []
 
             elif isinstance(node, OffsetNode):
+                code = []
+
                 dest = self.get_unique_register(line_no=node.line_no)
                 target = self.generate(node.target)
                 index = self.generate(node.index)
 
-                return [OffsetIR(dest, target, index, level=self.level, line_no=node.line_no)]
+                try:
+                    for ir in target:
+                        code.append(ir)
+
+                    target = target[-1].dest
+
+                except TypeError:
+                    pass
+
+                code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
+
+                return code
 
             elif isinstance(node, ArrayVarIR):
                 print node
