@@ -2795,7 +2795,7 @@ class CodeGeneratorPass2(object):
                 except TypeError:
                     pass
 
-                print node, dest, target, index
+                # print node, dest, target, index
 
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
 

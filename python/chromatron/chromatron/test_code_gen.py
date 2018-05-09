@@ -1383,7 +1383,7 @@ b = Number(publish=True)
 
 def init():
 
-    ary[0] = 1
+    ary[0] = 456
 
     ary[0] += 123
 
@@ -1413,7 +1413,7 @@ class CGTestsBase(unittest.TestCase):
     def test_array_aug_assign(self):
         self.run_test(test_array_aug_assign,
             expected={
-                'a': 124,
+                'a': 468,
                 'b': 0,
             })
 
