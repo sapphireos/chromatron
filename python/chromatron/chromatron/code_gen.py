@@ -1428,17 +1428,20 @@ class RecordVarIR(DataIR):
         
         self.name = name
         self.type = record_type
-        self.fields = self.type.fields
+        
+        self.fields = {}
+        for f in self.type.fields:
+            self.fields[f.name] = f
 
     def size(self):
         return self.type.size()
 
     def translate_field(self, field):
         i = 0
-        for f in self.fields:
+        for f, v in self.fields.iteritems():
             if f == field:
                 return i
-            i += 1
+            i += v.size()
 
         raise KeyError(field)
         
@@ -2094,7 +2097,6 @@ class DefineRecordIR(IntermediateNode):
         
     def __str__(self):
         s = '%3d %s RECORD(%s) %s' % (self.line_no, self.indent * self.level, self.record_type.name, self.name)
-        
     
         return s
 
@@ -2510,6 +2512,10 @@ class CodeGeneratorPass2(object):
 
                 if node.obj in self.pixel_arrays:
                     obj = PixelObjIR(node.name, line_no=node.line_no)                    
+
+                elif node.obj in self.records:
+                    print "RECORD"
+                    print node, node.obj
 
                 else:
                     obj = ObjIR(node.name, line_no=node.line_no)
@@ -4074,6 +4080,9 @@ class CodeGeneratorPass5(object):
                     # add to read keys
                     self.read_keys[ins.op1.attr] = string_hash_func(ins.op1.attr)
 
+                # elif ir.dest.obj in self.records:
+                    # raise NotImplementedError
+
                 else:
                     ins = ObjectLoadInstruction(ir.dest, ir.src)
 
@@ -4085,6 +4094,17 @@ class CodeGeneratorPass5(object):
 
                     # add to write keys
                     self.write_keys[ins.result.attr] = string_hash_func(ins.result.attr)
+
+                # elif ir.dest.obj in self.records:
+                #     # look up record
+                #     record = self.registers[ir.dest.obj]
+
+                #     register_addr = record.addr + record.translate_field(ir.dest.attr)
+
+                #     print type(record.fields[ir.dest.attr])
+                    
+
+                    # raise NotImplementedError
 
                 else:
                     ins = ObjectStoreInstruction(ir.dest, ir.src)
