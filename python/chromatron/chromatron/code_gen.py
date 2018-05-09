@@ -1294,30 +1294,8 @@ class CodeGeneratorPass1(object):
                 # unless we are indexing an array
                 obj = self.generate(tree.value)
                 index = self.generate(tree.slice.value)
-
-                # try:
-                #     if obj.name in self.arrays:
-                #         print "AWGERSHTD", index
-
-                # except AttributeError:
-                #     print obj, index
-                #     pass
-
-                # try:
-                #     print 'emo', obj,obj.target
-
-                # except AttributeError:
-                #     pass
                 
                 return OffsetNode(obj, index, line_no=tree.lineno)
-
-                # if isinstance(tree.ctx, ast.Store):
-                #     store = True
-
-                # else:
-                #     store = False
-
-                # return ArrayIndexNode(obj, i=index, store=store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Eq):
             return 'eq'
@@ -2528,13 +2506,6 @@ class CodeGeneratorPass2(object):
                 try:
                     src = value[-1].dest
 
-                    # if isinstance(value[-1], OffsetIR):
-
-                    #     print src
-                    #     print value[-1]
-
-                    #     ir = IndexLoadIR(dest.target, value[-1].target, src, y=None, level=self.level, line_no=node.line_no)
-
                 except (TypeError, AttributeError):
                     src = value
 
@@ -2610,10 +2581,6 @@ class CodeGeneratorPass2(object):
 
                 elif isinstance(dest, ArrayVarIR):
                     code.append(ArrayOpIR(dest, 'eq', src, level=self.level, line_no=node.line_no))
-
-                # elif isinstance(dest, IndexStoreIR):
-                #     dest.src = src
-                #     code.append(dest)
 
                 else:
                     code.append(CopyIR(dest, src, level=self.level, line_no=node.line_no))
