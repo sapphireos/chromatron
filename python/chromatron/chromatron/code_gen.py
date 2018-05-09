@@ -211,6 +211,10 @@ class DataNode(Node):
         self.scope = scope
         self.name = name
 
+    def size(self):
+        raise NotImplementedError
+
+
 class VarNode(DataNode):
     def __init__(self, value, **kwargs):
         super(VarNode, self).__init__(**kwargs)
@@ -255,6 +259,9 @@ class NumberNode(DataNode):
         self.publish = False
         self.type = number_type
 
+    def size(self):
+        return 1
+
     def __str__(self):
         if self.publish:
             return "Number{%s, %s} (%s) [publish]" % (self.name, self.type, self.scope)
@@ -276,6 +283,9 @@ class ConstantNode(DataNode):
             self.value = int(self.value * 65535) # will need to remove this when fixed16 is actually working
             self.name = self.value
             self.type = 'fixed16'
+
+    def size(self):
+        return 1
 
     def __str__(self):
         return "Const(%s):%s (%s)" % (self.type, self.value, self.scope)
@@ -317,14 +327,21 @@ class ObjIndexNode(DataNode):
             return "ObjIndex<Load>:%s[%s][%s]" % (self.name, self.x, self.y)
 
 class ArrayDeclareNode(DataNode):
-    def __init__(self, size=0, **kwargs):
+    def __init__(self, count=0, **kwargs):
         super(ArrayDeclareNode, self).__init__(**kwargs)
-        self.size = size
-        self.array_len = size
+        self.count = count
         self.publish = False
+        self.type = NumberNode()
+
+    @property
+    def stride(self):
+        return self.type.size()
+
+    def size(self):
+        return self.count * self.stride + 1 # extra byte for array meta
 
     def __str__(self):
-        return "Array:%s [%s] (%s)" % (self.name, self.array_len, self.scope)
+        return "Array:%s [%s] (%s)" % (self.name, self.count, self.scope)
 
 
 class ArrayIndexNode(DataNode):
@@ -344,21 +361,18 @@ class ArrayIndexNode(DataNode):
         else:
             return "ArrayIndex<Load>:%s[%s]" % (self.name, self.i)
 
-
 class RecordNode(DataNode):
     def __init__(self, fields, **kwargs):
         super(RecordNode, self).__init__(**kwargs)
 
         self.fields = fields
 
-    # def translate_field(self, field):
-    #     i = 0
-    #     for f in self.fields:
-    #         if f == field:
-    #             return i
-    #         i += 1
+    def size(self):
+        data_size = 0
+        for f in self.fields:
+            data_size += f.size()
 
-    #     raise KeyError(field)
+        return data_size
 
     def __str__(self):
         return "Record:%s [%s] (%s)" % (self.name, len(self.fields), self.scope)
@@ -1403,7 +1417,7 @@ class ArrayVarIR(DataIR):
         return self.type.size()
 
     def size(self):
-        return self.length * self.stride
+        return self.length * self.stride + 1 # extra for array meta
 
     def __str__(self):
         return 'ArrayVar(%s)[%d/%d]<%s>@%d' % (self.name, self.stride, self.length, self.function, self.addr)
@@ -1414,6 +1428,19 @@ class RecordVarIR(DataIR):
         
         self.name = name
         self.type = record_type
+        self.fields = self.type.fields
+
+    def size(self):
+        return self.type.size()
+
+    def translate_field(self, field):
+        i = 0
+        for f in self.fields:
+            if f == field:
+                return i
+            i += 1
+
+        raise KeyError(field)
         
     def __str__(self):
         return 'RecordVar(%s)[%s]<%s>@%d' % (self.name, self.type.name, self.function, self.addr)
@@ -2598,7 +2625,7 @@ class CodeGeneratorPass2(object):
                 return [ir]
 
             elif isinstance(node, ArrayDeclareNode):
-                define_array_ir = DefineArrayIR(node.name, node.array_len, level=self.level, line_no=node.line_no)
+                define_array_ir = DefineArrayIR(node.name, node.count, level=self.level, line_no=node.line_no)
 
                 if node.publish:
                     define_array_ir.publish = node.publish
@@ -2942,12 +2969,10 @@ class CodeGeneratorPass4(object):
                         # check if this is the last time this temp reg 
                         # is used.
                         if i == register_usage[reg.name][1]:
-                            # print i, reg, register_usage[reg.name]
                             # add this address into the address pool
                             if i not in address_pool:
-                                # pass
                                 address_pool.append(reg.addr)
-                                # print address_pool
+
 
             if isinstance(ir, DefineIR):
                 registers[ir.name].declared = True
@@ -2962,9 +2987,7 @@ class CodeGeneratorPass4(object):
 
                 registers[ir.name].length = ir.length
 
-                data_size = registers[ir.name].stride * registers[ir.name].length
-                    
-                addr += (data_size + 1) # extra slot for array meta
+                addr += registers[ir.name].size()
 
             elif isinstance(ir, DefineRecordIR):
                 assert ir.name not in registers
@@ -2972,11 +2995,8 @@ class CodeGeneratorPass4(object):
                 registers[ir.name] = RecordVarIR(ir.name, record_type=ir.record_type, line_no=ir.line_no)
                 registers[ir.name].function = self.current_function
                 registers[ir.name].addr = addr
-
-                # data_size = registers[ir.name].stride * registers[ir.name].length
                     
-                # addr += (data_size + 1) # extra slot for array meta
-                addr += 1
+                addr += registers[ir.name].size()
             
 
 
