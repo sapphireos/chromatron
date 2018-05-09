@@ -1435,6 +1435,9 @@ class ArrayVarIR(DataIR):
         self.length = -1
         self.type = VarIR(name)
 
+    def get_data_nodes(self):
+        return [ConstIR(self.length), ConstIR(self.stride)]
+
     @property
     def stride(self):
         return self.type.size()
@@ -3009,7 +3012,7 @@ class CodeGeneratorPass4(object):
 
         for i in xrange(len(code)):
             ir = code[i]
-        
+
             if isinstance(ir, FunctionIR):
                 self.current_function = ir.name
 
@@ -3105,6 +3108,14 @@ class CodeGeneratorPass4(object):
                 registers[ir.name].length = ir.length
 
                 addr += registers[ir.name].size()
+
+                # add array consts to register set
+                for reg in registers[ir.name].get_data_nodes():
+                    if reg.name not in registers:
+                        registers[reg.name] = reg
+                        reg.addr = addr
+                        addr += 1
+
 
             elif isinstance(ir, DefineRecordIR):
                 assert ir.name not in registers
@@ -3495,11 +3506,14 @@ class OffsetArray(Instruction):
     mnemonic = 'OFFSET_ARRAY'
     opcode = 0x1A
 
-    def __init__(self, dest, src, index):
+    def __init__(self, dest, src, index, ary_length, ary_stride):
         self.dest = dest
         self.src = src
 
         self.index = index
+
+        self.ary_length = ary_length
+        self.ary_stride = ary_stride
 
     def __str__(self):
         return "%s %s <- %s[%s]" % (self.mnemonic, self.dest.name, self.src, self.index)
@@ -4352,7 +4366,13 @@ class CodeGeneratorPass5(object):
                 pass
 
             elif isinstance(ir, OffsetIR):
-                ins = OffsetArray(ir.dest, ir.target, ir.index)
+                ary = self.registers[ir.target.name]
+
+                ary_length = self.registers[ary.length]
+                ary_stride = self.registers[ary.stride]
+
+                ins = OffsetArray(ir.dest, ir.target, ir.index, ary_length, ary_stride)
+
                 self.append_code(ins)
 
             else:
@@ -4847,11 +4867,9 @@ class VM(object):
                 self.memory[ins.dest.addr] = 0
 
             elif isinstance(ins, OffsetArray):
-                ary = self.registers[ins.src.name]
+                index = self.memory[ins.index.addr] * self.memory[ins.ary_stride.addr]
 
-                index = self.memory[ins.index.addr]
-
-                index %= ary.length
+                index %= self.memory[ins.ary_length.addr]
 
                 self.memory[ins.dest.addr] = ins.src.addr + index
 
@@ -4862,7 +4880,7 @@ class VM(object):
             
             elif isinstance(ins, IndexLoad):
                 index = self.memory[ins.index.addr]
-                
+
                 self.memory[ins.dest.addr] = self.memory[index]
 
             elif isinstance(ins, LoadToArrayHue):
