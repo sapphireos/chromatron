@@ -2150,12 +2150,11 @@ class DefineArrayIR(IntermediateNode):
 
         self.publish = False
         
-    @property
     def size(self):
         return self.length * self.type.size()
 
     def __str__(self):
-        s = '%3d %s ARRAY %s[%d/%d]' % (self.line_no, self.indent * self.level, self.name, self.length, self.size)
+        s = '%3d %s ARRAY %s[%d/%d]' % (self.line_no, self.indent * self.level, self.name, self.length, self.size())
         
         if self.publish:
             s += ' [publish]'
