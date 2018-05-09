@@ -1494,6 +1494,9 @@ class TempIR(DataIR):
         self.name = name
         self.type = number_type
 
+    def size(self):
+        return 1
+
     def __str__(self):
         return 'Temp(%s, %s)<%s>@%d' % (self.name, self.type, self.function, self.addr)
 
@@ -1502,6 +1505,9 @@ class ConstIR(DataIR):
         super(ConstIR, self).__init__(**kwargs)
         self.name = name
         self.type = number_type
+
+    def size(self):
+        return 1
 
     def __str__(self):
         return 'Const(%s, %s)<%s>@%d' % (self.name, self.type, self.function, self.addr)
@@ -4669,13 +4675,9 @@ class VM(object):
         self.code = code
         self.cycle = 0
 
-
-        # print data
-
         self.enable_debug_print = False
 
         self.debug_print("VM")
-        # pprint(self.data)
 
         self.current_function = '_global'
 
@@ -4706,28 +4708,20 @@ class VM(object):
 
         self.objects = {PIX_OBJ_TYPE: data['objects']['pixel_arrays']}
         
-        # pprint(self.objects)
-        # print self.objects[PIX_OBJ_TYPE]['pixels']
-
         self.objects[PIX_OBJ_TYPE]['pixels'].index  = 0
         self.objects[PIX_OBJ_TYPE]['pixels'].length = self.pix_count
         self.objects[PIX_OBJ_TYPE]['pixels'].size_x = self.width
         self.objects[PIX_OBJ_TYPE]['pixels'].size_y = self.height
 
 
-        self.memory = {}
+        # initialize data table
+        data_size = sum([a.size() for a in self.registers.values()])
+        self.memory = [0] * data_size
+
         for reg, data in self.registers.iteritems():
             if isinstance(data, ConstIR):
-                self.memory[data.name] = data.name
-
-            elif isinstance(data, ArrayVarIR):
-                data.array = [0] * data.length
-                self.memory[data.name] = data
-
-            else:
-                self.memory[data.name] = 0
+                self.memory[data.addr] = data.name
         
-
         # generate label lookup
         self.labels = {}
 
@@ -4743,7 +4737,14 @@ class VM(object):
     def dump_registers(self):
         regs = {}
         for reg, data in self.registers.iteritems():
-            regs[reg] = self.memory[data.name]
+            if isinstance(data, ArrayVarIR):
+                regs[reg] = []
+
+                for i in xrange(data.size()):
+                    regs[reg].append(self.memory[data.addr + i])
+
+            else:
+                regs[reg] = self.memory[data.addr]
 
         return regs
 
@@ -4823,47 +4824,49 @@ class VM(object):
                 pass
 
             elif isinstance(ins, Mov):
-                self.memory[ins.dest.name] = self.memory[ins.src.name]
+                self.memory[ins.dest.addr] = self.memory[ins.src.addr]
 
             elif isinstance(ins, Clr):
-                self.memory[ins.dest.name] = 0
+                self.memory[ins.dest.addr] = 0
+
+            elif isinstance(ins, OffsetArray):
+                index = self.memory[ins.index.addr]
+
+                self.memory[ins.dest.addr] = ins.src.addr + index
 
             elif isinstance(ins, IndexStore):
-                ary = self.memory[ins.dest.name]
-                src = self.memory[ins.src.name]
-                index = self.memory[ins.index.name]
+                src = self.memory[ins.src.addr]
+                index = self.memory[ins.index.addr]
 
-                index %= ary.length
+                self.memory[index] = src
             
-                ary.array[index] = src
-
             elif isinstance(ins, IndexLoad):
-                ary = self.memory[ins.src.name]
+                ary = self.memory[ins.src.addr]
             
-                index = self.memory[ins.index.name]
+                index = self.memory[ins.index.addr]
 
                 index %= ary.length
                 
-                self.memory[ins.dest.name] = ary.array[index]
+                self.memory[ins.dest.addr] = ary.array[index]
 
             elif isinstance(ins, LoadToArrayHue):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
                 # wraparound to 16 bit range.
                 # this makes it easy to run a circular rainbow
-                a = self.memory[ins.src.name] % 65536
+                a = self.memory[ins.src.addr] % 65536
 
                 self.hue[self.calc_index(index_x, index_y)] = a
 
             elif isinstance(ins, LoadToArraySat):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
                 # clamp to our 16 bit range.
                 # we will essentially saturate at 0 or 65535,
                 # but will not wraparound
-                a = self.memory[ins.src.name]
+                a = self.memory[ins.src.addr]
 
                 if a > 65535:
                     a = 65535
@@ -4874,14 +4877,14 @@ class VM(object):
                 self.sat[self.calc_index(index_x, index_y)] = a
 
             elif isinstance(ins, LoadToArrayVal):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
                 
                 # clamp to our 16 bit range.
                 # we will essentially saturate at 0 or 65535,
                 # but will not wraparound
-                a = self.memory[ins.src.name]
+                a = self.memory[ins.src.addr]
 
                 if a > 65535:
                     a = 65535
@@ -4892,14 +4895,14 @@ class VM(object):
                 self.val[self.calc_index(index_x, index_y)] = a
 
             elif isinstance(ins, LoadToArrayHSFade):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
                 
                 # clamp to our 16 bit range.
                 # we will essentially saturate at 0 or 65535,
                 # but will not wraparound
-                a = self.memory[ins.src.name]
+                a = self.memory[ins.src.addr]
 
                 if a > 65535:
                     a = 65535
@@ -4910,14 +4913,14 @@ class VM(object):
                 self.hs_fade[self.calc_index(index_x, index_y)] = a
 
             elif isinstance(ins, LoadToArrayVFade):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
                 
                 # clamp to our 16 bit range.
                 # we will essentially saturate at 0 or 65535,
                 # but will not wraparound
-                a = self.memory[ins.src.name]
+                a = self.memory[ins.src.addr]
 
                 if a > 65535:
                     a = 65535
@@ -4928,34 +4931,34 @@ class VM(object):
                 self.v_fade[self.calc_index(index_x, index_y)] = a
 
             elif isinstance(ins, LoadFromArrayHue):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
-                self.memory[ins.dest.name] = self.hue[self.calc_index(index_x, index_y)]
+                self.memory[ins.dest.addr] = self.hue[self.calc_index(index_x, index_y)]
 
             elif isinstance(ins, LoadFromArraySat):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
-                self.memory[ins.dest.name] = self.sat[self.calc_index(index_x, index_y)]
+                self.memory[ins.dest.addr] = self.sat[self.calc_index(index_x, index_y)]
 
             elif isinstance(ins, LoadFromArrayVal):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
-                self.memory[ins.dest.name] = self.val[self.calc_index(index_x, index_y)]
+                self.memory[ins.dest.addr] = self.val[self.calc_index(index_x, index_y)]
 
             elif isinstance(ins, LoadFromArrayHSFade):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
-                self.memory[ins.dest.name] = self.hs_fade[self.calc_index(index_x, index_y)]
+                self.memory[ins.dest.addr] = self.hs_fade[self.calc_index(index_x, index_y)]
 
             elif isinstance(ins, LoadFromArrayVFade):
-                index_x = self.memory[ins.index_x.name]
-                index_y = self.memory[ins.index_y.name]
+                index_x = self.memory[ins.index_x.addr]
+                index_y = self.memory[ins.index_y.addr]
 
-                self.memory[ins.dest.name] = self.v_fade[self.calc_index(index_x, index_y)]
+                self.memory[ins.dest.addr] = self.v_fade[self.calc_index(index_x, index_y)]
 
             elif isinstance(ins, Jmp):
                 # JUMP!
@@ -4963,7 +4966,7 @@ class VM(object):
                 continue
 
             elif isinstance(ins, JmpIfZeroPostDec):
-                if self.memory[ins.op1.name] == 0:
+                if self.memory[ins.op1.addr] == 0:
 
                     # JUMP!
                     pc = self.labels[ins.label.name]
@@ -4971,10 +4974,10 @@ class VM(object):
                     continue
 
                 # decrement
-                self.memory[ins.op1.name] = self.memory[ins.op1.name] - 1
+                self.memory[ins.op1.addr] = self.memory[ins.op1.addr] - 1
 
             elif isinstance(ins, JmpIfZero):
-                if self.memory[ins.op1.name] == 0:
+                if self.memory[ins.op1.addr] == 0:
 
                     # JUMP!
                     pc = self.labels[ins.label.name]
@@ -4982,7 +4985,7 @@ class VM(object):
                     continue
 
             elif isinstance(ins, JmpIfGte):
-                if self.memory[ins.op1.name] >= self.memory[ins.op2.name]:
+                if self.memory[ins.op1.addr] >= self.memory[ins.op2.addr]:
 
                     # JUMP!
                     pc = self.labels[ins.label.name]
@@ -4990,7 +4993,7 @@ class VM(object):
                     continue
 
             # elif isinstance(ins, JmpNotZero):
-            #     if self.get_var(ins.op1.name) != 0:
+            #     if self.get_var(ins.op1.addr) != 0:
             #
             #         # JUMP!
             #         pc = self.labels[ins.label.name]
@@ -4998,20 +5001,20 @@ class VM(object):
             #         continue
 
             # elif isinstance(ins, JmpWithInc):
-            #     a = self.get_var(ins.op1.name)
+            #     a = self.get_var(ins.op1.addr)
             #     a += 1
-            #     self.set_var(ins.op1.name, a)
+            #     self.set_var(ins.op1.addr, a)
             #
             #     # JUMP!
             #     pc = self.labels[ins.label.name]
             #     continue
 
             elif isinstance(ins, JmpIfLessThanPreInc):
-                a = self.memory[ins.op1.name]
+                a = self.memory[ins.op1.addr]
                 a += 1
-                self.memory[ins.op1.name] = a
+                self.memory[ins.op1.addr] = a
 
-                if self.memory[ins.op1.name] < self.memory[ins.op2.name]:
+                if self.memory[ins.op1.addr] < self.memory[ins.op2.addr]:
 
                     # JUMP!
                     pc = self.labels[ins.label.name]
@@ -5019,66 +5022,66 @@ class VM(object):
                     continue
 
             elif isinstance(ins, Not):
-                if self.memory[ins.source.name] == 0:
-                    self.memory[ins.dest.name] = 1
+                if self.memory[ins.source.addr] == 0:
+                    self.memory[ins.dest.addr] = 1
 
                 else:
-                    self.memory[ins.dest.name] = 0
+                    self.memory[ins.dest.addr] = 0
 
             elif isinstance(ins, Add):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] + self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] + self.memory[ins.op2.addr]
 
             elif isinstance(ins, Sub):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] - self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] - self.memory[ins.op2.addr]
 
             elif isinstance(ins, Mul):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] * self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] * self.memory[ins.op2.addr]
 
             elif isinstance(ins, Div):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] / self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] / self.memory[ins.op2.addr]
 
             elif isinstance(ins, Mod):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] % self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] % self.memory[ins.op2.addr]
 
             elif isinstance(ins, CompareEq):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] == self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] == self.memory[ins.op2.addr]
 
             elif isinstance(ins, CompareNeq):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] != self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] != self.memory[ins.op2.addr]
 
             elif isinstance(ins, CompareGt):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] > self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] > self.memory[ins.op2.addr]
 
             elif isinstance(ins, CompareGtE):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] >= self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] >= self.memory[ins.op2.addr]
 
             elif isinstance(ins, CompareLt):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] < self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] < self.memory[ins.op2.addr]
 
             elif isinstance(ins, CompareLtE):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] <= self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] <= self.memory[ins.op2.addr]
 
             elif isinstance(ins, And):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] and self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] and self.memory[ins.op2.addr]
 
             elif isinstance(ins, Or):
-                self.memory[ins.result.name] = self.memory[ins.op1.name] or self.memory[ins.op2.name]
+                self.memory[ins.result.addr] = self.memory[ins.op1.addr] or self.memory[ins.op2.addr]
 
             elif isinstance(ins, Rand):
-                start = self.memory[ins.start.name]
-                end = self.memory[ins.end.name]
+                start = self.memory[ins.start.addr]
+                end = self.memory[ins.end.addr]
 
                 val = random.randint(start, end)
-                self.memory[ins.dest.name] = val
+                self.memory[ins.dest.addr] = val
 
             elif isinstance(ins, Return):
                 # load return value to global data
-                self.memory[RETURN_VAL_NAME] = self.memory[ins.op1.name]
+                self.memory[RETURN_VAL_ADDR] = self.memory[ins.op1.addr]
 
                 break
 
             elif isinstance(ins, Print):
-                print "%s %s = %s" % (ins.mnemonic, ins.op1, self.memory[ins.op1.name])
+                print "%s %s = %s" % (ins.mnemonic, ins.op1, self.memory[ins.op1.addr])
 
             elif isinstance(ins, Call):
                 last_func = self.current_function
@@ -5087,7 +5090,7 @@ class VM(object):
 
             elif isinstance(ins, ArrayMov):
                 if isinstance(ins.result, PixelObjIR):
-                    src = self.memory[ins.op1.name]
+                    src = self.memory[ins.op1.addr]
 
                     # look up pixel object
                     obj = self.objects[PIX_OBJ_TYPE][ins.result.obj]
@@ -5114,16 +5117,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.name]
+                    ary = self.memory[ins.result.addr]
 
-                    data = self.memory[ins.op1.name]
+                    data = self.memory[ins.op1.addr]
 
                     ary.array = [data] * ary.length
 
 
             elif isinstance(ins, ArrayAdd):
                 if isinstance(ins.result, PixelObjIR):
-                    src = self.memory[ins.op1.name]
+                    src = self.memory[ins.op1.addr]
 
                     # look up pixel object
                     obj = self.objects[PIX_OBJ_TYPE][ins.result.obj]
@@ -5154,9 +5157,9 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.name]
+                    ary = self.memory[ins.result.addr]
 
-                    data = self.memory[ins.op1.name]
+                    data = self.memory[ins.op1.addr]
 
                     for i in xrange(ary.length):
                         ary.array[i] += data
@@ -5164,7 +5167,7 @@ class VM(object):
 
             elif isinstance(ins, ArraySub):
                 if isinstance(ins.result, PixelObjIR):
-                    src = self.memory[ins.op1.name]
+                    src = self.memory[ins.op1.addr]
 
                     # look up pixel object
                     obj = self.objects[PIX_OBJ_TYPE][ins.result.obj]
@@ -5195,16 +5198,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.name]
+                    ary = self.memory[ins.result.addr]
 
-                    data = self.memory[ins.op1.name]
+                    data = self.memory[ins.op1.addr]
 
                     for i in xrange(ary.length):
                         ary.array[i] -= data
 
             elif isinstance(ins, ArrayMul):
                 if isinstance(ins.result, PixelObjIR):
-                    src = self.memory[ins.op1.name]
+                    src = self.memory[ins.op1.addr]
 
                     # look up pixel object
                     obj = self.objects[PIX_OBJ_TYPE][ins.result.obj]
@@ -5235,16 +5238,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.name]
+                    ary = self.memory[ins.result.addr]
 
-                    data = self.memory[ins.op1.name]
+                    data = self.memory[ins.op1.addr]
 
                     for i in xrange(ary.length):
                         ary.array[i] *= data
 
             elif isinstance(ins, ArrayDiv):
                 if isinstance(ins.result, PixelObjIR):
-                    src = self.memory[ins.op1.name]
+                    src = self.memory[ins.op1.addr]
 
                     # look up pixel object
                     obj = self.objects[PIX_OBJ_TYPE][ins.result.obj]
@@ -5275,16 +5278,16 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.name]
+                    ary = self.memory[ins.result.addr]
 
-                    data = self.memory[ins.op1.name]
+                    data = self.memory[ins.op1.addr]
 
                     for i in xrange(ary.length):
                         ary.array[i] /= data
 
             elif isinstance(ins, ArrayMod):
                 if isinstance(ins.result, PixelObjIR):
-                    src = self.memory[ins.op1.name]
+                    src = self.memory[ins.op1.addr]
 
                     # look up pixel object
                     obj = self.objects[PIX_OBJ_TYPE][ins.result.obj]
@@ -5315,58 +5318,58 @@ class VM(object):
 
                 else:
                     # look up array
-                    ary = self.memory[ins.result.name]
+                    ary = self.memory[ins.result.addr]
 
-                    data = self.memory[ins.op1.name]
+                    data = self.memory[ins.op1.addr]
 
                     for i in xrange(ary.length):
                         ary.array[i] %= data
 
             elif isinstance(ins, Assert):
-                if not self.memory[ins.op1.name]:
+                if not self.memory[ins.op1.addr]:
                     print 'ASSERT'
                     print pc
                     print ins
                     print func
                     pprint(self.dump_registers())
 
-                assert self.memory[ins.op1.name]
+                assert self.memory[ins.op1.addr]
 
             elif isinstance(ins, Halt):
                 return 'halt'
 
             # elif isinstance(ins, SineWave):
-            #     value = trig.sine(self.memory[ins.param.name])
+            #     value = trig.sine(self.memory[ins.param.addr])
 
-            #     self.memory[RETURN_VAL_NAME] = value
+            #     self.memory[RETURN_VAL_addr] = value
 
             # elif isinstance(ins, CosineWave):
-            #     value = trig.cosine(self.memory[ins.param.name])
+            #     value = trig.cosine(self.memory[ins.param.addr])
 
-            #     self.memory[RETURN_VAL_NAME] = value
+            #     self.memory[RETURN_VAL_addr] = value
 
             # elif isinstance(ins, TriangleWave):
-            #     value = trig.triangle(self.memory[ins.param.name])
+            #     value = trig.triangle(self.memory[ins.param.addr])
 
-            #     self.memory[RETURN_VAL_NAME] = value
+            #     self.memory[RETURN_VAL_addr] = value
 
             # elif isinstance(ins, SetKey):
-            #     if ins.key.name not in self.kv:
-            #         self.kv[ins.key.name] = 0
+            #     if ins.key.addr not in self.kv:
+            #         self.kv[ins.key.addr] = 0
 
-            #     self.kv[ins.key.name] = self.memory[ins.value.name]
+            #     self.kv[ins.key.addr] = self.memory[ins.value.addr]
 
             # elif isinstance(ins, GetKey):
-            #     if ins.key.name not in self.kv:
-            #         self.kv[ins.key.name] = 0
+            #     if ins.key.addr not in self.kv:
+            #         self.kv[ins.key.addr] = 0
 
-            #     self.memory[RETURN_VAL_NAME] = self.kv[ins.key.name]
+            #     self.memory[RETURN_VAL_addr] = self.kv[ins.key.addr]
 
             elif isinstance(ins, ObjectLoadInstruction):
                 if isinstance(ins.op1, PixelObjIR):
                     obj = self.objects[PIX_OBJ_TYPE][ins.op1.obj]
                     
-                    self.memory[ins.result.name] = obj.toBasic()[ins.op1.attr]
+                    self.memory[ins.result.addr] = obj.toBasic()[ins.op1.attr]
 
                 else:
                     raise UnknownInstruction(ins)    
@@ -5375,25 +5378,25 @@ class VM(object):
                 raise UnknownInstruction(ins)
 
             elif isinstance(ins, DBLoadInstruction):
-                self.memory[ins.result.name] = self.kv[ins.op1.attr]
+                self.memory[ins.result.addr] = self.kv[ins.op1.attr]
 
             elif isinstance(ins, DBStoreInstruction):
-                self.kv[ins.result.attr] = self.memory[ins.op1.name]
+                self.kv[ins.result.attr] = self.memory[ins.op1.addr]
 
             elif isinstance(ins, DBLenInstruction):
                 try:
-                    self.memory[ins.result.name] = len(self.kv[ins.op1.attr])
+                    self.memory[ins.result.addr] = len(self.kv[ins.op1.attr])
 
                 except TypeError:
-                    self.memory[ins.result.name] = 1
+                    self.memory[ins.result.addr] = 1
                 
             elif isinstance(ins, DBIndexStoreInstruction):
-                index = self.memory[ins.index.name] % len(self.kv[ins.result.attr])
-                self.kv[ins.result.attr][index] = self.memory[ins.op1.name]
+                index = self.memory[ins.index.addr] % len(self.kv[ins.result.attr])
+                self.kv[ins.result.attr][index] = self.memory[ins.op1.addr]
 
             elif isinstance(ins, DBIndexLoadInstruction):
-                index = self.memory[ins.index.name] % len(self.kv[ins.op1.attr])
-                self.memory[ins.result.name] = self.kv[ins.op1.attr][index]
+                index = self.memory[ins.index.addr] % len(self.kv[ins.op1.attr])
+                self.memory[ins.result.addr] = self.kv[ins.op1.attr][index]
 
             else:
                 raise UnknownInstruction(ins)
