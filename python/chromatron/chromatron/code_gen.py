@@ -2124,6 +2124,7 @@ class CodeGeneratorPass2(object):
         self.next_pixel_array_addr = 0
         self.pixel_arrays = {'pixels': PixelArrayIR('pixels', 0, 65535)}
         self.objects = {'pixel_arrays': self.pixel_arrays}
+        self.record_types = {}
         self.records = {}
 
         self.include_return = include_return
@@ -2150,6 +2151,7 @@ class CodeGeneratorPass2(object):
 
                 return {'code': [c for c in code if c != None and isinstance(c, IntermediateNode)],
                         'objects': self.objects,
+                        'record_types': self.record_types,
                         'records': self.records}
 
             elif isinstance(node, FunctionNode):
@@ -2217,9 +2219,8 @@ class CodeGeneratorPass2(object):
                     params.append(param)
 
 
-                if node.name in self.records:
-                    define_record_ir = DefineRecordIR(node.name, self.records[node.name])
-
+                if node.name in self.record_types:
+                    define_record_ir = DefineRecordIR(node.name, self.record_types[node.name])
                     ir = [define_record_ir]
 
                 else:
@@ -2462,6 +2463,10 @@ class CodeGeneratorPass2(object):
                         ir = src[0]
 
                         ir.name = dest.name
+
+                        # add to record list
+                        self.records[ir.name] = ir
+
                         return [ir]
 
                 except TypeError:
@@ -2633,7 +2638,7 @@ class CodeGeneratorPass2(object):
                 return [define_array_ir]
 
             elif isinstance(node, RecordNode):
-                self.records[node.name] = node
+                self.record_types[node.name] = node
 
                 return []
 
@@ -3924,6 +3929,8 @@ class CodeGeneratorPass5(object):
         for reg, data in registers.iteritems():
             self.registers[reg] = data
 
+        self.records = state['records']
+
         self.functions = {}
 
         self.ret_val = self.registers[RETURN_VAL_NAME]
@@ -4142,6 +4149,13 @@ class CodeGeneratorPass5(object):
 
                         # add to write keys
                         self.write_keys[ins.result.attr] = string_hash_func(ins.result.attr)
+
+                    elif ir.dest.obj in self.records:
+                        print "RECORD"
+                        print ir
+                        print ir.dest.obj
+                        print self.records
+                        raise NotImplementedError
 
                     else:
                         raise SyntaxNotSupported(line_no=ir.line_no)
