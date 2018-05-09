@@ -2003,6 +2003,9 @@ class OffsetIR(IntermediateNode):
 
         return nodes
 
+    def is_constant_op(self):
+        return False
+
     def __str__(self):
         return '%3d %s OFFSET %s = addr(%s[%s])' % (self.line_no, self.indent * self.level, self.dest, self.target, self.index)
 
