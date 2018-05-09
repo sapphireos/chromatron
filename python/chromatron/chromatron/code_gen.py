@@ -526,6 +526,13 @@ class OffsetNode(CodeNode):
         self.target = target
         self.index = index
 
+        # print "OFFSET"
+        # print target, index
+
+        # if isinstance(target, OffsetNode):
+            # print "---PARENT"
+            # self.target = target.target.type
+
     
 
 class ASTWalker(object):
@@ -907,7 +914,7 @@ class CodeGeneratorPass1(object):
     def __init__(self):
         self.current_function = "_global"
 
-        self.arrays = []
+        self.arrays = {}
 
     def generate(self, tree):
         if isinstance(tree, ast.Module):
@@ -1148,7 +1155,20 @@ class CodeGeneratorPass1(object):
                 value.name = dest.name
 
                 if isinstance(value, ArrayDeclareNode):
-                    self.arrays.append(value.name)
+                    self.arrays[value.name] = value
+
+                    array_type = value.type
+                    array_depth = 1
+                    while True:
+                        if isinstance(array_type, ArrayDeclareNode):
+                            array_type.name = '%s.%d' % (value.name, array_depth)
+                            self.arrays[array_type.name] = array_type
+
+                        else:
+                            break
+
+                        array_depth += 1
+                        array_type = array_type.type
 
                 return value
 
@@ -1275,9 +1295,19 @@ class CodeGeneratorPass1(object):
                 obj = self.generate(tree.value)
                 index = self.generate(tree.slice.value)
 
-                # print obj, index
-                # if isinstance(obj, OffsetNode):
-                #     print "MEWAGE"
+                # try:
+                #     if obj.name in self.arrays:
+                #         print "AWGERSHTD", index
+
+                # except AttributeError:
+                #     print obj, index
+                #     pass
+
+                # try:
+                #     print 'emo', obj,obj.target
+
+                # except AttributeError:
+                #     pass
                 
                 return OffsetNode(obj, index, line_no=tree.lineno)
 
@@ -2000,9 +2030,10 @@ class OffsetIR(IntermediateNode):
         self.dest = dest
         self.target = target
         self.index = index
+        self.base = ConstIR(0)
 
     def get_data_nodes(self):
-        nodes = [self.dest, self.target, self.index]
+        nodes = [self.dest, self.target, self.index, self.base]
 
         return nodes
 
@@ -2010,7 +2041,7 @@ class OffsetIR(IntermediateNode):
         return False
 
     def __str__(self):
-        return '%3d %s OFFSET %s = addr(%s[%s])' % (self.line_no, self.indent * self.level, self.dest, self.target, self.index)
+        return '%3d %s OFFSET %s = addr(%s[%s + %s])' % (self.line_no, self.indent * self.level, self.dest, self.target, self.base, self.index)
 
 
 class LabelIR(IntermediateNode):
@@ -2796,6 +2827,8 @@ class CodeGeneratorPass2(object):
 
                 except TypeError:
                     pass
+
+                print node, dest, target, index
 
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
 
