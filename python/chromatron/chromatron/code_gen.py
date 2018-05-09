@@ -4144,7 +4144,7 @@ class CodeGeneratorPass5(object):
                         self.write_keys[ins.result.attr] = string_hash_func(ins.result.attr)
 
                     else:
-                        raise SyntaxNotSupported(line=ir.line_no)
+                        raise SyntaxNotSupported(line_no=ir.line_no)
                 
                 except AttributeError:
                     assert ir.y < 0
