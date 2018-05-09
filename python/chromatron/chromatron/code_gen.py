@@ -1363,6 +1363,9 @@ class DataIR(IntermediateNode):
         self.addr = -1
         self.publish = False
 
+    def size(self):
+        raise NotImplementedError
+
 class VarIR(DataIR):
     def __init__(self, name, publish=False, declared=False, number_type='int32', **kwargs):
         super(VarIR, self).__init__(**kwargs)
@@ -1373,6 +1376,12 @@ class VarIR(DataIR):
 
         if self.name in reserved:
             raise ReservedKeyword(self.name)
+
+    def size(self):
+        if self.type == 'int32':
+            return 1
+
+        raise NotImplementedError
 
     def __str__(self):
         if self.publish:
@@ -1387,7 +1396,14 @@ class ArrayVarIR(DataIR):
         
         self.name = name
         self.length = -1
-        self.stride = -1
+        self.type = VarIR(name)
+
+    @property
+    def stride(self):
+        return self.type.size()
+
+    def size(self):
+        return self.length * self.stride
 
     def __str__(self):
         return 'ArrayVar(%s)[%d/%d]<%s>@%d' % (self.name, self.stride, self.length, self.function, self.addr)
@@ -1397,10 +1413,10 @@ class RecordVarIR(DataIR):
         super(RecordVarIR, self).__init__(**kwargs)
         
         self.name = name
-        self.record_type = record_type
+        self.type = record_type
         
     def __str__(self):
-        return 'RecordVar(%s)[%s]<%s>@%d' % (self.name, self.record_type.name, self.function, self.addr)
+        return 'RecordVar(%s)[%s]<%s>@%d' % (self.name, self.type.name, self.function, self.addr)
 
 class ObjIR(DataIR):
     def __init__(self, name, **kwargs):
@@ -2941,9 +2957,6 @@ class CodeGeneratorPass4(object):
                 registers[ir.name].addr = addr
                 registers[ir.name].publish = ir.publish
 
-                if ir.type == 'int32':
-                    registers[ir.name].stride = 1
-
                 registers[ir.name].length = ir.length
 
                 data_size = registers[ir.name].stride * registers[ir.name].length
@@ -2953,16 +2966,9 @@ class CodeGeneratorPass4(object):
             elif isinstance(ir, DefineRecordIR):
                 assert ir.name not in registers
 
-                registers[ir.name] = RecordVarIR(ir.name, line_no=ir.line_no)
+                registers[ir.name] = RecordVarIR(ir.name, record_type=ir.record_type, line_no=ir.line_no)
                 registers[ir.name].function = self.current_function
                 registers[ir.name].addr = addr
-                registers[ir.name].record_type = ir.record_type
-
-
-                # if ir.type == 'int32':
-                #     registers[ir.name].stride = 1
-
-                # registers[ir.name].length = ir.length
 
                 # data_size = registers[ir.name].stride * registers[ir.name].length
                     
