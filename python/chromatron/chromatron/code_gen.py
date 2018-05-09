@@ -327,21 +327,21 @@ class ObjIndexNode(DataNode):
             return "ObjIndex<Load>:%s[%s][%s]" % (self.name, self.x, self.y)
 
 class ArrayDeclareNode(DataNode):
-    def __init__(self, count=0, **kwargs):
+    def __init__(self, count=0, data_type=NumberNode(), **kwargs):
         super(ArrayDeclareNode, self).__init__(**kwargs)
         self.count = count
         self.publish = False
-        self.type = NumberNode()
+        self.type = data_type
 
     @property
     def stride(self):
         return self.type.size()
 
     def size(self):
-        return self.count * self.stride + 1 # extra byte for array meta
+        return self.count * self.stride
 
     def __str__(self):
-        return "Array:%s [%s] (%s)" % (self.name, self.count, self.scope)
+        return "Array:%s [%s, %s] (%s)" % (self.name, self.count, self.type, self.scope)
 
 
 class ArrayIndexNode(DataNode):
@@ -790,7 +790,7 @@ class ASTPrinter(object):
             self.echo(node)
 
         elif isinstance(node, ArrayDeclareNode):
-            self.echo('ARRAY(%s)' % (node.name))
+            self.echo(node)
 
         elif isinstance(node, ArrayIndexNode):
             self.echo(node)
@@ -1044,11 +1044,14 @@ class CodeGeneratorPass1(object):
 
                 array = ArrayDeclareNode(size, line_no=tree.lineno, scope=self.current_function)
 
-                if len(tree.keywords) == 1:
-                    if tree.keywords[0].arg == 'publish' and \
-                       tree.keywords[0].value.id == 'True':
+                for kw in tree.keywords:
+                    if kw.arg == 'publish' and \
+                       kw.value.id == 'True':
 
                        array.publish = True
+
+                    elif kw.arg == 'type':
+                        array.type = self.generate(kw.value)
 
                 return array
 
@@ -1433,7 +1436,7 @@ class ArrayVarIR(DataIR):
         return self.type.size()
 
     def size(self):
-        return self.length * self.stride + 1 # extra for array meta
+        return self.length * self.stride
 
     def __str__(self):
         return 'ArrayVar(%s)[%d/%d]<%s>@%d' % (self.name, self.stride, self.length, self.function, self.addr)
@@ -2105,18 +2108,20 @@ class NopIR(IntermediateNode):
         return '%3d %s NOP' % (self.line_no, self.indent * self.level)
 
 class DefineArrayIR(IntermediateNode):
-    def __init__(self, name, length, **kwargs):
+    def __init__(self, name, length, data_type=None, **kwargs):
         super(DefineArrayIR, self).__init__(**kwargs)
         self.name = name
         self.length = length
-        self.type = 'int32'
-
-        self.data_size = self.length
+        self.type = data_type
 
         self.publish = False
         
+    @property
+    def size(self):
+        return self.length * self.type.size()
+
     def __str__(self):
-        s = '%3d %s ARRAY %s(%d)' % (self.line_no, self.indent * self.level, self.name, self.length)
+        s = '%3d %s ARRAY %s[%d/%d]' % (self.line_no, self.indent * self.level, self.name, self.length, self.size)
         
         if self.publish:
             s += ' [publish]'
@@ -2680,6 +2685,7 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, ArrayDeclareNode):
                 define_array_ir = DefineArrayIR(node.name, node.count, level=self.level, line_no=node.line_no)
+                define_array_ir.type = node.type
 
                 if node.publish:
                     define_array_ir.publish = node.publish
