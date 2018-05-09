@@ -1294,6 +1294,12 @@ class CodeGeneratorPass1(object):
                 # unless we are indexing an array
                 obj = self.generate(tree.value)
                 index = self.generate(tree.slice.value)
+
+                # if isinstance(obj, OffsetNode):
+
+                #     array_type = self.arrays[obj.target.name].type
+
+                #     print "MEOW", array_type, obj.target
                 
                 return OffsetNode(obj, index, line_no=tree.lineno)
 
@@ -1436,12 +1442,12 @@ class VarIR(DataIR):
             return 'Var(%s, %s)<%s>@%d' % (self.name, self.type, self.function, self.addr)
 
 class ArrayVarIR(DataIR):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, data_type=None, **kwargs):
         super(ArrayVarIR, self).__init__(**kwargs)
         
         self.name = name
         self.length = -1
-        self.type = VarIR(name)
+        self.type = data_type
 
     def get_data_nodes(self):
         return [ConstIR(self.length), ConstIR(self.stride)]
@@ -1547,6 +1553,9 @@ class DefineIR(IntermediateNode):
         self.name = name
         self.publish = False
         self.type = number_type
+
+    def size(self):
+        return 1
 
     def __str__(self):
         if self.publish:
@@ -2192,6 +2201,7 @@ class CodeGeneratorPass2(object):
         self.objects = {'pixel_arrays': self.pixel_arrays}
         self.record_types = {}
         self.records = {}
+        self.arrays = {}
 
         self.include_return = include_return
 
@@ -2696,7 +2706,7 @@ class CodeGeneratorPass2(object):
                 return VarIR(node.name, level=self.level, line_no=node.line_no)
 
             elif isinstance(node, ArrayVarNode):
-                return ArrayVarIR(node.name, level=self.level, line_no=node.line_no)
+                return ArrayVarIR(node.name, data_type=self.arrays[node.name].type, level=self.level, line_no=node.line_no)
 
             elif isinstance(node, StringNode):
                 return StringIR(node.name, level=self.level, line_no=node.line_no)
@@ -2717,10 +2727,16 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, ArrayDeclareNode):
                 define_array_ir = DefineArrayIR(node.name, node.count, level=self.level, line_no=node.line_no)
-                define_array_ir.type = node.type
+
+                node_type = node.type    
+                node_type = self.generate(node_type)[0]
+
+                define_array_ir.type = node_type
 
                 if node.publish:
                     define_array_ir.publish = node.publish
+
+                self.arrays[define_array_ir.name] = define_array_ir
 
                 return [define_array_ir]
 
@@ -2790,12 +2806,14 @@ class CodeGeneratorPass2(object):
                     for ir in target:
                         code.append(ir)
 
-                    target = target[-1].dest
+                    # target = target[-1].dest
+                    target = target[-1].target.type
 
                 except TypeError:
                     pass
 
-                # print node, dest, target, index
+                # print self.arrays
+                # print dest, target, type(target)
 
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
 
