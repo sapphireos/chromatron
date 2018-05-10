@@ -831,6 +831,8 @@ void ICACHE_RAM_ATTR buf_ready_irq( void ){
     request_reset_ready_timeout = true;
 }
 
+#include "uart.h"
+
 void intf_v_init( void ){
 
     noInterrupts();
@@ -844,6 +846,10 @@ void intf_v_init( void ){
     intf_v_led_off();
 
     Serial.begin( 4000000 );
+
+    // reduce software FIFO to buf len to avoid wasting space (default is 256 bytes).
+    // we will never transfer more than WIFI_BUF_LEN at once.
+    Serial.setRxBufferSize( WIFI_BUF_LEN );
 
     // flush serial buffers
     _intf_v_flush();
