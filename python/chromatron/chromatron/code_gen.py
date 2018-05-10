@@ -329,6 +329,7 @@ class ArrayDeclareNode(DataNode):
         self.count = count
         self.publish = False
         self.type = data_type
+        self.depth = 1
 
     @property
     def stride(self):
@@ -338,7 +339,7 @@ class ArrayDeclareNode(DataNode):
         return self.count * self.stride
 
     def __str__(self):
-        return "Array:%s [%s, %s] (%s)" % (self.name, self.count, self.type, self.scope)
+        return "Array:%s [%s, %s, depth=%d] (%s)" % (self.name, self.count, self.type, self.depth, self.scope)
 
 
 class ArrayIndexNode(DataNode):
@@ -1138,16 +1139,15 @@ class CodeGeneratorPass1(object):
 
                     # create sub arrays for multidimensional arrays
                     array_type = value.type
-                    array_depth = 1
                     while True:
                         if isinstance(array_type, ArrayDeclareNode):
-                            array_type.name = '%s.%d' % (value.name, array_depth)
+                            array_type.name = '%s.%d' % (value.name, array_type.depth)
                             self.arrays[array_type.name] = array_type
 
                         else:
                             break
 
-                        array_depth += 1
+                        array_type.depth += 1
                         array_type = array_type.type
 
                 return value
@@ -2142,6 +2142,7 @@ class DefineArrayIR(IntermediateNode):
         self.name = name
         self.length = length
         self.type = data_type
+        self.depth = 1
 
         self.publish = False
 
@@ -2529,22 +2530,15 @@ class CodeGeneratorPass2(object):
                 except TypeError:
                     pass
 
+                # check if src or dest returned code items
                 try:
                     src = value[-1].dest
 
                 except (TypeError, AttributeError):
                     src = value
 
-                # there's a special case for storing to an array,
-                # so we intercept here and use the IndexStore instead of
-                # Copy
                 try:
                     dest = name[-1]
-
-                    if isinstance(dest, IndexStoreIR):
-                        dest.src = src
-                        code.extend(name)
-                        return code
 
                 except TypeError:
                     dest = name
@@ -2564,12 +2558,22 @@ class CodeGeneratorPass2(object):
                 except TypeError:
                     pass
 
+                
+                # there's a special case for storing to an array,
+                # so we intercept here and use the IndexStore instead of
+                # Copy
+                if isinstance(dest, IndexStoreIR):
+                    dest.src = src
+
+                    code.extend(name)
+                    return code
+
                 # check if previous codepath has a destination specified,
                 # if so, we can skip the copy, as the VM instruction set
                 # can usually directly target a destination without
                 # an intermediate copy.
                 # this only works on Vars, not objects
-                if isinstance(dest, VarIR):
+                elif isinstance(dest, VarIR):
                     try:
                         value[-1].replace_dest(dest)
 
@@ -2733,6 +2737,7 @@ class CodeGeneratorPass2(object):
                 node_type = self.generate(node_type)[0]
 
                 define_array_ir.type = node_type
+                define_array_ir.depth = node.depth
 
                 if node.publish:
                     define_array_ir.publish = node.publish
@@ -2747,7 +2752,6 @@ class CodeGeneratorPass2(object):
                 return []
 
             elif isinstance(node, ArrayIndexNode):
-
                 code = []
 
                 offset_dest = self.get_unique_register(line_no=node.line_no)
@@ -2776,6 +2780,10 @@ class CodeGeneratorPass2(object):
                     dest_ary = self.generate(node.obj)
 
                     ir = IndexStoreIR(dest_ary, None, offset_dest, None, level=self.level, line_no=node.line_no)
+
+                    # if dest_ary.type.depth != len(node.offsets):
+                        # print "NOT index store"
+
 
                 else:
                     src_ary = self.generate(node.obj)

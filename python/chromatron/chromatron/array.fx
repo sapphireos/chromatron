@@ -1,33 +1,28 @@
 
-ary = Array(4)
 
 a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
-def init():
-    for i in ary:
-        ary[len(ary) - 1 - i] = i + 1
+e = Number(publish=True)
+f = Number(publish=True)
 
-    a = max(ary)
-
-# ary = Array(4)
-
-# a = Number(publish=True)
-# b = Number(publish=True)
-# c = Number(publish=True)
-# d = Number(publish=True)
-
-# e = Number(publish=True)
-# f = Number(publish=True)
-
-# c = Array(3, type=Array(2))
+ary = Array(4)
+ary2 = Array(3, type=Array(2))
 # d = Array(3, type=Array(2, type=Array(4)))
 
 # MyRecord = Record(meow=Number(), 
-                  # stuff=Array(2))
+#                   stuff=Array(2))
 
 # MyRecord = Record(meow=Number())
 
-# def init():
+def init():
+
+    # ary = 2
+    ary2 = 2
+    # ary2[0] = 3
+    # ary2[0][1] = 4
 
     # for i in ary:
         # ary[i] = i + 1
