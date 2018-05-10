@@ -2382,7 +2382,7 @@ class CGTestsLocal(CGTestsBase):
 # import chromatron
 # import time
 
-# ct = chromatron.Chromatron(host='10.0.0.108')
+# ct = chromatron.Chromatron(host='10.0.0.112')
 
 # class CGTestsOnDevice(CGTestsBase):
 #     def run_test(self, program, expected={}):
@@ -2403,7 +2403,7 @@ class CGTestsLocal(CGTestsBase):
 #             else:
 #                 actual = ct.get_vm_reg(str(reg))
 
-#             self.assertEqual(expected_value, actual)
+            # self.assertEqual(expected_value, actual)
             
 
 
