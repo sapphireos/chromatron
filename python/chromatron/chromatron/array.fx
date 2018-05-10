@@ -18,22 +18,25 @@ f = Number(publish=True)
 # MyRecord = Record(meow=Number())
 
 def init():
-        
+
+    for i in ary:
+        ary[i] = i + 1
+
     # a = 0
     # e = 0
 
-    ary[0] = 1
-    ary[1] = 2
-    ary[2] = 3
-    ary[3] = 4
+    # ary[0] = 1
+    # ary[1] = 2
+    # ary[2] = 3
+    # ary[3] = 4
 
-    ary += 123
+    # ary += 123
 
-    a = ary[0]
-    b = ary[1]
-    c = ary[2]
-    d = ary[3]
-    e = ary[4]
+    # a = ary[0]
+    # b = ary[1]
+    # c = ary[2]
+    # d = ary[3]
+    # e = ary[4]
 
     # f = 0
     # pass

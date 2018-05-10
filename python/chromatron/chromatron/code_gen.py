@@ -2458,6 +2458,12 @@ class CodeGeneratorPass2(object):
 
                 except TypeError:
                     count_reg = self.get_unique_register(line_no=node.line_no)
+
+                    # check if iterating over an array
+                    if isinstance(count_setup_code, ArrayVarIR):
+                        # we actually want the array count, not its base address
+                        count_setup_code = ConstIR(count_setup_code.length, line_no=node.line_no)
+
                     ir.append(CopyIR(count_reg, count_setup_code))
 
                 target = self.generate(node.target)

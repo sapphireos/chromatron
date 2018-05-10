@@ -1392,6 +1392,27 @@ def init():
 
 """
 
+test_array_iteration = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+def init():
+    for i in ary:
+        ary[i] = i + 1
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+
+"""
+
+
 test_array_len = """
 
 ary = Array(4)
@@ -1417,6 +1438,14 @@ class CGTestsBase(unittest.TestCase):
                 'b': 0,
             })
 
+    def test_array_iteration(self):
+        self.run_test(test_array_iteration,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
 
     # def test_array_len(self):
     #     self.run_test(test_array_len,
