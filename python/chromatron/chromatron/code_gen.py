@@ -120,14 +120,6 @@ class PixelArrayObject(StructField):
         super(PixelArrayObject, self).__init__(_name="pixel_array", _fields=fields, **kwargs)
 
 
-class ArrayMeta(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="length"),
-                  Uint16Field(_name="stride"),]
-
-        super(ArrayMeta, self).__init__(_name="array_meta", _fields=fields, **kwargs)
-
-
 class VMPublishVar(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="hash"),
@@ -3521,7 +3513,7 @@ class OffsetArray(Instruction):
         return "%s %s <- *[%s + %s] (%d/%d)" % (self.mnemonic, self.dest.name, self.base, self.index, self.ary_stride.name, self.ary_length.name)
 
     def assemble(self):
-        return [self.opcode, self.dest.addr, self.base.addr, self.index.addr]
+        return [self.opcode, self.dest.addr, self.base.addr, self.index.addr, self.ary_length.addr, self.ary_stride.addr]
 
 
 class LoadToPixArray(Instruction):
@@ -3615,6 +3607,8 @@ class ArrayOpInstruction(Instruction):
     def assemble(self):
         obj_type = 0
         attr = 0
+        ary_stride = ConstIR(0)
+        ary_length = ConstIR(0)
 
         if isinstance(self.result, PixelObjIR):
             obj_type = PIX_OBJ_TYPE
@@ -3623,10 +3617,12 @@ class ArrayOpInstruction(Instruction):
         elif isinstance(self.result, ArrayVarIR):
             obj_type = ARRAY_OBJ_TYPE
             attr = 0
+            ary_stride = ConstIR(self.result.stride)
+            ary_length = ConstIR(self.result.length)
 
         # Array op format is:
         # opcode - object type - object address - attribute address - operand
-        return [self.opcode, obj_type, self.result.addr, attr, self.op1.addr]
+        return [self.opcode, obj_type, self.result.addr, ary_stride, ary_length, attr, self.op1.addr]
 
 class ArrayAdd(ArrayOpInstruction):
     mnemonic = 'ARRAY_ADD'
@@ -4307,6 +4303,7 @@ class CodeGeneratorPass6(object):
         # generate byte stream.
         # create mapping of labels to code indexes and strip labels
         # from code stream.
+        # also do any final lookups for registers added at the instruction generation stage
         for func in self.code:
             assert isinstance(self.code[func][0], Function)
 
@@ -4319,7 +4316,19 @@ class CodeGeneratorPass6(object):
                     labels[ins.name] = len(code_stage1)
 
                 else:
-                    code_stage1.extend(ins.assemble())
+                    assembled_code = ins.assemble()
+
+                    for i in xrange(len(assembled_code)):
+                        byte = assembled_code[i]
+
+                        if isinstance(byte, DataIR):
+                            # get address of this register
+                            addr = self.registers[byte.name].addr
+
+                            # replace with address
+                            assembled_code[i] = addr
+
+                    code_stage1.extend(assembled_code)
 
 
         code_stage2 = []
@@ -4489,11 +4498,6 @@ class CodeGeneratorPass7(object):
         for reg in regs:
             if isinstance(reg, ConstIR):
                 stream += struct.pack('<l', int(reg.name)) # int32
-
-            elif isinstance(reg, ArrayVarIR):
-                ary_meta = ArrayMeta(length=reg.length, stride=reg.stride)
-
-                stream += ary_meta.pack()
 
             else:
                 stream += struct.pack('<l', 0) # int32
@@ -5435,7 +5439,12 @@ def compile_text(text, debug_print=False, script_name=''):
 
         addr = 0
         for i in state6['code']:
-            print addr, hex(i)
+            try:
+                print addr, hex(i)
+
+            except TypeError:
+                print addr, i
+                
             addr += 1
 
         print ''

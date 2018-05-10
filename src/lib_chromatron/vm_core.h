@@ -96,12 +96,6 @@ typedef struct __attribute__((packed)){
     uint8_t padding[3];
 } vm_publish_t;
 
-// note this needs to pad to 32 bit alignment!
-typedef struct __attribute__((packed)){
-    uint16_t length;
-    uint16_t stride;
-} vm_array_meta_t;
-
 typedef struct __attribute__((packed)){
     uint32_t file_magic;
     uint32_t prog_magic;

@@ -86,7 +86,7 @@ static int8_t _vm_i8_run_stream(
         
         &&opcode_idx_load,          // 24
         &&opcode_idx_store,         // 25
-        &&opcode_trap,              // 26
+        &&opcode_offset_array,      // 26
         &&opcode_trap,              // 27
 
         &&opcode_ltah,	            // 28
@@ -322,12 +322,11 @@ static int8_t _vm_i8_run_stream(
     uint8_t *code = (uint8_t *)( stream + state->code_start );
     uint8_t *pc = code + offset;
     uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
-    int32_t op1, op2, index;
+    int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
     bool yield;
     int32_t params[8];
     uint16_t addr;
     catbus_hash_t32 hash;
-    vm_array_meta_t *array_meta;
 
 
     call_depth++;
@@ -675,24 +674,33 @@ opcode_idx_load:
     src = *pc++;
     index = data[*pc++];
 
-    array_meta = (vm_array_meta_t *)&data[src];
-
-    index %= array_meta->length;
-
-    data[dest] = data[src + index + 1];
+    data[dest] = data[src + index];
 
     goto dispatch;
+
 
 opcode_idx_store:
     dest = *pc++;
     src = *pc++;
     index = data[*pc++];
 
-    array_meta = (vm_array_meta_t *)&data[dest];
+    data[dest + index] = data[src];
 
-    index %= array_meta->length;
+    goto dispatch;
 
-    data[dest + index + 1] = data[src];
+
+opcode_offset_array:
+    dest = *pc++;
+    base = data[*pc++];
+    index = data[*pc++];
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
+
+    index *= ary_stride;
+    index %= ary_length;
+    index += base;
+
+    data[dest] = index;
 
     goto dispatch;
 
@@ -902,15 +910,19 @@ opcode_array_add:
     
     obj = *pc++;
     dest = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
     attr = *pc++;
     op1 = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
-        array_meta = (vm_array_meta_t *)&data[dest];
+        ary_addr = dest;
 
-        for( uint16_t i = 0; i < array_meta->length; i++ ){
+        for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[dest + i + 1] += op1;
+            data[ary_addr] += op1;
+
+            ary_addr += ary_stride;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -927,15 +939,19 @@ opcode_array_sub:
 
     obj = *pc++;
     dest = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
     attr = *pc++;
     op1 = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
-        array_meta = (vm_array_meta_t *)&data[dest];
+        ary_addr = dest;
 
-        for( uint16_t i = 0; i < array_meta->length; i++ ){
+        for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[dest + i + 1] -= op1;
+            data[ary_addr] -= op1;
+
+            ary_addr += ary_stride;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -952,15 +968,19 @@ opcode_array_mul:
 
     obj = *pc++;
     dest = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
     attr = *pc++;
     op1 = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
-        array_meta = (vm_array_meta_t *)&data[dest];
+        ary_addr = dest;
 
-        for( uint16_t i = 0; i < array_meta->length; i++ ){
+        for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[dest + i + 1] *= op1;
+            data[ary_addr] *= op1;
+
+            ary_addr += ary_stride;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -977,15 +997,19 @@ opcode_array_div:
 
     obj = *pc++;
     dest = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
     attr = *pc++;
     op1 = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
-        array_meta = (vm_array_meta_t *)&data[dest];
+        ary_addr = dest;
 
-        for( uint16_t i = 0; i < array_meta->length; i++ ){
+        for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[dest + i + 1] /= op1;
+            data[ary_addr] /= op1;
+
+            ary_addr += ary_stride;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -1002,15 +1026,19 @@ opcode_array_mod:
 
     obj = *pc++;
     dest = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
     attr = *pc++;
     op1 = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
-        array_meta = (vm_array_meta_t *)&data[dest];
+        ary_addr = dest;
 
-        for( uint16_t i = 0; i < array_meta->length; i++ ){
+        for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[dest + i + 1] %= op1;
+            data[ary_addr] %= op1;
+
+            ary_addr += ary_stride;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
@@ -1026,15 +1054,19 @@ opcode_array_mov:
 
     obj = *pc++;
     dest = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
     attr = *pc++;
     op1 = data[*pc++];
 
     if( obj == ARRAY_OBJ_TYPE ){
-        array_meta = (vm_array_meta_t *)&data[dest];
+        ary_addr = dest;
 
-        for( uint16_t i = 0; i < array_meta->length; i++ ){
+        for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[dest + i + 1] = op1;
+            data[ary_addr] = op1;
+
+            ary_addr += ary_stride;
         }
     }
     else if( obj == PIX_OBJ_TYPE ){
