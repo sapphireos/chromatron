@@ -805,8 +805,11 @@ PT_BEGIN( pt );
 end:
         if( flags & FLAG_RUN_FADER ){   
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_run_fader_cmd();
+            if( pixel_u8_get_mode() != PIX_MODE_OFF ){
+                
+                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+                send_run_fader_cmd();
+            }
         }
 
         if( flags & FLAG_RUN_PARAMS ){
