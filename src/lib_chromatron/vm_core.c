@@ -1480,6 +1480,8 @@ int8_t vm_i8_run_threads(
     uint8_t *stream,
     vm_state_t *state ){
 
+    bool threads_running = FALSE;
+
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
         if( state->threads[i].func_addr == 0xffff ){
@@ -1497,6 +1499,8 @@ int8_t vm_i8_run_threads(
 
         int8_t status = vm_i8_run( stream, state->threads[i].func_addr + state->threads[i].pc_offset, state );
 
+        threads_running = TRUE;
+
         state->current_thread = -1;
 
         if( status == VM_STATUS_OK ){
@@ -1513,6 +1517,11 @@ int8_t vm_i8_run_threads(
             return status;
         }
     }
+
+    if( !threads_running ){
+
+        return VM_STATUS_NO_THREADS;
+    } 
 
     return VM_STATUS_OK;
 }

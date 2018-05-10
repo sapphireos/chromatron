@@ -123,7 +123,15 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
     }
     else{
 
+        // check if there are any threads to run
         return_code = vm_i8_run_threads( vm_slab, &vm_state );   
+
+        // if no threads were run, bail out early so we don't 
+        // transmit published vars that couldn't have changed.
+        if( return_code == VM_STATUS_NO_THREADS ){
+
+            return VM_STATUS_OK;
+        }
     }
 
     // if return is anything other than OK, send status immediately
