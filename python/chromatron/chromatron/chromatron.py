@@ -1855,9 +1855,9 @@ def keys():
 
     """
 
-@keys.command()
+@keys.command('list')
 @click.pass_context
-def list(ctx):
+def keys_list(ctx):
     """List all keys on devices"""
 
     group = ctx.obj['GROUP']()
@@ -1873,10 +1873,10 @@ def list(ctx):
             click.echo('    %-40s %s' % (click.style(k, fg=KEY_COLOR), click.style(str(v), fg=VAL_COLOR)))
 
 
-@keys.command()
+@keys.command('get')
 @click.argument('key')
 @click.pass_context
-def get(ctx, key):
+def keys_get(ctx, key):
     """Get key on devices"""
 
     group = ctx.obj['GROUP']()
@@ -1893,11 +1893,11 @@ def get(ctx, key):
         click.echo(' %s' % (click.style(str(val), fg=VAL_COLOR)))
 
 
-@keys.command()
+@keys.command('set')
 @click.argument('key')
 @click.argument('value')
 @click.pass_context
-def set(ctx, key, value):
+def keys_set(ctx, key, value):
     """Set key on devices"""
 
     group = ctx.obj['GROUP']()
