@@ -228,13 +228,14 @@ class VarNode(DataNode):
         return "Var{%s}" % (self.name)
 
 class ArrayVarNode(DataNode):
-    def __init__(self, value, **kwargs):
+    def __init__(self, value, array_type=None, **kwargs):
         super(ArrayVarNode, self).__init__(**kwargs)
 
         if value:
             self.name = value
 
         self.value = self.name
+        self.type = array_type
 
     def __str__(self):
         return "Array{%s}" % (self.name)
@@ -345,21 +346,21 @@ class ArrayDeclareNode(DataNode):
 
 
 class ArrayIndexNode(DataNode):
-    def __init__(self, obj, i=ConstantNode(0), store=False, **kwargs):
+    def __init__(self, obj, offsets=[], store=False, **kwargs):
         super(ArrayIndexNode, self).__init__(**kwargs)
     
         self.name = '%s' % (obj)
 
         self.obj = obj
-        self.i = i
+        self.offsets = offsets
         self.store = store
 
     def __str__(self):
         if self.store:
-            return "ArrayIndex<Store>:%s[%s]" % (self.name, self.i)
+            return "ArrayIndex<Store>:%s" % (self.name)
 
         else:
-            return "ArrayIndex<Load>:%s[%s]" % (self.name, self.i)
+            return "ArrayIndex<Load>:%s" % (self.name)
 
 class RecordNode(DataNode):
     def __init__(self, fields, **kwargs):
@@ -521,11 +522,12 @@ class SysCallNode(CodeNode):
 
 
 class OffsetNode(CodeNode):
-    def __init__(self, target, index, **kwargs):
+    def __init__(self, target, index, store=False, **kwargs):
         super(OffsetNode, self).__init__(**kwargs)
         self.target = target
         self.index = index
-    
+        self.store = store
+
 
 class ASTWalker(object):
     def __init__(self):
@@ -1149,6 +1151,7 @@ class CodeGeneratorPass1(object):
                 if isinstance(value, ArrayDeclareNode):
                     self.arrays[value.name] = value
 
+                    # create sub arrays for multidimensional arrays
                     array_type = value.type
                     array_depth = 1
                     while True:
@@ -1284,10 +1287,64 @@ class CodeGeneratorPass1(object):
 
             except AttributeError:
                 # unless we are indexing an array
-                obj = self.generate(tree.value)
-                index = self.generate(tree.slice.value)
+
+                offsets = []
+
+                store = False
+                if isinstance(tree.ctx, ast.Store):
+                    store = True
+
+
+                while isinstance(tree, ast.Subscript):
+                    
+                    index = self.generate(tree.slice.value)
+                    offsets.append(index)
+
+                    tree = tree.value
+
+                assert not isinstance(tree, ast.Subscript)
+
+                target = self.generate(tree)
+
+                # reverse list of offsets so they read from left to right
+                offsets = list(reversed(offsets))
+
+                node = ArrayIndexNode(target, offsets, store=store, line_no=tree.lineno)
+
+                return node
+
+
+                # sys.exit(0)
+
+
+                # obj = self.generate(tree.value)
+                # index = self.generate(tree.slice.value)
                 
-                return OffsetNode(obj, index, line_no=tree.lineno)
+                # store = False
+                # if isinstance(tree.ctx, ast.Store):
+                #     store = True
+
+                # node = OffsetNode(obj, index, store=store, line_no=tree.lineno)
+
+                # # ok, we're going to iterate through the stack of offsets
+                # # and flatten them to a list
+                # offsets = [node]
+
+                # target = node.target
+                # while isinstance(target, OffsetNode):
+                #     offsets.append(target)
+
+                #     target = target.target
+
+                # print "MEOW"
+                # for offset in offsets:
+                #     print offset.index
+
+                # print type(node.target), index
+
+                # return node
+
+                # return ArrayIndexNode(obj, i=index, store=store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Eq):
             return 'eq'
@@ -1346,7 +1403,7 @@ class CodeGeneratorPass1(object):
                 return ConstantNode(0, line_no=tree.lineno)                
 
             if tree.id in self.arrays:
-                return ArrayVarNode(tree.id, line_no=tree.lineno, scope=self.current_function)
+                return ArrayVarNode(tree.id, array_type=self.arrays[tree.id], line_no=tree.lineno, scope=self.current_function)
 
             else:
                 return VarNode(tree.id, line_no=tree.lineno, scope=self.current_function)
@@ -2136,6 +2193,19 @@ class DefineArrayIR(IntermediateNode):
 
         self.publish = False
 
+    def get_data_nodes(self):
+        nodes = []
+
+        ary = self
+
+        while isinstance(ary, DefineArrayIR):
+            nodes.append(ConstIR(ary.stride))
+            nodes.append(ConstIR(ary.length))
+
+            ary = ary.type
+        
+        return nodes
+
     @property
     def stride(self):
         return self.type.size()
@@ -2463,7 +2533,7 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, AugAssignNode):
                 name = self.generate(node.name)
-                   
+
                 if (isinstance(name, ObjIR) and (name.obj in self.pixel_arrays) and (name.attr in ARRAY_ATTRS)) or \
                    (isinstance(name, ArrayVarIR)):
 
@@ -2486,9 +2556,7 @@ class CodeGeneratorPass2(object):
 
                     return ir
 
-                else:
-                    value = self.generate(node.value)
-                    
+                else:                    
                     return self.generate(AssignNode(node.name, node.value, line_no=node.line_no))
 
             elif isinstance(node, AssignNode):
@@ -2520,32 +2588,32 @@ class CodeGeneratorPass2(object):
                         code.extend(name)
                         return code
 
-                    elif isinstance(name[0], OffsetIR):
-                        prev_base = None
-                        for ir in name:
-                            try:
-                                for ir2 in ir.index:
-                                    code.append(ir2)
+                    # elif isinstance(name[0], OffsetIR):
+                    #     prev_base = None
+                    #     for ir in name:
+                    #         try:
+                    #             for ir2 in ir.index:
+                    #                 code.append(ir2)
 
-                                ir.index = ir.index[0].dest
+                    #             ir.index = ir.index[0].dest
 
-                            except TypeError:
-                                pass
+                    #         except TypeError:
+                    #             pass
 
-                            current_base = ir.dest
-                            if prev_base != None:
-                                ir.base = prev_base
+                    #         current_base = ir.dest
+                    #         if prev_base != None:
+                    #             ir.base = prev_base
 
-                            prev_base = current_base
+                    #         prev_base = current_base
 
-                            code.append(ir)
+                    #         code.append(ir)
 
-                        dest = name[0]
+                    #     dest = name[0]
 
-                        ir = IndexStoreIR(dest.target, src, name[-1].dest, y=None, level=self.level, line_no=node.line_no)
+                    #     ir = IndexStoreIR(dest.target, src, name[-1].dest, y=None, level=self.level, line_no=node.line_no)
 
-                        code.append(ir)
-                        return code
+                    #     code.append(ir)
+                    #     return code
 
                 except TypeError:
                     dest = name
@@ -2565,16 +2633,16 @@ class CodeGeneratorPass2(object):
                 except TypeError:
                     pass
 
-                try:
-                    # check if loading from an array
-                    if isinstance(value[-1], OffsetIR):
-                        ir = IndexLoadIR(dest, value[-1].target, src, y=None, level=self.level, line_no=node.line_no)
+                # try:
+                #     # check if loading from an array
+                #     if isinstance(value[-1], OffsetIR):
+                #         ir = IndexLoadIR(dest, value[-1].target, src, y=None, level=self.level, line_no=node.line_no)
 
-                        code.append(ir)
-                        return code
+                #         code.append(ir)
+                #         return code
 
-                except TypeError:
-                    pass
+                # except TypeError:
+                #     pass
 
 
                 # check if previous codepath has a destination specified,
@@ -2715,7 +2783,12 @@ class CodeGeneratorPass2(object):
                 return VarIR(node.name, level=self.level, line_no=node.line_no)
 
             elif isinstance(node, ArrayVarNode):
-                return ArrayVarIR(node.name, data_type=self.arrays[node.name].type, level=self.level, line_no=node.line_no)
+                ir = ArrayVarIR(node.name, data_type=self.arrays[node.name].type, level=self.level, line_no=node.line_no)
+
+                # update array length from declaration
+                ir.length = self.arrays[ir.name].length    
+
+                return ir
 
             elif isinstance(node, StringNode):
                 return StringIR(node.name, level=self.level, line_no=node.line_no)
@@ -2755,28 +2828,59 @@ class CodeGeneratorPass2(object):
                 return []
 
             elif isinstance(node, ArrayIndexNode):
+
                 code = []
-                index_code = self.generate(node.i)
 
-                try:
-                    index = index_code[-1].dest
-                    code.extend(index_code)
+                offset_dest = self.get_unique_register(line_no=node.line_no)
 
-                except TypeError:
-                    index = index_code                
+                array_type = node.obj.type
+
+                base = ConstIR(0)
+                for offset in node.offsets:
+                    offset = self.generate(offset)
+                    ir = OffsetIR(offset_dest, array_type, offset, base, level=self.level, line_no=node.line_no)
+
+                    code.append(ir)
+
+                    base = offset_dest
+                    array_type = array_type.type
 
                 if node.store:
-                    dest = self.generate(node.obj)
+                    dest_ary = self.generate(node.obj)
 
-                    code.append(IndexStoreIR(dest, None, index, None, level=self.level, line_no=node.line_no))
+                    ir = IndexStoreIR(dest_ary, None, offset_dest, None, level=self.level, line_no=node.line_no)
 
                 else:
+                    src_ary = self.generate(node.obj)
+
                     temp_dest = self.get_unique_register(line_no=node.line_no)
-                    src = self.generate(node.obj)
-                
-                    code.append(IndexLoadIR(temp_dest, src, index, None, level=self.level, line_no=node.line_no))
+                    ir = IndexLoadIR(temp_dest, src_ary, offset_dest, None, level=self.level, line_no=node.line_no)
+
+                code.append(ir)
 
                 return code
+
+                # index_code = self.generate(node.i)
+
+                # try:
+                #     index = index_code[-1].dest
+                #     code.extend(index_code)
+
+                # except TypeError:
+                #     index = index_code                
+
+                # if node.store:
+                #     dest = self.generate(node.obj)
+
+                #     code.append(IndexStoreIR(dest, None, index, None, level=self.level, line_no=node.line_no))
+
+                # else:
+                #     temp_dest = self.get_unique_register(line_no=node.line_no)
+                #     src = self.generate(node.obj)
+                
+                #     code.append(IndexLoadIR(temp_dest, src, index, None, level=self.level, line_no=node.line_no))
+
+                # return code
                 
             elif isinstance(node, basestring):
                 return node
@@ -2830,7 +2934,12 @@ class CodeGeneratorPass2(object):
                     # update array length from declaration
                     target.length = self.arrays[target.name].length
 
+                print "MOEW", node.index, node.store, node.target
+                
                 code.append(OffsetIR(dest, target, index, level=self.level, line_no=node.line_no))
+
+                if not isinstance(node.target, OffsetNode):
+                    print code
 
                 return code
 
@@ -3143,7 +3252,7 @@ class CodeGeneratorPass4(object):
                 addr += registers[ir.name].size()
 
                 # add array consts to register set
-                for reg in registers[ir.name].get_data_nodes():
+                for reg in ir.get_data_nodes():
                     if reg.name not in registers:
                         registers[reg.name] = reg
                         reg.addr = addr
