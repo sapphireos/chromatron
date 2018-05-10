@@ -1,6 +1,14 @@
 
-a = Array(4, publish=True)
-b = Number()
+ary = Array(4)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+e = Number(publish=True)
+f = Number(publish=True)
+
 # c = Array(3, type=Array(2))
 # d = Array(3, type=Array(2, type=Array(4)))
 
@@ -10,8 +18,26 @@ b = Number()
 # MyRecord = Record(meow=Number())
 
 def init():
+        
+    # a = 0
+    # e = 0
 
-    a = 2
+    ary[0] = 1
+    ary[1] = 2
+    ary[2] = 3
+    ary[3] = 4
+
+    ary += 123
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+    # f = 0
+    # pass
+
 
     # c[1][2] = 456
     # a[1] = 1

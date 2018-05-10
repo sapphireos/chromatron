@@ -3622,7 +3622,7 @@ class ArrayOpInstruction(Instruction):
 
         # Array op format is:
         # opcode - object type - object address - attribute address - operand
-        return [self.opcode, obj_type, self.result.addr, ary_stride, ary_length, attr, self.op1.addr]
+        return [self.opcode, obj_type, self.result.addr, ary_length, ary_stride, attr, self.op1.addr]
 
 class ArrayAdd(ArrayOpInstruction):
     mnemonic = 'ARRAY_ADD'
@@ -4400,7 +4400,11 @@ class CodeGeneratorPass7(object):
                 used_addrs.append(reg.addr)
                 regs.append(reg)
 
-        data_len = len(regs) * DATA_LEN
+        data_len = 0
+        for reg in regs:
+            data_len += reg.size()
+
+        data_len *= DATA_LEN
         code_len = len(self.code)
 
         # set up padding so data start will be on 32 bit boundary
@@ -4500,7 +4504,8 @@ class CodeGeneratorPass7(object):
                 stream += struct.pack('<l', int(reg.name)) # int32
 
             else:
-                stream += struct.pack('<l', 0) # int32
+                for i in xrange(reg.size()):
+                    stream += struct.pack('<l', 0) # int32
 
 
         # make 16 bit CRC
@@ -4778,13 +4783,14 @@ class VM(object):
                 self.memory[ins.dest.addr] = 0
 
             elif isinstance(ins, OffsetArray):
-                index = self.memory[ins.index.addr] * self.memory[ins.ary_stride.addr]
-
+                index = self.memory[ins.index.addr]
                 index %= self.memory[ins.ary_length.addr]
+                index *= self.memory[ins.ary_stride.addr]
 
                 base = self.memory[ins.base.addr]
+                index += base
 
-                self.memory[ins.dest.addr] = base + index
+                self.memory[ins.dest.addr] = index
 
             elif isinstance(ins, IndexStore):
                 index = self.memory[ins.index.addr]

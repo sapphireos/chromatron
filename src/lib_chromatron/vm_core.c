@@ -696,8 +696,8 @@ opcode_offset_array:
     ary_length = data[*pc++];
     ary_stride = data[*pc++];
 
-    index *= ary_stride;
     index %= ary_length;
+    index *= ary_stride;
     index += base;
 
     data[dest] = index;
