@@ -35,6 +35,9 @@
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
 
 
+#define CATBUS_MAX_FILE_SESSIONS            4
+
+
 typedef struct __attribute__((packed)){
     catbus_meta_t meta;
     // variable length data follows

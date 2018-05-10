@@ -89,7 +89,7 @@ PT_THREAD( publish_thread( pt_t *pt, void *state ) );
 static uint64_t origin_id;
 
 static socket_t sock;
-static thread_t file_session_thread = -1;
+static thread_t file_sessions[CATBUS_MAX_FILE_SESSIONS];
 
 static catbus_hash_t32 meta_tag_hashes[CATBUS_QUERY_LEN];
 // start of adjustable tags through the add/rm interface
@@ -1175,7 +1175,8 @@ PT_BEGIN( pt );
 
     fs_f_close( state->file );
 
-    file_session_thread = -1;
+    // clear session
+    file_sessions[state->session_id] = 0;
 
 PT_END( pt );
 }
@@ -1881,7 +1882,19 @@ PT_BEGIN( pt );
             catbus_msg_file_open_t *msg = (catbus_msg_file_open_t *)header;
 
             // check if session is available
-            if( file_session_thread > 0 ){
+            uint8_t session_id = 0;
+            while( session_id < cnt_of_array(file_sessions) ){
+            
+                if( file_sessions[session_id] <= 0 ){
+
+                    // session is available
+                    break;
+                }
+
+                session_id++;
+            }
+
+            if( session_id >= cnt_of_array(file_sessions) ){
 
                 error = CATBUS_ERROR_FILESYSTEM_BUSY;
                 goto end;
@@ -1904,8 +1917,6 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            uint32_t session_id = ( (uint32_t)rnd_u16_get_int() << 16 ) | rnd_u16_get_int();
-
             // create session
             thread_t t = _catbus_t_create_file_transfer_session( f, session_id, msg->flags );
 
@@ -1916,7 +1927,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            file_session_thread = t;
+            file_sessions[session_id] = t;
 
             // no errors - send confirmation on NEW socket
             catbus_msg_file_confirm_t reply;
@@ -1934,15 +1945,16 @@ PT_BEGIN( pt );
             
             catbus_msg_file_get_t *msg = (catbus_msg_file_get_t *)header;
 
-            // get file session
-            if( file_session_thread < 0 ){
+            // check that session is valid
+            if( ( msg->session_id >= cnt_of_array(file_sessions) ) ||
+                ( file_sessions[msg->session_id] <= 0 ) ){
 
                 log_v_debug_P( PSTR("invalid file session") );
                 error = CATBUS_ERROR_INVALID_FILE_SESSION;
                 goto end;
             }
 
-            file_transfer_thread_state_t *session_state = thread_vp_get_data( file_session_thread );
+            file_transfer_thread_state_t *session_state = thread_vp_get_data( file_sessions[msg->session_id] );
 
             // check session
             if( session_state->session_id != msg->session_id ){
@@ -2011,15 +2023,16 @@ PT_BEGIN( pt );
 
             catbus_msg_file_data_t *msg = (catbus_msg_file_data_t *)header;
 
-            // get file session
-            if( file_session_thread < 0 ){
+            // check that session is valid
+            if( ( msg->session_id >= cnt_of_array(file_sessions) ) ||
+                ( file_sessions[msg->session_id] <= 0 ) ){
 
                 log_v_debug_P( PSTR("invalid file session") );
                 error = CATBUS_ERROR_INVALID_FILE_SESSION;
                 goto end;
             }
 
-            file_transfer_thread_state_t *session_state = thread_vp_get_data( file_session_thread );
+            file_transfer_thread_state_t *session_state = thread_vp_get_data( file_sessions[msg->session_id] );
 
             // check session
             if( session_state->session_id != msg->session_id ){
@@ -2052,15 +2065,16 @@ PT_BEGIN( pt );
 
             catbus_msg_file_close_t *msg = (catbus_msg_file_close_t *)header;
 
-            // get file session
-            if( file_session_thread < 0 ){
+            // check that session is valid
+            if( ( msg->session_id >= cnt_of_array(file_sessions) ) ||
+                ( file_sessions[msg->session_id] <= 0 ) ){
 
                 log_v_debug_P( PSTR("invalid file session") );
                 error = CATBUS_ERROR_INVALID_FILE_SESSION;
                 goto end;
             }
 
-            file_transfer_thread_state_t *session_state = thread_vp_get_data( file_session_thread );
+            file_transfer_thread_state_t *session_state = thread_vp_get_data( file_sessions[msg->session_id] );
 
             // check session
             if( session_state->session_id != msg->session_id ){
@@ -2072,8 +2086,8 @@ PT_BEGIN( pt );
 
             // close session
             fs_f_close( session_state->file );
-            thread_v_kill( file_session_thread );
-            file_session_thread = -1;
+            thread_v_kill( file_sessions[msg->session_id] );
+            file_sessions[msg->session_id] = 0;
 
             catbus_msg_file_ack_t reply;
             _catbus_v_msg_init( &reply.header, CATBUS_MSG_TYPE_FILE_ACK, header->transaction_id );
