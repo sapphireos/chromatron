@@ -2,12 +2,22 @@
 ary = Array(4)
 
 a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
 
-e = Number(publish=True)
-f = Number(publish=True)
+def init():
+    for i in ary:
+        ary[len(ary) - 1 - i] = i + 1
+
+    a = max(ary)
+
+# ary = Array(4)
+
+# a = Number(publish=True)
+# b = Number(publish=True)
+# c = Number(publish=True)
+# d = Number(publish=True)
+
+# e = Number(publish=True)
+# f = Number(publish=True)
 
 # c = Array(3, type=Array(2))
 # d = Array(3, type=Array(2, type=Array(4)))
@@ -17,13 +27,13 @@ f = Number(publish=True)
 
 # MyRecord = Record(meow=Number())
 
-def init():
+# def init():
 
     # for i in ary:
         # ary[i] = i + 1
 
-    a = len(ary)
-    
+    # a = len(ary)
+
     # a = 0
     # e = 0
 

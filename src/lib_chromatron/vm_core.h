@@ -81,6 +81,10 @@
 #define VM_SYS_CALL_THREAD_RUNNING      12
 
 #define VM_ARRAY_FUNC_LEN               0
+#define VM_ARRAY_FUNC_MIN               1
+#define VM_ARRAY_FUNC_MAX               2
+#define VM_ARRAY_FUNC_AVG               3
+#define VM_ARRAY_FUNC_SUM               4
 
 
 typedef struct __attribute__((packed)){

@@ -1426,10 +1426,119 @@ def init():
 """
 
 
+test_array_max = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+
+def init():
+    for i in ary:
+        ary[i] = i + 1
+
+    a = max(ary)
+
+"""
+
+
+test_array_min = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+
+def init():
+    for i in ary:
+        ary[len(ary) - 1 - i] = i + 1
+
+    a = min(ary)
+
+"""
+
+test_array_sum = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+
+def init():
+    for i in ary:
+        ary[i] = i * 4
+
+    a = sum(ary)
+
+"""
+
+
+
+test_array_avg = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+
+def init():
+    for i in ary:
+        ary[i] = i * 4
+
+    a = avg(ary)
+
+"""
+
+
+
+test_array_index_expr = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+b = Number()
+
+def init():
+    for i in ary:
+        ary[i] = i + 1
+
+    b = 1
+    a = ary[b + 1]
+
+"""
+
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_index_expr(self):
+        self.run_test(test_array_index_expr,
+            expected={
+                'a': 3,
+            })
+
+    def test_array_avg(self):
+        self.run_test(test_array_avg,
+            expected={
+                'a': 6,
+            })
+
+    def test_array_sum(self):
+        self.run_test(test_array_sum,
+            expected={
+                'a': 24,
+            })
+
+    def test_array_min(self):
+        self.run_test(test_array_min,
+            expected={
+                'a': 1,
+            })
+
+    def test_array_max(self):
+        self.run_test(test_array_max,
+            expected={
+                'a': 4,
+            })
+
     
     def test_array_aug_assign(self):
         self.run_test(test_array_aug_assign,

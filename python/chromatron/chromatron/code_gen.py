@@ -67,7 +67,8 @@ PIX_OBJ_TYPE = 1
 ARRAY_FUNCS = {'len': 0,
                'min': 1, 
                'max': 2,
-               'avg': 3}
+               'avg': 3,
+               'sum': 4}
 
 SYS_CALLS = {'sys_call_test':   0,
              'yield':           1,
@@ -2756,6 +2757,14 @@ class CodeGeneratorPass2(object):
                 base = ConstIR(0)
                 for offset in node.offsets:
                     offset = self.generate(offset)
+
+                    try:
+                        code.extend(offset)
+                        offset = offset[-1].dest
+
+                    except TypeError:
+                        pass
+
                     ir = OffsetIR(offset_dest, array_type, offset, base, level=self.level, line_no=node.line_no)
 
                     code.append(ir)
@@ -3523,6 +3532,7 @@ class OffsetArray(Instruction):
 
     def assemble(self):
         return [self.opcode, self.dest.addr, self.base.addr, self.index.addr, self.ary_length.addr, self.ary_stride.addr]
+
 
 class ArrayFuncIns(Instruction):
     mnemonic = 'ARRAY_FUNC'
@@ -4816,6 +4826,56 @@ class VM(object):
                 result = 0
                 if ins.func == 'len':
                     result = ins.ary_length.name
+
+                elif ins.func == 'max':
+                    addr = ins.array.addr
+                    result = self.memory[addr]
+                    i = 1
+
+                    while i < ins.ary_length.name:
+                        addr += ins.ary_stride.name
+
+                        if self.memory[addr] > result:
+                            result = self.memory[addr]
+
+                        i += 1
+
+                elif ins.func == 'min':
+                    addr = ins.array.addr
+                    result = self.memory[addr]
+                    i = 1
+
+                    while i < ins.ary_length.name:
+                        addr += ins.ary_stride.name
+
+                        if self.memory[addr] < result:
+                            result = self.memory[addr]
+
+                        i += 1
+
+                elif ins.func == 'avg':
+                    addr = ins.array.addr
+                    result = self.memory[addr]
+                    i = 1
+
+                    while i < ins.ary_length.name:
+                        addr += ins.ary_stride.name
+                        result += self.memory[addr]
+
+                        i += 1
+
+                    result /= ins.ary_length.name
+
+                elif ins.func == 'sum':
+                    addr = ins.array.addr
+                    result = self.memory[addr]
+                    i = 1
+
+                    while i < ins.ary_length.name:
+                        addr += ins.ary_stride.name
+                        result += self.memory[addr]
+
+                        i += 1
 
                 else:
                     assert False

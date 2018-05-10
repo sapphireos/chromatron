@@ -714,6 +714,58 @@ opcode_array_func:
 
         data[dest] = ary_length;     
     }
+    else if( func_id == VM_ARRAY_FUNC_MIN ){
+
+        data[dest] = data[src];
+
+        for( uint16_t i = 1; i < ary_length; i++ ){
+
+            src += ary_stride;
+
+            if( data[src] < data[dest] ){
+
+                data[dest] = data[src];   
+            }
+        }
+    }
+    else if( func_id == VM_ARRAY_FUNC_MAX ){
+
+        data[dest] = data[src];
+
+        for( uint16_t i = 1; i < ary_length; i++ ){
+
+            src += ary_stride;
+
+            if( data[src] > data[dest] ){
+
+                data[dest] = data[src];   
+            }
+        }
+    }
+    else if( func_id == VM_ARRAY_FUNC_AVG ){
+
+        data[dest] = data[src];
+
+        for( uint16_t i = 1; i < ary_length; i++ ){
+
+            src += ary_stride;
+
+            data[dest] += data[src];
+        }
+
+        data[dest] /= ary_length;        
+    }
+    else if( func_id == VM_ARRAY_FUNC_SUM ){
+
+        data[dest] = data[src];
+
+        for( uint16_t i = 1; i < ary_length; i++ ){
+
+            src += ary_stride;
+
+            data[dest] += data[src];
+        }    
+    }
     else{
 
         data[dest] = 0;
