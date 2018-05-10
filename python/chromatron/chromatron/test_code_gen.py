@@ -1413,7 +1413,7 @@ class CGTestsBase(unittest.TestCase):
     def test_array_aug_assign(self):
         self.run_test(test_array_aug_assign,
             expected={
-                'a': 468,
+                'a': 579,
                 'b': 0,
             })
 
