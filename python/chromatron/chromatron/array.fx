@@ -19,9 +19,11 @@ f = Number(publish=True)
 
 def init():
 
-    for i in ary:
-        ary[i] = i + 1
+    # for i in ary:
+        # ary[i] = i + 1
 
+    a = len(ary)
+    
     # a = 0
     # e = 0
 

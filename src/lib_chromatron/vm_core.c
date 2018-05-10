@@ -83,12 +83,10 @@ static int8_t _vm_i8_run_stream(
         &&opcode_print,	            // 21
         &&opcode_ret,	            // 22
         &&opcode_call,	            // 23
-        
         &&opcode_idx_load,          // 24
         &&opcode_idx_store,         // 25
         &&opcode_offset_array,      // 26
-        &&opcode_trap,              // 27
-
+        &&opcode_array_func,        // 27
         &&opcode_ltah,	            // 28
         &&opcode_ltas,	            // 29
         &&opcode_ltav,	            // 30
@@ -701,6 +699,25 @@ opcode_offset_array:
     index += base;
 
     data[dest] = index;
+
+    goto dispatch;
+
+
+opcode_array_func:
+    dest = *pc++;
+    src = *pc++;
+    func_id = *pc++;
+    ary_length = data[*pc++];
+    ary_stride = data[*pc++];
+
+    if( func_id == VM_ARRAY_FUNC_LEN ){
+
+        data[dest] = ary_length;     
+    }
+    else{
+
+        data[dest] = 0;
+    }
 
     goto dispatch;
 

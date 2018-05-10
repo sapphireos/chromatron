@@ -1447,11 +1447,11 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    # def test_array_len(self):
-    #     self.run_test(test_array_len,
-    #         expected={
-    #             'a': 4,
-    #         })
+    def test_array_len(self):
+        self.run_test(test_array_len,
+            expected={
+                'a': 4,
+            })
 
     def test_array_mod(self):
         self.run_test(test_array_mod,

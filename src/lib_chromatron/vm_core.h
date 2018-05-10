@@ -80,6 +80,9 @@
 #define VM_SYS_CALL_STOP_THREAD         11
 #define VM_SYS_CALL_THREAD_RUNNING      12
 
+#define VM_ARRAY_FUNC_LEN               0
+
+
 typedef struct __attribute__((packed)){
     int8_t status;
     int8_t return_code;

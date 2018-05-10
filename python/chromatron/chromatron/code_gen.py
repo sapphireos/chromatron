@@ -64,7 +64,10 @@ ARRAY_ATTRS = [
 ARRAY_OBJ_TYPE = 0
 PIX_OBJ_TYPE = 1
 
-ARRAY_FUNCS = ['min', 'max', 'avg']
+ARRAY_FUNCS = {'len': 0,
+               'min': 1, 
+               'max': 2,
+               'avg': 3}
 
 SYS_CALLS = {'sys_call_test':   0,
              'yield':           1,
@@ -3521,6 +3524,26 @@ class OffsetArray(Instruction):
     def assemble(self):
         return [self.opcode, self.dest.addr, self.base.addr, self.index.addr, self.ary_length.addr, self.ary_stride.addr]
 
+class ArrayFuncIns(Instruction):
+    mnemonic = 'ARRAY_FUNC'
+    opcode = 0x1B
+
+    def __init__(self, dest, array, func):
+        self.dest = dest
+        self.array = array
+
+        self.func = func
+        self.func_id = ARRAY_FUNCS[func]
+
+        self.ary_length = ConstIR(array.length)
+        self.ary_stride = ConstIR(array.stride)
+
+    def __str__(self):
+        return "%s %s <- %s(%s)" % (self.mnemonic, self.dest.name, self.func, self.array.name)
+
+    def assemble(self):
+        return [self.opcode, self.dest.addr, self.array.addr, self.func_id, self.ary_length, self.ary_stride]
+
 
 class LoadToPixArray(Instruction):
     def __init__(self, src, index_x, index_y=0, obj=None):
@@ -4272,7 +4295,8 @@ class CodeGeneratorPass5(object):
                 pass
 
             elif isinstance(ir, ArrayFuncIR):
-                pass
+                ins = ArrayFuncIns(ir.dest, ir.src, ir.func)
+                self.append_code(ins)
 
             elif isinstance(ir, OffsetIR):
                 ary = self.arrays[ir.target.name]
@@ -4787,6 +4811,16 @@ class VM(object):
 
             elif isinstance(ins, Clr):
                 self.memory[ins.dest.addr] = 0
+
+            elif isinstance(ins, ArrayFuncIns):
+                result = 0
+                if ins.func == 'len':
+                    result = ins.ary_length.name
+
+                else:
+                    assert False
+
+                self.memory[ins.dest.addr] = result
 
             elif isinstance(ins, OffsetArray):
                 index = self.memory[ins.index.addr]
@@ -5456,7 +5490,7 @@ def compile_text(text, debug_print=False, script_name=''):
 
             except TypeError:
                 print addr, i
-                
+
             addr += 1
 
         print ''
