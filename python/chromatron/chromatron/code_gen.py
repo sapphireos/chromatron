@@ -2544,33 +2544,6 @@ class CodeGeneratorPass2(object):
                         code.extend(name)
                         return code
 
-                    # elif isinstance(name[0], OffsetIR):
-                    #     prev_base = None
-                    #     for ir in name:
-                    #         try:
-                    #             for ir2 in ir.index:
-                    #                 code.append(ir2)
-
-                    #             ir.index = ir.index[0].dest
-
-                    #         except TypeError:
-                    #             pass
-
-                    #         current_base = ir.dest
-                    #         if prev_base != None:
-                    #             ir.base = prev_base
-
-                    #         prev_base = current_base
-
-                    #         code.append(ir)
-
-                    #     dest = name[0]
-
-                    #     ir = IndexStoreIR(dest.target, src, name[-1].dest, y=None, level=self.level, line_no=node.line_no)
-
-                    #     code.append(ir)
-                    #     return code
-
                 except TypeError:
                     dest = name
 
@@ -2588,18 +2561,6 @@ class CodeGeneratorPass2(object):
 
                 except TypeError:
                     pass
-
-                # try:
-                #     # check if loading from an array
-                #     if isinstance(value[-1], OffsetIR):
-                #         ir = IndexLoadIR(dest, value[-1].target, src, y=None, level=self.level, line_no=node.line_no)
-
-                #         code.append(ir)
-                #         return code
-
-                # except TypeError:
-                #     pass
-
 
                 # check if previous codepath has a destination specified,
                 # if so, we can skip the copy, as the VM instruction set
@@ -5346,33 +5307,6 @@ class VM(object):
 
             elif isinstance(ins, Halt):
                 return 'halt'
-
-            # elif isinstance(ins, SineWave):
-            #     value = trig.sine(self.memory[ins.param.addr])
-
-            #     self.memory[RETURN_VAL_addr] = value
-
-            # elif isinstance(ins, CosineWave):
-            #     value = trig.cosine(self.memory[ins.param.addr])
-
-            #     self.memory[RETURN_VAL_addr] = value
-
-            # elif isinstance(ins, TriangleWave):
-            #     value = trig.triangle(self.memory[ins.param.addr])
-
-            #     self.memory[RETURN_VAL_addr] = value
-
-            # elif isinstance(ins, SetKey):
-            #     if ins.key.addr not in self.kv:
-            #         self.kv[ins.key.addr] = 0
-
-            #     self.kv[ins.key.addr] = self.memory[ins.value.addr]
-
-            # elif isinstance(ins, GetKey):
-            #     if ins.key.addr not in self.kv:
-            #         self.kv[ins.key.addr] = 0
-
-            #     self.memory[RETURN_VAL_addr] = self.kv[ins.key.addr]
 
             elif isinstance(ins, ObjectLoadInstruction):
                 if isinstance(ins.op1, PixelObjIR):
