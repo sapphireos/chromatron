@@ -2613,10 +2613,6 @@ class CodeGeneratorPass2(object):
                     # look up record definition
                     record = self.records[node.obj]
 
-                    print "MEOW"
-                    print record
-                    print type(record)
-
                     index = ConstIR(record.translate_field(node.attr))
 
                     if node.store:
@@ -2627,8 +2623,6 @@ class CodeGeneratorPass2(object):
                         ir = IndexLoadIR(temp, record, index, None, level=self.level, line_no=node.line_no)
 
                     return [ir]
-
-                    # obj = ObjIR(node.name, line_no=node.line_no)
 
                 else:
                     obj = ObjIR(node.name, line_no=node.line_no)

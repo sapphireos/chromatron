@@ -1486,7 +1486,6 @@ def init():
 """
 
 
-
 test_array_index_expr = """
 
 ary = Array(4)
@@ -1503,11 +1502,37 @@ def init():
 
 """
 
+test_base_record_assign = """
+
+rec = Record(a=Number(), b=Number())
+
+r = rec()
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    r.a = 1
+    r.b = 2
+
+    a = r.a
+    b = r.b
+
+
+"""
+
 
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_base_record_assign(self):
+        self.run_test(test_base_record_assign,
+            expected={
+                'a': 1,
+                'b': 2,
+            })
 
     def test_array_index_expr(self):
         self.run_test(test_array_index_expr,
