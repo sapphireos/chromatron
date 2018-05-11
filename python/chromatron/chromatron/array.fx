@@ -1,17 +1,3 @@
-
-a = Number(publish=True)
-b = Number(publish=True)
-
-def init():
-    db.kv_test_key = 123
-    a = 2
-    a += db.kv_test_key + 1
-
-    b = db.kv_test_key
-    
-    db.kv_test_key = a
-
-
 # a = Number(publish=True)
 # b = Number(publish=True)
 # c = Number(publish=True)
@@ -20,7 +6,7 @@ def init():
 # e = Number(publish=True)
 # f = Number(publish=True)
 
-# ary = Array(4)
+ary = Array(4)
 # ary2 = Array(3, type=Array(2))
 # # d = Array(3, type=Array(2, type=Array(4)))
 
@@ -29,11 +15,12 @@ def init():
 
 # # MyRecord = Record(meow=Number())
 
-# def init():
+def init():
 
-#     # ary = 2
-#     ary2 = 2pt
-#     # ary2[0] = 3
+    # ary = 2
+    # ary2 = 2pt
+    ary[0] = 3
+
 #     # ary2[0][1] = 4
 
 #     # for i in ary:

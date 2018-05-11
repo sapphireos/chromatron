@@ -868,6 +868,7 @@ class CodeGeneratorPass0(object):
             elif isinstance(node, ast.Assign):
                 if node.value.func.id == 'Record':
                     # replace item with record node
+
                     tree.body[i] = RecordNode(node.value.keywords, line_no=node.lineno)
                     tree.body[i].name = node.targets[0].id
 
@@ -1447,6 +1448,7 @@ class ArrayVarIR(DataIR):
     def get_data_nodes(self):
         return [ConstIR(self.length), ConstIR(self.stride)]
 
+
     @property
     def stride(self):
         return self.type.size()
@@ -1463,10 +1465,14 @@ class RecordVarIR(DataIR):
         
         self.name = name
         self.type = record_type
-        
+
         self.fields = {}
         for f in self.type.fields:
-            self.fields[f.name] = f
+            try:
+                self.fields[f.name] = f
+
+            except AttributeError:
+                self.fields[f] = self.type.fields[f]
 
     def size(self):
         return self.type.size()
@@ -2309,7 +2315,7 @@ class CodeGeneratorPass2(object):
 
 
                 if node.name in self.record_types:
-                    define_record_ir = DefineRecordIR(node.name, self.record_types[node.name])
+                    define_record_ir = DefineRecordIR(node.name, self.record_types[node.name], level=self.level, line_no=node.line_no)
                     ir = [define_record_ir]
 
                 else:
@@ -2551,7 +2557,7 @@ class CodeGeneratorPass2(object):
                         ir.name = dest.name
 
                         # add to record list
-                        self.records[ir.name] = ir
+                        self.records[ir.name] = RecordVarIR(ir.name, record_type=ir.record_type)
 
                         return [ir]
 
@@ -2604,8 +2610,21 @@ class CodeGeneratorPass2(object):
                     obj = PixelObjIR(node.name, line_no=node.line_no)                    
 
                 elif node.obj in self.records:
-                    print "RECORD"
-                    print node, node.obj
+                    # look up record definition
+                    record = self.records[node.obj]
+
+                    print "MEOW"
+                    print record
+                    print type(record)
+
+                    index = ConstIR(record.translate_field(node.attr))
+
+                    if node.store:
+                        ir = IndexStoreIR(record, None, index, None)
+
+                    return [ir]
+
+                    # obj = ObjIR(node.name, line_no=node.line_no)
 
                 else:
                     obj = ObjIR(node.name, line_no=node.line_no)
@@ -2747,7 +2766,8 @@ class CodeGeneratorPass2(object):
                 return [define_array_ir]
 
             elif isinstance(node, RecordNode):
-                self.record_types[node.name] = node
+
+                self.record_types[node.name] = RecordVarIR(node.name, record_type=node)
 
                 return []
 
@@ -4252,10 +4272,6 @@ class CodeGeneratorPass5(object):
                         self.write_keys[ins.result.attr] = string_hash_func(ins.result.attr)
 
                     elif ir.dest.obj in self.records:
-                        print "RECORD"
-                        print ir
-                        print ir.dest.obj
-                        print self.records
                         raise NotImplementedError
 
                     else:
