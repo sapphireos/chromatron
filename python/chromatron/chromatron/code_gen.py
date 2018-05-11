@@ -2620,7 +2620,11 @@ class CodeGeneratorPass2(object):
                     index = ConstIR(record.translate_field(node.attr))
 
                     if node.store:
-                        ir = IndexStoreIR(record, None, index, None)
+                        ir = IndexStoreIR(record, None, index, None, level=self.level, line_no=node.line_no)
+
+                    else:
+                        temp = self.get_unique_register(line_no=node.line_no)
+                        ir = IndexLoadIR(temp, record, index, None, level=self.level, line_no=node.line_no)
 
                     return [ir]
 
