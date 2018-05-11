@@ -218,15 +218,15 @@ static void _wifi_v_usart_flush( void ){
 
 void strobe_ss( void ){
 
-    // WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-    // WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-    // _delay_us( 1 );
-    // WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
-
-    IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-    IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
     _delay_us( 1 );
-    IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+
+    // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+    // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+    // _delay_us( 1 );
+    // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
 }
 
 static uint16_t dma_rx_bytes( void ){
@@ -439,7 +439,7 @@ static void wifi_v_set_rx_ready( void ){
     wifi_v_reset_rx_buffer();
 
     WIFI_USART_XCK_PORT.OUTCLR = ( 1 << WIFI_USART_XCK_PIN );
-    _delay_us( 10 );
+    _delay_us( 20 );
     WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
 }
 
@@ -1962,6 +1962,8 @@ restart:
         uint8_t control_byte = wifi_u8_get_control_byte();
 
         if( control_byte == WIFI_COMM_DATA ){
+
+// strobe_ss();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + 50 );    
             THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&
