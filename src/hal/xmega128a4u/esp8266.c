@@ -216,18 +216,18 @@ static void _wifi_v_usart_flush( void ){
 
 #include "io.h"
 
-// void strobe_ss( void ){
+void strobe_ss( void ){
 
-//     // WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-//     // WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-//     // _delay_us( 1 );
-//     // WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+    // WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+    // WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
+    // _delay_us( 1 );
+    // WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-//     IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-//     IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
-//     _delay_us( 1 );
-//     IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
-// }
+    IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+    IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+    _delay_us( 1 );
+    IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+}
 
 static uint16_t dma_rx_bytes( void ){
 
@@ -1975,6 +1975,9 @@ restart:
             }
         }
         else if( control_byte == WIFI_COMM_QUERY_READY ){
+
+// DEBUG
+strobe_ss();
 
             log_v_debug_P( PSTR("query ready") );
             wifi_v_set_rx_ready();
