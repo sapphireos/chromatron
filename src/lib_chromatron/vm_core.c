@@ -333,8 +333,8 @@ static int8_t _vm_i8_run_stream(
     call_depth++;
 
     #ifdef ESP8266
-        #define DISPATCH cycles++; \
-                         if( cycles > VM_MAX_CYCLES ){ \
+        #define DISPATCH cycles--; \
+                         if( cycles == 0 ){ \
                             call_depth--; \
                             return VM_STATUS_ERR_MAX_CYCLES; \
                         } \
@@ -347,9 +347,9 @@ static int8_t _vm_i8_run_stream(
     #else
         #define DISPATCH goto dispatch
         dispatch:
-            cycles++;
+            cycles--;
 
-            if( cycles > VM_MAX_CYCLES ){
+            if( cycles == 0 ){
 
                 call_depth--;
                 return VM_STATUS_ERR_MAX_CYCLES;
@@ -1424,7 +1424,8 @@ int8_t vm_i8_run(
     uint16_t offset,
     vm_state_t *state ){
 
-    cycles = 0;
+    cycles = VM_MAX_CYCLES;
+
     call_depth = 0;
 
     int32_t *data = (int32_t *)( stream + state->data_start );
@@ -1443,6 +1444,8 @@ int8_t vm_i8_run(
     }
 
     int8_t status = _vm_i8_run_stream( stream, offset, state, data );
+
+    cycles = VM_MAX_CYCLES - cycles;
 
     if( cycles > state->max_cycles ){
 
