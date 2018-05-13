@@ -44,7 +44,11 @@ static int32_t _vm_i32_sys_call(
     uint16_t param_len,
     bool *yield );
 
+#ifdef ESP8266 // very slight speed boost using 32 bit numbers on Xtensa
+static uint32_t cycles;
+#else
 static uint16_t cycles;
+#endif
 static uint8_t call_depth;
 
 static int8_t _vm_i8_run_stream(
@@ -326,26 +330,41 @@ static int8_t _vm_i8_run_stream(
     uint16_t addr;
     catbus_hash_t32 hash;
 
-
     call_depth++;
 
-dispatch:
-    cycles++;
+    #ifdef ESP8266
+        #define DISPATCH cycles++; \
+                         if( cycles > VM_MAX_CYCLES ){ \
+                            call_depth--; \
+                            return VM_STATUS_ERR_MAX_CYCLES; \
+                        } \
+                        opcode = *pc++; \
+                        goto *opcode_table[opcode]
 
-    if( cycles > VM_MAX_CYCLES ){
 
-        call_depth--;
-        return VM_STATUS_ERR_MAX_CYCLES;
-    }
+        DISPATCH;
 
-    opcode = *pc++;
+    #else
+        #define DISPATCH goto dispatch
+        dispatch:
+            cycles++;
 
-#ifdef ESP8266
-    goto *opcode_table[opcode];
-#else
-    void *target = (void*)pgm_read_word( &opcode_table[opcode] );
-    goto *target;
-#endif
+            if( cycles > VM_MAX_CYCLES ){
+
+                call_depth--;
+                return VM_STATUS_ERR_MAX_CYCLES;
+            }
+
+            opcode = *pc++;
+
+        #ifdef ESP8266
+            goto *opcode_table[opcode];
+        #else
+            void *target = (void*)pgm_read_word( &opcode_table[opcode] );
+            goto *target;
+        #endif
+
+    #endif
 
 opcode_mov:
     dest = *pc++;
@@ -353,7 +372,7 @@ opcode_mov:
 
     data[dest] = data[src];
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_clr:
@@ -362,7 +381,7 @@ opcode_clr:
 
     data[dest] = 0;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_not:
@@ -379,7 +398,7 @@ opcode_not:
         data[dest] = 0;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_compeq:
@@ -390,7 +409,7 @@ opcode_compeq:
 
     data[result] = op1 == op2;
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_compneq:
 
@@ -400,7 +419,7 @@ opcode_compneq:
 
     data[result] = op1 != op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_compgt:
@@ -411,7 +430,7 @@ opcode_compgt:
 
     data[result] = op1 > op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_compgte:
@@ -422,7 +441,7 @@ opcode_compgte:
 
     data[result] = op1 >= op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_complt:
@@ -433,7 +452,7 @@ opcode_complt:
 
     data[result] = op1 < op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_complte:
@@ -444,7 +463,7 @@ opcode_complte:
 
     data[result] = op1 <= op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 
@@ -456,7 +475,7 @@ opcode_and:
 
     data[result] = op1 && op2;
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_or:
 
@@ -466,20 +485,19 @@ opcode_or:
 
     data[result] = op1 || op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_add:
-
+        
     result = *pc++;
     op1  = data[*pc++];
     op2  = data[*pc++];
 
     data[result] = op1 + op2;
-
-    goto dispatch;
-
-
+    
+    DISPATCH;
+    
 opcode_sub:
 
     result = *pc++;
@@ -488,7 +506,7 @@ opcode_sub:
 
     data[result] = op1 - op2;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_mul:
@@ -499,7 +517,7 @@ opcode_mul:
 
     data[result] = op1 * op2;
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_div:
 
@@ -516,7 +534,7 @@ opcode_div:
         data[result] = 0;        
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_mod:
@@ -534,7 +552,7 @@ opcode_mod:
         data[result] = 0;        
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp:
@@ -544,7 +562,7 @@ opcode_jmp:
 
     pc = code + addr;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_z:
@@ -559,7 +577,7 @@ opcode_jmp_if_z:
         pc = code + addr;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_not_z:
@@ -574,7 +592,7 @@ opcode_jmp_if_not_z:
         pc = code + addr;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_z_dec:
@@ -593,7 +611,7 @@ opcode_jmp_if_z_dec:
         data[op1_addr]--;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_gte:
@@ -609,7 +627,7 @@ opcode_jmp_if_gte:
         pc = code + addr;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_l_pre_inc:
@@ -631,7 +649,7 @@ opcode_jmp_if_l_pre_inc:
         pc += 2;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_print:
@@ -641,7 +659,7 @@ opcode_print:
 
     // log_v_debug_P( PSTR("%d = %d"), src, op1 );
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_ret:
@@ -664,7 +682,7 @@ opcode_call:
         return status;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_idx_load:
@@ -674,7 +692,7 @@ opcode_idx_load:
 
     data[dest] = data[src + index];
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_idx_store:
@@ -684,7 +702,7 @@ opcode_idx_store:
 
     data[dest + index] = data[src];
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_offset_array:
@@ -700,7 +718,7 @@ opcode_offset_array:
 
     data[dest] = index;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_array_func:
@@ -771,7 +789,7 @@ opcode_array_func:
         data[dest] = 0;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_ltah:
@@ -791,7 +809,7 @@ opcode_ltah:
     gfx_v_set_hue( op1, data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_ltas:
@@ -820,7 +838,7 @@ opcode_ltas:
 
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_ltav:
@@ -849,7 +867,7 @@ opcode_ltav:
 
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_ltahsf:
 
@@ -877,7 +895,7 @@ opcode_ltahsf:
     gfx_v_set_hs_fade( op1, data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_ltavf:
 
@@ -906,7 +924,7 @@ opcode_ltavf:
     gfx_v_set_v_fade( op1, data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_lfah:
 
@@ -919,7 +937,7 @@ opcode_lfah:
     data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_lfas:
@@ -933,7 +951,7 @@ opcode_lfas:
     data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_lfav:
@@ -947,7 +965,7 @@ opcode_lfav:
     data[dest] = gfx_u16_get_val( data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_lfahsf:
 
@@ -960,7 +978,7 @@ opcode_lfahsf:
     data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_lfavf:
 
@@ -973,7 +991,7 @@ opcode_lfavf:
     data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_array_add:
     
@@ -1001,7 +1019,7 @@ opcode_array_add:
         #endif
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_array_sub:
@@ -1030,7 +1048,7 @@ opcode_array_sub:
         #endif
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_array_mul:
@@ -1059,7 +1077,7 @@ opcode_array_mul:
         #endif
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_array_div:
@@ -1088,7 +1106,7 @@ opcode_array_div:
         #endif
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_array_mod:
@@ -1116,7 +1134,7 @@ opcode_array_mod:
         gfx_v_array_mod( dest, attr, op1 );
         #endif
     }
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_array_mov:
@@ -1145,7 +1163,7 @@ opcode_array_mov:
         #endif
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_rand:
@@ -1169,7 +1187,7 @@ opcode_rand:
 
     data[dest] = val + data[op1_addr];
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_lib_call:
@@ -1193,7 +1211,7 @@ opcode_lib_call:
     data[dest] = 0;
     #endif
 
-    goto dispatch;
+    DISPATCH;
     
 opcode_sys_call:
     func_id     = *pc++;
@@ -1218,7 +1236,7 @@ opcode_sys_call:
         return VM_STATUS_YIELDED;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_assert:
     op1 = data[*pc++];
@@ -1232,14 +1250,14 @@ opcode_assert:
         return VM_STATUS_ASSERT;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_halt:
     
     call_depth--;
     return VM_STATUS_HALT;
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_is_fading:
@@ -1252,7 +1270,7 @@ opcode_is_fading:
     data[dest] = gfx_u16_get_is_fading( data[index_x], data[index_y], obj );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_obj_load:
     obj         = *pc++;
@@ -1264,7 +1282,7 @@ opcode_obj_load:
     data[dest] = gfx_i32_get_obj_attr( obj, attr, op1_addr );
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_obj_store:
     obj         = *pc++;
@@ -1278,7 +1296,7 @@ opcode_obj_store:
 
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_db_load:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
@@ -1302,7 +1320,7 @@ opcode_db_load:
     #endif
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_db_store:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
@@ -1322,7 +1340,7 @@ opcode_db_store:
     #endif
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_db_idx_load:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
@@ -1347,7 +1365,7 @@ opcode_db_idx_load:
     #endif
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_db_idx_store:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
@@ -1368,7 +1386,7 @@ opcode_db_idx_store:
     #endif
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_db_len:
     hash        =  (catbus_hash_t32)(*pc++) << 24;
@@ -1393,7 +1411,7 @@ opcode_db_len:
     data[dest] = 0;        
     #endif
 
-    goto dispatch;
+    DISPATCH;
 
 opcode_trap:
     call_depth--;
