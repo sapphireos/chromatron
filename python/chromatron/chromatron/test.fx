@@ -2,6 +2,12 @@
 a = Number(publish=True)
 
 def init():
-    db.kv_test_key = 123
-    a = 2
-    a += db.kv_test_key + 1
+	pass
+
+
+def loop():
+
+	for i in db.test_array:
+
+	    db.test_array[i] = 123
+    

@@ -719,7 +719,9 @@ PT_BEGIN( pt );
 
 
 
-    // kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, 0, 0, "test_array" );
+    kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT8, 256, 0, 0 );
+    kvdb_v_set_name_P( PSTR("test_array") );
+    
     // kvdb_i8_add( __KV__test_data,  CATBUS_TYPE_UINT32, 1, 0, 0, "test_data" );
     // kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, 0, 0, "test_meow" );
 
