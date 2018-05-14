@@ -321,15 +321,28 @@ ISR(WIFI_DMA_IRQ_VECTOR){
 
     if( rx_buf[0] == WIFI_COMM_DATA ){
 
-        // strobe_ss();
+        strobe_ss();
 
         // we've received a complete header.
         // it will take up to approx. 600 microseconds to receive the
         // rest of the frame. 
         // go ahead and signal the handler thread now,
         // so we can process the frame as quickly as possible.
-        thread_v_signal( WIFI_SIGNAL );
+        // thread_v_signal( WIFI_SIGNAL );
+
+        // TCD1.INTCTRLA |= TC_OVFINTLVL_HI_gc;
+
+        // TCD1.PER = 300;
+        // TCD1.CTRLA = TC_CLKSEL_DIV64_gc;
     }
+}
+
+ISR(TCD1_OVF_vect){
+
+    // TCD1.CTRLA = 0;       
+
+    // strobe_ss();
+    // strobe_ss();
 }
 
 static void disable_irq( void ){
@@ -1738,6 +1751,7 @@ static int8_t process_rx_data( void ){
         return -1;
     }
 
+// strobe_ss();
 // strobe_ss();
 // strobe_ss();
 

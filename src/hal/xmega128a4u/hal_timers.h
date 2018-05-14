@@ -32,7 +32,7 @@ Available timers on the Xmega128A4U:
 TCC0 - PWM system
 TCC1 - System timer
 TCD0 - Graphics timer
-TCD1 - Pixel timer
+TCD1 - Wifi timer
 TCE0 - Reserved for application use
 
 
