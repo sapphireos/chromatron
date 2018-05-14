@@ -63,6 +63,17 @@ static bool ap_mode;
 static bool scanning;
 
 
+static void led_on( void ){
+
+    intf_v_led_on();
+}
+
+static void led_off( void ){
+
+    intf_v_led_off();
+}
+
+
 static void flush_port( WiFiUDP *udp_socket ){
 
     while( udp_socket->read() >= 0 );
@@ -337,6 +348,7 @@ void wifi_v_process( void ){
 
 
         // data available!
+        led_on();
 
         IPAddress remote_ip = udp[i].remoteIP();
 
@@ -361,6 +373,8 @@ void wifi_v_process( void ){
         wifi_v_set_status_bits( WIFI_STATUS_RX_MSG );
 
         intf_v_request_status();
+
+        led_off();
     }
 
     // check transmit buffer
