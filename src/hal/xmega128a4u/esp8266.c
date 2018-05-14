@@ -1981,7 +1981,7 @@ len_error:
 
     wifi_comm_errors2++;
 
-    log_v_debug_P( PSTR("Wifi len error") );
+    log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
     return -3;    
 
 error:
