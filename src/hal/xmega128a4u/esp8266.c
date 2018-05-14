@@ -1792,10 +1792,11 @@ static int8_t process_rx_data( void ){
 
     if( rx_bytes < 0 ){
 
+        debug++;
+
         return -1;
     }
 
-strobe_ss();
 strobe_ss();
 strobe_ss();
 
@@ -1808,7 +1809,7 @@ strobe_ss();
 
     memcpy( buf, &rx_buf[1], sizeof(wifi_data_header_t) + header->len );
 
-    
+
     ATOMIC;
 
     // release buffer
@@ -2006,6 +2007,9 @@ strobe_ss();
 
             netmsg_v_receive( rx_netmsg );
             rx_netmsg = 0;
+
+            // signals receiver that a UDP msg was received
+            status = 1;
         }   
     }
     // else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
@@ -2033,7 +2037,6 @@ strobe_ss();
         wifi_i8_msg_handler( header->data_id, data, header->len );
     }
 
-    status = 0;
     goto end;
 
 len_error:
@@ -2050,6 +2053,10 @@ error:
     goto end;    
 
 end:
+    
+    strobe_ss();
+    strobe_ss();
+    strobe_ss();
 
     return status;
 }
@@ -2082,61 +2089,68 @@ restart:
 
     wifi_status = WIFI_STATE_ALIVE;
 
-    // log_v_debug_P( PSTR("Wifi RX ready") );
-
-
     // set ready and wait for message
     wifi_v_set_rx_ready();
 
         
     while(1){
 
-        thread_v_set_signal_flag();
-        THREAD_WAIT_WHILE( pt, 
-            ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) ||
-            ( !thread_b_signalled( WIFI_SIGNAL ) ) );
+        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-        thread_v_clear_signal( WIFI_SIGNAL );
-        thread_v_clear_signal_flag();
+            THREAD_WAIT_SIGNAL( pt, WIFI_SIGNAL );
 
-        uint8_t control_byte = wifi_u8_get_control_byte();
+            uint8_t msgs_received = 0;
 
-        if( control_byte == WIFI_COMM_DATA ){
+            while( ( process_rx_data() == 0 ) &&
+                   ( msgs_received < 8 ) ){
 
-// strobe_ss();
-// strobe_ss();
+                msgs_received++;
+            }
+        }
+        else{
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 50 );    
-            THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&
-                                   ( thread_b_alarm_set() ) );
 
-            if( thread_b_alarm() ){
+            thread_v_set_signal_flag();
+            THREAD_WAIT_WHILE( pt, 
+                ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) ||
+                ( !thread_b_signalled( WIFI_SIGNAL ) ) );
 
-                log_v_debug_P( PSTR("Wifi rx timeout") );
+            thread_v_clear_signal( WIFI_SIGNAL );
+            thread_v_clear_signal_flag();
+
+            uint8_t control_byte = wifi_u8_get_control_byte();
+
+            if( control_byte == WIFI_COMM_DATA ){
+
+                thread_v_set_alarm( tmr_u32_get_system_time_ms() + 50 );    
+                THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&
+                                       ( thread_b_alarm_set() ) );
+
+                if( thread_b_alarm() ){
+
+                    log_v_debug_P( PSTR("Wifi rx timeout") );
+
+                    // reset buffer control byte
+                    rx_buf[0] = WIFI_COMM_IDLE;
+                    wifi_v_set_rx_ready();
+                }
+            }
+            else if( control_byte == WIFI_COMM_QUERY_READY ){
+
+                log_v_debug_P( PSTR("query ready") );
 
                 // reset buffer control byte
                 rx_buf[0] = WIFI_COMM_IDLE;
                 wifi_v_set_rx_ready();
             }
-        }
-        else if( control_byte == WIFI_COMM_QUERY_READY ){
+            else{
+                log_v_debug_P( PSTR("control: %x %c"), control_byte, control_byte );
 
-// DEBUG
-// strobe_ss();
-
-            log_v_debug_P( PSTR("query ready") );
-
-            // reset buffer control byte
-            rx_buf[0] = WIFI_COMM_IDLE;
-            wifi_v_set_rx_ready();
-        }
-        else{
-            log_v_debug_P( PSTR("control: %x %c"), control_byte, control_byte );
-
-            // reset buffer control byte
-            rx_buf[0] = WIFI_COMM_IDLE;
-            wifi_v_set_rx_ready();
-        }
+                // reset buffer control byte
+                rx_buf[0] = WIFI_COMM_IDLE;
+                wifi_v_set_rx_ready();
+            }
+        } 
 
         ATOMIC;
         max_ready_wait = max_ready_wait_isr;
