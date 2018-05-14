@@ -328,7 +328,8 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         // rest of the frame. 
         // go ahead and signal the handler thread now,
         // so we can process the frame as quickly as possible.
-        // thread_v_signal( WIFI_SIGNAL );
+        thread_v_signal( WIFI_SIGNAL );
+        
 
         // TCD1.INTCTRLA |= TC_OVFINTLVL_HI_gc;
 
