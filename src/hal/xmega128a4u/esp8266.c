@@ -318,6 +318,13 @@ ISR(WIFI_DMA_IRQ_VECTOR){
 
     if( rx_dma_buf[0] == WIFI_COMM_DATA ){
 
+        // we can't set a TRFCNT interrupt to inform us when the message is finished,
+        // because at this point we are already somewhere in the middle of receiving it
+        // and we don't want to mess up the DMA transfer.
+        // however, at this point, we do know how long the message is, and therefore, how
+        // long it will take to receive it.  we can set a timer to fire when the message
+        // is finished.
+
         // reset timer
         TCD1.CTRLA = 0;
         TCD1.CTRLB = 0;
