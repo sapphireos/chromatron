@@ -339,6 +339,8 @@ ISR(WIFI_DMA_IRQ_VECTOR){
 
         // start timer
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
+
+        strobe_ss();
     }
 }
 
@@ -374,12 +376,18 @@ ISR(TCD1_OVF_vect){
     TCD1.CTRLA = 0;
 
     strobe_ss();
+    strobe_ss();
+
 
     if( buffer_busy ){
 
         // check again in 100 microseconds
         TCD1.PER = 400;
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
+        
+        strobe_ss();
+        strobe_ss();
+        strobe_ss();
 
         return;
     }
@@ -1799,6 +1807,9 @@ static int8_t process_rx_data( void ){
 
 strobe_ss();
 strobe_ss();
+strobe_ss();
+strobe_ss();
+
 
     // reset buffer control byte
     rx_buf[0] = WIFI_COMM_IDLE;
@@ -2057,6 +2068,9 @@ end:
     strobe_ss();
     strobe_ss();
     strobe_ss();
+    strobe_ss();
+    strobe_ss();
+
 
     return status;
 }
