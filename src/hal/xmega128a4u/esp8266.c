@@ -331,19 +331,22 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         thread_v_signal( WIFI_SIGNAL );
 
 
-        // TCD1.INTCTRLA |= TC_OVFINTLVL_HI_gc;
+        TCD1.CTRLA = 0;
+        TCD1.CTRLB = 0;
+        TCD1.INTCTRLA = TC_OVFINTLVL_HI_gc;
+        TCD1.INTCTRLB = 0;
 
-        // TCD1.PER = 300;
-        // TCD1.CTRLA = TC_CLKSEL_DIV64_gc;
+        TCD1.PER = 300;
+        TCD1.CTRLA = TC_CLKSEL_DIV64_gc;
     }
 }
 
 ISR(TCD1_OVF_vect){
 
-    // TCD1.CTRLA = 0;       
+    TCD1.CTRLA = 0;
 
-    // strobe_ss();
-    // strobe_ss();
+    strobe_ss();
+    strobe_ss();
 }
 
 static void disable_irq( void ){
