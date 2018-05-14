@@ -368,7 +368,29 @@ static void wifi_v_set_rx_ready( void ){
 
 ISR(TCD1_OVF_vect){
 
+    if( TCD1.INTFLAGS & TC0_OVFIF_bm ){
+
+        strobe_ss();
+        strobe_ss();
+        strobe_ss();
+        strobe_ss();
+        strobe_ss();
+        strobe_ss();   
+    }
+
+    // disable timer and make sure interrupt flags are cleared.
+    // this is important because on very short messages, the timer
+    // may set a second pending OVF interrupt before the timer is
+    // disabled while handling the first interrupt.  this will
+    // cause the interrupt to run again as if there were a second message
+    // being processed.  this will then cause the buffer wait logic to trigger,
+    // causing the timer to fire again in 100 uS.  once the original message
+    // has been processed and the buffer freed, the interrupt handler will
+    // then think that it can copy the second (non-existant) message into the
+    // main buffer and reset the receive ready flag and the DMA engine.
+    // if this occurs while a message was being received, it breaks the interface.
     TCD1.CTRLA = 0;
+    TCD1.INTFLAGS = TC0_OVFIF_bm;
 
     if( buffer_busy ){
 
