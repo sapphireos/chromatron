@@ -375,10 +375,6 @@ ISR(TCD1_OVF_vect){
 
     TCD1.CTRLA = 0;
 
-    strobe_ss();
-    strobe_ss();
-
-
     if( buffer_busy ){
 
         // check again in 100 microseconds
@@ -391,6 +387,10 @@ ISR(TCD1_OVF_vect){
 
         return;
     }
+
+    strobe_ss();
+    strobe_ss();
+
 
     buffer_busy = TRUE;
 
