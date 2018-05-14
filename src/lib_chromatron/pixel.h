@@ -23,6 +23,7 @@
 #ifndef _PIXEL_H_
 #define _PIXEL_H_
 
+#include "graphics.h"
 #include "keyvalue.h"
 #include "pix_modes.h"
 
@@ -42,14 +43,14 @@
 #define PIXEL_EN_PIN            7
 
 // PWM 2
-#define PIX_CLK_PORT    PORTC
-#define PIX_CLK_PIN     1
+#define PIX_CLK_PORT            PORTC
+#define PIX_CLK_PIN             1
 
 // PWM 4
-#define PIX_DATA_PORT   PORTC
-#define PIX_DATA_PIN    3
+#define PIX_DATA_PORT           PORTC
+#define PIX_DATA_PIN            3
 
-#define PIXEL_DATA_PORT              USARTC0
+#define PIXEL_DATA_PORT             USARTC0
 
 // DMA
 #define PIXEL_DMA_CH_A              CH0
@@ -61,11 +62,12 @@
 #define PIXEL_DMA_CH_B_vect         DMA_CH1_vect
 
 // Timer
-#define PIXEL_TIMER                 TCD1
-#define PIXEL_TIMER_OVF_vect        TCD1_OVF_vect
+#define PIXEL_TIMER                 GFX_TIMER
+#define PIXEL_TIMER_CC              CCD
+#define PIXEL_TIMER_CC_VECT         GFX_TIMER_CCD_vect
+#define PIXEL_TIMER_CC_INTLVL       TC_CCDINTLVL_HI_gc
 
-
-#define PIXEL_USART_DMA_TRIG    DMA_CH_TRIGSRC_USARTC0_DRE_gc
+#define PIXEL_USART_DMA_TRIG        DMA_CH_TRIGSRC_USARTC0_DRE_gc
 
 
 void pixel_v_init( void );
