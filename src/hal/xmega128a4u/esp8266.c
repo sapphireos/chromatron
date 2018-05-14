@@ -100,6 +100,7 @@ static uint32_t wifi_uptime;
 static bool default_ap_mode;
 
 static uint16_t wifi_comm_errors;
+static uint16_t wifi_comm_errors2;
 static uint8_t wifi_connects;
 
 static uint16_t wifi_rx_udp_fifo_overruns;
@@ -165,6 +166,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version,                     0,   "wifi_version" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors,                 0,   "wifi_comm_errors" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors2,                0,   "wifi_comm_errors2" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_fifo_overruns,        0,   "wifi_comm_rx_udp_fifo_overruns" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_sent,                    0,   "wifi_udp_sent" },
@@ -229,19 +231,37 @@ void strobe_ss( void ){
     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
 }
 
+
+
 static uint16_t dma_rx_bytes( void ){
 
     uint16_t len;
 
+    uint16_t dest_addr0, dest_addr1;
+
     ATOMIC;
-    if( ( DMA.INTFLAGS & WIFI_DMA_CHTRNIF ) != 0 ){
 
-        len = sizeof(rx_buf);
-    }
-    else{
+    do{
 
-        len = sizeof(rx_buf) - DMA.WIFI_DMA_CH.TRFCNT;
-    }
+        volatile uint8_t temp;
+        temp = DMA.WIFI_DMA_CH.DESTADDR0;
+        dest_addr0 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+        temp = DMA.WIFI_DMA_CH.DESTADDR0;
+        dest_addr1 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+    } while( dest_addr0 != dest_addr1 );
+
+    len = dest_addr0 - (uint16_t)rx_buf;
+
+    // if( ( DMA.INTFLAGS & WIFI_DMA_CHTRNIF ) != 0 ){
+
+    //     len = sizeof(rx_buf);
+    // }
+    // else{
+
+    //     len = sizeof(rx_buf) - DMA.WIFI_DMA_CH.TRFCNT;
+    // }
     END_ATOMIC;
 
     return len;
@@ -266,7 +286,7 @@ static void enable_rx_dma( void ){
 
     DMA.INTFLAGS = WIFI_DMA_CHTRNIF | WIFI_DMA_CHERRIF; // clear transaction complete interrupt
 
-    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | DMA_CH_BURSTLEN_1BYTE_gc;
+    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | DMA_CH_REPEAT_bm | DMA_CH_BURSTLEN_1BYTE_gc;
     DMA.WIFI_DMA_CH.REPCNT = 0;
     DMA.WIFI_DMA_CH.ADDRCTRL = DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_SRCDIR_FIXED_gc | DMA_CH_DESTRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc;
     DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
@@ -1919,10 +1939,13 @@ strobe_ss();
 
 len_error:
 
+    wifi_comm_errors2++;
+
     log_v_debug_P( PSTR("Wifi len error") );
     return -3;    
 
 error:
+    wifi_comm_errors2++;
     return -4;    
 }
 
