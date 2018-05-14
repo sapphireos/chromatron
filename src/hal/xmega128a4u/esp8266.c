@@ -2106,6 +2106,8 @@ restart:
 
                 msgs_received++;
             }
+
+            THREAD_YIELD( pt );
         }
         else{
 
