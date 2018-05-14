@@ -24,6 +24,7 @@
 #define _ESP8266_H
 
 #include "netmsg.h"
+#include "threading.h"
 #include "wifi_cmd.h"
 
 
@@ -51,6 +52,8 @@
 #define WIFI_USART_XCK_PINCTRL  PIN1CTRL
 
 #define WIFI_IRQ_VECTOR         PORTA_INT0_vect
+
+#define WIFI_SIGNAL 			SIGNAL_SYS_3
 
 
 #define WIFI_PD_PORT            PORTE

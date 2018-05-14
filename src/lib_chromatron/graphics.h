@@ -32,6 +32,7 @@
 #define GFX_TIMER_CCA_vect  TCD0_CCA_vect
 #define GFX_TIMER_CCB_vect  TCD0_CCB_vect
 #define GFX_TIMER_CCC_vect  TCD0_CCC_vect
+#define GFX_TIMER_CCD_vect  TCD0_CCD_vect
 
 
 

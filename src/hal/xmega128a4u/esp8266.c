@@ -139,6 +139,8 @@ static uint16_t max_ready_wait;
 // static mem_handle_t wifi_networks_handle = -1;
 
 
+static uint32_t debug;
+
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
@@ -189,6 +191,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_rate_tx" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rate_rx" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0, &debug,                     0,   "wifi_debug" },
 };
 
 
@@ -287,6 +291,7 @@ static void enable_rx_dma( void ){
     DMA.INTFLAGS = WIFI_DMA_CHTRNIF | WIFI_DMA_CHERRIF; // clear transaction complete interrupt
 
     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | DMA_CH_REPEAT_bm | DMA_CH_BURSTLEN_1BYTE_gc;
+    DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
     DMA.WIFI_DMA_CH.REPCNT = 0;
     DMA.WIFI_DMA_CH.ADDRCTRL = DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_SRCDIR_FIXED_gc | DMA_CH_DESTRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc;
     DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
@@ -302,9 +307,30 @@ static void enable_rx_dma( void ){
     DMA.WIFI_DMA_CH.DESTADDR2 = 0;
 
     DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
+
     END_ATOMIC;
 }
 
+
+ISR(WIFI_DMA_IRQ_VECTOR){
+        
+    // disable IRQ
+    DMA.WIFI_DMA_CH.CTRLB = 0;
+
+    // wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
+
+    if( rx_buf[0] == WIFI_COMM_DATA ){
+
+        // strobe_ss();
+
+        // we've received a complete header.
+        // it will take up to approx. 600 microseconds to receive the
+        // rest of the frame. 
+        // go ahead and signal the handler thread now,
+        // so we can process the frame as quickly as possible.
+        thread_v_signal( WIFI_SIGNAL );
+    }
+}
 
 static void disable_irq( void ){
 
@@ -1712,8 +1738,8 @@ static int8_t process_rx_data( void ){
         return -1;
     }
 
-strobe_ss();
-strobe_ss();
+// strobe_ss();
+// strobe_ss();
 
     current_rx_bytes += rx_bytes;
     
@@ -1985,13 +2011,20 @@ restart:
         
     while(1){
 
-        THREAD_WAIT_WHILE( pt, wifi_u8_get_control_byte() == WIFI_COMM_IDLE );
+        thread_v_set_signal_flag();
+        THREAD_WAIT_WHILE( pt, 
+            ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) ||
+            ( !thread_b_signalled( WIFI_SIGNAL ) ) );
+
+        thread_v_clear_signal( WIFI_SIGNAL );
+        thread_v_clear_signal_flag();
 
         uint8_t control_byte = wifi_u8_get_control_byte();
 
         if( control_byte == WIFI_COMM_DATA ){
 
-strobe_ss();
+// strobe_ss();
+// strobe_ss();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + 50 );    
             THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&

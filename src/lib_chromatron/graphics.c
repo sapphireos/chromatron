@@ -341,8 +341,6 @@ void gfx_v_init( void ){
 
     param_error_check();
 
-    pixel_v_init();
-
 
     // debug
     // PIXEL_EN_PORT.DIRSET = ( 1 << PIXEL_EN_PIN );
@@ -369,6 +367,8 @@ void gfx_v_init( void ){
 
     GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
     GFX_TIMER.CTRLB = 0;
+
+    pixel_v_init();
 
 
     thread_t_create( gfx_control_thread,
@@ -504,17 +504,17 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     #ifdef USE_HSV_BRIDGE
     if( data_id == WIFI_DATA_ID_HSV_ARRAY ){
 
-        if( pixel_transfer_enable ){
+        // if( pixel_transfer_enable ){
 
-            wifi_msg_hsv_array_t *msg = (wifi_msg_hsv_array_t *)data;
+        //     wifi_msg_hsv_array_t *msg = (wifi_msg_hsv_array_t *)data;
 
-            // // unpack HSV pointers
-            uint16_t *h = (uint16_t *)msg->hsv_array;
-            uint16_t *s = h + msg->count;
-            uint16_t *v = s + msg->count;
+        //     // // unpack HSV pointers
+        //     uint16_t *h = (uint16_t *)msg->hsv_array;
+        //     uint16_t *s = h + msg->count;
+        //     uint16_t *v = s + msg->count;
 
-            pixel_v_load_hsv( msg->index, msg->count, h, s, v );   
-        }
+        //     pixel_v_load_hsv( msg->index, msg->count, h, s, v );   
+        // }
     }
     #else
     if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
