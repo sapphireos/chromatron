@@ -329,7 +329,7 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         // go ahead and signal the handler thread now,
         // so we can process the frame as quickly as possible.
         thread_v_signal( WIFI_SIGNAL );
-        
+
 
         // TCD1.INTCTRLA |= TC_OVFINTLVL_HI_gc;
 
@@ -1636,7 +1636,12 @@ PT_BEGIN( pt );
                                    ( thread_b_alarm_set() ) );
 
             // check if connected
-            if( !wifi_b_connected() ){
+            if( wifi_b_connected() ){
+
+                kv_i8_persist( __KV__wifi_router );
+            }
+            else{
+                // not connected, try next router
 
                 router++;
 
