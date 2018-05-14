@@ -40,6 +40,8 @@
 #define WIFI_DMA_CH             CH2
 #define WIFI_DMA_CHTRNIF        DMA_CH2TRNIF_bm
 #define WIFI_DMA_CHERRIF        DMA_CH2ERRIF_bm
+#define WIFI_DMA_IRQ_VECTOR     DMA_CH2_vect
+
 #define WIFI_USART_TXD_PORT     PORTE
 #define WIFI_USART_TXD_PIN      3
 #define WIFI_USART_RXD_PORT     PORTE
@@ -70,6 +72,9 @@
 
 
 #define WIFI_AP_MIN_PASS_LEN    8
+
+
+#define WIFI_LOADER_MAX_TRIES   8
 
 
 void wifi_v_init( void );

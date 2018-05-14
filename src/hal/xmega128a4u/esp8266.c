@@ -270,7 +270,8 @@ static void enable_rx_dma( void ){
     DMA.WIFI_DMA_CH.REPCNT = 0;
     DMA.WIFI_DMA_CH.ADDRCTRL = DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_SRCDIR_FIXED_gc | DMA_CH_DESTRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc;
     DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
-    DMA.WIFI_DMA_CH.TRFCNT = sizeof(rx_buf);
+    // DMA.WIFI_DMA_CH.TRFCNT = sizeof(rx_buf);
+    DMA.WIFI_DMA_CH.TRFCNT = sizeof(wifi_data_header_t) + 1;
 
     DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 0 ) & 0xFF;
     DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 8 ) & 0xFF;
@@ -1413,6 +1414,7 @@ void esp_v_flash_end( void ){
 typedef struct{
     uint8_t timeout;
     file_t fw_file;
+    uint8_t tries;
 } loader_thread_state_t;
 
 PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
@@ -1690,6 +1692,9 @@ static int8_t process_rx_data( void ){
         return -1;
     }
 
+strobe_ss();
+strobe_ss();
+
     current_rx_bytes += rx_bytes;
     
     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
@@ -1963,7 +1968,7 @@ restart:
 
         if( control_byte == WIFI_COMM_DATA ){
 
-// strobe_ss();
+strobe_ss();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + 50 );    
             THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&
@@ -1979,7 +1984,7 @@ restart:
         else if( control_byte == WIFI_COMM_QUERY_READY ){
 
 // DEBUG
-strobe_ss();
+// strobe_ss();
 
             log_v_debug_P( PSTR("query ready") );
             wifi_v_set_rx_ready();
@@ -2036,11 +2041,19 @@ PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) )
 PT_BEGIN( pt );
 
     state->fw_file = 0;
+    state->tries = WIFI_LOADER_MAX_TRIES;
 
     // log_v_debug_P( PSTR("wifi loader starting") );
 
     
 restart:
+
+    // check if we've exceeded our retries
+    if( state->tries == 0 ){
+
+        // wifi is hosed, give up.
+        goto error;
+    }
 
     _wifi_v_enter_boot_mode();
     wifi_status = WIFI_STATE_BOOT;
@@ -2070,6 +2083,8 @@ restart:
         if( state->timeout == 0 ){
 
             log_v_debug_P( PSTR("wifi loader timeout") );
+
+            state->tries--;
             goto restart;
         }
 
