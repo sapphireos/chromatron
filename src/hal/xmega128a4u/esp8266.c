@@ -225,18 +225,18 @@ static void _wifi_v_usart_flush( void ){
 
 #include "io.h"
 
-void strobe_ss( void ){
+// void strobe_ss( void ){
 
-    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-    WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-    _delay_us( 1 );
-    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
+//     _delay_us( 1 );
+//     WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-    // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-    // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
-    // _delay_us( 1 );
-    // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
-}
+//     // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+//     // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+//     // _delay_us( 1 );
+//     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+// }
 
 
 
@@ -339,10 +339,6 @@ ISR(WIFI_DMA_IRQ_VECTOR){
 
         // start timer
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
-
-        strobe_ss();
-
-        _delay_us( 10 );
     }
 }
 
@@ -375,16 +371,6 @@ static void wifi_v_set_rx_ready( void ){
 
 ISR(TCD1_OVF_vect){
 
-    if( TCD1.INTFLAGS & TC0_OVFIF_bm ){
-
-        strobe_ss();
-        strobe_ss();
-        strobe_ss();
-        strobe_ss();
-        strobe_ss();
-        strobe_ss();   
-    }
-
     // disable timer and make sure interrupt flags are cleared.
     // this is important because on very short messages, the timer
     // may set a second pending OVF interrupt before the timer is
@@ -405,16 +391,8 @@ ISR(TCD1_OVF_vect){
         TCD1.PER = 400;
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
         
-        strobe_ss();
-        strobe_ss();
-        strobe_ss();
-
         return;
     }
-
-    strobe_ss();
-    strobe_ss();
-
 
     buffer_busy = TRUE;
 
@@ -1829,12 +1807,6 @@ static int8_t process_rx_data( void ){
         return -1;
     }
 
-// strobe_ss();
-// strobe_ss();
-// strobe_ss();
-// strobe_ss();
-
-
     // reset buffer control byte
     rx_buf[0] = WIFI_COMM_IDLE;
 
@@ -1854,8 +1826,6 @@ static int8_t process_rx_data( void ){
 
 
     current_rx_bytes += rx_bytes;
-
-    // wifi_v_set_rx_ready();
 
     header = (wifi_data_header_t *)buf;
     uint8_t *data = (uint8_t *)( header + 1 );
@@ -2088,14 +2058,6 @@ error:
     goto end;    
 
 end:
-    
-    // strobe_ss();
-    // strobe_ss();
-    // strobe_ss();
-    // strobe_ss();
-    // strobe_ss();
-
-
     return status;
 }
 
