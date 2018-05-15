@@ -478,7 +478,117 @@ void intf_v_process( void ){
         goto done;
     }
 
-    if( request_status ){
+    #ifndef USE_HSV_BRIDGE
+    if( request_rgb_pix0 ){
+
+        request_rgb_pix0 = false;
+
+        wifi_msg_rgb_pix0_t msg;
+        msg.r = gfx_u16_get_pix0_red();
+        msg.g = gfx_u16_get_pix0_green();
+        msg.b = gfx_u16_get_pix0_blue();
+
+        _intf_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
+    }
+    else if( request_rgb_array ){
+
+        // get pointers to the arrays
+        uint8_t *r = gfx_u8p_get_red();
+        uint8_t *g = gfx_u8p_get_green();
+        uint8_t *b = gfx_u8p_get_blue();
+        uint8_t *d = gfx_u8p_get_dither();
+
+        uint16_t pix_count = gfx_u16_get_pix_count();
+
+        wifi_msg_rgb_array_t msg;
+
+        uint16_t remaining = pix_count - rgb_index;
+        uint8_t count = WIFI_RGB_DATA_N_PIXELS;
+
+        if( count > remaining ){
+
+            count = remaining;
+        }
+
+        msg.index = rgb_index;
+        msg.count = count;
+        uint8_t *ptr = msg.rgbd_array;
+        memcpy( ptr, r + rgb_index, count );
+        ptr += count;
+        memcpy( ptr, g + rgb_index, count );
+        ptr += count;
+        memcpy( ptr, b + rgb_index, count );
+        ptr += count;
+        memcpy( ptr, d + rgb_index, count );
+
+        _intf_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, 
+                           (uint8_t *)&msg, 
+                           sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
+
+        rgb_index += count;
+
+        if( rgb_index >= pix_count ){
+
+            rgb_index = 0;
+            request_rgb_array = false;
+        }
+    }
+    #else
+    if( request_hsv_array ){
+
+        // // get pointers to the arrays
+        uint16_t *h = gfx_u16p_get_hue();
+        uint16_t *s = gfx_u16p_get_sat();
+        uint16_t *v = gfx_u16p_get_val();
+
+        uint16_t pix_count = gfx_u16_get_pix_count();
+
+        wifi_msg_hsv_array_t msg;
+
+        uint16_t remaining = pix_count - hsv_index;
+        uint8_t count = WIFI_HSV_DATA_N_PIXELS;
+
+        if( count > remaining ){
+
+            count = remaining;
+        }
+
+        msg.index = hsv_index;
+        msg.count = count;
+        
+        uint8_t transfer_bytes = count * 2;
+
+        uint8_t *ptr = msg.hsv_array;
+        memcpy( ptr, h + hsv_index, transfer_bytes );
+        ptr += transfer_bytes;
+        memcpy( ptr, s + hsv_index, transfer_bytes );
+        ptr += transfer_bytes;
+
+        uint16_t *val = (uint16_t *)ptr;
+        for( uint32_t i = 0; i < count; i++ ){
+
+            *val = gfx_u16_get_dimmed_val( *v );
+            v++;
+            val++;
+        }
+
+        _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
+                           (uint8_t *)&msg, 
+                           sizeof(msg.index) + 
+                           sizeof(msg.count) + 
+                           sizeof(msg.padding) + 
+                           ( count * 6 ) );
+
+        hsv_index += count;
+
+        if( hsv_index >= pix_count ){
+
+            hsv_index = 0;
+            request_hsv_array = false;
+        }
+    }
+    #endif
+    else if( request_status ){
 
         request_status = false;
 
@@ -583,116 +693,6 @@ void intf_v_process( void ){
 
         _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
     }
-    #ifndef USE_HSV_BRIDGE
-    else if( request_rgb_pix0 ){
-
-        request_rgb_pix0 = false;
-
-        wifi_msg_rgb_pix0_t msg;
-        msg.r = gfx_u16_get_pix0_red();
-        msg.g = gfx_u16_get_pix0_green();
-        msg.b = gfx_u16_get_pix0_blue();
-
-        _intf_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
-    }
-    else if( request_rgb_array ){
-
-        // get pointers to the arrays
-        uint8_t *r = gfx_u8p_get_red();
-        uint8_t *g = gfx_u8p_get_green();
-        uint8_t *b = gfx_u8p_get_blue();
-        uint8_t *d = gfx_u8p_get_dither();
-
-        uint16_t pix_count = gfx_u16_get_pix_count();
-
-        wifi_msg_rgb_array_t msg;
-
-        uint16_t remaining = pix_count - rgb_index;
-        uint8_t count = WIFI_RGB_DATA_N_PIXELS;
-
-        if( count > remaining ){
-
-            count = remaining;
-        }
-
-        msg.index = rgb_index;
-        msg.count = count;
-        uint8_t *ptr = msg.rgbd_array;
-        memcpy( ptr, r + rgb_index, count );
-        ptr += count;
-        memcpy( ptr, g + rgb_index, count );
-        ptr += count;
-        memcpy( ptr, b + rgb_index, count );
-        ptr += count;
-        memcpy( ptr, d + rgb_index, count );
-
-        _intf_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, 
-                           (uint8_t *)&msg, 
-                           sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
-
-        rgb_index += count;
-
-        if( rgb_index >= pix_count ){
-
-            rgb_index = 0;
-            request_rgb_array = false;
-        }
-    }
-    #else
-    else if( request_hsv_array ){
-
-        // // get pointers to the arrays
-        uint16_t *h = gfx_u16p_get_hue();
-        uint16_t *s = gfx_u16p_get_sat();
-        uint16_t *v = gfx_u16p_get_val();
-
-        uint16_t pix_count = gfx_u16_get_pix_count();
-
-        wifi_msg_hsv_array_t msg;
-
-        uint16_t remaining = pix_count - hsv_index;
-        uint8_t count = WIFI_HSV_DATA_N_PIXELS;
-
-        if( count > remaining ){
-
-            count = remaining;
-        }
-
-        msg.index = hsv_index;
-        msg.count = count;
-        
-        uint8_t transfer_bytes = count * 2;
-
-        uint8_t *ptr = msg.hsv_array;
-        memcpy( ptr, h + hsv_index, transfer_bytes );
-        ptr += transfer_bytes;
-        memcpy( ptr, s + hsv_index, transfer_bytes );
-        ptr += transfer_bytes;
-
-        uint16_t *val = (uint16_t *)ptr;
-        for( uint32_t i = 0; i < count; i++ ){
-
-            *val = gfx_u16_get_dimmed_val( *v );
-            v++;
-            val++;
-        }
-
-        _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
-                           (uint8_t *)&msg, 
-                           sizeof(msg.index) + 
-                           sizeof(msg.count) + 
-                           sizeof(msg.padding) + 
-                           ( count * 6 ) );
-
-        hsv_index += count;
-
-        if( hsv_index >= pix_count ){
-
-            hsv_index = 0;
-            request_hsv_array = false;
-        }
-    }
-    #endif
     else if( request_debug ){
 
         request_debug = false;
