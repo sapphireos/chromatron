@@ -2138,6 +2138,8 @@ restart:
                 data_len -= copy_len;
             }
 
+            // release netmsg
+            netmsg_v_release( tx_netmsg );
         }
 
 receive:
