@@ -2044,51 +2044,11 @@ restart:
             msgs_received++;
         }
 
-        THREAD_YIELD( pt );
-    
-
-        // else{
-        //     thread_v_set_signal_flag();
-        //     THREAD_WAIT_WHILE( pt, 
-        //         ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) ||
-        //         ( !thread_b_signalled( WIFI_SIGNAL ) ) );
-
-        //     thread_v_clear_signal( WIFI_SIGNAL );
-        //     thread_v_clear_signal_flag();
-
-        //     uint8_t control_byte = wifi_u8_get_control_byte();
-
-        //     if( control_byte == WIFI_COMM_DATA ){
-
-        //         uint8_t msgs_received = 0;
-
-        //         while( ( process_rx_data() == 0 ) &&
-        //                ( msgs_received < 8 ) ){
-
-        //             msgs_received++;
-        //         }
-        //     }
-        //     else if( control_byte == WIFI_COMM_QUERY_READY ){
-
-        //         log_v_debug_P( PSTR("query ready") );
-
-        //         // reset buffer control byte
-        //         rx_buf[0] = WIFI_COMM_IDLE;
-        //         wifi_v_set_rx_ready();
-        //     }
-        //     else{
-        //         log_v_debug_P( PSTR("control: %x %c"), control_byte, control_byte );
-
-        //         // reset buffer control byte
-        //         rx_buf[0] = WIFI_COMM_IDLE;
-        //         wifi_v_set_rx_ready();
-        //     }
-        // } 
-
         ATOMIC;
         max_ready_wait = max_ready_wait_isr;
         END_ATOMIC;
     
+        THREAD_YIELD( pt );
         THREAD_YIELD( pt );
     }
 
