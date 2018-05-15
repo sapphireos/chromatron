@@ -94,12 +94,6 @@ bool wifi_b_running( void );
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
 int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len );
-// int8_t wifi_i8_send_msg_response( 
-//     uint8_t data_id, 
-//     uint8_t *data, 
-//     uint8_t len,
-//     uint8_t *response,
-//     uint8_t response_len );
 
 bool wifi_b_comm_ready( void );
 bool wifi_b_wait_comm_ready( void );
