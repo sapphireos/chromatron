@@ -74,4 +74,16 @@ bool tmr_b_alarm_armed( void );
 	    } \
 	}
 
+
+#define BUSY_WAIT(expr, timeout) {\
+		uint32_t ___timeout___ = tmr_u32_get_system_time_us(); \
+    	while( expr ){ \
+    		if( tmr_u32_elapsed_time_us( ___timeout___ ) > timeout ){ \
+    			break; \
+    		}\
+	    } \
+	}
+
 #endif
+
+

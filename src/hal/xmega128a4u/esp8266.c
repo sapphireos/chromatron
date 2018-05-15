@@ -2116,7 +2116,7 @@ restart:
 
             if( h2_len > 0 ){
 
-                SAFE_BUSY_WAIT( !wifi_b_comm_ready() );
+                BUSY_WAIT( !wifi_b_comm_ready(), 10000 );
 
                 wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, h2, h2_len );
             }
@@ -2130,7 +2130,7 @@ restart:
                     copy_len = WIFI_MAX_DATA_LEN;
                 }
 
-                SAFE_BUSY_WAIT( !wifi_b_comm_ready() );
+                BUSY_WAIT( !wifi_b_comm_ready(), 10000 );
 
                 wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, data, copy_len );
 
