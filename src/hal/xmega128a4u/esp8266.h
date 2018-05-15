@@ -34,9 +34,7 @@
 #define WIFI_STATE_UNKNOWN      0
 #define WIFI_STATE_ALIVE        1
 
-#define WIFI_MAX_NETMSGS				4
-#define WIFI_MAX_TX_DATA_UDP_THRESH		128
-#define WIFI_MAX_TX_DATA				896
+#define WIFI_MAX_NETMSGS		4
 
 #define WIFI_USART              USARTE0
 #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
@@ -95,7 +93,6 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg );
 bool wifi_b_running( void );
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
-int8_t wifi_i8_send_msg_async( uint8_t data_id, uint8_t *data, uint8_t len );
 int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len );
 
 bool wifi_b_comm_ready( void );
