@@ -139,10 +139,11 @@ static uint32_t ready_time_start;
 static volatile uint16_t max_ready_wait_isr;
 static uint16_t max_ready_wait;
 
+static uint8_t comm_stalls;
+
 // static mem_handle_t wifi_networks_handle = -1;
 
 
-static uint32_t debug;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -195,7 +196,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_rate_tx" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rate_rx" },
 
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &debug,                     0,   "wifi_debug" },
+    { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
 
@@ -225,18 +226,18 @@ static void _wifi_v_usart_flush( void ){
 
 #include "io.h"
 
-// void strobe_ss( void ){
+void strobe_ss( void ){
 
-//     WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-//     WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-//     _delay_us( 1 );
-//     WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
+    _delay_us( 1 );
+    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-//     // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-//     // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
-//     // _delay_us( 1 );
-//     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
-// }
+    // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+    // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+    // _delay_us( 1 );
+    // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+}
 
 
 
@@ -271,6 +272,10 @@ static void disable_rx_dma( void ){
     ATOMIC;
     DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
     DMA.WIFI_DMA_CH.TRFCNT = 0;
+
+    // make sure DMA timer is disabled
+    TCD1.CTRLA = 0;
+    TCD1.INTFLAGS = TC0_OVFIF_bm;
     END_ATOMIC;
 }
 
@@ -310,6 +315,34 @@ static void enable_rx_dma( bool irq ){
     END_ATOMIC;
 }
 
+static void wifi_v_reset_rx_buffer( void ){
+
+    disable_rx_dma();
+
+    // set up DMA
+    enable_rx_dma( TRUE );
+}
+
+static void wifi_v_reset_control_byte( void ){
+
+    rx_buf[0] = WIFI_COMM_IDLE;   
+}
+
+static void wifi_v_reset_comm( void ){
+
+    wifi_v_reset_rx_buffer();
+    _wifi_v_usart_send_char( WIFI_COMM_RESET );   
+}
+
+static void wifi_v_set_rx_ready( void ){
+        
+    wifi_v_reset_rx_buffer();
+
+    WIFI_USART_XCK_PORT.OUTCLR = ( 1 << WIFI_USART_XCK_PIN );
+    _delay_us( 20 );
+    WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
+}
+
 
 ISR(WIFI_DMA_IRQ_VECTOR){
         
@@ -340,37 +373,16 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         // start timer
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
     }
+    else{
+
+        strobe_ss();
+
+        // incorrect control byte on frame
+
+        // reset DMA and send ready signal
+        wifi_v_set_rx_ready();
+    }
 }
-
-
-static void wifi_v_reset_rx_buffer( void ){
-
-    disable_rx_dma();
-
-    // set up DMA
-    enable_rx_dma( TRUE );
-}
-
-static void wifi_v_reset_control_byte( void ){
-
-    rx_buf[0] = WIFI_COMM_IDLE;   
-}
-
-static void wifi_v_reset_comm( void ){
-
-    wifi_v_reset_rx_buffer();
-    _wifi_v_usart_send_char( WIFI_COMM_RESET );   
-}
-
-static void wifi_v_set_rx_ready( void ){
-        
-    wifi_v_reset_rx_buffer();
-
-    WIFI_USART_XCK_PORT.OUTCLR = ( 1 << WIFI_USART_XCK_PIN );
-    _delay_us( 20 );
-    WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
-}
-
 
 ISR(TCD1_OVF_vect){
 
@@ -1731,8 +1743,6 @@ static int8_t process_rx_data( void ){
 
     if( rx_bytes < 0 ){
 
-        debug++;
-
         return -1;
     }
 
@@ -2110,6 +2120,24 @@ PT_BEGIN( pt );
         // reset counters
         current_rx_bytes = 0;
         current_tx_bytes = 0;
+
+        // check control byte for a ready query
+        if( wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){
+
+            log_v_debug_P( PSTR("query ready") );
+            wifi_v_reset_control_byte();
+
+            // send ready signal
+            // this will also reset the DMA engine.
+            wifi_v_set_rx_ready();
+
+            strobe_ss();
+
+            if( comm_stalls < 255 ){
+
+                comm_stalls++;
+            }
+        }
     }
 
 PT_END( pt );
