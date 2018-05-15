@@ -85,7 +85,7 @@ static inline uint8_t user_spi_u8_send( uint8_t data ){
 
     SPI_USER_PORT.DATA = data;
 
-    SAFE_BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+    BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
     SPI_USER_PORT.STATUS = USART_TXCIF_bm;
 
     return SPI_USER_PORT.DATA;
@@ -105,7 +105,7 @@ static inline void user_spi_v_write_block( const uint8_t *data, uint16_t length 
         data++;
         length--;
 
-        SAFE_BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+        BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
         SPI_USER_PORT.STATUS = USART_TXCIF_bm;
 
 
@@ -124,7 +124,7 @@ static inline void user_spi_v_read_block( uint8_t *data, uint16_t length ){
     while( length > 1 ){
 
         // wait until transfer is complete
-        SAFE_BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+        BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
         SPI_USER_PORT.STATUS = USART_TXCIF_bm;
 
         // read the data byte
@@ -140,7 +140,7 @@ static inline void user_spi_v_read_block( uint8_t *data, uint16_t length ){
     // loop terminates with one byte left
 
     // wait until transfer is complete
-    SAFE_BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+    BUSY_WAIT( ( SPI_USER_PORT.STATUS & USART_TXCIF_bm ) == 0 );
     SPI_USER_PORT.STATUS = USART_TXCIF_bm;
 
     // read last data byte

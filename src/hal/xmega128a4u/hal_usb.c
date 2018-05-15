@@ -134,7 +134,7 @@ uint8_t usb_u8_rx_size( void ){
 
 void usb_v_flush( void ){
 
-    SAFE_BUSY_WAIT( usb_i16_get_char() >= 0 );
+    BUSY_WAIT( usb_i16_get_char() >= 0 );
 }
 
 

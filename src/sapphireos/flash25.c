@@ -164,7 +164,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     }
 
     // busy wait
-    SAFE_BUSY_WAIT( flash25_b_busy() );
+    BUSY_WAIT( flash25_b_busy() );
 
     #ifdef __SIM__
     memcpy( ptr, &array[address], len );
@@ -186,7 +186,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 uint8_t flash25_u8_read_byte( uint32_t address ){
 
     // busy wait
-    SAFE_BUSY_WAIT( flash25_b_busy() );
+    BUSY_WAIT( flash25_b_busy() );
 
 	uint8_t byte;
 
@@ -244,7 +244,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 	// an operation, this will cause the entire system to hang
 	// until the watchdog kicks it.  this is acceptable,
 	// since at that point we have a hardware failure anyway.
-	SAFE_BUSY_WAIT( flash25_b_busy() );
+	BUSY_WAIT( flash25_b_busy() );
 
 	flash25_v_write_enable();
 
@@ -306,7 +306,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         if( len > 1 ){
 
             // busy wait
-            SAFE_BUSY_WAIT( flash25_b_busy() );
+            BUSY_WAIT( flash25_b_busy() );
 
             // enable writes
             flash25_v_write_enable();
@@ -339,7 +339,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
                 // poll status output
                 CHIP_ENABLE();
                 _delay_us(FLASH_WAIT_DELAY_US);
-                SAFE_BUSY_WAIT( AAI_STATUS() == 0 );
+                BUSY_WAIT( AAI_STATUS() == 0 );
                 CHIP_DISABLE();
 
                 CHIP_ENABLE();
@@ -361,7 +361,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
             // poll status output
             CHIP_ENABLE();
             _delay_us(FLASH_WAIT_DELAY_US);
-            SAFE_BUSY_WAIT( AAI_STATUS() == 0 );
+            BUSY_WAIT( AAI_STATUS() == 0 );
             CHIP_DISABLE();
 
             // send write disable to end command
@@ -416,7 +416,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
             // writes will automatically be disabled following completion
             // of the write.
 
-            SAFE_BUSY_WAIT( flash25_b_busy() );
+            BUSY_WAIT( flash25_b_busy() );
         }
 
         // send write disable to end command
@@ -448,7 +448,7 @@ void flash25_v_erase_4k( uint32_t address ){
     #ifdef __SIM__
     memset( &array[address], 0xff, 4096 );
     #else
-	SAFE_BUSY_WAIT( flash25_b_busy() );
+	BUSY_WAIT( flash25_b_busy() );
 
 	CHIP_ENABLE();
 
@@ -478,14 +478,14 @@ void flash25_v_erase_chip( void ){
 	// block 0 disabled, skip block 0
     for( uint32_t i = FLASH_FS_ERASE_BLOCK_SIZE; i < array_size; i += FLASH_FS_ERASE_BLOCK_SIZE ){
 
-        SAFE_BUSY_WAIT( flash25_b_busy() );
+        BUSY_WAIT( flash25_b_busy() );
         flash25_v_write_enable();
         flash25_v_erase_4k( i );
     }
  //    #else
 	// // block 0 enabled, we can use chip erase command
 
-	// SAFE_BUSY_WAIT( flash25_b_busy() );
+	// BUSY_WAIT( flash25_b_busy() );
 
 	// CHIP_ENABLE();
 

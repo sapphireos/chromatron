@@ -103,7 +103,7 @@ void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
 
 void usart_v_send_byte( USART_t *usart, uint8_t data ){
 
-    SAFE_BUSY_WAIT( ( usart->STATUS & USART_DREIF_bm ) == 0 );
+    BUSY_WAIT( ( usart->STATUS & USART_DREIF_bm ) == 0 );
     usart->DATA = data;
 }
 
@@ -111,7 +111,7 @@ void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
 
     while( len > 0 ){
 
-        SAFE_BUSY_WAIT( ( usart->STATUS & USART_DREIF_bm ) == 0 );
+        BUSY_WAIT( ( usart->STATUS & USART_DREIF_bm ) == 0 );
 
         usart->DATA = *data;
         len--;

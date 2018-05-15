@@ -65,7 +65,7 @@ static void erase_fw_partition( uint8_t partition ){
             flash25_v_erase_4k( ( (uint32_t)i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + FLASH_FS_FIRMWARE_0_PARTITION_START );
 
             // wait for erase to complete
-            SAFE_BUSY_WAIT( flash25_b_busy() );
+            BUSY_WAIT( flash25_b_busy() );
 
             sys_v_wdt_reset();
         }
@@ -84,7 +84,7 @@ static void erase_fw_partition( uint8_t partition ){
             flash25_v_erase_4k( ( (uint32_t)i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + FLASH_FS_FIRMWARE_2_PARTITION_START );
 
             // wait for erase to complete
-            SAFE_BUSY_WAIT( flash25_b_busy() );
+            BUSY_WAIT( flash25_b_busy() );
 
             sys_v_wdt_reset();
         }
@@ -102,7 +102,7 @@ static void erase_fw_partition( uint8_t partition ){
 //         flash25_v_erase_4k( ( (uint32_t)i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + FLASH_FS_FIRMWARE_0_PARTITION_START );
 
 //         // wait for erase to complete
-//         SAFE_BUSY_WAIT( flash25_b_busy() );
+//         BUSY_WAIT( flash25_b_busy() );
 
 //         sys_v_wdt_reset();
 //     }
@@ -485,7 +485,7 @@ PT_BEGIN( pt );
         flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + FLASH_FS_FIRMWARE_0_PARTITION_START );
 
         // wait for erase to complete
-        SAFE_BUSY_WAIT( flash25_b_busy() );
+        BUSY_WAIT( flash25_b_busy() );
 
         wdg_v_reset();
 

@@ -65,6 +65,10 @@ bool tmr_b_alarm_armed( void );
     THREAD_SLEEP( pt );
 
 
+#define BUSY_WAIT(expr) {\
+        while(expr){}\
+        }
+    
 #define SAFE_BUSY_WAIT(expr) {\
 		uint32_t ___timeout___ = tmr_u32_get_system_time_us(); \
     	while( expr ){ \
@@ -74,8 +78,7 @@ bool tmr_b_alarm_armed( void );
 	    } \
 	}
 
-
-#define BUSY_WAIT(expr, timeout) {\
+#define BUSY_WAIT_TIMEOUT(expr, timeout) {\
 		uint32_t ___timeout___ = tmr_u32_get_system_time_us(); \
     	while( expr ){ \
     		if( tmr_u32_elapsed_time_us( ___timeout___ ) > timeout ){ \

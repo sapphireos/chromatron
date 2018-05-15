@@ -224,7 +224,7 @@ static int16_t _wifi_i16_usart_get_char( void ){
 
 static void _wifi_v_usart_flush( void ){
 
-    SAFE_BUSY_WAIT( _wifi_i16_usart_get_char() >= 0 );
+    BUSY_WAIT( _wifi_i16_usart_get_char() >= 0 );
 }
 
 
@@ -593,9 +593,7 @@ bool wifi_b_comm_ready( void ){
 // waits up to WIFI_USART_TIMEOUT microseconds for comm to be ready
 bool wifi_b_wait_comm_ready( void ){
     
-    uint32_t timeout = tmr_u32_get_system_time_us();
-
-    SAFE_BUSY_WAIT( ( tmr_u32_elapsed_time_us( timeout ) < WIFI_USART_TIMEOUT ) && !wifi_b_comm_ready() );
+    BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), WIFI_USART_TIMEOUT );
 
     return wifi_b_comm_ready();
 }
@@ -2023,7 +2021,7 @@ restart:
 
             if( h2_len > 0 ){
 
-                BUSY_WAIT( !wifi_b_comm_ready(), 10000 );
+                BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
 
                 wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, h2, h2_len );
             }
@@ -2037,7 +2035,7 @@ restart:
                     copy_len = WIFI_MAX_DATA_LEN;
                 }
 
-                BUSY_WAIT( !wifi_b_comm_ready(), 10000 );
+                BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
 
                 wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, data, copy_len );
 

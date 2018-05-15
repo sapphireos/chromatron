@@ -172,7 +172,7 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
         // start conversion
         ADCA.CH0.CTRL |= ADC_CH_START_bm;
 
-        SAFE_BUSY_WAIT( ADCA.CH0.INTFLAGS == 0 );
+        BUSY_WAIT( ADCA.CH0.INTFLAGS == 0 );
 
         accumulator += ADCA.CH0.RES;
     }

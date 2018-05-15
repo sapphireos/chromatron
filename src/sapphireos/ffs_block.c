@@ -521,7 +521,7 @@ int8_t ffs_block_i8_erase( block_t block ){
     flash25_v_erase_4k( FFS_BLOCK_ADDRESS( block ) );
 
     // spin lock until erase is finished
-    SAFE_BUSY_WAIT( flash25_b_busy() );
+    BUSY_WAIT( flash25_b_busy() );
 
     // add to free list
     ffs_block_v_add_to_list( &free_list, block );
