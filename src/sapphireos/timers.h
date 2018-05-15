@@ -64,10 +64,5 @@ bool tmr_b_alarm_armed( void );
     thread_v_set_alarm( ((uint32_t)time) + tmr_u32_get_system_time_ms() ); \
     THREAD_SLEEP( pt );
 
-#define SET_TIMEOUT( timeout ) \
-    ( tmr_u32_get_system_time_us() +  timeout )
-
-#define TIMEOUT( timeout ) \
-    ( tmr_u32_get_system_time_us() >= timeout )
 
 #endif
