@@ -338,13 +338,6 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         vm_size -= read;
     }
 
-    // send len 0 to indicate load complete
-    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, 0, 0 ) < 0 ){
-
-        // comm error
-        goto error;
-    }
-
     // read magic number
     uint32_t meta_magic = 0;
     fs_i16_read( f, (uint8_t *)&meta_magic, sizeof(meta_magic) );
@@ -441,6 +434,16 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
             }
         }        
     }
+
+    // send len 0 to indicate load complete.
+    // this will trigger the init function, so we want to do this
+    // after the database has been initializd.
+    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, 0, 0 ) < 0 ){
+
+        // comm error
+        goto error;
+    }
+
 
     fs_f_close( f );
 

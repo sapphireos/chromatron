@@ -1746,13 +1746,10 @@ int8_t vm_i8_load_program(
 }
 
 
-int8_t vm_i8_init_db(
+void vm_v_init_db(
     uint8_t *stream,
     vm_state_t *state,
     uint8_t tag ){
-
-    // delete existing entries
-    kvdb_v_delete_tag( tag );
 
     // add published vars to DB
     uint32_t count = state->publish_count;
@@ -1766,8 +1763,13 @@ int8_t vm_i8_init_db(
         publish++;
         count--;
     }
+}
 
-    return 0;
+
+void vm_v_clear_db( uint8_t tag ){
+
+    // delete existing entries
+    kvdb_v_delete_tag( tag );
 }
 
 int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){

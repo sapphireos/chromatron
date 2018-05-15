@@ -248,6 +248,7 @@ void vm_v_reset( void ){
     vm_len = 0;
     memset( vm_slab, 0, sizeof(vm_slab) );
 
+    vm_v_clear_db( KVDB_VM_RUNNER_TAG );
 }
 
 int8_t vm_i8_load( uint8_t *data, uint16_t len ){
@@ -312,7 +313,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
         vm_state.rng_seed = rng_seed;
 
         // init database
-        vm_i8_init_db( vm_slab, &vm_state, KVDB_VM_RUNNER_TAG );
+        vm_v_init_db( vm_slab, &vm_state, KVDB_VM_RUNNER_TAG );
         
         // run init function
         status = _vm_i8_run_vm( VM_RUN_INIT );
