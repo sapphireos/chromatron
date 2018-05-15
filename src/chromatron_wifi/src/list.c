@@ -77,7 +77,7 @@ list_node_t list_ln_create_node2( void *data, uint16_t len, mem_type_t8 type ){
     // check if data is provided
     if( data != 0 ){
 
-        // copy data into netmsg object
+        // copy data into object
         memcpy( &state->data, data, len );
     }
 

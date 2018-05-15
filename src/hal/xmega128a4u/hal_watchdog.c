@@ -69,7 +69,7 @@ void wdg_v_disable( void ){
     WDT.CTRL = WDT_CEN_bm;
 
     END_ATOMIC;
-// }
+}
 
 // bool check_watchdog_reset( void ){
     

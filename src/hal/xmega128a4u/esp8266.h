@@ -34,7 +34,7 @@
 #define WIFI_STATE_UNKNOWN      0
 #define WIFI_STATE_ALIVE        1
 
-
+#define WIFI_MAX_NETMSGS		4
 
 #define WIFI_USART              USARTE0
 #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc

@@ -53,6 +53,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "wifi_cmd.h"
 #include "netmsg.h"
 #include "ip.h"
+#include "list.h"
 #include "config.h"
 #include "crc.h"
 #include "sockets.h"
@@ -140,6 +141,8 @@ static volatile uint16_t max_ready_wait_isr;
 static uint16_t max_ready_wait;
 
 static uint8_t comm_stalls;
+
+static list_t netmsg_list;
 
 // static mem_handle_t wifi_networks_handle = -1;
 
@@ -703,95 +706,109 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         return NETMSG_TX_ERR_RELEASE;
     }
 
-    int8_t status = -1;
+    if( list_u8_count( &netmsg_list ) >= WIFI_MAX_NETMSGS ){
 
-    netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
-
-    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
-
-    uint16_t data_len = 0;
-
-    uint16_t crc = crc_u16_start();
-
-    uint8_t *data = 0;
-    uint8_t *h2 = 0;
-    uint16_t h2_len = 0;
-
-    if( netmsg_state->data_handle > 0 ){
-
-        data = mem2_vp_get_ptr( netmsg_state->data_handle );
-        data_len = mem2_u16_get_size( netmsg_state->data_handle );
+        return NETMSG_TX_ERR_RELEASE;   
     }
 
-    // header 2, if present
-    if( netmsg_state->header_2_handle > 0 ){
+    // add to list
+    list_v_insert_head( &netmsg_list, netmsg );
 
-        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+    // signal comm thread
+    thread_v_signal( WIFI_SIGNAL );
 
-        crc = crc_u16_partial_block( crc, h2, h2_len );
-    }
+    return NETMSG_TX_OK_NORELEASE;
 
-    if( netmsg_state->data_handle > 0 ){
 
-        crc = crc_u16_partial_block( crc, data, data_len );
-    }
+//     int8_t status = -1;
 
-    // setup header
-    wifi_msg_udp_header_t udp_header;
-    udp_header.addr = netmsg_state->raddr.ipaddr;
-    udp_header.lport = netmsg_state->laddr.port;
-    udp_header.rport = netmsg_state->raddr.port;
-    udp_header.len = data_len + h2_len;
-    udp_header.crc = crc_u16_finish( crc );
+//     netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
 
-    // send header
-    int8_t ret_val = wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
+//     ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
 
-    if( ret_val < 0 ){
+//     uint16_t data_len = 0;
 
-        log_v_debug_P( PSTR("error %d"), ret_val );
+//     uint16_t crc = crc_u16_start();
 
-        status = -5;
-        goto error;
-    }
+//     uint8_t *data = 0;
+//     uint8_t *h2 = 0;
+//     uint16_t h2_len = 0;
 
-    if( h2_len > 0 ){
+//     if( netmsg_state->data_handle > 0 ){
 
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, h2, h2_len ) < 0 ){
+//         data = mem2_vp_get_ptr( netmsg_state->data_handle );
+//         data_len = mem2_u16_get_size( netmsg_state->data_handle );
+//     }
 
-            status = -3;
-            goto error;
-        }
-    }
+//     // header 2, if present
+//     if( netmsg_state->header_2_handle > 0 ){
 
-    while( data_len > 0 ){
+//         h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+//         h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
 
-        uint16_t copy_len = data_len;
+//         crc = crc_u16_partial_block( crc, h2, h2_len );
+//     }
 
-        if( copy_len > WIFI_MAX_DATA_LEN ){
+//     if( netmsg_state->data_handle > 0 ){
 
-            copy_len = WIFI_MAX_DATA_LEN;
-        }
+//         crc = crc_u16_partial_block( crc, data, data_len );
+//     }
 
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, data, copy_len ) < 0 ){
+//     // setup header
+//     wifi_msg_udp_header_t udp_header;
+//     udp_header.addr = netmsg_state->raddr.ipaddr;
+//     udp_header.lport = netmsg_state->laddr.port;
+//     udp_header.rport = netmsg_state->raddr.port;
+//     udp_header.len = data_len + h2_len;
+//     udp_header.crc = crc_u16_finish( crc );
 
-            log_v_debug_P( PSTR("port %u -> %u len %d datalen: %d"), udp_header.lport, udp_header.rport, copy_len, data_len );
+//     // send header
+//     int8_t ret_val = wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
 
-            status = -4;
-            goto error;
-        }
+//     if( ret_val < 0 ){
 
-        data += copy_len;
-        data_len -= copy_len;
-    }
+//         log_v_debug_P( PSTR("error %d"), ret_val );
 
-    return NETMSG_TX_OK_RELEASE;
+//         status = -5;
+//         goto error;
+//     }
 
-error:
-    log_v_debug_P( PSTR("send udp error %d"), status );
+//     if( h2_len > 0 ){
+
+//         if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, h2, h2_len ) < 0 ){
+
+//             status = -3;
+//             goto error;
+//         }
+//     }
+
+//     while( data_len > 0 ){
+
+//         uint16_t copy_len = data_len;
+
+//         if( copy_len > WIFI_MAX_DATA_LEN ){
+
+//             copy_len = WIFI_MAX_DATA_LEN;
+//         }
+
+//         if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, data, copy_len ) < 0 ){
+
+//             log_v_debug_P( PSTR("port %u -> %u len %d datalen: %d"), udp_header.lport, udp_header.rport, copy_len, data_len );
+
+//             status = -4;
+//             goto error;
+//         }
+
+//         data += copy_len;
+//         data_len -= copy_len;
+//     }
+
+//     return NETMSG_TX_OK_RELEASE;
+
+// error:
+//     log_v_debug_P( PSTR("send udp error %d"), status );
     
-    return NETMSG_TX_ERR_RELEASE;
+//     return NETMSG_TX_ERR_RELEASE;
 }
 
 
@@ -2038,6 +2055,92 @@ restart:
 
         uint8_t msgs_received = 0;
 
+        // check for udp transmission
+        if( list_u8_count( &netmsg_list ) > 0 ){
+
+            // check if transmission is available
+            if( !wifi_b_comm_ready() ){
+
+                // comm is not ready.
+
+                // re-signal thread, then bail out to receive handler
+                thread_v_signal( WIFI_SIGNAL );
+
+                goto receive;
+            }
+
+            netmsg_t tx_netmsg = list_ln_remove_tail( &netmsg_list );
+
+            netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
+
+            ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
+
+            uint16_t data_len = 0;
+
+            uint16_t crc = crc_u16_start();
+
+            uint8_t *data = 0;
+            uint8_t *h2 = 0;
+            uint16_t h2_len = 0;
+
+            if( netmsg_state->data_handle > 0 ){
+
+                data = mem2_vp_get_ptr( netmsg_state->data_handle );
+                data_len = mem2_u16_get_size( netmsg_state->data_handle );
+            }
+
+            // header 2, if present
+            if( netmsg_state->header_2_handle > 0 ){
+
+                h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+                h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+
+                crc = crc_u16_partial_block( crc, h2, h2_len );
+            }
+
+            if( netmsg_state->data_handle > 0 ){
+
+                crc = crc_u16_partial_block( crc, data, data_len );
+            }
+
+            // setup header
+            wifi_msg_udp_header_t udp_header;
+            udp_header.addr = netmsg_state->raddr.ipaddr;
+            udp_header.lport = netmsg_state->laddr.port;
+            udp_header.rport = netmsg_state->raddr.port;
+            udp_header.len = data_len + h2_len;
+            udp_header.crc = crc_u16_finish( crc );
+
+            // send header
+            wifi_i8_send_msg( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
+
+            if( h2_len > 0 ){
+
+                SAFE_BUSY_WAIT( !wifi_b_comm_ready() );
+
+                wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, h2, h2_len );
+            }
+
+            while( data_len > 0 ){
+
+                uint16_t copy_len = data_len;
+
+                if( copy_len > WIFI_MAX_DATA_LEN ){
+
+                    copy_len = WIFI_MAX_DATA_LEN;
+                }
+
+                SAFE_BUSY_WAIT( !wifi_b_comm_ready() );
+
+                wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, data, copy_len );
+
+                data += copy_len;
+                data_len -= copy_len;
+            }
+
+        }
+
+receive:
         while( ( process_rx_data() == 0 ) &&
                ( msgs_received < 8 ) ){
 
@@ -2426,6 +2529,9 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 
 void wifi_v_init( void ){
+
+    list_v_init( &netmsg_list );
+
 
     wifi_status = WIFI_STATE_BOOT;
 
