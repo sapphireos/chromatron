@@ -31,7 +31,7 @@
 
 #define WDG_TIMEOUT 16
 
-static uint8_t wdg_timer;
+static volatile uint8_t wdg_timer;
 
 
 void wdg_v_reset( void ){
@@ -69,7 +69,16 @@ void wdg_v_disable( void ){
     WDT.CTRL = WDT_CEN_bm;
 
     END_ATOMIC;
-}
+// }
+
+// bool check_watchdog_reset( void ){
+    
+//     ATOMIC;
+//     uint8_t temp = wdg_timer;
+//     END_ATOMIC;
+
+//     return temp == 0;
+// }
 
 #ifndef BOOTLOADER
 ISR(TCC1_CCB_vect){
