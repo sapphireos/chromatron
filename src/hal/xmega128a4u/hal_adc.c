@@ -26,6 +26,7 @@
 #include "system.h"
 #include "keyvalue.h"
 #include "adc.h"
+#include "timers.h"
 #include "hal_adc.h"
 
 /*

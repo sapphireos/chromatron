@@ -21,6 +21,7 @@
 // </license>
 
 #include "system.h"
+#include "timers.h"
 #include "hal_usart.h"
 
 

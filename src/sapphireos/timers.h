@@ -65,4 +65,8 @@ bool tmr_b_alarm_armed( void );
     THREAD_SLEEP( pt );
 
 
+#define SAFE_BUSY_WAIT(expr) \
+    while( expr ){ \
+    }
+
 #endif

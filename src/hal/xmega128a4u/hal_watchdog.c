@@ -71,15 +71,6 @@ void wdg_v_disable( void ){
     END_ATOMIC;
 }
 
-// bool check_watchdog_reset( void ){
-    
-//     ATOMIC;
-//     uint8_t temp = wdg_timer;
-//     END_ATOMIC;
-
-//     return temp == 0;
-// }
-
 #ifndef BOOTLOADER
 ISR(TCC1_CCB_vect){
 OS_IRQ_BEGIN(TCC1_CCB_vect);

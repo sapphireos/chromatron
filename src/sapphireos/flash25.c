@@ -37,6 +37,7 @@ This module provides a low level SPI driver for 25 series flash memory.
 
 #include "system.h"
 #include "spi.h"
+#include "timers.h"
 
 #include "flash_fs_partitions.h"
 #include "flash25.h"

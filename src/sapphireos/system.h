@@ -176,12 +176,6 @@ typedef uint32_t sys_warnings_t;
 	#define ASSERT_MSG(expr, str)
 #endif
 
-#define SAFE_BUSY_WAIT(expr) \
-    while( expr ){ \
-        if( CHECK_WATCHDOG_RESET ){ \
-            ASSERT(0); \
-        } \
-    }
 
 // Count of array macro
 #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )

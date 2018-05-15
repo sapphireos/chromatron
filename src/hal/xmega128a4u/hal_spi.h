@@ -30,6 +30,7 @@
 
 #include "target.h"
 #include "system.h"
+#include "timers.h"
 
 // this driver is set up to use the USART in master SPI mode
 

@@ -26,6 +26,7 @@
 #include "cpu.h"
 #include "crc.h"
 #include "system.h"
+#include "timers.h"
 #include "keyvalue.h"
 #include "memory.h"
 
