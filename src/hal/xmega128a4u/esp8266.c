@@ -227,20 +227,20 @@ static void _wifi_v_usart_flush( void ){
     SAFE_BUSY_WAIT( _wifi_i16_usart_get_char() >= 0 );
 }
 
-#include "io.h"
 
-void strobe_ss( void ){
+// #include "io.h"
+// void strobe_ss( void ){
 
-    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-    WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-    _delay_us( 1 );
-    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
+//     _delay_us( 1 );
+//     WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-    // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-    // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
-    // _delay_us( 1 );
-    // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
-}
+//     // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+//     // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+//     // _delay_us( 1 );
+//     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+// }
 
 
 
@@ -377,8 +377,6 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
     }
     else{
-
-        strobe_ss();
 
         // incorrect control byte on frame
 
@@ -718,97 +716,6 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     thread_v_signal( WIFI_SIGNAL );
 
     return NETMSG_TX_OK_NORELEASE;
-
-
-//     int8_t status = -1;
-
-//     netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
-
-//     ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
-
-//     uint16_t data_len = 0;
-
-//     uint16_t crc = crc_u16_start();
-
-//     uint8_t *data = 0;
-//     uint8_t *h2 = 0;
-//     uint16_t h2_len = 0;
-
-//     if( netmsg_state->data_handle > 0 ){
-
-//         data = mem2_vp_get_ptr( netmsg_state->data_handle );
-//         data_len = mem2_u16_get_size( netmsg_state->data_handle );
-//     }
-
-//     // header 2, if present
-//     if( netmsg_state->header_2_handle > 0 ){
-
-//         h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-//         h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
-
-//         crc = crc_u16_partial_block( crc, h2, h2_len );
-//     }
-
-//     if( netmsg_state->data_handle > 0 ){
-
-//         crc = crc_u16_partial_block( crc, data, data_len );
-//     }
-
-//     // setup header
-//     wifi_msg_udp_header_t udp_header;
-//     udp_header.addr = netmsg_state->raddr.ipaddr;
-//     udp_header.lport = netmsg_state->laddr.port;
-//     udp_header.rport = netmsg_state->raddr.port;
-//     udp_header.len = data_len + h2_len;
-//     udp_header.crc = crc_u16_finish( crc );
-
-//     // send header
-//     int8_t ret_val = wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
-
-//     if( ret_val < 0 ){
-
-//         log_v_debug_P( PSTR("error %d"), ret_val );
-
-//         status = -5;
-//         goto error;
-//     }
-
-//     if( h2_len > 0 ){
-
-//         if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, h2, h2_len ) < 0 ){
-
-//             status = -3;
-//             goto error;
-//         }
-//     }
-
-//     while( data_len > 0 ){
-
-//         uint16_t copy_len = data_len;
-
-//         if( copy_len > WIFI_MAX_DATA_LEN ){
-
-//             copy_len = WIFI_MAX_DATA_LEN;
-//         }
-
-//         if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, data, copy_len ) < 0 ){
-
-//             log_v_debug_P( PSTR("port %u -> %u len %d datalen: %d"), udp_header.lport, udp_header.rport, copy_len, data_len );
-
-//             status = -4;
-//             goto error;
-//         }
-
-//         data += copy_len;
-//         data_len -= copy_len;
-//     }
-
-//     return NETMSG_TX_OK_RELEASE;
-
-// error:
-//     log_v_debug_P( PSTR("send udp error %d"), status );
-    
-//     return NETMSG_TX_ERR_RELEASE;
 }
 
 
@@ -2195,8 +2102,6 @@ PT_BEGIN( pt );
             // send ready signal
             // this will also reset the DMA engine.
             wifi_v_set_rx_ready();
-
-            strobe_ss();
 
             if( comm_stalls < 255 ){
 
