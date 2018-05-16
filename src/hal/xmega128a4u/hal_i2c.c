@@ -34,7 +34,7 @@ This is a bit bang driver, so it can work on any set of pins.
 
 */
 
-static uint8_t status;
+static i2c_baud_t8 baud_rate;
 
 static io_port_t *scl_port = &IO_PIN0_PORT;
 static uint8_t scl_pin = ( 1 << IO_PIN0_PIN );
@@ -51,6 +51,9 @@ static uint8_t sda_pin = ( 1 << IO_PIN1_PIN );
 
 #define I2C_DELAY() for( uint8_t __i = 0; __i < 8; __i++ ){ asm volatile("nop"); }
 
+#define I2C_DELAY_1() for( uint8_t __i = 0; __i < 2; __i++ ){ asm volatile("nop"); }
+#define I2C_DELAY_2() for( uint8_t __i = 0; __i < 10; __i++ ){ asm volatile("nop"); }
+
 
 static void send_bit( uint8_t b ){
 
@@ -63,38 +66,31 @@ static void send_bit( uint8_t b ){
         SDA_LOW();
     }
 
-    I2C_DELAY();
+    I2C_DELAY_1();
 
     SCL_HIGH();
 
-    I2C_DELAY();
-    I2C_DELAY();
-    I2C_DELAY();   
-
+    I2C_DELAY_2();
+    
     SCL_LOW();
-
-    I2C_DELAY();
 }
 
 
 static bool read_bit( void ){
 
-    I2C_DELAY();
-
     // release bus
     SDA_HIGH();
+
+    I2C_DELAY_1();
+
     SCL_HIGH();
 
-    I2C_DELAY();
-    I2C_DELAY();
-    I2C_DELAY();
+    I2C_DELAY_2();
     
     // read bit
     uint8_t b = sda_port->IN & sda_pin;
 
     SCL_LOW();
-
-    I2C_DELAY();
 
     return b != 0;
 }
@@ -118,16 +114,6 @@ static uint8_t send_byte( uint8_t b ){
 static uint8_t read_byte( bool ack ){
 
     uint8_t b = 0;
-
-    // for( uint8_t i = 0; i < 8; i++ ){
-
-    //     b <<= 1;
-
-    //     if( read_bit() ){
-
-    //         b |= 1;
-    //     }
-    // }
 
     if( read_bit() ){
 
@@ -176,6 +162,8 @@ static uint8_t read_byte( bool ack ){
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
+    baud_rate = baud;
+
     i2c_v_set_pins( IO_PIN_1_XCK, IO_PIN_0_GPIO );
 }
 
@@ -201,7 +189,7 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 
 uint8_t i2c_u8_status( void ){
 
-    return status;
+    return 0;
 }
 
 void i2c_v_start( void ){

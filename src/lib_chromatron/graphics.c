@@ -700,11 +700,9 @@ void gfx_v_reset_subscribed( void ){
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
+    
 
     // test_packer();
-
-
     
     #ifdef ENABLE_TIME_SYNC
     static uint32_t last_frame_sync_time;
