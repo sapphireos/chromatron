@@ -33,7 +33,6 @@ extern "C"{
     #include "kvdb.h"
 }
 
-static uint16_t vm_load_offset;
 static uint16_t vm_load_len;
 
 static mem_handle_t vm_handles[VM_RUNNER_MAX_VMS];
@@ -274,7 +273,6 @@ void vm_v_reset( uint8_t vm_index ){
     vm_info.status = -127;
     vm_info.return_code = -127;
 
-    vm_load_offset = 0;
     vm_load_len = 0;
 
     vm_v_clear_db( KVDB_VM_RUNNER_TAG + vm_index );
@@ -293,6 +291,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
     int8_t status = 0;
 
+    uint16_t vm_load_offset = vm_load_len;
     vm_load_len += len;
 
     if( vm_load_len > VM_RUNNER_MAX_SIZE ){
@@ -316,13 +315,16 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     // handle exists, reallocate
     else{
 
-        // if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
+        if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
 
-        //     return -3;
-        // }
+            return -3;
+        }
     }
 
     uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+
+    // load next page of data
+    memcpy( &ptr[vm_load_offset], data, len );
 
     // length of 0 indicates loading is finished
     if( len == 0 ){

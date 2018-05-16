@@ -567,7 +567,7 @@ PT_BEGIN( pt );
         // wait for VM to finish loading
         TMR_WAIT( pt, 1000 );
 
-        log_v_debug_P( PSTR("sts: %d ret: %d loop: %u fade: %u"),
+        log_v_debug_P( PSTR("VM load sts: %d ret: %d loop: %u fade: %u"),
                        vm_info.status,
                        vm_info.return_code,
                        vm_info.loop_time,
@@ -587,6 +587,14 @@ PT_BEGIN( pt );
                                ( vm_run == TRUE ) &&
                                ( vm_info.status == 0 ) &&
                                ( vm_info.return_code == 0 ) );
+
+
+        log_v_debug_P( PSTR("VM halt sts: %d ret: %d loop: %u fade: %u"),
+                       vm_info.status,
+                       vm_info.return_code,
+                       vm_info.loop_time,
+                       vm_info.fader_time );
+
 
         wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, 0, 0 );
 

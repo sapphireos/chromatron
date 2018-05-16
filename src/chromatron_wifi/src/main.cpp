@@ -113,6 +113,9 @@ void setup(){
 
 
     wifi_set_sleep_type( MODEM_SLEEP_T );
+
+
+    intf_v_printf( "ESP online" );
 }
 
 uint32_t elapsed_time( uint32_t start_time ){
