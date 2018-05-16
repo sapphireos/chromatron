@@ -30,6 +30,7 @@
 
 #define KVDB_VM_RUNNER_TAG      70
 
+#define VM_RUNNER_MAX_SIZE 		4096
 #define VM_RUNNER_MAX_VMS 		4
 
 #define VM_RUNNER_THREAD_RATE 	10
