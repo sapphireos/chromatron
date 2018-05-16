@@ -201,6 +201,7 @@ void vm_v_init( void ){
 
     for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
 
+        vm_handles[i] = -1;
         vm_v_reset( i );
     }
 
@@ -266,6 +267,8 @@ void vm_v_reset( uint8_t vm_index ){
     if( vm_handles[vm_index] > 0 ){
 
         mem2_v_free( vm_handles[vm_index] );
+
+        vm_handles[vm_index] = -1;
     }
 
     vm_info.status = -127;
@@ -290,13 +293,13 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
     int8_t status = 0;
 
-    if( ( len + vm_load_offset ) > VM_RUNNER_MAX_SIZE ){
+    vm_load_len += len;
+
+    if( vm_load_len > VM_RUNNER_MAX_SIZE ){
 
         vm_info.status = VM_STATUS_IMAGE_TOO_LARGE;
         return -1;
     }
-
-    vm_load_len += len;
 
     // check if there is a handle at this index
     if( vm_handles[vm_index] <= 0 ){
@@ -313,10 +316,10 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     // handle exists, reallocate
     else{
 
-        if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
+        // if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
 
-            return -3;
-        }
+        //     return -3;
+        // }
     }
 
     uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
