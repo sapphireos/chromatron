@@ -27,7 +27,9 @@
 
 typedef uint8_t i2c_baud_t8;
 #define I2C_BAUD_100K       0
-#define I2C_BAUD_400K       1
+#define I2C_BAUD_200K       1
+#define I2C_BAUD_300K       2
+#define I2C_BAUD_400K       3
 
 
 void i2c_v_init( i2c_baud_t8 baud );

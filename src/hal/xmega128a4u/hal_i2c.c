@@ -28,13 +28,27 @@
 
 #include "i2c.h"
 
+
+
+
 /*
 
 This is a bit bang driver, so it can work on any set of pins.
 
 */
 
-static i2c_baud_t8 baud_rate;
+static uint8_t delay_1;
+static uint8_t delay_2;
+
+
+// map delays to KV system for easy hand tuning
+// #include "keyvalue.h"
+// KV_SECTION_META kv_meta_t meow_info_kv[] = {
+//     { SAPPHIRE_TYPE_UINT8,  0, 0, &delay_1,                   0,   "delay_1" },
+//     { SAPPHIRE_TYPE_UINT8,  0, 0, &delay_2,                   0,   "delay_2" }, 
+// };
+
+
 
 static io_port_t *scl_port = &IO_PIN0_PORT;
 static uint8_t scl_pin = ( 1 << IO_PIN0_PIN );
@@ -51,8 +65,8 @@ static uint8_t sda_pin = ( 1 << IO_PIN1_PIN );
 
 #define I2C_DELAY() for( uint8_t __i = 0; __i < 8; __i++ ){ asm volatile("nop"); }
 
-#define I2C_DELAY_1() for( uint8_t __i = 0; __i < 2; __i++ ){ asm volatile("nop"); }
-#define I2C_DELAY_2() for( uint8_t __i = 0; __i < 10; __i++ ){ asm volatile("nop"); }
+#define I2C_DELAY_1() for( uint8_t __i = delay_1; __i > 0; __i-- ){ asm volatile("nop"); }
+#define I2C_DELAY_2() for( uint8_t __i = delay_2; __i > 0; __i-- ){ asm volatile("nop"); }
 
 
 static void send_bit( uint8_t b ){
@@ -162,7 +176,29 @@ static uint8_t read_byte( bool ack ){
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
-    baud_rate = baud;
+    // these are all hand timed.
+    if( baud == I2C_BAUD_400K ){
+
+        delay_1 = 0;
+        delay_2 = 5;
+    }
+    else if( baud == I2C_BAUD_300K ){
+
+        delay_1 = 1;
+        delay_2 = 9;   
+    }
+    else if( baud == I2C_BAUD_200K ){
+
+        delay_1 = 4;
+        delay_2 = 15;   
+    }
+    else{
+
+        // default is 100K
+
+        delay_1 = 18;
+        delay_2 = 28;   
+    }
 
     i2c_v_set_pins( IO_PIN_1_XCK, IO_PIN_0_GPIO );
 }
