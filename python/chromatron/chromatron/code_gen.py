@@ -359,9 +359,9 @@ class ArrayIndexNode(DataNode):
         else:
             return "ArrayIndex<Load>:%s" % (self.name)
 
-class RecordNode(DataNode):
+class RecordDeclareNode(DataNode):
     def __init__(self, fields, **kwargs):
-        super(RecordNode, self).__init__(**kwargs)
+        super(RecordDeclareNode, self).__init__(**kwargs)
 
         self.fields = fields
 
@@ -373,11 +373,11 @@ class RecordNode(DataNode):
         return data_size
 
     def __str__(self):
-        return "Record:%s [%s] (%s)" % (self.name, len(self.fields), self.scope)
+        return "RecordDeclare:%s [%s] (%s)" % (self.name, len(self.fields), self.scope)
 
-class RecordDeclareNode(DataNode):
+class RecordInstanceNode(DataNode):
     def __init__(self, name, record_type, **kwargs):
-        super(RecordDeclareNode, self).__init__(**kwargs)
+        super(RecordInstanceNode, self).__init__(**kwargs)
 
         self.name = name
         self.type = record_type
@@ -386,7 +386,7 @@ class RecordDeclareNode(DataNode):
         return self.type.size()
 
     def __str__(self):
-        return "RecordDeclare:%s [%s] (%s)" % (self.name, self.type.name, self.scope)
+        return "RecordInstance:%s [%s] (%s)" % (self.name, self.type.name, self.scope)
 
 
 class ParameterNode(DataNode):
@@ -636,7 +636,7 @@ class ASTWalker(object):
         elif isinstance(node, ParameterNode):
             pass
 
-        elif isinstance(node, RecordNode):
+        elif isinstance(node, RecordDeclareNode):
             pass
 
         elif isinstance(node, basestring):
@@ -820,10 +820,10 @@ class ASTPrinter(object):
         elif isinstance(node, ParameterNode):
             pass
 
-        elif isinstance(node, RecordNode):
+        elif isinstance(node, RecordDeclareNode):
             self.echo(node)
 
-        elif isinstance(node, RecordDeclareNode):
+        elif isinstance(node, RecordInstanceNode):
             self.echo(node)
 
         elif isinstance(node, PixelArrayNode):
@@ -886,7 +886,7 @@ class CodeGeneratorPass0(object):
                 if node.value.func.id == 'Record':
                     # replace item with record node
 
-                    tree.body[i] = RecordNode(node.value.keywords, line_no=node.lineno)
+                    tree.body[i] = RecordDeclareNode(node.value.keywords, line_no=node.lineno)
                     tree.body[i].name = node.targets[0].id
 
 
@@ -1067,7 +1067,7 @@ class CodeGeneratorPass1(object):
                 
             # is this creating an instance of a record?
             elif tree.func.id in self.record_types:
-                return RecordDeclareNode(tree.func.id, self.record_types[tree.func.id], line_no=tree.lineno)
+                return RecordInstanceNode(tree.func.id, self.record_types[tree.func.id], line_no=tree.lineno)
 
             elif tree.func.id == "len":
                 node = self.generate(tree.args[0])
@@ -1154,8 +1154,8 @@ class CodeGeneratorPass1(object):
             if isinstance(value, NumberNode) or \
                isinstance(value, PixelArrayNode) or \
                isinstance(value, ArrayDeclareNode) or \
-               isinstance(value, RecordDeclareNode) or \
-               isinstance(value, RecordNode):
+               isinstance(value, RecordInstanceNode) or \
+               isinstance(value, RecordDeclareNode):
 
                 value.name = dest.name
 
@@ -1175,7 +1175,7 @@ class CodeGeneratorPass1(object):
                         array_type.depth += 1
                         array_type = array_type.type
 
-                elif isinstance(value, RecordDeclareNode):
+                elif isinstance(value, RecordInstanceNode):
                     self.records[value.name] = value
 
                 return value
@@ -1400,7 +1400,7 @@ class CodeGeneratorPass1(object):
         elif isinstance(tree, ast.Assert):
             return AssertNode(self.generate(tree.test), line_no=tree.lineno)
 
-        elif isinstance(tree, RecordNode):
+        elif isinstance(tree, RecordDeclareNode):
             fields = []
 
             for kw in tree.fields:
@@ -1577,9 +1577,9 @@ class KeyIR(StringIR):
     def __str__(self):
         return 'Key(%s)@%d' % (self.name, self.addr)
 
-class DefineIR(IntermediateNode):
+class DefineNumberIR(IntermediateNode):
     def __init__(self, name, number_type="int32", **kwargs):
-        super(DefineIR, self).__init__(**kwargs)
+        super(DefineNumberIR, self).__init__(**kwargs)
         self.name = name
         self.publish = False
         self.type = number_type
@@ -2501,7 +2501,7 @@ class CodeGeneratorPass2(object):
                     ir.append(CopyIR(count_reg, count_setup_code))
 
                 target = self.generate(node.target)
-                ir.append(DefineIR(target.name, level=self.level, line_no=node.line_no))
+                ir.append(DefineNumberIR(target.name, level=self.level, line_no=node.line_no))
                 ir.append(CopyIR(target, ConstIR(0, line_no=node.line_no), level=self.level, line_no=node.line_no))
 
                 ir.append(JumpIfGteIR(target, count_reg, end_label, level=self.level, line_no=node.line_no))
@@ -2720,7 +2720,7 @@ class CodeGeneratorPass2(object):
                 return code
 
             elif isinstance(node, NumberNode):
-                define_ir = DefineIR(node.name, number_type=node.type, level=self.level, line_no=node.line_no)
+                define_ir = DefineNumberIR(node.name, number_type=node.type, level=self.level, line_no=node.line_no)
 
                 define_ir.publish = node.publish
 
@@ -2770,15 +2770,15 @@ class CodeGeneratorPass2(object):
 
                 return [define_array_ir]
 
-            elif isinstance(node, RecordNode):
+            elif isinstance(node, RecordDeclareNode):
                 self.record_types[node.name] = RecordVarIR(node.name, record_type=node)
 
                 return []
 
-            elif isinstance(node, RecordDeclareNode):
+            elif isinstance(node, RecordInstanceNode):
                 self.records[node.name] = RecordVarIR(node.name, record_type=node.type)
 
-                return [DefineRecordIR(node.name, node.type)]
+                return [DefineRecordIR(node.name, node.type, level=self.level, line_no=node.line_no)]
 
             elif isinstance(node, ArrayIndexNode):
                 code = []
@@ -3140,7 +3140,7 @@ class CodeGeneratorPass4(object):
                             if i not in address_pool:
                                 address_pool.append(reg.addr)
 
-            if isinstance(ir, DefineIR):
+            if isinstance(ir, DefineNumberIR):
                 registers[ir.name].declared = True
 
             elif isinstance(ir, DefineArrayIR):
@@ -4070,7 +4070,7 @@ class CodeGeneratorPass5(object):
 
         # second loop, get everything else
         for ir in ir_code:
-            if isinstance(ir, DefineIR):
+            if isinstance(ir, DefineNumberIR):
                 pass
 
             elif isinstance(ir, UndefineIR):
