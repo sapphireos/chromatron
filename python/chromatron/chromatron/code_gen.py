@@ -375,6 +375,20 @@ class RecordNode(DataNode):
     def __str__(self):
         return "Record:%s [%s] (%s)" % (self.name, len(self.fields), self.scope)
 
+class RecordDeclareNode(DataNode):
+    def __init__(self, name, record_type, **kwargs):
+        super(RecordDeclareNode, self).__init__(**kwargs)
+
+        self.name = name
+        self.type = record_type
+
+    def size(self):
+        return self.type.size()
+
+    def __str__(self):
+        return "RecordDeclare:%s [%s] (%s)" % (self.name, self.type.name, self.scope)
+
+
 class ParameterNode(DataNode):
     def __init__(self, **kwargs):
         super(ParameterNode, self).__init__(**kwargs)
@@ -807,7 +821,10 @@ class ASTPrinter(object):
             pass
 
         elif isinstance(node, RecordNode):
-            self.echo('RECORD(%s)' % (node.name))
+            self.echo(node)
+
+        elif isinstance(node, RecordDeclareNode):
+            self.echo(node)
 
         elif isinstance(node, PixelArrayNode):
             self.echo('PIXARRAY(%s)' % (node.name))
@@ -895,6 +912,8 @@ class CodeGeneratorPass1(object):
     def __init__(self):
         self.current_function = "_global"
 
+        self.records = {}
+        self.record_types = {}
         self.arrays = {}
 
     def generate(self, tree):
@@ -1046,6 +1065,10 @@ class CodeGeneratorPass1(object):
             elif tree.func.id == "Record":
                 raise SyntaxNotSupported("Records must be declared at module level", line_no=tree.lineno)
                 
+            # is this creating an instance of a record?
+            elif tree.func.id in self.record_types:
+                return RecordDeclareNode(tree.func.id, self.record_types[tree.func.id], line_no=tree.lineno)
+
             elif tree.func.id == "len":
                 node = self.generate(tree.args[0])
                 return LenNode(node, line_no=tree.lineno)
@@ -1131,6 +1154,7 @@ class CodeGeneratorPass1(object):
             if isinstance(value, NumberNode) or \
                isinstance(value, PixelArrayNode) or \
                isinstance(value, ArrayDeclareNode) or \
+               isinstance(value, RecordDeclareNode) or \
                isinstance(value, RecordNode):
 
                 value.name = dest.name
@@ -1150,6 +1174,9 @@ class CodeGeneratorPass1(object):
 
                         array_type.depth += 1
                         array_type = array_type.type
+
+                elif isinstance(value, RecordDeclareNode):
+                    self.records[value.name] = value
 
                 return value
 
@@ -1386,6 +1413,8 @@ class CodeGeneratorPass1(object):
 
             if len(fields) == 0:
                 raise SyntaxNotSupported(message='Cannot create empty record', line_no=node.value.lineno)
+
+            self.record_types[tree.name] = tree
 
             return tree
 
@@ -2313,13 +2342,7 @@ class CodeGeneratorPass2(object):
 
                     params.append(param)
 
-
-                if node.name in self.record_types:
-                    define_record_ir = DefineRecordIR(node.name, self.record_types[node.name], level=self.level, line_no=node.line_no)
-                    ir = [define_record_ir]
-
-                else:
-                    ir.append(CallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
+                ir.append(CallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
 
                 return ir
 
@@ -2549,22 +2572,6 @@ class CodeGeneratorPass2(object):
                 except TypeError:
                     dest = name
 
-                try:
-                    # check if defining a record
-                    if isinstance(src[0], DefineRecordIR):
-                        ir = src[0]
-
-                        ir.name = dest.name
-
-                        # add to record list
-                        self.records[ir.name] = RecordVarIR(ir.name, record_type=ir.record_type)
-
-                        return [ir]
-
-                except TypeError:
-                    pass
-
-                
                 # there's a special case for storing to an array,
                 # so we intercept here and use the IndexStore instead of
                 # Copy
@@ -2764,10 +2771,14 @@ class CodeGeneratorPass2(object):
                 return [define_array_ir]
 
             elif isinstance(node, RecordNode):
-
                 self.record_types[node.name] = RecordVarIR(node.name, record_type=node)
 
                 return []
+
+            elif isinstance(node, RecordDeclareNode):
+                self.records[node.name] = RecordVarIR(node.name, record_type=node.type)
+
+                return [DefineRecordIR(node.name, node.type)]
 
             elif isinstance(node, ArrayIndexNode):
                 code = []
@@ -3128,7 +3139,6 @@ class CodeGeneratorPass4(object):
                             # add this address into the address pool
                             if i not in address_pool:
                                 address_pool.append(reg.addr)
-
 
             if isinstance(ir, DefineIR):
                 registers[ir.name].declared = True
@@ -4240,7 +4250,7 @@ class CodeGeneratorPass5(object):
                         self.read_keys[ins.op1.attr] = string_hash_func(ins.op1.attr)
 
                     else:
-                        raise SyntaxNotSupported(line=ir.line_no)
+                        raise SyntaxNotSupported(line_no=ir.line_no)
 
                 except AttributeError:
                     assert ir.y < 0

@@ -2464,22 +2464,16 @@ void wifi_v_init( void ){
     WIFI_USART_XCK_PORT.WIFI_USART_XCK_PINCTRL  = PORT_OPC_PULLDOWN_gc;
     WIFI_USART_XCK_PORT.OUTCLR                  = ( 1 << WIFI_USART_XCK_PIN );
 
-    // return;
-     // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-     //     return;
-     // }
-
-     thread_t_create( THREAD_CAST(wifi_loader_thread),
-                      PSTR("wifi_loader"),
-                      0,
-                      sizeof(loader_thread_state_t) );
+    thread_t_create( THREAD_CAST(wifi_loader_thread),
+                        PSTR("wifi_loader"),
+                        0,
+                        sizeof(loader_thread_state_t) );
 
 
     thread_t_create( wifi_status_thread,
-                          PSTR("wifi_status"),
-                          0,
-                          0 );
+                        PSTR("wifi_status"),
+                        0,
+                        0 );
 
     thread_t_create( wifi_echo_thread,
                         PSTR("wifi_echo"),
