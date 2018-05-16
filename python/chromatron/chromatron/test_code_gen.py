@@ -2408,31 +2408,31 @@ class CGTestsLocal(CGTestsBase):
                 raise
 
 
-# import chromatron
-# import time
+import chromatron
+import time
 
-# ct = chromatron.Chromatron(host='10.0.0.120')
+ct = chromatron.Chromatron(host='10.0.0.120')
 
-# class CGTestsOnDevice(CGTestsBase):
-#     def run_test(self, program, expected={}):
-#         global ct
-#         # ct = chromatron.Chromatron(host='usb', force_network=True)
-#         # ct = chromatron.Chromatron(host='10.0.0.108')
+class CGTestsOnDevice(CGTestsBase):
+    def run_test(self, program, expected={}):
+        global ct
+        # ct = chromatron.Chromatron(host='usb', force_network=True)
+        # ct = chromatron.Chromatron(host='10.0.0.108')
 
-#         ct.load_vm(bin_data=program)
+        ct.load_vm(bin_data=program)
 
-#         time.sleep(0.2)
+        time.sleep(0.2)
 
-#         ct.init_scan()
+        ct.init_scan()
 
-#         for reg, expected_value in expected.iteritems():
-#             if reg == 'kv_test_key':
-#                 actual = ct.get_key(reg)
+        for reg, expected_value in expected.iteritems():
+            if reg == 'kv_test_key':
+                actual = ct.get_key(reg)
 
-#             else:
-#                 actual = ct.get_vm_reg(str(reg))
+            else:
+                actual = ct.get_vm_reg(str(reg))
 
-#             self.assertEqual(expected_value, actual)
+            self.assertEqual(expected_value, actual)
             
 
 

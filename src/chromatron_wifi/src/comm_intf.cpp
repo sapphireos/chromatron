@@ -241,11 +241,11 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
     }
     else if( data_id == WIFI_DATA_ID_RESET_VM ){
 
-        vm_v_reset();
+        vm_v_reset( 0 );
     }
     else if( data_id == WIFI_DATA_ID_LOAD_VM ){
 
-        vm_i8_load( data, len );
+        vm_i8_load( data, len, 0 );
     }
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 

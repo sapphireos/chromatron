@@ -32,10 +32,12 @@ extern "C"{
     #include "kvdb.h"
 }
 
-static uint16_t vm_offset;
-static uint16_t vm_len;
+static uint16_t vm_load_offset;
+static uint16_t vm_load_len;
+
 static uint8_t vm_slab[4096];
-static vm_state_t vm_state;
+
+static vm_state_t vm_state[VM_RUNNER_MAX_VMS];
 
 static vm_info_t vm_info;
 
@@ -95,7 +97,12 @@ uint32_t elapsed_time_micros( uint32_t start_time ){
     return elapsed;
 }
 
-static int8_t _vm_i8_run_vm( uint8_t mode ){
+static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
+
+    if( vm_index >= VM_RUNNER_MAX_VMS ){
+
+        return -1;
+    }
 
     // check that VM was loaded with no errors
     if( vm_info.status < 0 ){
@@ -115,16 +122,16 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
 
     if( mode == VM_RUN_INIT ){
 
-        return_code = vm_i8_run_init( vm_slab, &vm_state );
+        return_code = vm_i8_run_init( vm_slab, &vm_state[vm_index] );
     }
     else if( mode == VM_RUN_LOOP ){
 
-        return_code = vm_i8_run_loop( vm_slab, &vm_state );
+        return_code = vm_i8_run_loop( vm_slab, &vm_state[vm_index] );
     }
     else{
 
         // check if there are any threads to run
-        return_code = vm_i8_run_threads( vm_slab, &vm_state );   
+        return_code = vm_i8_run_threads( vm_slab, &vm_state[vm_index] );   
 
         // if no threads were run, bail out early so we don't 
         // transmit published vars that couldn't have changed.
@@ -151,13 +158,13 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
         vm_info.thread_time = elapsed;
     }
 
-    vm_info.max_cycles = vm_state.max_cycles;
+    vm_info.max_cycles = vm_state[vm_index].max_cycles;
     vm_info.return_code = return_code;
 
     // queue published vars for transport
-    vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state.publish_start];
+    vm_publish_t *publish = (vm_publish_t *)&vm_slab[vm_state[vm_index].publish_start];
 
-    uint32_t count = vm_state.publish_count;
+    uint32_t count = vm_state[vm_index].publish_count;
 
     while( count > 0 ){
 
@@ -168,8 +175,8 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
     }
 
     // load write keys from DB for transport
-    count = vm_state.write_keys_count;
-    uint32_t *hash = (uint32_t *)&vm_slab[vm_state.write_keys_start];
+    count = vm_state[vm_index].write_keys_count;
+    uint32_t *hash = (uint32_t *)&vm_slab[vm_state[vm_index].write_keys_start];
 
     while( count > 0 ){
 
@@ -185,7 +192,10 @@ static int8_t _vm_i8_run_vm( uint8_t mode ){
 
 void vm_v_init( void ){
 
-    vm_v_reset();
+    for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
+
+        vm_v_reset( i );
+    }
 
     gfxlib_v_init();
     gfx_v_reset();
@@ -205,7 +215,7 @@ void vm_v_process( void ){
 
     if( run_vm ){
 
-        _vm_i8_run_vm( VM_RUN_LOOP ); 
+        _vm_i8_run_vm( VM_RUN_LOOP, 0 ); 
         run_vm = false;
     }
 
@@ -235,23 +245,33 @@ void vm_v_process( void ){
 
         thread_tick = millis();
 
-        _vm_i8_run_vm( VM_RUN_THREADS );
+        _vm_i8_run_vm( VM_RUN_THREADS, 0 );
     }
 }
 
-void vm_v_reset( void ){
+void vm_v_reset( uint8_t vm_index ){
+
+    if( vm_index >= VM_RUNNER_MAX_VMS ){
+
+        return;
+    }
 
     vm_info.status = -127;
     vm_info.return_code = -127;
 
-    vm_offset = 0;
-    vm_len = 0;
+    vm_load_offset = 0;
+    vm_load_len = 0;
     memset( vm_slab, 0, sizeof(vm_slab) );
 
-    vm_v_clear_db( KVDB_VM_RUNNER_TAG );
+    vm_v_clear_db( KVDB_VM_RUNNER_TAG + vm_index );
 }
 
-int8_t vm_i8_load( uint8_t *data, uint16_t len ){
+int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
+
+    if( vm_index >= VM_RUNNER_MAX_VMS ){
+
+        return -1;
+    }
 
     // reset status codes
     vm_info.status = -127;
@@ -259,27 +279,27 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
 
     int8_t status = 0;
 
-    if( ( len + vm_offset ) > sizeof(vm_slab) ){
+    if( ( len + vm_load_offset ) > sizeof(vm_slab) ){
 
         vm_info.status = VM_STATUS_IMAGE_TOO_LARGE;
         return -1;
     }
 
-    memcpy( &vm_slab[vm_offset], data, len );
-    vm_offset += len;
-    vm_len += len;
+    memcpy( &vm_slab[vm_load_offset], data, len );
+    vm_load_offset += len;
+    vm_load_len += len;
 
     // length of 0 indicates loading is finished
     if( len == 0 ){
 
-        status = vm_i8_load_program( 0, vm_slab, vm_len, &vm_state );
+        status = vm_i8_load_program( 0, vm_slab, vm_load_len, &vm_state[vm_index] );
 
-        vm_state.prog_size = vm_len;
-        vm_state.tick_rate = VM_RUNNER_THREAD_RATE;
+        vm_state[vm_index].prog_size = vm_load_len;
+        vm_state[vm_index].tick_rate = VM_RUNNER_THREAD_RATE;
 
         uint8_t *ptr = vm_slab;
-        uint8_t *code_start = (uint8_t *)( ptr + vm_state.code_start );
-        int32_t *data_start = (int32_t *)( ptr + vm_state.data_start );
+        uint8_t *code_start = (uint8_t *)( ptr + vm_state[vm_index].code_start );
+        int32_t *data_start = (int32_t *)( ptr + vm_state[vm_index].data_start );
 
         // check that code pointer starts on 32 bit boundary
         if( ( (uint32_t)code_start & 0x03 ) != 0 ){
@@ -310,36 +330,46 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len ){
             rng_seed = 1;
         }
 
-        vm_state.rng_seed = rng_seed;
+        vm_state[vm_index].rng_seed = rng_seed;
 
         // init database
-        vm_v_init_db( vm_slab, &vm_state, KVDB_VM_RUNNER_TAG );
+        vm_v_init_db( vm_slab, &vm_state[vm_index], KVDB_VM_RUNNER_TAG + vm_index );
         
         // run init function
-        status = _vm_i8_run_vm( VM_RUN_INIT );
+        status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
     }
 
     return status;
 }
 
-int32_t vm_i32_get_reg( uint8_t addr ){
+int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
+
+    if( vm_index >= VM_RUNNER_MAX_VMS ){
+
+        return 0;
+    }
 
     if( vm_info.status < 0 ){
 
         return 0;
     }
 
-    return vm_i32_get_data( vm_slab, &vm_state, addr );
+    return vm_i32_get_data( vm_slab, &vm_state[vm_index], addr );
 }
 
-void vm_v_set_reg( uint8_t addr, int32_t data ){
+void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
+
+    if( vm_index >= VM_RUNNER_MAX_VMS ){
+
+        return;
+    }
 
     if( vm_info.status < 0 ){
 
         return;
     }
 
-    vm_v_set_data( vm_slab, &vm_state, addr, data );
+    vm_v_set_data( vm_slab, &vm_state[vm_index], addr, data );
 }
 
 void vm_v_get_info( vm_info_t *info ){
@@ -354,19 +384,19 @@ int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
         return -1;
     }
 
-    sync->frame_number  = vm_state.frame_number;
-    sync->rng_seed      = vm_state.rng_seed;
+    sync->frame_number  = vm_state[0].frame_number;
+    sync->rng_seed      = vm_state[0].rng_seed;
 
     // for now, we only send one chunk of register data
     sync->data_index    = 0;
-    sync->data_count    = vm_state.data_count;
+    sync->data_count    = vm_state[0].data_count;
 
     if( sync->data_count > WIFI_DATA_FRAME_SYNC_MAX_DATA ){
 
         sync->data_count = WIFI_DATA_FRAME_SYNC_MAX_DATA;
     }
 
-    vm_v_get_data_multi( vm_slab, &vm_state, sync->data_index, sync->data_count, sync->data );
+    vm_v_get_data_multi( vm_slab, &vm_state[0], sync->data_index, sync->data_count, sync->data );
 
     return 0;
 }
@@ -376,37 +406,37 @@ uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync ){
 
     uint8_t status = 0;
 
-    int32_t frame_diff = (int32_t)vm_state.frame_number - (int32_t)sync->frame_number;
+    int32_t frame_diff = (int32_t)vm_state[0].frame_number - (int32_t)sync->frame_number;
 
     if( ( frame_diff > 1 ) || ( frame_diff < -1 ) ){
 
         status |= 0x80;
     }
 
-    if( vm_state.frame_number > sync->frame_number ){
+    if( vm_state[0].frame_number > sync->frame_number ){
 
         status |= 0x40;
 
-        vm_state.frame_number   = sync->frame_number;
+        vm_state[0].frame_number   = sync->frame_number;
     }
-    else if( vm_state.frame_number < sync->frame_number ){
+    else if( vm_state[0].frame_number < sync->frame_number ){
 
         status |= 0x20;
 
-        vm_state.frame_number   = sync->frame_number;
+        vm_state[0].frame_number   = sync->frame_number;
     }
 
-    if( vm_state.rng_seed != sync->rng_seed ){
+    if( vm_state[0].rng_seed != sync->rng_seed ){
 
-        vm_state.rng_seed       = sync->rng_seed;
+        vm_state[0].rng_seed       = sync->rng_seed;
         status |= 0x01;   
     }
 
     for( uint8_t i = 0; i < sync->data_count; i++ ){
 
-        if( vm_i32_get_reg( i + sync->data_index ) != sync->data[i] ){
+        if( vm_i32_get_reg( i + sync->data_index, 0 ) != sync->data[i] ){
 
-            vm_v_set_reg( i + sync->data_index, sync->data[i] );
+            vm_v_set_reg( i + sync->data_index, sync->data[i], 0 );
             status |= 0x02;
         }
     }   
@@ -416,6 +446,6 @@ uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync ){
 
 uint16_t vm_u16_get_frame_number( void ){
 
-    return vm_state.frame_number;
+    return vm_state[0].frame_number;
 }
 
