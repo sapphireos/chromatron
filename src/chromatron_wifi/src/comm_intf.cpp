@@ -388,7 +388,7 @@ void intf_v_process( void ){
     }   
     interrupts();
 
-    
+
 
     if( ( intf_comm_state != COMM_STATE_IDLE ) &&
         ( elapsed( comm_timeout ) > 20000 ) ){
@@ -466,9 +466,6 @@ void intf_v_process( void ){
 
 
 
-
-
-
     if( !rx_ready() ){
 
         // check timeout
@@ -481,11 +478,7 @@ void intf_v_process( void ){
         if( elapsed_time > 50000 ){
 
             // query for ready status
-            // Serial.write( WIFI_COMM_QUERY_READY );
-
-            // intf_v_printf( "query ready: %u %u", elapsed_time, temp_last_rx_ready_ts );
-
-            comm_errors++;
+            Serial.write( WIFI_COMM_QUERY_READY );
 
             noInterrupts();
             request_reset_ready_timeout = true;

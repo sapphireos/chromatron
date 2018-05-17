@@ -228,19 +228,19 @@ static void _wifi_v_usart_flush( void ){
 }
 
 
-#include "io.h"
-void strobe_ss( void ){
+// #include "io.h"
+// void strobe_ss( void ){
 
-    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-    WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-    _delay_us( 1 );
-    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
+//     _delay_us( 1 );
+//     WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-    // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-    // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
-    // _delay_us( 1 );
-    // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
-}
+//     // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+//     // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+//     // _delay_us( 1 );
+//     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+// }
 
 
 
@@ -377,8 +377,6 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
     }
     else{
-
-        strobe_ss();
 
         // incorrect control byte on frame
 
@@ -1834,10 +1832,6 @@ static int8_t process_rx_data( void ){
 
         if( rx_netmsg <= 0 ){
 
-            strobe_ss();
-            strobe_ss();
-            strobe_ss();
-
             log_v_debug_P( PSTR("rx udp no netmsg") );     
 
             goto error;
@@ -1962,7 +1956,29 @@ restart:
         
     while(1){
 
-        THREAD_WAIT_SIGNAL( pt, WIFI_SIGNAL );
+        // THREAD_WAIT_SIGNAL( pt, WIFI_SIGNAL );
+        thread_v_set_signal_flag();
+        THREAD_WAIT_WHILE( pt, !thread_b_signalled( WIFI_SIGNAL ) && ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) );
+        thread_v_clear_signal( WIFI_SIGNAL );
+        thread_v_clear_signal_flag();
+
+        // check control byte for a ready query
+        if( wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){
+
+            log_v_debug_P( PSTR("query ready") );
+            wifi_v_reset_control_byte();
+
+            // send ready signal
+            // this will also reset the DMA engine.
+            wifi_v_set_rx_ready();
+
+            if( comm_stalls < 255 ){
+
+                comm_stalls++;
+            }
+
+            continue;
+        }
 
         uint8_t msgs_received = 0;
 
@@ -2096,22 +2112,6 @@ PT_BEGIN( pt );
         // reset counters
         current_rx_bytes = 0;
         current_tx_bytes = 0;
-
-        // check control byte for a ready query
-        if( wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){
-
-            log_v_debug_P( PSTR("query ready") );
-            wifi_v_reset_control_byte();
-
-            // send ready signal
-            // this will also reset the DMA engine.
-            wifi_v_set_rx_ready();
-
-            if( comm_stalls < 255 ){
-
-                comm_stalls++;
-            }
-        }
     }
 
 PT_END( pt );
