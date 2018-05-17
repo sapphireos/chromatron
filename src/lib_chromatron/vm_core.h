@@ -24,7 +24,7 @@
 #define _VM_CORE_H
 
 #include <stdint.h>
-
+#include "catbus_common.h"
 
 #define VM_ISA_VERSION              9
 
@@ -61,6 +61,7 @@
 #define VM_STATUS_WRITE_KEYS_MISALIGN   -45
 #define VM_STATUS_PUBLISH_VARS_MISALIGN -46
 #define VM_STATUS_PIXEL_MISALIGN        -47
+#define VM_STATUS_LINK_MISALIGN         -48
 
 #define VM_STATUS_LOAD_ALLOC_FAIL       -50
 
@@ -106,17 +107,24 @@ typedef struct __attribute__((packed)){
     uint8_t padding[3];
 } vm_publish_t;
 
+
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 source_hash;
+    catbus_hash_t32 dest_hash;
+    catbus_query_t query;
+} link_t;
+
 typedef struct __attribute__((packed)){
     uint32_t file_magic;
     uint32_t prog_magic;
     uint16_t isa_version;
     uint16_t code_len;
     uint16_t data_len;
-    uint16_t read_keys_len; // length in BYTES, not number of objects!
-    uint16_t write_keys_len; // length in BYTES, not number of objects!
-    uint16_t publish_len; // length in BYTES, not number of objects!
-    uint16_t pix_obj_len; // length in BYTES, not number of objects!
-    uint16_t padding;
+    uint16_t read_keys_len;     // length in BYTES, not number of objects!
+    uint16_t write_keys_len;    // length in BYTES, not number of objects!
+    uint16_t publish_len;       // length in BYTES, not number of objects!
+    uint16_t pix_obj_len;       // length in BYTES, not number of objects!
+    uint16_t link_len;          // length in BYTES, not number of objects!
     uint16_t init_start;
     uint16_t loop_start;
     // variable length data:
@@ -124,6 +132,7 @@ typedef struct __attribute__((packed)){
     // - write keys
     // - publish vars
     // - pixel objects
+    // - links
     // - code stream
     // - data table
 } vm_program_header_t;
@@ -167,6 +176,9 @@ typedef struct{
 
     uint8_t pix_obj_count;
     uint16_t pix_obj_start;
+
+    uint8_t link_count;
+    uint16_t link_start;
 } vm_state_t;
 
 int8_t vm_i8_run(

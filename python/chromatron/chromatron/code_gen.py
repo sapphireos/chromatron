@@ -28,7 +28,7 @@ import sys
 import random
 import crcmod
 from elysianfields import *
-from catbus import catbus_string_hash
+from catbus import *
 import trig
 from copy import copy
 
@@ -105,7 +105,7 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="write_keys_len"),
                   Uint16Field(_name="publish_len"),
                   Uint16Field(_name="pix_obj_len"),
-                  Uint16Field(_name="padding"),
+                  Uint16Field(_name="link_len"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 
@@ -131,6 +131,14 @@ class VMPublishVar(StructField):
                   ArrayField(_name="padding", _length=3, _field=Uint8Field)]
 
         super(VMPublishVar, self).__init__(_name="vm_publish", _fields=fields, **kwargs)
+
+class Link(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusHash(_name="source_hash"),
+                  CatbusHash(_name="dest_hash"),
+                  CatbusQuery(_name="query")]
+
+        super(Link, self).__init__(_name="link", _fields=fields, **kwargs)
 
 
 def string_hash_func(s):
@@ -4797,6 +4805,18 @@ class CodeGeneratorPass7(object):
         for reg in self.state['data']['publish'].itervalues():
             packed_publish += VMPublishVar(hash=catbus_string_hash(PUBLISHED_VAR_NAME_PREFIX + reg.name), addr=reg.addr).pack()
 
+        # set up links
+        packed_links = ''
+        for link in self.state['links']:
+            source_hash = catbus_string_hash(link.src.name)
+            dest_hash = catbus_string_hash(link.dest.name)
+            query = [catbus_string_hash(a.name) for a in link.query]
+
+            packed_links += Link(source_hash=source_hash, 
+                                 dest_hash=dest_hash, 
+                                 query=query).pack()
+
+
         image_len = (data_len + 
                      code_len + 
                      len(packed_pix_objects) +
@@ -4816,6 +4836,7 @@ class CodeGeneratorPass7(object):
                     read_keys_len=len(packed_read_keys),
                     write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
+                    link_len=len(packed_links),
                     init_start=self.functions['init'],
                     loop_start=self.functions['loop'])
 
@@ -4824,6 +4845,7 @@ class CodeGeneratorPass7(object):
         stream += packed_write_keys
         stream += packed_publish
         stream += packed_pix_objects
+        stream += packed_links
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)

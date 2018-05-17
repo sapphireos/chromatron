@@ -1697,10 +1697,24 @@ int8_t vm_i8_load_program(
         return VM_STATUS_PIXEL_MISALIGN;
     }
 
+    state->link_count = prog_header->link_len / sizeof(link_t);
+    state->link_start = obj_start;
+    obj_start += prog_header->link_len;
+
+    if( ( state->link_start % 4 ) != 0 ){
+
+        return VM_STATUS_LINK_MISALIGN;
+    }
+    
+
+    // if just checking the header, we're done at this point
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) != 0 ){
 
         return VM_STATUS_OK;
     }
+
+
+    // set up final items for VM execution
 
     state->code_start = obj_start;
 
