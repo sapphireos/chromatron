@@ -336,7 +336,7 @@ class ArrayDeclareNode(DataNode):
 
     @property
     def count(self):
-        c = 0
+        c = 1
         for dim in self.dimensions:
             c *= dim
 
@@ -2136,16 +2136,17 @@ class IndexStoreIR(IntermediateNode):
 
 
 class OffsetIR(IntermediateNode):
-    def __init__(self, dest, target, index, base=ConstIR(0), **kwargs):
+    def __init__(self, dest, index, length, stride, base=ConstIR(0), **kwargs):
         super(OffsetIR, self).__init__(**kwargs)
 
         self.dest = dest
-        self.target = target
+        self.length = length
+        self.stride = stride
         self.index = index
         self.base = base
 
     def get_data_nodes(self):
-        nodes = [self.dest, self.index, self.base]
+        nodes = [self.dest, self.index, self.base, self.length, self.stride]
 
         return nodes
 
@@ -2153,7 +2154,7 @@ class OffsetIR(IntermediateNode):
         return False
 
     def __str__(self):
-        return '%3d %s OFFSET %s = [%s + %s] (array: %s)' % (self.line_no, self.indent * self.level, self.dest, self.base, self.index, self.target.name)
+        return '%3d %s OFFSET %s = [%s + (%s %% %s) * %s]' % (self.line_no, self.indent * self.level, self.dest, self.base, self.index, self.length, self.stride)
 
 
 class LabelIR(IntermediateNode):
@@ -2294,11 +2295,24 @@ class DefineArrayIR(IntermediateNode):
 
     @property
     def length(self):
-        c = 0
+        c = 1
         for dim in self.dimensions:
             c *= dim
 
         return c
+
+    def sub_length(self, depth):
+        c = 1
+
+        i = depth + 1
+
+        while i < len(self.dimensions):
+            c *= self.dimensions[i]
+
+            i += 1
+
+        return c
+
 
     @property
     def depth(self):
@@ -2897,7 +2911,9 @@ class CodeGeneratorPass2(object):
 
                 offset_dest = self.get_unique_register(line_no=node.line_no)
 
-                array_type = node.obj.type
+                array_type = self.generate(node.obj.type)[0]
+
+                depth = 0
 
                 base = ConstIR(0)
                 for offset in node.offsets:
@@ -2910,11 +2926,16 @@ class CodeGeneratorPass2(object):
                     except TypeError:
                         pass
 
-                    ir = OffsetIR(offset_dest, array_type, offset, base, level=self.level, line_no=node.line_no)
+                    length = ConstIR(array_type.dimensions[depth], level=self.level, line_no=node.line_no)
+                    stride = ConstIR(array_type.sub_length(depth), level=self.level, line_no=node.line_no)
+
+                    ir = OffsetIR(offset_dest, offset, length, stride, base, level=self.level, line_no=node.line_no)
 
                     code.append(ir)
 
                     base = offset_dest
+
+                    depth += 1
                     
                 if node.store:
                     dest_ary = self.generate(node.obj)
@@ -2935,58 +2956,58 @@ class CodeGeneratorPass2(object):
 
                 return code
 
-            elif isinstance(node, AttributeNode):
-                return []
+            # elif isinstance(node, AttributeNode):
+            #     return []
 
-            elif isinstance(node, SubscriptNode):
-                code = []
+            # elif isinstance(node, SubscriptNode):
+            #     code = []
                 
-                # print type(node.obj)
+            #     # print type(node.obj)
 
-                obj = self.generate(node.obj)
-                index = self.generate(node.index)
+            #     obj = self.generate(node.obj)
+            #     index = self.generate(node.index)
 
-                print "MEOW"
+            #     print "MEOW"
 
-                # print obj, index
+            #     # print obj, index
 
-                base = ConstIR(0)
+            #     base = ConstIR(0)
 
-                try:
-                    # obj.pop(-1)
-                    code.extend(obj)
+            #     try:
+            #         # obj.pop(-1)
+            #         code.extend(obj)
 
-                    base = obj[-1].dest
-                    obj = obj[-1].target
-                    offset_dest = base
+            #         base = obj[-1].dest
+            #         obj = obj[-1].target
+            #         offset_dest = base
 
-                    print obj
+            #         print obj
 
-                except (TypeError, AttributeError):
-                    offset_dest = self.get_unique_register(line_no=node.line_no)
+            #     except (TypeError, AttributeError):
+            #         offset_dest = self.get_unique_register(line_no=node.line_no)
                     
 
-                ir = OffsetIR(offset_dest, obj, index, base, level=self.level, line_no=node.line_no)
+            #     ir = OffsetIR(offset_dest, obj, index, base, level=self.level, line_no=node.line_no)
 
-                code.append(ir)
+            #     code.append(ir)
 
-                # if isinstance(obj, DataIR):
-                #     if node.store:
-                #         ir = IndexStoreIR(obj, None, offset_dest, None, level=self.level, line_no=node.line_no)
+            #     # if isinstance(obj, DataIR):
+            #     #     if node.store:
+            #     #         ir = IndexStoreIR(obj, None, offset_dest, None, level=self.level, line_no=node.line_no)
 
-                #     else:
-                #         temp_dest = self.get_unique_register(line_no=node.line_no)
-                #         ir = IndexLoadIR(temp_dest, obj, offset_dest, None, level=self.level, line_no=node.line_no)
+            #     #     else:
+            #     #         temp_dest = self.get_unique_register(line_no=node.line_no)
+            #     #         ir = IndexLoadIR(temp_dest, obj, offset_dest, None, level=self.level, line_no=node.line_no)
 
-                #     code.append(ir)
+            #     #     code.append(ir)
 
-                for c in code:
-                    print c
+            #     for c in code:
+            #         print c
 
-                # print obj
-                # print obj.type
+            #     # print obj
+            #     # print obj.type
 
-                return code
+            #     return code
                 
             elif isinstance(node, basestring):
                 return node
@@ -4506,10 +4527,8 @@ class CodeGeneratorPass5(object):
                 self.append_code(ins)
 
             elif isinstance(ir, OffsetIR):
-                ary = self.arrays[ir.target.name]
-
-                ary_length = self.registers[ary.length]
-                ary_stride = self.registers[ary.stride]
+                ary_length = self.registers[ir.length.name]
+                ary_stride = self.registers[ir.stride.name]
 
                 ins = OffsetArray(ir.dest, ir.base, ir.index, ary_length, ary_stride)
 
