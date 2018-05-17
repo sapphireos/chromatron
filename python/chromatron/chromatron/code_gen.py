@@ -3222,7 +3222,7 @@ class CodeGeneratorPass4(object):
 
         self.optimize_register_usage = True
 
-    def generate(self, state, global_registers=[]):
+    def generate(self, state):
         register_usage = {}
 
         code = state['code']
@@ -3257,16 +3257,16 @@ class CodeGeneratorPass4(object):
 
         addr = 1
 
-        # assign any global registers
-        # this is used for the automaton
-        for reg in global_registers:
-            registers[reg] = VarIR(reg, number_type=reg.type, line_no=0)
-            registers[reg].addr = addr
-            registers[reg].function = self.current_function
-            addr += 1
+        # # assign any global registers
+        # # this is used for the automaton
+        # for reg in global_registers:
+        #     registers[reg] = VarIR(reg, number_type=reg.type, line_no=0)
+        #     registers[reg].addr = addr
+        #     registers[reg].function = self.current_function
+        #     addr += 1
 
 
-        local_registers = {}
+        # local_registers = {}
 
         for i in xrange(len(code)):
             ir = code[i]
@@ -3278,10 +3278,10 @@ class CodeGeneratorPass4(object):
                 address_pool = []
 
             for reg in ir.get_data_nodes():
-                if not isinstance(reg, ConstIR):
+                # if not isinstance(reg, ConstIR):
                     # add to locals.
                     # automaton uses this.
-                    local_registers[reg.name] = reg
+                    # local_registers[reg.name] = reg
 
                 # check type
                 if not isinstance(reg, DataIR):
@@ -3390,7 +3390,7 @@ class CodeGeneratorPass4(object):
             'read_keys': {},
             'write_keys': {},
             'publish': {},
-            'local_registers': local_registers
+            # 'local_registers': local_registers
         }
 
         for reg, data in registers.iteritems():
@@ -4846,59 +4846,59 @@ class CodeGeneratorPass7(object):
 
         return self.state
 
-# Automaton final pass
-# This does not create the binary, it just finishes up
-# what the VM will be working with.
-class CodeGeneratorPassAutomaton7(object):
-    def __init__(self, state):
-        self.functions = state['functions']
-        self.registers = state['data']
-        self.code = state['code']
-        self.state = state
+# # Automaton final pass
+# # This does not create the binary, it just finishes up
+# # what the VM will be working with.
+# class CodeGeneratorPassAutomaton7(object):
+#     def __init__(self, state):
+#         self.functions = state['functions']
+#         self.registers = state['data']
+#         self.code = state['code']
+#         self.state = state
 
-    def generate(self):
+#     def generate(self):
 
-        # sort registers by address
-        sorted_regs = sorted(self.registers['registers'].values(), key=lambda a: a.addr)
+#         # sort registers by address
+#         sorted_regs = sorted(self.registers['registers'].values(), key=lambda a: a.addr)
 
-        # remove duplicates
-        regs = []
-        used_addrs = []
-        for reg in sorted_regs:
-            if reg.addr not in used_addrs:
-                used_addrs.append(reg.addr)
-                regs.append(reg)
+#         # remove duplicates
+#         regs = []
+#         used_addrs = []
+#         for reg in sorted_regs:
+#             if reg.addr not in used_addrs:
+#                 used_addrs.append(reg.addr)
+#                 regs.append(reg)
 
-        data_len = len(regs)
-        code_len = len(self.code)
+#         data_len = len(regs)
+#         code_len = len(self.code)
 
-        image_len = data_len + code_len
+#         image_len = data_len + code_len
     
-        # add code stream
-        code_stream = self.code
+#         # add code stream
+#         code_stream = self.code
         
-        # add data table
-        data_stream = []
-        for reg in regs:
-            if isinstance(reg, ConstIR):
-                data_stream.append(int(reg.name))
+#         # add data table
+#         data_stream = []
+#         for reg in regs:
+#             if isinstance(reg, ConstIR):
+#                 data_stream.append(int(reg.name))
 
-            else:
-                data_stream.append(0)
+#             else:
+#                 data_stream.append(0)
 
-        # delete stuff the automaton doesn't need
-        del self.state['vm_code']
-        del self.state['vm_data']
-        del self.state['objects']
-        del self.state['code']
+#         # delete stuff the automaton doesn't need
+#         del self.state['vm_code']
+#         del self.state['vm_data']
+#         del self.state['objects']
+#         del self.state['code']
 
-        self.state.update(
-               {'code_stream': code_stream,
-                'data_stream': data_stream,
-                'data_len': data_len,
-                'code_len': code_len})
+#         self.state.update(
+#                {'code_stream': code_stream,
+#                 'data_stream': data_stream,
+#                 'data_len': data_len,
+#                 'code_len': code_len})
 
-        return self.state
+#         return self.state
 
 
 class VM(object):
