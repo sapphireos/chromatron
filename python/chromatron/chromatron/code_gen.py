@@ -531,6 +531,34 @@ class SysCallNode(CodeNode):
         self.name = name
         self.params = params
 
+class SubscriptNode(CodeNode):
+    def __init__(self, obj, index, store=False, **kwargs):
+        super(SubscriptNode, self).__init__(**kwargs)
+        self.obj = obj
+        self.index = index
+        self.store = store
+
+    def __str__(self):
+        if self.store:
+            return "SUBSCRIPT:%s[%s] (store)" % (self.obj, self.index)
+
+        else:
+            return "SUBSCRIPT:%s[%s] (load)" % (self.obj, self.index)
+
+class AttributeNode(CodeNode):
+    def __init__(self, obj, attr, store=False, **kwargs):
+        super(AttributeNode, self).__init__(**kwargs)
+        self.obj = obj
+        self.attr = attr
+        self.store = store
+
+    def __str__(self):
+        if self.store:
+            return "ATTR:%s.%s (store)" % (self.obj, self.attr)
+
+        else:
+            return "ATTR:%s.%s (load)" % (self.obj, self.attr)
+
 
 class ASTWalker(object):
     def __init__(self):
@@ -843,6 +871,12 @@ class ASTPrinter(object):
 
         elif isinstance(node, NoOpCodeNode):
             pass
+
+        elif isinstance(node, AttributeNode):
+            self.echo(node)
+
+        elif isinstance(node, SubscriptNode):
+            self.echo(node)
 
         else:
             raise Exception(node)
@@ -1240,91 +1274,113 @@ class CodeGeneratorPass1(object):
         elif isinstance(tree, ast.Continue):
             return ContinueNode(line_no=tree.lineno)
 
-        elif isinstance(tree, ast.Attribute):                
-            if isinstance(tree.value, ast.Subscript):
-                # check for second array index
-                if isinstance(tree.value.value, ast.Subscript):
-                    obj = tree.value.value.value.id
-                    x = self.generate(tree.value.value.slice.value)
-                    y = self.generate(tree.value.slice.value)
+        elif isinstance(tree, ast.Attribute):    
+            attr = tree.attr
+            obj = self.generate(tree.value)
 
-                else:
-                    obj = tree.value.value.id
-                    y = ConstantNode(65535)
-                    x = self.generate(tree.value.slice.value)
+            if isinstance(tree.ctx, ast.Store):
+                store = True
+
+            else:
+                store = False
+
+            return AttributeNode(obj, attr, store, line_no=tree.lineno)
+
+            # if isinstance(tree.value, ast.Subscript):
+            #     # check for second array index
+            #     if isinstance(tree.value.value, ast.Subscript):
+            #         obj = tree.value.value.value.id
+            #         x = self.generate(tree.value.value.slice.value)
+            #         y = self.generate(tree.value.slice.value)
+
+            #     else:
+            #         obj = tree.value.value.id
+            #         y = ConstantNode(65535)
+            #         x = self.generate(tree.value.slice.value)
                 
-                attr = tree.attr
+            #     attr = tree.attr
 
-                if isinstance(tree.ctx, ast.Store):
-                    store = True
+            #     if isinstance(tree.ctx, ast.Store):
+            #         store = True
 
-                else:
-                    store = False
+            #     else:
+            #         store = False
 
-                return ObjIndexNode(obj, attr, x, y, store, line_no=tree.lineno)
+            #     return ObjIndexNode(obj, attr, x, y, store, line_no=tree.lineno)
 
-            else:                
-                obj = tree.value.id
-                attr = tree.attr
+            # else:                
+            #     obj = tree.value.id
+            #     attr = tree.attr
 
-                if isinstance(tree.ctx, ast.Store):
-                    store = True
+            #     if isinstance(tree.ctx, ast.Store):
+            #         store = True
 
-                else:
-                    store = False
+            #     else:
+            #         store = False
 
-                return ObjNode(obj, attr, store, line_no=tree.lineno)
+            #     return ObjNode(obj, attr, store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Subscript):
-            try:
-                # this is basically a syntax rewrite.
-                # the code for ast.Attribute already does what we want here,
-                # so we are rearranging the syntax to match and then reusing
-                # that code.
-                sub = tree
-                attr = tree.value
+            obj = self.generate(tree.value)
+            index = self.generate(tree.slice.value)
 
-                # check for multiple dimensions - that would be an array access
-                if isinstance(attr, ast.Subscript):
-                    raise AttributeError
+            if isinstance(tree.ctx, ast.Store):
+                store = True
 
-                attr_value = tree.value.value
-                ctx = sub.ctx
-
-                sub.value = attr_value
-
-                attr.value = sub
-                attr.ctx = ctx
-
-                return self.generate(attr)
-
-            except AttributeError:
-                # unless we are indexing an array
-
-                offsets = []
-
+            else:
                 store = False
-                if isinstance(tree.ctx, ast.Store):
-                    store = True
+
+            return SubscriptNode(obj, index, store, line_no=tree.lineno)
+
+            # try:
+            #     # this is basically a syntax rewrite.
+            #     # the code for ast.Attribute already does what we want here,
+            #     # so we are rearranging the syntax to match and then reusing
+            #     # that code.
+            #     sub = tree
+            #     attr = tree.value
+
+            #     # check for multiple dimensions - that would be an array access
+            #     if isinstance(attr, ast.Subscript):
+            #         raise AttributeError
+
+            #     attr_value = tree.value.value
+            #     ctx = sub.ctx
+
+            #     sub.value = attr_value
+
+            #     attr.value = sub
+            #     attr.ctx = ctx
+
+            #     return self.generate(attr)
+
+            # except AttributeError:
+            #     # unless we are indexing an array
+
+            #     offsets = []
+
+            #     store = False
+            #     if isinstance(tree.ctx, ast.Store):
+            #         store = True
 
 
-                while isinstance(tree, ast.Subscript):
+            #     while isinstance(tree, ast.Subscript):
                     
-                    index = self.generate(tree.slice.value)
-                    offsets.append(index)
+            #         index = self.generate(tree.slice.value)
+            #         offsets.append(index)
 
-                    tree = tree.value
+            #         tree = tree.value
 
-                assert not isinstance(tree, ast.Subscript)
+            #     assert not isinstance(tree, ast.Subscript)
 
-                target = self.generate(tree)
+            #     target = self.generate(tree)
 
-                # reverse list of offsets so they read from left to right
-                offsets = list(reversed(offsets))
+            #     # reverse list of offsets so they read from left to right
+            #     offsets = list(reversed(offsets))
 
-                node = ArrayIndexNode(target, offsets, store=store, line_no=tree.lineno)
+            #     node = ArrayIndexNode(target, offsets, store=store, line_no=tree.lineno)
 
-                return node
+            #     return node
 
         elif isinstance(tree, ast.Eq):
             return 'eq'
@@ -2823,6 +2879,36 @@ class CodeGeneratorPass2(object):
                 code.append(ir)
 
                 return code
+
+            elif isinstance(node, AttributeNode):
+                return []
+
+            elif isinstance(node, SubscriptNode):
+                code = []
+
+                obj = self.generate(node.obj)
+                index = self.generate(node.index)
+
+                print obj
+                print index
+
+                base = ConstIR(0)
+                offset_dest = self.get_unique_register(line_no=node.line_no)
+
+                ir = OffsetIR(offset_dest, obj, index, base, level=self.level, line_no=node.line_no)
+
+                code.append(ir)
+
+                if node.store:
+                    ir = IndexStoreIR(obj, None, offset_dest, None, level=self.level, line_no=node.line_no)
+
+                else:
+                    temp_dest = self.get_unique_register(line_no=node.line_no)
+                    ir = IndexLoadIR(temp_dest, obj, offset_dest, None, level=self.level, line_no=node.line_no)
+
+                code.append(ir)
+
+                return code
                 
             elif isinstance(node, basestring):
                 return node
@@ -2849,6 +2935,7 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, NoOpCodeNode):
                 return []
+
 
             else:
                 raise Exception(node)
@@ -4341,6 +4428,9 @@ class CodeGeneratorPass5(object):
                 self.append_code(ins)
 
             elif isinstance(ir, OffsetIR):
+                print 'mewo'
+                print ir
+                print ir.target.name
                 ary = self.arrays[ir.target.name]
 
                 ary_length = self.registers[ary.length]
