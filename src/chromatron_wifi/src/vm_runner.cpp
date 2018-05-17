@@ -24,7 +24,7 @@
 #include "comm_intf.h"
 
 extern "C"{
-    #include "memory.h"
+    // #include "memory.h"
     #include "vm_runner.h"
     #include "vm_core.h"
     #include "gfx_lib.h"
@@ -35,8 +35,14 @@ extern "C"{
 
 static uint16_t vm_load_len;
 
-static mem_handle_t vm_handles[VM_RUNNER_MAX_VMS];
+// static mem_handle_t vm_handles[VM_RUNNER_MAX_VMS];
+
+static uint8_t vm_data[4096];
+static int16_t vm_start[VM_RUNNER_MAX_VMS];
+static uint16_t vm_size[VM_RUNNER_MAX_VMS];
 static vm_state_t vm_state[VM_RUNNER_MAX_VMS];
+
+static uint16_t vm_total_size;
 
 static vm_info_t vm_info;
 
@@ -115,29 +121,35 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         return 0;
     }
 
-    if( vm_handles[vm_index] <= 0 ){
+    if( vm_start[vm_index] < 0 ){
 
         return -2;
     }
+
+    // if( vm_handles[vm_index] <= 0 ){
+
+    //     return -2;
+    // }
 
     uint32_t start_time = micros();
 
     int8_t return_code;
 
-    uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    // uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
     if( mode == VM_RUN_INIT ){
 
-        return_code = vm_i8_run_init( ptr, &vm_state[vm_index] );
+        return_code = vm_i8_run_init( stream, &vm_state[vm_index] );
     }
     else if( mode == VM_RUN_LOOP ){
 
-        return_code = vm_i8_run_loop( ptr, &vm_state[vm_index] );
+        return_code = vm_i8_run_loop( stream, &vm_state[vm_index] );
     }
     else{
 
         // check if there are any threads to run
-        return_code = vm_i8_run_threads( ptr, &vm_state[vm_index] );   
+        return_code = vm_i8_run_threads( stream, &vm_state[vm_index] );   
 
         // if no threads were run, bail out early so we don't 
         // transmit published vars that couldn't have changed.
@@ -168,7 +180,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
     vm_info.return_code = return_code;
 
     // queue published vars for transport
-    vm_publish_t *publish = (vm_publish_t *)&ptr[vm_state[vm_index].publish_start];
+    vm_publish_t *publish = (vm_publish_t *)&stream[vm_state[vm_index].publish_start];
 
     uint32_t count = vm_state[vm_index].publish_count;
 
@@ -182,7 +194,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     // load write keys from DB for transport
     count = vm_state[vm_index].write_keys_count;
-    uint32_t *hash = (uint32_t *)&ptr[vm_state[vm_index].write_keys_start];
+    uint32_t *hash = (uint32_t *)&stream[vm_state[vm_index].write_keys_start];
 
     while( count > 0 ){
 
@@ -200,9 +212,13 @@ void vm_v_init( void ){
 
     for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
 
-        vm_handles[i] = -1;
+        // vm_handles[i] = -1;
+        vm_start[i] = -1;
         vm_v_reset( i );
     }
+
+    // clear VM data
+    memset( vm_data, 0xff, sizeof(vm_data) );
 
     gfxlib_v_init();
     gfx_v_reset();
@@ -263,12 +279,75 @@ void vm_v_reset( uint8_t vm_index ){
         return;
     }
 
-    if( vm_handles[vm_index] > 0 ){
+    // check if this VM has already been reset
+    if( vm_start[vm_index] < 0 ){
 
-        mem2_v_free( vm_handles[vm_index] );
-
-        vm_handles[vm_index] = -1;
+        return;
     }
+
+    // // sort vm indexes based on starting offsets
+    // uint8_t indexes[VM_RUNNER_MAX_VMS];
+
+    // // bubble sort
+    // bool swapped;
+    // do{
+
+    //     swapped = FALSE;
+    
+    //     for( uint8_t i = 1; i < VM_RUNNER_MAX_VMS; i++ ){            
+
+    //         if( vm_start[i - 1] > vm_start[i] ){
+
+    //             // swap values
+    //             uint16_t temp = array[i];
+    //             array[i] = array[i - 1];
+    //             array[i - 1] = temp;
+
+    //             swapped = TRUE;
+    //         }
+    //     }                
+
+    // } while( swapped );
+
+
+    // uint32_t clean_offset = vm_start[vm_index];
+
+    // // defrag VMs
+    // for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
+
+    //     if( i == vm_index ){
+
+    //         continue;
+    //     }
+
+    //     // is this VM before the start of the section we're cleaning?
+    //     if( vm_start[i] < clean_offset ){
+
+    //         // don't need to move this one
+    //         continue;
+    //     }
+
+
+    // }
+
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
+
+    // write 1s to VM data (trap instruction)
+    memset( stream, 0xff, vm_size[vm_index] );
+
+    vm_total_size -= vm_size[vm_index];
+
+    vm_start[vm_index] = -1;
+    vm_size[vm_index] = 0;
+
+    memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
+
+    // if( vm_handles[vm_index] > 0 ){
+
+    //     mem2_v_free( vm_handles[vm_index] );
+
+    //     vm_handles[vm_index] = -1;
+    // }
 
     vm_info.status = -127;
     vm_info.return_code = -127;
@@ -291,57 +370,72 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
     int8_t status = 0;
 
-    uint16_t vm_load_offset = vm_load_len;
-    vm_load_len += len;
+    // uint16_t vm_load_offset = vm_load_len;
+    // vm_load_len += len;
 
-    if( vm_load_len > VM_RUNNER_MAX_SIZE ){
+    // if( vm_load_len > VM_RUNNER_MAX_SIZE ){
 
-        vm_info.status = VM_STATUS_IMAGE_TOO_LARGE;
-        return -1;
+    //     vm_info.status = VM_STATUS_IMAGE_TOO_LARGE;
+    //     return -1;
+    // }
+
+    // // check if there is a handle at this index
+    // if( vm_handles[vm_index] <= 0 ){
+
+    //     // allocate new handle
+    //     vm_handles[vm_index] = mem2_h_alloc( len );
+
+    //     // check if alloc failed.  this would be sad.
+    //     if( vm_handles[vm_index] < 0 ){
+
+    //         vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
+    //         return -2;
+    //     }
+    // }
+    // // handle exists, reallocate
+    // else{
+
+    //     if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
+
+    //         vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
+    //         vm_handles[vm_index] = -1;
+    //         return -3;
+    //     }
+    // }
+
+    // uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+
+
+    // check if this is the first page
+    if( vm_start[vm_index] == -1 ){
+
+        // need to get starting offset
+        vm_start[vm_index] = vm_total_size;
+
+        // make sure we start our VM size as 0
+        vm_size[vm_index] = 0;
     }
 
-    // check if there is a handle at this index
-    if( vm_handles[vm_index] <= 0 ){
-
-        // allocate new handle
-        vm_handles[vm_index] = mem2_h_alloc( len );
-
-        // check if alloc failed.  this would be sad.
-        if( vm_handles[vm_index] < 0 ){
-
-            vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
-            return -2;
-        }
-    }
-    // handle exists, reallocate
-    else{
-
-        if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
-
-            vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
-            vm_handles[vm_index] = -1;
-            return -3;
-        }
-    }
-
-    uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
-
-    
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
+        
     if( len > 0 ){
     
         // load next page of data
-        memcpy( &ptr[vm_load_offset], data, len );
+        memcpy( &stream[vm_size[vm_index]], data, len );
+
+        vm_size[vm_index] += len;
+        vm_total_size += len;
     }
     // length of 0 indicates loading is finished
     else{
 
-        status = vm_i8_load_program( 0, ptr, vm_load_len, &vm_state[vm_index] );
+        status = vm_i8_load_program( 0, stream, vm_size[vm_index], &vm_state[vm_index] );
 
-        vm_state[vm_index].prog_size = vm_load_len;
+        vm_state[vm_index].prog_size = vm_size[vm_index];
         vm_state[vm_index].tick_rate = VM_RUNNER_THREAD_RATE;
 
-        uint8_t *code_start = (uint8_t *)( ptr + vm_state[vm_index].code_start );
-        int32_t *data_start = (int32_t *)( ptr + vm_state[vm_index].data_start );
+        uint8_t *code_start = (uint8_t *)( stream + vm_state[vm_index].code_start );
+        int32_t *data_start = (int32_t *)( stream + vm_state[vm_index].data_start );
 
         // check that code pointer starts on 32 bit boundary
         if( ( (uint32_t)code_start & 0x03 ) != 0 ){
@@ -380,7 +474,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
         vm_state[vm_index].rng_seed = rng_seed;
 
         // init database
-        vm_v_init_db( ptr, &vm_state[vm_index], KVDB_VM_RUNNER_TAG + vm_index );
+        vm_v_init_db( stream, &vm_state[vm_index], KVDB_VM_RUNNER_TAG + vm_index );
         
         // run init function
         status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
@@ -401,14 +495,19 @@ int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
         return 0;
     }
 
-    if( vm_handles[vm_index] <= 0 ){
+    // if( vm_handles[vm_index] <= 0 ){
+
+    //     return 0;
+    // }
+    if( vm_start[vm_index] < 0 ){
 
         return 0;
     }
 
-    uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    // uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
-    return vm_i32_get_data( ptr, &vm_state[vm_index], addr );
+    return vm_i32_get_data( stream, &vm_state[vm_index], addr );
 }
 
 void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
@@ -423,14 +522,19 @@ void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
         return;
     }
 
-    if( vm_handles[vm_index] <= 0 ){
+    // if( vm_handles[vm_index] <= 0 ){
+
+    //     return;
+    // }
+    if( vm_start[vm_index] < 0 ){
 
         return;
     }
 
-    uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    // uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
-    vm_v_set_data( ptr, &vm_state[vm_index], addr, data );
+    vm_v_set_data( stream, &vm_state[vm_index], addr, data );
 }
 
 void vm_v_get_info( vm_info_t *info ){
@@ -445,26 +549,32 @@ int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
         return -1;
     }
 
-    sync->frame_number  = vm_state[0].frame_number;
-    sync->rng_seed      = vm_state[0].rng_seed;
+    uint8_t vm_index = 0;
+
+    sync->frame_number  = vm_state[vm_index].frame_number;
+    sync->rng_seed      = vm_state[vm_index].rng_seed;
 
     // for now, we only send one chunk of register data
     sync->data_index    = 0;
-    sync->data_count    = vm_state[0].data_count;
+    sync->data_count    = vm_state[vm_index].data_count;
 
     if( sync->data_count > WIFI_DATA_FRAME_SYNC_MAX_DATA ){
 
         sync->data_count = WIFI_DATA_FRAME_SYNC_MAX_DATA;
     }
 
-    if( vm_handles[0] <= 0 ){
+    // if( vm_handles[0] <= 0 ){
 
-        return -2;
+        // return -2;
+    // }
+    if( vm_start[vm_index] < 0 ){
+
+        return 0;
     }
 
-    uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[0] );
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
-    vm_v_get_data_multi( ptr, &vm_state[0], sync->data_index, sync->data_count, sync->data );
+    vm_v_get_data_multi( stream, &vm_state[vm_index], sync->data_index, sync->data_count, sync->data );
 
     return 0;
 }
