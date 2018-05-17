@@ -307,10 +307,10 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
 
         if( len != sizeof(wifi_msg_udp_header_t) ){
 
-            Serial.write( 0x99 );
-            Serial.write( 0x01 );
+            // Serial.write( 0x99 );
+            // Serial.write( 0x01 );
 
-            intf_v_led_on();
+            // intf_v_led_on();
             return;
         }
 
@@ -324,14 +324,14 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
         // bounds check
         if( ( udp_len + len ) > sizeof(udp_data) ){
 
-            Serial.write( 0x99 );
-            Serial.write( 0x02 );
-            Serial.write( udp_len >> 8 );
-            Serial.write( udp_len & 0xff );
-            Serial.write( len >> 8 );
-            Serial.write( len & 0xff );
+            // Serial.write( 0x99 );
+            // Serial.write( 0x02 );
+            // Serial.write( udp_len >> 8 );
+            // Serial.write( udp_len & 0xff );
+            // Serial.write( len >> 8 );
+            // Serial.write( len & 0xff );
 
-            intf_v_led_on();
+            // intf_v_led_on();
             return;
         }
 
@@ -344,10 +344,10 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
             // check crc
             if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
 
-                Serial.write( 0x99 );
-                Serial.write( 0x03 );
+                // Serial.write( 0x99 );
+                // Serial.write( 0x03 );
 
-                intf_v_led_on();
+                // intf_v_led_on();
                 return;
             }
 
