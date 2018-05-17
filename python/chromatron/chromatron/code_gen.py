@@ -889,6 +889,9 @@ class ASTPrinter(object):
         elif isinstance(node, SubscriptNode):
             self.echo(node)
 
+        elif isinstance(node, list):
+            self.echo('LIST %s' % (str(node)))
+
         else:
             raise Exception(node)
 
@@ -1128,9 +1131,8 @@ class CodeGeneratorPass1(object):
             for arg in tree.args:
                 params.append(self.generate(arg))
 
-            if tree.func.id in SYS_CALLS:
+            if (tree.func.id in SYS_CALLS) or (tree.func.id in ['send', 'receive']):
                 return SysCallNode(tree.func.id, params, line_no=tree.lineno)
-
 
             return CallNode(tree.func.id, params, line_no=tree.lineno)
 
@@ -1518,6 +1520,14 @@ class CodeGeneratorPass1(object):
 
         elif isinstance(tree, ast.Assert):
             return AssertNode(self.generate(tree.test), line_no=tree.lineno)
+
+        elif isinstance(tree, ast.List):
+            l = []
+
+            for item in tree.elts:
+                l.append(self.generate(item))
+
+            return l
 
         elif isinstance(tree, RecordDeclareNode):
             fields = []
@@ -2379,6 +2389,29 @@ class PixelArrayIR(IntermediateNode):
 
         return s
 
+class LinkIR(IntermediateNode):
+    def __init__(self, dest, src, query, send=True, **kwargs):
+        super(LinkIR, self).__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+        self.query = query
+
+        self.send = send
+        
+    def __str__(self):
+        query = ''
+        for q in self.query:
+            query += '%s, ' % (q)
+
+        if self.send:
+            s = '%3d %s SEND %s -> %s @ [%s]' % (self.line_no, self.indent * self.level, self.src, self.dest, query)
+
+        else:
+            s = '%3d %s RECV %s <- %s @ [%s]' % (self.line_no, self.indent * self.level, self.dest, self.src, query)
+    
+        return s
+
+
 # generate intermediate representation
 class CodeGeneratorPass2(object):
     def __init__(self, include_return=True):
@@ -2492,20 +2525,42 @@ class CodeGeneratorPass2(object):
             elif isinstance(node, SysCallNode):
                 ir = []
 
-                params = []
-                for i in node.params:
-                    param_code = self.generate(i)
+                if node.name in ['send', 'receive']:
 
-                    try:
-                        ir.extend(param_code)
-                        param = param_code[-1].dest
+                    print node.name, node.params
 
-                    except TypeError:
-                        param = param_code
+                    if node.name == 'send':
+                        send = True
+                        src = node.params[0]
+                        dest = node.params[1]
+                        query = node.params[2]
 
-                    params.append(param)
+                    else:
+                        send = False
+                        src = node.params[1]
+                        dest = node.params[0]
+                        query = node.params[2]
 
-                ir.append(SysCallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
+
+                    link = LinkIR(dest, src, query, send, level=self.level, line_no=node.line_no)
+
+                    ir.append(link)
+
+                else:
+                    params = []
+                    for i in node.params:
+                        param_code = self.generate(i)
+
+                        try:
+                            ir.extend(param_code)
+                            param = param_code[-1].dest
+
+                        except TypeError:
+                            param = param_code
+
+                        params.append(param)
+
+                    ir.append(SysCallIR(node.name, self.get_unique_register(line_no=node.line_no), params, level=self.level, line_no=node.line_no))
 
                 return ir
 
@@ -3033,6 +3088,9 @@ class CodeGeneratorPass2(object):
             #     return code
                 
             elif isinstance(node, basestring):
+                return node
+
+            elif isinstance(node, list):
                 return node
 
             elif isinstance(node, LenNode):
@@ -4265,6 +4323,7 @@ class CodeGeneratorPass5(object):
     def generate(self, state, result=None, context=[], from_array=False):
         ir_code = state['code']
         self.code = {}
+        state['links'] = []
 
         # first loop, get functions
         for ir in ir_code:
@@ -4556,6 +4615,9 @@ class CodeGeneratorPass5(object):
                 ins = OffsetArray(ir.dest, ir.base, ir.index, ary_length, ary_stride)
 
                 self.append_code(ins)
+
+            elif isinstance(ir, LinkIR):
+                state['links'].append(ir)
 
             else:
                 raise Unknown(ir)
