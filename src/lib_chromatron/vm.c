@@ -569,6 +569,10 @@ PT_BEGIN( pt );
 
         gfx_v_reset_subscribed();
         reset_published_data();
+
+        catbus_hash_t32 link_tag = __KV__vm_0;
+        catbus_v_purge_links( link_tag );
+
         vm_running = FALSE;
 
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() || !vm_run || ( vm_mode == VM_FINISHED ) );
