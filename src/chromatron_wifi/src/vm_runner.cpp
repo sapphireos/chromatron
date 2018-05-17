@@ -34,7 +34,7 @@ extern "C"{
 
 static uint16_t vm_load_len;
 
-static uint8_t vm_data[4096];
+static uint8_t vm_data[VM_RUNNER_MAX_SIZE];
 static int16_t vm_start[VM_RUNNER_MAX_VMS];
 static uint16_t vm_size[VM_RUNNER_MAX_VMS];
 static vm_state_t vm_state[VM_RUNNER_MAX_VMS];
@@ -330,6 +330,12 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     if( vm_index >= VM_RUNNER_MAX_VMS ){
 
         return -1;
+    }
+
+    // bounds check VM
+    if( ( len + vm_total_size ) >= sizeof(vm_data) ){
+        
+        return -2;
     }
 
     // reset status codes

@@ -141,9 +141,13 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
 
     if( len > WIFI_MAIN_MAX_DATA_LEN ){
 
+        comm_errors++;
+
         return -1;
     }
     else if( !wifi_ready() ){
+
+        comm_errors++;
 
         return -2;  
     }
