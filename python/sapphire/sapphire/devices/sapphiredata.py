@@ -119,14 +119,23 @@ class NTPTimestampField(StructField):
     def copy(self):
         return NTPTimestampField()
 
+class KVLinkFileHeaderField(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="magic"),
+                  Uint8Field(_name="version"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=11)]
+
+        super(KVLinkFileHeaderField, self).__init__(_fields=fields, **kwargs)
+
 class KVLinkField(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="tag"),
+        fields = [Uint32Field(_name="tag"),
                   Uint8Field(_name="flags"),
                   Uint32Field(_name="source_hash"),
                   Uint32Field(_name="dest_hash"),
                   ArrayField(_name="query", _field=Uint32Field, _length=8),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=8)]
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=7),
+                  Uint32Field(_name="check_hash")]
 
         super(KVLinkField, self).__init__(_fields=fields, **kwargs)
 
@@ -135,6 +144,13 @@ class KVLinkArray(ArrayField):
         field = KVLinkField
 
         super(KVLinkArray, self).__init__(_field=field, **kwargs)
+
+class KVLinkFile(StructField):
+    def __init__(self, **kwargs):
+        fields = [KVLinkFileHeaderField(_name="header"),
+                  KVLinkArray(_name="links")]
+
+        super(KVLinkFile, self).__init__(_fields=fields, **kwargs)
 
 class KVSendField(StructField):
     def __init__(self, **kwargs):

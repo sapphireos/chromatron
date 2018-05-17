@@ -626,10 +626,10 @@ class Device(object):
     def get_kvlink_info(self):
         data = self.get_file("kvlinks")
 
-        info = sapphiredata.KVLinkArray()
+        info = sapphiredata.KVLinkFile()
         info.unpack(data)
-
-        return info
+        
+        return info.links
 
     def get_kvsend_info(self):
         data = self.get_file("kvsend")
