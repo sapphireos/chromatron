@@ -24,7 +24,6 @@
 #include "comm_intf.h"
 
 extern "C"{
-    // #include "memory.h"
     #include "vm_runner.h"
     #include "vm_core.h"
     #include "gfx_lib.h"
@@ -34,8 +33,6 @@ extern "C"{
 }
 
 static uint16_t vm_load_len;
-
-// static mem_handle_t vm_handles[VM_RUNNER_MAX_VMS];
 
 static uint8_t vm_data[4096];
 static int16_t vm_start[VM_RUNNER_MAX_VMS];
@@ -126,16 +123,10 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         return -2;
     }
 
-    // if( vm_handles[vm_index] <= 0 ){
-
-    //     return -2;
-    // }
-
     uint32_t start_time = micros();
 
     int8_t return_code;
 
-    // uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
     if( mode == VM_RUN_INIT ){
@@ -342,13 +333,6 @@ void vm_v_reset( uint8_t vm_index ){
 
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
-    // if( vm_handles[vm_index] > 0 ){
-
-    //     mem2_v_free( vm_handles[vm_index] );
-
-    //     vm_handles[vm_index] = -1;
-    // }
-
     vm_info.status = -127;
     vm_info.return_code = -127;
 
@@ -369,42 +353,6 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     vm_info.return_code = -127;
 
     int8_t status = 0;
-
-    // uint16_t vm_load_offset = vm_load_len;
-    // vm_load_len += len;
-
-    // if( vm_load_len > VM_RUNNER_MAX_SIZE ){
-
-    //     vm_info.status = VM_STATUS_IMAGE_TOO_LARGE;
-    //     return -1;
-    // }
-
-    // // check if there is a handle at this index
-    // if( vm_handles[vm_index] <= 0 ){
-
-    //     // allocate new handle
-    //     vm_handles[vm_index] = mem2_h_alloc( len );
-
-    //     // check if alloc failed.  this would be sad.
-    //     if( vm_handles[vm_index] < 0 ){
-
-    //         vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
-    //         return -2;
-    //     }
-    // }
-    // // handle exists, reallocate
-    // else{
-
-    //     if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
-
-    //         vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
-    //         vm_handles[vm_index] = -1;
-    //         return -3;
-    //     }
-    // }
-
-    // uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
-
 
     // check if this is the first page
     if( vm_start[vm_index] == -1 ){
@@ -495,16 +443,11 @@ int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
         return 0;
     }
 
-    // if( vm_handles[vm_index] <= 0 ){
-
-    //     return 0;
-    // }
     if( vm_start[vm_index] < 0 ){
 
         return 0;
     }
 
-    // uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
     return vm_i32_get_data( stream, &vm_state[vm_index], addr );
@@ -522,16 +465,11 @@ void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
         return;
     }
 
-    // if( vm_handles[vm_index] <= 0 ){
-
-    //     return;
-    // }
     if( vm_start[vm_index] < 0 ){
 
         return;
     }
 
-    // uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
     vm_v_set_data( stream, &vm_state[vm_index], addr, data );
@@ -563,10 +501,6 @@ int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
         sync->data_count = WIFI_DATA_FRAME_SYNC_MAX_DATA;
     }
 
-    // if( vm_handles[0] <= 0 ){
-
-        // return -2;
-    // }
     if( vm_start[vm_index] < 0 ){
 
         return 0;
