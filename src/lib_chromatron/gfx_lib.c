@@ -1022,7 +1022,9 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         x = temp;
     }
 
-    if( pix_interleave_x ){
+    // interleaving only works on 2D access.
+    // 1D will address array linearly along its physical axis.
+    if( pix_interleave_x && ( y < 65535 ) ){
 
         if( y & 1 ){
 

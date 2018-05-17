@@ -289,7 +289,7 @@ class ConstantNode(DataNode):
         if isinstance(self.value, float):
             self.value = int(self.value * 65535) # will need to remove this when fixed16 is actually working
             self.name = self.value
-            self.type = 'fixed16'
+            # self.type = 'fixed16'
 
     def size(self):
         return 1
@@ -3868,7 +3868,7 @@ class LoadToPixArray(Instruction):
         self.index_y = index_y
 
     def __str__(self):
-        return "%s %s.%s[%s][%s] <- %s" % (self.mnemonic, self.obj.obj, self.src.name, self.index_x, self.index_y, self.src)
+        return "%s %s[%s][%s] <- %s" % (self.mnemonic, self.obj.obj, self.index_x, self.index_y, self.src)
 
     def assemble(self):
         return [self.opcode, self.src.addr, self.index_x.addr, self.index_y.addr, self.obj.addr]

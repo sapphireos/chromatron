@@ -575,6 +575,7 @@ void intf_v_process( void ){
         ptr += transfer_bytes;
 
         uint16_t *val = (uint16_t *)ptr;
+        v += hsv_index;
         for( uint32_t i = 0; i < count; i++ ){
 
             *val = gfx_u16_get_dimmed_val( *v );
