@@ -597,8 +597,8 @@ class Chromatron(object):
     def get_vm_reg(self, regname):
         assert self.client.is_connected()
 
-        if not regname.startswith('fx_'):
-            regname = 'fx_' + regname
+        if not regname.startswith(code_gen.PUBLISHED_VAR_NAME_PREFIX):
+            regname = code_gen.PUBLISHED_VAR_NAME_PREFIX + regname
 
         # must go through the client to get VM dynamic keys.
         # the USB interface can only retrieve static keys.
