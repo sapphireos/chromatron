@@ -309,6 +309,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
         // check if alloc failed.  this would be sad.
         if( vm_handles[vm_index] < 0 ){
 
+            vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
             return -2;
         }
     }
@@ -317,17 +318,22 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
         if( mem2_i8_realloc( vm_handles[vm_index], vm_load_len ) < 0 ){
 
+            vm_info.status = VM_STATUS_LOAD_ALLOC_FAIL;
+            vm_handles[vm_index] = -1;
             return -3;
         }
     }
 
     uint8_t *ptr = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
 
-    // load next page of data
-    memcpy( &ptr[vm_load_offset], data, len );
-
+    
+    if( len > 0 ){
+    
+        // load next page of data
+        memcpy( &ptr[vm_load_offset], data, len );
+    }
     // length of 0 indicates loading is finished
-    if( len == 0 ){
+    else{
 
         status = vm_i8_load_program( 0, ptr, vm_load_len, &vm_state[vm_index] );
 
