@@ -1596,7 +1596,6 @@ class ArrayVarIR(DataIR):
     def get_data_nodes(self):
         return [ConstIR(self.length), ConstIR(self.stride)]
 
-
     @property
     def stride(self):
         return self.type.size()
@@ -2960,15 +2959,15 @@ class CodeGeneratorPass2(object):
                     base = offset_dest
 
                     depth += 1
-                    
+
                 if node.store:
                     dest_ary = self.generate(node.obj)
 
-                    ir = IndexStoreIR(dest_ary, None, offset_dest, None, level=self.level, line_no=node.line_no)
+                    if array_type.depth != depth:
+                        raise SyntaxNotSupported("Vector operations not supported on subarrays", line_no=node.line_no)
 
-                    # if dest_ary.type.depth != len(node.offsets):
-                        # print "NOT index store"
-
+                    else:
+                        ir = IndexStoreIR(dest_ary, None, offset_dest, None, level=self.level, line_no=node.line_no)
 
                 else:
                     src_ary = self.generate(node.obj)
