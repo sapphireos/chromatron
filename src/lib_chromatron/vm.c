@@ -353,15 +353,11 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         // skip first string, it's the script name
         fs_v_seek( f, fs_i32_tell( f ) + sizeof(meta_string) );
 
+        // load meta names to database lookup
         while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
-            
-            // load hash to database
-            uint32_t hash = hash_u32_string( meta_string );
-            kvdb_i8_add( hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        
             kvdb_v_set_name( meta_string );
-            kvdb_v_set_tag( hash, VM_KV_TAG );
-            kvdb_v_set_notifier( hash, published_var_notifier );
-
+            
             memset( meta_string, 0, sizeof(meta_string) );
         }
     }
@@ -371,6 +367,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
         goto error;
     }
+
 
     catbus_meta_t meta;
 
@@ -397,6 +394,20 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
         gfx_v_set_subscribed_keys( h );        
     }
+
+    // check published keys and add to DB
+    fs_v_seek( f, sizeof(vm_size) + state.publish_start );
+
+    for( uint8_t i = 0; i < state.publish_count; i++ ){
+
+        vm_publish_t publish;
+
+        fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
+
+        kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        kvdb_v_set_tag( publish.hash, VM_KV_TAG );
+        kvdb_v_set_notifier( publish.hash, published_var_notifier );
+    }   
 
     // check write keys
     fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
@@ -546,6 +557,11 @@ error:
 PT_THREAD( vm_loader( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    kvdb_v_set_name_P( PSTR("vm_0") );
+    kvdb_v_set_name_P( PSTR("vm_1") );
+    kvdb_v_set_name_P( PSTR("vm_2") );
+    kvdb_v_set_name_P( PSTR("vm_3") );
 
     while(1){
 

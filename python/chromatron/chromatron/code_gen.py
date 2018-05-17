@@ -4738,6 +4738,8 @@ class CodeGeneratorPass7(object):
     def generate(self):
         stream = ''
 
+        meta_names = []
+
         # sort registers by address
         sorted_regs = sorted(self.registers['registers'].values(), key=lambda a: a.addr)
 
@@ -4807,12 +4809,19 @@ class CodeGeneratorPass7(object):
         for reg in self.state['data']['publish'].itervalues():
             packed_publish += VMPublishVar(hash=catbus_string_hash(PUBLISHED_VAR_NAME_PREFIX + reg.name), addr=reg.addr).pack()
 
+            meta_names.append(PUBLISHED_VAR_NAME_PREFIX + reg.name)
+
         # set up links
         packed_links = ''
         for link in self.state['links']:
             source_hash = catbus_string_hash(link.src.name)
             dest_hash = catbus_string_hash(link.dest.name)
             query = [catbus_string_hash(a.name) for a in link.query]
+
+            meta_names.append(link.src.name)
+            meta_names.append(link.dest.name)
+            for q in link.query:
+                meta_names.append(q.name)
 
             packed_links += Link(send=link.send,
                                  source_hash=source_hash, 
@@ -4902,20 +4911,15 @@ class CodeGeneratorPass7(object):
 
         meta_data += padded_string
 
-        # next, attach names of published vars
-        for reg in self.state['data']['publish'].itervalues():
-            # append name strings
-            padded_string = PUBLISHED_VAR_NAME_PREFIX + str(reg.name)
+        # next, attach names of stuff
+        for s in meta_names:
+            padded_string = s
+
             if len(padded_string) > VM_STRING_LEN:
-                raise PublishedVarNameTooLong(padded_string)
+                raise SyntaxNotSupported("%s exceeds 32 characters" % (padded_string))
 
             padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
             meta_data += padded_string
-
-        # # compute crc for meta
-        # meta_crc = crc16_func(meta_data)
-        # # print meta_crc, type(meta_crc), type(meta_data)
-        # meta_data += struct.pack('>H', meta_crc)
 
         # add meta data to end of stream
         stream += meta_data

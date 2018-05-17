@@ -2768,7 +2768,7 @@ def link_show(ctx):
             if link['source']:
                 s = '%32s: Send %32s -> %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
             else:
-                s = '%32s: Recv %32s <- %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
+                s = '%32s: Recv %32s <- %32s @ [%s]' % (tag_s, dest_key_s, source_key_s, query_s)
             
             click.echo(s)
 
