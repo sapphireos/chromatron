@@ -228,19 +228,19 @@ static void _wifi_v_usart_flush( void ){
 }
 
 
-// #include "io.h"
-// void strobe_ss( void ){
+#include "io.h"
+void strobe_ss( void ){
 
-//     WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-//     WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-//     _delay_us( 1 );
-//     WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
+    _delay_us( 1 );
+    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-//     // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-//     // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
-//     // _delay_us( 1 );
-//     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
-// }
+    // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+    // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+    // _delay_us( 1 );
+    // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+}
 
 
 
@@ -1831,6 +1831,8 @@ static int8_t process_rx_data( void ){
     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
 
         if( rx_netmsg <= 0 ){
+
+            strobe_ss();
 
             log_v_debug_P( PSTR("rx udp no netmsg") );     
 
