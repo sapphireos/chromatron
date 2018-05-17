@@ -1525,10 +1525,120 @@ def init():
 """
 
 
+test_array_index_3d = """
+
+ary = Array(2, 2, 2)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+g = Number(publish=True)
+h = Number(publish=True)
+i = Number(publish=True)
+
+
+def init():
+
+    ary[0][0][0] = 1
+    ary[0][0][1] = 2
+    ary[0][1][0] = 3
+    ary[0][1][1] = 4
+    ary[1][0][0] = 5
+    ary[1][0][1] = 6
+    ary[1][1][0] = 7
+    ary[1][1][1] = 8
+
+    a = ary[0][0][0]
+    b = ary[0][0][1]
+    c = ary[0][1][0]
+    d = ary[0][1][1]
+    e = ary[1][0][0]
+    f = ary[1][0][1]
+    g = ary[1][1][0]
+    h = ary[1][1][1]
+
+    i = ary[3][0][1]
+    
+"""
+
+
+
+test_array_index_3d_aug = """
+
+ary = Array(2, 2, 2)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+g = Number(publish=True)
+h = Number(publish=True)
+i = Number(publish=True)
+
+
+def init():
+
+    ary[0][0][0] += 1
+    ary[0][0][1] += 2
+    ary[0][1][0] += 3
+    ary[0][1][1] += 4
+    ary[1][0][0] += 5
+    ary[1][0][1] += 6
+    ary[1][1][0] += 7
+    ary[1][1][1] += 8
+
+    a = ary[0][0][0]
+    b = ary[0][0][1]
+    c = ary[0][1][0]
+    d = ary[0][1][1]
+    e = ary[1][0][0]
+    f = ary[1][0][1]
+    g = ary[1][1][0]
+    h = ary[1][1][1]
+
+    i = ary[3][0][1]
+    
+"""
+
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_index_3d_aug(self):
+        self.run_test(test_array_index_3d_aug,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+                'f': 6,
+                'g': 7,
+                'h': 8,
+                'i': 6,
+            })
+
+
+    def test_array_index_3d(self):
+        self.run_test(test_array_index_3d,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+                'f': 6,
+                'g': 7,
+                'h': 8,
+                'i': 6,
+            })
 
     def test_base_record_assign(self):
         self.run_test(test_base_record_assign,
