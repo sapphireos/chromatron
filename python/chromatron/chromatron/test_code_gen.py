@@ -2518,31 +2518,39 @@ class CGTestsLocal(CGTestsBase):
                 raise
 
 
-# import chromatron
-# import time
+import chromatron
+from catbus import ProtocolErrorException
+import time
 
-# ct = chromatron.Chromatron(host='10.0.0.120')
+ct = chromatron.Chromatron(host='10.0.0.120')
 
-# class CGTestsOnDevice(CGTestsBase):
-#     def run_test(self, program, expected={}):
-#         global ct
-#         # ct = chromatron.Chromatron(host='usb', force_network=True)
-#         # ct = chromatron.Chromatron(host='10.0.0.108')
+class CGTestsOnDevice(CGTestsBase):
+    def run_test(self, program, expected={}):
+        global ct
+        # ct = chromatron.Chromatron(host='usb', force_network=True)
+        # ct = chromatron.Chromatron(host='10.0.0.108')
 
-#         ct.load_vm(bin_data=program)
+        tries = 3
 
-#         time.sleep(0.2)
+        while tries > 0:
+            try:
+                ct.load_vm(bin_data=program)
 
-#         ct.init_scan()
+                time.sleep(0.2)
 
-#         for reg, expected_value in expected.iteritems():
-#             if reg == 'kv_test_key':
-#                 actual = ct.get_key(reg)
+                ct.init_scan()
 
-#             else:
-#                 actual = ct.get_vm_reg(str(reg))
+                for reg, expected_value in expected.iteritems():
+                    if reg == 'kv_test_key':
+                        actual = ct.get_key(reg)
 
-#             self.assertEqual(expected_value, actual)
-            
+                    else:
+                        actual = ct.get_vm_reg(str(reg))
 
+                    self.assertEqual(expected_value, actual)
 
+                return
+
+            except ProtocolErrorException:
+                print "Protocol error, trying again."
+                tries -= 1
