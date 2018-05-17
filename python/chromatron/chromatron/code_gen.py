@@ -2536,9 +2536,6 @@ class CodeGeneratorPass2(object):
                 ir = []
 
                 if node.name in ['send', 'receive']:
-
-                    print node.name, node.params
-
                     if node.name == 'send':
                         send = True
                         src = node.params[0]
@@ -2815,11 +2812,6 @@ class CodeGeneratorPass2(object):
 
                 else:
                     code.append(CopyIR(dest, src, level=self.level, line_no=node.line_no))
-
-
-                # print "MEOW"
-                # print type(dest)
-                # print code
 
                 return code
 
