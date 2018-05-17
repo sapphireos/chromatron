@@ -90,7 +90,7 @@ static uint16_t comm_errors;
 static process_stats_t process_stats;
 
 static volatile uint32_t last_rx_ready_ts;
-static volatile bool wifi_rx_ready;
+static volatile bool is_rx_ready;
 static uint32_t last_status_ts;
 
 static wifi_data_header_t intf_data_header;
@@ -128,10 +128,10 @@ static void _intf_v_flush(){
     while( Serial.read() >= 0 );
 }
 
-static bool wifi_ready( void ){
+static bool rx_ready( void ){
 
     noInterrupts();
-    bool temp = wifi_rx_ready;
+    bool temp = is_rx_ready;
     interrupts();
 
     return temp;
@@ -145,7 +145,7 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         return -1;
     }
-    else if( !wifi_ready() ){
+    else if( !rx_ready() ){
 
         comm_errors++;
 
@@ -166,9 +166,16 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     header.crc = crc_u16_finish( crc );
 
 
+    // clear ready flag
     noInterrupts();
-    wifi_rx_ready = false;
+    is_rx_ready = false;
+
+    // make sure to reset the ready timeout!
+    request_reset_ready_timeout = true;
     interrupts();
+
+    
+
 
     Serial.write( WIFI_COMM_DATA );
     Serial.write( (uint8_t *)&header, sizeof(header) );
@@ -181,7 +188,7 @@ static int8_t _intf_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_
 
     uint32_t start = micros();
 
-    while( !wifi_ready() ){
+    while( !rx_ready() ){
 
         if( elapsed( start ) > 10000 ){
 
@@ -217,10 +224,10 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
 
         wifi_v_set_ap_mode( msg->ssid, msg->pass );
     }
-    else if( data_id == WIFI_DATA_ID_WIFI_SCAN ){
+    // else if( data_id == WIFI_DATA_ID_WIFI_SCAN ){
 
-        wifi_v_scan();
-    }
+    //     wifi_v_scan();
+    // }
     else if( data_id == WIFI_DATA_ID_PORTS ){
 
         if( len != sizeof(wifi_msg_ports_t) ){
@@ -373,15 +380,15 @@ static void set_rx_ready( void ){
 void intf_v_process( void ){
 
     noInterrupts();
-
     if( request_reset_ready_timeout ){
 
         request_reset_ready_timeout = false;
 
         last_rx_ready_ts = start_timeout();
     }   
-
     interrupts();
+
+    
 
     if( ( intf_comm_state != COMM_STATE_IDLE ) &&
         ( elapsed( comm_timeout ) > 20000 ) ){
@@ -462,20 +469,26 @@ void intf_v_process( void ){
 
 
 
-    if( !wifi_ready() ){
+    if( !rx_ready() ){
 
         // check timeout
         noInterrupts();
         uint32_t temp_last_rx_ready_ts = last_rx_ready_ts;
         interrupts();
 
-        if( elapsed( temp_last_rx_ready_ts ) > 50000 ){
+        uint32_t elapsed_time = elapsed( temp_last_rx_ready_ts );
+
+        if( elapsed_time > 50000 ){
 
             // query for ready status
-            Serial.write( WIFI_COMM_QUERY_READY );
+            // Serial.write( WIFI_COMM_QUERY_READY );
+
+            // intf_v_printf( "query ready: %u %u", elapsed_time, temp_last_rx_ready_ts );
+
+            comm_errors++;
 
             noInterrupts();
-            last_rx_ready_ts = start_timeout();
+            request_reset_ready_timeout = true;
             interrupts();
         }
 
@@ -831,7 +844,7 @@ done:
 
 void ICACHE_RAM_ATTR buf_ready_irq( void ){
 
-    wifi_rx_ready = true;
+    is_rx_ready = true;
     request_reset_ready_timeout = true;
 }
 
@@ -840,7 +853,7 @@ void ICACHE_RAM_ATTR buf_ready_irq( void ){
 void intf_v_init( void ){
 
     noInterrupts();
-    wifi_rx_ready = false;
+    is_rx_ready = false;
     interrupts();
 
     pinMode( BUF_READY_GPIO, INPUT );

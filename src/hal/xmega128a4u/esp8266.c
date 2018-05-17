@@ -202,7 +202,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
-
+ 
 static void _wifi_v_usart_send_char( uint8_t b ){
 
     usart_v_send_byte( &WIFI_USART, b );
@@ -377,6 +377,8 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
     }
     else{
+
+        strobe_ss();
 
         // incorrect control byte on frame
 
@@ -1832,6 +1834,8 @@ static int8_t process_rx_data( void ){
 
         if( rx_netmsg <= 0 ){
 
+            strobe_ss();
+            strobe_ss();
             strobe_ss();
 
             log_v_debug_P( PSTR("rx udp no netmsg") );     

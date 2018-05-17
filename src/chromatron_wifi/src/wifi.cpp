@@ -60,7 +60,7 @@ static bool request_connect;
 static bool request_disconnect;
 static bool request_ports;
 static bool ap_mode;
-static bool scanning;
+// static bool scanning;
 
 
 static void led_on( void ){
@@ -189,44 +189,44 @@ void wifi_v_process( void ){
         }
     }
 
-    if( scanning ){
+    // if( scanning ){
 
-        int32_t networks_found = WiFi.scanComplete();
+    //     int32_t networks_found = WiFi.scanComplete();
 
-        if( networks_found >= 0 ){
+    //     if( networks_found >= 0 ){
 
-            wifi_msg_scan_results_t msg;
-            memset( &msg, 0, sizeof(msg) );
+    //         wifi_msg_scan_results_t msg;
+    //         memset( &msg, 0, sizeof(msg) );
 
-            String network_ssid;
-            int32_t network_rssi;
-            // int32_t channel;
+    //         String network_ssid;
+    //         int32_t network_rssi;
+    //         // int32_t channel;
 
-            for( int32_t i = 0; i < networks_found; i++ ){
+    //         for( int32_t i = 0; i < networks_found; i++ ){
 
-                network_ssid = WiFi.SSID( i );
-                network_rssi = WiFi.RSSI( i );
-                // channel = WiFi.channel( i );
+    //             network_ssid = WiFi.SSID( i );
+    //             network_rssi = WiFi.RSSI( i );
+    //             // channel = WiFi.channel( i );
 
-                // intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
+    //             // intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
 
-                msg.count++;
-                msg.networks[i].ssid_hash = hash_u32_string( (char *)network_ssid.c_str() );
-                msg.networks[i].rssi = network_rssi;
+    //             msg.count++;
+    //             msg.networks[i].ssid_hash = hash_u32_string( (char *)network_ssid.c_str() );
+    //             msg.networks[i].rssi = network_rssi;
 
-                if( msg.count >= WIFI_SCAN_RESULTS_LEN ){
+    //             if( msg.count >= WIFI_SCAN_RESULTS_LEN ){
 
-                    break;
-                }
-            }
+    //                 break;
+    //             }
+    //         }
         
-            if( intf_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN_RESULTS, (uint8_t *)&msg, sizeof(msg) ) >= 0 ){
+    //         if( intf_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN_RESULTS, (uint8_t *)&msg, sizeof(msg) ) >= 0 ){
 
-                scanning = false;
-            }
-        }
-    }
-    else if( request_connect ){
+    //             scanning = false;
+    //         }
+    //     }
+    // }
+    if( request_connect ){
 
         WiFi.mode( WIFI_STA );
         ap_mode = false;
@@ -530,15 +530,15 @@ void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
 
 void wifi_v_scan( void ){
 
-    if( scanning ){
+    // if( scanning ){
 
-        return;
-    }
+    //     return;
+    // }
 
-    WiFi.scanDelete();
+    // WiFi.scanDelete();
 
-    scanning = true;
-    WiFi.scanNetworks(true, false);
+    // scanning = true;
+    // WiFi.scanNetworks(true, false);
 }
 
 void wifi_v_set_ports( uint16_t _ports[WIFI_MAX_PORTS] ){
