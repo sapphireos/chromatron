@@ -338,7 +338,7 @@ class ArrayDeclareNode(DataNode):
     def count(self):
         c = 0
         for dim in self.dimensions:
-            c += dim
+            c *= dim
 
         return c
 
@@ -350,7 +350,7 @@ class ArrayDeclareNode(DataNode):
         return self.count * self.stride
 
     def __str__(self):
-        return "Array:%s [%s, %s, depth=%d] (%s)" % (self.name, self.count, self.type, self.depth, self.scope)
+        return "ArrayDeclare:%s [%s, %s, depth=%d] (%s)" % (self.name, self.count, self.type, self.depth, self.scope)
 
 
 class ArrayIndexNode(DataNode):
@@ -1335,16 +1335,41 @@ class CodeGeneratorPass1(object):
             #     return ObjNode(obj, attr, store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Subscript):
-            obj = self.generate(tree.value)
-            index = self.generate(tree.slice.value)
+            offsets = []
 
+            store = False
             if isinstance(tree.ctx, ast.Store):
                 store = True
 
-            else:
-                store = False
+            while isinstance(tree, ast.Subscript):
+                index = self.generate(tree.slice.value)
+                offsets.append(index)
 
-            return SubscriptNode(obj, index, store, line_no=tree.lineno)
+                tree = tree.value
+
+            assert not isinstance(tree, ast.Subscript)
+
+            target = self.generate(tree)
+
+            # reverse list of offsets so they read from left to right
+            offsets = list(reversed(offsets))
+
+            node = ArrayIndexNode(target, offsets, store=store, line_no=tree.lineno)
+
+            return node
+
+
+
+            # obj = self.generate(tree.value)
+            # index = self.generate(tree.slice.value)
+
+            # if isinstance(tree.ctx, ast.Store):
+            #     store = True
+
+            # else:
+            #     store = False
+
+            # return SubscriptNode(obj, index, store, line_no=tree.lineno)
 
             # try:
             #     # this is basically a syntax rewrite.
@@ -2242,12 +2267,11 @@ class NopIR(IntermediateNode):
         return '%3d %s NOP' % (self.line_no, self.indent * self.level)
 
 class DefineArrayIR(IntermediateNode):
-    def __init__(self, name, length, data_type=None, **kwargs):
+    def __init__(self, name, dimensions, data_type=None, **kwargs):
         super(DefineArrayIR, self).__init__(**kwargs)
         self.name = name
-        self.length = length
+        self.dimensions = dimensions
         self.type = data_type
-        self.depth = 1
 
         self.publish = False
 
@@ -2267,7 +2291,19 @@ class DefineArrayIR(IntermediateNode):
     @property
     def stride(self):
         return self.type.size()
-        
+
+    @property
+    def length(self):
+        c = 0
+        for dim in self.dimensions:
+            c *= dim
+
+        return c
+
+    @property
+    def depth(self):
+        return len(self.dimensions)
+    
     def size(self):
         return self.length * self.type.size()
 
@@ -2830,13 +2866,14 @@ class CodeGeneratorPass2(object):
                 return [ir]
 
             elif isinstance(node, ArrayDeclareNode):
-                define_array_ir = DefineArrayIR(node.name, node.count, level=self.level, line_no=node.line_no)
+                array_type = self.generate(node.type)
+                try:
+                    array_type = array_type[0]
 
-                node_type = node.type    
-                node_type = self.generate(node_type)[0]
+                except TypeError:
+                    pass
 
-                define_array_ir.type = node_type
-                define_array_ir.depth = node.depth
+                define_array_ir = DefineArrayIR(node.name, node.dimensions, array_type, level=self.level, line_no=node.line_no)
 
                 if node.publish:
                     define_array_ir.publish = node.publish
@@ -2878,8 +2915,7 @@ class CodeGeneratorPass2(object):
                     code.append(ir)
 
                     base = offset_dest
-                    array_type = array_type.type
-
+                    
                 if node.store:
                     dest_ary = self.generate(node.obj)
 
@@ -2907,7 +2943,6 @@ class CodeGeneratorPass2(object):
                 
                 # print type(node.obj)
 
-
                 obj = self.generate(node.obj)
                 index = self.generate(node.index)
 
@@ -2923,16 +2958,15 @@ class CodeGeneratorPass2(object):
 
                     base = obj[-1].dest
                     obj = obj[-1].target
+                    offset_dest = base
 
-                    array_type = obj.type
+                    print obj
 
                 except (TypeError, AttributeError):
-                    array_type = obj
+                    offset_dest = self.get_unique_register(line_no=node.line_no)
                     
 
-                offset_dest = self.get_unique_register(line_no=node.line_no)
-
-                ir = OffsetIR(offset_dest, array_type, index, base, level=self.level, line_no=node.line_no)
+                ir = OffsetIR(offset_dest, obj, index, base, level=self.level, line_no=node.line_no)
 
                 code.append(ir)
 
