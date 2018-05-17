@@ -324,16 +324,27 @@ class ObjIndexNode(DataNode):
             return "ObjIndex<Load>:%s[%s][%s]" % (self.name, self.x, self.y)
 
 class ArrayDeclareNode(DataNode):
-    def __init__(self, count=0, data_type=NumberNode(), **kwargs):
+    def __init__(self, dimensions=[], data_type=NumberNode(), **kwargs):
         super(ArrayDeclareNode, self).__init__(**kwargs)
-        self.count = count
+        self.dimensions = dimensions
         self.publish = False
         self.type = data_type
-        self.depth = 1
 
     @property
     def stride(self):
         return self.type.size()
+
+    @property
+    def count(self):
+        c = 0
+        for dim in self.dimensions:
+            c += dim
+
+        return c
+
+    @property
+    def depth(self):
+        return len(self.dimensions)
 
     def size(self):
         return self.count * self.stride
@@ -1080,10 +1091,11 @@ class CodeGeneratorPass1(object):
             elif tree.func.id == "Array":
                 size = tree.args[0].n
 
-                if len(tree.args) != 1:
+                if len(tree.args) < 1:
                     raise SyntaxNotSupported(line_no=tree.lineno)
 
-                array = ArrayDeclareNode(size, line_no=tree.lineno, scope=self.current_function)
+                dimensions = [n.n for n in tree.args]
+                array = ArrayDeclareNode(dimensions, line_no=tree.lineno, scope=self.current_function)
 
                 for kw in tree.keywords:
                     if kw.arg == 'publish' and \
@@ -1196,18 +1208,20 @@ class CodeGeneratorPass1(object):
                 if isinstance(value, ArrayDeclareNode):
                     self.arrays[value.name] = value
 
-                    # create sub arrays for multidimensional arrays
-                    array_type = value.type
-                    while True:
-                        if isinstance(array_type, ArrayDeclareNode):
-                            array_type.name = '%s.%d' % (value.name, array_type.depth)
-                            self.arrays[array_type.name] = array_type
+                    # # create sub arrays for multidimensional arrays
+                    # array_type = value.type
+                    # while True:
+                    #     if isinstance(array_type, ArrayDeclareNode):
+                    #         array_type.name = '%s.%d' % (value.name, array_type.depth)
+                    #         self.arrays[array_type.name] = array_type
 
-                        else:
-                            break
+                    #     else:
+                    #         break
 
-                        array_type.depth += 1
-                        array_type = array_type.type
+                    #     array_type.depth += 1
+                    #     array_type = array_type.type
+
+                    #     print array_type
 
                 elif isinstance(value, RecordInstanceNode):
                     self.records[value.name] = value
@@ -2664,6 +2678,11 @@ class CodeGeneratorPass2(object):
                 else:
                     code.append(CopyIR(dest, src, level=self.level, line_no=node.line_no))
 
+
+                # print "MEOW"
+                # print type(dest)
+                # print code
+
                 return code
 
             elif isinstance(node, ObjNode):
@@ -2885,28 +2904,53 @@ class CodeGeneratorPass2(object):
 
             elif isinstance(node, SubscriptNode):
                 code = []
+                
+                # print type(node.obj)
+
 
                 obj = self.generate(node.obj)
                 index = self.generate(node.index)
 
-                print obj
-                print index
+                print "MEOW"
+
+                # print obj, index
 
                 base = ConstIR(0)
+
+                try:
+                    # obj.pop(-1)
+                    code.extend(obj)
+
+                    base = obj[-1].dest
+                    obj = obj[-1].target
+
+                    array_type = obj.type
+
+                except (TypeError, AttributeError):
+                    array_type = obj
+                    
+
                 offset_dest = self.get_unique_register(line_no=node.line_no)
 
-                ir = OffsetIR(offset_dest, obj, index, base, level=self.level, line_no=node.line_no)
+                ir = OffsetIR(offset_dest, array_type, index, base, level=self.level, line_no=node.line_no)
 
                 code.append(ir)
 
-                if node.store:
-                    ir = IndexStoreIR(obj, None, offset_dest, None, level=self.level, line_no=node.line_no)
+                # if isinstance(obj, DataIR):
+                #     if node.store:
+                #         ir = IndexStoreIR(obj, None, offset_dest, None, level=self.level, line_no=node.line_no)
 
-                else:
-                    temp_dest = self.get_unique_register(line_no=node.line_no)
-                    ir = IndexLoadIR(temp_dest, obj, offset_dest, None, level=self.level, line_no=node.line_no)
+                #     else:
+                #         temp_dest = self.get_unique_register(line_no=node.line_no)
+                #         ir = IndexLoadIR(temp_dest, obj, offset_dest, None, level=self.level, line_no=node.line_no)
 
-                code.append(ir)
+                #     code.append(ir)
+
+                for c in code:
+                    print c
+
+                # print obj
+                # print obj.type
 
                 return code
                 
@@ -4428,9 +4472,6 @@ class CodeGeneratorPass5(object):
                 self.append_code(ins)
 
             elif isinstance(ir, OffsetIR):
-                print 'mewo'
-                print ir
-                print ir.target.name
                 ary = self.arrays[ir.target.name]
 
                 ary_length = self.registers[ary.length]
