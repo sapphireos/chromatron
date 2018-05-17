@@ -134,7 +134,9 @@ class VMPublishVar(StructField):
 
 class Link(StructField):
     def __init__(self, **kwargs):
-        fields = [CatbusHash(_name="source_hash"),
+        fields = [BooleanField(_name="send"),
+                  ArrayField(_name="padding", _length=3, _field=Uint8Field),
+                  CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
                   CatbusQuery(_name="query")]
 
@@ -4812,7 +4814,8 @@ class CodeGeneratorPass7(object):
             dest_hash = catbus_string_hash(link.dest.name)
             query = [catbus_string_hash(a.name) for a in link.query]
 
-            packed_links += Link(source_hash=source_hash, 
+            packed_links += Link(send=link.send,
+                                 source_hash=source_hash, 
                                  dest_hash=dest_hash, 
                                  query=query).pack()
 

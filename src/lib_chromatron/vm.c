@@ -237,6 +237,9 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
     gfx_v_sync_params();
 
+    catbus_hash_t32 link_tag = __KV__vm_0;
+    catbus_v_purge_links( link_tag );
+
     log_v_debug_P( PSTR("Loading VM") );
 
     // file found, get program size from file header
@@ -433,6 +436,25 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
                 goto error;
             }
         }        
+    }
+
+    // set up links
+    fs_v_seek( f, sizeof(vm_size) + state.link_start );
+
+    for( uint8_t i = 0; i < state.link_count; i++ ){
+
+        link_t link;
+
+        fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
+
+        if( link.send ){
+
+            catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag );
+        }
+        else{
+
+            catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag );
+        }
     }
 
     // send len 0 to indicate load complete.

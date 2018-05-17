@@ -109,6 +109,8 @@ typedef struct __attribute__((packed)){
 
 
 typedef struct __attribute__((packed)){
+    bool send;
+    uint8_t padding[3];
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
