@@ -276,56 +276,40 @@ void vm_v_reset( uint8_t vm_index ){
         return;
     }
 
-    // // sort vm indexes based on starting offsets
-    // uint8_t indexes[VM_RUNNER_MAX_VMS];
-
-    // // bubble sort
-    // bool swapped;
-    // do{
-
-    //     swapped = FALSE;
-    
-    //     for( uint8_t i = 1; i < VM_RUNNER_MAX_VMS; i++ ){            
-
-    //         if( vm_start[i - 1] > vm_start[i] ){
-
-    //             // swap values
-    //             uint16_t temp = array[i];
-    //             array[i] = array[i - 1];
-    //             array[i - 1] = temp;
-
-    //             swapped = TRUE;
-    //         }
-    //     }                
-
-    // } while( swapped );
-
-
-    // uint32_t clean_offset = vm_start[vm_index];
-
-    // // defrag VMs
-    // for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
-
-    //     if( i == vm_index ){
-
-    //         continue;
-    //     }
-
-    //     // is this VM before the start of the section we're cleaning?
-    //     if( vm_start[i] < clean_offset ){
-
-    //         // don't need to move this one
-    //         continue;
-    //     }
-
-
-    // }
 
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
     // write 1s to VM data (trap instruction)
     memset( stream, 0xff, vm_size[vm_index] );
 
+ 
+    int32_t dirty_start = vm_start[vm_index];
+    int32_t clean_start = vm_start[vm_index] + vm_size[vm_index];
+
+    // defrag VMs
+    bool moved = false;
+
+    do{
+        for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
+
+            // looking for VM at the start of the clean section
+            if( vm_start[i] == clean_start ){
+
+                // copy this VM into the area we just erased
+
+                // must use memmove here, since dest and src might overlap!
+                memmove( &vm_data[dirty_start], &vm_data[vm_start[i]], vm_size[i] );
+                vm_start[i] = dirty_start;
+
+                clean_start += vm_size[i];
+                dirty_start += vm_size[i];
+
+                moved = true;
+            }
+        }
+    } while( moved );
+
+    
     vm_total_size -= vm_size[vm_index];
 
     vm_start[vm_index] = -1;
