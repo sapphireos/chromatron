@@ -1289,74 +1289,98 @@ class CodeGeneratorPass1(object):
             return ContinueNode(line_no=tree.lineno)
 
         elif isinstance(tree, ast.Attribute):    
-            attr = tree.attr
-            obj = self.generate(tree.value)
+            # attr = tree.attr
+            # obj = self.generate(tree.value)
 
-            if isinstance(tree.ctx, ast.Store):
-                store = True
+            # if isinstance(tree.ctx, ast.Store):
+            #     store = True
 
-            else:
-                store = False
+            # else:
+            #     store = False
 
-            return AttributeNode(obj, attr, store, line_no=tree.lineno)
+            # return AttributeNode(obj, attr, store, line_no=tree.lineno)
 
-            # if isinstance(tree.value, ast.Subscript):
-            #     # check for second array index
-            #     if isinstance(tree.value.value, ast.Subscript):
-            #         obj = tree.value.value.value.id
-            #         x = self.generate(tree.value.value.slice.value)
-            #         y = self.generate(tree.value.slice.value)
+            if isinstance(tree.value, ast.Subscript):
+                # check for second array index
+                if isinstance(tree.value.value, ast.Subscript):
+                    obj = tree.value.value.value.id
+                    x = self.generate(tree.value.value.slice.value)
+                    y = self.generate(tree.value.slice.value)
 
-            #     else:
-            #         obj = tree.value.value.id
-            #         y = ConstantNode(65535)
-            #         x = self.generate(tree.value.slice.value)
+                else:
+                    obj = tree.value.value.id
+                    y = ConstantNode(65535)
+                    x = self.generate(tree.value.slice.value)
                 
-            #     attr = tree.attr
+                attr = tree.attr
 
-            #     if isinstance(tree.ctx, ast.Store):
-            #         store = True
+                if isinstance(tree.ctx, ast.Store):
+                    store = True
 
-            #     else:
-            #         store = False
+                else:
+                    store = False
 
-            #     return ObjIndexNode(obj, attr, x, y, store, line_no=tree.lineno)
+                return ObjIndexNode(obj, attr, x, y, store, line_no=tree.lineno)
 
-            # else:                
-            #     obj = tree.value.id
-            #     attr = tree.attr
+            else:                
+                obj = tree.value.id
+                attr = tree.attr
 
-            #     if isinstance(tree.ctx, ast.Store):
-            #         store = True
+                if isinstance(tree.ctx, ast.Store):
+                    store = True
 
-            #     else:
-            #         store = False
+                else:
+                    store = False
 
-            #     return ObjNode(obj, attr, store, line_no=tree.lineno)
+                return ObjNode(obj, attr, store, line_no=tree.lineno)
 
         elif isinstance(tree, ast.Subscript):
-            offsets = []
+            try:
+                # this is basically a syntax rewrite.
+                # the code for ast.Attribute already does what we want here,
+                # so we are rearranging the syntax to match and then reusing
+                # that code.
+                sub = tree
+                attr = tree.value
 
-            store = False
-            if isinstance(tree.ctx, ast.Store):
-                store = True
+                # check for multiple dimensions - that would be an array access
+                if isinstance(attr, ast.Subscript):
+                    raise AttributeError
 
-            while isinstance(tree, ast.Subscript):
-                index = self.generate(tree.slice.value)
-                offsets.append(index)
+                attr_value = tree.value.value
+                ctx = sub.ctx
 
-                tree = tree.value
+                sub.value = attr_value
 
-            assert not isinstance(tree, ast.Subscript)
+                attr.value = sub
+                attr.ctx = ctx
 
-            target = self.generate(tree)
+                return self.generate(attr)
 
-            # reverse list of offsets so they read from left to right
-            offsets = list(reversed(offsets))
+            except AttributeError:
+                # unless we are indexing an array
+                offsets = []
 
-            node = ArrayIndexNode(target, offsets, store=store, line_no=tree.lineno)
+                store = False
+                if isinstance(tree.ctx, ast.Store):
+                    store = True
 
-            return node
+                while isinstance(tree, ast.Subscript):
+                    index = self.generate(tree.slice.value)
+                    offsets.append(index)
+
+                    tree = tree.value
+
+                assert not isinstance(tree, ast.Subscript)
+
+                target = self.generate(tree)
+
+                # reverse list of offsets so they read from left to right
+                offsets = list(reversed(offsets))
+
+                node = ArrayIndexNode(target, offsets, store=store, line_no=tree.lineno)
+
+                return node
 
 
 
