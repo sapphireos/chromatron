@@ -634,9 +634,9 @@ PT_BEGIN( pt );
             goto error;
         }
 
-        #ifdef ENABLE_TIME_SYNC
-        gfx_v_reset_frame_sync();
-        #endif
+        // #ifdef ENABLE_TIME_SYNC
+        // gfx_v_reset_frame_sync();
+        // #endif
         vm_reset = FALSE;
         THREAD_WAIT_WHILE( pt, ( vm_reset == FALSE ) &&
                                ( vm_run == TRUE ) &&

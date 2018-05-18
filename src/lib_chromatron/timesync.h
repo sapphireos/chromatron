@@ -56,24 +56,24 @@ typedef struct{
 #define TIME_MSG_SYNC           1
 
 
-typedef struct{
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint32_t sync_group;
-    uint32_t network_time;
-    uint16_t frame_number;
-    uint64_t rng_seed;
-    uint32_t reserved;
-    uint16_t data_index;
-    uint16_t data_count;
-    // register data starts here
-} time_msg_frame_sync_t;
-#define TIME_MSG_FRAME_SYNC     2
+// typedef struct{
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+//     uint32_t sync_group;
+//     uint32_t network_time;
+//     uint16_t frame_number;
+//     uint64_t rng_seed;
+//     uint32_t reserved;
+//     uint16_t data_index;
+//     uint16_t data_count;
+//     // register data starts here
+// } time_msg_frame_sync_t;
+// #define TIME_MSG_FRAME_SYNC     2
 
 void time_v_init( void );
-void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
-uint32_t time_u32_get_network_time( void );
+// void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
+// uint32_t time_u32_get_network_time( void );
 
 #endif
 #endif

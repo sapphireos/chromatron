@@ -473,19 +473,19 @@ static int8_t send_run_fader_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
 }
 
-#ifdef ENABLE_TIME_SYNC
-static int8_t send_request_frame_sync_cmd( void ){
+// #ifdef ENABLE_TIME_SYNC
+// static int8_t send_request_frame_sync_cmd( void ){
     
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, 0, 0 );   
-}
+//     return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, 0, 0 );   
+// }
 
-static uint16_t current_frame;
-#endif
+// static uint16_t current_frame;
+// #endif
 
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     
@@ -545,38 +545,38 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         vm_v_received_info( (vm_info_t *)data );
     }
-    #ifdef ENABLE_TIME_SYNC
-    else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
+    // #ifdef ENABLE_TIME_SYNC
+    // else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
         
-        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+    //     wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
-        time_v_send_frame_sync( msg );
+    //     time_v_send_frame_sync( msg );
 
-        // log_v_debug_P( PSTR("frame sync: #%5d RNG:%5d Data0:%5ld 1:%5ld 2:%5ld 3:%5ld"),
-        //     msg->frame_number,
-        //     (uint16_t)msg->rng_seed,
-        //     msg->data[0],
-        //     msg->data[1],
-        //     msg->data[2],
-        //     msg->data[3] );
-    }
-    else if( data_id == WIFI_DATA_ID_FRAME_SYNC_STATUS ){
+    //     // log_v_debug_P( PSTR("frame sync: #%5d RNG:%5d Data0:%5ld 1:%5ld 2:%5ld 3:%5ld"),
+    //     //     msg->frame_number,
+    //     //     (uint16_t)msg->rng_seed,
+    //     //     msg->data[0],
+    //     //     msg->data[1],
+    //     //     msg->data[2],
+    //     //     msg->data[3] );
+    // }
+    // else if( data_id == WIFI_DATA_ID_FRAME_SYNC_STATUS ){
 
-        // wifi_msg_vm_frame_sync_status_t *msg = (wifi_msg_vm_frame_sync_status_t *)data;
-        // log_v_debug_P( PSTR("frame sync status: 0x%02x frame: %u"), msg->status, msg->frame_number );
+    //     // wifi_msg_vm_frame_sync_status_t *msg = (wifi_msg_vm_frame_sync_status_t *)data;
+    //     // log_v_debug_P( PSTR("frame sync status: 0x%02x frame: %u"), msg->status, msg->frame_number );
 
-        // if( current_frame > msg->frame_number ){
+    //     // if( current_frame > msg->frame_number ){
 
-        //     log_v_debug_P( PSTR("ahead: %u"), current_frame - msg->frame_number );
-        // }
-        // else if( current_frame < msg->frame_number ){
+    //     //     log_v_debug_P( PSTR("ahead: %u"), current_frame - msg->frame_number );
+    //     // }
+    //     // else if( current_frame < msg->frame_number ){
 
-        //     log_v_debug_P( PSTR("behind: %u"), msg->frame_number - current_frame);
-        // }
+    //     //     log_v_debug_P( PSTR("behind: %u"), msg->frame_number - current_frame);
+    //     // }
 
-        // current_frame = msg->frame_number;
-    }
-    #endif
+    //     // current_frame = msg->frame_number;
+    // }
+    // #endif
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
         int16_t status = 0;
@@ -600,75 +600,75 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 }
 
 
-#ifdef ENABLE_TIME_SYNC
-static bool frame_sync;
-static int8_t frame_adjust;
+// #ifdef ENABLE_TIME_SYNC
+// static bool frame_sync;
+// static int8_t frame_adjust;
 
 
-void gfx_v_frame_sync(
-    uint16_t frame_number,
-    uint64_t rng_seed,
-    uint16_t data_index,
-    uint16_t data_count,
-    int32_t data[WIFI_DATA_FRAME_SYNC_MAX_DATA]
-){
+// void gfx_v_frame_sync(
+//     uint16_t frame_number,
+//     uint64_t rng_seed,
+//     uint16_t data_index,
+//     uint16_t data_count,
+//     int32_t data[WIFI_DATA_FRAME_SYNC_MAX_DATA]
+// ){
 
-    int16_t temp_frame_adjust = frame_number - current_frame;
+//     int16_t temp_frame_adjust = frame_number - current_frame;
 
-    if( temp_frame_adjust > 100 ){
+//     if( temp_frame_adjust > 100 ){
 
-        temp_frame_adjust = 100;
-    }
-    else if( temp_frame_adjust < -100 ){
+//         temp_frame_adjust = 100;
+//     }
+//     else if( temp_frame_adjust < -100 ){
 
-        temp_frame_adjust = -100;
-    }
+//         temp_frame_adjust = -100;
+//     }
 
-    frame_adjust = temp_frame_adjust;
+//     frame_adjust = temp_frame_adjust;
 
-    if( current_frame > frame_number ){
+//     if( current_frame > frame_number ){
 
-        // log_v_debug_P( PSTR("local frame: %5u remote: %5u +%3u"), current_frame, frame_number, current_frame - frame_number );
-    }
-    else if( current_frame < frame_number ){
+//         // log_v_debug_P( PSTR("local frame: %5u remote: %5u +%3u"), current_frame, frame_number, current_frame - frame_number );
+//     }
+//     else if( current_frame < frame_number ){
 
-        // log_v_debug_P( PSTR("local frame: %5u remote: %5u -%3u"), current_frame, frame_number, frame_number - current_frame);
-    }
+//         // log_v_debug_P( PSTR("local frame: %5u remote: %5u -%3u"), current_frame, frame_number, frame_number - current_frame);
+//     }
 
-    if( ( frame_adjust < -16 ) || ( frame_adjust > 16 ) || ( frame_sync == FALSE ) ){
+//     if( ( frame_adjust < -16 ) || ( frame_adjust > 16 ) || ( frame_sync == FALSE ) ){
 
-        current_frame = frame_number + 1;
-        frame_adjust = 0;
+//         current_frame = frame_number + 1;
+//         frame_adjust = 0;
 
-        frame_sync = TRUE;
+//         frame_sync = TRUE;
 
-        wifi_msg_vm_frame_sync_t sync;
-        memset( &sync, 0, sizeof(sync) );
+//         wifi_msg_vm_frame_sync_t sync;
+//         memset( &sync, 0, sizeof(sync) );
 
-        sync.frame_number  = frame_number;
-        sync.rng_seed      = rng_seed;
-        sync.data_index    = data_index;
-        sync.data_count    = data_count;
+//         sync.frame_number  = frame_number;
+//         sync.rng_seed      = rng_seed;
+//         sync.data_index    = data_index;
+//         sync.data_count    = data_count;
 
-        memcpy( sync.data, data, sync.data_count * sizeof(int32_t) );
+//         memcpy( sync.data, data, sync.data_count * sizeof(int32_t) );
 
-        wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
-    }
-}
-#endif
+//         wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
+//     }
+// }
+// #endif
 
 void gfx_v_sync_params( void ){
 
     send_params( TRUE );    
 }
 
-#ifdef ENABLE_TIME_SYNC
-void gfx_v_reset_frame_sync( void ){
+// #ifdef ENABLE_TIME_SYNC
+// void gfx_v_reset_frame_sync( void ){
 
-    current_frame = 0;
-    frame_sync = FALSE;
-}
-#endif
+//     current_frame = 0;
+//     frame_sync = FALSE;
+// }
+// #endif
 
 void gfx_v_set_subscribed_keys( mem_handle_t h ){
 
@@ -693,9 +693,9 @@ PT_BEGIN( pt );
 
     // test_packer();
     
-    #ifdef ENABLE_TIME_SYNC
-    static uint32_t last_frame_sync_time;
-    #endif
+    // #ifdef ENABLE_TIME_SYNC
+    // static uint32_t last_frame_sync_time;
+    // #endif
 
     static uint32_t last_param_sync;
     static uint8_t flags;

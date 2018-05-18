@@ -45,7 +45,7 @@
             _delay_us(10); \
             PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
 
-static int16_t clock_offset;
+// static int16_t clock_offset;
 
 
 // ISR(GFX_TIMER_CCC_vect){
@@ -111,47 +111,52 @@ PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
-static uint32_t local_time;
-static uint32_t net_time;
-static ip_addr_t master_ip;
-// static uint32_t master_uptime;
-static uint32_t last_frame_sync;
+// static uint32_t local_time;
+// static uint32_t net_time;
+// static ip_addr_t master_ip;
+// // static uint32_t master_uptime;
+// static uint32_t last_frame_sync;
 
-static ip_addr_t frame_master_ip;
+// static ip_addr_t frame_master_ip;
 
-static int16_t filtered_drift;
+// static int16_t filtered_drift;
 
-static uint8_t frame_sync_state;
-#define FRAME_SYNC_OFF      0
-#define FRAME_SYNC_WAIT     1
-#define FRAME_SYNC_MASTER   2
-#define FRAME_SYNC_SLAVE    3
+// static uint8_t frame_sync_state;
+// #define FRAME_SYNC_OFF      0
+// #define FRAME_SYNC_WAIT     1
+// #define FRAME_SYNC_MASTER   2
+// #define FRAME_SYNC_SLAVE    3
 
 
 
-int8_t timesync_i8_kv_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len )
-{
+// int8_t timesync_i8_kv_handler(
+//     kv_op_t8 op,
+//     catbus_hash_t32 hash,
+//     void *data,
+//     uint16_t len )
+// {
 
-    if( op == KV_OP_SET ){
+//     if( op == KV_OP_SET ){
 
             
-    }
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
+
+static uint8_t state;
+#define STATE_WAIT              0
+#define STATE_MASTER            1
+#define STATE_SLAVE             2
 
 
 
-KV_SECTION_META kv_meta_t time_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
-    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+// KV_SECTION_META kv_meta_t time_info_kv[] = {
+//     { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
+//     { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
 
-    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0,                 timesync_i8_kv_handler, "gfx_sync_group" },
-};
+//     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0,                 timesync_i8_kv_handler, "gfx_sync_group" },
+// };
 
 
 void time_v_init( void ){
@@ -172,7 +177,7 @@ void time_v_init( void ){
     }
 
 
-    frame_sync_state = FRAME_SYNC_WAIT;
+    state = STATE_WAIT;
 
     sock = sock_s_create( SOCK_DGRAM );
 
@@ -201,76 +206,76 @@ static uint32_t get_sync_group_hash( void ){
     return hash_u32_string( sync_group );    
 }
 
-void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync ){
+// void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync ){
 
-    // check if we are frame master
-    if( frame_sync_state != FRAME_SYNC_MASTER ){
+//     // check if we are frame master
+//     if( frame_sync_state != FRAME_SYNC_MASTER ){
 
-        return;
-    }
+//         return;
+//     }
 
-    // check if we're in a sync group
-    if( get_sync_group_hash() == 0 ){
+//     // check if we're in a sync group
+//     if( get_sync_group_hash() == 0 ){
 
-        return;
-    }
+//         return;
+//     }
 
-    // ip_addr_t local_ip;
-    // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
+//     // ip_addr_t local_ip;
+//     // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
 
-    // if( !ip_b_addr_compare( local_ip, frame_master_ip ) ){
+//     // if( !ip_b_addr_compare( local_ip, frame_master_ip ) ){
 
-    //     return;
-    // }
+//     //     return;
+//     // }
 
-    uint8_t buf[sizeof(time_msg_frame_sync_t) + ( WIFI_DATA_FRAME_SYNC_MAX_DATA * sizeof(int32_t) )];
-    time_msg_frame_sync_t *msg = (time_msg_frame_sync_t *)buf;
-    int32_t *data = (int32_t *)( msg + 1 );
+//     uint8_t buf[sizeof(time_msg_frame_sync_t) + ( WIFI_DATA_FRAME_SYNC_MAX_DATA * sizeof(int32_t) )];
+//     time_msg_frame_sync_t *msg = (time_msg_frame_sync_t *)buf;
+//     int32_t *data = (int32_t *)( msg + 1 );
 
-    msg->magic      = TIME_PROTOCOL_MAGIC;
-    msg->version    = TIME_PROTOCOL_VERSION;
-    msg->type       = TIME_MSG_FRAME_SYNC;
+//     msg->magic      = TIME_PROTOCOL_MAGIC;
+//     msg->version    = TIME_PROTOCOL_VERSION;
+//     msg->type       = TIME_MSG_FRAME_SYNC;
 
-    msg->sync_group     = get_sync_group_hash();
-    msg->frame_number   = sync->frame_number;
-    msg->rng_seed       = sync->rng_seed;
-    msg->reserved       = 0;
-    msg->data_index     = sync->data_index;
-    msg->data_count     = sync->data_count;
+//     msg->sync_group     = get_sync_group_hash();
+//     msg->frame_number   = sync->frame_number;
+//     msg->rng_seed       = sync->rng_seed;
+//     msg->reserved       = 0;
+//     msg->data_index     = sync->data_index;
+//     msg->data_count     = sync->data_count;
 
-    memcpy( data, sync->data, ( WIFI_DATA_FRAME_SYNC_MAX_DATA * sizeof(int32_t) ) );
+//     memcpy( data, sync->data, ( WIFI_DATA_FRAME_SYNC_MAX_DATA * sizeof(int32_t) ) );
 
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
+//     // set up broadcast address
+//     sock_addr_t raddr;
+//     raddr.port = TIME_SERVER_PORT;
+//     raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-    sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
+//     sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
 
-    last_frame_sync = tmr_u32_get_system_time_ms();
+//     last_frame_sync = tmr_u32_get_system_time_ms();
 
-    // log_v_debug_P( PSTR("sending frame sync #%u"), msg->frame_number );
-}
+//     // log_v_debug_P( PSTR("sending frame sync #%u"), msg->frame_number );
+// }
 
-uint32_t time_u32_get_network_time( void ){
+// uint32_t time_u32_get_network_time( void ){
 
-    return 0;
+//     return 0;
 
-    uint32_t adjusted_net_time;
+//     uint32_t adjusted_net_time;
 
-    ATOMIC;
+//     ATOMIC;
 
-    int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
+//     int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
 
-    // now adjust for drift
-    int32_t drift = ( filtered_drift * elapsed ) / 65536;
+//     // now adjust for drift
+//     int32_t drift = ( filtered_drift * elapsed ) / 65536;
 
-    adjusted_net_time = net_time + ( elapsed - drift );
+//     adjusted_net_time = net_time + ( elapsed - drift );
 
-    END_ATOMIC;
+//     END_ATOMIC;
 
-    return adjusted_net_time;
-}
+//     return adjusted_net_time;
+// }
 
 
 
@@ -285,9 +290,27 @@ PT_BEGIN( pt );
         // check if data received
         if( sock_i16_get_bytes_read( sock ) > 0 ){
 
-            uint8_t *data = sock_vp_get_data( sock );
+            uint32_t *magic = sock_vp_get_data( sock );
 
-            log_v_debug_P( PSTR("%u"), *data );
+            if( *magic != TIME_PROTOCOL_MAGIC ){
+
+                continue;
+            }
+
+            uint8_t *version = (uint8_t *)(magic + 1);
+
+            if( *version != TIME_PROTOCOL_VERSION ){
+
+                continue;
+            }
+
+            uint8_t *type = version + 1;
+
+            if( *type == TIME_MSG_SYNC ){
+
+                
+
+            }
         }
     }
 
@@ -425,6 +448,21 @@ PT_BEGIN( pt );
 
         sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
 
