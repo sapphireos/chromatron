@@ -1697,7 +1697,7 @@ static int8_t process_rx_data( void ){
 
     if( crc_u16_block( (uint8_t *)header, header->len + sizeof(wifi_data_header_t) ) != msg_crc ){
 
-        log_v_debug_P( PSTR("Wifi crc error") );
+        log_v_debug_P( PSTR("Wifi crc error: %d"), header->data_id );
         status = -2;
         goto end;
     }
