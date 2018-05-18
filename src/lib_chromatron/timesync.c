@@ -156,7 +156,7 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
 
 void time_v_init( void ){
 
-    return;
+    // return;
 
     // PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
     // PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
@@ -277,119 +277,132 @@ uint32_t time_u32_get_network_time( void ){
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    frame_sync_state = FRAME_SYNC_MASTER;
-
-    THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
-
-    TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
-
-    ip_addr_t local_ip;
-    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
-    // uint32_t local_ip_u32 = ip_u32_to_int( local_ip );
-    frame_master_ip = local_ip;
-
     
     while(1){
 
-        // listen
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         // check if data received
         if( sock_i16_get_bytes_read( sock ) > 0 ){
 
-            uint32_t *magic = sock_vp_get_data( sock );
+            uint8_t *data = sock_vp_get_data( sock );
 
-            if( *magic != TIME_PROTOCOL_MAGIC ){
-
-                continue;
-            }
-
-            uint8_t *version = (uint8_t *)(magic + 1);
-
-            if( *version != TIME_PROTOCOL_VERSION ){
-
-                continue;
-            }
-
-            uint8_t *type = version + 1;
-
-            if( *type == TIME_MSG_FRAME_SYNC ){
-
-                time_msg_frame_sync_t *msg = (time_msg_frame_sync_t *)magic;
-
-                // check if in a sync group
-                if( get_sync_group_hash() == 0 ){
-
-                    continue;
-                }
-
-                if( msg->sync_group != get_sync_group_hash() ){
-
-                    continue;
-                }
-
-                sock_addr_t raddr;
-                sock_v_get_raddr( sock, &raddr );
-
-                if( frame_sync_state == FRAME_SYNC_WAIT ){
-
-                    frame_sync_state = FRAME_SYNC_SLAVE;  
-                    frame_master_ip = raddr.ipaddr; 
-                    log_v_debug_P( PSTR("assigning frame master: %d.%d.%d.%d"), 
-                        raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );                    
-                }
-                // else if( frame_sync_state == FRAME_SYNC_MASTER ){
-                else{
-
-                    if( ( ip_u32_to_int( raddr.ipaddr ) < ip_u32_to_int( frame_master_ip ) ) ||
-                        ( ip_b_is_zeroes( frame_master_ip ) ) ){
-
-                        log_v_debug_P( PSTR("assigning new frame master: %d.%d.%d.%d"),
-                            raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-
-                        frame_sync_state = FRAME_SYNC_SLAVE;
-                        frame_master_ip = raddr.ipaddr;                    
-                    }
-                }
-
-                if( frame_sync_state == FRAME_SYNC_MASTER ){
-
-                    continue;
-                }
-
-
-                // sock_addr_t raddr;
-                // sock_v_get_raddr( sock, &raddr );
-
-                // if( ( ip_u32_to_int( raddr.ipaddr ) < ip_u32_to_int( frame_master_ip ) ) ||
-                //     ( ip_b_is_zeroes( frame_master_ip ) ) ){
-
-                //     log_v_debug_P( PSTR("assigning new frame master: %d.%d.%d.%d"),
-                //     raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-
-                //     frame_master_ip = raddr.ipaddr;                    
-                // }
-                // else if( !ip_b_addr_compare( raddr.ipaddr, frame_master_ip ) ){
-
-                //     continue;
-                // }
-
-                int32_t *data = (int32_t *)( msg + 1 );
-
-                gfx_v_frame_sync( 
-                    msg->frame_number, 
-                    msg->rng_seed, 
-                    msg->data_index, 
-                    msg->data_count, 
-                    data );
-
-                // log_v_debug_P( PSTR("received frame sync: #%5d"), msg->frame_number );
-
-                // last_frame_sync = tmr_u32_get_system_time_ms();
-            }
+            log_v_debug_P( PSTR("%u"), *data );
         }
     }
+
+    // frame_sync_state = FRAME_SYNC_MASTER;
+
+    // THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
+
+    // TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
+    // ip_addr_t local_ip;
+    // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
+    // // uint32_t local_ip_u32 = ip_u32_to_int( local_ip );
+    // frame_master_ip = local_ip;
+
+    
+    // while(1){
+
+    //     // listen
+    //     THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+    //     // check if data received
+    //     if( sock_i16_get_bytes_read( sock ) > 0 ){
+
+    //         uint32_t *magic = sock_vp_get_data( sock );
+
+    //         if( *magic != TIME_PROTOCOL_MAGIC ){
+
+    //             continue;
+    //         }
+
+    //         uint8_t *version = (uint8_t *)(magic + 1);
+
+    //         if( *version != TIME_PROTOCOL_VERSION ){
+
+    //             continue;
+    //         }
+
+    //         uint8_t *type = version + 1;
+
+    //         if( *type == TIME_MSG_FRAME_SYNC ){
+
+    //             time_msg_frame_sync_t *msg = (time_msg_frame_sync_t *)magic;
+
+    //             // check if in a sync group
+    //             if( get_sync_group_hash() == 0 ){
+
+    //                 continue;
+    //             }
+
+    //             if( msg->sync_group != get_sync_group_hash() ){
+
+    //                 continue;
+    //             }
+
+    //             sock_addr_t raddr;
+    //             sock_v_get_raddr( sock, &raddr );
+
+    //             if( frame_sync_state == FRAME_SYNC_WAIT ){
+
+    //                 frame_sync_state = FRAME_SYNC_SLAVE;  
+    //                 frame_master_ip = raddr.ipaddr; 
+    //                 log_v_debug_P( PSTR("assigning frame master: %d.%d.%d.%d"), 
+    //                     raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );                    
+    //             }
+    //             // else if( frame_sync_state == FRAME_SYNC_MASTER ){
+    //             else{
+
+    //                 if( ( ip_u32_to_int( raddr.ipaddr ) < ip_u32_to_int( frame_master_ip ) ) ||
+    //                     ( ip_b_is_zeroes( frame_master_ip ) ) ){
+
+    //                     log_v_debug_P( PSTR("assigning new frame master: %d.%d.%d.%d"),
+    //                         raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
+    //                     frame_sync_state = FRAME_SYNC_SLAVE;
+    //                     frame_master_ip = raddr.ipaddr;                    
+    //                 }
+    //             }
+
+    //             if( frame_sync_state == FRAME_SYNC_MASTER ){
+
+    //                 continue;
+    //             }
+
+
+    //             // sock_addr_t raddr;
+    //             // sock_v_get_raddr( sock, &raddr );
+
+    //             // if( ( ip_u32_to_int( raddr.ipaddr ) < ip_u32_to_int( frame_master_ip ) ) ||
+    //             //     ( ip_b_is_zeroes( frame_master_ip ) ) ){
+
+    //             //     log_v_debug_P( PSTR("assigning new frame master: %d.%d.%d.%d"),
+    //             //     raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
+    //             //     frame_master_ip = raddr.ipaddr;                    
+    //             // }
+    //             // else if( !ip_b_addr_compare( raddr.ipaddr, frame_master_ip ) ){
+
+    //             //     continue;
+    //             // }
+
+    //             int32_t *data = (int32_t *)( msg + 1 );
+
+    //             gfx_v_frame_sync( 
+    //                 msg->frame_number, 
+    //                 msg->rng_seed, 
+    //                 msg->data_index, 
+    //                 msg->data_count, 
+    //                 data );
+
+    //             // log_v_debug_P( PSTR("received frame sync: #%5d"), msg->frame_number );
+
+    //             // last_frame_sync = tmr_u32_get_system_time_ms();
+    //         }
+    //     }
+    // }
 
 PT_END( pt );
 }
@@ -397,91 +410,106 @@ PT_END( pt );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-    THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
-
-    // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &master_ip );
-    // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &frame_master_ip );
-    
+        
     while(1){
 
-        // if( frame_sync_state == FRAME_SYNC_WAIT ){
+        TMR_WAIT( pt, 1000 );
 
-        //     TMR_WAIT( pt, 8000 );
-        // }
+        // set up broadcast address
+        sock_addr_t raddr;
+        raddr.port = TIME_SERVER_PORT;
+        raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-        // if( frame_sync_state == FRAME_SYNC_WAIT ){
+        uint8_t buf[1];
+        buf[0] = 0x43;
 
-        //     log_v_debug_P( PSTR("setting frame master") );
-        //     frame_sync_state = FRAME_SYNC_MASTER;
-        // }
+        sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
+    }
 
-        // if( frame_sync_state == FRAME_SYNC_MASTER ){
+    // THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
+
+    // // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &master_ip );
+    // // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &frame_master_ip );
+    
+    // while(1){
+
+    //     // if( frame_sync_state == FRAME_SYNC_WAIT ){
+
+    //     //     TMR_WAIT( pt, 8000 );
+    //     // }
+
+    //     // if( frame_sync_state == FRAME_SYNC_WAIT ){
+
+    //     //     log_v_debug_P( PSTR("setting frame master") );
+    //     //     frame_sync_state = FRAME_SYNC_MASTER;
+    //     // }
+
+    //     // if( frame_sync_state == FRAME_SYNC_MASTER ){
 
 
-        // }
-        // else if( frame_sync_state == FRAME_SYNC_SLAVE ){
+    //     // }
+    //     // else if( frame_sync_state == FRAME_SYNC_SLAVE ){
             
 
-        // }
+    //     // }
 
 
 
-        // // check if we haven't received a timestamp in a while
-        // if( tmr_u32_elapsed_time_ms( local_time ) > 32000 ){
+    //     // // check if we haven't received a timestamp in a while
+    //     // if( tmr_u32_elapsed_time_ms( local_time ) > 32000 ){
 
-        //     log_v_debug_P( PSTR("master timeout, resetting us to master") );
-        //     cfg_i8_get( CFG_PARAM_IP_ADDRESS, &master_ip );
-        // }
+    //     //     log_v_debug_P( PSTR("master timeout, resetting us to master") );
+    //     //     cfg_i8_get( CFG_PARAM_IP_ADDRESS, &master_ip );
+    //     // }
 
-        // ip_addr_t local_ip;
-        // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
+    //     // ip_addr_t local_ip;
+    //     // cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
 
-        // // check if we are master
-        // if( ip_b_addr_compare( local_ip, master_ip ) ){
+    //     // // check if we are master
+    //     // if( ip_b_addr_compare( local_ip, master_ip ) ){
 
-        //     filtered_drift = 0xffff;
+    //     //     filtered_drift = 0xffff;
 
-        //     master_uptime       = tmr_u64_get_system_time_us() / 1000000;
+    //     //     master_uptime       = tmr_u64_get_system_time_us() / 1000000;
 
-        //     // build sync msg
-        //     time_msg_sync_t msg;
-        //     msg.magic           = TIME_PROTOCOL_MAGIC;
-        //     msg.type            = TIME_MSG_SYNC;
-        //     msg.uptime          = master_uptime;
+    //     //     // build sync msg
+    //     //     time_msg_sync_t msg;
+    //     //     msg.magic           = TIME_PROTOCOL_MAGIC;
+    //     //     msg.type            = TIME_MSG_SYNC;
+    //     //     msg.uptime          = master_uptime;
 
-        //     // set up broadcast address
-        //     sock_addr_t raddr;
-        //     raddr.port = TIME_SERVER_PORT;
-        //     raddr.ipaddr = ip_a_addr(255,255,255,255);
+    //     //     // set up broadcast address
+    //     //     sock_addr_t raddr;
+    //     //     raddr.port = TIME_SERVER_PORT;
+    //     //     raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-        //     // set timestamp at last possible instant and send
-        //     uint32_t now = tmr_u32_get_system_time_ms();
-        //     net_time += tmr_u32_elapsed_times( local_time, now );
+    //     //     // set timestamp at last possible instant and send
+    //     //     uint32_t now = tmr_u32_get_system_time_ms();
+    //     //     net_time += tmr_u32_elapsed_times( local_time, now );
 
-        //     // log_v_debug_P( PSTR("sending net time: %lu"), net_time );
+    //     //     // log_v_debug_P( PSTR("sending net time: %lu"), net_time );
 
-        //     msg.network_time = net_time;
+    //     //     msg.network_time = net_time;
 
-        //     sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );
+    //     //     sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );
 
-        //     local_time = now;
-        // }   
+    //     //     local_time = now;
+    //     // }   
 
-        // THREAD_YIELD( pt );
+    //     // THREAD_YIELD( pt );
 
-        // // check if we haven't received a timestamp in a while
-        // if( tmr_u32_elapsed_time_ms( last_frame_sync ) > 32000 ){
+    //     // // check if we haven't received a timestamp in a while
+    //     // if( tmr_u32_elapsed_time_ms( last_frame_sync ) > 32000 ){
 
-        //     log_v_debug_P( PSTR("frame master timeout, resetting us to master") );
-        //     cfg_i8_get( CFG_PARAM_IP_ADDRESS, &frame_master_ip );
-        // }
+    //     //     log_v_debug_P( PSTR("frame master timeout, resetting us to master") );
+    //     //     cfg_i8_get( CFG_PARAM_IP_ADDRESS, &frame_master_ip );
+    //     // }
 
         
 
-        TMR_WAIT( pt, 100 );
-        THREAD_YIELD( pt );
-    }
+    //     TMR_WAIT( pt, 100 );
+    //     THREAD_YIELD( pt );
+    // }
 
 PT_END( pt );
 }

@@ -727,7 +727,8 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && ( tmr_u32_elapsed_time_ms( last_param_sync ) < PARAMS_TIMER_RATE ) );
+        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && 
+                               ( tmr_u32_elapsed_time_ms( last_param_sync ) < PARAMS_TIMER_RATE ) );
 
         ATOMIC;
         flags = run_flags;
@@ -744,52 +745,52 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            #ifdef ENABLE_TIME_SYNC
-            if( frame_adjust < 0 ){
+            // #ifdef ENABLE_TIME_SYNC
+            // if( frame_adjust < 0 ){
 
-                frame_adjust++;
+            //     frame_adjust++;
 
-                // log_v_debug_P( PSTR("skip frame") );
+            //     // log_v_debug_P( PSTR("skip frame") );
 
-                // skip this frame
-                goto end;
-            }
-            #endif
+            //     // skip this frame
+            //     goto end;
+            // }
+            // #endif
 
-            #ifdef ENABLE_TIME_SYNC
-            current_frame++;
+            // #ifdef ENABLE_TIME_SYNC
+            // current_frame++;
 
-            if( frame_adjust > 0 ){
+            // if( frame_adjust > 0 ){
                 
-                // log_v_debug_P( PSTR("extra frame") );
+            //     // log_v_debug_P( PSTR("extra frame") );
 
-                frame_adjust--;
+            //     frame_adjust--;
                 
-                // add extra frame
-                TMR_WAIT( pt, 5 );
+            //     // add extra frame
+            //     TMR_WAIT( pt, 5 );
     
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-                send_read_keys();
+            //     THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            //     send_read_keys();
 
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-                send_run_vm_cmd();
-                current_frame++;
-            }
+            //     THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            //     send_run_vm_cmd();
+            //     current_frame++;
+            // }
 
-            if( tmr_u32_elapsed_time_ms( last_frame_sync_time ) > 4000 ){ 
+            // if( tmr_u32_elapsed_time_ms( last_frame_sync_time ) > 4000 ){ 
 
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            //     THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
-                send_request_frame_sync_cmd();
-                last_frame_sync_time = tmr_u32_get_system_time_ms();
-            }
-            #else
+            //     send_request_frame_sync_cmd();
+            //     last_frame_sync_time = tmr_u32_get_system_time_ms();
+            // }
+            // #else
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_read_keys();
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_run_vm_cmd();
-            #endif
+            // #endif
         }
 
 end:
