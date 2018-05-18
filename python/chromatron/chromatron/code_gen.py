@@ -4854,7 +4854,7 @@ class CodeGeneratorPass7(object):
             packed_db += CatbusMeta(
                             hash=catbus_string_hash(entry.key.name), 
                             type=entry.data_type.name,
-                            array_len=entry.count.name).pack()
+                            array_len=entry.count.name - 1).pack()
 
             meta_names.append(entry.key.name)
 

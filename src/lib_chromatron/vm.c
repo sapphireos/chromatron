@@ -371,6 +371,18 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
     catbus_meta_t meta;
 
+    // set up additional DB entries
+    fs_v_seek( f, sizeof(vm_size) + state.db_start );
+
+    for( uint8_t i = 0; i < state.db_count; i++ ){
+
+        fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
+
+        kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
+        kvdb_v_set_tag( meta.hash, VM_KV_TAG );
+    }   
+
+
     // read through database keys
     mem_handle_t h = mem2_h_alloc2( sizeof(uint32_t) * state.read_keys_count, MEM_TYPE_SUBSCRIBED_KEYS );
 
@@ -468,19 +480,6 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         }
     }
 
-    // set up additional DB entries
-    fs_v_seek( f, sizeof(vm_size) + state.db_start );
-
-    for( uint8_t i = 0; i < state.db_count; i++ ){
-
-        catbus_meta_t meta;
-
-        fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
-
-        kvdb_i8_add( meta.hash, meta.type, meta.count, 0, 0 );
-        kvdb_v_set_tag( meta.hash, VM_KV_TAG );
-        kvdb_v_set_notifier( meta.hash, published_var_notifier );
-    }   
 
     // send len 0 to indicate load complete.
     // this will trigger the init function, so we want to do this
