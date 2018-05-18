@@ -34,8 +34,10 @@
 #define TIME_SERVER_PORT        32037
 
 #define TIME_PROTOCOL_MAGIC     0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION   1
+#define TIME_PROTOCOL_VERSION   2
 
+
+#define TIME_SYNC_RATE          4 // in seconds
 
 
 // Timer
@@ -51,7 +53,7 @@ typedef struct{
     uint8_t version;
     uint8_t type;
     uint32_t network_time;
-    uint32_t uptime;
+    uint64_t uptime;
 } time_msg_sync_t;
 #define TIME_MSG_SYNC           1
 

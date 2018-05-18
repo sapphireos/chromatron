@@ -111,10 +111,11 @@ PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
-// static uint32_t local_time;
-// static uint32_t net_time;
-// static ip_addr_t master_ip;
-// // static uint32_t master_uptime;
+static uint32_t local_time;
+static uint32_t net_time;
+static ip_addr_t master_ip;
+static uint64_t master_uptime;
+
 // static uint32_t last_frame_sync;
 
 // static ip_addr_t frame_master_ip;
@@ -144,7 +145,9 @@ static socket_t sock;
 //     return 0;
 // }
 
-static uint8_t state;
+
+
+static uint8_t sync_state;
 #define STATE_WAIT              0
 #define STATE_MASTER            1
 #define STATE_SLAVE             2
@@ -177,7 +180,7 @@ void time_v_init( void ){
     }
 
 
-    state = STATE_WAIT;
+    sync_state = STATE_WAIT;
 
     sock = sock_s_create( SOCK_DGRAM );
 
@@ -283,6 +286,9 @@ PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    // set timeout (in seconds)
+    sock_v_set_timeout( sock, 32 );
+    
     while(1){
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
@@ -306,13 +312,57 @@ PT_BEGIN( pt );
 
             uint8_t *type = version + 1;
 
+            sock_addr_t raddr;
+            sock_v_get_raddr( sock, &raddr );
+
+
             if( *type == TIME_MSG_SYNC ){
 
-                
+                time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
+                if( sync_state == STATE_WAIT ){
+
+                    // select master
+                    master_ip = raddr.ipaddr;
+                    master_uptime = msg->uptime;
+
+                    sync_state = STATE_SLAVE;
+
+                    log_v_debug_P( PSTR("assigning master: %d.%d.%d.%d"), 
+                        master_ip.ip3, 
+                        master_ip.ip2, 
+                        master_ip.ip1, 
+                        master_ip.ip0 );                    
+                }
+                else if( sync_state == STATE_MASTER ){
+
+                    // check if this master is better
+                    if( msg->uptime > master_uptime ){
+
+                        // select master
+                        master_ip = raddr.ipaddr;
+                        master_uptime = msg->uptime;
+
+                        sync_state = STATE_SLAVE;
+
+                        log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
+                            master_ip.ip3, 
+                            master_ip.ip2, 
+                            master_ip.ip1, 
+                            master_ip.ip0 );                    
+                    }
+                }
             }
         }
+        // socket timeout
+        else{
+
+            log_v_debug_P( PSTR("timed out, resetting state") );
+
+            sync_state = STATE_WAIT;
+        }
     }
+
 
     // frame_sync_state = FRAME_SYNC_MASTER;
 
@@ -434,23 +484,76 @@ PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
         
-    while(1){
+    // while(1){
 
-        TMR_WAIT( pt, 1000 );
+    //     TMR_WAIT( pt, 1000 );
+
+    //     // set up broadcast address
+    //     sock_addr_t raddr;
+    //     raddr.port = TIME_SERVER_PORT;
+    //     raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    //     uint8_t buf[1];
+    //     buf[0] = 0x43;
+
+    //     sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
+    // }
+
+
+    THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
+
+    THREAD_WAIT_WHILE( pt, sync_state == STATE_SLAVE );
+
+    // random delay, see if other masters show up
+    if( sync_state == STATE_WAIT ){
+
+        TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
+    }
+
+    if( sync_state == STATE_WAIT ){
+
+        // elect ourselves as master
+        sync_state = STATE_MASTER;
+        master_uptime = 0;
+
+        log_v_debug_P( PSTR("we are master") );
+    }
+
+
+    while( sync_state == STATE_MASTER ){
+
+        TMR_WAIT( pt, TIME_SYNC_RATE * 1000 );
+
+        // check state
+        if( sync_state != STATE_MASTER ){
+
+            // no longer master
+            log_v_debug_P( PSTR("no longer master") );
+
+            break;
+        }
+
+        master_uptime += TIME_SYNC_RATE;
+
+
+        time_msg_sync_t msg;
+        msg.magic           = TIME_PROTOCOL_MAGIC;
+        msg.version         = TIME_PROTOCOL_VERSION;
+        msg.type            = TIME_MSG_SYNC;
+        msg.network_time    = 0;
+        msg.uptime          = master_uptime;
 
         // set up broadcast address
         sock_addr_t raddr;
         raddr.port = TIME_SERVER_PORT;
         raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-        uint8_t buf[1];
-        buf[0] = 0x43;
-
-        sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
+        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
     }
 
 
-
+    // restart if we get here
+    THREAD_RESTART( pt );
 
 
 
