@@ -152,6 +152,8 @@ static uint8_t sync_state;
 #define STATE_MASTER            1
 #define STATE_SLAVE             2
 
+static uint32_t rtt_start;
+static uint16_t rtt;
 
 
 // KV_SECTION_META kv_meta_t time_info_kv[] = {
@@ -353,6 +355,33 @@ PT_BEGIN( pt );
                     }
                 }
             }
+            else if( *type == TIME_MSG_PING ){
+
+                // build reply message
+                time_msg_ping_reply_t msg;
+                msg.magic           = TIME_PROTOCOL_MAGIC;
+                msg.version         = TIME_PROTOCOL_VERSION;
+                msg.type            = TIME_MSG_PING_REPLY;
+
+                sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+
+                log_v_debug_P( PSTR("responding to ping") );
+            }
+            else if( *type == TIME_MSG_PING_REPLY ){
+
+                uint32_t elapsed = tmr_u32_elapsed_time_ms( rtt_start );
+
+                if( elapsed < 500 ){
+
+                    rtt = elapsed;
+
+                    log_v_debug_P( PSTR("got reply: RTT: %u"), rtt );
+                }
+                else{
+
+                    // a 0.5 second RTT is clearly ridiculous.
+                }   
+            }
         }
         // socket timeout
         else{
@@ -502,7 +531,6 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
 
-    THREAD_WAIT_WHILE( pt, sync_state == STATE_SLAVE );
 
     // random delay, see if other masters show up
     if( sync_state == STATE_WAIT ){
@@ -549,21 +577,44 @@ PT_BEGIN( pt );
         raddr.ipaddr = ip_a_addr(255,255,255,255);
 
         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+
+
+        log_v_debug_P( PSTR("sending sync") );
     }
 
+    while( sync_state == STATE_SLAVE ){
+
+        // random delay
+        TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
+
+        // check state
+        if( sync_state != STATE_SLAVE ){
+
+            // no longer master
+            log_v_debug_P( PSTR("no longer slave") );
+
+            break;
+        }
+
+        // build ping message
+        time_msg_ping_t msg;
+        msg.magic           = TIME_PROTOCOL_MAGIC;
+        msg.version         = TIME_PROTOCOL_VERSION;
+        msg.type            = TIME_MSG_PING;
+
+        sock_addr_t raddr;
+        raddr.port = TIME_SERVER_PORT;
+        raddr.ipaddr = master_ip;
+
+        rtt_start = tmr_u32_get_system_time_ms();
+
+        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+
+        log_v_debug_P( PSTR("sending ping: %u"), rtt_start );
+    }
 
     // restart if we get here
     THREAD_RESTART( pt );
-
-
-
-
-
-
-
-
-
-
 
 
 
