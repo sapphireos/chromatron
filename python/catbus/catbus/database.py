@@ -119,6 +119,14 @@ class Database(DictMixin, object):
 
     def infer_default_type(self, value):
         """Get default Sapphire type for value"""
+
+        # check if accessing an array
+        try:
+            value = value[0]
+
+        except (TypeError, IndexError):
+            pass
+
         if isinstance(value, bool):
             return 'bool'
 
@@ -155,6 +163,14 @@ class Database(DictMixin, object):
         if persist:
             flags |= CATBUS_FLAGS_PERSIST
 
+        # check if adding an array
+        try:
+            if not isinstance(value, basestring):
+                count = len(value)
+
+        except TypeError:
+            pass
+
         with self._lock:
             # check if key is already in database
             if key in self._kv_items:
@@ -163,6 +179,7 @@ class Database(DictMixin, object):
             # add new item
             hashed_key = catbus_string_hash(key)
             meta = CatbusMeta(hash=hashed_key, flags=flags, type=data_type, array_len=count - 1)
+
             kv_item = CatbusData(meta=meta, value=value)
             self._kv_items[key] = kv_item
             self._hashes[hashed_key] = key
