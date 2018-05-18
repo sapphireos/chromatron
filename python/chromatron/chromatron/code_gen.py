@@ -4858,16 +4858,6 @@ class CodeGeneratorPass7(object):
 
             meta_names.append(entry.key.name)
 
-
-        image_len = (data_len + 
-                     code_len + 
-                     len(packed_pix_objects) +
-                     len(packed_read_keys) +
-                     len(packed_write_keys) +
-                     len(packed_publish) +
-                     len(packed_pix_objects) +
-                     len(packed_db))
-
         # build program header
         header = ProgramHeader(
                     file_magic=FILE_MAGIC,
@@ -4880,6 +4870,7 @@ class CodeGeneratorPass7(object):
                     write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
                     link_len=len(packed_links),
+                    db_len=len(packed_db),
                     init_start=self.functions['init'],
                     loop_start=self.functions['loop'])
 
@@ -4964,8 +4955,7 @@ class CodeGeneratorPass7(object):
                 'crc': crc,
                 'file_hash': file_hash,
                 'data_len': data_len,
-                'code_len': code_len,
-                'image_len': image_len})
+                'code_len': code_len})
 
         return self.state
 

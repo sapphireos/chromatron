@@ -477,7 +477,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
 
         fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
 
-        kvdb_i8_add( meta.hash, meta.type, 1, 0, 0 );
+        kvdb_i8_add( meta.hash, meta.type, meta.count, 0, 0 );
         kvdb_v_set_tag( meta.hash, VM_KV_TAG );
         kvdb_v_set_notifier( meta.hash, published_var_notifier );
     }   
