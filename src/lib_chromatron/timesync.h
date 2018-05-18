@@ -27,12 +27,23 @@
 
 #ifdef ENABLE_TIME_SYNC
 
+#include "graphics.h"
+
 #include "wifi_cmd.h"
 
 #define TIME_SERVER_PORT        32037
 
 #define TIME_PROTOCOL_MAGIC     0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION   1
+
+
+
+// Timer
+#define TIMESYNC_TIMER                 GFX_TIMER
+#define TIMESYNC_TIMER_CC              CCC
+#define TIMESYNC_TIMER_CC_VECT         GFX_TIMER_CCC_vect
+#define TIMESYNC_TIMER_CC_INTLVL       TC_CCCINTLVL_HI_gc
+
 
 
 typedef struct{

@@ -35,11 +35,11 @@
 #include "pixel.h"
 
 
-#define SYNC_TIMER TCE0
-#define SYNC_TIMER_OVF_vect        TCE0_OVF_vect
+// #define SYNC_TIMER TCE0
+// #define SYNC_TIMER_OVF_vect        TCE0_OVF_vect
 
-#define SYNC_PER    31250
-#define TICKS_PER_MS ( 31250 / 1000 )
+// #define SYNC_PER    31250
+// #define TICKS_PER_MS ( 31250 / 1000 )
 
 #define STROBE PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
             _delay_us(10); \
@@ -47,47 +47,57 @@
 
 static int16_t clock_offset;
 
-ISR(SYNC_TIMER_OVF_vect){
 
-    // STROBE;
+// ISR(GFX_TIMER_CCC_vect){
 
-    uint32_t net = time_u32_get_network_time();
-    uint32_t frac = net % 1000;
+//     GFX_TIMER.CCC += PARAMS_TIMER_RATE;
 
-    if( frac < 500 ){
+//     run_flags |= FLAG_RUN_PARAMS;
+// }
 
-        clock_offset = -1 * frac;
-    }
-    else{
 
-        clock_offset = 1000 - frac;
-    }
 
-    uint16_t temp = abs(clock_offset);
+// ISR(SYNC_TIMER_OVF_vect){
 
-    if( temp > 100 ){
+//     // STROBE;
 
-        temp = 100;
-    }
+//     uint32_t net = time_u32_get_network_time();
+//     uint32_t frac = net % 1000;
 
-    if( clock_offset > 0 ){
+//     if( frac < 500 ){
 
-        SYNC_TIMER.PER = SYNC_PER - temp;
-    }
-    else{
+//         clock_offset = -1 * frac;
+//     }
+//     else{
 
-        SYNC_TIMER.PER = SYNC_PER + temp;   
-    }
+//         clock_offset = 1000 - frac;
+//     }
 
-    // if( offset > 0 ){
+//     uint16_t temp = abs(clock_offset);
 
-    //     SYNC_TIMER.CNT -= ( abs(offset) * TICKS_PER_MS );
-    // }
-    // else{
+//     if( temp > 100 ){
 
-    //     SYNC_TIMER.CNT += ( abs(offset) * TICKS_PER_MS );
-    // }
-}
+//         temp = 100;
+//     }
+
+//     if( clock_offset > 0 ){
+
+//         SYNC_TIMER.PER = SYNC_PER - temp;
+//     }
+//     else{
+
+//         SYNC_TIMER.PER = SYNC_PER + temp;   
+//     }
+
+//     // if( offset > 0 ){
+
+//     //     SYNC_TIMER.CNT -= ( abs(offset) * TICKS_PER_MS );
+//     // }
+//     // else{
+
+//     //     SYNC_TIMER.CNT += ( abs(offset) * TICKS_PER_MS );
+//     // }
+// }
 
 
 
@@ -146,7 +156,7 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
 
 void time_v_init( void ){
 
-    // return;
+    return;
 
     // PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
     // PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );

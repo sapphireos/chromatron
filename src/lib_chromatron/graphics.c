@@ -292,7 +292,8 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 #define FADER_TIMER_RATE 625 // 20 ms
-#define PARAMS_TIMER_RATE 31250 // 1000 ms
+
+#define PARAMS_TIMER_RATE 1000 // 1000 ms
 
 #define STROBE_CLK PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
                    _delay_us(10); \
@@ -320,14 +321,6 @@ ISR(GFX_TIMER_CCB_vect){
 
     // STROBE_DATA;
 }
-
-ISR(GFX_TIMER_CCC_vect){
-
-    GFX_TIMER.CCC += PARAMS_TIMER_RATE;
-
-    run_flags |= FLAG_RUN_PARAMS;
-}
-
 
 void gfx_v_init( void ){
 
@@ -357,13 +350,9 @@ void gfx_v_init( void ){
     update_vm_timer();
     GFX_TIMER.CCB = vm_timer_rate;
 
-    // params
-    GFX_TIMER.CCC = PARAMS_TIMER_RATE;
-
     GFX_TIMER.INTCTRLB = 0;
     GFX_TIMER.INTCTRLB |= TC_CCAINTLVL_HI_gc;
     GFX_TIMER.INTCTRLB |= TC_CCBINTLVL_HI_gc;
-    GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
 
     GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
     GFX_TIMER.CTRLB = 0;
@@ -708,6 +697,7 @@ PT_BEGIN( pt );
     static uint32_t last_frame_sync_time;
     #endif
 
+    static uint32_t last_param_sync;
     static uint8_t flags;
 
     // wait until wifi is attached before starting up pixel driver
@@ -737,7 +727,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, run_flags == 0 );        
+        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && ( tmr_u32_elapsed_time_ms( last_param_sync ) < PARAMS_TIMER_RATE ) );
 
         ATOMIC;
         flags = run_flags;
@@ -812,10 +802,13 @@ end:
             }
         }
 
-        if( flags & FLAG_RUN_PARAMS ){
+        if( ( flags & FLAG_RUN_PARAMS ) ||
+            ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_params( FALSE );
+
+            last_param_sync = tmr_u32_get_system_time_ms();
         }
 
         THREAD_YIELD( pt ); 
