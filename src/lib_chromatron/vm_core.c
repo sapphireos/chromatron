@@ -1705,6 +1705,15 @@ int8_t vm_i8_load_program(
 
         return VM_STATUS_LINK_MISALIGN;
     }
+
+    state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
+    state->db_start = obj_start;
+    obj_start += prog_header->db_len;
+
+    if( ( state->db_start % 4 ) != 0 ){
+
+        return VM_STATUS_DB_MISALIGN;
+    }
     
 
     // if just checking the header, we're done at this point

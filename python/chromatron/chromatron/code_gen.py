@@ -77,6 +77,7 @@ SYS_CALLS = {'sys_call_test':   0,
              'stop_thread':     11,
              'thread_running':  12}
 
+KV_LINK_FUNCS = ['send', 'receive', 'db']
 
 FILE_MAGIC = 0x20205846 # 'FX  '
 PROGRAM_MAGIC = 0x474f5250 # 'PROG'
@@ -106,6 +107,8 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="publish_len"),
                   Uint16Field(_name="pix_obj_len"),
                   Uint16Field(_name="link_len"),
+                  Uint16Field(_name="db_len"),
+                  Uint16Field(_name="padding"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 
@@ -1141,7 +1144,7 @@ class CodeGeneratorPass1(object):
             for arg in tree.args:
                 params.append(self.generate(arg))
 
-            if (tree.func.id in SYS_CALLS) or (tree.func.id in ['send', 'receive']):
+            if (tree.func.id in SYS_CALLS) or (tree.func.id in KV_LINK_FUNCS):
                 return SysCallNode(tree.func.id, params, line_no=tree.lineno)
 
             return CallNode(tree.func.id, params, line_no=tree.lineno)
@@ -2421,6 +2424,19 @@ class LinkIR(IntermediateNode):
     
         return s
 
+class DBIR(IntermediateNode):
+    def __init__(self, key, data_type, count=1, **kwargs):
+        super(DBIR, self).__init__(**kwargs)
+        self.key = key
+        self.data_type = data_type
+        self.count = count
+        
+    def __str__(self):
+
+        s = '%3d %s DB %s (%s) len:%s' % (self.line_no, self.indent * self.level, self.key, self.data_type, self.count)
+    
+        return s
+
 
 # generate intermediate representation
 class CodeGeneratorPass2(object):
@@ -2535,23 +2551,31 @@ class CodeGeneratorPass2(object):
             elif isinstance(node, SysCallNode):
                 ir = []
 
-                if node.name in ['send', 'receive']:
-                    if node.name == 'send':
+                if node.name in KV_LINK_FUNCS:
+                    if node.name == 'db':
+                        item = DBIR(node.params[0], node.params[1], node.params[2], level=self.level, line_no=node.line_no)
+
+                    elif node.name == 'send':
                         send = True
                         src = node.params[0]
                         dest = node.params[1]
                         query = node.params[2]
 
-                    else:
+                        item = LinkIR(dest, src, query, send, level=self.level, line_no=node.line_no)
+
+                    elif node.name == 'receive':
                         send = False
                         src = node.params[1]
                         dest = node.params[0]
                         query = node.params[2]
 
+                        item = LinkIR(dest, src, query, send, level=self.level, line_no=node.line_no)
 
-                    link = LinkIR(dest, src, query, send, level=self.level, line_no=node.line_no)
+                    else:
+                        assert False
 
-                    ir.append(link)
+                    
+                    ir.append(item)
 
                 else:
                     params = []
@@ -4326,6 +4350,7 @@ class CodeGeneratorPass5(object):
         ir_code = state['code']
         self.code = {}
         state['links'] = []
+        state['db'] = []
 
         # first loop, get functions
         for ir in ir_code:
@@ -4621,6 +4646,9 @@ class CodeGeneratorPass5(object):
             elif isinstance(ir, LinkIR):
                 state['links'].append(ir)
 
+            elif isinstance(ir, DBIR):
+                state['db'].append(ir)
+
             else:
                 raise Unknown(ir)
 
@@ -4820,6 +4848,16 @@ class CodeGeneratorPass7(object):
                                  dest_hash=dest_hash, 
                                  query=query).pack()
 
+        # set up published registers
+        packed_db = ''
+        for entry in self.state['db']:
+            packed_db += CatbusMeta(
+                            hash=catbus_string_hash(entry.key.name), 
+                            type=entry.data_type.name,
+                            array_len=entry.count.name).pack()
+
+            meta_names.append(entry.key.name)
+
 
         image_len = (data_len + 
                      code_len + 
@@ -4827,7 +4865,8 @@ class CodeGeneratorPass7(object):
                      len(packed_read_keys) +
                      len(packed_write_keys) +
                      len(packed_publish) +
-                     len(packed_pix_objects))
+                     len(packed_pix_objects) +
+                     len(packed_db))
 
         # build program header
         header = ProgramHeader(
@@ -4850,6 +4889,7 @@ class CodeGeneratorPass7(object):
         stream += packed_publish
         stream += packed_pix_objects
         stream += packed_links
+        stream += packed_db
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)

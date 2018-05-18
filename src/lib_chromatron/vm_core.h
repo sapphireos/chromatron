@@ -62,6 +62,7 @@
 #define VM_STATUS_PUBLISH_VARS_MISALIGN -46
 #define VM_STATUS_PIXEL_MISALIGN        -47
 #define VM_STATUS_LINK_MISALIGN         -48
+#define VM_STATUS_DB_MISALIGN           -49
 
 #define VM_STATUS_LOAD_ALLOC_FAIL       -50
 
@@ -127,6 +128,8 @@ typedef struct __attribute__((packed)){
     uint16_t publish_len;       // length in BYTES, not number of objects!
     uint16_t pix_obj_len;       // length in BYTES, not number of objects!
     uint16_t link_len;          // length in BYTES, not number of objects!
+    uint16_t db_len;            // length in BYTES, not number of objects!
+    uint16_t padding;
     uint16_t init_start;
     uint16_t loop_start;
     // variable length data:
@@ -181,6 +184,9 @@ typedef struct{
 
     uint8_t link_count;
     uint16_t link_start;
+
+    uint8_t db_count;
+    uint16_t db_start;
 } vm_state_t;
 
 int8_t vm_i8_run(
