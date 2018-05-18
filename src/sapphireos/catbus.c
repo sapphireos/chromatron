@@ -1773,7 +1773,14 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                catbus_i8_set( msg->dest_hash, msg->data.meta.type, (void *)&msg->data.data );
+                if( msg->data.meta.count == 0 ){
+                 
+                    catbus_i8_set( msg->dest_hash, msg->data.meta.type, (void *)&msg->data.data );
+                }
+                else{
+
+                    catbus_i8_array_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count, (void *)&msg->data.data );
+                }
 
                 if( kv_v_notify_hash_set != 0 ){
 

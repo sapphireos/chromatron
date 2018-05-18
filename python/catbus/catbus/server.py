@@ -522,6 +522,9 @@ class Server(Ribbon):
             if msg.source_hash not in self._database:
                 return
             
+            # change host reply port to data port
+            host = (host[0], msg.data_port)
+
             # remove current entries for this host
             self._send_list = [a for a in self._send_list if 
                                 (a['host'] != host) or
