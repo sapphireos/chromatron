@@ -365,7 +365,7 @@ PT_BEGIN( pt );
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
 
-                log_v_debug_P( PSTR("responding to ping") );
+                // log_v_debug_P( PSTR("responding to ping") );
             }
             else if( *type == TIME_MSG_PING_REPLY ){
 
@@ -381,6 +381,17 @@ PT_BEGIN( pt );
 
                     // a 0.5 second RTT is clearly ridiculous.
                 }   
+            }
+            else if( *type == TIME_MSG_NOT_MASTER ){
+
+                // check if that was master.
+                if( ip_b_addr_compare( raddr.ipaddr, master_ip ) ){
+
+                    // ruh roh.  master rebooted or something.
+                    sync_state = STATE_WAIT;
+
+                    log_v_debug_P( PSTR("lost master, resetting state") );
+                }
             }
         }
         // socket timeout
@@ -509,6 +520,21 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+static void send_not_master( void ){
+
+    time_msg_not_master_t msg;
+    msg.magic           = TIME_PROTOCOL_MAGIC;
+    msg.version         = TIME_PROTOCOL_VERSION;
+    msg.type            = TIME_MSG_NOT_MASTER;
+    
+    // set up broadcast address
+    sock_addr_t raddr;
+    raddr.port = TIME_SERVER_PORT;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+}
+
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -534,6 +560,15 @@ PT_BEGIN( pt );
 
     // random delay, see if other masters show up
     if( sync_state == STATE_WAIT ){
+
+        // send, broadcast a message staying we are not a master.
+        // this way, if we *were* the master and got reset, then when we come back up
+        // we'll tell everyone else we aren't the master, so someone else will jump in
+        // (with the current network time).
+
+        send_not_master();
+        TMR_WAIT( pt, 200 );
+        send_not_master();
 
         TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
     }
@@ -610,7 +645,7 @@ PT_BEGIN( pt );
 
         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 
-        log_v_debug_P( PSTR("sending ping: %u"), rtt_start );
+        // log_v_debug_P( PSTR("sending ping: %u"), rtt_start );
     }
 
     // restart if we get here

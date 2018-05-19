@@ -71,6 +71,12 @@ typedef struct{
 } time_msg_ping_reply_t;
 #define TIME_MSG_PING_REPLY      3
 
+typedef struct{
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_not_master_t;
+#define TIME_MSG_NOT_MASTER      4
 
 // typedef struct{
 //     uint32_t magic;
