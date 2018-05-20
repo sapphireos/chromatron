@@ -31,9 +31,9 @@
 // changing (reducing) this violates the RFC
 #define SNTP_MINIMUM_POLL_INTERVAL      15
 
-#define SNTP_DEFAULT_POLL_INTERVAL      60
+#define SNTP_DEFAULT_POLL_INTERVAL      600
 
-#define SNTP_TIMEOUT                    20
+#define SNTP_TIMEOUT                    4
 
 
 // NTP Packet

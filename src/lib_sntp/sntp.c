@@ -399,7 +399,7 @@ PT_BEGIN( pt );
         memset( &pkt, 0, sizeof(pkt) );
 
         // set version to 4 and mode to client
-        pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT;
+        pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT | SNTP_LI_ALARM;
 
         // get our current network time with the maximum available precision
         ntp_ts_t transmit_ts = sntp_t_now();
@@ -407,7 +407,6 @@ PT_BEGIN( pt );
         // set transmit timestamp (converting from little endian to big endian)
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
         pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
-
 
         // send packet
         // if packet transmission fails, we'll try again on the next polling cycle
@@ -481,7 +480,7 @@ clean_up:
             // bounds check sync interval
             if( sync_interval < SNTP_MINIMUM_POLL_INTERVAL ){
 
-                sync_interval = SNTP_MINIMUM_POLL_INTERVAL;
+                sync_interval = SNTP_DEFAULT_POLL_INTERVAL;
 
                 // store minimum sync to config database
                 cfg_v_set( CFG_PARAM_SNTP_SYNC_INTERVAL, &sync_interval );

@@ -2422,13 +2422,14 @@ int8_t get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
     // check if interface is up
     if( !wifi_b_connected() ){
 
-        return -1;
+        return NETMSG_ROUTE_MATCH;
     }
 
     cfg_i8_get( CFG_PARAM_IP_ADDRESS, subnet );
     cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, subnet_mask );
 
-    return 0;
+    // set this route as default
+    return NETMSG_ROUTE_DEFAULT;
 }
 
 ROUTING_TABLE routing_table_entry_t route_wifi = {
