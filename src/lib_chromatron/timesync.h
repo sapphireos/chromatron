@@ -27,6 +27,7 @@
 
 #ifdef ENABLE_TIME_SYNC
 
+#include "ntp.h"
 #include "graphics.h"
 
 #include "wifi_cmd.h"
@@ -48,30 +49,32 @@
 
 
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
+    uint8_t flags;
     uint32_t net_time;
     uint64_t uptime;
+    ntp_ts_t ntp_time;
 } time_msg_sync_t;
 #define TIME_MSG_SYNC           1
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
 } time_msg_ping_t;
 #define TIME_MSG_PING           2
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
 } time_msg_ping_reply_t;
 #define TIME_MSG_PING_REPLY      3
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;

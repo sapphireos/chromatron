@@ -53,7 +53,7 @@
 #include "sntp.h"
 
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "logging.h"
 
 
@@ -65,6 +65,9 @@ static int16_t last_offset;
 static uint16_t last_delay;
 
 static sntp_status_t8 status;
+
+static thread_t thread;
+static socket_t sock;
 
 
 static int8_t ntp_kv_handler(
@@ -189,6 +192,12 @@ ntp_ts_t sntp_t_last_sync( void ){
 
 void sntp_v_init( void ){
 
+    thread = -1;
+    sock = -1;
+}
+
+void sntp_v_start( void ){
+
     // initialize network time
     network_time.seconds = 0xD0000000;
     network_time.fraction = 0;
@@ -199,6 +208,7 @@ void sntp_v_init( void ){
 
         status = SNTP_STATUS_NO_SYNC;
 
+        thread = 
         thread_t_create( sntp_client_thread,
                          PSTR("sntp_client"),
                          0,
@@ -208,6 +218,23 @@ void sntp_v_init( void ){
 
         status = SNTP_STATUS_DISABLED;
     }
+}
+
+void sntp_v_stop( void ){
+
+    if( sock > 0 ){
+
+        sock_v_release( sock );
+        sock = -1;
+    }
+
+    if( thread > 0 ){
+
+        thread_v_kill( thread );
+        thread = -1;
+    }
+
+    status = SNTP_STATUS_DISABLED;
 }
 
 sntp_status_t8 sntp_u8_get_status( void ){
@@ -328,10 +355,7 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint32_t timer;
-    static socket_t sock;
     static uint8_t tries;
-
 
 	while(1){
 
@@ -349,8 +373,7 @@ PT_BEGIN( pt );
 
         if( ip_b_is_zeroes( ntp_server_addr.ipaddr ) ){
 
-            timer = 1000;
-            TMR_WAIT( pt, timer );
+            TMR_WAIT( pt, 1000 );
 
             // that's too bad, we'll have to skip this cycle and try again later
             THREAD_RESTART( pt );
@@ -397,11 +420,10 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("SNTP sync sent") );
 
             // set timeout
-            timer = tmr_u32_get_system_time() + SNTP_TIMEOUT;
+            sock_v_set_timeout( sock, SNTP_TIMEOUT );
 
             // wait for packet
-            THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) &&
-                                   ( tmr_i8_compare_time( timer ) > 0 ) );
+            THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
             // check for timeout (no data received)
             if( sock_i16_get_bytes_read( sock ) >= 0 ){
@@ -445,6 +467,7 @@ PT_BEGIN( pt );
 
 clean_up:
         sock_v_release( sock );
+        sock = -1;
 
         uint16_t sync_interval;
 
@@ -467,7 +490,7 @@ clean_up:
             }
         }
 
-        timer = (uint32_t)sync_interval * 1000; // convert interval to milliseconds
+        uint32_t timer = (uint32_t)sync_interval * 1000; // convert interval to milliseconds
 
         // wait during polling interval
         TMR_WAIT( pt, timer );

@@ -25,14 +25,15 @@
 #ifdef ENABLE_TIME_SYNC
 
 #include "config.h"
-#include "graphics.h"
+// #include "graphics.h"
 #include "timesync.h"
 #include "hash.h"
-#include "vm.h"
+// #include "vm.h"
+#include "sntp.h"
 
-#include <stdlib.h>
+// #include <stdlib.h>
 
-#include "pixel.h"
+// #include "pixel.h"
 
 
 // #define SYNC_TIMER TCE0
@@ -371,14 +372,18 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    ATOMIC;
-                    int32_t local_diff = tmr_u32_elapsed_time_ms( local_time );
+                    uint32_t prev_local = local_time;
                     local_time = tmr_u32_get_system_time_ms();
 
-                    int32_t net_diff = tmr_u32_elapsed_times( net_time, msg->net_time );
-                    net_time = msg->net_time - ( rtt / 2 );
-                    END_ATOMIC;
+                    int32_t local_diff = tmr_u32_elapsed_times( prev_local, local_time );
+                    
+                    // uint32_t prev_net = net_time;
+                    uint32_t est_net_time = time_u32_get_network_time();
+                    net_time = msg->net_time + ( rtt / 2 );
 
+
+                    int32_t net_diff = tmr_u32_elapsed_times( est_net_time, net_time );
+                    
                     log_v_debug_P( PSTR("net time: %lu rtt: %u diffs: local: %ld net: %ld"), net_time, rtt, local_diff, net_diff );
                 }
             }
@@ -618,6 +623,10 @@ PT_BEGIN( pt );
         log_v_debug_P( PSTR("we are master") );
     }
 
+    if( sync_state == STATE_MASTER ){
+
+        sntp_v_start();
+    }
 
     while( sync_state == STATE_MASTER ){
 
@@ -628,6 +637,8 @@ PT_BEGIN( pt );
 
             // no longer master
             log_v_debug_P( PSTR("no longer master") );
+
+            sntp_v_stop();
 
             break;
         }
@@ -652,8 +663,7 @@ PT_BEGIN( pt );
 
         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 
-
-        log_v_debug_P( PSTR("sending sync") );
+        // log_v_debug_P( PSTR("sending sync") );
     }
 
     while( sync_state == STATE_SLAVE ){

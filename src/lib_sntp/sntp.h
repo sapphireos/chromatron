@@ -33,7 +33,7 @@
 
 #define SNTP_DEFAULT_POLL_INTERVAL      60
 
-#define SNTP_TIMEOUT                    10000
+#define SNTP_TIMEOUT                    10
 #define SNTP_TRIES                      8
 
 // NTP Packet
@@ -78,6 +78,8 @@ typedef int8_t sntp_status_t8;
 
 
 void sntp_v_init( void );
+void sntp_v_start( void );
+void sntp_v_stop( void );
 
 sntp_status_t8 sntp_u8_get_status( void );
 

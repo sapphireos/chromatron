@@ -20,5 +20,5 @@
  	"BUILD_TYPE": "lib",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": []
+    "LIBRARIES": ["lib_sntp"]
 }
