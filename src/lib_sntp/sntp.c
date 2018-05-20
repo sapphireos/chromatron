@@ -389,7 +389,7 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, 1000 );
 
             // that's too bad, we'll have to skip this cycle and try again later
-            goto retry;
+            continue;
         }
             
         // build sntp packet
@@ -408,7 +408,6 @@ PT_BEGIN( pt );
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
         pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
 
-        ntp_server_addr.ipaddr = ip_a_addr(10,0,0,118);
 
         // send packet
         // if packet transmission fails, we'll try again on the next polling cycle
@@ -434,10 +433,10 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("SNTP sync timed out") );
 
-            goto retry;
+            continue;
         }
 
-        log_v_debug_P( PSTR("SNTP sync received") );
+        // log_v_debug_P( PSTR("SNTP sync received") );
 
         // get data and process it
         // NOTE the original ntp packet local variable we used will
