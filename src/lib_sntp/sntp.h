@@ -33,11 +33,11 @@
 
 #define SNTP_DEFAULT_POLL_INTERVAL      60
 
-#define SNTP_TIMEOUT                    10
-#define SNTP_TRIES                      8
+#define SNTP_TIMEOUT                    20
+
 
 // NTP Packet
-typedef struct{
+typedef struct __attribute__((packed)){
     uint8_t li_vn_mode;
     uint8_t stratum;
     uint8_t poll;
