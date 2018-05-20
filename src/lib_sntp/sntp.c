@@ -66,8 +66,8 @@ static uint16_t last_delay;
 
 static sntp_status_t8 status;
 
-static thread_t thread;
-static socket_t sock;
+static socket_t sock = -1;
+static thread_t thread = -1;
 
 
 static int8_t ntp_kv_handler(
@@ -192,8 +192,6 @@ ntp_ts_t sntp_t_last_sync( void ){
 
 void sntp_v_init( void ){
 
-    thread = -1;
-    sock = -1;
 }
 
 void sntp_v_start( void ){
@@ -355,6 +353,19 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    sock = sock_s_create( SOCK_DGRAM );
+
+    // check socket creation
+    if( sock < 0 ){
+
+        // that's too bad, we'll have to skip this cycle and try again later
+            
+        TMR_WAIT( pt, 8000 );
+        THREAD_RESTART( pt );
+    }
+
+    TMR_WAIT( pt, 1000 );
+
 	while(1){
 
         // wait if IP is not configured
@@ -376,17 +387,6 @@ PT_BEGIN( pt );
             // that's too bad, we'll have to skip this cycle and try again later
             goto retry;
         }
-
-
-        // get socket
-        sock = sock_s_create( SOCK_DGRAM );
-
-        // check socket creation
-        if( sock < 0 ){
-
-            // that's too bad, we'll have to skip this cycle and try again later
-            goto retry;
-        }
             
         // build sntp packet
         ntp_packet_t pkt;
@@ -403,6 +403,8 @@ PT_BEGIN( pt );
         // set transmit timestamp (converting from little endian to big endian)
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
         pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
+
+        ntp_server_addr.ipaddr = ip_a_addr(10,0,0,118);
 
         // send packet
         // if packet transmission fails, we'll try again on the next polling cycle
@@ -458,21 +460,13 @@ PT_BEGIN( pt );
 
         goto clean_up;
 
-retry:  
-        if( sock > 0 ){
-            sock_v_release( sock );
-        }
-        sock = -1;
-
+retry:
         TMR_WAIT( pt, 8000 );
 
         continue;
 
 clean_up:
-        if( sock > 0 ){
-            sock_v_release( sock );
-        }
-        sock = -1;
+        if(TRUE){}
 
         uint16_t sync_interval;
 
