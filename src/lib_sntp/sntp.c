@@ -204,6 +204,8 @@ void sntp_v_start( void ){
     // check if SNTP is enabled
     if( cfg_b_get_boolean( CFG_PARAM_ENABLE_SNTP ) ){
 
+        log_v_debug_P( PSTR("starting SNTP client") );
+
         status = SNTP_STATUS_NO_SYNC;
 
         thread = 
@@ -219,6 +221,8 @@ void sntp_v_start( void ){
 }
 
 void sntp_v_stop( void ){
+
+    log_v_debug_P( PSTR("stopping SNTP client") );
 
     if( sock > 0 ){
 
@@ -426,11 +430,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         // check for timeout (no data received)
-        if( sock_i16_get_bytes_read( sock ) >= 0 ){
-
-            break;
-        }
-        else{
+        if( sock_i16_get_bytes_read( sock ) < 0 ){
 
             log_v_debug_P( PSTR("SNTP sync timed out") );
 
