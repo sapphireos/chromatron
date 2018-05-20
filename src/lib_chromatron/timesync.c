@@ -152,6 +152,7 @@ static uint8_t sync_state;
 #define STATE_MASTER            1
 #define STATE_SLAVE             2
 
+#define RTT_FILTER              32
 static uint32_t rtt_start;
 static uint16_t rtt;
 
@@ -283,6 +284,14 @@ static uint32_t get_sync_group_hash( void ){
 // }
 
 
+uint32_t time_u32_get_network_time( void ){
+
+    int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
+
+    return net_time + elapsed;
+}
+
+
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
@@ -327,6 +336,9 @@ PT_BEGIN( pt );
                     // select master
                     master_ip = raddr.ipaddr;
                     master_uptime = msg->uptime;
+                    rtt = 0;
+                    local_time = tmr_u32_get_system_time_ms();
+                    net_time = msg->net_time;
 
                     sync_state = STATE_SLAVE;
 
@@ -344,6 +356,9 @@ PT_BEGIN( pt );
                         // select master
                         master_ip = raddr.ipaddr;
                         master_uptime = msg->uptime;
+                        rtt = 0;
+                        local_time = tmr_u32_get_system_time_ms();
+                        net_time = msg->net_time;
 
                         sync_state = STATE_SLAVE;
 
@@ -353,6 +368,18 @@ PT_BEGIN( pt );
                             master_ip.ip1, 
                             master_ip.ip0 );                    
                     }
+                }
+                else{
+
+                    ATOMIC;
+                    int32_t local_diff = tmr_u32_elapsed_time_ms( local_time );
+                    local_time = tmr_u32_get_system_time_ms();
+
+                    int32_t net_diff = tmr_u32_elapsed_times( net_time, msg->net_time );
+                    net_time = msg->net_time - ( rtt / 2 );
+                    END_ATOMIC;
+
+                    log_v_debug_P( PSTR("net time: %lu rtt: %u diffs: local: %ld net: %ld"), net_time, rtt, local_diff, net_diff );
                 }
             }
             else if( *type == TIME_MSG_PING ){
@@ -373,13 +400,22 @@ PT_BEGIN( pt );
 
                 if( elapsed < 500 ){
 
-                    rtt = elapsed;
+                    // check if we need to initialize RTT
+                    if( rtt == 0 ){
 
-                    log_v_debug_P( PSTR("got reply: RTT: %u"), rtt );
+                        rtt = elapsed;
+                    }
+                    else{
+
+                        rtt = util_u16_ewma( elapsed, rtt, RTT_FILTER );
+                    }
+
+                    // log_v_debug_P( PSTR("got reply: RTT: %u"), rtt );
                 }
                 else{
 
                     // a 0.5 second RTT is clearly ridiculous.
+                    log_v_debug_P( PSTR("bad: RTT: %u"), elapsed );
                 }   
             }
             else if( *type == TIME_MSG_NOT_MASTER ){
@@ -599,11 +635,14 @@ PT_BEGIN( pt );
         master_uptime += TIME_SYNC_RATE;
 
 
+        net_time = tmr_u32_get_system_time_ms();
+        local_time = net_time;
+
         time_msg_sync_t msg;
         msg.magic           = TIME_PROTOCOL_MAGIC;
         msg.version         = TIME_PROTOCOL_VERSION;
         msg.type            = TIME_MSG_SYNC;
-        msg.network_time    = 0;
+        msg.net_time        = net_time;
         msg.uptime          = master_uptime;
 
         // set up broadcast address

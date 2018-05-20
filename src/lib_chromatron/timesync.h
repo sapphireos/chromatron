@@ -52,7 +52,7 @@ typedef struct{
     uint32_t magic;
     uint8_t version;
     uint8_t type;
-    uint32_t network_time;
+    uint32_t net_time;
     uint64_t uptime;
 } time_msg_sync_t;
 #define TIME_MSG_SYNC           1
@@ -92,10 +92,10 @@ typedef struct{
 //     // register data starts here
 // } time_msg_frame_sync_t;
 // #define TIME_MSG_FRAME_SYNC     2
+// void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
 
 void time_v_init( void );
-// void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
-// uint32_t time_u32_get_network_time( void );
+uint32_t time_u32_get_network_time( void );
 
 #endif
 #endif
