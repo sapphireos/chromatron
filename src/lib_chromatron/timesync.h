@@ -71,6 +71,7 @@ typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
+    ip_addr_t sender_ip;
 } time_msg_ping_reply_t;
 #define TIME_MSG_PING_REPLY      3
 
