@@ -355,8 +355,6 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint8_t tries;
-
 	while(1){
 
         // wait if IP is not configured
@@ -376,7 +374,7 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, 1000 );
 
             // that's too bad, we'll have to skip this cycle and try again later
-            THREAD_RESTART( pt );
+            goto retry;
         }
 
 
@@ -387,62 +385,55 @@ PT_BEGIN( pt );
         if( sock < 0 ){
 
             // that's too bad, we'll have to skip this cycle and try again later
-            THREAD_RESTART( pt );
+            goto retry;
+        }
+            
+        // build sntp packet
+        ntp_packet_t pkt;
+
+        // initialize to all 0s
+        memset( &pkt, 0, sizeof(pkt) );
+
+        // set version to 4 and mode to client
+        pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT;
+
+        // get our current network time with the maximum available precision
+        ntp_ts_t transmit_ts = sntp_t_now();
+
+        // set transmit timestamp (converting from little endian to big endian)
+        pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
+        pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
+
+        // send packet
+        // if packet transmission fails, we'll try again on the next polling cycle
+        if( sock_i16_sendto( sock, &pkt, sizeof(pkt), &ntp_server_addr ) < 0 ){
+
+            goto retry;
         }
 
-        tries = SNTP_TRIES;
+        log_v_debug_P( PSTR("SNTP sync sent: %d.%d.%d.%d"), 
+            ntp_server_addr.ipaddr.ip3,
+            ntp_server_addr.ipaddr.ip2,
+            ntp_server_addr.ipaddr.ip1,
+            ntp_server_addr.ipaddr.ip0 );
 
-        while( tries > 0 ){
+        // set timeout
+        sock_v_set_timeout( sock, SNTP_TIMEOUT );
 
-            // build sntp packet
-            ntp_packet_t pkt;
+        // wait for packet
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-            // initialize to all 0s
-            memset( &pkt, 0, sizeof(pkt) );
+        // check for timeout (no data received)
+        if( sock_i16_get_bytes_read( sock ) >= 0 ){
 
-            // set version to 4 and mode to client
-            pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT;
-
-            // get our current network time with the maximum available precision
-            ntp_ts_t transmit_ts = sntp_t_now();
-
-            // set transmit timestamp (converting from little endian to big endian)
-            pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
-            pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
-
-            // send packet
-            // if packet transmission fails, we'll try again on the next polling cycle
-            if( sock_i16_sendto( sock, &pkt, sizeof(pkt), &ntp_server_addr ) < 0 ){
-
-                goto clean_up;
-            }
-
-            log_v_debug_P( PSTR("SNTP sync sent") );
-
-            // set timeout
-            sock_v_set_timeout( sock, SNTP_TIMEOUT );
-
-            // wait for packet
-            THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-            // check for timeout (no data received)
-            if( sock_i16_get_bytes_read( sock ) >= 0 ){
-
-                break;
-            }
-            else{
-
-                log_v_debug_P( PSTR("SNTP sync timed out") );
-
-                tries--;
-
-                if( tries == 0 ){
-
-                    goto clean_up;
-                }
-            }
+            break;
         }
+        else{
 
+            log_v_debug_P( PSTR("SNTP sync timed out") );
+
+            goto retry;
+        }
 
         log_v_debug_P( PSTR("SNTP sync received") );
 
@@ -465,8 +456,22 @@ PT_BEGIN( pt );
         log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str, last_offset, last_delay );
 
 
+        goto clean_up;
+
+retry:  
+        if( sock > 0 ){
+            sock_v_release( sock );
+        }
+        sock = -1;
+
+        TMR_WAIT( pt, 8000 );
+
+        continue;
+
 clean_up:
-        sock_v_release( sock );
+        if( sock > 0 ){
+            sock_v_release( sock );
+        }
         sock = -1;
 
         uint16_t sync_interval;

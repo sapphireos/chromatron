@@ -34,7 +34,7 @@
 
 #include "dns.h"
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "logging.h"
 
 typedef struct{
