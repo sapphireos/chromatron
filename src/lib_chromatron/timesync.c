@@ -438,9 +438,12 @@ PT_BEGIN( pt );
         // socket timeout
         else{
 
-            log_v_debug_P( PSTR("timed out, resetting state") );
+            if( sync_state != STATE_MASTER ){
+                
+                log_v_debug_P( PSTR("timed out, resetting state") );
 
-            sync_state = STATE_WAIT;
+                sync_state = STATE_WAIT;
+            }
         }
     }
 
