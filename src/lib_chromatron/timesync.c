@@ -42,6 +42,8 @@
 // #define SYNC_PER    31250
 // #define TICKS_PER_MS ( 31250 / 1000 )
 
+#include "pixel.h"
+
 #define STROBE PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
             _delay_us(10); \
             PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
@@ -49,12 +51,12 @@
 // static int16_t clock_offset;
 
 
-// ISR(GFX_TIMER_CCC_vect){
+ISR(GFX_TIMER_CCC_vect){
 
-//     GFX_TIMER.CCC += PARAMS_TIMER_RATE;
-
-//     run_flags |= FLAG_RUN_PARAMS;
-// }
+    STROBE;   
+ 
+    GFX_TIMER.CCC += 31250;
+}
 
 
 
@@ -156,27 +158,30 @@ static uint8_t sync_state;
 #define RTT_FILTER              32
 static uint32_t rtt_start;
 static uint16_t rtt;
+static uint8_t rtt_init;
 
 
-// KV_SECTION_META kv_meta_t time_info_kv[] = {
-//     { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
-//     { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+KV_SECTION_META kv_meta_t time_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
+    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
 
-//     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0,                 timesync_i8_kv_handler, "gfx_sync_group" },
-// };
+    // { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0,                 0, "gfx_sync_group" },
+};
 
 
 void time_v_init( void ){
 
     // return;
 
-    // PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
-    // PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
-    // PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
+    PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
+    PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
+    PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
 
     // SYNC_TIMER.INTCTRLA |= TC_OVFINTLVL_HI_gc;
     // SYNC_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
     // SYNC_TIMER.PER = SYNC_PER;
+
+    GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -338,6 +343,7 @@ PT_BEGIN( pt );
                     master_ip = raddr.ipaddr;
                     master_uptime = msg->uptime;
                     rtt = 0;
+                    rtt_init = 0;
                     local_time = tmr_u32_get_system_time_ms();
                     net_time = msg->net_time;
 
@@ -358,6 +364,7 @@ PT_BEGIN( pt );
                         master_ip = raddr.ipaddr;
                         master_uptime = msg->uptime;
                         rtt = 0;
+                        rtt_init = 0;
                         local_time = tmr_u32_get_system_time_ms();
                         net_time = msg->net_time;
 
@@ -372,19 +379,35 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    uint32_t prev_local = local_time;
+                    uint32_t est_net_time = time_u32_get_network_time();
+
+                    // uint32_t prev_local = local_time;
                     local_time = tmr_u32_get_system_time_ms();
 
-                    int32_t local_diff = tmr_u32_elapsed_times( prev_local, local_time );
+                    // int32_t local_diff = tmr_u32_elapsed_times( prev_local, local_time );
                     
-                    // uint32_t prev_net = net_time;
-                    uint32_t est_net_time = time_u32_get_network_time();
-                    net_time = msg->net_time + ( rtt / 2 );
+                    // net_time = msg->net_time + ( rtt / 2 );
+                    net_time = msg->net_time;
 
+                    // log_v_debug_P( PSTR("est net: %lu msg net: %lu new new: %lu"), est_net_time, msg->net_time, net_time );
 
                     int32_t net_diff = tmr_u32_elapsed_times( est_net_time, net_time );
                     
-                    log_v_debug_P( PSTR("net time: %lu rtt: %u diffs: local: %ld net: %ld"), net_time, rtt, local_diff, net_diff );
+                    log_v_debug_P( PSTR("net time: %lu rtt: %u diff net: %ld"), net_time, rtt, net_diff );
+
+                    
+
+                    // sync timer
+                    ATOMIC;
+
+                    est_net_time = time_u32_get_network_time();
+                    uint32_t timer_target = ( ( 1000 - ( est_net_time % 1000 ) ) * 31250 ) / 1000;
+
+                    GFX_TIMER.CCC = GFX_TIMER.CNT + timer_target;
+
+                    END_ATOMIC;
+
+                    // log_v_debug_P( PSTR("timer_target %lu"), timer_target );
                 }
             }
             else if( *type == TIME_MSG_PING ){
@@ -406,16 +429,23 @@ PT_BEGIN( pt );
                 if( elapsed < 500 ){
 
                     // check if we need to initialize RTT
-                    if( rtt == 0 ){
+                    if( rtt_init == 0 ){
 
-                        rtt = elapsed;
+                        // this throws away the first sample.
+                        // this is because it will have larger delay due to ARP look up.
+                        rtt_init = 1;
+                    }
+                    else if( rtt_init == 1 ){
+
+                        rtt = elapsed; // init filter
+                        rtt_init = 2;
                     }
                     else{
 
                         rtt = util_u16_ewma( elapsed, rtt, RTT_FILTER );
                     }
 
-                    // log_v_debug_P( PSTR("got reply: RTT: %u"), rtt );
+                    log_v_debug_P( PSTR("got reply: RTT: %u"), elapsed );
                 }
                 else{
 
@@ -439,7 +469,7 @@ PT_BEGIN( pt );
         else{
 
             if( sync_state != STATE_MASTER ){
-                
+
                 log_v_debug_P( PSTR("timed out, resetting state") );
 
                 sync_state = STATE_WAIT;
@@ -579,6 +609,7 @@ static void send_not_master( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 }
 
+
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -597,10 +628,10 @@ PT_BEGIN( pt );
 
     //     sock_i16_sendto( sock, buf, sizeof(buf), &raddr );
     // }
-
+    
+    master_ip = ip_a_addr(0,0,0,0);
 
     THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
-
 
     // random delay, see if other masters show up
     if( sync_state == STATE_WAIT ){
@@ -649,6 +680,11 @@ PT_BEGIN( pt );
         master_uptime += TIME_SYNC_RATE;
 
 
+        // set up broadcast address
+        sock_addr_t raddr;
+        raddr.port = TIME_SERVER_PORT;
+        raddr.ipaddr = ip_a_addr(255,255,255,255);
+
         net_time = tmr_u32_get_system_time_ms();
         local_time = net_time;
 
@@ -658,11 +694,6 @@ PT_BEGIN( pt );
         msg.type            = TIME_MSG_SYNC;
         msg.net_time        = net_time;
         msg.uptime          = master_uptime;
-
-        // set up broadcast address
-        sock_addr_t raddr;
-        raddr.port = TIME_SERVER_PORT;
-        raddr.ipaddr = ip_a_addr(255,255,255,255);
 
         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 
