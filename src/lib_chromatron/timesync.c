@@ -31,9 +31,6 @@
 
 
 
-static int16_t clock_offset;
-
-
 
 #include "pixel.h"
 
@@ -65,7 +62,8 @@ static uint32_t net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
-
+static int16_t clock_offset;
+static int16_t clock_adjustment;
 
 static uint8_t sync_state;
 #define STATE_WAIT              0
@@ -139,11 +137,27 @@ PT_BEGIN( pt );
         // first, adjust the network timer.  this just does the fine adjustment.
         // the coarse adjustment is done by the time server when the sync message comes in. 
 
-        int16_t adjustment = clock_offset;
+        int16_t adjustment = clock_adjustment;
 
-        if( adjustment > 5 ){
+        if( adjustment > 40 ){
+
+            adjustment = 20;
+        }
+        else if( adjustment > 20 ){
+
+            adjustment = 10;
+        }
+        else if( adjustment > 5 ){
 
             adjustment = 5;
+        }
+        else if( adjustment < -40 ){
+
+            adjustment = -20;
+        }
+        else if( adjustment < -20 ){
+
+            adjustment = -10;
         }
         else if( adjustment < -5 ){
 
@@ -152,7 +166,7 @@ PT_BEGIN( pt );
 
         net_time -= adjustment;
 
-        clock_offset -= adjustment;
+        clock_adjustment -= adjustment;
 
 
         // now adjust the real time clock
@@ -186,7 +200,7 @@ PT_BEGIN( pt );
         uint16_t correct_next_cc = base_rate - current_net_time_ticks;
 
         int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
-        
+
         /*
     
         Clock adjustment.
@@ -204,21 +218,35 @@ PT_BEGIN( pt );
         }
         else{
             // fine adjustment
-            if( timer_error > 10 ){
+            if( timer_error > 200 ){
 
-                timer_rate = base_rate - 100;
+                timer_rate = base_rate - 300;
+            }
+            else if( timer_error > 100 ){
+
+                timer_rate = base_rate - 200;
+            }
+            else if( timer_error > 10 ){
+
+                timer_rate = base_rate - 20;
+            }
+            else if( timer_error < -200 ){
+
+                timer_rate = base_rate + 300;
+            }
+            else if( timer_error < -100 ){
+
+                timer_rate = base_rate + 200;
             }
             else if( timer_error < -10 ){
 
-                timer_rate = base_rate + 100;
+                timer_rate = base_rate + 20;
             }
         }
 
         END_ATOMIC;
 
-        // log_v_debug_P( PSTR("timer err: %d net offset: %u ticks: %u cc actual: %u correct: %u"),
-        //     timer_error, current_net_time_offset, current_net_time_ticks, actual_next_cc, correct_next_cc );
-        log_v_debug_P( PSTR("timer err: %d"), timer_error );
+        log_v_debug_P( PSTR("tmr err: %d adj: %d -> %d"), timer_error, adjustment, clock_adjustment );
 
     }
 
@@ -363,24 +391,9 @@ PT_BEGIN( pt );
                 }
 
                 clock_offset = net_diff;
-                
+                clock_adjustment = clock_offset;
+
                 log_v_debug_P( PSTR("rtt: %lu offset %d"), elapsed, clock_offset );
-                
-
-                // // sync timer
-                // ATOMIC;
-
-                // est_net_time = time_u32_get_network_time();
-                // uint32_t timer_target = ( ( 1000 - ( est_net_time % 1000 ) ) * 31250 ) / 1000;
-
-                // if( timer_target < 10000 ){
-
-                //     timer_target += 31250;
-                // }
-
-                // GFX_TIMER.CCC = GFX_TIMER.CNT + timer_target;
-
-                // END_ATOMIC;
             }
         }
         // socket timeout
