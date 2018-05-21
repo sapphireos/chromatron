@@ -39,8 +39,9 @@
             PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
 
 #define TICKS_PER_SECOND    31250
-static uint16_t base_rate = TICKS_PER_SECOND;
-static volatile uint16_t timer_rate = TICKS_PER_SECOND;
+
+static uint16_t base_rate = TICKS_PER_SECOND / 4;
+static volatile uint16_t timer_rate;
 
 ISR(GFX_TIMER_CCC_vect){
 
@@ -81,6 +82,8 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
 
 
 void time_v_init( void ){
+
+    timer_rate = base_rate;
 
     PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
     PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
@@ -141,27 +144,27 @@ PT_BEGIN( pt );
 
         if( adjustment > 40 ){
 
-            adjustment = 20;
+            adjustment = 10;
         }
         else if( adjustment > 20 ){
 
-            adjustment = 10;
+            adjustment = 5;
         }
         else if( adjustment > 5 ){
 
-            adjustment = 5;
+            adjustment = 1;
         }
         else if( adjustment < -40 ){
 
-            adjustment = -20;
+            adjustment = -10;
         }
         else if( adjustment < -20 ){
 
-            adjustment = -10;
+            adjustment = -5;
         }
         else if( adjustment < -5 ){
 
-            adjustment = -5;
+            adjustment = -1;
         }
 
         net_time -= adjustment;
@@ -184,8 +187,8 @@ PT_BEGIN( pt );
         uint16_t timer_cc = GFX_TIMER.CCC;
         uint32_t current_net_time = time_u32_get_network_time();
 
-        uint16_t current_net_time_offset = current_net_time % 1000;
-        uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * base_rate ) / 1000;
+        uint16_t current_net_time_offset = current_net_time % ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND );
+        uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * TICKS_PER_SECOND ) / 1000;
 
         uint16_t actual_next_cc;
         if( timer_cc > timer_cnt ){
@@ -211,6 +214,8 @@ PT_BEGIN( pt );
 
         */
 
+        int16_t timer_adjust = 0;
+
         if( abs16( timer_error ) > 2000 ){
 
             // course adjustment
@@ -220,33 +225,43 @@ PT_BEGIN( pt );
             // fine adjustment
             if( timer_error > 200 ){
 
-                timer_rate = base_rate - 300;
+                timer_adjust = -100;
             }
             else if( timer_error > 100 ){
 
-                timer_rate = base_rate - 200;
+                timer_adjust = -30;
             }
             else if( timer_error > 10 ){
 
-                timer_rate = base_rate - 20;
+                timer_adjust = -5;
             }
             else if( timer_error < -200 ){
 
-                timer_rate = base_rate + 300;
+                timer_adjust = 100;
             }
             else if( timer_error < -100 ){
 
-                timer_rate = base_rate + 200;
+                timer_adjust = 30;
             }
             else if( timer_error < -10 ){
 
-                timer_rate = base_rate + 20;
+                timer_adjust = 5;
             }
+            else{
+
+                timer_adjust = 0;                
+            }
+
+            timer_rate = base_rate + timer_adjust;
         }
 
         END_ATOMIC;
 
-        log_v_debug_P( PSTR("tmr err: %d adj: %d -> %d"), timer_error, adjustment, clock_adjustment );
+        // log_v_debug_P( PSTR("tmr err: %d adj: %d"), timer_error, timer_adjust );
+
+        // log_v_debug_P( PSTR("tmr err: %d adj: %d -> %d"), timer_error, adjustment, clock_adjustment );
+        log_v_debug_P( PSTR("net: %lu offset: %u ticks: %u cc correct: %u actual: %u"), 
+            current_net_time, current_net_time_offset, current_net_time_ticks, correct_next_cc, actual_next_cc );
 
     }
 
@@ -502,8 +517,6 @@ PT_BEGIN( pt );
 
     while( sync_state == STATE_MASTER ){
 
-        TMR_WAIT( pt, TIME_MASTER_SYNC_RATE * 1000 );
-
         // check state
         if( sync_state != STATE_MASTER ){
 
@@ -518,6 +531,8 @@ PT_BEGIN( pt );
         master_uptime += TIME_MASTER_SYNC_RATE;
 
         send_master();
+
+        TMR_WAIT( pt, TIME_MASTER_SYNC_RATE * 1000 );
     }
 
     while( sync_state == STATE_SLAVE ){
