@@ -67,6 +67,7 @@ static volatile uint8_t run_flags;
 
 static uint16_t vm_timer_rate; 
 
+static uint16_t frame_number;
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -803,6 +804,8 @@ PT_BEGIN( pt );
             send_read_keys();
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            
+            frame_number++;
             send_run_vm_cmd();
             // #endif
         }
