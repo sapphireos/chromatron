@@ -66,7 +66,8 @@ static uint32_t net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
-static int16_t clock_offset;
+static int16_t filtered_offset;
+#define OFFSET_FILTER           32
 static int16_t clock_adjustment;
 
 static uint8_t sync_state;
@@ -80,6 +81,10 @@ static uint8_t drift_init;
 static int16_t filtered_drift;
 
 static uint32_t rtt_start;
+static uint16_t filtered_rtt;
+#define RTT_FILTER              32
+#define RTT_QUALITY_LIMIT       10
+#define RTT_RELAX               4
 
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {
@@ -331,6 +336,7 @@ PT_BEGIN( pt );
                     master_uptime = msg->uptime;
                     filtered_drift = 0;
                     drift_init = 0;
+                    filtered_rtt = 0;
 
                     sync_state = STATE_SLAVE;
 
@@ -352,6 +358,7 @@ PT_BEGIN( pt );
                         master_uptime = msg->uptime;
                         filtered_drift = 0;
                         drift_init = 0;
+                        filtered_rtt = 0;
                     
                         sync_state = STATE_SLAVE;
 
@@ -393,15 +400,17 @@ PT_BEGIN( pt );
                 msg.flags           = 0;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+
+                // STROBE;
             }
             else if( *type == TIME_MSG_SYNC ){
+
+                // STROBE;
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
                 uint32_t now = tmr_u32_get_system_time_ms();
                 uint32_t est_net_time = time_u32_get_network_time();
-                int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
-                
 
                 int32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
                 if( elapsed_rtt > 500 ){
@@ -411,42 +420,60 @@ PT_BEGIN( pt );
 
                     continue;
                 }
+                // check quality of RTT sample
+                else if( ( filtered_rtt > 0 ) && 
+                         ( elapsed_rtt > ( filtered_rtt + RTT_QUALITY_LIMIT ) ) ){
 
+                    log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
+
+
+                    // although we are not using this sync message for our clock,
+                    // we will bump the filtered RTT up a bit in case the overall RTT is
+                    // drifting upwards.  this prevents us from losing sync on a busy network.
+                    // also - only do this if RTT has been initiatized.
+                    if( filtered_rtt > 0 ){
+                        
+                        filtered_rtt += RTT_RELAX;
+                    }
+
+                    continue;
+                }
+
+                int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
                 local_time = now;
 
                 // adjust network timestamp from server with RTT measurement
                 uint32_t adjusted_net_time = msg->net_time + ( elapsed_rtt / 2 );
 
-                // int32_t elapsed_remote_net = tmr_u32_elapsed_times( last_net_time, msg->net_time );
                 int32_t elapsed_remote_net = tmr_u32_elapsed_times( last_net_time, adjusted_net_time );
-                // last_net_time = msg->net_time;
                 last_net_time = adjusted_net_time;
 
                 // compute drift
                 int32_t clock_diff = elapsed_local - elapsed_remote_net;
                 int16_t drift = ( clock_diff * 65536 ) / elapsed_remote_net;
 
-                if( drift_init < 2 ){
+                if( drift_init < 1 ){
 
                     drift_init++;
                 }
-                else if( drift_init == 2 ){
+                else if( drift_init == 1 ){
 
                     drift_init++;
                     filtered_drift = drift;
+                    filtered_rtt = elapsed_rtt;
                 }
                 else{
 
                     filtered_drift = util_i16_ewma( drift, filtered_drift, DRIFT_FILTER );
+                    filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
                 }
 
+                // compute offset between actual network time and what our internal estimate was
+                int16_t clock_offset = (int64_t)est_net_time - (int64_t)adjusted_net_time;
 
-                int32_t net_offset = (int64_t)est_net_time - (int64_t)adjusted_net_time;
-
-                clock_offset = net_offset;
 
                 // how bad is our offset?
-                if( abs32( net_offset ) > 500 ){
+                if( abs16( clock_offset ) > 500 ){
                     // worse than 0.5 seconds, do a hard jump
 
                     net_time = adjusted_net_time;
@@ -455,19 +482,32 @@ PT_BEGIN( pt );
                     drift = 0;
                     drift_init = 0;
                     filtered_drift = 0;
+
+                    filtered_rtt = 0;
                 
-                    log_v_debug_P( PSTR("hard jump: %ld est net: %ld adj: %ld"), net_offset, est_net_time, adjusted_net_time );
+                    log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
+
+                    filtered_offset = 0;
                 }
                 else{
 
                     net_time += elapsed_remote_net;
+
+                    if( filtered_offset == 0 ){
+
+                        filtered_offset = clock_offset;
+                    }
+                    else{
+
+                        filtered_offset = util_i16_ewma( clock_offset, filtered_offset, OFFSET_FILTER );
+                    }
                 }
+
 
         //         // clock_adjustment = clock_offset;
 
-
-                log_v_debug_P( PSTR("rtt: %lu offset %d elapsed: local %ld net: %ld drift: %d"), 
-                    elapsed_rtt, clock_offset, elapsed_local, elapsed_remote_net, filtered_drift );
+                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d filt: %d drift: %d"), 
+                    elapsed_rtt, filtered_rtt, clock_offset, filtered_offset, filtered_drift );
             }
         }
         // socket timeout
@@ -613,6 +653,7 @@ PT_BEGIN( pt );
         rtt_start = tmr_u32_get_system_time_ms();
 
         request_sync();
+        // STROBE;
     }
 
     // restart if we get here
