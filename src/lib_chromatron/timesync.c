@@ -31,7 +31,7 @@
 
 
 
-static volatile int16_t clock_offset;
+static int16_t clock_offset;
 
 
 
@@ -41,23 +41,15 @@ static volatile int16_t clock_offset;
             _delay_us(10); \
             PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
 
+#define TICKS_PER_SECOND    31250
+static uint16_t base_rate = TICKS_PER_SECOND;
+static volatile uint16_t timer_rate = TICKS_PER_SECOND;
 
 ISR(GFX_TIMER_CCC_vect){
 
-    STROBE;   
-    
-    if( clock_offset > 5 ){
+    STROBE;
 
-        GFX_TIMER.CCC += 31250 + 250;
-    }
-    else if( clock_offset < -5 ){
-
-        GFX_TIMER.CCC += 31250 - 250;
-    }
-    else{
-
-        GFX_TIMER.CCC += 31250;
-    }
+    GFX_TIMER.CCC += timer_rate;
 }
 
 
@@ -158,9 +150,54 @@ PT_BEGIN( pt );
 
         net_time -= adjustment;
 
-        ATOMIC;
         clock_offset -= adjustment;
+
+        ATOMIC;
+
+        uint16_t timer_cnt = GFX_TIMER.CNT;
+        uint16_t timer_cc = GFX_TIMER.CCC;
+        uint32_t current_net_time = time_u32_get_network_time();
+
+        uint16_t current_net_time_offset = current_net_time % 1000;
+        uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * base_rate ) / 1000;
+
+        uint16_t actual_next_cc;
+        if( timer_cc > timer_cnt ){
+
+            actual_next_cc = timer_cc - timer_cnt;
+        }
+        else{
+
+            actual_next_cc = timer_cc + ( 65535 - timer_cnt );
+        }
+
+        uint16_t correct_next_cc = base_rate - current_net_time_ticks;
+
+        int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
+        
+        if( abs16( timer_error ) > 2000 ){
+
+            // course adjustment
+            GFX_TIMER.CCC -= timer_error;
+        }
+        else{
+            // fine adjustment
+            if( timer_error > 10 ){
+
+                timer_rate = base_rate - 100;
+            }
+            else if( timer_error < -10 ){
+
+                timer_rate = base_rate + 100;
+            }
+        }
+
         END_ATOMIC;
+
+        // log_v_debug_P( PSTR("timer err: %d net offset: %u ticks: %u cc actual: %u correct: %u"),
+        //     timer_error, current_net_time_offset, current_net_time_ticks, actual_next_cc, correct_next_cc );
+        log_v_debug_P( PSTR("timer err: %d"), timer_error );
+
     }
 
 PT_END( pt );
