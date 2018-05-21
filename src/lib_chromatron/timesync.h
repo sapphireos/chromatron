@@ -40,6 +40,7 @@
 
 #define TIME_MASTER_SYNC_RATE           4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
+#define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds
 
 // Timer
 #define TIMESYNC_TIMER                 GFX_TIMER

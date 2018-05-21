@@ -465,6 +465,11 @@ PT_BEGIN( pt );
 
                     filtered_drift = util_i16_ewma( drift, filtered_drift, DRIFT_FILTER );
                     filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
+
+                    if( drift_init < 255 ){
+
+                        drift_init++;
+                    }
                 }
 
                 // compute offset between actual network time and what our internal estimate was
@@ -634,7 +639,18 @@ PT_BEGIN( pt );
     while( sync_state == STATE_SLAVE ){
 
         // random delay
-        TMR_WAIT( pt, ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 ) );
+        uint16_t delay;
+
+        if( drift_init > 16 ){
+
+            delay = ( TIME_SLAVE_SYNC_RATE_MAX * 1000 ) + ( rnd_u16_get_int() >> 3 );
+        }
+        else{
+
+            delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+        }
+
+        TMR_WAIT( pt, delay );
 
         // check state
         if( sync_state != STATE_SLAVE ){
