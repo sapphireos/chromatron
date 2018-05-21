@@ -47,7 +47,29 @@
 #define TIMESYNC_TIMER_CC_VECT         GFX_TIMER_CCC_vect
 #define TIMESYNC_TIMER_CC_INTLVL       TC_CCCINTLVL_HI_gc
 
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+    uint8_t flags;
+    uint32_t net_time;
+    uint64_t uptime;
+} time_msg_master_t;
+#define TIME_MSG_MASTER             1
 
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_not_master_t;
+#define TIME_MSG_NOT_MASTER         2
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_request_sync_t;
+#define TIME_MSG_REQUEST_SYNC       3
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -58,45 +80,43 @@ typedef struct __attribute__((packed)){
     uint64_t uptime;
     ntp_ts_t ntp_time;
 } time_msg_sync_t;
-#define TIME_MSG_SYNC           1
+#define TIME_MSG_SYNC               4
 
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-} time_msg_ping_t;
-#define TIME_MSG_PING           2
 
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    ip_addr_t sender_ip;
-} time_msg_ping_reply_t;
-#define TIME_MSG_PING_REPLY      3
-
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-} time_msg_not_master_t;
-#define TIME_MSG_NOT_MASTER      4
-
-// typedef struct{
+// typedef struct __attribute__((packed)){
 //     uint32_t magic;
 //     uint8_t version;
 //     uint8_t type;
-//     uint32_t sync_group;
-//     uint32_t network_time;
-//     uint16_t frame_number;
-//     uint64_t rng_seed;
-//     uint32_t reserved;
-//     uint16_t data_index;
-//     uint16_t data_count;
-//     // register data starts here
-// } time_msg_frame_sync_t;
-// #define TIME_MSG_FRAME_SYNC     2
-// void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
+//     uint8_t flags;
+//     uint32_t net_time;
+//     uint64_t uptime;
+//     ntp_ts_t ntp_time;
+// } time_msg_sync_t;
+// #define TIME_MSG_SYNC           1
+
+// typedef struct __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+// } time_msg_ping_t;
+// #define TIME_MSG_PING           2
+
+// typedef struct __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+//     ip_addr_t sender_ip;
+// } time_msg_ping_reply_t;
+// #define TIME_MSG_PING_REPLY      3
+
+// typedef struct __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+// } time_msg_not_master_t;
+// #define TIME_MSG_NOT_MASTER      4
+
+
 
 void time_v_init( void );
 uint32_t time_u32_get_network_time( void );
