@@ -1655,6 +1655,8 @@ int8_t vm_i8_load_program(
 
         return VM_STATUS_HEADER_MISALIGN;
     }
+    
+    state->program_name_hash = prog_header->program_name_hash;    
 
     state->init_start = prog_header->init_start;
     state->loop_start = prog_header->loop_start;

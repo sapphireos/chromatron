@@ -121,6 +121,7 @@ typedef struct __attribute__((packed)){
     uint32_t file_magic;
     uint32_t prog_magic;
     uint16_t isa_version;
+    uint32_t program_name_hash;
     uint16_t code_len;
     uint16_t data_len;
     uint16_t read_keys_len;     // length in BYTES, not number of objects!
@@ -159,6 +160,8 @@ typedef struct{
     uint16_t init_start;
     uint16_t loop_start;
     uint16_t frame_number;
+
+    uint32_t program_name_hash;
 
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
