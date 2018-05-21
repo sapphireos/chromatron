@@ -260,12 +260,9 @@ PT_BEGIN( pt );
 
                 // STROBE;
 
-                // log_v_debug_P( PSTR("est net: %lu msg net: %lu new new: %lu"), est_net_time, msg->net_time, net_time );
-
                 int32_t net_diff = tmr_u32_elapsed_times( est_net_time, net_time );
                 
                 log_v_debug_P( PSTR("net time: %lu rtt: %lu diff net: %ld"), net_time, elapsed, net_diff );
-
                 
 
                 // sync timer
@@ -283,215 +280,6 @@ PT_BEGIN( pt );
 
                 END_ATOMIC;
             }
-
-
-            // if( *type == TIME_MSG_SYNC ){
-
-            //     time_msg_sync_t *msg = (time_msg_sync_t *)magic;
-
-            //     if( sync_state == STATE_WAIT ){
-
-            //         // select master
-            //         master_ip = raddr.ipaddr;
-            //         master_uptime = msg->uptime;
-            //         rtt = 0;
-            //         rtt_init = 0;
-            //         local_time = tmr_u32_get_system_time_ms();
-            //         net_time = msg->net_time;
-
-            //         sync_state = STATE_SLAVE;
-
-            //         log_v_debug_P( PSTR("assigning master: %d.%d.%d.%d"), 
-            //             master_ip.ip3, 
-            //             master_ip.ip2, 
-            //             master_ip.ip1, 
-            //             master_ip.ip0 );                    
-            //     }
-            //     else if( sync_state == STATE_MASTER ){
-
-            //         log_v_debug_P( PSTR("rx sync while master") );
-
-            //         // check if this master is better
-            //         if( msg->uptime > master_uptime ){
-
-            //             // select master
-            //             master_ip = raddr.ipaddr;
-            //             master_uptime = msg->uptime;
-            //             rtt = 0;
-            //             rtt_init = 0;
-            //             local_time = tmr_u32_get_system_time_ms();
-            //             net_time = msg->net_time;
-
-            //             sync_state = STATE_SLAVE;
-
-            //             log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
-            //                 master_ip.ip3, 
-            //                 master_ip.ip2, 
-            //                 master_ip.ip1, 
-            //                 master_ip.ip0 );                    
-            //         }
-            //     }
-            //     else{
-            //         if( msg->flags == 0 ){
-
-            //             continue;
-            //         }
-
-            //         uint32_t elapsed = tmr_u32_elapsed_time_ms( rtt_start );
-
-            //         if( elapsed < 500 ){
-
-            //             // check if we need to initialize RTT
-            //             if( rtt_init == 0 ){
-
-            //                 // this throws away the first sample.
-            //                 // this is because it will have larger delay due to ARP look up.
-            //                 rtt_init = 1;
-            //             }
-            //             else if( rtt_init == 1 ){
-
-            //                 rtt = elapsed; // init filter
-            //                 rtt_init = 2;
-            //             }
-            //             else{
-
-            //                 // rtt = util_u16_ewma( elapsed, rtt, RTT_FILTER );
-            //                 rtt = elapsed;
-            //             }
-
-            //             // log_v_debug_P( PSTR("got reply: RTT: %u"), elapsed );
-            //         }
-            //         else{
-
-            //             // a 0.5 second RTT is clearly ridiculous.
-            //             log_v_debug_P( PSTR("bad: RTT: %u"), elapsed );
-            //         }   
-
-
-            //         uint32_t est_net_time = time_u32_get_network_time();
-
-            //         // uint32_t prev_local = local_time;
-            //         local_time = tmr_u32_get_system_time_ms();
-
-            //         // int32_t local_diff = tmr_u32_elapsed_times( prev_local, local_time );
-                    
-            //         net_time = msg->net_time + ( rtt / 2 );
-            //         // net_time = msg->net_time;
-
-            //         // STROBE;
-
-            //         // log_v_debug_P( PSTR("est net: %lu msg net: %lu new new: %lu"), est_net_time, msg->net_time, net_time );
-
-            //         int32_t net_diff = tmr_u32_elapsed_times( est_net_time, net_time );
-                    
-            //         log_v_debug_P( PSTR("net time: %lu rtt: %u diff net: %ld"), net_time, rtt, net_diff );
-
-                    
-
-            //         // sync timer
-            //         ATOMIC;
-
-            //         est_net_time = time_u32_get_network_time();
-            //         uint32_t timer_target = ( ( 1000 - ( est_net_time % 1000 ) ) * 31250 ) / 1000;
-
-            //         if( timer_target < 10000 ){
-
-            //             timer_target += 31250;
-            //         }
-
-            //         GFX_TIMER.CCC = GFX_TIMER.CNT + timer_target;
-
-            //         END_ATOMIC;
-
-            //         // log_v_debug_P( PSTR("timer_target %lu"), timer_target );
-            //     }
-            // }
-            // else if( *type == TIME_MSG_PING ){
-
-            //     if( sync_state == STATE_MASTER ){
-            //         net_time = tmr_u32_get_system_time_ms();
-            //         local_time = net_time;
-
-            //         time_msg_sync_t msg;
-            //         msg.magic           = TIME_PROTOCOL_MAGIC;
-            //         msg.version         = TIME_PROTOCOL_VERSION;
-            //         msg.type            = TIME_MSG_SYNC;
-            //         msg.net_time        = net_time;
-            //         msg.uptime          = master_uptime;
-            //         msg.flags           = 1;
-
-            //         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );   
-
-            //         // // build reply message
-            //         // time_msg_ping_reply_t msg;
-            //         // msg.magic           = TIME_PROTOCOL_MAGIC;
-            //         // msg.version         = TIME_PROTOCOL_VERSION;
-            //         // msg.type            = TIME_MSG_PING_REPLY;
-            //         // msg.sender_ip       = raddr.ipaddr;
-
-
-            //         // STROBE;
-            //         // // raddr.ipaddr = ip_a_addr(255,255,255,255);
-
-            //         // sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
-
-            //         // log_v_debug_P( PSTR("responding to ping") );
-            //     }
-            // }
-            // else if( *type == TIME_MSG_PING_REPLY ){
-
-            //     // check reply IP
-            //     time_msg_ping_reply_t *msg = (time_msg_ping_reply_t *)magic;
-
-            //     // STROBE;
-
-            //     ip_addr_t local_ip;
-            //     cfg_i8_get( CFG_PARAM_IP_ADDRESS, &local_ip );
-
-            //     if( ip_b_addr_compare( msg->sender_ip, local_ip ) ){
-
-            //         uint32_t elapsed = tmr_u32_elapsed_time_ms( rtt_start );
-
-            //         if( elapsed < 500 ){
-
-            //             // check if we need to initialize RTT
-            //             if( rtt_init == 0 ){
-
-            //                 // this throws away the first sample.
-            //                 // this is because it will have larger delay due to ARP look up.
-            //                 rtt_init = 1;
-            //             }
-            //             else if( rtt_init == 1 ){
-
-            //                 rtt = elapsed; // init filter
-            //                 rtt_init = 2;
-            //             }
-            //             else{
-
-            //                 rtt = util_u16_ewma( elapsed, rtt, RTT_FILTER );
-            //             }
-
-            //             log_v_debug_P( PSTR("got reply: RTT: %u"), elapsed );
-            //         }
-            //         else{
-
-            //             // a 0.5 second RTT is clearly ridiculous.
-            //             log_v_debug_P( PSTR("bad: RTT: %u"), elapsed );
-            //         }   
-
-            //     }
-            // }
-            // else if( *type == TIME_MSG_NOT_MASTER ){
-
-            //     // check if that was master.
-            //     if( ip_b_addr_compare( raddr.ipaddr, master_ip ) ){
-
-            //         // ruh roh.  master rebooted or something.
-            //         sync_state = STATE_WAIT;
-
-            //         log_v_debug_P( PSTR("lost master, resetting state") );
-            //     }
-            // }
         }
         // socket timeout
         else{
@@ -599,7 +387,7 @@ PT_BEGIN( pt );
 
     while( sync_state == STATE_MASTER ){
 
-        TMR_WAIT( pt, TIME_SYNC_RATE * 1000 );
+        TMR_WAIT( pt, TIME_MASTER_SYNC_RATE * 1000 );
 
         // check state
         if( sync_state != STATE_MASTER ){
@@ -612,7 +400,7 @@ PT_BEGIN( pt );
             break;
         }
 
-        master_uptime += TIME_SYNC_RATE;
+        master_uptime += TIME_MASTER_SYNC_RATE;
 
         send_master();
     }
@@ -620,7 +408,7 @@ PT_BEGIN( pt );
     while( sync_state == STATE_SLAVE ){
 
         // random delay
-        TMR_WAIT( pt, 32000 + ( rnd_u16_get_int() >> 3 ) );
+        TMR_WAIT( pt, ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 ) );
 
         // check state
         if( sync_state != STATE_SLAVE ){

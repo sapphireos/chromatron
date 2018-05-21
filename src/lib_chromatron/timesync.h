@@ -32,14 +32,14 @@
 
 #include "wifi_cmd.h"
 
-#define TIME_SERVER_PORT        32037
+#define TIME_SERVER_PORT                32037
 
-#define TIME_PROTOCOL_MAGIC     0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION   2
+#define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
+#define TIME_PROTOCOL_VERSION           2
 
 
-#define TIME_SYNC_RATE          4 // in seconds
-
+#define TIME_MASTER_SYNC_RATE           4 // in seconds
+#define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
 
 // Timer
 #define TIMESYNC_TIMER                 GFX_TIMER
