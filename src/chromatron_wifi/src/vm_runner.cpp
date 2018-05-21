@@ -470,84 +470,84 @@ void vm_v_get_info( vm_info_t *info ){
     *info = vm_info;
 }
 
-int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
+// int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
 
-    if( index > 0 ){
+//     if( index > 0 ){
 
-        return -1;
-    }
+//         return -1;
+//     }
 
-    uint8_t vm_index = 0;
+//     uint8_t vm_index = 0;
 
-    sync->frame_number  = vm_state[vm_index].frame_number;
-    sync->rng_seed      = vm_state[vm_index].rng_seed;
+//     sync->frame_number  = vm_state[vm_index].frame_number;
+//     sync->rng_seed      = vm_state[vm_index].rng_seed;
 
-    // for now, we only send one chunk of register data
-    sync->data_index    = 0;
-    sync->data_count    = vm_state[vm_index].data_count;
+//     // for now, we only send one chunk of register data
+//     sync->data_index    = 0;
+//     sync->data_count    = vm_state[vm_index].data_count;
 
-    if( sync->data_count > WIFI_DATA_FRAME_SYNC_MAX_DATA ){
+//     if( sync->data_count > WIFI_DATA_FRAME_SYNC_MAX_DATA ){
 
-        sync->data_count = WIFI_DATA_FRAME_SYNC_MAX_DATA;
-    }
+//         sync->data_count = WIFI_DATA_FRAME_SYNC_MAX_DATA;
+//     }
 
-    if( vm_start[vm_index] < 0 ){
+//     if( vm_start[vm_index] < 0 ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
+//     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
-    vm_v_get_data_multi( stream, &vm_state[vm_index], sync->data_index, sync->data_count, sync->data );
+//     vm_v_get_data_multi( stream, &vm_state[vm_index], sync->data_index, sync->data_count, sync->data );
 
-    return 0;
-}
+//     return 0;
+// }
 
 
-uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync ){
+// uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync ){
 
-    uint8_t status = 0;
+//     uint8_t status = 0;
 
-    int32_t frame_diff = (int32_t)vm_state[0].frame_number - (int32_t)sync->frame_number;
+//     int32_t frame_diff = (int32_t)vm_state[0].frame_number - (int32_t)sync->frame_number;
 
-    if( ( frame_diff > 1 ) || ( frame_diff < -1 ) ){
+//     if( ( frame_diff > 1 ) || ( frame_diff < -1 ) ){
 
-        status |= 0x80;
-    }
+//         status |= 0x80;
+//     }
 
-    if( vm_state[0].frame_number > sync->frame_number ){
+//     if( vm_state[0].frame_number > sync->frame_number ){
 
-        status |= 0x40;
+//         status |= 0x40;
 
-        vm_state[0].frame_number   = sync->frame_number;
-    }
-    else if( vm_state[0].frame_number < sync->frame_number ){
+//         vm_state[0].frame_number   = sync->frame_number;
+//     }
+//     else if( vm_state[0].frame_number < sync->frame_number ){
 
-        status |= 0x20;
+//         status |= 0x20;
 
-        vm_state[0].frame_number   = sync->frame_number;
-    }
+//         vm_state[0].frame_number   = sync->frame_number;
+//     }
 
-    if( vm_state[0].rng_seed != sync->rng_seed ){
+//     if( vm_state[0].rng_seed != sync->rng_seed ){
 
-        vm_state[0].rng_seed       = sync->rng_seed;
-        status |= 0x01;   
-    }
+//         vm_state[0].rng_seed       = sync->rng_seed;
+//         status |= 0x01;   
+//     }
 
-    for( uint8_t i = 0; i < sync->data_count; i++ ){
+//     for( uint8_t i = 0; i < sync->data_count; i++ ){
 
-        if( vm_i32_get_reg( i + sync->data_index, 0 ) != sync->data[i] ){
+//         if( vm_i32_get_reg( i + sync->data_index, 0 ) != sync->data[i] ){
 
-            vm_v_set_reg( i + sync->data_index, sync->data[i], 0 );
-            status |= 0x02;
-        }
-    }   
+//             vm_v_set_reg( i + sync->data_index, sync->data[i], 0 );
+//             status |= 0x02;
+//         }
+//     }   
 
-    return status;
-}
+//     return status;
+// }
 
-uint16_t vm_u16_get_frame_number( void ){
+// uint16_t vm_u16_get_frame_number( void ){
 
-    return vm_state[0].frame_number;
-}
+//     return vm_state[0].frame_number;
+// }
 
