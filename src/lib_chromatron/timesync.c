@@ -31,7 +31,7 @@
 
 
 
-
+static volatile int16_t clock_offset;
 
 
 
@@ -45,14 +45,26 @@
 ISR(GFX_TIMER_CCC_vect){
 
     STROBE;   
- 
-    GFX_TIMER.CCC += 31250;
+    
+    if( clock_offset > 5 ){
+
+        GFX_TIMER.CCC += 31250 + 250;
+    }
+    else if( clock_offset < -5 ){
+
+        GFX_TIMER.CCC += 31250 - 250;
+    }
+    else{
+
+        GFX_TIMER.CCC += 31250;
+    }
 }
 
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
+PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
@@ -60,6 +72,7 @@ static uint32_t local_time;
 static uint32_t net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
+
 
 
 static uint8_t sync_state;
@@ -107,6 +120,11 @@ void time_v_init( void ){
                     PSTR("time_master"),
                     0,
                     0 );    
+
+    thread_t_create( time_clock_thread,
+                    PSTR("time_clock"),
+                    0,
+                    0 );    
 }
 
 uint32_t time_u32_get_network_time( void ){
@@ -116,6 +134,37 @@ uint32_t time_u32_get_network_time( void ){
     return net_time + elapsed;
 }
 
+
+
+PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+
+        int16_t adjustment = clock_offset;
+
+        if( adjustment > 5 ){
+
+            adjustment = 5;
+        }
+        else if( adjustment < -5 ){
+
+            adjustment = -5;
+        }
+
+        net_time -= adjustment;
+
+        ATOMIC;
+        clock_offset -= adjustment;
+        END_ATOMIC;
+    }
+
+PT_END( pt );
+}
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
@@ -225,7 +274,8 @@ PT_BEGIN( pt );
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
-                uint32_t elapsed = tmr_u32_elapsed_time_ms( rtt_start );
+                uint32_t now = tmr_u32_get_system_time_ms();
+                uint32_t elapsed = tmr_u32_elapsed_times( rtt_start, now );
 
                 if( elapsed > 500 ){
 
@@ -237,33 +287,44 @@ PT_BEGIN( pt );
 
                 uint32_t est_net_time = time_u32_get_network_time();
 
-                // uint32_t prev_local = local_time;
-                local_time = tmr_u32_get_system_time_ms();
-                
-                net_time = msg->net_time + ( elapsed / 2 );
-                // net_time = msg->net_time;
+                uint32_t adjusted_net_time = msg->net_time + ( elapsed / 2 );
 
-                // STROBE;
+                int32_t net_diff = tmr_u32_elapsed_times( adjusted_net_time, est_net_time );
 
-                int32_t net_diff = tmr_u32_elapsed_times( est_net_time, net_time );
-                
-                log_v_debug_P( PSTR("net time: %lu rtt: %lu diff net: %ld"), net_time, elapsed, net_diff );
-                
+                // how bad is our offset?
+                if( abs32( net_diff ) > 500 ){
+                    // worse than 0.5 seconds, do a hard jump
 
-                // sync timer
-                ATOMIC;
+                    local_time = now;
 
-                est_net_time = time_u32_get_network_time();
-                uint32_t timer_target = ( ( 1000 - ( est_net_time % 1000 ) ) * 31250 ) / 1000;
+                    net_time = adjusted_net_time;
+                    net_diff = 0;
 
-                if( timer_target < 10000 ){
-
-                    timer_target += 31250;
+                    log_v_debug_P( PSTR("hard jump") );
                 }
 
-                GFX_TIMER.CCC = GFX_TIMER.CNT + timer_target;
 
+                ATOMIC;
+                clock_offset = net_diff;
                 END_ATOMIC;
+                
+                log_v_debug_P( PSTR("rtt: %lu offset %d"), elapsed, clock_offset );
+                
+
+                // // sync timer
+                // ATOMIC;
+
+                // est_net_time = time_u32_get_network_time();
+                // uint32_t timer_target = ( ( 1000 - ( est_net_time % 1000 ) ) * 31250 ) / 1000;
+
+                // if( timer_target < 10000 ){
+
+                //     timer_target += 31250;
+                // }
+
+                // GFX_TIMER.CCC = GFX_TIMER.CNT + timer_target;
+
+                // END_ATOMIC;
             }
         }
         // socket timeout
