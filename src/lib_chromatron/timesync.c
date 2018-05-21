@@ -634,8 +634,7 @@ PT_BEGIN( pt );
     while( sync_state == STATE_SLAVE ){
 
         // random delay
-        // TMR_WAIT( pt, ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 ) );
-        TMR_WAIT( pt, 4000 );
+        TMR_WAIT( pt, ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 ) );
 
         // check state
         if( sync_state != STATE_SLAVE ){
