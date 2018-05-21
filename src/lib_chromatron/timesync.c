@@ -68,7 +68,6 @@ static uint64_t master_uptime;
 
 static int16_t filtered_offset;
 #define OFFSET_FILTER           32
-static int16_t clock_adjustment;
 
 static uint8_t sync_state;
 #define STATE_WAIT              0
@@ -248,11 +247,11 @@ PT_BEGIN( pt );
             // fine adjustment
             if( timer_error > 200 ){
 
-                timer_adjust = -100;
+                timer_adjust = -200;
             }
             else if( timer_error > 100 ){
 
-                timer_adjust = -50;
+                timer_adjust = -100;
             }
             else if( timer_error > 10 ){
 
@@ -260,11 +259,11 @@ PT_BEGIN( pt );
             }
             else if( timer_error < -200 ){
 
-                timer_adjust = 100;
+                timer_adjust = 200;
             }
             else if( timer_error < -100 ){
 
-                timer_adjust = 50;
+                timer_adjust = 100;
             }
             else if( timer_error < -10 ){
 
