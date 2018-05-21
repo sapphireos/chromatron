@@ -40,7 +40,9 @@
 
 #define TICKS_PER_SECOND    31250
 
-static uint16_t base_rate = TICKS_PER_SECOND / 4;
+#define BASE_RATE_MS        1000
+
+static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000;
 static volatile uint16_t timer_rate;
 
 ISR(GFX_TIMER_CCC_vect){
@@ -122,7 +124,7 @@ void time_v_init( void ){
 
 uint32_t time_u32_get_network_time( void ){
 
-    int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
+    uint32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
 
     return net_time + elapsed;
 }
@@ -140,36 +142,38 @@ PT_BEGIN( pt );
         // first, adjust the network timer.  this just does the fine adjustment.
         // the coarse adjustment is done by the time server when the sync message comes in. 
 
-        int16_t adjustment = clock_adjustment;
+        // int16_t adjustment = clock_adjustment;
 
-        if( adjustment > 40 ){
+        // if( adjustment > 40 ){
 
-            adjustment = 10;
-        }
-        else if( adjustment > 20 ){
+        //     adjustment = 20;
+        // }
+        // else if( adjustment > 20 ){
 
-            adjustment = 5;
-        }
-        else if( adjustment > 5 ){
+        //     adjustment = 10;
+        // }
+        // else if( adjustment > 5 ){
 
-            adjustment = 1;
-        }
-        else if( adjustment < -40 ){
+        //     adjustment = 5;
+        // }
+        // else if( adjustment < -40 ){
 
-            adjustment = -10;
-        }
-        else if( adjustment < -20 ){
+        //     adjustment = -20;
+        // }
+        // else if( adjustment < -20 ){
 
-            adjustment = -5;
-        }
-        else if( adjustment < -5 ){
+        //     adjustment = -10;
+        // }
+        // else if( adjustment < -5 ){
 
-            adjustment = -1;
-        }
+        //     adjustment = -5;
+        // }
 
-        net_time -= adjustment;
+        // log_v_debug_P( PSTR("clock_adjustment: %d -> %d"), clock_adjustment, adjustment );
 
-        clock_adjustment -= adjustment;
+        // net_time -= adjustment;
+
+        // clock_adjustment -= adjustment;
 
 
         // now adjust the real time clock
@@ -189,6 +193,10 @@ PT_BEGIN( pt );
 
         uint16_t current_net_time_offset = current_net_time % ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND );
         uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * TICKS_PER_SECOND ) / 1000;
+
+        // log_v_debug_P( PSTR("net: %lu base: %u base1000: %lu div %lu offset: %u"), 
+        //         current_net_time, base_rate, (uint32_t)base_rate * 1000, ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND ), current_net_time_offset );
+
 
         uint16_t actual_next_cc;
         if( timer_cc > timer_cnt ){
@@ -229,11 +237,11 @@ PT_BEGIN( pt );
             }
             else if( timer_error > 100 ){
 
-                timer_adjust = -30;
+                timer_adjust = -50;
             }
             else if( timer_error > 10 ){
 
-                timer_adjust = -5;
+                timer_adjust = -20;
             }
             else if( timer_error < -200 ){
 
@@ -241,11 +249,11 @@ PT_BEGIN( pt );
             }
             else if( timer_error < -100 ){
 
-                timer_adjust = 30;
+                timer_adjust = 50;
             }
             else if( timer_error < -10 ){
 
-                timer_adjust = 5;
+                timer_adjust = 20;
             }
             else{
 
@@ -260,8 +268,8 @@ PT_BEGIN( pt );
         // log_v_debug_P( PSTR("tmr err: %d adj: %d"), timer_error, timer_adjust );
 
         // log_v_debug_P( PSTR("tmr err: %d adj: %d -> %d"), timer_error, adjustment, clock_adjustment );
-        log_v_debug_P( PSTR("net: %lu offset: %u ticks: %u cc correct: %u actual: %u"), 
-            current_net_time, current_net_time_offset, current_net_time_ticks, correct_next_cc, actual_next_cc );
+        // log_v_debug_P( PSTR("net: %lu offset: %u ticks: %u cc correct: %u actual: %u"), 
+        //     current_net_time, current_net_time_offset, current_net_time_ticks, correct_next_cc, actual_next_cc );
 
     }
 
@@ -377,6 +385,8 @@ PT_BEGIN( pt );
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
                 uint32_t now = tmr_u32_get_system_time_ms();
+                uint32_t est_net_time = time_u32_get_network_time();
+                
                 uint32_t elapsed = tmr_u32_elapsed_times( rtt_start, now );
 
                 if( elapsed > 500 ){
@@ -386,8 +396,6 @@ PT_BEGIN( pt );
 
                     continue;
                 }
-
-                uint32_t est_net_time = time_u32_get_network_time();
 
                 uint32_t adjusted_net_time = msg->net_time + ( elapsed / 2 );
 
@@ -400,15 +408,22 @@ PT_BEGIN( pt );
                     local_time = now;
 
                     net_time = adjusted_net_time;
-                    net_diff = 0;
+                    clock_offset = 0;
 
                     log_v_debug_P( PSTR("hard jump") );
                 }
 
+                                    local_time = now;
+
+                    net_time = adjusted_net_time;
+                    clock_offset = 0;
+
+
+
                 clock_offset = net_diff;
                 clock_adjustment = clock_offset;
 
-                log_v_debug_P( PSTR("rtt: %lu offset %d"), elapsed, clock_offset );
+                log_v_debug_P( PSTR("rtt: %lu offset %d netdiff: %ld"), elapsed, clock_offset, net_diff );
             }
         }
         // socket timeout
@@ -538,7 +553,8 @@ PT_BEGIN( pt );
     while( sync_state == STATE_SLAVE ){
 
         // random delay
-        TMR_WAIT( pt, ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 ) );
+        TMR_WAIT( pt, 8000 );
 
         // check state
         if( sync_state != STATE_SLAVE ){
