@@ -136,6 +136,8 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
+        // first, adjust the network timer.  this just does the fine adjustment.
+        // the coarse adjustment is done by the time server when the sync message comes in. 
 
         int16_t adjustment = clock_offset;
 
@@ -152,7 +154,17 @@ PT_BEGIN( pt );
 
         clock_offset -= adjustment;
 
+
+        // now adjust the real time clock
+
         ATOMIC;
+
+        /*
+    
+        Get current network time offset and clock offset.
+        Calculate the timer error.
+        
+        */
 
         uint16_t timer_cnt = GFX_TIMER.CNT;
         uint16_t timer_cc = GFX_TIMER.CCC;
@@ -175,6 +187,16 @@ PT_BEGIN( pt );
 
         int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
         
+        /*
+    
+        Clock adjustment.
+    
+        If the clock is "way off", adjust in one hard step.
+
+        Then, do fine adjustments to the clock speed to bring it into alignment.
+
+        */
+
         if( abs16( timer_error ) > 2000 ){
 
             // course adjustment
@@ -340,10 +362,7 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("hard jump") );
                 }
 
-
-                ATOMIC;
                 clock_offset = net_diff;
-                END_ATOMIC;
                 
                 log_v_debug_P( PSTR("rtt: %lu offset %d"), elapsed, clock_offset );
                 
