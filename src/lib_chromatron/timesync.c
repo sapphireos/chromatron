@@ -66,8 +66,8 @@ static uint32_t net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
-static int16_t filtered_offset;
-#define OFFSET_FILTER           32
+// static int16_t filtered_offset;
+// #define OFFSET_FILTER           32
 
 static uint8_t sync_state;
 #define STATE_WAIT              0
@@ -486,27 +486,24 @@ PT_BEGIN( pt );
                 
                     log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
 
-                    filtered_offset = 0;
+                    // filtered_offset = 0;
                 }
                 else{
 
                     net_time += elapsed_remote_net;
 
-                    if( filtered_offset == 0 ){
+                    // if( filtered_offset == 0 ){
 
-                        filtered_offset = clock_offset;
-                    }
-                    else{
+                    //     filtered_offset = clock_offset;
+                    // }
+                    // else{
 
-                        filtered_offset = util_i16_ewma( clock_offset, filtered_offset, OFFSET_FILTER );
-                    }
+                    //     filtered_offset = util_i16_ewma( clock_offset, filtered_offset, OFFSET_FILTER );
+                    // }
                 }
 
-
-        //         // clock_adjustment = clock_offset;
-
-                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d filt: %d drift: %d"), 
-                    elapsed_rtt, filtered_rtt, clock_offset, filtered_offset, filtered_drift );
+                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                    elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
             }
         }
         // socket timeout
