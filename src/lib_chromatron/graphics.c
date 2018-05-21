@@ -37,6 +37,7 @@
 #include "vm.h"
 #include "timesync.h"
 #include "kvdb.h"
+#include "hash.h"
 
 #include "event_log.h"
 
@@ -88,6 +89,17 @@ static void update_vm_timer( void ){
 
         END_ATOMIC;
     }
+}
+
+static uint32_t get_sync_group_hash( void ){
+
+    char sync_group[32];
+    if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
+
+        return 0;
+    }
+
+    return hash_u32_string( sync_group );    
 }
 
 
@@ -169,51 +181,52 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count,                   gfx_i8_kv_handler,   "pix_count" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_sub_dimmer,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_master_dimmer,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_size_x,                  gfx_i8_kv_handler,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_size_y,                  gfx_i8_kv_handler,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &gfx_interleave_x,            gfx_i8_kv_handler,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &gfx_transpose,               gfx_i8_kv_handler,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &hs_fade,                     gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_count,                   gfx_i8_kv_handler,   "pix_count" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_sub_dimmer,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_master_dimmer,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  gfx_i8_kv_handler,   "pix_size_x" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  gfx_i8_kv_handler,   "pix_size_y" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            gfx_i8_kv_handler,   "gfx_interleave_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               gfx_i8_kv_handler,   "gfx_transpose" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     gfx_i8_kv_handler,   "gfx_hsfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
+    { SAPPHIRE_TYPE_STRING32,   0, KV_FLAGS_PERSIST, 0,                            gfx_i8_kv_handler,   "gfx_sync_group" },
 };
 
-void gfx_v_set_params( gfx_params_t *params ){
+// void gfx_v_set_params( gfx_params_t *params ){
 
-    if( params->version != GFX_VERSION ){
+//     if( params->version != GFX_VERSION ){
 
-        return;
-    }
+//         return;
+//     }
 
-    pix_count                   = params->pix_count;
-    pix_size_x                  = params->pix_size_x;
-    pix_size_y                  = params->pix_size_y;
-    gfx_interleave_x            = params->interleave_x;
-    gfx_transpose               = params->transpose;
-    hs_fade                     = params->hs_fade;
-    v_fade                      = params->v_fade;
-    gfx_master_dimmer           = params->master_dimmer;
-    gfx_sub_dimmer              = params->sub_dimmer;
-    gfx_frame_rate              = params->frame_rate;
-    gfx_dimmer_curve            = params->dimmer_curve;
-    gfx_virtual_array_start     = params->virtual_array_start;
-    gfx_virtual_array_length    = params->virtual_array_length;
+//     pix_count                   = params->pix_count;
+//     pix_size_x                  = params->pix_size_x;
+//     pix_size_y                  = params->pix_size_y;
+//     gfx_interleave_x            = params->interleave_x;
+//     gfx_transpose               = params->transpose;
+//     hs_fade                     = params->hs_fade;
+//     v_fade                      = params->v_fade;
+//     gfx_master_dimmer           = params->master_dimmer;
+//     gfx_sub_dimmer              = params->sub_dimmer;
+//     gfx_frame_rate              = params->frame_rate;
+//     gfx_dimmer_curve            = params->dimmer_curve;
+//     gfx_virtual_array_start     = params->virtual_array_start;
+//     gfx_virtual_array_length    = params->virtual_array_length;
 
-    // we cannot set pix mode via this function
-    // pix_mode                = params->pix_mode;
+//     // we cannot set pix mode via this function
+//     // pix_mode                = params->pix_mode;
 
 
-    param_error_check();
+//     param_error_check();
 
-    update_vm_timer();
-}
+//     update_vm_timer();
+// }
 
 void gfx_v_get_params( gfx_params_t *params ){
 
@@ -233,6 +246,7 @@ void gfx_v_get_params( gfx_params_t *params ){
 
     params->virtual_array_start   = gfx_virtual_array_start;
     params->virtual_array_length  = gfx_virtual_array_length;
+    params->sync_group_hash       = get_sync_group_hash();
 
     // override dimmer curve for the Pixie, since it already has curves built in
     if( pixel_u8_get_mode() == PIX_MODE_PIXIE ){

@@ -67,10 +67,8 @@ static uint8_t sync_state;
 #define STATE_MASTER            1
 #define STATE_SLAVE             2
 
-// #define RTT_FILTER              32
+
 static uint32_t rtt_start;
-// static uint16_t rtt;
-// static uint8_t rtt_init;
 
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {
@@ -110,19 +108,6 @@ void time_v_init( void ){
                     0,
                     0 );    
 }
-
-// static uint32_t get_sync_group_hash( void ){
-
-//     char sync_group[32];
-//     if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
-
-//         return 0;
-//     }
-
-//     return hash_u32_string( sync_group );    
-// }
-
-
 
 uint32_t time_u32_get_network_time( void ){
 

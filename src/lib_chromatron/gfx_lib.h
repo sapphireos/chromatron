@@ -53,6 +53,7 @@ typedef struct  __attribute__((packed)){
     uint16_t dimmer_curve;
     uint16_t virtual_array_start;
     uint16_t virtual_array_length;
+    uint32_t sync_group_hash;
 } gfx_params_t;
 
 typedef struct  __attribute__((packed)){
