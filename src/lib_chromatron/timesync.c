@@ -40,7 +40,7 @@
 
 #define TICKS_PER_SECOND    31250
 
-#define BASE_RATE_MS        250
+#define BASE_RATE_MS        1000
 
 static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000;
 static volatile uint16_t timer_rate;
@@ -206,63 +206,110 @@ PT_BEGIN( pt );
         
         */
 
-        uint32_t frame_time = (uint32_t)frame_number * base_rate;
-
-
         uint16_t timer_cnt = GFX_TIMER.CNT;
-        uint16_t timer_cc = GFX_TIMER.CCC;
         uint32_t current_net_time = time_u32_get_network_time();
+
+        uint16_t timer_cc = GFX_TIMER.CCC;
+        uint32_t base_frame_time = (uint32_t)frame_number * base_rate;
+
+        // uint16_t actual_next_cc;
+        // if( timer_cc > timer_cnt ){
+
+        //     actual_next_cc = timer_cc - timer_cnt;
+        // }
+        // else{
+
+        //     actual_next_cc = timer_cc + ( 65535 - timer_cnt );
+        // }
+
+        uint16_t last_cc = timer_cc - base_rate;
+        uint16_t elapsed_ticks;
+
+        if( timer_cnt > last_cc ){
+
+            elapsed_ticks = timer_cnt - last_cc;
+        }
+        else{
+
+            elapsed_ticks = last_cc + ( 65535 - timer_cnt );
+        }
+
+
+        
+
+        // uint32_t frame_time = base_frame_time + ( (int32_t)actual_next_cc - base_rate );
+        uint32_t frame_time = base_frame_time;
+
+
+
 
         // uint16_t current_net_time_offset = current_net_time % ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND );
         // uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * TICKS_PER_SECOND ) / 1000;
 
-        uint32_t current_net_time_ticks = ( current_net_time * TICKS_PER_SECOND ) / 1000;
+        uint32_t current_net_time_ticks = ( (uint64_t)current_net_time * TICKS_PER_SECOND ) / 1000;
+
+        log_v_debug_P( PSTR("%u %u %u %u %lu %lu %lu"), timer_cnt, timer_cc, last_cc, elapsed_ticks, base_frame_time + elapsed_ticks, current_net_time_ticks, current_net_time_ticks - (base_frame_time + elapsed_ticks) );
+        
+
+        static uint32_t last_net_time_ticks;
+        static uint32_t last_frame_time_ticks;
+
 
         // int32_t frame_offset_ticks = (int64_t)frame_time - (int64_t)current_net_time_ticks;
 
         uint16_t net_frame = current_net_time_ticks / base_rate;
-        uint16_t net_frame_offset = current_net_time_ticks % base_rate;
+        uint32_t net_frame_time = (uint32_t)net_frame * base_rate;
+        uint16_t net_frame_offset = current_net_time_ticks - net_frame_time;
 
-        uint16_t actual_next_cc;
-        if( timer_cc > timer_cnt ){
+        
+        // uint32_t frame_time_ticks = frame_time + actual_next_cc;
 
-            actual_next_cc = timer_cc - timer_cnt;
-        }
-        else{
 
-            actual_next_cc = timer_cc + ( 65535 - timer_cnt );
-        }
+        // int16_t offset = ( (int32_t)net_frame_offset + (int32_t)actual_next_cc ) % base_rate;
 
-        int16_t offset = ( (int32_t)net_frame_offset + (int32_t)actual_next_cc ) % base_rate;
+        // int16_t frame_diff = (int32_t)net_frame - (int32_t)frame_number;
 
-        int16_t frame_diff = (int32_t)net_frame - (int32_t)frame_number;
+        // log_v_debug_P( PSTR("%u %u %lu %lu %lu %u"), timer_cnt, timer_cc, current_net_time_ticks, frame_time, current_net_time_ticks - frame_time, actual_next_cc );
+
+        // int16_t offset = (int32_t)actual_next_cc - (int32_t)net_frame_offset;
+
+        // log_v_debug_P( PSTR("%lu %u %lu %u %d"), frame_time, actual_next_cc, net_frame_time, net_frame_offset, offset );
+        // log_v_debug_P( PSTR("%lu %lu %u %u %lu"), frame_time_ticks - last_frame_time_ticks, current_net_time_ticks - last_net_time_ticks, frame_number, net_frame, current_net_time_ticks );
+
+        // log_v_debug_P( PSTR("%u %u %lu %lu %lu %lu %lu %u"), frame_number, net_frame, frame_time, current_net_time_ticks, current_net_time_ticks - frame_time, frame_time - last_frame_time_ticks, current_net_time_ticks- last_net_time_ticks, elapsed_ticks );
+
+        last_frame_time_ticks = frame_time;
+        last_net_time_ticks = current_net_time_ticks;
 
         // log_v_debug_P( PSTR("net: %lu ticks: %lu frame_time: %lu frame: %u netframe: %u offset: %u actual_cc: %u ++ %u"), 
                 // current_net_time, current_net_time_ticks, frame_time, frame_number, net_frame, net_frame_offset, actual_next_cc, net_frame_offset + actual_next_cc );
 
-        log_v_debug_P( PSTR("frame %d offset: %d"), frame_diff, offset );
+        // log_v_debug_P( PSTR("frame %d offset: %d"), frame_diff, offset );
         
-        if( frame_number != net_frame ){
+        if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 0 ){
 
             log_v_debug_P( PSTR("hard frame sync") );
             frame_number = net_frame;
+            GFX_TIMER.CCC = GFX_TIMER.CNT + base_rate;   
         }
 
         // uint16_t correct_next_cc = base_rate - current_net_time_ticks;
 
         // int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
 
-        // /*
+        int16_t timer_error = 0;
+
+        /*
     
-        // Clock adjustment.
+        Clock adjustment.
     
-        // If the clock is "way off", adjust in one hard step.
+        If the clock is "way off", adjust in one hard step.
 
-        // Then, do fine adjustments to the clock speed to bring it into alignment.
+        Then, do fine adjustments to the clock speed to bring it into alignment.
 
-        // */
+        */
 
-        // int16_t timer_adjust = 0;
+        int16_t timer_adjust = 0;
 
         // if( abs16( timer_error ) > 2000 ){
 
@@ -270,38 +317,37 @@ PT_BEGIN( pt );
         //     GFX_TIMER.CCC -= timer_error;
         // }
         // else{
-        //     // fine adjustment
-        //     if( timer_error > 200 ){
+            // fine adjustment
+            if( timer_error > 200 ){
 
-        //         timer_adjust = -200;
-        //     }
-        //     else if( timer_error > 100 ){
+                timer_adjust = -200;
+            }
+            else if( timer_error > 100 ){
 
-        //         timer_adjust = -100;
-        //     }
-        //     else if( timer_error > 10 ){
+                timer_adjust = -100;
+            }
+            else if( timer_error > 10 ){
 
-        //         timer_adjust = -20;
-        //     }
-        //     else if( timer_error < -200 ){
+                timer_adjust = -20;
+            }
+            else if( timer_error < -200 ){
 
-        //         timer_adjust = 200;
-        //     }
-        //     else if( timer_error < -100 ){
+                timer_adjust = 200;
+            }
+            else if( timer_error < -100 ){
 
-        //         timer_adjust = 100;
-        //     }
-        //     else if( timer_error < -10 ){
+                timer_adjust = 100;
+            }
+            else if( timer_error < -10 ){
 
-        //         timer_adjust = 20;
-        //     }
-        //     else{
+                timer_adjust = 20;
+            }
+            else{
 
-        //         timer_adjust = 0;                
-        //     }
+                timer_adjust = 0;                
+            }
 
-        //     timer_adjust = 0;
-        //     timer_rate = base_rate + timer_adjust;
+            timer_rate = base_rate + timer_adjust;
         // }
 
         
