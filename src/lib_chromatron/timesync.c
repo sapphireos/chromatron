@@ -40,14 +40,19 @@
 
 #define TICKS_PER_SECOND    31250
 
-#define BASE_RATE_MS        1000
+#define BASE_RATE_MS        250
 
 static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000;
 static volatile uint16_t timer_rate;
 
+static volatile uint16_t frame_number;
+static uint32_t frame_base_time;
+
 ISR(GFX_TIMER_CCC_vect){
 
     STROBE;
+
+    frame_number++;
 
     GFX_TIMER.CCC += timer_rate;
 }
@@ -201,16 +206,25 @@ PT_BEGIN( pt );
         
         */
 
+        uint32_t frame_time = (uint32_t)frame_number * base_rate;
+
+
         uint16_t timer_cnt = GFX_TIMER.CNT;
         uint16_t timer_cc = GFX_TIMER.CCC;
         uint32_t current_net_time = time_u32_get_network_time();
 
-        uint16_t current_net_time_offset = current_net_time % ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND );
-        uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * TICKS_PER_SECOND ) / 1000;
+        // uint16_t current_net_time_offset = current_net_time % ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND );
+        // uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * TICKS_PER_SECOND ) / 1000;
 
-        // log_v_debug_P( PSTR("net: %lu base: %u base1000: %lu div %lu offset: %u"), 
-        //         current_net_time, base_rate, (uint32_t)base_rate * 1000, ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND ), current_net_time_offset );
+        uint32_t current_net_time_ticks = ( current_net_time * TICKS_PER_SECOND ) / 1000;
 
+        // int32_t frame_offset_ticks = (int64_t)frame_time - (int64_t)current_net_time_ticks;
+
+        uint16_t net_frame = current_net_time_ticks / base_rate;
+        uint16_t net_frame_offset = current_net_time_ticks % base_rate;
+
+        log_v_debug_P( PSTR("net: %lu ticks: %lu frame_time: %lu frame: %u offset: %u netframe: %u"), 
+                current_net_time, current_net_time_ticks, frame_time, frame_number, net_frame_offset, net_frame );
 
         uint16_t actual_next_cc;
         if( timer_cc > timer_cnt ){
@@ -222,68 +236,71 @@ PT_BEGIN( pt );
             actual_next_cc = timer_cc + ( 65535 - timer_cnt );
         }
 
-        uint16_t correct_next_cc = base_rate - current_net_time_ticks;
+        // uint16_t correct_next_cc = base_rate - current_net_time_ticks;
 
-        int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
+        // int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
 
-        /*
+        // /*
     
-        Clock adjustment.
+        // Clock adjustment.
     
-        If the clock is "way off", adjust in one hard step.
+        // If the clock is "way off", adjust in one hard step.
 
-        Then, do fine adjustments to the clock speed to bring it into alignment.
+        // Then, do fine adjustments to the clock speed to bring it into alignment.
 
-        */
+        // */
 
-        int16_t timer_adjust = 0;
+        // int16_t timer_adjust = 0;
 
-        if( abs16( timer_error ) > 2000 ){
+        // if( abs16( timer_error ) > 2000 ){
 
-            // course adjustment
-            GFX_TIMER.CCC -= timer_error;
-        }
-        else{
-            // fine adjustment
-            if( timer_error > 200 ){
+        //     // course adjustment
+        //     GFX_TIMER.CCC -= timer_error;
+        // }
+        // else{
+        //     // fine adjustment
+        //     if( timer_error > 200 ){
 
-                timer_adjust = -200;
-            }
-            else if( timer_error > 100 ){
+        //         timer_adjust = -200;
+        //     }
+        //     else if( timer_error > 100 ){
 
-                timer_adjust = -100;
-            }
-            else if( timer_error > 10 ){
+        //         timer_adjust = -100;
+        //     }
+        //     else if( timer_error > 10 ){
 
-                timer_adjust = -20;
-            }
-            else if( timer_error < -200 ){
+        //         timer_adjust = -20;
+        //     }
+        //     else if( timer_error < -200 ){
 
-                timer_adjust = 200;
-            }
-            else if( timer_error < -100 ){
+        //         timer_adjust = 200;
+        //     }
+        //     else if( timer_error < -100 ){
 
-                timer_adjust = 100;
-            }
-            else if( timer_error < -10 ){
+        //         timer_adjust = 100;
+        //     }
+        //     else if( timer_error < -10 ){
 
-                timer_adjust = 20;
-            }
-            else{
+        //         timer_adjust = 20;
+        //     }
+        //     else{
 
-                timer_adjust = 0;                
-            }
+        //         timer_adjust = 0;                
+        //     }
 
-            timer_rate = base_rate + timer_adjust;
-        }
+        //     timer_adjust = 0;
+        //     timer_rate = base_rate + timer_adjust;
+        // }
+
+        
 
         END_ATOMIC;
 
         // log_v_debug_P( PSTR("tmr err: %d adj: %d"), timer_error, timer_adjust );
 
         // log_v_debug_P( PSTR("tmr err: %d adj: %d -> %d"), timer_error, adjustment, clock_adjustment );
-        // log_v_debug_P( PSTR("net: %lu offset: %u ticks: %u cc correct: %u actual: %u"), 
-        //     current_net_time, current_net_time_offset, current_net_time_ticks, correct_next_cc, actual_next_cc );
+        // log_v_debug_P( PSTR("net: %lu offset: %u ticks: %u cc correct: %u actual: %u frame time: %lu"), 
+            // current_net_time, current_net_time_offset, current_net_time_ticks, correct_next_cc, actual_next_cc, frame_time );
 
     }
 
@@ -492,6 +509,13 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
 
                     // filtered_offset = 0;
+
+
+                    // frame sync:
+                    ATOMIC;
+                    frame_base_time = net_time;
+                    frame_number = 0;
+                    END_ATOMIC;
                 }
                 else{
 
@@ -507,8 +531,8 @@ PT_BEGIN( pt );
                     // }
                 }
 
-                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                    elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                    // elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
             }
         }
         // socket timeout
