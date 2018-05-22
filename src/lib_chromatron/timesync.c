@@ -1,3 +1,5 @@
+#if 0
+
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -728,5 +730,7 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
+#endif
 
 #endif
