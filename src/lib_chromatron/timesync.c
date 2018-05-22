@@ -231,7 +231,7 @@ PT_BEGIN( pt );
         }
         else{
 
-            elapsed_ticks = last_cc + ( 65535 - timer_cnt );
+            elapsed_ticks = timer_cnt + ( 65535 - last_cc );
         }
 
 
