@@ -772,6 +772,14 @@ PT_BEGIN( pt );
             }
             #endif
 
+            
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            send_read_keys();
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            send_run_vm_cmd();
+            
+
             #ifdef ENABLE_TIME_SYNC
             current_frame++;
 
@@ -799,15 +807,6 @@ PT_BEGIN( pt );
                 send_request_frame_sync_cmd();
                 last_frame_sync_time = tmr_u32_get_system_time_ms();
             }
-            #else
-            
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_read_keys();
-
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            
-            // frame_number++;
-            send_run_vm_cmd();
             #endif
         }
 
