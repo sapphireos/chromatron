@@ -223,9 +223,6 @@ PT_BEGIN( pt );
         uint16_t net_frame = current_net_time_ticks / base_rate;
         uint16_t net_frame_offset = current_net_time_ticks % base_rate;
 
-        log_v_debug_P( PSTR("net: %lu ticks: %lu frame_time: %lu frame: %u offset: %u netframe: %u"), 
-                current_net_time, current_net_time_ticks, frame_time, frame_number, net_frame_offset, net_frame );
-
         uint16_t actual_next_cc;
         if( timer_cc > timer_cnt ){
 
@@ -234,6 +231,21 @@ PT_BEGIN( pt );
         else{
 
             actual_next_cc = timer_cc + ( 65535 - timer_cnt );
+        }
+
+        int16_t offset = ( (int32_t)net_frame_offset + (int32_t)actual_next_cc ) % base_rate;
+
+        int16_t frame_diff = (int32_t)net_frame - (int32_t)frame_number;
+
+        // log_v_debug_P( PSTR("net: %lu ticks: %lu frame_time: %lu frame: %u netframe: %u offset: %u actual_cc: %u ++ %u"), 
+                // current_net_time, current_net_time_ticks, frame_time, frame_number, net_frame, net_frame_offset, actual_next_cc, net_frame_offset + actual_next_cc );
+
+        log_v_debug_P( PSTR("frame %d offset: %d"), frame_diff, offset );
+        
+        if( frame_number != net_frame ){
+
+            log_v_debug_P( PSTR("hard frame sync") );
+            frame_number = net_frame;
         }
 
         // uint16_t correct_next_cc = base_rate - current_net_time_ticks;
