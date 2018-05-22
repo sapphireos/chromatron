@@ -50,11 +50,15 @@ static uint32_t frame_base_time;
 
 ISR(GFX_TIMER_CCC_vect){
 
-    STROBE;
-
     frame_number++;
 
     GFX_TIMER.CCC += timer_rate;
+
+
+    if( ( frame_number % 4 ) == 0 ){
+
+        STROBE;
+    }
 }
 
 
@@ -289,7 +293,7 @@ PT_BEGIN( pt );
 
         // log_v_debug_P( PSTR("frame %d offset: %d"), frame_diff, offset );
         
-        if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 0 ){
+        if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 3 ){
 
             log_v_debug_P( PSTR("hard frame sync") );
             frame_number = net_frame;
@@ -314,44 +318,47 @@ PT_BEGIN( pt );
 
         int16_t timer_adjust = 0;
 
-        // if( abs16( timer_error ) > 2000 ){
+        // fine adjustment
+        if( timer_error > 1000 ){
 
-        //     // course adjustment
-        //     GFX_TIMER.CCC -= timer_error;
-        // }
-        // else{
-            // fine adjustment
-            if( timer_error > 200 ){
+            timer_adjust = -200;
+        }
+        else if( timer_error > 200 ){
 
-                timer_adjust = -200;
-            }
-            else if( timer_error > 100 ){
+            timer_adjust = -30;
+        }
+        else if( timer_error > 100 ){
 
-                timer_adjust = -100;
-            }
-            else if( timer_error > 10 ){
+            timer_adjust = -10;
+        }
+        else if( timer_error > 10 ){
 
-                timer_adjust = -20;
-            }
-            else if( timer_error < -200 ){
+            timer_adjust = -5;
+        }
 
-                timer_adjust = 200;
-            }
-            else if( timer_error < -100 ){
+        else if( timer_error < -1000 ){
 
-                timer_adjust = 100;
-            }
-            else if( timer_error < -10 ){
+            timer_adjust = 200;
+        }
+        else if( timer_error < -200 ){
 
-                timer_adjust = 20;
-            }
-            else{
+            timer_adjust = 30;
+        }
+        else if( timer_error < -100 ){
 
-                timer_adjust = 0;                
-            }
+            timer_adjust = 10;
+        }
+        else if( timer_error < -10 ){
 
-            timer_rate = base_rate + timer_adjust;
-        // }
+            timer_adjust = 5;
+        }
+        else{
+
+            timer_adjust = 0;                
+        }
+
+        timer_rate = base_rate + timer_adjust;
+    
 
         
 
