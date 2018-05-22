@@ -153,6 +153,7 @@ uint32_t time_u32_get_network_time( void ){
 }
 
 
+#include "gfx_lib.h"
 
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
@@ -210,21 +211,14 @@ PT_BEGIN( pt );
         
         */
 
+        uint16_t gfx_frame_rate = gfx_u16_get_vm_frame_rate();
+        base_rate = ( (uint32_t)gfx_frame_rate * TICKS_PER_SECOND ) / 1000;
+
         uint16_t timer_cnt = GFX_TIMER.CNT;
         uint32_t current_net_time = time_u32_get_network_time();
 
         uint16_t timer_cc = GFX_TIMER.CCC;
         uint32_t base_frame_time = (uint32_t)frame_number * base_rate;
-
-        // uint16_t actual_next_cc;
-        // if( timer_cc > timer_cnt ){
-
-        //     actual_next_cc = timer_cc - timer_cnt;
-        // }
-        // else{
-
-        //     actual_next_cc = timer_cc + ( 65535 - timer_cnt );
-        // }
 
         uint16_t last_cc = timer_cc - base_rate;
         uint16_t elapsed_ticks;
@@ -238,73 +232,49 @@ PT_BEGIN( pt );
             elapsed_ticks = timer_cnt + ( 65535 - last_cc );
         }
 
-
-        
-
-        // uint32_t frame_time = base_frame_time + ( (int32_t)actual_next_cc - base_rate );
+    
         uint32_t frame_time = base_frame_time + elapsed_ticks;
-
-
-
-
-        // uint16_t current_net_time_offset = current_net_time % ( ( (uint32_t)base_rate * 1000 ) / TICKS_PER_SECOND );
-        // uint16_t current_net_time_ticks = ( (uint32_t)current_net_time_offset * TICKS_PER_SECOND ) / 1000;
 
         uint32_t current_net_time_ticks = ( (uint64_t)current_net_time * TICKS_PER_SECOND ) / 1000;
 
         int16_t frame_offset_ticks = (int64_t)current_net_time_ticks - (int64_t)frame_time;
 
-        // log_v_debug_P( PSTR("%u %u %u %u %lu %lu %d"), timer_cnt, timer_cc, last_cc, elapsed_ticks, frame_time, current_net_time_ticks, frame_offset_ticks );
+        // log_v_debug_P( PSTR("%lu %lu %d"), frame_time, current_net_time_ticks, frame_offset_ticks );
         log_v_debug_P( PSTR("%d"), frame_offset_ticks );
-        
-
-        static uint32_t last_net_time_ticks;
-        static uint32_t last_frame_time_ticks;
-
-
-        
 
         uint16_t net_frame = current_net_time_ticks / base_rate;
-        uint32_t net_frame_time = (uint32_t)net_frame * base_rate;
-        uint16_t net_frame_offset = current_net_time_ticks - net_frame_time;
-
         
-        // uint32_t frame_time_ticks = frame_time + actual_next_cc;
-
-
-        // int16_t offset = ( (int32_t)net_frame_offset + (int32_t)actual_next_cc ) % base_rate;
-
-        // int16_t frame_diff = (int32_t)net_frame - (int32_t)frame_number;
-
-        // log_v_debug_P( PSTR("%u %u %lu %lu %lu %u"), timer_cnt, timer_cc, current_net_time_ticks, frame_time, current_net_time_ticks - frame_time, actual_next_cc );
-
-        // int16_t offset = (int32_t)actual_next_cc - (int32_t)net_frame_offset;
-
-        // log_v_debug_P( PSTR("%lu %u %lu %u %d"), frame_time, actual_next_cc, net_frame_time, net_frame_offset, offset );
-        // log_v_debug_P( PSTR("%lu %lu %u %u %lu"), frame_time_ticks - last_frame_time_ticks, current_net_time_ticks - last_net_time_ticks, frame_number, net_frame, current_net_time_ticks );
-
-        // log_v_debug_P( PSTR("%u %u %lu %lu %lu %lu %lu %u"), frame_number, net_frame, frame_time, current_net_time_ticks, current_net_time_ticks - frame_time, frame_time - last_frame_time_ticks, current_net_time_ticks- last_net_time_ticks, elapsed_ticks );
-
-        last_frame_time_ticks = frame_time;
-        last_net_time_ticks = current_net_time_ticks;
-
-        // log_v_debug_P( PSTR("net: %lu ticks: %lu frame_time: %lu frame: %u netframe: %u offset: %u actual_cc: %u ++ %u"), 
-                // current_net_time, current_net_time_ticks, frame_time, frame_number, net_frame, net_frame_offset, actual_next_cc, net_frame_offset + actual_next_cc );
-
-        // log_v_debug_P( PSTR("frame %d offset: %d"), frame_diff, offset );
-        
-        if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 3 ){
+        if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 8 ){
 
             log_v_debug_P( PSTR("hard frame sync") );
             frame_number = net_frame;
             GFX_TIMER.CCC = GFX_TIMER.CNT + base_rate;   
+
+            frame_offset_ticks = 0;
         }
 
-        // uint16_t correct_next_cc = base_rate - current_net_time_ticks;
-
-        // int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
-
+        
         int16_t timer_error = frame_offset_ticks;
+
+        timer_rate = base_rate;
+
+        if( timer_error > 100 ){
+
+            timer_rate -= 20;
+        }
+        else if( timer_error > 5 ){
+
+            timer_rate -= 2;
+        }
+
+        else if( timer_error < -100 ){
+
+            timer_rate += 20;
+        }
+        else if( timer_error < -5 ){
+
+            timer_rate += 2;
+        }
 
         /*
     
@@ -316,60 +286,53 @@ PT_BEGIN( pt );
 
         */
 
-        int16_t timer_adjust = 0;
+        // int16_t timer_adjust = 0;
 
-        // fine adjustment
-        if( timer_error > 1000 ){
+        // // fine adjustment
+        // if( timer_error > 1000 ){
 
-            timer_adjust = -200;
-        }
-        else if( timer_error > 200 ){
+        //     timer_adjust = -200;
+        // }
+        // else if( timer_error > 200 ){
 
-            timer_adjust = -30;
-        }
-        else if( timer_error > 100 ){
+        //     timer_adjust = -30;
+        // }
+        // else if( timer_error > 100 ){
 
-            timer_adjust = -10;
-        }
-        else if( timer_error > 10 ){
+        //     timer_adjust = -10;
+        // }
+        // else if( timer_error > 10 ){
 
-            timer_adjust = -5;
-        }
+        //     timer_adjust = -5;
+        // }
 
-        else if( timer_error < -1000 ){
+        // else if( timer_error < -1000 ){
 
-            timer_adjust = 200;
-        }
-        else if( timer_error < -200 ){
+        //     timer_adjust = 200;
+        // }
+        // else if( timer_error < -200 ){
 
-            timer_adjust = 30;
-        }
-        else if( timer_error < -100 ){
+        //     timer_adjust = 30;
+        // }
+        // else if( timer_error < -100 ){
 
-            timer_adjust = 10;
-        }
-        else if( timer_error < -10 ){
+        //     timer_adjust = 10;
+        // }
+        // else if( timer_error < -10 ){
 
-            timer_adjust = 5;
-        }
-        else{
+        //     timer_adjust = 5;
+        // }
+        // else{
 
-            timer_adjust = 0;                
-        }
+        //     timer_adjust = 0;              
+        // }
 
-        timer_rate = base_rate + timer_adjust;
+        // timer_rate = base_rate + timer_adjust;
     
 
         
 
         END_ATOMIC;
-
-        // log_v_debug_P( PSTR("tmr err: %d adj: %d"), timer_error, timer_adjust );
-
-        // log_v_debug_P( PSTR("tmr err: %d adj: %d -> %d"), timer_error, adjustment, clock_adjustment );
-        // log_v_debug_P( PSTR("net: %lu offset: %u ticks: %u cc correct: %u actual: %u frame time: %lu"), 
-            // current_net_time, current_net_time_offset, current_net_time_ticks, correct_next_cc, actual_next_cc, frame_time );
-
     }
 
 PT_END( pt );
@@ -599,8 +562,8 @@ PT_BEGIN( pt );
                     // }
                 }
 
-                // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                    // elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                    elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
             }
         }
         // socket timeout
