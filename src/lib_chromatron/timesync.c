@@ -46,7 +46,6 @@ static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000
 static volatile uint16_t timer_rate;
 
 static volatile uint16_t frame_number;
-static uint32_t frame_base_time;
 
 ISR(GFX_TIMER_CCC_vect){
 
@@ -211,11 +210,11 @@ PT_BEGIN( pt );
         
         */
 
-        uint16_t gfx_frame_rate = gfx_u16_get_vm_frame_rate();
-        base_rate = ( (uint32_t)gfx_frame_rate * TICKS_PER_SECOND ) / 1000;
-
         uint16_t timer_cnt = GFX_TIMER.CNT;
         uint32_t current_net_time = time_u32_get_network_time();
+
+        uint16_t gfx_frame_rate = gfx_u16_get_vm_frame_rate();
+        base_rate = ( (uint32_t)gfx_frame_rate * TICKS_PER_SECOND ) / 1000;
 
         uint16_t timer_cc = GFX_TIMER.CCC;
         uint32_t base_frame_time = (uint32_t)frame_number * base_rate;
@@ -240,9 +239,11 @@ PT_BEGIN( pt );
         int16_t frame_offset_ticks = (int64_t)current_net_time_ticks - (int64_t)frame_time;
 
         // log_v_debug_P( PSTR("%lu %lu %d"), frame_time, current_net_time_ticks, frame_offset_ticks );
-        log_v_debug_P( PSTR("%d"), frame_offset_ticks );
+        // log_v_debug_P( PSTR("%d"), frame_offset_ticks );
 
         uint16_t net_frame = current_net_time_ticks / base_rate;
+
+        log_v_debug_P( PSTR("%u %u %d"), frame_number, net_frame, frame_offset_ticks );
         
         if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 8 ){
 
@@ -544,7 +545,6 @@ PT_BEGIN( pt );
 
                     // frame sync:
                     ATOMIC;
-                    frame_base_time = net_time;
                     frame_number = 0;
                     END_ATOMIC;
                 }
