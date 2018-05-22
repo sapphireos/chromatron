@@ -40,7 +40,7 @@
 
 #define TICKS_PER_SECOND    31250
 
-#define BASE_RATE_MS        1000
+#define BASE_RATE_MS        250
 
 static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000;
 static volatile uint16_t timer_rate;
@@ -238,7 +238,7 @@ PT_BEGIN( pt );
         
 
         // uint32_t frame_time = base_frame_time + ( (int32_t)actual_next_cc - base_rate );
-        uint32_t frame_time = base_frame_time;
+        uint32_t frame_time = base_frame_time + elapsed_ticks;
 
 
 
@@ -248,14 +248,17 @@ PT_BEGIN( pt );
 
         uint32_t current_net_time_ticks = ( (uint64_t)current_net_time * TICKS_PER_SECOND ) / 1000;
 
-        log_v_debug_P( PSTR("%u %u %u %u %lu %lu %lu"), timer_cnt, timer_cc, last_cc, elapsed_ticks, base_frame_time + elapsed_ticks, current_net_time_ticks, current_net_time_ticks - (base_frame_time + elapsed_ticks) );
+        int16_t frame_offset_ticks = (int64_t)current_net_time_ticks - (int64_t)frame_time;
+
+        // log_v_debug_P( PSTR("%u %u %u %u %lu %lu %d"), timer_cnt, timer_cc, last_cc, elapsed_ticks, frame_time, current_net_time_ticks, frame_offset_ticks );
+        log_v_debug_P( PSTR("%d"), frame_offset_ticks );
         
 
         static uint32_t last_net_time_ticks;
         static uint32_t last_frame_time_ticks;
 
 
-        // int32_t frame_offset_ticks = (int64_t)frame_time - (int64_t)current_net_time_ticks;
+        
 
         uint16_t net_frame = current_net_time_ticks / base_rate;
         uint32_t net_frame_time = (uint32_t)net_frame * base_rate;
@@ -297,7 +300,7 @@ PT_BEGIN( pt );
 
         // int16_t timer_error = (int32_t)actual_next_cc - (int32_t)correct_next_cc;
 
-        int16_t timer_error = 0;
+        int16_t timer_error = frame_offset_ticks;
 
         /*
     
