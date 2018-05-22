@@ -4864,7 +4864,7 @@ class CodeGeneratorPass7(object):
                     file_magic=FILE_MAGIC,
                     prog_magic=PROGRAM_MAGIC,
                     isa_version=VM_ISA_VERSION,
-                    program_name_hash=catbus_string_hash(script_name),
+                    program_name_hash=catbus_string_hash(self.script_name),
                     code_len=code_len,
                     data_len=data_len,
                     pix_obj_len=len(packed_pix_objects),

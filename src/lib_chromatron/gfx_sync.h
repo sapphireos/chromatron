@@ -23,6 +23,11 @@
 
 #ifndef __GFX_SYNC_H
 	
+#include "target.h"
+
+#ifdef ENABLE_TIME_SYNC
+
+#endif
 
 
 #endif
