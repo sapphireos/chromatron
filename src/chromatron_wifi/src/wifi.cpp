@@ -400,7 +400,7 @@ void wifi_v_process( void ){
 
             uint32_t *timeout = (uint32_t *)list_vp_get_data( ln );
 
-            if( elapsed_millis( *timeout) > 1000 ){
+            if( elapsed_millis( *timeout ) > 1000 ){
 
                 list_v_release_node( ln );
 
