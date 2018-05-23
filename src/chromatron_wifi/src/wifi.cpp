@@ -461,12 +461,16 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
     // check tx buffer size
     if( list_u8_count( &tx_q ) >= TX_BUF_SIZE ){
 
+        intf_v_printf( "TX FIFO overrun" );
+
         return;
     }
 
     list_node_t ln = list_ln_create_node( 0, sizeof(wifi_msg_udp_header_t) + header->len );
 
     if( ln < 0 ){
+
+        intf_v_printf( "TX alloc fail" );
 
         // buffer full
         return;
