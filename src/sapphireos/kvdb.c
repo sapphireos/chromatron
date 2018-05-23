@@ -47,6 +47,8 @@
 
 
 static list_t db_list;
+static catbus_hash_t32 cache_hash;
+static list_node_t cache_ln;
 
 
 typedef struct{
@@ -84,7 +86,16 @@ static db_entry_t * _kvdb_dbp_search_hash( catbus_hash_t32 hash ){
         return 0;
     }
 
-    list_node_t ln = db_list.head;
+    list_node_t ln;
+
+    if( cache_hash == hash ){
+
+        ln = cache_ln;
+    }
+    else{
+
+        ln = db_list.head;
+    }
 
     while( ln > 0 ){
 
@@ -92,11 +103,14 @@ static db_entry_t * _kvdb_dbp_search_hash( catbus_hash_t32 hash ){
 
         if( entry->hash == hash ){
 
+            cache_hash = hash;
+            cache_ln = ln;
+
             return entry;
         }
 
         ln = list_ln_next( ln );
-    }   
+    }
 
     return 0;
 }
@@ -567,6 +581,9 @@ void kvdb_v_delete( catbus_hash_t32 hash ){
         ln = list_ln_next( ln );
     }   
 
+    cache_hash = 0;
+    cache_ln = -1;
+
     kv_v_reset_cache();
 }
 
@@ -588,7 +605,10 @@ void kvdb_v_delete_tag( uint8_t tag ){
         }
 
         ln = next_ln;
-    }   
+    } 
+
+    cache_hash = 0;
+    cache_ln = -1;  
 
     kv_v_reset_cache();
 }
