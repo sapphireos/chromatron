@@ -62,6 +62,20 @@ static bool request_ports;
 static bool ap_mode;
 // static bool scanning;
 
+static int32_t elapsed_millis( uint32_t start ){
+
+    uint32_t now = millis();
+    int32_t distance = (int32_t)( now - start );
+
+    // check for rollover
+    if( distance < 0 ){
+
+        distance = ( UINT32_MAX - now ) + abs(distance);
+    }
+
+    return distance;
+}
+
 
 static void led_on( void ){
 
@@ -341,7 +355,7 @@ void wifi_v_process( void ){
         if( ln < 0 ){
 
             // buffer full
-            return;
+            break;
         }
 
         list_v_insert_head( &rx_q, ln );
@@ -384,7 +398,18 @@ void wifi_v_process( void ){
 
         if( ln > 0 ){
 
-            wifi_msg_udp_header_t *header = (wifi_msg_udp_header_t *)list_vp_get_data( ln );
+            uint32_t *timeout = (uint32_t *)list_vp_get_data( ln );
+
+            if( elapsed_millis( *timeout) > 1000 ){
+
+                list_v_release_node( ln );
+
+                intf_v_printf( "TX timeout" );
+
+                return;                                
+            }
+
+            wifi_msg_udp_header_t *header = (wifi_msg_udp_header_t *)( timeout + 1 );
             uint8_t *tx_data = (uint8_t *)( header + 1 );
 
             // find matching UDP socket
@@ -466,7 +491,7 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
         return;
     }
 
-    list_node_t ln = list_ln_create_node( 0, sizeof(wifi_msg_udp_header_t) + header->len );
+    list_node_t ln = list_ln_create_node( 0, sizeof(uint32_t) + sizeof(wifi_msg_udp_header_t) + header->len );
 
     if( ln < 0 ){
 
@@ -480,7 +505,9 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
 
 
     // add to buffer
-    wifi_msg_udp_header_t *tx_header = (wifi_msg_udp_header_t *)list_vp_get_data( ln );
+    uint32_t *timeout = (uint32_t *)list_vp_get_data( ln );
+    *timeout = millis();
+    wifi_msg_udp_header_t *tx_header = (wifi_msg_udp_header_t *)( timeout + 1 );
     uint8_t *tx_data = (uint8_t *)( tx_header + 1 );
         
     memcpy( tx_header, header, sizeof(wifi_msg_udp_header_t) );
