@@ -399,17 +399,17 @@ void wifi_v_process( void ){
         if( ln > 0 ){
 
             uint32_t *timeout = (uint32_t *)list_vp_get_data( ln );
+            wifi_msg_udp_header_t *header = (wifi_msg_udp_header_t *)( timeout + 1 );
 
             if( elapsed_millis( *timeout ) > 1000 ){
 
                 list_v_release_node( ln );
 
-                intf_v_printf( "TX timeout" );
+                intf_v_printf( "TX timeout: %u -> %u", header->lport, header->rport );
 
                 return;                                
             }
 
-            wifi_msg_udp_header_t *header = (wifi_msg_udp_header_t *)( timeout + 1 );
             uint8_t *tx_data = (uint8_t *)( header + 1 );
 
             // find matching UDP socket
