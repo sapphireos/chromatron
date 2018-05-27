@@ -1724,7 +1724,12 @@ static int8_t process_rx_data( void ){
         wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
 
         wifi_version            = msg->version;
-        wifi_rssi               = msg->rssi;
+        
+        if( wifi_b_connected() ){
+            
+            wifi_rssi               = msg->rssi;
+        }
+        
         memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
 
         uint64_t current_device_id = 0;
