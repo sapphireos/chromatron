@@ -334,7 +334,9 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
     bool changed = FALSE;
 
-    for( uint8_t i = 0; i <= entry->count; i++ ){
+    uint16_t count = entry->count + 1;
+
+    while( count > 0 ){
 
         int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
 
@@ -345,6 +347,8 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
 
         data = (uint8_t *)data + type_u16_size( type );
         data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
+
+        count--;
     }
     
 
