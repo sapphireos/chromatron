@@ -1031,8 +1031,7 @@ void cfg_v_read_error_log( cfg_error_log_t *log ){
 
 void cfg_v_erase_error_log( void ){
 
-    ee_v_erase_block( CFG_FILE_ERROR_LOG_START, sizeof(cfg_error_log_t) );
-    // ee_v_write_byte_blocking( CFG_FILE_ERROR_LOG_START, 0xff );
+    ee_v_write_byte_blocking( CFG_FILE_ERROR_LOG_START, 0xff );
 }
 
 uint16_t cfg_u16_error_log_size( void ){
