@@ -243,7 +243,7 @@ PT_BEGIN( pt );
 
         uint16_t net_frame = current_net_time_ticks / base_rate;
 
-        log_v_debug_P( PSTR("%u %u %d"), frame_number, net_frame, frame_offset_ticks );
+        // log_v_debug_P( PSTR("%u %u %d"), frame_number, net_frame, frame_offset_ticks );
         
         if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 8 ){
 
