@@ -318,17 +318,17 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
         return KVDB_STATUS_NOT_FOUND;    
     }
 
-    uint16_t data_len = type_u16_size(type) * ( entry->count + 1 );
-
-    if( len < data_len ){
-
-        return KVDB_STATUS_NOT_ENOUGH_SPACE;
-    }
-
     // send type NONE indicates that source and destination types match
     if( type == CATBUS_TYPE_NONE ){
 
         type = entry->type;
+    }
+
+    uint16_t data_len = type_u16_size( type ) * ( (uint16_t)entry->count + 1 );
+
+    if( len < data_len ){
+
+        return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
@@ -343,8 +343,8 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
             changed = TRUE;
         }
 
-        data = (uint8_t *)data + type_u16_size( type );
-        data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
+        data += type_u16_size( type );
+        data_ptr += type_u16_size( entry->type );
     }
     
 
