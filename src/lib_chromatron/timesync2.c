@@ -19,6 +19,7 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+#if 0
 
 #include "sapphire.h"
 
@@ -691,4 +692,5 @@ PT_END( pt );
 // }
 
 
+#endif
 #endif
