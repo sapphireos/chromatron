@@ -629,7 +629,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, ( !vm_run[0] ) || ( !vm_reset[0] ) || ( vm_status[0] == 0 ) );
 
-        
+
         //
 
 
@@ -800,25 +800,6 @@ void vm_v_stop( void ){
 void vm_v_reset( void ){
 
     vm_reset[0] = TRUE;
-}
-
-// NOTE changing the program will not reload the VM.
-// You must call vm_v_reset to load the new program.
-
-void vm_v_set_program_P( PGM_P ptr ){
-
-    char progname[VM_MAX_FILENAME_LEN];
-
-    memset( progname, 0, sizeof(progname) );
-
-	strlcpy_P( progname, ptr, sizeof(progname) );
-
-    vm_v_set_program( progname );
-}
-
-void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] ){
-
-    kv_i8_set( __KV__vm_prog, progname, VM_MAX_FILENAME_LEN );
 }
 
 void vm_v_received_info( uint8_t index, vm_info_t *info ){

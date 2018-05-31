@@ -35,9 +35,6 @@ void vm_v_start( void );
 void vm_v_stop( void );
 void vm_v_reset( void );
 
-void vm_v_set_program_P( PGM_P ptr );
-void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] );
-
 void vm_v_received_info( uint8_t index, vm_info_t *info );
 
 bool vm_b_running( void );
