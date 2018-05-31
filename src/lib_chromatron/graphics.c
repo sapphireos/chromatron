@@ -554,7 +554,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     #endif
     else if( data_id == WIFI_DATA_ID_VM_INFO ){
 
-        if( len != sizeof(vm_info_t) ){
+        if( len != sizeof(wifi_msg_vm_info_t) ){
 
             return -1;
         }

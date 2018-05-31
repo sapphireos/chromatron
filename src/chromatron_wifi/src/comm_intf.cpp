@@ -682,7 +682,7 @@ void intf_v_process( void ){
 
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
-            vm_v_get_info( 0, &msg.vm_info[i] );
+            vm_v_get_info( i, &msg.vm_info[i] );
         }
 
         _intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
