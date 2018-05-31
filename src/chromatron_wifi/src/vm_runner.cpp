@@ -211,8 +211,8 @@ void vm_v_init( void ){
 
     for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
-        // vm_handles[i] = -1;
         vm_start[i] = -1;
+        vm_status[i] = VM_STATUS_NOT_RUNNING;
         vm_v_reset( i );
     }
 

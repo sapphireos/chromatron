@@ -43,7 +43,7 @@ static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
 static bool vm_running[VM_MAX_VMS];
 
-static int8_t vm_status[VM_MAX_VMS];
+static int8_t vm_status[VM_MAX_VMS] = {VM_STATUS_NOT_RUNNING};
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
@@ -226,11 +226,38 @@ static file_t get_program_handle( catbus_hash_t32 hash ){
 
 #ifdef VM_TARGET_ESP
 
-static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
+static int8_t send_reset_message( uint8_t vm_id ){
+
+    wifi_msg_reset_vm_t reset_msg;
+    reset_msg.vm_id = vm_id;
+
+    return wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
+}
+
+static int8_t load_vm_wifi( uint8_t vm_id ){
 
     wifi_msg_load_vm_t vm_load_msg;
 
     gfx_v_reset_subscribed();
+
+    catbus_hash_t32 hash = 0;
+    
+    if( vm_id == 0 ){
+
+        hash = __KV__vm_prog;
+    }
+    else if( vm_id == 1 ){
+
+        hash = __KV__vm_prog_1;
+    }
+    else if( vm_id == 2 ){
+
+        hash = __KV__vm_prog_2;
+    }
+    else if( vm_id == 3 ){
+
+        hash = __KV__vm_prog_3;
+    }
 
     file_t f = get_program_handle( hash );
 
@@ -239,9 +266,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
         return -1;
     }
 
-    wifi_msg_reset_vm_t reset_msg;
-    reset_msg.vm_id = vm_id;
-    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) ) < 0 ){
+    if( send_reset_message( vm_id ) < 0 ){
 
         goto error;
     }
@@ -278,7 +303,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
     
     catbus_v_purge_links( link_tag );
 
-    log_v_debug_P( PSTR("Loading VM") );
+    log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
 
     // file found, get program size from file header
     int32_t vm_size;
@@ -327,7 +352,6 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
     if( file_hash != computed_file_hash ){
 
         log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
-        vm_run[0] = FALSE;
         goto error;
     }
 
@@ -343,7 +367,6 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
     if( status < 0 ){
 
         log_v_debug_P( PSTR("VM load error: %d"), status );
-        vm_run[0] = FALSE;
         goto error;
     }
 
@@ -530,7 +553,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
 
     fs_f_close( f );
 
-    vm_status[vm_id]        = -127;
+    vm_status[vm_id]        = 0;
     vm_loop_time[vm_id]     = 0;
     vm_thread_time[vm_id]   = 0;
     vm_max_cycles[vm_id]    = 0;
@@ -602,6 +625,11 @@ error:
 // }
 #endif
 
+static bool is_vm_running( uint8_t vm_id ){
+
+    return vm_status[vm_id] == 0;
+}
+
 
 PT_THREAD( vm_loader( pt_t *pt, void *state ) )
 {
@@ -612,25 +640,71 @@ PT_BEGIN( pt );
     kvdb_v_set_name_P( PSTR("vm_2") );
     kvdb_v_set_name_P( PSTR("vm_3") );
 
+
+    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
+
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
-
+        
 #ifdef VM_TARGET_ESP
 
-        gfx_v_reset_subscribed();
-        reset_published_data();
+        // gfx_v_reset_subscribed();
+        // reset_published_data();
 
-        catbus_hash_t32 link_tag = __KV__vm_0;
-        catbus_v_purge_links( link_tag );
+        // catbus_hash_t32 link_tag = __KV__vm_0;
+        // catbus_v_purge_links( link_tag );
+
+    
+        THREAD_WAIT_WHILE( pt, 
+            ( !vm_run[0]  && !is_vm_running( 0 ) )  &&
+            ( vm_run[0]   && is_vm_running( 0 ) )   &&
+            ( vm_reset[0] )
+        );
+
+
+            // && ( vm_reset[0] == FALSE ) && ( vm_status[0] <= 0 ) );
+
+        // check what we're doing, and to what VM
 
         
+        for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
-        THREAD_WAIT_WHILE( pt, ( !vm_run[0] ) || ( !vm_reset[0] ) || ( vm_status[0] == 0 ) );
+            // 1. Did VM that was not running just get told to start?
+            if( vm_run[i] && !is_vm_running( i ) ){
+
+                if( load_vm_wifi( i ) < 0 ){
+
+                    vm_run[i] = FALSE;
+
+                    log_v_debug_P( PSTR("VM load fail") );
+
+                    goto error; 
+                }
+
+                break;
+            }
+            // 2. Did VM that was running just get told to stop?
+            else if( !vm_run[i] && is_vm_running( i ) ){
+
+                log_v_debug_P( PSTR("Stopping VM: %d"), i );
+                send_reset_message( i );
+                vm_status[i] = VM_STATUS_NOT_RUNNING;
+            }
+            // 3. Are we resetting a VM?
+            else if( vm_reset[i] && is_vm_running( i ) ){
+
+                log_v_debug_P( PSTR("Resetting VM: %d"), i );
+
+                send_reset_message( i );
+                vm_status[i] = VM_STATUS_NOT_RUNNING;
+            }
+
+            // always reset the reset
+            vm_reset[i] = FALSE;
+        }
 
 
-        //
 
 
 
@@ -639,56 +713,46 @@ PT_BEGIN( pt );
 
 
 
+        
+        // // wait for VM to finish loading
+        // TMR_WAIT( pt, 1000 );
+
+        // log_v_debug_P( PSTR("VM load sts: %d loop: %u fade: %u"),
+        //                vm_status[0],
+        //                vm_loop_time[0],
+        //                vm_fader_time );
 
 
+        // if( vm_status[0] < 0 ){
+
+        //     goto error;
+        // }
+
+        // vm_reset[0] = FALSE;
+        // THREAD_WAIT_WHILE( pt, ( vm_reset[0] == FALSE ) &&
+        //                        ( vm_run[0] == TRUE ) &&
+        //                        ( vm_status[0] == 0 ) );
+
+
+        // log_v_debug_P( PSTR("VM halt sts: %d loop: %u fade: %u"),
+        //                vm_status[0],
+        //                vm_loop_time[0],
+        //                vm_fader_time );
+
+
+        // wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, 0, 0 );
+
+        // if( vm_status[0] < 0 ){
+
+        //     goto error;
+        // }
+        
+        // if( vm_status[0] == VM_STATUS_HALT ){
+
+        //     vm_run[0] = FALSE;                
+        // }
 
         TMR_WAIT( pt, 100 );
-
-        if( load_vm_wifi( __KV__vm_prog, 0 ) < 0 ){
-
-            goto error;
-        }
-        
-        // vm_running[0] = TRUE;
-        
-        // wait for VM to finish loading
-        TMR_WAIT( pt, 1000 );
-
-        log_v_debug_P( PSTR("VM load sts: %d loop: %u fade: %u"),
-                       vm_status[0],
-                       vm_loop_time[0],
-                       vm_fader_time );
-
-
-        if( vm_status[0] < 0 ){
-
-            goto error;
-        }
-
-        vm_reset[0] = FALSE;
-        THREAD_WAIT_WHILE( pt, ( vm_reset[0] == FALSE ) &&
-                               ( vm_run[0] == TRUE ) &&
-                               ( vm_status[0] == 0 ) );
-
-
-        log_v_debug_P( PSTR("VM halt sts: %d loop: %u fade: %u"),
-                       vm_status[0],
-                       vm_loop_time[0],
-                       vm_fader_time );
-
-
-        wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, 0, 0 );
-
-        if( vm_status[0] < 0 ){
-
-            goto error;
-        }
-        
-        if( vm_status[0] == VM_STATUS_HALT ){
-
-            vm_run[0] = FALSE;                
-        }
-
         THREAD_YIELD( pt );
         THREAD_RESTART( pt );
 
