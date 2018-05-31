@@ -39,9 +39,9 @@
 #include "vm_config.h"
 
 
-static bool vm_reset;
-static bool vm_run;
-static bool vm_running;
+static bool vm_reset[VM_MAX_VMS];
+static bool vm_run[VM_MAX_VMS];
+static bool vm_running[VM_MAX_VMS];
 
 static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
@@ -72,14 +72,39 @@ int8_t vm_i8_kv_handler(
 
 
 KV_SECTION_META kv_meta_t vm_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset,             0,                  "vm_reset" },
-    { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run,               0,                  "vm_run" },
+    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm_reset" },
+    { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_max_cycles" },
+
+    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
+    { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
+    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
+    { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[1],         0,                  "vm_status_1" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_max_cycles_1" },
+
+    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
+    { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
+    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
+    { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[2],         0,                  "vm_status_2" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_max_cycles_2" },
+
+    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
+    { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
+    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
+    { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[3],         0,                  "vm_status_3" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_max_cycles_3" },
+
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
@@ -279,7 +304,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
     if( file_hash != computed_file_hash ){
 
         log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
-        vm_run = FALSE;
+        vm_run[0] = FALSE;
         goto error;
     }
 
@@ -295,7 +320,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
     if( status < 0 ){
 
         log_v_debug_P( PSTR("VM load error: %d"), status );
-        vm_run = FALSE;
+        vm_run[0] = FALSE;
         goto error;
     }
 
@@ -574,9 +599,9 @@ PT_BEGIN( pt );
         catbus_hash_t32 link_tag = __KV__vm_0;
         catbus_v_purge_links( link_tag );
 
-        vm_running = FALSE;
+        vm_running[0] = FALSE;
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() || !vm_run );
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() || !vm_run[0] );
 
         TMR_WAIT( pt, 100 );
 
@@ -585,7 +610,7 @@ PT_BEGIN( pt );
             goto error;
         }
         
-        vm_running = TRUE;
+        vm_running[0] = TRUE;
         
         // wait for VM to finish loading
         TMR_WAIT( pt, 1000 );
@@ -604,9 +629,9 @@ PT_BEGIN( pt );
         // #ifdef ENABLE_TIME_SYNC
         // gfx_v_reset_frame_sync();
         // #endif
-        vm_reset = FALSE;
-        THREAD_WAIT_WHILE( pt, ( vm_reset == FALSE ) &&
-                               ( vm_run == TRUE ) &&
+        vm_reset[0] = FALSE;
+        THREAD_WAIT_WHILE( pt, ( vm_reset[0] == FALSE ) &&
+                               ( vm_run[0] == TRUE ) &&
                                ( vm_status[0] == 0 ) );
 
 
@@ -625,7 +650,7 @@ PT_BEGIN( pt );
         
         if( vm_status[0] == VM_STATUS_HALT ){
 
-            vm_run = FALSE;                
+            vm_run[0] = FALSE;                
         }
 
         THREAD_YIELD( pt );
@@ -728,17 +753,17 @@ void vm_v_init( void ){
 
 void vm_v_start( void ){
 
-    vm_run = TRUE;
+    vm_run[0] = TRUE;
 }
 
 void vm_v_stop( void ){
 
-    vm_run = FALSE;
+    vm_run[0] = FALSE;
 }
 
 void vm_v_reset( void ){
 
-    vm_reset = TRUE;
+    vm_reset[0] = TRUE;
 }
 
 // NOTE changing the program will not reload the VM.
@@ -775,5 +800,5 @@ void vm_v_received_info( uint8_t index, vm_info_t *info ){
 
 bool vm_b_running( void ){
 
-    return vm_running;
+    return vm_running[0];
 }
