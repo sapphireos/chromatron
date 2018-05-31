@@ -252,11 +252,15 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
     }
     else if( data_id == WIFI_DATA_ID_RESET_VM ){
 
-        vm_v_reset( 0 );
+        wifi_msg_reset_vm_t *msg = (wifi_msg_reset_vm_t *)data;
+
+        vm_v_reset( msg->vm_id );
     }
     else if( data_id == WIFI_DATA_ID_LOAD_VM ){
 
-        vm_i8_load( data, len, 0 );
+        wifi_msg_load_vm_t *msg = (wifi_msg_load_vm_t *)data;
+
+        vm_i8_load( msg->chunk, len - sizeof(msg->vm_id), msg->vm_id );
     }
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 

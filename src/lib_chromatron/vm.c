@@ -66,7 +66,7 @@ int8_t vm_i8_kv_handler(
 
 
 KV_SECTION_META kv_meta_t vm_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset,             vm_i8_kv_handler,   "vm_reset" },
+    { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset,             0,                  "vm_reset" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run,               0,                  "vm_run" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_info.status,       0,                  "vm_status" },
@@ -195,7 +195,9 @@ static file_t get_program_handle( catbus_hash_t32 hash ){
 
 #ifdef VM_TARGET_ESP
 
-static int8_t load_vm_wifi( catbus_hash_t32 hash ){
+static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
+
+    wifi_msg_load_vm_t vm_load_msg;
 
     gfx_v_reset_subscribed();
 
@@ -206,7 +208,9 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
         return -1;
     }
 
-    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, 0, 0 ) < 0 ){
+    wifi_msg_reset_vm_t reset_msg;
+    reset_msg.vm_id = vm_id;
+    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) ) < 0 ){
 
         goto error;
     }
@@ -312,7 +316,9 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
             goto error;
         }
 
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, chunk, read ) < 0 ){
+        vm_load_msg.vm_id = vm_id;
+        memcpy( vm_load_msg.chunk, chunk, read );
+        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, chunk, read + sizeof(vm_load_msg.vm_id) ) < 0 ){
 
             // comm error
             goto error;
@@ -464,7 +470,8 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash ){
     // send len 0 to indicate load complete.
     // this will trigger the init function, so we want to do this
     // after the database has been initializd.
-    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, 0, 0 ) < 0 ){
+    vm_load_msg.vm_id = vm_id;
+    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, sizeof(vm_load_msg.vm_id) ) < 0 ){
 
         // comm error
         goto error;
@@ -571,7 +578,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 100 );
 
-        if( load_vm_wifi( __KV__vm_prog ) < 0 ){
+        if( load_vm_wifi( __KV__vm_prog, 0 ) < 0 ){
 
             goto error;
         }

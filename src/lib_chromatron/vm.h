@@ -26,6 +26,7 @@
 #include "vm_core.h"
 
 #define VM_MAX_FILENAME_LEN 	32
+#define VM_MAX_VMS 				4
 
 #define VM_KV_TAG_START   		0x30
 
