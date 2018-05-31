@@ -683,9 +683,9 @@ PT_BEGIN( pt );
                 ( vm_status[i] < 0 ) ){
 
                 vm_run[i] = FALSE;
+                vm_reset[i] = FALSE;
 
                 log_v_debug_P( PSTR("VM %d error: %d"), i, vm_status[i] );
-                continue;
             }
 
             // Are we resetting a VM?
@@ -709,7 +709,7 @@ PT_BEGIN( pt );
                     goto error; 
                 }
 
-                break;
+                vm_status[i] = VM_STATUS_OK;
             }
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
