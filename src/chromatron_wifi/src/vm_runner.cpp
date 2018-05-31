@@ -332,7 +332,11 @@ void vm_v_reset( uint8_t vm_index ){
 
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
-    vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
+    // don't reset status if there is an error
+    if( vm_status[vm_index] >= 0 ){
+        
+        vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
+    }
 
     vm_load_len = 0;
 
@@ -404,7 +408,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
         if( status < 0 ){
 
-            return status;
+            goto end;
         }
 
         // init RNG seed to device ID
@@ -429,6 +433,13 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
         
         // run init function
         status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
+    }
+
+end:
+
+    if( status < 0 ){
+
+        vm_v_reset( vm_index );
     }
 
     return status;
