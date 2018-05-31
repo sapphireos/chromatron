@@ -44,7 +44,7 @@
 #define VM_MAX_THREADS              4
 
 #define VM_STATUS_OK                    0
-#define VM_STATUS_ERR_BAD_CRC           -1
+#define VM_STATUS_ERR_BAD_HASH          -1
 #define VM_STATUS_ERR_BAD_FILE_MAGIC    -2
 #define VM_STATUS_ERR_BAD_PROG_MAGIC    -3
 #define VM_STATUS_ERR_INVALID_ISA       -4

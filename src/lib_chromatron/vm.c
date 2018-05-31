@@ -28,7 +28,6 @@
 #include "fs.h"
 #include "random.h"
 #include "graphics.h"
-#include "crc.h"
 #include "esp8266.h"
 #include "hash.h"
 #include "kvdb.h"

@@ -397,9 +397,8 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
             status = VM_STATUS_CODE_MISALIGN;
         }
-
         // check that data pointer starts on 32 bit boundary
-        if( ( (uint32_t)data_start & 0x03 ) != 0 ){
+        else if( ( (uint32_t)data_start & 0x03 ) != 0 ){
 
             status = VM_STATUS_DATA_MISALIGN;
         }

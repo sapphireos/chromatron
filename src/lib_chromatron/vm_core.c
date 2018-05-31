@@ -23,9 +23,9 @@
 #include <string.h>
 #include "gfx_lib.h"
 #include "random.h"
-#include "crc.h"
 #include "vm_core.h"
 #include "trig.h"
+#include "hash.h"
 #include "vm_config.h"
 
 #ifdef VM_ENABLE_KV
@@ -1606,7 +1606,6 @@ void vm_v_set_data(
     data_table[addr] = data;
 }
 
-
 int8_t vm_i8_load_program(
     uint8_t flags,
     uint8_t *stream,
@@ -1627,9 +1626,13 @@ int8_t vm_i8_load_program(
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) == 0 ){
 
         // verify crc
-        if( crc_u16_block( stream, len ) != 0 ){
+        uint32_t check_len = len - sizeof(uint32_t);
+        uint32_t hash;
+        memcpy( &hash, stream + check_len, sizeof(hash) );
 
-            return VM_STATUS_ERR_BAD_CRC;
+        if( hash_u32_data( stream, check_len ) != hash ){
+
+            return VM_STATUS_ERR_BAD_HASH;
         }
     }
 

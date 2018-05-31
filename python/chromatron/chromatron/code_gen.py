@@ -1,4 +1,3 @@
-
 # <license>
 # 
 #     This file is part of the Sapphire Operating System.
@@ -26,7 +25,6 @@ import ast
 import struct
 import sys
 import random
-import crcmod
 from elysianfields import *
 from catbus import *
 import trig
@@ -149,8 +147,6 @@ class Link(StructField):
 
 def string_hash_func(s):
     return catbus_string_hash(s)
-
-crc16_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
 
 class FunctionCallsNotSupported(Exception):
     pass
@@ -4908,9 +4904,9 @@ class CodeGeneratorPass7(object):
                     stream += struct.pack('<l', 0) # int32
 
 
-        # make 16 bit CRC
-        crc = crc16_func(stream)
-        stream += struct.pack('>H', crc)
+        # create hash of stream
+        stream_hash = catbus_string_hash(stream)
+        stream += struct.pack('<L', stream_hash)
 
 
         # but wait, that's not all!
@@ -4954,7 +4950,6 @@ class CodeGeneratorPass7(object):
 
         self.state.update(
                {'stream': stream,
-                'crc': crc,
                 'file_hash': file_hash,
                 'data_len': data_len,
                 'code_len': code_len})
@@ -6048,30 +6043,30 @@ def compile_text(text, debug_print=False, script_name=''):
 #     return state7
 
 
-# returns address to registers mapping
-def get_register_lookup(bin_data):
-    prog_len = struct.unpack('<l', bin_data[0:4])[0]
-    bin_data = bin_data[4:]
+# # returns address to registers mapping
+# def get_register_lookup(bin_data):
+#     prog_len = struct.unpack('<l', bin_data[0:4])[0]
+#     bin_data = bin_data[4:]
 
-    meta = bin_data[prog_len:]
+#     meta = bin_data[prog_len:]
 
-    # strip CRC
-    meta = meta[:-2]
+#     # strip CRC
+#     meta = meta[:-2]
 
-    meta_magic = struct.unpack('<L', meta[0:4])[0]
-    assert meta_magic == META_MAGIC
-    meta = meta[4:]
+#     meta_magic = struct.unpack('<L', meta[0:4])[0]
+#     assert meta_magic == META_MAGIC
+#     meta = meta[4:]
 
-    reg_names = [a for a in meta.split('\0')][:-1] # remove last entry, which is quirk of Python's split method
-    reg_names = reg_names[1:] # remove first entry, which is script name
-    addr = 0
-    registers = {}
+#     reg_names = [a for a in meta.split('\0')][:-1] # remove last entry, which is quirk of Python's split method
+#     reg_names = reg_names[1:] # remove first entry, which is script name
+#     addr = 0
+#     registers = {}
 
-    for reg in reg_names:
-        registers[addr] = reg
-        addr += 1
+#     for reg in reg_names:
+#         registers[addr] = reg
+#         addr += 1
 
-    return registers
+#     return registers
 
 def compile_script(path, debug_print=False):
     script_name = os.path.split(path)[1]
