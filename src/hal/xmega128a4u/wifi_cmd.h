@@ -174,12 +174,12 @@ typedef struct __attribute__((packed)){
 
 
 typedef struct __attribute__((packed)){
-    uint8_t vm_id;
+    uint32_t vm_id;
 } wifi_msg_reset_vm_t;
 #define WIFI_DATA_ID_RESET_VM          0x20
 
 typedef struct __attribute__((packed)){
-    uint8_t vm_id;
+    uint32_t vm_id;
     uint8_t chunk[64];
 } wifi_msg_load_vm_t;
 #define WIFI_DATA_ID_LOAD_VM           0x21

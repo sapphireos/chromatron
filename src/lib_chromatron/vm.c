@@ -236,9 +236,6 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
         goto error;
     }
 
-    // buffer for reading file data
-    uint8_t chunk[64];
-
     fs_v_seek( f, 0 );    
     int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
 
@@ -247,14 +244,14 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
     // check file hash
     while( check_len > 0 ){
 
-        uint16_t copy_len = sizeof(chunk);
+        uint16_t copy_len = sizeof(vm_load_msg.chunk);
 
         if( copy_len > check_len ){
 
             copy_len = check_len;
         }
 
-        int16_t read = fs_i16_read( f, chunk, copy_len );
+        int16_t read = fs_i16_read( f, vm_load_msg.chunk, copy_len );
 
         if( read < 0 ){
 
@@ -263,7 +260,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
         }
 
         // update hash
-        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
+        computed_file_hash = hash_u32_partial( computed_file_hash, vm_load_msg.chunk, copy_len );
         
         check_len -= read;
     }
@@ -301,14 +298,14 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
 
     while( vm_size > 0 ){
 
-        uint16_t copy_len = sizeof(chunk);
+        uint16_t copy_len = sizeof(vm_load_msg.chunk);
 
         if( copy_len > vm_size ){
 
             copy_len = vm_size;
         }
 
-        int16_t read = fs_i16_read( f, chunk, copy_len );
+        int16_t read = fs_i16_read( f, vm_load_msg.chunk, copy_len );
 
         if( read < 0 ){
 
@@ -317,8 +314,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
         }
 
         vm_load_msg.vm_id = vm_id;
-        memcpy( vm_load_msg.chunk, chunk, read );
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, chunk, read + sizeof(vm_load_msg.vm_id) ) < 0 ){
+        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, read + sizeof(vm_load_msg.vm_id) ) < 0 ){
 
             // comm error
             goto error;
