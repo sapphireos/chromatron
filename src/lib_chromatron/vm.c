@@ -252,7 +252,30 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
 
     gfx_v_sync_params();
 
-    catbus_hash_t32 link_tag = __KV__vm_0;
+    catbus_hash_t32 link_tag = 0;
+
+    if( vm_id == 0 ){
+
+        link_tag = __KV__vm_0;
+    }
+    else if( vm_id == 1 ){
+
+        link_tag = __KV__vm_1;
+    }
+    else if( vm_id == 2 ){
+
+        link_tag = __KV__vm_2;
+    }
+    else if( vm_id == 3 ){
+
+        link_tag = __KV__vm_3;
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    
     catbus_v_purge_links( link_tag );
 
     log_v_debug_P( PSTR("Loading VM") );
@@ -591,6 +614,9 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
+
 #ifdef VM_TARGET_ESP
 
         gfx_v_reset_subscribed();
@@ -599,9 +625,22 @@ PT_BEGIN( pt );
         catbus_hash_t32 link_tag = __KV__vm_0;
         catbus_v_purge_links( link_tag );
 
-        vm_running[0] = FALSE;
+        
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() || !vm_run[0] );
+        THREAD_WAIT_WHILE( pt, ( !vm_run[0] ) || ( !vm_reset[0] ) || ( vm_status[0] == 0 ) );
+
+        
+        //
+
+
+
+
+
+
+
+
+
+
 
         TMR_WAIT( pt, 100 );
 
@@ -610,7 +649,7 @@ PT_BEGIN( pt );
             goto error;
         }
         
-        vm_running[0] = TRUE;
+        // vm_running[0] = TRUE;
         
         // wait for VM to finish loading
         TMR_WAIT( pt, 1000 );
@@ -626,9 +665,6 @@ PT_BEGIN( pt );
             goto error;
         }
 
-        // #ifdef ENABLE_TIME_SYNC
-        // gfx_v_reset_frame_sync();
-        // #endif
         vm_reset[0] = FALSE;
         THREAD_WAIT_WHILE( pt, ( vm_reset[0] == FALSE ) &&
                                ( vm_run[0] == TRUE ) &&
