@@ -41,9 +41,8 @@
 
 static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
-static bool vm_running[VM_MAX_VMS];
 
-static int8_t vm_status[VM_MAX_VMS] = {VM_STATUS_NOT_RUNNING};
+static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
@@ -659,52 +658,70 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, 
             ( !vm_run[0]  && !is_vm_running( 0 ) )  &&
             ( vm_run[0]   && is_vm_running( 0 ) )   &&
-            ( vm_reset[0] )
+            ( vm_reset[0] )                         &&
+
+            ( !vm_run[1]  && !is_vm_running( 1 ) )  &&
+            ( vm_run[1]   && is_vm_running( 1 ) )   &&
+            ( vm_reset[1] )                         &&
+
+            ( !vm_run[2]  && !is_vm_running( 2 ) )  &&
+            ( vm_run[2]   && is_vm_running( 2 ) )   &&
+            ( vm_reset[2] )                         &&
+
+            ( !vm_run[3]  && !is_vm_running( 3 ) )  &&
+            ( vm_run[3]   && is_vm_running( 3 ) )   &&
+            ( vm_reset[3] )                         
         );
 
 
-            // && ( vm_reset[0] == FALSE ) && ( vm_status[0] <= 0 ) );
-
-        // check what we're doing, and to what VM
-
-        
+        // check what we're doing, and to what VM    
         for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
-            // 1. Did VM that was not running just get told to start?
+            // Was there an error and the VM is running
+            if( ( vm_run[i] ) &&
+                ( vm_status[i] != VM_STATUS_NOT_RUNNING ) &&
+                ( vm_status[i] < 0 ) ){
+
+                vm_run[i] = FALSE;
+
+                log_v_debug_P( PSTR("VM %d error: %d"), i, vm_status[i] );
+                continue;
+            }
+
+            // Are we resetting a VM?
+            if( vm_reset[i] && is_vm_running( i ) ){
+
+                log_v_debug_P( PSTR("Resetting VM: %d"), i );
+
+                vm_status[i] = VM_STATUS_NOT_RUNNING;
+            }
+
+            // Did VM that was not running just get told to start?
+            // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) ){
 
                 if( load_vm_wifi( i ) < 0 ){
 
                     vm_run[i] = FALSE;
 
-                    log_v_debug_P( PSTR("VM load fail") );
+                    log_v_debug_P( PSTR("VM load fail: %d"), i );
 
                     goto error; 
                 }
 
                 break;
             }
-            // 2. Did VM that was running just get told to stop?
+            // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
 
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
                 send_reset_message( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
             }
-            // 3. Are we resetting a VM?
-            else if( vm_reset[i] && is_vm_running( i ) ){
-
-                log_v_debug_P( PSTR("Resetting VM: %d"), i );
-
-                send_reset_message( i );
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-            }
-
+            
             // always reset the reset
             vm_reset[i] = FALSE;
         }
-
-
 
 
 
@@ -841,6 +858,8 @@ void vm_v_init( void ){
         return;
     }
 
+    memset( vm_status, VM_STATUS_NOT_RUNNING, sizeof(vm_status) );
+
     thread_t_create( vm_loader,
                  PSTR("vm_loader"),
                  0,
@@ -881,5 +900,13 @@ void vm_v_received_info( uint8_t index, vm_info_t *info ){
 
 bool vm_b_running( void ){
 
-    return vm_running[0];
+    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        if( is_vm_running( i ) ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
 }

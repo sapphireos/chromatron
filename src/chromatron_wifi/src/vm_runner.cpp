@@ -237,7 +237,11 @@ void vm_v_process( void ){
 
     if( run_vm ){
 
-        _vm_i8_run_vm( VM_RUN_LOOP, 0 ); 
+        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+            _vm_i8_run_vm( VM_RUN_LOOP, i ); 
+        }
+
         run_vm = false;
     }
 
@@ -267,7 +271,10 @@ void vm_v_process( void ){
 
         thread_tick = millis();
 
-        _vm_i8_run_vm( VM_RUN_THREADS, 0 );
+        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+            _vm_i8_run_vm( VM_RUN_THREADS, i );
+        }
     }
 }
 
@@ -325,7 +332,7 @@ void vm_v_reset( uint8_t vm_index ){
 
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
-    vm_status[vm_index] = -127;
+    vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
 
     vm_load_len = 0;
 
@@ -346,7 +353,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     }
 
     // reset status codes
-    vm_status[vm_index] = -127;
+    vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
 
     int8_t status = 0;
 

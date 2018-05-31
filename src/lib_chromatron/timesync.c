@@ -101,6 +101,7 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
 
 
 void time_v_init( void ){
+    return;
 
     timer_rate = base_rate;
 
