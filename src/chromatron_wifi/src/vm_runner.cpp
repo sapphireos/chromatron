@@ -113,7 +113,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
     }
 
     // check that VM has not halted:
-    if( vm_info.return_code == VM_STATUS_HALT ){
+    if( vm_info.status == VM_STATUS_HALT ){
 
         return 0;
     }
@@ -156,6 +156,11 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         intf_v_request_vm_info();
     }
 
+    if( return_code == VM_STATUS_HALT ){
+
+        vm_info.status = VM_STATUS_HALT;
+    }
+
     uint32_t elapsed = elapsed_time_micros( start_time );
 
     if( mode == VM_RUN_LOOP ){
@@ -168,7 +173,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
     }
 
     vm_info.max_cycles = vm_state[vm_index].max_cycles;
-    vm_info.return_code = return_code;
 
     // queue published vars for transport
     vm_publish_t *publish = (vm_publish_t *)&stream[vm_state[vm_index].publish_start];
@@ -318,7 +322,6 @@ void vm_v_reset( uint8_t vm_index ){
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
     vm_info.status = -127;
-    vm_info.return_code = -127;
 
     vm_load_len = 0;
 
@@ -340,7 +343,6 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
     // reset status codes
     vm_info.status = -127;
-    vm_info.return_code = -127;
 
     int8_t status = 0;
 
