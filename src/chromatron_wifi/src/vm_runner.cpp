@@ -41,7 +41,11 @@ static vm_state_t vm_state[VM_MAX_VMS];
 
 static uint16_t vm_total_size;
 
-static vm_info_t vm_info;
+static int8_t vm_status[VM_MAX_VMS];
+static uint16_t vm_loop_time[VM_MAX_VMS];
+static uint16_t vm_fader_time;
+static uint16_t vm_thread_time[VM_MAX_VMS];
+static uint16_t vm_max_cycles[VM_MAX_VMS];
 
 static bool run_vm;
 static bool run_faders;
@@ -107,13 +111,13 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
     }
 
     // check that VM was loaded with no errors
-    if( vm_info.status < 0 ){
+    if( vm_status[vm_index] < 0 ){
 
         return -20;
     }
 
     // check that VM has not halted:
-    if( vm_info.status == VM_STATUS_HALT ){
+    if( vm_status[vm_index] == VM_STATUS_HALT ){
 
         return 0;
     }
@@ -158,21 +162,21 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     if( return_code == VM_STATUS_HALT ){
 
-        vm_info.status = VM_STATUS_HALT;
+        vm_status[vm_index] = VM_STATUS_HALT;
     }
 
     uint32_t elapsed = elapsed_time_micros( start_time );
 
     if( mode == VM_RUN_LOOP ){
     
-        vm_info.loop_time = elapsed;
+        vm_loop_time[vm_index] = elapsed;
     }
     else if( mode == VM_RUN_THREADS ){
     
-        vm_info.thread_time = elapsed;
+        vm_thread_time[vm_index] = elapsed;
     }
 
-    vm_info.max_cycles = vm_state[vm_index].max_cycles;
+    vm_max_cycles[vm_index] = vm_state[vm_index].max_cycles;
 
     // queue published vars for transport
     vm_publish_t *publish = (vm_publish_t *)&stream[vm_state[vm_index].publish_start];
@@ -254,7 +258,7 @@ void vm_v_process( void ){
         // TODO this will have rollover issues
         uint32_t elapsed = micros() - start;
 
-        vm_info.fader_time = elapsed;
+        vm_fader_time = elapsed;
 
         run_faders = false;
     }
@@ -321,7 +325,7 @@ void vm_v_reset( uint8_t vm_index ){
 
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
-    vm_info.status = -127;
+    vm_status[vm_index] = -127;
 
     vm_load_len = 0;
 
@@ -342,7 +346,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     }
 
     // reset status codes
-    vm_info.status = -127;
+    vm_status[vm_index] = -127;
 
     int8_t status = 0;
 
@@ -389,7 +393,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
             status = VM_STATUS_DATA_MISALIGN;
         }
 
-        vm_info.status = status;
+        vm_status[vm_index] = status;
 
         if( status < 0 ){
 
@@ -430,7 +434,7 @@ int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
         return 0;
     }
 
-    if( vm_info.status < 0 ){
+    if( vm_status[vm_index] < 0 ){
 
         return 0;
     }
@@ -452,7 +456,7 @@ void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
         return;
     }
 
-    if( vm_info.status < 0 ){
+    if( vm_status[vm_index] < 0 ){
 
         return;
     }
@@ -469,7 +473,16 @@ void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
 
 void vm_v_get_info( uint8_t index, vm_info_t *info ){
 
-    *info = vm_info;
+    if( index >= VM_MAX_VMS ){
+
+        return;
+    }
+
+    info->status        = vm_status[index];
+    info->loop_time     = vm_loop_time[index];
+    info->thread_time   = vm_thread_time[index];
+    info->max_cycles    = vm_max_cycles[index];
+    info->fader_time    = vm_fader_time;
 }
 
 int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){

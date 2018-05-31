@@ -43,7 +43,12 @@ static bool vm_reset;
 static bool vm_run;
 static bool vm_running;
 
-static vm_info_t vm_info;
+static int8_t vm_status[VM_MAX_VMS];
+static uint16_t vm_loop_time[VM_MAX_VMS];
+static uint16_t vm_fader_time;
+static uint16_t vm_thread_time[VM_MAX_VMS];
+static uint16_t vm_max_cycles[VM_MAX_VMS];
+
 
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
@@ -70,11 +75,11 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset,             0,                  "vm_reset" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run,               0,                  "vm_run" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
-    { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_info.status,       0,                  "vm_status" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.loop_time,    0,                  "vm_loop_time" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.fader_time,   0,                  "vm_fade_time" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.thread_time,  0,                  "vm_thread_time" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_info.max_cycles,   0,                  "vm_max_cycles" },
+    { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_max_cycles" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
@@ -435,7 +440,7 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
             // check for match
             if( restricted_key == write_hash ){
 
-                vm_info.status = VM_STATUS_RESTRICTED_KEY;
+                vm_status[vm_id] = VM_STATUS_RESTRICTED_KEY;
 
                 log_v_debug_P( PSTR("Restricted key: %lu"), write_hash );
 
@@ -477,10 +482,10 @@ static int8_t load_vm_wifi( catbus_hash_t32 hash, uint8_t vm_id ){
 
     fs_f_close( f );
 
-
-    vm_info.status = -127;
-    vm_info.loop_time = 0;
-    vm_info.fader_time = 0;
+    vm_status[vm_id]        = -127;
+    vm_loop_time[vm_id]     = 0;
+    vm_thread_time[vm_id]   = 0;
+    vm_max_cycles[vm_id]    = 0;
 
     return 0;
 
@@ -586,12 +591,12 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 );
 
         log_v_debug_P( PSTR("VM load sts: %d loop: %u fade: %u"),
-                       vm_info.status,
-                       vm_info.loop_time,
-                       vm_info.fader_time );
+                       vm_status[0],
+                       vm_loop_time[0],
+                       vm_fader_time );
 
 
-        if( vm_info.status < 0 ){
+        if( vm_status[0] < 0 ){
 
             goto error;
         }
@@ -602,23 +607,23 @@ PT_BEGIN( pt );
         vm_reset = FALSE;
         THREAD_WAIT_WHILE( pt, ( vm_reset == FALSE ) &&
                                ( vm_run == TRUE ) &&
-                               ( vm_info.status == 0 ) );
+                               ( vm_status[0] == 0 ) );
 
 
         log_v_debug_P( PSTR("VM halt sts: %d loop: %u fade: %u"),
-                       vm_info.status,
-                       vm_info.loop_time,
-                       vm_info.fader_time );
+                       vm_status[0],
+                       vm_loop_time[0],
+                       vm_fader_time );
 
 
         wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, 0, 0 );
 
-        if( vm_info.status < 0 ){
+        if( vm_status[0] < 0 ){
 
             goto error;
         }
         
-        if( vm_info.status == VM_STATUS_HALT ){
+        if( vm_status[0] == VM_STATUS_HALT ){
 
             vm_run = FALSE;                
         }
@@ -757,7 +762,15 @@ void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] ){
 
 void vm_v_received_info( uint8_t index, vm_info_t *info ){
 
-    vm_info = *info;
+    if( index >= VM_MAX_VMS ){
+
+        return;
+    }
+
+    vm_status[index]        = info->status;
+    vm_loop_time[index]     = info->loop_time;
+    vm_thread_time[index]   = info->thread_time;
+    vm_fader_time           = info->fader_time;
 }
 
 bool vm_b_running( void ){
