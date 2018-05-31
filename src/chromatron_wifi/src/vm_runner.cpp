@@ -338,6 +338,10 @@ void vm_v_reset( uint8_t vm_index ){
         vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
     }
 
+    vm_loop_time[vm_index] = 0;
+    vm_thread_time[vm_index] = 0;
+    vm_max_cycles[vm_index] = 0;
+
     vm_load_len = 0;
 
     vm_v_clear_db( KVDB_VM_RUNNER_TAG + vm_index );

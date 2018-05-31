@@ -719,6 +719,10 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
                 send_reset_message( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
+
+                vm_loop_time[i]     = 0;
+                vm_thread_time[i]   = 0;
+                vm_max_cycles[i]    = 0;
             }
             
             // always reset the reset
