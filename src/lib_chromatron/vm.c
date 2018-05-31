@@ -681,12 +681,21 @@ PT_BEGIN( pt );
             // Was there an error and the VM is running
             if( ( vm_run[i] ) &&
                 ( vm_status[i] != VM_STATUS_NOT_RUNNING ) &&
-                ( vm_status[i] < 0 ) ){
+                ( vm_status[i] != 0 ) ){
 
                 vm_run[i] = FALSE;
                 vm_reset[i] = FALSE;
 
-                log_v_debug_P( PSTR("VM %d error: %d"), i, vm_status[i] );
+                if( vm_status[i] == VM_STATUS_HALT ){
+
+                    // this isn't actually an error, it is the VM
+                    // signalling the script has requested a stop.
+                    log_v_debug_P( PSTR("VM %d halted"), i );
+                }
+                else{
+
+                    log_v_debug_P( PSTR("VM %d error: %d"), i, vm_status[i] );
+                }
             }
 
             // Are we resetting a VM?
@@ -729,55 +738,9 @@ PT_BEGIN( pt );
             vm_reset[i] = FALSE;
         }
 
-
-
-
-
-
-
-
-        
-        // // wait for VM to finish loading
-        // TMR_WAIT( pt, 1000 );
-
-        // log_v_debug_P( PSTR("VM load sts: %d loop: %u fade: %u"),
-        //                vm_status[0],
-        //                vm_loop_time[0],
-        //                vm_fader_time );
-
-
-        // if( vm_status[0] < 0 ){
-
-        //     goto error;
-        // }
-
-        // vm_reset[0] = FALSE;
-        // THREAD_WAIT_WHILE( pt, ( vm_reset[0] == FALSE ) &&
-        //                        ( vm_run[0] == TRUE ) &&
-        //                        ( vm_status[0] == 0 ) );
-
-
-        // log_v_debug_P( PSTR("VM halt sts: %d loop: %u fade: %u"),
-        //                vm_status[0],
-        //                vm_loop_time[0],
-        //                vm_fader_time );
-
-
-        // wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, 0, 0 );
-
-        // if( vm_status[0] < 0 ){
-
-        //     goto error;
-        // }
-        
-        // if( vm_status[0] == VM_STATUS_HALT ){
-
-        //     vm_run[0] = FALSE;                
-        // }
-
         TMR_WAIT( pt, 100 );
-        THREAD_YIELD( pt );
-        THREAD_RESTART( pt );
+        continue;
+
 
     error:
 
@@ -787,64 +750,7 @@ PT_BEGIN( pt );
 
 
 #else
-    //     THREAD_WAIT_WHILE( pt, !wifi_b_attached() || !vm_run );
-
-    //     if( vm_startup ){
-
-    //         if( load_vm_wifi( __KV__vm_startup_prog ) < 0 ){
-
-    //             if( load_vm_wifi( __KV__vm_prog ) < 0 ){
-
-    //                 goto error;
-    //             }
-    //         }
-    //     }
-    //     else{
-
-    //         if( load_vm_wifi( __KV__vm_prog ) < 0 ){
-
-    //             goto error;
-    //         }
-    //     }
-
-    //     vm_reset = FALSE;
-    //     THREAD_WAIT_WHILE( pt, ( vm_reset == FALSE ) &&
-    //                            ( vm_run == TRUE ) &&
-    //                            ( vm_info.status == 0 ) &&
-    //                            ( vm_info.return_code == 0 ) );
-
-
-    //     if( vm_thread > 0 ){
-
-    //         thread_v_kill( vm_thread );
-    //     }
-
-    //     if( vm_info.return_code < 0 ){
-
-    //         goto error;
-    //     }
-
-    //     vm_thread = -1;
-
-    //     if( vm_reset ){
-
-    //         vm_startup = TRUE;
-    //     }
-    //     else{
-
-    //         vm_startup = FALSE;
-    //     }
-
-    //     THREAD_YIELD( pt );
-    //     THREAD_RESTART( pt );
-
-    // error:
-    //     vm_thread = -1;
-
-    //     // longish delay after error to prevent swamping CPU trying
-    //     // to reload a bad file.
-    //     TMR_WAIT( pt, 1000 );
-
+  
 #endif
 
     }
