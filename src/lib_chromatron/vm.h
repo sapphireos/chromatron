@@ -26,7 +26,6 @@
 #include "vm_core.h"
 
 #define VM_MAX_FILENAME_LEN 	32
-#define VM_MAX_VMS 				4
 
 #define VM_KV_TAG_START   		0x30
 
@@ -39,7 +38,7 @@ void vm_v_reset( void );
 void vm_v_set_program_P( PGM_P ptr );
 void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] );
 
-void vm_v_received_info( vm_info_t *info );
+void vm_v_received_info( uint8_t index, vm_info_t *info );
 
 bool vm_b_running( void );
 

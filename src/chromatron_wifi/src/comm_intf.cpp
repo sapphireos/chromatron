@@ -34,6 +34,7 @@ extern "C"{
     #include "vm_runner.h"
     #include "crc.h"
     #include "wifi_cmd.h"
+    #include "vm_wifi_cmd.h"
     #include "kvdb.h"
     #include "vm_core.h"
     #include "list.h"
@@ -677,10 +678,14 @@ void intf_v_process( void ){
 
         request_vm_info = false;
 
-        vm_info_t info;
-        vm_v_get_info( &info );
+        wifi_msg_vm_info_t msg;
 
-        _intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&info, sizeof(info) );
+        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+            vm_v_get_info( 0, &msg.vm_info[i] );
+        }
+
+        _intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
     }
     else if( request_vm_frame_sync ){
 

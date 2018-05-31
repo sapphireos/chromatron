@@ -37,6 +37,7 @@
 #define META_MAGIC      0x4154454d  // 'META'
 
 #define VM_MAX_CYCLES               32768
+#define VM_MAX_VMS                  4
 
 #define DATA_LEN                    4
 

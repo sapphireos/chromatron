@@ -40,7 +40,6 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_HSV_DATA_N_PIXELS      40
 
 
-
 #define WIFI_STATUS_ERR                 0x80
 #define WIFI_STATUS_CONNECTED           0x40
 #define WIFI_STATUS_RX_MSG              0x20
@@ -172,20 +171,6 @@ typedef struct __attribute__((packed)){
 } wifi_msg_scan_results_t;
 #define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x14
 
-
-typedef struct __attribute__((packed)){
-    uint32_t vm_id;
-} wifi_msg_reset_vm_t;
-#define WIFI_DATA_ID_RESET_VM          0x20
-
-typedef struct __attribute__((packed)){
-    uint32_t vm_id;
-    uint8_t chunk[64];
-} wifi_msg_load_vm_t;
-#define WIFI_DATA_ID_LOAD_VM           0x21
-#define WIFI_DATA_ID_VM_INFO           0x22
-
-
 #define WIFI_DATA_FRAME_SYNC_MAX_DATA   16
 typedef struct __attribute__((packed)){
     uint64_t rng_seed;
@@ -198,7 +183,6 @@ typedef struct __attribute__((packed)){
 } wifi_msg_vm_frame_sync_t;
 #define WIFI_DATA_ID_VM_FRAME_SYNC      0x25
 
-#define WIFI_DATA_ID_RUN_VM             0x26
 #define WIFI_DATA_ID_RUN_FADER          0x27
 #define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x28
 

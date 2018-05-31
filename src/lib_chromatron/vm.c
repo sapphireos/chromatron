@@ -32,6 +32,7 @@
 #include "esp8266.h"
 #include "hash.h"
 #include "kvdb.h"
+#include "vm_wifi_cmd.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -754,7 +755,7 @@ void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] ){
     kv_i8_set( __KV__vm_prog, progname, VM_MAX_FILENAME_LEN );
 }
 
-void vm_v_received_info( vm_info_t *info ){
+void vm_v_received_info( uint8_t index, vm_info_t *info ){
 
     vm_info = *info;
 }

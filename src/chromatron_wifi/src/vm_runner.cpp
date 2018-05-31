@@ -35,9 +35,9 @@ extern "C"{
 static uint16_t vm_load_len;
 
 static uint8_t vm_data[VM_RUNNER_MAX_SIZE];
-static int16_t vm_start[VM_RUNNER_MAX_VMS];
-static uint16_t vm_size[VM_RUNNER_MAX_VMS];
-static vm_state_t vm_state[VM_RUNNER_MAX_VMS];
+static int16_t vm_start[VM_MAX_VMS];
+static uint16_t vm_size[VM_MAX_VMS];
+static vm_state_t vm_state[VM_MAX_VMS];
 
 static uint16_t vm_total_size;
 
@@ -101,7 +101,7 @@ uint32_t elapsed_time_micros( uint32_t start_time ){
 
 static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
-    if( vm_index >= VM_RUNNER_MAX_VMS ){
+    if( vm_index >= VM_MAX_VMS ){
 
         return -1;
     }
@@ -205,7 +205,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
 void vm_v_init( void ){
 
-    for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
+    for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
         // vm_handles[i] = -1;
         vm_start[i] = -1;
@@ -269,7 +269,7 @@ void vm_v_process( void ){
 
 void vm_v_reset( uint8_t vm_index ){
 
-    if( vm_index >= VM_RUNNER_MAX_VMS ){
+    if( vm_index >= VM_MAX_VMS ){
 
         return;
     }
@@ -294,7 +294,7 @@ void vm_v_reset( uint8_t vm_index ){
     bool moved = false;
 
     do{
-        for( uint32_t i = 0; i < VM_RUNNER_MAX_VMS; i++ ){
+        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
             // looking for VM at the start of the clean section
             if( vm_start[i] == clean_start ){
@@ -330,7 +330,7 @@ void vm_v_reset( uint8_t vm_index ){
 
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
-    if( vm_index >= VM_RUNNER_MAX_VMS ){
+    if( vm_index >= VM_MAX_VMS ){
 
         return -1;
     }
@@ -425,7 +425,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
 int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
 
-    if( vm_index >= VM_RUNNER_MAX_VMS ){
+    if( vm_index >= VM_MAX_VMS ){
 
         return 0;
     }
@@ -447,7 +447,7 @@ int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
 
 void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
 
-    if( vm_index >= VM_RUNNER_MAX_VMS ){
+    if( vm_index >= VM_MAX_VMS ){
 
         return;
     }
@@ -467,7 +467,7 @@ void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
     vm_v_set_data( stream, &vm_state[vm_index], addr, data );
 }
 
-void vm_v_get_info( vm_info_t *info ){
+void vm_v_get_info( uint8_t index, vm_info_t *info ){
 
     *info = vm_info;
 }

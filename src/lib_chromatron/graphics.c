@@ -38,6 +38,7 @@
 #include "timesync.h"
 #include "kvdb.h"
 #include "hash.h"
+#include "vm_wifi_cmd.h"
 
 #include "event_log.h"
 
@@ -558,7 +559,12 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
             return -1;
         }
 
-        vm_v_received_info( (vm_info_t *)data );
+        wifi_msg_vm_info_t *msg = (wifi_msg_vm_info_t *)data;
+
+        for( uint8_t i = 0; i < cnt_of_array(msg->vm_info); i++ ){
+
+            vm_v_received_info( i, &msg->vm_info[i] );
+        }
     }
     // #ifdef ENABLE_TIME_SYNC
     // else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
