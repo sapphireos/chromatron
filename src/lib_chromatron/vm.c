@@ -654,23 +654,23 @@ PT_BEGIN( pt );
         // catbus_hash_t32 link_tag = __KV__vm_0;
         // catbus_v_purge_links( link_tag );
 
-    
+
         THREAD_WAIT_WHILE( pt, 
-            ( !vm_run[0]  && !is_vm_running( 0 ) )  &&
-            ( vm_run[0]   && is_vm_running( 0 ) )   &&
-            ( vm_reset[0] )                         &&
-
-            ( !vm_run[1]  && !is_vm_running( 1 ) )  &&
-            ( vm_run[1]   && is_vm_running( 1 ) )   &&
-            ( vm_reset[1] )                         &&
-
-            ( !vm_run[2]  && !is_vm_running( 2 ) )  &&
-            ( vm_run[2]   && is_vm_running( 2 ) )   &&
-            ( vm_reset[2] )                         &&
-
-            ( !vm_run[3]  && !is_vm_running( 3 ) )  &&
-            ( vm_run[3]   && is_vm_running( 3 ) )   &&
-            ( vm_reset[3] )                         
+            ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||
+                ( vm_run[0]   && is_vm_running( 0 ) ) )    &&
+              ( !vm_reset[0] ) )
+            &&
+            ( ( ( !vm_run[1]  && !is_vm_running( 1 ) )  ||
+                ( vm_run[1]   && is_vm_running( 1 ) ) )    &&
+              ( !vm_reset[1] ) )
+            &&
+            ( ( ( !vm_run[2]  && !is_vm_running( 2 ) )  ||
+                ( vm_run[2]   && is_vm_running( 2 ) ) )    &&
+              ( !vm_reset[2] ) )
+            &&
+            ( ( ( !vm_run[3]  && !is_vm_running( 3 ) )  ||
+                ( vm_run[3]   && is_vm_running( 3 ) ) )    &&
+              ( !vm_reset[3] ) )
         );
 
 
@@ -689,7 +689,7 @@ PT_BEGIN( pt );
             }
 
             // Are we resetting a VM?
-            if( vm_reset[i] && is_vm_running( i ) ){
+            if( vm_reset[i] ){
 
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
