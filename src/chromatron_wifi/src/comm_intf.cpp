@@ -685,6 +685,9 @@ void intf_v_process( void ){
             vm_v_get_info( i, &msg.vm_info[i] );
         }
 
+        msg.fader_time      = vm_u16_get_fader_time();
+        msg.vm_total_size   = vm_u16_get_total_size();
+
         _intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
     }
     else if( request_vm_frame_sync ){

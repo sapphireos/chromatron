@@ -43,6 +43,8 @@ void vm_v_reset(  uint8_t vm_index );
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index );
 void vm_v_request( void );
 void vm_v_get_info( uint8_t index, vm_info_t *info );
+uint16_t vm_u16_get_fader_time( void );
+uint16_t vm_u16_get_total_size( void );
 
 int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync );
 uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync );

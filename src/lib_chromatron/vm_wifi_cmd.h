@@ -38,6 +38,8 @@ typedef struct __attribute__((packed)){
 
 
 typedef struct __attribute__((packed)){
+    uint16_t fader_time;
+    uint16_t vm_total_size;
     vm_info_t vm_info[VM_MAX_VMS];
 } wifi_msg_vm_info_t;
 #define WIFI_DATA_ID_VM_INFO           0x22

@@ -44,10 +44,11 @@ static bool vm_run[VM_MAX_VMS];
 
 static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
-static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 
+static uint16_t vm_fader_time;
+static uint16_t vm_total_size;
 
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
@@ -104,6 +105,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_max_cycles_3" },
 
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_total_size,        0,                  "vm_total_size" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
@@ -886,17 +888,17 @@ void vm_v_reset( void ){
     vm_reset[0] = TRUE;
 }
 
-void vm_v_received_info( uint8_t index, vm_info_t *info ){
+void vm_v_received_info( wifi_msg_vm_info_t *msg ){
 
-    if( index >= VM_MAX_VMS ){
+    for( uint8_t i = 0; i < cnt_of_array(msg->vm_info); i++ ){
 
-        return;
+        vm_status[i]        = msg->vm_info[i].status;
+        vm_loop_time[i]     = msg->vm_info[i].loop_time;
+        vm_thread_time[i]   = msg->vm_info[i].thread_time;
     }
 
-    vm_status[index]        = info->status;
-    vm_loop_time[index]     = info->loop_time;
-    vm_thread_time[index]   = info->thread_time;
-    vm_fader_time           = info->fader_time;
+    vm_fader_time           = msg->fader_time;
+    vm_total_size           = msg->vm_total_size;
 }
 
 bool vm_b_running( void ){

@@ -97,7 +97,6 @@
 typedef struct __attribute__((packed)){
     int8_t status;
     uint16_t loop_time;
-    uint16_t fader_time;
     uint16_t thread_time;
     uint16_t max_cycles;
 } vm_info_t;

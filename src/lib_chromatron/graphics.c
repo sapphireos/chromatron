@@ -503,6 +503,7 @@ static int8_t send_run_fader_cmd( void ){
 // static uint16_t current_frame;
 // #endif
 
+
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
     
     
@@ -561,10 +562,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
 
         wifi_msg_vm_info_t *msg = (wifi_msg_vm_info_t *)data;
 
-        for( uint8_t i = 0; i < cnt_of_array(msg->vm_info); i++ ){
-
-            vm_v_received_info( i, &msg->vm_info[i] );
-        }
+        vm_v_received_info( msg );
     }
     // #ifdef ENABLE_TIME_SYNC
     // else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){

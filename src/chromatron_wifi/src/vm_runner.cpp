@@ -372,7 +372,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
     }
 
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
-        
+    
     if( len > 0 ){
     
         // load next page of data
@@ -500,7 +500,16 @@ void vm_v_get_info( uint8_t index, vm_info_t *info ){
     info->loop_time     = vm_loop_time[index];
     info->thread_time   = vm_thread_time[index];
     info->max_cycles    = vm_max_cycles[index];
-    info->fader_time    = vm_fader_time;
+}
+
+uint16_t vm_u16_get_fader_time( void ){
+
+    return vm_fader_time;
+}
+
+uint16_t vm_u16_get_total_size( void ){
+
+    return vm_total_size;
 }
 
 int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
