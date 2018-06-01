@@ -65,6 +65,9 @@ typedef struct __attribute__((packed)){
 #define WIFI_BUF_LEN                    255
 #define WIFI_MAX_DATA_LEN (WIFI_BUF_LEN - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
 
+#define WIFI_BUF_LEN_EXT                640
+#define WIFI_MAX_DATA_LEN_EXT (WIFI_BUF_LEN_EXT - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
+
 #define WIFI_MAIN_BUF_LEN               255
 #define WIFI_MAIN_MAX_DATA_LEN (WIFI_MAIN_BUF_LEN - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
 

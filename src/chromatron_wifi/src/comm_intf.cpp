@@ -95,7 +95,7 @@ static volatile bool is_rx_ready;
 static uint32_t last_status_ts;
 
 static wifi_data_header_t intf_data_header;
-static uint8_t intf_comm_buf[WIFI_BUF_LEN];
+static uint8_t intf_comm_buf[WIFI_BUF_LEN_EXT];
 static uint8_t intf_comm_state;
 
 static wifi_msg_udp_header_t udp_header;
@@ -201,7 +201,7 @@ static int8_t _intf_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_
     return _intf_i8_send_msg( data_id, data, len );    
 }
 
-static void process_data( uint8_t data_id, uint8_t len_ext, uint8_t *data, uint16_t len ){
+static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     if( data_id == WIFI_DATA_ID_CONNECT ){
 
@@ -318,6 +318,31 @@ static void process_data( uint8_t data_id, uint8_t len_ext, uint8_t *data, uint1
 
         kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, 0, 0 );
         kvdb_v_set_tag( msg->meta.hash, msg->vm_id + KVDB_VM_RUNNER_TAG );
+    }
+    else if( data_id == WIFI_DATA_ID_UDP_EXT ){
+
+        wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+        udp_len = 0;
+        memcpy( &udp_header, msg, sizeof(udp_header) );
+
+        memcpy( udp_data, data, len );
+
+        udp_len += len;
+
+        if( udp_len == udp_header.len ){
+
+            // check crc
+            if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
+
+                // Serial.write( 0x99 );
+                // Serial.write( 0x03 );
+
+                // intf_v_led_on();
+                return;
+            }
+
+            wifi_v_send_udp( &udp_header, udp_data );
+        }
     }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
@@ -439,9 +464,11 @@ void intf_v_process( void ){
     }    
     else if( intf_comm_state == COMM_STATE_RX_DATA ){    
 
-        if( Serial.available() >= intf_data_header.len ){
+        uint16_t msg_len = ( intf_data_header.len_ext << 8 ) + intf_data_header.len;
 
-            Serial.readBytes( intf_comm_buf, intf_data_header.len );
+        if( Serial.available() >= msg_len ){
+
+            Serial.readBytes( intf_comm_buf, msg_len );
 
             // we've copied the data out of the FIFO, so we can go ahead and send RX ready
             // before we process the data.
@@ -453,15 +480,16 @@ void intf_v_process( void ){
             intf_data_header.crc = 0;
             uint16_t crc = crc_u16_start();
             crc = crc_u16_partial_block( crc, (uint8_t *)&intf_data_header, sizeof(intf_data_header) );
-            crc = crc_u16_partial_block( crc, intf_comm_buf, intf_data_header.len );
+            crc = crc_u16_partial_block( crc, intf_comm_buf, msg_len );
             crc = crc_u16_finish( crc );
 
             if( crc == msg_crc ){
 
-                process_data( intf_data_header.data_id, intf_data_header.len_ext, intf_comm_buf, intf_data_header.len );
+                process_data( intf_data_header.data_id, intf_comm_buf, msg_len );
             }
             else{
 
+                intf_v_printf( "%u %x", msg_len, intf_data_header.data_id );
                 comm_errors++;
             }
 
@@ -872,9 +900,7 @@ void intf_v_init( void ){
 
     Serial.begin( 4000000 );
 
-    // reduce software FIFO to buf len to avoid wasting space (default is 256 bytes).
-    // we will never transfer more than WIFI_BUF_LEN at once.
-    Serial.setRxBufferSize( WIFI_BUF_LEN );
+    Serial.setRxBufferSize( WIFI_BUF_LEN_EXT );
 
     // flush serial buffers
     _intf_v_flush();

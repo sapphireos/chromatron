@@ -2044,11 +2044,12 @@ restart:
             udp_header.lport = netmsg_state->laddr.port;
             udp_header.rport = netmsg_state->raddr.port;
             udp_header.len = data_len + h2_len;
+            udp_header.crc = 0;
             
 
             if( wifi_status_reg & WIFI_STATUS_EXTENDED_BUF ){
 
-                uint16_t len = udp_header.len + sizeof(wifi_data_header_t);
+                uint16_t len = data_len + h2_len + sizeof(wifi_data_header_t) + sizeof(udp_header);
 
                 wifi_data_header_t header;
                 header.len_ext  = len >> 8;
