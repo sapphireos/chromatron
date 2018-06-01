@@ -423,10 +423,13 @@ void intf_v_process( void ){
     if( ( intf_comm_state != COMM_STATE_IDLE ) &&
         ( elapsed( comm_timeout ) > 20000 ) ){
 
+
+        comm_errors++;
+        intf_v_printf( "comm timeout: %d %d %d", intf_comm_state, intf_data_header.len_ext, intf_data_header.len );
+
         // reset comm state
         intf_comm_state = COMM_STATE_IDLE;
 
-        comm_errors++;
 
         set_rx_ready();
     }
@@ -639,7 +642,7 @@ void intf_v_process( void ){
         wifi_msg_status_t status_msg;
         status_msg.flags = wifi_u8_get_status();
 
-        // status_msg.flags |= WIFI_STATUS_EXTENDED_BUF;
+        status_msg.flags |= WIFI_STATUS_EXTENDED_BUF;
 
         _intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
     }

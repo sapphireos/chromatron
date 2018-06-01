@@ -1998,6 +1998,12 @@ restart:
                 goto receive;
             }
 
+            // check if safe mode, if so, turn off extended mode
+            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+                wifi_status_reg &= ~WIFI_STATUS_EXTENDED_BUF;
+            }
+
             netmsg_t tx_netmsg = list_ln_remove_tail( &netmsg_list );
 
             netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
