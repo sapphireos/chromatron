@@ -439,6 +439,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
 
     catbus_meta_t meta;
+    uint32_t subscribed_key_hashes[64];
+    uint8_t subscribe_key_count = 0;
 
     // set up additional DB entries
     fs_v_seek( f, sizeof(vm_size) + state.db_start );
@@ -448,33 +450,37 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
 
         kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
-        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + vm_id );
+        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + vm_id );      
+
+        if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
+
+            subscribed_key_hashes[subscribe_key_count] = meta.hash;
+            subscribe_key_count++;
+        }
     }   
 
 
     // read through database keys
-    mem_handle_t h = mem2_h_alloc2( sizeof(uint32_t) * state.read_keys_count, MEM_TYPE_SUBSCRIBED_KEYS );
+    uint32_t read_key_hash = 0;
 
-    if( h > 0 ){
+    fs_v_seek( f, sizeof(vm_size) + state.read_keys_start );
 
-        uint32_t *read_key_hashes = mem2_vp_get_ptr( h );
+    for( uint16_t i = 0; i < state.read_keys_count; i++ ){
 
-        fs_v_seek( f, sizeof(vm_size) + state.read_keys_start );
+        fs_i16_read( f, (uint8_t *)&read_key_hash, sizeof(uint32_t) );
 
-        for( uint16_t i = 0; i < state.read_keys_count; i++ ){
+        if( kv_i8_get_meta( read_key_hash, &meta ) >= 0 ){
 
-            fs_i16_read( f, (uint8_t *)read_key_hashes, sizeof(uint32_t) );
-
-            if( kv_i8_get_meta( *read_key_hashes, &meta ) >= 0 ){
-
-                wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
-            }
-            
-            read_key_hashes++;
+            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
         }
-
-        // gfx_v_set_subscribed_keys( h );        
+        
+        if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
+        
+            subscribed_key_hashes[subscribe_key_count] = meta.hash;
+            subscribe_key_count++;
+        }
     }
+    
 
     // check published keys and add to DB
     fs_v_seek( f, sizeof(vm_size) + state.publish_start );
@@ -487,8 +493,10 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
         kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + vm_id );
-        // kvdb_v_set_notifier( publish.hash, published_var_notifier );
     }   
+
+    // subscribe keys to DB sender
+    gfx_v_subscribe_keys( subscribed_key_hashes, subscribe_key_count, VM_KV_TAG_START + vm_id );
 
     // check write keys
     fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
@@ -503,11 +511,13 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
             continue;
         }
 
+        // make sure ESP's VM hash this database entry
         if( kv_i8_get_meta( write_hash, &meta ) >= 0 ){
 
             wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
         }
 
+        // check if writing to restricted key
         for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
 
             uint32_t restricted_key = 0;

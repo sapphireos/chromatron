@@ -26,11 +26,11 @@
 #include "keyvalue.h"
 #include "threading.h"
 #include "timers.h"
+#include "list.h"
 #include "catbus_common.h"
 #include "catbus.h"
 #include "catbus_packer.h"
 
-#include "trig.h"
 #include "pixel.h"
 #include "graphics.h"
 #include "esp8266.h"
@@ -66,6 +66,8 @@ static volatile uint8_t run_flags;
 #define FLAG_RUN_FADER          0x04
 
 static uint16_t vm_timer_rate; 
+
+static list_t keys_list;
 
 
 static uint16_t calc_vm_timer( uint32_t ms ){
@@ -337,6 +339,8 @@ ISR(GFX_TIMER_CCB_vect){
 }
 
 void gfx_v_init( void ){
+
+    list_v_init( &keys_list );
 
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
@@ -668,16 +672,55 @@ end:
 PT_END( pt );
 }
 
+
+
 void gfx_v_subscribe_keys( uint32_t *hashes, uint8_t len, uint8_t tag ){
 
+    uint16_t data_len = ( sizeof(uint32_t) * len ) + sizeof(tag);
 
+    list_node_t ln = list_ln_create_node2( 0, data_len, MEM_TYPE_SUBSCRIBED_KEYS );
 
+    if( ln < 0 ){
+
+        return;
+    }
+
+    uint8_t *list_tag = list_vp_get_data( ln );
+    *list_tag = tag;
+
+    uint32_t *dest_hash = (uint32_t *)( list_tag + 1 );
+
+    while( len > 0 ){
+
+        *dest_hash = *hashes;
+
+        dest_hash++;
+        hashes++;
+        len--;
+    }
+
+    list_v_insert_tail( &keys_list, ln );
 }
 
 
 void gfx_v_reset_subscribed( uint8_t tag ){
 
+    list_node_t ln = keys_list.head;
 
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        uint8_t *list_tag = list_vp_get_data( ln );
+
+        if( *list_tag == tag ){
+
+            list_v_remove( &keys_list, ln );
+            list_v_release_node( ln );
+        }
+
+        ln = next_ln;
+    }    
 }
 
 
