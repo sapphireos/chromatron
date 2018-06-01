@@ -497,7 +497,7 @@ static int8_t send_run_fader_cmd( void ){
 }
 
 
-int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
+int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     
     
     #ifdef USE_HSV_BRIDGE

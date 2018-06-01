@@ -92,13 +92,13 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg );
 
 bool wifi_b_running( void );
 
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
-int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len );
+int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
+int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len );
 
 bool wifi_b_comm_ready( void );
 bool wifi_b_wait_comm_ready( void );
 
 
-extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ) __attribute__((weak));
+extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ) __attribute__((weak));
 
 #endif

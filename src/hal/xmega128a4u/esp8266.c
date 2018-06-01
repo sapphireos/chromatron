@@ -596,7 +596,7 @@ bool wifi_b_wait_comm_ready( void ){
     return wifi_b_comm_ready();
 }
 
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
+int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     ASSERT( len <= WIFI_MAX_DATA_LEN );
     
@@ -630,7 +630,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     return 0;
 }
 
-int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len ){
+int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     if( !wifi_b_wait_comm_ready() ){
 
