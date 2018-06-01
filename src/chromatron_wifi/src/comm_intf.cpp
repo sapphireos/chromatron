@@ -40,7 +40,6 @@ extern "C"{
     #include "list.h"
     #include "memory.h"
     #include "catbus_packer.h"
-}
 
 list_t print_list;
 
