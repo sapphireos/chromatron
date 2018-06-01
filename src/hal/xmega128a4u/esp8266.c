@@ -2055,7 +2055,7 @@ restart:
 
             if( wifi_status_reg & WIFI_STATUS_EXTENDED_BUF ){
 
-                uint16_t len = data_len + h2_len + sizeof(wifi_data_header_t) + sizeof(udp_header);
+                uint16_t len = data_len + h2_len + sizeof(udp_header);
 
                 wifi_data_header_t header;
                 header.len_ext  = len >> 8;
