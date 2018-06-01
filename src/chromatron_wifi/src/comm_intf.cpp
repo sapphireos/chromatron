@@ -425,7 +425,7 @@ void intf_v_process( void ){
 
 
         comm_errors++;
-        intf_v_printf( "comm timeout: %d %d %d", intf_comm_state, intf_data_header.len_ext, intf_data_header.len );
+        intf_v_printf( "comm timeout: %d %d %d %x", intf_comm_state, intf_data_header.len_ext, intf_data_header.len, intf_data_header.data_id );
 
         // reset comm state
         intf_comm_state = COMM_STATE_IDLE;
