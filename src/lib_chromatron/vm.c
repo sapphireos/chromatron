@@ -267,6 +267,8 @@ static int8_t send_reset_message( uint8_t vm_id ){
 
 static int8_t load_vm_wifi( uint8_t vm_id ){
 
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+
     wifi_msg_load_vm_t vm_load_msg;
 
     gfx_v_reset_subscribed( VM_KV_TAG_START + vm_id );
@@ -439,7 +441,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
 
     catbus_meta_t meta;
-    uint32_t subscribed_key_hashes[64];
+    uint32_t subscribed_key_hashes[VM_MAX_SUBSCRIBED_DB];
     uint8_t subscribe_key_count = 0;
 
     // set up additional DB entries
@@ -497,10 +499,21 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
         kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + vm_id );
+
+        if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
+        
+            subscribed_key_hashes[subscribe_key_count] = meta.hash;
+            subscribe_key_count++;
+        }
     }   
 
     // subscribe keys to DB sender
     gfx_v_subscribe_keys( subscribed_key_hashes, subscribe_key_count, VM_KV_TAG_START + vm_id );
+
+    if( subscribe_key_count >= cnt_of_array(subscribed_key_hashes) ){
+
+        log_v_debug_P( PSTR("DB entry limit reached") );
+    }
 
     // check write keys
     fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
@@ -581,6 +594,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     vm_loop_time[vm_id]     = 0;
     vm_thread_time[vm_id]   = 0;
     vm_max_cycles[vm_id]    = 0;
+
+    log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
 
     return 0;
 
@@ -744,6 +759,7 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
                 send_reset_message( i );
+                reset_published_data( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
                 vm_loop_time[i]     = 0;

@@ -27,6 +27,7 @@
 #include "vm_wifi_cmd.h"
 
 #define VM_MAX_FILENAME_LEN 	32
+#define VM_MAX_SUBSCRIBED_DB	32 	
 
 #define VM_KV_TAG_START   		0x30
 
