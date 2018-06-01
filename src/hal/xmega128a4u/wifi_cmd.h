@@ -24,6 +24,7 @@
 #define _WIFI_CMD_H
 
 #include "ip.h"
+#include "catbus_common.h"
 
 #ifndef ESP8266
 typedef ip_addr_t sos_ip_addr_t;
@@ -193,6 +194,12 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_FRAME_SYNC_STATUS  0x29
 
 #define WIFI_DATA_ID_KV_DATA            0x32
+
+typedef struct __attribute__((packed)){
+    uint8_t vm_id;
+    uint8_t padding[3];
+    catbus_meta_t meta;
+} wifi_msg_kv_add_t;
 #define WIFI_DATA_ID_KV_ADD             0x33
 
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40

@@ -309,15 +309,15 @@ static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16
     }
     else if( data_id == WIFI_DATA_ID_KV_ADD ){
 
-        if( len != sizeof(catbus_meta_t) ){
+        if( len != sizeof(wifi_msg_kv_add_t) ){
 
             return;
         }
 
-        catbus_meta_t *meta = (catbus_meta_t *)data;
+        wifi_msg_kv_add_t *msg = (wifi_msg_kv_add_t *)data;
 
-        kvdb_i8_add( meta->hash, meta->type, meta->count + 1, 0, 0 );
-        kvdb_v_set_tag( meta->hash, KVDB_VM_RUNNER_TAG );
+        kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, 0, 0 );
+        kvdb_v_set_tag( msg->meta.hash, msg->vm_id + KVDB_VM_RUNNER_TAG );
     }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 

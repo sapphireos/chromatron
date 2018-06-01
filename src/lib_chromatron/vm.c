@@ -471,7 +471,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         if( kv_i8_get_meta( read_key_hash, &meta ) >= 0 ){
 
-            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
+            wifi_msg_kv_add_t kv_add_msg;
+            kv_add_msg.vm_id    = vm_id;
+            kv_add_msg.meta     = meta;
+
+            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&kv_add_msg, sizeof(kv_add_msg) );
         }
         
         if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
