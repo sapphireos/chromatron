@@ -56,7 +56,7 @@ typedef ip_addr_t sos_ip_addr_t;
 typedef struct __attribute__((packed)){
     uint8_t data_id;
     uint8_t len;
-    uint8_t msg_id;
+    uint8_t reserved;
     uint16_t crc;
 } wifi_data_header_t;
 

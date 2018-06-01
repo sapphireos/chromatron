@@ -128,8 +128,6 @@ static uint32_t current_rx_bytes;
 
 static uint16_t wifi_version;
 
-static uint8_t next_msg_id;
-
 static netmsg_t rx_netmsg;
 static uint16_t rx_netmsg_index;
 static uint16_t rx_netmsg_crc;
@@ -609,12 +607,10 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
         return -1;  
     }
 
-    next_msg_id++;
-
     uint16_t crc = crc_u16_start();
 
     wifi_data_header_t header;
-    header.msg_id   = next_msg_id;
+    header.reserved = 0;
     header.len      = len;
     header.data_id  = data_id;
     header.crc      = 0;

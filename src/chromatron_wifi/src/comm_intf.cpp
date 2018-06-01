@@ -40,6 +40,7 @@ extern "C"{
     #include "list.h"
     #include "memory.h"
     #include "catbus_packer.h"
+}
 
 list_t print_list;
 
@@ -155,7 +156,7 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     wifi_data_header_t header;
     header.len      = len;
     header.data_id  = data_id;
-    header.msg_id   = 0;
+    header.reserved = 0;
     header.crc      = 0;
 
     uint16_t crc = crc_u16_start();
@@ -200,7 +201,7 @@ static int8_t _intf_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_
     return _intf_i8_send_msg( data_id, data, len );    
 }
 
-static void process_data( uint8_t data_id, uint8_t msg_id, uint8_t *data, uint16_t len ){
+static void process_data( uint8_t data_id, uint8_t reserved, uint8_t *data, uint16_t len ){
 
     if( data_id == WIFI_DATA_ID_CONNECT ){
 
@@ -457,7 +458,7 @@ void intf_v_process( void ){
 
             if( crc == msg_crc ){
 
-                process_data( intf_data_header.data_id, intf_data_header.msg_id, intf_comm_buf, intf_data_header.len );
+                process_data( intf_data_header.data_id, 0, intf_comm_buf, intf_data_header.len );
             }
             else{
 
