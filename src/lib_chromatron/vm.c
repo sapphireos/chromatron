@@ -128,10 +128,41 @@ static const PROGMEM uint32_t restricted_keys[] = {
     __KV__catbus_data_port,    
 };
 
-static void reset_published_data( void ){
 
-    kvdb_v_delete_tag( VM_KV_TAG_START );
+static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
+
+    catbus_hash_t32 link_tag = 0;
+
+    if( vm_id == 0 ){
+
+        link_tag = __KV__vm_0;
+    }
+    else if( vm_id == 1 ){
+
+        link_tag = __KV__vm_1;
+    }
+    else if( vm_id == 2 ){
+
+        link_tag = __KV__vm_2;
+    }
+    else if( vm_id == 3 ){
+
+        link_tag = __KV__vm_3;
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return link_tag;
 }
+
+
+static void reset_published_data( uint8_t vm_id ){
+
+    kvdb_v_delete_tag( VM_KV_TAG_START + vm_id );
+    catbus_v_purge_links( get_link_tag( vm_id ) );
+} 
 
 // PT_THREAD( vm_runner_thread( pt_t *pt, vm_state_t *state ) )
 // {
@@ -196,13 +227,13 @@ static void reset_published_data( void ){
 // PT_END( pt );
 // }
 
-void published_var_notifier(
-    catbus_hash_t32 hash,
-    catbus_type_t8 type,
-    const void *data )
-{
-    gfx_i8_send_keys( &hash, 1 );
-}
+// void published_var_notifier(
+//     catbus_hash_t32 hash,
+//     catbus_type_t8 type,
+//     const void *data )
+// {
+//     gfx_i8_send_keys( &hash, 1 );
+// }
 
 static file_t get_program_handle( catbus_hash_t32 hash ){
 
@@ -241,6 +272,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     gfx_v_reset_subscribed();
 
     catbus_hash_t32 hash = 0;
+    catbus_hash_t32 link_tag = get_link_tag( vm_id );
     
     if( vm_id == 0 ){
 
@@ -258,6 +290,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         hash = __KV__vm_prog_3;
     }
+    else{
+
+        ASSERT( FALSE );
+    }
+
 
     file_t f = get_program_handle( hash );
 
@@ -271,38 +308,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         goto error;
     }
 
-    reset_published_data();
+    reset_published_data( vm_id );
 
-    gfx_v_pixel_bridge_enable();
-
+    // sync graphics parameters, because script init function will run as soon as loading is complete.
     gfx_v_sync_params();
-
-    catbus_hash_t32 link_tag = 0;
-
-    if( vm_id == 0 ){
-
-        link_tag = __KV__vm_0;
-    }
-    else if( vm_id == 1 ){
-
-        link_tag = __KV__vm_1;
-    }
-    else if( vm_id == 2 ){
-
-        link_tag = __KV__vm_2;
-    }
-    else if( vm_id == 3 ){
-
-        link_tag = __KV__vm_3;
-    }
-    else{
-
-        ASSERT( FALSE );
-    }
-
     
-    catbus_v_purge_links( link_tag );
-
     log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
 
     // file found, get program size from file header
@@ -438,7 +448,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
 
         kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
-        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START );
+        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + vm_id );
     }   
 
 
@@ -476,8 +486,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
 
         kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
-        kvdb_v_set_tag( publish.hash, VM_KV_TAG_START );
-        kvdb_v_set_notifier( publish.hash, published_var_notifier );
+        kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + vm_id );
+        // kvdb_v_set_notifier( publish.hash, published_var_notifier );
     }   
 
     // check write keys
@@ -648,13 +658,6 @@ PT_BEGIN( pt );
 
         
 #ifdef VM_TARGET_ESP
-
-        // gfx_v_reset_subscribed();
-        // reset_published_data();
-
-        // catbus_hash_t32 link_tag = __KV__vm_0;
-        // catbus_v_purge_links( link_tag );
-
 
         THREAD_WAIT_WHILE( pt, 
             ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||

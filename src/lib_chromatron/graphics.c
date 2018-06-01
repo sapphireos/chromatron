@@ -93,6 +93,16 @@ static void update_vm_timer( void ){
     }
 }
 
+static uint32_t get_sync_group_hash( void ){
+
+    char sync_group[32];
+    if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
+
+        return 0;
+    }
+
+    return hash_u32_string( sync_group );    
+}
 
 static void param_error_check( void ){
 
@@ -295,6 +305,7 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
 
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
+PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
 
 #define FADER_TIMER_RATE 625 // 20 ms
 
@@ -367,6 +378,11 @@ void gfx_v_init( void ){
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
+                0,
+                0 );
+
+    thread_t_create( gfx_db_xfer_thread,
+                PSTR("gfx_db_xfer"),
                 0,
                 0 );
 }
@@ -671,4 +687,35 @@ end:
 
 PT_END( pt );
 }
+
+
+
+void kv_v_notify_hash_set( uint32_t hash ){
+
+    
+}
+
+
+PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // static catbus_pack_ctx_t ctx;
+    // static uint16_t kv_index;
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+
+
+        THREAD_YIELD( pt );
+    }
+        
+PT_END( pt );
+}
+
+
+
+
 
