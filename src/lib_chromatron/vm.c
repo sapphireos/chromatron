@@ -528,7 +528,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
             continue;
         }
 
-        // make sure ESP's VM hash this database entry
+        // make sure ESP's VM has this database entry
         if( kv_i8_get_meta( write_hash, &meta ) >= 0 ){
 
             wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );

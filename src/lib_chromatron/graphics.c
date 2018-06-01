@@ -734,16 +734,81 @@ PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // static catbus_pack_ctx_t ctx;
-    // static uint16_t kv_index;
+    static catbus_pack_ctx_t ctx;
+    static list_node_t key_ln;
+    static uint8_t key_index;
+    static uint8_t key_count;
+    key_ln = -1;
     
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+        key_ln = keys_list.head;
+        key_index = 0;
+        key_count = 0;
+
+        while( key_ln > 0 ){
+
+            // get length of current batch of keys
+            uint16_t node_size = list_u16_node_size( key_ln );
+            key_count = ( node_size - sizeof(uint8_t) ) / sizeof(uint32_t);
+
+            while( key_count > 0 ){
+
+                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
 
 
-        THREAD_YIELD( pt );
+                uint8_t buf[WIFI_MAX_DATA_LEN];
+                uint8_t buf_ptr = 0;
+
+                uint8_t *list_tag = list_vp_get_data( key_ln );
+                uint32_t *hash = (uint32_t *)( list_tag + 1 );
+
+                if( catbus_i8_init_pack_ctx( *hash, &ctx ) > 0 ){
+
+                    goto next_key;
+                }
+
+                int16_t packed = -1;
+
+                do{
+                    packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
+                
+                    // check if pack buffer is full
+                    if( packed < 0 ){
+
+                        BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
+
+                        // transmit message
+                        wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+
+                        buf_ptr = 0;
+                    }
+                    else{
+
+                        buf_ptr += packed;
+                    }
+
+                } while( !catbus_b_pack_complete( &ctx ) );
+
+                if( catbus_b_pack_complete( &ctx ) ){
+
+                    key_count--;
+                    key_index++;
+                }
+
+
+next_key:
+                key_count--;
+                key_index++;
+            }
+
+            key_ln = list_ln_next( key_ln );
+        }
+
+
+done:
+        TMR_WAIT( pt, 20 );
     }
         
 PT_END( pt );
