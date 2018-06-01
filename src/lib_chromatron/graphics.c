@@ -734,6 +734,8 @@ PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    THREAD_EXIT( pt );
+
     static catbus_pack_ctx_t ctx;
     static list_node_t key_ln;
     static uint8_t key_index;
@@ -754,9 +756,7 @@ PT_BEGIN( pt );
 
             while( key_count > 0 ){
 
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
-
+                // THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
                 uint8_t buf[WIFI_MAX_DATA_LEN];
                 uint8_t buf_ptr = 0;
@@ -764,10 +764,14 @@ PT_BEGIN( pt );
                 uint8_t *list_tag = list_vp_get_data( key_ln );
                 uint32_t *hash = (uint32_t *)( list_tag + 1 );
 
-                if( catbus_i8_init_pack_ctx( *hash, &ctx ) > 0 ){
+                if( catbus_i8_init_pack_ctx( hash[key_index], &ctx ) > 0 ){
 
-                    goto next_key;
+                    key_count--;
+                    key_index++;
+                    continue;
                 }
+
+                log_v_debug_P( PSTR("pack %lu"), hash[key_index] );
 
                 int16_t packed = -1;
 
@@ -777,10 +781,12 @@ PT_BEGIN( pt );
                     // check if pack buffer is full
                     if( packed < 0 ){
 
-                        BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
+
+                        // buffer ready
 
                         // transmit message
-                        wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+                        // wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+                        log_v_debug_P( PSTR("buf ready: %d %d"), buf_ptr, packed );
 
                         buf_ptr = 0;
                     }
@@ -797,18 +803,21 @@ PT_BEGIN( pt );
                     key_index++;
                 }
 
+                // check if buffer full, or final transmission
+                if( ( buf_ptr >= sizeof(buf) ) || 
+                    ( ( key_count == 0 ) && ( buf_ptr > 0 ) ) ){
 
-next_key:
-                key_count--;
-                key_index++;
+                    // wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
+                    log_v_debug_P( PSTR("buf ready: %d count_left: %d"), buf_ptr, key_count );
+
+                    buf_ptr = 0;
+                }        
             }
 
             key_ln = list_ln_next( key_ln );
         }
 
-
-done:
-        TMR_WAIT( pt, 20 );
+        TMR_WAIT( pt, 1000 );
     }
         
 PT_END( pt );
