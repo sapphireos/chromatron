@@ -596,6 +596,7 @@ bool wifi_b_wait_comm_ready( void ){
     return wifi_b_comm_ready();
 }
 
+
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     ASSERT( len <= WIFI_MAX_DATA_LEN );
@@ -610,8 +611,8 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     uint16_t crc = crc_u16_start();
 
     wifi_data_header_t header;
-    header.reserved = 0;
-    header.len      = len;
+    header.len_ext  = len >> 8;
+    header.len      = len % 0xff;
     header.data_id  = data_id;
     header.crc      = 0;
     crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );    
@@ -2023,12 +2024,18 @@ restart:
                 h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
                 h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
 
-                crc = crc_u16_partial_block( crc, h2, h2_len );
+                if( ( wifi_status_reg & WIFI_STATUS_EXTENDED_BUF ) == 0 ){
+
+                    crc = crc_u16_partial_block( crc, h2, h2_len );
+                }
             }
 
             if( netmsg_state->data_handle > 0 ){
 
-                crc = crc_u16_partial_block( crc, data, data_len );
+                if( ( wifi_status_reg & WIFI_STATUS_EXTENDED_BUF ) == 0 ){
+
+                    crc = crc_u16_partial_block( crc, data, data_len );
+                }
             }
 
             // setup header
@@ -2037,33 +2044,62 @@ restart:
             udp_header.lport = netmsg_state->laddr.port;
             udp_header.rport = netmsg_state->raddr.port;
             udp_header.len = data_len + h2_len;
-            udp_header.crc = crc_u16_finish( crc );
+            
 
-            // send header
-            wifi_i8_send_msg( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
+            if( wifi_status_reg & WIFI_STATUS_EXTENDED_BUF ){
 
-            if( h2_len > 0 ){
+                uint16_t len = udp_header.len + sizeof(wifi_data_header_t);
 
-                BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
+                wifi_data_header_t header;
+                header.len_ext  = len >> 8;
+                header.len      = len % 0xff;
+                header.data_id  = WIFI_DATA_ID_UDP_EXT;
+                header.crc      = 0;                
 
-                wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, h2, h2_len );
+                crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
+                crc = crc_u16_partial_block( crc, (uint8_t *)&udp_header, sizeof(udp_header) );
+                crc = crc_u16_partial_block( crc, h2, h2_len );
+                crc = crc_u16_partial_block( crc, data, data_len );
+                header.crc = crc_u16_finish( crc );
+
+                clear_rx_ready();
+
+                _wifi_v_usart_send_char( WIFI_COMM_DATA );
+                _wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
+                _wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
+                _wifi_v_usart_send_data( h2, h2_len );
+                _wifi_v_usart_send_data( data, data_len );                
             }
+            else{
 
-            while( data_len > 0 ){
+                udp_header.crc = crc_u16_finish( crc );
 
-                uint16_t copy_len = data_len;
+                // send header
+                wifi_i8_send_msg( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
 
-                if( copy_len > WIFI_MAX_DATA_LEN ){
+                if( h2_len > 0 ){
 
-                    copy_len = WIFI_MAX_DATA_LEN;
+                    BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
+
+                    wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, h2, h2_len );
                 }
 
-                BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
+                while( data_len > 0 ){
 
-                wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, data, copy_len );
+                    uint16_t copy_len = data_len;
 
-                data += copy_len;
-                data_len -= copy_len;
+                    if( copy_len > WIFI_MAX_DATA_LEN ){
+
+                        copy_len = WIFI_MAX_DATA_LEN;
+                    }
+
+                    BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), 10000 );
+
+                    wifi_i8_send_msg( WIFI_DATA_ID_UDP_DATA, data, copy_len );
+
+                    data += copy_len;
+                    data_len -= copy_len;
+                }
             }
 
             // release netmsg
