@@ -322,24 +322,14 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     else if( data_id == WIFI_DATA_ID_UDP_EXT ){
 
         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+        uint8_t *data_ptr = (uint8_t *)( msg + 1 );
         
         memcpy( &udp_header, msg, sizeof(udp_header) );
 
         udp_len = len - sizeof(udp_header);
-        memcpy( udp_data, data, udp_len );
+        memcpy( udp_data, data_ptr, udp_len );
 
         if( udp_len == udp_header.len ){
-
-            // // check crc
-            // if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
-
-            //     intf_v_printf( "UDP CRC fail" );
-            //     // Serial.write( 0x99 );
-            //     // Serial.write( 0x03 );
-
-            //     // intf_v_led_on();
-            //     return;
-            // }
 
             wifi_v_send_udp( &udp_header, udp_data );
         }
