@@ -421,7 +421,9 @@ void intf_v_process( void ){
         comm_errors++;
         
         uint16_t msg_len = ( intf_data_header.len_ext << 8 ) + intf_data_header.len;
-        intf_v_printf( "comm timeout: %d %d %x %ld", intf_comm_state, msg_len, intf_data_header.data_id, Serial.available() );
+        intf_v_printf( "comm timeout: %u %ld", msg_len, Serial.available() );
+        intf_v_printf( "len_ext: %u", intf_data_header.len_ext );
+        intf_v_printf( "len: %u", intf_data_header.len );
 
         // reset comm state
         intf_comm_state = COMM_STATE_IDLE;
