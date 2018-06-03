@@ -502,6 +502,9 @@ uint16_t gfx_u16_get_vfade( void ){
 void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
     // bounds check
+    // optimization note:
+    // possibly can remove this, ensure all functions that call
+    // it have already wrapped index (which is the normal case)
     if( index >= MAX_PIXELS ){
 
         return;
