@@ -2075,7 +2075,12 @@ restart:
                 _wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
                 _wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
                 _wifi_v_usart_send_data( h2, h2_len );
-                _wifi_v_usart_send_data( data, data_len );                
+                _wifi_v_usart_send_data( data, data_len );   
+
+                log_v_debug_P( PSTR("sent: %u len %u  ext %u"), len, header.len, header.len_ext ); 
+
+                
+                sys_v_reboot_delay( SYS_MODE_SAFE );   
             }
             else{
 
