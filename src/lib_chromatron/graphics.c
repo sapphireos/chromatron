@@ -725,7 +725,7 @@ void gfx_v_reset_subscribed( uint8_t tag ){
 
 
 void kv_v_notify_hash_set( uint32_t hash ){
-
+    
     
 }
 
@@ -758,6 +758,8 @@ PT_BEGIN( pt );
 
                 // THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
+                // with a 640 byte buffer, this will almost
+                // certainly blow up the stack.
                 uint8_t buf[WIFI_MAX_DATA_LEN];
                 uint8_t buf_ptr = 0;
 

@@ -607,6 +607,30 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
         return;
     }
 
+    // possible optimization:
+    // void ( *array_func )( uint16_t a, uint16_t i );
+
+    // if( attr == PIX_ATTR_HUE ){
+
+    //     array_func = _gfx_v_set_hue_1d;
+    // }
+    // else if( attr == PIX_ATTR_SAT ){
+
+    //     array_func = _gfx_v_set_sat_1d;
+    // }
+    // else if( attr == PIX_ATTR_HS_FADE ){
+
+    //     array_func = _gfx_v_set_hs_fade_1d;
+    // }
+    // else if( attr == PIX_ATTR_V_FADE ){
+
+    //     array_func = _gfx_v_set_v_fade_1d;
+    // }   
+    // else{
+
+    //     array_func = _gfx_v_set_val_1d;
+    // }
+
     for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
         uint16_t index = i + pix_arrays[obj].index;
@@ -630,7 +654,9 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
                 a = 0;
             }
         }
-
+        // possible optimization:
+        // array_func( a, index );
+        
         if( attr == PIX_ATTR_HUE ){
 
             _gfx_v_set_hue_1d( a, index );
