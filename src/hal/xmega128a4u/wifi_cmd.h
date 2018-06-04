@@ -46,7 +46,6 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_STATUS_RX_MSG              0x20
 #define WIFI_STATUS_AP_MODE             0x10
 #define WIFI_STATUS_IRQ_FLAG            0x08
-#define WIFI_STATUS_EXTENDED_BUF        0x04
 
 
 #define WIFI_COMM_RESET                 0x27
@@ -56,20 +55,18 @@ typedef ip_addr_t sos_ip_addr_t;
 
 typedef struct __attribute__((packed)){
     uint8_t data_id;
-    uint8_t len;
-    uint8_t len_ext;
+    uint16_t len;
+    uint8_t reserved;
     uint16_t crc;
 } wifi_data_header_t;
 
 #define WIFI_BUF_SLACK_SPACE            1
-#define WIFI_BUF_LEN                    255
-#define WIFI_MAX_DATA_LEN (WIFI_BUF_LEN - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
+#define WIFI_BUF_LEN                    640
+#define WIFI_MAX_DATA_LEN       (WIFI_BUF_LEN - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
 
-#define WIFI_BUF_LEN_EXT                640
-#define WIFI_MAX_DATA_LEN_EXT (WIFI_BUF_LEN_EXT - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
 
 #define WIFI_MAIN_BUF_LEN               255
-#define WIFI_MAIN_MAX_DATA_LEN (WIFI_MAIN_BUF_LEN - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
+#define WIFI_MAIN_MAX_DATA_LEN  (WIFI_MAIN_BUF_LEN - (sizeof(wifi_data_header_t) + 1 + WIFI_BUF_SLACK_SPACE))
 
 
 typedef struct __attribute__((packed)){
