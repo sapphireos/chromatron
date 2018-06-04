@@ -1372,9 +1372,9 @@ class Device(object):
             print type(e), e
             raise
 
-        # print "\nVerifying firmware image..."
+        print "\nVerifying firmware image..."
 
-        # self.check_file(filename, data)
+        self.check_file(filename, data)
 
         print "Setting firmware length..."
         self.set_key('wifi_fw_len', fw_len)

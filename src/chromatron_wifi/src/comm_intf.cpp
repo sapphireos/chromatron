@@ -740,9 +740,7 @@ void intf_v_process( void ){
 
                 data_len = rx_udp_header.len;
             }
-
-            intf_v_printf( "%u", data_len );
-
+            
             wifi_data_header_t header;
             header.len      = data_len + sizeof(rx_udp_header);
             header.data_id  = WIFI_DATA_ID_UDP_HEADER;

@@ -144,9 +144,6 @@ static list_t netmsg_list;
 
 // static mem_handle_t wifi_networks_handle = -1;
 
-static uint8_t _file_digest[16];
-static uint8_t _wifi_digest[16];
-
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -163,9 +160,6 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
     { SAPPHIRE_TYPE_KEY128,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_md5" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_fw_len" },
-
-     { SAPPHIRE_TYPE_KEY128,        0, 0,                          _file_digest,                  0,   "wifi_file_md5" },
-     { SAPPHIRE_TYPE_KEY128,        0, 0,                          _wifi_digest,                  0,   "wifi_wifi_md5" },
 };
 
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
@@ -2269,9 +2263,6 @@ restart:
     uint8_t cfg_digest[MD5_LEN];
     cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
 
-    memcpy( _file_digest, file_digest, MD5_LEN );
-    memcpy( _wifi_digest, wifi_digest, MD5_LEN );
-
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // file and cfg match, so our file is valid
@@ -2287,17 +2278,26 @@ restart:
         else{
             // wifi does not match file - need to load
 
+            log_v_debug_P( PSTR("Wifi firmware image fail") );
+
             goto load_image;
         }
+    }
+    else{
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );        
     }
 
     if( memcmp( wifi_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // wifi matches cfg, this is ok, run.
         // maybe the file is bad.
-        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );
-
+        
         goto run_wifi;
+    }
+    else{
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad config") );                
     }
 
     if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
@@ -2320,13 +2320,6 @@ restart:
     goto run_wifi;
 
 
-    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
-
-    log_v_debug_P( PSTR("error") );
-
-    TMR_WAIT( pt, 50000000 );
-
-    ASSERT( FALSE );
 
 load_image:
 

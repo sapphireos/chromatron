@@ -45,6 +45,7 @@ PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
 
 typedef struct{
     uint32_t partition_start;
+    uint32_t n_blocks;
     uint16_t i;
 } fw_erase_thread_state_t;
 PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *i ) );
@@ -300,6 +301,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         }
 
         thread_state.partition_start = FLASH_FS_FIRMWARE_0_PARTITION_START;
+        thread_state.n_blocks        = FLASH_FS_FIRMWARE_0_N_BLOCKS;
 
         // clear firmware size
         fw_size = 0;
@@ -316,6 +318,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         }
 
         thread_state.partition_start = FLASH_FS_FIRMWARE_2_PARTITION_START;
+        thread_state.n_blocks        = FLASH_FS_FIRMWARE_2_N_BLOCKS;
 
         // clear firmware size
         fw_size2 = 0;
@@ -482,7 +485,7 @@ PT_BEGIN( pt );
 
     state->i = FAST_ERASE_N_BLOCKS;
 
-    while( state->i < FLASH_FS_FIRMWARE_0_N_BLOCKS ){
+    while( state->i < state->n_blocks ){
 
         // enable writes
         flash25_v_write_enable();
