@@ -179,6 +179,14 @@ void wifi_v_init( void ){
     WiFi.hostname(host_str);
 }
 
+static void _wifi_v_send_status( void ){
+
+    wifi_msg_status_t status_msg;
+    status_msg.flags = wifi_u8_get_status();
+
+    intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
+}
+
 void wifi_v_process( void ){
     
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
@@ -189,8 +197,9 @@ void wifi_v_process( void ){
             connects++;
 
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
-            intf_v_request_status();
+            _wifi_v_send_status();
 
+            
             intf_v_printf("Connected!");
         }
     }
@@ -200,7 +209,7 @@ void wifi_v_process( void ){
         if( ( last_status & WIFI_STATUS_CONNECTED ) != 0 ){
 
             wifi_v_clr_status_bits( WIFI_STATUS_CONNECTED );
-            intf_v_request_status();
+            _wifi_v_send_status();
         }
     }
 
@@ -465,9 +474,7 @@ void wifi_v_process( void ){
 
     if( ( wifi_status != last_status ) ){
 
-        intf_v_request_status();
-
-        // irqline_v_strobe_irq();
+        _wifi_v_send_status();
 
         last_status = wifi_status;
     }

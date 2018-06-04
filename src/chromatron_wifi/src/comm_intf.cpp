@@ -66,7 +66,6 @@ static int32_t elapsed( uint32_t start ){
 
 static bool connected;
 static uint32_t comm_timeout;
-static bool request_status;
 static bool request_info;
 static bool request_debug;
 static bool request_vm_info;
@@ -603,15 +602,6 @@ void intf_v_process( void ){
         }
     }
     #endif
-    else if( request_status ){
-
-        request_status = false;
-
-        wifi_msg_status_t status_msg;
-        status_msg.flags = wifi_u8_get_status();
-
-        _intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
-    }
     else if( request_info ){
 
         request_info = false;
@@ -879,7 +869,6 @@ void intf_v_process( void ){
 
         last_status_ts = start_timeout();
 
-        request_status = true;
         request_info = true;
         request_vm_info = true;
     }
@@ -923,10 +912,6 @@ void intf_v_init( void ){
     list_v_init( &tx_q );
 }
 
-void intf_v_request_status( void ){
-
-    request_status = true;
-}
 
 void intf_v_request_vm_info( void ){
 
