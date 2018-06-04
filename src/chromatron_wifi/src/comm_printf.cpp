@@ -24,18 +24,11 @@
 
 #include "list.h"
 #include "memory.h"
+#include "wifi_cmd.h"
 #include "comm_printf.h"
-
-extern list_t print_list;
-
-
+#include "comm_intf.h"
 
 void intf_v_printf( const char *format, ... ){
-
-    if( list_u8_count( &print_list ) > MAX_PRINT_QUEUE ){
-
-        return;
-    }
 
     char debug_print_buf[128];
     memset( debug_print_buf, 0, sizeof(debug_print_buf) );
@@ -52,13 +45,5 @@ void intf_v_printf( const char *format, ... ){
 
     len++; // add null terminator
 
-    // alloc memory
-    list_node_t ln = list_ln_create_node( debug_print_buf, len );
-
-    if( ln < 0 ){
-
-        return;
-    }
-
-    list_v_insert_head( &print_list, ln );
+    intf_i8_send_msg( WIFI_DATA_ID_DEBUG_PRINT, (uint8_t *)debug_print_buf, len );
 }

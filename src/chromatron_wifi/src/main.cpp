@@ -28,6 +28,7 @@
 #include "wifi.h"
 #include "irq_line.h"
 #include "version.h"
+#include "comm_printf.h"
 
 extern "C"{
     #include "random.h"
