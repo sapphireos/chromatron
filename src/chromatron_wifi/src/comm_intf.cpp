@@ -94,8 +94,6 @@ static uint8_t intf_comm_buf[WIFI_BUF_LEN];
 static uint8_t intf_comm_state;
 
 static wifi_msg_udp_header_t udp_header;
-static uint8_t udp_data[WIFI_UDP_BUF_LEN];
-static uint16_t udp_len;
 
 static wifi_msg_udp_header_t rx_udp_header;
 static uint16_t rx_udp_index;
@@ -383,12 +381,11 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         
         memcpy( &udp_header, msg, sizeof(udp_header) );
 
-        udp_len = len - sizeof(udp_header);
-        memcpy( udp_data, data_ptr, udp_len );
+        uint16_t udp_len = len - sizeof(udp_header);
 
         if( udp_len == udp_header.len ){
 
-            wifi_v_send_udp( &udp_header, udp_data );
+            wifi_v_send_udp( &udp_header, data_ptr );
         }
     }
     // else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
