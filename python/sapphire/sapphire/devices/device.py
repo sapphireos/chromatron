@@ -1362,8 +1362,6 @@ class Device(object):
         except IOError: # file not found
             pass
 
-        time.sleep(2.0) # give a second while file system erases blocks
-
         # calculate crc of file data
         filehash = catbus_string_hash(data)
 

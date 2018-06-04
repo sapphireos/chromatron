@@ -44,6 +44,7 @@ static uint32_t fw_size2;
 PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
 
 typedef struct{
+    uint32_t partition_start;
     uint16_t i;
 } fw_erase_thread_state_t;
 PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *i ) );
@@ -91,22 +92,38 @@ static void erase_fw_partition( uint8_t partition ){
     }
 }
 
-// static void erase_start_blocks( void ){
+static void erase_start_blocks( uint8_t partition ){
 
-//     for( uint16_t i = 0; i < FAST_ERASE_N_BLOCKS; i++ ){
+    uint32_t partition_start = 0;
+    
+    if( partition == 0 ){
 
-//         // enable writes
-//         flash25_v_write_enable();
+        partition_start = FLASH_FS_FIRMWARE_0_PARTITION_START;
+    }
+    // note - cannot erase partition 1
+    else if( partition == 2 ){
 
-//         // erase current block
-//         flash25_v_erase_4k( ( (uint32_t)i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + FLASH_FS_FIRMWARE_0_PARTITION_START );
+        partition_start = FLASH_FS_FIRMWARE_2_PARTITION_START;
+    }
+    else{
 
-//         // wait for erase to complete
-//         BUSY_WAIT( flash25_b_busy() );
+        ASSERT( FALSE );
+    }
 
-//         sys_v_wdt_reset();
-//     }
-// }
+    for( uint16_t i = 0; i < FAST_ERASE_N_BLOCKS; i++ ){
+
+        // enable writes
+        flash25_v_write_enable();
+
+        // erase current block
+        flash25_v_erase_4k( ( (uint32_t)i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + partition_start );
+
+        // wait for erase to complete
+        BUSY_WAIT( flash25_b_busy() );
+
+        sys_v_wdt_reset();
+    }
+}
 
 int8_t ffs_fw_i8_init( void ){
 
@@ -134,7 +151,7 @@ int8_t ffs_fw_i8_init( void ){
     // bounds check
     if( fw_size > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){
 
-        // invalid size, so we'll default to 0
+        // invalid size, so we'll default to 0 
         fw_size = 0;
     }
 
@@ -271,6 +288,9 @@ uint32_t ffs_fw_u32_size( uint8_t partition ){
 
 void ffs_fw_v_erase( uint8_t partition, bool immediate ){
 
+    fw_erase_thread_state_t thread_state;
+    thread_state.i = 0;
+
     if( partition == 0 ){
 
         // check if we've already erased the file
@@ -279,28 +299,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
             return;
         }
 
-        // if( !immediate ){
-
-        //     // try to create erase thread
-        //     if( thread_t_create( THREAD_CAST( fw_erase_thread ),
-        //                          PSTR("fw_erase_thread"),
-        //                          0,
-        //                          sizeof(fw_erase_thread_state_t) ) < 0 ){
-
-        //         // erase thread failed, switch to immediate mode
-        //         immediate = TRUE;
-        //     }
-        //     else{
-
-        //         erase_start_blocks();
-        //     }
-        // }
-
-
-        // if( immediate ){
-
-            erase_fw_partition( partition );
-        // }
+        thread_state.partition_start = FLASH_FS_FIRMWARE_0_PARTITION_START;
 
         // clear firmware size
         fw_size = 0;
@@ -316,31 +315,36 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
             return;
         }
 
-        // if( !immediate ){
-
-        //     // try to create erase thread
-        //     if( thread_t_create( THREAD_CAST( fw_erase_thread ),
-        //                          PSTR("fw_erase_thread"),
-        //                          0,
-        //                          sizeof(fw_erase_thread_state_t) ) < 0 ){
-
-        //         // erase thread failed, switch to immediate mode
-        //         immediate = TRUE;
-        //     }
-        //     else{
-
-        //         erase_start_blocks();
-        //     }
-        // }
-
-
-        // if( immediate ){
-
-            erase_fw_partition( partition );
-        // }
+        thread_state.partition_start = FLASH_FS_FIRMWARE_2_PARTITION_START;
 
         // clear firmware size
         fw_size2 = 0;
+    }
+    else{
+
+        return;
+    }
+
+    if( !immediate ){
+
+        // try to create erase thread
+        if( thread_t_create( THREAD_CAST( fw_erase_thread ),
+                             PSTR("fw_erase_thread"),
+                             0,
+                             sizeof(fw_erase_thread_state_t) ) < 0 ){
+
+            // erase thread failed, switch to immediate mode
+            immediate = TRUE;
+        }
+        else{
+
+            erase_start_blocks( partition );
+        }
+    }
+
+    if( immediate ){
+
+        erase_fw_partition( partition );
     }
 }
 
@@ -474,6 +478,8 @@ PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
 
+    // assumes FAST_ERASE_N_BLOCKS have already been erased before the thread started
+
     state->i = FAST_ERASE_N_BLOCKS;
 
     while( state->i < FLASH_FS_FIRMWARE_0_N_BLOCKS ){
@@ -482,7 +488,7 @@ PT_BEGIN( pt );
         flash25_v_write_enable();
 
         // erase current block
-        flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + FLASH_FS_FIRMWARE_0_PARTITION_START );
+        flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + state->partition_start );
 
         // wait for erase to complete
         BUSY_WAIT( flash25_b_busy() );
@@ -491,12 +497,9 @@ PT_BEGIN( pt );
 
         state->i++;
 
-        THREAD_YIELD( pt );
-        THREAD_YIELD( pt );
-        THREAD_YIELD( pt );
-        THREAD_YIELD( pt );
-        THREAD_YIELD( pt );
+        TMR_WAIT( pt, 4 );
     }
 
 PT_END( pt );
 }
+
