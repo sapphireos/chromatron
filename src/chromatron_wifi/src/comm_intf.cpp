@@ -333,19 +333,11 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             wifi_v_send_udp( &udp_header, udp_data );
         }
-        else{
-
-            intf_v_printf( "UDP ext len fail" );    
-        }
     }
     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
         if( len != sizeof(wifi_msg_udp_header_t) ){
 
-            // Serial.write( 0x99 );
-            // Serial.write( 0x01 );
-
-            // intf_v_led_on();
             return;
         }
 
@@ -359,14 +351,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         // bounds check
         if( ( udp_len + len ) > sizeof(udp_data) ){
 
-            // Serial.write( 0x99 );
-            // Serial.write( 0x02 );
-            // Serial.write( udp_len >> 8 );
-            // Serial.write( udp_len & 0xff );
-            // Serial.write( len >> 8 );
-            // Serial.write( len & 0xff );
-
-            // intf_v_led_on();
             return;
         }
 
@@ -379,10 +363,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             // check crc
             if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
 
-                // Serial.write( 0x99 );
-                // Serial.write( 0x03 );
-
-                // intf_v_led_on();
                 return;
             }
 
@@ -395,8 +375,6 @@ static void set_rx_ready( void ){
 
     // flush serial buffers
     _intf_v_flush();
-
-    // Serial.write( WIFI_COMM_READY );  
 
     irqline_v_strobe_irq();
 }
@@ -484,7 +462,6 @@ void intf_v_process( void ){
             }
             else{
 
-                intf_v_printf( "%u %x", msg_len, intf_data_header.data_id );
                 comm_errors++;
             }
 
