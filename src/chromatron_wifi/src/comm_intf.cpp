@@ -334,41 +334,41 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             wifi_v_send_udp( &udp_header, udp_data );
         }
     }
-    else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
+    // else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
-        if( len != sizeof(wifi_msg_udp_header_t) ){
+    //     if( len != sizeof(wifi_msg_udp_header_t) ){
 
-            return;
-        }
+    //         return;
+    //     }
 
-        wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+    //     wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
 
-        udp_len = 0;
-        memcpy( &udp_header, msg, sizeof(udp_header) );
-    }
-    else if( data_id == WIFI_DATA_ID_UDP_DATA ){
+    //     udp_len = 0;
+    //     memcpy( &udp_header, msg, sizeof(udp_header) );
+    // }
+    // else if( data_id == WIFI_DATA_ID_UDP_DATA ){
 
-        // bounds check
-        if( ( udp_len + len ) > sizeof(udp_data) ){
+    //     // bounds check
+    //     if( ( udp_len + len ) > sizeof(udp_data) ){
 
-            return;
-        }
+    //         return;
+    //     }
 
-        memcpy( &udp_data[udp_len], data, len );
+    //     memcpy( &udp_data[udp_len], data, len );
 
-        udp_len += len;
+    //     udp_len += len;
 
-        if( udp_len == udp_header.len ){
+    //     if( udp_len == udp_header.len ){
 
-            // check crc
-            if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
+    //         // check crc
+    //         if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
 
-                return;
-            }
+    //             return;
+    //         }
 
-            wifi_v_send_udp( &udp_header, udp_data );
-        }
-    }
+    //         wifi_v_send_udp( &udp_header, udp_data );
+    //     }
+    // }
 }
 
 static void set_rx_ready( void ){
