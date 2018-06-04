@@ -66,8 +66,6 @@ static int32_t elapsed( uint32_t start ){
 
 static bool connected;
 static uint32_t comm_timeout;
-static bool request_info;
-static bool request_debug;
 static bool request_vm_info;
 static bool request_vm_frame_sync;
 static uint8_t vm_frame_sync_index;
@@ -200,6 +198,66 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
 //     return _intf_i8_send_msg( data_id, data, len );    
 // }
+
+static void _send_info_msg( void ){
+
+    wifi_msg_info_t info_msg;
+    info_msg.version =  ( ( VERSION_MAJOR & 0x0f ) << 12 ) |
+                        ( ( VERSION_MINOR & 0x1f ) << 7 ) |
+                        ( ( VERSION_PATCH & 0x7f ) << 0 );
+
+    WiFi.macAddress( info_msg.mac );
+    
+    IPAddress ip_addr = wifi_ip_get_ip();
+    info_msg.ip.ip0 = ip_addr[3];
+    info_msg.ip.ip1 = ip_addr[2];
+    info_msg.ip.ip2 = ip_addr[1];
+    info_msg.ip.ip3 = ip_addr[0];
+
+    ip_addr = wifi_ip_get_subnet();
+    info_msg.subnet.ip0 = ip_addr[3];
+    info_msg.subnet.ip1 = ip_addr[2];
+    info_msg.subnet.ip2 = ip_addr[1];
+    info_msg.subnet.ip3 = ip_addr[0];
+
+    ip_addr = WiFi.gatewayIP();
+    info_msg.gateway.ip0 = ip_addr[3];
+    info_msg.gateway.ip1 = ip_addr[2];
+    info_msg.gateway.ip2 = ip_addr[1];
+    info_msg.gateway.ip3 = ip_addr[0];
+
+    ip_addr = WiFi.dnsIP();
+    info_msg.dns.ip0 = ip_addr[3];
+    info_msg.dns.ip1 = ip_addr[2];
+    info_msg.dns.ip2 = ip_addr[1];
+    info_msg.dns.ip3 = ip_addr[0];
+
+    info_msg.rssi           = WiFi.RSSI();
+
+    info_msg.rx_udp_fifo_overruns   = wifi_u32_get_rx_udp_fifo_overruns();
+    info_msg.rx_udp_port_overruns   = wifi_u32_get_rx_udp_port_overruns();
+    info_msg.udp_received           = wifi_u32_get_udp_received();
+    info_msg.udp_sent               = wifi_u32_get_udp_sent();
+
+    mem_rt_data_t rt_data;
+    mem2_v_get_rt_data( &rt_data );
+
+    info_msg.comm_errors            = comm_errors;
+
+    info_msg.mem_heap_peak          = rt_data.peak_usage;
+
+    info_msg.intf_max_time          = process_stats.intf_max_time;
+    info_msg.vm_max_time            = process_stats.vm_max_time;
+    info_msg.wifi_max_time          = process_stats.wifi_max_time;
+    info_msg.mem_max_time           = process_stats.mem_max_time;
+
+    info_msg.intf_avg_time          = process_stats.intf_avg_time;
+    info_msg.vm_avg_time            = process_stats.vm_avg_time;
+    info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
+    info_msg.mem_avg_time           = process_stats.mem_avg_time;
+
+    intf_i8_send_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );    
+}
 
 static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
@@ -602,67 +660,6 @@ void intf_v_process( void ){
         }
     }
     #endif
-    else if( request_info ){
-
-        request_info = false;
-
-        wifi_msg_info_t info_msg;
-        info_msg.version =  ( ( VERSION_MAJOR & 0x0f ) << 12 ) |
-                            ( ( VERSION_MINOR & 0x1f ) << 7 ) |
-                            ( ( VERSION_PATCH & 0x7f ) << 0 );
-
-        WiFi.macAddress( info_msg.mac );
-        
-        IPAddress ip_addr = wifi_ip_get_ip();
-        info_msg.ip.ip0 = ip_addr[3];
-        info_msg.ip.ip1 = ip_addr[2];
-        info_msg.ip.ip2 = ip_addr[1];
-        info_msg.ip.ip3 = ip_addr[0];
-
-        ip_addr = wifi_ip_get_subnet();
-        info_msg.subnet.ip0 = ip_addr[3];
-        info_msg.subnet.ip1 = ip_addr[2];
-        info_msg.subnet.ip2 = ip_addr[1];
-        info_msg.subnet.ip3 = ip_addr[0];
-
-        ip_addr = WiFi.gatewayIP();
-        info_msg.gateway.ip0 = ip_addr[3];
-        info_msg.gateway.ip1 = ip_addr[2];
-        info_msg.gateway.ip2 = ip_addr[1];
-        info_msg.gateway.ip3 = ip_addr[0];
-
-        ip_addr = WiFi.dnsIP();
-        info_msg.dns.ip0 = ip_addr[3];
-        info_msg.dns.ip1 = ip_addr[2];
-        info_msg.dns.ip2 = ip_addr[1];
-        info_msg.dns.ip3 = ip_addr[0];
-
-        info_msg.rssi           = WiFi.RSSI();
-
-        info_msg.rx_udp_fifo_overruns   = wifi_u32_get_rx_udp_fifo_overruns();
-        info_msg.rx_udp_port_overruns   = wifi_u32_get_rx_udp_port_overruns();
-        info_msg.udp_received           = wifi_u32_get_udp_received();
-        info_msg.udp_sent               = wifi_u32_get_udp_sent();
-
-        mem_rt_data_t rt_data;
-        mem2_v_get_rt_data( &rt_data );
-
-        info_msg.comm_errors            = comm_errors;
-
-        info_msg.mem_heap_peak          = rt_data.peak_usage;
-
-        info_msg.intf_max_time          = process_stats.intf_max_time;
-        info_msg.vm_max_time            = process_stats.vm_max_time;
-        info_msg.wifi_max_time          = process_stats.wifi_max_time;
-        info_msg.mem_max_time           = process_stats.mem_max_time;
-
-        info_msg.intf_avg_time          = process_stats.intf_avg_time;
-        info_msg.vm_avg_time            = process_stats.vm_avg_time;
-        info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
-        info_msg.mem_avg_time           = process_stats.mem_avg_time;
-
-        _intf_i8_send_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );
-    }
     else if( request_vm_info ){
 
         request_vm_info = false;
@@ -704,17 +701,6 @@ void intf_v_process( void ){
         msg.frame_number = vm_u16_get_frame_number();
 
         _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
-    }
-    else if( request_debug ){
-
-        request_debug = false;
-
-        wifi_msg_debug_t msg;
-        msg.free_heap = ESP.getFreeHeap();
-
-        _intf_i8_send_msg( WIFI_DATA_ID_DEBUG, 
-                           (uint8_t *)&msg, 
-                           sizeof(msg) );
     }
     else if( wifi_b_rx_udp_pending() ){
 
@@ -869,7 +855,8 @@ void intf_v_process( void ){
 
         last_status_ts = start_timeout();
 
-        request_info = true;
+        wifi_v_send_status();
+        _send_info_msg();
         request_vm_info = true;
     }
 
@@ -904,8 +891,6 @@ void intf_v_init( void ){
 
     // flush serial buffers
     _intf_v_flush();
-
-    request_debug = true;
 
     // list_v_init( &print_list );
     // list_v_init( &kv_data_list );

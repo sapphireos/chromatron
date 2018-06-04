@@ -1759,17 +1759,6 @@ static int8_t process_rx_data( void ){
         wifi_avg_time               = msg->wifi_avg_time;
         mem_avg_time                = msg->mem_avg_time;
     }
-    else if( header->data_id == WIFI_DATA_ID_DEBUG ){
-
-        if( header->len != sizeof(wifi_msg_debug_t) ){
-
-            goto len_error;
-        }
-
-        wifi_msg_debug_t *msg = (wifi_msg_debug_t *)data;
-
-        log_v_debug_P( PSTR("ESP free heap: %u"), msg->free_heap );
-    }
     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
 
         if( header->len < sizeof(wifi_msg_udp_header_t) ){

@@ -38,6 +38,7 @@ extern "C"{
 uint8_t wifi_u8_get_status( void );
 void wifi_v_set_status_bits( uint8_t bits );
 void wifi_v_clr_status_bits( uint8_t bits );
+void wifi_v_send_status( void );
 
 IPAddress wifi_ip_get_ip( void );
 IPAddress wifi_ip_get_subnet( void );

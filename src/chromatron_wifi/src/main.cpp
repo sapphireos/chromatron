@@ -67,11 +67,6 @@ void setup(){
     Serial.println(info);
     delay(10);
 
-    Serial.print( "Free heap:" );
-    Serial.println( ESP.getFreeHeap() );
-
-    delay(10);
-
     Serial.end();
 
     system_update_cpu_freq( SYS_CPU_160MHZ );
@@ -90,33 +85,13 @@ void setup(){
 
     vm_v_init();
 
-    //SPIFFS.begin();
-
-    // uint32_t array[64];
-    // for( uint32_t i = 0; i < 64; i++ ){
-
-    //     array[i] = i + 1;
-    // }
-
-    // uint32_t array2[16];
-    // for( uint32_t i = 0; i < 16; i++ ){
-
-    //     array2[i] = i + 3;
-    // }
-
-    // kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT32, 64, array, sizeof(array), 0 );
-    // kvdb_i8_add( __KV__test_data,  CATBUS_TYPE_UINT32, 1, 0, 0, 0 );
-    // kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, array2, sizeof(array2), 0 );
-
-    // intf_v_send_kv( __KV__test_array );
-    // intf_v_send_kv( __KV__test_data );
-    // intf_v_send_kv( __KV__test_meow );
 
 
     wifi_set_sleep_type( MODEM_SLEEP_T );
 
 
     intf_v_printf( "ESP online" );
+    intf_v_printf( "ESP free heap: %d", ESP.getFreeHeap() );
 }
 
 uint32_t elapsed_time( uint32_t start_time ){

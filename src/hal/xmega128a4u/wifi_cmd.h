@@ -134,11 +134,6 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_AP_MODE            0x08
 
 typedef struct __attribute__((packed)){
-    uint32_t free_heap;
-} wifi_msg_debug_t;
-#define WIFI_DATA_ID_DEBUG              0x09
-
-typedef struct __attribute__((packed)){
     uint16_t index;
     uint8_t count;
     uint8_t padding;
