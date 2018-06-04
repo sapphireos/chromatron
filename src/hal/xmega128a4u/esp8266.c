@@ -2059,7 +2059,7 @@ restart:
 
                 wifi_data_header_t header;
                 header.len_ext  = len >> 8;
-                header.len      = len % 0xff;
+                header.len      = len & 0xff;
                 header.data_id  = WIFI_DATA_ID_UDP_EXT;
                 header.crc      = 0;                
 
@@ -2076,13 +2076,6 @@ restart:
                 _wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
                 _wifi_v_usart_send_data( h2, h2_len );
                 _wifi_v_usart_send_data( data, data_len );   
-
-                if( len > 500 ){
-
-                    log_v_debug_P( PSTR("sent: %u len %u  ext %u"), len, (uint16_t)header.len, (uint16_t)header.len_ext ); 
-
-                    sys_v_reboot_delay( SYS_MODE_SAFE );   
-                }
             }
             else{
 
