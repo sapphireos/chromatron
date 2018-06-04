@@ -2352,7 +2352,7 @@ load_image:
     }
 
     // restart
-    sys_v_reboot_delay( SYS_MODE_NORMAL );
+    sys_reboot();
 
     THREAD_EXIT( pt );
 
