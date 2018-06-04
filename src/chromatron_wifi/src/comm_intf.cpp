@@ -67,10 +67,10 @@ static int32_t elapsed( uint32_t start ){
 static bool connected;
 static uint32_t comm_timeout;
 static bool request_vm_info;
-static bool request_vm_frame_sync;
-static uint8_t vm_frame_sync_index;
-static bool request_vm_frame_sync_status;
-static uint8_t vm_frame_sync_status;
+// static bool request_vm_frame_sync;
+// static uint8_t vm_frame_sync_index;
+// static bool request_vm_frame_sync_status;
+// static uint8_t vm_frame_sync_status;
 static volatile bool request_reset_ready_timeout;
 
 #ifdef USE_HSV_BRIDGE
@@ -323,14 +323,14 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 
-        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+        // wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
-        vm_frame_sync_status = vm_u8_set_frame_sync( msg );
-        request_vm_frame_sync_status = true;
+        // vm_frame_sync_status = vm_u8_set_frame_sync( msg );
+        // request_vm_frame_sync_status = true;
     }
     else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
         
-        intf_v_request_vm_frame_sync();
+        // intf_v_request_vm_frame_sync();
     }
     else if( data_id == WIFI_DATA_ID_RUN_VM ){
 
@@ -676,32 +676,32 @@ void intf_v_process( void ){
 
         _intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
     }
-    else if( request_vm_frame_sync ){
+    // else if( request_vm_frame_sync ){
 
-        wifi_msg_vm_frame_sync_t msg;
-        memset( &msg, 0, sizeof(msg) );
+    //     wifi_msg_vm_frame_sync_t msg;
+    //     memset( &msg, 0, sizeof(msg) );
 
-        if( vm_i8_get_frame_sync( vm_frame_sync_index, &msg ) == 0 ){
+    //     if( vm_i8_get_frame_sync( vm_frame_sync_index, &msg ) == 0 ){
 
-            _intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
+    //         _intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
 
-            vm_frame_sync_index++;
-        }
-        else{
+    //         vm_frame_sync_index++;
+    //     }
+    //     else{
 
-            request_vm_frame_sync = false;
-        }
-    }
-    else if( request_vm_frame_sync_status ){
+    //         request_vm_frame_sync = false;
+    //     }
+    // }
+    // else if( request_vm_frame_sync_status ){
 
-        request_vm_frame_sync_status = false;
+    //     request_vm_frame_sync_status = false;
 
-        wifi_msg_vm_frame_sync_status_t msg;
-        msg.status = vm_frame_sync_status;
-        msg.frame_number = vm_u16_get_frame_number();
+    //     wifi_msg_vm_frame_sync_status_t msg;
+    //     msg.status = vm_frame_sync_status;
+    //     msg.frame_number = vm_u16_get_frame_number();
 
-        _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
-    }
+    //     _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
+    // }
     else if( wifi_b_rx_udp_pending() ){
 
         if( rx_udp_header.lport == 0 ){
@@ -923,8 +923,8 @@ void intf_v_request_hsv_array( void ){
 
 void intf_v_request_vm_frame_sync( void ){
 
-    vm_frame_sync_index = 0;
-    request_vm_frame_sync = true;
+    // vm_frame_sync_index = 0;
+    // request_vm_frame_sync = true;
 }
 
 void intf_v_get_mac( uint8_t mac[6] ){
