@@ -824,14 +824,6 @@ void intf_v_process( void ){
     //     }
 
     // }
-    // else if( list_u8_count( &print_list ) > 0 ){
-
-    //     list_node_t ln = list_ln_remove_tail( &print_list );
-
-    //     _intf_i8_send_msg( WIFI_DATA_ID_DEBUG_PRINT, (uint8_t *)list_vp_get_data( ln ), list_u16_node_size( ln ) ); 
-        
-    //     list_v_release_node( ln );
-    // }
     
 
     if( elapsed( last_status_ts ) > 1000000 ){
@@ -875,7 +867,6 @@ void intf_v_init( void ){
     // flush serial buffers
     _intf_v_flush();
 
-    // list_v_init( &print_list );
     // list_v_init( &kv_data_list );
     list_v_init( &tx_q );
 }
