@@ -734,25 +734,32 @@ PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint16_t index;
+//     static uint16_t index;
 
-    while(1){
+//     while(1){
 
-        THREAD_YIELD( pt );
+//         THREAD_YIELD( pt );
 
-        kv_meta_t meta;
-        if( kv_i8_lookup_index( index, &meta, 0 ) < 0 ){
+//         kv_meta_t meta;
+//         if( kv_i8_lookup_index( index, &meta, 0 ) < 0 ){
 
-            index = 0;
+//             index = 0;
 
-            continue;
-        }
+//             continue;
+//         }
 
-        uint8_t buf[CATBUS_MAX_DATA];
+//         uint8_t buf[CATBUS_MAX_DATA];
+//         if( kv_i8_get( meta.hash, buf, sizeof(buf) ) < 0 ){
+
+//             goto end;
+//         }
 
         
-        index++;
-    }
+        
+
+// end:
+//         index++;
+//     }
 
     // THREAD_EXIT( pt );
 
