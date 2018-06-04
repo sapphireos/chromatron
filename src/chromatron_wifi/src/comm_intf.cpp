@@ -138,6 +138,17 @@ static bool rx_ready( void ){
     return temp;
 }
 
+static void clear_ready_flag( void ){
+
+    // clear ready flag
+    noInterrupts();
+    is_rx_ready = false;
+
+    // make sure to reset the ready timeout!
+    request_reset_ready_timeout = true;
+    interrupts();
+}
+
 static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     if( len > WIFI_MAIN_MAX_DATA_LEN ){
@@ -166,17 +177,7 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     header.crc = crc_u16_finish( crc );
 
-
-    // clear ready flag
-    noInterrupts();
-    is_rx_ready = false;
-
-    // make sure to reset the ready timeout!
-    request_reset_ready_timeout = true;
-    interrupts();
-
-    
-
+    clear_ready_flag();    
 
     Serial.write( WIFI_COMM_DATA );
     Serial.write( (uint8_t *)&header, sizeof(header) );
@@ -397,7 +398,7 @@ void intf_v_process( void ){
 
 
         comm_errors++;
-        
+
         // reset comm state
         intf_comm_state = COMM_STATE_IDLE;
 
@@ -733,8 +734,37 @@ void intf_v_process( void ){
 
             // get header
             wifi_i8_get_rx_udp_header( &rx_udp_header );
+
+            uint16_t data_len = WIFI_MAIN_MAX_DATA_LEN - sizeof(rx_udp_header);
+            if( data_len > rx_udp_header.len ){
+
+                data_len = rx_udp_header.len;
+            }
+
+            intf_v_printf( "%u", data_len );
+
+            wifi_data_header_t header;
+            header.len      = data_len + sizeof(rx_udp_header);
+            header.data_id  = WIFI_DATA_ID_UDP_HEADER;
+            header.reserved = 0;
+            header.crc      = 0;
+
+            uint8_t *data = wifi_u8p_get_rx_udp_data();
+
+            uint16_t crc = crc_u16_start();
+            crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
+            crc = crc_u16_partial_block( crc, (uint8_t *)&rx_udp_header, sizeof(rx_udp_header) );
+            crc = crc_u16_partial_block( crc, &data[rx_udp_index], data_len );
+            header.crc = crc_u16_finish( crc );
             
-            _intf_i8_send_msg( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&rx_udp_header, sizeof(wifi_msg_udp_header_t) );
+            clear_ready_flag();
+
+            Serial.write( WIFI_COMM_DATA );
+            Serial.write( (uint8_t *)&header, sizeof(header) );
+            Serial.write( (uint8_t *)&rx_udp_header, sizeof(rx_udp_header) );
+            Serial.write( &data[rx_udp_index], data_len );
+
+            rx_udp_index += data_len;
         }
         else{
 

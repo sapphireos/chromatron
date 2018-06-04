@@ -144,6 +144,8 @@ static list_t netmsg_list;
 
 // static mem_handle_t wifi_networks_handle = -1;
 
+static uint8_t _file_digest[16];
+static uint8_t _wifi_digest[16];
 
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -161,6 +163,9 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
     { SAPPHIRE_TYPE_KEY128,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_md5" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_fw_len" },
+
+     { SAPPHIRE_TYPE_KEY128,        0, 0,                          _file_digest,                  0,   "wifi_file_md5" },
+     { SAPPHIRE_TYPE_KEY128,        0, 0,                          _wifi_digest,                  0,   "wifi_wifi_md5" },
 };
 
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
@@ -1773,7 +1778,7 @@ static int8_t process_rx_data( void ){
     }
     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
 
-        if( header->len != sizeof(wifi_msg_udp_header_t) ){
+        if( header->len < sizeof(wifi_msg_udp_header_t) ){
 
             goto len_error;
         }
@@ -1828,7 +1833,15 @@ static int8_t process_rx_data( void ){
 
         rx_netmsg_crc       = msg->crc;
 
-        rx_netmsg_index = 0;
+        // copy data
+        data += sizeof(wifi_msg_udp_header_t);
+
+        uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
+
+        // we can get a fast ptr because we've already verified the handle
+        memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
+
+        rx_netmsg_index = data_len;
     }
     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
 
@@ -2141,8 +2154,6 @@ restart:
 
     if( state->fw_file <= 0 ){
 
-        log_v_debug_P( PSTR("Wifi firmware image not found! Trying to start anyway...") );
-
         goto run_wifi;
     }
 
@@ -2258,6 +2269,8 @@ restart:
     uint8_t cfg_digest[MD5_LEN];
     cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
 
+    memcpy( _file_digest, file_digest, MD5_LEN );
+    memcpy( _wifi_digest, wifi_digest, MD5_LEN );
 
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
 
