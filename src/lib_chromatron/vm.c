@@ -471,14 +471,14 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         fs_i16_read( f, (uint8_t *)&read_key_hash, sizeof(uint32_t) );
 
-        if( kv_i8_get_meta( read_key_hash, &meta ) >= 0 ){
+        // if( kv_i8_get_meta( read_key_hash, &meta ) >= 0 ){
 
-            wifi_msg_kv_add_t kv_add_msg;
-            kv_add_msg.vm_id    = vm_id;
-            kv_add_msg.meta     = meta;
+        //     wifi_msg_kv_add_t kv_add_msg;
+        //     kv_add_msg.vm_id    = vm_id;
+        //     kv_add_msg.meta     = meta;
 
-            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&kv_add_msg, sizeof(kv_add_msg) );
-        }
+        //     wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&kv_add_msg, sizeof(kv_add_msg) );
+        // }
         
         if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
         
@@ -528,11 +528,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
             continue;
         }
 
-        // make sure ESP's VM has this database entry
-        if( kv_i8_get_meta( write_hash, &meta ) >= 0 ){
+        // // make sure ESP's VM has this database entry
+        // if( kv_i8_get_meta( write_hash, &meta ) >= 0 ){
 
-            wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
-        }
+        //     wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&meta, sizeof(meta) );
+        // }
 
         // check if writing to restricted key
         for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){

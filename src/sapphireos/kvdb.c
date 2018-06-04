@@ -218,6 +218,11 @@ int8_t kvdb_i8_add(
 
     uint16_t data_len = type_u16_size( type ) * count;
 
+    if( data_len > KVDB_MAX_DATA ){
+
+        return KVDB_STATUS_DATA_TOO_LARGE;
+    }
+
     count--;
 
     // not found, we need to add this entry

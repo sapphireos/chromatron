@@ -30,6 +30,8 @@
 #include "catbus_types.h"
 #include "kvdb_config.h"
 
+#define KVDB_MAX_DATA 	CATBUS_MAX_DATA 
+
 typedef void ( *kvdb_notifier_t )(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
@@ -88,6 +90,7 @@ extern int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ) __attribute__((weak
 #define KVDB_STATUS_NOT_ENOUGH_SPACE    -2
 #define KVDB_STATUS_INVALID_HASH        -3
 #define KVDB_STATUS_HASH_CONFLICT       -4
+#define KVDB_STATUS_DATA_TOO_LARGE      -5
 
 
 #endif
