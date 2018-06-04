@@ -50,7 +50,7 @@ typedef struct{
 PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *i ) );
 
 
-#define FAST_ERASE_N_BLOCKS 4
+#define FAST_ERASE_N_BLOCKS 8
 
 
 static void erase_fw_partition( uint8_t partition ){
@@ -330,8 +330,8 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         // try to create erase thread
         if( thread_t_create( THREAD_CAST( fw_erase_thread ),
                              PSTR("fw_erase_thread"),
-                             0,
-                             sizeof(fw_erase_thread_state_t) ) < 0 ){
+                             &thread_state,
+                             sizeof(thread_state) ) < 0 ){
 
             // erase thread failed, switch to immediate mode
             immediate = TRUE;
