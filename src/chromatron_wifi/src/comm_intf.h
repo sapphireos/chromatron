@@ -56,7 +56,6 @@ void intf_v_led_on( void );
 void intf_v_led_off( void );
 void intf_v_init( void );
 void intf_v_process( void );
-void intf_v_request_vm_info( void );
 #ifndef USE_HSV_BRIDGE
 void intf_v_request_rgb_pix0( void );
 void intf_v_request_rgb_array( void );

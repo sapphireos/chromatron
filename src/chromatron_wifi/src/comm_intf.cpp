@@ -66,7 +66,6 @@ static int32_t elapsed( uint32_t start ){
 
 static bool connected;
 static uint32_t comm_timeout;
-static bool request_vm_info;
 // static bool request_vm_frame_sync;
 // static uint8_t vm_frame_sync_index;
 // static bool request_vm_frame_sync_status;
@@ -660,22 +659,6 @@ void intf_v_process( void ){
         }
     }
     #endif
-    else if( request_vm_info ){
-
-        request_vm_info = false;
-
-        wifi_msg_vm_info_t msg;
-
-        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
-
-            vm_v_get_info( i, &msg.vm_info[i] );
-        }
-
-        msg.fader_time      = vm_u16_get_fader_time();
-        msg.vm_total_size   = vm_u16_get_total_size();
-
-        _intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
-    }
     // else if( request_vm_frame_sync ){
 
     //     wifi_msg_vm_frame_sync_t msg;
@@ -857,7 +840,7 @@ void intf_v_process( void ){
 
         wifi_v_send_status();
         _send_info_msg();
-        request_vm_info = true;
+        vm_v_send_info();
     }
 
 
@@ -898,10 +881,6 @@ void intf_v_init( void ){
 }
 
 
-void intf_v_request_vm_info( void ){
-
-    request_vm_info = true;
-}
 
 #ifndef USE_HSV_BRIDGE
 void intf_v_request_rgb_pix0( void ){

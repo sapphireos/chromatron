@@ -30,6 +30,7 @@ extern "C"{
     #include "list.h"
     #include "wifi_cmd.h"
     #include "kvdb.h"
+    #include "vm_wifi_cmd.h"
 }
 
 static uint16_t vm_load_len;
@@ -103,6 +104,21 @@ uint32_t elapsed_time_micros( uint32_t start_time ){
     return elapsed;
 }
 
+void vm_v_send_info( void ){
+
+    wifi_msg_vm_info_t msg;
+
+    for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        vm_v_get_info( i, &msg.vm_info[i] );
+    }
+
+    msg.fader_time      = vm_u16_get_fader_time();
+    msg.vm_total_size   = vm_u16_get_total_size();
+
+    intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
+}
+
 static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     if( vm_index >= VM_MAX_VMS ){
@@ -157,7 +173,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
     // if return is anything other than OK, send status immediately
     if( return_code != 0 ){
 
-        intf_v_request_vm_info();
+        vm_v_send_info();
     }
 
     if( return_code == VM_STATUS_HALT ){
