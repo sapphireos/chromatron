@@ -384,10 +384,6 @@ void wifi_v_process( void ){
 
         port_rx_depth[i]++;
 
-        wifi_v_set_status_bits( WIFI_STATUS_RX_MSG );
-
-        intf_v_request_status();
-
         led_off();
     }
 
@@ -631,11 +627,6 @@ void wifi_v_rx_udp_clear_last( void ){
     }
 
     list_v_release_node( ln );
-
-    if( list_u8_count( &rx_q ) == 0 ){
-
-        wifi_v_clr_status_bits( WIFI_STATUS_RX_MSG );
-    }
 }
 
 

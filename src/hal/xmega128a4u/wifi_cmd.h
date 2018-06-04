@@ -43,7 +43,6 @@ typedef ip_addr_t sos_ip_addr_t;
 
 #define WIFI_STATUS_ERR                 0x80
 #define WIFI_STATUS_CONNECTED           0x40
-#define WIFI_STATUS_RX_MSG              0x20
 #define WIFI_STATUS_AP_MODE             0x10
 #define WIFI_STATUS_IRQ_FLAG            0x08
 
