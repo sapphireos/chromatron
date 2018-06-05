@@ -111,6 +111,7 @@ typedef struct{
     void *ptr;
     kv_handler_t handler;
     char name[CATBUS_STRING_LEN];
+    catbus_hash_t32 hash;
 } kv_meta_t;
 
 typedef struct{

@@ -921,7 +921,15 @@ class AppBuilder(HexBuilder):
         kv_meta_data = []
 
         while True:
-            kv_meta = KVMetaField().unpack(bindata[kv_meta_addr:kv_meta_addr + kv_meta_len])
+            kv_meta_s = bindata[kv_meta_addr:kv_meta_addr + kv_meta_len]
+            kv_meta = KVMetaField().unpack(kv_meta_s)
+
+            # compute hash and repack into binary
+            kv_meta.hash = catbus_string_hash(str(kv_meta.param_name))
+
+            ih.puts(kv_meta_addr, kv_meta.pack())
+
+            # bindata = bindata.replace(kv_meta_s, kv_meta.pack())
 
             kv_meta_addr += kv_meta_len
 

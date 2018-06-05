@@ -201,7 +201,8 @@ class KVMetaField(StructField):
                   Uint8Field(_name="flags"),
                   Uint16Field(_name="__var_ptr"),
                   Uint16Field(_name="__notifier_ptr"),
-                  StringField(_name="param_name", _length=32)]
+                  StringField(_name="param_name", _length=32),
+                  Uint32Field(_name="hash")]
 
         super(KVMetaField, self).__init__(_fields=fields, **kwargs)
 
