@@ -736,23 +736,33 @@ PT_BEGIN( pt );
 
     static uint16_t index;
 
+
+
+    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
     while(1){
 
         THREAD_YIELD( pt );
+        // TMR_WAIT( pt, 5 );
         THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+
+
+
+
 
         kv_meta_t meta;
         if( kv_i8_lookup_index( index, &meta, 0 ) < 0 ){
 
             index = 0;
 
-            // TMR_WAIT( pt, 500 );
-            THREAD_EXIT( pt );
+            TMR_WAIT( pt, 500 );
 
             continue;
         }
 
         uint8_t buf[CATBUS_MAX_DATA + sizeof(catbus_meta_t)];
+        memset( buf, 0, sizeof(buf) );
         catbus_meta_t *catbus_meta = (catbus_meta_t *)buf;
         uint8_t *data = (uint8_t *)( catbus_meta + 1 );
     
@@ -770,7 +780,7 @@ PT_BEGIN( pt );
         catbus_meta->flags       = meta.flags;
         catbus_meta->reserved    = 0;
 
-        log_v_debug_P( PSTR("%u %lu %u"), index, meta.hash, data_len );
+        // log_v_debug_P( PSTR("%u %lu %u"), index, meta.hash, data_len );
 
         wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(catbus_meta_t) );
 

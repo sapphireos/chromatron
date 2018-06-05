@@ -242,6 +242,7 @@ static void _send_info_msg( void ){
     info_msg.comm_errors            = comm_errors;
 
     info_msg.mem_heap_peak          = rt_data.peak_usage;
+    info_msg.mem_used               = rt_data.used_space;
 
     info_msg.intf_max_time          = process_stats.intf_max_time;
     info_msg.vm_max_time            = process_stats.vm_max_time;
@@ -339,41 +340,52 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
-        int16_t status = 0;
+        catbus_meta_t *catbus_meta = (catbus_meta_t *)data;
+        data = (uint8_t *)( catbus_meta + 1 );
+        len -= sizeof(catbus_meta_t);
 
-        while( status >= 0 ){
+        if( kvdb_i8_set( catbus_meta->hash, catbus_meta->type, data, len ) < 0 ){
 
-            data += status;
-            len -= status;
-
-            if( len <= 0 ){
-
-                break;
-            }
-
-            // catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
-
-            // intf_v_printf( "KV hash: %lx idx %d count %d", 
-            //     hdr->hash, hdr->index, hdr->count );      
-
-            status = catbus_i16_unpack( data, len );       
-
-            // intf_v_printf( "KV sts: %d len %d", 
-                // status, len );      
-        }
-    }
-    else if( data_id == WIFI_DATA_ID_KV_ADD ){
-
-        if( len != sizeof(wifi_msg_kv_add_t) ){
-
-            return;
+            kvdb_i8_add( catbus_meta->hash, catbus_meta->type, catbus_meta->count + 1, data, len );
+            // kvdb_v_set_tag( catbus_meta->hash, 0 );
         }
 
-        wifi_msg_kv_add_t *msg = (wifi_msg_kv_add_t *)data;
 
-        kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, 0, 0 );
-        kvdb_v_set_tag( msg->meta.hash, msg->vm_id + KVDB_VM_RUNNER_TAG );
+        // int16_t status = 0;
+
+        // while( status >= 0 ){
+
+        //     data += status;
+        //     len -= status;
+
+        //     if( len <= 0 ){
+
+        //         break;
+        //     }
+
+        //     // catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
+
+        //     // intf_v_printf( "KV hash: %lx idx %d count %d", 
+        //     //     hdr->hash, hdr->index, hdr->count );      
+
+        //     status = catbus_i16_unpack( data, len );       
+
+        //     // intf_v_printf( "KV sts: %d len %d", 
+        //         // status, len );      
+        // }
     }
+    // else if( data_id == WIFI_DATA_ID_KV_ADD ){
+
+    //     if( len != sizeof(wifi_msg_kv_add_t) ){
+
+    //         return;
+    //     }
+
+    //     wifi_msg_kv_add_t *msg = (wifi_msg_kv_add_t *)data;
+
+    //     kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, 0, 0 );
+    //     kvdb_v_set_tag( msg->meta.hash, msg->vm_id + KVDB_VM_RUNNER_TAG );
+    // }
     else if( data_id == WIFI_DATA_ID_UDP_EXT ){
 
         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;

@@ -93,6 +93,7 @@ typedef struct __attribute__((packed)){
     uint32_t udp_sent;
     uint16_t comm_errors;
     uint16_t mem_heap_peak;
+    uint16_t mem_used;
     uint16_t intf_max_time;
     uint16_t vm_max_time;
     uint16_t wifi_max_time;

@@ -57,7 +57,9 @@ typedef struct{
     catbus_flags_t8 flags;
     uint8_t count;
     uint8_t tag;
+    #ifdef KVDB_ENABLE_NOTIFIER
     kvdb_notifier_t notifier;
+    #endif
 } db_entry_t;
 // 8 bytes of meta data
 // N bytes for data
@@ -244,7 +246,9 @@ int8_t kvdb_i8_add(
     entry->flags     = CATBUS_FLAGS_DYNAMIC;
     entry->tag       = 0;
     entry->count     = count;
+    #ifdef KVDB_ENABLE_NOTIFIER
     entry->notifier  = 0;
+    #endif
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
@@ -297,6 +301,7 @@ void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
 
 void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier ){
 
+    #ifdef KVDB_ENABLE_NOTIFIER
     // get entry for hash
     db_entry_t *entry = _kvdb_dbp_search_hash( hash );
 
@@ -306,6 +311,7 @@ void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier ){
     }
 
     entry->notifier = notifier;
+    #endif
 }
 
 int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len ){
@@ -368,10 +374,12 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
             kvdb_v_notify_set( hash, &meta, data );
         }
 
+        #ifdef KVDB_ENABLE_NOTIFIER
         if( entry->notifier != 0 ){
 
             entry->notifier( hash, entry->type, data );
         }
+        #endif
     }
 
     return KVDB_STATUS_OK;
@@ -470,10 +478,12 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
             kvdb_v_notify_set( hash, &meta, data );
         }
 
+        #ifdef KVDB_ENABLE_NOTIFIER
         if( entry->notifier != 0 ){
 
             entry->notifier( hash, entry->type, data );
         }
+        #endif
     }
 
     return KVDB_STATUS_OK;
@@ -520,6 +530,7 @@ int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
 
 int8_t kvdb_i8_notify( catbus_hash_t32 hash ){
 
+    #ifdef KVDB_ENABLE_NOTIFIER
     // get entry for hash
     db_entry_t *entry = _kvdb_dbp_search_hash( hash );
 
@@ -532,6 +543,8 @@ int8_t kvdb_i8_notify( catbus_hash_t32 hash ){
 
         entry->notifier( hash, entry->type, (void *)( entry + 1 ) );
     }
+
+    #endif
 
     return 0;
 }

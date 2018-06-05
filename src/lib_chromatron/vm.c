@@ -441,8 +441,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
 
     catbus_meta_t meta;
-    uint32_t subscribed_key_hashes[VM_MAX_SUBSCRIBED_DB];
-    uint8_t subscribe_key_count = 0;
+    // uint32_t subscribed_key_hashes[VM_MAX_SUBSCRIBED_DB];
+    // uint8_t subscribe_key_count = 0;
 
     // set up additional DB entries
     fs_v_seek( f, sizeof(vm_size) + state.db_start );
@@ -454,11 +454,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
         kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + vm_id );      
 
-        if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
+        // if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
 
-            subscribed_key_hashes[subscribe_key_count] = meta.hash;
-            subscribe_key_count++;
-        }
+        //     subscribed_key_hashes[subscribe_key_count] = meta.hash;
+        //     subscribe_key_count++;
+        // }
     }   
 
 
@@ -480,11 +480,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         //     wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_ADD, (uint8_t *)&kv_add_msg, sizeof(kv_add_msg) );
         // }
         
-        if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
+        // if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
         
-            subscribed_key_hashes[subscribe_key_count] = meta.hash;
-            subscribe_key_count++;
-        }
+        //     subscribed_key_hashes[subscribe_key_count] = meta.hash;
+        //     subscribe_key_count++;
+        // }
     }
     
 
@@ -500,20 +500,20 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
         kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + vm_id );
 
-        if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
+        // if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
         
-            subscribed_key_hashes[subscribe_key_count] = meta.hash;
-            subscribe_key_count++;
-        }
+        //     subscribed_key_hashes[subscribe_key_count] = meta.hash;
+        //     subscribe_key_count++;
+        // }
     }   
 
     // subscribe keys to DB sender
-    gfx_v_subscribe_keys( subscribed_key_hashes, subscribe_key_count, VM_KV_TAG_START + vm_id );
+    // gfx_v_subscribe_keys( subscribed_key_hashes, subscribe_key_count, VM_KV_TAG_START + vm_id );
 
-    if( subscribe_key_count >= cnt_of_array(subscribed_key_hashes) ){
+    // if( subscribe_key_count >= cnt_of_array(subscribed_key_hashes) ){
 
-        log_v_debug_P( PSTR("DB entry limit reached") );
-    }
+        // log_v_debug_P( PSTR("DB entry limit reached") );
+    // }
 
     // check write keys
     fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );

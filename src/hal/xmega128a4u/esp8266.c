@@ -112,6 +112,7 @@ static uint16_t wifi_rx_udp_port_overruns;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static uint16_t mem_heap_peak;
+static uint16_t mem_used;
 static uint16_t intf_max_time;
 static uint16_t vm_max_time;
 static uint16_t wifi_max_time;
@@ -180,6 +181,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_port_overruns,        0,   "wifi_comm_rx_udp_port_overruns" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_heap_peak,                    0,   "wifi_mem_heap_peak" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_used,                         0,   "wifi_mem_used" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &intf_max_time,                    0,   "wifi_proc_intf_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_max_time,                      0,   "wifi_proc_vm_max_time" },
@@ -1748,6 +1750,7 @@ static int8_t process_rx_data( void ){
         wifi_udp_sent               = msg->udp_sent;
         wifi_comm_errors            = msg->comm_errors;
         mem_heap_peak               = msg->mem_heap_peak;
+        mem_used                    = msg->mem_used;
 
         intf_max_time               = msg->intf_max_time;
         vm_max_time                 = msg->vm_max_time;
