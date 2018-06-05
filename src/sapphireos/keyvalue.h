@@ -168,6 +168,14 @@ int8_t kv_i8_lookup_hash(
     uint8_t flags );
 int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 
+int8_t kv_i8_internal_get(
+    kv_meta_t *meta,
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    void *data,
+    uint16_t max_len );
+
 // dynamic keys
 #define KV_META_FLAGS_GET_NAME      0x01
 

@@ -773,7 +773,7 @@ static int8_t _kv_i8_persist_get(
     return 0;
 }
 
-static int8_t _kv_i8_internal_get(
+int8_t kv_i8_internal_get(
     kv_meta_t *meta,
     catbus_hash_t32 hash,
     uint16_t index,
@@ -893,7 +893,7 @@ int8_t kv_i8_array_get(
         return status;
     }
 
-    return _kv_i8_internal_get( &meta, hash, index, count, data, max_len );
+    return kv_i8_internal_get( &meta, hash, index, count, data, max_len );
 }
 
 
@@ -951,7 +951,7 @@ int8_t kv_i8_persist( catbus_hash_t32 hash )
 
     // get parameter data
     uint8_t data[KV_PERSIST_MAX_DATA_LEN];
-    _kv_i8_internal_get( &meta, hash, 0, 1, data, sizeof(data) );
+    kv_i8_internal_get( &meta, hash, 0, 1, data, sizeof(data) );
 
     // get parameter length
     uint16_t param_len = kv_u16_get_size_meta( &meta );
