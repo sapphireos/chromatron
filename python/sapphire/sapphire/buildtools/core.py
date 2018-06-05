@@ -929,8 +929,6 @@ class AppBuilder(HexBuilder):
 
             ih.puts(kv_meta_addr, kv_meta.pack())
 
-            # bindata = bindata.replace(kv_meta_s, kv_meta.pack())
-
             kv_meta_addr += kv_meta_len
 
             if kv_meta.param_name == "kvstart":
