@@ -746,31 +746,35 @@ PT_BEGIN( pt );
 
             index = 0;
 
-            TMR_WAIT( pt, 500 );
+            // TMR_WAIT( pt, 500 );
+            THREAD_EXIT( pt );
 
             continue;
         }
 
         uint8_t buf[CATBUS_MAX_DATA + sizeof(catbus_meta_t)];
-    
-        // if( kv_i8_internal_get
-
-        uint16_t count = meta.array_len + 1;
-        uint16_t type_size = type_u16_size( meta.type );
-        uint32_t copy_len = count * type_size;
-
-        if( copy_len > sizeof(buf) ){
-
-            log_v_debug_P( PSTR("data too large") );
-
-            goto end;
-        }   
-
-
         catbus_meta_t *catbus_meta = (catbus_meta_t *)buf;
         uint8_t *data = (uint8_t *)( catbus_meta + 1 );
-        
-            
+    
+        if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
+
+            log_v_debug_P( PSTR("KV error") );
+            goto end;
+        }  
+
+        uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
+
+        catbus_meta->hash        = meta.hash;
+        catbus_meta->type        = meta.type;
+        catbus_meta->count       = meta.array_len;
+        catbus_meta->flags       = meta.flags;
+        catbus_meta->reserved    = 0;
+
+        log_v_debug_P( PSTR("%u %lu %u"), index, meta.hash, data_len );
+
+        wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(catbus_meta_t) );
+
+
 end:
         index++;
     }
