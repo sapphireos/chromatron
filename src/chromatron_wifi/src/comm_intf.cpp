@@ -340,14 +340,14 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
-        catbus_meta_t *catbus_meta = (catbus_meta_t *)data;
-        data = (uint8_t *)( catbus_meta + 1 );
-        len -= sizeof(catbus_meta_t);
+        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
+        data = (uint8_t *)( msg + 1 );
+        len -= sizeof(wifi_msg_kv_data_t);
 
-        if( kvdb_i8_set( catbus_meta->hash, catbus_meta->type, data, len ) < 0 ){
+        if( kvdb_i8_set( msg->meta.hash, msg->meta.type, data, len ) < 0 ){
 
-            kvdb_i8_add( catbus_meta->hash, catbus_meta->type, catbus_meta->count + 1, data, len );
-            // kvdb_v_set_tag( catbus_meta->hash, 0 );
+            kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, data, len );
+            kvdb_v_set_tag( msg->meta.hash, msg->tag );
         }
 
 

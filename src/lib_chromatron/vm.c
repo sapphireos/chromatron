@@ -160,6 +160,7 @@ static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
 static void reset_published_data( uint8_t vm_id ){
 
+    gfx_v_reset_subscribed( 1 << vm_id );
     kvdb_v_delete_tag( VM_KV_TAG_START + vm_id );
     catbus_v_purge_links( get_link_tag( vm_id ) );
 } 
@@ -452,7 +453,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
 
         kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
-        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + vm_id );      
+        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + ( 1 << vm_id ) );      
+
+        gfx_v_subscribe_key( meta.hash, ( 1 << vm_id ) );
 
         // if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
 
@@ -470,6 +473,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     for( uint16_t i = 0; i < state.read_keys_count; i++ ){
 
         fs_i16_read( f, (uint8_t *)&read_key_hash, sizeof(uint32_t) );
+
+        gfx_v_subscribe_key( read_key_hash, ( 1 << vm_id ) );
 
         // if( kv_i8_get_meta( read_key_hash, &meta ) >= 0 ){
 
@@ -498,7 +503,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
 
         kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
-        kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + vm_id );
+        kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + ( 1 << vm_id ) );
+
+        gfx_v_subscribe_key( publish.hash, ( 1 << vm_id ) );
 
         // if( subscribe_key_count < cnt_of_array(subscribed_key_hashes) ){
         

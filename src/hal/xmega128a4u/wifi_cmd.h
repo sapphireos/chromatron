@@ -190,6 +190,11 @@ typedef struct __attribute__((packed)){
 } wifi_msg_vm_frame_sync_status_t;
 #define WIFI_DATA_ID_FRAME_SYNC_STATUS  0x29
 
+typedef struct __attribute__((packed)){
+    uint8_t tag;
+    uint8_t padding[3];
+    catbus_meta_t meta;
+} wifi_msg_kv_data_t;
 #define WIFI_DATA_ID_KV_DATA            0x32
 
 typedef struct __attribute__((packed)){

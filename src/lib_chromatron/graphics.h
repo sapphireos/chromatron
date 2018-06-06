@@ -41,11 +41,9 @@ bool gfx_b_running( void );
 void gfx_v_pixel_bridge_enable( void );
 void gfx_v_pixel_bridge_disable( void );
 
-// int8_t gfx_i8_send_keys( catbus_hash_t32 *hash, uint8_t count );
-
 void gfx_v_sync_params( void );
 
-void gfx_v_subscribe_keys( uint32_t *hashes, uint8_t len, uint8_t tag );
+void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag );
 void gfx_v_reset_subscribed( uint8_t tag );
 
 #endif

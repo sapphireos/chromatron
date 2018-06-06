@@ -67,8 +67,6 @@ static volatile uint8_t run_flags;
 
 static uint16_t vm_timer_rate; 
 
-static list_t keys_list;
-
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -339,8 +337,6 @@ ISR(GFX_TIMER_CCB_vect){
 }
 
 void gfx_v_init( void ){
-
-    list_v_init( &keys_list );
 
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
@@ -673,54 +669,55 @@ PT_END( pt );
 }
 
 
+typedef struct{
+    catbus_hash_t32 hash;
+    uint8_t tag;
+} subscribed_key_t;
 
-void gfx_v_subscribe_keys( uint32_t *hashes, uint8_t len, uint8_t tag ){
+static subscribed_key_t subscribed_keys[32];
 
-    uint16_t data_len = ( sizeof(uint32_t) * len ) + sizeof(tag);
+void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
 
-    list_node_t ln = list_ln_create_node2( 0, data_len, MEM_TYPE_SUBSCRIBED_KEYS );
+    int8_t empty = -1;
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
 
-    if( ln < 0 ){
+        if( subscribed_keys[i].hash == hash ){
+
+            subscribed_keys[i].tag |= tag;
+            return;
+        }
+        else if( ( subscribed_keys[i].hash == 0 ) && ( empty < 0 ) ){
+
+            empty = i;
+        }
+    }
+
+    if( empty < 0 ){
+
+        log_v_debug_P( PSTR("subscribed keys full") );
 
         return;
     }
 
-    uint8_t *list_tag = list_vp_get_data( ln );
-    *list_tag = tag;
-
-    uint32_t *dest_hash = (uint32_t *)( list_tag + 1 );
-
-    while( len > 0 ){
-
-        *dest_hash = *hashes;
-
-        dest_hash++;
-        hashes++;
-        len--;
-    }
-
-    list_v_insert_tail( &keys_list, ln );
+    subscribed_keys[empty].hash = hash;
+    subscribed_keys[empty].tag = tag;
 }
 
 
 void gfx_v_reset_subscribed( uint8_t tag ){
 
-    list_node_t ln = keys_list.head;
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
 
-    while( ln > 0 ){
+        if( subscribed_keys[i].tag & tag ){
 
-        list_node_t next_ln = list_ln_next( ln );
+            subscribed_keys[i].tag &= ~tag;
 
-        uint8_t *list_tag = list_vp_get_data( ln );
+            if( subscribed_keys[i].tag == 0 ){
 
-        if( *list_tag == tag ){
-
-            list_v_remove( &keys_list, ln );
-            list_v_release_node( ln );
+                subscribed_keys[i].hash = 0;
+            } 
         }
-
-        ln = next_ln;
-    }    
+    }  
 }
 
 
@@ -734,8 +731,7 @@ PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint16_t index;
-
+    static uint8_t index;
 
 
     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
@@ -743,42 +739,45 @@ PT_BEGIN( pt );
     while(1){
 
         THREAD_YIELD( pt );
-        // TMR_WAIT( pt, 5 );
         THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
+        while( subscribed_keys[index].hash == 0 ){
 
+            index++;
 
+            if( index >= cnt_of_array(subscribed_keys) ){
 
+                index = 0;
+                TMR_WAIT( pt, 20);
+                continue;
+            }
+        }
 
 
         kv_meta_t meta;
-        if( kv_i8_lookup_index( index, &meta, 0 ) < 0 ){
+        if( kv_i8_lookup_hash( subscribed_keys[index].hash, &meta, 0 ) < 0 ){
 
-            index = 0;
-
-            TMR_WAIT( pt, 500 );
-
-            continue;
+            goto end;
         }
 
-        uint8_t buf[CATBUS_MAX_DATA + sizeof(catbus_meta_t)];
-        memset( buf, 0, sizeof(buf) );
-        catbus_meta_t *catbus_meta = (catbus_meta_t *)buf;
-        uint8_t *data = (uint8_t *)( catbus_meta + 1 );
+
+        uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+        uint8_t *data = (uint8_t *)( msg + 1 );
     
         if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
 
-            log_v_debug_P( PSTR("KV error") );
             goto end;
         }  
 
         uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
 
-        catbus_meta->hash        = meta.hash;
-        catbus_meta->type        = meta.type;
-        catbus_meta->count       = meta.array_len;
-        catbus_meta->flags       = meta.flags;
-        catbus_meta->reserved    = 0;
+        msg->meta.hash        = meta.hash;
+        msg->meta.type        = meta.type;
+        msg->meta.count       = meta.array_len;
+        msg->meta.flags       = meta.flags;
+        msg->meta.reserved    = 0;
+        msg->tag              = subscribed_keys[index].tag;
 
         // log_v_debug_P( PSTR("%u %lu %u"), index, meta.hash, data_len );
 
@@ -787,96 +786,13 @@ PT_BEGIN( pt );
 
 end:
         index++;
+
+        if( index >= cnt_of_array(subscribed_keys) ){
+
+            index = 0;
+            TMR_WAIT( pt, 20);
+        }
     }
-
-
-    // THREAD_EXIT( pt );
-
-    // static catbus_pack_ctx_t ctx;
-    // static list_node_t key_ln;
-    // static uint8_t key_index;
-    // static uint8_t key_count;
-    // key_ln = -1;
-    
-    // while(1){
-
-    //     key_ln = keys_list.head;
-    //     key_index = 0;
-    //     key_count = 0;
-
-    //     while( key_ln > 0 ){
-
-    //         // get length of current batch of keys
-    //         uint16_t node_size = list_u16_node_size( key_ln );
-    //         key_count = ( node_size - sizeof(uint8_t) ) / sizeof(uint32_t);
-
-    //         while( key_count > 0 ){
-
-    //             // THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
-    //             // with a 640 byte buffer, this will almost
-    //             // certainly blow up the stack.
-    //             uint8_t buf[WIFI_MAX_DATA_LEN];
-    //             uint8_t buf_ptr = 0;
-
-    //             uint8_t *list_tag = list_vp_get_data( key_ln );
-    //             uint32_t *hash = (uint32_t *)( list_tag + 1 );
-
-    //             if( catbus_i8_init_pack_ctx( hash[key_index], &ctx ) > 0 ){
-
-    //                 key_count--;
-    //                 key_index++;
-    //                 continue;
-    //             }
-
-    //             log_v_debug_P( PSTR("pack %lu"), hash[key_index] );
-
-    //             int16_t packed = -1;
-
-    //             do{
-    //                 packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
-                
-    //                 // check if pack buffer is full
-    //                 if( packed < 0 ){
-
-
-    //                     // buffer ready
-
-    //                     // transmit message
-    //                     // wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-    //                     log_v_debug_P( PSTR("buf ready: %d %d"), buf_ptr, packed );
-
-    //                     buf_ptr = 0;
-    //                 }
-    //                 else{
-
-    //                     buf_ptr += packed;
-    //                 }
-
-    //             } while( !catbus_b_pack_complete( &ctx ) );
-
-    //             if( catbus_b_pack_complete( &ctx ) ){
-
-    //                 key_count--;
-    //                 key_index++;
-    //             }
-
-    //             // check if buffer full, or final transmission
-    //             if( ( buf_ptr >= sizeof(buf) ) || 
-    //                 ( ( key_count == 0 ) && ( buf_ptr > 0 ) ) ){
-
-    //                 // wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-    //                 log_v_debug_P( PSTR("buf ready: %d count_left: %d"), buf_ptr, key_count );
-
-    //                 buf_ptr = 0;
-    //             }        
-    //         }
-
-    //         key_ln = list_ln_next( key_ln );
-    //     }
-
-    //     TMR_WAIT( pt, 1000 );
-    // }
         
 PT_END( pt );
 }
