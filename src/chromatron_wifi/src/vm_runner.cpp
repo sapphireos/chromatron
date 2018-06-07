@@ -280,6 +280,8 @@ void vm_v_reset( uint8_t vm_index ){
         return;
     }
 
+    vm_v_clear_db( 1 << vm_index );
+
 
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
@@ -330,9 +332,7 @@ void vm_v_reset( uint8_t vm_index ){
     vm_loop_time[vm_index] = 0;
     vm_thread_time[vm_index] = 0;
    
-    vm_load_len = 0;
-
-    vm_v_clear_db( 1 << vm_index );
+    vm_load_len = 0; 
 }
 
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
