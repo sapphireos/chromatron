@@ -272,8 +272,6 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
     wifi_msg_load_vm_t vm_load_msg;
 
-    gfx_v_reset_subscribed( VM_KV_TAG_START + vm_id );
-
     catbus_hash_t32 hash = 0;
     catbus_hash_t32 link_tag = get_link_tag( vm_id );
     
