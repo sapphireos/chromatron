@@ -296,6 +296,8 @@ void vm_v_reset( uint8_t vm_index ){
     bool moved = false;
 
     do{
+        moved = false;
+        
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
             // looking for VM at the start of the clean section
