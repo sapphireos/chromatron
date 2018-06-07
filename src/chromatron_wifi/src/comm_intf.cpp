@@ -888,15 +888,3 @@ void intf_v_get_proc_stats( process_stats_t **stats ){
     *stats = &process_stats;
 }
 
-void intf_v_send_kv( catbus_hash_t32 hash ){
-
-    // list_node_t ln = list_ln_create_node( &hash, sizeof(hash) );
-
-    // if( ln < 0 ){
-
-    //     return;
-    // }
-
-    // list_v_insert_head( &kv_data_list, ln );
-}
-

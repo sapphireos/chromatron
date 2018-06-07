@@ -194,31 +194,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     vm_max_cycles[vm_index] = vm_state[vm_index].max_cycles;
 
-    // queue published vars for transport
-    vm_publish_t *publish = (vm_publish_t *)&stream[vm_state[vm_index].publish_start];
-
-    uint32_t count = vm_state[vm_index].publish_count;
-
-    while( count > 0 ){
-
-        intf_v_send_kv( publish->hash );
-
-        publish++;
-        count--;
-    }
-
-    // load write keys from DB for transport
-    count = vm_state[vm_index].write_keys_count;
-    uint32_t *hash = (uint32_t *)&stream[vm_state[vm_index].write_keys_start];
-
-    while( count > 0 ){
-
-        intf_v_send_kv( *hash );
-
-        hash++;
-        count--;
-    }
-
     return return_code;
 }
 
@@ -611,4 +586,17 @@ uint16_t vm_u16_get_frame_number( void ){
 
     return vm_state[0].frame_number;
 }
+
+
+void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
+
+
+}
+
+
+
+
+
+
+
 
