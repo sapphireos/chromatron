@@ -350,43 +350,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
 
         kvdb_v_set_tag( msg->meta.hash, msg->tag );
-
-
-        // int16_t status = 0;
-
-        // while( status >= 0 ){
-
-        //     data += status;
-        //     len -= status;
-
-        //     if( len <= 0 ){
-
-        //         break;
-        //     }
-
-        //     // catbus_pack_hdr_t *hdr = (catbus_pack_hdr_t *)data;
-
-        //     // intf_v_printf( "KV hash: %lx idx %d count %d", 
-        //     //     hdr->hash, hdr->index, hdr->count );      
-
-        //     status = catbus_i16_unpack( data, len );       
-
-        //     // intf_v_printf( "KV sts: %d len %d", 
-        //         // status, len );      
-        // }
     }
-    // else if( data_id == WIFI_DATA_ID_KV_ADD ){
-
-    //     if( len != sizeof(wifi_msg_kv_add_t) ){
-
-    //         return;
-    //     }
-
-    //     wifi_msg_kv_add_t *msg = (wifi_msg_kv_add_t *)data;
-
-    //     kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, 0, 0 );
-    //     kvdb_v_set_tag( msg->meta.hash, msg->vm_id + KVDB_VM_RUNNER_TAG );
-    // }
     else if( data_id == WIFI_DATA_ID_UDP_EXT ){
 
         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
@@ -401,41 +365,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             wifi_v_send_udp( &udp_header, data_ptr );
         }
     }
-    // else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
-
-    //     if( len != sizeof(wifi_msg_udp_header_t) ){
-
-    //         return;
-    //     }
-
-    //     wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
-
-    //     udp_len = 0;
-    //     memcpy( &udp_header, msg, sizeof(udp_header) );
-    // }
-    // else if( data_id == WIFI_DATA_ID_UDP_DATA ){
-
-    //     // bounds check
-    //     if( ( udp_len + len ) > sizeof(udp_data) ){
-
-    //         return;
-    //     }
-
-    //     memcpy( &udp_data[udp_len], data, len );
-
-    //     udp_len += len;
-
-    //     if( udp_len == udp_header.len ){
-
-    //         // check crc
-    //         if( crc_u16_block( udp_data, udp_len ) != udp_header.crc ){
-
-    //             return;
-    //         }
-
-    //         wifi_v_send_udp( &udp_header, udp_data );
-    //     }
-    // }
 }
 
 static void set_rx_ready( void ){

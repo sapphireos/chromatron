@@ -197,13 +197,6 @@ typedef struct __attribute__((packed)){
 } wifi_msg_kv_data_t;
 #define WIFI_DATA_ID_KV_DATA            0x32
 
-typedef struct __attribute__((packed)){
-    uint8_t vm_id;
-    uint8_t padding[3];
-    catbus_meta_t meta;
-} wifi_msg_kv_add_t;
-#define WIFI_DATA_ID_KV_ADD             0x33
-
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40
 
 

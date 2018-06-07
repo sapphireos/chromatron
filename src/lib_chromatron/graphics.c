@@ -29,7 +29,6 @@
 #include "list.h"
 #include "catbus_common.h"
 #include "catbus.h"
-#include "catbus_packer.h"
 
 #include "pixel.h"
 #include "graphics.h"
@@ -421,72 +420,6 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-// int8_t gfx_i8_send_keys( catbus_hash_t32 *hash, uint8_t count ){
-
-//     uint8_t buf[WIFI_MAX_DATA_LEN];
-
-//     uint8_t buf_ptr = 0;
-
-//     while( count > 0 ){
-
-//         catbus_pack_ctx_t ctx;
-//         if( catbus_i8_init_pack_ctx( *hash, &ctx ) < 0 ){
-
-//             count--;
-//             hash++;
-//             continue;
-//         }
-
-//         int16_t packed = -1;
-
-//         do{
-//             packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
-    
-//             if( packed < 0 ){
-
-//                 wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-
-//                 buf_ptr = 0;
-//             }
-//             else{
-
-//                 buf_ptr += packed;
-//             }
-
-//         } while( !catbus_b_pack_complete( &ctx ) );
-
-//         if( catbus_b_pack_complete( &ctx ) ){
-
-//             count--;
-//             hash++;
-//         }
-
-//         // check if buffer full
-//         if( ( buf_ptr >= sizeof(buf) ) || ( count == 0 ) || ( packed < 0 ) ){
-
-//             wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-//             // log_v_debug_P( PSTR("send len: %d"), buf_ptr );
-
-//             buf_ptr = 0;
-//         }        
-//     }
-
-//     return 0;
-// }
-
-// static int8_t send_read_keys( void ){
-
-//     if( subscribed_keys_h < 0 ){
-
-//         return 0;
-//     }
-
-//     uint32_t read_keys_count = mem2_u16_get_size( subscribed_keys_h ) / sizeof(uint32_t);
-//     uint32_t *read_hash = mem2_vp_get_ptr_fast( subscribed_keys_h );
-
-//     return gfx_i8_send_keys( read_hash, read_keys_count );
-// }
-
 static int8_t send_run_fader_cmd( void ){
 
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
@@ -555,17 +488,17 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
-        int16_t status = 0;
+        // int16_t status = 0;
 
-        while( status >= 0 ){
+        // while( status >= 0 ){
 
-            data += status;
-            len -= status;
-            status = catbus_i16_unpack( data, len );       
+        //     data += status;
+        //     len -= status;
+        //     status = catbus_i16_unpack( data, len );       
 
-            // log_v_debug_P( PSTR("KV sts: %d len %d"), 
-                // status, len );      
-        }        
+        //     // log_v_debug_P( PSTR("KV sts: %d len %d"), 
+        //         // status, len );      
+        // }        
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
