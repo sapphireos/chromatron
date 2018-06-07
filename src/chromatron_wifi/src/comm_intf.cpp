@@ -347,8 +347,9 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         if( kvdb_i8_set( msg->meta.hash, msg->meta.type, data, len ) < 0 ){
 
             kvdb_i8_add( msg->meta.hash, msg->meta.type, msg->meta.count + 1, data, len );
-            kvdb_v_set_tag( msg->meta.hash, msg->tag );
         }
+
+        kvdb_v_set_tag( msg->meta.hash, msg->tag );
 
 
         // int16_t status = 0;

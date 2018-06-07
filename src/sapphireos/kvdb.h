@@ -53,6 +53,7 @@ void kvdb_v_set_name( char name[CATBUS_STRING_LEN] );
 void kvdb_v_set_name_P( PGM_P name );
 #endif
 void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag );
+void kvdb_v_clear_tag( catbus_hash_t32 hash, uint8_t tag );
 void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier );
 
 int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len );
@@ -65,7 +66,6 @@ int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 void *kvdb_vp_get_ptr( catbus_hash_t32 hash );
 
 void kvdb_v_delete( catbus_hash_t32 hash );
-void kvdb_v_delete_tag( uint8_t tag );
 
 int8_t kvdb_i8_publish( catbus_hash_t32 hash );
 #ifdef KVDB_ENABLE_NAME_LOOKUP

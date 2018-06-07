@@ -28,8 +28,6 @@
 #include "vm_core.h"
 #include "wifi_cmd.h"
 
-#define KVDB_VM_RUNNER_TAG      70
-
 #define VM_RUNNER_MAX_SIZE 		8192
 
 #define VM_RUNNER_THREAD_RATE 	10

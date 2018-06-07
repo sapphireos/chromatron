@@ -1797,7 +1797,7 @@ void vm_v_init_db(
 void vm_v_clear_db( uint8_t tag ){
 
     // delete existing entries
-    kvdb_v_delete_tag( tag );
+    kvdb_v_clear_tag( 0, tag );
 }
 
 int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){

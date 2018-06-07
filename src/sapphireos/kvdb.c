@@ -296,7 +296,57 @@ void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
         return;
     }
 
-    entry->tag = tag;
+    entry->tag |= tag;
+}
+
+void kvdb_v_clear_tag( catbus_hash_t32 hash, uint8_t tag ){
+
+    if( hash == 0 ){
+
+        // clear all entries matching tag
+        list_node_t ln = db_list.head;
+
+        while( ln > 0 ){
+
+            list_node_t next_ln = list_ln_next( ln );
+
+            db_entry_t *entry = list_vp_get_data( ln );
+
+            if( entry->tag & tag ){
+
+                entry->tag &= ~tag;
+            }
+
+            if( entry->tag == 0 ){
+
+                // purge entry
+                list_v_remove( &db_list, ln );
+                list_v_release_node( ln );
+            }
+
+            ln = next_ln;
+        }
+
+        kv_v_reset_cache();
+    }
+    else{
+
+        // get entry for hash
+        db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+        if( entry == 0 ){
+
+            return;
+        }
+
+        entry->tag &= ~tag;
+
+        // check if tag is 0, if so, purge
+        if( entry->tag == 0 ){
+
+            kvdb_v_delete( hash );        
+        }
+    }
 }
 
 void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier ){
@@ -605,32 +655,6 @@ void kvdb_v_delete( catbus_hash_t32 hash ){
 
     cache_hash = 0;
     cache_ln = -1;
-
-    kv_v_reset_cache();
-}
-
-void kvdb_v_delete_tag( uint8_t tag ){
-
-    list_node_t ln = db_list.head;
-    list_node_t next_ln = -1;
-
-    while( ln > 0 ){
-
-        next_ln = list_ln_next( ln );
-
-        db_entry_t *entry = list_vp_get_data( ln );
-
-        if( entry->tag == tag ){
-
-            list_v_remove( &db_list, ln );
-            list_v_release_node( ln );
-        }
-
-        ln = next_ln;
-    } 
-
-    cache_hash = 0;
-    cache_ln = -1;  
 
     kv_v_reset_cache();
 }

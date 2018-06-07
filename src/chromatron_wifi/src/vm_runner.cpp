@@ -360,7 +360,7 @@ void vm_v_reset( uint8_t vm_index ){
 
     vm_load_len = 0;
 
-    vm_v_clear_db( KVDB_VM_RUNNER_TAG + vm_index );
+    vm_v_clear_db( 1 << vm_index );
 }
 
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
@@ -448,7 +448,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
         vm_state[vm_index].rng_seed = rng_seed;
 
         // init database
-        vm_v_init_db( stream, &vm_state[vm_index], KVDB_VM_RUNNER_TAG + vm_index );
+        vm_v_init_db( stream, &vm_state[vm_index], 1 << vm_index );
         
         // run init function
         status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
