@@ -170,22 +170,22 @@ static void update_master_fader( void ){
     dimmer_step = step;
 }
 
-static void sync_db( void ){
+// static void sync_db( void ){
 
-    kvdb_i8_add( __KV__pix_count,                   CATBUS_TYPE_UINT16, 1, &pix_count,                 sizeof(pix_count)            );
-    kvdb_i8_add( __KV__pix_size_x,                  CATBUS_TYPE_UINT16, 1, &pix_size_x,                sizeof(pix_size_x)           );
-    kvdb_i8_add( __KV__pix_size_y,                  CATBUS_TYPE_UINT16, 1, &pix_size_y,                sizeof(pix_size_y)           );
-    kvdb_i8_add( __KV__pix_mode,                    CATBUS_TYPE_UINT8,  1, &pix_mode,                  sizeof(pix_mode)             );
-    kvdb_i8_add( __KV__gfx_hsfade,                  CATBUS_TYPE_UINT16, 1, &global_hs_fade,            sizeof(global_hs_fade)       );
-    kvdb_i8_add( __KV__gfx_vfade,                   CATBUS_TYPE_UINT16, 1, &global_v_fade,             sizeof(global_v_fade)        );
-    kvdb_i8_add( __KV__gfx_interleave_x,            CATBUS_TYPE_BOOL,   1, &pix_interleave_x,          sizeof(pix_interleave_x)     );
-    kvdb_i8_add( __KV__gfx_transpose,               CATBUS_TYPE_BOOL,   1, &pix_transpose,             sizeof(pix_transpose)        );
-    kvdb_i8_add( __KV__gfx_master_dimmer,           CATBUS_TYPE_UINT16, 1, &pix_master_dimmer,         sizeof(pix_master_dimmer)    );
-    kvdb_i8_add( __KV__gfx_sub_dimmer,              CATBUS_TYPE_UINT16, 1, &pix_sub_dimmer,            sizeof(pix_sub_dimmer)       );
-    kvdb_i8_add( __KV__gfx_frame_rate,              CATBUS_TYPE_UINT16, 1, &gfx_frame_rate,            sizeof(gfx_frame_rate)       );
-    kvdb_i8_add( __KV__gfx_virtual_array_start,     CATBUS_TYPE_UINT16, 1, &virtual_array_start,       sizeof(virtual_array_start)  );
-    kvdb_i8_add( __KV__gfx_virtual_array_length,    CATBUS_TYPE_UINT16, 1, &virtual_array_length,      sizeof(virtual_array_length) );
-}
+//     kvdb_i8_add( __KV__pix_count,                   CATBUS_TYPE_UINT16, 1, &pix_count,                 sizeof(pix_count)            );
+//     kvdb_i8_add( __KV__pix_size_x,                  CATBUS_TYPE_UINT16, 1, &pix_size_x,                sizeof(pix_size_x)           );
+//     kvdb_i8_add( __KV__pix_size_y,                  CATBUS_TYPE_UINT16, 1, &pix_size_y,                sizeof(pix_size_y)           );
+//     kvdb_i8_add( __KV__pix_mode,                    CATBUS_TYPE_UINT8,  1, &pix_mode,                  sizeof(pix_mode)             );
+//     kvdb_i8_add( __KV__gfx_hsfade,                  CATBUS_TYPE_UINT16, 1, &global_hs_fade,            sizeof(global_hs_fade)       );
+//     kvdb_i8_add( __KV__gfx_vfade,                   CATBUS_TYPE_UINT16, 1, &global_v_fade,             sizeof(global_v_fade)        );
+//     kvdb_i8_add( __KV__gfx_interleave_x,            CATBUS_TYPE_BOOL,   1, &pix_interleave_x,          sizeof(pix_interleave_x)     );
+//     kvdb_i8_add( __KV__gfx_transpose,               CATBUS_TYPE_BOOL,   1, &pix_transpose,             sizeof(pix_transpose)        );
+//     kvdb_i8_add( __KV__gfx_master_dimmer,           CATBUS_TYPE_UINT16, 1, &pix_master_dimmer,         sizeof(pix_master_dimmer)    );
+//     kvdb_i8_add( __KV__gfx_sub_dimmer,              CATBUS_TYPE_UINT16, 1, &pix_sub_dimmer,            sizeof(pix_sub_dimmer)       );
+//     kvdb_i8_add( __KV__gfx_frame_rate,              CATBUS_TYPE_UINT16, 1, &gfx_frame_rate,            sizeof(gfx_frame_rate)       );
+//     kvdb_i8_add( __KV__gfx_virtual_array_start,     CATBUS_TYPE_UINT16, 1, &virtual_array_start,       sizeof(virtual_array_start)  );
+//     kvdb_i8_add( __KV__gfx_virtual_array_length,    CATBUS_TYPE_UINT16, 1, &virtual_array_length,      sizeof(virtual_array_length) );
+// }
 
 static void param_error_check( void ){
 
@@ -280,7 +280,7 @@ void gfx_v_set_params( gfx_params_t *params ){
 
     update_master_fader();
 
-    sync_db();
+    // sync_db();
 
     virtual_array_sub_position      = virtual_array_start / pix_count;
     scaled_pix_count                = (uint32_t)pix_count * 65536;

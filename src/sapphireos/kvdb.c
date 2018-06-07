@@ -526,13 +526,13 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
             catbus_meta_t meta;
             kvdb_i8_get_meta( hash, &meta );
 
-            kvdb_v_notify_set( hash, &meta, data );
+            kvdb_v_notify_set( hash, &meta, data_ptr );
         }
 
         #ifdef KVDB_ENABLE_NOTIFIER
         if( entry->notifier != 0 ){
 
-            entry->notifier( hash, entry->type, data );
+            entry->notifier( hash, entry->type, data_ptr );
         }
         #endif
     }

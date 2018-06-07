@@ -269,6 +269,7 @@ int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
         }
 
         meta->handler   = 0;
+        meta->hash      = catbus_meta.hash;
         meta->type      = catbus_meta.type;
         meta->flags     = catbus_meta.flags;
         meta->array_len = catbus_meta.count;

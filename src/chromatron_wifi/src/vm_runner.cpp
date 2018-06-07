@@ -22,6 +22,7 @@
 
 #include <Arduino.h>
 #include "comm_intf.h"
+#include "comm_printf.h"
 
 extern "C"{
     #include "vm_runner.h"

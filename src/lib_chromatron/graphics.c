@@ -667,8 +667,6 @@ PT_BEGIN( pt );
 
     static uint8_t index;
 
-    THREAD_EXIT( pt );
-
 
     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
@@ -698,7 +696,8 @@ restart:
         }
 
 
-        uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+        // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+        uint8_t buf[128 + sizeof(wifi_msg_kv_data_t)];
         wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
         uint8_t *data = (uint8_t *)( msg + 1 );
     

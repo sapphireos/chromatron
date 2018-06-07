@@ -24,6 +24,7 @@
 
 #include "Arduino.h"
 #include "comm_intf.h"
+#include "comm_printf.h"
 #include "wifi.h"
 #include "irq_line.h"
 #include "version.h"
