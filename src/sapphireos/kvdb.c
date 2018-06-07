@@ -117,6 +117,12 @@ static db_entry_t * _kvdb_dbp_search_hash( catbus_hash_t32 hash ){
     return 0;
 }
 
+static void _kvdb_v_reset_cache( void ){
+
+    cache_hash = 0;
+    cache_ln = -1;    
+}
+
 
 #ifdef KVDB_ENABLE_NAME_LOOKUP
 static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
@@ -327,6 +333,7 @@ void kvdb_v_clear_tag( catbus_hash_t32 hash, uint8_t tag ){
             ln = next_ln;
         }
 
+        _kvdb_v_reset_cache();
         kv_v_reset_cache();
     }
     else{
@@ -654,8 +661,7 @@ void kvdb_v_delete( catbus_hash_t32 hash ){
         ln = list_ln_next( ln );
     }   
 
-    cache_hash = 0;
-    cache_ln = -1;
+    _kvdb_v_reset_cache();
 
     kv_v_reset_cache();
 }

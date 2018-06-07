@@ -449,7 +449,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
 
         kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
-        kvdb_v_set_tag( meta.hash, VM_KV_TAG_START + ( 1 << vm_id ) );      
+        kvdb_v_set_tag( meta.hash, 1 << vm_id );      
 
         gfx_v_subscribe_key( meta.hash, ( 1 << vm_id ) );
     }   
@@ -478,7 +478,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
 
         kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
-        kvdb_v_set_tag( publish.hash, VM_KV_TAG_START + ( 1 << vm_id ) );
+        kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
 
         gfx_v_subscribe_key( publish.hash, ( 1 << vm_id ) );
     }   
@@ -697,7 +697,6 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
-                send_reset_message( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
             }
 

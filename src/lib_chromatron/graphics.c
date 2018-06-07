@@ -488,12 +488,12 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
-        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
-        uint8_t *kv_data = (uint8_t *)( msg + 1 );
+        // wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
+        // uint8_t *kv_data = (uint8_t *)( msg + 1 );
 
-        // log_v_debug_P( PSTR("ESP set %lu"), msg->meta.hash );
+        // // log_v_debug_P( PSTR("ESP set %lu"), msg->meta.hash );
 
-        kv_i8_set( msg->meta.hash, kv_data, len - sizeof(wifi_msg_kv_data_t) );
+        // kv_i8_set( msg->meta.hash, kv_data, len - sizeof(wifi_msg_kv_data_t) );
 
         // if( status < 0 ){
 
@@ -666,6 +666,8 @@ PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static uint8_t index;
+
+    return;
 
 
     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
