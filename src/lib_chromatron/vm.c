@@ -801,6 +801,7 @@ void vm_v_received_info( wifi_msg_vm_info_t *msg ){
         vm_status[i]        = msg->vm_info[i].status;
         vm_loop_time[i]     = msg->vm_info[i].loop_time;
         vm_thread_time[i]   = msg->vm_info[i].thread_time;
+        vm_max_cycles[i]    = msg->vm_info[i].max_cycles;
     }
 
     vm_fader_time           = msg->fader_time;

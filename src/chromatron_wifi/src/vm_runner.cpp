@@ -46,7 +46,6 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
-static uint16_t vm_max_cycles[VM_MAX_VMS];
 
 static bool run_vm;
 static bool run_faders;
@@ -192,8 +191,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         vm_thread_time[vm_index] = elapsed;
     }
 
-    vm_max_cycles[vm_index] = vm_state[vm_index].max_cycles;
-
     return return_code;
 }
 
@@ -331,8 +328,7 @@ void vm_v_reset( uint8_t vm_index ){
 
     vm_loop_time[vm_index] = 0;
     vm_thread_time[vm_index] = 0;
-    vm_max_cycles[vm_index] = 0;
-
+   
     vm_load_len = 0;
 
     vm_v_clear_db( 1 << vm_index );
@@ -493,7 +489,7 @@ void vm_v_get_info( uint8_t index, vm_info_t *info ){
     info->status        = vm_status[index];
     info->loop_time     = vm_loop_time[index];
     info->thread_time   = vm_thread_time[index];
-    info->max_cycles    = vm_max_cycles[index];
+    info->max_cycles    = vm_state[index].max_cycles;
 }
 
 uint16_t vm_u16_get_fader_time( void ){
