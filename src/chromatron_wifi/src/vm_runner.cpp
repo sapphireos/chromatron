@@ -586,7 +586,6 @@ uint16_t vm_u16_get_frame_number( void ){
 
 void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
 
-
     uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
     wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
     uint8_t *msg_data = (uint8_t *)( msg + 1 );

@@ -489,6 +489,14 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
         wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
+        uint8_t *kv_data = (uint8_t *)( msg + 1 );
+
+        int8_t status = kv_i8_set( msg->meta.hash, kv_data, len - sizeof(wifi_msg_kv_data_t) );
+
+        if( status < 0 ){
+
+            log_v_debug_P( PSTR("%d"), status );
+        }
 
         // log_v_debug_P( PSTR("%lu"), msg->meta.hash );
 
@@ -675,6 +683,7 @@ PT_BEGIN( pt );
 
     while(1){
 
+restart:
         THREAD_YIELD( pt );
         THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
@@ -686,7 +695,7 @@ PT_BEGIN( pt );
 
                 index = 0;
                 TMR_WAIT( pt, 20);
-                continue;
+                goto restart;
             }
         }
 
