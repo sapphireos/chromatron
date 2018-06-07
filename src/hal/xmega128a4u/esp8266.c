@@ -604,7 +604,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     
     if( !wifi_b_comm_ready() ){
 
-        log_v_debug_P( PSTR("rx not ready! %d"), data_id ); 
+        log_v_debug_P( PSTR("rx not ready! %x"), data_id ); 
 
         return -1;  
     }

@@ -180,22 +180,6 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     return 0;
 }
 
-// static int8_t _intf_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len ){
-
-//     uint32_t start = micros();
-
-//     while( !rx_ready() ){
-
-//         if( elapsed( start ) > 10000 ){
-
-//             comm_errors++;
-//             return -1;
-//         }
-//     }
-
-//     return _intf_i8_send_msg( data_id, data, len );    
-// }
-
 static void _send_info_msg( void ){
 
     wifi_msg_info_t info_msg;
@@ -701,69 +685,7 @@ void intf_v_process( void ){
 
         list_v_release_node( ln );
     }
-    // else if( list_u8_count( &kv_data_list ) > 0 ){
 
-    //     uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
-
-    //     uint8_t read_keys_count = list_u8_count( &kv_data_list );
-
-    //     list_node_t ln = list_ln_remove_tail( &kv_data_list );
-        
-    //     uint8_t buf_ptr = 0;
-
-    //     while( read_keys_count > 0 ){
-
-    //         uint32_t *read_hash = (uint32_t *)list_vp_get_data( ln );
-    //         list_v_release_node( ln );
-
-    //         catbus_pack_ctx_t ctx;
-    //         if( catbus_i8_init_pack_ctx( *read_hash, &ctx ) < 0 ){
-
-    //             read_keys_count--;
-    //             ln = list_ln_remove_tail( &kv_data_list );
-
-    //             continue;
-    //         }
-
-    //         int16_t packed = -1;
-
-    //         do{
-    //             packed = catbus_i16_pack( &ctx, &buf[buf_ptr], sizeof(buf) - buf_ptr );
-
-    //             // intf_v_printf( "packed: %lx len: %d index: %d sts: %d", *read_hash, buf_ptr, ctx.index, packed );
-        
-    //             if( packed < 0 ){
-
-    //                 _intf_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-    //                 // intf_v_printf( "send len: %d", buf_ptr );
-
-    //                 buf_ptr = 0;
-    //             }
-    //             else{
-
-    //                 buf_ptr += packed;
-    //             }
-
-    //         } while( !catbus_b_pack_complete( &ctx ) );
-
-    //         if( catbus_b_pack_complete( &ctx ) ){
-
-    //             read_keys_count--;
-    //             ln = list_ln_remove_tail( &kv_data_list );
-    //         }
-
-    //         // check if buffer full
-    //         if( ( buf_ptr >= sizeof(buf) ) || ( read_keys_count == 0 ) || ( packed < 0 ) ){
-
-    //             _intf_i8_send_msg_blocking( WIFI_DATA_ID_KV_DATA, buf, buf_ptr );  
-    //             // intf_v_printf( "send len: %d", buf_ptr );
-
-    //             buf_ptr = 0;
-    //         }        
-    //     }
-
-    // }
-    
 
     if( elapsed( last_status_ts ) > 1000000 ){
 
@@ -806,7 +728,6 @@ void intf_v_init( void ){
     // flush serial buffers
     _intf_v_flush();
 
-    // list_v_init( &kv_data_list );
     list_v_init( &tx_q );
 }
 

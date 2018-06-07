@@ -488,6 +488,10 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
+        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
+
+        // log_v_debug_P( PSTR("%lu"), msg->meta.hash );
+
         // int16_t status = 0;
 
         // while( status >= 0 ){
@@ -714,7 +718,7 @@ PT_BEGIN( pt );
 
         // log_v_debug_P( PSTR("%u %lu %u"), index, meta.hash, data_len );
 
-        wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(catbus_meta_t) );
+        wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
 
 
 end:
