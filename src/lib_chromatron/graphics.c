@@ -493,7 +493,9 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         // log_v_debug_P( PSTR("ESP set %lu"), msg->meta.hash );
 
-        kv_i8_set( msg->meta.hash, kv_data, len - sizeof(wifi_msg_kv_data_t) );
+        catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data );
+
+        // kv_i8_set( msg->meta.hash, kv_data, len - sizeof(wifi_msg_kv_data_t) );
 
         // if( status < 0 ){
 
