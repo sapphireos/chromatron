@@ -63,6 +63,7 @@ static volatile uint8_t run_flags;
 #define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
 #define FLAG_RUN_FADER          0x04
+#define FLAG_RUN_XFER           0x08
 
 static uint16_t vm_timer_rate; 
 
@@ -517,13 +518,9 @@ void gfx_v_sync_params( void ){
 }
 
 
-
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-
-    // test_packer();
     
     static uint32_t last_param_sync;
     static uint8_t flags;
@@ -532,25 +529,6 @@ PT_BEGIN( pt );
     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
     param_error_check();  
-
-
-
-    // kvdb_i8_add( __KV__test_array, CATBUS_TYPE_UINT16, 32, 0, 0 );
-    // kvdb_v_set_name_P( PSTR("test_array") );
-    
-    // kvdb_i8_add( __KV__test_data,  CATBUS_TYPE_UINT32, 1, 0, 0, "test_data" );
-    // kvdb_i8_add( __KV__test_meow,  CATBUS_TYPE_UINT32, 16, 0, 0, "test_meow" );
-
-    // catbus_hash_t32 read_keys[] = {
-    //     __KV__test_array,
-    //     __KV__test_data,
-    //     __KV__test_meow,
-    // };
-    
-    // subscribed_keys_h = mem2_h_alloc( sizeof(read_keys) );
-    // memcpy( mem2_vp_get_ptr_fast(subscribed_keys_h), read_keys, sizeof(read_keys) );
-
-    // send_read_keys();
 
 
     while(1){
@@ -562,8 +540,6 @@ PT_BEGIN( pt );
         flags = run_flags;
         run_flags = 0;
         END_ATOMIC;
-
-        // log_v_debug_P( PSTR("%x"), flags );
 
         if( flags & FLAG_RUN_VM_LOOP ){
 
@@ -596,19 +572,63 @@ end:
             last_param_sync = tmr_u32_get_system_time_ms();
         }
 
+        // if( flags & FLAG_RUN_XFER ){
+
+        //     THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+        //     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+        //         if( subscribed_keys[i].flags & KEY_FLAG_UPDATED ){
+
+        //             subscribed_keys[i].flags &= ~KEY_FLAG_UPDATED;
+
+        //             kv_meta_t meta;
+        //             if( kv_i8_lookup_hash( subscribed_keys[i].hash, &meta, 0 ) < 0 ){
+
+        //                 break;
+        //             }         
+
+        //             uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+        //             wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+        //             uint8_t *data = (uint8_t *)( msg + 1 );
+                
+        //             if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
+
+        //                 break;
+        //             }  
+
+        //             uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
+
+        //             msg->meta.hash        = meta.hash;
+        //             msg->meta.type        = meta.type;
+        //             msg->meta.count       = meta.array_len;
+        //             msg->meta.flags       = meta.flags;
+        //             msg->meta.reserved    = 0;
+        //             msg->tag              = subscribed_keys[i].tag;
+
+        //             wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
+
+        //             break;
+        //         }
+        //     }
+        // }
+
         THREAD_YIELD( pt ); 
     }
 
 PT_END( pt );
 }
-
+    
 
 typedef struct{
     catbus_hash_t32 hash;
     uint8_t tag;
+    uint8_t flags;
 } subscribed_key_t;
+#define KEY_FLAG_UPDATED        0x01
 
 static subscribed_key_t subscribed_keys[32];
+static bool run_xfer;
 
 void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
 
@@ -633,8 +653,11 @@ void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
         return;
     }
 
-    subscribed_keys[empty].hash = hash;
-    subscribed_keys[empty].tag = tag;
+    subscribed_keys[empty].hash     = hash;
+    subscribed_keys[empty].tag      = tag;
+    subscribed_keys[empty].flags    = KEY_FLAG_UPDATED;
+
+    run_xfer = TRUE;
 }
 
 
@@ -655,10 +678,21 @@ void gfx_v_reset_subscribed( uint8_t tag ){
 }
 
 
-void kv_v_notify_hash_set( uint32_t hash ){
+void kv_v_notify_hash_set( catbus_hash_t32 hash ){
 
-    
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+        if( subscribed_keys[i].hash == hash ){
+
+            subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
+
+            run_xfer = TRUE;
+
+            break;
+        }
+    }   
 }
+
 
 
 PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
@@ -672,62 +706,69 @@ PT_BEGIN( pt );
 
     while(1){
 
-restart:
-        THREAD_YIELD( pt );
-        THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+        THREAD_WAIT_WHILE( pt, !run_xfer );
 
-        while( subscribed_keys[index].hash == 0 ){
+        while( index < cnt_of_array(subscribed_keys) ){
 
-            index++;
+            if( subscribed_keys[index].hash == 0 ){
 
-            if( index >= cnt_of_array(subscribed_keys) ){
-
-                index = 0;
-                TMR_WAIT( pt, 20);
-                goto restart;
+                goto end;
             }
-        }
 
+            if( subscribed_keys[index].flags == 0 ){
 
-        kv_meta_t meta;
-        if( kv_i8_lookup_hash( subscribed_keys[index].hash, &meta, 0 ) < 0 ){
+                goto end;
+            }
 
-            goto end;
-        }
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
+            subscribed_keys[index].flags = 0;
 
-        // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
-        uint8_t buf[128 + sizeof(wifi_msg_kv_data_t)];
-        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
-        uint8_t *data = (uint8_t *)( msg + 1 );
-    
-        if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
+            kv_meta_t meta;
+            if( kv_i8_lookup_hash( subscribed_keys[index].hash, &meta, 0 ) < 0 ){
 
-            goto end;
-        }  
+                goto end;
+            }
 
-        uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
+            // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+            uint8_t buf[128 + sizeof(wifi_msg_kv_data_t)];
+            wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+            uint8_t *data = (uint8_t *)( msg + 1 );
+        
+            if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
 
-        msg->meta.hash        = meta.hash;
-        msg->meta.type        = meta.type;
-        msg->meta.count       = meta.array_len;
-        msg->meta.flags       = meta.flags;
-        msg->meta.reserved    = 0;
-        msg->tag              = subscribed_keys[index].tag;
+                goto end;
+            }  
 
-        // log_v_debug_P( PSTR("%u %lu %u"), index, meta.hash, data_len );
+            uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
 
-        wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
+            msg->meta.hash        = meta.hash;
+            msg->meta.type        = meta.type;
+            msg->meta.count       = meta.array_len;
+            msg->meta.flags       = meta.flags;
+            msg->meta.reserved    = 0;
+            msg->tag              = subscribed_keys[index].tag;
+
+            wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
 
 
 end:
-        index++;
-
-        if( index >= cnt_of_array(subscribed_keys) ){
-
-            index = 0;
-            TMR_WAIT( pt, 20);
+            index++;
         }
+
+        index = 0;
+        run_xfer = FALSE;
+
+        // check if any flags are set
+        for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+            if( subscribed_keys[i].flags & KEY_FLAG_UPDATED ){
+
+                run_xfer = TRUE;
+                break;
+            }
+        }
+
     }
         
 PT_END( pt );
@@ -735,5 +776,23 @@ PT_END( pt );
 
 
 
+// if( index >= cnt_of_array(subscribed_keys) ){
 
+//                 index = 0;
+//                 TMR_WAIT( pt, 20);
+//             }
+
+ // while( subscribed_keys[index].hash == 0 ){
+
+ //            index++;
+
+ //            if( index >= cnt_of_array(subscribed_keys) ){
+                
+ //                run_xfer = FALSE;
+
+ //                index = 0;
+ //                TMR_WAIT( pt, 20);
+ //                goto restart;
+ //            }
+ //        }
 
