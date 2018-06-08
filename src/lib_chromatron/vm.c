@@ -165,77 +165,6 @@ static void reset_published_data( uint8_t vm_id ){
     catbus_v_purge_links( get_link_tag( vm_id ) );
 } 
 
-// PT_THREAD( vm_runner_thread( pt_t *pt, vm_state_t *state ) )
-// {
-// PT_BEGIN( pt );
-
-//     int8_t status = vm_i8_load_program(
-//                         &state->byte0,
-//                         state->prog_size,
-//                         state );
-
-//     if( status < 0 ){
-
-//         log_v_debug_P( PSTR("VM error: %d"), status );
-
-//         THREAD_EXIT( pt );
-//     }
-
-//     log_v_debug_P( PSTR("Starts: Code: %d Data: %d"),
-//         state->code_start,
-//         state->data_start );
-
-//     uint8_t *ptr = (uint8_t *)&state->byte0;
-//     uint8_t *code_start = (uint8_t *)( ptr + state->code_start );
-//     int32_t *data_start = (int32_t *)( ptr + state->data_start );
-
-//     // run init
-//     int8_t init_status = vm_i8_run( code_start, state->init_start, state, data_start );
-
-//     if( init_status < 0 ){
-
-//         log_v_debug_P( PSTR("VM init exit: %d"), init_status );
-
-//         THREAD_EXIT( pt );
-//     }
-
-//     // state->start_time = tmr_u64_get_system_time_us();
-
-//     // infinite loop - this thread will be killed by the control thread.
-//     while( TRUE ){
-
-//         // state->start_time += ( (uint32_t)gfx_u16_get_vm_frame_rate() * 1000 );
-//         // thread_v_set_alarm( state->start_time );
-
-//         // rebuild pointers, as actual memory may have moved around
-
-//         uint8_t *ptr = (uint8_t *)&state->byte0;
-//         uint8_t *code_start = (uint8_t *)( ptr + state->code_start );
-//         int32_t *data_start = (int32_t *)( ptr + state->data_start );
-
-//         // run loop
-//         int8_t status = vm_i8_run( code_start, state->loop_start, state, data_start );
-//         if( status < 0 ){
-
-//             log_v_debug_P( PSTR("VM loop exit: %d"), status );
-
-//             THREAD_EXIT( pt );
-//         }
-
-//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-//     }
-
-// PT_END( pt );
-// }
-
-// void published_var_notifier(
-//     catbus_hash_t32 hash,
-//     catbus_type_t8 type,
-//     const void *data )
-// {
-//     gfx_i8_send_keys( &hash, 1 );
-// }
-
 static file_t get_program_handle( catbus_hash_t32 hash ){
 
     char program_fname[KV_NAME_LEN];
@@ -569,61 +498,6 @@ error:
 
 #else
 
-// static int8_t load_vm_local( kv_id_t8 prog_id ){
-
-//     file_t f = get_program_handle( __KV__vm_prog );
-
-//     if( f < 0 ){
-
-//         return -1;
-//     }
-
-//     reset_published_data();
-
-//     log_v_debug_P( PSTR("Loading VM") );
-
-//     // file found, get program size from file header
-//     int32_t vm_size;
-//     fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
-
-//     // sanity check
-//     if( vm_size > VM_MAX_IMAGE_SIZE ){
-
-//         goto error;
-//     }
-    
-//     vm_thread = thread_t_create( THREAD_CAST(vm_runner_thread),
-//                                  PSTR("vm_prog"),
-//                                  0,
-//                                  vm_size + sizeof(vm_state_t) );
-
-//     if( vm_thread < 0 ){
-
-//         goto error;
-//     }
-
-//     // initialize vm data to all 0s
-//     memset( thread_vp_get_data( vm_thread ), 0, vm_size );
-
-//     // load program data into thread state
-//     vm_state_t *vm_state = (vm_state_t *)thread_vp_get_data( vm_thread );
-
-//     vm_state->prog_size = vm_size;
-
-//     fs_i16_read( f, &vm_state->byte0, vm_size );
-
-//     fs_f_close( f );
-
-//     return 0;
-
-// error:
-
-//     reset_published_data();
-
-//     fs_f_close( f );
-
-//     return -1;
-// }
 #endif
 
 static bool is_vm_running( uint8_t vm_id ){
