@@ -75,7 +75,7 @@ int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
             break;
 
         default:
-            return 0;
+            return -1;
             break;
     }
 

@@ -673,7 +673,7 @@ int8_t _catbus_i8_internal_set(
     uint16_t index,
     uint16_t count,
     void *data,
-    uint8_t converstion ){
+    uint8_t conversion ){
 
     // look up parameter
     kv_meta_t meta;
@@ -697,8 +697,10 @@ int8_t _catbus_i8_internal_set(
 
     for( uint16_t i = 0; i < count; i++ ){
 
-        type_i8_convert( meta.type, buf, type, data, converstion );
+        kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );
 
+        type_i8_convert( meta.type, buf, type, data, conversion );
+        
         status = kv_i8_array_set( hash, index, 1, buf, type_u16_size( meta.type ) );
 
         index++;
@@ -718,6 +720,7 @@ int8_t _catbus_i8_internal_set(
 
     return status;
 }
+
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
@@ -1278,7 +1281,6 @@ static thread_t _catbus_t_create_file_check_session(
     return t;
 }
 
-
 PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1782,7 +1784,7 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                int8_t status = _catbus_i8_internal_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count, (void *)&msg->data.data, CATBUS_CONV_MAX );
+                int8_t status = _catbus_i8_internal_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count + 1, (void *)&msg->data.data, CATBUS_CONV_MAX );
                 
                 if( status == KV_ERR_STATUS_NOT_FOUND ){
 

@@ -73,6 +73,8 @@ typedef struct __attribute__((packed)){
 #define CATBUS_CONV_MIN         1
 #define CATBUS_CONV_MAX         2
 
+int64_t specific_to_i64( catbus_type_t8 type, const void *data );
+void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data );
 
 int8_t type_i8_convert( 
     catbus_type_t8 dest_type,

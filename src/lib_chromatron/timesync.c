@@ -29,6 +29,8 @@
 #include "hash.h"
 #include "sntp.h"
 
+#define NO_LOGGING
+#include "logging.h"
 
 
 
