@@ -495,6 +495,11 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data );
 
+        // if( msg->meta.hash == __KV__gfx_master_dimmer ){
+
+        //     log_v_debug_P( PSTR("dimmer") );
+        // }
+
         // kv_i8_set( msg->meta.hash, kv_data, len - sizeof(wifi_msg_kv_data_t) );
 
         // if( status < 0 ){

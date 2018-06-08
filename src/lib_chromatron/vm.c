@@ -445,7 +445,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
                 goto error;
             }
-        }        
+        }
+
+        gfx_v_subscribe_key( write_hash, ( 1 << vm_id ) );   
     }
 
     // set up links
