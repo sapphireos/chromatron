@@ -177,7 +177,8 @@ int8_t type_i8_convert(
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
-    const void *src_data ){
+    const void *src_data,
+    uint8_t conversion ){
 
     // check for strings
     bool dst_string = type_b_is_string( dest_type );

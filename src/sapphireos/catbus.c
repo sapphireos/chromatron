@@ -704,7 +704,7 @@ int8_t catbus_i8_array_set(
 
     for( uint16_t i = 0; i < count; i++ ){
 
-        type_i8_convert( meta.type, buf, type, data );
+        type_i8_convert( meta.type, buf, type, data, CATBUS_CONV_REPLACE );
 
         // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
 
@@ -781,7 +781,7 @@ int8_t catbus_i8_array_get(
         for( uint16_t i = 0; i < count; i++ ){
        
             status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );         
-            type_i8_convert( type, data, meta.type, buf );
+            type_i8_convert( type, data, meta.type, buf, CATBUS_CONV_REPLACE );
             
             index++;
 
