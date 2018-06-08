@@ -31,7 +31,7 @@
 
 #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
 
-#define MAX_MEM_HANDLES 384
+#define MAX_MEM_HANDLES 128
 
 #define MEM_DEFRAG_THRESHOLD    512
 
