@@ -665,22 +665,13 @@ static catbus_link_t _catbus_l_create_link(
 #endif
 
 
-int8_t catbus_i8_set(
-    catbus_hash_t32 hash,
-    catbus_type_t8 type,
-    void *data )
-{
-
-    return catbus_i8_array_set( hash, type, 0, 1, data );
-}
-
-int8_t catbus_i8_array_set(
+int8_t _catbus_i8_internal_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
     uint16_t index,
     uint16_t count,
-    void *data )
-{
+    void *data,
+    uint8_t converstion ){
 
     // look up parameter
     kv_meta_t meta;
@@ -735,6 +726,25 @@ int8_t catbus_i8_array_set(
     }
 
     return status;
+}
+
+int8_t catbus_i8_set(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    void *data )
+{
+
+    return catbus_i8_array_set( hash, type, 0, 1, data );
+}
+
+int8_t catbus_i8_array_set(
+    catbus_hash_t32 hash,
+    catbus_type_t8 type,
+    uint16_t index,
+    uint16_t count,
+    void *data )
+{
+    return _catbus_i8_internal_set( hash, type, index, count, data, CATBUS_CONV_REPLACE );
 }
 
 int8_t catbus_i8_get(
