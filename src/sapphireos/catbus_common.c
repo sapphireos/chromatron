@@ -200,18 +200,18 @@ int8_t type_i8_convert(
         }
         else if( conversion == CATBUS_CONV_MIN ){
             
-            // assign min of src and dst to src
+            // if dest is already minimum, we don't need to change anything
             if( dst_i64 < src_i64 ){
 
-                src_i64 = dst_i64;
+                return 0;
             }
         }
         else if( conversion == CATBUS_CONV_MAX ){
             
-            // assign max of src and dst to src
+            // if dest is already maximum, we don't need to change anything
             if( dst_i64 > src_i64 ){
 
-                src_i64 = dst_i64;
+                return 0;
             }
         }
 
