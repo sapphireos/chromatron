@@ -64,7 +64,8 @@ typedef struct __attribute__((packed)){
 #define CATBUS_MSG_LINK_GROUP_OFFSET            40
 #define CATBUS_MSG_FILE_GROUP_OFFSET            60
 
-#define CATBUS_ERROR_OK                         0
+#define CATBUS_STATUS_CHANGED                   1
+#define CATBUS_STATUS_OK                        0
 #define CATBUS_ERROR_UNKNOWN_MSG                0xfffe
 #define CATBUS_ERROR_PROTOCOL_ERROR             0x0001
 #define CATBUS_ERROR_ALLOC_FAIL                 0x0002

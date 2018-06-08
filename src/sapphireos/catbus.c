@@ -693,13 +693,18 @@ int8_t _catbus_i8_internal_set(
         index %= array_len;
     }
 
+    bool changed = FALSE;
+
     uint8_t buf[CATBUS_STRING_LEN];
 
     for( uint16_t i = 0; i < count; i++ ){
 
         kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );
 
-        type_i8_convert( meta.type, buf, type, data, conversion );
+        if( type_i8_convert( meta.type, buf, type, data, conversion ) != 0 ){
+
+            changed = TRUE;
+        }
         
         status = kv_i8_array_set( hash, index, 1, buf, type_u16_size( meta.type ) );
 
@@ -716,6 +721,11 @@ int8_t _catbus_i8_internal_set(
     if( status == 0 ){
 
         catbus_i8_publish( hash );
+    }
+
+    if( changed ){
+
+        return CATBUS_STATUS_CHANGED;
     }
 
     return status;
@@ -1320,7 +1330,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-        uint16_t error = CATBUS_ERROR_OK;
+        uint16_t error = CATBUS_STATUS_OK;
 
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
@@ -1737,29 +1747,45 @@ PT_BEGIN( pt );
             sock_addr_t raddr;
             sock_v_get_raddr( sock, &raddr );
 
-            int32_t cached_sequence = -1;
+            // int32_t cached_sequence = -1;
+            uint8_t conversion = CATBUS_CONV_MAX;
+
+            if( list_u8_count( &receive_cache ) <= 1 ){
+
+                conversion = CATBUS_CONV_REPLACE;                
+            }
 
             // look for cache entry
             list_node_t ln = receive_cache.head;
+            catbus_receive_data_entry_t *entry = 0;
 
             while( ln > 0 ){
 
-                catbus_receive_data_entry_t *entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
+                entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
 
                 if( ip_b_addr_compare( entry->raddr.ipaddr, raddr.ipaddr ) &&
                     ( entry->raddr.port == raddr.port ) &&
                     ( entry->dest_hash == msg->dest_hash ) ){
 
-                    cached_sequence = entry->sequence;
+                    // cached_sequence = entry->sequence;
 
-                    // update recorded sequence
-                    entry->sequence = msg->sequence;
+                    // // update recorded sequence
+                    // entry->sequence = msg->sequence;
+
+                    if( entry->sequence != 0 ){
+
+                        conversion = CATBUS_CONV_REPLACE;
+                    }
+
+                    // entry->sequence = 0;
 
                     // reset ttl
                     entry->ttl = 32;
 
                     break;
                 }
+                
+                entry->sequence = 0;
 
                 ln = list_ln_next( ln );
             }
@@ -1768,13 +1794,16 @@ PT_BEGIN( pt );
             if( ( ln < 0 ) && ( list_u8_count( &receive_cache ) < CATBUS_MAX_RECEIVE_LINKS ) ){
 
                 // create entry
-                catbus_receive_data_entry_t entry;
-                entry.raddr         = raddr;
-                entry.dest_hash     = msg->dest_hash;
-                entry.sequence      = msg->sequence;
-                entry.ttl           = 32;
+                catbus_receive_data_entry_t new_entry;
+                new_entry.raddr         = raddr;
+                new_entry.dest_hash     = msg->dest_hash;
+                // new_entry.sequence      = msg->sequence;
+                new_entry.sequence      = 0;
+                new_entry.ttl           = 32;
 
-                ln = list_ln_create_node2( &entry, sizeof(entry), MEM_TYPE_CATBUS_RX_CACHE );     
+                entry = &new_entry;
+
+                ln = list_ln_create_node2( &new_entry, sizeof(new_entry), MEM_TYPE_CATBUS_RX_CACHE );     
                 
                 if( ln > 0 ){           
 
@@ -1782,20 +1811,25 @@ PT_BEGIN( pt );
                 }
             }
 
-            if( msg->sequence != cached_sequence ){
+            // if( msg->sequence != cached_sequence ){
 
-                int8_t status = _catbus_i8_internal_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count + 1, (void *)&msg->data.data, CATBUS_CONV_MAX );
-                
-                if( status == KV_ERR_STATUS_NOT_FOUND ){
+                int8_t status = _catbus_i8_internal_set( 
+                    msg->dest_hash, msg->data.meta.type, 
+                    0, 
+                    msg->data.meta.count + 1, 
+                    (void *)&msg->data.data, 
+                    conversion );
+                    
+                if( status == CATBUS_STATUS_CHANGED ){
 
-                    // log_v_debug_P( PSTR("not found") );
+                    entry->sequence = 1;
                 }
 
                 if( kv_v_notify_hash_set != 0 ){
 
                     kv_v_notify_hash_set( msg->dest_hash );                    
                 }
-            }
+            // }
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_GET ){
 
@@ -2244,7 +2278,7 @@ PT_BEGIN( pt );
 
 end:
     
-        if( error != CATBUS_ERROR_OK ){
+        if( error != CATBUS_STATUS_OK ){
 
             if( ( error != CATBUS_ERROR_FILE_NOT_FOUND ) &&
                 ( error != CATBUS_ERROR_LINK_EOF ) ){
