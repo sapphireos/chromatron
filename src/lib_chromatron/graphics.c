@@ -732,25 +732,3 @@ end:
 PT_END( pt );
 }
 
-
-
-// if( index >= cnt_of_array(subscribed_keys) ){
-
-//                 index = 0;
-//                 TMR_WAIT( pt, 20);
-//             }
-
- // while( subscribed_keys[index].hash == 0 ){
-
- //            index++;
-
- //            if( index >= cnt_of_array(subscribed_keys) ){
-                
- //                run_xfer = FALSE;
-
- //                index = 0;
- //                TMR_WAIT( pt, 20);
- //                goto restart;
- //            }
- //        }
-
