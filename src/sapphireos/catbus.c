@@ -42,7 +42,8 @@ typedef struct{
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
-    uint8_t reserved[7];
+    uint8_t conversion;
+    uint8_t reserved[6];
     uint32_t check_hash;
 } catbus_link_state_t;
 #define CATBUS_LINK_FLAGS_SOURCE        0x01
@@ -621,6 +622,7 @@ static catbus_link_t _catbus_l_create_link(
     state.source_hash       = source_hash;
     state.dest_hash         = dest_hash;
     state.query             = *query;
+    state.conversion        = CATBUS_CONV_MAX;
     memset( state.reserved, 0, sizeof(state.reserved) );
 
     state.check_hash = hash_u32_data( (uint8_t *)&state, sizeof(state) - sizeof(state.check_hash) );
@@ -695,9 +697,7 @@ int8_t _catbus_i8_internal_set(
 
     for( uint16_t i = 0; i < count; i++ ){
 
-        type_i8_convert( meta.type, buf, type, data, CATBUS_CONV_REPLACE );
-
-        // log_v_debug_P( PSTR("set: %d -> %d"), type, meta.type);
+        type_i8_convert( meta.type, buf, type, data, converstion );
 
         status = kv_i8_array_set( hash, index, 1, buf, type_u16_size( meta.type ) );
 
@@ -712,15 +712,6 @@ int8_t _catbus_i8_internal_set(
     }
 
     if( status == 0 ){
-
-        /*
-    
-        Change detection?
-
-
-        OR, always require explicit publish?
-
-        */
 
         catbus_i8_publish( hash );
     }
@@ -1791,7 +1782,7 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                int8_t status = _catbus_i8_internal_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count, (void *)&msg->data.data, CATBUS_CONV_REPLACE );
+                int8_t status = _catbus_i8_internal_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count, (void *)&msg->data.data, CATBUS_CONV_MAX );
                 
                 if( status == KV_ERR_STATUS_NOT_FOUND ){
 
