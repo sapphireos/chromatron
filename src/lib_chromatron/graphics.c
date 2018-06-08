@@ -63,7 +63,6 @@ static volatile uint8_t run_flags;
 #define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
 #define FLAG_RUN_FADER          0x04
-#define FLAG_RUN_XFER           0x08
 
 static uint16_t vm_timer_rate; 
 
@@ -571,47 +570,6 @@ end:
 
             last_param_sync = tmr_u32_get_system_time_ms();
         }
-
-        // if( flags & FLAG_RUN_XFER ){
-
-        //     THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
-        //     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        //         if( subscribed_keys[i].flags & KEY_FLAG_UPDATED ){
-
-        //             subscribed_keys[i].flags &= ~KEY_FLAG_UPDATED;
-
-        //             kv_meta_t meta;
-        //             if( kv_i8_lookup_hash( subscribed_keys[i].hash, &meta, 0 ) < 0 ){
-
-        //                 break;
-        //             }         
-
-        //             uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
-        //             wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
-        //             uint8_t *data = (uint8_t *)( msg + 1 );
-                
-        //             if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
-
-        //                 break;
-        //             }  
-
-        //             uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
-
-        //             msg->meta.hash        = meta.hash;
-        //             msg->meta.type        = meta.type;
-        //             msg->meta.count       = meta.array_len;
-        //             msg->meta.flags       = meta.flags;
-        //             msg->meta.reserved    = 0;
-        //             msg->tag              = subscribed_keys[i].tag;
-
-        //             wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
-
-        //             break;
-        //         }
-        //     }
-        // }
 
         THREAD_YIELD( pt ); 
     }
