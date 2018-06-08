@@ -101,7 +101,6 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
 
 
 void time_v_init( void ){
-    return;
 
     timer_rate = base_rate;
 
@@ -134,10 +133,10 @@ void time_v_init( void ){
                     0,
                     0 );    
 
-    thread_t_create( time_clock_thread,
-                    PSTR("time_clock"),
-                    0,
-                    0 );    
+    // thread_t_create( time_clock_thread,
+    //                 PSTR("time_clock"),
+    //                 0,
+    //                 0 );    
 }
 
 uint32_t time_u32_get_network_time( void ){
