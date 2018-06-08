@@ -34,7 +34,8 @@
 #define CATBUS_VERSION                      1
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
 
-
+#define CATBUS_MAX_RECEIVE_LINKS            8
+#define CATBUS_MAX_SEND_LINKS               8
 #define CATBUS_MAX_FILE_SESSIONS            4
 
 

@@ -543,6 +543,12 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
         ln = list_ln_next( ln );
     }
 
+    // bounds check
+    if( list_u8_count( &send_list ) >= CATBUS_MAX_SEND_LINKS ){
+
+        return;
+    }
+
     // create new entry
     catbus_send_data_entry_t entry;
     entry.source_hash   = source_hash;
@@ -1755,8 +1761,8 @@ PT_BEGIN( pt );
                 ln = list_ln_next( ln );
             }
 
-            // no entry exists
-            if( ln < 0 ){
+            // no entry exists and there is space in the list
+            if( ( ln < 0 ) && ( list_u8_count( &receive_cache ) < CATBUS_MAX_RECEIVE_LINKS ) ){
 
                 // create entry
                 catbus_receive_data_entry_t entry;
