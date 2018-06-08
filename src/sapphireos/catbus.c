@@ -801,7 +801,8 @@ catbus_link_t catbus_l_send(
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
     catbus_query_t *dest_query,
-    catbus_hash_t32 tag ){
+    catbus_hash_t32 tag,
+    uint8_t flags ){
 
     if( !link_enable ){
 
@@ -815,7 +816,8 @@ catbus_link_t catbus_l_recv(
     catbus_hash_t32 dest_hash, 
     catbus_hash_t32 source_hash, 
     catbus_query_t *source_query,
-    catbus_hash_t32 tag ){
+    catbus_hash_t32 tag,
+    uint8_t flags ){
 
     if( !link_enable ){
 

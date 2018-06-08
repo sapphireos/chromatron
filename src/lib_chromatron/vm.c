@@ -530,11 +530,11 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         if( link.send ){
 
-            catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag );
+            catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag, 0 );
         }
         else{
 
-            catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag );
+            catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag, 0 );
         }
     }
 
