@@ -24,7 +24,7 @@
 #define _COMM_INTF_H
 
 
-#define MAX_TX_Q_SIZE           16
+#define MAX_TX_Q_SIZE           40
 
 
 #define LED_GPIO 2

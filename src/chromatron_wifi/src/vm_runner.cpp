@@ -32,6 +32,7 @@ extern "C"{
     #include "wifi_cmd.h"
     #include "kvdb.h"
     #include "vm_wifi_cmd.h"
+    #include "catbus_common.h"
 }
 
 static uint16_t vm_load_len;
@@ -57,6 +58,8 @@ static uint32_t thread_tick;
 #define VM_RUN_LOOP     1
 #define VM_RUN_THREADS  2
 
+static catbus_hash_t32 kv_hashes[32];
+static uint8_t kv_index;
 
 uint32_t elapsed_time_millis( uint32_t start_time ){
 
@@ -265,6 +268,30 @@ void vm_v_process( void ){
             _vm_i8_run_vm( VM_RUN_THREADS, i );
         }
     }
+
+    // get all updated KVDB items and transmit them
+
+    uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+    wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+    uint8_t *data = (uint8_t *)( msg + 1 );
+
+    msg->tag = 0;
+
+    for( uint32_t i = 0; i < kv_index; i++ ){
+
+        if( kvdb_i8_get_meta( kv_hashes[i], &msg->meta ) < 0 ){
+
+            continue;
+        }
+
+        uint16_t data_len = type_u16_size( msg->meta.type ) * ( (uint16_t)msg->meta.count + 1 );
+
+        kvdb_i8_get( kv_hashes[i], msg->meta.type, data, CATBUS_MAX_DATA );        
+
+        intf_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
+    }
+
+    kv_index = 0;
 }
 
 void vm_v_reset( uint8_t vm_index ){
@@ -297,7 +324,7 @@ void vm_v_reset( uint8_t vm_index ){
 
     do{
         moved = false;
-        
+
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
             // looking for VM at the start of the clean section
@@ -589,18 +616,22 @@ uint16_t vm_u16_get_frame_number( void ){
 
 void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
 
-    uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
-    wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
-    uint8_t *msg_data = (uint8_t *)( msg + 1 );
+    if( kv_index >= cnt_of_array(kv_hashes) ){
 
-    uint16_t data_len = type_u16_size( meta->type ) * ( (uint16_t)meta->count + 1 );
+        return;
+    }
 
-    msg->tag    = 0;
-    msg->meta   = *meta;
+    // check if hash is already in the list
+    for( uint32_t i = 0; i < kv_index; i++ ){
 
-    memcpy( msg_data, data, data_len );
+        if( kv_hashes[i] == hash ){
 
-    intf_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
+            return;
+        }
+    }
+
+    kv_hashes[kv_index] = hash;    
+    kv_index++;
 }
 
 
