@@ -86,6 +86,8 @@ sntp_status_t8 sntp_u8_get_status( void );
 ntp_ts_t sntp_t_now( void );
 ntp_ts_t sntp_t_last_sync( void );
 
+void sntp_v_set( ntp_ts_t t );
+
 ntp_ts_t sntp_ts_from_ms( uint32_t ms );
 uint16_t sntp_u16_get_fraction_as_ms( ntp_ts_t t );
 

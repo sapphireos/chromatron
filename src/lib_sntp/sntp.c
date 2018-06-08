@@ -292,6 +292,13 @@ uint16_t sntp_u16_get_fraction_as_ms( ntp_ts_t t ){
     return (uint16_t)frac;
 }
 
+void sntp_v_set( ntp_ts_t t ){
+
+    status = SNTP_STATUS_SYNCHRONIZED;
+
+    network_time = t;
+    base_system_time = tmr_u32_get_system_time_ms();    
+}
 
 void process_packet( ntp_packet_t *packet ){
 

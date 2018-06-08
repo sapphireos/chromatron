@@ -446,6 +446,7 @@ PT_BEGIN( pt );
                 msg.net_time        = net_time;
                 msg.uptime          = master_uptime;
                 msg.flags           = 0;
+                msg.ntp_time        = sntp_t_now();
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
 
@@ -456,6 +457,12 @@ PT_BEGIN( pt );
                 // STROBE;
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
+
+                // does not compensate for transmission time, so there will be a fraction of a
+                // second offset in NTP time.
+                // this is probably OK, we don't usually need better than second precision
+                // on the NTP clock for most use cases.
+                sntp_v_set( msg->ntp_time );
 
                 uint32_t now = tmr_u32_get_system_time_ms();
                 uint32_t est_net_time = time_u32_get_network_time();
