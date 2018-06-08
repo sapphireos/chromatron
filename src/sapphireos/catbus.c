@@ -1791,16 +1791,8 @@ PT_BEGIN( pt );
 
             if( msg->sequence != cached_sequence ){
 
-                int8_t status = 0;
-                if( msg->data.meta.count == 0 ){
-                 
-                    status = catbus_i8_set( msg->dest_hash, msg->data.meta.type, (void *)&msg->data.data );
-                }
-                else{
-
-                    status = catbus_i8_array_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count, (void *)&msg->data.data );
-                }
-
+                int8_t status = _catbus_i8_internal_set( msg->dest_hash, msg->data.meta.type, 0, msg->data.meta.count, (void *)&msg->data.data, CATBUS_CONV_REPLACE );
+                
                 if( status == KV_ERR_STATUS_NOT_FOUND ){
 
                     // log_v_debug_P( PSTR("not found") );

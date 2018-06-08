@@ -194,6 +194,27 @@ int8_t type_i8_convert(
         int64_t src_i64 = specific_to_i64( src_type, src_data );
         int64_t dst_i64 = specific_to_i64( dest_type, dest_data );
 
+        if( conversion == CATBUS_CONV_REPLACE ){
+
+            // replacement, nothing to do here
+        }
+        else if( conversion == CATBUS_CONV_MIN ){
+            
+            // assign min of src and dst to src
+            if( dst_i64 < src_i64 ){
+
+                src_i64 = dst_i64;
+            }
+        }
+        else if( conversion == CATBUS_CONV_MAX ){
+            
+            // assign max of src and dst to src
+            if( dst_i64 > src_i64 ){
+
+                src_i64 = dst_i64;
+            }
+        }
+
         i64_to_specific( src_i64, dest_type, dest_data );
 
         // check if changing
