@@ -682,7 +682,6 @@ class ConfigBuilder(Builder):
         self.app_builder.settings['PROJ_VERSION'] = self.build_config['PROJ_VERSION']
         self.app_builder.settings['FULL_NAME'] = self.build_config['FULL_NAME']
 
-
         self.lib_builders = []
         for lib in self.build_config['LIBS']:
             builder = get_project_builder(lib, target=self.target_type)

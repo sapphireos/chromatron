@@ -34,6 +34,14 @@
 #include "automaton.h"
 #include "io_kv.h"
 
+#ifdef LIB_DNS
+#include "dns.h"
+#endif
+
+#ifdef LIB_SNTP
+#include "sntp.h"
+#endif
+
 
 SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
 
@@ -107,6 +115,15 @@ void app_v_init( void ){
     gfx_v_init();
 
     vm_v_init();
+
+    #ifdef LIB_DNS
+    dns_v_init();
+    #endif
+
+    #ifdef LIB_SNTP
+    sntp_v_init();
+    #endif
+
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
