@@ -1748,12 +1748,12 @@ PT_BEGIN( pt );
             sock_v_get_raddr( sock, &raddr );
 
             // int32_t cached_sequence = -1;
-            uint8_t conversion = CATBUS_CONV_MAX;
+            uint8_t conversion = CATBUS_CONV_REPLACE;
 
-            if( list_u8_count( &receive_cache ) <= 1 ){
+            // if( list_u8_count( &receive_cache ) <= 1 ){
 
-                conversion = CATBUS_CONV_REPLACE;                
-            }
+            //     conversion = CATBUS_CONV_REPLACE;                
+            // }
 
             // look for cache entry
             list_node_t ln = receive_cache.head;
