@@ -1792,7 +1792,7 @@ static int8_t process_rx_data( void ){
 
         if( rx_netmsg < 0 ){
 
-            log_v_debug_P( PSTR("rx udp no netmsg") );     
+            log_v_debug_P( PSTR("rx udp alloc fail") );     
 
             goto error;
         }
