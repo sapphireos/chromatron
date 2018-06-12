@@ -321,13 +321,13 @@ void kvdb_v_clear_tag( catbus_hash_t32 hash, uint8_t tag ){
             if( entry->tag & tag ){
 
                 entry->tag &= ~tag;
-            }
+            
+                if( entry->tag == 0 ){
 
-            if( entry->tag == 0 ){
-
-                // purge entry
-                list_v_remove( &db_list, ln );
-                list_v_release_node( ln );
+                    // purge entry
+                    list_v_remove( &db_list, ln );
+                    list_v_release_node( ln );
+                }
             }
 
             ln = next_ln;
