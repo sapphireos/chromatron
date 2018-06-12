@@ -22,7 +22,6 @@
 // </license>
  */
 
-#include "threading.h"
 #include "timers.h"
 #include "random.h"
 #include "system.h"
@@ -71,9 +70,6 @@ typedef struct{
 static list_t sockets;
 
 static uint16_t current_ephemeral_port;
-
-
-PT_THREAD( timeout_thread( pt_t *pt, void *state ) );
 
 
 bool sock_b_port_in_use( uint16_t port ){
@@ -653,9 +649,6 @@ int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *radd
     // check socket type
     if( SOCK_IS_DGRAM( s->type ) ){
 
-        // get more specific pointer
-        sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
-
         return sock_i8_transmit( sock, handle, raddr );
     }
     else{
@@ -769,13 +762,6 @@ void sock_v_init( void ){
 
     // set a random starting port number
 	current_ephemeral_port = SOCK_EPHEMERAL_PORT_LOW + ( rnd_u16_get_int() >> 3 );
-
-    // start timeout thread
-    thread_t_create( timeout_thread,
-                     PSTR("socket_timeout"),
-                     0,
-                     0 );
-
 }
 
 uint8_t sock_u8_count( void ){
@@ -783,49 +769,39 @@ uint8_t sock_u8_count( void ){
     return list_u8_count( &sockets );
 }
 
-// timeout thread
-PT_THREAD( timeout_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+void sock_v_process_timeouts( void ){
 
-    while(1){
+    // scan through all sockets with timers set
+    socket_t sock = sockets.head;
 
-        TMR_WAIT( pt, SOCK_TIMER_TICK_MS );
+    while( sock >= 0 ){
 
-        // scan through all sockets with timers set
-        socket_t sock = sockets.head;
+        sock_state_raw_t *s = list_vp_get_data( sock );
 
-        while( sock >= 0 ){
+        if( SOCK_IS_DGRAM( s->type ) ){            
 
-            sock_state_raw_t *s = list_vp_get_data( sock );
+            sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-            if( SOCK_IS_DGRAM( s->type ) ){            
+            // check if timer is active
+            if( dgram->timer.current > 0 ){
 
-                sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
-
-                // check if timer is active
-                if( dgram->timer.current > 0 ){
-
-                    // decrement
-                    dgram->timer.current--;
-                }
-
-                // check for timeout
-                if( ( dgram->timer.setting > 0 ) &&
-                    ( dgram->timer.current == 0 ) &&
-                    ( dgram->state == SOCK_UDP_STATE_RX_WAITING ) ){
-
-                    // set state to timed out
-                    dgram->state = SOCK_UDP_STATE_TIMED_OUT;
-                }
+                // decrement
+                dgram->timer.current--;
             }
 
-            // get next socket
-            sock = list_ln_next( sock );
-        }
-    }
+            // check for timeout
+            if( ( dgram->timer.setting > 0 ) &&
+                ( dgram->timer.current == 0 ) &&
+                ( dgram->state == SOCK_UDP_STATE_RX_WAITING ) ){
 
-PT_END( pt );
+                // set state to timed out
+                dgram->state = SOCK_UDP_STATE_TIMED_OUT;
+            }
+        }
+
+        // get next socket
+        sock = list_ln_next( sock );
+    }
 }
 
 

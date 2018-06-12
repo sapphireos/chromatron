@@ -35,6 +35,7 @@
 #include "list.h"
 #include "fs.h"
 #include "power.h"
+#include "sockets.h"
 
 #ifdef ENABLE_USB
 #include "usb_intf.h"
@@ -799,6 +800,9 @@ PT_BEGIN( pt );
 
         // EVENT( EVENT_ID_WATCHDOG_KICK, 0 );
         sys_v_wdt_reset();
+
+        
+        sock_v_process_timeouts();
 	}
 
 PT_END( pt );

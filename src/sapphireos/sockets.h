@@ -26,7 +26,6 @@
 #define __SOCKETS_H
 
 #include "ip.h"
-#include "threading.h"
 #include "list.h"
 #include "memory.h"
 #include "netmsg.h"
@@ -36,7 +35,6 @@
 #define SOCK_EPHEMERAL_PORT_LOW         49152
 #define SOCK_EPHEMERAL_PORT_HIGH        65535
 
-#define SOCK_TIMER_TICK_MS              1000
 #define SOCK_MAXIMUM_TIMEOUT            60   // in seconds
 
 
@@ -97,5 +95,6 @@ void sock_v_recv( netmsg_t netmsg );
 void sock_v_init( void );
 uint8_t sock_u8_count( void );
 
+void sock_v_process_timeouts( void );
 
 #endif
