@@ -326,24 +326,24 @@ void sock_v_get_raddr( socket_t sock, sock_addr_t *raddr ){
     }
 }
 
-// set the remote address for a socket
-void sock_v_set_raddr( socket_t sock, sock_addr_t *raddr ){
+// // set the remote address for a socket
+// void sock_v_set_raddr( socket_t sock, sock_addr_t *raddr ){
 
-    sock_state_raw_t *s = list_vp_get_data( sock );
+//     sock_state_raw_t *s = list_vp_get_data( sock );
 
-    if( SOCK_IS_DGRAM( s->type ) ){
+//     if( SOCK_IS_DGRAM( s->type ) ){
 
-        // get more specific pointer
-        sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
+//         // get more specific pointer
+//         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-        dgram->raddr = *raddr;
-    }
-    else{
+//         dgram->raddr = *raddr;
+//     }
+//     else{
 
-        // invalid socket type
-        ASSERT( FALSE );
-    }
-}
+//         // invalid socket type
+//         ASSERT( FALSE );
+//     }
+// }
 
 uint16_t sock_u16_get_lport( socket_t sock ){
 
@@ -655,12 +655,6 @@ int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *radd
 
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
-
-        // check if a remote address was given
-        if( raddr != 0 ){
-
-            dgram->raddr = *raddr;
-        }
 
         return sock_i8_transmit( sock, handle, raddr );
     }

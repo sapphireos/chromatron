@@ -76,7 +76,7 @@ void sock_v_set_options( socket_t sock, sock_options_t8 options );
 void sock_v_set_timeout( socket_t sock, uint8_t timeout );
 
 void sock_v_get_raddr( socket_t sock, sock_addr_t *raddr );
-void sock_v_set_raddr( socket_t sock, sock_addr_t *raddr );
+// void sock_v_set_raddr( socket_t sock, sock_addr_t *raddr );
 
 uint16_t sock_u16_get_lport( socket_t sock );
 int16_t sock_i16_get_bytes_read( socket_t sock );
