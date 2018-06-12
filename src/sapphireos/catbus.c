@@ -1029,20 +1029,12 @@ int8_t _catbus_i8_get_link( uint16_t index, catbus_link_state_t *link ){
 
 typedef struct{
     file_t f;
-    socket_t sock;
 } link_broadcast_thread_state_t;
 
 PT_THREAD( link_broadcast_thread( pt_t *pt, link_broadcast_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
     
-    state->sock = sock_s_create( SOCK_DGRAM );
-
-    if( state->sock < 0 ){
-
-        goto cleanup;
-    }
-
     state->f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
 
     if( state->f < 0 ){
@@ -1094,7 +1086,7 @@ PT_BEGIN( pt );
 
         // broadcast to network
 
-        sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
         TMR_WAIT( pt, 10 );
     }
@@ -1104,11 +1096,6 @@ cleanup:
     if( state->f > 0 ){
         
         fs_f_close( state->f );
-    }
-
-    if( state->sock > 0 ){
-        
-        sock_v_release( state->sock );
     }
 
 PT_END( pt );
@@ -2317,7 +2304,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
-        
+
         sock_addr_t raddr;
 
         raddr.ipaddr = ip_a_addr(255,255,255,255);
