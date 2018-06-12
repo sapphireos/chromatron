@@ -381,7 +381,11 @@ static udd_ep_job_t udd_ep_job[USB_DEVICE_MAX_EP * 2];
 #ifdef USB_DEVICE_LOW_SPEED
 static uint8_t udd_ep_out_cache_buffer[USB_DEVICE_MAX_EP][8];
 #else
-static uint8_t udd_ep_out_cache_buffer[USB_DEVICE_MAX_EP][64];
+// static uint8_t udd_ep_out_cache_buffer[USB_DEVICE_MAX_EP][64];
+// JGB mod:
+// in CDC mode, we're only doing 8 byte transfers.
+// so, no reason to waste 64 bytes on these buffers
+static uint8_t udd_ep_out_cache_buffer[USB_DEVICE_MAX_EP][8];
 #endif
 
 
