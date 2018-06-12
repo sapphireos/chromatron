@@ -2317,19 +2317,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
-        // check if there is received data pending
-        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock ) > 0 );
-        // The reason to wait is to avoid a race condition that arises in
-        // using one socket for send and receive between two threads.
-        // The socket only stores one remote socket address.  When you send,
-        // it writes the new remote address to the socket state.  If had
-        // received data waiting, you will have overrwritten the remote address.
-        // If you then attempt to reply, you will end up sending to the wrong
-        // socket.
-        // The easiest way to avoid this is just to not share sockets between
-        // threads.  But if you don't want to waste the memory on that,
-        // this is the other way to do it.
-
+        
         sock_addr_t raddr;
 
         raddr.ipaddr = ip_a_addr(255,255,255,255);
