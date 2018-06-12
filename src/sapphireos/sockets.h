@@ -31,8 +31,6 @@
 #include "memory.h"
 #include "netmsg.h"
 
-// #define ENABLE_UDPX
-
 #define SOCK_MEM_BUSY_THRESHOLD         1024
 
 #define SOCK_EPHEMERAL_PORT_LOW         49152
@@ -50,16 +48,8 @@ typedef int8_t sock_type_t8;
 //#define SOCK_STREAM       0x02  // TCP not supported
 #define SOCK_DGRAM          0x04  // uses UDP
 
-#ifdef ENABLE_UDPX
-#define SOCK_UDPX_CLIENT    ( 0x10 | SOCK_DGRAM )
-#define SOCK_UDPX_SERVER    ( 0x20 | SOCK_DGRAM )
-#endif
 
 #define SOCK_IS_DGRAM(type) ( type & SOCK_DGRAM )
-#ifdef ENABLE_UDPX
-#define SOCK_IS_UDPX_CLIENT(type) ( type & ( SOCK_UDPX_CLIENT & ~SOCK_DGRAM ) )
-#define SOCK_IS_UDPX_SERVER(type) ( type & ( SOCK_UDPX_SERVER & ~SOCK_DGRAM ) )
-#endif
 
 // UDP states
 #define SOCK_UDP_STATE_IDLE             0
@@ -67,10 +57,6 @@ typedef int8_t sock_type_t8;
 #define SOCK_UDP_STATE_RX_DATA_PENDING  2
 #define SOCK_UDP_STATE_RX_DATA_RECEIVED 3
 #define SOCK_UDP_STATE_TIMED_OUT        4
-
-// UDPX client states
-#define SOCK_UDPX_STATE_WAIT_ACK        5
-
 
 
 
@@ -81,10 +67,6 @@ typedef uint8_t sock_options_t8;
 #define SOCK_OPTIONS_NO_SECURITY                0x02 // disable packet security on wireless
 #define SOCK_OPTIONS_SEND_ONLY                  0x04 // socket will not receive data
 #define SOCK_OPTIONS_NO_WIRELESS                0x10 // socket will not transmit over the wireless
-#ifdef ENABLE_UDPX
-#define SOCK_OPTIONS_UDPX_NO_ACK_REQUEST        0x08 // socket will not request acks from the server (UDPX client only)
-#define SOCK_OPTIONS_UDPX_NO_RETRY              0x20 // UDPX client will only send 1 try
-#endif
 
 socket_t sock_s_create( sock_type_t8 type );
 void sock_v_release( socket_t sock );

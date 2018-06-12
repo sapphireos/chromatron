@@ -29,10 +29,6 @@
 #include "sockets.h"
 #include "udp.h"
 
-#ifdef ENABLE_UDPX
-#include "udpx.h"
-#endif
-
 #include "list.h"
 #include "memory.h"
 #include "netmsg.h"
@@ -71,22 +67,6 @@ typedef struct{
     } timer;                    // receive timeout state
 } sock_state_dgram_t;
 
-#ifdef ENABLE_UDPX
-// UDPX client structure
-typedef struct{
-    sock_state_dgram_t dgram;
-    uint8_t msg_id;
-    uint8_t time_left;
-    uint8_t tries;
-} sock_state_udpx_client_t;
-
-// UDPX server structure
-typedef struct{
-    sock_state_dgram_t dgram;
-    uint8_t msg_id;
-    bool ack_request;
-} sock_state_udpx_server_t;
-#endif
 
 static list_t sockets;
 
@@ -188,16 +168,6 @@ socket_t sock_s_create( sock_type_t8 type ){
 
         state_size = sizeof(sock_state_dgram_t);
     }
-    #ifdef ENABLE_UDPX
-    else if( type == SOCK_UDPX_CLIENT ){
-
-        state_size = sizeof(sock_state_udpx_client_t);
-    }
-    else if( type == SOCK_UDPX_SERVER ){
-
-        state_size = sizeof(sock_state_udpx_server_t);
-    }
-    #endif
     else{
 
         // invalid socket type
@@ -237,27 +207,6 @@ socket_t sock_s_create( sock_type_t8 type ){
 
         netmsg_v_open_close_port( IP_PROTO_UDP, dgram->lport, TRUE );
     }
-
-    #ifdef ENABLE_UDPX
-    if( SOCK_IS_UDPX_CLIENT( socket->type ) ){
-
-        // upgrade pointer to datagram structure
-        sock_state_udpx_client_t *client = (sock_state_udpx_client_t *)socket;
-
-        client->dgram.timer.setting = UDPX_INITIAL_TIMEOUT;
-
-        client->msg_id      = 0;
-        client->time_left   = 0;
-        client->tries       = 0;
-    }
-    else if( SOCK_IS_UDPX_SERVER( socket->type ) ){
-
-        // upgrade pointer to datagram structure
-        sock_state_udpx_server_t *server = (sock_state_udpx_server_t *)socket;
-
-        server->msg_id      = 0;
-    }
-    #endif
 
     // add socket to list
     list_v_insert_tail( &sockets, ln );
@@ -527,18 +476,6 @@ int8_t sock_i8_recvfrom( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-        #ifdef ENABLE_UDPX
-        // check UDPX client
-        if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-            // if waiting for ack
-            if( dgram->state == SOCK_UDPX_STATE_WAIT_ACK ){
-
-                return -1;
-            }
-        }
-        #endif
-
         // check if idle
         if( dgram->state == SOCK_UDP_STATE_IDLE ){
 
@@ -667,63 +604,6 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
         // set ttl
         state->ttl = ttl;
 
-        #ifdef ENABLE_UDPX
-        // UDPX processing
-        if( SOCK_IS_UDPX_CLIENT( s->type ) || SOCK_IS_UDPX_SERVER( s->type ) ){
-
-            state->header_2_handle = mem2_h_alloc( sizeof(udpx_header_t) );
-
-            if( state->header_2_handle < 0 ){
-
-                netmsg_v_release( netmsg );
-
-                return -1;
-            }
-
-            udpx_header_t *udpx_header = mem2_vp_get_ptr( state->header_2_handle );
-
-            // check for UDPX client
-            if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-                // set retain, so netmsg does not release the data handle
-                // after transmission.
-                nm_flags |= NETMSG_FLAGS_RETAIN_DATA;
-
-                // get more specific pointer
-                sock_state_udpx_client_t *udpx_client_dgram = (sock_state_udpx_client_t *)s;
-
-                uint8_t flags = 0;
-
-                if( !( udpx_client_dgram->dgram.raw.options & SOCK_OPTIONS_UDPX_NO_ACK_REQUEST ) ){
-
-                    flags |= UDPX_FLAGS_ARQ;
-                }
-
-                udpx_v_init_header( udpx_header, flags, udpx_client_dgram->msg_id );
-            }
-            else{
-
-                // get more specific pointer
-                sock_state_udpx_server_t *udpx_server_dgram = (sock_state_udpx_server_t *)s;
-
-                uint8_t flags = UDPX_FLAGS_SVR;
-
-                if( udpx_server_dgram->ack_request ){
-
-                    flags |= UDPX_FLAGS_ACK;
-                }
-
-                udpx_v_init_header( udpx_header, flags, udpx_server_dgram->msg_id );
-
-                // log_v_debug_P( PSTR("UDPX send %x %x"), flags, udpx_server_dgram->msg_id );
-
-                // clear message ID and ack request
-                udpx_server_dgram->msg_id       = 0;
-                udpx_server_dgram->ack_request  = FALSE;
-            }
-        }
-        #endif
-
         // set flags
         netmsg_v_set_flags( netmsg, nm_flags );
 
@@ -771,62 +651,7 @@ int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *radd
 	sock_state_raw_t *s = list_vp_get_data( sock );
 
     // check socket type
-    #ifdef ENABLE_UDPX
-    if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-        // get more specific pointer
-        sock_state_udpx_client_t *udpx_client_dgram = (sock_state_udpx_client_t *)s;
-
-        // check if a remote address was given
-        if( raddr != 0 ){
-
-            udpx_client_dgram->dgram.raddr = *raddr;
-        }
-
-        // set up message id
-        udpx_client_dgram->msg_id = rnd_u16_get_int();
-
-        // check if we already have a buffer
-        if( udpx_client_dgram->dgram.handle >= 0 ){
-
-            // release it
-            mem2_v_free( udpx_client_dgram->dgram.handle );
-            udpx_client_dgram->dgram.handle = -1;
-            udpx_client_dgram->dgram.header_len = 0;
-        }
-
-        // set up timeouts
-        udpx_client_dgram->time_left = udpx_client_dgram->dgram.timer.setting;
-
-        // check retry configuration
-        if( udpx_client_dgram->dgram.raw.options & SOCK_OPTIONS_UDPX_NO_RETRY ){
-
-            udpx_client_dgram->tries = 1; // udpx decrements first
-        }
-        else{
-
-            udpx_client_dgram->tries = UDPX_MAX_TRIES;
-        }
-
-        // start first transmission
-        int8_t status = sock_i8_transmit( sock, handle, raddr );
-
-        // check that transmission was successful
-        if( status == 0 ){
-
-            // assign handle
-            udpx_client_dgram->dgram.handle = handle;
-
-            // set state to wait ack
-            udpx_client_dgram->dgram.state = SOCK_UDPX_STATE_WAIT_ACK;
-        }
-
-        return status;
-    }
-    else if( SOCK_IS_DGRAM( s->type ) ){
-    #else
     if( SOCK_IS_DGRAM( s->type ) ){
-    #endif
 
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
@@ -901,86 +726,6 @@ void sock_v_recv( netmsg_t netmsg ){
     }
 
     dgram->header_len = state->header_len;
-
-    #ifdef ENABLE_UDPX
-    void *data_ptr = mem2_vp_get_ptr( state->data_handle ) + state->header_len;
-
-    // check for UDPX client
-    if( SOCK_IS_UDPX_CLIENT( dgram->raw.type ) ){
-
-        // get pointer to client state
-        sock_state_udpx_client_t *client_dgram = (sock_state_udpx_client_t *)dgram;
-
-        // get UDPX header
-        udpx_header_t *udpx_header = (udpx_header_t *)( data_ptr );
-
-        // check flags for appropriate bits (SVR and ACK), check message ID, and check
-        // that the socket is actually waiting for an ACK
-        if( ( ( udpx_header->flags & UDPX_FLAGS_VER1 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_VER0 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_SVR )  != 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_ARQ )  == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_ACK )  != 0 ) &&
-            ( client_dgram->msg_id == udpx_header->id )       &&
-            ( client_dgram->dgram.state == SOCK_UDPX_STATE_WAIT_ACK ) ){
-
-            // delete send buffer
-            if( client_dgram->dgram.handle >= 0 ){
-
-                mem2_v_free( client_dgram->dgram.handle );
-                client_dgram->dgram.handle = -1;
-            }
-
-            // set data pointer
-            data_ptr += sizeof(udpx_header_t);
-            dgram->header_len += sizeof(udpx_header_t);
-        }
-        else{
-
-            // invalid message, throw it away
-            return;
-        }
-    }
-    // check for UDPX server
-    else if( SOCK_IS_UDPX_SERVER( dgram->raw.type ) ){
-
-        // get pointer to state
-        sock_state_udpx_server_t *server_dgram = (sock_state_udpx_server_t *)dgram;
-
-        // get UDPX header
-        udpx_header_t *udpx_header = (udpx_header_t *)( data_ptr );
-
-        // check flags for appropriate bits (SVR and ACK), check message ID, and check
-        // that the socket is actually waiting for an ACK
-        if( ( ( udpx_header->flags & UDPX_FLAGS_VER1 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_VER0 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_SVR )  == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_ACK )  == 0 ) ){
-
-            // assign message ID
-            server_dgram->msg_id = udpx_header->id;
-
-            // check ack request
-            if( udpx_header->flags & UDPX_FLAGS_ARQ ){
-
-                server_dgram->ack_request = TRUE;
-            }
-            else{
-
-                server_dgram->ack_request = FALSE;
-            }
-
-            // set data pointer
-            data_ptr += sizeof(udpx_header_t);
-            dgram->header_len += sizeof(udpx_header_t);
-        }
-        else{
-
-            // invalid message
-            return;
-        }
-    }
-    #endif
 
     // check if the socket is already holding data that has not been
     // received by the owning application.  if so, we'll throw away the
@@ -1060,66 +805,7 @@ PT_BEGIN( pt );
 
             sock_state_raw_t *s = list_vp_get_data( sock );
 
-            #ifdef ENABLE_UDPX
-            if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-                // get more specific pointer
-                sock_state_udpx_client_t *client_dgram = (sock_state_udpx_client_t *)s;
-
-                // check state
-                if( client_dgram->dgram.state == SOCK_UDPX_STATE_WAIT_ACK ){
-
-                    if( client_dgram->time_left > 0 ){
-
-                        client_dgram->time_left--;
-                    }
-                    else{
-
-                        client_dgram->tries--;
-
-                        if( client_dgram->tries > 0 ){
-
-                            log_v_debug_P( PSTR("UDPX retry") );
-
-                            // attempt transmission
-                            sock_i8_transmit( sock,
-                                              client_dgram->dgram.handle,
-                                              &client_dgram->dgram.raddr );
-
-                            // reset timeout
-                            client_dgram->time_left = ( client_dgram->dgram.timer.setting ) *
-                                                      ( UDPX_MAX_TRIES - client_dgram->tries );
-
-                            // check if this was the last try,
-                            // if so, we can go ahead and delete the send buffer.
-                            if( client_dgram->tries == 1 ){
-
-                                if( client_dgram->dgram.handle >= 0 ){
-
-                                    mem2_v_free( client_dgram->dgram.handle );
-                                    client_dgram->dgram.handle = -1;
-                                }
-                            }
-                        }
-                        else{
-
-                            // delete send buffer
-                            if( client_dgram->dgram.handle >= 0 ){
-
-                                mem2_v_free( client_dgram->dgram.handle );
-                                client_dgram->dgram.handle = -1;
-                            }
-
-                            // no tries left
-                            client_dgram->dgram.state = SOCK_UDP_STATE_TIMED_OUT;
-                        }
-                    }
-                }
-            }
-            else if( SOCK_IS_DGRAM( s->type ) ){
-            #else
-            if( SOCK_IS_DGRAM( s->type ) ){
-            #endif
+            if( SOCK_IS_DGRAM( s->type ) ){            
 
                 sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
