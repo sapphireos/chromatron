@@ -2399,38 +2399,6 @@ PT_BEGIN( pt );
                          PSTR("catbus_link_broadcast"),
                          0,
                          sizeof(link_broadcast_thread_state_t) );
-
-        // publish data
-        // catbus_hash_t32 hashes_published[32];
-        // uint8_t hashes_published_index = 0;
-        // memset( hashes_published, 0, sizeof(hashes_published) );
-        
-        // ln = send_list.head;
-
-        // while( ln > 0 ){
-
-            // catbus_send_data_entry_t *state = (catbus_send_data_entry_t *)list_vp_get_data( ln );
-            
-            // check if we've already published this one
-            // for( uint8_t i = 0; i < hashes_published_index; i++ ){
-
-            //     if( hashes_published[i] == state->source_hash ){
-
-            //         goto next_send;
-            //     }
-            // }
-
-            // if( hashes_published_index < cnt_of_array(hashes_published) ){
-
-            //     hashes_published[hashes_published_index] = state->source_hash;
-            //     hashes_published_index++;
-            // }
-
-            // catbus_i8_publish( state->source_hash );
-             
-// next_send:
-            // ln = list_ln_next( ln );
-        // }  
         
         #endif
     }
