@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -29,12 +30,9 @@
 #include "hash.h"
 #include "sntp.h"
 
-#define NO_LOGGING
-#include "logging.h"
-
-
-
 #include "pixel.h"
+
+
 
 #define STROBE PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
             _delay_us(10); \
@@ -153,193 +151,192 @@ uint32_t time_u32_get_network_time( void ){
     return adjusted_net_time;
 }
 
+// #include "gfx_lib.h"
 
-#include "gfx_lib.h"
-
-PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
     
-    while(1){
+//     while(1){
 
-        TMR_WAIT( pt, 1000 );
+//         TMR_WAIT( pt, 1000 );
 
-        // first, adjust the network timer.  this just does the fine adjustment.
-        // the coarse adjustment is done by the time server when the sync message comes in. 
+//         // first, adjust the network timer.  this just does the fine adjustment.
+//         // the coarse adjustment is done by the time server when the sync message comes in. 
 
-        // int16_t adjustment = clock_adjustment;
+//         // int16_t adjustment = clock_adjustment;
 
-        // if( adjustment > 40 ){
+//         // if( adjustment > 40 ){
 
-        //     adjustment = 20;
-        // }
-        // else if( adjustment > 20 ){
+//         //     adjustment = 20;
+//         // }
+//         // else if( adjustment > 20 ){
 
-        //     adjustment = 10;
-        // }
-        // else if( adjustment > 5 ){
+//         //     adjustment = 10;
+//         // }
+//         // else if( adjustment > 5 ){
 
-        //     adjustment = 5;
-        // }
-        // else if( adjustment < -40 ){
+//         //     adjustment = 5;
+//         // }
+//         // else if( adjustment < -40 ){
 
-        //     adjustment = -20;
-        // }
-        // else if( adjustment < -20 ){
+//         //     adjustment = -20;
+//         // }
+//         // else if( adjustment < -20 ){
 
-        //     adjustment = -10;
-        // }
-        // else if( adjustment < -5 ){
+//         //     adjustment = -10;
+//         // }
+//         // else if( adjustment < -5 ){
 
-        //     adjustment = -5;
-        // }
+//         //     adjustment = -5;
+//         // }
 
-        // log_v_debug_P( PSTR("clock_adjustment: %d -> %d"), clock_adjustment, adjustment );
+//         // log_v_debug_P( PSTR("clock_adjustment: %d -> %d"), clock_adjustment, adjustment );
 
-        // net_time -= adjustment;
+//         // net_time -= adjustment;
 
-        // clock_adjustment -= adjustment;
+//         // clock_adjustment -= adjustment;
 
 
-        // now adjust the real time clock
+//         // now adjust the real time clock
 
-        ATOMIC;
+//         ATOMIC;
 
-        /*
+//         /*
     
-        Get current network time offset and clock offset.
-        Calculate the timer error.
+//         Get current network time offset and clock offset.
+//         Calculate the timer error.
         
-        */
+//         */
 
-        uint16_t timer_cnt = GFX_TIMER.CNT;
-        uint32_t current_net_time = time_u32_get_network_time();
+//         uint16_t timer_cnt = GFX_TIMER.CNT;
+//         uint32_t current_net_time = time_u32_get_network_time();
 
-        uint16_t gfx_frame_rate = gfx_u16_get_vm_frame_rate();
-        base_rate = ( (uint32_t)gfx_frame_rate * TICKS_PER_SECOND ) / 1000;
+//         uint16_t gfx_frame_rate = gfx_u16_get_vm_frame_rate();
+//         base_rate = ( (uint32_t)gfx_frame_rate * TICKS_PER_SECOND ) / 1000;
 
-        uint16_t timer_cc = GFX_TIMER.CCC;
-        uint32_t base_frame_time = (uint32_t)frame_number * base_rate;
+//         uint16_t timer_cc = GFX_TIMER.CCC;
+//         uint32_t base_frame_time = (uint32_t)frame_number * base_rate;
 
-        uint16_t last_cc = timer_cc - base_rate;
-        uint16_t elapsed_ticks;
+//         uint16_t last_cc = timer_cc - base_rate;
+//         uint16_t elapsed_ticks;
 
-        if( timer_cnt > last_cc ){
+//         if( timer_cnt > last_cc ){
 
-            elapsed_ticks = timer_cnt - last_cc;
-        }
-        else{
+//             elapsed_ticks = timer_cnt - last_cc;
+//         }
+//         else{
 
-            elapsed_ticks = timer_cnt + ( 65535 - last_cc );
-        }
+//             elapsed_ticks = timer_cnt + ( 65535 - last_cc );
+//         }
 
     
-        uint32_t frame_time = base_frame_time + elapsed_ticks;
+//         uint32_t frame_time = base_frame_time + elapsed_ticks;
 
-        uint32_t current_net_time_ticks = ( (uint64_t)current_net_time * TICKS_PER_SECOND ) / 1000;
+//         uint32_t current_net_time_ticks = ( (uint64_t)current_net_time * TICKS_PER_SECOND ) / 1000;
 
-        int16_t frame_offset_ticks = (int64_t)current_net_time_ticks - (int64_t)frame_time;
+//         int16_t frame_offset_ticks = (int64_t)current_net_time_ticks - (int64_t)frame_time;
 
-        // log_v_debug_P( PSTR("%lu %lu %d"), frame_time, current_net_time_ticks, frame_offset_ticks );
-        // log_v_debug_P( PSTR("%d"), frame_offset_ticks );
+//         // log_v_debug_P( PSTR("%lu %lu %d"), frame_time, current_net_time_ticks, frame_offset_ticks );
+//         // log_v_debug_P( PSTR("%d"), frame_offset_ticks );
 
-        uint16_t net_frame = current_net_time_ticks / base_rate;
+//         uint16_t net_frame = current_net_time_ticks / base_rate;
 
-        // log_v_debug_P( PSTR("%u %u %d"), frame_number, net_frame, frame_offset_ticks );
+//         // log_v_debug_P( PSTR("%u %u %d"), frame_number, net_frame, frame_offset_ticks );
         
-        if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 8 ){
+//         if( abs32( (int32_t)frame_number - (int32_t)net_frame ) > 8 ){
 
-            log_v_debug_P( PSTR("hard frame sync") );
-            frame_number = net_frame;
-            GFX_TIMER.CCC = GFX_TIMER.CNT + base_rate;   
+//             log_v_debug_P( PSTR("hard frame sync") );
+//             frame_number = net_frame;
+//             GFX_TIMER.CCC = GFX_TIMER.CNT + base_rate;   
 
-            frame_offset_ticks = 0;
-        }
-
-        
-        int16_t timer_error = frame_offset_ticks;
-
-        timer_rate = base_rate;
-
-        if( timer_error > 100 ){
-
-            timer_rate -= 20;
-        }
-        else if( timer_error > 5 ){
-
-            timer_rate -= 2;
-        }
-
-        else if( timer_error < -100 ){
-
-            timer_rate += 20;
-        }
-        else if( timer_error < -5 ){
-
-            timer_rate += 2;
-        }
-
-        /*
-    
-        Clock adjustment.
-    
-        If the clock is "way off", adjust in one hard step.
-
-        Then, do fine adjustments to the clock speed to bring it into alignment.
-
-        */
-
-        // int16_t timer_adjust = 0;
-
-        // // fine adjustment
-        // if( timer_error > 1000 ){
-
-        //     timer_adjust = -200;
-        // }
-        // else if( timer_error > 200 ){
-
-        //     timer_adjust = -30;
-        // }
-        // else if( timer_error > 100 ){
-
-        //     timer_adjust = -10;
-        // }
-        // else if( timer_error > 10 ){
-
-        //     timer_adjust = -5;
-        // }
-
-        // else if( timer_error < -1000 ){
-
-        //     timer_adjust = 200;
-        // }
-        // else if( timer_error < -200 ){
-
-        //     timer_adjust = 30;
-        // }
-        // else if( timer_error < -100 ){
-
-        //     timer_adjust = 10;
-        // }
-        // else if( timer_error < -10 ){
-
-        //     timer_adjust = 5;
-        // }
-        // else{
-
-        //     timer_adjust = 0;              
-        // }
-
-        // timer_rate = base_rate + timer_adjust;
-    
+//             frame_offset_ticks = 0;
+//         }
 
         
+//         int16_t timer_error = frame_offset_ticks;
 
-        END_ATOMIC;
-    }
+//         timer_rate = base_rate;
 
-PT_END( pt );
-}
+//         if( timer_error > 100 ){
+
+//             timer_rate -= 20;
+//         }
+//         else if( timer_error > 5 ){
+
+//             timer_rate -= 2;
+//         }
+
+//         else if( timer_error < -100 ){
+
+//             timer_rate += 20;
+//         }
+//         else if( timer_error < -5 ){
+
+//             timer_rate += 2;
+//         }
+
+//         /*
+    
+//         Clock adjustment.
+    
+//         If the clock is "way off", adjust in one hard step.
+
+//         Then, do fine adjustments to the clock speed to bring it into alignment.
+
+//         */
+
+//         // int16_t timer_adjust = 0;
+
+//         // // fine adjustment
+//         // if( timer_error > 1000 ){
+
+//         //     timer_adjust = -200;
+//         // }
+//         // else if( timer_error > 200 ){
+
+//         //     timer_adjust = -30;
+//         // }
+//         // else if( timer_error > 100 ){
+
+//         //     timer_adjust = -10;
+//         // }
+//         // else if( timer_error > 10 ){
+
+//         //     timer_adjust = -5;
+//         // }
+
+//         // else if( timer_error < -1000 ){
+
+//         //     timer_adjust = 200;
+//         // }
+//         // else if( timer_error < -200 ){
+
+//         //     timer_adjust = 30;
+//         // }
+//         // else if( timer_error < -100 ){
+
+//         //     timer_adjust = 10;
+//         // }
+//         // else if( timer_error < -10 ){
+
+//         //     timer_adjust = 5;
+//         // }
+//         // else{
+
+//         //     timer_adjust = 0;              
+//         // }
+
+//         // timer_rate = base_rate + timer_adjust;
+    
+
+        
+
+//         END_ATOMIC;
+//     }
+
+// PT_END( pt );
+// }
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
