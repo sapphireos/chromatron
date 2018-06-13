@@ -50,8 +50,7 @@ static list_t tx_q;
 static uint8_t last_status;
 static uint8_t g_wifi_status;
 
-static uint32_t rx_udp_fifo_overruns;
-static uint32_t rx_udp_port_overruns;
+static uint16_t rx_udp_overruns;
 static uint32_t udp_received;
 static uint32_t udp_sent;
 static uint16_t connects;
@@ -336,7 +335,10 @@ void wifi_v_process( void ){
         // if( rx_size >= RX_BUF_SIZE ){
         if( list_u8_count( &rx_q ) >= RX_BUF_SIZE ){
 
-            rx_udp_fifo_overruns++;
+            if( rx_udp_overruns < 65535 ){
+
+                rx_udp_overruns++;
+            }
 
             // receive overrun!
             // flush the current received data
@@ -350,7 +352,10 @@ void wifi_v_process( void ){
         // check if this port exceeds its bandwidth
         if( rx_depth >= MAX_PORT_DEPTH ){
 
-            rx_udp_port_overruns++;
+            if( rx_udp_overruns < 65535 ){
+                
+                rx_udp_overruns++;
+            }
 
             // port receive overrun!
             // flush the current received data
@@ -640,14 +645,9 @@ void wifi_v_rx_udp_clear_last( void ){
 
 
 
-uint32_t wifi_u32_get_rx_udp_fifo_overruns( void ){
+uint32_t wifi_u32_get_rx_udp_overruns( void ){
 
-    return rx_udp_fifo_overruns;
-}
-
-uint32_t wifi_u32_get_rx_udp_port_overruns( void ){
-
-    return rx_udp_port_overruns;
+    return rx_udp_overruns;
 }
 
 uint32_t wifi_u32_get_udp_received( void ){

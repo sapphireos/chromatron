@@ -87,8 +87,7 @@ typedef struct __attribute__((packed)){
     sos_ip_addr_t gateway;
     sos_ip_addr_t dns;
     int8_t rssi;
-    uint16_t rx_udp_fifo_overruns;
-    uint16_t rx_udp_port_overruns;
+    uint16_t rx_udp_overruns;
     uint32_t udp_received;
     uint32_t udp_sent;
     uint16_t comm_errors;
@@ -150,6 +149,7 @@ typedef struct __attribute__((packed)){
     uint16_t len;
     uint16_t crc;
 } wifi_msg_udp_header_t;
+#define WIFI_DATA_ID_UDP_BUF_READY     0x0B
 #define WIFI_DATA_ID_UDP_HEADER        0x10
 #define WIFI_DATA_ID_UDP_DATA          0x11
 #define WIFI_DATA_ID_UDP_EXT           0x12

@@ -107,8 +107,7 @@ static uint16_t wifi_comm_errors;
 static uint16_t wifi_comm_errors2;
 static uint8_t wifi_connects;
 
-static uint16_t wifi_rx_udp_fifo_overruns;
-static uint16_t wifi_rx_udp_port_overruns;
+static uint16_t wifi_rx_udp_overruns;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static uint16_t mem_heap_peak;
@@ -174,11 +173,9 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors,                 0,   "wifi_comm_errors" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors2,                0,   "wifi_comm_errors2" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_fifo_overruns,        0,   "wifi_comm_rx_udp_fifo_overruns" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_overruns,             0,   "wifi_comm_rx_udp_overruns" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_sent,                    0,   "wifi_udp_sent" },
-
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_port_overruns,        0,   "wifi_comm_rx_udp_port_overruns" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_heap_peak,                    0,   "wifi_mem_heap_peak" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_used,                         0,   "wifi_mem_used" },
@@ -1744,8 +1741,7 @@ static int8_t process_rx_data( void ){
         cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
         cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
 
-        wifi_rx_udp_fifo_overruns   = msg->rx_udp_fifo_overruns;
-        wifi_rx_udp_port_overruns   = msg->rx_udp_port_overruns;
+        wifi_rx_udp_overruns        = msg->rx_udp_overruns;
         wifi_udp_received           = msg->udp_received;
         wifi_udp_sent               = msg->udp_sent;
         wifi_comm_errors            = msg->comm_errors;

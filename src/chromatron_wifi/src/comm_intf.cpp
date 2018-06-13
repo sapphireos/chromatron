@@ -216,8 +216,7 @@ static void _send_info_msg( void ){
 
     info_msg.rssi           = WiFi.RSSI();
 
-    info_msg.rx_udp_fifo_overruns   = wifi_u32_get_rx_udp_fifo_overruns();
-    info_msg.rx_udp_port_overruns   = wifi_u32_get_rx_udp_port_overruns();
+    info_msg.rx_udp_overruns        = wifi_u32_get_rx_udp_overruns();
     info_msg.udp_received           = wifi_u32_get_udp_received();
     info_msg.udp_sent               = wifi_u32_get_udp_sent();
 
