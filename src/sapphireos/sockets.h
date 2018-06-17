@@ -30,7 +30,9 @@
 #include "memory.h"
 #include "netmsg.h"
 
-#define SOCK_MEM_BUSY_THRESHOLD         1024
+#define SOCK_SINGLE_BUF
+
+#define SOCK_MEM_BUSY_THRESHOLD         640
 
 #define SOCK_EPHEMERAL_PORT_LOW         49152
 #define SOCK_EPHEMERAL_PORT_HIGH        65535
@@ -83,6 +85,7 @@ mem_handle_t sock_h_get_data_handle( socket_t sock );
 
 bool sock_b_port_in_use( uint16_t port );
 bool sock_b_port_busy( uint16_t port );
+bool sock_b_rx_pending( void );
 
 bool sock_b_busy( socket_t sock );
 

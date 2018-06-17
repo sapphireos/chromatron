@@ -57,9 +57,13 @@ typedef struct{
     sock_state_raw_t raw;
     uint8_t state;              // current state
     uint16_t lport;             // local port
+
+    #ifndef SOCK_SINGLE_BUF
     mem_handle_t handle;        // received data handle
     uint8_t header_len;         // length of non-data headers in data handle
     sock_addr_t raddr;          // bound remote address
+    #endif
+
     struct{
         uint8_t setting;
         uint8_t current;
@@ -71,6 +75,12 @@ static list_t sockets;
 
 static uint16_t current_ephemeral_port;
 
+#ifdef SOCK_SINGLE_BUF
+static mem_handle_t rx_handle;        // received data handle
+static uint16_t rx_port;
+static uint8_t rx_header_len;         // length of non-data headers in data handle
+static sock_addr_t rx_raddr;          // bound remote address
+#endif
 
 bool sock_b_port_in_use( uint16_t port ){
 
@@ -99,6 +109,13 @@ bool sock_b_port_in_use( uint16_t port ){
 
 bool sock_b_port_busy( uint16_t port ){
 
+    #ifdef SOCK_SINGLE_BUF
+    if( rx_handle > 0 ){
+
+        return TRUE;
+    }
+    #else
+
     socket_t sock = sockets.head;
 
     while( sock >= 0 ){
@@ -124,6 +141,17 @@ bool sock_b_port_busy( uint16_t port ){
 
 next:
         sock = list_ln_next( sock );
+    }
+    #endif
+
+    return FALSE;
+}
+
+bool sock_b_rx_pending( void ){
+
+    if( rx_handle > 0 ){
+
+        return TRUE;
     }
 
     return FALSE;
@@ -195,11 +223,14 @@ socket_t sock_s_create( sock_type_t8 type ){
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)socket;
 
         dgram->lport            = get_lport();
-        dgram->handle           = -1;
         dgram->state            = SOCK_UDP_STATE_IDLE;
         dgram->timer.setting    = 0;
         dgram->timer.current    = 0;
+
+        #ifndef SOCK_SINGLE_BUF
+        dgram->handle           = -1;
         dgram->header_len       = 0;
+        #endif
 
         netmsg_v_open_close_port( IP_PROTO_UDP, dgram->lport, TRUE );
     }
@@ -220,11 +251,22 @@ void sock_v_release( socket_t sock ){
 
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+
+        if( ( rx_port == dgram->lport ) && ( rx_handle > 0 ) ){
+
+            mem2_v_free( rx_handle );
+            rx_handle = -1;
+            rx_port = 0;
+        }
+
+        #else
         // check if there is data in the socket's buffer
         if( dgram->handle >= 0 ){
 
             mem2_v_free( dgram->handle );
         }
+        #endif
 
         netmsg_v_open_close_port( IP_PROTO_UDP, dgram->lport, FALSE );
     }
@@ -313,7 +355,18 @@ void sock_v_get_raddr( socket_t sock, sock_addr_t *raddr ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+        if( dgram->lport == rx_port ){
+
+            *raddr = rx_raddr;
+        }
+        else{
+
+            memset( raddr, 0, sizeof(sock_addr_t) );
+        }
+        #else
         *raddr = dgram->raddr;
+        #endif
     }
     else{
 
@@ -372,10 +425,17 @@ int16_t sock_i16_get_bytes_read( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF        
+        if( dgram->lport == rx_port ){
+
+            return mem2_u16_get_size( rx_handle ) - rx_header_len;
+        }
+        #else
         if( dgram->handle >= 0 ){
 
             return mem2_u16_get_size( dgram->handle ) - dgram->header_len;
         }
+        #endif
     }
     else{
 
@@ -398,10 +458,23 @@ void *sock_vp_get_data( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+
+        if( dgram->lport == rx_port ){
+
+            // ensure data has been received for the socket
+            ASSERT( rx_handle >= 0 );    
+
+            return mem2_vp_get_ptr( rx_handle ) + rx_header_len;
+        }
+
+        #else
         // ensure data has been received for the socket
         ASSERT( dgram->handle >= 0 );
 
         return mem2_vp_get_ptr( dgram->handle ) + dgram->header_len;
+
+        #endif
     }
     else{
 
@@ -427,9 +500,20 @@ mem_handle_t sock_h_get_data_handle( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+
+        if( dgram->lport == rx_port ){
+
+            h = rx_handle;
+            rx_handle = -1;
+            rx_port = 0;
+        }
+
+        #else
         h = dgram->handle;
 
         dgram->handle = -1;
+        #endif
     }
     else{
 
@@ -491,7 +575,11 @@ int8_t sock_i8_recvfrom( socket_t sock ){
         // check if data has been buffered
         else if( dgram->state == SOCK_UDP_STATE_RX_DATA_PENDING ){
 
+            #ifdef SOCK_SINGLE_BUF
+            ASSERT( rx_handle >= 0 );
+            #else
             ASSERT( dgram->handle >= 0 );
+            #endif
 
             // advance state to received
             dgram->state = SOCK_UDP_STATE_RX_DATA_RECEIVED;
@@ -504,6 +592,16 @@ int8_t sock_i8_recvfrom( socket_t sock ){
             // reset state
             dgram->state = SOCK_UDP_STATE_IDLE;
 
+            #ifdef SOCK_SINGLE_BUF
+
+            if( rx_handle > 0 ){
+
+                mem2_v_free( rx_handle );
+            }   
+
+            rx_handle = -1;
+
+            #else
             // check if socket has memory attached
             if( dgram->handle > 0 ){
 
@@ -513,6 +611,8 @@ int8_t sock_i8_recvfrom( socket_t sock ){
 
             // mark handle as empty
             dgram->handle = -1;
+
+            #endif
 
             return -1;
         }
@@ -583,8 +683,12 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
         // attach remote address
         if( raddr == 0 ){
 
+            #ifdef SOCK_SINGLE_BUF
+            state->raddr = rx_raddr;
+            #else
             // get raddr from socket
             state->raddr = dgram_state->raddr;
+            #endif
         }
         else{
 
@@ -712,8 +816,35 @@ void sock_v_recv( netmsg_t netmsg ){
         }
     }
 
-    dgram->header_len = state->header_len;
+    #ifdef SOCK_SINGLE_BUF
+    // check if the socket is already holding data that has not been
+    // received by the owning application.  if so, we'll throw away the
+    // incoming data
+    if( rx_handle >= 0 ){
 
+        // so there is buffered data, lets see if the app has
+        // retrieved it
+        if( dgram->state == SOCK_UDP_STATE_RX_DATA_RECEIVED ){
+
+            // app already saw this, so we'll release it here.
+
+            // free the receive buffer
+            mem2_v_free( rx_handle );
+
+            // mark handle as empty
+            rx_handle = -1;
+        }
+        else{
+
+            // app hasn't received data, so we bail out and this new data
+            // gets dropped.
+
+            log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
+
+            return;
+        }
+    }
+    #else
     // check if the socket is already holding data that has not been
     // received by the owning application.  if so, we'll throw away the
     // incoming data
@@ -741,16 +872,33 @@ void sock_v_recv( netmsg_t netmsg ){
             return;
         }
     }
+    #endif
+
+    #ifdef SOCK_SINGLE_BUF
+    
+    rx_header_len = state->header_len;
+    rx_handle = state->data_handle;
+
+    rx_raddr.ipaddr = state->raddr.ipaddr;
+    rx_raddr.port   = state->raddr.port;
+
+    #else
+
+    dgram->header_len = state->header_len;
 
     // assign handle to socket
     dgram->handle = state->data_handle;
 
-    // remove handle from netmsg
-    state->data_handle = -1;
-
     // set remote address
     dgram->raddr.ipaddr = state->raddr.ipaddr;
     dgram->raddr.port   = state->raddr.port;
+
+    #endif
+
+    
+    // remove handle from netmsg
+    state->data_handle = -1;
+
 
     // set state
     dgram->state = SOCK_UDP_STATE_RX_DATA_PENDING;
