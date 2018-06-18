@@ -285,13 +285,32 @@ class cg1CompareNode(cg1BinOpNode):
         
 
 class cg1For(cg1CodeNode):
-    _fields = ["target", "iter", "body"]
+    _fields = ["target", "iterator", "body"]
 
-    def __init__(self, target, iter, body, **kwargs):
+    def __init__(self, iterator, stop, body, **kwargs):
         super(cg1For, self).__init__(**kwargs)
-        self.target = target
-        self.iter = iter
+        self.iterator = iterator
+        self.stop = stop
         self.body = body
+
+    def build(self, builder):
+        i = self.iterator.build(builder)
+        stop = self.stop.build(builder)
+
+        top, cont, end = builder.begin_for(i, lineno=self.lineno)
+
+        
+        builder.position_label(top)
+
+        for node in self.body:
+            node.build(builder)
+
+        builder.position_label(cont)
+
+        builder.end_for(i, stop, top, lineno=self.lineno)
+
+        builder.position_label(end)
+
 
     # def build(self, ctx):
     #     func = ctx['functions'][ctx['func']]

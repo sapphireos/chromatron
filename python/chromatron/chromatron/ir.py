@@ -92,6 +92,17 @@ class irAssign(IR):
 
         return s
 
+
+class irClr(IR):
+    def __init__(self, target, **kwargs):
+        super(irClr, self).__init__(**kwargs)
+        self.target = target
+        
+    def __str__(self):
+        s = '%s = 0' % (self.target)
+
+        return s
+
 class irCall(IR):
     def __init__(self, target, params, result, **kwargs):
         super(irCall, self).__init__(**kwargs)
@@ -141,6 +152,27 @@ class irBranchNotZero(irBranch):
 
         return s    
 
+class irJump(IR):
+    def __init__(self, target, **kwargs):
+        super(irJump, self).__init__(**kwargs)        
+        self.target = target
+
+    def __str__(self):
+        s = 'JMP -> %s' % (self.target.name)
+
+        return s    
+
+class irJumpLessPreInc(IR):
+    def __init__(self, target, op1, op2, **kwargs):
+        super(irJumpLessPreInc, self).__init__(**kwargs)        
+        self.target = target
+        self.op1 = op1
+        self.op2 = op2
+
+    def __str__(self):
+        s = 'JMP (%s++) < %s -> %s' % (self.op1, self.op2, self.target.name)
+
+        return s    
 
 class Builder(object):
     def __init__(self):
@@ -149,9 +181,9 @@ class Builder(object):
         self.temps = {}
         self.globals = {}
         self.objects = {}
+        self.labels = {}
 
         self.next_temp = 0
-        self.next_label = 0
 
         self.current_func = None
 
@@ -184,13 +216,19 @@ class Builder(object):
 
         return s
 
-    def add_global(self, name, type, length, lineno=None):
+    def add_global(self, name, type='i32', length=1, lineno=None):
+        if name in self.globals:
+            return self.globals[name]
+
         ir = irVar(name, type, length, lineno=lineno)
         self.globals[name] = ir
 
         return ir
 
-    def add_local(self, name, type, length, lineno=None):
+    def add_local(self, name, type='i32', length=1, lineno=None):
+        if name in self.locals[self.current_func]:
+            return self.locals[self.current_func][name]
+
         ir = irVar(name, type, length, lineno=lineno)
         self.locals[self.current_func][name] = ir
 
@@ -258,15 +296,20 @@ class Builder(object):
         return result
 
     def label(self, name, lineno=None):
-        name += '.%d' % (self.next_label)
-        self.next_label += 1
+        if name not in self.labels:
+            self.labels[name] = 0
+
+        else:
+            self.labels[name] += 1
+
+        name += '.%d' % (self.labels[name])
 
         ir = irLabel(name, lineno=lineno)
         return ir
 
     def ifelse(self, test, lineno=None):
-        body_label = self.label('if', lineno=lineno)
-        else_label = self.label('else', lineno=lineno)
+        body_label = self.label('if.then', lineno=lineno)
+        else_label = self.label('if.else', lineno=lineno)
 
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
@@ -277,13 +320,24 @@ class Builder(object):
         self.append_node(label)
 
 
+    def begin_for(self, iterator, lineno=None):
+        top_label = self.label('for.top', lineno=lineno)
+        continue_label = self.label('for.cont', lineno=lineno)
+        end_label = self.label('for.end', lineno=lineno)
 
+        # set up iterator code (init to -1, as first pass will increment before the body) 
+        init_value = self.add_local('-1', lineno=lineno)
+        ir = irAssign(iterator, init_value, lineno=lineno)
+        self.append_node(ir)
 
+        ir = irJump(continue_label, lineno=lineno)
+        self.append_node(ir)
 
+        return top_label, continue_label, end_label
 
-
-
-
+    def end_for(self, iterator, stop, top, lineno=None):
+        ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
+        self.append_node(ir)
 
 
 
