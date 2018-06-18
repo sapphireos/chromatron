@@ -1401,8 +1401,6 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            // log_v_debug_P( PSTR("disc") );
-
             sock_addr_t raddr;
             sock_v_get_raddr( sock, &raddr );
 
