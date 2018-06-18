@@ -1783,7 +1783,7 @@ static int8_t process_rx_data( void ){
         // check if sockets module is busy
         if( sock_b_rx_pending() ){
 
-            log_v_debug_P( PSTR("sock rx pending") );
+            log_v_debug_P( PSTR("sock rx pending: %u"), msg->rport );
             goto error;
         }
         
@@ -1854,7 +1854,7 @@ static int8_t process_rx_data( void ){
 
         if( rx_netmsg <= 0 ){
 
-            log_v_debug_P( PSTR("rx udp no netmsg") );     
+            // log_v_debug_P( PSTR("rx udp no netmsg") );     
 
             goto error;
         }

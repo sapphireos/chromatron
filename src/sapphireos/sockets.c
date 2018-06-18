@@ -152,6 +152,42 @@ bool sock_b_rx_pending( void ){
     #ifdef SOCK_SINGLE_BUF
     if( rx_handle > 0 ){
 
+        // check if receiving socket already saw this message
+
+        socket_t sock = sockets.head;
+        sock_state_dgram_t *dgram;
+
+        while( sock >= 0 ){
+
+            // derefence to datagram
+            dgram = list_vp_get_data( sock );
+
+            // check socket type and port number (if datagram)
+            if( ( SOCK_IS_DGRAM( dgram->raw.type ) ) &&
+                ( dgram->lport == rx_port ) ){
+
+                // if socket has already seen this message
+                if( dgram->state == SOCK_UDP_STATE_RX_DATA_RECEIVED ){
+
+                    // go ahead and release buffer
+
+                    // free the receive buffer
+                    mem2_v_free( rx_handle );
+
+                    // mark handle as empty
+                    rx_handle = -1;
+                    rx_port = 0;
+
+                    return FALSE;
+                }                
+
+                break;
+            }
+
+            sock = list_ln_next( sock );
+        }
+
+
         return TRUE;
     }
     #endif
@@ -601,6 +637,7 @@ int8_t sock_i8_recvfrom( socket_t sock ){
                 mem2_v_free( rx_handle );
             }   
 
+            rx_port = 0;
             rx_handle = -1;
 
             #else
@@ -822,7 +859,7 @@ void sock_v_recv( netmsg_t netmsg ){
     // check if the socket is already holding data that has not been
     // received by the owning application.  if so, we'll throw away the
     // incoming data
-    if( rx_handle > 0 ){
+    if( ( rx_handle > 0 ) && ( rx_port == dgram->lport ) ){
 
         // so there is buffered data, lets see if the app has
         // retrieved it
