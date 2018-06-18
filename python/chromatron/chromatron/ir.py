@@ -4,7 +4,7 @@ class IR(object):
 	def __init__(self):
 		pass
 
-class IRVar(IR):
+class irVar(IR):
 	def __init__(self, name, type='i32', length=1):
 		self.name = name
 		self.type = type
@@ -15,7 +15,7 @@ class IRVar(IR):
 	def __str__(self):
 		return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
 
-class IRFunc(IR):
+class irFunc(IR):
 	def __init__(self, name, ret_type='i32', params=None, body=None):
 		self.name = name
 		self.ret_type = ret_type
@@ -47,18 +47,18 @@ class IRFunc(IR):
 
 		return s
 
-class IRReturn(IR):
+class irReturn(IR):
 	def __init__(self, ret_var):
 		self.ret_var = ret_var
 
 	def __str__(self):
 		return "Return %s" % (self.ret_var)
 
-class IRNop(IR):
+class irNop(IR):
 	def __str__(self):
 		return "NOP" 
 
-class IRBinop(IR):
+class irBinop(IR):
 	def __init__(self, result, op, left, right):
 		self.result = result
 		self.op = op
@@ -70,7 +70,7 @@ class IRBinop(IR):
 
 		return s
 
-class IRBuilder(object):
+class Builder(object):
 	def __init__(self):
 		self.funcs = {}
 		self.locals = {}
@@ -112,13 +112,13 @@ class IRBuilder(object):
 		return s
 
 	def add_global(self, name, type, length):
-		ir = IRVar(name, type, length)
+		ir = irVar(name, type, length)
 		self.globals[name] = ir
 
 		return ir
 
 	def add_local(self, name, type, length):
-		ir = IRVar(name, type, length)
+		ir = irVar(name, type, length)
 		self.locals[self.current_func][name] = ir
 
 		return ir
@@ -127,13 +127,13 @@ class IRBuilder(object):
 		name = '%' + str(self.next_temp)
 		self.next_temp += 1
 
-		var = IRVar(name, type)
+		var = irVar(name, type)
 		self.temps[self.current_func][name] = var
 
 		return var
 
 	def func(self, *args, **kwargs):
-		func = IRFunc(*args, **kwargs)
+		func = irFunc(*args, **kwargs)
 		self.funcs[func.name] = func
 		self.locals[func.name] = {}
 		self.temps[func.name] = {}
@@ -146,14 +146,14 @@ class IRBuilder(object):
 		self.funcs[self.current_func].append(node)
 
 	def ret(self, value):
-		ir = IRReturn(value)
+		ir = irReturn(value)
 
 		self.append_node(ir)
 
 		return ir
 
 	def nop(self):
-		ir = IRNop()
+		ir = irNop()
 
 		self.append_node(ir)
 
@@ -162,7 +162,7 @@ class IRBuilder(object):
 	def binop(self, op, left, right):
 		result = self.add_temp()
 
-		ir = IRBinop(result, op, left, right)
+		ir = irBinop(result, op, left, right)
 
 		self.append_node(ir)
 

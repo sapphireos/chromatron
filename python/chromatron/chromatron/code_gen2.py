@@ -118,7 +118,7 @@ class cg1Module(cg1Node):
 
     def build(self, builder=None):
         if builder == None:
-            builder = IRBuilder()
+            builder = Builder()
 
         # collect everything at module level that is not part of a function
         startup_code = [a for a in self.body if not isinstance(a, cg1Func)]
