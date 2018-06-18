@@ -515,6 +515,27 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
     sock_i16_sendto_m( sock, h, raddr );
 }
 
+static void _catbus_v_send_shutdown( void ){
+
+    mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_shutdown_t) );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    catbus_msg_shutdown_t *msg = mem2_vp_get_ptr( h );
+    _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SHUTDOWN, 0 );
+
+    msg->flags = 0;
+        
+    sock_addr_t raddr;
+    raddr.port = CATBUS_DISCOVERY_PORT;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    sock_i16_sendto_m( sock, h, &raddr );
+}
+
 #ifdef ENABLE_CATBUS_LINK
 static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash_t32 dest_hash, sock_addr_t *raddr ){
 
