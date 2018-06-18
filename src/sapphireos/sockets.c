@@ -614,9 +614,9 @@ int8_t sock_i8_recvfrom( socket_t sock ){
         else if( dgram->state == SOCK_UDP_STATE_RX_DATA_PENDING ){
 
             #ifdef SOCK_SINGLE_BUF
-            ASSERT( rx_handle >= 0 );
+            ASSERT( rx_handle > 0 );
             #else
-            ASSERT( dgram->handle >= 0 );
+            ASSERT( dgram->handle > 0 );
             #endif
 
             // advance state to received
