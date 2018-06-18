@@ -100,6 +100,7 @@ static catbus_hash_t32 meta_tag_hashes[CATBUS_QUERY_LEN];
 
 PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( catbus_announce_thread( pt_t *pt, void *state ) );
+PT_THREAD( catbus_shutdown_thread( pt_t *pt, void *state ) );
 
 
 static int8_t _catbus_i8_meta_handler(
@@ -2374,6 +2375,14 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
+        // are we shutting down?
+        if( sys_b_shutdown() ){
+
+            // we can terminate the thread, since sending announcements and links
+            // is counter productive if we're about to turn off.
+
+            THREAD_EXIT ( pt );
+        }
 
         sock_addr_t raddr;
 
@@ -2451,7 +2460,32 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+PT_THREAD( catbus_shutdown_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // broadcast shutdown messages
+    
+    _catbus_v_send_shutdown();
+
+    TMR_WAIT( pt, 100 );
+
+    _catbus_v_send_shutdown();
+
+    TMR_WAIT( pt, 100 );
+
+    _catbus_v_send_shutdown();
+    
+
+PT_END( pt );
+}
+
 void catbus_v_shutdown( void ){
 
-    
+    // broadcast shutdown to network
+    thread_t_create( THREAD_CAST(catbus_shutdown_thread),
+                     PSTR("catbus_shutdown"),
+                     0,
+                     0 );
 }
+

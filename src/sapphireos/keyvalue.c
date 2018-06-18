@@ -999,11 +999,11 @@ PT_BEGIN( pt );
 
                 uint32_t hash = hash_u32_string( meta.name );
                 _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+
+                TMR_WAIT( pt, 5 );
             }   
 
             ptr++;
-
-            TMR_WAIT( pt, 20 );
         }
 
         f = fs_f_close( f );
@@ -1029,5 +1029,7 @@ uint8_t kv_u8_get_dynamic_count( void ){
 
 void kv_v_shutdown( void ){
 
-    
+    // run persistence on shutdown
+    run_persist = TRUE;       
 }
+

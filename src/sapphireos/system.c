@@ -497,6 +497,12 @@ void reboot( void ){
 	for(;;);
 }
 
+// return TRUE if system is about to shut down
+bool sys_b_shutdown( void ){
+
+    return reboot_delay > 0;
+}
+
 // runtime assertion handling.
 // note all assertions are considered fatal, and will result in the system
 // rebooting into the bootloader.  it will pass the assertion information
