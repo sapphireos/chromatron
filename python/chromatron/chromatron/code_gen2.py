@@ -311,48 +311,6 @@ class cg1For(cg1CodeNode):
 
         builder.position_label(end)
 
-
-    # def build(self, ctx):
-    #     func = ctx['functions'][ctx['func']]
-    #     init_block = func.append_basic_block('for.init')
-    #     test_block = func.append_basic_block('for.test')
-    #     body_block = func.append_basic_block('for.body')
-    #     end_block = func.append_basic_block("for.end")
-
-    #     # init iterator local variable and set to 0
-    #     ctx['builder'].branch(init_block)
-    #     ctx['builder'].position_at_end(init_block)
-    #     declare_target = cg1DeclareVar(self.target.name)
-    #     target = declare_target.build(ctx)
-    #     ctx['builder'].store(cg1ConstInt32(0).build(ctx), target)
-
-        
-    #     # set up condition test
-    #     ctx['builder'].branch(test_block)
-    #     ctx['builder'].position_at_end(test_block)
-
-    #     compare = cg1CompareNode('lt', self.target, self.iter)
-    #     cond = compare.build(ctx)
-        
-    #     # conditional branch
-    #     ctx['builder'].cbranch(cond, body_block, end_block)
-
-    #     # loop body
-    #     ctx['builder'].position_at_end(body_block)
-
-    #     for a in self.body:
-    #         a.build(ctx)
-
-    #     # increment loop counter
-    #     inc = ctx['builder'].add(cg1ConstInt32(1).build(ctx), ctx['builder'].load(target))
-    #     ctx['builder'].store(inc, target)
-
-    #     # branch back to top of loop
-    #     ctx['builder'].branch(test_block)
-
-    #     ctx['builder'].position_at_end(end_block)
-
-
 class cg1Break(cg1CodeNode):
     def build(self, builder):
         builder.loop_break(lineno=self.lineno)
@@ -486,7 +444,6 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Pass(self, node):
         return cg1NoOp(lineno=node.lineno)
-
 
     def visit_Break(self, node):
         return cg1Break(lineno=node.lineno)
