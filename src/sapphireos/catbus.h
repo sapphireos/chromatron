@@ -109,6 +109,12 @@ typedef struct __attribute__((packed)){
 } catbus_msg_discover_t;
 #define CATBUS_MSG_TYPE_DISCOVER                ( 1 + CATBUS_MSG_DISCOVERY_GROUP_OFFSET )
 
+typedef struct __attribute__((packed)){
+    catbus_header_t header;
+    uint8_t flags;
+} catbus_msg_shutdown_t;
+#define CATBUS_MSG_TYPE_SHUTDOWN                ( 2 + CATBUS_MSG_DISCOVERY_GROUP_OFFSET )
+
 
 // DATABASE
 

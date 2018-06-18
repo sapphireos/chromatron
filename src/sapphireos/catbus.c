@@ -561,6 +561,50 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
     list_v_insert_tail( &send_list, ln );
 }
 
+static void _catbus_v_delete_send_entry( sock_addr_t *raddr ){
+
+    list_node_t ln = send_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        catbus_send_data_entry_t *entry = (catbus_send_data_entry_t *)list_vp_get_data( ln );
+
+        // check if entry matches
+        if( ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
+
+            // delete entry
+            list_v_remove( &send_list, ln );
+            list_v_release_node( ln );
+        }
+
+        ln = next_ln;
+    }
+}
+
+static void _catbus_v_delete_rx_entry( sock_addr_t *raddr ){
+
+    list_node_t ln = receive_cache.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        catbus_receive_data_entry_t *entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
+
+        // check if entry matches
+        if( ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
+
+            // delete entry
+            list_v_remove( &receive_cache, ln );
+            list_v_release_node( ln );
+        }
+        
+        ln = next_ln;
+    }   
+}
+
 static bool _catbus_b_compare_links( catbus_link_state_t *state, catbus_link_state_t *state2 ){
 
     if( state->flags != state2->flags ){
@@ -1363,6 +1407,19 @@ PT_BEGIN( pt );
             sock_v_get_raddr( sock, &raddr );
 
             _catbus_v_send_announce( &raddr, msg->header.transaction_id );
+        }
+        else if( header->msg_type == CATBUS_MSG_TYPE_SHUTDOWN ){
+
+            // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
+
+            #ifdef ENABLE_CATBUS_LINK
+            sock_addr_t raddr;
+            sock_v_get_raddr( sock, &raddr );
+
+            // delete cache entries for link system
+            _catbus_v_delete_send_entry( &raddr );
+            _catbus_v_delete_rx_entry( &raddr );
+            #endif
         }
 
         // DATABASE ACCESS MESSAGES
