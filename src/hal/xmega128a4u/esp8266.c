@@ -141,6 +141,7 @@ static uint16_t max_ready_wait;
 static uint8_t comm_stalls;
 
 static list_t netmsg_list;
+static bool udp_busy;
 
 // static mem_handle_t wifi_networks_handle = -1;
 
@@ -239,6 +240,18 @@ static void _wifi_v_usart_flush( void ){
 // }
 
 
+static bool is_udp_rx_released( void ){
+
+    if( udp_busy ){
+
+        if( !sock_b_rx_pending() ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
 
 static uint16_t dma_rx_bytes( void ){
 
@@ -1766,13 +1779,22 @@ static int8_t process_rx_data( void ){
         }
 
         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+
+        // check if sockets module is busy
+        if( sock_b_rx_pending() ){
+
+            log_v_debug_P( PSTR("sock rx pending") );
+            goto error;
+        }
         
+        #ifndef SOCK_SINGLE_BUF
         // check if port is busy
         if( sock_b_port_busy( msg->rport ) ){
 
             log_v_debug_P( PSTR("port busy: %u"), msg->rport );
             goto error;
         }
+        #endif
 
         // check if we have a netmsg that didn't get freed for some reason
         if( rx_netmsg > 0 ){
@@ -1806,7 +1828,10 @@ static int8_t process_rx_data( void ){
             rx_netmsg = 0;
 
             goto error;
-        }        
+        }      
+
+
+        udp_busy = TRUE;
 
         // set up address info
         state->laddr.port   = msg->lport;
@@ -1953,11 +1978,20 @@ restart:
         
     while(1){
 
-        // THREAD_WAIT_SIGNAL( pt, WIFI_SIGNAL );
         thread_v_set_signal_flag();
-        THREAD_WAIT_WHILE( pt, !thread_b_signalled( WIFI_SIGNAL ) && ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) );
+        THREAD_WAIT_WHILE( pt, ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
+                               ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) &&
+                               ( !is_udp_rx_released() ) );
         thread_v_clear_signal( WIFI_SIGNAL );
         thread_v_clear_signal_flag();
+
+        // check if UDP buffer is clear (and transmit interface is available)
+        if( is_udp_rx_released() && wifi_b_comm_ready() ){
+            
+            wifi_i8_send_msg( WIFI_DATA_ID_UDP_BUF_READY, 0, 0 );
+
+            udp_busy = FALSE;        
+        }
 
         // check control byte for a ready query
         if( wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){

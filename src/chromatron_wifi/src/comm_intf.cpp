@@ -98,6 +98,8 @@ static wifi_msg_udp_header_t udp_header;
 
 static wifi_msg_udp_header_t rx_udp_header;
 static uint16_t rx_udp_index;
+static bool udp_busy;
+static uint32_t udp_timeout;
 
 static list_t tx_q;
 
@@ -349,6 +351,10 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             wifi_v_send_udp( &udp_header, data_ptr );
         }
     }
+    else if( data_id == WIFI_DATA_ID_UDP_BUF_READY ){
+
+        udp_busy = false;
+    }
 }
 
 static void set_rx_ready( void ){
@@ -370,6 +376,18 @@ void intf_v_process( void ){
     }   
     interrupts();
 
+
+    // check if udp busy timeout 
+    if( elapsed( udp_timeout ) > 100000 ){
+
+        if( udp_busy ){
+
+            intf_v_printf( "UDP busy timeout" );
+
+            udp_timeout = start_timeout();
+            udp_busy = false;
+        }   
+    }
 
 
     if( ( intf_comm_state != COMM_STATE_IDLE ) &&
@@ -611,6 +629,15 @@ void intf_v_process( void ){
     else if( wifi_b_rx_udp_pending() ){
 
         if( rx_udp_header.lport == 0 ){
+
+            // check if UDP busy
+            if( udp_busy ){
+
+                goto done;
+            }
+
+            udp_busy = true;
+            udp_timeout = start_timeout();
 
             rx_udp_index = 0;
 
