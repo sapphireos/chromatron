@@ -86,20 +86,6 @@ class cg1ObjVar(cg1Var):
         self.obj = toks[0]
         self.attr = toks[1]
 
-    # def lookup(self, ctx):
-    #     return ctx['objects'][self.obj][self.attr]
-
-    # def load(self, ctx):
-    #     var = self.lookup(ctx)
-
-    #     return ctx['builder'].load(var)
-
-    # def build(self, ctx):
-    #     return self.lookup(ctx)
-
-# class cg1LocalVar(cg1Var):
-    # pass
-
 class cg1VarInt32(cg1Var):
     def __init__(self, *args, **kwargs):
         super(cg1VarInt32, self).__init__(*args, **kwargs)
@@ -231,23 +217,6 @@ class cg1If(cg1CodeNode):
         for node in self.orelse:
             node.build(builder)
 
-        # body = self.body.build(builder)
-        # orelse = self.orelse.build(builder)
-
-        # print test
-
-    # def build(self, ctx):
-    #     test = self.test.build(ctx)
-
-    #     with ctx['builder'].if_else(test) as (then, otherwise):
-    #         with then:
-    #             for a in self.body:
-    #                 a.build(ctx)
-
-    #         with otherwise:
-    #             for a in self.orelse:
-    #                 a.build(ctx)
-
 
 class cg1BinOpNode(cg1CodeNode):
     _fields = ["op", "left", "right"]
@@ -263,22 +232,6 @@ class cg1BinOpNode(cg1CodeNode):
         right = self.right.build(builder)
 
         return builder.binop(self.op, left, right, lineno=self.lineno)
-
-
-    # def build(self, ctx):
-    #     left = self.left.load(ctx)
-    #     right = self.right.load(ctx)
-
-    #     if self.op == "add":
-    #         result = ctx['builder'].add(left, right)
-
-    #     elif self.op == "lt":
-    #         result = ctx['builder'].icmp_signed("<", left, right)
-
-    #     else:
-    #         raise NotImplementedError
-
-    #     return result
 
 class cg1CompareNode(cg1BinOpNode):
     pass
@@ -330,6 +283,8 @@ class cg1Assert(cg1CodeNode):
     def build(self, builder):
         test = self.test.build(builder)
         builder.assertion(test, lineno=self.lineno)
+
+
 
 
 class CodeGenPass1(ast.NodeVisitor):
