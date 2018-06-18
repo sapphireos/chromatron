@@ -136,52 +136,6 @@ class cg1Module(cg1Node):
 
         return builder
 
-
-
-    # def build(self):
-    #     module = ir.Module(name=self.name)
-
-    #     ctx = {'builder': None, 
-    #            'functions': {}, 
-    #            'func': None, 
-    #            'locals': {}, 
-    #            'globals':{}, 
-    #            'constants':{}, 
-    #            'objects': {},
-    #            'module': module}
-
-    #     ctx['builder'] = ir.IRBuilder()
-    #     self.ctx = ctx
-
-    #     ctx['objects']['pixels'] = {
-    #         'hue': ir.GlobalVariable(ctx['module'], llvmtype_i32, 'pixels.hue'),
-    #         'sat': ir.GlobalVariable(ctx['module'], llvmtype_i32, 'pixels.sat'),
-    #         'val': ir.GlobalVariable(ctx['module'], llvmtype_i32, 'pixels.val')}
-
-    #     # collect everything at module level that is not part of a function
-    #     startup_code = [a for a in self.body if not isinstance(a, cg1Func)]
-
-    #     for node in startup_code:
-    #         # assign global vars to table
-    #         if isinstance(node, cg1DeclareVar):
-    #             ctx['globals'][node.name] = ir.GlobalVariable(ctx['module'], llvmtype_i32, str(node.name))
-
-    #     # collect funcs
-    #     funcs = [a for a in self.body if isinstance(a, cg1Func)]
-
-    #     # if len(startup_code) > 0:
-    #     #     startup_func = cg1Func("__global_init", [], startup_code)
-    #     #     startup_func.build(ctx)
-
-    #     for code in funcs:
-    #         code.build(ctx)
-
-    #     del ctx['func']
-    #     del ctx['module']
-    #     del ctx['builder']
-    #     self.module = module
-    #     return self
-
 class cg1NoOp(cg1CodeNode):
     def build(self, builder):
         return builder.nop()
@@ -209,26 +163,6 @@ class cg1Func(cg1CodeNode):
 
         return func
 
-    # def build(self, ctx):
-    #     func_type = ir.FunctionType(llvmtype_i32, [llvmtype_i32 for a in self.params])
-
-    #     func = ir.Function(ctx['module'], func_type, name=self.name)
-    #     block = func.append_basic_block(name="entry")
-    #     ctx['builder'] = ir.IRBuilder(block)
-    #     ctx['functions'][self.name] = func
-    #     ctx['func'] = self.name
-    #     ctx['locals'][ctx['func']] = {}
-        
-    #     for (param, arg) in zip(self.params, func.args):
-    #         ctx['locals'][ctx['func']][param.name] = arg
-
-    #     for node in self.body:
-    #         node.build(ctx)
-
-    #     # check if we need a default return
-    #     if not isinstance(self.body[-1], cg1Return):
-    #         ret = cg1Return(cg1ConstInt32(0))
-    #         ret.build(ctx)
 
 class cg1Return(cg1CodeNode):
     _fields = ["value"]
