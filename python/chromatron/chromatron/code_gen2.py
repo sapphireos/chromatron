@@ -199,9 +199,13 @@ class cg1Func(cg1CodeNode):
 
         func.params = [p.build(builder) for p in self.params]
         
-
         for node in self.body:
             node.build(builder)
+
+        # check if we need a default return
+        if not isinstance(self.body[-1], cg1Return):
+            ret = cg1Return(cg1ConstInt32(0))
+            ret.build(builder)
 
         return func
 
