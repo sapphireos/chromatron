@@ -122,6 +122,16 @@ class irBranch(IR):
         self.value = value
         self.target = target
 
+
+class irBranchZero(irBranch):
+    def __init__(self, *args, **kwargs):
+        super(irBranchZero, self).__init__(*args, **kwargs)        
+
+    def __str__(self):
+        s = 'BR Z %s -> %s' % (self.value, self.target.name)
+
+        return s    
+
 class irBranchNotZero(irBranch):
     def __init__(self, *args, **kwargs):
         super(irBranchNotZero, self).__init__(*args, **kwargs)        
@@ -258,7 +268,7 @@ class Builder(object):
         body_label = self.label('if', lineno=lineno)
         else_label = self.label('else', lineno=lineno)
 
-        branch = irBranchNotZero(test, else_label, lineno=lineno)
+        branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
         return body_label, else_label
