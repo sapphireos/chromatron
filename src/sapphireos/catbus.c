@@ -952,9 +952,6 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, run_publish == FALSE );
 
-        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( sock ) > 0 );
-        // see catbus_announce_thread for explanation on why we do a wait here
-
         run_publish = FALSE;
 
         sender_ln = send_list.head;    

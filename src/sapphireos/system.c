@@ -65,7 +65,7 @@ static sys_mode_t8 sys_mode;
 static sys_error_t sys_error;
 static sys_warnings_t warnings;
 
-static uint8_t reboot_delay = 2;
+static uint8_t reboot_delay;
 
 static bool interrupts_enabled = FALSE;
 
@@ -473,6 +473,8 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
         boot_data.boot_mode = BOOT_MODE_REBOOT;
 	}
+
+    reboot_delay = 2;
 
     // the thread will perform a graceful reboot
     if( thread_t_create( THREAD_CAST(sys_reboot_thread),
