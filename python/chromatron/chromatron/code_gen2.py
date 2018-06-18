@@ -34,38 +34,44 @@ def pformat_ast(node, include_attrs=False, **kws):
 
 
 class cg1Node(ast.AST):
+    def __init__(self, lineno=None, **kwargs):
+        super(cg1Node, self).__init__(**kwargs)
+
+        assert lineno != None
+        self.lineno = lineno
+
     def build(self, builder):
         raise NotImplementedError(self)
-        # pass
 
 class cg1CodeNode(cg1Node):
     pass
-    # def load(self, ctx):
-        # return self.build(ctx)
-
 
 class cg1DeclareVar(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>", type="i32", length=1):
+    def __init__(self, name="<anon>", type="i32", length=1, **kwargs):
+        super(cg1DeclareVar, self).__init__(**kwargs)
+
         self.name = name
         self.type = type
         self.length = length
 
     def build(self, builder):
-        return builder.add_local(self.name, self.type, self.length)
+        return builder.add_local(self.name, self.type, self.length, lineno=self.lineno)
 
 
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>"):
+    def __init__(self, name="<anon>", **kwargs):
+        super(cg1Var, self).__init__(**kwargs)
+
         self.name = name
         self.type = None
         self.length = 1
 
     def build(self, builder):
-        return builder.add_local(self.name, self.type, self.length)
+        return builder.add_local(self.name, self.type, self.length, lineno=self.lineno)
     
     def __str__(self):
         return "cg1Var %s %s" % (self.name, self.type)
@@ -106,7 +112,8 @@ class cg1ConstInt32(cg1VarInt32):
 class cg1Module(cg1Node):
     _fields = ["name", "body"]
 
-    def __init__(self, name, body):
+    def __init__(self, name, body, **kwargs):
+        super(cg1Module, self).__init__(**kwargs)
         self.name = name
         self.body = body
         self.module = None
@@ -122,7 +129,7 @@ class cg1Module(cg1Node):
         for node in startup_code:
             # assign global vars to table
             if isinstance(node, cg1DeclareVar):
-                builder.add_global(node.name, node.type, 1)
+                builder.add_global(node.name, node.type, 1, lineno=self.lineno)
 
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
@@ -134,18 +141,19 @@ class cg1Module(cg1Node):
 
 class cg1NoOp(cg1CodeNode):
     def build(self, builder):
-        return builder.nop()
+        return builder.nop(lineno=self.lineno)
 
 class cg1Func(cg1CodeNode):
     _fields = ["name", "params", "body"]
 
-    def __init__(self, name, params, body):
+    def __init__(self, name, params, body, **kwargs):
+        super(cg1Func, self).__init__(**kwargs)
         self.name = name
         self.params = params
         self.body = body
 
     def build(self, builder):
-        func = builder.func(self.name)
+        func = builder.func(self.name, lineno=self.lineno)
 
         func.params = [p.build(builder) for p in self.params]
         
@@ -154,7 +162,7 @@ class cg1Func(cg1CodeNode):
 
         # check if we need a default return
         if not isinstance(self.body[-1], cg1Return):
-            ret = cg1Return(cg1ConstInt32(0))
+            ret = cg1Return(cg1ConstInt32(0, lineno=self.lineno), lineno=self.lineno)
             ret.build(builder)
 
         return func
@@ -163,36 +171,34 @@ class cg1Func(cg1CodeNode):
 class cg1Return(cg1CodeNode):
     _fields = ["value"]
 
-    def __init__(self, value):
+    def __init__(self, value, **kwargs):
+        super(cg1Return, self).__init__(**kwargs)
         self.value = value
 
     def build(self, builder):
         value = self.value.build(builder)
 
-        return builder.ret(value)
+        return builder.ret(value, lineno=self.lineno)
 
 
 class cg1Call(cg1CodeNode):
     _fields = ["target", "params"]
 
-    def __init__(self, target, params):
+    def __init__(self, target, params, **kwargs):
+        super(cg1Call, self).__init__(**kwargs)
         self.target = target
         self.params = params
 
     def build(self, builder):
         params = [p.build(builder) for p in self.params]
 
-        return builder.call(self.target, params)
-
-    # def build(self, ctx):
-    #     params = [a.load(ctx) for a in self.params]
-
-    #     return ctx['builder'].call(ctx['functions'][self.target], params)
+        return builder.call(self.target, params, lineno=self.lineno)
 
 class cg1Assign(cg1CodeNode):
     _fields = ["target", "value"]
 
-    def __init__(self, target, value):
+    def __init__(self, target, value, **kwargs):
+        super(cg1Assign, self).__init__(**kwargs)
         self.target = target
         self.value = value
 
@@ -200,13 +206,14 @@ class cg1Assign(cg1CodeNode):
         target = self.target.build(builder)
         value = self.value.build(builder)
 
-        return builder.assign(target, value)
+        return builder.assign(target, value, lineno=self.lineno)
 
 
 class cg1If(cg1CodeNode):
     _fields = ["test", "body", "orelse"]
 
-    def __init__(self, test, body, orelse):
+    def __init__(self, test, body, orelse, **kwargs):
+        super(cg1If, self).__init__(**kwargs)
         self.test = test
         self.body = body
         self.orelse = orelse
@@ -227,7 +234,8 @@ class cg1If(cg1CodeNode):
 class cg1BinOpNode(cg1CodeNode):
     _fields = ["op", "left", "right"]
 
-    def __init__(self, op, left, right):
+    def __init__(self, op, left, right, **kwargs):
+        super(cg1BinOpNode, self).__init__(**kwargs)
         self.op = op
         self.left = left
         self.right = right
@@ -236,7 +244,7 @@ class cg1BinOpNode(cg1CodeNode):
         left = self.left.build(builder)
         right = self.right.build(builder)
 
-        return builder.binop(self.op, left, right)
+        return builder.binop(self.op, left, right, lineno=self.lineno)
 
 
     # def build(self, ctx):
@@ -261,7 +269,8 @@ class cg1CompareNode(cg1BinOpNode):
 class cg1For(cg1CodeNode):
     _fields = ["target", "iter", "body"]
 
-    def __init__(self, target, iter, body):
+    def __init__(self, target, iter, body, **kwargs):
+        super(cg1For, self).__init__(**kwargs)
         self.target = target
         self.iter = iter
         self.body = body
@@ -323,25 +332,25 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Module(self, node):
         body = map(self.visit, node.body)
         
-        return cg1Module("module", body)
+        return cg1Module("module", body, lineno=0)
 
     def visit_FunctionDef(self, node):
         body = map(self.visit, list(node.body))
         params = map(self.visit, node.args.args)
-        return cg1Func(node.name, params, body)
+        return cg1Func(node.name, params, body, lineno=node.lineno)
 
     def visit_Return(self, node):
-        return cg1Return(self.visit(node.value))
+        return cg1Return(self.visit(node.value), lineno=node.lineno)
 
     def visit_Call(self, node):
         if node.func.id == "Number":
-            return cg1DeclareVar(type="i32")
+            return cg1DeclareVar(type="i32", lineno=node.lineno)
 
         else:
-            return cg1Call(node.func.id, map(self.visit, node.args))
+            return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
 
     def visit_If(self, node):
-        return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse))
+        return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse), lineno=node.lineno)
     
     def visit_Compare(self, node):
         assert len(node.ops) <= 1
@@ -350,7 +359,7 @@ class CodeGenPass1(ast.NodeVisitor):
         right = self.visit(node.comparators[0])
         op = self.visit(node.ops[0])
 
-        return cg1CompareNode(op, left, right)
+        return cg1CompareNode(op, left, right, lineno=node.lineno)
 
     def visit_Assign(self, node):
         assert len(node.targets) == 1
@@ -363,29 +372,29 @@ class CodeGenPass1(ast.NodeVisitor):
             return value
 
         else:
-            return cg1Assign(target, value)
+            return cg1Assign(target, value, lineno=node.lineno)
 
     def visit_AugAssign(self, node):
         binop = cg1BinOpNode(self.visit(node.op), self.visit(node.target), self.visit(node.value))
         
-        return cg1Assign(self.visit(node.target), binop)
+        return cg1Assign(self.visit(node.target), binop, lineno=node.lineno)
 
     def visit_Num(self, node):
         if isinstance(node.n, int):
-            return cg1ConstInt32(node.n)
+            return cg1ConstInt32(node.n, lineno=node.lineno)
 
         elif isinstance(node.n, float):
             # convert to int
-            return cg1ConstInt32(int(node.n * 65535))
+            return cg1ConstInt32(int(node.n * 65535), lineno=node.lineno)
 
         else:
             raise NotImplementedError(node)    
     
     def visit_Name(self, node):
-        return cg1VarInt32(node.id)
+        return cg1VarInt32(node.id, lineno=node.lineno)
 
     def visit_BinOp(self, node):
-        return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right))
+        return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)
 
 
     def visit_Add(self, node):
@@ -419,15 +428,15 @@ class CodeGenPass1(ast.NodeVisitor):
         # rarely used, so we are not going to support it.
         assert len(node.orelse) == 0
 
-        return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body))
+        return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body), lineno=node.lineno)
 
     def visit_Attribute(self, node):
         name = '%s.%s' % (node.value.id, node.attr)
 
-        return cg1ObjVar(name)
+        return cg1ObjVar(nam, lineno=node.lineno)
 
     def visit_Pass(self, node):
-        return cg1NoOp()
+        return cg1NoOp(lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)

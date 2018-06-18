@@ -12,11 +12,14 @@ def params_to_string(params):
     return s
 
 class IR(object):
-    def __init__(self):
-        pass
+    def __init__(self, lineno=None):
+        self.lineno = lineno
+
+        assert self.lineno != None
 
 class irVar(IR):
-    def __init__(self, name, type='i32', length=1):
+    def __init__(self, name, type='i32', length=1, **kwargs):
+        super(irVar, self).__init__(**kwargs)
         self.name = name
         self.type = type
         self.length = length
@@ -27,7 +30,8 @@ class irVar(IR):
         return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None):
+    def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
+        super(irFunc, self).__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
         self.params = params
@@ -48,23 +52,25 @@ class irFunc(IR):
         s = "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
 
         for node in self.body:
-            s += '\t\t%s\n' % (node)
+            s += '%d\t\t%s\n' % (node.lineno, node)
 
         return s
 
 class irReturn(IR):
-    def __init__(self, ret_var):
+    def __init__(self, ret_var, **kwargs):
+        super(irReturn, self).__init__(**kwargs)
         self.ret_var = ret_var
 
     def __str__(self):
         return "Return %s" % (self.ret_var)
 
 class irNop(IR):
-    def __str__(self):
+    def __str__(self, **kwargs):
         return "NOP" 
 
 class irBinop(IR):
-    def __init__(self, result, op, left, right):
+    def __init__(self, result, op, left, right, **kwargs):
+        super(irBinop, self).__init__(**kwargs)
         self.result = result
         self.op = op
         self.left = left
@@ -76,7 +82,8 @@ class irBinop(IR):
         return s
 
 class irAssign(IR):
-    def __init__(self, target, value):
+    def __init__(self, target, value, **kwargs):
+        super(irAssign, self).__init__(**kwargs)
         self.target = target
         self.value = value
         
@@ -86,7 +93,8 @@ class irAssign(IR):
         return s
 
 class irCall(IR):
-    def __init__(self, target, params, result):
+    def __init__(self, target, params, result, **kwargs):
+        super(irCall, self).__init__(**kwargs)
         self.target = target
         self.params = params
         self.result = result
@@ -115,7 +123,7 @@ class Builder(object):
 
         s += 'Globals:\n'
         for i in self.globals.values():
-            s += '\t%s\n' % i
+            s += '%d\t%s\n' % (i.lineno, i)
 
         s += 'Locals:\n'
         for fname in sorted(self.locals.keys()):
@@ -123,7 +131,7 @@ class Builder(object):
                 s += '\t%s\n' % (fname)
 
                 for l in sorted(self.locals[fname].values()):
-                    s += '\t\t%s\n' % (l)
+                    s += '%d\t\t%s\n' % (l.lineno, l)
 
         s += 'Temps:\n'
         for fname in sorted(self.temps.keys()):
@@ -131,31 +139,31 @@ class Builder(object):
                 s += '\t%s\n' % (fname)
 
                 for l in sorted(self.temps[fname].values()):
-                    s += '\t\t%s\n' % (l)
+                    s += '%d\t\t%s\n' % (l.lineno, l)
 
         s += 'Functions:\n'
         for func in self.funcs.values():
-            s += '\t%s\n' % func
+            s += '%d\t%s\n' % (func.lineno, func)
 
         return s
 
-    def add_global(self, name, type, length):
-        ir = irVar(name, type, length)
+    def add_global(self, name, type, length, lineno=None):
+        ir = irVar(name, type, length, lineno=lineno)
         self.globals[name] = ir
 
         return ir
 
-    def add_local(self, name, type, length):
-        ir = irVar(name, type, length)
+    def add_local(self, name, type, length, lineno=None):
+        ir = irVar(name, type, length, lineno=lineno)
         self.locals[self.current_func][name] = ir
 
         return ir
 
-    def add_temp(self, type='i32'):
+    def add_temp(self, type='i32', lineno=None):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        var = irVar(name, type)
+        var = irVar(name, type, lineno=lineno)
         self.temps[self.current_func][name] = var
 
         return var
@@ -173,40 +181,40 @@ class Builder(object):
     def append_node(self, node):
         self.funcs[self.current_func].append(node)
 
-    def ret(self, value):
-        ir = irReturn(value)
+    def ret(self, value, lineno=None):
+        ir = irReturn(value, lineno=lineno)
 
         self.append_node(ir)
 
         return ir
 
-    def nop(self):
-        ir = irNop()
+    def nop(self, lineno=None):
+        ir = irNop(lineno=lineno)
 
         self.append_node(ir)
 
         return ir
 
-    def binop(self, op, left, right):
-        result = self.add_temp()
+    def binop(self, op, left, right, lineno=None):
+        result = self.add_temp(lineno=lineno)
 
-        ir = irBinop(result, op, left, right)
+        ir = irBinop(result, op, left, right, lineno=lineno)
 
         self.append_node(ir)
 
         return result
 
-    def assign(self, target, value):
-        ir = irAssign(target, value)
+    def assign(self, target, value, lineno=None):
+        ir = irAssign(target, value, lineno=lineno)
 
         self.append_node(ir)
 
         return ir
 
-    def call(self, target, params):
-        result = self.add_temp()
+    def call(self, target, params, lineno=None):
+        result = self.add_temp(lineno=lineno)
 
-        ir = irCall(target, params, result)
+        ir = irCall(target, params, result, lineno=lineno)
     
         self.append_node(ir)        
 
