@@ -393,7 +393,7 @@ class CodeGenPass1(ast.NodeVisitor):
             return cg1Assign(target, value, lineno=node.lineno)
 
     def visit_AugAssign(self, node):
-        binop = cg1BinOpNode(self.visit(node.op), self.visit(node.target), self.visit(node.value))
+        binop = cg1BinOpNode(self.visit(node.op), self.visit(node.target), self.visit(node.value), lineno=node.lineno)
         
         return cg1Assign(self.visit(node.target), binop, lineno=node.lineno)
 
