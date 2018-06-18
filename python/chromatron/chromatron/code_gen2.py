@@ -302,6 +302,7 @@ class cg1BinOpNode(cg1CodeNode):
         left = self.left.build(builder)
         right = self.right.build(builder)
 
+        print self.op, left, right
 
         return builder.binop(self.op, left, right)
 
@@ -454,11 +455,28 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_BinOp(self, node):
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right))
 
+
     def visit_Add(self, node):
         return "add"
 
+    def visit_Sub(self, node):
+        return "sub"
+
+    def visit_Mul(self, node):
+        return "mul"
+
+    def visit_Div(self, node):
+        return "div"
+
+    def visit_Mod(self, node):
+        return "mod"
+
     def visit_Lt(self, node):
         return "lt"
+
+    def visit_Gt(self, node):
+        return "gt"
+
 
     def visit_Expr(self, node):
         return self.visit(node.value)
