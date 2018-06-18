@@ -174,6 +174,18 @@ class irJumpLessPreInc(IR):
 
         return s    
 
+class irAssert(IR):
+    def __init__(self, value, **kwargs):
+        super(irAssert, self).__init__(**kwargs)        
+        self.value = value
+
+    def __str__(self):
+        s = 'ASSERT %s' % (self.value)
+
+        return s    
+
+
+
 class Builder(object):
     def __init__(self):
         self.funcs = {}
@@ -362,8 +374,10 @@ class Builder(object):
         ir = irJump(self.loop_top, lineno=lineno)
         self.append_node(ir)
 
+    def assertion(self, test, lineno=None):
+        ir = irAssert(test, lineno=lineno)
 
-
+        self.append_node(ir)
 
 
 

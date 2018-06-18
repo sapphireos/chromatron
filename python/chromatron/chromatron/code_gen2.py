@@ -320,6 +320,17 @@ class cg1Continue(cg1CodeNode):
         builder.loop_continue(lineno=self.lineno)
 
 
+class cg1Assert(cg1CodeNode):
+    _fields = ["test"]
+
+    def __init__(self, test, **kwargs):
+        super(cg1Assert, self).__init__(**kwargs)
+        self.test = test
+        
+    def build(self, builder):
+        test = self.test.build(builder)
+        builder.assertion(test, lineno=self.lineno)
+
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
@@ -450,6 +461,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Continue(self, node):
         return cg1Continue(lineno=node.lineno)
+
+    def visit_Assert(self, node):
+        return cg1Assert(self.visit(node.test), lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)
