@@ -35,8 +35,8 @@ def pformat_ast(node, include_attrs=False, **kws):
 
 class cg1Node(ast.AST):
     def build(self, builder):
-        pass
-        # raise NotImplementedError(self)
+        raise NotImplementedError(self)
+        # pass
 
 class cg1CodeNode(cg1Node):
     pass
@@ -66,18 +66,11 @@ class cg1Var(cg1Node):
     def __init__(self, name="<anon>"):
         self.name = name
         self.type = None
+        self.length = 1
 
-    # def lookup(self, ctx):
-    #     # this sets the lookup precedence between locals and globals
-    #     try:
-    #         return ctx['locals'][ctx['func']][self.name]
-
-    #     except KeyError:
-    #         return ctx['globals'][self.name]
-
-    # def load(self, ctx):
-    #    return self.build(ctx)
-
+    def build(self, builder):
+        return builder.add_local(self.name, self.type, self.length)
+    
     def __str__(self):
         return "cg1Var %s %s" % (self.name, self.type)
 
@@ -102,34 +95,17 @@ class cg1ObjVar(cg1Var):
     # def build(self, ctx):
     #     return self.lookup(ctx)
 
-class cg1LocalVar(cg1Var):
-    pass
+# class cg1LocalVar(cg1Var):
+    # pass
 
 class cg1VarInt32(cg1Var):
     def __init__(self, *args, **kwargs):
         super(cg1VarInt32, self).__init__(*args, **kwargs)
         self.type = 'i32'
 
-    # def load(self, ctx):
-    #     var = self.lookup(ctx)
-
-    #     if isinstance(var, ir.Argument):
-    #         return var
-
-    #     return ctx['builder'].load(var)
-
-    # def build(self, ctx):
-    #     var = self.lookup(ctx)
-    #     return var
-       
-class cg1ConstInt32(cg1Var):
+class cg1ConstInt32(cg1VarInt32):
     pass
-    # def build(self, ctx):
-    #     if self.name not in ctx['constants']:
-    #         ctx['constants'][self.name] = ir.Constant(llvmtype_i32, self.name)
-
-    #     return ctx['constants'][self.name]
-
+    
 
 class cg1Module(cg1Node):
     _fields = ["name", "body"]
@@ -218,6 +194,13 @@ class cg1Func(cg1CodeNode):
         self.params = params
         self.body = body
 
+    def build(self, builder):
+        builder.func(self.name, params=self.params)
+
+        for node in self.body:
+            node.build(builder)
+
+
     # def build(self, ctx):
     #     func_type = ir.FunctionType(llvmtype_i32, [llvmtype_i32 for a in self.params])
 
@@ -245,8 +228,11 @@ class cg1Return(cg1CodeNode):
     def __init__(self, value):
         self.value = value
 
-    # def build(self, ctx):
-        # return ctx['builder'].ret(self.value.build(ctx))
+    def build(self, builder):
+        value = self.value.build(builder)
+
+        builder.ret(value)
+
 
 class cg1Call(cg1CodeNode):
     _fields = ["target", "params"]
