@@ -47,17 +47,13 @@ class cg1CodeNode(cg1Node):
 class cg1DeclareVar(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>", type="i32"):
+    def __init__(self, name="<anon>", type="i32", length=1):
         self.name = name
         self.type = type
+        self.length = length
 
-    # def build(self, ctx):
-    #     assert self.type == 'i32'
-
-    #     ins = ctx['builder'].alloca(llvmtype_i32, size=1, name=self.name)
-    #     ctx['locals'][ctx['func']][self.name] = ins
-
-    #     return ins
+    def build(self, builder):
+        return builder.add_local(self.name, self.type, self.length)
 
 
 class cg1Var(cg1Node):
@@ -195,17 +191,12 @@ class cg1Assign(cg1CodeNode):
         self.target = target
         self.value = value
 
-    # def build(self, ctx):
-    #     value = self.value.build(ctx)
-    #     target = self.target.build(ctx)
+    def build(self, builder):
+        target = self.target.build(builder)
+        value = self.value.build(builder)
 
-    #     if isinstance(value, ir.AllocaInstr):
-    #         value = self.value.load(ctx)
+        return builder.assign(target, value)
 
-    #     elif isinstance(value, ir.GlobalVariable):
-    #         value = self.value.load(ctx)
-
-    #     return ctx['builder'].store(value, target)
 
 class cg1If(cg1CodeNode):
     _fields = ["test", "body", "orelse"]
@@ -239,8 +230,6 @@ class cg1BinOpNode(cg1CodeNode):
     def build(self, builder):
         left = self.left.build(builder)
         right = self.right.build(builder)
-
-        print self.op, left, right
 
         return builder.binop(self.op, left, right)
 

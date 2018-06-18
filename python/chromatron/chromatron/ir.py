@@ -70,6 +70,17 @@ class irBinop(IR):
 
 		return s
 
+class irAssign(IR):
+	def __init__(self, target, value):
+		self.target = target
+		self.value = value
+		
+	def __str__(self):
+		s = '%s = %s' % (self.target, self.value)
+
+		return s
+
+
 class Builder(object):
 	def __init__(self):
 		self.funcs = {}
@@ -168,8 +179,12 @@ class Builder(object):
 
 		return result
 
+	def assign(self, target, value):
+		ir = irAssign(target, value)
 
+		self.append_node(ir)
 
+		return ir
 
 
 
