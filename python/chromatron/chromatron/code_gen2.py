@@ -179,6 +179,11 @@ class cg1Call(cg1CodeNode):
         self.target = target
         self.params = params
 
+    def build(self, builder):
+        params = [p.build(builder) for p in self.params]
+
+        return builder.call(self.target, params)
+
     # def build(self, ctx):
     #     params = [a.load(ctx) for a in self.params]
 
