@@ -183,8 +183,8 @@ class cg1Module(cg1Node):
     #     return self
 
 class cg1NoOp(cg1CodeNode):
-    def build(self, ctx):
-        pass
+    def build(self, builder):
+        return builder.nop()
 
 class cg1Func(cg1CodeNode):
     _fields = ["name", "params", "body"]
@@ -195,11 +195,15 @@ class cg1Func(cg1CodeNode):
         self.body = body
 
     def build(self, builder):
-        builder.func(self.name, params=self.params)
+        func = builder.func(self.name)
+
+        func.params = [p.build(builder) for p in self.params]
+        
 
         for node in self.body:
             node.build(builder)
 
+        return func
 
     # def build(self, ctx):
     #     func_type = ir.FunctionType(llvmtype_i32, [llvmtype_i32 for a in self.params])
@@ -231,7 +235,7 @@ class cg1Return(cg1CodeNode):
     def build(self, builder):
         value = self.value.build(builder)
 
-        builder.ret(value)
+        return builder.ret(value)
 
 
 class cg1Call(cg1CodeNode):
@@ -293,6 +297,14 @@ class cg1BinOpNode(cg1CodeNode):
         self.op = op
         self.left = left
         self.right = right
+
+    def build(self, builder):
+        left = self.left.build(builder)
+        right = self.right.build(builder)
+
+
+        return builder.binop(self.op, left, right)
+
 
     # def build(self, ctx):
     #     left = self.left.load(ctx)

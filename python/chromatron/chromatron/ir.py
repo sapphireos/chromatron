@@ -16,11 +16,17 @@ class IRVar(IR):
 		return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
 
 class IRFunc(IR):
-	def __init__(self, name, ret_type='i32', params=[], body=[]):
+	def __init__(self, name, ret_type='i32', params=None, body=None):
 		self.name = name
 		self.ret_type = ret_type
 		self.params = params
 		self.body = body
+
+		if self.params == None:
+			self.params = []
+
+		if self.body == None:
+			self.body = []
 
 	def append(self, node):
 		self.body.append(node)
@@ -29,7 +35,7 @@ class IRFunc(IR):
 		params = ''
 
 		for p in self.params:
-			params += '%s,' % (p.type)
+			params += '%s %s,' % (p.type, p.name)
 
 		# strip last comma
 		params = params[:len(params) - 1]
@@ -48,6 +54,9 @@ class IRReturn(IR):
 	def __str__(self):
 		return "Return %s" % (self.ret_var)
 
+class IRNop(IR):
+	def __str__(self):
+		return "NOP" 
 
 class IRBuilder(object):
 	def __init__(self):
@@ -67,10 +76,11 @@ class IRBuilder(object):
 
 		s += 'Locals:\n'
 		for fname in self.locals.keys():
-			s += '\t%s\n' % (fname)
+			if len(self.locals[fname].values()) > 0:
+				s += '\t%s\n' % (fname)
 
-			for l in self.locals[fname].values():
-				s += '\t\t%s\n' % (l)
+				for l in self.locals[fname].values():
+					s += '\t\t%s\n' % (l)
 
 		s += 'Functions:\n'
 		for func in self.funcs.values():
@@ -108,8 +118,15 @@ class IRBuilder(object):
 
 		return ir
 
+	def nop(self):
+		ir = IRNop()
 
+		self.append_node(ir)
 
+		return ir
+
+	def binop(self, op, left, right):
+		print op, left, right
 
 
 
