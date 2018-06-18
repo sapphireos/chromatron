@@ -183,6 +183,9 @@ class Builder(object):
         self.objects = {}
         self.labels = {}
 
+        self.loop_top = None
+        self.loop_end = None
+
         self.next_temp = 0
 
         self.current_func = None
@@ -321,9 +324,14 @@ class Builder(object):
 
 
     def begin_for(self, iterator, lineno=None):
+        begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
+        self.position_label(begin_label)
         top_label = self.label('for.top', lineno=lineno)
         continue_label = self.label('for.cont', lineno=lineno)
         end_label = self.label('for.end', lineno=lineno)
+
+        self.loop_top = continue_label
+        self.loop_end = end_label
 
         # set up iterator code (init to -1, as first pass will increment before the body) 
         init_value = self.add_local('-1', lineno=lineno)
@@ -338,6 +346,24 @@ class Builder(object):
     def end_for(self, iterator, stop, top, lineno=None):
         ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
         self.append_node(ir)
+
+        self.loop_top = None
+        self.loop_end = None
+
+    def loop_break(self, lineno=None):
+        assert self.loop_end != None
+
+        ir = irJump(self.loop_end, lineno=lineno)
+        self.append_node(ir)
+
+    def loop_continue(self, lineno=None):
+        assert self.loop_top != None    
+
+        ir = irJump(self.loop_top, lineno=lineno)
+        self.append_node(ir)
+
+
+
 
 
 

@@ -353,6 +353,16 @@ class cg1For(cg1CodeNode):
     #     ctx['builder'].position_at_end(end_block)
 
 
+class cg1Break(cg1CodeNode):
+    def build(self, builder):
+        builder.loop_break(lineno=self.lineno)
+
+class cg1Continue(cg1CodeNode):
+    def build(self, builder):
+        builder.loop_continue(lineno=self.lineno)
+
+
+
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
         pass
@@ -455,6 +465,8 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Gt(self, node):
         return "gt"
 
+    def visit_Eq(self, node):
+        return "eq"
 
     def visit_Expr(self, node):
         return self.visit(node.value)
@@ -474,6 +486,13 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Pass(self, node):
         return cg1NoOp(lineno=node.lineno)
+
+
+    def visit_Break(self, node):
+        return cg1Break(lineno=node.lineno)
+
+    def visit_Continue(self, node):
+        return cg1Continue(lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)
