@@ -76,7 +76,7 @@ static list_t sockets;
 static uint16_t current_ephemeral_port;
 
 #ifdef SOCK_SINGLE_BUF
-static mem_handle_t rx_handle;        // received data handle
+static mem_handle_t rx_handle = -1;        // received data handle
 static uint16_t rx_port;
 static uint8_t rx_header_len;         // length of non-data headers in data handle
 static sock_addr_t rx_raddr;          // bound remote address
@@ -149,10 +149,12 @@ next:
 
 bool sock_b_rx_pending( void ){
 
+    #ifdef SOCK_SINGLE_BUF
     if( rx_handle > 0 ){
 
         return TRUE;
     }
+    #endif
 
     return FALSE;
 }
@@ -426,7 +428,7 @@ int16_t sock_i16_get_bytes_read( socket_t sock ){
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
         #ifdef SOCK_SINGLE_BUF        
-        if( dgram->lport == rx_port ){
+        if( ( dgram->lport == rx_port ) && ( rx_handle >= 0 ) ){
 
             return mem2_u16_get_size( rx_handle ) - rx_header_len;
         }
@@ -820,7 +822,7 @@ void sock_v_recv( netmsg_t netmsg ){
     // check if the socket is already holding data that has not been
     // received by the owning application.  if so, we'll throw away the
     // incoming data
-    if( rx_handle >= 0 ){
+    if( rx_handle > 0 ){
 
         // so there is buffered data, lets see if the app has
         // retrieved it
@@ -833,6 +835,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             // mark handle as empty
             rx_handle = -1;
+            rx_port = 0;
         }
         else{
 
@@ -876,11 +879,13 @@ void sock_v_recv( netmsg_t netmsg ){
 
     #ifdef SOCK_SINGLE_BUF
     
-    rx_header_len = state->header_len;
-    rx_handle = state->data_handle;
+    rx_header_len   = state->header_len;
+    rx_handle       = state->data_handle;
 
     rx_raddr.ipaddr = state->raddr.ipaddr;
     rx_raddr.port   = state->raddr.port;
+
+    rx_port         = dgram->lport;
 
     #else
 
