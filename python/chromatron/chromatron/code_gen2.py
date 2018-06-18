@@ -218,6 +218,24 @@ class cg1If(cg1CodeNode):
         self.body = body
         self.orelse = orelse
 
+    def build(self, builder):
+        test = self.test.build(builder)
+
+        body_label, else_label = builder.ifelse(test, lineno=self.lineno)
+
+        builder.position_label(body_label)    
+        for node in self.body:
+            node.build(builder)
+
+        builder.position_label(else_label)
+        for node in self.orelse:
+            node.build(builder)
+
+        # body = self.body.build(builder)
+        # orelse = self.orelse.build(builder)
+
+        # print test
+
     # def build(self, ctx):
     #     test = self.test.build(ctx)
 

@@ -62,7 +62,7 @@ class irReturn(IR):
         self.ret_var = ret_var
 
     def __str__(self):
-        return "Return %s" % (self.ret_var)
+        return "RET %s" % (self.ret_var)
 
 class irNop(IR):
     def __str__(self, **kwargs):
@@ -105,6 +105,32 @@ class irCall(IR):
 
         return s
 
+class irLabel(IR):
+    def __init__(self, name, **kwargs):
+        super(irLabel, self).__init__(**kwargs)        
+        self.name = name
+
+    def __str__(self):
+        s = 'LABEL %s' % (self.name)
+
+        return s
+
+
+class irBranch(IR):
+    def __init__(self, value, target, **kwargs):
+        super(irBranch, self).__init__(**kwargs)        
+        self.value = value
+        self.target = target
+
+class irBranchNotZero(irBranch):
+    def __init__(self, *args, **kwargs):
+        super(irBranchNotZero, self).__init__(*args, **kwargs)        
+
+    def __str__(self):
+        s = 'BR NZ %s -> %s' % (self.value, self.target.name)
+
+        return s    
+
 
 class Builder(object):
     def __init__(self):
@@ -115,6 +141,7 @@ class Builder(object):
         self.objects = {}
 
         self.next_temp = 0
+        self.next_label = 0
 
         self.current_func = None
 
@@ -219,6 +246,34 @@ class Builder(object):
         self.append_node(ir)        
 
         return result
+
+    def label(self, name, lineno=None):
+        name += '.%d' % (self.next_label)
+        self.next_label += 1
+
+        ir = irLabel(name, lineno=lineno)
+        return ir
+
+    def ifelse(self, test, lineno=None):
+        body_label = self.label('if', lineno=lineno)
+        else_label = self.label('else', lineno=lineno)
+
+        branch = irBranchNotZero(test, else_label, lineno=lineno)
+        self.append_node(branch)
+
+        return body_label, else_label
+
+    def position_label(self, label):
+        self.append_node(label)
+
+
+
+
+
+
+
+
+
 
 
 
