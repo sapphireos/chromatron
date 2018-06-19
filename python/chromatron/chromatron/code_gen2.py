@@ -46,11 +46,12 @@ class cg1Node(ast.AST):
 class cg1CodeNode(cg1Node):
     pass
 
-class cg1DeclareVar(cg1Node):
+
+class cg1DeclarationBase(cg1Node):
     _fields = ["name", "type"]
 
     def __init__(self, name="<anon>", type="i32", length=1, **kwargs):
-        super(cg1DeclareVar, self).__init__(**kwargs)
+        super(cg1DeclarationBase, self).__init__(**kwargs)
 
         self.name = name
         self.type = type
@@ -58,6 +59,18 @@ class cg1DeclareVar(cg1Node):
 
     def build(self, builder):
         return builder.add_local(self.name, self.type, self.length, lineno=self.lineno)
+
+class cg1DeclareVar(cg1DeclarationBase):
+    def __init__(self, name="<anon>", type="i32", **kwargs):
+        super(cg1DeclareVar, self).__init__(**kwargs)
+
+        assert self.length == 1
+
+class cg1DeclareArray(cg1DeclarationBase):
+    def __init__(self, name="<anon>", type="i32", **kwargs):
+        super(cg1DeclareArray, self).__init__(**kwargs)
+
+        assert self.length > 0
 
 
 class cg1Var(cg1Node):
@@ -115,8 +128,8 @@ class cg1Module(cg1Node):
 
         for node in startup_code:
             # assign global vars to table
-            if isinstance(node, cg1DeclareVar):
-                builder.add_global(node.name, node.type, 1, lineno=self.lineno)
+            if isinstance(node, cg1DeclarationBase):
+                builder.add_global(node.name, node.type, node.length, lineno=self.lineno)
 
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
@@ -290,7 +303,10 @@ class cg1Assert(cg1CodeNode):
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
-        pass
+        self._declarations = {
+            'Number': self._handle_Number,
+            'Array': self._handle_Array,
+        }
 
     def __call__(self, source):
         # remove leading indentation
@@ -314,9 +330,16 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Return(self, node):
         return cg1Return(self.visit(node.value), lineno=node.lineno)
 
+    def _handle_Number(self, node):
+        return cg1DeclareVar(type="i32", lineno=node.lineno)
+
+    def _handle_Array(self, node):
+        length = node.args[0].n
+        return cg1DeclareArray(type="i32", length=length, lineno=node.lineno)
+
     def visit_Call(self, node):
-        if node.func.id == "Number":
-            return cg1DeclareVar(type="i32", lineno=node.lineno)
+        if node.func.id in self._declarations:
+            return self._declarations[node.func.id](node)
 
         else:
             return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
@@ -339,7 +362,7 @@ class CodeGenPass1(ast.NodeVisitor):
         target = self.visit(node.targets[0])
         value = self.visit(node.value)
 
-        if isinstance(value, cg1DeclareVar):
+        if isinstance(value, cg1DeclarationBase):
             value.name = target.name
             return value
 

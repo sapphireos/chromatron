@@ -209,7 +209,7 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': True
+            'fold_constants': False
         }
 
 
@@ -252,6 +252,10 @@ class Builder(object):
         return ir
 
     def add_local(self, name, type='i32', length=1, lineno=None):
+        # check if this is already in the globals
+        if name in self.globals:
+            return self.globals[name]
+
         if name in self.locals[self.current_func]:
             return self.locals[self.current_func][name]
 
