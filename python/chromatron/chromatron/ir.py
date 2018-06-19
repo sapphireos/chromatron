@@ -1,4 +1,12 @@
 
+class SyntaxError(Exception):
+    def __init__(self, message='', lineno=None):
+        self.lineno = lineno
+
+        message += ' (line %d)' % (self.lineno)
+
+        super(SyntaxError, self).__init__(message)
+
 
 def params_to_string(params):
     s = ''
@@ -281,6 +289,12 @@ class Builder(object):
         self.temps[self.current_func][name] = var
 
         return var
+
+    def add_func_arg(self, func, arg):
+        if arg.name in self.globals:
+            raise SyntaxError("Argument name '%s' already declared as global" % (arg.name), lineno=func.lineno)
+
+        func.params.append(arg)
 
     def func(self, *args, **kwargs):
         func = irFunc(*args, **kwargs)

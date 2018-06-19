@@ -155,7 +155,9 @@ class cg1Func(cg1CodeNode):
     def build(self, builder):
         func = builder.func(self.name, lineno=self.lineno)
 
-        func.params = [p.build(builder) for p in self.params]
+        for p in self.params:
+            builder.add_func_arg(func, p.build(builder))
+
         
         for node in self.body:
             node.build(builder)
@@ -469,10 +471,13 @@ cg1_data = cg1(source)
 
 print pformat_ast(cg1_data)
 
+try:
+    builder = cg1_data.build()
 
-builder = cg1_data.build()
+    print builder
 
-print builder
+except SyntaxError as e:
+    print e
 
 
 
