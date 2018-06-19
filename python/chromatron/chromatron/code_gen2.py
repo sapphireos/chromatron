@@ -92,7 +92,8 @@ class cg1VarInt32(cg1Var):
         self.type = 'i32'
 
 class cg1ConstInt32(cg1VarInt32):
-    pass
+    def build(self, builder):
+        return builder.add_const(self.name, self.type, self.length, lineno=self.lineno)
     
 
 class cg1Module(cg1Node):

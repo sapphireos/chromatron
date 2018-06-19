@@ -29,6 +29,10 @@ class irVar(IR):
     def __str__(self):
         return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
 
+class irConst(irVar):
+    def __str__(self):
+        return "Const (%s, %s, %d)" % (self.name, self.type, self.length)
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -202,6 +206,13 @@ class Builder(object):
 
         self.current_func = None
 
+
+        # optimizations
+        self.optimizations = {
+            'fold_constants': True
+        }
+
+
     def __str__(self):
         s = "FX IR:\n"
 
@@ -249,6 +260,15 @@ class Builder(object):
 
         return ir
 
+    def add_const(self, name, type='i32', length=1, lineno=None):
+        if name in self.locals[self.current_func]:
+            return self.locals[self.current_func][name]
+
+        ir = irConst(name, type, length, lineno=lineno)
+        self.locals[self.current_func][name] = ir
+
+        return ir
+
     def add_temp(self, type='i32', lineno=None):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
@@ -286,8 +306,13 @@ class Builder(object):
         return ir
 
     def binop(self, op, left, right, lineno=None):
-        result = self.add_temp(lineno=lineno)
+        if self.optimizations['fold_constants'] and \
+            isinstance(left, irConst) and \
+            isinstance(right, irConst):
 
+            return self._fold_constants(op, left, right, lineno)
+
+        result = self.add_temp(lineno=lineno)
         ir = irBinop(result, op, left, right, lineno=lineno)
 
         self.append_node(ir)
@@ -381,4 +406,49 @@ class Builder(object):
 
 
 
+    def _fold_constants(self, op, left, right, lineno):
+        val = None
 
+        if op == 'eq':
+            val = left.name == right.name
+
+        elif op == 'neq':
+            val = left.name != right.name
+
+        elif op == 'gt':
+            val = left.name > right.name
+
+        elif op == 'gte':
+            val = left.name >= right.name
+
+        elif op == 'lt':
+            val = left.name < right.name
+
+        elif op == 'lte':
+            val = left.name <= right.name
+
+        elif op == 'logical_and':
+            val = left.name and right.name
+
+        elif op == 'logical_or':
+            val = left.name or right.name
+
+        elif op == 'add':
+            val = left.name + right.name
+
+        elif op == 'sub':
+            val = left.name - right.name
+
+        elif op == 'mult':
+            val = left.name * right.name
+
+        elif op == 'div':
+            val = left.name / right.name
+
+        elif op == 'mod':
+            val = left.name % right.name
+
+        assert val != None
+
+        # make sure we only emit integers
+        return self.add_const(int(val), lineno=lineno)
