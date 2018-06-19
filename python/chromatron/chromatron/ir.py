@@ -93,6 +93,19 @@ class irBinop(IR):
 
         return s
 
+
+class irAugAssign(IR):
+    def __init__(self, op, target, value, **kwargs):
+        super(irAugAssign, self).__init__(**kwargs)
+        self.op = op
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        s = '%s = %s %s(vector) %s' % (self.target, self.target, self.op, self.value)
+
+        return s
+
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
         super(irAssign, self).__init__(**kwargs)
@@ -341,6 +354,19 @@ class Builder(object):
         ir = irAssign(target, value, lineno=lineno)
 
         self.append_node(ir)
+
+        return ir
+
+    def augassign(self, op, target, value, lineno=None):
+        # check if scalar
+        if target.length == 1:
+            # if so, we can replace with a binop and assign
+            result = self.binop(op, target, value, lineno=lineno)
+            ir = self.assign(target, result, lineno=lineno)
+
+        else:
+            ir = irAugAssign(op, target, value, lineno=lineno)        
+            self.append_node(ir)
 
         return ir
 

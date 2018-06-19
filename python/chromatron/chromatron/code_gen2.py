@@ -158,7 +158,7 @@ class cg1Func(cg1CodeNode):
         for p in self.params:
             builder.add_func_arg(func, p.build(builder))
 
-        
+
         for node in self.body:
             node.build(builder)
 
@@ -301,7 +301,21 @@ class cg1Assert(cg1CodeNode):
         builder.assertion(test, lineno=self.lineno)
 
 
+class cg1AugAssign(cg1CodeNode):
+    _fields = ["op", "target", "value"]
 
+    def __init__(self, op, target, value, **kwargs):
+        super(cg1AugAssign, self).__init__(**kwargs)
+        self.op = op
+        self.target = target
+        self.value = value
+
+    def build(self, builder):
+        target = self.target.build(builder)
+        value = self.value.build(builder)
+    
+        builder.augassign(self.op, target, value, lineno=self.lineno)
+        
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
@@ -372,9 +386,7 @@ class CodeGenPass1(ast.NodeVisitor):
             return cg1Assign(target, value, lineno=node.lineno)
 
     def visit_AugAssign(self, node):
-        binop = cg1BinOpNode(self.visit(node.op), self.visit(node.target), self.visit(node.value), lineno=node.lineno)
-        
-        return cg1Assign(self.visit(node.target), binop, lineno=node.lineno)
+        return cg1AugAssign(self.visit(node.op), self.visit(node.target), self.visit(node.value), lineno=node.lineno)
 
     def visit_Num(self, node):
         if isinstance(node.n, int):
