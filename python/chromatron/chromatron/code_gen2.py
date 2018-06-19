@@ -82,6 +82,7 @@ class cg1DeclareRecord(cg1DeclarationBase):
 
         self.length = self.record.length
 
+
 class cg1RecordType(cg1Node):
     _fields = ["name", "fields"]
 
@@ -160,11 +161,15 @@ class cg1Module(cg1Node):
 
         for node in startup_code:
             # assign global vars to table
+            # if isinstance(node, cg1DeclareRecord):
+                # node.build_global(builder)
+
             if isinstance(node, cg1DeclarationBase):
                 builder.add_global(node.name, node.type, node.length, lineno=node.lineno)
 
             elif isinstance(node, cg1RecordType):
-                builder.add_type(node.name, node.build(builder), lineno=node.lineno)
+                # builder.add_type(node.name, node.build(builder), lineno=node.lineno)
+                node.build(builder)
 
 
         # collect funcs

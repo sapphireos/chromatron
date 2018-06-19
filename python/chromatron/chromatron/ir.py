@@ -46,27 +46,27 @@ class irConst(irVar):
     def __str__(self):
         return "Const (%s, %s, %d)" % (self.name, self.type, self.length)
 
-class irRecord(irVar):
-    def __init__(self, *args, **kwargs):
-        super(irRecord, self).__init__(*args, **kwargs)
+# class irRecord(irVar):
+#     def __init__(self, *args, **kwargs):
+#         super(irRecord, self).__init__(*args, **kwargs)
             
-        self.length = 0
-        for field in self.fields.values():
-            self.length += field['length']
+#         self.length = 0
+#         for field in self.fields.values():
+#             self.length += field['length']
 
-    def __str__(self):
-        return "%s (%s, %d)" % (self.name, self.typename, self.length)
+#     def __str__(self):
+#         return "%s (%s, %d)" % (self.name, self.typename, self.length)
 
-    @classmethod
-    def create(cls, name, fields, lineno):
-        new_class = type(name, (cls,), {'typename': name, 'fields': fields, 'lineno': lineno})
+#     @classmethod
+#     def create(cls, name, fields, lineno):
+#         new_class = type(name, (cls,), {'typename': name, 'fields': fields, 'lineno': lineno})
 
-        globals()[name] = new_class
+#         globals()[name] = new_class
 
-        return new_class
+#         return new_class
 
-    def get_field(self, field):
-        return self.fields[field]
+#     def get_field(self, field):
+#         return self.fields[field]
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -296,6 +296,10 @@ class Builder(object):
             'i32': irVari32,
         }
 
+        self.record_types = {
+
+
+        }
 
         # optimizations
         self.optimizations = {
@@ -339,19 +343,31 @@ class Builder(object):
         self.data_types[name] = data_type
 
     def create_record(self, name, fields, lineno=None):
-        return irRecord.create(name, fields, lineno=lineno)
+        self.record_types[name] = fields
+        # return irRecord.create(name, fields, lineno=lineno)
 
     def get_type(self, name, lineno=None):
         if name not in self.data_types:
-            raise SyntaxError("Type '%s' not defined" % (name), lineno=lineno)
+
+            # try records
+            if name not in self.record_types:
+                raise SyntaxError("Type '%s' not defined" % (name), lineno=lineno)
+
+            return self.record_types[name]
 
         return self.data_types[name]
 
     def build_var(self, name, data_type, length, lineno=None):
-        data_type = self.get_type(data_type, lineno=lineno)
-        ir = data_type(name, data_type, length, lineno=lineno)
+        try:
+            data_type = self.get_type(data_type, lineno=lineno)
+            ir = data_type(name, data_type, length, lineno=lineno)
 
-        print type(ir)
+        except TypeError:
+            ir = []
+
+            # this is a record type
+            for field_name, field in data_type.items():
+                ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['length'], lineno=lineno))
 
         return ir
 
@@ -360,7 +376,13 @@ class Builder(object):
             return self.globals[name]
 
         ir = self.build_var(name, data_type, length, lineno=lineno)
-        self.globals[name] = ir
+
+        try:
+            for v in ir:
+                self.globals[v.name] = v
+
+        except TypeError:
+            self.globals[name] = ir
 
         return ir
 
@@ -373,7 +395,13 @@ class Builder(object):
             return self.locals[self.current_func][name]
 
         ir = self.build_var(name, data_type, length, lineno=lineno)
-        self.locals[self.current_func][name] = ir
+
+        try:
+            for v in ir:
+                self.locals[self.current_func][v.name] = v
+
+        except TypeError:
+            self.locals[self.current_func][name] = ir
 
         return ir
 
@@ -388,27 +416,31 @@ class Builder(object):
             raise SyntaxError("Variable '%s' not declared" % (name), lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
-        if obj_name in self.globals:
-            obj = self.globals[obj_name]
+        var_name = '%s.%s' % (obj_name, attr)
+
+        if var_name in self.globals:
+            var = self.globals[var_name]
 
         else:
             try:
-                obj = self.locals[self.current_func][obj_name]
+                var = self.locals[self.current_func][var_name]
 
             except KeyError:
-                raise SyntaxError("Object '%s' not declared" % (obj_name), lineno=lineno)
-
-        # get field
-        try:
-            field = obj.get_field(attr)
-
-        except KeyError:
-            raise SyntaxError("Attribute '%s' not found in object '%s'" % (attr, obj_name), lineno=lineno)
-
-
-        var = self.get_type(field['type'])(attr, length=field['length'], lineno=lineno)
+                raise SyntaxError("Variable '%s' not declared" % (var_name), lineno=lineno)
 
         return var
+
+        # # get field
+        # try:
+        #     field = obj.get_field(attr)
+
+        # except KeyError:
+        #     raise SyntaxError("Attribute '%s' not found in object '%s'" % (attr, obj_name), lineno=lineno)
+
+
+        # var = self.get_type(field['type'])(attr, length=field['length'], lineno=lineno)
+
+        # return var
 
     def add_const(self, name, type='i32', length=1, lineno=None):
         if name in self.locals[self.current_func]:
