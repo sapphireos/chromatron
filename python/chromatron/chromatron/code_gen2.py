@@ -127,6 +127,10 @@ class cg1ObjVar(cg1Var):
         self.obj = toks[0]
         self.attr = toks[1]
 
+    def build(self, builder):
+        return builder.get_obj_var(self.obj, self.attr, self.lineno)
+
+
 class cg1VarInt32(cg1Var):
     def __init__(self, *args, **kwargs):
         super(cg1VarInt32, self).__init__(*args, **kwargs)
