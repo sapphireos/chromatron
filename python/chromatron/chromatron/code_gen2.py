@@ -414,7 +414,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         for kw in node.keywords:
             field_name = kw.arg
-            field_type = self.visit(kw.value.func)
+            field_type = self.visit(kw.value)
 
             fields[field_name] = field_type
 
