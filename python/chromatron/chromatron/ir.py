@@ -46,6 +46,26 @@ class irConst(irVar):
     def __str__(self):
         return "Const (%s, %s, %d)" % (self.name, self.type, self.length)
 
+class irRecord(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irRecord, self).__init__(*args, **kwargs)
+            
+        self.length = 0
+        for field in self.fields.values():
+            self.length += field['length']
+            
+    def __str__(self):
+        return "%s (%s, %d)" % (self.name, self.typename, self.length)
+
+    @classmethod
+    def create(cls, name, fields, lineno):
+        new_class = type(name, (cls,), {'typename': name, 'fields': fields, 'lineno': lineno})
+
+        globals()[name] = new_class
+
+        return new_class
+
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -314,7 +334,10 @@ class Builder(object):
         if name in self.data_types:
             raise SyntaxError("Type '%s' already defined" % (name), lineno=lineno)
 
-        self.data_type[name] = data_type
+        self.data_types[name] = data_type
+
+    def create_record(self, name, fields, lineno=None):
+        return irRecord.create(name, fields, lineno=lineno)
 
     def get_type(self, name, lineno=None):
         if name not in self.data_types:

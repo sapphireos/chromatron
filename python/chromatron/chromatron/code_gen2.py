@@ -96,6 +96,10 @@ class cg1RecordType(cg1Node):
         for field in self.fields.values():
             self.length += field.length
 
+    def build(self, builder):
+        fields = {k: {'type':v.type, 'length':v.length} for (k, v) in self.fields.items()}
+        return builder.create_record(self.name, fields, lineno=self.lineno)
+
 
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
@@ -153,7 +157,11 @@ class cg1Module(cg1Node):
         for node in startup_code:
             # assign global vars to table
             if isinstance(node, cg1DeclarationBase):
-                builder.add_global(node.name, node.type, node.length, lineno=self.lineno)
+                builder.add_global(node.name, node.type, node.length, lineno=node.lineno)
+
+            elif isinstance(node, cg1RecordType):
+                builder.add_type(node.name, node.build(builder), lineno=node.lineno)
+
 
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
