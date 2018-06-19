@@ -73,6 +73,28 @@ class cg1DeclareArray(cg1DeclarationBase):
         assert self.length > 0
 
 
+class cg1DeclareRecord(cg1DeclarationBase):
+    def __init__(self, name="<anon>", record=None, **kwargs):
+        super(cg1DeclareRecord, self).__init__(**kwargs)
+
+        self.type = record.name
+        self.record = record
+
+        self.length = self.record.length
+
+class cg1RecordType(cg1Node):
+    def __init__(self, name="<anon>", fields={}, **kwargs):
+        super(cg1RecordType, self).__init__(**kwargs)
+
+        self.name = name
+        self.fields = fields
+
+        self.length = 0
+
+        for field in self.fields.values():
+            self.length += field.length
+
+
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
 
@@ -353,7 +375,10 @@ class CodeGenPass1(ast.NodeVisitor):
         self._declarations = {
             'Number': self._handle_Number,
             'Array': self._handle_Array,
+            'Record': self._handle_Record,
         }
+
+        self._record_types = {}
 
     def __call__(self, source):
         # remove leading indentation
@@ -384,9 +409,25 @@ class CodeGenPass1(ast.NodeVisitor):
         length = node.args[0].n
         return cg1DeclareArray(type="i32", length=length, lineno=node.lineno)
 
+    def _handle_Record(self, node):
+        fields = {}
+
+        for kw in node.keywords:
+            field_name = kw.arg
+            field_type = self.visit(kw.value.func)
+
+            fields[field_name] = field_type
+
+        return cg1RecordType(fields=fields, lineno=node.lineno)
+
     def visit_Call(self, node):
         if node.func.id in self._declarations:
             return self._declarations[node.func.id](node)
+
+        elif node.func.id in self._record_types:
+            record_type = self._record_types[node.func.id]
+
+            return cg1DeclareRecord(record=record_type, lineno=node.lineno)
 
         else:
             return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
@@ -411,6 +452,12 @@ class CodeGenPass1(ast.NodeVisitor):
 
         if isinstance(value, cg1DeclarationBase):
             value.name = target.name
+            return value
+
+        elif isinstance(value, cg1RecordType):
+            value.name = target.name
+            self._record_types[value.name] = value
+
             return value
 
         else:
@@ -475,7 +522,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Attribute(self, node):
         name = '%s.%s' % (node.value.id, node.attr)
 
-        return cg1ObjVar(nam, lineno=node.lineno)
+        return cg1ObjVar(name, lineno=node.lineno)
 
     def visit_Pass(self, node):
         return cg1NoOp(lineno=node.lineno)
