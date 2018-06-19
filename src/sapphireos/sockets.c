@@ -632,13 +632,16 @@ int8_t sock_i8_recvfrom( socket_t sock ){
 
             #ifdef SOCK_SINGLE_BUF
 
-            if( rx_handle > 0 ){
+            if( rx_port == dgram->lport ){
 
-                mem2_v_free( rx_handle );
-            }   
+                if( rx_handle > 0 ){
 
-            rx_port = 0;
-            rx_handle = -1;
+                    mem2_v_free( rx_handle );
+                }   
+
+                rx_port = 0;
+                rx_handle = -1;
+            }
 
             #else
             // check if socket has memory attached
