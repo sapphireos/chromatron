@@ -211,7 +211,19 @@ class irAssert(IR):
     def __str__(self):
         s = 'ASSERT %s' % (self.value)
 
-        return s    
+        return s   
+
+
+class irIndex(IR):
+    def __init__(self, target, index, **kwargs):
+        super(irIndex, self).__init__(**kwargs)        
+        self.target = target
+        self.index = index
+
+    def __str__(self):
+        s = '%s[%s]' % (self.target, self.index)
+
+        return s     
 
 class irIndexLoad(IR):
     def __init__(self, result, target, index, **kwargs):
@@ -222,6 +234,17 @@ class irIndexLoad(IR):
 
     def __str__(self):
         s = '%s = %s[%s]' % (self.result, self.target, self.index)
+
+        return s    
+
+class irIndexStore(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irIndexStore, self).__init__(**kwargs)        
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        s = '%s = %s' % (self.target, self.value)
 
         return s    
 
@@ -366,7 +389,12 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):
-        ir = irAssign(target, value, lineno=lineno)
+        # check if assigning to an indexed location
+        if isinstance(target, irIndex): 
+            ir = irIndexStore(target, value, lineno=lineno)
+
+        else:
+            ir = irAssign(target, value, lineno=lineno)
 
         self.append_node(ir)
 
@@ -463,12 +491,18 @@ class Builder(object):
 
         self.append_node(ir)
 
-    def index(self, target, index, lineno=None):
-        result = self.add_temp(lineno=lineno)
-        ir = irIndexLoad(result, target, index, lineno=lineno)
-        self.append_node(ir)
-        
-        return result
+    def index(self, target, index, load=True, lineno=None):
+        if load:
+            result = self.add_temp(lineno=lineno)
+            ir = irIndexLoad(result, target, index, lineno=lineno)
+            self.append_node(ir)
+
+            return result
+
+        else:
+            ir = irIndex(target, index, lineno=lineno)
+            
+            return ir            
 
 
     def _fold_constants(self, op, left, right, lineno):

@@ -205,7 +205,13 @@ class cg1Assign(cg1CodeNode):
         self.value = value
 
     def build(self, builder):
-        target = self.target.build(builder)
+        # check is assigning to an indexed item
+        if isinstance(self.target, cg1Subscript):
+            target = self.target.build(builder, store=True)
+
+        else:
+            target = self.target.build(builder)
+
         value = self.value.build(builder)
 
         return builder.assign(target, value, lineno=self.lineno)
@@ -326,11 +332,15 @@ class cg1Subscript(cg1CodeNode):
         self.index = index
 
 
-    def build(self, builder):
+    def build(self, builder, store=False):
         index = self.index.build(builder)
         target = self.target.build(builder)
 
-        return builder.index(target, index, lineno=self.lineno)
+        if store:
+            return builder.index(target, index, load=False, lineno=self.lineno)
+
+        else:
+            return builder.index(target, index, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):
