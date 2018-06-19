@@ -464,12 +464,12 @@ int16_t sock_i16_get_bytes_read( socket_t sock ){
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
         #ifdef SOCK_SINGLE_BUF        
-        if( ( dgram->lport == rx_port ) && ( rx_handle >= 0 ) ){
+        if( ( dgram->lport == rx_port ) && ( rx_handle > 0 ) ){
 
             return mem2_u16_get_size( rx_handle ) - rx_header_len;
         }
         #else
-        if( dgram->handle >= 0 ){
+        if( dgram->handle > 0 ){
 
             return mem2_u16_get_size( dgram->handle ) - dgram->header_len;
         }
@@ -501,14 +501,14 @@ void *sock_vp_get_data( socket_t sock ){
         if( dgram->lport == rx_port ){
 
             // ensure data has been received for the socket
-            ASSERT( rx_handle >= 0 );    
+            ASSERT( rx_handle > 0 );    
 
             return mem2_vp_get_ptr( rx_handle ) + rx_header_len;
         }
 
         #else
         // ensure data has been received for the socket
-        ASSERT( dgram->handle >= 0 );
+        ASSERT( dgram->handle > 0 );
 
         return mem2_vp_get_ptr( dgram->handle ) + dgram->header_len;
 
@@ -937,6 +937,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
     #endif
 
+    ASSERT( state->data_handle > 0 );
     
     // remove handle from netmsg
     state->data_handle = -1;
