@@ -83,6 +83,8 @@ class cg1DeclareRecord(cg1DeclarationBase):
         self.length = self.record.length
 
 class cg1RecordType(cg1Node):
+    _fields = ["name", "fields"]
+    
     def __init__(self, name="<anon>", fields={}, **kwargs):
         super(cg1RecordType, self).__init__(**kwargs)
 
