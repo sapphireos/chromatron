@@ -213,15 +213,15 @@ class irAssert(IR):
 
         return s    
 
-class irIndex(IR):
-    def __init__(self, target, index, **kwargs):
-        super(irIndex, self).__init__(**kwargs)        
+class irIndexLoad(IR):
+    def __init__(self, result, target, index, **kwargs):
+        super(irIndexLoad, self).__init__(**kwargs)        
+        self.result = result
         self.target = target
         self.index = index
-        self.length = 1
 
     def __str__(self):
-        s = '%s[%s]' % (self.target, self.index)
+        s = '%s = %s[%s]' % (self.result, self.target, self.index)
 
         return s    
 
@@ -464,9 +464,11 @@ class Builder(object):
         self.append_node(ir)
 
     def index(self, target, index, lineno=None):
-        ir = irIndex(target, index, lineno=lineno)
-
-        return ir        
+        result = self.add_temp(lineno=lineno)
+        ir = irIndexLoad(result, target, index, lineno=lineno)
+        self.append_node(ir)
+        
+        return result
 
 
     def _fold_constants(self, op, left, right, lineno):
