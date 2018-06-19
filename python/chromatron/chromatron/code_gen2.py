@@ -317,7 +317,12 @@ class cg1AugAssign(cg1CodeNode):
         self.value = value
 
     def build(self, builder):
-        target = self.target.build(builder)
+        if isinstance(self.target, cg1Subscript):
+            target = self.target.build(builder, store=True)
+
+        else:
+            target = self.target.build(builder)
+
         value = self.value.build(builder)
     
         builder.augassign(self.op, target, value, lineno=self.lineno)

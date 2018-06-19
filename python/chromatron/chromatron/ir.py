@@ -401,8 +401,18 @@ class Builder(object):
         return ir
 
     def augassign(self, op, target, value, lineno=None):
+        # check if storing to indexed location
+        if isinstance(target, irIndex): 
+            result = self.add_temp(lineno=lineno)
+            ir = irIndexLoad(result, target.target, target.index, lineno=lineno)
+            self.append_node(ir)
+
+            result = self.binop(op, result, value, lineno=lineno)
+
+            ir = self.assign(target, result, lineno=lineno)
+
         # check if scalar
-        if target.length == 1:
+        elif target.length == 1:
             # if so, we can replace with a binop and assign
             result = self.binop(op, target, value, lineno=lineno)
             ir = self.assign(target, result, lineno=lineno)
