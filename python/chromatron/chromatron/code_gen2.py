@@ -61,20 +61,20 @@ class cg1DeclarationBase(cg1Node):
         return builder.add_local(self.name, self.type, self.length, lineno=self.lineno)
 
 class cg1DeclareVar(cg1DeclarationBase):
-    def __init__(self, name="<anon>", type="i32", **kwargs):
+    def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
         assert self.length == 1
 
 class cg1DeclareArray(cg1DeclarationBase):
-    def __init__(self, name="<anon>", type="i32", **kwargs):
+    def __init__(self, **kwargs):
         super(cg1DeclareArray, self).__init__(**kwargs)
 
         assert self.length > 0
 
 
 class cg1DeclareRecord(cg1DeclarationBase):
-    def __init__(self, name="<anon>", record=None, **kwargs):
+    def __init__(self, record=None, **kwargs):
         super(cg1DeclareRecord, self).__init__(**kwargs)
 
         self.type = record.name
@@ -84,7 +84,7 @@ class cg1DeclareRecord(cg1DeclarationBase):
 
 class cg1RecordType(cg1Node):
     _fields = ["name", "fields"]
-    
+
     def __init__(self, name="<anon>", fields={}, **kwargs):
         super(cg1RecordType, self).__init__(**kwargs)
 
@@ -108,7 +108,7 @@ class cg1Var(cg1Node):
         self.length = 1
 
     def build(self, builder):
-        return builder.add_local(self.name, self.type, self.length, lineno=self.lineno)
+        return builder.get_var(self.name, self.lineno)
     
     def __str__(self):
         return "cg1Var %s %s" % (self.name, self.type)
@@ -180,7 +180,8 @@ class cg1Func(cg1CodeNode):
         func = builder.func(self.name, lineno=self.lineno)
 
         for p in self.params:
-            builder.add_func_arg(func, p.build(builder))
+            arg = builder.add_local(p.name, p.type, p.length, lineno=self.lineno)
+            builder.add_func_arg(func, arg)
 
 
         for node in self.body:
@@ -293,6 +294,9 @@ class cg1For(cg1CodeNode):
         self.body = body
 
     def build(self, builder):
+        i_declare = cg1DeclareVar(name=self.iterator.name, lineno=self.lineno)
+        i_declare.build(builder)
+
         i = self.iterator.build(builder)
         stop = self.stop.build(builder)
 

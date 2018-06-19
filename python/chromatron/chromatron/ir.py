@@ -323,6 +323,16 @@ class Builder(object):
 
         return ir
 
+    def get_var(self, name, lineno=None):
+        if name in self.globals:
+            return self.globals[name]
+
+        try:
+            return self.locals[self.current_func][name]
+
+        except KeyError:
+            raise SyntaxError("Variable '%s' not declared" % (name), lineno=lineno)
+
     def add_const(self, name, type='i32', length=1, lineno=None):
         if name in self.locals[self.current_func]:
             return self.locals[self.current_func][name]
@@ -468,7 +478,7 @@ class Builder(object):
         self.loop_end = end_label
 
         # set up iterator code (init to -1, as first pass will increment before the body) 
-        init_value = self.add_local('-1', lineno=lineno)
+        init_value = self.add_const('-1', lineno=lineno)
         ir = irAssign(iterator, init_value, lineno=lineno)
         self.append_node(ir)
 
