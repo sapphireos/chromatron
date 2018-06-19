@@ -317,6 +317,22 @@ class cg1AugAssign(cg1CodeNode):
         builder.augassign(self.op, target, value, lineno=self.lineno)
         
 
+class cg1Subscript(cg1CodeNode):
+    _fields = ["target", "index"]
+
+    def __init__(self, target, index, **kwargs):
+        super(cg1Subscript, self).__init__(**kwargs)
+        self.target = target
+        self.index = index
+
+
+    def build(self, builder):
+        index = self.index.build(builder)
+        target = self.target.build(builder)
+
+        return builder.index(target, index, lineno=self.lineno)
+
+
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
         self._declarations = {
@@ -457,6 +473,12 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Assert(self, node):
         return cg1Assert(self.visit(node.test), lineno=node.lineno)
+
+    def visit_Index(self, node):
+        return self.visit(node.value)
+
+    def visit_Subscript(self, node):
+        return cg1Subscript(self.visit(node.value), self.visit(node.slice), lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)
