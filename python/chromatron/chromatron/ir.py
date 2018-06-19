@@ -113,7 +113,11 @@ class irAssign(IR):
         self.value = value
         
     def __str__(self):
-        s = '%s = %s' % (self.target, self.value)
+        if self.target.length > 1:
+            s = '%s =(vector) %s' % (self.target, self.value)
+
+        else:
+            s = '%s = %s' % (self.target, self.value)
 
         return s
 
