@@ -37,6 +37,11 @@ class irVar(IR):
     def __str__(self):
         return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
 
+class irVari32(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irVari32, self).__init__(*args, **kwargs)
+        self.type = 'i32'
+        
 class irConst(irVar):
     def __str__(self):
         return "Const (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -265,6 +270,10 @@ class Builder(object):
 
         self.current_func = None
 
+        self.data_types = {
+            'i32': irVari32,
+        }
+
 
         # optimizations
         self.optimizations = {
@@ -301,16 +310,29 @@ class Builder(object):
 
         return s
 
-    def add_global(self, name, type='i32', length=1, lineno=None):
+    def add_type(self, name, data_type, lineno=None):
+        if name in self.data_types:
+            raise SyntaxError("Type '%s' already defined" % (name), lineno=lineno)
+
+        self.data_type[name] = data_type
+
+    def get_type(self, name, lineno=None):
+        if name not in self.data_types:
+            raise SyntaxError("Type '%s' not defined" % (name), lineno=lineno)
+
+        return self.data_types[name]
+
+    def add_global(self, name, data_type='i32', length=1, lineno=None):
         if name in self.globals:
             return self.globals[name]
 
-        ir = irVar(name, type, length, lineno=lineno)
+        data_type = self.get_type(data_type, lineno=lineno)
+        ir = data_type(name, data_type, length, lineno=lineno)
         self.globals[name] = ir
 
         return ir
 
-    def add_local(self, name, type='i32', length=1, lineno=None):
+    def add_local(self, name, data_type='i32', length=1, lineno=None):
         # check if this is already in the globals
         if name in self.globals:
             return self.globals[name]
@@ -318,7 +340,8 @@ class Builder(object):
         if name in self.locals[self.current_func]:
             return self.locals[self.current_func][name]
 
-        ir = irVar(name, type, length, lineno=lineno)
+        data_type = self.get_type(data_type, lineno=lineno)
+        ir = data_type(name, data_type, length, lineno=lineno)
         self.locals[self.current_func][name] = ir
 
         return ir
@@ -342,11 +365,12 @@ class Builder(object):
 
         return ir
 
-    def add_temp(self, type='i32', lineno=None):
+    def add_temp(self, data_type='i32', lineno=None):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        var = irVar(name, type, lineno=lineno)
+        data_type = self.get_type(data_type, lineno=lineno)
+        ir = data_type(name, data_type, length, lineno=lineno)
         self.temps[self.current_func][name] = var
 
         return var
