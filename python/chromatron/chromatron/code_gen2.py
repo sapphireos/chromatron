@@ -56,26 +56,21 @@ class cg1DeclarationBase(cg1Node):
         self.name = name
         self.type = type
         self.dimensions = []
-        # self.length = 1
 
     def build(self, builder):
         return builder.add_local(self.name, self.type, self.dimensions, lineno=self.lineno)
+
 
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
-        # assert self.length == 1
 
 class cg1DeclareArray(cg1DeclarationBase):
     def __init__(self, dimensions=[1], **kwargs):
         super(cg1DeclareArray, self).__init__(**kwargs)
 
         self.dimensions = dimensions
-            
-        # self.length = self.dimensions[0]
-        # for i in xrange(len(self.dimensions) - 1):
-        #     self.length *= self.dimensions[i + 1]
 
 
 class cg1DeclareRecord(cg1DeclarationBase):
@@ -84,8 +79,6 @@ class cg1DeclareRecord(cg1DeclarationBase):
 
         self.type = record.name
         self.record = record
-
-        # self.length = self.record.length
 
 
 class cg1RecordType(cg1Node):
@@ -96,11 +89,6 @@ class cg1RecordType(cg1Node):
 
         self.name = name
         self.fields = fields
-
-        # self.length = 0
-
-        # for field in self.fields.values():
-        #     self.length += field.length
 
     def build(self, builder):
         fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in self.fields.items()}
@@ -115,7 +103,6 @@ class cg1Var(cg1Node):
 
         self.name = name
         self.type = None
-        self.length = 1
 
     def build(self, builder):
         return builder.get_var(self.name, self.lineno)
@@ -144,7 +131,7 @@ class cg1VarInt32(cg1Var):
 
 class cg1ConstInt32(cg1VarInt32):
     def build(self, builder):
-        return builder.add_const(self.name, self.type, self.length, lineno=self.lineno)
+        return builder.add_const(self.name, self.type, [], lineno=self.lineno)
     
 
 class cg1Module(cg1Node):

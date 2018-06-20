@@ -34,7 +34,7 @@ class irVar(IR):
         self.dimensions = dimensions
 
     def __str__(self):
-        return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
+        return "Var (%s, %s)" % (self.name, self.type)
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -43,7 +43,7 @@ class irVar_i32(irVar):
         
 class irConst(irVar):
     def __str__(self):
-        return "Const (%s, %s, %d)" % (self.name, self.type, self.length)
+        return "Const (%s, %s)" % (self.name, self.type)
 
 class irArray(irVar):
     def __init__(self, *args, **kwargs):
@@ -345,9 +345,6 @@ class Builder(object):
 
     def build_var(self, name, data_type, dimensions=[], lineno=None):
         try:
-            
-            print name, data_type, dimensions
-
             if len(dimensions) == 0:
                 data_type = self.get_type(data_type, lineno=lineno)
                 ir = data_type(name, data_type, dimensions, lineno=lineno)
