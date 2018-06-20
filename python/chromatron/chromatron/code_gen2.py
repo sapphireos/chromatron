@@ -371,19 +371,24 @@ class cg1Subscript(cg1CodeNode):
 
 
     def build(self, builder, store=False):
-        print self.target, self.index
+        indexes = [self.index.build(builder)]
 
-        index = self.index.build(builder)
-        target = self.target.build(builder)
+        target = self.target
+        while isinstance(target, cg1Subscript):
+            indexes.insert(0, target.index.build(builder)) # add to front
+            target = target.target
 
-        
-        # print target, index
+        target = target.build(builder)
 
-        if store:
-            return builder.index(target, index, load=False, lineno=self.lineno)
+        print target, [a.name for a in indexes] 
 
-        else:
-            return builder.index(target, index, lineno=self.lineno)
+        return target, indexes
+
+        # if store:
+        #     return builder.index(target, index, load=False, lineno=self.lineno)
+
+        # else:
+        #     return builder.index(target, index, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):
