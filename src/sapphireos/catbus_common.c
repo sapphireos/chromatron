@@ -177,8 +177,7 @@ int8_t type_i8_convert(
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
-    const void *src_data,
-    uint8_t conversion ){
+    const void *src_data ){
 
     // check for strings
     bool dst_string = type_b_is_string( dest_type );
@@ -193,27 +192,6 @@ int8_t type_i8_convert(
     
         int64_t src_i64 = specific_to_i64( src_type, src_data );
         int64_t dst_i64 = specific_to_i64( dest_type, dest_data );
-
-        if( conversion == CATBUS_CONV_REPLACE ){
-
-            // replacement, nothing to do here
-        }
-        else if( conversion == CATBUS_CONV_MIN ){
-            
-            // if dest is already minimum, we don't need to change anything
-            if( dst_i64 < src_i64 ){
-
-                return 0;
-            }
-        }
-        else if( conversion == CATBUS_CONV_MAX ){
-            
-            // if dest is already maximum, we don't need to change anything
-            if( dst_i64 > src_i64 ){
-
-                return 0;
-            }
-        }
 
         i64_to_specific( src_i64, dest_type, dest_data );
 

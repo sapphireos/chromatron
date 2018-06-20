@@ -69,10 +69,6 @@ typedef struct __attribute__((packed)){
 } catbus_file_meta_t;
 
 
-#define CATBUS_CONV_REPLACE     0
-#define CATBUS_CONV_MIN         1
-#define CATBUS_CONV_MAX         2
-
 int64_t specific_to_i64( catbus_type_t8 type, const void *data );
 void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data );
 
@@ -80,8 +76,7 @@ int8_t type_i8_convert(
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
-    const void *src_data,
-    uint8_t conversion );
+    const void *src_data );
 
 uint16_t type_u16_size_meta( catbus_meta_t *meta );
 
