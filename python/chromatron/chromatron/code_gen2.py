@@ -50,21 +50,22 @@ class cg1CodeNode(cg1Node):
 class cg1DeclarationBase(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>", type="i32", length=1, **kwargs):
+    def __init__(self, name="<anon>", type="i32", **kwargs):
         super(cg1DeclarationBase, self).__init__(**kwargs)
 
         self.name = name
         self.type = type
-        self.length = length
+        self.dimensions = []
+        # self.length = 1
 
     def build(self, builder):
-        return builder.add_local(self.name, self.type, self.length, lineno=self.lineno)
+        return builder.add_local(self.name, self.type, self.dimensions, lineno=self.lineno)
 
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
-        assert self.length == 1
+        # assert self.length == 1
 
 class cg1DeclareArray(cg1DeclarationBase):
     def __init__(self, dimensions=[1], **kwargs):
@@ -72,9 +73,9 @@ class cg1DeclareArray(cg1DeclarationBase):
 
         self.dimensions = dimensions
             
-        self.length = self.dimensions[0]
-        for i in xrange(len(self.dimensions) - 1):
-            self.length *= self.dimensions[i + 1]
+        # self.length = self.dimensions[0]
+        # for i in xrange(len(self.dimensions) - 1):
+        #     self.length *= self.dimensions[i + 1]
 
 
 class cg1DeclareRecord(cg1DeclarationBase):
@@ -84,7 +85,7 @@ class cg1DeclareRecord(cg1DeclarationBase):
         self.type = record.name
         self.record = record
 
-        self.length = self.record.length
+        # self.length = self.record.length
 
 
 class cg1RecordType(cg1Node):
@@ -96,13 +97,13 @@ class cg1RecordType(cg1Node):
         self.name = name
         self.fields = fields
 
-        self.length = 0
+        # self.length = 0
 
-        for field in self.fields.values():
-            self.length += field.length
+        # for field in self.fields.values():
+        #     self.length += field.length
 
     def build(self, builder):
-        fields = {k: {'type':v.type, 'length':v.length} for (k, v) in self.fields.items()}
+        fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in self.fields.items()}
         return builder.create_record(self.name, fields, lineno=self.lineno)
 
 
@@ -166,7 +167,7 @@ class cg1Module(cg1Node):
         for node in startup_code:
             # assign global vars to table
             if isinstance(node, cg1DeclarationBase):
-                builder.add_global(node.name, node.type, node.length, lineno=node.lineno)
+                builder.add_global(node.name, node.type, node.dimensions, lineno=node.lineno)
 
             elif isinstance(node, cg1RecordType):
                 node.build(builder)
@@ -383,8 +384,13 @@ class cg1Subscript(cg1CodeNode):
 
 
     def build(self, builder, store=False):
+        print self.target, self.index
+
         index = self.index.build(builder)
         target = self.target.build(builder)
+
+        
+        # print target, index
 
         if store:
             return builder.index(target, index, load=False, lineno=self.lineno)

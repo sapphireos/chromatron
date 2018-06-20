@@ -26,25 +26,35 @@ class IR(object):
         assert self.lineno != None
 
 class irVar(IR):
-    def __init__(self, name, type='i32', length=1, **kwargs):
+    def __init__(self, name, type='i32', dimensions=[], **kwargs):
         super(irVar, self).__init__(**kwargs)
         self.name = name
         self.type = type
-        self.length = length
-
-        assert length > 0
+        self.length = 1
+        self.dimensions = dimensions
 
     def __str__(self):
         return "Var (%s, %s, %d)" % (self.name, self.type, self.length)
 
-class irVari32(irVar):
+class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
-        super(irVari32, self).__init__(*args, **kwargs)
+        super(irVar_i32, self).__init__(*args, **kwargs)
         self.type = 'i32'
         
 class irConst(irVar):
     def __str__(self):
         return "Const (%s, %s, %d)" % (self.name, self.type, self.length)
+
+class irArray(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irArray, self).__init__(*args, **kwargs)        
+
+        self.length = self.dimensions[0]
+        for i in xrange(len(self.dimensions) - 1):
+            self.length *= self.dimensions[i + 1]
+
+    def __str__(self):
+        return "Array (%s, %s, %d)" % (self.name, self.type, self.length)        
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -271,7 +281,7 @@ class Builder(object):
         self.current_func = None
 
         self.data_types = {
-            'i32': irVari32,
+            'i32': irVar_i32,
         }
 
         self.record_types = {
@@ -333,25 +343,32 @@ class Builder(object):
 
         return self.data_types[name]
 
-    def build_var(self, name, data_type, length, lineno=None):
+    def build_var(self, name, data_type, dimensions=[], lineno=None):
         try:
-            data_type = self.get_type(data_type, lineno=lineno)
-            ir = data_type(name, data_type, length, lineno=lineno)
+            
+            print name, data_type, dimensions
+
+            if len(dimensions) == 0:
+                data_type = self.get_type(data_type, lineno=lineno)
+                ir = data_type(name, data_type, dimensions, lineno=lineno)
+
+            else:
+                ir = irArray(name, data_type, dimensions, lineno=lineno)
 
         except TypeError:
             ir = []
 
             # this is a record type
             for field_name, field in data_type.items():
-                ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['length'], lineno=lineno))
+                ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['dimensions'], lineno=lineno))
 
         return ir
 
-    def add_global(self, name, data_type='i32', length=1, lineno=None):
+    def add_global(self, name, data_type='i32', dimensions=[], lineno=None):
         if name in self.globals:
             return self.globals[name]
 
-        ir = self.build_var(name, data_type, length, lineno=lineno)
+        ir = self.build_var(name, data_type, dimensions, lineno=lineno)
 
         try:
             for v in ir:
@@ -362,7 +379,7 @@ class Builder(object):
 
         return ir
 
-    def add_local(self, name, data_type='i32', length=1, lineno=None):
+    def add_local(self, name, data_type='i32', dimensions=[], lineno=None):
         # check if this is already in the globals
         if name in self.globals:
             return self.globals[name]
@@ -370,7 +387,7 @@ class Builder(object):
         if name in self.locals[self.current_func]:
             return self.locals[self.current_func][name]
 
-        ir = self.build_var(name, data_type, length, lineno=lineno)
+        ir = self.build_var(name, data_type, dimensions, lineno=lineno)
 
         try:
             for v in ir:
@@ -419,7 +436,7 @@ class Builder(object):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        ir = self.build_var(name, data_type, 1, lineno=lineno)
+        ir = self.build_var(name, data_type, [], lineno=lineno)
         self.temps[self.current_func][name] = ir
 
         return ir
