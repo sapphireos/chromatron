@@ -67,10 +67,14 @@ class cg1DeclareVar(cg1DeclarationBase):
         assert self.length == 1
 
 class cg1DeclareArray(cg1DeclarationBase):
-    def __init__(self, **kwargs):
+    def __init__(self, dimensions=[1], **kwargs):
         super(cg1DeclareArray, self).__init__(**kwargs)
 
-        assert self.length > 0
+        self.dimensions = dimensions
+            
+        self.length = self.dimensions[0]
+        for i in xrange(len(self.dimensions) - 1):
+            self.length *= self.dimensions[i + 1]
 
 
 class cg1DeclareRecord(cg1DeclarationBase):
@@ -425,8 +429,9 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1DeclareVar(type="i32", lineno=node.lineno)
 
     def _handle_Array(self, node):
-        length = node.args[0].n
-        return cg1DeclareArray(type="i32", length=length, lineno=node.lineno)
+        dims = [a.n for a in node.args]
+
+        return cg1DeclareArray(type="i32", dimensions=dims, lineno=node.lineno)
 
     def _handle_Record(self, node):
         fields = {}
