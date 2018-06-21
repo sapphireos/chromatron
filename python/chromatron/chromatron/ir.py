@@ -49,12 +49,19 @@ class irArray(irVar):
     def __init__(self, *args, **kwargs):
         super(irArray, self).__init__(*args, **kwargs)        
 
-        self.length = self.dimensions[0]
+        self.length = self.dimensions[0] * self.type.length
         for i in xrange(len(self.dimensions) - 1):
             self.length *= self.dimensions[i + 1]
 
     def __str__(self):
-        return "Array (%s, %s, %d)" % (self.name, self.type, self.length)        
+        return "Array (%s, %s, %d)" % (self.name, self.type.name, self.length)       
+
+class irRecord(irVar):
+    def __init__(self, name, fields={}, **kwargs):
+        super(irRecord, self).__init__(name, **kwargs)        
+
+        self.fields = fields
+
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -342,8 +349,9 @@ class Builder(object):
         self.data_types[name] = data_type
 
     def create_record(self, name, fields, lineno=None):
-        self.record_types[name] = fields
-        # return irRecord.create(name, fields, lineno=lineno)
+        ir = irRecord(name, fields, lineno=lineno)
+
+        self.record_types[name] = ir
 
     def get_type(self, name, lineno=None):
         if name not in self.data_types:
@@ -357,19 +365,23 @@ class Builder(object):
         return self.data_types[name]
 
     def build_var(self, name, data_type, dimensions=[], lineno=None):
+        data_type = self.get_type(data_type, lineno=lineno)
+
+        print data_type
+
+
         try:
             if len(dimensions) == 0:
-                data_type = self.get_type(data_type, lineno=lineno)
-                ir = data_type(name, data_type, dimensions, lineno=lineno)
+                ir = data_type(name, dimensions=dimensions, lineno=lineno)
 
             else:
-                ir = irArray(name, data_type, dimensions, lineno=lineno)
+                ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
 
         except TypeError:
             ir = []
 
             # this is a record type
-            for field_name, field in data_type.items():
+            for field_name, field in data_type.fields.items():
                 ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['dimensions'], lineno=lineno))
 
         return ir
@@ -379,8 +391,8 @@ class Builder(object):
             return self.globals[name]
 
         ir = self.build_var(name, data_type, dimensions, lineno=lineno)
-
-        try:
+        
+        try:   
             for v in ir:
                 self.globals[v.name] = v
 
@@ -514,7 +526,7 @@ class Builder(object):
         # check if storing to indexed location
         if isinstance(target, irIndex): 
             result = self.add_temp(lineno=lineno)
-            ir = irIndexLoad(result, target.target, target.index, lineno=lineno)
+            ir = irIndexLoad(result, target.target, target.indexes, lineno=lineno)
             self.append_node(ir)
 
             result = self.binop(op, result, value, lineno=lineno)

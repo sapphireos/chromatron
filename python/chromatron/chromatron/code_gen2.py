@@ -425,7 +425,13 @@ class CodeGenPass1(ast.NodeVisitor):
     def _handle_Array(self, node):
         dims = [a.n for a in node.args]
 
-        return cg1DeclareArray(type="i32", dimensions=dims, lineno=node.lineno)
+        data_type = 'i32'
+
+        for kw in node.keywords:
+            if kw.arg == 'type':
+                data_type = kw.value.id
+
+        return cg1DeclareArray(type=data_type, dimensions=dims, lineno=node.lineno)
 
     def _handle_Record(self, node):
         fields = {}
