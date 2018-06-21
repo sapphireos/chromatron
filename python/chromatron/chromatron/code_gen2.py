@@ -380,15 +380,11 @@ class cg1Subscript(cg1CodeNode):
 
         target = target.build(builder)
 
-        print target, [a.name for a in indexes] 
+        if store:
+            return builder.index(target, indexes, lineno=self.lineno)
 
-        return target, indexes
-
-        # if store:
-        #     return builder.index(target, index, load=False, lineno=self.lineno)
-
-        # else:
-        #     return builder.index(target, index, lineno=self.lineno)
+        else:
+            return builder.index_load(target, indexes, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):

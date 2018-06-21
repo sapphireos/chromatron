@@ -230,36 +230,49 @@ class irAssert(IR):
 
 
 class irIndex(IR):
-    def __init__(self, target, index, **kwargs):
+    def __init__(self, target, indexes, **kwargs):
         super(irIndex, self).__init__(**kwargs)        
         self.target = target
-        self.index = index
+        self.indexes = indexes
 
     def __str__(self):
-        s = '%s[%s]' % (self.target, self.index)
+        indexes = ''
+        for i in self.indexes:
+            indexes += '[%s]' % (i.name)
+
+        s = '%s%s' % (self.target, indexes)
 
         return s     
 
 class irIndexLoad(IR):
-    def __init__(self, result, target, index, **kwargs):
+    def __init__(self, result, target, indexes, **kwargs):
         super(irIndexLoad, self).__init__(**kwargs)        
         self.result = result
         self.target = target
-        self.index = index
+        self.indexes = indexes
 
     def __str__(self):
-        s = '%s = %s[%s]' % (self.result, self.target, self.index)
+        indexes = ''
+        for i in self.indexes:
+            indexes += '[%s]' % (i.name)
+
+        s = '%s = %s%s' % (self.result, self.target, indexes)
 
         return s    
 
 class irIndexStore(IR):
-    def __init__(self, target, value, **kwargs):
+    def __init__(self, target, indexes, value, **kwargs):
         super(irIndexStore, self).__init__(**kwargs)        
         self.target = target
+        self.indexes = indexes
         self.value = value
 
     def __str__(self):
-        s = '%s = %s' % (self.target, self.value)
+        indexes = ''
+        for i in self.indexes:
+            indexes += '[%s]' % (i.name)
+
+        s = '%s%s = %s' % (self.target, indexes, self.value)
 
         return s    
 
@@ -485,10 +498,10 @@ class Builder(object):
 
         return result
 
-    def assign(self, target, value, lineno=None):
+    def assign(self, target, value, lineno=None):        
         # check if assigning to an indexed location
         if isinstance(target, irIndex): 
-            ir = irIndexStore(target, value, lineno=lineno)
+            ir = irIndexStore(target.target, target.indexes, value, lineno=lineno)
 
         else:
             ir = irAssign(target, value, lineno=lineno)
@@ -598,18 +611,17 @@ class Builder(object):
 
         self.append_node(ir)
 
-    def index(self, target, index, load=True, lineno=None):
-        if load:
-            result = self.add_temp(lineno=lineno)
-            ir = irIndexLoad(result, target, index, lineno=lineno)
-            self.append_node(ir)
+    def index_load(self, target, indexes, lineno=None):
+        result = self.add_temp(lineno=lineno)
+        ir = irIndexLoad(result, target, indexes, lineno=lineno)
+        self.append_node(ir)
 
-            return result
+        return result
 
-        else:
-            ir = irIndex(target, index, lineno=lineno)
+    def index(self, target, indexes, load=True, lineno=None):        
+        ir = irIndex(target, indexes, lineno=lineno)
             
-            return ir            
+        return ir            
 
 
     def _fold_constants(self, op, left, right, lineno):
