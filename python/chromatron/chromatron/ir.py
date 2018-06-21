@@ -62,6 +62,15 @@ class irRecord(irVar):
 
         self.fields = fields
 
+        # self.length = 0
+        # for field in self.fields.values():
+            # self.length += field['length']
+
+    def __call__(self, name, lineno=None):
+        return irRecord(self.name, self.fields, lineno=lineno)
+
+    def __str__(self):
+        return "Record (%s, %d)" % (self.name, self.length)
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -366,9 +375,6 @@ class Builder(object):
 
     def build_var(self, name, data_type, dimensions=[], lineno=None):
         data_type = self.get_type(data_type, lineno=lineno)
-
-        print data_type
-
 
         try:
             if len(dimensions) == 0:
