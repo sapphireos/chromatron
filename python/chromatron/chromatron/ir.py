@@ -54,7 +54,7 @@ class irArray(irVar):
             self.length *= self.dimensions[i + 1]
 
     def __str__(self):
-        return "Array (%s, %s, %d)" % (self.name, self.type.name, self.length)       
+        return "Array (%s, %s, %d)" % (self.name, self.type.type, self.length)       
 
 class irRecord(irVar):
     def __init__(self, name, fields={}, **kwargs):
