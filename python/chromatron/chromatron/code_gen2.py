@@ -112,16 +112,22 @@ class cg1Var(cg1Node):
 
 
 class cg1ObjVar(cg1Var):
-    def __init__(self, *args, **kwargs):
-        super(cg1ObjVar, self).__init__(*args, **kwargs)
+    _fields = ["obj", "attr", "type"]
+    def __init__(self, obj, attr, **kwargs):
+        super(cg1ObjVar, self).__init__(**kwargs)
         self.type = 'obj'
 
-        toks = self.name.split('.')
-        self.obj = toks[0]
-        self.attr = toks[1]
+        # toks = self.name.split('.')
+        # self.obj = toks[0]
+        # self.attr = toks[1]
+
+        self.obj = obj
+        self.attr = attr
+
+        self.name = None
 
     def build(self, builder):
-        return builder.get_obj_var(self.obj, self.attr, self.lineno)
+        return builder.get_obj_var(self.obj.name, self.attr, self.lineno)
 
 
 class cg1VarInt32(cg1Var):
@@ -547,9 +553,11 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body), lineno=node.lineno)
 
     def visit_Attribute(self, node):
-        name = '%s.%s' % (node.value.id, node.attr)
+        value = self.visit(node.value)
 
-        return cg1ObjVar(name, lineno=node.lineno)
+        # name = '%s.%s' % (value.name, node.attr)
+
+        return cg1ObjVar(value, node.attr, lineno=node.lineno)
 
     def visit_Pass(self, node):
         return cg1NoOp(lineno=node.lineno)
