@@ -61,12 +61,13 @@ class irRecord(irVar):
         super(irRecord, self).__init__(name, **kwargs)        
 
         self.fields = fields
+        self.type = name
 
-        # self.length = 0
-        # for field in self.fields.values():
-            # self.length += field['length']
+        self.length = 0
+        for field in self.fields.values():
+            self.length += field.length
 
-    def __call__(self, name, lineno=None):
+    def __call__(self, name, dimensions=[], lineno=None):
         return irRecord(self.name, self.fields, lineno=lineno)
 
     def __str__(self):
@@ -358,7 +359,11 @@ class Builder(object):
         self.data_types[name] = data_type
 
     def create_record(self, name, fields, lineno=None):
-        ir = irRecord(name, fields, lineno=lineno)
+        new_fields = {}
+        for field_name, field in fields.items():
+            new_fields[field_name] = self.build_var(field_name, field['type'], field['dimensions'], lineno=lineno)
+
+        ir = irRecord(name, new_fields, lineno=lineno)
 
         self.record_types[name] = ir
 
@@ -376,19 +381,19 @@ class Builder(object):
     def build_var(self, name, data_type, dimensions=[], lineno=None):
         data_type = self.get_type(data_type, lineno=lineno)
 
-        try:
-            if len(dimensions) == 0:
-                ir = data_type(name, dimensions=dimensions, lineno=lineno)
+        # try:
+        if len(dimensions) == 0:
+            ir = data_type(name, dimensions=dimensions, lineno=lineno)
 
-            else:
-                ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
+        else:
+            ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
 
-        except TypeError:
-            ir = []
+        # except TypeError:
+        #     ir = []
 
-            # this is a record type
-            for field_name, field in data_type.fields.items():
-                ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['dimensions'], lineno=lineno))
+        #     # this is a record type
+        #     for field_name, field in data_type.fields.items():
+        #         ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['dimensions'], lineno=lineno))
 
         return ir
 
