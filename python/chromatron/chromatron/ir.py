@@ -1,4 +1,6 @@
 
+from copy import deepcopy
+
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
         self.lineno = lineno
@@ -57,21 +59,28 @@ class irArray(irVar):
         return "Array (%s, %s, %d)" % (self.name, self.type.type, self.length)       
 
 class irRecord(irVar):
-    def __init__(self, name, fields={}, **kwargs):
+    def __init__(self, name, data_type, fields, **kwargs):
         super(irRecord, self).__init__(name, **kwargs)        
 
         self.fields = fields
-        self.type = name
+        self.type = data_type
 
         self.length = 0
         for field in self.fields.values():
             self.length += field.length
 
     def __call__(self, name, dimensions=[], lineno=None):
-        return irRecord(self.name, self.fields, lineno=lineno)
+        # creating an instance of a record type.
+        # need to create copies of all variables, and then attach record name to them.
+        fields = deepcopy(self.fields)
+
+        for field in fields.values():
+            field.name = '%s.%s' % (name, field.name)
+
+        return irRecord(name, self.type, fields, lineno=lineno)
 
     def __str__(self):
-        return "Record (%s, %d)" % (self.name, self.length)
+        return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -363,7 +372,7 @@ class Builder(object):
         for field_name, field in fields.items():
             new_fields[field_name] = self.build_var(field_name, field['type'], field['dimensions'], lineno=lineno)
 
-        ir = irRecord(name, new_fields, lineno=lineno)
+        ir = irRecord(name, name, new_fields, lineno=lineno)
 
         self.record_types[name] = ir
 
@@ -436,17 +445,21 @@ class Builder(object):
     def get_obj_var(self, obj_name, attr, lineno=None):
         var_name = '%s.%s' % (obj_name, attr)
 
-        if var_name in self.globals:
-            var = self.globals[var_name]
+        if obj_name in self.globals:
+            var = self.globals[obj_name]
 
         else:
             try:
-                var = self.locals[self.current_func][var_name]
+                var = self.locals[self.current_func][obj_name]
 
             except KeyError:
-                raise SyntaxError("Variable '%s' not declared" % (var_name), lineno=lineno)
+                raise SyntaxError("Object '%s' not declared" % (obj_name), lineno=lineno)
 
-        return var
+
+        if attr not in var.fields:
+            raise SyntaxError("Attribute '%s' not declared" % (attr), lineno=lineno)            
+
+        return var.fields[attr]
 
     def add_const(self, name, type='i32', length=1, lineno=None):
         if name in self.locals[self.current_func]:
