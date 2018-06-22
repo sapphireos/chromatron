@@ -185,7 +185,7 @@ class cg1Func(cg1CodeNode):
         func = builder.func(self.name, lineno=self.lineno)
 
         for p in self.params:
-            arg = builder.add_local(p.name, p.type, p.length, lineno=self.lineno)
+            arg = builder.add_local(p.name, p.type, [], lineno=self.lineno)
             builder.add_func_arg(func, arg)
 
 
@@ -414,6 +414,9 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         body = map(self.visit, list(node.body))
         params = map(self.visit, node.args.args)
+
+        params = [cg1VarInt32(a.name, lineno=a.lineno) for a in params]
+
         return cg1Func(node.name, params, body, lineno=node.lineno)
 
     def visit_Return(self, node):
@@ -502,7 +505,7 @@ class CodeGenPass1(ast.NodeVisitor):
             raise NotImplementedError(node)    
     
     def visit_Name(self, node):
-        return cg1VarInt32(node.id, lineno=node.lineno)
+        return cg1Var(node.id, lineno=node.lineno)
 
     def visit_BinOp(self, node):
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)
