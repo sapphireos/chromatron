@@ -111,23 +111,23 @@ class cg1Var(cg1Node):
         return "cg1Var %s %s" % (self.name, self.type)
 
 
-class cg1ObjVar(cg1Var):
-    _fields = ["obj", "attr", "type"]
-    def __init__(self, obj, attr, **kwargs):
-        super(cg1ObjVar, self).__init__(**kwargs)
-        self.type = 'obj'
+# class cg1ObjVar(cg1Var):
+#     _fields = ["obj", "attr", "type"]
+#     def __init__(self, obj, attr, **kwargs):
+#         super(cg1ObjVar, self).__init__(**kwargs)
+#         self.type = 'obj'
 
-        # toks = self.name.split('.')
-        # self.obj = toks[0]
-        # self.attr = toks[1]
+#         # toks = self.name.split('.')
+#         # self.obj = toks[0]
+#         # self.attr = toks[1]
 
-        self.obj = obj
-        self.attr = attr
+#         self.obj = obj
+#         self.attr = attr
 
-        self.name = None
+#         self.name = None
 
-    def build(self, builder):
-        return builder.get_obj_var(self.obj.name, self.attr, self.lineno)
+#     def build(self, builder):
+#         return builder.get_obj_var(self.obj.name, self.attr, self.lineno)
 
 
 class cg1VarInt32(cg1Var):
@@ -367,6 +367,21 @@ class cg1AugAssign(cg1CodeNode):
         builder.augassign(self.op, target, value, lineno=self.lineno)
         
 
+
+class cg1Attribute(cg1CodeNode):
+    _fields = ["obj", "attr", "type"]
+    def __init__(self, obj, attr, **kwargs):
+        super(cg1Attribute, self).__init__(**kwargs)
+
+        self.obj = obj
+        self.attr = attr
+
+    def build(self, builder):
+        obj = self.obj.build(builder)
+
+        print 'cg1Attribute', obj, self.attr
+
+
 class cg1Subscript(cg1CodeNode):
     _fields = ["target", "index"]
 
@@ -377,19 +392,22 @@ class cg1Subscript(cg1CodeNode):
 
 
     def build(self, builder, store=False):
-        index = self.index.build(builder)
-        target = self.target.build(builder)
+        # index = self.index.build(builder)
+        # target = self.target.build(builder)
 
-        return builder.lookup_index(target, index, lineno=self.lineno)
+        # return builder.lookup_index(target, index, lineno=self.lineno)
 
-        # indexes = [self.index.build(builder)]
+        indexes = [self.index.build(builder)]
 
-        # target = self.target
-        # while isinstance(target, cg1Subscript):
-        #     indexes.insert(0, target.index.build(builder)) # add to front
-        #     target = target.target
+        target = self.target
+        while isinstance(target, cg1Subscript):
+            indexes.insert(0, target.index.build(builder)) # add to front
+            target = target.target
 
-        # target = target.build(builder)
+        target = target.build(builder)
+
+        print 'cg1Subscript', target, indexes
+
 
         # if store:
         #     return builder.index(target, indexes, lineno=self.lineno)
@@ -560,9 +578,8 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Attribute(self, node):
         value = self.visit(node.value)
 
-        # name = '%s.%s' % (value.name, node.attr)
-
-        return cg1ObjVar(value, node.attr, lineno=node.lineno)
+        # return cg1ObjVar(value, node.attr, lineno=node.lineno)
+        return cg1Attribute(value, node.attr, lineno=node.lineno)
 
     def visit_Pass(self, node):
         return cg1NoOp(lineno=node.lineno)

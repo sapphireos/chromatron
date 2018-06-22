@@ -42,7 +42,16 @@ class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_i32, self).__init__(*args, **kwargs)
         self.type = 'i32'
-        
+
+class irAddress(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irAddress, self).__init__(*args, **kwargs)
+        self.type = 'addr_i32'
+
+    def __str__(self):
+        return "Addr (%s)" % (self.name)
+
+
 class irConst(irVar):
     def __str__(self):
         return "Const (%s, %s)" % (self.name, self.type)
@@ -339,6 +348,7 @@ class Builder(object):
 
         self.data_types = {
             'i32': irVar_i32,
+            'addr': irAddress,
         }
 
         self.record_types = {
@@ -545,6 +555,9 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):        
+
+        print target
+
         ir = irAssign(target, value, lineno=lineno)
 
         self.append_node(ir)
@@ -567,18 +580,7 @@ class Builder(object):
         return ir
         
     def augassign(self, op, target, value, lineno=None):
-        # check if storing to indexed location
-        if isinstance(target, irIndex): 
-            result = self.add_temp(lineno=lineno)
-            ir = irIndexLoad(result, target.target, target.indexes, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, value, lineno=lineno)
-
-            ir = self.assign(target, result, lineno=lineno)
-
-        # check if scalar
-        elif target.length == 1:
+        if target.length == 1:
             # if so, we can replace with a binop and assign
             result = self.binop(op, target, value, lineno=lineno)
             ir = self.assign(target, result, lineno=lineno)
@@ -668,7 +670,8 @@ class Builder(object):
         self.append_node(ir)
 
     def lookup_index(self, array, index, lineno=None):
-        result = self.add_temp(lineno=lineno)
+        result = self.add_temp(data_type='addr', lineno=lineno)
+
         ir = irLookupIndex(result, array, index, lineno=lineno)
 
         self.append_node(ir)
