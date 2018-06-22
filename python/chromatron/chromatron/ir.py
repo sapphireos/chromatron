@@ -381,19 +381,11 @@ class Builder(object):
     def build_var(self, name, data_type, dimensions=[], lineno=None):
         data_type = self.get_type(data_type, lineno=lineno)
 
-        # try:
         if len(dimensions) == 0:
             ir = data_type(name, dimensions=dimensions, lineno=lineno)
 
         else:
             ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
-
-        # except TypeError:
-        #     ir = []
-
-        #     # this is a record type
-        #     for field_name, field in data_type.fields.items():
-        #         ir.append(self.build_var('%s.%s' % (name, field_name), field['type'], field['dimensions'], lineno=lineno))
 
         return ir
 
