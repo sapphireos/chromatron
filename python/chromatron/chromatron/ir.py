@@ -254,53 +254,71 @@ class irAssert(IR):
 
         return s   
 
-
-class irIndex(IR):
-    def __init__(self, target, indexes, **kwargs):
-        super(irIndex, self).__init__(**kwargs)        
-        self.target = target
-        self.indexes = indexes
+class irLookupIndex(IR):
+    def __init__(self, result, array, index, **kwargs):
+        super(irLookupIndex, self).__init__(**kwargs)        
+        self.result = result
+        self.array = array
+        self.index = index
 
     def __str__(self):
-        indexes = ''
-        for i in self.indexes:
-            indexes += '[%s]' % (i.name)
+        s = '%s = INDEX %s[%s]' % (self.result, self.array, self.index)
 
-        s = '%s%s' % (self.target, indexes)
+        return s   
 
-        return s     
+
+# class irIndex(IR):
+#     def __init__(self, target, indexes, **kwargs):
+#         super(irIndex, self).__init__(**kwargs)        
+#         self.target = target
+#         self.indexes = indexes
+
+#     def __str__(self):
+#         indexes = ''
+#         for i in self.indexes:
+#             indexes += '[%s]' % (i.name)
+
+#         s = '%s%s' % (self.target, indexes)
+
+#         return s     
 
 class irIndexLoad(IR):
-    def __init__(self, result, target, indexes, **kwargs):
+    def __init__(self, result, address, **kwargs):
         super(irIndexLoad, self).__init__(**kwargs)        
         self.result = result
-        self.target = target
-        self.indexes = indexes
+        self.address = address
 
     def __str__(self):
-        indexes = ''
-        for i in self.indexes:
-            indexes += '[%s]' % (i.name)
-
-        s = '%s = %s%s' % (self.result, self.target, indexes)
+        s = '%s = *%s' % (self.result, self.address)
 
         return s    
 
 class irIndexStore(IR):
-    def __init__(self, target, indexes, value, **kwargs):
+    def __init__(self, address, value, **kwargs):
         super(irIndexStore, self).__init__(**kwargs)        
-        self.target = target
-        self.indexes = indexes
+        self.address = address
         self.value = value
 
     def __str__(self):
-        indexes = ''
-        for i in self.indexes:
-            indexes += '[%s]' % (i.name)
-
-        s = '%s%s = %s' % (self.target, indexes, self.value)
+        s = '*%s = %s' % (self.address, self.value)
 
         return s    
+
+# class irIndexStore(IR):
+#     def __init__(self, target, indexes, value, **kwargs):
+#         super(irIndexStore, self).__init__(**kwargs)        
+#         self.target = target
+#         self.indexes = indexes
+#         self.value = value
+
+#     def __str__(self):
+#         indexes = ''
+#         for i in self.indexes:
+#             indexes += '[%s]' % (i.name)
+
+#         s = '%s%s = %s' % (self.target, indexes, self.value)
+
+#         return s    
 
 
 class Builder(object):
@@ -527,17 +545,27 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):        
-        # check if assigning to an indexed location
-        if isinstance(target, irIndex): 
-            ir = irIndexStore(target.target, target.indexes, value, lineno=lineno)
-
-        else:
-            ir = irAssign(target, value, lineno=lineno)
+        ir = irAssign(target, value, lineno=lineno)
 
         self.append_node(ir)
 
         return ir
 
+    def load_indirect(self, address, lineno=None):
+        result = self.add_temp(lineno=lineno)
+        ir = irIndexLoad(result, address, lineno=lineno)
+    
+        self.append_node(ir)
+
+        return result  
+
+    def store_indirect(self, address, value, lineno=None):
+        ir = irIndexStore(address, value, lineno=lineno)
+    
+        self.append_node(ir)
+
+        return ir
+        
     def augassign(self, op, target, value, lineno=None):
         # check if storing to indexed location
         if isinstance(target, irIndex): 
@@ -639,18 +667,13 @@ class Builder(object):
 
         self.append_node(ir)
 
-    def index_load(self, target, indexes, lineno=None):
+    def lookup_index(self, array, index, lineno=None):
         result = self.add_temp(lineno=lineno)
-        ir = irIndexLoad(result, target, indexes, lineno=lineno)
+        ir = irLookupIndex(result, array, index, lineno=lineno)
+
         self.append_node(ir)
 
         return result
-
-    def index(self, target, indexes, load=True, lineno=None):        
-        ir = irIndex(target, indexes, lineno=lineno)
-            
-        return ir            
-
 
     def _fold_constants(self, op, left, right, lineno):
         val = None

@@ -241,14 +241,14 @@ class cg1Assign(cg1CodeNode):
         self.value = value
 
     def build(self, builder):
-        # check is assigning to an indexed item
-        if isinstance(self.target, cg1Subscript):
-            target = self.target.build(builder, store=True)
-
-        else:
-            target = self.target.build(builder)
-
+        target = self.target.build(builder)
         value = self.value.build(builder)
+
+        if isinstance(self.value, cg1Subscript):
+            value = builder.load_indirect(value, lineno=self.lineno)
+        
+        elif isinstance(self.target, cg1Subscript):
+            return builder.store_indirect(target, value, lineno=self.lineno)
 
         return builder.assign(target, value, lineno=self.lineno)
 
@@ -377,20 +377,25 @@ class cg1Subscript(cg1CodeNode):
 
 
     def build(self, builder, store=False):
-        indexes = [self.index.build(builder)]
+        index = self.index.build(builder)
+        target = self.target.build(builder)
 
-        target = self.target
-        while isinstance(target, cg1Subscript):
-            indexes.insert(0, target.index.build(builder)) # add to front
-            target = target.target
+        return builder.lookup_index(target, index, lineno=self.lineno)
 
-        target = target.build(builder)
+        # indexes = [self.index.build(builder)]
 
-        if store:
-            return builder.index(target, indexes, lineno=self.lineno)
+        # target = self.target
+        # while isinstance(target, cg1Subscript):
+        #     indexes.insert(0, target.index.build(builder)) # add to front
+        #     target = target.target
 
-        else:
-            return builder.index_load(target, indexes, lineno=self.lineno)
+        # target = target.build(builder)
+
+        # if store:
+        #     return builder.index(target, indexes, lineno=self.lineno)
+
+        # else:
+        #     return builder.index_load(target, indexes, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):
