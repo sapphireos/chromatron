@@ -104,12 +104,11 @@ class cg1Var(cg1Node):
         self.name = name
         self.type = None
 
-    def build(self, builder):
+    def build(self, builder, depth=None):
         return builder.get_var(self.name, self.lineno)
     
     def __str__(self):
         return "cg1Var %s %s" % (self.name, self.type)
-
 
 # class cg1ObjVar(cg1Var):
 #     _fields = ["obj", "attr", "type"]
@@ -375,11 +374,24 @@ class cg1Attribute(cg1CodeNode):
 
         self.obj = obj
         self.attr = attr
+        # self.target = obj
+        # self.index = cg1Field(attr, lineno=self.lineno)
 
-    def build(self, builder):
-        obj = self.obj.build(builder)
+    def build(self, builder, depth=0):
+        depth += 1
 
-        print 'cg1Attribute', obj, self.attr
+        # print self.obj
+        obj = self.obj.build(builder, depth=depth)
+
+        # return builder.lookup_record_field(obj, self.attr)
+
+        # print 'cg1Attribute', obj, self.attr
+
+        # return self
+
+        builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
+
+        return obj
 
 
 class cg1Subscript(cg1CodeNode):
@@ -391,22 +403,46 @@ class cg1Subscript(cg1CodeNode):
         self.index = index
 
 
-    def build(self, builder, store=False):
-        # index = self.index.build(builder)
-        # target = self.target.build(builder)
+    def build(self, builder, store=False, depth=0):
+        depth += 1
+
+        target = self.target.build(builder, depth=depth)
+        index = self.index.build(builder)
+
+        builder.lookup_subscript(target, index, lineno=self.lineno)
+
+        if depth == 1:
+            # print "MEOW", target, index
+
+            return builder.resolve_lookup(lineno=self.lineno)
+
+
+        else:
+            return target
+
+
 
         # return builder.lookup_index(target, index, lineno=self.lineno)
 
-        indexes = [self.index.build(builder)]
+        # indexes = [self.index.build(builder)]
 
-        target = self.target
-        while isinstance(target, cg1Subscript):
-            indexes.insert(0, target.index.build(builder)) # add to front
-            target = target.target
+        # target = self.target
+        # while not isinstance(target, cg1Var):
+        #     if isinstance(target, cg1Subscript):
+        #         indexes.insert(0, target.index.build(builder)) # add to front
 
-        target = target.build(builder)
+        #         target = target.target
 
-        print 'cg1Subscript', target, indexes
+        #     elif isinstance(target, cg1Attribute):
+        #         target = target.build(builder)
+
+        # target = target.build(builder)
+
+
+        # print 'cg1Subscript', target, indexes
+
+        # if target != None:
+            # print 'cg1Subscript', target, index    
 
 
         # if store:

@@ -91,6 +91,15 @@ class irRecord(irVar):
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
 
+class irField(IR):
+    def __init__(self, name, **kwargs):
+        super(irField, self).__init__(**kwargs)
+        self.name = name
+        
+    def __str__(self):
+        return "Field (%s)" % (self.name)
+
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -263,17 +272,20 @@ class irAssert(IR):
 
         return s   
 
-class irLookupIndex(IR):
-    def __init__(self, result, array, index, **kwargs):
-        super(irLookupIndex, self).__init__(**kwargs)        
-        self.result = result
-        self.array = array
-        self.index = index
 
-    def __str__(self):
-        s = '%s = INDEX %s[%s]' % (self.result, self.array, self.index)
 
-        return s   
+
+# class irLookupIndex(IR):
+#     def __init__(self, result, array, index, **kwargs):
+#         super(irLookupIndex, self).__init__(**kwargs)        
+#         self.result = result
+#         self.array = array
+#         self.index = index
+
+#     def __str__(self):
+#         s = '%s = INDEX %s[%s]' % (self.result, self.array, self.index)
+
+#         return s   
 
 
 # class irIndex(IR):
@@ -290,6 +302,24 @@ class irLookupIndex(IR):
 #         s = '%s%s' % (self.target, indexes)
 
 #         return s     
+
+
+class irIndex(IR):
+    def __init__(self, result, target, indexes=[], **kwargs):
+        super(irIndex, self).__init__(**kwargs)        
+        self.result = result
+        self.target = target
+        self.indexes = indexes
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        s = '%s = INDEX %s%s' % (self.result, self.target, indexes)
+
+        return s   
+
 
 class irIndexLoad(IR):
     def __init__(self, result, address, **kwargs):
@@ -343,6 +373,8 @@ class Builder(object):
         self.loop_end = None
 
         self.next_temp = 0
+
+        self.compound_lookup = []
 
         self.current_func = None
 
@@ -669,14 +701,50 @@ class Builder(object):
 
         self.append_node(ir)
 
-    def lookup_index(self, array, index, lineno=None):
-        result = self.add_temp(data_type='addr', lineno=lineno)
+    # def lookup_index(self, array, index, lineno=None):
+    #     result = self.add_temp(data_type='addr', lineno=lineno)
 
-        ir = irLookupIndex(result, array, index, lineno=lineno)
+    #     ir = irLookupIndex(result, array, index, lineno=lineno)
+
+    #     self.append_node(ir)
+
+    #     return result
+
+    def lookup_attribute(self, obj, attr, lineno=None):
+        # print 'attr', obj, attr
+
+        if len(self.compound_lookup) == 0:
+            self.compound_lookup.append(obj)  
+
+        self.compound_lookup.append(irField(attr, lineno=lineno))
+
+    def lookup_subscript(self, target, index, lineno=None):
+        # print 'sub', target, index
+
+        if len(self.compound_lookup) == 0:
+            self.compound_lookup.append(target)  
+
+        self.compound_lookup.append(index)  
+
+    def resolve_lookup(self, lineno=None):    
+        target = self.compound_lookup.pop(0)
+        result = self.add_temp(lineno=lineno)
+
+        ir = irIndex(result, target, lineno=lineno)
+
+        indexes = []
+
+        for index in self.compound_lookup:
+            indexes.append(index)
+
+        ir.indexes = indexes
 
         self.append_node(ir)
 
+        self.compound_lookup = []
+
         return result
+
 
     def _fold_constants(self, op, left, right, lineno):
         val = None
