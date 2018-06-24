@@ -587,12 +587,31 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):        
+        if isinstance(target, irAddress):
+            self.store_indirect(target, value, lineno=lineno)
 
-        print target
+        else:
+            ir = irAssign(target, value, lineno=lineno)
 
-        ir = irAssign(target, value, lineno=lineno)
+            self.append_node(ir)
 
-        self.append_node(ir)
+            return ir
+
+    def augassign(self, op, target, value, lineno=None):
+        if isinstance(target, irAddress):
+            result = self.load_indirect(target, lineno=lineno)
+
+        else:
+            result = target
+
+        if target.length == 1:
+            # if so, we can replace with a binop and assign
+            result = self.binop(op, result, value, lineno=lineno)
+            ir = self.assign(target, result, lineno=lineno)
+
+        else:
+            ir = irAugAssign(op, target, value, lineno=lineno)        
+            self.append_node(ir)
 
         return ir
 
@@ -611,18 +630,6 @@ class Builder(object):
 
         return ir
         
-    def augassign(self, op, target, value, lineno=None):
-        if target.length == 1:
-            # if so, we can replace with a binop and assign
-            result = self.binop(op, target, value, lineno=lineno)
-            ir = self.assign(target, result, lineno=lineno)
-
-        else:
-            ir = irAugAssign(op, target, value, lineno=lineno)        
-            self.append_node(ir)
-
-        return ir
-
     def call(self, target, params, lineno=None):
         result = self.add_temp(lineno=lineno)
 
@@ -711,24 +718,20 @@ class Builder(object):
     #     return result
 
     def lookup_attribute(self, obj, attr, lineno=None):
-        # print 'attr', obj, attr
-
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(obj)  
 
         self.compound_lookup.append(irField(attr, lineno=lineno))
 
     def lookup_subscript(self, target, index, lineno=None):
-        # print 'sub', target, index
-
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(target)  
 
         self.compound_lookup.append(index)  
 
-    def resolve_lookup(self, lineno=None):    
+    def resolve_lookup(self, load=True, lineno=None):    
         target = self.compound_lookup.pop(0)
-        result = self.add_temp(lineno=lineno)
+        result = self.add_temp(lineno=lineno, data_type='addr')
 
         ir = irIndex(result, target, lineno=lineno)
 
@@ -736,13 +739,17 @@ class Builder(object):
 
         for index in self.compound_lookup:
             indexes.append(index)
+        
+        self.compound_lookup = []
+
 
         ir.indexes = indexes
 
         self.append_node(ir)
 
-        self.compound_lookup = []
-
+        if load:
+            return self.load_indirect(result, lineno=lineno)
+        
         return result
 
 

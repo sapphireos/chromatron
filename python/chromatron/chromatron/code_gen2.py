@@ -231,27 +231,6 @@ class cg1Call(cg1CodeNode):
 
         return builder.call(self.target, params, lineno=self.lineno)
 
-class cg1Assign(cg1CodeNode):
-    _fields = ["target", "value"]
-
-    def __init__(self, target, value, **kwargs):
-        super(cg1Assign, self).__init__(**kwargs)
-        self.target = target
-        self.value = value
-
-    def build(self, builder):
-        target = self.target.build(builder)
-        value = self.value.build(builder)
-
-        if isinstance(self.value, cg1Subscript):
-            value = builder.load_indirect(value, lineno=self.lineno)
-        
-        elif isinstance(self.target, cg1Subscript):
-            return builder.store_indirect(target, value, lineno=self.lineno)
-
-        return builder.assign(target, value, lineno=self.lineno)
-
-
 class cg1If(cg1CodeNode):
     _fields = ["test", "body", "orelse"]
 
@@ -345,6 +324,21 @@ class cg1Assert(cg1CodeNode):
         builder.assertion(test, lineno=self.lineno)
 
 
+class cg1Assign(cg1CodeNode):
+    _fields = ["target", "value"]
+
+    def __init__(self, target, value, **kwargs):
+        super(cg1Assign, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def build(self, builder):
+        target = self.target.build(builder)
+        value = self.value.build(builder)
+
+        return builder.assign(target, value, lineno=self.lineno)
+
+
 class cg1AugAssign(cg1CodeNode):
     _fields = ["op", "target", "value"]
 
@@ -356,7 +350,7 @@ class cg1AugAssign(cg1CodeNode):
 
     def build(self, builder):
         if isinstance(self.target, cg1Subscript):
-            target = self.target.build(builder, store=True)
+            target = self.target.build(builder)
 
         else:
             target = self.target.build(builder)
@@ -364,7 +358,6 @@ class cg1AugAssign(cg1CodeNode):
         value = self.value.build(builder)
     
         builder.augassign(self.op, target, value, lineno=self.lineno)
-        
 
 
 class cg1Attribute(cg1CodeNode):
@@ -395,15 +388,15 @@ class cg1Attribute(cg1CodeNode):
 
 
 class cg1Subscript(cg1CodeNode):
-    _fields = ["target", "index"]
+    _fields = ["target", "index", "load"]
 
-    def __init__(self, target, index, **kwargs):
+    def __init__(self, target, index, load=True, **kwargs):
         super(cg1Subscript, self).__init__(**kwargs)
         self.target = target
         self.index = index
+        self.load = load
 
-
-    def build(self, builder, store=False, depth=0):
+    def build(self, builder, depth=0):
         depth += 1
 
         target = self.target.build(builder, depth=depth)
@@ -412,10 +405,7 @@ class cg1Subscript(cg1CodeNode):
         builder.lookup_subscript(target, index, lineno=self.lineno)
 
         if depth == 1:
-            # print "MEOW", target, index
-
-            return builder.resolve_lookup(lineno=self.lineno)
-
+            return builder.resolve_lookup(load=self.load, lineno=self.lineno)
 
         else:
             return target
@@ -633,7 +623,11 @@ class CodeGenPass1(ast.NodeVisitor):
         return self.visit(node.value)
 
     def visit_Subscript(self, node):
-        return cg1Subscript(self.visit(node.value), self.visit(node.slice), lineno=node.lineno)
+        load = True
+        if isinstance(node.ctx, ast.Store):
+            load = False
+
+        return cg1Subscript(self.visit(node.value), self.visit(node.slice), load=load, lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)
