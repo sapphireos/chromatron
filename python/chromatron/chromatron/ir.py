@@ -43,6 +43,11 @@ class irVar_i32(irVar):
         super(irVar_i32, self).__init__(*args, **kwargs)
         self.type = 'i32'
 
+class irVar_f16(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irVar_f16, self).__init__(*args, **kwargs)
+        self.type = 'f16'
+
 class irAddress(irVar):
     def __init__(self, *args, **kwargs):
         super(irAddress, self).__init__(*args, **kwargs)
@@ -332,6 +337,7 @@ class Builder(object):
 
         self.data_types = {
             'i32': irVar_i32,
+            'f16': irVar_f16,
             'addr': irAddress,
         }
 

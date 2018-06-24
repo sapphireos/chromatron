@@ -391,6 +391,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
         self._declarations = {
             'Number': self._handle_Number,
+            'Fixed16': self._handle_Fixed16,
             'Array': self._handle_Array,
             'Record': self._handle_Record,
         }
@@ -424,6 +425,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def _handle_Number(self, node):
         return cg1DeclareVar(type="i32", lineno=node.lineno)
+
+    def _handle_Fixed16(self, node):
+        return cg1DeclareVar(type="f16", lineno=node.lineno)
 
     def _handle_Array(self, node):
         dims = [a.n for a in node.args]
