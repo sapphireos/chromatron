@@ -666,15 +666,6 @@ class Builder(object):
 
         self.append_node(ir)
 
-    # def lookup_index(self, array, index, lineno=None):
-    #     result = self.add_temp(data_type='addr', lineno=lineno)
-
-    #     ir = irLookupIndex(result, array, index, lineno=lineno)
-
-    #     self.append_node(ir)
-
-    #     return result
-
     def lookup_attribute(self, obj, attr, lineno=None):
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(obj)  
