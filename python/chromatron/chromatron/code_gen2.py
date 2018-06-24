@@ -342,18 +342,22 @@ class cg1AugAssign(cg1CodeNode):
 
 
 class cg1Attribute(cg1CodeNode):
-    _fields = ["obj", "attr", "type"]
-    def __init__(self, obj, attr, **kwargs):
+    _fields = ["obj", "attr", "load"]
+    def __init__(self, obj, attr, load=True, **kwargs):
         super(cg1Attribute, self).__init__(**kwargs)
 
         self.obj = obj
         self.attr = attr
+        self.load = load
         
     def build(self, builder, depth=0):
         depth += 1
 
         obj = self.obj.build(builder, depth=depth)
         builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
+
+        if depth == 1:
+            return builder.resolve_lookup(load=self.load, lineno=self.lineno)
 
         return obj
 
@@ -543,10 +547,14 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body), lineno=node.lineno)
 
     def visit_Attribute(self, node):
+        load = True
+        if isinstance(node.ctx, ast.Store):
+            load = False
+
         value = self.visit(node.value)
 
         # return cg1ObjVar(value, node.attr, lineno=node.lineno)
-        return cg1Attribute(value, node.attr, lineno=node.lineno)
+        return cg1Attribute(value, node.attr, load=load, lineno=node.lineno)
 
     def visit_Pass(self, node):
         return cg1NoOp(lineno=node.lineno)
