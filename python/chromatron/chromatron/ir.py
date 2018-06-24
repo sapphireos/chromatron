@@ -710,6 +710,8 @@ class Builder(object):
         
         return result
 
+    def generic_object(self, name, data_type, args, kw, lineno=None):
+        print name, data_type, args, kw
 
     def _fold_constants(self, op, left, right, lineno):
         val = None

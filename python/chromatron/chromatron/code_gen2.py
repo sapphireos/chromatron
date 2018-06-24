@@ -95,6 +95,20 @@ class cg1RecordType(cg1Node):
         return builder.create_record(self.name, fields, lineno=self.lineno)
 
 
+class cg1GenericObject(cg1Node):
+    _fields = ["name", "args", "kwargs"]
+
+    def __init__(self, name, args, kw, **kwargs):
+        super(cg1GenericObject, self).__init__(**kwargs)
+
+        self.name = name
+        self.args = args
+        self.kw = kw
+
+    def build(self, builder):
+        builder.generic_object(self.name, self.args, self.kw, lineno=self.lineno)
+
+
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
 
@@ -145,6 +159,12 @@ class cg1Module(cg1Node):
             elif isinstance(node, cg1RecordType):
                 node.build(builder)
 
+            elif isinstance(node, cg1Assign):
+                if isinstance(node.value, cg1GenericObject):
+                    builder.generic_object(node.target.name, node.value.name, node.value.args, node.value.kw, lineno=node.lineno)
+
+                else:
+                    raise SyntaxError("Unknown declaration in module body", lineno=node.lineno)
 
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
@@ -394,6 +414,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Fixed16': self._handle_Fixed16,
             'Array': self._handle_Array,
             'Record': self._handle_Record,
+            'PixelArray': self._handle_GenericObject,
         }
 
         self._record_types = {}
@@ -450,6 +471,19 @@ class CodeGenPass1(ast.NodeVisitor):
             fields[field_name] = field_type
 
         return cg1RecordType(fields=fields, lineno=node.lineno)
+
+    def _handle_GenericObject(self, node):
+        args = [self.visit(a) for a in node.args]
+        kwargs = {}
+
+        for kw in node.keywords:
+            field_name = kw.arg
+            field_type = self.visit(kw.value)
+
+            kwargs[field_name] = field_type
+
+        return cg1GenericObject(node.func.id, args, kwargs, lineno=node.lineno)
+
 
     def visit_Call(self, node):
         if node.func.id in self._declarations:
