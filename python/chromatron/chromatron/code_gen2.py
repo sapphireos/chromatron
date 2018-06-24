@@ -110,25 +110,6 @@ class cg1Var(cg1Node):
     def __str__(self):
         return "cg1Var %s %s" % (self.name, self.type)
 
-# class cg1ObjVar(cg1Var):
-#     _fields = ["obj", "attr", "type"]
-#     def __init__(self, obj, attr, **kwargs):
-#         super(cg1ObjVar, self).__init__(**kwargs)
-#         self.type = 'obj'
-
-#         # toks = self.name.split('.')
-#         # self.obj = toks[0]
-#         # self.attr = toks[1]
-
-#         self.obj = obj
-#         self.attr = attr
-
-#         self.name = None
-
-#     def build(self, builder):
-#         return builder.get_obj_var(self.obj.name, self.attr, self.lineno)
-
-
 class cg1VarInt32(cg1Var):
     def __init__(self, *args, **kwargs):
         super(cg1VarInt32, self).__init__(*args, **kwargs)
@@ -367,21 +348,11 @@ class cg1Attribute(cg1CodeNode):
 
         self.obj = obj
         self.attr = attr
-        # self.target = obj
-        # self.index = cg1Field(attr, lineno=self.lineno)
-
+        
     def build(self, builder, depth=0):
         depth += 1
 
-        # print self.obj
         obj = self.obj.build(builder, depth=depth)
-
-        # return builder.lookup_record_field(obj, self.attr)
-
-        # print 'cg1Attribute', obj, self.attr
-
-        # return self
-
         builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
 
         return obj
@@ -410,36 +381,6 @@ class cg1Subscript(cg1CodeNode):
         else:
             return target
 
-
-
-        # return builder.lookup_index(target, index, lineno=self.lineno)
-
-        # indexes = [self.index.build(builder)]
-
-        # target = self.target
-        # while not isinstance(target, cg1Var):
-        #     if isinstance(target, cg1Subscript):
-        #         indexes.insert(0, target.index.build(builder)) # add to front
-
-        #         target = target.target
-
-        #     elif isinstance(target, cg1Attribute):
-        #         target = target.build(builder)
-
-        # target = target.build(builder)
-
-
-        # print 'cg1Subscript', target, indexes
-
-        # if target != None:
-            # print 'cg1Subscript', target, index    
-
-
-        # if store:
-        #     return builder.index(target, indexes, lineno=self.lineno)
-
-        # else:
-        #     return builder.index_load(target, indexes, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):

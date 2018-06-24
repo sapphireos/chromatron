@@ -273,37 +273,6 @@ class irAssert(IR):
         return s   
 
 
-
-
-# class irLookupIndex(IR):
-#     def __init__(self, result, array, index, **kwargs):
-#         super(irLookupIndex, self).__init__(**kwargs)        
-#         self.result = result
-#         self.array = array
-#         self.index = index
-
-#     def __str__(self):
-#         s = '%s = INDEX %s[%s]' % (self.result, self.array, self.index)
-
-#         return s   
-
-
-# class irIndex(IR):
-#     def __init__(self, target, indexes, **kwargs):
-#         super(irIndex, self).__init__(**kwargs)        
-#         self.target = target
-#         self.indexes = indexes
-
-#     def __str__(self):
-#         indexes = ''
-#         for i in self.indexes:
-#             indexes += '[%s]' % (i.name)
-
-#         s = '%s%s' % (self.target, indexes)
-
-#         return s     
-
-
 class irIndex(IR):
     def __init__(self, result, target, indexes=[], **kwargs):
         super(irIndex, self).__init__(**kwargs)        
@@ -342,23 +311,6 @@ class irIndexStore(IR):
         s = '*%s = %s' % (self.address, self.value)
 
         return s    
-
-# class irIndexStore(IR):
-#     def __init__(self, target, indexes, value, **kwargs):
-#         super(irIndexStore, self).__init__(**kwargs)        
-#         self.target = target
-#         self.indexes = indexes
-#         self.value = value
-
-#     def __str__(self):
-#         indexes = ''
-#         for i in self.indexes:
-#             indexes += '[%s]' % (i.name)
-
-#         s = '%s%s = %s' % (self.target, indexes, self.value)
-
-#         return s    
-
 
 class Builder(object):
     def __init__(self):
