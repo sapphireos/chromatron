@@ -414,10 +414,11 @@ class CodeGenPass1(ast.NodeVisitor):
             'Fixed16': self._handle_Fixed16,
             'Array': self._handle_Array,
             'Record': self._handle_Record,
-            'PixelArray': self._handle_GenericObject,
         }
 
         self._record_types = {}
+
+        self.in_func = False
 
     def __call__(self, source):
         # remove leading indentation
@@ -434,10 +435,13 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Module("module", body, lineno=0)
 
     def visit_FunctionDef(self, node):
+        self.in_func = True
         body = map(self.visit, list(node.body))
         params = map(self.visit, node.args.args)
 
         params = [cg1VarInt32(a.name, lineno=a.lineno) for a in params]
+
+        self.in_func = False
 
         return cg1Func(node.name, params, body, lineno=node.lineno)
 
@@ -472,7 +476,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         return cg1RecordType(fields=fields, lineno=node.lineno)
 
-    def _handle_GenericObject(self, node):
+    def create_GenericObject(self, node):
         args = [self.visit(a) for a in node.args]
         kwargs = {}
 
@@ -484,7 +488,6 @@ class CodeGenPass1(ast.NodeVisitor):
 
         return cg1GenericObject(node.func.id, args, kwargs, lineno=node.lineno)
 
-
     def visit_Call(self, node):
         if node.func.id in self._declarations:
             return self._declarations[node.func.id](node)
@@ -494,8 +497,13 @@ class CodeGenPass1(ast.NodeVisitor):
 
             return cg1DeclareRecord(record=record_type, lineno=node.lineno)
 
-        else:
+        elif self.in_func:
             return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
+
+        else:
+            # function call at module level
+            raise TypeError
+            
 
     def visit_If(self, node):
         return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse), lineno=node.lineno)
@@ -513,7 +521,18 @@ class CodeGenPass1(ast.NodeVisitor):
         assert len(node.targets) == 1
 
         target = self.visit(node.targets[0])
-        value = self.visit(node.value)
+
+        # if isinstance(node.value, ast.Call) and not self.in_func:
+        #     value = self.create_GenericObject(node.value)
+
+        # else:
+        try:
+            value = self.visit(node.value)
+
+        except TypeError:
+            # couldn't resolve value
+            # try creating generic object
+            value = self.create_GenericObject(node.value)
 
         if isinstance(value, cg1DeclarationBase):
             value.name = target.name
