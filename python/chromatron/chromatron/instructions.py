@@ -32,6 +32,10 @@ opcodes = {
 
     'LOAD_INDIRECT':        0x19,
     'STORE_INDIRECT':       0x1A,
+
+    'RAND':                 0x1B,
+    'ASSERT':               0x1C,
+    'HALT':                 0x1D,
 }
 
 
@@ -306,3 +310,42 @@ class insIndirectStore(BaseInstruction):
 
 
 
+
+
+class insRand(BaseInstruction):
+    mnemonic = 'RAND'
+
+    def __init__(self, dest, start=0, end=65535):
+        self.dest = dest
+        self.start = start
+        self.end = end
+
+    def __str__(self):
+        return "%s %s <- rand(%s, %s)" % (self.mnemonic, self.dest, self.start, self.end)
+
+    # def assemble(self):
+        # return [self.opcode, self.dest.addr, self.start.addr, self.end.addr]
+
+class insAssert(BaseInstruction):
+    mnemonic = 'ASSERT'
+
+    def __init__(self, op1):
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s %s == TRUE" % (self.mnemonic, self.op1)
+
+    # def assemble(self):
+        # return [self.opcode, self.op1.addr]
+
+class insHalt(BaseInstruction):
+    mnemonic = 'HALT'
+    
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return "%s" % (self.mnemonic)
+
+    # def assemble(self):
+        # return [self.opcode]

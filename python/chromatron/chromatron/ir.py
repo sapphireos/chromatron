@@ -254,7 +254,11 @@ class irCall(IR):
         return s
 
     def generate(self):
-        return insCall(self.target)
+        if self.target == 'rand':
+            return insRand(self.target)
+
+        else:
+            return insCall(self.target)
 
 
 class irLabel(IR):
@@ -576,8 +580,10 @@ class Builder(object):
         return ir
 
     def add_func_arg(self, func, arg):
-        if arg.name in self.globals:
-            raise SyntaxError("Argument name '%s' already declared as global" % (arg.name), lineno=func.lineno)
+        # if arg.name in self.globals:
+            # raise SyntaxError("Argument name '%s' already declared as global" % (arg.name), lineno=func.lineno)
+
+        arg.name = '$%s.%s' % (func.name, arg.name)
 
         func.params.append(arg)
 
