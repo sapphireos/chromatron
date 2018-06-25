@@ -10,6 +10,10 @@ class SyntaxError(Exception):
 
         super(SyntaxError, self).__init__(message)
 
+class VMRuntimeError(Exception):
+    def __init__(self, message=''):
+        super(VMRuntimeError, self).__init__(message)
+
 
 def params_to_string(params):
     s = ''
@@ -141,8 +145,9 @@ class irFunc(IR):
         return s
 
     def generate(self):
-        label = irLabel('$%s' % (self.name), lineno=self.lineno)
-        ins = [label.generate()]
+        params = [a.generate() for a in self.params]
+        func = insFunction('$%s' % (self.name), params)
+        ins = [func]
         for ir in self.body:
             code = ir.generate()
 
@@ -258,10 +263,11 @@ class irClr(IR):
         return s
 
 class irCall(IR):
-    def __init__(self, target, params, result, **kwargs):
+    def __init__(self, target, params, args, result, **kwargs):
         super(irCall, self).__init__(**kwargs)
         self.target = target
         self.params = params
+        self.args = args
         self.result = result
 
     def __str__(self):
@@ -276,7 +282,15 @@ class irCall(IR):
 
         else:
             params = [a.generate() for a in self.params]
-            return insCall(self.target, self.result.generate(), params)
+            args = [a.generate() for a in self.args]
+
+            # call func
+            call_ins = insCall(self.target, params, args)
+
+            # move return value to result register
+            mov_ins = insMov(self.result.generate(), insAddr(0))
+
+            return [call_ins, mov_ins]
 
 
 class irLabel(IR):
@@ -686,7 +700,9 @@ class Builder(object):
     def call(self, target, params, lineno=None):
         result = self.add_temp(lineno=lineno)
 
-        ir = irCall(target, params, result, lineno=lineno)
+        args = self.funcs[target].params
+
+        ir = irCall(target, params, args, result, lineno=lineno)
     
         self.append_node(ir)        
 
@@ -874,13 +890,17 @@ class Builder(object):
         return self.data_table
 
     def print_data_table(self, data):
+        print "DATA: "
         for i in data:
-            print '%3d: %s' % (i.addr, i)
+            print '\t%3d: %s' % (i.addr, i)
 
     def print_instructions(self, instructions):
+        print "INSTRUCTIONS: "
+        i = 0
         for ins in instructions:
-            s = '%s' % (str(ins))
+            s = '\t%3d: %s' % (i, str(ins))
             print s
+            i += 1
 
     def generate_instructions(self):
         ins = []
@@ -916,33 +936,50 @@ class VM(object):
 
         return_stack = []
 
+        func_offsets = {}
 
-        # search for function/label:
-        fname = '$' + func
-        func_start = None
+        # scan code stream and get starting points for all functions
         for i in xrange(len(self.code)):
             ins = self.code[i]
-            if isinstance(ins, insLabel) and ins.name == fname:
-                func_start = i
-                break
+            if isinstance(ins, insFunction):
+                func_offsets[ins.name] = i
 
 
-        pc = func_start
+        # setup PC
+        fname = '$' + func
+
+        try:
+            pc = func_offsets[fname]
+        
+        except KeyError:
+            raise VMRuntimeError("Function '%s' not found" % (func))
 
         while True:
             cycles += 1
 
             ins = self.code[pc]
+            
+            print cycles, pc, ins
 
             pc += 1
 
             try:
                 ret_val = ins.execute(self.memory)
 
+                if isinstance(ins, insCall):
+                    # push PC to return stack
+                    return_stack.append(pc)
+
+                    # jump to target
+                    pc = func_offsets['$' + ins.target]
+
             except ReturnException:
                 if len(return_stack) == 0:
                     # program is complete
                     break
+
+                # pop PC from return stack
+                pc = return_stack.pop(-1)
 
 
         # clean up

@@ -93,6 +93,23 @@ class insLabel(BaseInstruction):
     def execute(self, memory):
         pass
 
+class insFunction(BaseInstruction):
+    def __init__(self, name=None, args=[]):
+        self.name = name
+        self.args = args
+
+    def __str__(self):
+        args = ''
+        for a in self.args:
+            args += '%s, ' % (a)
+
+        args = args[:len(args) - 2]
+
+        return "Func %s (%s)" % (self.name, args)
+
+    def execute(self, memory):
+        pass
+
 
 class insMov(BaseInstruction):
     mnemonic = 'MOV'
@@ -316,25 +333,33 @@ class insReturn(BaseInstruction):
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
 
-    def __init__(self, target, result, params=[]):
+    def __init__(self, target, params=[], args=[]):
         self.target = target
-        self.result = result
         self.params = params
+        self.args = args
+
+        assert len(self.params) == len(self.args)
 
     def __str__(self):
         params = ''
         for param in self.params:
-            params += '%s,' % (param)
-        params = params[0:len(params) - 1]
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
 
-        return "%s %s(%s) -> %s" % (self.mnemonic, self.target, params, self.result)
+        args = ''
+        for arg in self.args:
+            args += '%s, ' % (arg)
+        args = args[:len(args) - 2]
+
+        return "%s %s (%s):(%s)" % (self.mnemonic, self.target, params, args)
 
     def execute(self, memory):
-        print "CALL"
+        # load arguments with parameters
+        for i in xrange(len(self.params)):
+            param = self.params[i]
+            arg = self.args[i]
 
-        for param in self.params:
-            print param
-
+            memory[arg.addr] = memory[param.addr]
 
     # def assemble(self):
         # return [self.opcode, ('addr', self.target), 0]
