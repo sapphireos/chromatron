@@ -561,12 +561,13 @@ class Builder(object):
 
         return var.fields[attr]
 
-    def add_const(self, name, type='i32', length=1, lineno=None):
-        if name in self.locals[self.current_func]:
-            return self.locals[self.current_func][name]
+    def add_const(self, name, data_type='i32', length=1, lineno=None):
+        if name in self.globals:
+            return self.globals[name]
 
-        ir = irConst(name, type, length, lineno=lineno)
-        self.locals[self.current_func][name] = ir
+        ir = irConst(name, data_type, length, lineno=lineno)
+
+        self.globals[name] = ir
 
         return ir
 
@@ -717,7 +718,7 @@ class Builder(object):
         self.loop_end = end_label
 
         # set up iterator code (init to -1, as first pass will increment before the body) 
-        init_value = self.add_const('-1', lineno=lineno)
+        init_value = self.add_const(-1, lineno=lineno)
         ir = irAssign(iterator, init_value, lineno=lineno)
         self.append_node(ir)
 
