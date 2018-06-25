@@ -503,7 +503,7 @@ class CodeGenPass1(ast.NodeVisitor):
         else:
             # function call at module level
             raise TypeError
-            
+
 
     def visit_If(self, node):
         return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse), lineno=node.lineno)
@@ -522,10 +522,6 @@ class CodeGenPass1(ast.NodeVisitor):
 
         target = self.visit(node.targets[0])
 
-        # if isinstance(node.value, ast.Call) and not self.in_func:
-        #     value = self.create_GenericObject(node.value)
-
-        # else:
         try:
             value = self.visit(node.value)
 
