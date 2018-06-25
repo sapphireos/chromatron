@@ -1,3 +1,4 @@
+from instructions import *
 
 from copy import deepcopy
 
@@ -26,6 +27,9 @@ class IR(object):
         self.lineno = lineno
 
         assert self.lineno != None
+
+    def generate(self):
+        return [BaseInstruction()]
 
 class irVar(IR):
     def __init__(self, name, type='i32', dimensions=[], **kwargs):
@@ -750,3 +754,22 @@ class Builder(object):
 
         # make sure we only emit integers
         return self.add_const(int(val), lineno=lineno)
+
+    def print_instructions(self, instructions):
+        for name, func_code in instructions.items():
+            print name
+
+            for ins in func_code:
+                s = '\t%s' % (str(ins))
+                print s
+
+    def generate_instructions(self):
+        ins = {}
+
+        for func in self.funcs.values():
+            ins[func.name] = func.generate()
+
+
+        return ins
+
+

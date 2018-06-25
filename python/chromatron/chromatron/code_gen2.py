@@ -665,5 +665,9 @@ except SyntaxError as e:
     print e
 
 
+ins = builder.generate_instructions()
+builder.print_instructions(ins)
+
+
 
 
