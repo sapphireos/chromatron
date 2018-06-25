@@ -90,6 +90,9 @@ class insLabel(BaseInstruction):
     def __str__(self):
         return "Label(%s)" % (self.name)
 
+    def execute(self, memory):
+        pass
+
 
 class insMov(BaseInstruction):
     mnemonic = 'MOV'
@@ -318,8 +321,6 @@ class insCall(BaseInstruction):
         self.result = result
         self.params = params
 
-        print params
-
     def __str__(self):
         params = ''
         for param in self.params:
@@ -329,7 +330,11 @@ class insCall(BaseInstruction):
         return "%s %s(%s) -> %s" % (self.mnemonic, self.target, params, self.result)
 
     def execute(self, memory):
-        pass
+        print "CALL"
+
+        for param in self.params:
+            print param
+
 
     # def assemble(self):
         # return [self.opcode, ('addr', self.target), 0]

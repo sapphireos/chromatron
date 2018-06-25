@@ -141,7 +141,8 @@ class irFunc(IR):
         return s
 
     def generate(self):
-        ins = []
+        label = irLabel('$%s' % (self.name), lineno=self.lineno)
+        ins = [label.generate()]
         for ir in self.body:
             code = ir.generate()
 
@@ -877,18 +878,15 @@ class Builder(object):
             print '%3d: %s' % (i.addr, i)
 
     def print_instructions(self, instructions):
-        for name, func_code in instructions.items():
-            print name
-
-            for ins in func_code:
-                s = '\t%s' % (str(ins))
-                print s
+        for ins in instructions:
+            s = '%s' % (str(ins))
+            print s
 
     def generate_instructions(self):
-        ins = {}
+        ins = []
 
         for func in self.funcs.values():
-            ins[func.name] = func.generate()
+            ins.extend(func.generate())
 
 
         return ins
@@ -918,10 +916,23 @@ class VM(object):
 
         return_stack = []
 
+
+        # search for function/label:
+        fname = '$' + func
+        func_start = None
+        for i in xrange(len(self.code)):
+            ins = self.code[i]
+            if isinstance(ins, insLabel) and ins.name == fname:
+                func_start = i
+                break
+
+
+        pc = func_start
+
         while True:
             cycles += 1
 
-            ins = self.code[func][pc]
+            ins = self.code[pc]
 
             pc += 1
 
