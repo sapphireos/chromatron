@@ -72,6 +72,19 @@ class irVar(IR):
     def generate(self):
         return insAddr(self.addr)
 
+    def convert(self, source):
+        type_conversions = {
+            ('i32', 'f16'): insConvF16toI32,
+            ('f16', 'i32'): insConvI32toF16,
+        }
+
+        if self.type == source.type:
+            return None
+
+        ins = type_conversions[(self.type, source.type)]
+        
+        return ins(self.generate(), source.generate())
+
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_i32, self).__init__(*args, **kwargs)
@@ -271,7 +284,13 @@ class irAssign(IR):
 
     def generate(self):
         if self.target.length == 1:
-            return insMov(self.target.generate(), self.value.generate())        
+            conv = self.target.convert(self.value)
+
+            if conv:
+                return conv
+
+            else:
+                return insMov(self.target.generate(), self.value.generate())
 
         else:
             return insVectorMov(self.target.generate(), self.value.generate())        

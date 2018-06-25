@@ -68,6 +68,9 @@ opcodes = {
     'VDIV':                 0x21,
     'VMOD':                 0x22,
     'VMOV':                 0x23,
+
+    'CONV_I32_TO_F16':      0x24,
+    'CONV_F16_TO_I32':      0x25,
 }
 
 
@@ -550,4 +553,44 @@ class insVectorMov(insVectorOp):
     symbol = "="
 
 
+
+class insConvI32toF16(BaseInstruction):
+    mnemonic = 'CONV_I32_TO_F16'
+
+    def __init__(self, dest, src):
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s = F16(%s)" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, memory):
+        memory[self.dest.addr] = (memory[self.src.addr] << 16) & 0xffffffff
+
+    # def assemble(self):
+    #     bc = [self.opcode]
+    #     bc.extend(self.dest.assemble())
+    #     bc.extend(self.src.assemble())
+
+    #     return bc
+
+class insConvF16toI32(BaseInstruction):
+    mnemonic = 'CONV_F16_TO_I32'
+
+    def __init__(self, dest, src):
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s = I32(%s)" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, memory):
+        memory[self.dest.addr] = (memory[self.src.addr] >> 16) & 0xffffffff
+
+    # def assemble(self):
+    #     bc = [self.opcode]
+    #     bc.extend(self.dest.assemble())
+    #     bc.extend(self.src.assemble())
+
+    #     return bc
 

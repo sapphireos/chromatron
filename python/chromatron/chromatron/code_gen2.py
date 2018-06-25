@@ -760,7 +760,7 @@ if __name__ == '__main__':
     vm = VM(ins, data)
 
     print vm.memory
-    vm.run('basic')
+    vm.run('try_fix16')
 
     print vm.memory
 
