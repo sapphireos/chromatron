@@ -356,13 +356,13 @@ def loop():
 call_register_reuse = """
 a = Number(publish=True)
 
-def test(_a, _b):
-    test2(0, 0)
-    return _a + _b
-
 def test2(_a, _b):
     _a = 3
     _b = 4
+
+def test(_a, _b):
+    test2(0, 0)
+    return _a + _b
 
 def init():
     a = test(1, 1)
@@ -1023,9 +1023,9 @@ double_break_node_for = """
 
 global_a = Number(publish=True)
 global_i = Number(publish=True)
+b = Number(publish=True)
 
 def init():
-    b = Number(publish=True)
     for a in 4:
         for i in 10:
             if i > 5:
@@ -1939,11 +1939,11 @@ class CGTestsBase(unittest.TestCase):
                 'b': 18,
             })
 
-    # def test_call_register_reuse(self):
-    #     self.run_test(call_register_reuse,
-    #         expected={
-    #             'a': 2,
-    #         })
+    def test_call_register_reuse(self):
+        self.run_test(call_register_reuse,
+            expected={
+                'a': 2,
+            })
 
     def test_for_expr(self):
         self.run_test(for_expr,
@@ -2018,13 +2018,13 @@ class CGTestsBase(unittest.TestCase):
     #             'global_x': 4,
     #         })
 
-    # def test_double_break_node_for(self):
-    #     self.run_test(double_break_node_for,
-    #         expected={
-    #             'global_i': 6,
-    #             'global_a': 4,
-    #             'b': 24,
-    #         })
+    def test_double_break_node_for(self):
+        self.run_test(double_break_node_for,
+            expected={
+                'global_i': 6,
+                'global_a': 4,
+                'b': 24,
+            })
 
     def test_double_continue_node_for(self):
         self.run_test(double_continue_node_for,
@@ -2034,12 +2034,12 @@ class CGTestsBase(unittest.TestCase):
                 'global_x': 4,
             })
 
-    # def test_no_loop_function(self):
-    #     # we don't check anything, we just make sure
-    #     # we can compile without a loop function.
-    #     self.run_test(no_loop_function,
-    #         expected={
-    #         })
+    def test_no_loop_function(self):
+        # we don't check anything, we just make sure
+        # we can compile without a loop function.
+        self.run_test(no_loop_function,
+            expected={
+            })
 
     # def test_pixel_array(self):
     #     self.run_test(pixel_array,

@@ -489,6 +489,8 @@ class Builder(object):
             'fold_constants': False
         }
 
+        # make sure we always have 0 const
+        self.add_const(0, lineno=0)
 
     def __str__(self):
         s = "FX IR:\n"
@@ -930,6 +932,11 @@ class Builder(object):
             i += 1
 
     def generate_instructions(self):
+        # check if there is no loop function
+        if 'loop' not in self.funcs:
+            self.func('loop', lineno=0)
+            self.ret(self.get_var(0), lineno=0)
+
         ins = []
 
         for func in self.funcs.values():
