@@ -224,7 +224,7 @@ class irBinop(IR):
             'logical_or': insOr,
             'add': insAdd,
             'sub': insSub,
-            'mult': insMul,
+            'mul': insMul,
             'div': insDiv,
             'mod': insMod,
         }

@@ -1788,27 +1788,27 @@ class CGTestsBase(unittest.TestCase):
     #             'c': 3,
     #         })
 
-    def test_empty(self):
-        self.run_test(empty_program,
-            expected={
-            })
+    # def test_empty(self):
+    #     self.run_test(empty_program,
+    #         expected={
+    #         })
 
-    def test_basic_vars(self):
-        self.run_test(basic_vars,
-            expected={
-                'a': 0,
-                'b': 0,
-                'c': 0,
-            })
+    # def test_basic_vars(self):
+    #     self.run_test(basic_vars,
+    #         expected={
+    #             'a': 0,
+    #             'b': 0,
+    #             'c': 0,
+    #         })
 
-    def test_basic_assign(self):
-        self.run_test(basic_assign,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-            })
+    # def test_basic_assign(self):
+    #     self.run_test(basic_assign,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #         })
 
     # def test_basic_math(self):
     #     self.run_test(basic_math,
@@ -1875,12 +1875,12 @@ class CGTestsBase(unittest.TestCase):
     #             'b': 0,
     #         })
 
-    # def test_basic_if(self):
-    #     self.run_test(basic_if,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #         })
+    def test_basic_if(self):
+        self.run_test(basic_if,
+            expected={
+                'a': 1,
+                'b': 2,
+            })
 
     # def test_basic_for(self):
     #     self.run_test(basic_for,

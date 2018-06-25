@@ -606,7 +606,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Sub(self, node):
         return "sub"
 
-    def visit_Mul(self, node):
+    def visit_Mult(self, node):
         return "mul"
 
     def visit_Div(self, node):
@@ -629,6 +629,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Eq(self, node):
         return "eq"
+
+    def visit_NotEq(self, node):
+        return "neq"
 
     def visit_Expr(self, node):
         return self.visit(node.value)
