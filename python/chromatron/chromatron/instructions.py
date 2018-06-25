@@ -1,4 +1,7 @@
 
+class ReturnException(Exception):
+    pass
+
 
 opcodes = {
     'MOV':                  0x01,
@@ -131,33 +134,57 @@ class insCompareEq(insBinop):
     mnemonic = 'COMP_EQ'
     symbol = "=="
 
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] == memory[self.op2.addr]
+
 class insCompareNeq(insBinop):
     mnemonic = 'COMP_NEQ'
     symbol = "!="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] != memory[self.op2.addr]
 
 class insCompareGt(insBinop):
     mnemonic = 'COMP_GT'
     symbol = ">"
 
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] > memory[self.op2.addr]
+
 class insCompareGtE(insBinop):
     mnemonic = 'COMP_GTE'
     symbol = ">="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] >= memory[self.op2.addr]
 
 class insCompareLt(insBinop):
     mnemonic = 'COMP_LT'
     symbol = "<"
 
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] < memory[self.op2.addr]
+
 class insCompareLtE(insBinop):
     mnemonic = 'COMP_LTE'
     symbol = "<="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] <= memory[self.op2.addr]
 
 class insAnd(insBinop):
     mnemonic = 'AND'
     symbol = "AND"
 
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] and memory[self.op2.addr]
+
 class insOr(insBinop):
     mnemonic = 'OR'
     symbol = "OR"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] or memory[self.op2.addr]
 
 class insAdd(insBinop):
     mnemonic = 'ADD'
@@ -170,17 +197,30 @@ class insSub(insBinop):
     mnemonic = 'SUB'
     symbol = "-"
 
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] - memory[self.op2.addr]
+
 class insMul(insBinop):
     mnemonic = 'MUL'
     symbol = "*"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] * memory[self.op2.addr]
 
 class insDiv(insBinop):
     mnemonic = 'DIV'
     symbol = "/"
 
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] / memory[self.op2.addr]
+
 class insMod(insBinop):
     mnemonic = 'MOD'
     symbol = "%"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] % memory[self.op2.addr]
+
 
 
 class BaseJmp(BaseInstruction):
@@ -263,7 +303,9 @@ class insReturn(BaseInstruction):
         return "%s %s" % (self.mnemonic, self.op1)
 
     def execute(self, memory):
-        pass
+        memory[0] = memory[self.op1.addr]
+
+        raise ReturnException
 
     # def assemble(self):
         # return [self.opcode, self.op1.addr]
@@ -271,11 +313,23 @@ class insReturn(BaseInstruction):
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
 
-    def __init__(self, target):
+    def __init__(self, target, result, params=[]):
         self.target = target
+        self.result = result
+        self.params = params
+
+        print params
 
     def __str__(self):
-        return "%s %s" % (self.mnemonic, self.target)
+        params = ''
+        for param in self.params:
+            params += '%s,' % (param)
+        params = params[0:len(params) - 1]
+
+        return "%s %s(%s) -> %s" % (self.mnemonic, self.target, params, self.result)
+
+    def execute(self, memory):
+        pass
 
     # def assemble(self):
         # return [self.opcode, ('addr', self.target), 0]

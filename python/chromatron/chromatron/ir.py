@@ -274,7 +274,8 @@ class irCall(IR):
             return insRand(self.target)
 
         else:
-            return insCall(self.target)
+            params = [a.generate() for a in self.params]
+            return insCall(self.target, self.result.generate(), params)
 
 
 class irLabel(IR):
@@ -846,7 +847,13 @@ class Builder(object):
 
     def allocate(self):
         self.data_table = []
-        addr = 0
+
+        ret_var = irVar('$return', lineno=0)
+        ret_var.addr = 0
+
+        self.data_table.append(ret_var)
+
+        addr = 1
         for i in self.globals.values():
             i.addr = addr
             addr += i.length
@@ -906,10 +913,28 @@ class VM(object):
 
 
     def run(self, func):
-        for ins in self.code[func]:
-            ins.execute(self.memory)
+        cycles = 0
+        pc = 0
+
+        return_stack = []
+
+        while True:
+            cycles += 1
+
+            ins = self.code[func][pc]
+
+            pc += 1
+
+            try:
+                ret_val = ins.execute(self.memory)
+
+            except ReturnException:
+                if len(return_stack) == 0:
+                    # program is complete
+                    break
 
 
+        # clean up
 
 
 
