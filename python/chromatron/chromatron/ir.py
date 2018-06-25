@@ -403,7 +403,6 @@ class Builder(object):
     def __init__(self):
         self.funcs = {}
         self.locals = {}
-        self.temps = {}
         self.globals = {}
         self.objects = {}
         self.labels = {}
@@ -445,14 +444,6 @@ class Builder(object):
                 s += '\t%s\n' % (fname)
 
                 for l in sorted(self.locals[fname].values()):
-                    s += '%d\t\t%s\n' % (l.lineno, l)
-
-        s += 'Temps:\n'
-        for fname in sorted(self.temps.keys()):
-            if len(self.temps[fname].values()) > 0:
-                s += '\t%s\n' % (fname)
-
-                for l in sorted(self.temps[fname].values()):
                     s += '%d\t\t%s\n' % (l.lineno, l)
 
         s += 'Functions:\n'
@@ -576,7 +567,7 @@ class Builder(object):
         self.next_temp += 1
 
         ir = self.build_var(name, data_type, [], lineno=lineno)
-        self.temps[self.current_func][name] = ir
+        self.locals[self.current_func][name] = ir
 
         return ir
 
@@ -592,7 +583,6 @@ class Builder(object):
         func = irFunc(*args, **kwargs)
         self.funcs[func.name] = func
         self.locals[func.name] = {}
-        self.temps[func.name] = {}
         self.current_func = func.name
         self.next_temp = 0 
 
