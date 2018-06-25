@@ -146,7 +146,7 @@ class irFunc(IR):
 
     def generate(self):
         params = [a.generate() for a in self.params]
-        func = insFunction('$%s' % (self.name), params)
+        func = insFunction(self.name, params)
         ins = [func]
         for ir in self.body:
             code = ir.generate()
@@ -936,20 +936,18 @@ class VM(object):
 
         return_stack = []
 
-        func_offsets = {}
+        offsets = {}
 
-        # scan code stream and get starting points for all functions
+        # scan code stream and get offsets for all functions and labels
         for i in xrange(len(self.code)):
             ins = self.code[i]
-            if isinstance(ins, insFunction):
-                func_offsets[ins.name] = i
+            if isinstance(ins, insFunction) or isinstance(ins, insLabel):
+                offsets[ins.name] = i
 
 
         # setup PC
-        fname = '$' + func
-
         try:
-            pc = func_offsets[fname]
+            pc = offsets[func]
         
         except KeyError:
             raise VMRuntimeError("Function '%s' not found" % (func))
@@ -958,7 +956,7 @@ class VM(object):
             cycles += 1
 
             ins = self.code[pc]
-            
+
             print cycles, pc, ins
 
             pc += 1
@@ -970,9 +968,11 @@ class VM(object):
                     # push PC to return stack
                     return_stack.append(pc)
 
+                # if returning label to jump to
+                if ret_val != None:
                     # jump to target
-                    pc = func_offsets['$' + ins.target]
-
+                    pc = offsets[ret_val.name]
+                
             except ReturnException:
                 if len(return_stack) == 0:
                     # program is complete

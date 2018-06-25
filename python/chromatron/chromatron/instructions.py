@@ -22,8 +22,8 @@ opcodes = {
 
     'JMP_IF_Z':             0x10,
     'JMP_IF_NOT_Z':         0x11,
-    'JMP_IF_Z_DEC':         0x12,
-    'JMP_IF_GTE':           0x13,
+    # 'JMP_IF_Z_DEC':         0x12,
+    # 'JMP_IF_GTE':           0x13,
     'JMP_IF_LESS_PRE_INC':  0x14,
 
     'PRINT':                0x15,
@@ -276,23 +276,31 @@ class insJmpConditional(BaseJmp):
 class insJmpIfZero(insJmpConditional):
     mnemonic = 'JMP_IF_Z'
 
+    def execute(self, memory):
+        if memory[self.op1.addr] == 0:
+            return self.label
+
 class insJmpNotZero(insJmpConditional):
     mnemonic = 'JMP_IF_NOT_Z'
 
-class insJmpIfZeroPostDec(insJmpConditional):
-    mnemonic = 'JMP_IF_Z_DEC'
+    def execute(self, memory):
+        if memory[self.op1.addr] != 0:
+            return self.label
 
-class insJmpIfGte(BaseJmp):
-    mnemonic = 'JMP_IF_GTE'
+# class insJmpIfZeroPostDec(insJmpConditional):
+    # mnemonic = 'JMP_IF_Z_DEC'
 
-    def __init__(self, op1, op2, label):
-        super(insJmpIfGte, self).__init__(label)
+# class insJmpIfGte(BaseJmp):
+#     mnemonic = 'JMP_IF_GTE'
 
-        self.op1 = op1
-        self.op2 = op2
+#     def __init__(self, op1, op2, label):
+#         super(insJmpIfGte, self).__init__(label)
 
-    def __str__(self):
-        return "%s, %s >= %s -> %s" % (self.mnemonic, self.op1, self.op2, self.label)
+#         self.op1 = op1
+#         self.op2 = op2
+
+#     def __str__(self):
+#         return "%s, %s >= %s -> %s" % (self.mnemonic, self.op1, self.op2, self.label)
 
     # def assemble(self):
         # return [self.opcode, self.op1.addr, self.op2.addr, ('label', self.label.name), 0]
@@ -309,6 +317,15 @@ class insJmpIfLessThanPreInc(BaseJmp):
 
     def __str__(self):
         return "%s, ++%s < %s -> %s" % (self.mnemonic, self.op1, self.op2, self.label)
+
+    def execute(self, memory):
+        # increment op1
+        memory[self.op1.addr] += 1
+
+        # compare to op2
+        if memory[self.op1.addr] < memory[self.op2.addr]:
+            # return jump target
+            return self.label
 
     # def assemble(self):
         # return [self.opcode, self.op1.addr, self.op2.addr, ('label', self.label.name), 0]
@@ -360,6 +377,8 @@ class insCall(BaseInstruction):
             arg = self.args[i]
 
             memory[arg.addr] = memory[param.addr]
+
+        return insLabel(self.target)
 
     # def assemble(self):
         # return [self.opcode, ('addr', self.target), 0]
