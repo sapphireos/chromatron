@@ -46,6 +46,13 @@ class cg1Node(ast.AST):
 class cg1CodeNode(cg1Node):
     pass
 
+class cg1Import(cg1Node):
+    _fields = ["names"]
+
+    def __init__(self, names, **kwargs):
+        super(cg1Import, self).__init__(**kwargs)
+        self.names = names
+
 
 class cg1DeclarationBase(cg1Node):
     _fields = ["name", "type"]
@@ -152,8 +159,15 @@ class cg1Module(cg1Node):
         startup_code = [a for a in self.body if not isinstance(a, cg1Func)]
 
         for node in startup_code:
+            if isinstance(node, cg1Import):
+                # load imported files and pass to builder
+                for file in node.names:
+                    with open(file, 'r') as f:
+                        cg1 = CodeGenPass1()
+                        module = cg1(f.read()).build(builder)
+
             # assign global vars to table
-            if isinstance(node, cg1DeclarationBase):
+            elif isinstance(node, cg1DeclarationBase):
                 builder.add_global(node.name, node.type, node.dimensions, lineno=node.lineno)
 
             elif isinstance(node, cg1RecordType):
@@ -631,9 +645,11 @@ class CodeGenPass1(ast.NodeVisitor):
 
         return cg1Subscript(self.visit(node.value), self.visit(node.slice), load=load, lineno=node.lineno)
 
+    def visit_Import(self, node):
+        return cg1Import([a.name for a in node.names], lineno=node.lineno)
+
     def generic_visit(self, node):
         raise NotImplementedError(node)
-
 
 
 
