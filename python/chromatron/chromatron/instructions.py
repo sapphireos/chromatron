@@ -270,6 +270,97 @@ class insMod(insBinop):
         memory[self.result.addr] = memory[self.op1.addr] % memory[self.op2.addr]
 
 
+class insCompareEqF16(insBinop):
+    mnemonic = 'F16_COMP_EQ'
+    symbol = "=="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] == memory[self.op2.addr]
+
+class insCompareNeqF16(insBinop):
+    mnemonic = 'F16_COMP_NEQ'
+    symbol = "!="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] != memory[self.op2.addr]
+
+class insCompareGtF16(insBinop):
+    mnemonic = 'F16_COMP_GT'
+    symbol = ">"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] > memory[self.op2.addr]
+
+class insCompareGtEF16(insBinop):
+    mnemonic = 'F16_COMP_GTE'
+    symbol = ">="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] >= memory[self.op2.addr]
+
+class insCompareLtF16(insBinop):
+    mnemonic = 'F16_COMP_LT'
+    symbol = "<"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] < memory[self.op2.addr]
+
+class insCompareLtEF16(insBinop):
+    mnemonic = 'F16_COMP_LTE'
+    symbol = "<="
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] <= memory[self.op2.addr]
+
+class insAndF16(insBinop):
+    mnemonic = 'F16_AND'
+    symbol = "AND"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] and memory[self.op2.addr]
+
+class insOrF16(insBinop):
+    mnemonic = 'F16_OR'
+    symbol = "OR"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] or memory[self.op2.addr]
+
+class insAddF16(insBinop):
+    mnemonic = 'F16_ADD'
+    symbol = "+"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] + memory[self.op2.addr]
+
+class insSubF16(insBinop):
+    mnemonic = 'F16_SUB'
+    symbol = "-"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] - memory[self.op2.addr]
+
+class insMulF16(insBinop):
+    mnemonic = 'F16_MUL'
+    symbol = "*"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] * memory[self.op2.addr]
+
+class insDivF16(insBinop):
+    mnemonic = 'F16_DIV'
+    symbol = "/"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] / memory[self.op2.addr]
+
+class insModF16(insBinop):
+    mnemonic = 'F16_MOD'
+    symbol = "%"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] % memory[self.op2.addr]
+
 
 class BaseJmp(BaseInstruction):
     mnemonic = 'JMP'
