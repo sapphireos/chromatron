@@ -844,7 +844,7 @@ class Builder(object):
         # make sure we only emit integers
         return self.add_const(int(val), lineno=lineno)
 
-    def allocate_registers(self):
+    def allocate(self):
         self.data_table = []
         addr = 0
         for i in self.globals.values():
@@ -863,9 +863,11 @@ class Builder(object):
 
                 self.data_table.append(i)
 
-    def print_data_table(self):
-        for i in self.data_table:
-            print '%3d: %s' % (i.addr, i.name)
+        return self.data_table
+
+    def print_data_table(self, data):
+        for i in data:
+            print '%3d: %s' % (i.addr, i)
 
     def print_instructions(self, instructions):
         for name, func_code in instructions.items():
@@ -876,8 +878,6 @@ class Builder(object):
                 print s
 
     def generate_instructions(self):
-        self.allocate_registers()
-
         ins = {}
 
         for func in self.funcs.values():
@@ -885,5 +885,33 @@ class Builder(object):
 
 
         return ins
+
+
+
+class VM(object):
+    def __init__(self, code, data, pix_size_x=4, pix_size_y=4):
+        self.code = code
+        self.data = data
+
+        # init memory
+        self.memory = []
+
+        for var in data:
+            if isinstance(var, irConst):
+                self.memory.append(var.name)
+
+            else:
+                for i in xrange(var.length):
+                    self.memory.append(0)
+
+
+    def run(self, func):
+        for ins in self.code[func]:
+            ins.execute(self.memory)
+
+
+
+
+
 
 

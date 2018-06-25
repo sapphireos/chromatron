@@ -56,6 +56,9 @@ class BaseInstruction(object):
     def assemble(self):
         raise NotImplementedError(self.mnemonic)
 
+    def execute(self, memory):
+        raise NotImplementedError(self.mnemonic)
+
     def len(self):
         return len(self.assemble())
 
@@ -94,6 +97,9 @@ class insMov(BaseInstruction):
 
     def __str__(self):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, memory):
+        memory[self.dest.addr] = memory[self.src.addr]
 
     def assemble(self):
         bc = [self.opcode]
@@ -156,6 +162,9 @@ class insOr(insBinop):
 class insAdd(insBinop):
     mnemonic = 'ADD'
     symbol = "+"
+
+    def execute(self, memory):
+        memory[self.result.addr] = memory[self.op1.addr] + memory[self.op2.addr]
 
 class insSub(insBinop):
     mnemonic = 'SUB'
@@ -252,6 +261,9 @@ class insReturn(BaseInstruction):
 
     def __str__(self):
         return "%s %s" % (self.mnemonic, self.op1)
+
+    def execute(self, memory):
+        pass
 
     # def assemble(self):
         # return [self.opcode, self.op1.addr]
@@ -407,12 +419,6 @@ class insVectorMod(insVectorOp):
 class insVectorMov(insVectorOp):
     mnemonic = 'VMOV'
     symbol = "="
-
-
-
-
-
-
 
 
 

@@ -682,10 +682,15 @@ except SyntaxError as e:
 
 
 
-
+data = builder.allocate()
 ins = builder.generate_instructions()
 builder.print_instructions(ins)
-builder.print_data_table()
+builder.print_data_table(data)
 
+vm = VM(ins, data)
 
+print vm.memory
+vm.run('basic')
+
+print vm.memory
 
