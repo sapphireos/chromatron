@@ -38,12 +38,13 @@ class irVar(IR):
         self.type = type
         self.length = 1
         self.dimensions = dimensions
+        self.addr = None
 
     def __str__(self):
         return "Var (%s, %s)" % (self.name, self.type)
 
     def generate(self):
-        return insAddr()
+        return insAddr(self.addr)
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -406,6 +407,8 @@ class Builder(object):
         self.globals = {}
         self.objects = {}
         self.labels = {}
+
+        self.data_table = []
 
         self.loop_top = None
         self.loop_end = None
@@ -826,6 +829,29 @@ class Builder(object):
         # make sure we only emit integers
         return self.add_const(int(val), lineno=lineno)
 
+    def allocate_registers(self):
+        self.data_table = []
+        addr = 0
+        for i in self.globals.values():
+            i.addr = addr
+            addr += i.length
+
+            self.data_table.append(i)
+
+        for func_name, local in self.locals.items():
+            for i in local.values():
+                i.addr = addr
+                addr += i.length
+
+                # assign func name to var
+                i.name = '%s.%s' % (func_name, i.name)
+
+                self.data_table.append(i)
+
+    def print_data_table(self):
+        for i in self.data_table:
+            print '%3d: %s' % (i.addr, i.name)
+
     def print_instructions(self, instructions):
         for name, func_code in instructions.items():
             print name
@@ -835,6 +861,8 @@ class Builder(object):
                 print s
 
     def generate_instructions(self):
+        self.allocate_registers()
+
         ins = {}
 
         for func in self.funcs.values():
