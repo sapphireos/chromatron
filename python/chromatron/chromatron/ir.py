@@ -296,16 +296,6 @@ class irAssign(IR):
             return insVectorMov(self.target.generate(), self.value.generate())        
 
 
-class irClr(IR):
-    def __init__(self, target, **kwargs):
-        super(irClr, self).__init__(**kwargs)
-        self.target = target
-        
-    def __str__(self):
-        s = '%s = 0' % (self.target)
-
-        return s
-
 class irCall(IR):
     def __init__(self, target, params, args, result, **kwargs):
         super(irCall, self).__init__(**kwargs)
