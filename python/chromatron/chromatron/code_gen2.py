@@ -603,6 +603,18 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_BinOp(self, node):
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)
 
+    def visit_BoolOp(self, node):
+        op = self.visit(node.op)
+
+        left = node.values.pop(0)
+
+        while len(node.values) > 0:
+                right = node.values.pop(0)
+                
+                result = cg1BinOpNode(op, self.visit(left), self.visit(right), lineno=node.lineno)
+                left = result
+
+        return result
 
     def visit_Add(self, node):
         return "add"
@@ -636,6 +648,12 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_NotEq(self, node):
         return "neq"
+
+    def visit_And(self, node):
+        return "logical_and"
+
+    def visit_Or(self, node):
+        return "logical_or"
 
     def visit_Expr(self, node):
         return self.visit(node.value)

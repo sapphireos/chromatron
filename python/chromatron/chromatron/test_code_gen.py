@@ -1882,11 +1882,11 @@ class CGTestsBase(unittest.TestCase):
                 'b': 2,
             })
 
-    # def test_basic_for(self):
-    #     self.run_test(basic_for,
-    #         expected={
-    #             'a': 10,
-    #         })
+    def test_basic_for(self):
+        self.run_test(basic_for,
+            expected={
+                'a': 10,
+            })
 
     # def test_basic_while(self):
     #     self.run_test(basic_while,
@@ -1894,28 +1894,28 @@ class CGTestsBase(unittest.TestCase):
     #             'a': 10,
     #         })
 
-    # def test_basic_call(self):
-    #     self.run_test(basic_call,
-    #         expected={
-    #             'a': 5,
-    #         })
+    def test_basic_call(self):
+        self.run_test(basic_call,
+            expected={
+                'a': 5,
+            })
 
-    # def test_basic_return(self):
-    #     self.run_test(basic_return,
-    #         expected={
-    #             'a': 8,
-    #         })
+    def test_basic_return(self):
+        self.run_test(basic_return,
+            expected={
+                'a': 8,
+            })
 
-    # def test_basic_logic(self):
-    #     self.run_test(basic_logic,
-    #         expected={
-    #             'a': 0,
-    #             'b': 0,
-    #             'c': 1,
-    #             'd': 0,
-    #             'e': 1,
-    #             'f': 1,
-    #         })
+    def test_basic_logic(self):
+        self.run_test(basic_logic,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 1,
+                'd': 0,
+                'e': 1,
+                'f': 1,
+            })
 
     # def test_call_with_params(self):
     #     self.run_test(call_with_params,
