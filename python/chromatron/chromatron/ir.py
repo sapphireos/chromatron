@@ -196,6 +196,9 @@ class irNop(IR):
     def __str__(self, **kwargs):
         return "NOP" 
 
+    def generate(self):
+        return insNop()
+
 class irBinop(IR):
     def __init__(self, result, op, left, right, **kwargs):
         super(irBinop, self).__init__(**kwargs)
@@ -951,6 +954,16 @@ class VM(object):
                 for i in xrange(var.length):
                     self.memory.append(0)
 
+    def dump_registers(self):
+        registers = {}
+        for var in self.data:
+            registers[var.name] = self.memory[var.addr]
+
+        return registers
+
+    def run_once(self):
+        self.run('init')
+        self.run('loop')
 
     def run(self, func):
         cycles = 0
@@ -979,7 +992,7 @@ class VM(object):
 
             ins = self.code[pc]
 
-            print cycles, pc, ins
+            # print cycles, pc, ins
 
             pc += 1
 

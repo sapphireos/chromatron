@@ -618,8 +618,14 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Lt(self, node):
         return "lt"
 
+    def visit_LtE(self, node):
+        return "lte"
+
     def visit_Gt(self, node):
         return "gt"
+
+    def visit_GtE(self, node):
+        return "gte"
 
     def visit_Eq(self, node):
         return "eq"
@@ -674,45 +680,62 @@ class CodeGenPass1(ast.NodeVisitor):
         raise NotImplementedError(node)
 
 
+def compile_text(source, debug_print=True):
+    cg1 = CodeGenPass1()
+    cg1_data = cg1(source)
 
-with open('cg2_test.fx') as f:
-    source = f.read()
+    if debug_print:
+        print pformat_ast(cg1_data)
 
-
-# with open('rainbow2.fx') as f:
-    # source = f.read()
-
-tree = ast.parse(source)
-
-print pformat_ast(tree)
-
-print '\n'
-
-cg1 = CodeGenPass1()
-
-cg1_data = cg1(source)
-
-print pformat_ast(cg1_data)
-
-try:
     builder = cg1_data.build()
+    data = builder.allocate()
+    code = builder.generate_instructions()
 
-    print builder
+    if debug_print:
+        builder.print_instructions(code)
+        builder.print_data_table(data)
 
-except SyntaxError as e:
-    print e
+    return data, code
+
+if __name__ == '__main__':
+    with open('cg2_test.fx') as f:
+        source = f.read()
+
+
+    # with open('rainbow2.fx') as f:
+        # source = f.read()
+
+    tree = ast.parse(source)
+
+    print pformat_ast(tree)
+
+    print '\n'
+
+    cg1 = CodeGenPass1()
+
+    cg1_data = cg1(source)
+
+    print pformat_ast(cg1_data)
+
+    try:
+        builder = cg1_data.build()
+
+        print builder
+
+    except SyntaxError as e:
+        print e
 
 
 
-data = builder.allocate()
-ins = builder.generate_instructions()
-builder.print_instructions(ins)
-builder.print_data_table(data)
+    data = builder.allocate()
+    ins = builder.generate_instructions()
+    builder.print_instructions(ins)
+    builder.print_data_table(data)
 
-vm = VM(ins, data)
+    vm = VM(ins, data)
 
-print vm.memory
-vm.run('basic')
+    print vm.memory
+    vm.run('basic')
 
-print vm.memory
+    print vm.memory
 

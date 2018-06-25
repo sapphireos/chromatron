@@ -92,6 +92,9 @@ class BaseInstruction(object):
         global opcodes
         return opcodes[self.mnemonic]
 
+class insNop(BaseInstruction):
+    def execute(self, memory):
+        pass
 
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
