@@ -1,20 +1,37 @@
 
 
 opcodes = {
-    'MOV':              0x01,
-    'COMP_EQ':          0x02,
-    'COMP_NEQ':         0x03,
-    'COMP_GT':          0x04,
-    'COMP_GTE':         0x05,
-    'COMP_LT':          0x06,
-    'COMP_LTE':         0x07,
-    'AND':              0x08,
-    'OR':               0x09,
-    'ADD':              0x0A,
-    'SUB':              0x0B,
-    'MUL':              0x0C,
-    'DIV':              0x0D,
-    'MOD':              0x0E,
+    'MOV':                  0x01,
+    'COMP_EQ':              0x02,
+    'COMP_NEQ':             0x03,
+    'COMP_GT':              0x04,
+    'COMP_GTE':             0x05,
+    'COMP_LT':              0x06,
+    'COMP_LTE':             0x07,
+    'AND':                  0x08,
+    'OR':                   0x09,
+    'ADD':                  0x0A,
+    'SUB':                  0x0B,
+    'MUL':                  0x0C,
+    'DIV':                  0x0D,
+    'MOD':                  0x0E,
+    'JMP':                  0x0F,
+
+    'JMP_IF_Z':             0x10,
+    'JMP_IF_NOT_Z':         0x11,
+    'JMP_IF_Z_DEC':         0x12,
+    'JMP_IF_GTE':           0x13,
+    'JMP_IF_LESS_PRE_INC':  0x14,
+
+    'PRINT':                0x15,
+
+    'RET':                  0x16,
+    'CALL':                 0x17,
+
+    'INDEX':                0x18,
+
+    'LOAD_INDIRECT':        0x19,
+    'STORE_INDIRECT':       0x1A,
 }
 
 
@@ -47,6 +64,14 @@ class insAddr(BaseInstruction):
     
     def assemble(self):
         return [self.addr]
+
+
+class insLabel(BaseInstruction):
+    def __init__(self, name=None):
+        self.name = name
+
+    def __str__(self):
+        return "Label(%s)" % (self.name)
 
 
 class insMov(BaseInstruction):
@@ -136,3 +161,148 @@ class insDiv(insBinop):
 class insMod(insBinop):
     mnemonic = 'MOD'
     symbol = "%"
+
+
+class BaseJmp(BaseInstruction):
+    mnemonic = 'JMP'
+
+    def __init__(self, label):
+        super(BaseJmp, self).__init__()
+
+        self.label = label
+
+    def __str__(self):
+        return "%s -> %s" % (self.mnemonic, self.label)
+
+    # def assemble(self):
+        # return [self.opcode, ('label', self.label.name), 0]
+
+class insJmp(BaseJmp):
+    pass
+
+class insJmpConditional(BaseJmp):
+    def __init__(self, op1, label):
+        super(insJmpConditional, self).__init__(label)
+
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s, %s -> %s" % (self.mnemonic, self.op1, self.label)
+
+    # def assemble(self):
+        # return [self.opcode, self.op1.addr, ('label', self.label.name), 0]
+
+
+class insJmpIfZero(insJmpConditional):
+    mnemonic = 'JMP_IF_Z'
+
+class insJmpNotZero(insJmpConditional):
+    mnemonic = 'JMP_IF_NOT_Z'
+
+class insJmpIfZeroPostDec(insJmpConditional):
+    mnemonic = 'JMP_IF_Z_DEC'
+
+class insJmpIfGte(BaseJmp):
+    mnemonic = 'JMP_IF_GTE'
+
+    def __init__(self, op1, op2, label):
+        super(insJmpIfGte, self).__init__(label)
+
+        self.op1 = op1
+        self.op2 = op2
+
+    def __str__(self):
+        return "%s, %s >= %s -> %s" % (self.mnemonic, self.op1, self.op2, self.label)
+
+    # def assemble(self):
+        # return [self.opcode, self.op1.addr, self.op2.addr, ('label', self.label.name), 0]
+
+
+class insJmpIfLessThanPreInc(BaseJmp):
+    mnemonic = 'JMP_IF_LESS_PRE_INC'
+
+    def __init__(self, op1, op2, label):
+        super(insJmpIfLessThanPreInc, self).__init__(label)
+
+        self.op1 = op1
+        self.op2 = op2
+
+    def __str__(self):
+        return "%s, ++%s < %s -> %s" % (self.mnemonic, self.op1, self.op2, self.label)
+
+    # def assemble(self):
+        # return [self.opcode, self.op1.addr, self.op2.addr, ('label', self.label.name), 0]
+
+class insReturn(BaseInstruction):
+    mnemonic = 'RET'
+
+    def __init__(self, op1):
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.op1)
+
+    # def assemble(self):
+        # return [self.opcode, self.op1.addr]
+
+class insCall(BaseInstruction):
+    mnemonic = 'CALL'
+
+    def __init__(self, target):
+        self.target = target
+
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.target)
+
+    # def assemble(self):
+        # return [self.opcode, ('addr', self.target), 0]
+
+class insIndex(BaseInstruction):
+    mnemonic = 'INDEX'
+
+    def __init__(self, result, target, indexes):
+        self.result = result
+        self.target = target
+        self.indexes = indexes
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index)
+        return "%s %s <- %s %s" % (self.mnemonic, self.result, self.target, indexes)
+
+class insIndirectLoad(BaseInstruction):
+    mnemonic = 'LOAD_INDIRECT'
+
+    def __init__(self, dest, addr):
+        self.dest = dest
+        self.addr = addr
+
+    def __str__(self):
+        return "%s %s <- *%s" % (self.mnemonic, self.dest, self.addr)
+
+    # def assemble(self):
+        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+
+
+
+class insIndirectStore(BaseInstruction):
+    mnemonic = 'STORE_INDIRECT'
+
+    def __init__(self, src, addr):
+        self.src = src
+        self.addr = addr
+
+    def __str__(self):
+        return "%s *%s <- %s" % (self.mnemonic, self.addr, self.src)
+
+    # def assemble(self):
+        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+
+
+
+
+
+
+
+

@@ -29,7 +29,7 @@ class IR(object):
         assert self.lineno != None
 
     def generate(self):
-        return [BaseInstruction()]
+        return BaseInstruction()
 
 class irVar(IR):
     def __init__(self, name, type='i32', dimensions=[], **kwargs):
@@ -41,6 +41,9 @@ class irVar(IR):
 
     def __str__(self):
         return "Var (%s, %s)" % (self.name, self.type)
+
+    def generate(self):
+        return insAddr()
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -136,6 +139,19 @@ class irFunc(IR):
 
         return s
 
+    def generate(self):
+        ins = []
+        for ir in self.body:
+            code = ir.generate()
+
+            try:
+                ins.extend(code)
+
+            except TypeError:
+                ins.append(code)
+
+        return ins
+
 class irReturn(IR):
     def __init__(self, ret_var, **kwargs):
         super(irReturn, self).__init__(**kwargs)
@@ -143,6 +159,9 @@ class irReturn(IR):
 
     def __str__(self):
         return "RET %s" % (self.ret_var)
+
+    def generate(self):
+        return insReturn(self.ret_var.generate())
 
 class irNop(IR):
     def __str__(self, **kwargs):
@@ -161,6 +180,24 @@ class irBinop(IR):
 
         return s
 
+    def generate(self):
+        ops = {
+            'eq': insCompareEq,
+            'neq': insCompareNeq,
+            'gt': insCompareGt,
+            'gte': insCompareGtE,
+            'lt': insCompareLt,
+            'lte': insCompareLtE,
+            'logical_and': insAnd,
+            'logical_or': insOr,
+            'add': insAdd,
+            'sub': insSub,
+            'mult': insMul,
+            'div': insDiv,
+            'mod': insMod,
+        }
+
+        return ops[self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
 class irAugAssign(IR):
     def __init__(self, op, target, value, **kwargs):
@@ -189,6 +226,9 @@ class irAssign(IR):
 
         return s
 
+    def generate(self):
+        return insMov(self.target.generate(), self.value.generate())        
+
 
 class irClr(IR):
     def __init__(self, target, **kwargs):
@@ -213,6 +253,10 @@ class irCall(IR):
 
         return s
 
+    def generate(self):
+        return insCall(self.target)
+
+
 class irLabel(IR):
     def __init__(self, name, **kwargs):
         super(irLabel, self).__init__(**kwargs)        
@@ -223,15 +267,17 @@ class irLabel(IR):
 
         return s
 
+    def generate(self):
+        return insLabel(self.name)
 
-class irBranch(IR):
+
+class irBranchConditional(IR):
     def __init__(self, value, target, **kwargs):
-        super(irBranch, self).__init__(**kwargs)        
+        super(irBranchConditional, self).__init__(**kwargs)        
         self.value = value
         self.target = target
 
-
-class irBranchZero(irBranch):
+class irBranchZero(irBranchConditional):
     def __init__(self, *args, **kwargs):
         super(irBranchZero, self).__init__(*args, **kwargs)        
 
@@ -240,7 +286,12 @@ class irBranchZero(irBranch):
 
         return s    
 
-class irBranchNotZero(irBranch):
+    def generate(self):
+        return insJmpIfZero(self.value.generate(), self.target.generate())
+        
+
+
+class irBranchNotZero(irBranchConditional):
     def __init__(self, *args, **kwargs):
         super(irBranchNotZero, self).__init__(*args, **kwargs)        
 
@@ -248,6 +299,10 @@ class irBranchNotZero(irBranch):
         s = 'BR NZ %s -> %s' % (self.value, self.target.name)
 
         return s    
+
+    def generate(self):
+        return insJmpIfNotZero(self.value.generate(), self.target.generate())
+    
 
 class irJump(IR):
     def __init__(self, target, **kwargs):
@@ -258,6 +313,10 @@ class irJump(IR):
         s = 'JMP -> %s' % (self.target.name)
 
         return s    
+
+    def generate(self):
+        return insJmp(self.target.generate())
+    
 
 class irJumpLessPreInc(IR):
     def __init__(self, target, op1, op2, **kwargs):
@@ -270,6 +329,9 @@ class irJumpLessPreInc(IR):
         s = 'JMP (%s++) < %s -> %s' % (self.op1, self.op2, self.target.name)
 
         return s    
+
+    def generate(self):
+        return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate())
 
 class irAssert(IR):
     def __init__(self, value, **kwargs):
@@ -298,6 +360,11 @@ class irIndex(IR):
 
         return s   
 
+    def generate(self):
+        indexes = [i.generate() for i in self.indexes]
+
+        return insIndex(self.result.generate(), self.target.generate(), indexes)
+
 
 class irIndexLoad(IR):
     def __init__(self, result, address, **kwargs):
@@ -310,6 +377,9 @@ class irIndexLoad(IR):
 
         return s    
 
+    def generate(self):
+        return insIndirectLoad(self.result.generate(), self.address.generate())
+
 class irIndexStore(IR):
     def __init__(self, address, value, **kwargs):
         super(irIndexStore, self).__init__(**kwargs)        
@@ -320,6 +390,10 @@ class irIndexStore(IR):
         s = '*%s = %s' % (self.address, self.value)
 
         return s    
+
+    def generate(self):
+        return insIndirectStore(self.address.generate(), self.value.generate())
+
 
 class Builder(object):
     def __init__(self):
