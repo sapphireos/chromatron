@@ -212,6 +212,17 @@ class irAugAssign(IR):
 
         return s
 
+    def generate(self):
+        ops = {
+            'add': insVectorAdd,
+            'sub': insVectorSub,
+            'mult': insVectorMul,
+            'div': insVectorDiv,
+            'mod': insVectorMod,
+        }
+
+        return ops[self.op](self.target.generate(), self.value.generate())
+
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
         super(irAssign, self).__init__(**kwargs)
@@ -228,7 +239,11 @@ class irAssign(IR):
         return s
 
     def generate(self):
-        return insMov(self.target.generate(), self.value.generate())        
+        if self.target.length == 1:
+            return insMov(self.target.generate(), self.value.generate())        
+
+        else:
+            return insVectorMov(self.target.generate(), self.value.generate())        
 
 
 class irClr(IR):

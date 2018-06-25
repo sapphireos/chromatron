@@ -36,6 +36,13 @@ opcodes = {
     'RAND':                 0x1B,
     'ASSERT':               0x1C,
     'HALT':                 0x1D,
+
+    'VADD':                 0x1E,
+    'VSUB':                 0x1F,
+    'VMUL':                 0x20,
+    'VDIV':                 0x21,
+    'VMOD':                 0x22,
+    'VMOV':                 0x23,
 }
 
 
@@ -308,10 +315,6 @@ class insIndirectStore(BaseInstruction):
 
 
 
-
-
-
-
 class insRand(BaseInstruction):
     mnemonic = 'RAND'
 
@@ -349,3 +352,67 @@ class insHalt(BaseInstruction):
 
     # def assemble(self):
         # return [self.opcode]
+
+
+class insVectorOp(BaseInstruction):
+    def __init__(self, target, op1):
+        super(insVectorOp, self).__init__()
+        self.target = target
+        self.op1 = op1
+
+    def __str__(self):
+        return "%-16s %16s %1s= %16s" % (self.mnemonic, self.target, self.symbol, self.op1)
+
+    # def assemble(self):
+    #     obj_type = 0
+    #     attr = 0
+    #     ary_stride = ConstIR(0)
+    #     ary_length = ConstIR(0)
+
+    #     if isinstance(self.result, PixelObjIR):
+    #         obj_type = PIX_OBJ_TYPE
+    #         attr = PIX_ATTRS[self.result.attr]
+
+    #     elif isinstance(self.result, ArrayVarIR):
+    #         obj_type = ARRAY_OBJ_TYPE
+    #         attr = 0
+    #         ary_stride = ConstIR(self.result.stride)
+    #         ary_length = ConstIR(self.result.length)
+
+    #     # Array op format is:
+    #     # opcode - object type - object address - attribute address - operand
+    #     return [self.opcode, obj_type, self.result.addr, ary_length, ary_stride, attr, self.op1.addr]
+
+
+class insVectorAdd(insVectorOp):
+    mnemonic = 'VADD'
+    symbol = "+"
+
+class insVectorSub(insVectorOp):
+    mnemonic = 'VSUB'
+    symbol = "-"
+
+class insVectorMul(insVectorOp):
+    mnemonic = 'VMUL'
+    symbol = "*"
+
+class insVectorDiv(insVectorOp):
+    mnemonic = 'VDIV'
+    symbol = "/"
+
+class insVectorMod(insVectorOp):
+    mnemonic = 'VMOD'
+    symbol = "%"
+
+class insVectorMov(insVectorOp):
+    mnemonic = 'VMOV'
+    symbol = "="
+
+
+
+
+
+
+
+
+
