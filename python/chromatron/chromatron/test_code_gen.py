@@ -1917,27 +1917,27 @@ class CGTestsBase(unittest.TestCase):
                 'f': 1,
             })
 
-    # def test_call_with_params(self):
-    #     self.run_test(call_with_params,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #         })
+    def test_call_with_params(self):
+        self.run_test(call_with_params,
+            expected={
+                'a': 1,
+                'b': 2,
+            })
 
-    # def test_if_expr(self):
-    #     self.run_test(if_expr,
-    #         expected={
-    #             'a': 1,
-    #             'b': 1,
-    #             'c': 2,
-    #         })
+    def test_if_expr(self):
+        self.run_test(if_expr,
+            expected={
+                'a': 1,
+                'b': 1,
+                'c': 2,
+            })
 
-    # def test_call_expr(self):
-    #     self.run_test(call_expr,
-    #         expected={
-    #             'a': 8,
-    #             'b': 18,
-    #         })
+    def test_call_expr(self):
+        self.run_test(call_expr,
+            expected={
+                'a': 8,
+                'b': 18,
+            })
 
     # def test_call_register_reuse(self):
     #     self.run_test(call_register_reuse,
@@ -1945,11 +1945,11 @@ class CGTestsBase(unittest.TestCase):
     #             'a': 2,
     #         })
 
-    # def test_for_expr(self):
-    #     self.run_test(for_expr,
-    #         expected={
-    #             'a': 9,
-    #         })
+    def test_for_expr(self):
+        self.run_test(for_expr,
+            expected={
+                'a': 9,
+            })
 
     # def test_while_expr(self):
     #     self.run_test(while_expr,
@@ -1957,25 +1957,25 @@ class CGTestsBase(unittest.TestCase):
     #             'a': 4,
     #         })
 
-    # def test_aug_assign_test(self):
-    #     self.run_test(aug_assign_test,
-    #         expected={
-    #             'a': 1,
-    #             'b': -1,
-    #             'c': 9,
-    #             'd': 4,
-    #             'e': 2,
-    #         })
+    def test_aug_assign_test(self):
+        self.run_test(aug_assign_test,
+            expected={
+                'a': 1,
+                'b': -1,
+                'c': 9,
+                'd': 4,
+                'e': 2,
+            })
 
-    # def test_aug_assign_expr_test(self):
-    #     self.run_test(aug_assign_expr_test,
-    #         expected={
-    #             'a': 2,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 8,
-    #             'e': 10,
-    #         })
+    def test_aug_assign_expr_test(self):
+        self.run_test(aug_assign_expr_test,
+            expected={
+                'a': 2,
+                'b': 2,
+                'c': 3,
+                'd': 8,
+                'e': 10,
+            })
 
     # def test_break_node_while(self):
     #     self.run_test(break_node_while,
@@ -1990,18 +1990,18 @@ class CGTestsBase(unittest.TestCase):
     #             'a': 5,
     #         })
 
-    # def test_break_node_for(self):
-    #     self.run_test(break_node_for,
-    #         expected={
-    #             'global_i': 6,
-    #         })
+    def test_break_node_for(self):
+        self.run_test(break_node_for,
+            expected={
+                'global_i': 6,
+            })
 
-    # def test_continue_node_for(self):
-    #     self.run_test(continue_node_for,
-    #         expected={
-    #             'global_i': 10,
-    #             'a': 6
-    #         })
+    def test_continue_node_for(self):
+        self.run_test(continue_node_for,
+            expected={
+                'global_i': 10,
+                'a': 6
+            })
 
     # def test_double_break_node_while(self):
     #     self.run_test(double_break_node_while,
@@ -2026,13 +2026,13 @@ class CGTestsBase(unittest.TestCase):
     #             'b': 24,
     #         })
 
-    # def test_double_continue_node_for(self):
-    #     self.run_test(double_continue_node_for,
-    #         expected={
-    #             'global_i': 10,
-    #             'a': 24,
-    #             'global_x': 4,
-    #         })
+    def test_double_continue_node_for(self):
+        self.run_test(double_continue_node_for,
+            expected={
+                'global_i': 10,
+                'a': 24,
+                'global_x': 4,
+            })
 
     # def test_no_loop_function(self):
     #     # we don't check anything, we just make sure
