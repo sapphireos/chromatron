@@ -283,7 +283,8 @@ class BaseJmp(BaseInstruction):
         # return [self.opcode, ('label', self.label.name), 0]
 
 class insJmp(BaseJmp):
-    pass
+    def execute(self, memory):
+        return self.label
 
 class insJmpConditional(BaseJmp):
     def __init__(self, op1, label):

@@ -748,11 +748,12 @@ class Builder(object):
     def ifelse(self, test, lineno=None):
         body_label = self.label('if.then', lineno=lineno)
         else_label = self.label('if.else', lineno=lineno)
+        end_label = self.label('if.end', lineno=lineno)
 
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
-        return body_label, else_label
+        return body_label, else_label, end_label
 
     def position_label(self, label):
         self.append_node(label)
@@ -785,17 +786,18 @@ class Builder(object):
         self.loop_top = None
         self.loop_end = None
 
+    def jump(self, target, lineno=None):
+        ir = irJump(target, lineno=lineno)
+        self.append_node(ir)
+
     def loop_break(self, lineno=None):
         assert self.loop_end != None
+        self.jump(self.loop_end, lineno=lineno)
 
-        ir = irJump(self.loop_end, lineno=lineno)
-        self.append_node(ir)
 
     def loop_continue(self, lineno=None):
         assert self.loop_top != None    
-
-        ir = irJump(self.loop_top, lineno=lineno)
-        self.append_node(ir)
+        self.jump(self.loop_top, lineno=lineno)
 
     def assertion(self, test, lineno=None):
         ir = irAssert(test, lineno=lineno)

@@ -1788,92 +1788,92 @@ class CGTestsBase(unittest.TestCase):
     #             'c': 3,
     #         })
 
-    # def test_empty(self):
-    #     self.run_test(empty_program,
-    #         expected={
-    #         })
+    def test_empty(self):
+        self.run_test(empty_program,
+            expected={
+            })
 
-    # def test_basic_vars(self):
-    #     self.run_test(basic_vars,
-    #         expected={
-    #             'a': 0,
-    #             'b': 0,
-    #             'c': 0,
-    #         })
+    def test_basic_vars(self):
+        self.run_test(basic_vars,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 0,
+            })
 
-    # def test_basic_assign(self):
-    #     self.run_test(basic_assign,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #         })
+    def test_basic_assign(self):
+        self.run_test(basic_assign,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
 
-    # def test_basic_math(self):
-    #     self.run_test(basic_math,
-    #         expected={
-    #             'a': 3,
-    #             'b': 6,
-    #             'c': 9,
-    #             'd': 1,
-    #             'e': 10,
-    #             'f': 2,
-    #             'g': 1,
-    #         })
+    def test_basic_math(self):
+        self.run_test(basic_math,
+            expected={
+                'a': 3,
+                'b': 6,
+                'c': 9,
+                'd': 1,
+                'e': 10,
+                'f': 2,
+                'g': 1,
+            })
 
-    # def test_constant_folding(self):
-    #     self.run_test(constant_folding,
-    #         expected={
-    #             'a': 10,
-    #             'b': 20,
-    #         })
+    def test_constant_folding(self):
+        self.run_test(constant_folding,
+            expected={
+                'a': 10,
+                'b': 20,
+            })
 
-    # def test_compare_gt(self):
-    #     self.run_test(basic_compare_gt,
-    #         expected={
-    #             'a': 0,
-    #             'b': 0,
-    #             'c': 1,
-    #         })
+    def test_compare_gt(self):
+        self.run_test(basic_compare_gt,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 1,
+            })
 
-    # def test_compare_gte(self):
-    #     self.run_test(basic_compare_gte,
-    #         expected={
-    #             'a': 0,
-    #             'b': 1,
-    #             'c': 1,
-    #         })
+    def test_compare_gte(self):
+        self.run_test(basic_compare_gte,
+            expected={
+                'a': 0,
+                'b': 1,
+                'c': 1,
+            })
 
-    # def test_compare_lt(self):
-    #     self.run_test(basic_compare_lt,
-    #         expected={
-    #             'a': 1,
-    #             'b': 0,
-    #             'c': 0,
-    #         })
+    def test_compare_lt(self):
+        self.run_test(basic_compare_lt,
+            expected={
+                'a': 1,
+                'b': 0,
+                'c': 0,
+            })
 
-    # def test_compare_lte(self):
-    #     self.run_test(basic_compare_lte,
-    #         expected={
-    #             'a': 1,
-    #             'b': 1,
-    #             'c': 0,
-    #         })
+    def test_compare_lte(self):
+        self.run_test(basic_compare_lte,
+            expected={
+                'a': 1,
+                'b': 1,
+                'c': 0,
+            })
 
-    # def test_compare_eq(self):
-    #     self.run_test(basic_compare_eq,
-    #         expected={
-    #             'a': 0,
-    #             'b': 1,
-    #         })
+    def test_compare_eq(self):
+        self.run_test(basic_compare_eq,
+            expected={
+                'a': 0,
+                'b': 1,
+            })
 
-    # def test_compare_neq(self):
-    #     self.run_test(basic_compare_neq,
-    #         expected={
-    #             'a': 1,
-    #             'b': 0,
-    #         })
+    def test_compare_neq(self):
+        self.run_test(basic_compare_neq,
+            expected={
+                'a': 1,
+                'b': 0,
+            })
 
     def test_basic_if(self):
         self.run_test(basic_if,

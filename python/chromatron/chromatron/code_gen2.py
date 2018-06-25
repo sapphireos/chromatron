@@ -280,15 +280,19 @@ class cg1If(cg1CodeNode):
     def build(self, builder):
         test = self.test.build(builder)
 
-        body_label, else_label = builder.ifelse(test, lineno=self.lineno)
+        body_label, else_label, end_label = builder.ifelse(test, lineno=self.lineno)
 
         builder.position_label(body_label)    
         for node in self.body:
             node.build(builder)
+        # jump to end
+        builder.jump(end_label, lineno=self.lineno)
 
         builder.position_label(else_label)
         for node in self.orelse:
             node.build(builder)
+
+        builder.position_label(end_label)
 
 
 class cg1BinOpNode(cg1CodeNode):
