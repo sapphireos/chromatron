@@ -625,13 +625,13 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_BoolOp(self, node):
         op = self.visit(node.op)
 
-        left = node.values.pop(0)
+        left = self.visit(node.values.pop(0))
 
         while len(node.values) > 0:
-                right = node.values.pop(0)
-                
-                result = cg1BinOpNode(op, self.visit(left), self.visit(right), lineno=node.lineno)
-                left = result
+            right = self.visit(node.values.pop(0))
+            
+            result = cg1BinOpNode(op, left, right, lineno=node.lineno)
+            left = result
 
         return result
 

@@ -2050,13 +2050,13 @@ class CGTestsBase(unittest.TestCase):
     #             'd': 4,
     #         })
 
-    # def test_multiple_comparison(self):
-    #     self.run_test(multiple_comparison,
-    #         expected={
-    #             'e': 1,
-    #             'f': 0,
-    #             'g': 1,
-    #         })
+    def test_multiple_comparison(self):
+        self.run_test(multiple_comparison,
+            expected={
+                'e': 1,
+                'f': 0,
+                'g': 1,
+            })
 
     # def test_not(self):
     #     self.run_test(test_not,
