@@ -122,7 +122,11 @@ class insAddr(BaseInstruction):
         self.var = var
 
     def __str__(self):
-        return "Addr(%s, %s)" % (self.addr, self.var.type)
+        if self.var != None:
+            return "Addr(%s, %s)" % (self.addr, self.var.type)
+
+        else:
+            return "Addr(%s)" % (self.addr)
     
     def assemble(self):
         return [self.addr]

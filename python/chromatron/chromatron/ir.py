@@ -1066,9 +1066,15 @@ class VM(object):
                 continue
 
             if isinstance(var, irArray):
-                print var
+                # print var
+                value = []
+                addr = var.addr
+                for i in xrange(var.length):
+                    value.append(self.memory[addr])
+                    addr += 1
 
-            value = self.memory[var.addr]
+            else:
+                value = self.memory[var.addr]
 
             # convert fixed16 to float
             if var.type == 'f16':
