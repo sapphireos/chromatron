@@ -768,11 +768,14 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Import(self, node):
         return cg1Import([a.name for a in node.names], lineno=node.lineno)
 
+    def visit_Str(self, node):
+        return node.s
+
     def generic_visit(self, node):
         raise NotImplementedError(node)
 
 
-def compile_text(source, debug_print=True):
+def compile_text(source, debug_print=False):
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
@@ -780,6 +783,9 @@ def compile_text(source, debug_print=True):
         print pformat_ast(cg1_data)
 
     builder = cg1_data.build()
+    if debug_print:
+        print builder
+
     data = builder.allocate()
     code = builder.generate_instructions()
 
