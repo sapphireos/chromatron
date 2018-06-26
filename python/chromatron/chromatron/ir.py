@@ -359,21 +359,38 @@ class irCall(IR):
 
         return s
 
-    def generate(self):
-        if self.target == 'rand':
-            return insRand(self.target)
+    def generate(self):        
+        params = [a.generate() for a in self.params]
+        args = [a.generate() for a in self.args]
 
-        else:
-            params = [a.generate() for a in self.params]
-            args = [a.generate() for a in self.args]
+        # call func
+        call_ins = insCall(self.target, params, args)
 
-            # call func
-            call_ins = insCall(self.target, params, args)
+        # move return value to result register
+        mov_ins = insMov(self.result.generate(), insAddr(0))
 
-            # move return value to result register
-            mov_ins = insMov(self.result.generate(), insAddr(0))
+        return [call_ins, mov_ins]
 
-            return [call_ins, mov_ins]
+class irLibCall(IR):
+    def __init__(self, target, params, result, **kwargs):
+        super(irLibCall, self).__init__(**kwargs)
+        self.target = target
+        self.params = params
+        self.result = result
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = 'LCALL %s(%s) -> %s' % (self.target, params, self.result)
+
+        return s
+
+    def generate(self):        
+        params = [a.generate() for a in self.params]
+
+        # call func
+        call_ins = insLibCall(self.target, self.result, params)
+
+        return call_ins
 
 
 class irLabel(IR):
@@ -825,10 +842,13 @@ class Builder(object):
     def call(self, target, params, lineno=None):
         result = self.add_temp(lineno=lineno)
 
-        args = self.funcs[target].params
+        try:
+            args = self.funcs[target].params
+            ir = irCall(target, params, args, result, lineno=lineno)
 
-        ir = irCall(target, params, args, result, lineno=lineno)
-    
+        except KeyError:
+            ir = irLibCall(target, params, result, lineno=lineno)
+        
         self.append_node(ir)        
 
         return result

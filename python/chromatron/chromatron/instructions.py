@@ -546,8 +546,83 @@ class insCall(BaseInstruction):
 
         return insLabel(self.target)
 
-    # def assemble(self):
-        # return [self.opcode, ('addr', self.target), 0]
+
+class insLibCall(BaseInstruction):
+    mnemonic = 'LCALL'
+
+    def __init__(self, target, result, params=[]):
+        self.target = target
+        self.result = result
+        self.params = params
+
+        self.lib_funcs = {
+            'len': self._len,
+            'min': self._min,
+            'max': self._max,
+            'sum': self._sum,
+            'avg': self._avg,
+        }
+
+    def __str__(self):
+        params = ''
+        for param in self.params:
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
+
+        return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
+
+    def _len(self, memory):
+        return self.params[0].var.dimensions[0]
+
+    def _min(self, memory):
+        addr = self.params[0].addr
+        a = memory[addr]
+
+        for i in xrange(self.params[0].var.length - 1):
+            addr += 1
+            if memory[addr] < a:
+                a = memory[addr]
+
+        return a
+
+    def _max(self, memory):
+        addr = self.params[0].addr
+        a = memory[addr]
+
+        for i in xrange(self.params[0].var.length - 1):
+            addr += 1
+            if memory[addr] > a:
+                a = memory[addr]
+
+        return a
+
+    def _sum(self, memory):
+        addr = self.params[0].addr
+        a = 0
+
+        for i in xrange(self.params[0].var.length):
+        
+            a += memory[addr]
+            addr += 1
+
+        return a
+
+    def _avg(self, memory):
+        addr = self.params[0].addr
+        a = 0
+
+        for i in xrange(self.params[0].var.length):
+        
+            a += memory[addr]
+            addr += 1
+
+        return a / self.params[0].var.length
+
+    def execute(self, memory):
+        result = self.lib_funcs[self.target](memory)
+
+        memory[self.result.addr] = result
+
 
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
@@ -667,27 +742,7 @@ class insVector(BaseInstruction):
         self.value = value
 
     def __str__(self):
-        return "%-16s %16s %1s= %16s" % (self.mnemonic, self.target, self.symbol, self.value)
-
-    # def assemble(self):
-    #     obj_type = 0
-    #     attr = 0
-    #     ary_stride = ConstIR(0)
-    #     ary_length = ConstIR(0)
-
-    #     if isinstance(self.result, PixelObjIR):
-    #         obj_type = PIX_OBJ_TYPE
-    #         attr = PIX_ATTRS[self.result.attr]
-
-    #     elif isinstance(self.result, ArrayVarIR):
-    #         obj_type = ARRAY_OBJ_TYPE
-    #         attr = 0
-    #         ary_stride = ConstIR(self.result.stride)
-    #         ary_length = ConstIR(self.result.length)
-
-    #     # Array op format is:
-    #     # opcode - object type - object address - attribute address - operand
-    #     return [self.opcode, obj_type, self.result.addr, ary_length, ary_stride, attr, self.op1.addr]
+        return "%s %s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
 class insVectorMov(insVector):
     op = "mov"
