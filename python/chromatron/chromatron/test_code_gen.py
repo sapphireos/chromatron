@@ -1975,11 +1975,11 @@ class CGTestsBase(unittest.TestCase):
                 'a': 9,
             })
 
-    # def test_while_expr(self):
-    #     self.run_test(while_expr,
-    #         expected={
-    #             'a': 4,
-    #         })
+    def test_while_expr(self):
+        self.run_test(while_expr,
+            expected={
+                'a': 4,
+            })
 
     def test_aug_assign_test(self):
         self.run_test(aug_assign_test,
