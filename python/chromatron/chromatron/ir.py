@@ -508,7 +508,7 @@ class irIndexStore(IR):
         return s    
 
     def generate(self):
-        return insIndirectStore(self.address.generate(), self.value.generate())
+        return insIndirectStore(self.value.generate(), self.address.generate())
 
 
 class Builder(object):
