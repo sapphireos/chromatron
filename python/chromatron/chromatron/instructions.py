@@ -692,7 +692,7 @@ class insConvF16toI32(BaseInstruction):
         return "%s %s = I32(%s)" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, memory):
-        memory[self.dest.addr] = (memory[self.src.addr] >> 16) & 0xffffffff
+        memory[self.dest.addr] = int(memory[self.src.addr] / 65536.0)
 
     # def assemble(self):
     #     bc = [self.opcode]

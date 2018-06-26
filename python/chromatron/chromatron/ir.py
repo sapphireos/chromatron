@@ -72,19 +72,6 @@ class irVar(IR):
     def generate(self):
         return insAddr(self.addr)
 
-    def convert(self, source):
-        type_conversions = {
-            ('i32', 'f16'): insConvF16toI32,
-            ('f16', 'i32'): insConvI32toF16,
-        }
-
-        if self.type == source.type:
-            return None
-
-        ins = type_conversions[(self.type, source.type)]
-        
-        return ins(self.generate(), source.generate())
-
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_i32, self).__init__(*args, **kwargs)
@@ -261,8 +248,32 @@ class irBinop(IR):
                 'div': insF16Div,
                 'mod': insF16Mod},
         }
-
+        
         return ops[self.result.type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
+
+
+# convert value to result's type and store in result
+class irConvertType(IR):
+    def __init__(self, result, value, **kwargs):
+        super(irConvertType, self).__init__(**kwargs)
+        self.result = result
+        self.value = value
+
+        assert self.result.type != self.value.type
+    
+    def __str__(self):
+        s = '%s = %s(%s)' % (self.result, self.result.type, self.value)
+
+        return s
+
+    def generate(self):
+        type_conversions = {
+            ('i32', 'f16'): insConvF16toI32,
+            ('f16', 'i32'): insConvI32toF16,
+        }
+
+        return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
+
 
 class irAugAssign(IR):
     def __init__(self, op, target, value, **kwargs):
@@ -303,14 +314,8 @@ class irAssign(IR):
         return s
 
     def generate(self):
-        if self.target.length == 1:
-            conv = self.target.convert(self.value)
-
-            if conv:
-                return conv
-
-            else:
-                return insMov(self.target.generate(), self.value.generate())
+        if self.target.length == 1:    
+            return insMov(self.target.generate(), self.value.generate())
 
         else:
             return insVectorMov(self.target.generate(), self.value.generate())        
@@ -702,10 +707,33 @@ class Builder(object):
 
             return self._fold_constants(op, left, right, lineno)
 
+        # if either type is fixed16, we do the whole thing as fixed16.
         data_type = left.type
+        if right.type == 'f16':
+            data_type = right.type
 
+        left_result = left
+        right_result = right
+        
+        # perform any conversions as needed
+        # since we are prioritizing fixed16, we only need to convert i32 to f16
+        if data_type == 'f16':
+            if left.type != 'f16':
+                left_result = self.add_temp(data_type=data_type, lineno=lineno)
+
+                ir = irConvertType(left_result, left, lineno=lineno)
+                self.append_node(ir)
+
+            if right.type != 'f16':
+                right_result = self.add_temp(data_type=data_type, lineno=lineno)
+
+                ir = irConvertType(right_result, right, lineno=lineno)
+                self.append_node(ir)
+
+        # generate result register with target data type
         result = self.add_temp(data_type=data_type, lineno=lineno)
-        ir = irBinop(result, op, left, right, lineno=lineno)
+
+        ir = irBinop(result, op, left_result, right_result, lineno=lineno)
 
         self.append_node(ir)
 
@@ -716,7 +744,12 @@ class Builder(object):
             self.store_indirect(target, value, lineno=lineno)
 
         else:
-            ir = irAssign(target, value, lineno=lineno)
+            # check target type
+            if target.type != value.type:
+                ir = irConvertType(target, value, lineno=lineno)
+
+            else:
+                ir = irAssign(target, value, lineno=lineno)
 
             self.append_node(ir)
 
