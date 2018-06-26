@@ -1630,10 +1630,43 @@ def init():
 """
 
 
+test_fix16 = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+n = Number(publish=True)
+
+def init():
+    a = 123.456
+    n = a
+
+    b = a + 32
+
+    a -= 0.1
+
+    c = 0.5 * 0.5
+
+    d = 0.5 / 0.5
+
+"""
+
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_fix16(self):
+        self.run_test(test_fix16,
+            expected={
+                'a': 123.35600280761719,
+                'b': 155.45599365234375,
+                'c': 0.25,
+                'd': 1.0,
+                'n': 123
+            })
 
     def test_array_index_3d_aug(self):
         self.run_test(test_array_index_3d_aug,

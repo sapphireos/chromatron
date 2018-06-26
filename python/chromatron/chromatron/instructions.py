@@ -391,14 +391,14 @@ class insF16Mul(insBinop):
     symbol = "*"
 
     def execute(self, memory):
-        memory[self.result.addr] = memory[self.op1.addr] * memory[self.op2.addr]
+        memory[self.result.addr] = (memory[self.op1.addr] * memory[self.op2.addr]) / 65536
 
 class insF16Div(insBinop):
     mnemonic = 'F16_DIV'
     symbol = "/"
 
     def execute(self, memory):
-        memory[self.result.addr] = memory[self.op1.addr] / memory[self.op2.addr]
+        memory[self.result.addr] = (memory[self.op1.addr] / memory[self.op2.addr]) * 65536
 
 class insF16Mod(insBinop):
     mnemonic = 'F16_MOD'
