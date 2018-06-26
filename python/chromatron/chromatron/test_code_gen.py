@@ -1750,15 +1750,15 @@ class CGTestsBase(unittest.TestCase):
     #             'e': 128,
     #         })
 
-    # def test_array_assign(self):
-    #     self.run_test(test_array_assign,
-    #         expected={
-    #             'a': 123,
-    #             'b': 123,
-    #             'c': 123,
-    #             'd': 123,
-    #             'e': 123,
-    #         })
+    def test_array_assign(self):
+        self.run_test(test_array_assign,
+            expected={
+                'a': 123,
+                'b': 123,
+                'c': 123,
+                'd': 123,
+                'e': 123,
+            })
 
     def test_array_index(self):
         self.run_test(test_array_index,

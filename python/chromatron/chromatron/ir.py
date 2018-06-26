@@ -102,14 +102,17 @@ class irConst(irVar):
 
 class irArray(irVar):
     def __init__(self, *args, **kwargs):
-        super(irArray, self).__init__(*args, **kwargs)        
+        super(irArray, self).__init__(*args, **kwargs)
 
-        self.length = self.dimensions[0] * self.type.length
+        self.type_length = self.type.length
+        self.type = self.type.type        
+
+        self.length = self.dimensions[0] * self.type_length
         for i in xrange(len(self.dimensions) - 1):
             self.length *= self.dimensions[i + 1]
 
         self.strides = [0] * len(self.dimensions)
-        self.strides[len(self.dimensions) - 1] = self.type.length
+        self.strides[len(self.dimensions) - 1] = self.type_length
 
         # calculate stride lengths of each dimension
         for i in reversed(xrange(len(self.dimensions) - 1)):
@@ -117,8 +120,8 @@ class irArray(irVar):
 
 
     def __str__(self):
-        return "Array (%s, %s, %d)" % (self.name, self.type.type, self.length)       
-
+        return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
+        
 class irRecord(irVar):
     def __init__(self, name, data_type, fields, **kwargs):
         super(irRecord, self).__init__(name, **kwargs)        

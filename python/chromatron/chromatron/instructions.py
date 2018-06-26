@@ -665,6 +665,9 @@ class insVectorOp(BaseInstruction):
     def __str__(self):
         return "%-16s %16s %1s= %16s" % (self.mnemonic, self.target, self.symbol, self.op1)
 
+    def execute(self, memory):
+        pass
+
     # def assemble(self):
     #     obj_type = 0
     #     attr = 0
