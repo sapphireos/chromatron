@@ -342,7 +342,7 @@ class irAssign(IR):
             return insMov(self.target.generate(), self.value.generate())
 
         else:
-            return insVectorMov(self.target.generate(), self.value.generate())        
+            return insVectorMov(self.target.generate(), self.value.generate())
 
 
 class irCall(IR):
