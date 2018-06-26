@@ -1663,13 +1663,13 @@ class CGTestsBase(unittest.TestCase):
                 'i': 6,
             })
 
-    # def test_base_record_assign(self):
-    #     self.run_test(test_base_record_assign,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #             'c': 3,
-    #         })
+    def test_base_record_assign(self):
+        self.run_test(test_base_record_assign,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+            })
 
     def test_array_index_expr(self):
         self.run_test(test_array_index_expr,

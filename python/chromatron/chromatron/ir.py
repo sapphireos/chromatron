@@ -123,12 +123,13 @@ class irArray(irVar):
         return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
 
 class irRecord(irVar):
-    def __init__(self, name, data_type, fields, **kwargs):
+    def __init__(self, name, data_type, fields, offsets, **kwargs):
         super(irRecord, self).__init__(name, **kwargs)        
 
         self.fields = fields
         self.type = data_type
 
+        self.offsets = offsets
         self.length = 0
         for field in self.fields.values():
             self.length += field.length
@@ -140,20 +141,23 @@ class irRecord(irVar):
 
         for field in fields.values():
             field.name = '%s.%s' % (name, field.name)
-
-        return irRecord(name, self.type, fields, lineno=lineno)
+            
+        return irRecord(name, self.type, fields, self.offsets, lineno=lineno)
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
 
 class irField(IR):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, obj, **kwargs):
         super(irField, self).__init__(**kwargs)
         self.name = name
+        self.obj = obj
         
     def __str__(self):
-        return "Field (%s)" % (self.name)
+        return "Field (%s.%s)" % (self.obj.name, self.name)
 
+    def generate(self):
+        return insAddr(self.obj.offsets[self.name].addr)
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -596,10 +600,15 @@ class Builder(object):
 
     def create_record(self, name, fields, lineno=None):
         new_fields = {}
+        offsets = {}
+        offset = 0
         for field_name, field in fields.items():
             new_fields[field_name] = self.build_var(field_name, field['type'], field['dimensions'], lineno=lineno)
 
-        ir = irRecord(name, name, new_fields, lineno=lineno)
+            offsets[field_name] = self.add_const(offset, lineno=lineno)
+            offset += new_fields[field_name].length
+
+        ir = irRecord(name, name, new_fields, offsets, lineno=lineno)
 
         self.record_types[name] = ir
 
@@ -951,7 +960,7 @@ class Builder(object):
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(obj)  
 
-        self.compound_lookup.append(irField(attr, lineno=lineno))
+        self.compound_lookup.append(irField(attr, obj, lineno=lineno))
 
     def lookup_subscript(self, target, index, lineno=None):
         if len(self.compound_lookup) == 0:

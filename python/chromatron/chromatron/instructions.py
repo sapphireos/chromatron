@@ -641,13 +641,26 @@ class insIndex(BaseInstruction):
     def execute(self, memory):
         addr = self.target.addr
 
+        try:
+            dimensions = self.target.var.dimensions
+            strides = self.target.var.strides
+
+        except AttributeError:
+            dimensions = None
+            strides = None
+
         for i in xrange(len(self.indexes)):
             index = memory[self.indexes[i].addr]
-            length = self.target.var.dimensions[i]
-            stride = self.target.var.strides[i]
+                
+            try:
+                length = dimensions[i]
+                stride = strides[i]
 
-            index %= length
-            index *= stride
+                index %= length
+                index *= stride
+
+            except TypeError:
+                pass
 
             addr += index
 
