@@ -798,7 +798,7 @@ if __name__ == '__main__':
     vm = VM(ins, data)
 
     pprint.pprint(vm.dump_registers())
-    vm.run('try_fix16')
+    vm.run('init')
 
     pprint.pprint(vm.dump_registers())
 

@@ -117,11 +117,12 @@ class insNop(BaseInstruction):
 
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
-    def __init__(self, addr=None):
+    def __init__(self, addr=None, var=None):
         self.addr = addr
+        self.var = var
 
     def __str__(self):
-        return "Addr(%s)" % (self.addr)
+        return "Addr(%s, %s)" % (self.addr, self.var.type)
     
     def assemble(self):
         return [self.addr]
@@ -556,6 +557,21 @@ class insIndex(BaseInstruction):
             indexes += '[%s]' % (index)
         return "%s %s <- %s %s" % (self.mnemonic, self.result, self.target, indexes)
 
+    def execute(self, memory):
+        addr = self.target.addr
+
+        for i in xrange(len(self.indexes)):
+            index = memory[self.indexes[i].addr]
+            length = self.target.var.dimensions[i]
+            stride = self.target.var.strides[i]
+
+            index %= length
+            index *= stride
+
+            addr += index
+
+        memory[self.result.addr] = addr
+
 class insIndirectLoad(BaseInstruction):
     mnemonic = 'LOAD_INDIRECT'
 
@@ -565,6 +581,10 @@ class insIndirectLoad(BaseInstruction):
 
     def __str__(self):
         return "%s %s <- *%s" % (self.mnemonic, self.dest, self.addr)
+    
+    def execute(self, memory):
+        addr = memory[self.addr.addr]
+        memory[self.dest.addr] = memory[addr]
 
     # def assemble(self):
         # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
@@ -580,6 +600,10 @@ class insIndirectStore(BaseInstruction):
 
     def __str__(self):
         return "%s *%s <- %s" % (self.mnemonic, self.addr, self.src)
+
+    def execute(self, memory):
+        addr = memory[self.addr.addr]
+        memory[addr] = memory[self.src.addr]
 
     # def assemble(self):
         # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]

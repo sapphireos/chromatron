@@ -1760,15 +1760,15 @@ class CGTestsBase(unittest.TestCase):
     #             'e': 123,
     #         })
 
-    # def test_array_index(self):
-    #     self.run_test(test_array_index,
-    #         expected={
-    #             'a': 5,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #             'e': 5,
-    #         })
+    def test_array_index(self):
+        self.run_test(test_array_index,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
 
     # def test_db_access(self):
     #     self.run_test(test_db_access,

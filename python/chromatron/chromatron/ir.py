@@ -70,7 +70,7 @@ class irVar(IR):
         return "Var (%s, %s)" % (self.name, self.type)
 
     def generate(self):
-        return insAddr(self.addr)
+        return insAddr(self.addr, self)
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -107,6 +107,14 @@ class irArray(irVar):
         self.length = self.dimensions[0] * self.type.length
         for i in xrange(len(self.dimensions) - 1):
             self.length *= self.dimensions[i + 1]
+
+        self.strides = [0] * len(self.dimensions)
+        self.strides[len(self.dimensions) - 1] = self.type.length
+
+        # calculate stride lengths of each dimension
+        for i in reversed(xrange(len(self.dimensions) - 1)):
+            self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1]            
+
 
     def __str__(self):
         return "Array (%s, %s, %d)" % (self.name, self.type.type, self.length)       
