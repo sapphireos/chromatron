@@ -553,7 +553,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         for kw in node.keywords:
             if kw.arg == 'type':
-                data_type = kw.value.id
+                data_type = kw.value.func.id
 
         return cg1DeclareArray(type=data_type, dimensions=dims, lineno=node.lineno)
 
@@ -832,3 +832,4 @@ if __name__ == '__main__':
 
     pprint.pprint(vm.dump_registers())
 
+    print vm.memory

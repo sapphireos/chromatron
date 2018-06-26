@@ -1128,6 +1128,13 @@ class VM(object):
                     value.append(self.memory[addr])
                     addr += 1
 
+            elif isinstance(var, irRecord):
+                value = {}
+
+                for f in var.fields:
+                    index = self.memory[var.offsets[f].addr]
+                    value[f] = self.memory[index + var.addr]
+
             else:
                 value = self.memory[var.addr]
 
