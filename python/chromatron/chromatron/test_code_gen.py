@@ -993,6 +993,30 @@ def loop():
 """
 
 
+double_break_node_while2 = """
+
+global_a = Number(publish=True)
+i = Number(publish=True)
+
+def init():
+    for a in 4:
+        while i < 10:
+            if i > 5:
+                break
+
+            i += 1
+        
+        if a > 1:
+            break
+
+    global_a = a
+
+def loop():
+    pass
+
+"""
+
+
 double_continue_node_while = """
 
 a = Number(publish=True)
@@ -2008,6 +2032,13 @@ class CGTestsBase(unittest.TestCase):
             expected={
                 'i': 6,
                 'global_a': 4,
+            })
+
+    def test_double_break_node_while2(self):
+        self.run_test(double_break_node_while2,
+            expected={
+                'i': 6,
+                'global_a': 2,
             })
 
     def test_double_continue_node_while(self):

@@ -541,8 +541,8 @@ class Builder(object):
 
         self.data_table = []
 
-        self.loop_top = None
-        self.loop_end = None
+        self.loop_top = []
+        self.loop_end = []
 
         self.next_temp = 0
 
@@ -883,21 +883,21 @@ class Builder(object):
         end_label = self.label('while.end', lineno=lineno)
         self.position_label(top_label)
 
-        self.loop_top = top_label     
-        self.loop_end = end_label
+        self.loop_top.append(top_label)
+        self.loop_end.append(end_label)
 
     def test_while(self, test, lineno=None):
-        ir = irBranchZero(test, self.loop_end, lineno=lineno)
+        ir = irBranchZero(test, self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
 
     def end_while(self, lineno=None):
-        ir = irJump(self.loop_top, lineno=lineno)
+        ir = irJump(self.loop_top[-1], lineno=lineno)
         self.append_node(ir)
 
-        self.position_label(self.loop_end)
+        self.position_label(self.loop_end[-1])
 
-        self.loop_top = None
-        self.loop_end = None
+        self.loop_top.pop(-1)
+        self.loop_end.pop(-1)
 
     def begin_for(self, iterator, lineno=None):
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
@@ -906,8 +906,8 @@ class Builder(object):
         continue_label = self.label('for.cont', lineno=lineno)
         end_label = self.label('for.end', lineno=lineno)
 
-        self.loop_top = continue_label
-        self.loop_end = end_label
+        self.loop_top.append(continue_label)
+        self.loop_end.append(end_label)
 
         # set up iterator code (init to -1, as first pass will increment before the body) 
         init_value = self.add_const(-1, lineno=lineno)
@@ -926,21 +926,21 @@ class Builder(object):
         ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
         self.append_node(ir)
 
-        self.loop_top = None
-        self.loop_end = None
+        self.loop_top.pop(-1)
+        self.loop_end.pop(-1)
 
     def jump(self, target, lineno=None):
         ir = irJump(target, lineno=lineno)
         self.append_node(ir)
 
     def loop_break(self, lineno=None):
-        assert self.loop_end != None
-        self.jump(self.loop_end, lineno=lineno)
+        assert self.loop_end[-1] != None
+        self.jump(self.loop_end[-1], lineno=lineno)
 
 
     def loop_continue(self, lineno=None):
-        assert self.loop_top != None    
-        self.jump(self.loop_top, lineno=lineno)
+        assert self.loop_top[-1] != None    
+        self.jump(self.loop_top[-1], lineno=lineno)
 
     def assertion(self, test, lineno=None):
         ir = irAssert(test, lineno=lineno)
