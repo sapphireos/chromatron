@@ -329,6 +329,20 @@ class cg1BinOpNode(cg1CodeNode):
 
 class cg1CompareNode(cg1BinOpNode):
     pass
+
+
+class cg1UnaryNot(cg1CodeNode):
+    _fields = ["value"]
+
+    def __init__(self, value, **kwargs):
+        super(cg1UnaryNot, self).__init__(**kwargs)
+        self.value = value
+
+    def build(self, builder):
+        value = self.value.build(builder)
+
+        return builder.unary_not(value, lineno=self.lineno)
+
         
 
 class cg1For(cg1CodeNode):
@@ -634,6 +648,11 @@ class CodeGenPass1(ast.NodeVisitor):
             left = result
 
         return result
+
+    def visit_UnaryOp(self, node):
+        assert isinstance(node.op, ast.Not)
+
+        return cg1UnaryNot(self.visit(node.operand), lineno=node.lineno)
 
     def visit_Add(self, node):
         return "add"

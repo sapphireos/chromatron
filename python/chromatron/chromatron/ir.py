@@ -252,6 +252,19 @@ class irBinop(IR):
         return ops[self.result.type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
 
+class irUnaryNot(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irUnaryNot, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        return "%s = NOT %s" % (self.target, self.value)
+
+    def generate(self):
+        return insNot(self.target.generate(), self.value.generate())
+
+
 # convert value to result's type and store in result
 class irConvertType(IR):
     def __init__(self, result, value, **kwargs):
@@ -734,6 +747,16 @@ class Builder(object):
         result = self.add_temp(data_type=data_type, lineno=lineno)
 
         ir = irBinop(result, op, left_result, right_result, lineno=lineno)
+
+        self.append_node(ir)
+
+        return result
+
+    def unary_not(self, value, lineno=None):
+        # generate result register with target data type
+        result = self.add_temp(data_type=value.type, lineno=lineno)
+    
+        ir = irUnaryNot(result, value, lineno=lineno)        
 
         self.append_node(ir)
 

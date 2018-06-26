@@ -168,13 +168,36 @@ class insMov(BaseInstruction):
     def execute(self, memory):
         memory[self.dest.addr] = memory[self.src.addr]
 
-    def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
+    # def assemble(self):
+    #     bc = [self.opcode]
+    #     bc.extend(self.dest.assemble())
+    #     bc.extend(self.src.assemble())
 
-        return bc
+    #     return bc
 
+class insNot(BaseInstruction):
+    mnemonic = 'NOT'
+
+    def __init__(self, dest, src):
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s = NOT %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, memory):
+        if memory[self.src.addr] == 0:
+            memory[self.dest.addr] = 1
+
+        else:            
+            memory[self.dest.addr] = 0
+
+    # def assemble(self):
+    #     bc = [self.opcode]
+    #     bc.extend(self.dest.assemble())
+    #     bc.extend(self.src.assemble())
+
+    #     return bc
 
 class insBinop(BaseInstruction):
     def __init__(self, result, op1, op2):
