@@ -121,7 +121,7 @@ class irArray(irVar):
 
     def __str__(self):
         return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
-        
+
 class irRecord(irVar):
     def __init__(self, name, data_type, fields, **kwargs):
         super(irRecord, self).__init__(name, **kwargs)        
@@ -315,7 +315,7 @@ class irAugAssign(IR):
         ops = {
             'add': insVectorAdd,
             'sub': insVectorSub,
-            'mult': insVectorMul,
+            'mul': insVectorMul,
             'div': insVectorDiv,
             'mod': insVectorMod,
         }

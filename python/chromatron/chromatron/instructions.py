@@ -701,28 +701,66 @@ class insVectorMov(insVector):
             memory[addr] = value
             addr += 1
 
+class insVectorAdd(insVector):
+    op = "add"
+    symbol = "+"
 
+    def execute(self, memory):
+        value = memory[self.value.addr]
+        addr = self.target.addr
 
+        for i in xrange(self.target.var.length):
+            memory[addr] += value
+            addr += 1
 
-# class insVectorAdd(insVectorOp):
-#     mnemonic = 'VADD'
-#     symbol = "+"
+class insVectorSub(insVector):
+    op = "sub"
+    symbol = "-"
 
-# class insVectorSub(insVectorOp):
-#     mnemonic = 'VSUB'
-#     symbol = "-"
+    def execute(self, memory):
+        value = memory[self.value.addr]
+        addr = self.target.addr
 
-# class insVectorMul(insVectorOp):
-#     mnemonic = 'VMUL'
-#     symbol = "*"
+        for i in xrange(self.target.var.length):
+            memory[addr] -= value
+            addr += 1
 
-# class insVectorDiv(insVectorOp):
-#     mnemonic = 'VDIV'
-#     symbol = "/"
+class insVectorMul(insVector):
+    op = "mul"
+    symbol = "*"
 
-# class insVectorMod(insVectorOp):
-#     mnemonic = 'VMOD'
-#     symbol = "%"
+    def execute(self, memory):
+        value = memory[self.value.addr]
+        addr = self.target.addr
+
+        for i in xrange(self.target.var.length):
+            memory[addr] *= value
+            addr += 1
+
+class insVectorDiv(insVector):
+    op = "div"
+    symbol = "/"
+
+    def execute(self, memory):
+        value = memory[self.value.addr]
+        addr = self.target.addr
+
+        for i in xrange(self.target.var.length):
+            memory[addr] /= value
+            addr += 1
+
+class insVectorMod(insVector):
+    op = "mod"
+    symbol = "%"
+
+    def execute(self, memory):
+        value = memory[self.value.addr]
+        addr = self.target.addr
+
+        for i in xrange(self.target.var.length):
+            memory[addr] %= value
+            addr += 1
+
 
 
 

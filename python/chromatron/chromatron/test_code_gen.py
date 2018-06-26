@@ -1700,55 +1700,55 @@ class CGTestsBase(unittest.TestCase):
     #             'a': 4,
     #         })
 
-    # def test_array_mod(self):
-    #     self.run_test(test_array_mod,
-    #         expected={
-    #             'a': 5,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #             'e': 5,
-    #         })
+    def test_array_mod(self):
+        self.run_test(test_array_mod,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
 
-    # def test_array_div(self):
-    #     self.run_test(test_array_div,
-    #         expected={
-    #             'a': 5,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #             'e': 5,
-    #         })
+    def test_array_div(self):
+        self.run_test(test_array_div,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
 
-    # def test_array_mul(self):
-    #     self.run_test(test_array_mul,
-    #         expected={
-    #             'a': 615,
-    #             'b': 246,
-    #             'c': 369,
-    #             'd': 492,
-    #             'e': 615,
-    #         })
+    def test_array_mul(self):
+        self.run_test(test_array_mul,
+            expected={
+                'a': 615,
+                'b': 246,
+                'c': 369,
+                'd': 492,
+                'e': 615,
+            })
 
-    # def test_array_sub(self):
-    #     self.run_test(test_array_sub,
-    #         expected={
-    #             'a': -118,
-    #             'b': -121,
-    #             'c': -120,
-    #             'd': -119,
-    #             'e': -118,
-    #         })
+    def test_array_sub(self):
+        self.run_test(test_array_sub,
+            expected={
+                'a': -118,
+                'b': -121,
+                'c': -120,
+                'd': -119,
+                'e': -118,
+            })
 
-    # def test_array_add(self):
-    #     self.run_test(test_array_add,
-    #         expected={
-    #             'a': 128,
-    #             'b': 125,
-    #             'c': 126,
-    #             'd': 127,
-    #             'e': 128,
-    #         })
+    def test_array_add(self):
+        self.run_test(test_array_add,
+            expected={
+                'a': 128,
+                'b': 125,
+                'c': 126,
+                'd': 127,
+                'e': 128,
+            })
 
     def test_array_assign(self):
         self.run_test(test_array_assign,
