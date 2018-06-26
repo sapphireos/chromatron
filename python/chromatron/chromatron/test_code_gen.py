@@ -1646,11 +1646,11 @@ class CGTestsBase(unittest.TestCase):
     #             'c': 3,
     #         })
 
-    # def test_array_index_expr(self):
-    #     self.run_test(test_array_index_expr,
-    #         expected={
-    #             'a': 3,
-    #         })
+    def test_array_index_expr(self):
+        self.run_test(test_array_index_expr,
+            expected={
+                'a': 3,
+            })
 
     def test_array_avg(self):
         self.run_test(test_array_avg,
@@ -1677,21 +1677,21 @@ class CGTestsBase(unittest.TestCase):
             })
 
     
-    # def test_array_aug_assign(self):
-    #     self.run_test(test_array_aug_assign,
-    #         expected={
-    #             'a': 579,
-    #             'b': 0,
-    #         })
+    def test_array_aug_assign(self):
+        self.run_test(test_array_aug_assign,
+            expected={
+                'a': 579,
+                'b': 0,
+            })
 
-    # def test_array_iteration(self):
-    #     self.run_test(test_array_iteration,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #         })
+    def test_array_iteration(self):
+        self.run_test(test_array_iteration,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
 
     def test_array_len(self):
         self.run_test(test_array_len,
