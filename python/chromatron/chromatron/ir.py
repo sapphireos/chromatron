@@ -900,6 +900,9 @@ class Builder(object):
         return top_label, continue_label, end_label
 
     def end_for(self, iterator, stop, top, lineno=None):
+        if stop.length != 1:
+            raise SyntaxError("Invalid loop iteration count for '%s'" % (stop.name), lineno=lineno)
+
         ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
         self.append_node(ir)
 

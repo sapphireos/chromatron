@@ -1401,7 +1401,7 @@ c = Number(publish=True)
 d = Number(publish=True)
 
 def init():
-    for i in ary:
+    for i in len(ary):
         ary[i] = i + 1
 
     a = ary[0]
@@ -1432,7 +1432,7 @@ ary = Array(4)
 a = Number(publish=True)
 
 def init():
-    for i in ary:
+    for i in len(ary):
         ary[i] = i + 1
 
     a = max(ary)
@@ -1447,7 +1447,7 @@ ary = Array(4)
 a = Number(publish=True)
 
 def init():
-    for i in ary:
+    for i in len(ary):
         ary[len(ary) - 1 - i] = i + 1
 
     a = min(ary)
@@ -1461,7 +1461,7 @@ ary = Array(4)
 a = Number(publish=True)
 
 def init():
-    for i in ary:
+    for i in len(ary):
         ary[i] = i * 4
 
     a = sum(ary)
@@ -1477,7 +1477,7 @@ ary = Array(4)
 a = Number(publish=True)
 
 def init():
-    for i in ary:
+    for i in len(ary):
         ary[i] = i * 4
 
     a = avg(ary)
@@ -1493,7 +1493,7 @@ a = Number(publish=True)
 b = Number()
 
 def init():
-    for i in ary:
+    for i in len(ary):
         ary[i] = i + 1
 
     b = 1
