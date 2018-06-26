@@ -1065,6 +1065,9 @@ class VM(object):
             if isinstance(var, irConst):
                 continue
 
+            if isinstance(var, irArray):
+                print var
+
             value = self.memory[var.addr]
 
             # convert fixed16 to float
