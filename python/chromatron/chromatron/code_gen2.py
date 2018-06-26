@@ -375,6 +375,27 @@ class cg1For(cg1CodeNode):
 
         builder.position_label(end)
 
+class cg1While(cg1CodeNode):
+    _fields = ["test", "body"]
+
+    def __init__(self, test, body, **kwargs):
+        super(cg1While, self).__init__(**kwargs)
+        self.test = test
+        self.body = body
+
+    def build(self, builder):
+        builder.begin_while(lineno=self.lineno)
+
+        test = self.test.build(builder)
+
+        builder.test_while(test, lineno=self.lineno)
+
+        for node in self.body:
+            node.build(builder)
+        
+        builder.end_while(lineno=self.lineno)
+
+
 class cg1Break(cg1CodeNode):
     def build(self, builder):
         builder.loop_break(lineno=self.lineno)
@@ -698,11 +719,19 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_For(self, node):
         # Check for an else clause.  Python has an atypical else construct
-        # you can use at the end of a for loop.  But it is confusing and
+        # you can use at the end of a loop.  But it is confusing and
         # rarely used, so we are not going to support it.
         assert len(node.orelse) == 0
 
         return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body), lineno=node.lineno)
+
+    def visit_While(self, node):
+        # Check for an else clause.  Python has an atypical else construct
+        # you can use at the end of a loop.  But it is confusing and
+        # rarely used, so we are not going to support it.
+        assert len(node.orelse) == 0
+
+        return cg1While(self.visit(node.test), map(self.visit, node.body), lineno=node.lineno)
 
     def visit_Attribute(self, node):
         load = True

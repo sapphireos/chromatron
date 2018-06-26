@@ -878,6 +878,26 @@ class Builder(object):
     def position_label(self, label):
         self.append_node(label)
 
+    def begin_while(self, lineno=None):
+        top_label = self.label('while.top', lineno=lineno)
+        end_label = self.label('while.end', lineno=lineno)
+        self.position_label(top_label)
+
+        self.loop_top = top_label     
+        self.loop_end = end_label
+
+    def test_while(self, test, lineno=None):
+        ir = irBranchZero(test, self.loop_end, lineno=lineno)
+        self.append_node(ir)
+
+    def end_while(self, lineno=None):
+        ir = irJump(self.loop_top, lineno=lineno)
+        self.append_node(ir)
+
+        self.position_label(self.loop_end)
+
+        self.loop_top = None
+        self.loop_end = None
 
     def begin_for(self, iterator, lineno=None):
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR

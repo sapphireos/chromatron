@@ -897,8 +897,9 @@ def loop():
 
 break_node_while = """
 
+i = Number(publish=True)
+
 def init():
-    i = Number(publish=True)
 
     while i < 10:
         if i > 5:
@@ -915,10 +916,10 @@ def loop():
 continue_node_while = """
 
 a = Number(publish=True)
+i = Number(publish=True)
 
 def init():
-    i = Number(publish=True)
-
+    
     while i < 10:
         i += 1
 
@@ -973,9 +974,9 @@ def loop():
 double_break_node_while = """
 
 global_a = Number(publish=True)
+i = Number(publish=True)
 
 def init():
-    i = Number(publish=True)
 
     for a in 4:
         while i < 10:
@@ -996,9 +997,9 @@ double_continue_node_while = """
 
 a = Number(publish=True)
 global_x = Number(publish=True)
+i = Number(publish=True)
 
 def init():
-    i = Number(publish=True)
 
     for x in 4:
         i = 0
@@ -1887,11 +1888,11 @@ class CGTestsBase(unittest.TestCase):
                 'a': 10,
             })
 
-    # def test_basic_while(self):
-    #     self.run_test(basic_while,
-    #         expected={
-    #             'a': 10,
-    #         })
+    def test_basic_while(self):
+        self.run_test(basic_while,
+            expected={
+                'a': 10,
+            })
 
     def test_basic_call(self):
         self.run_test(basic_call,
@@ -1976,18 +1977,18 @@ class CGTestsBase(unittest.TestCase):
                 'e': 10,
             })
 
-    # def test_break_node_while(self):
-    #     self.run_test(break_node_while,
-    #         expected={
-    #             'i': 6,
-    #         })
+    def test_break_node_while(self):
+        self.run_test(break_node_while,
+            expected={
+                'i': 6,
+            })
 
-    # def test_continue_node_while(self):
-    #     self.run_test(continue_node_while,
-    #         expected={
-    #             'i': 10,
-    #             'a': 5,
-    #         })
+    def test_continue_node_while(self):
+        self.run_test(continue_node_while,
+            expected={
+                'i': 10,
+                'a': 5,
+            })
 
     def test_break_node_for(self):
         self.run_test(break_node_for,
@@ -2002,20 +2003,20 @@ class CGTestsBase(unittest.TestCase):
                 'a': 6
             })
 
-    # def test_double_break_node_while(self):
-    #     self.run_test(double_break_node_while,
-    #         expected={
-    #             'i': 6,
-    #             'global_a': 4,
-    #         })
+    def test_double_break_node_while(self):
+        self.run_test(double_break_node_while,
+            expected={
+                'i': 6,
+                'global_a': 4,
+            })
 
-    # def test_double_continue_node_while(self):
-    #     self.run_test(double_continue_node_while,
-    #         expected={
-    #             'i': 10,
-    #             'a': 20,
-    #             'global_x': 4,
-    #         })
+    def test_double_continue_node_while(self):
+        self.run_test(double_continue_node_while,
+            expected={
+                'i': 10,
+                'a': 20,
+                'global_x': 4,
+            })
 
     def test_double_break_node_for(self):
         self.run_test(double_break_node_for,
