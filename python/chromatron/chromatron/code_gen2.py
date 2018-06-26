@@ -161,6 +161,23 @@ class cg1VarInt32(cg1Var):
 class cg1ConstInt32(cg1VarInt32):
     def build(self, builder):
         return builder.add_const(self.name, self.type, [], lineno=self.lineno)
+
+class cg1VarFixed16(cg1Var):
+    def __init__(self, *args, **kwargs):
+        super(cg1VarFixed16, self).__init__(*args, **kwargs)
+        self.type = 'f16'
+
+class cg1ConstFixed16(cg1VarFixed16):
+    def __init__(self, *args, **kwargs):
+        super(cg1ConstFixed16, self).__init__(*args, **kwargs)
+
+        if isinstance(self.name, float):
+            # convert float to fix16
+            self.name = int(self.name * 65536)
+
+    def build(self, builder):
+        return builder.add_const(self.name, self.type, [], lineno=self.lineno)
+    
     
 
 class cg1Module(cg1Node):
@@ -592,7 +609,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
         elif isinstance(node.n, float):
             # convert to int
-            return cg1ConstInt32(int(node.n * 65535), lineno=node.lineno)
+            # return cg1ConstInt32(int(node.n * 65535), lineno=node.lineno)
+
+            return cg1ConstFixed16(node.n, lineno=node.lineno)
 
         else:
             raise NotImplementedError(node)    
@@ -759,8 +778,8 @@ if __name__ == '__main__':
 
     vm = VM(ins, data)
 
-    print vm.memory
+    pprint.pprint(vm.dump_registers())
     vm.run('try_fix16')
 
-    print vm.memory
+    pprint.pprint(vm.dump_registers())
 

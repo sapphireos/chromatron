@@ -27,6 +27,7 @@ class ReturnException(Exception):
 
 opcodes = {
     'MOV':                  0x01,
+
     'COMP_EQ':              0x02,
     'COMP_NEQ':             0x03,
     'COMP_GT':              0x04,
@@ -40,6 +41,7 @@ opcodes = {
     'MUL':                  0x0C,
     'DIV':                  0x0D,
     'MOD':                  0x0E,
+
     'JMP':                  0x0F,
 
     'JMP_IF_Z':             0x10,
@@ -71,6 +73,20 @@ opcodes = {
 
     'CONV_I32_TO_F16':      0x24,
     'CONV_F16_TO_I32':      0x25,
+
+    'F16_COMP_EQ':          0x26,
+    'F16_COMP_NEQ':         0x27,
+    'F16_COMP_GT':          0x28,
+    'F16_COMP_GTE':         0x29,
+    'F16_COMP_LT':          0x2A,
+    'F16_COMP_LTE':         0x2B,
+    'F16_AND':              0x2C,
+    'F16_OR':               0x2D,
+    'F16_ADD':              0x2E,
+    'F16_SUB':              0x2F,
+    'F16_MUL':              0x30,
+    'F16_DIV':              0x31,
+    'F16_MOD':              0x32,
 }
 
 
@@ -270,91 +286,91 @@ class insMod(insBinop):
         memory[self.result.addr] = memory[self.op1.addr] % memory[self.op2.addr]
 
 
-class insCompareEqF16(insBinop):
+class insF16CompareEq(insBinop):
     mnemonic = 'F16_COMP_EQ'
     symbol = "=="
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] == memory[self.op2.addr]
 
-class insCompareNeqF16(insBinop):
+class insF16CompareNeq(insBinop):
     mnemonic = 'F16_COMP_NEQ'
     symbol = "!="
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] != memory[self.op2.addr]
 
-class insCompareGtF16(insBinop):
+class insF16CompareGt(insBinop):
     mnemonic = 'F16_COMP_GT'
     symbol = ">"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] > memory[self.op2.addr]
 
-class insCompareGtEF16(insBinop):
+class insF16CompareGtE(insBinop):
     mnemonic = 'F16_COMP_GTE'
     symbol = ">="
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] >= memory[self.op2.addr]
 
-class insCompareLtF16(insBinop):
+class insF16CompareLt(insBinop):
     mnemonic = 'F16_COMP_LT'
     symbol = "<"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] < memory[self.op2.addr]
 
-class insCompareLtEF16(insBinop):
+class insF16CompareLtE(insBinop):
     mnemonic = 'F16_COMP_LTE'
     symbol = "<="
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] <= memory[self.op2.addr]
 
-class insAndF16(insBinop):
+class insF16And(insBinop):
     mnemonic = 'F16_AND'
     symbol = "AND"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] and memory[self.op2.addr]
 
-class insOrF16(insBinop):
+class insF16Or(insBinop):
     mnemonic = 'F16_OR'
     symbol = "OR"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] or memory[self.op2.addr]
 
-class insAddF16(insBinop):
+class insF16Add(insBinop):
     mnemonic = 'F16_ADD'
     symbol = "+"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] + memory[self.op2.addr]
 
-class insSubF16(insBinop):
+class insF16Sub(insBinop):
     mnemonic = 'F16_SUB'
     symbol = "-"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] - memory[self.op2.addr]
 
-class insMulF16(insBinop):
+class insF16Mul(insBinop):
     mnemonic = 'F16_MUL'
     symbol = "*"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] * memory[self.op2.addr]
 
-class insDivF16(insBinop):
+class insF16Div(insBinop):
     mnemonic = 'F16_DIV'
     symbol = "/"
 
     def execute(self, memory):
         memory[self.result.addr] = memory[self.op1.addr] / memory[self.op2.addr]
 
-class insModF16(insBinop):
+class insF16Mod(insBinop):
     mnemonic = 'F16_MOD'
     symbol = "%"
 

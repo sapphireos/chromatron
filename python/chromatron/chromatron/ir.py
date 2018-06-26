@@ -106,7 +106,12 @@ class irAddress(irVar):
 
 class irConst(irVar):
     def __str__(self):
-        return "Const (%s, %s)" % (self.name, self.type)
+        value = self.name
+        if self.type == 'f16':
+            # convert internal to float for printing
+            value = (self.name >> 16) + (self.name & 0xffff) / 65536.0
+
+        return "Const (%s, %s)" % (value, self.type)
 
 class irArray(irVar):
     def __init__(self, *args, **kwargs):
@@ -227,22 +232,37 @@ class irBinop(IR):
 
     def generate(self):
         ops = {
-            'eq': insCompareEq,
-            'neq': insCompareNeq,
-            'gt': insCompareGt,
-            'gte': insCompareGtE,
-            'lt': insCompareLt,
-            'lte': insCompareLtE,
-            'logical_and': insAnd,
-            'logical_or': insOr,
-            'add': insAdd,
-            'sub': insSub,
-            'mul': insMul,
-            'div': insDiv,
-            'mod': insMod,
+            'i32':
+                {'eq': insCompareEq,
+                'neq': insCompareNeq,
+                'gt': insCompareGt,
+                'gte': insCompareGtE,
+                'lt': insCompareLt,
+                'lte': insCompareLtE,
+                'logical_and': insAnd,
+                'logical_or': insOr,
+                'add': insAdd,
+                'sub': insSub,
+                'mul': insMul,
+                'div': insDiv,
+                'mod': insMod},
+            'f16':
+                {'eq': insF16CompareEq,
+                'neq': insF16CompareNeq,
+                'gt': insF16CompareGt,
+                'gte': insF16CompareGtE,
+                'lt': insF16CompareLt,
+                'lte': insF16CompareLtE,
+                'logical_and': insF16And,
+                'logical_or': insF16Or,
+                'add': insF16Add,
+                'sub': insF16Sub,
+                'mul': insF16Mul,
+                'div': insF16Div,
+                'mod': insF16Mod},
         }
 
-        return ops[self.op](self.result.generate(), self.left.generate(), self.right.generate())
+        return ops[self.result.type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
 class irAugAssign(IR):
     def __init__(self, op, target, value, **kwargs):
@@ -682,7 +702,9 @@ class Builder(object):
 
             return self._fold_constants(op, left, right, lineno)
 
-        result = self.add_temp(lineno=lineno)
+        data_type = left.type
+
+        result = self.add_temp(data_type=data_type, lineno=lineno)
         ir = irBinop(result, op, left, right, lineno=lineno)
 
         self.append_node(ir)
@@ -975,7 +997,17 @@ class VM(object):
     def dump_registers(self):
         registers = {}
         for var in self.data:
-            registers[var.name] = self.memory[var.addr]
+            # don't dump consts
+            if isinstance(var, irConst):
+                continue
+
+            value = self.memory[var.addr]
+
+            # convert fixed16 to float
+            if var.type == 'f16':
+                value = (value >> 16) + (value & 0xffff) / 65536.0
+
+            registers[var.name] = value
 
         return registers
 
