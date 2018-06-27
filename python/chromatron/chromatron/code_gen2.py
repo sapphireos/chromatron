@@ -497,7 +497,15 @@ class cg1Subscript(cg1CodeNode):
         else:
             return target
 
+class cg1Str(cg1CodeNode):
+    _fields = ["s"]
 
+    def __init__(self, s, **kwargs):
+        super(cg1Str, self).__init__(**kwargs)
+        self.s = s
+
+    def build(self, builder):
+        return irStr(self.s, lineno=self.lineno)
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
@@ -769,7 +777,7 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Import([a.name for a in node.names], lineno=node.lineno)
 
     def visit_Str(self, node):
-        return node.s
+        return cg1Str(node.s, lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)

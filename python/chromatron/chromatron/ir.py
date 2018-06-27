@@ -147,6 +147,16 @@ class irRecord(irVar):
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
 
+
+class irStr(IR):
+    def __init__(self, name, **kwargs):
+        super(irStr, self).__init__(**kwargs)
+        self.name = name
+        
+    def __str__(self):
+        return "Str(%s)" % (self.name)
+
+
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
         super(irField, self).__init__(**kwargs)
