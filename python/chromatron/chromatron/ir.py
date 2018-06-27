@@ -336,15 +336,15 @@ class irConvertType(IR):
         return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
 
 
-class irAugAssign(IR):
+class irVectorOp(IR):
     def __init__(self, op, target, value, **kwargs):
-        super(irAugAssign, self).__init__(**kwargs)
+        super(irVectorOp, self).__init__(**kwargs)
         self.op = op
         self.target = target
         self.value = value
         
     def __str__(self):
-        s = '%s = %s %s(vector) %s' % (self.target, self.target, self.op, self.value)
+        s = '*%s %s=(vector) %s' % (self.target, self.op, self.value)
 
         return s
 
@@ -893,21 +893,34 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         if isinstance(target, irAddress):
-            result = self.load_indirect(target, lineno=lineno)
+            if target.target.length == 1:
+                print 'meow'
+                # not a vector op, but we have a target address and not a value
+    
+                # need to load indirect first
+                result = self.load_indirect(target, lineno=lineno)
+                result = self.binop(op, result, value, lineno=lineno)
 
-        else:
-            result = target
+                self.assign(target, result, lineno=lineno)
 
-        if target.length == 1:
+            else:
+                result = target
+                ir = irVectorOp(op, result, value, lineno=lineno)        
+                self.append_node(ir)
+
+        elif target.length == 1:
             # if so, we can replace with a binop and assign
-            result = self.binop(op, result, value, lineno=lineno)
-            ir = self.assign(target, result, lineno=lineno)
+            result = self.binop(op, target, value, lineno=lineno)
+            self.assign(target, result, lineno=lineno)
 
         else:
-            ir = irAugAssign(op, target, value, lineno=lineno)        
+            # index address of target
+            result = self.add_temp(lineno=lineno, data_type='addr')
+            ir = irIndex(result, target, lineno=lineno)
             self.append_node(ir)
 
-        return ir
+            ir = irVectorOp(op, result, value, lineno=lineno)        
+            self.append_node(ir)
 
     def load_indirect(self, address, result=None, lineno=None):
         # if address.target.length > 1:
