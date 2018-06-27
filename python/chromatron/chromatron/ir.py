@@ -850,11 +850,16 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):        
+        print "ASSIGN", target, value
+
         if isinstance(target, irAddress):
             if target.target.length > 1:
                 raise SyntaxError("Cannot assign to compound type '%s' from '%s'" % (target.target.name, value.name), lineno=lineno)
 
             self.store_indirect(target, value, lineno=lineno)
+
+        elif isinstance(value, irAddress):
+            self.load_indirect(value, target, lineno=lineno)
 
         elif isinstance(target, irArray):
             ir = irAssign(target, value, lineno=lineno)
@@ -895,8 +900,13 @@ class Builder(object):
 
         return ir
 
-    def load_indirect(self, address, lineno=None):
-        result = self.add_temp(lineno=lineno)
+    def load_indirect(self, address, result=None, lineno=None):
+        # if address.target.length > 1:
+            # raise SyntaxError("Cannot indirect load from array: '%s'" % (address.target.name), lineno=lineno)
+
+        if result is None:
+            result = self.add_temp(data_type=address.target.type, lineno=lineno)
+
         ir = irIndexLoad(result, address, lineno=lineno)
     
         self.append_node(ir)
@@ -1059,8 +1069,8 @@ class Builder(object):
 
         self.append_node(ir)
 
-        if load:
-            return self.load_indirect(result, lineno=lineno)
+        # if load:
+            # return self.load_indirect(result, lineno=lineno)
         
         return result
 

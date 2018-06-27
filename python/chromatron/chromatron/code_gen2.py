@@ -831,7 +831,9 @@ if __name__ == '__main__':
 
     except SyntaxError as e:
         print e
-        sys.exit(0)
+
+        raise
+        # sys.exit(0)
 
 
 
