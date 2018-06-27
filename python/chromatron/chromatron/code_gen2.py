@@ -492,7 +492,7 @@ class cg1Subscript(cg1CodeNode):
         builder.lookup_subscript(target, index, lineno=self.lineno)
 
         if depth == 1:
-            return builder.resolve_lookup(load=self.load, lineno=self.lineno)
+            return builder.resolve_lookup(lineno=self.lineno)
 
         else:
             return target

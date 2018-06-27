@@ -22,7 +22,8 @@
 
 from instructions import *
 
-from copy import deepcopy
+from copy import deepcopy, copy
+
 
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
@@ -69,11 +70,12 @@ class irVar(IR):
         return "Var (%s, %s)" % (self.name, self.type)
 
     def generate(self):
+        assert self.addr != None
         return insAddr(self.addr, self)
 
     def lookup(self, indexes):
         assert len(indexes) == 0
-        return deepcopy(self)
+        return copy(self)
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -123,7 +125,7 @@ class irArray(irVar):
 
     def lookup(self, indexes):
         if len(indexes) == 0:
-            return deepcopy(self)
+            return copy(self)
 
         indexes = deepcopy(indexes)
         indexes.pop(0)
@@ -144,18 +146,14 @@ class irRecord(irVar):
 
             
     def __call__(self, name, dimensions=[], lineno=None):
-        # creating an instance of a record type.
-        # need to create copies of all variables, and then attach record name to them.
-        fields = deepcopy(self.fields)
-
-        return irRecord(name, self.type, fields, self.offsets, lineno=lineno)
+        return irRecord(name, self.type, self.fields, self.offsets, lineno=lineno)
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
 
     def lookup(self, indexes):
         if len(indexes) == 0:
-            return deepcopy(self)
+            return copy(self)
 
         indexes = deepcopy(indexes)
         index = indexes.pop(0)
@@ -375,7 +373,6 @@ class irAssign(IR):
     def generate(self):
         return insMov(self.target.generate(), self.value.generate())
 
-
 class irVectorAssign(IR):
     def __init__(self, target, value, **kwargs):
         super(irVectorAssign, self).__init__(**kwargs)
@@ -383,7 +380,7 @@ class irVectorAssign(IR):
         self.value = value
         
     def __str__(self):
-        return '%s =(vector) %s' % (self.target, self.value)
+        return '*%s =(vector) %s' % (self.target, self.value)
 
     def generate(self):
         return insVectorMov(self.target.generate(), self.value.generate())
@@ -557,7 +554,7 @@ class irIndex(IR):
         # target = self.target.resolve_type(self.indexes)
         indexes = [i.generate() for i in self.indexes]
 
-        return insIndex(self.result.generate(), self.target.generate(), None, indexes)
+        return insIndex(self.result.generate(), self.target.generate(), indexes)
 
 
 class irIndexLoad(IR):
@@ -857,20 +854,17 @@ class Builder(object):
         print "ASSIGN", target, value, target.addr
 
         if isinstance(target, irAddress):
-            # if target.target.length > 1:
-                # raise SyntaxError("Cannot assign to compound type '%s' from '%s'" % (target.target.name, value.name), lineno=lineno)
-
             if target.target.length == 1:
                 self.store_indirect(target, value, lineno=lineno)
 
             else:
-                result = self.add_temp(lineno=lineno, data_type='addr')
-                ir = irIndex(result, target, lineno=lineno)
+                ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
 
-                # self.assign(result, value, lineno=lineno)
-
         elif isinstance(value, irAddress):
+            if value.target.length > 1:
+                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+
             self.load_indirect(value, target, lineno=lineno)
 
         elif isinstance(target, irArray):
@@ -882,8 +876,8 @@ class Builder(object):
             self.append_node(ir)
             # return ir
 
-        elif value.length > 1:
-            raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.name, target.name), lineno=lineno)
+        # elif value.length > 1:
+            # raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.name, target.name), lineno=lineno)
 
         else:
             # check target type

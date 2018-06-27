@@ -627,11 +627,10 @@ class insLibCall(BaseInstruction):
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
 
-    def __init__(self, result, base_addr, target, indexes):
+    def __init__(self, result, base_addr, indexes):
         self.result = result
         self.base_addr = base_addr
         self.indexes = indexes
-        self.target = target
 
     def __str__(self):
         indexes = ''
@@ -642,7 +641,7 @@ class insIndex(BaseInstruction):
     def execute(self, memory):
         addr = self.base_addr.addr
 
-        print 'INDEX', self.indexes, self.target
+        print 'INDEX', self.indexes
 
         # try:
         #     dimensions = self.base_addr.var.dimensions
