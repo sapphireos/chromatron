@@ -758,7 +758,7 @@ class insVector(BaseInstruction):
         self.value = value
 
     def __str__(self):
-        return "%s %s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
+        return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
 class insVectorMov(insVector):
     op = "mov"

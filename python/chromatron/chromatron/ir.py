@@ -73,7 +73,7 @@ class irVar(IR):
 
     def lookup(self, indexes):
         assert len(indexes) == 0
-        return self
+        return deepcopy(self)
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -123,7 +123,7 @@ class irArray(irVar):
 
     def lookup(self, indexes):
         if len(indexes) == 0:
-            return self
+            return deepcopy(self)
 
         indexes = deepcopy(indexes)
         indexes.pop(0)
@@ -155,7 +155,7 @@ class irRecord(irVar):
 
     def lookup(self, indexes):
         if len(indexes) == 0:
-            return self
+            return deepcopy(self)
 
         indexes = deepcopy(indexes)
         index = indexes.pop(0)
@@ -366,23 +366,27 @@ class irAssign(IR):
         super(irAssign, self).__init__(**kwargs)
         self.target = target
         self.value = value
+
+        assert self.target.length == 1
         
     def __str__(self):
-        if self.target.length > 1:
-            s = '%s =(vector) %s' % (self.target, self.value)
-
-        else:
-            s = '%s = %s' % (self.target, self.value)
-
-        return s
+        return '%s = %s' % (self.target, self.value)
 
     def generate(self):
-        if self.target.length == 1:    
-            return insMov(self.target.generate(), self.value.generate())
+        return insMov(self.target.generate(), self.value.generate())
 
-        else:
-            return insVectorMov(self.target.generate(), self.value.generate())
 
+class irVectorAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irVectorAssign, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return '%s =(vector) %s' % (self.target, self.value)
+
+    def generate(self):
+        return insVectorMov(self.target.generate(), self.value.generate())
 
 class irCall(IR):
     def __init__(self, target, params, args, result, **kwargs):
@@ -850,22 +854,33 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):        
-        print "ASSIGN", target, value
+        print "ASSIGN", target, value, target.addr
 
         if isinstance(target, irAddress):
-            if target.target.length > 1:
-                raise SyntaxError("Cannot assign to compound type '%s' from '%s'" % (target.target.name, value.name), lineno=lineno)
+            # if target.target.length > 1:
+                # raise SyntaxError("Cannot assign to compound type '%s' from '%s'" % (target.target.name, value.name), lineno=lineno)
 
-            self.store_indirect(target, value, lineno=lineno)
+            if target.target.length == 1:
+                self.store_indirect(target, value, lineno=lineno)
+
+            else:
+                result = self.add_temp(lineno=lineno, data_type='addr')
+                ir = irIndex(result, target, lineno=lineno)
+                self.append_node(ir)
+
+                # self.assign(result, value, lineno=lineno)
 
         elif isinstance(value, irAddress):
             self.load_indirect(value, target, lineno=lineno)
 
         elif isinstance(target, irArray):
-            ir = irAssign(target, value, lineno=lineno)
-
+            result = self.add_temp(lineno=lineno, data_type='addr')
+            ir = irIndex(result, target, lineno=lineno)
             self.append_node(ir)
-            return ir
+
+            ir = irVectorAssign(result, value, lineno=lineno)
+            self.append_node(ir)
+            # return ir
 
         elif value.length > 1:
             raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.name, target.name), lineno=lineno)
@@ -880,7 +895,7 @@ class Builder(object):
 
             self.append_node(ir)
 
-            return ir
+            # return ir
 
     def augassign(self, op, target, value, lineno=None):
         if isinstance(target, irAddress):
@@ -1053,7 +1068,7 @@ class Builder(object):
             
         self.compound_lookup.append(index)
 
-    def resolve_lookup(self, load=True, lineno=None):    
+    def resolve_lookup(self, lineno=None):    
         target = self.compound_lookup.pop(0)
         result = self.add_temp(lineno=lineno, data_type='addr')
 
@@ -1069,9 +1084,6 @@ class Builder(object):
 
         self.append_node(ir)
 
-        # if load:
-            # return self.load_indirect(result, lineno=lineno)
-        
         return result
 
     def generic_object(self, name, data_type, args, kw, lineno=None):
