@@ -627,10 +627,12 @@ class insLibCall(BaseInstruction):
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
 
-    def __init__(self, result, base_addr, indexes):
+    def __init__(self, result, base_addr, indexes, counts, strides):
         self.result = result
         self.base_addr = base_addr
         self.indexes = indexes
+        self.counts = counts
+        self.strides = strides
 
     def __str__(self):
         indexes = ''
@@ -641,19 +643,29 @@ class insIndex(BaseInstruction):
     def execute(self, memory):
         addr = self.base_addr.addr
 
-        print 'INDEX', self.indexes
+        print self.indexes, self.counts, self.strides
 
-        # try:
-        #     dimensions = self.base_addr.var.dimensions
-        #     strides = self.base_addr.var.strides
+        # print 'INDEX', self.base_addr.var
+        # return
 
-        # except AttributeError:
-        #     dimensions = None
-        #     strides = None
+        # # try:
+        # #     dimensions = self.base_addr.var.dimensions
+        # #     strides = self.base_addr.var.strides
+
+        # # except AttributeError:
+        # #     dimensions = None
+        # #     strides = None
+
+        # var = self.base_addr.var
 
         # for i in xrange(len(self.indexes)):
         #     index = memory[self.indexes[i].addr]
-                
+            
+
+        #     print var
+        #     var = var.type
+
+
         #     try:
         #         length = dimensions[i]
         #         stride = strides[i]

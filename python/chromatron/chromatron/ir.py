@@ -144,12 +144,21 @@ class irRecord(irVar):
         for field in self.fields.values():
             self.length += field.length
 
+
+        self.count = 0
             
     def __call__(self, name, dimensions=[], lineno=None):
         return irRecord(name, self.type, self.fields, self.offsets, lineno=lineno)
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
+
+    def get_field_from_offset(self, offset): 
+        for field_name, addr in self.offsets.items():
+            if addr.name == offset.name:
+                return self.fields[field_name]
+
+        assert False
 
     def lookup(self, indexes):
         if len(indexes) == 0:
@@ -537,24 +546,28 @@ class irIndex(IR):
         return s
 
     def generate(self):
-        indexes = []
-        
-        # for index in self.indexes:
-        #     indexes.append(index)
-
-        #     if isinstance(index, irStr):
-        #         # this is a field lookup for a record.
-        #         # get the type this will point to:
-        #         field = self.target.resolve_type(indexes)
-
-        #         # modify index to point to offset
-        #         indexes.pop(-1)
-        #         indexes.append(field.addr)
-
-        # target = self.target.resolve_type(self.indexes)
         indexes = [i.generate() for i in self.indexes]
+        counts = []
+        strides = []
 
-        return insIndex(self.result.generate(), self.target.generate(), indexes)
+        target = self.target
+
+        for i in xrange(len(self.indexes)):
+            count = target.count
+            counts.append(count)
+            
+            if isinstance(target, irRecord):
+                target = target.get_field_from_offset(self.indexes[i])
+                stride = 0
+
+            else:
+                target = target.type
+                stride = target.length
+
+            strides.append(stride)
+        
+
+        return insIndex(self.result.generate(), self.target.generate(), indexes, counts, strides)
 
 
 class irIndexLoad(IR):
