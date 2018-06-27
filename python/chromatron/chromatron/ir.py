@@ -122,14 +122,12 @@ class irArray(irVar):
         return "Array (%s, %s, %d:%d)" % (self.name, self.type, self.count, self.length)
 
     def lookup(self, indexes):
-        indexes = deepcopy(indexes)
-
-        try:
-            indexes.pop(0)
-
-        except IndexError:
+        if len(indexes) == 0:
             return self
 
+        indexes = deepcopy(indexes)
+        indexes.pop(0)
+        
         return self.type.lookup(indexes)
 
 class irRecord(irVar):
@@ -155,6 +153,23 @@ class irRecord(irVar):
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
 
+    def lookup(self, indexes):
+        if len(indexes) == 0:
+            return self
+
+        indexes = deepcopy(indexes)
+        index = indexes.pop(0)
+
+        try:
+            return self.fields[index.name].lookup(indexes)
+
+        except KeyError:
+            # try looking up by offset
+            for field_name, addr in self.offsets.items():
+                if addr.name == index.name:
+                    return self.fields[field_name].lookup(indexes)
+
+            raise
 
 class irStr(IR):
     def __init__(self, name, **kwargs):
@@ -1011,9 +1026,22 @@ class Builder(object):
 
     def lookup_subscript(self, target, index, lineno=None):
         if len(self.compound_lookup) == 0:
-            self.compound_lookup.append(target)  
+            self.compound_lookup.append(target)
 
-        self.compound_lookup.append(index)  
+        if isinstance(index, irStr):
+            resolved_target = target.lookup(self.compound_lookup[1:])
+
+            if not isinstance(resolved_target, irRecord):
+                raise SyntaxError("Invalid index: %s" % (index.name), lineno=lineno)
+
+            # convert index to offset adress for record
+            try:
+                index = resolved_target.offsets[index.name]
+
+            except KeyError:
+                raise SyntaxError("Field '%s' not found in '%s'" % (index.name, target.name), lineno=lineno)
+            
+        self.compound_lookup.append(index)
 
     def resolve_lookup(self, load=True, lineno=None):    
         target = self.compound_lookup.pop(0)
