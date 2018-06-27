@@ -643,21 +643,6 @@ class insIndex(BaseInstruction):
     def execute(self, memory):
         addr = self.base_addr.addr
 
-        print self.indexes, self.counts, self.strides
-
-        # print 'INDEX', self.base_addr.var
-        # return
-
-        # # try:
-        # #     dimensions = self.base_addr.var.dimensions
-        # #     strides = self.base_addr.var.strides
-
-        # # except AttributeError:
-        # #     dimensions = None
-        # #     strides = None
-
-        # var = self.base_addr.var
-
         for i in xrange(len(self.indexes)):
             index = memory[self.indexes[i].addr]
             
