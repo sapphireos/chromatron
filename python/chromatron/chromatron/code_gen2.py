@@ -160,7 +160,7 @@ class cg1VarInt32(cg1Var):
 
 class cg1ConstInt32(cg1VarInt32):
     def build(self, builder):
-        return builder.add_const(self.name, self.type, [], lineno=self.lineno)
+        return builder.add_const(self.name, self.type, lineno=self.lineno)
 
 class cg1VarFixed16(cg1Var):
     def __init__(self, *args, **kwargs):
@@ -176,7 +176,7 @@ class cg1ConstFixed16(cg1VarFixed16):
             self.name = int(self.name * 65536)
 
     def build(self, builder):
-        return builder.add_const(self.name, self.type, [], lineno=self.lineno)
+        return builder.add_const(self.name, self.type, lineno=self.lineno)
     
     
 
@@ -496,6 +496,7 @@ class cg1Subscript(cg1CodeNode):
 
         else:
             return target
+
 
 class cg1Str(cg1CodeNode):
     _fields = ["s"]

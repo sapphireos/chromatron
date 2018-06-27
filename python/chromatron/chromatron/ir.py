@@ -58,12 +58,11 @@ class IR(object):
         return BaseInstruction()
 
 class irVar(IR):
-    def __init__(self, name, type='i32', dimensions=[], **kwargs):
+    def __init__(self, name, type='i32', **kwargs):
         super(irVar, self).__init__(**kwargs)
         self.name = name
         self.type = type
         self.length = 1
-        self.dimensions = dimensions
         self.addr = None
 
     def __str__(self):
@@ -71,14 +70,6 @@ class irVar(IR):
 
     def generate(self):
         return insAddr(self.addr, self)
-
-    # def get_type_for_index(self, indexes):
-        # return self
-
-    def resolve_type(self, indexes):
-        assert len(indexes) == 0
-
-        return self
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
@@ -127,21 +118,6 @@ class irArray(irVar):
         for i in reversed(xrange(len(self.dimensions) - 1)):
             self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1] 
 
-
-    # def get_type_for_index(self, indexes):
-    #     if len(indexes) < len(self.dimensions):
-    #         # index is within our array
-    #         return self
-
-    #     while len(indexes) > len(self.dimensions):
-    #         indexes.pop(0)
-
-    #     if len(indexes) == 0:
-    #         # index fully resolves array
-    #         return self._internal_type
-
-    #     return self._internal_type.get_type_for_index(indexes)
-
     def __str__(self):
         return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
 
@@ -157,32 +133,13 @@ class irRecord(irVar):
         for field in self.fields.values():
             self.length += field.length
 
-            # assign offset to field
-            field.addr = self.offsets[field.name]
-
-
+            
     def __call__(self, name, dimensions=[], lineno=None):
         # creating an instance of a record type.
         # need to create copies of all variables, and then attach record name to them.
         fields = deepcopy(self.fields)
 
-        # for field in fields.values():
-            # field.name = '%s.%s' % (name, field.name)
-            
         return irRecord(name, self.type, fields, self.offsets, lineno=lineno)
-
-    def resolve_type(self, indexes):
-        indexes = deepcopy(indexes)
-
-        index = indexes.pop(0)
-
-        return self.fields[index.name].resolve_type(indexes)
-
-    # def get_type_for_index(self, indexes):
-    #     index = indexes.pop(0)
-
-    #     return self.fields[index.name].get_type_for_index(indexes)
-
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -555,22 +512,22 @@ class irIndex(IR):
     def generate(self):
         indexes = []
         
-        for index in self.indexes:
-            indexes.append(index)
+        # for index in self.indexes:
+        #     indexes.append(index)
 
-            if isinstance(index, irStr):
-                # this is a field lookup for a record.
-                # get the type this will point to:
-                field = self.target.resolve_type(indexes)
+        #     if isinstance(index, irStr):
+        #         # this is a field lookup for a record.
+        #         # get the type this will point to:
+        #         field = self.target.resolve_type(indexes)
 
-                # modify index to point to offset
-                indexes.pop(-1)
-                indexes.append(field.addr)
+        #         # modify index to point to offset
+        #         indexes.pop(-1)
+        #         indexes.append(field.addr)
 
-        target = self.target.resolve_type(self.indexes)
-        indexes = [i.generate() for i in indexes]
+        # target = self.target.resolve_type(self.indexes)
+        indexes = [i.generate() for i in self.indexes]
 
-        return insIndex(self.result.generate(), self.target.generate(), target, indexes)
+        return insIndex(self.result.generate(), self.target.generate(), None, indexes)
 
 
 class irIndexLoad(IR):
@@ -694,10 +651,11 @@ class Builder(object):
         data_type = self.get_type(data_type, lineno=lineno)
 
         if len(dimensions) == 0:
-            ir = data_type(name, dimensions=dimensions, lineno=lineno)
+            ir = data_type(name, lineno=lineno)
 
         else:
-            ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
+            # ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
+            pass
 
         return ir
 
@@ -764,11 +722,11 @@ class Builder(object):
 
         return var.fields[attr]
 
-    def add_const(self, name, data_type='i32', length=1, lineno=None):
+    def add_const(self, name, data_type='i32', lineno=None):
         if name in self.globals:
             return self.globals[name]
 
-        ir = irConst(name, data_type, length, lineno=lineno)
+        ir = irConst(name, data_type, lineno=lineno)
 
         self.globals[name] = ir
 
@@ -1023,17 +981,19 @@ class Builder(object):
 
         self.append_node(ir)
 
-    def lookup_attribute(self, obj, attr, lineno=None):
-        if len(self.compound_lookup) == 0:
-            self.compound_lookup.append(obj)  
+    # def lookup_attribute(self, obj, attr, lineno=None):
+    #     if len(self.compound_lookup) == 0:
+    #         self.compound_lookup.append(obj)  
 
-        self.compound_lookup.append(irField(attr, obj, lineno=lineno))
+    #     self.compound_lookup.append(irField(attr, obj, lineno=lineno))
 
     def lookup_subscript(self, target, index, lineno=None):
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(target)  
 
         self.compound_lookup.append(index)  
+
+        print 'lookup', target, self.compound_lookup
 
     def resolve_lookup(self, load=True, lineno=None):    
         target = self.compound_lookup.pop(0)
@@ -1052,6 +1012,8 @@ class Builder(object):
         ir.indexes = indexes
 
         self.append_node(ir)
+
+        print result
 
         if load:
             return self.load_indirect(result, lineno=lineno)
