@@ -874,10 +874,6 @@ class Builder(object):
 
             ir = irVectorAssign(result, value, lineno=lineno)
             self.append_node(ir)
-            # return ir
-
-        # elif value.length > 1:
-            # raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.name, target.name), lineno=lineno)
 
         else:
             # check target type
@@ -889,12 +885,9 @@ class Builder(object):
 
             self.append_node(ir)
 
-            # return ir
-
     def augassign(self, op, target, value, lineno=None):
         if isinstance(target, irAddress):
             if target.target.length == 1:
-                print 'meow'
                 # not a vector op, but we have a target address and not a value
     
                 # need to load indirect first
@@ -923,9 +916,6 @@ class Builder(object):
             self.append_node(ir)
 
     def load_indirect(self, address, result=None, lineno=None):
-        # if address.target.length > 1:
-            # raise SyntaxError("Cannot indirect load from array: '%s'" % (address.target.name), lineno=lineno)
-
         if result is None:
             result = self.add_temp(data_type=address.target.type, lineno=lineno)
 
