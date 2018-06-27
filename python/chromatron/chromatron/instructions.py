@@ -627,44 +627,47 @@ class insLibCall(BaseInstruction):
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
 
-    def __init__(self, result, target, indexes):
+    def __init__(self, result, base_addr, target, indexes):
         self.result = result
-        self.target = target
+        self.base_addr = base_addr
         self.indexes = indexes
+        self.target = target
 
     def __str__(self):
         indexes = ''
         for index in self.indexes:
             indexes += '[%s]' % (index)
-        return "%s %s <- %s %s" % (self.mnemonic, self.result, self.target, indexes)
+        return "%s %s <- %s %s" % (self.mnemonic, self.result, self.base_addr, indexes)
 
     def execute(self, memory):
-        addr = self.target.addr
+        addr = self.base_addr.addr
 
-        try:
-            dimensions = self.target.var.dimensions
-            strides = self.target.var.strides
+        print 'INDEX', self.indexes, self.target
 
-        except AttributeError:
-            dimensions = None
-            strides = None
+        # try:
+        #     dimensions = self.base_addr.var.dimensions
+        #     strides = self.base_addr.var.strides
 
-        for i in xrange(len(self.indexes)):
-            index = memory[self.indexes[i].addr]
+        # except AttributeError:
+        #     dimensions = None
+        #     strides = None
+
+        # for i in xrange(len(self.indexes)):
+        #     index = memory[self.indexes[i].addr]
                 
-            try:
-                length = dimensions[i]
-                stride = strides[i]
+        #     try:
+        #         length = dimensions[i]
+        #         stride = strides[i]
 
-                index %= length
-                index *= stride
+        #         index %= length
+        #         index *= stride
 
-            except TypeError:
-                pass
+        #     except TypeError:
+        #         pass
 
-            addr += index
+        #     addr += index
 
-        memory[self.result.addr] = addr
+        # memory[self.result.addr] = addr
 
 class insIndirectLoad(BaseInstruction):
     mnemonic = 'LOAD_INDIRECT'

@@ -72,6 +72,14 @@ class irVar(IR):
     def generate(self):
         return insAddr(self.addr, self)
 
+    # def get_type_for_index(self, indexes):
+        # return self
+
+    def resolve_type(self, indexes):
+        assert len(indexes) == 0
+
+        return self
+
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_i32, self).__init__(*args, **kwargs)
@@ -104,8 +112,9 @@ class irArray(irVar):
     def __init__(self, *args, **kwargs):
         super(irArray, self).__init__(*args, **kwargs)
 
+        self._internal_type = self.type
         self.type_length = self.type.length
-        self.type = self.type.type        
+        self.type = self.type.type
 
         self.length = self.dimensions[0] * self.type_length
         for i in xrange(len(self.dimensions) - 1):
@@ -116,8 +125,22 @@ class irArray(irVar):
 
         # calculate stride lengths of each dimension
         for i in reversed(xrange(len(self.dimensions) - 1)):
-            self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1]            
+            self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1] 
 
+
+    # def get_type_for_index(self, indexes):
+    #     if len(indexes) < len(self.dimensions):
+    #         # index is within our array
+    #         return self
+
+    #     while len(indexes) > len(self.dimensions):
+    #         indexes.pop(0)
+
+    #     if len(indexes) == 0:
+    #         # index fully resolves array
+    #         return self._internal_type
+
+    #     return self._internal_type.get_type_for_index(indexes)
 
     def __str__(self):
         return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -134,15 +157,32 @@ class irRecord(irVar):
         for field in self.fields.values():
             self.length += field.length
 
+            # assign offset to field
+            field.addr = self.offsets[field.name]
+
+
     def __call__(self, name, dimensions=[], lineno=None):
         # creating an instance of a record type.
         # need to create copies of all variables, and then attach record name to them.
         fields = deepcopy(self.fields)
 
-        for field in fields.values():
-            field.name = '%s.%s' % (name, field.name)
+        # for field in fields.values():
+            # field.name = '%s.%s' % (name, field.name)
             
         return irRecord(name, self.type, fields, self.offsets, lineno=lineno)
+
+    def resolve_type(self, indexes):
+        indexes = deepcopy(indexes)
+
+        index = indexes.pop(0)
+
+        return self.fields[index.name].resolve_type(indexes)
+
+    # def get_type_for_index(self, indexes):
+    #     index = indexes.pop(0)
+
+    #     return self.fields[index.name].get_type_for_index(indexes)
+
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -156,6 +196,8 @@ class irStr(IR):
     def __str__(self):
         return "Str(%s)" % (self.name)
 
+    def generate(self):
+        return self.name
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
@@ -508,12 +550,27 @@ class irIndex(IR):
 
         s = '%s = INDEX %s%s' % (self.result, self.target, indexes)
 
-        return s   
+        return s
 
     def generate(self):
-        indexes = [i.generate() for i in self.indexes]
+        indexes = []
+        
+        for index in self.indexes:
+            indexes.append(index)
 
-        return insIndex(self.result.generate(), self.target.generate(), indexes)
+            if isinstance(index, irStr):
+                # this is a field lookup for a record.
+                # get the type this will point to:
+                field = self.target.resolve_type(indexes)
+
+                # modify index to point to offset
+                indexes.pop(-1)
+                indexes.append(field.addr)
+
+        target = self.target.resolve_type(self.indexes)
+        indexes = [i.generate() for i in indexes]
+
+        return insIndex(self.result.generate(), self.target.generate(), target, indexes)
 
 
 class irIndexLoad(IR):

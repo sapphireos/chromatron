@@ -842,7 +842,7 @@ if __name__ == '__main__':
     vm = VM(ins, data)
 
     pprint.pprint(vm.dump_registers())
-    vm.run('init')
+    vm.run('my_record')
 
     pprint.pprint(vm.dump_registers())
 
