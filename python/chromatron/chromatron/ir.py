@@ -100,23 +100,30 @@ class irConst(irVar):
         return "Const (%s, %s)" % (value, self.type)
 
 class irArray(irVar):
-    def __init__(self, *args, **kwargs):
-        super(irArray, self).__init__(*args, **kwargs)
+    def __init__(self, name, type, dimensions=[], **kwargs):
+        super(irArray, self).__init__(name, type, **kwargs)
 
-        self._internal_type = self.type
-        self.type_length = self.type.length
-        self.type = self.type.type
+        self.length = dimensions.pop(0)
 
-        self.length = self.dimensions[0] * self.type_length
-        for i in xrange(len(self.dimensions) - 1):
-            self.length *= self.dimensions[i + 1]
+        if len(dimensions) == 0:
+            self.type = type
+            
+        
 
-        self.strides = [0] * len(self.dimensions)
-        self.strides[len(self.dimensions) - 1] = self.type_length
+        # self._internal_type = self.type
+        # self.type_length = self.type.length
+        # self.type = self.type.type
 
-        # calculate stride lengths of each dimension
-        for i in reversed(xrange(len(self.dimensions) - 1)):
-            self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1] 
+        # self.length = self.dimensions[0] * self.type_length
+        # for i in xrange(len(self.dimensions) - 1):
+        #     self.length *= self.dimensions[i + 1]
+
+        # self.strides = [0] * len(self.dimensions)
+        # self.strides[len(self.dimensions) - 1] = self.type_length
+
+        # # calculate stride lengths of each dimension
+        # for i in reversed(xrange(len(self.dimensions) - 1)):
+        #     self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1] 
 
     def __str__(self):
         return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -654,8 +661,7 @@ class Builder(object):
             ir = data_type(name, lineno=lineno)
 
         else:
-            # ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
-            pass
+            ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
 
         return ir
 
@@ -827,6 +833,15 @@ class Builder(object):
     def assign(self, target, value, lineno=None):        
         if isinstance(target, irAddress):
             self.store_indirect(target, value, lineno=lineno)
+
+        elif isinstance(target, irArray):
+            ir = irAssign(target, value, lineno=lineno)
+
+            self.append_node(ir)
+            return ir
+
+        elif value.length > 1:
+            raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.name, target.name), lineno=lineno)
 
         else:
             # check target type
