@@ -1092,6 +1092,11 @@ class Builder(object):
             i += 1
 
     def generate_instructions(self):
+        # check if there is no init function
+        if 'init' not in self.funcs:
+            self.func('init', lineno=0)
+            self.ret(self.get_var(0), lineno=0)
+
         # check if there is no loop function
         if 'loop' not in self.funcs:
             self.func('loop', lineno=0)
