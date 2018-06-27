@@ -658,27 +658,19 @@ class insIndex(BaseInstruction):
 
         # var = self.base_addr.var
 
-        # for i in xrange(len(self.indexes)):
-        #     index = memory[self.indexes[i].addr]
+        for i in xrange(len(self.indexes)):
+            index = memory[self.indexes[i].addr]
             
+            count = self.counts[i]
+            stride = self.strides[i]            
 
-        #     print var
-        #     var = var.type
+            if count > 0:
+                index %= count
+                index *= stride
 
+            addr += index
 
-        #     try:
-        #         length = dimensions[i]
-        #         stride = strides[i]
-
-        #         index %= length
-        #         index *= stride
-
-        #     except TypeError:
-        #         pass
-
-        #     addr += index
-
-        # memory[self.result.addr] = addr
+        memory[self.result.addr] = addr
 
 class insIndirectLoad(BaseInstruction):
     mnemonic = 'LOAD_INDIRECT'
