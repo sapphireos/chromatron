@@ -462,16 +462,16 @@ class cg1Attribute(cg1CodeNode):
         self.attr = attr
         self.load = load
         
-    def build(self, builder, depth=0):
-        depth += 1
+    # def build(self, builder, depth=0):
+    #     depth += 1
 
-        obj = self.obj.build(builder, depth=depth)
-        builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
+    #     obj = self.obj.build(builder, depth=depth)
+    #     builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
 
-        if depth == 1:
-            return builder.resolve_lookup(load=self.load, lineno=self.lineno)
+    #     if depth == 1:
+    #         return builder.resolve_lookup(load=self.load, lineno=self.lineno)
 
-        return obj
+    #     return obj
 
 
 class cg1Subscript(cg1CodeNode):
@@ -840,11 +840,11 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    vm = VM(ins, data)
+    # vm = VM(ins, data)
 
-    pprint.pprint(vm.dump_registers())
-    vm.run('my_array')
+    # pprint.pprint(vm.dump_registers())
+    # vm.run('my_array')
 
-    pprint.pprint(vm.dump_registers())
+    # pprint.pprint(vm.dump_registers())
 
-    print vm.memory
+    # print vm.memory

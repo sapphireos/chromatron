@@ -71,6 +71,10 @@ class irVar(IR):
     def generate(self):
         return insAddr(self.addr, self)
 
+    def lookup(self, indexes):
+        assert len(indexes) == 0
+        return self
+
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_i32, self).__init__(*args, **kwargs)
@@ -82,12 +86,13 @@ class irVar_f16(irVar):
         self.type = 'f16'
 
 class irAddress(irVar):
-    def __init__(self, *args, **kwargs):
-        super(irAddress, self).__init__(*args, **kwargs)
+    def __init__(self, name, target=None, **kwargs):
+        super(irAddress, self).__init__(name, **kwargs)
+        self.target = target
         self.type = 'addr_i32'
 
     def __str__(self):
-        return "Addr (%s)" % (self.name)
+        return "Addr (%s -> %s)" % (self.name, self.target)
 
 
 class irConst(irVar):
@@ -103,30 +108,29 @@ class irArray(irVar):
     def __init__(self, name, type, dimensions=[], **kwargs):
         super(irArray, self).__init__(name, type, **kwargs)
 
-        self.length = dimensions.pop(0)
+        self.count = dimensions.pop(0)
 
         if len(dimensions) == 0:
             self.type = type
-            
-        
 
-        # self._internal_type = self.type
-        # self.type_length = self.type.length
-        # self.type = self.type.type
+        else:
+            self.type = irArray(name, type, dimensions, lineno=self.lineno)
 
-        # self.length = self.dimensions[0] * self.type_length
-        # for i in xrange(len(self.dimensions) - 1):
-        #     self.length *= self.dimensions[i + 1]
-
-        # self.strides = [0] * len(self.dimensions)
-        # self.strides[len(self.dimensions) - 1] = self.type_length
-
-        # # calculate stride lengths of each dimension
-        # for i in reversed(xrange(len(self.dimensions) - 1)):
-        #     self.strides[i] = self.strides[i + 1] * self.dimensions[i + 1] 
+        self.length = self.count * self.type.length
 
     def __str__(self):
-        return "Array (%s, %s, %d)" % (self.name, self.type, self.length)
+        return "Array (%s, %s, %d:%d)" % (self.name, self.type, self.count, self.length)
+
+    def lookup(self, indexes):
+        indexes = deepcopy(indexes)
+
+        try:
+            indexes.pop(0)
+
+        except IndexError:
+            return self
+
+        return self.type.lookup(indexes)
 
 class irRecord(irVar):
     def __init__(self, name, data_type, fields, offsets, **kwargs):
@@ -832,6 +836,9 @@ class Builder(object):
 
     def assign(self, target, value, lineno=None):        
         if isinstance(target, irAddress):
+            if target.target.length > 1:
+                raise SyntaxError("Cannot assign to compound type '%s' from '%s'" % (target.target.name, value.name), lineno=lineno)
+
             self.store_indirect(target, value, lineno=lineno)
 
         elif isinstance(target, irArray):
@@ -1008,27 +1015,21 @@ class Builder(object):
 
         self.compound_lookup.append(index)  
 
-        print 'lookup', target, self.compound_lookup
-
     def resolve_lookup(self, load=True, lineno=None):    
         target = self.compound_lookup.pop(0)
         result = self.add_temp(lineno=lineno, data_type='addr')
 
-        ir = irIndex(result, target, lineno=lineno)
+        result.target = target.lookup(self.compound_lookup)
 
         indexes = []
-
         for index in self.compound_lookup:
             indexes.append(index)
         
         self.compound_lookup = []
 
-
-        ir.indexes = indexes
+        ir = irIndex(result, target, indexes, lineno=lineno)
 
         self.append_node(ir)
-
-        print result
 
         if load:
             return self.load_indirect(result, lineno=lineno)
