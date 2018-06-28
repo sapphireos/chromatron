@@ -560,6 +560,9 @@ end:
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_params( FALSE );
 
+            // run DB transfer
+            run_xfer = TRUE;
+
             last_param_sync = tmr_u32_get_system_time_ms();
         }
 
