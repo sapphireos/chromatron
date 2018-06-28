@@ -575,6 +575,11 @@ end:
             run_xfer = TRUE;
             for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
 
+                if( subscribed_keys[i].hash == 0 ){
+
+                   continue;
+                }
+                    
                 subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
             }   
 
@@ -719,6 +724,11 @@ end:
 
         // check if any flags are set
         for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+            if( subscribed_keys[i].hash == 0 ){
+
+                continue;
+            }
 
             if( subscribed_keys[i].flags & KEY_FLAG_UPDATED ){
 
