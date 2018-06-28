@@ -572,7 +572,7 @@ class insLibCall(BaseInstruction):
         return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
 
     def _len(self, memory):
-        return self.params[0].var.dimensions[0]
+        return self.params[0].var.count
 
     def _min(self, memory):
         addr = self.params[0].addr
@@ -654,7 +654,7 @@ class insIndex(BaseInstruction):
                 index *= stride
 
             addr += index
-        
+
         memory[self.result.addr] = addr
 
 class insIndirectLoad(BaseInstruction):
@@ -745,7 +745,7 @@ class insVector(BaseInstruction):
         self.target = target
         self.value = value
 
-        self.length = self.target.var.target.length
+        self.length = self.target.var.length
 
     def __str__(self):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)

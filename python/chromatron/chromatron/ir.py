@@ -24,6 +24,8 @@ from instructions import *
 
 from copy import deepcopy, copy
 
+ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+
 
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
@@ -96,6 +98,9 @@ class irAddress(irVar):
     def __str__(self):
         return "Addr (%s -> %s)" % (self.name, self.target)
 
+    def generate(self):
+        assert self.addr != None
+        return insAddr(self.addr, self.target)
 
 class irConst(irVar):
     def __str__(self):
@@ -435,6 +440,11 @@ class irLibCall(IR):
 
     def generate(self):        
         params = [a.generate() for a in self.params]
+
+        if self.target in ARRAY_FUNCS:
+            if len(params) != 1:
+                raise SyntaxError("Array functions take one argument", lineno=self.lineno)
+                
 
         # call func
         call_ins = insLibCall(self.target, self.result, params)
@@ -945,15 +955,15 @@ class Builder(object):
 
         return ir
         
-    def call(self, target, params, lineno=None):
+    def call(self, func_name, params, lineno=None):
         result = self.add_temp(lineno=lineno)
 
         try:
-            args = self.funcs[target].params
-            ir = irCall(target, params, args, result, lineno=lineno)
+            args = self.funcs[func_name].params
+            ir = irCall(func_name, params, args, result, lineno=lineno)
 
         except KeyError:
-            ir = irLibCall(target, params, result, lineno=lineno)
+            ir = irLibCall(func_name, params, result, lineno=lineno)
         
         self.append_node(ir)        
 
