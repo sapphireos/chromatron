@@ -52,8 +52,8 @@ class Client(object):
 
         self._connected_host = None
 
-        self.read_window_size = 4
-        self.write_window_size = 2
+        self.read_window_size = 1
+        self.write_window_size = 1
 
         self.nodes = {}
 
