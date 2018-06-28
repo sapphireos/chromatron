@@ -206,6 +206,19 @@ class irField(IR):
     def generate(self):
         return insAddr(self.obj.offsets[self.name].addr)
 
+class irObject(IR):
+    def __init__(self, name, data_type, args=[], kw={}, **kwargs):
+        super(irObject, self).__init__(**kwargs)
+        self.name = name
+        self.type = data_type
+        self.args = args
+        self.kw = kw
+
+    def __str__(self):
+        return "Object %s(%s)" % (self.name, self.type)
+
+
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -633,8 +646,7 @@ class Builder(object):
             'addr': irAddress,
         }
 
-        self.record_types = {
-        }
+        self.record_types = {}
 
         # optimizations
         self.optimizations = {
@@ -643,6 +655,9 @@ class Builder(object):
 
         # make sure we always have 0 const
         self.add_const(0, lineno=0)
+
+        # create main pixels object
+        self.generic_object('pixels', 'PixelArray', args=[0, 65535], lineno=0)
 
     def __str__(self):
         s = "FX IR:\n"
@@ -1105,8 +1120,12 @@ class Builder(object):
 
         return result
 
-    def generic_object(self, name, data_type, args, kw, lineno=None):
+    def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
         print name, data_type, args, kw
+        if name in self.objects:
+            raise SyntaxError("Object '%s' already defined" % (name), lineno=lineno)
+
+        self.objects[name] = irObject(name, data_type, args, kw, lineno=lineno)
 
     def _fold_constants(self, op, left, right, lineno):
         val = None

@@ -462,16 +462,18 @@ class cg1Attribute(cg1CodeNode):
         self.attr = attr
         self.load = load
         
-    # def build(self, builder, depth=0):
-    #     depth += 1
+    def build(self, builder, depth=0):
+        depth += 1
 
-    #     obj = self.obj.build(builder, depth=depth)
-    #     builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
+        obj = self.obj.build(builder, depth=depth)
+        
+        # builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
 
-    #     if depth == 1:
-    #         return builder.resolve_lookup(load=self.load, lineno=self.lineno)
+        if depth == 1:
+            print "MEOW"
+        #     return builder.resolve_lookup(load=self.load, lineno=self.lineno)
 
-    #     return obj
+        return obj
 
 
 class cg1Subscript(cg1CodeNode):
@@ -753,7 +755,6 @@ class CodeGenPass1(ast.NodeVisitor):
 
         value = self.visit(node.value)
 
-        # return cg1ObjVar(value, node.attr, lineno=node.lineno)
         return cg1Attribute(value, node.attr, load=load, lineno=node.lineno)
 
     def visit_Pass(self, node):
@@ -813,8 +814,8 @@ if __name__ == '__main__':
         source = f.read()
 
 
-    # with open('rainbow2.fx') as f:
-        # source = f.read()
+    with open('rainbow2.fx') as f:
+        source = f.read()
 
     tree = ast.parse(source)
 
