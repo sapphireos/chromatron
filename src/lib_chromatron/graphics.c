@@ -509,6 +509,17 @@ void gfx_v_sync_params( void ){
 }
 
 
+typedef struct{
+    catbus_hash_t32 hash;
+    uint8_t tag;
+    uint8_t flags;
+} subscribed_key_t;
+#define KEY_FLAG_UPDATED        0x01
+
+static bool run_xfer;
+static subscribed_key_t subscribed_keys[32];
+
+
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -562,6 +573,10 @@ end:
 
             // run DB transfer
             run_xfer = TRUE;
+            for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+                subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
+            }   
 
             last_param_sync = tmr_u32_get_system_time_ms();
         }
@@ -572,16 +587,6 @@ end:
 PT_END( pt );
 }
     
-
-typedef struct{
-    catbus_hash_t32 hash;
-    uint8_t tag;
-    uint8_t flags;
-} subscribed_key_t;
-#define KEY_FLAG_UPDATED        0x01
-
-static subscribed_key_t subscribed_keys[32];
-static bool run_xfer;
 
 void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
 
