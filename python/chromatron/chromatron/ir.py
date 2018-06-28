@@ -864,8 +864,6 @@ class Builder(object):
         return result
 
     def assign(self, target, value, lineno=None):        
-        print "ASSIGN", target, value, target.addr
-
         if isinstance(target, irAddress):
             if target.target.length == 1:
                 self.store_indirect(target, value, lineno=lineno)
@@ -884,6 +882,7 @@ class Builder(object):
             result = self.add_temp(lineno=lineno, data_type='addr')
             ir = irIndex(result, target, lineno=lineno)
             self.append_node(ir)
+            result.target = target
 
             ir = irVectorAssign(result, value, lineno=lineno)
             self.append_node(ir)

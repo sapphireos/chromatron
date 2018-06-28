@@ -1537,13 +1537,13 @@ b = Number(publish=True)
 c = Number(publish=True)
 
 def init():
-    r.a = 1
-    r.b = 2
-    r.c = 3
+    r['a'] = 1
+    r['b'] = 2
+    r['c'] = 3
 
-    a = r.a
-    b = r.b
-    c = r.c
+    a = r['a']
+    b = r['b']
+    c = r['c']
 
 
 """
