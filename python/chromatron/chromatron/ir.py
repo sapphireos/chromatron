@@ -444,7 +444,6 @@ class irLibCall(IR):
         if self.target in ARRAY_FUNCS:
             if len(params) != 1:
                 raise SyntaxError("Array functions take one argument", lineno=self.lineno)
-                
 
         # call func
         call_ins = insLibCall(self.target, self.result, params)

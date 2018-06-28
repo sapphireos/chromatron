@@ -562,7 +562,11 @@ class CodeGenPass1(ast.NodeVisitor):
 
         for kw in node.keywords:
             if kw.arg == 'type':
-                data_type = kw.value.func.id
+                try:
+                    data_type = kw.value.func.id
+
+                except AttributeError:
+                    data_type = kw.value.id
 
         return cg1DeclareArray(type=data_type, dimensions=dims, lineno=node.lineno)
 

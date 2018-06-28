@@ -1653,10 +1653,121 @@ def init():
 """
 
 
+test_complex_record_assign = """
+
+rec = Record(a=Number(), b=Number(), c=Array(4))
+r = rec()
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+
+def init():
+    r['a'] = 1
+    r['b'] = 2
+    r['c'][2] = 3
+
+    a = r['a']
+    b = r['b']
+    c = r['c'][0]
+    d = r['c'][1]
+    e = r['c'][2]
+    f = r['c'][3]
+
+"""
+
+
+test_complex_record_assign2 = """
+
+rec = Record(a=Number(), b=Number(), c=Array(4))
+r = rec()
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+
+def init():
+    r['a'] = 1
+    r['b'] = 2
+    r['c'] = 3
+
+    a = r['a']
+    b = r['b']
+    c = r['c'][0]
+    d = r['c'][1]
+    e = r['c'][2]
+    f = r['c'][3]
+
+"""
+
+
+
+test_complex_record_assign3 = """
+
+rec = Record(a=Number(), b=Number(), c=Array(4))
+r = Array(2, 3, type=rec())
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+def init():
+    
+    r[0][1]['a'] = 1
+    r[1][3]['a'] = 2
+    r[2][6]['b'] = 3
+    r[2][1]['c'][4] = 4
+
+    a = r[0][1]['a']
+    b = r[1][3]['a']
+    c = r[2][6]['b']
+    d = r[2][1]['c'][4]
+
+"""
+
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_complex_record_assign3(self):
+        self.run_test(test_complex_record_assign3,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
+
+    def test_complex_record_assign2(self):
+        self.run_test(test_complex_record_assign2,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 3,
+                'e': 3,
+                'f': 3,
+            })
+
+    def test_complex_record_assign(self):
+        self.run_test(test_complex_record_assign,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 0,
+                'd': 0,
+                'e': 3,
+                'f': 0,
+            })
 
     def test_fix16(self):
         self.run_test(test_fix16,
