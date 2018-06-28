@@ -654,7 +654,7 @@ class insIndex(BaseInstruction):
                 index *= stride
 
             addr += index
-
+        
         memory[self.result.addr] = addr
 
 class insIndirectLoad(BaseInstruction):
@@ -745,6 +745,8 @@ class insVector(BaseInstruction):
         self.target = target
         self.value = value
 
+        self.length = self.target.var.target.length
+
     def __str__(self):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
@@ -754,9 +756,9 @@ class insVectorMov(insVector):
 
     def execute(self, memory):
         value = memory[self.value.addr]
-        addr = self.target.addr
+        addr = memory[self.target.addr]
 
-        for i in xrange(self.target.var.length):
+        for i in xrange(self.length):
             memory[addr] = value
             addr += 1
 
@@ -766,9 +768,9 @@ class insVectorAdd(insVector):
 
     def execute(self, memory):
         value = memory[self.value.addr]
-        addr = self.target.addr
+        addr = memory[self.target.addr]
 
-        for i in xrange(self.target.var.length):
+        for i in xrange(self.length):
             memory[addr] += value
             addr += 1
 
@@ -778,9 +780,9 @@ class insVectorSub(insVector):
 
     def execute(self, memory):
         value = memory[self.value.addr]
-        addr = self.target.addr
+        addr = memory[self.target.addr]
 
-        for i in xrange(self.target.var.length):
+        for i in xrange(self.length):
             memory[addr] -= value
             addr += 1
 
@@ -790,9 +792,9 @@ class insVectorMul(insVector):
 
     def execute(self, memory):
         value = memory[self.value.addr]
-        addr = self.target.addr
+        addr = memory[self.target.addr]
 
-        for i in xrange(self.target.var.length):
+        for i in xrange(self.length):
             memory[addr] *= value
             addr += 1
 
@@ -802,9 +804,9 @@ class insVectorDiv(insVector):
 
     def execute(self, memory):
         value = memory[self.value.addr]
-        addr = self.target.addr
+        addr = memory[self.target.addr]
 
-        for i in xrange(self.target.var.length):
+        for i in xrange(self.length):
             memory[addr] /= value
             addr += 1
 
@@ -814,9 +816,9 @@ class insVectorMod(insVector):
 
     def execute(self, memory):
         value = memory[self.value.addr]
-        addr = self.target.addr
+        addr = memory[self.target.addr]
 
-        for i in xrange(self.target.var.length):
+        for i in xrange(self.length):
             memory[addr] %= value
             addr += 1
 

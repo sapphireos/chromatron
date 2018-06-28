@@ -845,7 +845,7 @@ if __name__ == '__main__':
     vm = VM(ins, data)
 
     pprint.pprint(vm.dump_registers())
-    vm.run('my_record')
+    vm.run('my_array')
 
     pprint.pprint(vm.dump_registers())
 

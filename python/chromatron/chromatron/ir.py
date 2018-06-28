@@ -924,6 +924,7 @@ class Builder(object):
             result = self.add_temp(lineno=lineno, data_type='addr')
             ir = irIndex(result, target, lineno=lineno)
             self.append_node(ir)
+            result.target = target
 
             ir = irVectorOp(op, result, value, lineno=lineno)        
             self.append_node(ir)
