@@ -467,7 +467,13 @@ class cg1Attribute(cg1CodeNode):
 
         print self.obj, self.attr
 
-        # obj = self.obj.build(builder, depth=depth)
+        if isinstance(self.obj, cg1Var):
+            obj = self.obj
+
+        else:
+            obj = self.obj.build(builder, depth=depth)
+
+        print obj
 
         # builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
 
@@ -475,7 +481,7 @@ class cg1Attribute(cg1CodeNode):
             # print "MEOW"
         #     return builder.resolve_lookup(load=self.load, lineno=self.lineno)
 
-        return obj
+        # return obj
 
 
 class cg1Subscript(cg1CodeNode):
@@ -822,8 +828,8 @@ if __name__ == '__main__':
         source = f.read()
 
 
-    # with open('rainbow2.fx') as f:
-        # source = f.read()
+    with open('rainbow2.fx') as f:
+        source = f.read()
 
     tree = ast.parse(source)
 
