@@ -48,6 +48,7 @@ uint16_t type_u16_size( catbus_type_t8 type ){
         case CATBUS_TYPE_UINT32:
         case CATBUS_TYPE_INT32:
         case CATBUS_TYPE_FLOAT:
+        case CATBUS_TYPE_FIXED16:
         case CATBUS_TYPE_IPv4:
             size = 4;
             break;

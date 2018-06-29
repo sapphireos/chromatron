@@ -41,6 +41,7 @@ typedef int8_t catbus_type_t8;
 #define CATBUS_TYPE_UINT64            8
 #define CATBUS_TYPE_INT64             9
 #define CATBUS_TYPE_FLOAT             10
+#define CATBUS_TYPE_FIXED16           11
 
 #define CATBUS_TYPE_STRING128         40
 #define CATBUS_TYPE_MAC48             41
