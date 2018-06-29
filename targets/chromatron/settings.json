@@ -80,5 +80,5 @@
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["xmega128a4u"]
+    "LIBRARIES": ["xmega128a4u", "lib_fixmath"]
 }
