@@ -1629,30 +1629,6 @@ def init():
     
 """
 
-
-test_fix16 = """
-
-a = Fixed16(publish=True)
-b = Fixed16(publish=True)
-c = Fixed16(publish=True)
-d = Fixed16(publish=True)
-n = Number(publish=True)
-
-def init():
-    a = 123.456
-    n = a
-
-    b = a + 32
-
-    a -= 0.1
-
-    c = 0.5 * 0.5
-
-    d = 0.5 / 0.5
-
-"""
-
-
 test_complex_record_assign = """
 
 rec = Record(a=Number(), b=Number(), c=Array(4))
@@ -1734,9 +1710,105 @@ def init():
 
 
 
+test_fix16 = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+n = Number(publish=True)
+
+def init():
+    a = 123.456
+    n = a
+
+    b = a + 32
+
+    a -= 0.1
+
+    c = 0.5 * 0.5
+
+    d = 0.5 / 0.5
+
+"""
+
+test_type_conversions = """
+
+a = Number(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Number(publish=True)
+
+def init():
+    a = 123.456
+    b = 32
+
+    c = 123
+    c += 123
+
+    d = 123.123
+    d += 123.123
+
+"""
+
+
+test_type_conversions2 = """
+
+a = Number(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Number(publish=True)
+
+ary = Array(4, type=Fixed16)
+ary2 = Array(4)
+
+def init():
+    ary = 3.123
+
+    a = ary[1]
+    b = ary[1]
+
+    ary2 = 3.123    
+    c = ary2[1]
+
+    ary2 += 3.123
+    d = ary2[1]
+
+"""
+
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_type_conversions2(self):
+        self.run_test(test_type_conversions2,
+            expected={
+                'a': 3,
+                'b': 3.12298583984375,
+                'c': 3.0,
+                'd': 6
+            })
+
+    def test_type_conversions(self):
+        self.run_test(test_type_conversions,
+            expected={
+                'a': 123,
+                'b': 32,
+                'c': 246.0,
+                'd': 246
+            })
+
+    def test_fix16(self):
+        self.run_test(test_fix16,
+            expected={
+                'a': 123.35600280761719,
+                'b': 155.45599365234375,
+                'c': 0.25,
+                'd': 1.0,
+                'n': 123
+            })
 
     def test_complex_record_assign3(self):
         self.run_test(test_complex_record_assign3,
@@ -1767,16 +1839,6 @@ class CGTestsBase(unittest.TestCase):
                 'd': 0,
                 'e': 3,
                 'f': 0,
-            })
-
-    def test_fix16(self):
-        self.run_test(test_fix16,
-            expected={
-                'a': 123.35600280761719,
-                'b': 155.45599365234375,
-                'c': 0.25,
-                'd': 1.0,
-                'n': 123
             })
 
     def test_array_index_3d_aug(self):
