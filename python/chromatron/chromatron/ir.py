@@ -354,6 +354,11 @@ class irUnaryNot(IR):
         return insNot(self.target.generate(), self.value.generate())
 
 
+type_conversions = {
+    ('i32', 'f16'): insConvF16toI32,
+    ('f16', 'i32'): insConvI32toF16,
+}
+        
 # convert value to result's type and store in result
 class irConvertType(IR):
     def __init__(self, result, value, **kwargs):
@@ -369,12 +374,21 @@ class irConvertType(IR):
         return s
 
     def generate(self):
-        type_conversions = {
-            ('i32', 'f16'): insConvF16toI32,
-            ('f16', 'i32'): insConvI32toF16,
-        }
-
         return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
+
+class irConvertTypeInPlace(IR):
+    def __init__(self, target, src_type, **kwargs):
+        super(irConvertTypeInPlace, self).__init__(**kwargs)
+        self.target = target
+        self.src_type = src_type
+    
+    def __str__(self):
+        s = '%s = %s(%s)' % (self.target, self.target.type, self.target)
+
+        return s
+
+    def generate(self):
+        return type_conversions[(self.target.type, self.src_type)](self.target.generate(), self.target.generate())
 
 
 class irVectorOp(IR):
@@ -901,28 +915,41 @@ class Builder(object):
 
         return result
 
-    def assign(self, target, value, lineno=None):        
-        if isinstance(target, irAddress):
-            if target.target.length == 1:
-                self.store_indirect(target, value, lineno=lineno)
+    def assign(self, target, value, lineno=None):   
+        # check types
+        # don't do conversion if value is an address
+        if target.get_base_type() != value.get_base_type() and not isinstance(value, irAddress):
+            # in normal expressions, f16 will take precedence over i32.
+            # however, for the assign, the assignment target will 
+            # have priority.
 
-            else:
-                target_type = target.target.get_base_type()
+            # convert value to target type and replace value with result
+            conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+            ir = irConvertType(conv_result, value, lineno=lineno)
+            self.append_node(ir)
+            value = conv_result
 
-                if value.get_base_type() != target_type:
-                    conv_result = self.add_temp(lineno=lineno, data_type=target_type)
-                    ir = irConvertType(conv_result, value, lineno=lineno)
-                    self.append_node(ir)
-                    value = conv_result
-
-                ir = irVectorAssign(target, value, lineno=lineno)
-                self.append_node(ir)
-
-        elif isinstance(value, irAddress):
+        if isinstance(value, irAddress):
             if value.target.length > 1:
                 raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
 
             self.load_indirect(value, target, lineno=lineno)
+
+            # check types
+            if target.get_base_type() != value.get_base_type():
+                # mismatch.
+                # in this case, we've already done the indirect load into the target, but 
+                # it has the wrong type. we're going to do the conversion on top of itself.
+                ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+                self.append_node(ir)
+
+        elif isinstance(target, irAddress):
+            if target.target.length == 1:
+                self.store_indirect(target, value, lineno=lineno)
+
+            else:
+                ir = irVectorAssign(target, value, lineno=lineno)
+                self.append_node(ir)
 
         elif isinstance(target, irArray):
             result = self.add_temp(lineno=lineno, data_type='addr')
@@ -930,23 +957,11 @@ class Builder(object):
             self.append_node(ir)
             result.target = target
 
-            target_type = target.get_base_type()
-            if value.get_base_type() != target_type:
-                conv_result = self.add_temp(lineno=lineno, data_type=target_type)
-                ir = irConvertType(conv_result, value, lineno=lineno)
-                self.append_node(ir)
-                value = conv_result
-
             ir = irVectorAssign(result, value, lineno=lineno)
             self.append_node(ir)
 
         else:
-            # check target type
-            if target.get_base_type() != value.get_base_type():
-                ir = irConvertType(target, value, lineno=lineno)
-
-            else:
-                ir = irAssign(target, value, lineno=lineno)
+            ir = irAssign(target, value, lineno=lineno)
 
             self.append_node(ir)
 
