@@ -391,6 +391,9 @@ class insF16Mul(insBinop):
     symbol = "*"
 
     def execute(self, memory):
+        # NOTE!
+        # need to cast to i64 in C version to prevent overflow!
+
         memory[self.result.addr] = (memory[self.op1.addr] * memory[self.op2.addr]) / 65536
 
 class insF16Div(insBinop):
@@ -398,7 +401,10 @@ class insF16Div(insBinop):
     symbol = "/"
 
     def execute(self, memory):
-        memory[self.result.addr] = (memory[self.op1.addr] / memory[self.op2.addr]) * 65536
+        # NOTE!
+        # need to cast left hand side to i64 for multiply by 65536.
+        # doing it in this order prevents loss of precision on the fractional side.
+        memory[self.result.addr] = (memory[self.op1.addr] * 65536) / memory[self.op2.addr]
 
 class insF16Mod(insBinop):
     mnemonic = 'F16_MOD'
@@ -794,9 +800,16 @@ class insVectorMul(insVector):
         value = memory[self.value.addr]
         addr = memory[self.target.addr]
 
-        for i in xrange(self.length):
-            memory[addr] *= value
-            addr += 1
+        if self.target.var.get_base_type() == 'f16':
+            for i in xrange(self.length):
+                memory[addr] = (memory[addr] * value) / 65536
+                    
+                addr += 1
+
+        else:
+            for i in xrange(self.length):
+                memory[addr] *= value
+                addr += 1
 
 class insVectorDiv(insVector):
     op = "div"
@@ -806,9 +819,16 @@ class insVectorDiv(insVector):
         value = memory[self.value.addr]
         addr = memory[self.target.addr]
 
-        for i in xrange(self.length):
-            memory[addr] /= value
-            addr += 1
+        if self.target.var.get_base_type() == 'f16':
+            for i in xrange(self.length):
+                memory[addr] = (memory[addr] * 65536) / value
+                    
+                addr += 1
+
+        else:
+            for i in xrange(self.length):
+                memory[addr] /= value
+                addr += 1
 
 class insVectorMod(insVector):
     op = "mod"
@@ -818,12 +838,16 @@ class insVectorMod(insVector):
         value = memory[self.value.addr]
         addr = memory[self.target.addr]
 
-        for i in xrange(self.length):
-            memory[addr] %= value
-            addr += 1
+        if self.target.var.get_base_type() == 'f16':
+            for i in xrange(self.length):
+                memory[addr] = memory[addr] % value
+                    
+                addr += 1
 
-
-
+        else:
+            for i in xrange(self.length):
+                memory[addr] %= value
+                addr += 1
 
 
 class insConvI32toF16(BaseInstruction):

@@ -1778,9 +1778,240 @@ def init():
 
 
 
+
+
+
+test_array_assign_fixed16 = """
+
+ary = Array(4, type=Fixed16)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+
+def init():
+
+    ary = 123.123
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
+test_array_add_fixed16 = """
+
+ary = Array(4, type=Fixed16)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+
+def init():
+
+    ary[0] = 1.1
+    ary[1] = 2.1
+    ary[2] = 3.1
+    ary[3] = 4.1
+    ary[4] = 5.1
+
+    ary += 123.1
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
+
+test_array_sub_fixed16 = """
+
+ary = Array(4, type=Fixed16)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+
+def init():
+
+    ary[0] = 1.1
+    ary[1] = 2.1
+    ary[2] = 3.1
+    ary[3] = 4.1
+    ary[4] = 5.1
+
+    ary -= 123.1
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+test_array_mul_fixed16 = """
+
+ary = Array(4, type=Fixed16)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+
+def init():
+
+    ary[0] = 1.1
+    ary[1] = 2.1
+    ary[2] = 3.1
+    ary[3] = 4.1
+    ary[4] = 5.1
+
+    ary *= 123.1
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+test_array_div_fixed16 = """
+
+ary = Array(4, type=Fixed16)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+
+def init():
+
+    ary[0] = 100.1
+    ary[1] = 200.1
+    ary[2] = 300.1
+    ary[3] = 400.1
+    ary[4] = 500.1
+
+    ary /= 100.1
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
+test_array_mod_fixed16 = """
+
+ary = Array(4, type=Fixed16)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+
+def init():
+
+    ary[0] = 101.1
+    ary[1] = 102.1
+    ary[2] = 103.1
+    ary[3] = 104.1
+    ary[4] = 105.1
+
+    ary %= 100.2
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
+
+"""
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_mod_fixed16(self):
+        self.run_test(test_array_mod_fixed16,
+            expected={
+                'a': 4.899993896484375,
+                'b': 1.899993896484375,
+                'c': 2.899993896484375,
+                'd': 3.899993896484375,
+                'e': 4.899993896484375,
+            })
+
+
+    def test_array_div_fixed16(self):
+        self.run_test(test_array_div_fixed16,
+            expected={
+                'a': 4.996002197265625,
+                'b': 1.998992919921875,
+                'c': 2.9980010986328125,
+                'd': 3.9969940185546875,
+                'e': 4.996002197265625,
+            })
+
+    def test_array_mul_fixed16(self):
+        self.run_test(test_array_mul_fixed16,
+            expected={
+                'a': 627.8088226318359,
+                'b': 258.50885009765625,
+                'c': 381.6088409423828,
+                'd': 504.7088317871094,
+                'e': 627.8088226318359,
+            })
+
+    def test_array_sub_fixed16(self):
+        self.run_test(test_array_sub_fixed16,
+            expected={
+                'a': -118.0,
+                'b': -121.0,
+                'c': -120.0,
+                'd': -119.0,
+                'e': -118.0,
+            })
+
+    def test_array_add_fixed16(self):
+        self.run_test(test_array_add_fixed16,
+            expected={
+                'a': 128.19998168945312,
+                'b': 125.19998168945312,
+                'c': 126.19998168945312,
+                'd': 127.19998168945312,
+                'e': 128.19998168945312,
+            })
+
+    def test_array_assign_fixed16(self):
+        self.run_test(test_array_assign_fixed16,
+            expected={
+                'a': 123.12298583984375,
+                'b': 123.12298583984375,
+                'c': 123.12298583984375,
+                'd': 123.12298583984375,
+                'e': 123.12298583984375,
+            })
 
     def test_type_conversions2(self):
         self.run_test(test_type_conversions2,
