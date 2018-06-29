@@ -438,6 +438,7 @@ static int8_t send_read_keys( void ){
 
         catbus_i8_get( *read_key, &batch.entries[i].data );
 
+        read_key++;
         batch.count++;
     }
 

@@ -77,10 +77,10 @@ VAL_COLOR = 'white'
 
 
 class CatbusService(Database):
-    def __init__(self, data_port=None, **kwargs):
+    def __init__(self, data_port=None, visible=True, **kwargs):
         super(CatbusService, self).__init__(**kwargs)
 
-        self._server = Server(data_port=data_port, database=self)
+        self._server = Server(data_port=data_port, database=self, visible=visible)
 
         self._data_port = self._server._data_port
         self.host = self._server._host

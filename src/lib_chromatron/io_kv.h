@@ -27,6 +27,15 @@
 
 #include "system.h"
 
+#define IO_CFG_INPUT               0
+#define IO_CFG_INPUT_PULLUP        1
+#define IO_CFG_INPUT_PULLDOWN      2
+#define IO_CFG_OUTPUT              3
+#define IO_CFG_OUTPUT_OPEN_DRAIN   4
+#define IO_CFG_ANALOG              5
+
+
+
 void iokv_v_init( void );
 
 #endif
