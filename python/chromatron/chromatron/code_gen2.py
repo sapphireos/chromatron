@@ -465,12 +465,14 @@ class cg1Attribute(cg1CodeNode):
     def build(self, builder, depth=0):
         depth += 1
 
-        obj = self.obj.build(builder, depth=depth)
-        
+        print self.obj, self.attr
+
+        # obj = self.obj.build(builder, depth=depth)
+
         # builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
 
-        if depth == 1:
-            print "MEOW"
+        # if depth == 1:
+            # print "MEOW"
         #     return builder.resolve_lookup(load=self.load, lineno=self.lineno)
 
         return obj
@@ -569,6 +571,12 @@ class CodeGenPass1(ast.NodeVisitor):
 
                 except AttributeError:
                     data_type = kw.value.id
+
+        if data_type == 'Number':
+            data_type = 'i32'
+
+        elif data_type == 'Fixed16':
+            data_type = 'f16'
 
         return cg1DeclareArray(type=data_type, dimensions=dims, lineno=node.lineno)
 
@@ -814,8 +822,8 @@ if __name__ == '__main__':
         source = f.read()
 
 
-    with open('rainbow2.fx') as f:
-        source = f.read()
+    # with open('rainbow2.fx') as f:
+        # source = f.read()
 
     tree = ast.parse(source)
 
@@ -850,7 +858,7 @@ if __name__ == '__main__':
     vm = VM(ins, data)
 
     pprint.pprint(vm.dump_registers())
-    vm.run('my_array')
+    vm.run('basic')
 
     pprint.pprint(vm.dump_registers())
 

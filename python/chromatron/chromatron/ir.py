@@ -137,6 +137,14 @@ class irArray(irVar):
         
         return self.type.lookup(indexes)
 
+    def get_base_type(self):
+        data_type = self.type
+
+        while isinstance(data_type, irVar):
+            data_type = data_type.type
+
+        return data_type
+
 class irRecord(irVar):
     def __init__(self, name, data_type, fields, offsets, **kwargs):
         super(irRecord, self).__init__(name, **kwargs)        
@@ -893,6 +901,14 @@ class Builder(object):
                 self.store_indirect(target, value, lineno=lineno)
 
             else:
+                target_type = target.target.get_base_type()
+
+                if value.type != target_type:
+                    conv_result = self.add_temp(lineno=lineno, data_type=target_type)
+                    ir = irConvertType(conv_result, value, lineno=lineno)
+                    self.append_node(ir)
+                    value = conv_result
+
                 ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
 
@@ -907,6 +923,13 @@ class Builder(object):
             ir = irIndex(result, target, lineno=lineno)
             self.append_node(ir)
             result.target = target
+
+            target_type = target.get_base_type()
+            if value.type != target_type:
+                conv_result = self.add_temp(lineno=lineno, data_type=target_type)
+                ir = irConvertType(conv_result, value, lineno=lineno)
+                self.append_node(ir)
+                value = conv_result
 
             ir = irVectorAssign(result, value, lineno=lineno)
             self.append_node(ir)
@@ -1121,7 +1144,7 @@ class Builder(object):
         return result
 
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
-        print name, data_type, args, kw
+        # print name, data_type, args, kw
         if name in self.objects:
             raise SyntaxError("Object '%s' already defined" % (name), lineno=lineno)
 
