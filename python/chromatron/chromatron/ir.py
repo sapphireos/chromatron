@@ -79,6 +79,9 @@ class irVar(IR):
         assert len(indexes) == 0
         return copy(self)
 
+    def get_base_type(self):
+        return self.type
+
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_i32, self).__init__(*args, **kwargs)
@@ -101,6 +104,9 @@ class irAddress(irVar):
     def generate(self):
         assert self.addr != None
         return insAddr(self.addr, self.target)
+
+    def get_base_type(self):
+        return self.target.get_base_type()
 
 class irConst(irVar):
     def __str__(self):
@@ -903,7 +909,7 @@ class Builder(object):
             else:
                 target_type = target.target.get_base_type()
 
-                if value.type != target_type:
+                if value.get_base_type() != target_type:
                     conv_result = self.add_temp(lineno=lineno, data_type=target_type)
                     ir = irConvertType(conv_result, value, lineno=lineno)
                     self.append_node(ir)
@@ -925,7 +931,7 @@ class Builder(object):
             result.target = target
 
             target_type = target.get_base_type()
-            if value.type != target_type:
+            if value.get_base_type() != target_type:
                 conv_result = self.add_temp(lineno=lineno, data_type=target_type)
                 ir = irConvertType(conv_result, value, lineno=lineno)
                 self.append_node(ir)
@@ -936,7 +942,7 @@ class Builder(object):
 
         else:
             # check target type
-            if target.type != value.type:
+            if target.get_base_type() != value.get_base_type():
                 ir = irConvertType(target, value, lineno=lineno)
 
             else:
@@ -945,6 +951,19 @@ class Builder(object):
             self.append_node(ir)
 
     def augassign(self, op, target, value, lineno=None):
+        # check types
+        if target.get_base_type() != value.get_base_type():
+            # in normal expressions, f16 will take precedence over i32.
+            # however, for the augassign, the assignment target will 
+            # have priority.
+
+            # convert value to target type and replace value with result
+            conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+            ir = irConvertType(conv_result, value, lineno=lineno)
+            self.append_node(ir)
+            value = conv_result
+
+
         if isinstance(target, irAddress):
             if target.target.length == 1:
                 # not a vector op, but we have a target address and not a value
