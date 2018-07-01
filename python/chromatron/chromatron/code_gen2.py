@@ -465,23 +465,14 @@ class cg1Attribute(cg1CodeNode):
     def build(self, builder, depth=0):
         depth += 1
 
-        print self.obj, self.attr
-
         if isinstance(self.obj, cg1Var):
             obj = self.obj
 
         else:
             obj = self.obj.build(builder, depth=depth)
 
-        print obj
-
-        # builder.lookup_attribute(obj, self.attr, lineno=self.lineno)
-
-        # if depth == 1:
-            # print "MEOW"
-        #     return builder.resolve_lookup(load=self.load, lineno=self.lineno)
-
-        # return obj
+        if depth == 1:
+            return builder.get_var('%s.%s' % (obj.name, self.attr), lineno=self.lineno)
 
 
 class cg1Subscript(cg1CodeNode):
@@ -867,11 +858,11 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    vm = VM(ins, data)
+    # vm = VM(ins, data)
 
-    pprint.pprint(vm.dump_registers())
-    vm.run('basic')
+    # pprint.pprint(vm.dump_registers())
+    # vm.run('basic')
 
-    pprint.pprint(vm.dump_registers())
+    # pprint.pprint(vm.dump_registers())
 
-    print vm.memory
+    # print vm.memory

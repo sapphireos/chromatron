@@ -684,6 +684,10 @@ class Builder(object):
         # make sure we always have 0 const
         self.add_const(0, lineno=0)
 
+        self.add_global('pixels.sat', data_type='f16', dimensions=[1], lineno=0)
+        self.add_global('pixels.val', data_type='f16', dimensions=[1], lineno=0)
+        self.add_global('pixels.hue', data_type='f16', dimensions=[1], lineno=0)
+
         # create main pixels object
         self.generic_object('pixels', 'PixelArray', args=[0, 65535], lineno=0)
 
