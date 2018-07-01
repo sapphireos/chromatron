@@ -557,7 +557,13 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Func(node.name, params, body, lineno=node.lineno)
 
     def visit_Return(self, node):
-        return cg1Return(self.visit(node.value), lineno=node.lineno)
+        if node.value == None:
+            value = cg1ConstInt32(0, lineno=node.lineno)
+
+        else:
+            value = self.visit(node.value)
+
+        return cg1Return(value, lineno=node.lineno)
 
     def _handle_Number(self, node):
         return cg1DeclareVar(type="i32", lineno=node.lineno)
