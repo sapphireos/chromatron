@@ -25,36 +25,36 @@
 #include "hal_usart.h"
 
 
-// void usart_v_init( USART_t *usart ){
+void usart_v_init( USART_t *usart ){
 
 
 
-// }
+}
 
-// void usart_v_set_baud( USART_t *usart, baud_t8 baud ){
+void usart_v_set_baud( USART_t *usart, baud_t8 baud ){
 
-// }
+}
 
-// void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
-
-
-// }
+void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
 
 
-// void usart_v_send_byte( USART_t *usart, uint8_t data ){
-
-// }
-
-// void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
-
-// }
-
-// int16_t usart_i16_get_byte( USART_t *usart ){
+}
 
 
-// }
+void usart_v_send_byte( USART_t *usart, uint8_t data ){
 
-// uint8_t usart_u8_bytes_available( USART_t *usart ){
+}
+
+void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
+
+}
+
+int16_t usart_i16_get_byte( USART_t *usart ){
 
 
-// }
+}
+
+uint8_t usart_u8_bytes_available( USART_t *usart ){
+
+
+}

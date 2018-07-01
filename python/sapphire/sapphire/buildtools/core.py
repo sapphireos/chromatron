@@ -280,11 +280,25 @@ class Builder(object):
             else:
                 settings[k] = v
 
-        if "CC" not in settings:
-            settings["CC"] = os.path.join(TOOLS_DIR, 'avr', 'bin', 'avr-gcc')
+        if "TOOLCHAIN" not in settings:
+            settings["TOOLCHAIN"] = "AVR"
 
-        if "BINTOOLS" not in settings:
-            settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'avr', 'bin')
+        if settings["TOOLCHAIN"] == "AVR":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'avr', 'bin', 'avr-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'avr', 'bin')
+
+        elif settings["TOOLCHAIN"] == "ARM":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'arm', 'bin', 'arm-none-eabi-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'arm', 'bin')
+
+        else:
+            raise SettingsParseException("Unknown toolchain")
 
         if 'FULL_NAME' not in settings:
             try:
@@ -867,12 +881,21 @@ class HexBuilder(Builder):
 
         logging.info("Generating output files")
 
+
         # enclose in quotes so we can handle spaces in the command filepath
         bintools = '"' + self.settings["BINTOOLS"] + '"'
-        runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
-        runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
-        runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
-        runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
+
+        if self.settings["TOOLCHAIN"] == "AVR":
+            runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
+            runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
+
+        else:
+            runcmd(os.path.join(bintools, 'arm-none-eabi-objcopy -O ihex -R .eeprom main.elf main.hex'))
+            runcmd(os.path.join(bintools, 'arm-none-eabi-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'arm-none-eabi-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
 
         # change back to working dir
         os.chdir(cwd)

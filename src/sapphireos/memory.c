@@ -290,11 +290,13 @@ void mem2_v_init( void ){
 
     #ifdef __SIM__
     uint16_t heap_size = cnt_of_array(_heap);
-    #else
+    #elif defined(AVR)
     uint16_t heap_start = (uintptr_t)&__heap_start;
     uint16_t stack_end = (uintptr_t)&__stack - ( MEM_MAX_STACK + MEM_STACK_HEAP_GUARD );
     uint16_t heap_size = stack_end - heap_start;
     heap = (uint8_t *)heap_start;
+    #else
+    uint16_t heap_size = 0;
     #endif
 
     mem_rt_data.heap_size = heap_size;
@@ -929,7 +931,7 @@ done_defrag:
     // EVENT( EVENT_ID_MEM_DEFRAG, 2 );
 
     // check stack guard
-    #ifndef __SIM__
+    #ifdef AVR
     uint8_t *stack = &__stack - ( MEM_MAX_STACK - MEM_STACK_GUARD_SIZE );
     ASSERT( *stack++ == CANARY_VALUE );
     ASSERT( *stack++ == CANARY_VALUE );
@@ -948,10 +950,7 @@ done_defrag:
 
 uint16_t mem2_u16_stack_count( void ){
 
-#ifdef __SIM__
-    return 0;
-#else
-
+#ifdef AVR
     uint16_t count = 0;
     uint8_t *stack = &__stack - MEM_MAX_STACK;
 
@@ -969,5 +968,7 @@ uint16_t mem2_u16_stack_count( void ){
     stack_usage = MEM_MAX_STACK - count;
 
     return stack_usage;
+#else
+    return 0;
 #endif
 }
