@@ -22,10 +22,10 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
+#ifndef _HAL_WATCHDOG_H
+#define _HAL_WATCHDOG_H
 
-#include "hal_io.h"
+#include "system.h"
 
 #endif
 

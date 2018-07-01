@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,37 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
+#include "system.h"
+#include "hal_cpu.h"
+#include "hal_nvm.h"
 
-#include "hal_io.h"
 
-#endif
 
+
+void nvm_v_init( void ){
+
+
+
+
+}
+
+bool nvm_b_busy( void ){
+
+    return FALSE;
+}
+
+void nvm_v_load_flash_buffer( uint32_t addr, uint16_t data ){
+
+    
+}
+
+void nvm_v_write_flash_page( uint32_t addr ){
+
+    
+}
+
+void nvm_v_erase_flash_page( uint32_t addr ){
+
+    
+}

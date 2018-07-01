@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,13 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
+#ifndef _HAL_IO_H
+#define _HAL_IO_H
 
-#include "hal_io.h"
+#include "system.h"
+#include "io_intf.h"
+#include "cpu.h"
+
+
 
 #endif
-

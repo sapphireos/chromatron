@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,16 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
+#ifndef _HAL_TIMERS_H
+#define _HAL_TIMERS_H
 
-#include "hal_io.h"
+
+
+#define TIMER_TICKS_TO_MICROSECONDS(a) ( (uint64_t)a * 32 )
+#define MICROSECONDS_TO_TIMER_TICKS(a) ( a / 32 )
+
+
+void hal_timer_v_init( void );
 
 #endif
-

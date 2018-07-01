@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,34 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
 
-#endif
+#include "hal_cpu.h"
 
+void cpu_v_init( void ){
+
+}
+
+uint8_t cpu_u8_get_reset_source( void ){
+
+    return 0;
+}
+
+void cpu_v_clear_reset_source( void ){
+
+    
+}
+
+void cpu_v_remap_isrs( void ){
+
+}
+
+void cpu_v_sleep( void ){
+
+}
+
+bool cpu_b_osc_fail( void ){
+
+    return 0;
+}

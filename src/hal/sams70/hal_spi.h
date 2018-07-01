@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,38 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
 
-#endif
+#include "cpu.h"
 
+#include "spi.h"
+
+#include "target.h"
+#include "system.h"
+#include "timers.h"
+
+
+static inline void spi_v_init( void );
+static inline uint8_t spi_u8_send( uint8_t data ) __attribute__((always_inline));
+static inline void spi_v_write_block( const uint8_t *data, uint16_t length ) __attribute__((always_inline));
+static inline void spi_v_read_block( uint8_t *data, uint16_t length ) __attribute__((always_inline));
+
+
+static inline void spi_v_init( void ){
+
+}
+
+static inline uint8_t spi_u8_send( uint8_t data ){
+
+    return 0;
+}
+
+static inline void spi_v_write_block( const uint8_t *data, uint16_t length ){
+
+    
+}
+
+// read a block of data from the SPI port.
+static inline void spi_v_read_block( uint8_t *data, uint16_t length ){
+
+}

@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,27 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+#include "system.h"
+#include "hal_cpu.h"
+#include "os_irq.h"
+#include "hal_watchdog.h"
+#include "watchdog.h"
 
-#endif
 
+
+void wdg_v_reset( void ){
+
+
+}
+
+void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
+
+
+}
+
+void wdg_v_disable( void ){
+
+    END_ATOMIC;
+}

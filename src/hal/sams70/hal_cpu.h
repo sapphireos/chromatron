@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,22 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+#ifndef _HAL_CPU_H
+#define _HAL_CPU_H
+
+#include "system.h"
+
+
+#define ENABLE_INTERRUPTS 
+#define DISABLE_INTERRUPTS 
+
+#define RESET_SOURCE_POWER_ON   0
+#define RESET_SOURCE_JTAG       1
+#define RESET_SOURCE_EXTERNAL   2
+#define RESET_SOURCE_BROWNOUT   3
+
+
 
 #endif
-

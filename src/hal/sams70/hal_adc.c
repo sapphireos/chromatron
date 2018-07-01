@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,43 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+#include "system.h"
+#include "adc.h"
+#include "hal_adc.h"
 
-#endif
 
+
+void adc_v_init( void ){
+
+}
+
+void adc_v_shutdown( void ){
+
+
+}
+
+void adc_v_set_ref( uint8_t ref ){
+
+
+} 
+
+uint16_t adc_u16_read_raw( uint8_t channel ){
+
+    return 0;
+}
+
+uint16_t adc_u16_read_supply_voltage( void ){
+
+    return 0;
+}
+
+uint16_t adc_u16_read_vcc( void ){
+
+    return 0;
+}
+
+uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
+
+	return 0;
+}

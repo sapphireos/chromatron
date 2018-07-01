@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,43 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+#include "system.h"
+#include "threading.h"
+#include "timers.h"
+#include "config.h"
+#include "io.h"
+#include "flash_fs.h"
+#include "adc.h"
 
-#endif
+#include "hal_status_led.h"
 
+
+void status_led_v_init( void ){
+
+}
+
+
+void status_led_v_set_blink_speed( uint16_t speed ){
+
+}
+
+void status_led_v_enable( void ){
+
+
+}
+
+void status_led_v_disable( void ){
+
+
+}
+
+void status_led_v_set( uint8_t state, uint8_t led ){
+
+
+}
+
+void status_led_v_strobe( uint16_t us, uint8_t led ){
+
+
+}

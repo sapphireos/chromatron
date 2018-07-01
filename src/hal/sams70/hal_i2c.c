@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,44 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
-
 #include "hal_io.h"
 
-#endif
+#include "hal_i2c.h"
 
+#include "i2c.h"
+
+
+
+
+
+void i2c_v_init( i2c_baud_t8 baud ){
+
+}
+
+void i2c_v_set_pins( uint8_t clock, uint8_t data ){
+
+}
+
+uint8_t i2c_u8_status( void ){
+
+    return 0;
+}
+
+void i2c_v_start( void ){
+
+}
+
+void i2c_v_stop( void ){
+
+
+}
+
+void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
+
+
+}
+
+void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
+
+
+}

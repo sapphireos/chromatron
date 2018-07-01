@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,32 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+
+#ifndef _USART_BAUDS_H
+#define _USART_BAUDS_H
+
+typedef uint8_t baud_t8;
+
+#define BAUD_2400       0
+#define BAUD_4800       1
+#define BAUD_9600       2
+#define BAUD_14400      3
+#define BAUD_19200      4
+#define BAUD_28800      5
+#define BAUD_38400      6
+#define BAUD_57600      7
+#define BAUD_76800      8
+#define BAUD_115200     9
+#define BAUD_230400     10
+#define BAUD_250000     11
+#define BAUD_460800     12
+#define BAUD_500000     13
+#define BAUD_1000000    14
+#define BAUD_2000000    15
+#define BAUD_74880      16
+
+extern const PROGMEM uint16_t bauds[];
 
 #endif
-

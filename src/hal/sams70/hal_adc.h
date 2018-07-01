@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,16 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+#ifndef _HAL_ADC_H
+#define _HAL_ADC_H
+
+void adc_v_init( void );
+void adc_v_shutdown( void );
+
+void adc_v_set_ref( uint8_t ref );
+
+uint16_t adc_u16_read_raw( uint8_t channel );
+uint16_t adc_u16_read_vcc( void );
 
 #endif
-

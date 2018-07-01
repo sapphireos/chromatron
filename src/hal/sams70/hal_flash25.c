@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,11 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
+#include "system.h"
+#include "hal_flash25.h"
 
-#include "hal_io.h"
+void hal_flash25_v_init( void ){
 
-#endif
-
+    
+}

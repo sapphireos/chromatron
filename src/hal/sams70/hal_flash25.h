@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,12 +19,26 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _IO_H
-#define _IO_H
+#ifndef _HAL_FLASH25_H
+#define _HAL_FLASH25_H
 
-#include "hal_io.h"
+
+// #define FLASH_CS_DDR PORTD.DIR
+// #define FLASH_CS_PORT PORTD.OUT
+// #define FLASH_CS_PIN 0
+
+#define CHIP_ENABLE()
+#define CHIP_DISABLE() 
+
+#define WRITE_PROTECT()
+#define WRITE_UNPROTECT()
+
+
+#define AAI_STATUS() 0
+
+
+void hal_flash25_v_init( void );
+
 
 #endif
-

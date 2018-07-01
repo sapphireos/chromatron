@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,10 +22,46 @@
 // </license>
  */
 
-#ifndef _IO_H
-#define _IO_H
 
-#include "hal_io.h"
+#include "cpu.h"
 
-#endif
+#include "system.h"
+#include "target.h"
 
+#include "hal_eeprom.h"
+
+
+void ee_v_init( void ){
+
+}
+
+bool ee_b_busy( void ){
+
+    return 0;
+}
+
+// write a byte to eeprom and wait for the completion of the write
+void ee_v_write_byte_blocking( uint16_t address, uint8_t data ){
+
+    
+}
+
+void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len ){
+
+    
+}
+
+void ee_v_erase_block( uint16_t address, uint16_t len ){
+
+    
+}
+
+uint8_t ee_u8_read_byte( uint16_t address ){
+
+    return 0;
+}
+
+void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
+
+
+}
