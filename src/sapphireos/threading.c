@@ -620,8 +620,10 @@ void run_thread( thread_t thread, thread_state_t *state ){
     run_cause = 0;
 
     #ifdef ENABLE_THREAD_DISABLE_INTERRUPTS_CHECK
-    // check if the global interrupts are still enabled
-    ASSERT_MSG( ( SREG & 0x80 ) != 0, "Global interrupts disabled!" );
+        #ifdef AVR
+        // check if the global interrupts are still enabled
+        ASSERT_MSG( ( SREG & 0x80 ) != 0, "Global interrupts disabled!" );
+        #endif
     #endif
 }
 

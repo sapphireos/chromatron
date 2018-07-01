@@ -25,7 +25,9 @@
 #ifndef _IO_H
 #define _IO_H
 
+#ifdef AVR
 #include "hal_io.h"
+#endif
 
 #endif
 

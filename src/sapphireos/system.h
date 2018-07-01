@@ -114,7 +114,7 @@ typedef uint32_t sys_warnings_t;
 // An example of this would be performing a comparison inside the critical section, and then
 // performing a branch immediately thereafter.  If we restored SREG in its entirety, we will
 // have destroyed the result of the compare and the code will not execute as intended.
-#ifndef __SIM__
+#ifdef AVR
 
     #ifdef EXPERIMENTAL_ATOMIC
         #define ATOMIC _sys_v_enter_critical()

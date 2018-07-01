@@ -22,7 +22,7 @@
 // </license>
  */
 
-
+#if 0
 
 /*
 
@@ -211,4 +211,5 @@ void sw_test_finish( PGM_P module_name, CuSuite *suite ){
     }
 }
 
+#endif
 #endif

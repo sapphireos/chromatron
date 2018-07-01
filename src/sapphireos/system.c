@@ -210,8 +210,10 @@ void sys_v_init( void ){
 
     cpu_v_init();
 
+    #ifdef AVR
 	// check that boot_data is the right size
 	COMPILER_ASSERT( sizeof( boot_data ) <= 8 );
+    #endif
 
 	// increment reboot counter
 	boot_data.reboots++;
@@ -492,8 +494,10 @@ void reboot( void ){
 	// make sure interrupts are disabled
 	DISABLE_INTERRUPTS;
 
+    #ifdef AVR
 	// enable watchdog timer:
     wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );
+    #endif
 
 	// infinite loop, wait for reset
 	for(;;);
@@ -629,7 +633,9 @@ void sys_v_wdt_reset( void ){
 
 void sys_v_init_watchdog( void ){
 
+    #ifdef AVR
     wdg_v_enable( WATCHDOG_TIMEOUT_2048MS, WATCHDOG_FLAGS_INTERRUPT );
+    #endif
 }
 
 void sys_v_disable_watchdog( void ){

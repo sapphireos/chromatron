@@ -260,10 +260,10 @@ static void verify_handle( mem_handle_t handle ){
 }
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(__SIM__) || defined(BOOTLOADER) || defined(ARM)
     void stack_fill( void ){}
 
-#else
+#elif defined(AVR)
     void stack_fill( void ) __attribute__ ((section (".init1"), naked, used));
 
     void stack_fill( void ){
@@ -282,6 +282,8 @@ static void verify_handle( mem_handle_t handle ){
             "   brne .loop\n"
         );
     }
+#else 
+    void stack_fill( void ){}
 #endif
 
 void mem2_v_init( void ){
