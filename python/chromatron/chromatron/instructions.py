@@ -852,19 +852,9 @@ class insVectorMod(insVector):
 
 
 
-class insConvNoOp(BaseInstruction):
-    mnemonic = 'CONV_NOP'
+class insConvMov(insMov):
+    mnemonic = 'CONV_MOV'
 
-    def __init__(self, dest, src):
-        self.dest = dest
-        self.src = src
-
-    def __str__(self):
-        return "%s" % (self.mnemonic)
-
-    def execute(self, memory):
-        pass
-        
 
 class insConvI32toF16(BaseInstruction):
     mnemonic = 'CONV_I32_TO_F16'

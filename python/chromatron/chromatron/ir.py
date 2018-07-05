@@ -412,9 +412,9 @@ class irUnaryNot(IR):
 type_conversions = {
     ('i32', 'f16'): insConvF16toI32,
     ('f16', 'i32'): insConvI32toF16,
-    ('i32', 'gfx16'): insConvNoOp,
-    ('gfx16', 'f16'): insConvNoOp,
-    ('gfx16', 'i32'): insConvNoOp,
+    ('i32', 'gfx16'): insConvMov,
+    ('gfx16', 'f16'): insConvMov,
+    ('gfx16', 'i32'): insConvMov,
 }
         
 # convert value to result's type and store in result
