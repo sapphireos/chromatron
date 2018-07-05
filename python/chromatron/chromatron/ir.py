@@ -236,6 +236,55 @@ class irObject(IR):
     def __str__(self):
         return "Object %s(%s)" % (self.name, self.type)
 
+    def get_base_type(self):
+        return self.type
+
+class irPixelArray(irObject):
+    def __init__(self, name, args=[], kw={}, **kwargs):
+        super(irPixelArray, self).__init__(name, "PixelArray", args, kw, **kwargs)
+        # super(irPixelArray, self).__init__(name, "gfx16", args, kw, **kwargs)
+        
+    def __str__(self):
+        return "PixelArray %s" % (self.name)
+
+
+class irObjectAttr(irAddress):
+    def __init__(self, obj, attr, **kwargs):
+        super(irObjectAttr, self).__init__(obj.name, target=attr, **kwargs)      
+
+        self.obj = obj
+        self.attr = attr.name
+        self.type = obj.type
+
+    def __str__(self):
+        return "ObjAttr (%s.%s)" % (self.name, self.attr)
+
+
+PIX_ATTRS = {
+    'hue': 0,
+    'sat': 1,
+    'val': 2,
+    'hs_fade': 3,
+    'v_fade': 4,
+    'count': 5,
+    'size_x': 6,
+    'size_y': 7,
+    'index': 8,
+}
+
+class irPixelAttr(irObjectAttr):
+    def __init__(self, obj, attr, **kwargs):
+        lineno = kwargs['lineno']
+
+        # attr = irVar_gfx16(attr, lineno=lineno)
+        attr = irArray(attr, irVar_gfx16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
+
+        super(irPixelAttr, self).__init__(obj, attr, **kwargs)      
+
+        self.addr = 65535
+
+    def __str__(self):
+        return "PixelAttr (%s.%s)" % (self.name, self.attr)
 
 
 class irFunc(IR):
@@ -700,7 +749,7 @@ class Builder(object):
         # self.add_global('pixels.hue', data_type='gfx16', dimensions=[1], lineno=0)
 
         # create main pixels object
-        self.generic_object('pixels', 'PixelArray', args=[0, 65535], lineno=0)
+        self.pixelarray_object('pixels', args=[0, 65535], lineno=0)
 
     def __str__(self):
         s = "FX IR:\n"
@@ -716,6 +765,10 @@ class Builder(object):
 
                 for l in sorted(self.locals[fname].values()):
                     s += '%d\t\t%s\n' % (l.lineno, l)
+
+        s += 'PixelArrays:\n'
+        for i in self.pixel_arrays.values():
+            s += '%d\t%s\n' % (i.lineno, i)
 
         s += 'Functions:\n'
         for func in self.funcs.values():
@@ -810,23 +863,15 @@ class Builder(object):
             raise SyntaxError("Variable '%s' not declared" % (name), lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
-        var_name = '%s.%s' % (obj_name, attr)
+        if obj_name in self.pixel_arrays:
+            obj = self.pixel_arrays[obj_name]
 
-        if obj_name in self.globals:
-            var = self.globals[obj_name]
+            ir = irPixelAttr(obj, attr, lineno=lineno)
+
+            return ir
 
         else:
-            try:
-                var = self.locals[self.current_func][obj_name]
-
-            except KeyError:
-                raise SyntaxError("Object '%s' not declared" % (obj_name), lineno=lineno)
-
-
-        if attr not in var.fields:
-            raise SyntaxError("Attribute '%s' not declared" % (attr), lineno=lineno)            
-
-        return var.fields[attr]
+            raise SyntaxError("Object '%s' not declared" % (obj_name), lineno=lineno)            
 
     def add_const(self, name, data_type='i32', lineno=None):
         if name in self.globals:
@@ -1196,7 +1241,7 @@ class Builder(object):
         if name in self.pixel_arrays:
             raise SyntaxError("PixelArray '%s' already defined" % (name), lineno=lineno)
 
-        self.pixel_arrays[name] = irObject(name, 'PixelArray', args, kw, lineno=lineno)
+        self.pixel_arrays[name] = irPixelArray(name, args, kw, lineno=lineno)
 
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
         if data_type == 'PixelArray':

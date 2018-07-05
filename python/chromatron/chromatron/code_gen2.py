@@ -472,7 +472,7 @@ class cg1Attribute(cg1CodeNode):
             obj = self.obj.build(builder, depth=depth)
 
         if depth == 1:
-            return builder.get_var('%s.%s' % (obj.name, self.attr), lineno=self.lineno)
+            return builder.get_obj_var(obj.name, self.attr, lineno=self.lineno)
 
 
 class cg1Subscript(cg1CodeNode):
