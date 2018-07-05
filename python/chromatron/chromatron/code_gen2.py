@@ -345,7 +345,7 @@ class cg1UnaryNot(cg1CodeNode):
 
         
 
-class cg1For(cg1CodeNode):
+class cg1For(cg1CodeNode): 
     _fields = ["target", "iterator", "body"]
 
     def __init__(self, iterator, stop, body, **kwargs):
@@ -825,8 +825,8 @@ if __name__ == '__main__':
         source = f.read()
 
 
-    with open('rainbow2.fx') as f:
-        source = f.read()
+    # with open('rainbow2.fx') as f:
+        # source = f.read()
 
     tree = ast.parse(source)
 
@@ -858,11 +858,11 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    # vm = VM(ins, data)
+    vm = VM(ins, data)
 
-    # pprint.pprint(vm.dump_registers())
-    # vm.run('basic')
+    pprint.pprint(vm.dump_registers())
+    vm.run('pix_array')
 
-    # pprint.pprint(vm.dump_registers())
+    pprint.pprint(vm.dump_registers())
 
-    # print vm.memory
+    print vm.memory

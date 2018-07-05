@@ -92,6 +92,11 @@ class irVar_f16(irVar):
         super(irVar_f16, self).__init__(*args, **kwargs)
         self.type = 'f16'
 
+class irVar_gfx16(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irVar_gfx16, self).__init__(*args, **kwargs)
+        self.type = 'gfx16'
+
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
         super(irAddress, self).__init__(name, **kwargs)
@@ -354,9 +359,13 @@ class irUnaryNot(IR):
         return insNot(self.target.generate(), self.value.generate())
 
 
+
 type_conversions = {
     ('i32', 'f16'): insConvF16toI32,
     ('f16', 'i32'): insConvI32toF16,
+    ('i32', 'gfx16'): insConvNoOp,
+    ('gfx16', 'f16'): insConvNoOp,
+    ('gfx16', 'i32'): insConvNoOp,
 }
         
 # convert value to result's type and store in result
@@ -655,6 +664,7 @@ class Builder(object):
         self.locals = {}
         self.globals = {}
         self.objects = {}
+        self.pixel_arrays = {}
         self.labels = {}
 
         self.data_table = []
@@ -671,6 +681,7 @@ class Builder(object):
         self.data_types = {
             'i32': irVar_i32,
             'f16': irVar_f16,
+            'gfx16': irVar_gfx16,
             'addr': irAddress,
         }
 
@@ -684,9 +695,9 @@ class Builder(object):
         # make sure we always have 0 const
         self.add_const(0, lineno=0)
 
-        self.add_global('pixels.sat', data_type='f16', dimensions=[1], lineno=0)
-        self.add_global('pixels.val', data_type='f16', dimensions=[1], lineno=0)
-        self.add_global('pixels.hue', data_type='f16', dimensions=[1], lineno=0)
+        # self.add_global('pixels.sat', data_type='gfx16', dimensions=[1], lineno=0)
+        # self.add_global('pixels.val', data_type='gfx16', dimensions=[1], lineno=0)
+        # self.add_global('pixels.hue', data_type='gfx16', dimensions=[1], lineno=0)
 
         # create main pixels object
         self.generic_object('pixels', 'PixelArray', args=[0, 65535], lineno=0)
@@ -1181,8 +1192,18 @@ class Builder(object):
 
         return result
 
+    def pixelarray_object(self, name, args=[], kw={}, lineno=None):    
+        if name in self.pixel_arrays:
+            raise SyntaxError("PixelArray '%s' already defined" % (name), lineno=lineno)
+
+        self.pixel_arrays[name] = irObject(name, 'PixelArray', args, kw, lineno=lineno)
+
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
-        # print name, data_type, args, kw
+        if data_type == 'PixelArray':
+            self.pixelarray_object(name, args, kw, lineno=lineno)
+
+            return
+
         if name in self.objects:
             raise SyntaxError("Object '%s' already defined" % (name), lineno=lineno)
 
