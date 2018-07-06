@@ -851,6 +851,51 @@ class insVectorMod(insVector):
 
 
 
+class insPixelVector(BaseInstruction):
+    mnemonic = 'PIXEL_VECTOR'
+
+    def __init__(self, pixel_array, attr, value):
+        super(insPixelVector, self).__init__()
+        self.pixel_array = pixel_array
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s *%s.%s %s= %s" % (self.mnemonic, self.pixel_array, self.attr, self.symbol, self.value)
+
+class insPixelVectorMov(insPixelVector):
+    op = "mov"
+    symbol = "="
+
+    
+class insPixelVectorAdd(insPixelVector):
+    op = "add"
+    symbol = "+"
+
+    
+class insPixelVectorSub(insPixelVector):
+    op = "sub"
+    symbol = "-"
+
+    
+class insPixelVectorMul(insPixelVector):
+    op = "mul"
+    symbol = "*"
+
+    
+class insPixelVectorDiv(insPixelVector):
+    op = "div"
+    symbol = "/"
+
+    
+
+class insPixelVectorMod(insPixelVector):
+    op = "mod"
+    symbol = "%"
+
+    
+
+
 
 class insConvMov(insMov):
     mnemonic = 'CONV_MOV'

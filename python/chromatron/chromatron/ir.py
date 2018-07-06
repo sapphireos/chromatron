@@ -247,6 +247,8 @@ class irPixelArray(irObject):
     def __str__(self):
         return "PixelArray %s" % (self.name)
 
+    def lookup(self, indexes):
+        return self
 
 class irObjectAttr(irAddress):
     def __init__(self, obj, attr, **kwargs):
@@ -286,6 +288,8 @@ class irPixelAttr(irObjectAttr):
     def __str__(self):
         return "PixelAttr (%s.%s)" % (self.name, self.attr)
 
+    def generate(self):
+        return self
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
@@ -470,7 +474,20 @@ class irVectorOp(IR):
             'mod': insVectorMod,
         }
 
-        return ops[self.op](self.target.generate(), self.value.generate())
+        pixel_ops = {
+            'add': insPixelVectorAdd,
+            'sub': insPixelVectorSub,
+            'mul': insPixelVectorMul,
+            'div': insPixelVectorDiv,
+            'mod': insPixelVectorMod,
+        }
+
+        if isinstance(self.target, irPixelAttr):
+            target = self.target.generate()
+            return pixel_ops[self.op](target.name, target.attr, self.value.generate())
+
+        else:
+            return ops[self.op](self.target.generate(), self.value.generate())
 
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
@@ -496,7 +513,12 @@ class irVectorAssign(IR):
         return '*%s =(vector) %s' % (self.target, self.value)
 
     def generate(self):
-        return insVectorMov(self.target.generate(), self.value.generate())
+        if isinstance(self.target, irPixelAttr):
+            target = self.target.generate()
+            return insPixelVectorMov(target.name, target.attr, self.value.generate())
+
+        else:
+            return insVectorMov(self.target.generate(), self.value.generate())
 
 class irCall(IR):
     def __init__(self, target, params, args, result, **kwargs):
@@ -678,6 +700,25 @@ class irIndex(IR):
         return insIndex(self.result.generate(), self.target.generate(), indexes, counts, strides)
 
 
+class irPixelIndex(IR):
+    def __init__(self, target, indexes=[], **kwargs):
+        super(irPixelIndex, self).__init__(**kwargs)        
+
+        self.name = target.name
+        self.target = target
+        self.indexes = indexes
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        s = 'PIXEL INDEX %s%s' % (self.name, indexes)
+
+        return s
+
+
+
 class irIndexLoad(IR):
     def __init__(self, result, address, **kwargs):
         super(irIndexLoad, self).__init__(**kwargs)        
@@ -853,6 +894,9 @@ class Builder(object):
         return ir
 
     def get_var(self, name, lineno=None):
+        if name in self.pixel_arrays:
+            return self.pixel_arrays[name]
+
         if name in self.globals:
             return self.globals[name]
 
@@ -1038,7 +1082,6 @@ class Builder(object):
             self.append_node(ir)
             value = conv_result
 
-
         if isinstance(target, irAddress):
             if target.target.length == 1:
                 # not a vector op, but we have a target address and not a value
@@ -1221,9 +1264,6 @@ class Builder(object):
 
     def resolve_lookup(self, lineno=None):    
         target = self.compound_lookup.pop(0)
-        result = self.add_temp(lineno=lineno, data_type='addr')
-
-        result.target = target.lookup(self.compound_lookup)
 
         indexes = []
         for index in self.compound_lookup:
@@ -1231,11 +1271,20 @@ class Builder(object):
         
         self.compound_lookup = []
 
-        ir = irIndex(result, target, indexes, lineno=lineno)
 
-        self.append_node(ir)
+        if isinstance(target, irPixelArray):
+            return irPixelIndex(target, indexes, lineno=lineno)
 
-        return result
+        else:
+            result = self.add_temp(lineno=lineno, data_type='addr')
+
+            result.target = target.lookup(self.compound_lookup)
+
+            ir = irIndex(result, target, indexes, lineno=lineno)
+
+            self.append_node(ir)
+
+            return result
 
     def pixelarray_object(self, name, args=[], kw={}, lineno=None):    
         if name in self.pixel_arrays:

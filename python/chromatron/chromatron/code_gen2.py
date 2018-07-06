@@ -462,16 +462,17 @@ class cg1Attribute(cg1CodeNode):
         self.attr = attr
         self.load = load
         
-    def build(self, builder, depth=0):
-        depth += 1
-
+    def build(self, builder):
         if isinstance(self.obj, cg1Var):
             obj = self.obj
 
         else:
-            obj = self.obj.build(builder, depth=depth)
+            obj = self.obj.build(builder)
 
-        if depth == 1:
+        if isinstance(obj, irPixelIndex):
+            return obj
+
+        else:
             return builder.get_obj_var(obj.name, self.attr, lineno=self.lineno)
 
 
@@ -858,11 +859,11 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    vm = VM(ins, data)
+    # vm = VM(ins, data)
 
-    pprint.pprint(vm.dump_registers())
-    vm.run('pix_array')
+    # pprint.pprint(vm.dump_registers())
+    # vm.run('pix_array')
 
-    pprint.pprint(vm.dump_registers())
+    # pprint.pprint(vm.dump_registers())
 
-    print vm.memory
+    # print vm.memory
