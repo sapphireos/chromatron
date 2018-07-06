@@ -708,6 +708,7 @@ class irPixelIndex(IR):
         self.target = target
         self.indexes = indexes
         self.attr = None
+        self.type = 'gfx16'
 
     def __str__(self):
         indexes = ''
@@ -737,6 +738,22 @@ class irPixelStore(IR):
 
     def generate(self):
         return insPixelStore(self.target.name, self.target.attr, self.target.indexes, self.value.generate())
+
+class irPixelLoad(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irPixelLoad, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        indexes = ''
+        for index in self.value.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return '%s = %s.%s%s' % (self.target, self.value.name, self.value.attr, indexes)
+
+    def generate(self):
+        return insPixelLoad(self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
 
 
 class irIndexLoad(IR):
@@ -1042,7 +1059,7 @@ class Builder(object):
     def assign(self, target, value, lineno=None):   
         # check types
         # don't do conversion if value is an address
-        if target.get_base_type() != value.get_base_type() and not isinstance(value, irAddress):
+        if target.get_base_type() != value.get_base_type() and not isinstance(value, irAddress) and not isinstance(value, irPixelIndex):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
@@ -1086,6 +1103,10 @@ class Builder(object):
 
         elif isinstance(target, irPixelIndex):
             ir = irPixelStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(value, irPixelIndex):
+            ir = irPixelLoad(target, value, lineno=lineno)
             self.append_node(ir)
 
         else:

@@ -912,6 +912,23 @@ class insPixelStore(BaseInstruction):
         return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
 
 
+class insPixelLoad(BaseInstruction):
+    mnemonic = 'PIXEL_LOAD'
+
+    def __init__(self, target, pixel_array, attr, indexes):
+        super(insPixelLoad, self).__init__()
+        self.pixel_array = pixel_array
+        self.attr = attr
+        self.indexes = indexes
+        self.target = target
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return "%s %s = %s.%s%s" % (self.mnemonic, self.target, self.pixel_array, self.attr, indexes)
+
 
 class insConvMov(insMov):
     mnemonic = 'CONV_MOV'
