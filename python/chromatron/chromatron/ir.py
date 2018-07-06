@@ -1115,7 +1115,8 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         # check types
-        if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
+        if target.get_base_type() != value.get_base_type() and \
+        not (isinstance(target, irPixelIndex) or isinstance(value, irPixelIndex)):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the augassign, the assignment target will 
             # have priority.
@@ -1152,6 +1153,16 @@ class Builder(object):
             result = self.binop(op, result, value, lineno=lineno)
 
             ir = irPixelStore(target, result, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(value, irPixelIndex):
+            result = self.add_temp(lineno=lineno, data_type=target.type)
+            ir = irPixelLoad(result, value, lineno=lineno)
+            self.append_node(ir)
+
+            result = self.binop(op, result, target, lineno=lineno)
+
+            ir = irPixelStore(value, result, lineno=lineno)
             self.append_node(ir)
             
         elif target.length == 1:
