@@ -1115,10 +1115,13 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         # check types
-        if target.get_base_type() != value.get_base_type():
+        if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the augassign, the assignment target will 
             # have priority.
+
+            # also note we skip this conversion for pixel array accesses,
+            # as the gfx16 type works seamlessly as i32 and f16 without conversions.
 
             # convert value to target type and replace value with result
             conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
@@ -1141,6 +1144,16 @@ class Builder(object):
                 ir = irVectorOp(op, result, value, lineno=lineno)        
                 self.append_node(ir)
 
+        elif isinstance(target, irPixelIndex):
+            result = self.add_temp(lineno=lineno, data_type=value.type)
+            ir = irPixelLoad(result, target, lineno=lineno)
+            self.append_node(ir)
+
+            result = self.binop(op, result, value, lineno=lineno)
+
+            ir = irPixelStore(target, result, lineno=lineno)
+            self.append_node(ir)
+            
         elif target.length == 1:
             # if so, we can replace with a binop and assign
             result = self.binop(op, target, value, lineno=lineno)
