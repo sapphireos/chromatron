@@ -470,6 +470,7 @@ class cg1Attribute(cg1CodeNode):
             obj = self.obj.build(builder)
 
         if isinstance(obj, irPixelIndex):
+            obj.attr = self.attr
             return obj
 
         else:

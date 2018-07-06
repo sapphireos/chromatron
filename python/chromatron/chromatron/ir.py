@@ -707,16 +707,36 @@ class irPixelIndex(IR):
         self.name = target.name
         self.target = target
         self.indexes = indexes
+        self.attr = None
 
     def __str__(self):
         indexes = ''
         for index in self.indexes:
             indexes += '[%s]' % (index.name)
 
-        s = 'PIXEL INDEX %s%s' % (self.name, indexes)
+        s = 'PIXEL INDEX %s.%s%s' % (self.name, self.attr, indexes)
 
         return s
 
+    def get_base_type(self):
+        return 'gfx16'
+
+
+class irPixelStore(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irPixelStore, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        indexes = ''
+        for index in self.target.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return '%s.%s%s = %s' % (self.target.name, self.target.attr, indexes, self.value)
+
+    def generate(self):
+        return insPixelStore(self.target.name, self.target.attr, self.target.indexes, self.value.generate())
 
 
 class irIndexLoad(IR):
@@ -1064,9 +1084,12 @@ class Builder(object):
             ir = irVectorAssign(result, value, lineno=lineno)
             self.append_node(ir)
 
+        elif isinstance(target, irPixelIndex):
+            ir = irPixelStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
         else:
             ir = irAssign(target, value, lineno=lineno)
-
             self.append_node(ir)
 
     def augassign(self, op, target, value, lineno=None):
