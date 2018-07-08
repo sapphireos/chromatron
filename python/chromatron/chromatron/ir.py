@@ -1071,8 +1071,8 @@ class Builder(object):
             value = conv_result
 
         if isinstance(value, irAddress):
-            # if value.target.length > 1:
-                # raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+            if value.target.length > 1:
+                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
 
             self.load_indirect(value, target, lineno=lineno)
 
@@ -1345,7 +1345,7 @@ class Builder(object):
         else:
             result = self.add_temp(lineno=lineno, data_type='addr')
 
-            result.target = target.lookup(self.compound_lookup)
+            result.target = target.lookup(indexes)
 
             ir = irIndex(result, target, indexes, lineno=lineno)
 
