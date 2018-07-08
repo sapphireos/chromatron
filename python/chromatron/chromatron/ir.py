@@ -1063,7 +1063,7 @@ class Builder(object):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
-
+            
             # convert value to target type and replace value with result
             conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
             ir = irConvertType(conv_result, value, lineno=lineno)
@@ -1071,15 +1071,15 @@ class Builder(object):
             value = conv_result
 
         if isinstance(value, irAddress):
-            if value.target.length > 1:
-                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+            # if value.target.length > 1:
+                # raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
 
             self.load_indirect(value, target, lineno=lineno)
 
             # check types
             if target.get_base_type() != value.get_base_type():
                 # mismatch.
-                # in this case, we've already done the indirect load into the target, but 
+            # in this case, we've already done the indirect load into the target, but 
                 # it has the wrong type. we're going to do the conversion on top of itself.
                 ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
                 self.append_node(ir)
@@ -1116,7 +1116,7 @@ class Builder(object):
     def augassign(self, op, target, value, lineno=None):
         # check types
         if target.get_base_type() != value.get_base_type() and \
-        not (isinstance(target, irPixelIndex) or isinstance(value, irPixelIndex)):
+            not (isinstance(target, irPixelIndex) or isinstance(value, irPixelIndex)):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the augassign, the assignment target will 
             # have priority.
@@ -1338,7 +1338,6 @@ class Builder(object):
             indexes.append(index)
         
         self.compound_lookup = []
-
 
         if isinstance(target, irPixelArray):
             return irPixelIndex(target, indexes, lineno=lineno)
