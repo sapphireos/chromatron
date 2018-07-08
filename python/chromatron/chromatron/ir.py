@@ -279,7 +279,14 @@ class irPixelAttr(irObjectAttr):
         lineno = kwargs['lineno']
 
         # attr = irVar_gfx16(attr, lineno=lineno)
-        attr = irArray(attr, irVar_gfx16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
+        if attr in ['hue', 'val', 'sat', 'hs_fade', 'v_fade']:
+            attr = irArray(attr, irVar_gfx16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
+
+        elif attr in ['count', 'size_x', 'size_y', 'index']:
+            attr = irVar_i32(attr, lineno=lineno)
+
+        else:
+            raise SyntaxError("Unknown pixel array attribute: %s" % (attr), lineno=lineno)
 
         super(irPixelAttr, self).__init__(obj, attr, **kwargs)      
 
