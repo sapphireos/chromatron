@@ -840,6 +840,7 @@ class insVector(BaseInstruction):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
 class insVectorMov(insVector):
+    mnemonic = 'VMOV'
     op = "mov"
     symbol = "="
 
@@ -852,6 +853,7 @@ class insVectorMov(insVector):
             addr += 1
 
 class insVectorAdd(insVector):
+    mnemonic = 'VADD'
     op = "add"
     symbol = "+"
 
@@ -864,6 +866,7 @@ class insVectorAdd(insVector):
             addr += 1
 
 class insVectorSub(insVector):
+    mnemonic = 'VSUB'
     op = "sub"
     symbol = "-"
 
@@ -876,6 +879,7 @@ class insVectorSub(insVector):
             addr += 1
 
 class insVectorMul(insVector):
+    mnemonic = 'VMUL'
     op = "mul"
     symbol = "*"
 
@@ -895,6 +899,7 @@ class insVectorMul(insVector):
                 addr += 1
 
 class insVectorDiv(insVector):
+    mnemonic = 'VDIV'
     op = "div"
     symbol = "/"
 
@@ -914,6 +919,7 @@ class insVectorDiv(insVector):
                 addr += 1
 
 class insVectorMod(insVector):
+    mnemonic = 'VMOD'
     op = "mod"
     symbol = "%"
 
@@ -947,34 +953,83 @@ class insPixelVector(BaseInstruction):
         return "%s *%s.%s %s= %s" % (self.mnemonic, self.pixel_array, self.attr, self.symbol, self.value)
 
 class insPixelVectorMov(insPixelVector):
+    mnemonic = 'PMOV'
     op = "mov"
     symbol = "="
 
+    def execute(self, vm):
+        value = vm.memory[self.value.addr]
+        array = vm.gfx_data[self.attr]
+
+        for i in xrange(len(array)):
+            array[i] = value
+            array[i] %= 65536
     
 class insPixelVectorAdd(insPixelVector):
+    mnemonic = 'PADD'
     op = "add"
     symbol = "+"
 
-    
+    def execute(self, vm):
+        value = vm.memory[self.value.addr]
+        array = vm.gfx_data[self.attr]
+
+        for i in xrange(len(array)):
+            array[i] += value
+            array[i] %= 65536
+
 class insPixelVectorSub(insPixelVector):
+    mnemonic = 'PSUB'
     op = "sub"
     symbol = "-"
 
-    
+    def execute(self, vm):
+        value = vm.memory[self.value.addr]
+        array = vm.gfx_data[self.attr]
+
+        for i in xrange(len(array)):
+            array[i] -= value
+            array[i] %= 65536
+
 class insPixelVectorMul(insPixelVector):
+    mnemonic = 'PMUL'
     op = "mul"
     symbol = "*"
 
+    def execute(self, vm):
+        value = vm.memory[self.value.addr]
+        array = vm.gfx_data[self.attr]
+
+        for i in xrange(len(array)):
+            array[i] *= value
+            array[i] %= 65536
     
 class insPixelVectorDiv(insPixelVector):
+    mnemonic = 'PDIV'
     op = "div"
     symbol = "/"
 
-    
+    def execute(self, vm):
+        value = vm.memory[self.value.addr]
+        array = vm.gfx_data[self.attr]
+
+        for i in xrange(len(array)):
+            array[i] /= value
+            array[i] %= 65536
 
 class insPixelVectorMod(insPixelVector):
+    mnemonic = 'PMOD'
     op = "mod"
     symbol = "%"
+
+    def execute(self, vm):
+        value = vm.memory[self.value.addr]
+        array = vm.gfx_data[self.attr]
+
+        for i in xrange(len(array)):
+            array[i] %= value
+            array[i] %= 65536
+
 
     
 class insPixelStore(BaseInstruction):
