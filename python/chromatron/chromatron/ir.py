@@ -1231,7 +1231,12 @@ class Builder(object):
     def augassign(self, op, target, value, lineno=None):
         # check types
         if target.get_base_type() != value.get_base_type() and \
-            not (isinstance(target, irPixelIndex) or isinstance(value, irPixelIndex)):
+            not isinstance(target, irPixelIndex) and \
+            not isinstance(value, irPixelIndex) and \
+            not isinstance(target, irDBAttr) and \
+            not isinstance(value, irDBAttr) and \
+            not isinstance(target, irDBIndex) and \
+            not isinstance(value, irDBIndex):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the augassign, the assignment target will 
             # have priority.
@@ -1260,6 +1265,25 @@ class Builder(object):
                 ir = irVectorOp(op, result, value, lineno=lineno)        
                 self.append_node(ir)
 
+        elif isinstance(target, irDBAttr) or isinstance(target, irDBIndex):
+            result = self.add_temp(lineno=lineno, data_type=value.type)
+            ir = irDBLoad(result, target, lineno=lineno)
+            self.append_node(ir)
+
+            result = self.binop(op, result, value, lineno=lineno)
+
+            ir = irDBStore(target, result, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(value, irDBAttr) or isinstance(value, irDBIndex):
+            result = self.add_temp(lineno=lineno, data_type=target.type)
+            ir = irDBLoad(result, value, lineno=lineno)
+            self.append_node(ir)
+
+            result = self.binop(op, result, target, lineno=lineno)
+
+            self.assign(target, result, lineno=lineno)
+
         elif isinstance(target, irPixelIndex):
             result = self.add_temp(lineno=lineno, data_type=value.type)
             ir = irPixelLoad(result, target, lineno=lineno)
@@ -1277,8 +1301,7 @@ class Builder(object):
 
             result = self.binop(op, result, target, lineno=lineno)
 
-            ir = irPixelStore(value, result, lineno=lineno)
-            self.append_node(ir)
+            self.assign(target, result, lineno=lineno)
             
         elif target.length == 1:
             # if so, we can replace with a binop and assign
