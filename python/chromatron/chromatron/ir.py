@@ -921,7 +921,8 @@ class Builder(object):
 
     def add_global(self, name, data_type='i32', dimensions=[], lineno=None):
         if name in self.globals:
-            return self.globals[name]
+            # return self.globals[name]
+            raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
         ir = self.build_var(name, data_type, dimensions, lineno=lineno)
         
@@ -937,10 +938,13 @@ class Builder(object):
     def add_local(self, name, data_type='i32', dimensions=[], lineno=None):
         # check if this is already in the globals
         if name in self.globals:
-            return self.globals[name]
+            # return self.globals[name]
+            raise SyntaxError("Variable '%s' already declared as global" % (name), lineno=lineno)
 
         if name in self.locals[self.current_func]:
-            return self.locals[self.current_func][name]
+            # return self.locals[self.current_func][name]
+            raise SyntaxError("Local variable '%s' already declared" % (name), lineno=lineno)
+
 
         ir = self.build_var(name, data_type, dimensions, lineno=lineno)
 
