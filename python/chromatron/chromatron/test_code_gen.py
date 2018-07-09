@@ -3005,8 +3005,7 @@ class CGTestsLocal(CGTestsBase):
 
                 except KeyError:
                     # try database
-                    # self.assertEqual(vm.kv[reg], value)
-                    raise
+                    self.assertEqual(vm.db[reg], value)
 
             except AssertionError:
                 print reg, regs[reg], value

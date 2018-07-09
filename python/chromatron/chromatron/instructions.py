@@ -946,7 +946,7 @@ class insDBStore(BaseInstruction):
         return "%s db.%s%s = %s" % (self.mnemonic, self.attr, indexes, self.value)
 
     def execute(self, vm):
-        print self.attr
+        vm.db[self.attr] = vm.memory[self.value.addr]
 
 
 class insDBLoad(BaseInstruction):
@@ -965,6 +965,8 @@ class insDBLoad(BaseInstruction):
 
         return "%s %s = db.%s%s" % (self.mnemonic, self.target, self.attr, indexes)
 
+    def execute(self, vm):
+        vm.memory[self.target.addr] = vm.db[self.attr]
 
 
 class insConvMov(insMov):
