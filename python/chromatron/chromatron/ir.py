@@ -242,7 +242,34 @@ class irObject(IR):
 class irPixelArray(irObject):
     def __init__(self, name, args=[], kw={}, **kwargs):
         super(irPixelArray, self).__init__(name, "PixelArray", args, kw, **kwargs)
-        # super(irPixelArray, self).__init__(name, "gfx16", args, kw, **kwargs)
+
+        try:
+            index = args[0].name
+        except AttributeError:
+            index = args[0]
+
+        try:
+            count = args[1].name
+        except AttributeError:
+            count = args[1]
+
+        try:
+            self.fields = {
+                'size_x': 0,
+                'size_y': 0,
+                'index': index,
+                'count': count,
+                'reverse': 0,
+            }
+
+        except IndexError:
+            raise SyntaxError("Missing arguments for PixelArray", lineno=self.lineno)            
+
+        for k, v in kw.items():
+            if k not in self.fields:
+                raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
+
+            self.fields[k] = v.name
         
     def __str__(self):
         return "PixelArray %s" % (self.name)
@@ -290,7 +317,7 @@ class irPixelAttr(irObjectAttr):
 
         super(irPixelAttr, self).__init__(obj, attr, **kwargs)      
 
-        self.addr = 65535
+        self.indexes = []
 
     def __str__(self):
         return "PixelAttr (%s.%s)" % (self.name, self.attr)
@@ -901,6 +928,7 @@ class Builder(object):
         self.labels = {}
 
         self.data_table = []
+        self.code = []
 
         self.loop_top = []
         self.loop_end = []
@@ -928,10 +956,6 @@ class Builder(object):
 
         # make sure we always have 0 const
         self.add_const(0, lineno=0)
-
-        # self.add_global('pixels.sat', data_type='gfx16', dimensions=[1], lineno=0)
-        # self.add_global('pixels.val', data_type='gfx16', dimensions=[1], lineno=0)
-        # self.add_global('pixels.hue', data_type='gfx16', dimensions=[1], lineno=0)
 
         # create main pixels object
         self.pixelarray_object('pixels', args=[0, 65535], lineno=0)
@@ -1367,7 +1391,7 @@ class Builder(object):
             result = self.add_temp(data_type=data_type, lineno=lineno)
 
 
-        if isinstance(address, irPixelIndex):
+        if isinstance(address, irPixelIndex) or isinstance(address, irPixelAttr):
             ir = irPixelLoad(result, address, lineno=lineno)            
         
         elif isinstance(address, irDBAttr) or isinstance(address, irDBIndex):
@@ -1666,15 +1690,25 @@ class Builder(object):
         for func in self.funcs.values():
             ins.extend(func.generate())
 
-
+        self.code = ins
         return ins
 
 
 
 class VM(object):
-    def __init__(self, code, data, pix_size_x=4, pix_size_y=4):
-        self.code = code
-        self.data = data
+    def __init__(self, builder=None, code=None, data=None, pix_size_x=4, pix_size_y=4):
+        self.pixel_arrays = {}
+
+        if builder == None:
+            self.code = code
+            self.data = data
+
+        else:
+            self.code = builder.code
+            self.data = builder.data_table
+
+            for k, v in builder.pixel_arrays.items():
+                self.pixel_arrays[k] = v.fields
 
         # set up pixel arrays
         self.pix_count = pix_size_x * pix_size_y
@@ -1696,7 +1730,7 @@ class VM(object):
         # init memory
         self.memory = []
 
-        for var in data:
+        for var in self.data:
             if isinstance(var, irConst):
                 self.memory.append(var.name)
 

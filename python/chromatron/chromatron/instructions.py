@@ -1011,6 +1011,11 @@ class insPixelLoad(BaseInstruction):
 
         return "%s %s = %s.%s%s" % (self.mnemonic, self.target, self.pixel_array, self.attr, indexes)
 
+    def execute(self, vm):
+        pixel_array = vm.pixel_arrays[self.pixel_array]
+
+        vm.memory[self.target.addr] = pixel_array[self.attr]
+
 
 class insDBStore(BaseInstruction):
     mnemonic = 'DB_STORE'

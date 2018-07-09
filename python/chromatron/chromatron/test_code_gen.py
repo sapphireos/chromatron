@@ -2558,14 +2558,14 @@ class CGTestsBase(unittest.TestCase):
             expected={
             })
 
-    # def test_pixel_array(self):
-    #     self.run_test(pixel_array,
-    #         expected={
-    #             'a': 2,
-    #             'b': 12,
-    #             'c': 3,
-    #             'd': 4,
-    #         })
+    def test_pixel_array(self):
+        self.run_test(pixel_array,
+            expected={
+                'a': 2,
+                'b': 12,
+                'c': 3,
+                'd': 4,
+            })
 
     def test_multiple_comparison(self):
         self.run_test(multiple_comparison,
@@ -3014,8 +3014,8 @@ class CGTestsBase(unittest.TestCase):
 class CGTestsLocal(CGTestsBase):
     def run_test(self, program, expected={}):
         
-        data, code = code_gen.compile_text(program)
-        vm = code_gen.VM(code, data)
+        builder = code_gen.compile_text(program)
+        vm = code_gen.VM(builder)
         
         vm.run_once()
         regs = vm.dump_registers()

@@ -135,7 +135,7 @@ class cg1GenericObject(cg1Node):
         self.kw = kw
 
     def build(self, builder):
-        builder.generic_object(self.name, self.args, self.kw, lineno=self.lineno)
+        builder.generic_object(self.name, args, self.kw, lineno=self.lineno)
 
 
 class cg1Var(cg1Node):
@@ -214,7 +214,9 @@ class cg1Module(cg1Node):
 
             elif isinstance(node, cg1Assign):
                 if isinstance(node.value, cg1GenericObject):
-                    builder.generic_object(node.target.name, node.value.name, node.value.args, node.value.kw, lineno=node.lineno)
+                    args = [a.build(builder) for a in node.value.args]
+
+                    builder.generic_object(node.target.name, node.value.name, args, node.value.kw, lineno=node.lineno)
 
                 else:
                     raise SyntaxError("Unknown declaration in module body", lineno=node.lineno)
@@ -820,7 +822,7 @@ def compile_text(source, debug_print=False):
         builder.print_instructions(code)
         builder.print_data_table(data)
 
-    return data, code
+    return builder
 
 if __name__ == '__main__':
     with open('cg2_test.fx') as f:
@@ -860,7 +862,7 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    vm = VM(ins, data)
+    vm = VM(builder)
 
     pprint.pprint(vm.dump_registers())
     vm.run('init')
