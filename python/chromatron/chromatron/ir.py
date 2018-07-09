@@ -298,6 +298,22 @@ class irPixelAttr(irObjectAttr):
     def generate(self):
         return self
 
+class irDBAttr(irVar):
+    def __init__(self, obj, attr, **kwargs):
+        lineno = kwargs['lineno']
+
+        super(irDBAttr, self).__init__('%s.%s' % (obj, attr), **kwargs)
+
+        self.attr = attr
+
+        self.addr = 65535
+
+    def __str__(self):
+        return "DBAttr (%s)" % (self.name)
+
+    def generate(self):
+        return self
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -955,6 +971,11 @@ class Builder(object):
             obj = self.pixel_arrays[obj_name]
 
             ir = irPixelAttr(obj, attr, lineno=lineno)
+
+            return ir
+
+        elif obj_name == 'db':
+            ir = irDBAttr(obj_name, attr, lineno=lineno)
 
             return ir
 

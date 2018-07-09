@@ -462,7 +462,7 @@ class cg1Attribute(cg1CodeNode):
         self.attr = attr
         self.load = load
         
-    def build(self, builder):
+    def build(self, builder, depth=0):
         if isinstance(self.obj, cg1Var):
             obj = self.obj
 
