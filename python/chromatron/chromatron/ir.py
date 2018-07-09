@@ -1624,6 +1624,23 @@ class VM(object):
         self.code = code
         self.data = data
 
+        # set up pixel arrays
+        self.pix_count = pix_size_x * pix_size_y
+
+        self.hue        = [0 for i in xrange(self.pix_count)]
+        self.sat        = [0 for i in xrange(self.pix_count)]
+        self.val        = [0 for i in xrange(self.pix_count)]
+        self.hs_fade    = [0 for i in xrange(self.pix_count)]
+        self.v_fade     = [0 for i in xrange(self.pix_count)]
+
+        # init db
+        self.db = {}
+        self.db['pix_size_x'] = pix_size_x
+        self.db['pix_size_y'] = pix_size_y
+        self.db['pix_count'] = self.pix_count
+        self.db['kv_test_array'] = [0] * 8
+        self.db['kv_test_key'] = 0
+
         # init memory
         self.memory = []
 
@@ -1703,8 +1720,8 @@ class VM(object):
 
             pc += 1
 
-            try:
-                ret_val = ins.execute(self.memory)
+            try:    
+                ret_val = ins.execute(self)
 
                 if isinstance(ins, insCall):
                     # push PC to return stack

@@ -2231,13 +2231,13 @@ class CGTestsBase(unittest.TestCase):
                 'e': 5,
             })
 
-    # def test_db_access(self):
-    #     self.run_test(test_db_access,
-    #         expected={
-    #             'a': 126,
-    #             'b': 123,
-    #             'kv_test_key': 126,
-    #         })
+    def test_db_access(self):
+        self.run_test(test_db_access,
+            expected={
+                'a': 126,
+                'b': 123,
+                'kv_test_key': 126,
+            })
 
     # def test_db_array_access(self):
     #     self.run_test(test_db_array_access,
