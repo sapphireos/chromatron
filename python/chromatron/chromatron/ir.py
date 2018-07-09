@@ -418,8 +418,14 @@ class irBinop(IR):
                 'div': insF16Div,
                 'mod': insF16Mod},
         }
+
+        data_type = self.result.type
+
+        # gfx16 type can just default to i32
+        if data_type == 'gfx16':
+            data_type = 'i32'
         
-        return ops[self.result.type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
+        return ops[data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
 
 class irUnaryNot(IR):
@@ -1118,10 +1124,10 @@ class Builder(object):
             return self._fold_constants(op, left, right, lineno)
 
         # resolve indirect accesses, if any
-        if isinstance(left, irAddress):
+        if isinstance(left, irAddress) or isinstance(left, irPixelIndex):
             left = self.load_indirect(left, lineno=lineno)
 
-        if isinstance(right, irAddress):
+        if isinstance(right, irAddress) or isinstance(right, irPixelIndex):
             right = self.load_indirect(right, lineno=lineno)
 
         if left.length != 1:
@@ -1331,11 +1337,22 @@ class Builder(object):
             ir = irVectorOp(op, result, value, lineno=lineno)        
             self.append_node(ir)
 
-    def load_indirect(self, address, result=None, lineno=None):
-        if result is None:
-            result = self.add_temp(data_type=address.target.type, lineno=lineno)
 
-        ir = irIndexLoad(result, address, lineno=lineno)
+    def load_indirect(self, address, result=None, lineno=None):
+        if isinstance(address, irPixelIndex):
+            data_type = address.type
+
+        else:
+            data_type = address.target.type
+
+        if result is None:
+            result = self.add_temp(data_type=data_type, lineno=lineno)
+
+        if isinstance(address, irPixelIndex):
+            ir = irPixelLoad(result, address, lineno=lineno)            
+
+        else:
+            ir = irIndexLoad(result, address, lineno=lineno)
     
         self.append_node(ir)
 

@@ -968,7 +968,7 @@ class insDBLoad(BaseInstruction):
 
 
 class insConvMov(insMov):
-    mnemonic = 'CONV_MOV'
+    mnemonic = 'MOV (conv)'
 
 
 class insConvI32toF16(BaseInstruction):
