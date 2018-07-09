@@ -1948,9 +1948,36 @@ def init():
 """
 
 
+test_array_expr = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    ary[0] = 0
+    ary[1] = 1
+    ary[2] = 2
+    ary[3] = 3
+
+    a = ary[2] + 1
+    b = ary[3] + ary[1]
+
+"""
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_expr(self):
+        self.run_test(test_array_expr,
+            expected={
+                'a': 3,
+                'b': 4,
+            })
+
 
     def test_array_mod_fixed16(self):
         self.run_test(test_array_mod_fixed16,

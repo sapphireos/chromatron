@@ -1117,6 +1117,14 @@ class Builder(object):
 
             return self._fold_constants(op, left, right, lineno)
 
+        # resolve indirect accesses, if any
+        if isinstance(left, irAddress):
+            left = self.load_indirect(left, lineno=lineno)
+
+        if isinstance(right, irAddress):
+            right = self.load_indirect(right, lineno=lineno)
+
+
         # if either type is fixed16, we do the whole thing as fixed16.
         data_type = left.type
         if right.type == 'f16':
