@@ -1124,6 +1124,11 @@ class Builder(object):
         if isinstance(right, irAddress):
             right = self.load_indirect(right, lineno=lineno)
 
+        if left.length != 1:
+            raise SyntaxError("Binary operand must be scalar: %s" % (left.name), lineno=lineno)
+
+        if right.length != 1:
+            raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
         # if either type is fixed16, we do the whole thing as fixed16.
         data_type = left.type
