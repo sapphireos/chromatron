@@ -994,6 +994,23 @@ class insPixelStore(BaseInstruction):
 
         return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
 
+    def execute(self, vm):
+        if self.attr in vm.gfx_data:
+            array = vm.gfx_data[self.attr]
+
+            index_x = vm.memory[self.indexes[0].addr]
+            try:
+                index_y = vm.memory[self.indexes[1].addr]
+
+            except IndexError:
+                index_y = 65535
+
+            array[vm.calc_index(index_x, index_y)] = vm.memory[self.value.addr]
+
+        else:
+            # pixel attributes not settable in code for now
+            pass 
+
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PIXEL_LOAD'
 
@@ -1012,9 +1029,18 @@ class insPixelLoad(BaseInstruction):
         return "%s %s = %s.%s%s" % (self.mnemonic, self.target, self.pixel_array, self.attr, indexes)
 
     def execute(self, vm):
-        pixel_array = vm.pixel_arrays[self.pixel_array]
+        if self.attr in vm.gfx_data:
+            array = vm.gfx_data[self.attr]
 
-        vm.memory[self.target.addr] = pixel_array[self.attr]
+            index_x = vm.memory[self.indexes[0].addr]
+            index_y = vm.memory[self.indexes[1].addr]
+
+            vm.memory[self.target.addr] = array[vm.calc_index(index_x, index_y)]
+
+        else:
+            pixel_array = vm.pixel_arrays[self.pixel_array]
+
+            vm.memory[self.target.addr] = pixel_array[self.attr]
 
 
 class insDBStore(BaseInstruction):

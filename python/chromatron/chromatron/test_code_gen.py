@@ -2585,17 +2585,17 @@ class CGTestsBase(unittest.TestCase):
             })
 
 
-# class CGHSVArrayTests(unittest.TestCase):
-#     def test_hue_array_1(self):
-#         code = code_gen.compile_text(hue_array_1, debug_print=False)
-#         vm = code_gen.VM(code['vm_code'], code['vm_data'])
+class CGHSVArrayTests(unittest.TestCase):
+    def test_hue_array_1(self):
+        builder = code_gen.compile_text(hue_array_1, debug_print=False)
+        vm = code_gen.VM(builder)
 
-#         vm.run_once()
+        vm.run_once()
 
-#         hsv = vm.dump_hsv()
+        hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['hue'][1], 1)
-#         self.assertEqual(hsv['hue'][9], 3)
+        self.assertEqual(hsv['hue'][1], 1)
+        self.assertEqual(hsv['hue'][9], 3)
 
 #     def test_hue_array_2(self):
 #         code = code_gen.compile_text(hue_array_2, debug_print=False)

@@ -1719,6 +1719,13 @@ class VM(object):
         self.hs_fade    = [0 for i in xrange(self.pix_count)]
         self.v_fade     = [0 for i in xrange(self.pix_count)]
 
+        self.gfx_data   = {'hue': self.hue,
+                           'sat': self.sat,
+                           'val': self.val,
+                           'hs_fade': self.hs_fade,
+                           'v_fade': self.v_fade}
+
+
         # init db
         self.db = {}
         self.db['pix_size_x'] = pix_size_x
@@ -1726,6 +1733,14 @@ class VM(object):
         self.db['pix_count'] = self.pix_count
         self.db['kv_test_array'] = [0] * 8
         self.db['kv_test_key'] = 0
+
+        # set up master pixel array
+        self.pixel_arrays['pixels']['count'] = self.pix_count
+        self.pixel_arrays['pixels']['index'] = 0
+        self.pixel_arrays['pixels']['size_x'] = pix_size_x
+        self.pixel_arrays['pixels']['size_y'] = pix_size_y
+        self.pixel_arrays['pixels']['reverse'] = 0
+
 
         # init memory
         self.memory = []
@@ -1737,6 +1752,25 @@ class VM(object):
             else:
                 for i in xrange(var.length):
                     self.memory.append(0)
+
+    def calc_index(self, x, y, pixel_array='pixels'):
+        count = self.pixel_arrays[pixel_array]['count']
+        size_x = self.pixel_arrays[pixel_array]['size_x']
+        size_y = self.pixel_arrays[pixel_array]['size_y']
+
+        if y == 65535:
+            i = x % count
+
+        else:
+            x %= size_x
+            y %= size_y
+
+            i = x + (y * size_x)
+
+        return i
+
+    def dump_hsv(self):
+        return self.gfx_data
 
     def dump_registers(self):
         registers = {}
