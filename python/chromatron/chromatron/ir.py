@@ -596,8 +596,15 @@ class irLibCall(IR):
             if len(params) != 1:
                 raise SyntaxError("Array functions take one argument", lineno=self.lineno)
 
-        # call func
-        call_ins = insLibCall(self.target, self.result, params)
+            if isinstance(params[0], irDBAttr):
+                call_ins = insDBCall(self.target, self.result, params)
+
+            else:
+                call_ins = insLibCall(self.target, self.result, params)
+
+        else:
+            # call func
+            call_ins = insLibCall(self.target, self.result, params)
 
         return call_ins
 
@@ -1137,7 +1144,7 @@ class Builder(object):
             isinstance(right, irDBIndex):
             right = self.load_indirect(right, lineno=lineno)
 
-            
+
         if left.length != 1:
             raise SyntaxError("Binary operand must be scalar: %s" % (left.name), lineno=lineno)
 
@@ -1705,7 +1712,6 @@ class VM(object):
                 continue
 
             if isinstance(var, irArray):
-                # print var
                 value = []
                 addr = var.addr
                 for i in xrange(var.length):

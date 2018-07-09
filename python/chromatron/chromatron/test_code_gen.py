@@ -2266,15 +2266,15 @@ class CGTestsBase(unittest.TestCase):
                 'kv_test_key': 126,
             })
 
-    # def test_db_array_access(self):
-    #     self.run_test(test_db_array_access,
-    #         expected={
-    #             'db_len': 8,
-    #             'db_len2': 1,
-    #             'a': 2,
-    #             'b': 2,
-    #             'c': 3,
-    #         })
+    def test_db_array_access(self):
+        self.run_test(test_db_array_access,
+            expected={
+                'db_len': 8,
+                'db_len2': 1,
+                'a': 2,
+                'b': 2,
+                'c': 3,
+            })
 
     def test_empty(self):
         self.run_test(empty_program,

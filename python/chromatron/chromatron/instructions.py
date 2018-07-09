@@ -630,6 +630,89 @@ class insLibCall(BaseInstruction):
         vm.memory[self.result.addr] = result
 
 
+class insDBCall(BaseInstruction):
+    mnemonic = 'DBCALL'
+
+    def __init__(self, target, result, params=[]):
+        self.target = target
+        self.result = result
+        self.params = params
+
+        self.lib_funcs = {
+            'len': self._len,
+            # 'min': self._min,
+            # 'max': self._max,
+            # 'sum': self._sum,
+            # 'avg': self._avg,
+        }
+
+    def __str__(self):
+        params = ''
+        for param in self.params:
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
+
+        return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
+
+    def _len(self, vm):
+        item = vm.db[self.params[0].attr]
+        
+        try:
+            return len(item)
+
+        except TypeError:
+            return 1
+
+    # def _min(self, memory):
+    #     addr = self.params[0].addr
+    #     a = memory[addr]
+
+    #     for i in xrange(self.params[0].var.length - 1):
+    #         addr += 1
+    #         if memory[addr] < a:
+    #             a = memory[addr]
+
+    #     return a
+
+    # def _max(self, memory):
+    #     addr = self.params[0].addr
+    #     a = memory[addr]
+
+    #     for i in xrange(self.params[0].var.length - 1):
+    #         addr += 1
+    #         if memory[addr] > a:
+    #             a = memory[addr]
+
+    #     return a
+
+    # def _sum(self, memory):
+    #     addr = self.params[0].addr
+    #     a = 0
+
+    #     for i in xrange(self.params[0].var.length):
+        
+    #         a += memory[addr]
+    #         addr += 1
+
+    #     return a
+
+    # def _avg(self, memory):
+    #     addr = self.params[0].addr
+    #     a = 0
+
+    #     for i in xrange(self.params[0].var.length):
+        
+    #         a += memory[addr]
+    #         addr += 1
+
+    #     return a / self.params[0].var.length
+
+    def execute(self, vm):
+        result = self.lib_funcs[self.target](vm)
+
+        vm.memory[self.result.addr] = result
+
+
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
 
@@ -946,7 +1029,20 @@ class insDBStore(BaseInstruction):
         return "%s db.%s%s = %s" % (self.mnemonic, self.attr, indexes, self.value)
 
     def execute(self, vm):
-        vm.db[self.attr] = vm.memory[self.value.addr]
+        try:
+            if len(vm.db[self.attr]) <= 1:
+                raise TypeError
+
+            try:
+                index = self.indexes[0].name % len(vm.db[self.attr])
+                vm.db[self.attr][index] = vm.memory[self.value.addr]
+
+            except IndexError:
+                for i in xrange(len(vm.db[self.attr])):
+                    vm.db[self.attr][i] = vm.memory[self.value.addr]                    
+
+        except TypeError:
+            vm.db[self.attr] = vm.memory[self.value.addr]
 
 
 class insDBLoad(BaseInstruction):
@@ -966,7 +1062,22 @@ class insDBLoad(BaseInstruction):
         return "%s %s = db.%s%s" % (self.mnemonic, self.target, self.attr, indexes)
 
     def execute(self, vm):
-        vm.memory[self.target.addr] = vm.db[self.attr]
+        try:
+            if len(vm.db[self.attr]) <= 1:
+                raise TypeError
+
+            try:
+                index = self.indexes[0].name % len(vm.db[self.attr])
+
+            except IndexError:
+                index = 0 
+
+            vm.memory[self.target.addr] = vm.db[self.attr][index]
+
+        except TypeError:
+            vm.memory[self.target.addr] = vm.db[self.attr]
+
+        
 
 
 class insConvMov(insMov):
