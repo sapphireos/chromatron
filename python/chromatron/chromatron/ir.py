@@ -300,18 +300,18 @@ class irPixelAttr(irObjectAttr):
 
 class irDBAttr(irVar):
     def __init__(self, obj, attr, **kwargs):
-        lineno = kwargs['lineno']
-
         super(irDBAttr, self).__init__('%s.%s' % (obj, attr), **kwargs)
 
+        self.type = 'db'
         self.attr = attr
-
-        self.addr = 65535
 
     def __str__(self):
         return "DBAttr (%s)" % (self.name)
 
     def generate(self):
+        return self
+
+    def lookup(self, indexes):
         return self
 
 class irFunc(IR):
@@ -439,9 +439,6 @@ class irUnaryNot(IR):
 type_conversions = {
     ('i32', 'f16'): insConvF16toI32,
     ('f16', 'i32'): insConvI32toF16,
-    ('i32', 'gfx16'): insConvMov,
-    ('gfx16', 'f16'): insConvMov,
-    ('gfx16', 'i32'): insConvMov,
 }
         
 # convert value to result's type and store in result
@@ -451,7 +448,7 @@ class irConvertType(IR):
         self.result = result
         self.value = value
 
-        assert self.result.type != self.value.type
+        # assert self.result.type != self.value.type
     
     def __str__(self):
         s = '%s = %s(%s)' % (self.result, self.result.type, self.value)
@@ -459,7 +456,11 @@ class irConvertType(IR):
         return s
 
     def generate(self):
-        return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
+        try:
+            return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
+
+        except KeyError:
+            return insConvMov(self.result.generate(), self.value.generate())
 
 class irConvertTypeInPlace(IR):
     def __init__(self, target, src_type, **kwargs):
@@ -746,6 +747,75 @@ class irPixelIndex(IR):
         return 'gfx16'
 
 
+class irDBIndex(IR):
+    def __init__(self, target, indexes=[], **kwargs):
+        super(irDBIndex, self).__init__(**kwargs)        
+
+        self.name = target.name
+        self.target = target
+        self.attr = target.attr
+        self.indexes = indexes
+        self.type = 'db'
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        s = 'DB INDEX %s%s' % (self.name, indexes)
+
+        return s
+
+    def get_base_type(self):
+        return self.type
+
+class irDBStore(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irDBStore, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+        try:
+            self.indexes = self.target.indexes
+
+        except AttributeError:
+            self.indexes = []
+        
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return '%s%s = %s' % (self.target.name, indexes, self.value)
+
+    def generate(self):
+        return insDBStore(self.target.attr, self.indexes, self.value.generate())
+
+
+class irDBLoad(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irDBLoad, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+        try:
+            self.indexes = self.value.indexes
+
+        except AttributeError:
+            self.indexes = []
+                
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return '%s = %s%s' % (self.target, self.value.name, indexes)
+
+    def generate(self):
+        return insDBLoad(self.target.generate(), self.value.attr, self.indexes)
+
+
+
 class irPixelStore(IR):
     def __init__(self, target, value, **kwargs):
         super(irPixelStore, self).__init__(**kwargs)
@@ -833,6 +903,7 @@ class Builder(object):
             'f16': irVar_f16,
             'gfx16': irVar_gfx16,
             'addr': irAddress,
+            'db': irVar,
         }
 
         self.record_types = {}
@@ -1090,8 +1161,12 @@ class Builder(object):
 
     def assign(self, target, value, lineno=None):   
         # check types
-        # don't do conversion if value is an address
-        if target.get_base_type() != value.get_base_type() and not isinstance(value, irAddress) and not isinstance(value, irPixelIndex):
+        # don't do conversion if value is an address, or a pixel/db index
+        if target.get_base_type() != value.get_base_type() and \
+            not isinstance(value, irAddress) and \
+            not isinstance(value, irPixelIndex) and \
+            not isinstance(value, irDBIndex) and \
+            not isinstance(value, irDBAttr):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
@@ -1131,6 +1206,14 @@ class Builder(object):
             result.target = target
 
             ir = irVectorAssign(result, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(target, irDBIndex) or isinstance(target, irDBAttr):
+            ir = irDBStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
+            ir = irDBLoad(target, value, lineno=lineno)
             self.append_node(ir)
 
         elif isinstance(target, irPixelIndex):
@@ -1371,7 +1454,10 @@ class Builder(object):
         
         self.compound_lookup = []
 
-        if isinstance(target, irPixelArray):
+        if isinstance(target, irDBAttr):
+            return irDBIndex(target, indexes, lineno=lineno)
+
+        elif isinstance(target, irPixelArray):
             return irPixelIndex(target, indexes, lineno=lineno)
 
         else:

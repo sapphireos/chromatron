@@ -911,7 +911,6 @@ class insPixelStore(BaseInstruction):
 
         return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
 
-
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PIXEL_LOAD'
 
@@ -928,6 +927,40 @@ class insPixelLoad(BaseInstruction):
             indexes += '[%s]' % (index.name)
 
         return "%s %s = %s.%s%s" % (self.mnemonic, self.target, self.pixel_array, self.attr, indexes)
+
+
+class insDBStore(BaseInstruction):
+    mnemonic = 'DB_STORE'
+
+    def __init__(self, attr, indexes, value):
+        super(insDBStore, self).__init__()
+        self.attr = attr
+        self.indexes = indexes
+        self.value = value
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return "%s db.%s%s = %s" % (self.mnemonic, self.attr, indexes, self.value)
+
+class insDBLoad(BaseInstruction):
+    mnemonic = 'DB_LOAD'
+
+    def __init__(self, target, attr, indexes):
+        super(insDBLoad, self).__init__()
+        self.attr = attr
+        self.indexes = indexes
+        self.target = target
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index.name)
+
+        return "%s %s = db.%s%s" % (self.mnemonic, self.target, self.attr, indexes)
+
 
 
 class insConvMov(insMov):
