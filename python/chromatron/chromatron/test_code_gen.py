@@ -1966,10 +1966,32 @@ def init():
 
 """
 
+test_array_expr_db = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    db.kv_test_array[0] = 1
+    db.kv_test_array[1] = 2
+    db.kv_test_array[2] = 3
+
+    a = db.kv_test_array[0] + 1
+    b = db.kv_test_array[1] + db.kv_test_array[2]
+
+"""
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_expr_db(self):
+        self.run_test(test_array_expr_db,
+            expected={
+                'a': 2,
+                'b': 5,
+            })
 
     def test_array_expr(self):
         self.run_test(test_array_expr,
