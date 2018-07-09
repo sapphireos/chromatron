@@ -1124,12 +1124,20 @@ class Builder(object):
             return self._fold_constants(op, left, right, lineno)
 
         # resolve indirect accesses, if any
-        if isinstance(left, irAddress) or isinstance(left, irPixelIndex):
+        if isinstance(left, irAddress) or \
+            isinstance(left, irPixelIndex) or\
+            isinstance(left, irDBAttr)  or \
+            isinstance(left, irDBIndex):
+
             left = self.load_indirect(left, lineno=lineno)
 
-        if isinstance(right, irAddress) or isinstance(right, irPixelIndex):
+        if isinstance(right, irAddress) or \
+            isinstance(right, irPixelIndex) or\
+            isinstance(right, irDBAttr)  or \
+            isinstance(right, irDBIndex):
             right = self.load_indirect(right, lineno=lineno)
 
+            
         if left.length != 1:
             raise SyntaxError("Binary operand must be scalar: %s" % (left.name), lineno=lineno)
 
@@ -1337,19 +1345,26 @@ class Builder(object):
             ir = irVectorOp(op, result, value, lineno=lineno)        
             self.append_node(ir)
 
-
     def load_indirect(self, address, result=None, lineno=None):
-        if isinstance(address, irPixelIndex):
+        if isinstance(address, irPixelIndex) or \
+            isinstance(address, irDBAttr) or \
+            isinstance(address, irDBIndex):
+
             data_type = address.type
 
         else:
             data_type = address.target.type
 
+
         if result is None:
             result = self.add_temp(data_type=data_type, lineno=lineno)
 
+
         if isinstance(address, irPixelIndex):
             ir = irPixelLoad(result, address, lineno=lineno)            
+        
+        elif isinstance(address, irDBAttr) or isinstance(address, irDBIndex):
+            ir = irDBLoad(result, address, lineno=lineno)            
 
         else:
             ir = irIndexLoad(result, address, lineno=lineno)
