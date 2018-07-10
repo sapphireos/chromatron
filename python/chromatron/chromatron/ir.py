@@ -870,7 +870,18 @@ class irPixelStore(IR):
         return '%s.%s%s = %s' % (self.target.name, self.target.attr, indexes, self.value)
 
     def generate(self):
-        return insPixelStore(self.target.name, self.target.attr, self.target.indexes, self.value.generate())
+        ins = {
+            'hue': insPixelStoreHue,
+            'sat': insPixelStoreSat,
+            'val': insPixelStoreVal,
+            'hs_fade': insPixelStoreHSFade,
+            'v_fade': insPixelStoreVFade,
+        }
+
+        try:
+            return ins[self.target.attr](self.target.name, self.target.attr, self.target.indexes, self.value.generate())
+        except KeyError:
+            return insPixelStore(self.target.name, self.target.attr, self.target.indexes, self.value.generate())
 
 class irPixelLoad(IR):
     def __init__(self, target, value, **kwargs):
@@ -886,7 +897,18 @@ class irPixelLoad(IR):
         return '%s = %s.%s%s' % (self.target, self.value.name, self.value.attr, indexes)
 
     def generate(self):
-        return insPixelLoad(self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
+        ins = {
+            'hue': insPixelLoadHue,
+            'sat': insPixelLoadSat,
+            'val': insPixelLoadVal,
+            'hs_fade': insPixelLoadHSFade,
+            'v_fade': insPixelLoadVFade,
+        }
+
+        try:
+            return ins[self.value.attr](self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
+        except KeyError:
+            return insPixelLoad(self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
 
 
 class irIndexLoad(IR):

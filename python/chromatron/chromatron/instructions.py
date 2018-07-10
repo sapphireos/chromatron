@@ -1033,7 +1033,7 @@ class insPixelVectorMod(insPixelVector):
 
     
 class insPixelStore(BaseInstruction):
-    mnemonic = 'PIXEL_STORE'
+    mnemonic = 'PSTORE'
 
     def __init__(self, pixel_array, attr, indexes, value):
         super(insPixelStore, self).__init__()
@@ -1060,14 +1060,60 @@ class insPixelStore(BaseInstruction):
             except IndexError:
                 index_y = 65535
 
-            array[vm.calc_index(index_x, index_y)] = vm.memory[self.value.addr]
+            a = vm.memory[self.value.addr]
+
+            # most attributes will rail to 0 to 65535
+            if a < 0:
+                a = 0
+            elif a > 65535:
+                a = 65535
+            
+            array[vm.calc_index(index_x, index_y)] = a
 
         else:
             # pixel attributes not settable in code for now
             pass 
 
+class insPixelStoreHue(insPixelStore):
+    mnemonic = 'PSTORE_HUE'
+
+    def execute(self, vm):
+        if self.attr in vm.gfx_data:
+            array = vm.gfx_data[self.attr]
+
+            index_x = vm.memory[self.indexes[0].addr]
+            try:
+                index_y = vm.memory[self.indexes[1].addr]
+
+            except IndexError:
+                index_y = 65535
+
+            a = vm.memory[self.value.addr]
+
+            # hue will wrap around
+            a %= 65536
+            
+            array[vm.calc_index(index_x, index_y)] = a
+
+        else:
+            # pixel attributes not settable in code for now
+            pass 
+    
+class insPixelStoreSat(insPixelStore):
+    mnemonic = 'PSTORE_SAT'
+
+class insPixelStoreVal(insPixelStore):
+    mnemonic = 'PSTORE_VAL'
+
+class insPixelStoreHSFade(insPixelStore):
+    mnemonic = 'PSTORE_HSFADE'
+
+class insPixelStoreVFade(insPixelStore):
+    mnemonic = 'PSTORE_VFADE'
+
+
 class insPixelLoad(BaseInstruction):
-    mnemonic = 'PIXEL_LOAD'
+    mnemonic = 'PLOAD'
 
     def __init__(self, target, pixel_array, attr, indexes):
         super(insPixelLoad, self).__init__()
@@ -1096,6 +1142,22 @@ class insPixelLoad(BaseInstruction):
             pixel_array = vm.pixel_arrays[self.pixel_array]
 
             vm.memory[self.target.addr] = pixel_array[self.attr]
+
+class insPixelLoadHue(insPixelLoad):
+    mnemonic = 'PLOAD_HUE'
+
+class insPixelLoadSat(insPixelLoad):
+    mnemonic = 'PLOAD_SAT'
+
+class insPixelLoadVal(insPixelLoad):
+    mnemonic = 'PLOAD_VAL'
+
+class insPixelLoadHSFade(insPixelLoad):
+    mnemonic = 'PLOAD_HSFADE'
+
+class insPixelLoadVFade(insPixelLoad):
+    mnemonic = 'PLOAD_VFADE'
+
 
 
 class insDBStore(BaseInstruction):
