@@ -961,9 +961,10 @@ class insPixelVectorMov(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
+        value %= 65536
+
         for i in xrange(len(array)):
             array[i] = value
-            array[i] %= 65536
     
 class insPixelVectorAdd(insPixelVector):
     mnemonic = 'PADD'
@@ -974,9 +975,22 @@ class insPixelVectorAdd(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        for i in xrange(len(array)):
-            array[i] += value
-            array[i] %= 65536
+        if self.attr == 'hue':
+            for i in xrange(len(array)):
+                array[i] += value
+
+                array[i] %= 65536
+
+
+        else:
+            for i in xrange(len(array)):
+                array[i] += value
+
+                if array[i] < 0:
+                    array[i] = 0
+
+                elif array[i] > 65535:
+                    array[i] = 65535
 
 class insPixelVectorSub(insPixelVector):
     mnemonic = 'PSUB'
@@ -987,9 +1001,22 @@ class insPixelVectorSub(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        for i in xrange(len(array)):
-            array[i] -= value
-            array[i] %= 65536
+        if self.attr == 'hue':
+            for i in xrange(len(array)):
+                array[i] -= value
+
+                array[i] %= 65536
+
+
+        else:
+            for i in xrange(len(array)):
+                array[i] -= value
+
+                if array[i] < 0:
+                    array[i] = 0
+
+                elif array[i] > 65535:
+                    array[i] = 65535
 
 class insPixelVectorMul(insPixelVector):
     mnemonic = 'PMUL'
@@ -1000,9 +1027,23 @@ class insPixelVectorMul(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        for i in xrange(len(array)):
-            array[i] *= value
-            array[i] %= 65536
+        
+        if self.attr == 'hue':
+            for i in xrange(len(array)):
+                array[i] *= value
+
+                array[i] %= 65536
+
+
+        else:
+            for i in xrange(len(array)):
+                array[i] *= value
+
+                if array[i] < 0:
+                    array[i] = 0
+
+                elif array[i] > 65535:
+                    array[i] = 65535
     
 class insPixelVectorDiv(insPixelVector):
     mnemonic = 'PDIV'
@@ -1013,9 +1054,23 @@ class insPixelVectorDiv(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        for i in xrange(len(array)):
-            array[i] /= value
-            array[i] %= 65536
+        
+        if self.attr == 'hue':
+            for i in xrange(len(array)):
+                array[i] /= value
+
+                array[i] %= 65536
+
+
+        else:
+            for i in xrange(len(array)):
+                array[i] /= value
+
+                if array[i] < 0:
+                    array[i] = 0
+
+                elif array[i] > 65535:
+                    array[i] = 65535
 
 class insPixelVectorMod(insPixelVector):
     mnemonic = 'PMOD'
@@ -1026,9 +1081,23 @@ class insPixelVectorMod(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        for i in xrange(len(array)):
-            array[i] %= value
-            array[i] %= 65536
+        
+        if self.attr == 'hue':
+            for i in xrange(len(array)):
+                array[i] %= value
+
+                array[i] %= 65536
+
+
+        else:
+            for i in xrange(len(array)):
+                array[i] %= value
+
+                if array[i] < 0:
+                    array[i] = 0
+
+                elif array[i] > 65535:
+                    array[i] = 65535
 
 
     
