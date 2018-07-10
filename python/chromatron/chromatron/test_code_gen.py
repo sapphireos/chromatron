@@ -528,11 +528,34 @@ def loop():
 
 """
 
+
+hue_array_mul_f16 = """
+
+def init():
+    pixels.hue = 1.0
+    pixels.hue *= 0.5
+
+def loop():
+    pass
+
+"""
+
 hue_array_div = """
 
 def init():
     pixels.hue = 6
     pixels.hue /= 3
+
+def loop():
+    pass
+
+"""
+
+hue_array_div_f16 = """
+
+def init():
+    pixels.hue = 0.8
+    pixels.hue /= 2.0
 
 def loop():
     pass
@@ -2652,8 +2675,30 @@ class CGHSVArrayTests(unittest.TestCase):
         for a in hsv['hue']:
             self.assertEqual(a, 5)
 
+    def test_hue_array_mul_f16(self):
+        builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
+        vm = code_gen.VM(builder)
+
+        vm.run_once()
+
+        hsv = vm.dump_hsv()
+
+        for a in hsv['hue']:
+            self.assertEqual(a, 32768)
+
     def test_hue_array_div(self):
         builder = code_gen.compile_text(hue_array_div, debug_print=False)
+        vm = code_gen.VM(builder)
+
+        vm.run_once()
+
+        hsv = vm.dump_hsv()
+
+        for a in hsv['hue']:
+            self.assertEqual(a, 2)
+
+    def test_hue_array_div_f16(self):
+        builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
         vm = code_gen.VM(builder)
 
         vm.run_once()
