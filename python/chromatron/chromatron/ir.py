@@ -973,7 +973,7 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': False
+            'fold_constants': True
         }
 
         # make sure we always have 0 const
@@ -1610,6 +1610,8 @@ class Builder(object):
         self.objects[name] = irObject(name, data_type, args, kw, lineno=lineno)
 
     def _fold_constants(self, op, left, right, lineno):
+        assert left.get_base_type() == right.get_base_type()
+
         val = None
 
         if op == 'eq':
@@ -1642,19 +1644,28 @@ class Builder(object):
         elif op == 'sub':
             val = left.name - right.name
 
-        elif op == 'mult':
+        elif op == 'mul':
             val = left.name * right.name
 
+            if left.get_base_type() == 'f16':
+                val /= 65536
+
         elif op == 'div':
-            val = left.name / right.name
+            if left.get_base_type() == 'f16':
+                val = (left.name * 65536) / right.name
+
+            else:
+                val = left.name / right.name
 
         elif op == 'mod':
             val = left.name % right.name
 
-        assert val != None
 
-        # make sure we only emit integers
-        return self.add_const(int(val), lineno=lineno)
+        if left.get_base_type() == 'f16':
+            return self.add_const(int(val), data_type='f16', lineno=lineno)
+
+        else:
+            return self.add_const(int(val), lineno=lineno)
 
     def allocate(self):
         self.data_table = []
