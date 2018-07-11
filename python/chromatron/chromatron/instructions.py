@@ -1032,7 +1032,6 @@ class insPixelVectorMul(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        # if self.value.var.get_base_type() == 'f16':
         if self.attr == 'hue':
             for i in xrange(len(array)):
                 array[i] = (array[i] * value) / 65536
@@ -1050,24 +1049,6 @@ class insPixelVectorMul(insPixelVector):
                 elif array[i] > 65535:
                     array[i] = 65535
 
-        # else:
-        #     if self.attr == 'hue':
-        #         for i in xrange(len(array)):
-        #             array[i] *= value
-
-        #             array[i] %= 65536
-
-
-        #     else:
-        #         for i in xrange(len(array)):
-        #             array[i] *= value
-
-        #             if array[i] < 0:
-        #                 array[i] = 0
-
-        #             elif array[i] > 65535:
-        #                 array[i] = 65535
-    
 class insPixelVectorDiv(insPixelVector):
     mnemonic = 'PDIV'
     op = "div"
@@ -1077,7 +1058,6 @@ class insPixelVectorDiv(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        # if self.value.var.get_base_type() == 'f16':
         if self.attr == 'hue':
             for i in xrange(len(array)):
                 array[i] = (array[i] * 65536) / value
@@ -1094,25 +1074,6 @@ class insPixelVectorDiv(insPixelVector):
 
                 elif array[i] > 65535:
                     array[i] = 65535
-
-        # else:
-        #     if self.attr == 'hue':
-        #         for i in xrange(len(array)):
-        #             array[i] /= value
-
-        #             array[i] %= 65536
-
-
-        #     else:
-        #         for i in xrange(len(array)):
-        #             array[i] /= value
-
-        #             if array[i] < 0:
-        #                 array[i] = 0
-
-        #             elif array[i] > 65535:
-        #                 array[i] = 65535
-
 
 class insPixelVectorMod(insPixelVector):
     mnemonic = 'PMOD'

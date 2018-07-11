@@ -3079,24 +3079,6 @@ class CGTestsLocal(CGTestsBase):
                 raise
 
 
-        # code = code_gen.compile_text(program)
-        # vm = code_gen.VM(code['vm_code'], code['vm_data'])
-
-        # regs = vm.dump_registers()
-
-        # for reg, value in expected.iteritems():
-        #     try:
-        #         try:
-        #             self.assertEqual(regs[reg], value)
-
-        #         except KeyError:
-        #             # try database
-        #             self.assertEqual(vm.kv[reg], value)
-
-        #     except AssertionError:
-        #         print reg, regs[reg], value
-        #         raise
-
 
 # import chromatron
 # from catbus import ProtocolErrorException
