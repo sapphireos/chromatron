@@ -879,12 +879,12 @@ gfx_array_indexing = """
 a = Number(publish=True)
 
 def init():
-    pixels[a].val = 1
-    pixels[a + 1].val = 2
+    pixels[a].val = 0.1
+    pixels[a + 1].val = 0.2
 
-    a += 2
-    pixels[a].val = 3
-    pixels[3].val = 4
+    a += 1
+    pixels[a].val = 0.3
+    pixels[3].val = 0.4
 
 
 def loop():
@@ -901,10 +901,10 @@ d = Number(publish=True)
 i = Number(publish=True)
 
 def init():
-    pixels[0].val = 1
-    pixels[1].val = 2
-    pixels[2].val = 3
-    pixels[3].val = 4
+    pixels[0].val = 0.1
+    pixels[1].val = 0.2
+    pixels[2].val = 0.3
+    pixels[3].val = 0.4
 
     a = pixels[0].val
     b = pixels[1].val
@@ -3029,31 +3029,31 @@ class CGHSVArrayTests(unittest.TestCase):
             self.assertEqual(a, 13108)
 
 
-#     def test_gfx_array_indexing(self):
-#         builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
-#         vm = code_gen.VM(builder)
+    def test_gfx_array_indexing(self):
+        builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
+        vm = code_gen.VM(builder)
 
-#         vm.run_once()
+        vm.run_once()
 
-#         hsv = vm.dump_hsv()
+        hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['val'][0], 1)
-#         self.assertEqual(hsv['val'][1], 2)
-#         self.assertEqual(hsv['val'][2], 3)
-#         self.assertEqual(hsv['val'][3], 4)
+        self.assertEqual(hsv['val'][0], 6553)
+        self.assertEqual(hsv['val'][1], 19660)
+        self.assertEqual(hsv['val'][2], 0)
+        self.assertEqual(hsv['val'][3], 26214)
 
-#     def test_gfx_array_load(self):
-#         builder = code_gen.compile_text(gfx_array_load, debug_print=False)
-#         vm = code_gen.VM(builder)
+    def test_gfx_array_load(self):
+        builder = code_gen.compile_text(gfx_array_load, debug_print=False)
+        vm = code_gen.VM(builder)
 
-#         vm.run_once()
+        vm.run_once()
 
-#         regs = vm.dump_registers()
+        regs = vm.dump_registers()
 
-#         self.assertEqual(regs['a'], 1)
-#         self.assertEqual(regs['b'], 2)
-#         self.assertEqual(regs['c'], 3)
-#         self.assertEqual(regs['d'], 4)
+        self.assertEqual(regs['a'], 6553)
+        self.assertEqual(regs['b'], 13107)
+        self.assertEqual(regs['c'], 19660)
+        self.assertEqual(regs['d'], 26214)
 
 
 class CGTestsLocal(CGTestsBase):
