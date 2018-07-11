@@ -95,7 +95,7 @@ class irVar_f16(irVar):
 class irVar_gfx16(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_gfx16, self).__init__(*args, **kwargs)
-        self.type = 'gfx16'
+        self.type = 'f16'
 
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
@@ -772,7 +772,7 @@ class irPixelIndex(IR):
         self.target = target
         self.indexes = indexes
         self.attr = None
-        self.type = 'gfx16'
+        self.type = 'f16'
 
     def __str__(self):
         indexes = ''
@@ -784,7 +784,7 @@ class irPixelIndex(IR):
         return s
 
     def get_base_type(self):
-        return 'gfx16'
+        return self.type
 
 
 class irDBIndex(IR):
