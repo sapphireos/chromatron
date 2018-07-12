@@ -67,9 +67,13 @@ class irVar(IR):
         self.type = type
         self.length = 1
         self.addr = None
+        self.is_global = False
 
     def __str__(self):
-        return "Var (%s, %s)" % (self.name, self.type)
+        if self.is_global:
+            return "Global (%s, %s)" % (self.name, self.type)
+        else:
+            return "Var (%s, %s)" % (self.name, self.type)
 
     def generate(self):
         assert self.addr != None
@@ -1055,7 +1059,8 @@ class Builder(object):
             raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
         ir = self.build_var(name, data_type, dimensions, lineno=lineno)
-        
+        ir.is_global = True
+
         try:   
             for v in ir:
                 self.globals[v.name] = v

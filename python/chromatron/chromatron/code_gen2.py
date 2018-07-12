@@ -829,7 +829,7 @@ if __name__ == '__main__':
         source = f.read()
 
 
-    # with open('rainbow2.fx') as f:
+    # with open('chandelier.fx') as f:
         # source = f.read()
 
     tree = ast.parse(source)
