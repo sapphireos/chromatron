@@ -991,7 +991,8 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': True
+            'fold_constants': True,
+            'optimize_function_regs': True,
         }
 
         # make sure we always have 0 const
@@ -1267,7 +1268,12 @@ class Builder(object):
         return result
 
     def clear(self, target, lineno=None):   
-        ir = irClear(target, lineno=lineno)
+        if target.length == 1:
+            ir = irClear(target, lineno=lineno)
+
+        else:
+            ir = irVectorAssign(target, self.get_var(0), lineno=lineno)
+
         self.append_node(ir)
 
     def assign(self, target, value, lineno=None):   

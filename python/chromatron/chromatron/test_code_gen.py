@@ -2004,10 +2004,53 @@ def init():
 
 """
 
+test_local_declare = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+
+def test():
+    n = Number()
+    a = n
+
+    n += 1
+
+def test2():
+    ary = Array(3)
+    ary = 0
+
+    b = ary[0]
+    c = ary[1]
+    d = ary[2]
+
+    ary += 1
+
+def init():
+
+    test()
+    test()
+
+    test2()
+    test2()
+
+"""
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_local_declare(self):
+        self.run_test(test_local_declare,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 0,
+                'd': 0,
+            })
 
     def test_array_expr_db(self):
         self.run_test(test_array_expr_db,
