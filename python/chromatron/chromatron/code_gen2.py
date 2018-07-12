@@ -246,8 +246,7 @@ class cg1Func(cg1CodeNode):
         func = builder.func(self.name, lineno=self.lineno)
 
         for p in self.params:
-            arg = builder.add_local(p.name, p.type, [], lineno=self.lineno)
-            builder.add_func_arg(func, arg)
+            builder.add_func_arg(func, p.name, p.type, [], lineno=self.lineno)
 
 
         for node in self.body:

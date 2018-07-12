@@ -550,6 +550,20 @@ class irVectorOp(IR):
         else:
             return ops[self.op](self.target.generate(), self.value.generate())
 
+class irClear(IR):
+    def __init__(self, target, **kwargs):
+        super(irClear, self).__init__(**kwargs)
+        self.target = target
+
+        assert self.target.length == 1
+        
+    def __str__(self):
+        return '%s = 0' % (self.target)
+
+    def generate(self):
+        return insClr(self.target.generate())
+
+
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
         super(irAssign, self).__init__(**kwargs)
@@ -1071,6 +1085,22 @@ class Builder(object):
         return ir
 
     def add_local(self, name, data_type='i32', dimensions=[], lineno=None):
+        ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+
+        # add init to 0
+        self.clear(ir, lineno=lineno)
+
+        return ir
+
+    def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
+        ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+
+        ir.name = '$%s.%s' % (func.name, name)
+        func.params.append(ir)
+
+        return ir
+
+    def _add_local_var(self, name, data_type='i32', dimensions=[], lineno=None):
         # check if this is already in the globals
         if name in self.globals:
             # return self.globals[name]
@@ -1139,14 +1169,6 @@ class Builder(object):
         self.locals[self.current_func][name] = ir
 
         return ir
-
-    def add_func_arg(self, func, arg):
-        # if arg.name in self.globals:
-            # raise SyntaxError("Argument name '%s' already declared as global" % (arg.name), lineno=func.lineno)
-
-        arg.name = '$%s.%s' % (func.name, arg.name)
-
-        func.params.append(arg)
 
     def func(self, *args, **kwargs):
         func = irFunc(*args, **kwargs)
@@ -1243,6 +1265,10 @@ class Builder(object):
         self.append_node(ir)
 
         return result
+
+    def clear(self, target, lineno=None):   
+        ir = irClear(target, lineno=lineno)
+        self.append_node(ir)
 
     def assign(self, target, value, lineno=None):   
         # check types

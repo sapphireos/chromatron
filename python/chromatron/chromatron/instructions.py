@@ -182,6 +182,19 @@ class insMov(BaseInstruction):
 
     #     return bc
 
+class insClr(BaseInstruction):
+    mnemonic = 'CLR'
+
+    def __init__(self, dest):
+        self.dest = dest
+
+    def __str__(self):
+        return "%s %s <- 0" % (self.mnemonic, self.dest)
+
+    def execute(self, vm):
+        vm.memory[self.dest.addr] = 0
+
+
 class insNot(BaseInstruction):
     mnemonic = 'NOT'
 
