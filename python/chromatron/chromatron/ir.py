@@ -1270,12 +1270,10 @@ class Builder(object):
     def clear(self, target, lineno=None):   
         if target.length == 1:
             ir = irClear(target, lineno=lineno)
-
+            self.append_node(ir)
         else:
-            ir = irVectorAssign(target, self.get_var(0), lineno=lineno)
-
-        self.append_node(ir)
-
+            self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
+        
     def assign(self, target, value, lineno=None):   
         # check types
         # don't do conversion if value is an address, or a pixel/db index
