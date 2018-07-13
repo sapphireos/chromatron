@@ -939,7 +939,8 @@ class AppBuilder(HexBuilder):
         os.chdir(self.target_dir)
 
         ih = IntelHex('main.hex')
-        fw_info_addr -= ih.minaddr()
+
+        starting_offset = ih.minaddr()
 
         fwid = uuid.UUID('{' + self.settings["FWID"] + '}')
 
@@ -957,7 +958,7 @@ class AppBuilder(HexBuilder):
         kv_meta_data = []
 
         while True:
-            kv_meta_s = bindata[kv_meta_addr:kv_meta_addr + kv_meta_len]
+            kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
 
             if self.settings['TOOLCHAIN'] == 'ARM':
                 kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
@@ -1007,6 +1008,9 @@ class AppBuilder(HexBuilder):
                 
         # write to end of hex file
         ih.puts(ih.maxaddr() + 1, kv_index)
+
+        print ih.maxaddr()
+        print ih.minaddr()
 
         size = ih.maxaddr() - ih.minaddr() + 1
 
