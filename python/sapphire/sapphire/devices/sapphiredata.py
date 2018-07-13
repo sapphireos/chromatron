@@ -190,10 +190,6 @@ class KVReceiveCacheArray(ArrayField):
 
 
 
-
-
-
-
 class KVMetaField(StructField):
     def __init__(self, **kwargs):
         fields = [Int8Field(_name="type"),
@@ -202,9 +198,23 @@ class KVMetaField(StructField):
                   Uint16Field(_name="__var_ptr"),
                   Uint16Field(_name="__notifier_ptr"),
                   StringField(_name="param_name", _length=32),
-                  Uint32Field(_name="hash")]
+                  Uint32Field(_name="hash"),
+                  Uint8Field(_name="padding")]
 
         super(KVMetaField, self).__init__(_fields=fields, **kwargs)
+
+class KVMetaFieldWidePtr(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int8Field(_name="type"),
+                  Uint8Field(_name="array_count"),
+                  Uint8Field(_name="flags"),
+                  Uint32Field(_name="__var_ptr"),
+                  Uint32Field(_name="__notifier_ptr"),
+                  StringField(_name="param_name", _length=32),
+                  Uint32Field(_name="hash"),
+                  Uint8Field(_name="padding")]
+
+        super(KVMetaFieldWidePtr, self).__init__(_fields=fields, **kwargs)
 
 class KVMetaArray(ArrayField):
     def __init__(self, **kwargs):

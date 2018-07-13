@@ -50,7 +50,7 @@
 #define FW_NAME_LEN  128
 #define FW_VER_LEN  16
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t fw_length;
     uint8_t fwid[FW_ID_LENGTH];
     char os_name[OS_NAME_LEN];
@@ -59,7 +59,7 @@ typedef struct{
     char firmware_version[FW_VER_LEN];
 } fw_info_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
 	uint64_t serial_number;
 	uint64_t mac;
 	uint16_t model;

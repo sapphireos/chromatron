@@ -104,7 +104,7 @@ typedef int8_t ( *kv_handler_t )(
     void *data,
     uint16_t len );
     
-typedef struct{
+typedef struct  __attribute__((packed)){
     sapphire_type_t8 type;
     uint8_t array_len;
     kv_flags_t8 flags;
@@ -112,6 +112,7 @@ typedef struct{
     kv_handler_t handler;
     char name[CATBUS_STRING_LEN];
     catbus_hash_t32 hash;
+    uint8_t padding;
 } kv_meta_t;
 
 typedef struct{

@@ -51,7 +51,7 @@ from intelhex import IntelHex
 
 import global_settings
 
-from sapphire.devices.sapphiredata import KVMetaField
+from sapphire.devices.sapphiredata import KVMetaField, KVMetaFieldWidePtr
 from sapphire.common import util
 from catbus import catbus_string_hash
 from fnvhash import fnv1a_32
@@ -919,7 +919,9 @@ class AppBuilder(HexBuilder):
 
     def merge_hex(self, hex1, hex2, target):
         ih = IntelHex(hex1)
-        ih.merge(IntelHex(hex2))
+        ih2 = IntelHex(hex2)
+
+        ih.merge(ih2)
 
         ih.write_hex_file(target)
 
@@ -937,12 +939,18 @@ class AppBuilder(HexBuilder):
         os.chdir(self.target_dir)
 
         ih = IntelHex('main.hex')
+        fw_info_addr -= ih.minaddr()
 
         fwid = uuid.UUID('{' + self.settings["FWID"] + '}')
 
         # get KV meta start
         kv_meta_addr = fw_info_addr + struct.calcsize(fw_info_fmt)
-        kv_meta_len = KVMetaField().size()
+
+        if self.settings['TOOLCHAIN'] == 'ARM':
+            kv_meta_len = KVMetaFieldWidePtr().size()
+
+        else:
+            kv_meta_len = KVMetaField().size()
 
         bindata = ih.tobinstr()
 
@@ -950,7 +958,12 @@ class AppBuilder(HexBuilder):
 
         while True:
             kv_meta_s = bindata[kv_meta_addr:kv_meta_addr + kv_meta_len]
-            kv_meta = KVMetaField().unpack(kv_meta_s)
+
+            if self.settings['TOOLCHAIN'] == 'ARM':
+                kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
+
+            else:
+                kv_meta = KVMetaField().unpack(kv_meta_s)
 
             # compute hash and repack into binary
             kv_meta.hash = catbus_string_hash(str(kv_meta.param_name))
@@ -1040,7 +1053,11 @@ class AppBuilder(HexBuilder):
 
         # create loader image
         loader_hex = os.path.join(loader_project.target_dir, "main.hex")
-        self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+        try:
+            self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+
+        except Exception as e:
+            logging.exception(e)
 
         # create sha256 of binary
         sha256 = hashlib.sha256(ih.tobinstr())
