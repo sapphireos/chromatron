@@ -352,7 +352,7 @@ class Builder(object):
 
         for d in self.source_dirs:
             for f in os.listdir(d):
-                if f.endswith('.s'):
+                if f.endswith('.s') or f.endswith('.S'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
                     if fpath not in source_files:
@@ -858,8 +858,11 @@ class HexBuilder(Builder):
 
         obj_dir = self.settings["OBJ_DIR"]
 
+        source_files = self.list_source()
+        source_files.extend(self.list_asm_source())
+
         # source object files
-        for source in self.list_source():
+        for source in source_files:
             source_path, source_fname = os.path.split(source)
             cmd += obj_dir + '/' + source_fname + '.o' + ' '
 
