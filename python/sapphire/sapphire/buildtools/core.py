@@ -280,6 +280,9 @@ class Builder(object):
             else:
                 settings[k] = v
 
+        if "LINKER_SCRIPT" not in settings:
+            settings["LINKER_SCRIPT"] = "linker.x"
+
         if "TOOLCHAIN" not in settings:
             settings["TOOLCHAIN"] = "AVR"
 
@@ -876,7 +879,7 @@ class HexBuilder(Builder):
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
         cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
-        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, "linker.x"))
+        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
 
@@ -1119,10 +1122,10 @@ class LoaderBuilder(HexBuilder):
     def __init__(self, *args, **kwargs):
         super(LoaderBuilder, self).__init__(*args, **kwargs)
 
-        # try:
-        #     self.libraries.insert(0, self.settings["OS_PROJECT"])
-        # except KeyError:
-        #     pass
+        try:
+            self.libraries.insert(0, self.settings["OS_PROJECT"])
+        except KeyError:
+            pass
 
         for lib in self.libraries:
             self.includes.append(lib)
@@ -1134,7 +1137,8 @@ class LoaderBuilder(HexBuilder):
         except KeyError:
             pass
 
-        self.settings["LINK_FLAGS"].append("-Wl,--section-start=.text=%s" % (self.settings["LOADER_ADDRESS"]))
+        if "LOADER_ADDRESS" in self.settings:
+            self.settings["LINK_FLAGS"].append("-Wl,--section-start=.text=%s" % (self.settings["LOADER_ADDRESS"]))
 
 
 class ExeBuilder(Builder):
@@ -1213,7 +1217,7 @@ class ExeBuilder(Builder):
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
         cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
-        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, "linker.x"))
+        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
 
