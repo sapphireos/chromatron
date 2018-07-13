@@ -1009,9 +1009,6 @@ class AppBuilder(HexBuilder):
         # write to end of hex file
         ih.puts(ih.maxaddr() + 1, kv_index)
 
-        print ih.maxaddr()
-        print ih.minaddr()
-
         size = ih.maxaddr() - ih.minaddr() + 1
 
         # get os info
