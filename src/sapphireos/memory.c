@@ -67,7 +67,7 @@ Memory overhead is 6 bytes per handle used
 
 static void *handles[MAX_MEM_HANDLES];
 
-#ifdef __SIM__
+#if defined(__SIM__) || defined(ARM)
     static uint8_t _heap[MEM_HEAP_SIZE];
     static uint8_t *heap = _heap;
 #else
@@ -572,7 +572,7 @@ end:
     return status;
 }
 
-mem_handle_t mem2_h_get_handle( uint8_t index, mem_type_t8 type ){
+mem_handle_t mem2_h_get_handle( uint16_t index, mem_type_t8 type ){
 
     if( index >= cnt_of_array(handles) ){
 
