@@ -175,7 +175,12 @@ def runcmd(cmd, tofile=False, tolog=True):
 def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True):
     builder = Builder(target_dir, target_type, fnv_hash=fnv_hash)
 
-    modes = {"os": OSBuilder, "loader": LoaderBuilder, "app": AppBuilder, "lib": LibBuilder, "exe": ExeBuilder}
+    modes = {"os": OSBuilder, 
+             "loader": LoaderBuilder, 
+             "arm_loader": ARMLoaderBuilder, 
+             "app": AppBuilder, 
+             "lib": LibBuilder, 
+             "exe": ExeBuilder}
 
     return modes[builder.settings["BUILD_TYPE"]](target_dir, target_type, build_loader=build_loader, fnv_hash=fnv_hash)
 
@@ -1139,6 +1144,20 @@ class LoaderBuilder(HexBuilder):
 
         if "LOADER_ADDRESS" in self.settings:
             self.settings["LINK_FLAGS"].append("-Wl,--section-start=.text=%s" % (self.settings["LOADER_ADDRESS"]))
+
+class ARMLoaderBuilder(HexBuilder):
+    def __init__(self, *args, **kwargs):
+        super(ARMLoaderBuilder, self).__init__(*args, **kwargs)
+
+        try:
+            self.libraries.insert(0, self.settings["OS_PROJECT"])
+        except KeyError:
+            pass
+
+        try:
+            self.includes.append(self.settings["OS_PROJECT"])
+        except KeyError:
+            pass
 
 
 class ExeBuilder(Builder):
