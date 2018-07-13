@@ -339,20 +339,7 @@ class Builder(object):
 
         for d in self.source_dirs:
             for f in os.listdir(d):
-                if f.endswith('.c') or f.endswith('.cpp'):
-                    fpath = os.path.join(d, f)
-                    # prevent duplicates
-                    if fpath not in source_files:
-                        source_files.append(fpath)
-
-        return source_files
-
-    def list_asm_source(self):
-        source_files = []
-
-        for d in self.source_dirs:
-            for f in os.listdir(d):
-                if f.endswith('.s') or f.endswith('.S'):
+                if f.endswith('.c') or f.endswith('.cpp') or f.endswith('.s') or f.endswith('.S'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
                     if fpath not in source_files:
@@ -614,7 +601,6 @@ class Builder(object):
         last_hash = self.get_source_hash_file()
 
         source_files = self.list_source()
-        source_files.extend(self.list_asm_source())
 
         filtered_source_files = [f for f in source_files if f not in last_hash or last_hash[f] != current_hash[f]]
 
@@ -859,7 +845,6 @@ class HexBuilder(Builder):
         obj_dir = self.settings["OBJ_DIR"]
 
         source_files = self.list_source()
-        source_files.extend(self.list_asm_source())
 
         # source object files
         for source in source_files:
