@@ -911,6 +911,9 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'arm-none-eabi-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
 
+        ih = IntelHex('main.hex')
+        ih.tobinfile('main.bin')
+
         # change back to working dir
         os.chdir(cwd)
 
@@ -929,7 +932,7 @@ class AppBuilder(HexBuilder):
         ih = IntelHex(hex1)
         ih2 = IntelHex(hex2)
 
-        ih.merge(ih2)
+        ih.merge(ih2, overlap='replace')
 
         ih.write_hex_file(target)
 
