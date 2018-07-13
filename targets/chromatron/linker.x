@@ -82,7 +82,7 @@ SECTIONS
 
     /* Sapphire firmware info section */
     *(.fwinfo)
-	KEEP(*(.fwinfo))
+	  KEEP(*(.fwinfo))
 
     /* Key-value service meta data sections */
     *(.kv_meta_start)

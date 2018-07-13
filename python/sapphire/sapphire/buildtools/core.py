@@ -347,6 +347,19 @@ class Builder(object):
 
         return source_files
 
+    def list_asm_source(self):
+        source_files = []
+
+        for d in self.source_dirs:
+            for f in os.listdir(d):
+                if f.endswith('.s'):
+                    fpath = os.path.join(d, f)
+                    # prevent duplicates
+                    if fpath not in source_files:
+                        source_files.append(fpath)
+
+        return source_files
+
     def list_headers(self):
         source_files = []
 
@@ -601,6 +614,7 @@ class Builder(object):
         last_hash = self.get_source_hash_file()
 
         source_files = self.list_source()
+        source_files.extend(self.list_asm_source())
 
         filtered_source_files = [f for f in source_files if f not in last_hash or last_hash[f] != current_hash[f]]
 
@@ -621,6 +635,10 @@ class Builder(object):
 
             # build command string
             cmd = '"' + self.settings["CC"] + '"'
+                        
+            if source_file.endswith('.s'):
+                cmd += " -x assembler-with-cpp"
+
             cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
