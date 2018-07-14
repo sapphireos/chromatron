@@ -16,6 +16,8 @@
         "-D__FPU_PRESENT",
         "-DUSE_FULL_LL_DRIVER",
         "-DUSE_HAL_DRIVER",
+        "-DOS_USE_TRACE_SEMIHOSTING_DEBUG",
+        "-DTRACE",
         "-DARM",
         "-g",
         "-Og",

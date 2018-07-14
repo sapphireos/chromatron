@@ -86,6 +86,8 @@ Generic mode:
 #include "stm32f7xx_ll_usart.h"
 #include "stm32f7xx.h"
 #include "stm32f7xx_ll_gpio.h"
+
+#include "Trace.h"
     
 static uint8_t mode;
 #define MODE_SAPPHIRE   0
@@ -101,6 +103,7 @@ void main( void ){
 
     cpu_v_init();
 
+    trace_printf("meow\n");
 
 
     LL_GPIO_InitTypeDef GPIO_InitStruct;
