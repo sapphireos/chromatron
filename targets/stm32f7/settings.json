@@ -18,7 +18,7 @@
         "-DUSE_HAL_DRIVER",
         "-DARM",
         "-g",
-        "-Os",
+        "-Og",
         "-fstack-usage",
         "-funsigned-char",
         "-funsigned-bitfields",
