@@ -103,7 +103,7 @@ void main( void ){
 
     cpu_v_init();
 
-    trace_printf("meow\n");
+    trace_printf("Welcome to Sapphire\n");
 
 
     LL_GPIO_InitTypeDef GPIO_InitStruct;
