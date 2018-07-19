@@ -2160,6 +2160,8 @@ restart:
         goto error;
     }
 
+    state->tries--;
+
     _wifi_v_enter_boot_mode();
     wifi_status = WIFI_STATE_BOOT;
 
@@ -2187,7 +2189,6 @@ restart:
 
             log_v_debug_P( PSTR("wifi loader timeout") );
 
-            state->tries--;
             goto restart;
         }
 
