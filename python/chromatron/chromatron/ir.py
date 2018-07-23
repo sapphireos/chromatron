@@ -1144,7 +1144,7 @@ class Builder(object):
         # optimizations
         self.optimizations = {
             'fold_constants': True,
-            'optimize_register_usage': True,
+            'optimize_register_usage': False,
         }
 
         # make sure we always have 0 const
@@ -1872,6 +1872,9 @@ class Builder(object):
 
             defined = ins.get_output_vars()
 
+            # filter globals and consts
+            defined = [a for a in defined if not a.is_global and not a.is_const]
+
             # look for address references, if so, include their target
             for v in copy(defined):
                 if isinstance(v, irAddress):
@@ -2002,14 +2005,9 @@ class Builder(object):
 
             pc += 1
 
+        print '------'
+
         return liveness
-
-    def optimize_register_usage(self, func):
-        liveness = self.liveness(func)
-
-        # print liveness
-
-
 
     def allocate(self):
         self.data_table = []
@@ -2020,13 +2018,6 @@ class Builder(object):
         self.data_table.append(ret_var)
 
 
-        if self.optimizations['optimize_register_usage']:
-            for func in self.funcs:
-                self.optimize_register_usage(func)            
-
-                
-
-
         addr = 1
         for i in self.globals.values():
             i.addr = addr
@@ -2034,15 +2025,95 @@ class Builder(object):
 
             self.data_table.append(i)
 
-        for func_name, local in self.locals.items():
-            for i in local.values():
-                i.addr = addr
-                addr += i.length
+        if self.optimizations['optimize_register_usage']:
+            for func in self.funcs:
+                registers = {}
+                address_pool = []
 
-                # assign func name to var
-                i.name = '%s.%s' % (func_name, i.name)
+                liveness = self.liveness(func)
 
-                self.data_table.append(i)
+                for line in liveness:
+                    # remove anything that is no longer live
+                    for var in registers.values():
+                        if var.name not in line:
+                            print 'remove', var, var.addr
+
+                            del registers[var.name]
+
+                            var_addr = var.addr
+                            for i in xrange(var.length):
+                                address_pool.append(var_addr)
+                                var_addr += 1
+
+
+                    for v in line:
+                        var = self.locals[func][v]
+
+                        if var.addr == None:
+                            if v not in registers:
+                                registers[v] = var
+
+                                var_addr = None
+
+                                # search pool for addresses
+                                if len(address_pool) >= var.length:
+                                    
+                                    # easy mode, length=1 vars: pop address
+                                    if var.length == 1:
+                                        var_addr = address_pool.pop()
+
+                                    # print v
+                                    # print address_pool
+
+                                    # for i in xrange(len(address_pool) - var.length):
+                                    #     print address_pool[i:i + var.length]
+
+                                else:
+                                    # placeholder for arrays.  need to find 
+                                    # contiguous block in address pool.
+                                    pass
+
+                                if var_addr == None:
+                                    var_addr = addr
+
+                                    addr += var.length
+                                    print 'alloc', var, var_addr
+
+                                else:
+                                    print 'pool', var, var_addr                                    
+
+                                # assign address to var
+                                var.addr = var_addr
+
+                                
+
+                            
+                    print line, registers, address_pool
+                    print ''
+                            
+
+
+
+                    # print registers
+                    # print address_pool
+
+            for func_name, local in self.locals.items():
+                for i in local.values():
+                    # assign func name to var
+                    i.name = '%s.%s' % (func_name, i.name)
+
+                    self.data_table.append(i)
+
+        else:
+            for func_name, local in self.locals.items():
+                for i in local.values():
+                    i.addr = addr
+                    addr += i.length
+
+                    # assign func name to var
+                    i.name = '%s.%s' % (func_name, i.name)
+
+                    self.data_table.append(i)
 
         return self.data_table
 
