@@ -66,6 +66,9 @@ class IR(object):
     def get_output_vars(self):
         return []
 
+    def get_jump_target(self):
+        return None
+
 class irVar(IR):
     def __init__(self, name, type='i32', **kwargs):
         super(irVar, self).__init__(**kwargs)
@@ -74,6 +77,7 @@ class irVar(IR):
         self.length = 1
         self.addr = None
         self.is_global = False
+        self.is_const = False
 
     def __str__(self):
         if self.is_global:
@@ -124,6 +128,11 @@ class irAddress(irVar):
         return self.target.get_base_type()
 
 class irConst(irVar):
+    def __init__(self, *args, **kwargs):
+        super(irConst, self).__init__(*args, **kwargs)
+
+        self.is_const = True
+
     def __str__(self):
         value = self.name
         if self.type == 'f16':
@@ -376,6 +385,17 @@ class irFunc(IR):
             s += '%d\t\t%s\n' % (node.lineno, node)
 
         return s
+
+    def labels(self):
+        labels = {}
+
+        for i in xrange(len(self.body)):
+            ins = self.body[i]
+
+            if isinstance(ins, irLabel):
+                labels[ins.name] = i
+
+        return labels
 
     def generate(self):
         params = [a.generate() for a in self.params]
@@ -740,6 +760,9 @@ class irBranchConditional(IR):
     def get_input_vars(self):
         return [self.value]
 
+    def get_jump_target(self):
+        return self.target
+
 class irBranchZero(irBranchConditional):
     def __init__(self, *args, **kwargs):
         super(irBranchZero, self).__init__(*args, **kwargs)        
@@ -779,7 +802,9 @@ class irJump(IR):
 
     def generate(self):
         return insJmp(self.target.generate())
-    
+
+    def get_jump_target(self):
+        return self.target    
 
 class irJumpLessPreInc(IR):
     def __init__(self, target, op1, op2, **kwargs):
@@ -798,6 +823,10 @@ class irJumpLessPreInc(IR):
 
     def generate(self):
         return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate())
+
+    def get_jump_target(self):
+        return self.target
+
 
 class irAssert(IR):
     def __init__(self, value, **kwargs):
@@ -1816,6 +1845,84 @@ class Builder(object):
         else:
             return self.add_const(int(val), lineno=lineno)
 
+
+    def liveness(self, func, pc=0, inputs=None, outputs=None):
+        code = self.funcs[func]
+
+        labels = code.labels()
+
+        if inputs is None:
+            inputs = [[] for i in xrange(len(code.body))]
+
+        if outputs is None:
+            outputs = [[] for i in xrange(len(code.body))]
+
+        while True:
+            ins = code.body[pc]
+
+            # inputs = [a for a in ins.get_input_vars() if not a.is_global and not a.is_const]
+            # outputs = [a for a in ins.get_output_vars() if not a.is_global and not a.is_const]
+            ins_inputs = [a.name for a in ins.get_input_vars()]
+            ins_outputs = [a.name for a in ins.get_output_vars()]
+            jump = ins.get_jump_target()
+
+            inputs[pc].extend(ins_inputs)
+            outputs[pc].extend(ins_outputs)
+
+            print pc, ins
+            print '\t in  ', inputs
+            print '\t out ', outputs
+            try:
+                jump_addr = labels[jump.name]
+                print '\t jump', jump, jump_addr
+
+            except AttributeError:
+                pass
+
+
+            # raw_input()
+
+            if isinstance(ins, irReturn):
+                break
+
+            # check if unconditional jump
+            if isinstance(ins, irJump):
+                pc = labels[jump.name]
+
+            elif jump != None:
+                _in, _out = self.liveness(func, pc=labels[jump.name], inputs=inputs, outputs=outputs)
+
+                # merge results
+                for i in xrange(len(inputs)):
+                    inputs[i].extend(_in[i])
+
+                for i in xrange(len(outputs)):
+                    outputs[i].extend(_out[i])
+
+
+                pc += 1
+
+            else:
+                pc += 1
+
+        # uniqueify lists
+        for i in xrange(len(inputs)):
+            inputs[i] = list(set(inputs[i]))
+
+        for i in xrange(len(outputs)):
+            outputs[i] = list(set(outputs[i]))
+
+
+        from pprint import pprint
+        print 'liveness'
+        print 'inputs'
+        pprint(inputs)
+        print 'outputs'
+        pprint(outputs)
+
+        return inputs, outputs
+
+
     def allocate(self):
         self.data_table = []
 
@@ -1827,8 +1934,9 @@ class Builder(object):
 
         if self.optimizations['optimize_function_regs']:
             for func_name, code in self.funcs.items():
-                for ins in code.body:
-                    print ins, ins.get_input_vars(), ins.get_output_vars()
+                self.liveness(func_name)
+
+                
 
 
         addr = 1
