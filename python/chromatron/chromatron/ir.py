@@ -1959,7 +1959,7 @@ class Builder(object):
                         # remove from liveness as this variable has not been defined yet
                         liveness[i].remove(v)
 
-        
+
 
 
         print '------'
@@ -1975,103 +1975,6 @@ class Builder(object):
 
             pc += 1
 
-
-        # return
-
-
-        # code = self.funcs[func]
-
-        # labels = code.labels()
-
-        # if inputs is None:
-        #     inputs = [[] for i in xrange(len(code.body))]
-
-        # if outputs is None:
-        #     outputs = [[] for i in xrange(len(code.body))]
-
-        # while True:
-        #     ins = code.body[pc]
-
-        #     # inputs = [a for a in ins.get_input_vars() if not a.is_global and not a.is_const]
-        #     # outputs = [a for a in ins.get_output_vars() if not a.is_global and not a.is_const]
-        #     ins_inputs = [a.name for a in ins.get_input_vars()]
-        #     ins_outputs = [a.name for a in ins.get_output_vars()]
-        #     jump = ins.get_jump_target()
-
-        #     inputs[pc].extend(ins_inputs)
-        #     outputs[pc].extend(ins_outputs)
-
-        #     inputs[pc].extend(prev_inputs)
-        #     outputs[pc].extend(prev_outputs)                                    
-
-        #     # prev_inputs = inputs[pc]
-        #     # prev_outputs = outputs[pc]
-
-        #     # print pc, ins
-        #     # print '\t in  ', inputs
-        #     # print '\t out ', outputs
-        #     # try:
-        #     #     jump_addr = labels[jump.name]
-        #     #     print '\t jump', jump, jump_addr
-
-        #     # except AttributeError:
-        #     #     pass
-
-
-        #     # raw_input()
-
-        #     if isinstance(ins, irReturn):
-        #         break
-
-        #     # # check if unconditional jump
-        #     # if isinstance(ins, irJump):
-        #     #     pc = labels[jump.name]
-
-        #     # elif jump != None:
-        #     #     _in, _out = self.liveness(
-        #     #                     func, 
-        #     #                     pc=labels[jump.name], 
-        #     #                     inputs=inputs, 
-        #     #                     outputs=outputs, 
-        #     #                     prev_inputs=prev_inputs, 
-        #     #                     prev_outputs=prev_outputs)
-
-        #     #     # merge results
-        #     #     for i in xrange(len(inputs)):
-        #     #         inputs[i].extend(_in[i])
-
-        #     #     for i in xrange(len(outputs)):
-        #     #         outputs[i].extend(_out[i])
-
-
-        #     #     pc += 1
-
-        #     # else:
-        #     pc += 1
-
-        # # uniqueify lists
-        # for i in xrange(len(inputs)):
-        #     inputs[i] = list(set(inputs[i]))
-
-        # for i in xrange(len(outputs)):
-        #     outputs[i] = list(set(outputs[i]))
-
-
-        # print 'liveness'
-        # # print 'inputs'
-        # for i in xrange(len(inputs)):
-        #     print code.body[i]
-        #     print '\t in: ', inputs[i]
-        #     print '\t out:', outputs[i]
-
-        # # pprint(inputs)
-        # # print 'outputs'
-        # # pprint(outputs)
-        # # for i in xrange(len(outputs)):
-        # #     print code.body[i]
-        # #     print '\t', outputs[i]
-
-        # return inputs, outputs
 
 
     def allocate(self):
