@@ -981,7 +981,7 @@ class irPixelStore(IR):
         return '%s.%s%s = %s' % (self.target.name, self.target.attr, indexes, self.value)
 
     def get_input_vars(self):
-        return [self.value].extend(self.indexes)
+        return [self.value].extend(self.target.indexes)
 
     def generate(self):
         ins = {
@@ -1011,7 +1011,7 @@ class irPixelLoad(IR):
         return '%s = %s.%s%s' % (self.target, self.value.name, self.value.attr, indexes)
 
     def get_input_vars(self):
-        return self.indexes
+        return self.value.indexes
 
     def get_output_vars(self):
         return [self.target]
