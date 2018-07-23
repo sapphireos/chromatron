@@ -60,6 +60,12 @@ class IR(object):
     def generate(self):
         return BaseInstruction()
 
+    def get_input_vars(self):
+        return []
+
+    def get_output_vars(self):
+        return []
+
 class irVar(IR):
     def __init__(self, name, type='i32', **kwargs):
         super(irVar, self).__init__(**kwargs)
@@ -397,6 +403,9 @@ class irReturn(IR):
     def generate(self):
         return insReturn(self.ret_var.generate())
 
+    def get_input_vars(self):
+        return [self.ret_var]
+
 class irNop(IR):
     def __str__(self, **kwargs):
         return "NOP" 
@@ -416,6 +425,12 @@ class irBinop(IR):
         s = '%s = %s %s %s' % (self.result, self.left, self.op, self.right)
 
         return s
+
+    def get_input_vars(self):
+        return [self.left, self.right]
+
+    def get_output_vars(self):
+        return [self.result]
 
     def generate(self):
         ops = {
@@ -470,7 +485,11 @@ class irUnaryNot(IR):
     def generate(self):
         return insNot(self.target.generate(), self.value.generate())
 
+    def get_input_vars(self):
+        return [self.value]
 
+    def get_output_vars(self):
+        return [self.target]
 
 type_conversions = {
     ('i32', 'f16'): insConvF16toI32,
@@ -491,6 +510,12 @@ class irConvertType(IR):
 
         return s
 
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.result]
+
     def generate(self):
         try:
             return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
@@ -509,6 +534,12 @@ class irConvertTypeInPlace(IR):
 
         return s
 
+    def get_input_vars(self):
+        return [self.target]
+
+    def get_output_vars(self):
+        return [self.target]
+
     def generate(self):
         return type_conversions[(self.target.type, self.src_type)](self.target.generate(), self.target.generate())
 
@@ -524,6 +555,12 @@ class irVectorOp(IR):
         s = '*%s %s=(vector) %s' % (self.target, self.op, self.value)
 
         return s
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
 
     def generate(self):
         ops = {
@@ -559,6 +596,9 @@ class irClear(IR):
     def __str__(self):
         return '%s = 0' % (self.target)
 
+    def get_output_vars(self):
+        return [self.target]
+
     def generate(self):
         return insClr(self.target.generate())
 
@@ -574,6 +614,12 @@ class irAssign(IR):
     def __str__(self):
         return '%s = %s' % (self.target, self.value)
 
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
+
     def generate(self):
         return insMov(self.target.generate(), self.value.generate())
 
@@ -585,6 +631,12 @@ class irVectorAssign(IR):
         
     def __str__(self):
         return '*%s =(vector) %s' % (self.target, self.value)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
 
     def generate(self):
         if isinstance(self.target, irPixelAttr):
@@ -607,6 +659,12 @@ class irCall(IR):
         s = 'CALL %s(%s) -> %s' % (self.target, params, self.result)
 
         return s
+
+    def get_input_vars(self):
+        return self.params
+
+    def get_output_vars(self):
+        return [self.target]
 
     def generate(self):        
         params = [a.generate() for a in self.params]
@@ -632,6 +690,12 @@ class irLibCall(IR):
         s = 'LCALL %s(%s) -> %s' % (self.target, params, self.result)
 
         return s
+
+    def get_input_vars(self):
+        return self.params
+
+    def get_output_vars(self):
+        return [self.result]
 
     def generate(self):        
         params = [a.generate() for a in self.params]
@@ -672,6 +736,9 @@ class irBranchConditional(IR):
         super(irBranchConditional, self).__init__(**kwargs)        
         self.value = value
         self.target = target
+
+    def get_input_vars(self):
+        return [self.value]
 
 class irBranchZero(irBranchConditional):
     def __init__(self, *args, **kwargs):
@@ -726,6 +793,9 @@ class irJumpLessPreInc(IR):
 
         return s    
 
+    def get_input_vars(self):
+        return [self.op1, self.op2]
+
     def generate(self):
         return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate())
 
@@ -733,6 +803,9 @@ class irAssert(IR):
     def __init__(self, value, **kwargs):
         super(irAssert, self).__init__(**kwargs)        
         self.value = value
+
+    def get_input_vars(self):
+        return [self.value]
 
     def __str__(self):
         s = 'ASSERT %s' % (self.value)
@@ -755,6 +828,12 @@ class irIndex(IR):
         s = '%s = INDEX %s%s' % (self.result, self.target, indexes)
 
         return s
+
+    def get_input_vars(self):
+        return self.indexes
+
+    def get_output_vars(self):
+        return [self.result]
 
     def generate(self):
         indexes = [i.generate() for i in self.indexes]
@@ -800,6 +879,9 @@ class irPixelIndex(IR):
 
         return s
 
+    def get_input_vars(self):
+        return self.indexes
+
     def get_base_type(self):
         return self.type
 
@@ -823,6 +905,9 @@ class irDBIndex(IR):
 
         return s
 
+    def get_input_vars(self):
+        return self.indexes
+
     def get_base_type(self):
         return self.type
 
@@ -844,6 +929,9 @@ class irDBStore(IR):
             indexes += '[%s]' % (index.name)
 
         return '%s%s = %s' % (self.target.name, indexes, self.value)
+
+    def get_input_vars(self):
+        return [self.value].extend(self.indexes)
 
     def generate(self):
         return insDBStore(self.target.attr, self.indexes, self.value.generate())
@@ -868,6 +956,12 @@ class irDBLoad(IR):
 
         return '%s = %s%s' % (self.target, self.value.name, indexes)
 
+    def get_input_vars(self):
+        return self.indexes
+
+    def get_output_vars(self):
+        return [self.target]
+
     def generate(self):
         return insDBLoad(self.target.generate(), self.value.attr, self.indexes)
 
@@ -885,6 +979,9 @@ class irPixelStore(IR):
             indexes += '[%s]' % (index.name)
 
         return '%s.%s%s = %s' % (self.target.name, self.target.attr, indexes, self.value)
+
+    def get_input_vars(self):
+        return [self.value].extend(self.indexes)
 
     def generate(self):
         ins = {
@@ -913,6 +1010,12 @@ class irPixelLoad(IR):
 
         return '%s = %s.%s%s' % (self.target, self.value.name, self.value.attr, indexes)
 
+    def get_input_vars(self):
+        return self.indexes
+
+    def get_output_vars(self):
+        return [self.target]
+
     def generate(self):
         ins = {
             'hue': insPixelLoadHue,
@@ -939,6 +1042,12 @@ class irIndexLoad(IR):
 
         return s    
 
+    def get_input_vars(self):
+        return [self.address]
+
+    def get_output_vars(self):
+        return [self.result]
+
     def generate(self):
         return insIndirectLoad(self.result.generate(), self.address.generate())
 
@@ -952,6 +1061,12 @@ class irIndexStore(IR):
         s = '*%s = %s' % (self.address, self.value)
 
         return s    
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.address]
 
     def generate(self):
         return insIndirectStore(self.value.generate(), self.address.generate())
@@ -1708,6 +1823,13 @@ class Builder(object):
         ret_var.addr = 0
 
         self.data_table.append(ret_var)
+
+
+        if self.optimizations['optimize_function_regs']:
+            for func_name, code in self.funcs.items():
+                for ins in code.body:
+                    print ins, ins.get_input_vars(), ins.get_output_vars()
+
 
         addr = 1
         for i in self.globals.values():
