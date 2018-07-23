@@ -1846,81 +1846,232 @@ class Builder(object):
             return self.add_const(int(val), lineno=lineno)
 
 
-    def liveness(self, func, pc=0, inputs=None, outputs=None):
+    def usedef(self, func):
+        use = []
+        define = []
+
+        for ins in self.funcs[func].body:
+            # use.append(ins.get_input_vars())
+            # define.append(ins.get_output_vars())
+
+            use.append([a.name for a in ins.get_input_vars()])
+            define.append([a.name for a in ins.get_output_vars()])
+
+        return use, define
+
+    def control_flow(self, func, sequence=[], cfg=[], pc=0):
         code = self.funcs[func]
-
         labels = code.labels()
-
-        if inputs is None:
-            inputs = [[] for i in xrange(len(code.body))]
-
-        if outputs is None:
-            outputs = [[] for i in xrange(len(code.body))]
+        
+        cfg.append(sequence)
 
         while True:
             ins = code.body[pc]
 
-            # inputs = [a for a in ins.get_input_vars() if not a.is_global and not a.is_const]
-            # outputs = [a for a in ins.get_output_vars() if not a.is_global and not a.is_const]
-            ins_inputs = [a.name for a in ins.get_input_vars()]
-            ins_outputs = [a.name for a in ins.get_output_vars()]
-            jump = ins.get_jump_target()
-
-            inputs[pc].extend(ins_inputs)
-            outputs[pc].extend(ins_outputs)
-
-            print pc, ins
-            print '\t in  ', inputs
-            print '\t out ', outputs
-            try:
-                jump_addr = labels[jump.name]
-                print '\t jump', jump, jump_addr
-
-            except AttributeError:
-                pass
-
-
-            # raw_input()
-
+            sequence.append(pc)
+            
             if isinstance(ins, irReturn):
                 break
+
+            jump = ins.get_jump_target()
 
             # check if unconditional jump
             if isinstance(ins, irJump):
                 pc = labels[jump.name]
 
             elif jump != None:
-                _in, _out = self.liveness(func, pc=labels[jump.name], inputs=inputs, outputs=outputs)
-
-                # merge results
-                for i in xrange(len(inputs)):
-                    inputs[i].extend(_in[i])
-
-                for i in xrange(len(outputs)):
-                    outputs[i].extend(_out[i])
-
+                self.control_flow(func, sequence=copy(sequence), cfg=cfg, pc=labels[jump.name])
 
                 pc += 1
 
             else:
                 pc += 1
 
-        # uniqueify lists
-        for i in xrange(len(inputs)):
-            inputs[i] = list(set(inputs[i]))
 
-        for i in xrange(len(outputs)):
-            outputs[i] = list(set(outputs[i]))
+        return cfg
 
+
+
+    # def liveness(self, func, pc=0, inputs=None, outputs=None, prev_inputs=[], prev_outputs=[]):
+    def liveness(self, func, pc=0):
+        """
+        1. Gather inputs and outputs used by each instruction
+            a. Returns are exit points: globals/consts are treated as inputs to returns,
+               so that they do not get removed.
+
+        2. Walk tree ->
+            construct list of inputs/outputs for this particular iteration of the program
+    
+        3. Iterate list for this tree:
+            now we have the linear sequence what gets used where, based on a particular
+            set of branches taken.
+
+            we can iterate backwards
+    
+            each time the variable shows up, add to liveness list.
+            
+            once we get to start of program (this version), we know at which
+            lines each variable is alive.        
+
+        """
+
+        # inputs = use
+        # outputs = define
 
         from pprint import pprint
-        print 'liveness'
-        print 'inputs'
-        pprint(inputs)
-        print 'outputs'
-        pprint(outputs)
 
-        return inputs, outputs
+
+        use, define = self.usedef(func)
+
+        cfgs = self.control_flow(func)
+
+        code = self.funcs[func].body
+
+
+        liveness = [[] for i in xrange(len(code))]
+
+        for cfg in cfgs:
+    
+            prev = []
+            for i in reversed(cfg):
+
+                # add previous live variables
+                liveness[i].extend(prev)
+
+                # add current variables being used
+                liveness[i].extend(use[i])
+
+                # uniqueify
+                liveness[i] = list(set(liveness[i]))
+
+                prev = liveness[i]
+
+        for cfg in cfgs:
+            defined = []
+            for i in cfg:
+                # check if variables have been defined yet
+                for v in copy(liveness[i]):
+
+                    if v in define[i]:
+                        defined.append(v)
+
+                    elif v not in defined:
+                        # remove from liveness as this variable has not been defined yet
+                        liveness[i].remove(v)
+
+        
+
+
+        print '------'
+                
+        pc = 0
+        for l in liveness:
+            print pc, ': ',
+            
+            for a in l:
+                print a,
+
+            print '\t', code[pc]
+
+            pc += 1
+
+
+        # return
+
+
+        # code = self.funcs[func]
+
+        # labels = code.labels()
+
+        # if inputs is None:
+        #     inputs = [[] for i in xrange(len(code.body))]
+
+        # if outputs is None:
+        #     outputs = [[] for i in xrange(len(code.body))]
+
+        # while True:
+        #     ins = code.body[pc]
+
+        #     # inputs = [a for a in ins.get_input_vars() if not a.is_global and not a.is_const]
+        #     # outputs = [a for a in ins.get_output_vars() if not a.is_global and not a.is_const]
+        #     ins_inputs = [a.name for a in ins.get_input_vars()]
+        #     ins_outputs = [a.name for a in ins.get_output_vars()]
+        #     jump = ins.get_jump_target()
+
+        #     inputs[pc].extend(ins_inputs)
+        #     outputs[pc].extend(ins_outputs)
+
+        #     inputs[pc].extend(prev_inputs)
+        #     outputs[pc].extend(prev_outputs)                                    
+
+        #     # prev_inputs = inputs[pc]
+        #     # prev_outputs = outputs[pc]
+
+        #     # print pc, ins
+        #     # print '\t in  ', inputs
+        #     # print '\t out ', outputs
+        #     # try:
+        #     #     jump_addr = labels[jump.name]
+        #     #     print '\t jump', jump, jump_addr
+
+        #     # except AttributeError:
+        #     #     pass
+
+
+        #     # raw_input()
+
+        #     if isinstance(ins, irReturn):
+        #         break
+
+        #     # # check if unconditional jump
+        #     # if isinstance(ins, irJump):
+        #     #     pc = labels[jump.name]
+
+        #     # elif jump != None:
+        #     #     _in, _out = self.liveness(
+        #     #                     func, 
+        #     #                     pc=labels[jump.name], 
+        #     #                     inputs=inputs, 
+        #     #                     outputs=outputs, 
+        #     #                     prev_inputs=prev_inputs, 
+        #     #                     prev_outputs=prev_outputs)
+
+        #     #     # merge results
+        #     #     for i in xrange(len(inputs)):
+        #     #         inputs[i].extend(_in[i])
+
+        #     #     for i in xrange(len(outputs)):
+        #     #         outputs[i].extend(_out[i])
+
+
+        #     #     pc += 1
+
+        #     # else:
+        #     pc += 1
+
+        # # uniqueify lists
+        # for i in xrange(len(inputs)):
+        #     inputs[i] = list(set(inputs[i]))
+
+        # for i in xrange(len(outputs)):
+        #     outputs[i] = list(set(outputs[i]))
+
+
+        # print 'liveness'
+        # # print 'inputs'
+        # for i in xrange(len(inputs)):
+        #     print code.body[i]
+        #     print '\t in: ', inputs[i]
+        #     print '\t out:', outputs[i]
+
+        # # pprint(inputs)
+        # # print 'outputs'
+        # # pprint(outputs)
+        # # for i in xrange(len(outputs)):
+        # #     print code.body[i]
+        # #     print '\t', outputs[i]
+
+        # return inputs, outputs
 
 
     def allocate(self):

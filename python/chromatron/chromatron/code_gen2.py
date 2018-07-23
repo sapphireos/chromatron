@@ -858,16 +858,16 @@ if __name__ == '__main__':
 
     data = builder.allocate()
     ins = builder.generate_instructions()
-    builder.print_instructions(ins)
-    builder.print_data_table(data)
+    # builder.print_instructions(ins)
+    # builder.print_data_table(data)
 
-    vm = VM(builder)
+    # vm = VM(builder)
 
-    pprint.pprint(vm.dump_registers())
-    vm.run('init')
+    # pprint.pprint(vm.dump_registers())
+    # vm.run('init')
 
-    pprint.pprint(vm.dump_registers())
+    # pprint.pprint(vm.dump_registers())
 
-    print vm.memory
-    print vm.db
-    print vm.pixel_arrays
+    # print vm.memory
+    # print vm.db
+    # print vm.pixel_arrays
