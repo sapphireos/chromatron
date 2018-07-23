@@ -857,7 +857,10 @@ if __name__ == '__main__':
 
 
     data = builder.allocate()
-    ins = builder.generate_instructions()
+
+    # print builder
+
+    # ins = builder.generate_instructions()
     # builder.print_instructions(ins)
     # builder.print_data_table(data)
 

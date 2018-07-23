@@ -577,7 +577,7 @@ class irVectorOp(IR):
         return s
 
     def get_input_vars(self):
-        return [self.value]
+        return [self.value, self.target]
 
     def get_output_vars(self):
         return [self.target]
@@ -653,7 +653,7 @@ class irVectorAssign(IR):
         return '*%s =(vector) %s' % (self.target, self.value)
 
     def get_input_vars(self):
-        return [self.value]
+        return [self.value, self.target]
 
     def get_output_vars(self):
         return [self.target]
@@ -859,7 +859,10 @@ class irIndex(IR):
         return s
 
     def get_input_vars(self):
-        return self.indexes
+        temp = [self.target]
+        temp.extend(self.indexes)
+
+        return temp
 
     def get_output_vars(self):
         return [self.result]
@@ -960,7 +963,10 @@ class irDBStore(IR):
         return '%s%s = %s' % (self.target.name, indexes, self.value)
 
     def get_input_vars(self):
-        return [self.value].extend(self.indexes)
+        temp = [self.value]
+        temp.extend(self.indexes)
+
+        return temp
 
     def generate(self):
         return insDBStore(self.target.attr, self.indexes, self.value.generate())
@@ -1010,7 +1016,10 @@ class irPixelStore(IR):
         return '%s.%s%s = %s' % (self.target.name, self.target.attr, indexes, self.value)
 
     def get_input_vars(self):
-        return [self.value].extend(self.target.indexes)
+        temp = [self.value]
+        temp.extend(self.target.indexes)
+
+        return temp
 
     def generate(self):
         ins = {
@@ -1135,7 +1144,7 @@ class Builder(object):
         # optimizations
         self.optimizations = {
             'fold_constants': True,
-            'optimize_function_regs': True,
+            'optimize_register_usage': True,
         }
 
         # make sure we always have 0 const
@@ -1851,11 +1860,26 @@ class Builder(object):
         define = []
 
         for ins in self.funcs[func].body:
-            # use.append(ins.get_input_vars())
-            # define.append(ins.get_output_vars())
+            used = ins.get_input_vars()
 
-            use.append([a.name for a in ins.get_input_vars()])
-            define.append([a.name for a in ins.get_output_vars()])
+            # look for address references, if so, include their target
+            for v in copy(used):
+                if isinstance(v, irAddress):
+                    used.append(v.target)
+
+            use.append([a.name for a in used])
+
+
+            defined = ins.get_output_vars()
+
+            # look for address references, if so, include their target
+            for v in copy(defined):
+                if isinstance(v, irAddress):
+                    defined.append(v.target)
+
+            define.append([a.name for a in defined])
+
+        # define[0].extend(self.globals.keys())
 
         return use, define
 
@@ -1923,6 +1947,9 @@ class Builder(object):
 
         use, define = self.usedef(func)
 
+        # print use
+        # print define
+
         cfgs = self.control_flow(func)
 
         code = self.funcs[func].body
@@ -1975,6 +2002,13 @@ class Builder(object):
 
             pc += 1
 
+        return liveness
+
+    def optimize_register_usage(self, func):
+        liveness = self.liveness(func)
+
+        # print liveness
+
 
 
     def allocate(self):
@@ -1986,9 +2020,9 @@ class Builder(object):
         self.data_table.append(ret_var)
 
 
-        if self.optimizations['optimize_function_regs']:
-            for func_name, code in self.funcs.items():
-                self.liveness(func_name)
+        if self.optimizations['optimize_register_usage']:
+            for func in self.funcs:
+                self.optimize_register_usage(func)            
 
                 
 
