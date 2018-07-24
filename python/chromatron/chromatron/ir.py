@@ -2133,11 +2133,7 @@ class Builder(object):
 
                     for v in line:
                         var = v
-                        # var = self.locals[func][v]
-
-                        print "AWTESYHR"
-                        print var, type(var)
-
+                        
                         if var.addr == None:
                             if var.name not in registers:
                                 registers[var.name] = var
