@@ -2601,188 +2601,188 @@ class CGTestsBase(unittest.TestCase):
                 'global_x': 4,
             })
 
-    # def test_double_break_node_for(self):
-    #     self.run_test(double_break_node_for,
-    #         expected={
-    #             'global_i': 6,
-    #             'global_a': 4,
-    #             'b': 24,
-    #         })
+    def test_double_break_node_for(self):
+        self.run_test(double_break_node_for,
+            expected={
+                'global_i': 6,
+                'global_a': 4,
+                'b': 24,
+            })
 
-    # def test_double_continue_node_for(self):
-    #     self.run_test(double_continue_node_for,
-    #         expected={
-    #             'global_i': 10,
-    #             'a': 24,
-    #             'global_x': 4,
-    #         })
+    def test_double_continue_node_for(self):
+        self.run_test(double_continue_node_for,
+            expected={
+                'global_i': 10,
+                'a': 24,
+                'global_x': 4,
+            })
 
-    # def test_no_loop_function(self):
-    #     # we don't check anything, we just make sure
-    #     # we can compile without a loop function.
-    #     self.run_test(no_loop_function,
-    #         expected={
-    #         })
+    def test_no_loop_function(self):
+        # we don't check anything, we just make sure
+        # we can compile without a loop function.
+        self.run_test(no_loop_function,
+            expected={
+            })
 
-    # def test_pixel_array(self):
-    #     self.run_test(pixel_array,
-    #         expected={
-    #             'a': 2,
-    #             'b': 12,
-    #             'c': 3,
-    #             'd': 4,
-    #         })
+    def test_pixel_array(self):
+        self.run_test(pixel_array,
+            expected={
+                'a': 2,
+                'b': 12,
+                'c': 3,
+                'd': 4,
+            })
 
-    # def test_multiple_comparison(self):
-    #     self.run_test(multiple_comparison,
-    #         expected={
-    #             'e': 1,
-    #             'f': 0,
-    #             'g': 1,
-    #         })
+    def test_multiple_comparison(self):
+        self.run_test(multiple_comparison,
+            expected={
+                'e': 1,
+                'f': 0,
+                'g': 1,
+            })
 
-    # def test_not(self):
-    #     self.run_test(test_not,
-    #         expected={
-    #             'a': 0,
-    #             'b': 1,
-    #             'c': 1,
-    #             'd': 0,
-    #         })
+    def test_not(self):
+        self.run_test(test_not,
+            expected={
+                'a': 0,
+                'b': 1,
+                'c': 1,
+                'd': 0,
+            })
 
 
-# class CGHSVArrayTests(unittest.TestCase):
-#     def test_hue_array_1(self):
-#         builder = code_gen.compile_text(hue_array_1, debug_print=False)
-#         vm = code_gen.VM(builder)
+class CGHSVArrayTests(unittest.TestCase):
+    def test_hue_array_1(self):
+        builder = code_gen.compile_text(hue_array_1, debug_print=False)
+        vm = code_gen.VM(builder)
 
-#         vm.run_once()
+        vm.run_once()
 
-#         hsv = vm.dump_hsv()
+        hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['hue'][1], 65535)
-#         self.assertEqual(hsv['hue'][9], 39321)
+        self.assertEqual(hsv['hue'][1], 65535)
+        self.assertEqual(hsv['hue'][9], 39321)
 
-#     def test_hue_array_2(self):
-#         builder = code_gen.compile_text(hue_array_2, debug_print=False)
-#         vm = code_gen.VM(builder)
+    def test_hue_array_2(self):
+        builder = code_gen.compile_text(hue_array_2, debug_print=False)
+        vm = code_gen.VM(builder)
 
-#         vm.run_once()
+        vm.run_once()
 
-#         hsv = vm.dump_hsv()
+        hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 32768)
+        for a in hsv['hue']:
+            self.assertEqual(a, 32768)
 
-#     def test_hue_array_add(self):
-#         builder = code_gen.compile_text(hue_array_add, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_add(self):
+    #     builder = code_gen.compile_text(hue_array_add, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 6553)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 6553)
 
-#     def test_hue_array_add_2(self):
-#         builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_add_2(self):
+    #     builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 6552)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 6552)
 
-#     def test_hue_array_sub(self):
-#         builder = code_gen.compile_text(hue_array_sub, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_sub(self):
+    #     builder = code_gen.compile_text(hue_array_sub, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 58983)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 58983)
 
-#     def test_hue_array_mul(self):
-#         builder = code_gen.compile_text(hue_array_mul, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_mul(self):
+    #     builder = code_gen.compile_text(hue_array_mul, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_hue_array_mul_f16(self):
-#         builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_mul_f16(self):
+    #     builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 32767)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 32767)
 
-#     def test_hue_array_div(self):
-#         builder = code_gen.compile_text(hue_array_div, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_div(self):
+    #     builder = code_gen.compile_text(hue_array_div, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_hue_array_div_f16(self):
-#         builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_div_f16(self):
+    #     builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 26214)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 26214)
 
-#     def test_hue_array_mod(self):
-#         builder = code_gen.compile_text(hue_array_mod, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_hue_array_mod(self):
+    #     builder = code_gen.compile_text(hue_array_mod, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 13108)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 13108)
 
-#     def test_sat_array_1(self):
-#         builder = code_gen.compile_text(sat_array_1, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_sat_array_1(self):
+    #     builder = code_gen.compile_text(sat_array_1, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['sat'][1], 65535)
-#         self.assertEqual(hsv['sat'][9], 32768)
+    #     self.assertEqual(hsv['sat'][1], 65535)
+    #     self.assertEqual(hsv['sat'][9], 32768)
 
-#     def test_sat_array_2(self):
-#         builder = code_gen.compile_text(sat_array_2, debug_print=False)
-#         vm = code_gen.VM(builder)
+    # def test_sat_array_2(self):
+    #     builder = code_gen.compile_text(sat_array_2, debug_print=False)
+    #     vm = code_gen.VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 32768)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 32768)
 
 #     def test_sat_array_add(self):
 #         builder = code_gen.compile_text(sat_array_add, debug_print=False)

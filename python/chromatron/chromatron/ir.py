@@ -577,10 +577,17 @@ class irVectorOp(IR):
         return s
 
     def get_input_vars(self):
-        return [self.value, self.target]
+        if isinstance(self.target, irPixelAttr):
+            return [self.value]
+        else:
+            return [self.value, self.target]
 
     def get_output_vars(self):
-        return [self.target]
+        if isinstance(self.target, irPixelAttr):
+            return []
+
+        else:
+            return [self.target]
 
     def generate(self):
         ops = {
@@ -653,10 +660,17 @@ class irVectorAssign(IR):
         return '*%s =(vector) %s' % (self.target, self.value)
 
     def get_input_vars(self):
-        return [self.value, self.target]
+        if isinstance(self.target, irPixelAttr):
+            return [self.value]
+        else:
+            return [self.value, self.target]
 
     def get_output_vars(self):
-        return [self.target]
+        if isinstance(self.target, irPixelAttr):
+            return []
+            
+        else:
+            return [self.target]
 
     def generate(self):
         if isinstance(self.target, irPixelAttr):
@@ -2043,10 +2057,12 @@ class Builder(object):
 
         print '------', func, '---------'
 
-        # print 'use'
-        # print [a.name for a in use]
-        # print 'define'
-        # print [a.name for a in define]
+        print 'use'
+        for i in use:
+            print [a.name for a in i]
+        print 'define'
+        for i in define:
+            print [a.name for a in i]
                 
         pc = 0
         for l in liveness:
@@ -2101,6 +2117,9 @@ class Builder(object):
 
                     # remove anything that is no longer live
                     for var in registers.values():
+                        # check for arrays with obviously bogus sizes
+                        assert var.length < 65535
+
                         if var not in line:
                             print 'remove', var, var.addr
 
@@ -2115,6 +2134,9 @@ class Builder(object):
                     for v in line:
                         var = v
                         # var = self.locals[func][v]
+
+                        print "AWTESYHR"
+                        print var, type(var)
 
                         if var.addr == None:
                             if var.name not in registers:
