@@ -2286,201 +2286,201 @@ class CGTestsBase(unittest.TestCase):
                 'e': 5,
             })
 
-    # def test_array_div(self):
-    #     self.run_test(test_array_div,
-    #         expected={
-    #             'a': 5,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #             'e': 5,
-    #         })
+    def test_array_div(self):
+        self.run_test(test_array_div,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
 
-    # def test_array_mul(self):
-    #     self.run_test(test_array_mul,
-    #         expected={
-    #             'a': 615,
-    #             'b': 246,
-    #             'c': 369,
-    #             'd': 492,
-    #             'e': 615,
-    #         })
+    def test_array_mul(self):
+        self.run_test(test_array_mul,
+            expected={
+                'a': 615,
+                'b': 246,
+                'c': 369,
+                'd': 492,
+                'e': 615,
+            })
 
-    # def test_array_sub(self):
-    #     self.run_test(test_array_sub,
-    #         expected={
-    #             'a': -118,
-    #             'b': -121,
-    #             'c': -120,
-    #             'd': -119,
-    #             'e': -118,
-    #         })
+    def test_array_sub(self):
+        self.run_test(test_array_sub,
+            expected={
+                'a': -118,
+                'b': -121,
+                'c': -120,
+                'd': -119,
+                'e': -118,
+            })
 
-    # def test_array_add(self):
-    #     self.run_test(test_array_add,
-    #         expected={
-    #             'a': 128,
-    #             'b': 125,
-    #             'c': 126,
-    #             'd': 127,
-    #             'e': 128,
-    #         })
+    def test_array_add(self):
+        self.run_test(test_array_add,
+            expected={
+                'a': 128,
+                'b': 125,
+                'c': 126,
+                'd': 127,
+                'e': 128,
+            })
 
-    # def test_array_assign(self):
-    #     self.run_test(test_array_assign,
-    #         expected={
-    #             'a': 123,
-    #             'b': 123,
-    #             'c': 123,
-    #             'd': 123,
-    #             'e': 123,
-    #         })
+    def test_array_assign(self):
+        self.run_test(test_array_assign,
+            expected={
+                'a': 123,
+                'b': 123,
+                'c': 123,
+                'd': 123,
+                'e': 123,
+            })
 
-    # def test_array_index(self):
-    #     self.run_test(test_array_index,
-    #         expected={
-    #             'a': 5,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #             'e': 5,
-    #         })
+    def test_array_index(self):
+        self.run_test(test_array_index,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
 
-    # def test_db_access(self):
-    #     self.run_test(test_db_access,
-    #         expected={
-    #             'a': 126,
-    #             'b': 123,
-    #             'kv_test_key': 126,
-    #         })
+    def test_db_access(self):
+        self.run_test(test_db_access,
+            expected={
+                'a': 126,
+                'b': 123,
+                'kv_test_key': 126,
+            })
 
-    # def test_db_array_access(self):
-    #     self.run_test(test_db_array_access,
-    #         expected={
-    #             'db_len': 8,
-    #             'db_len2': 1,
-    #             'a': 2,
-    #             'b': 2,
-    #             'c': 3,
-    #         })
+    def test_db_array_access(self):
+        self.run_test(test_db_array_access,
+            expected={
+                'db_len': 8,
+                'db_len2': 1,
+                'a': 2,
+                'b': 2,
+                'c': 3,
+            })
 
-    # def test_empty(self):
-    #     self.run_test(empty_program,
-    #         expected={
-    #         })
+    def test_empty(self):
+        self.run_test(empty_program,
+            expected={
+            })
 
-    # def test_basic_vars(self):
-    #     self.run_test(basic_vars,
-    #         expected={
-    #             'a': 0,
-    #             'b': 0,
-    #             'c': 0,
-    #         })
+    def test_basic_vars(self):
+        self.run_test(basic_vars,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 0,
+            })
 
-    # def test_basic_assign(self):
-    #     self.run_test(basic_assign,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #         })
+    def test_basic_assign(self):
+        self.run_test(basic_assign,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
 
-    # def test_basic_math(self):
-    #     self.run_test(basic_math,
-    #         expected={
-    #             'a': 3,
-    #             'b': 6,
-    #             'c': 9,
-    #             'd': 1,
-    #             'e': 10,
-    #             'f': 2,
-    #             'g': 1,
-    #         })
+    def test_basic_math(self):
+        self.run_test(basic_math,
+            expected={
+                'a': 3,
+                'b': 6,
+                'c': 9,
+                'd': 1,
+                'e': 10,
+                'f': 2,
+                'g': 1,
+            })
 
-    # def test_constant_folding(self):
-    #     self.run_test(constant_folding,
-    #         expected={
-    #             'a': 10,
-    #             'b': 20,
-    #         })
+    def test_constant_folding(self):
+        self.run_test(constant_folding,
+            expected={
+                'a': 10,
+                'b': 20,
+            })
 
-    # def test_compare_gt(self):
-    #     self.run_test(basic_compare_gt,
-    #         expected={
-    #             'a': 0,
-    #             'b': 0,
-    #             'c': 1,
-    #         })
+    def test_compare_gt(self):
+        self.run_test(basic_compare_gt,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 1,
+            })
 
-    # def test_compare_gte(self):
-    #     self.run_test(basic_compare_gte,
-    #         expected={
-    #             'a': 0,
-    #             'b': 1,
-    #             'c': 1,
-    #         })
+    def test_compare_gte(self):
+        self.run_test(basic_compare_gte,
+            expected={
+                'a': 0,
+                'b': 1,
+                'c': 1,
+            })
 
-    # def test_compare_lt(self):
-    #     self.run_test(basic_compare_lt,
-    #         expected={
-    #             'a': 1,
-    #             'b': 0,
-    #             'c': 0,
-    #         })
+    def test_compare_lt(self):
+        self.run_test(basic_compare_lt,
+            expected={
+                'a': 1,
+                'b': 0,
+                'c': 0,
+            })
 
-    # def test_compare_lte(self):
-    #     self.run_test(basic_compare_lte,
-    #         expected={
-    #             'a': 1,
-    #             'b': 1,
-    #             'c': 0,
-    #         })
+    def test_compare_lte(self):
+        self.run_test(basic_compare_lte,
+            expected={
+                'a': 1,
+                'b': 1,
+                'c': 0,
+            })
 
-    # def test_compare_eq(self):
-    #     self.run_test(basic_compare_eq,
-    #         expected={
-    #             'a': 0,
-    #             'b': 1,
-    #         })
+    def test_compare_eq(self):
+        self.run_test(basic_compare_eq,
+            expected={
+                'a': 0,
+                'b': 1,
+            })
 
-    # def test_compare_neq(self):
-    #     self.run_test(basic_compare_neq,
-    #         expected={
-    #             'a': 1,
-    #             'b': 0,
-    #         })
+    def test_compare_neq(self):
+        self.run_test(basic_compare_neq,
+            expected={
+                'a': 1,
+                'b': 0,
+            })
 
-    # def test_basic_if(self):
-    #     self.run_test(basic_if,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #         })
+    def test_basic_if(self):
+        self.run_test(basic_if,
+            expected={
+                'a': 1,
+                'b': 2,
+            })
 
-    # def test_basic_for(self):
-    #     self.run_test(basic_for,
-    #         expected={
-    #             'a': 10,
-    #         })
+    def test_basic_for(self):
+        self.run_test(basic_for,
+            expected={
+                'a': 10,
+            })
 
-    # def test_basic_while(self):
-    #     self.run_test(basic_while,
-    #         expected={
-    #             'a': 10,
-    #         })
+    def test_basic_while(self):
+        self.run_test(basic_while,
+            expected={
+                'a': 10,
+            })
 
-    # def test_basic_call(self):
-    #     self.run_test(basic_call,
-    #         expected={
-    #             'a': 5,
-    #         })
+    def test_basic_call(self):
+        self.run_test(basic_call,
+            expected={
+                'a': 5,
+            })
 
-    # def test_basic_return(self):
-    #     self.run_test(basic_return,
-    #         expected={
-    #             'a': 8,
-    #         })
+    def test_basic_return(self):
+        self.run_test(basic_return,
+            expected={
+                'a': 8,
+            })
 
     # def test_basic_logic(self):
     #     self.run_test(basic_logic,

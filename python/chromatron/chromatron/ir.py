@@ -806,7 +806,7 @@ class irJump(IR):
         return insJmp(self.target.generate())
 
     def get_jump_target(self):
-        return self.target    
+        return self.target
 
 class irJumpLessPreInc(IR):
     def __init__(self, target, op1, op2, **kwargs):
@@ -1920,8 +1920,10 @@ class Builder(object):
             jump = ins.get_jump_target()
 
             # check if unconditional jump
-            if isinstance(ins, irJump):
+            if isinstance(ins, irJump) and ins not in jumps_taken:
                 pc = labels[jump.name]
+
+                jumps_taken.append(ins)
 
             elif jump != None:
                 if ins not in jumps_taken:
