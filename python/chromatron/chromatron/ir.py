@@ -1945,7 +1945,7 @@ class Builder(object):
     def liveness(self, func, pc=None):
         if pc == None:
             pc = 0
-            
+
         """
         1. Gather inputs and outputs used by each instruction
             a. Returns are exit points: globals/consts are treated as inputs to returns,
@@ -2138,7 +2138,6 @@ class Builder(object):
 
                         a.addr = trash_var.addr
 
-
                     
             for func_name, local in self.locals.items():
                 # addresses = []
@@ -2146,17 +2145,7 @@ class Builder(object):
                     # assign func name to var
                     i.name = '%s.%s' % (func_name, i.name)
 
-                    # if i.addr in addresses:
-                        # continue
-
                     self.data_table.append(i)
-
-            #         addresses.append(i.addr)
-
-            # print 'ADDR'
-            # for addr in sorted(addresses):
-            #     print addr      
-            #     self.data_table.append(i)
 
         else:
             for func_name, local in self.locals.items():
