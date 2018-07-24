@@ -1159,6 +1159,7 @@ class Builder(object):
         self.optimizations = {
             'fold_constants': True,
             'optimize_register_usage': True,
+            'remove_unreachable_code': True,
         }
 
         # make sure we always have 0 const
@@ -2233,7 +2234,14 @@ class Builder(object):
         ins = []
 
         for func in self.funcs.values():
-            ins.extend(func.generate())
+            if self.optimizations['remove_unreachable_code']:
+                unreachable = self.unreachable(func.name)
+
+                for i in unreachable:
+                    del func.body[i]
+                    
+            code = func.generate()
+            ins.extend(code)
 
         self.code = ins
         return ins
