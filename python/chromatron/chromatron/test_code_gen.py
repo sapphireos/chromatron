@@ -2215,76 +2215,76 @@ class CGTestsBase(unittest.TestCase):
                 'i': 6,
             })
 
-    # def test_base_record_assign(self):
-    #     self.run_test(test_base_record_assign,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #             'c': 3,
-    #         })
+    def test_base_record_assign(self):
+        self.run_test(test_base_record_assign,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+            })
 
-    # def test_array_index_expr(self):
-    #     self.run_test(test_array_index_expr,
-    #         expected={
-    #             'a': 3,
-    #         })
+    def test_array_index_expr(self):
+        self.run_test(test_array_index_expr,
+            expected={
+                'a': 3,
+            })
 
-    # def test_array_avg(self):
-    #     self.run_test(test_array_avg,
-    #         expected={
-    #             'a': 6,
-    #         })
+    def test_array_avg(self):
+        self.run_test(test_array_avg,
+            expected={
+                'a': 6,
+            })
 
-    # def test_array_sum(self):
-    #     self.run_test(test_array_sum,
-    #         expected={
-    #             'a': 24,
-    #         })
+    def test_array_sum(self):
+        self.run_test(test_array_sum,
+            expected={
+                'a': 24,
+            })
 
-    # def test_array_min(self):
-    #     self.run_test(test_array_min,
-    #         expected={
-    #             'a': 1,
-    #         })
+    def test_array_min(self):
+        self.run_test(test_array_min,
+            expected={
+                'a': 1,
+            })
 
-    # def test_array_max(self):
-    #     self.run_test(test_array_max,
-    #         expected={
-    #             'a': 4,
-    #         })
+    def test_array_max(self):
+        self.run_test(test_array_max,
+            expected={
+                'a': 4,
+            })
 
     
-    # def test_array_aug_assign(self):
-    #     self.run_test(test_array_aug_assign,
-    #         expected={
-    #             'a': 579,
-    #             'b': 0,
-    #         })
+    def test_array_aug_assign(self):
+        self.run_test(test_array_aug_assign,
+            expected={
+                'a': 579,
+                'b': 0,
+            })
 
-    # def test_array_iteration(self):
-    #     self.run_test(test_array_iteration,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #         })
+    def test_array_iteration(self):
+        self.run_test(test_array_iteration,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
 
-    # def test_array_len(self):
-    #     self.run_test(test_array_len,
-    #         expected={
-    #             'a': 4,
-    #         })
+    def test_array_len(self):
+        self.run_test(test_array_len,
+            expected={
+                'a': 4,
+            })
 
-    # def test_array_mod(self):
-    #     self.run_test(test_array_mod,
-    #         expected={
-    #             'a': 5,
-    #             'b': 2,
-    #             'c': 3,
-    #             'd': 4,
-    #             'e': 5,
-    #         })
+    def test_array_mod(self):
+        self.run_test(test_array_mod,
+            expected={
+                'a': 5,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+                'e': 5,
+            })
 
     # def test_array_div(self):
     #     self.run_test(test_array_div,

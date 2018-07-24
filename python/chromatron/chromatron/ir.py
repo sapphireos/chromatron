@@ -1103,10 +1103,10 @@ class irIndexStore(IR):
         return s    
 
     def get_input_vars(self):
-        return [self.value]
+        return [self.address]
 
     def get_output_vars(self):
-        return [self.address]
+        return [self.value]
 
     def generate(self):
         return insIndirectStore(self.value.generate(), self.address.generate())
