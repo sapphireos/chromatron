@@ -2482,31 +2482,31 @@ class CGTestsBase(unittest.TestCase):
                 'a': 8,
             })
 
-    # def test_basic_logic(self):
-    #     self.run_test(basic_logic,
-    #         expected={
-    #             'a': 0,
-    #             'b': 0,
-    #             'c': 1,
-    #             'd': 0,
-    #             'e': 1,
-    #             'f': 1,
-    #         })
+    def test_basic_logic(self):
+        self.run_test(basic_logic,
+            expected={
+                'a': 0,
+                'b': 0,
+                'c': 1,
+                'd': 0,
+                'e': 1,
+                'f': 1,
+            })
 
-    # def test_call_with_params(self):
-    #     self.run_test(call_with_params,
-    #         expected={
-    #             'a': 1,
-    #             'b': 2,
-    #         })
+    def test_call_with_params(self):
+        self.run_test(call_with_params,
+            expected={
+                'a': 1,
+                'b': 2,
+            })
 
-    # def test_if_expr(self):
-    #     self.run_test(if_expr,
-    #         expected={
-    #             'a': 1,
-    #             'b': 1,
-    #             'c': 2,
-    #         })
+    def test_if_expr(self):
+        self.run_test(if_expr,
+            expected={
+                'a': 1,
+                'b': 1,
+                'c': 2,
+            })
 
     # def test_call_expr(self):
     #     self.run_test(call_expr,

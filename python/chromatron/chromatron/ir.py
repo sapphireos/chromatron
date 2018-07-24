@@ -86,8 +86,6 @@ class irVar(IR):
             return "Var (%s, %s)" % (self.name, self.type)
 
     def generate(self):
-
-        print self, self.addr
         assert self.addr != None
         return insAddr(self.addr, self)
 
@@ -1870,7 +1868,8 @@ class Builder(object):
                     if v.target.name not in self.globals:
                         used.append(v.target)
 
-            use.append([a.name for a in used])
+            # use.append([a.name for a in used])
+            use.append([a for a in used])
 
 
             defined = ins.get_output_vars()
@@ -1884,7 +1883,12 @@ class Builder(object):
                     if v.target.name not in self.globals:
                         defined.append(v.target)
 
-            define.append([a.name for a in defined])
+            # define.append([a.name for a in defined])
+            define.append([a for a in defined])
+
+        # attach function params
+        # define[0].extend([a.name for a in self.funcs[func].params])
+        define[0].extend([a for a in self.funcs[func].params])
 
         # define[0].extend(self.globals.keys())
 
@@ -1931,8 +1935,6 @@ class Builder(object):
 
                     self.control_flow(func, sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
 
-                    
-
                 pc += 1
 
             else:
@@ -1977,9 +1979,6 @@ class Builder(object):
 
         use, define = self.usedef(func)
 
-        # print use
-        # print define
-
         cfgs = self.control_flow(func)
 
         code = self.funcs[func].body
@@ -2021,17 +2020,17 @@ class Builder(object):
 
         print '------', func, '---------'
 
-        print 'use'
-        print use
-        print 'define'
-        print define
+        # print 'use'
+        # print [a.name for a in use]
+        # print 'define'
+        # print [a.name for a in define]
                 
         pc = 0
         for l in liveness:
             print pc, ': ',
             
             for a in l:
-                print a,
+                print a.name,
 
             print '\t', code[pc]
 
@@ -2066,6 +2065,8 @@ class Builder(object):
                 liveness = self.liveness(func)
 
                 for line in liveness:
+                    # print 'line', line
+
                     # remove anything that is no longer live
                     for var in registers.values():
                         if var.name not in line:
@@ -2080,11 +2081,12 @@ class Builder(object):
 
 
                     for v in line:
-                        var = self.locals[func][v]
+                        var = v
+                        # var = self.locals[func][v]
 
                         if var.addr == None:
-                            if v not in registers:
-                                registers[v] = var
+                            if var.name not in registers:
+                                registers[var.name] = var
 
                                 var_addr = None
 
@@ -2094,12 +2096,6 @@ class Builder(object):
                                     # easy mode, length=1 vars: pop address
                                     if var.length == 1:
                                         var_addr = address_pool.pop()
-
-                                    # print v
-                                    # print address_pool
-
-                                    # for i in xrange(len(address_pool) - var.length):
-                                    #     print address_pool[i:i + var.length]
 
                                 else:
                                     # placeholder for arrays.  need to find 
@@ -2119,7 +2115,6 @@ class Builder(object):
                                 var.addr = var_addr
 
                                 
-
                             
                     print line, registers, address_pool
                     print ''
@@ -2142,7 +2137,6 @@ class Builder(object):
 
                     
             for func_name, local in self.locals.items():
-                # addresses = []
                 for i in local.values():
                     # assign func name to var
                     i.name = '%s.%s' % (func_name, i.name)
