@@ -1943,6 +1943,19 @@ class Builder(object):
 
         return cfg
 
+    def unreachable(self, func, cfg=None):
+        if cfg == None:
+            cfg = self.control_flow(func)
+
+
+        unreachable = range(len(self.funcs[func].body))
+
+        for sequence in cfg:
+            for line in sequence:
+                if line in unreachable:
+                    unreachable.remove(line)
+
+        return unreachable
 
 
     # def liveness(self, func, pc=0, inputs=None, outputs=None, prev_inputs=[], prev_outputs=[]):
@@ -1981,11 +1994,15 @@ class Builder(object):
 
         cfgs = self.control_flow(func)
 
+        print 'unreachable'
+        print self.unreachable(func, cfgs)
+
         code = self.funcs[func].body
 
 
         liveness = [[] for i in xrange(len(code))]
 
+        print 'CFG:'
         for cfg in cfgs:
 
             print cfg
