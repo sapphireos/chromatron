@@ -1886,7 +1886,7 @@ class Builder(object):
 
         return use, define
 
-    def control_flow(self, func, sequence=[], cfg=[], pc=0):
+    def control_flow(self, func, sequence=[], cfg=[], pc=0, jumps_taken=[]):
         code = self.funcs[func]
         labels = code.labels()
         
@@ -1907,7 +1907,12 @@ class Builder(object):
                 pc = labels[jump.name]
 
             elif jump != None:
-                self.control_flow(func, sequence=copy(sequence), cfg=cfg, pc=labels[jump.name])
+                if ins not in jumps_taken:
+                    jumps_taken.append(ins)
+                    
+                    self.control_flow(func, sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
+
+                    
 
                 pc += 1
 
