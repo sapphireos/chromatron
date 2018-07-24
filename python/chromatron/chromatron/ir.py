@@ -2069,7 +2069,7 @@ class Builder(object):
 
                     # remove anything that is no longer live
                     for var in registers.values():
-                        if var.name not in line:
+                        if var not in line:
                             print 'remove', var, var.addr
 
                             del registers[var.name]
