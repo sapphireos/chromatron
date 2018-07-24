@@ -1995,12 +1995,16 @@ class Builder(object):
         cfgs = self.control_flow(func)
 
         print 'unreachable'
-        print self.unreachable(func, cfgs)
+        unreachable = self.unreachable(func, cfgs)
+        print unreachable
 
         code = self.funcs[func].body
 
 
         liveness = [[] for i in xrange(len(code))]
+
+        for line in unreachable:
+            liveness[line] = None
 
         print 'CFG:'
         for cfg in cfgs:
@@ -2048,8 +2052,12 @@ class Builder(object):
         for l in liveness:
             print pc, ': ',
             
-            for a in l:
-                print a.name,
+            if l == None:
+                print 'UNREACHABLE',
+
+            else:
+                for a in l:
+                    print a.name,
 
             print '\t', code[pc]
 
@@ -2085,6 +2093,11 @@ class Builder(object):
 
                 for line in liveness:
                     # print 'line', line
+
+                    # check if line is marked None, this means
+                    # we need to skip it in the analysis (probably unreachable code)
+                    if line == None:
+                        continue
 
                     # remove anything that is no longer live
                     for var in registers.values():
