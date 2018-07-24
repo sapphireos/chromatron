@@ -1144,7 +1144,7 @@ class Builder(object):
         # optimizations
         self.optimizations = {
             'fold_constants': True,
-            'optimize_register_usage': False,
+            'optimize_register_usage': True,
         }
 
         # make sure we always have 0 const
@@ -2098,11 +2098,22 @@ class Builder(object):
                     # print address_pool
 
             for func_name, local in self.locals.items():
+                # addresses = []
                 for i in local.values():
                     # assign func name to var
                     i.name = '%s.%s' % (func_name, i.name)
 
+                    # if i.addr in addresses:
+                        # continue
+
                     self.data_table.append(i)
+
+            #         addresses.append(i.addr)
+
+            # print 'ADDR'
+            # for addr in sorted(addresses):
+            #     print addr      
+            #     self.data_table.append(i)
 
         else:
             for func_name, local in self.locals.items():
@@ -2119,7 +2130,7 @@ class Builder(object):
 
     def print_data_table(self, data):
         print "DATA: "
-        for i in data:
+        for i in sorted(data, key=lambda d: d.addr):
             print '\t%3d: %s' % (i.addr, i)
 
     def print_instructions(self, instructions):
@@ -2201,13 +2212,27 @@ class VM(object):
         # init memory
         self.memory = []
 
-        for var in self.data:
+        # sort data by addresses
+        data = [a for a in sorted(self.data, key=lambda data: data.addr)]
+
+        for a in data:
+            print a.addr, a.length
+
+        addr = -1
+        for var in data:
+            if var.addr <= addr:
+                continue
+
+            addr = var.addr
+
             if isinstance(var, irConst):
                 self.memory.append(var.name)
 
             else:
                 for i in xrange(var.length):
                     self.memory.append(0)
+
+                addr += var.length -1
 
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
