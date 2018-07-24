@@ -1867,7 +1867,8 @@ class Builder(object):
             # look for address references, if so, include their target
             for v in copy(used):
                 if isinstance(v, irAddress):
-                    used.append(v.target)
+                    if v.target.name not in self.globals:
+                        used.append(v.target)
 
             use.append([a.name for a in used])
 
@@ -1880,7 +1881,8 @@ class Builder(object):
             # look for address references, if so, include their target
             for v in copy(defined):
                 if isinstance(v, irAddress):
-                    defined.append(v.target)
+                    if v.target.name not in self.globals:
+                        defined.append(v.target)
 
             define.append([a.name for a in defined])
 
@@ -1888,7 +1890,20 @@ class Builder(object):
 
         return use, define
 
-    def control_flow(self, func, sequence=[], cfg=[], pc=0, jumps_taken=[]):
+    def control_flow(self, func, sequence=None, cfg=None, pc=None, jumps_taken=None):
+        if sequence == None:
+            sequence =[]
+
+        if cfg == None:
+            cfg = []
+
+        if pc == None:
+            pc = 0
+
+        if jumps_taken == None:
+            jumps_taken = []
+
+
         code = self.funcs[func]
         labels = code.labels()
         
@@ -1927,7 +1942,10 @@ class Builder(object):
 
 
     # def liveness(self, func, pc=0, inputs=None, outputs=None, prev_inputs=[], prev_outputs=[]):
-    def liveness(self, func, pc=0):
+    def liveness(self, func, pc=None):
+        if pc == None:
+            pc = 0
+            
         """
         1. Gather inputs and outputs used by each instruction
             a. Returns are exit points: globals/consts are treated as inputs to returns,
@@ -2001,7 +2019,9 @@ class Builder(object):
 
         print '------', func, '---------'
 
+        print 'use'
         print use
+        print 'define'
         print define
                 
         pc = 0
