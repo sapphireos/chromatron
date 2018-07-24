@@ -86,6 +86,8 @@ class irVar(IR):
             return "Var (%s, %s)" % (self.name, self.type)
 
     def generate(self):
+
+        print self, self.addr
         assert self.addr != None
         return insAddr(self.addr, self)
 
@@ -684,7 +686,7 @@ class irCall(IR):
         return self.params
 
     def get_output_vars(self):
-        return [self.target]
+        return [self.result]
 
     def generate(self):        
         params = [a.generate() for a in self.params]
@@ -1909,7 +1911,7 @@ class Builder(object):
             elif jump != None:
                 if ins not in jumps_taken:
                     jumps_taken.append(ins)
-                    
+
                     self.control_flow(func, sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
 
                     
@@ -1950,7 +1952,7 @@ class Builder(object):
         # inputs = use
         # outputs = define
 
-        from pprint import pprint
+        # from pprint import pprint
 
 
         use, define = self.usedef(func)
@@ -1997,7 +1999,10 @@ class Builder(object):
 
 
 
-        print '------'
+        print '------', func, '---------'
+
+        print use
+        print define
                 
         pc = 0
         for l in liveness:
@@ -2032,6 +2037,7 @@ class Builder(object):
 
         if self.optimizations['optimize_register_usage']:
             for func in self.funcs:
+                print 'optimize', func
                 registers = {}
                 address_pool = []
 
@@ -2095,13 +2101,25 @@ class Builder(object):
                             
                     print line, registers, address_pool
                     print ''
-                            
+                
+
+                trash_var = None
+
+                for ins in self.funcs[func].body:
+                    unallocated = [a for a in ins.get_output_vars() if a.addr == None]
+
+                    for a in unallocated:
+                        if trash_var == None:
+                            trash_var = irVar_i32('$trash', lineno=ins.lineno)
+                            trash_var.addr = addr
+                            addr += 1
+
+                            self.data_table.append(trash_var)
+
+                        a.addr = trash_var.addr
 
 
-
-                    # print registers
-                    # print address_pool
-
+                    
             for func_name, local in self.locals.items():
                 # addresses = []
                 for i in local.values():

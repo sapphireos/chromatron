@@ -867,7 +867,8 @@ if __name__ == '__main__':
     vm = VM(builder)
 
     pprint.pprint(vm.dump_registers())
-    vm.run('init')
+    # vm.run('init')
+    vm.run_once()
 
     pprint.pprint(vm.dump_registers())
 

@@ -2052,12 +2052,12 @@ class CGTestsBase(unittest.TestCase):
                 'd': 0,
             })
 
-    def test_array_expr_db(self):
-        self.run_test(test_array_expr_db,
-            expected={
-                'a': 2,
-                'b': 5,
-            })
+    # def test_array_expr_db(self):
+    #     self.run_test(test_array_expr_db,
+    #         expected={
+    #             'a': 2,
+    #             'b': 5,
+    #         })
 
     def test_array_expr(self):
         self.run_test(test_array_expr,
@@ -2067,307 +2067,307 @@ class CGTestsBase(unittest.TestCase):
             })
 
 
-    def test_array_mod_fixed16(self):
-        self.run_test(test_array_mod_fixed16,
-            expected={
-                'a': 4.899993896484375,
-                'b': 1.899993896484375,
-                'c': 2.899993896484375,
-                'd': 3.899993896484375,
-                'e': 4.899993896484375,
-            })
+    # def test_array_mod_fixed16(self):
+    #     self.run_test(test_array_mod_fixed16,
+    #         expected={
+    #             'a': 4.899993896484375,
+    #             'b': 1.899993896484375,
+    #             'c': 2.899993896484375,
+    #             'd': 3.899993896484375,
+    #             'e': 4.899993896484375,
+    #         })
 
 
-    def test_array_div_fixed16(self):
-        self.run_test(test_array_div_fixed16,
-            expected={
-                'a': 4.996002197265625,
-                'b': 1.998992919921875,
-                'c': 2.9980010986328125,
-                'd': 3.9969940185546875,
-                'e': 4.996002197265625,
-            })
+    # def test_array_div_fixed16(self):
+    #     self.run_test(test_array_div_fixed16,
+    #         expected={
+    #             'a': 4.996002197265625,
+    #             'b': 1.998992919921875,
+    #             'c': 2.9980010986328125,
+    #             'd': 3.9969940185546875,
+    #             'e': 4.996002197265625,
+    #         })
 
-    def test_array_mul_fixed16(self):
-        self.run_test(test_array_mul_fixed16,
-            expected={
-                'a': 627.8088226318359,
-                'b': 258.50885009765625,
-                'c': 381.6088409423828,
-                'd': 504.7088317871094,
-                'e': 627.8088226318359,
-            })
+    # def test_array_mul_fixed16(self):
+    #     self.run_test(test_array_mul_fixed16,
+    #         expected={
+    #             'a': 627.8088226318359,
+    #             'b': 258.50885009765625,
+    #             'c': 381.6088409423828,
+    #             'd': 504.7088317871094,
+    #             'e': 627.8088226318359,
+    #         })
 
-    def test_array_sub_fixed16(self):
-        self.run_test(test_array_sub_fixed16,
-            expected={
-                'a': -118.0,
-                'b': -121.0,
-                'c': -120.0,
-                'd': -119.0,
-                'e': -118.0,
-            })
+    # def test_array_sub_fixed16(self):
+    #     self.run_test(test_array_sub_fixed16,
+    #         expected={
+    #             'a': -118.0,
+    #             'b': -121.0,
+    #             'c': -120.0,
+    #             'd': -119.0,
+    #             'e': -118.0,
+    #         })
 
-    def test_array_add_fixed16(self):
-        self.run_test(test_array_add_fixed16,
-            expected={
-                'a': 128.19998168945312,
-                'b': 125.19998168945312,
-                'c': 126.19998168945312,
-                'd': 127.19998168945312,
-                'e': 128.19998168945312,
-            })
+    # def test_array_add_fixed16(self):
+    #     self.run_test(test_array_add_fixed16,
+    #         expected={
+    #             'a': 128.19998168945312,
+    #             'b': 125.19998168945312,
+    #             'c': 126.19998168945312,
+    #             'd': 127.19998168945312,
+    #             'e': 128.19998168945312,
+    #         })
 
-    def test_array_assign_fixed16(self):
-        self.run_test(test_array_assign_fixed16,
-            expected={
-                'a': 123.12298583984375,
-                'b': 123.12298583984375,
-                'c': 123.12298583984375,
-                'd': 123.12298583984375,
-                'e': 123.12298583984375,
-            })
+    # def test_array_assign_fixed16(self):
+    #     self.run_test(test_array_assign_fixed16,
+    #         expected={
+    #             'a': 123.12298583984375,
+    #             'b': 123.12298583984375,
+    #             'c': 123.12298583984375,
+    #             'd': 123.12298583984375,
+    #             'e': 123.12298583984375,
+    #         })
 
-    def test_type_conversions2(self):
-        self.run_test(test_type_conversions2,
-            expected={
-                'a': 3,
-                'b': 3.12298583984375,
-                'c': 3.0,
-                'd': 6
-            })
+    # def test_type_conversions2(self):
+    #     self.run_test(test_type_conversions2,
+    #         expected={
+    #             'a': 3,
+    #             'b': 3.12298583984375,
+    #             'c': 3.0,
+    #             'd': 6
+    #         })
 
-    def test_type_conversions(self):
-        self.run_test(test_type_conversions,
-            expected={
-                'a': 123,
-                'b': 32,
-                'c': 246.0,
-                'd': 246
-            })
+    # def test_type_conversions(self):
+    #     self.run_test(test_type_conversions,
+    #         expected={
+    #             'a': 123,
+    #             'b': 32,
+    #             'c': 246.0,
+    #             'd': 246
+    #         })
 
-    def test_fix16(self):
-        self.run_test(test_fix16,
-            expected={
-                'a': 123.35600280761719,
-                'b': 155.45599365234375,
-                'c': 0.25,
-                'd': 1.0,
-                'n': 123
-            })
+    # def test_fix16(self):
+    #     self.run_test(test_fix16,
+    #         expected={
+    #             'a': 123.35600280761719,
+    #             'b': 155.45599365234375,
+    #             'c': 0.25,
+    #             'd': 1.0,
+    #             'n': 123
+    #         })
 
-    def test_complex_record_assign3(self):
-        self.run_test(test_complex_record_assign3,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-            })
+    # def test_complex_record_assign3(self):
+    #     self.run_test(test_complex_record_assign3,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #         })
 
-    def test_complex_record_assign2(self):
-        self.run_test(test_complex_record_assign2,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 3,
-                'e': 3,
-                'f': 3,
-            })
+    # def test_complex_record_assign2(self):
+    #     self.run_test(test_complex_record_assign2,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 3,
+    #             'e': 3,
+    #             'f': 3,
+    #         })
 
-    def test_complex_record_assign(self):
-        self.run_test(test_complex_record_assign,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 0,
-                'd': 0,
-                'e': 3,
-                'f': 0,
-            })
+    # def test_complex_record_assign(self):
+    #     self.run_test(test_complex_record_assign,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 0,
+    #             'd': 0,
+    #             'e': 3,
+    #             'f': 0,
+    #         })
 
-    def test_array_index_3d_aug(self):
-        self.run_test(test_array_index_3d_aug,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-                'e': 5,
-                'f': 6,
-                'g': 7,
-                'h': 8,
-                'i': 6,
-            })
+    # def test_array_index_3d_aug(self):
+    #     self.run_test(test_array_index_3d_aug,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #             'e': 5,
+    #             'f': 6,
+    #             'g': 7,
+    #             'h': 8,
+    #             'i': 6,
+    #         })
 
-    def test_array_index_3d(self):
-        self.run_test(test_array_index_3d,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-                'e': 5,
-                'f': 6,
-                'g': 7,
-                'h': 8,
-                'i': 6,
-            })
+    # def test_array_index_3d(self):
+    #     self.run_test(test_array_index_3d,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #             'e': 5,
+    #             'f': 6,
+    #             'g': 7,
+    #             'h': 8,
+    #             'i': 6,
+    #         })
 
-    def test_base_record_assign(self):
-        self.run_test(test_base_record_assign,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-            })
+    # def test_base_record_assign(self):
+    #     self.run_test(test_base_record_assign,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #         })
 
-    def test_array_index_expr(self):
-        self.run_test(test_array_index_expr,
-            expected={
-                'a': 3,
-            })
+    # def test_array_index_expr(self):
+    #     self.run_test(test_array_index_expr,
+    #         expected={
+    #             'a': 3,
+    #         })
 
-    def test_array_avg(self):
-        self.run_test(test_array_avg,
-            expected={
-                'a': 6,
-            })
+    # def test_array_avg(self):
+    #     self.run_test(test_array_avg,
+    #         expected={
+    #             'a': 6,
+    #         })
 
-    def test_array_sum(self):
-        self.run_test(test_array_sum,
-            expected={
-                'a': 24,
-            })
+    # def test_array_sum(self):
+    #     self.run_test(test_array_sum,
+    #         expected={
+    #             'a': 24,
+    #         })
 
-    def test_array_min(self):
-        self.run_test(test_array_min,
-            expected={
-                'a': 1,
-            })
+    # def test_array_min(self):
+    #     self.run_test(test_array_min,
+    #         expected={
+    #             'a': 1,
+    #         })
 
-    def test_array_max(self):
-        self.run_test(test_array_max,
-            expected={
-                'a': 4,
-            })
+    # def test_array_max(self):
+    #     self.run_test(test_array_max,
+    #         expected={
+    #             'a': 4,
+    #         })
 
     
-    def test_array_aug_assign(self):
-        self.run_test(test_array_aug_assign,
-            expected={
-                'a': 579,
-                'b': 0,
-            })
+    # def test_array_aug_assign(self):
+    #     self.run_test(test_array_aug_assign,
+    #         expected={
+    #             'a': 579,
+    #             'b': 0,
+    #         })
 
-    def test_array_iteration(self):
-        self.run_test(test_array_iteration,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-            })
+    # def test_array_iteration(self):
+    #     self.run_test(test_array_iteration,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #         })
 
-    def test_array_len(self):
-        self.run_test(test_array_len,
-            expected={
-                'a': 4,
-            })
+    # def test_array_len(self):
+    #     self.run_test(test_array_len,
+    #         expected={
+    #             'a': 4,
+    #         })
 
-    def test_array_mod(self):
-        self.run_test(test_array_mod,
-            expected={
-                'a': 5,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-                'e': 5,
-            })
+    # def test_array_mod(self):
+    #     self.run_test(test_array_mod,
+    #         expected={
+    #             'a': 5,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #             'e': 5,
+    #         })
 
-    def test_array_div(self):
-        self.run_test(test_array_div,
-            expected={
-                'a': 5,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-                'e': 5,
-            })
+    # def test_array_div(self):
+    #     self.run_test(test_array_div,
+    #         expected={
+    #             'a': 5,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #             'e': 5,
+    #         })
 
-    def test_array_mul(self):
-        self.run_test(test_array_mul,
-            expected={
-                'a': 615,
-                'b': 246,
-                'c': 369,
-                'd': 492,
-                'e': 615,
-            })
+    # def test_array_mul(self):
+    #     self.run_test(test_array_mul,
+    #         expected={
+    #             'a': 615,
+    #             'b': 246,
+    #             'c': 369,
+    #             'd': 492,
+    #             'e': 615,
+    #         })
 
-    def test_array_sub(self):
-        self.run_test(test_array_sub,
-            expected={
-                'a': -118,
-                'b': -121,
-                'c': -120,
-                'd': -119,
-                'e': -118,
-            })
+    # def test_array_sub(self):
+    #     self.run_test(test_array_sub,
+    #         expected={
+    #             'a': -118,
+    #             'b': -121,
+    #             'c': -120,
+    #             'd': -119,
+    #             'e': -118,
+    #         })
 
-    def test_array_add(self):
-        self.run_test(test_array_add,
-            expected={
-                'a': 128,
-                'b': 125,
-                'c': 126,
-                'd': 127,
-                'e': 128,
-            })
+    # def test_array_add(self):
+    #     self.run_test(test_array_add,
+    #         expected={
+    #             'a': 128,
+    #             'b': 125,
+    #             'c': 126,
+    #             'd': 127,
+    #             'e': 128,
+    #         })
 
-    def test_array_assign(self):
-        self.run_test(test_array_assign,
-            expected={
-                'a': 123,
-                'b': 123,
-                'c': 123,
-                'd': 123,
-                'e': 123,
-            })
+    # def test_array_assign(self):
+    #     self.run_test(test_array_assign,
+    #         expected={
+    #             'a': 123,
+    #             'b': 123,
+    #             'c': 123,
+    #             'd': 123,
+    #             'e': 123,
+    #         })
 
-    def test_array_index(self):
-        self.run_test(test_array_index,
-            expected={
-                'a': 5,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-                'e': 5,
-            })
+    # def test_array_index(self):
+    #     self.run_test(test_array_index,
+    #         expected={
+    #             'a': 5,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #             'e': 5,
+    #         })
 
-    def test_db_access(self):
-        self.run_test(test_db_access,
-            expected={
-                'a': 126,
-                'b': 123,
-                'kv_test_key': 126,
-            })
+    # def test_db_access(self):
+    #     self.run_test(test_db_access,
+    #         expected={
+    #             'a': 126,
+    #             'b': 123,
+    #             'kv_test_key': 126,
+    #         })
 
-    def test_db_array_access(self):
-        self.run_test(test_db_array_access,
-            expected={
-                'db_len': 8,
-                'db_len2': 1,
-                'a': 2,
-                'b': 2,
-                'c': 3,
-            })
+    # def test_db_array_access(self):
+    #     self.run_test(test_db_array_access,
+    #         expected={
+    #             'db_len': 8,
+    #             'db_len2': 1,
+    #             'a': 2,
+    #             'b': 2,
+    #             'c': 3,
+    #         })
 
-    def test_empty(self):
-        self.run_test(empty_program,
-            expected={
-            })
+    # def test_empty(self):
+    #     self.run_test(empty_program,
+    #         expected={
+    #         })
 
     def test_basic_vars(self):
         self.run_test(basic_vars,
@@ -2377,726 +2377,726 @@ class CGTestsBase(unittest.TestCase):
                 'c': 0,
             })
 
-    def test_basic_assign(self):
-        self.run_test(basic_assign,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-            })
-
-    def test_basic_math(self):
-        self.run_test(basic_math,
-            expected={
-                'a': 3,
-                'b': 6,
-                'c': 9,
-                'd': 1,
-                'e': 10,
-                'f': 2,
-                'g': 1,
-            })
-
-    def test_constant_folding(self):
-        self.run_test(constant_folding,
-            expected={
-                'a': 10,
-                'b': 20,
-            })
-
-    def test_compare_gt(self):
-        self.run_test(basic_compare_gt,
-            expected={
-                'a': 0,
-                'b': 0,
-                'c': 1,
-            })
-
-    def test_compare_gte(self):
-        self.run_test(basic_compare_gte,
-            expected={
-                'a': 0,
-                'b': 1,
-                'c': 1,
-            })
-
-    def test_compare_lt(self):
-        self.run_test(basic_compare_lt,
-            expected={
-                'a': 1,
-                'b': 0,
-                'c': 0,
-            })
-
-    def test_compare_lte(self):
-        self.run_test(basic_compare_lte,
-            expected={
-                'a': 1,
-                'b': 1,
-                'c': 0,
-            })
-
-    def test_compare_eq(self):
-        self.run_test(basic_compare_eq,
-            expected={
-                'a': 0,
-                'b': 1,
-            })
-
-    def test_compare_neq(self):
-        self.run_test(basic_compare_neq,
-            expected={
-                'a': 1,
-                'b': 0,
-            })
-
-    def test_basic_if(self):
-        self.run_test(basic_if,
-            expected={
-                'a': 1,
-                'b': 2,
-            })
-
-    def test_basic_for(self):
-        self.run_test(basic_for,
-            expected={
-                'a': 10,
-            })
-
-    def test_basic_while(self):
-        self.run_test(basic_while,
-            expected={
-                'a': 10,
-            })
-
-    def test_basic_call(self):
-        self.run_test(basic_call,
-            expected={
-                'a': 5,
-            })
-
-    def test_basic_return(self):
-        self.run_test(basic_return,
-            expected={
-                'a': 8,
-            })
-
-    def test_basic_logic(self):
-        self.run_test(basic_logic,
-            expected={
-                'a': 0,
-                'b': 0,
-                'c': 1,
-                'd': 0,
-                'e': 1,
-                'f': 1,
-            })
-
-    def test_call_with_params(self):
-        self.run_test(call_with_params,
-            expected={
-                'a': 1,
-                'b': 2,
-            })
-
-    def test_if_expr(self):
-        self.run_test(if_expr,
-            expected={
-                'a': 1,
-                'b': 1,
-                'c': 2,
-            })
-
-    def test_call_expr(self):
-        self.run_test(call_expr,
-            expected={
-                'a': 8,
-                'b': 18,
-            })
-
-    def test_call_register_reuse(self):
-        self.run_test(call_register_reuse,
-            expected={
-                'a': 2,
-            })
-
-    def test_for_expr(self):
-        self.run_test(for_expr,
-            expected={
-                'a': 9,
-            })
-
-    def test_while_expr(self):
-        self.run_test(while_expr,
-            expected={
-                'a': 4,
-            })
-
-    def test_aug_assign_test(self):
-        self.run_test(aug_assign_test,
-            expected={
-                'a': 1,
-                'b': -1,
-                'c': 9,
-                'd': 4,
-                'e': 2,
-            })
-
-    def test_aug_assign_expr_test(self):
-        self.run_test(aug_assign_expr_test,
-            expected={
-                'a': 2,
-                'b': 2,
-                'c': 3,
-                'd': 8,
-                'e': 10,
-            })
-
-    def test_break_node_while(self):
-        self.run_test(break_node_while,
-            expected={
-                'i': 6,
-            })
-
-    def test_continue_node_while(self):
-        self.run_test(continue_node_while,
-            expected={
-                'i': 10,
-                'a': 5,
-            })
-
-    def test_break_node_for(self):
-        self.run_test(break_node_for,
-            expected={
-                'global_i': 6,
-            })
-
-    def test_continue_node_for(self):
-        self.run_test(continue_node_for,
-            expected={
-                'global_i': 10,
-                'a': 6
-            })
-
-    def test_double_break_node_while(self):
-        self.run_test(double_break_node_while,
-            expected={
-                'i': 6,
-                'global_a': 4,
-            })
-
-    def test_double_break_node_while2(self):
-        self.run_test(double_break_node_while2,
-            expected={
-                'i': 6,
-                'global_a': 2,
-            })
-
-    def test_double_continue_node_while(self):
-        self.run_test(double_continue_node_while,
-            expected={
-                'i': 10,
-                'a': 20,
-                'global_x': 4,
-            })
-
-    def test_double_break_node_for(self):
-        self.run_test(double_break_node_for,
-            expected={
-                'global_i': 6,
-                'global_a': 4,
-                'b': 24,
-            })
-
-    def test_double_continue_node_for(self):
-        self.run_test(double_continue_node_for,
-            expected={
-                'global_i': 10,
-                'a': 24,
-                'global_x': 4,
-            })
-
-    def test_no_loop_function(self):
-        # we don't check anything, we just make sure
-        # we can compile without a loop function.
-        self.run_test(no_loop_function,
-            expected={
-            })
-
-    def test_pixel_array(self):
-        self.run_test(pixel_array,
-            expected={
-                'a': 2,
-                'b': 12,
-                'c': 3,
-                'd': 4,
-            })
-
-    def test_multiple_comparison(self):
-        self.run_test(multiple_comparison,
-            expected={
-                'e': 1,
-                'f': 0,
-                'g': 1,
-            })
-
-    def test_not(self):
-        self.run_test(test_not,
-            expected={
-                'a': 0,
-                'b': 1,
-                'c': 1,
-                'd': 0,
-            })
-
-
-class CGHSVArrayTests(unittest.TestCase):
-    def test_hue_array_1(self):
-        builder = code_gen.compile_text(hue_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
-
-        self.assertEqual(hsv['hue'][1], 65535)
-        self.assertEqual(hsv['hue'][9], 39321)
-
-    def test_hue_array_2(self):
-        builder = code_gen.compile_text(hue_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
-
-        for a in hsv['hue']:
-            self.assertEqual(a, 32768)
-
-    def test_hue_array_add(self):
-        builder = code_gen.compile_text(hue_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
-
-        for a in hsv['hue']:
-            self.assertEqual(a, 6553)
-
-    def test_hue_array_add_2(self):
-        builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
-
-        for a in hsv['hue']:
-            self.assertEqual(a, 6552)
-
-    def test_hue_array_sub(self):
-        builder = code_gen.compile_text(hue_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
-
-        for a in hsv['hue']:
-            self.assertEqual(a, 58983)
-
-    def test_hue_array_mul(self):
-        builder = code_gen.compile_text(hue_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
-
-        for a in hsv['hue']:
-            self.assertEqual(a, 16384)
-
-    def test_hue_array_mul_f16(self):
-        builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
-        vm = code_gen.VM(builder)
-
-        vm.run_once()
-
-        hsv = vm.dump_hsv()
+#     def test_basic_assign(self):
+#         self.run_test(basic_assign,
+#             expected={
+#                 'a': 1,
+#                 'b': 2,
+#                 'c': 3,
+#                 'd': 4,
+#             })
+
+#     def test_basic_math(self):
+#         self.run_test(basic_math,
+#             expected={
+#                 'a': 3,
+#                 'b': 6,
+#                 'c': 9,
+#                 'd': 1,
+#                 'e': 10,
+#                 'f': 2,
+#                 'g': 1,
+#             })
+
+#     def test_constant_folding(self):
+#         self.run_test(constant_folding,
+#             expected={
+#                 'a': 10,
+#                 'b': 20,
+#             })
+
+#     def test_compare_gt(self):
+#         self.run_test(basic_compare_gt,
+#             expected={
+#                 'a': 0,
+#                 'b': 0,
+#                 'c': 1,
+#             })
+
+#     def test_compare_gte(self):
+#         self.run_test(basic_compare_gte,
+#             expected={
+#                 'a': 0,
+#                 'b': 1,
+#                 'c': 1,
+#             })
+
+#     def test_compare_lt(self):
+#         self.run_test(basic_compare_lt,
+#             expected={
+#                 'a': 1,
+#                 'b': 0,
+#                 'c': 0,
+#             })
+
+#     def test_compare_lte(self):
+#         self.run_test(basic_compare_lte,
+#             expected={
+#                 'a': 1,
+#                 'b': 1,
+#                 'c': 0,
+#             })
+
+#     def test_compare_eq(self):
+#         self.run_test(basic_compare_eq,
+#             expected={
+#                 'a': 0,
+#                 'b': 1,
+#             })
+
+#     def test_compare_neq(self):
+#         self.run_test(basic_compare_neq,
+#             expected={
+#                 'a': 1,
+#                 'b': 0,
+#             })
+
+#     def test_basic_if(self):
+#         self.run_test(basic_if,
+#             expected={
+#                 'a': 1,
+#                 'b': 2,
+#             })
+
+#     def test_basic_for(self):
+#         self.run_test(basic_for,
+#             expected={
+#                 'a': 10,
+#             })
+
+#     def test_basic_while(self):
+#         self.run_test(basic_while,
+#             expected={
+#                 'a': 10,
+#             })
+
+#     def test_basic_call(self):
+#         self.run_test(basic_call,
+#             expected={
+#                 'a': 5,
+#             })
+
+#     def test_basic_return(self):
+#         self.run_test(basic_return,
+#             expected={
+#                 'a': 8,
+#             })
+
+#     def test_basic_logic(self):
+#         self.run_test(basic_logic,
+#             expected={
+#                 'a': 0,
+#                 'b': 0,
+#                 'c': 1,
+#                 'd': 0,
+#                 'e': 1,
+#                 'f': 1,
+#             })
+
+#     def test_call_with_params(self):
+#         self.run_test(call_with_params,
+#             expected={
+#                 'a': 1,
+#                 'b': 2,
+#             })
+
+#     def test_if_expr(self):
+#         self.run_test(if_expr,
+#             expected={
+#                 'a': 1,
+#                 'b': 1,
+#                 'c': 2,
+#             })
+
+#     def test_call_expr(self):
+#         self.run_test(call_expr,
+#             expected={
+#                 'a': 8,
+#                 'b': 18,
+#             })
+
+#     def test_call_register_reuse(self):
+#         self.run_test(call_register_reuse,
+#             expected={
+#                 'a': 2,
+#             })
+
+#     def test_for_expr(self):
+#         self.run_test(for_expr,
+#             expected={
+#                 'a': 9,
+#             })
+
+#     def test_while_expr(self):
+#         self.run_test(while_expr,
+#             expected={
+#                 'a': 4,
+#             })
+
+#     def test_aug_assign_test(self):
+#         self.run_test(aug_assign_test,
+#             expected={
+#                 'a': 1,
+#                 'b': -1,
+#                 'c': 9,
+#                 'd': 4,
+#                 'e': 2,
+#             })
+
+#     def test_aug_assign_expr_test(self):
+#         self.run_test(aug_assign_expr_test,
+#             expected={
+#                 'a': 2,
+#                 'b': 2,
+#                 'c': 3,
+#                 'd': 8,
+#                 'e': 10,
+#             })
+
+#     def test_break_node_while(self):
+#         self.run_test(break_node_while,
+#             expected={
+#                 'i': 6,
+#             })
+
+#     def test_continue_node_while(self):
+#         self.run_test(continue_node_while,
+#             expected={
+#                 'i': 10,
+#                 'a': 5,
+#             })
+
+#     def test_break_node_for(self):
+#         self.run_test(break_node_for,
+#             expected={
+#                 'global_i': 6,
+#             })
+
+#     def test_continue_node_for(self):
+#         self.run_test(continue_node_for,
+#             expected={
+#                 'global_i': 10,
+#                 'a': 6
+#             })
+
+#     def test_double_break_node_while(self):
+#         self.run_test(double_break_node_while,
+#             expected={
+#                 'i': 6,
+#                 'global_a': 4,
+#             })
+
+#     def test_double_break_node_while2(self):
+#         self.run_test(double_break_node_while2,
+#             expected={
+#                 'i': 6,
+#                 'global_a': 2,
+#             })
+
+#     def test_double_continue_node_while(self):
+#         self.run_test(double_continue_node_while,
+#             expected={
+#                 'i': 10,
+#                 'a': 20,
+#                 'global_x': 4,
+#             })
+
+#     def test_double_break_node_for(self):
+#         self.run_test(double_break_node_for,
+#             expected={
+#                 'global_i': 6,
+#                 'global_a': 4,
+#                 'b': 24,
+#             })
+
+#     def test_double_continue_node_for(self):
+#         self.run_test(double_continue_node_for,
+#             expected={
+#                 'global_i': 10,
+#                 'a': 24,
+#                 'global_x': 4,
+#             })
+
+#     def test_no_loop_function(self):
+#         # we don't check anything, we just make sure
+#         # we can compile without a loop function.
+#         self.run_test(no_loop_function,
+#             expected={
+#             })
+
+#     def test_pixel_array(self):
+#         self.run_test(pixel_array,
+#             expected={
+#                 'a': 2,
+#                 'b': 12,
+#                 'c': 3,
+#                 'd': 4,
+#             })
+
+#     def test_multiple_comparison(self):
+#         self.run_test(multiple_comparison,
+#             expected={
+#                 'e': 1,
+#                 'f': 0,
+#                 'g': 1,
+#             })
+
+#     def test_not(self):
+#         self.run_test(test_not,
+#             expected={
+#                 'a': 0,
+#                 'b': 1,
+#                 'c': 1,
+#                 'd': 0,
+#             })
+
+
+# class CGHSVArrayTests(unittest.TestCase):
+#     def test_hue_array_1(self):
+#         builder = code_gen.compile_text(hue_array_1, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
+
+#         self.assertEqual(hsv['hue'][1], 65535)
+#         self.assertEqual(hsv['hue'][9], 39321)
+
+#     def test_hue_array_2(self):
+#         builder = code_gen.compile_text(hue_array_2, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
+
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 32768)
+
+#     def test_hue_array_add(self):
+#         builder = code_gen.compile_text(hue_array_add, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
+
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 6553)
+
+#     def test_hue_array_add_2(self):
+#         builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
+
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 6552)
+
+#     def test_hue_array_sub(self):
+#         builder = code_gen.compile_text(hue_array_sub, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
+
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 58983)
+
+#     def test_hue_array_mul(self):
+#         builder = code_gen.compile_text(hue_array_mul, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
+
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 16384)
+
+#     def test_hue_array_mul_f16(self):
+#         builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
+#         vm = code_gen.VM(builder)
+
+#         vm.run_once()
+
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hue']:
-            self.assertEqual(a, 32767)
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 32767)
 
-    def test_hue_array_div(self):
-        builder = code_gen.compile_text(hue_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hue_array_div(self):
+#         builder = code_gen.compile_text(hue_array_div, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hue']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 16384)
 
-    def test_hue_array_div_f16(self):
-        builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hue_array_div_f16(self):
+#         builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hue']:
-            self.assertEqual(a, 26214)
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 26214)
 
-    def test_hue_array_mod(self):
-        builder = code_gen.compile_text(hue_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hue_array_mod(self):
+#         builder = code_gen.compile_text(hue_array_mod, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hue']:
-            self.assertEqual(a, 13108)
+#         for a in hsv['hue']:
+#             self.assertEqual(a, 13108)
 
-    def test_sat_array_1(self):
-        builder = code_gen.compile_text(sat_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_1(self):
+#         builder = code_gen.compile_text(sat_array_1, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['sat'][1], 65535)
-        self.assertEqual(hsv['sat'][9], 32768)
+#         self.assertEqual(hsv['sat'][1], 65535)
+#         self.assertEqual(hsv['sat'][9], 32768)
 
-    def test_sat_array_2(self):
-        builder = code_gen.compile_text(sat_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_2(self):
+#         builder = code_gen.compile_text(sat_array_2, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['sat']:
-            self.assertEqual(a, 32768)
+#         for a in hsv['sat']:
+#             self.assertEqual(a, 32768)
 
-    def test_sat_array_add(self):
-        builder = code_gen.compile_text(sat_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_add(self):
+#         builder = code_gen.compile_text(sat_array_add, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['sat']:
-            self.assertEqual(a, 6553)
+#         for a in hsv['sat']:
+#             self.assertEqual(a, 6553)
 
-    def test_sat_array_sub(self):
-        builder = code_gen.compile_text(sat_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_sub(self):
+#         builder = code_gen.compile_text(sat_array_sub, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['sat']:
-            self.assertEqual(a, 0)
+#         for a in hsv['sat']:
+#             self.assertEqual(a, 0)
 
-    def test_sat_array_mul(self):
-        builder = code_gen.compile_text(sat_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_mul(self):
+#         builder = code_gen.compile_text(sat_array_mul, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['sat']:
-            self.assertEqual(a, 8192)
+#         for a in hsv['sat']:
+#             self.assertEqual(a, 8192)
 
-    def test_sat_array_div(self):
-        builder = code_gen.compile_text(sat_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_div(self):
+#         builder = code_gen.compile_text(sat_array_div, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['sat']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['sat']:
+#             self.assertEqual(a, 16384)
 
-    def test_sat_array_mod(self):
-        builder = code_gen.compile_text(sat_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_sat_array_mod(self):
+#         builder = code_gen.compile_text(sat_array_mod, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['sat']:
-            self.assertEqual(a, 13108)
+#         for a in hsv['sat']:
+#             self.assertEqual(a, 13108)
 
-    def test_val_array_1(self):
-        builder = code_gen.compile_text(val_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_1(self):
+#         builder = code_gen.compile_text(val_array_1, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['val'][1], 65535)
-        self.assertEqual(hsv['val'][9], 32768)
+#         self.assertEqual(hsv['val'][1], 65535)
+#         self.assertEqual(hsv['val'][9], 32768)
 
-    def test_val_array_2(self):
-        builder = code_gen.compile_text(val_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_2(self):
+#         builder = code_gen.compile_text(val_array_2, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['val']:
-            self.assertEqual(a, 32768)
+#         for a in hsv['val']:
+#             self.assertEqual(a, 32768)
 
-    def test_val_array_add(self):
-        builder = code_gen.compile_text(val_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_add(self):
+#         builder = code_gen.compile_text(val_array_add, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['val']:
-            self.assertEqual(a, 6553)
+#         for a in hsv['val']:
+#             self.assertEqual(a, 6553)
 
-    def test_val_array_sub(self):
-        builder = code_gen.compile_text(val_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_sub(self):
+#         builder = code_gen.compile_text(val_array_sub, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['val']:
-            self.assertEqual(a, 0)
+#         for a in hsv['val']:
+#             self.assertEqual(a, 0)
 
-    def test_val_array_mul(self):
-        builder = code_gen.compile_text(val_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_mul(self):
+#         builder = code_gen.compile_text(val_array_mul, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['val']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['val']:
+#             self.assertEqual(a, 16384)
 
-    def test_val_array_div(self):
-        builder = code_gen.compile_text(val_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_div(self):
+#         builder = code_gen.compile_text(val_array_div, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['val']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['val']:
+#             self.assertEqual(a, 16384)
 
-    def test_val_array_mod(self):
-        builder = code_gen.compile_text(val_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_val_array_mod(self):
+#         builder = code_gen.compile_text(val_array_mod, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['val']:
-            self.assertEqual(a, 13108)
+#         for a in hsv['val']:
+#             self.assertEqual(a, 13108)
 
 
-    def test_hs_fade_array_1(self):
-        builder = code_gen.compile_text(hs_fade_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_1(self):
+#         builder = code_gen.compile_text(hs_fade_array_1, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['hs_fade'][1], 65535)
-        self.assertEqual(hsv['hs_fade'][9], 32768)
+#         self.assertEqual(hsv['hs_fade'][1], 65535)
+#         self.assertEqual(hsv['hs_fade'][9], 32768)
 
-    def test_hs_fade_array_2(self):
-        builder = code_gen.compile_text(hs_fade_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_2(self):
+#         builder = code_gen.compile_text(hs_fade_array_2, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hs_fade']:
-            self.assertEqual(a, 32768)
+#         for a in hsv['hs_fade']:
+#             self.assertEqual(a, 32768)
 
-    def test_hs_fade_array_add(self):
-        builder = code_gen.compile_text(hs_fade_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_add(self):
+#         builder = code_gen.compile_text(hs_fade_array_add, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hs_fade']:
-            self.assertEqual(a, 6553)
+#         for a in hsv['hs_fade']:
+#             self.assertEqual(a, 6553)
 
-    def test_hs_fade_array_sub(self):
-        builder = code_gen.compile_text(hs_fade_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_sub(self):
+#         builder = code_gen.compile_text(hs_fade_array_sub, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hs_fade']:
-            self.assertEqual(a, 0)
+#         for a in hsv['hs_fade']:
+#             self.assertEqual(a, 0)
 
-    def test_hs_fade_array_mul(self):
-        builder = code_gen.compile_text(hs_fade_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_mul(self):
+#         builder = code_gen.compile_text(hs_fade_array_mul, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hs_fade']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['hs_fade']:
+#             self.assertEqual(a, 16384)
 
-    def test_hs_fade_array_div(self):
-        builder = code_gen.compile_text(hs_fade_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_div(self):
+#         builder = code_gen.compile_text(hs_fade_array_div, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hs_fade']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['hs_fade']:
+#             self.assertEqual(a, 16384)
 
-    def test_hs_fade_array_mod(self):
-        builder = code_gen.compile_text(hs_fade_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_hs_fade_array_mod(self):
+#         builder = code_gen.compile_text(hs_fade_array_mod, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['hs_fade']:
-            self.assertEqual(a, 13108)
+#         for a in hsv['hs_fade']:
+#             self.assertEqual(a, 13108)
 
-    def test_v_fade_array_1(self):
-        builder = code_gen.compile_text(v_fade_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_1(self):
+#         builder = code_gen.compile_text(v_fade_array_1, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['v_fade'][1], 65535)
-        self.assertEqual(hsv['v_fade'][9], 32768)
+#         self.assertEqual(hsv['v_fade'][1], 65535)
+#         self.assertEqual(hsv['v_fade'][9], 32768)
 
-    def test_v_fade_array_2(self):
-        builder = code_gen.compile_text(v_fade_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_2(self):
+#         builder = code_gen.compile_text(v_fade_array_2, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['v_fade']:
-            self.assertEqual(a, 32768)
+#         for a in hsv['v_fade']:
+#             self.assertEqual(a, 32768)
 
-    def test_v_fade_array_add(self):
-        builder = code_gen.compile_text(v_fade_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_add(self):
+#         builder = code_gen.compile_text(v_fade_array_add, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['v_fade']:
-            self.assertEqual(a, 6553)
+#         for a in hsv['v_fade']:
+#             self.assertEqual(a, 6553)
 
-    def test_v_fade_array_sub(self):
-        builder = code_gen.compile_text(v_fade_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_sub(self):
+#         builder = code_gen.compile_text(v_fade_array_sub, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['v_fade']:
-            self.assertEqual(a, 0)
+#         for a in hsv['v_fade']:
+#             self.assertEqual(a, 0)
 
-    def test_v_fade_array_mul(self):
-        builder = code_gen.compile_text(v_fade_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_mul(self):
+#         builder = code_gen.compile_text(v_fade_array_mul, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['v_fade']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['v_fade']:
+#             self.assertEqual(a, 16384)
 
-    def test_v_fade_array_div(self):
-        builder = code_gen.compile_text(v_fade_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_div(self):
+#         builder = code_gen.compile_text(v_fade_array_div, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['v_fade']:
-            self.assertEqual(a, 16384)
+#         for a in hsv['v_fade']:
+#             self.assertEqual(a, 16384)
 
-    def test_v_fade_array_mod(self):
-        builder = code_gen.compile_text(v_fade_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_v_fade_array_mod(self):
+#         builder = code_gen.compile_text(v_fade_array_mod, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        for a in hsv['v_fade']:
-            self.assertEqual(a, 13108)
+#         for a in hsv['v_fade']:
+#             self.assertEqual(a, 13108)
 
 
-    def test_gfx_array_indexing(self):
-        builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_gfx_array_indexing(self):
+#         builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        hsv = vm.dump_hsv()
+#         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['val'][0], 6553)
-        self.assertEqual(hsv['val'][1], 19660)
-        self.assertEqual(hsv['val'][2], 0)
-        self.assertEqual(hsv['val'][3], 26214)
+#         self.assertEqual(hsv['val'][0], 6553)
+#         self.assertEqual(hsv['val'][1], 19660)
+#         self.assertEqual(hsv['val'][2], 0)
+#         self.assertEqual(hsv['val'][3], 26214)
 
-    def test_gfx_array_load(self):
-        builder = code_gen.compile_text(gfx_array_load, debug_print=False)
-        vm = code_gen.VM(builder)
+#     def test_gfx_array_load(self):
+#         builder = code_gen.compile_text(gfx_array_load, debug_print=False)
+#         vm = code_gen.VM(builder)
 
-        vm.run_once()
+#         vm.run_once()
 
-        regs = vm.dump_registers()
+#         regs = vm.dump_registers()
 
-        self.assertEqual(regs['a'], 6553)
-        self.assertEqual(regs['b'], 13107)
-        self.assertEqual(regs['c'], 19660)
-        self.assertEqual(regs['d'], 26214)
+#         self.assertEqual(regs['a'], 6553)
+#         self.assertEqual(regs['b'], 13107)
+#         self.assertEqual(regs['c'], 19660)
+#         self.assertEqual(regs['d'], 26214)
 
 
 class CGTestsLocal(CGTestsBase):
