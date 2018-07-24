@@ -1987,6 +1987,8 @@ class Builder(object):
         liveness = [[] for i in xrange(len(code))]
 
         for cfg in cfgs:
+
+            print cfg
     
             prev = []
             for i in reversed(cfg):
