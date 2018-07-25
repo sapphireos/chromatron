@@ -79,15 +79,20 @@ class cg1Import(cg1Node):
 class cg1DeclarationBase(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>", type="i32", **kwargs):
+    def __init__(self, name="<anon>", type="i32", keywords=None, **kwargs):
         super(cg1DeclarationBase, self).__init__(**kwargs)
 
         self.name = name
         self.type = type
         self.dimensions = []
 
+        if keywords == None:
+            keywords = {}
+            
+        self.keywords = keywords
+
     def build(self, builder):
-        return builder.add_local(self.name, self.type, self.dimensions, lineno=self.lineno)
+        return builder.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
 
 
 class cg1DeclareVar(cg1DeclarationBase):
@@ -207,7 +212,7 @@ class cg1Module(cg1Node):
 
             # assign global vars to table
             elif isinstance(node, cg1DeclarationBase):
-                builder.add_global(node.name, node.type, node.dimensions, lineno=node.lineno)
+                builder.add_global(node.name, node.type, node.dimensions, keywords=node.keywords, lineno=node.lineno)
 
             elif isinstance(node, cg1RecordType):
                 node.build(builder)
@@ -560,16 +565,24 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Return(value, lineno=node.lineno)
 
     def _handle_Number(self, node):
-        return cg1DeclareVar(type="i32", lineno=node.lineno)
+        keywords = {}
+        for kw in node.keywords:
+            keywords[kw.arg] = kw.value.id
+
+        return cg1DeclareVar(type="i32", keywords=keywords, lineno=node.lineno)
 
     def _handle_Fixed16(self, node):
-        return cg1DeclareVar(type="f16", lineno=node.lineno)
+        keywords = {}
+        for kw in node.keywords:
+            keywords[kw.arg] = kw.value.id
+
+        return cg1DeclareVar(type="f16", keywords=keywords, lineno=node.lineno)
 
     def _handle_Array(self, node):
         dims = [a.n for a in node.args]
 
         data_type = 'i32'
-
+        keywords = {}
         for kw in node.keywords:
             if kw.arg == 'type':
                 try:
@@ -578,13 +591,16 @@ class CodeGenPass1(ast.NodeVisitor):
                 except AttributeError:
                     data_type = kw.value.id
 
+            else:
+                keywords[kw.arg] = kw.value.id
+
         if data_type == 'Number':
             data_type = 'i32'
 
         elif data_type == 'Fixed16':
             data_type = 'f16'
 
-        return cg1DeclareArray(type=data_type, dimensions=dims, lineno=node.lineno)
+        return cg1DeclareArray(type=data_type, dimensions=dims, keywords=keywords, lineno=node.lineno)
 
     def _handle_Record(self, node):
         fields = {}
@@ -864,14 +880,14 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    vm = VM(builder)
+    # vm = VM(builder)
 
-    pprint.pprint(vm.dump_registers())
-    # vm.run('init')
-    vm.run_once()
+    # pprint.pprint(vm.dump_registers())
+    # # vm.run('init')
+    # vm.run_once()
 
-    pprint.pprint(vm.dump_registers())
+    # pprint.pprint(vm.dump_registers())
 
-    print vm.memory
-    print vm.db
-    print vm.pixel_arrays
+    # print vm.memory
+    # print vm.db
+    # print vm.pixel_arrays

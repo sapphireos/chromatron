@@ -70,7 +70,7 @@ class IR(object):
         return None
 
 class irVar(IR):
-    def __init__(self, name, type='i32', **kwargs):
+    def __init__(self, name, type='i32', options=None, **kwargs):
         super(irVar, self).__init__(**kwargs)
         self.name = name
         self.type = type
@@ -79,9 +79,26 @@ class irVar(IR):
         self.is_global = False
         self.is_const = False
 
+        self.publish = False
+        self.persist = False
+
+        if options != None:
+            if 'publish' in options and options['publish']:
+                self.publish = True
+
+            if 'persist' in options and options['persist']:
+                self.persist = True
+
     def __str__(self):
         if self.is_global:
-            return "Global (%s, %s)" % (self.name, self.type)
+            options = ''
+            if self.publish:
+                options += 'publish '
+
+            if self.persist:
+                options += 'persist '
+
+            return "Global (%s, %s %s)" % (self.name, self.type, options)
         else:
             return "Var (%s, %s)" % (self.name, self.type)
 
@@ -1224,23 +1241,23 @@ class Builder(object):
 
         return self.data_types[name]
 
-    def build_var(self, name, data_type, dimensions=[], lineno=None):
+    def build_var(self, name, data_type, dimensions=[], keywords=None, lineno=None):
         data_type = self.get_type(data_type, lineno=lineno)
 
         if len(dimensions) == 0:
-            ir = data_type(name, lineno=lineno)
+            ir = data_type(name, options=keywords, lineno=lineno)
 
         else:
-            ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, lineno=lineno)
+            ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, options=keywords, lineno=lineno)
 
         return ir
 
-    def add_global(self, name, data_type='i32', dimensions=[], lineno=None):
+    def add_global(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
         if name in self.globals:
             # return self.globals[name]
             raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-        ir = self.build_var(name, data_type, dimensions, lineno=lineno)
+        ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
         ir.is_global = True
 
         try:   
@@ -1252,8 +1269,8 @@ class Builder(object):
 
         return ir
 
-    def add_local(self, name, data_type='i32', dimensions=[], lineno=None):
-        ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+    def add_local(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
+        ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
         # add init to 0
         self.clear(ir, lineno=lineno)
@@ -1268,7 +1285,7 @@ class Builder(object):
 
         return ir
 
-    def _add_local_var(self, name, data_type='i32', dimensions=[], lineno=None):
+    def _add_local_var(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
         # check if this is already in the globals
         if name in self.globals:
             # return self.globals[name]
@@ -1278,8 +1295,13 @@ class Builder(object):
             # return self.locals[self.current_func][name]
             raise SyntaxError("Local variable '%s' already declared" % (name), lineno=lineno)
 
+        if 'publish' in keywords:
+            raise SyntaxError("Cannot publish a local variable: %a" % (name), lineno=lineno)            
 
-        ir = self.build_var(name, data_type, dimensions, lineno=lineno)
+        if 'persist' in keywords:
+            raise SyntaxError("Cannot persist a local variable: %a" % (name), lineno=lineno)            
+
+        ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
         try:
             for v in ir:
