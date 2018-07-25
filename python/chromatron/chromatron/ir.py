@@ -207,8 +207,8 @@ class irRecord(irVar):
 
         self.count = 0
             
-    def __call__(self, name, dimensions=[], lineno=None):
-        return irRecord(name, self.type, self.fields, self.offsets, lineno=lineno)
+    def __call__(self, name, dimensions=[], options=None, lineno=None):
+        return irRecord(name, self.type, self.fields, self.offsets, options=options, lineno=lineno)
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -1295,11 +1295,12 @@ class Builder(object):
             # return self.locals[self.current_func][name]
             raise SyntaxError("Local variable '%s' already declared" % (name), lineno=lineno)
 
-        if 'publish' in keywords:
-            raise SyntaxError("Cannot publish a local variable: %a" % (name), lineno=lineno)            
+        if keywords != None:
+            if 'publish' in keywords:
+                raise SyntaxError("Cannot publish a local variable: %s" % (name), lineno=lineno)            
 
-        if 'persist' in keywords:
-            raise SyntaxError("Cannot persist a local variable: %a" % (name), lineno=lineno)            
+            if 'persist' in keywords:
+                raise SyntaxError("Cannot persist a local variable: %s" % (name), lineno=lineno)            
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 

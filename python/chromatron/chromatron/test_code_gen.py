@@ -219,10 +219,10 @@ def loop():
 
 basic_while = """
 a = Number(publish=True)
+i = Number(publish=True)
 
 def init():
-    i = Number(publish=True)
-
+    
     while i < 10:
         a += 1
         i += 1
@@ -337,12 +337,12 @@ def loop():
 call_expr = """
 a = Number(publish=True)
 b = Number(publish=True)
+t = Number(publish=True)
 
 def test(_a, _b):
     return _a + _b
 
 def init():
-    t = Number(publish=True)
     t = 5
 
     a = test(1 + 2, t)
@@ -375,12 +375,12 @@ def loop():
 
 for_expr = """
 a = Number(publish=True)
+t = Number(publish=True)
 
 def test(_a, _b):
     return _a + _b
 
 def init():
-    t = Number(publish=True)
     t = 3
 
     for i in test(1, t) + 5:
@@ -393,15 +393,14 @@ def loop():
 
 while_expr = """
 a = Number(publish=True)
+t = Number(publish=True)
+i = Number(publish=True)
 
 def test(_a, _b):
     return _a + _b
 
 def init():
-    t = Number(publish=True)
     t = 3
-
-    i = Number(publish=True)
 
     while i < test(1, t):
         a += 1
