@@ -39,6 +39,7 @@ void vm_v_process( void );
 void vm_v_send_info( void );
 void vm_v_reset(  uint8_t vm_index );
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index );
+int8_t vm_i8_start( uint32_t vm_index );
 void vm_v_request( void );
 void vm_v_get_info( uint8_t index, vm_info_t *info );
 uint16_t vm_u16_get_fader_time( void );

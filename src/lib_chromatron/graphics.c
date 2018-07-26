@@ -641,6 +641,16 @@ void gfx_v_reset_subscribed( uint8_t tag ){
 }
 
 
+static uint8_t init_vm;
+
+void gfx_v_init_vm( uint8_t vm_id ){
+
+    run_xfer = TRUE;
+
+    init_vm |= ( 1 << vm_id );    
+}
+
+
 void kv_v_notify_hash_set( catbus_hash_t32 hash ){
 
     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
@@ -721,6 +731,16 @@ end:
 
         index = 0;
         run_xfer = FALSE;
+
+        if( init_vm != 0 ){
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+            uint32_t vm_id = init_vm;
+
+            wifi_i8_send_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&vm_id, sizeof(vm_id) );
+            init_vm = 0;
+        }
 
         // check if any flags are set
         for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){

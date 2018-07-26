@@ -75,6 +75,7 @@
 #define VM_STATUS_HALT                  1
 #define VM_STATUS_YIELDED               2
 #define VM_STATUS_NO_THREADS            3
+#define VM_STATUS_READY                 4
 
 
 #define VM_LOAD_FLAGS_CHECK_HEADER      1

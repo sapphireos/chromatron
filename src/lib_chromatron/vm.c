@@ -471,14 +471,15 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
 
     // send len 0 to indicate load complete.
-    // this will trigger the init function, so we want to do this
-    // after the database has been initializd.
     vm_load_msg.vm_id = vm_id;
     if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, sizeof(vm_load_msg.vm_id) ) < 0 ){
 
         // comm error
         goto error;
     }
+
+    // tell graphics controller to init the VM
+    gfx_v_init_vm( vm_id );
 
 
     fs_f_close( f );
@@ -504,7 +505,7 @@ error:
 
 static bool is_vm_running( uint8_t vm_id ){
 
-    return vm_status[vm_id] == 0;
+    return ( vm_status[vm_id] == VM_STATUS_OK ) || ( vm_status[vm_id] == VM_STATUS_READY );
 }
 
 
@@ -551,6 +552,7 @@ PT_BEGIN( pt );
             // Was there an error and the VM is running
             if( ( vm_run[i] ) &&
                 ( vm_status[i] != VM_STATUS_NOT_RUNNING ) &&
+                ( vm_status[i] != VM_STATUS_READY ) &&
                 ( vm_status[i] != 0 ) ){
 
                 vm_run[i] = FALSE;

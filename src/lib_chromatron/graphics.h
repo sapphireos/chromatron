@@ -46,4 +46,6 @@ void gfx_v_sync_params( void );
 void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag );
 void gfx_v_reset_subscribed( uint8_t tag );
 
+void gfx_v_init_vm( uint8_t vm_id );
+
 #endif

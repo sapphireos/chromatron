@@ -305,6 +305,18 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         vm_i8_load( msg->chunk, len - sizeof(msg->vm_id), msg->vm_id );
     }
+    else if( data_id == WIFI_DATA_ID_INIT_VM ){
+
+        uint32_t *vm_id = (uint32_t *)data;
+
+        for( uint32_t i = 0; i < 32; i++ ){
+
+            if( ( *vm_id & ( 1 << i ) ) != 0 ){
+
+                vm_i8_start( i );
+            }
+        }
+    }
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 
         // wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;

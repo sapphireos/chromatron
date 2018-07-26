@@ -146,6 +146,14 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         return -2;
     }
 
+    // check that VM is READY, but we're not calling init
+    if( ( vm_status[vm_index] == VM_STATUS_READY ) && ( mode != VM_RUN_INIT ) ){
+
+        // need to run init before we do anything else
+
+        return 0;
+    }
+
     uint32_t start_time = micros();
 
     int8_t return_code;
@@ -450,12 +458,37 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
 
         // init database
         vm_v_init_db( stream, &vm_state[vm_index], 1 << vm_index );
-        
-        // run init function
-        status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
+
+
+        // VM is ready for init
+        vm_status[vm_index] = VM_STATUS_READY;
     }
 
 end:
+
+    if( status < 0 ){
+
+        vm_v_reset( vm_index );
+    }
+
+    return status;
+}
+
+int8_t vm_i8_start( uint32_t vm_index ){
+
+    if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    if( vm_status[vm_index] != VM_STATUS_READY ){
+
+        return -1;
+    }
+
+    vm_status[vm_index] = VM_STATUS_OK;
+
+    int8_t status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
 
     if( status < 0 ){
 
