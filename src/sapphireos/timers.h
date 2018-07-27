@@ -31,9 +31,6 @@
 #include "threading.h"
 #include "hal_timers.h"
 
-#define TIMER_TICKS_TO_MILLISECONDS(a) ( TIMER_TICKS_TO_MICROSECONDS(a) / 1000 )
-#define MILLISECONDS_TO_TIMER_TICKS(a) ( MILLISECONDS_TO_SYMBOLS(a) )
-
 
 // function prototypes:
 void tmr_v_init( void );
