@@ -79,10 +79,19 @@ static int8_t ntp_kv_handler(
 
     if( op == KV_OP_GET ){
 
-        uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-        uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
+        // check if synchronized
+        if( status == SNTP_STATUS_SYNCHRONIZED ){
 
-        memcpy( data, &seconds, len );
+            uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
+            uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
+
+            memcpy( data, &seconds, len );
+        }
+        else{
+
+            // set to 0s
+            memset( data, 0, len );
+        }
 
         return 0;
     }
