@@ -42,7 +42,7 @@ On overflow: increment microseconds counter by 131072.
 */
 
 static volatile uint64_t microseconds;
-static uint32_t alarm_microseconds;
+static volatile uint32_t alarm_microseconds;
 
 
 void hal_timer_v_init( void ){
