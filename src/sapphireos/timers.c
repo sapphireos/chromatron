@@ -87,7 +87,7 @@ void tmr_v_init( void ){
 // this uses the current system time and the current timer count
 uint32_t tmr_u32_get_system_time_ms( void ){
 	
-    return tmr_u64_get_system_time_ms() & 0xffffffff;
+    return tmr_u64_get_system_time_ms();
 }
 
 uint64_t tmr_u64_get_system_time_ms( void ){
@@ -99,23 +99,13 @@ uint64_t tmr_u64_get_system_time_ms( void ){
 // this uses the current system time and the current timer count
 uint32_t tmr_u32_get_system_time_us( void ){
 	
-    return tmr_u64_get_system_time_us() & 0xffffffff;
-}
-
-uint64_t tmr_u64_get_system_time_us( void ){
-
-    return TIMER_TICKS_TO_MICROSECONDS(tmr_u64_get_ticks());
+    return tmr_u64_get_system_time_us();
 }
 
 // returns the current value of the system timer.
 uint32_t tmr_u32_get_system_time( void ){
 	
 	return tmr_u32_get_system_time_ms();
-}
-
-uint32_t tmr_u32_get_ticks( void ){
-
-    return tmr_u64_get_ticks() & 0xffffffff;
 }
 
 // compute elapsed ticks since start_ticks
@@ -146,27 +136,6 @@ uint32_t tmr_u32_elapsed_times( uint32_t start_time, uint32_t end_time ){
         return UINT32_MAX - ( start_time - end_time );
     }
 }
-
-// compute elapsed ticks since start_ticks
-// uint64_t tmr_u64_elapsed_time_us( uint64_t start_time ){
-    
-//     uint64_t end_time = tmr_u64_get_system_time_us();
-    
-//     return tmr_u64_elapsed_times( start_time, end_time );
-// }
-
-// // compute elapsed ticks between start_time and end_time
-// uint64_t tmr_u64_elapsed_times( uint64_t start_time, uint64_t end_time ){
-        
-//     if( end_time >= start_time ){
-        
-//         return end_time - start_time;
-//     }
-//     else{
-        
-//         return UINT64_MAX - ( start_time - end_time );
-//     }
-// }
 
 
 // returns 1 if time > system_time,
@@ -210,26 +179,3 @@ int8_t tmr_i8_compare_times( uint32_t time1, uint32_t time2 ){
 		return 0;
 	}
 }
-
-// compute elapsed ticks since start_ticks
-uint32_t tmr_u32_elapsed_ticks( uint32_t start_ticks ){
-	
-	uint32_t end_ticks;
-	end_ticks = tmr_u32_get_ticks();
-	
-	if( end_ticks >= start_ticks ){
-		
-		return end_ticks - start_ticks;
-	}
-	else{
-		
-		return UINT32_MAX - ( start_ticks - end_ticks );
-	}
-}
-
-uint32_t tmr_u32_ticks_to_us( uint32_t ticks ){
-    
-    return TIMER_TICKS_TO_MICROSECONDS(ticks);
-}
-
-

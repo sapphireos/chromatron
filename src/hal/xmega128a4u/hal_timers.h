@@ -40,8 +40,8 @@ TCE0 - Reserved for application use
 */
 
 
-#define TIMER_TICKS_TO_MICROSECONDS(a) ( (uint64_t)a * 32 )
-#define MICROSECONDS_TO_TIMER_TICKS(a) ( a / 32 )
+#define TIMER_TICKS_TO_MICROSECONDS(a) ( (uint64_t)a * 2 )
+#define MICROSECONDS_TO_TIMER_TICKS(a) ( a / 2 )
 
 void hal_timer_v_init( void );
 
