@@ -241,7 +241,7 @@ class cg1NoOp(cg1CodeNode):
 class cg1Func(cg1CodeNode):
     _fields = ["name", "params", "body", "decorators"]
 
-    def __init__(self, name, params, body, decorators=None, **kwargs):
+    def __init__(self, name, params, body, decorators=[], **kwargs):
         super(cg1Func, self).__init__(**kwargs)
         self.name = name
         self.params = params
@@ -262,6 +262,13 @@ class cg1Func(cg1CodeNode):
         if not isinstance(self.body[-1], cg1Return):
             ret = cg1Return(cg1ConstInt32(0, lineno=self.lineno), lineno=self.lineno)
             ret.build(builder)
+
+        # check decorators
+        for dec in self.decorators:
+            if dec.target == 'cron':
+                cron_param = dec.params[0].s
+                
+                builder.cron(self.name, cron_param, lineno=self.lineno)
 
         return func
 

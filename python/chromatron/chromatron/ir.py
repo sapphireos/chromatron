@@ -1153,6 +1153,8 @@ class Builder(object):
         self.data_table = []
         self.code = []
 
+        self.cron_tab = {}
+
         self.loop_top = []
         self.loop_end = []
 
@@ -1892,6 +1894,12 @@ class Builder(object):
         else:
             return self.add_const(int(val), lineno=lineno)
 
+
+    def cron(self, func, params, lineno=None):
+        if func not in self.cron_tab:
+            self.cron_tab[func] = []
+
+        self.cron_tab[func].append(params)
 
     def usedef(self, func):
         use = []
