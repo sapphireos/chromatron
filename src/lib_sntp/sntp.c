@@ -173,10 +173,8 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 
 ntp_ts_t sntp_t_now( void ){
 
-    ntp_ts_t now;;
-    now.seconds = 0;
-    now.fraction = 0;
-
+    ntp_ts_t now = network_time;
+    
     if( status == SNTP_STATUS_SYNCHRONIZED ){
 
         // get time elapsed since base time was set
