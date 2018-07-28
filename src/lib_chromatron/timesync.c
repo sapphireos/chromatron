@@ -95,12 +95,19 @@ static uint16_t filtered_rtt;
 
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {
+    { SAPPHIRE_TYPE_BOOL,     0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
     { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
     { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
 };
 
 
 void time_v_init( void ){
+
+    // check if time sync is enabled
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+
+        return;
+    }
 
     timer_rate = base_rate;
 
