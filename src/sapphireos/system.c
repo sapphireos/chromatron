@@ -69,17 +69,6 @@ static uint8_t reboot_delay;
 
 static bool interrupts_enabled = FALSE;
 
-#ifdef EXPERIMENTAL_ATOMIC
-static uint8_t atomic_counter;
-#endif
-
-#ifdef ATOMIC_TIMING
-static bool critical;
-static uint64_t atomic_timestamp;
-static uint32_t atomic_longest_time;
-static FLASH_STRING_T atomic_longest_file;
-static int atomic_longest_line;
-#endif
 
 #ifndef BOOTLOADER
 FW_INFO_SECTION fw_info_t fw_info;
@@ -196,9 +185,6 @@ KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
     { SAPPHIRE_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "reset_source" },
-    #ifdef ATOMIC_TIMING
-    { SAPPHIRE_TYPE_UINT32, 0, 0,                   &atomic_longest_time,            0,  "sys_atomic_longest_time" },
-    #endif
     { SAPPHIRE_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,          "firmware_id" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,       "firmware_name" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,       "firmware_version" },
