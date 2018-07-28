@@ -414,13 +414,6 @@ uint32_t sys_v_get_fw_length( void ){
     return length;
 }
 
-void sys_v_get_hw_info( hw_info_t *hw_info ){
-
-    #ifdef ENABLE_FFS
-    flash25_v_read( 0, hw_info, sizeof(hw_info_t) );
-    #endif
-}
-
 // causes a watchdog timeout, which will cause a reset into the bootloader.
 // this will request an immediate reboot from the loader.
 void sys_reboot( void ){

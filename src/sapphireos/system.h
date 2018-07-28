@@ -59,12 +59,6 @@ typedef struct __attribute__((packed)){
     char firmware_version[FW_VER_LEN];
 } fw_info_t;
 
-typedef struct __attribute__((packed)){
-	uint64_t serial_number;
-	uint64_t mac;
-	uint16_t model;
-	uint16_t rev;
-} hw_info_t;
 
 #define SYS_REBOOT_SAFE         -2
 #define SYS_REBOOT_NOAPP        -3 // not yet supported
@@ -194,7 +188,6 @@ void sys_v_get_os_version( char ver[OS_VER_LEN] );
 void sys_v_get_fw_version( char ver[FW_VER_LEN] );
 void sys_v_get_fw_info( fw_info_t *fw_info );
 uint32_t sys_v_get_fw_length( void );
-void sys_v_get_hw_info( hw_info_t *hw_info );
 
 void sys_reboot( void ) __attribute__((noreturn));
 void sys_reboot_to_loader( void ) __attribute__((noreturn));
