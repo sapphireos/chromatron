@@ -45,7 +45,7 @@ PT_BEGIN( pt );
 
         sys_v_wdt_reset();
 
-        datetime_v_increment_seconds( 0 );
+        datetime_v_update();
         
         sock_v_process_timeouts();
 	}

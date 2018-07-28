@@ -26,15 +26,20 @@
 #include "system.h"
 #include "ntp.h"
 
-#ifdef LIB_SNTP
-#include "sntp.h"
-#endif
 
 #include "datetime.h"
 
 #include <stdlib.h>
 
 #ifdef LIB_SNTP
+
+#include "sntp.h"
+#include "keyvalue.h"
+
+// NOTE!
+// tz_offset is in MINUTES, because not all timezones
+// are aligned on the hour.
+static int16_t tz_offset;
 
 static datetime_t current_datetime;
 
@@ -45,6 +50,8 @@ KV_SECTION_META kv_meta_t datetime_kv[] = {
 	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.day, 	 0,  "datetime_day" },
 	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.month, 	 0,  "datetime_month" },
 	{ SAPPHIRE_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY, &current_datetime.year, 	 0,  "datetime_year" },
+
+	{ SAPPHIRE_TYPE_INT16, 0, KV_FLAGS_PERSIST,	   &tz_offset, 			 	 0,  "datetime_tz_offset" },
 };
 
 #endif
@@ -69,6 +76,13 @@ static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 // initialize the timekeeping module
 void datetime_v_init( void ){
 
+}
+
+void datetime_v_update( void ){
+
+	#ifdef LIB_SNTP
+	datetime_v_now( &current_datetime );
+	#endif
 }
 
 
@@ -216,6 +230,13 @@ void datetime_v_get_epoch( datetime_t *datetime ){
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
 
+	#ifdef LIB_SNTP
+	// adjust seconds by timezone offset
+	// tz_offset is in minutse
+	int32_t tz_seconds = tz_offset * 60;
+	seconds += tz_seconds;
+	#endif
+
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
 
@@ -283,15 +304,6 @@ void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
 }
 
 void datetime_v_increment_seconds( datetime_t *datetime ){
-
-	if( datetime == 0 ){
-
-		#ifdef LIB_SNTP
-		datetime = &current_datetime;
-		#else
-		return;
-		#endif
-	}
 
 	datetime->seconds++;
 

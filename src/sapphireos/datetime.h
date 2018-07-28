@@ -71,6 +71,7 @@ typedef struct{
 
 void datetime_v_init( void );
     
+void datetime_v_update( void );
 void datetime_v_parse_iso8601( char *iso8601, uint8_t len, datetime_t *datetime );
 void datetime_v_to_iso8601( char *iso8601, uint8_t len, datetime_t *datetime );
 void datetime_v_now( datetime_t *datetime );

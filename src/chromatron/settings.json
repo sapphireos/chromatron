@@ -20,7 +20,7 @@
  	"BUILD_TYPE": "app",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["lib_chromatron", "lib_dns", "lib_sntp"],
+    "LIBRARIES": ["lib_chromatron"],
 
     "_comment": "The following options are only used for libraries:",
     "_comment": "Init function for library",
