@@ -31,6 +31,7 @@
 #include "hal_watchdog.h"
 #include "hal_cpu.h"
 #include "bool.h"
+#include "cnt_of_array.h"
 
 //#define ENABLE_MEMORY_DUMP
 // #define ATOMIC_TIMING
@@ -144,10 +145,6 @@ typedef uint32_t sys_warnings_t;
 #endif
 
 
-// Count of array macro
-#define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
-
-
 
 void sys_v_init( void );
 void sys_v_check_io_for_safe_mode( void );
@@ -191,15 +188,5 @@ sys_warnings_t sys_u32_get_warnings( void );
 
 void sys_v_enable_interrupts( void );
 void sys_v_disable_interrupts( void );
-
-#ifdef EXPERIMENTAL_ATOMIC
-void _sys_v_enter_critical( void );
-void _sys_v_exit_critical( FLASH_STRING_T file, int line  );
-#endif
-
-#ifdef ATOMIC_TIMING
-void _sys_v_start_atomic_timestamp( void );
-void _sys_v_end_atomic_timestamp( void );
-#endif
 
 #endif
