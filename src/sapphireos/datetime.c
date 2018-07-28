@@ -34,6 +34,22 @@
 
 #include <stdlib.h>
 
+#ifdef LIB_SNTP
+
+static datetime_t current_datetime;
+
+KV_SECTION_META kv_meta_t datetime_kv[] = {
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.seconds, 0,  "datetime_seconds" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.minutes, 0,  "datetime_minutes" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.hours, 	 0,  "datetime_hours" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.day, 	 0,  "datetime_day" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.month, 	 0,  "datetime_month" },
+	{ SAPPHIRE_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY, &current_datetime.year, 	 0,  "datetime_year" },
+};
+
+#endif
+
+
 static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 	31, // january
 	28, // february - non-leap years
@@ -267,6 +283,15 @@ void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
 }
 
 void datetime_v_increment_seconds( datetime_t *datetime ){
+
+	if( datetime == 0 ){
+
+		#ifdef LIB_SNTP
+		datetime = &current_datetime;
+		#else
+		return;
+		#endif
+	}
 
 	datetime->seconds++;
 

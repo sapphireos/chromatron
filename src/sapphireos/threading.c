@@ -35,7 +35,7 @@
 #include "list.h"
 #include "fs.h"
 #include "power.h"
-#include "sockets.h"
+#include "background.h"
 
 #ifdef ENABLE_USB
 #include "usb_intf.h"
@@ -120,7 +120,6 @@ KV_SECTION_META kv_meta_t thread_info_kv[] = {
 };
 
 
-PT_THREAD( background_thread( pt_t *pt, void *state ) );
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) );
 
 
@@ -458,6 +457,13 @@ void thread_v_set_alarm( uint32_t alarm ){
     state->flags |= THREAD_FLAGS_ALARM;
 }
 
+uint32_t thread_u32_get_alarm( void ){
+
+    thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
+    
+    return state->alarm;
+}
+
 void thread_v_clear_alarm( void ){
 
     thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
@@ -697,7 +703,7 @@ void thread_start( void ){
     #endif
 
 	// start the background threads
-	thread_t_create( background_thread, PSTR("background"), 0, 0 );
+    background_v_init();
     thread_t_create( cpu_stats_thread, PSTR("cpu_stats"), 0, 0 );
 
     // create vfile
@@ -788,24 +794,6 @@ void thread_start( void ){
         }
 	}
 }
-
-PT_THREAD( background_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-	while(1){
-
-        TMR_WAIT( pt, 1000 );
-
-        sys_v_wdt_reset();
-
-        
-        sock_v_process_timeouts();
-	}
-
-PT_END( pt );
-}
-
 
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) )
 {

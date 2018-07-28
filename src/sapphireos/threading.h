@@ -138,6 +138,7 @@ uint16_t thread_u16_get_signals( void );
 uint8_t thread_u8_get_run_cause( void );
 
 void thread_v_set_alarm( uint32_t alarm );
+uint32_t thread_u32_get_alarm( void );
 void thread_v_clear_alarm( void );
 bool thread_b_alarm_set( void );
 bool thread_b_alarm( void );
