@@ -21,6 +21,7 @@
 // </license>
 
 
+#include "system.h"
 
 #include "hal_cpu.h"
 

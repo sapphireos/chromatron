@@ -38,11 +38,10 @@
 
 // no user selectable options exist below this line!
 
-#ifdef __SIM__
+#ifndef FW_INFO_SECTION
     #define FW_INFO_SECTION
-#else
-    #define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
 #endif
+
 
 #define FW_ID_LENGTH 16
 #define OS_NAME_LEN  128
@@ -94,36 +93,10 @@ typedef uint32_t sys_warnings_t;
 #define SYS_WARN_SYSTEM_ERROR           0x8000
 
 
-#define FLASH_STRING(x) PSTR(x)
-#define FLASH_STRING_T  PGM_P
-
-
-// Critical Section
-//
-// Notes:  ATOMIC creates a local copy of SREG, but only copies the I bit.
-// END_ATOMIC restores the original value of the SREG I bit, but does not modify any other bits.
-// This guarantees interrupts will be disabled within the critical section, but does not
-// enable interrupts if they were already disabled.  Since it also doesn't modify any of the
-// other SREG bits, it will not disturb instructions after the critical section.
-// An example of this would be performing a comparison inside the critical section, and then
-// performing a branch immediately thereafter.  If we restored SREG in its entirety, we will
-// have destroyed the result of the compare and the code will not execute as intended.
-#ifdef AVR
-
-    #ifdef EXPERIMENTAL_ATOMIC
-        #define ATOMIC _sys_v_enter_critical()
-        #define END_ATOMIC _sys_v_exit_critical(FLASH_STRING( __FILE__ ), __LINE__)
-    #else
-        #ifndef ATOMIC_TIMING
-            #define ATOMIC uint8_t __sreg_i = ( SREG & 0b10000000 ); cli()
-            #define END_ATOMIC SREG |= __sreg_i
-        #else
-            #define ATOMIC uint8_t __sreg_i = ( SREG & 0b10000000 ); cli(); _sys_v_start_atomic_timestamp()
-            #define END_ATOMIC SREG |= __sreg_i; _sys_v_end_atomic_timestamp()
-        #endif
-    #endif
-#else
+#ifndef ATOMIC
     #define ATOMIC
+#endif
+#ifndef END_ATOMIC
     #define END_ATOMIC
 #endif
 

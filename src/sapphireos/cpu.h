@@ -32,6 +32,7 @@
 #include <math.h>
 
 #include "bool.h"
+#include "hal_cpu.h"
 
 
 #if defined(__SIM__)
@@ -67,14 +68,6 @@
 
     char *itoa(long i, char* s, int dummy_radix);
 
-#elif defined(AVR)
-    #include <avr/io.h>
-    #include <avr/interrupt.h>
-    #include <avr/pgmspace.h>
-    #include <avr/eeprom.h>
-    #include <avr/wdt.h>
-    #include <avr/sleep.h>
-    #include <util/delay.h>
 #elif defined(ARM)
     // #include "sam.h"
 
@@ -110,8 +103,6 @@
 
     #define cli()
 
-#else
-    #error "No target"
 #endif
 
 void cpu_v_init( void );
