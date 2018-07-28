@@ -120,5 +120,6 @@ void cpu_v_remap_isrs( void );
 void cpu_v_sleep( void );
 void cpu_v_clear_reset_source( void );
 bool cpu_b_osc_fail( void );
+uint32_t cpu_u32_get_clock_speed( void );
 
 #endif

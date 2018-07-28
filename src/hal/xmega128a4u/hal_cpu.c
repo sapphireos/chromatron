@@ -127,6 +127,10 @@ bool cpu_b_osc_fail( void ){
     return ( OSC.XOSCFAIL & OSC_XOSCFDIF_bm ) != 0;
 }
 
+uint32_t cpu_u32_get_clock_speed( void ){
+
+    return 32000000;
+}
 
 ISR(OSC_OSCF_vect){
 
