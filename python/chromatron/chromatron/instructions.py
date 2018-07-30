@@ -167,8 +167,6 @@ class insLabel(BaseInstruction):
     def __init__(self, name=None):
         self.name = name
 
-        self.addr = 0
-
     def __str__(self):
         return "Label(%s)" % (self.name)
 
@@ -176,11 +174,8 @@ class insLabel(BaseInstruction):
         pass
 
     def assemble(self):
-        # convert to 16 bits
-        l = self.addr & 0xff
-        h = (self.addr >> 8) & 0xff
-
-        return [l, h]
+        # leave room for 16 bits
+        return [self, None]
 
 
 class insFunction(BaseInstruction):

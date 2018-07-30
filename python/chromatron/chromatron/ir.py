@@ -1153,6 +1153,8 @@ class Builder(object):
         self.data_table = []
         self.code = []
         self.bytecode = []
+        self.function_addrs = {}
+        self.label_addrs = {}
 
         self.cron_tab = {}
 
@@ -2285,12 +2287,39 @@ class Builder(object):
         return self.code
 
     def assemble(self):
+        self.function_addrs = {}
+        self.label_addrs = {}
         self.bytecode = []
 
+        # generate byte code, store addresses of functions and labels
         for func in self.code:
+            assert isinstance(self.code[func][0], insFunction)
+
             for ins in self.code[func]:
-                print ins, ins.assemble()
-                # self.bytecode.extend()
+                if isinstance(ins, insFunction):
+                    self.function_addrs[func] = len(self.bytecode)
+
+                elif isinstance(ins, insLabel):
+                    self.label_addrs[ins.name] = len(self.bytecode)
+
+                else:
+                    self.bytecode.extend(ins.assemble())
+
+        # go through byte code and replace labels with addresses
+        i = 0
+        while i < len(self.bytecode):
+            if isinstance(self.bytecode[i], insLabel):
+                name = self.bytecode[i].name
+
+                l = self.label_addrs[name] & 0xff
+                h = (self.label_addrs[name] >> 8) & 0xff 
+
+                self.bytecode[i] = l
+                i += 1
+                self.bytecode[i] = h
+
+            i += 1
+
 
         return self.bytecode
 
