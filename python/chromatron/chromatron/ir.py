@@ -2247,13 +2247,16 @@ class Builder(object):
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
         i = 0
-        for ins in instructions:
-            s = '\t%3d: %s' % (i, str(ins))
-            print s
-            i += 1
+        for func in instructions:
+            print '\t%s:' % (func)
+
+            for ins in instructions[func]:
+                s = '\t\t%3d: %s' % (i, str(ins))
+                print s
+                i += 1
 
     def generate_instructions(self):
-        self.code = []
+        self.code = {}
 
         # check if there is no init function
         if 'init' not in self.funcs:
@@ -2265,9 +2268,9 @@ class Builder(object):
             self.func('loop', lineno=0)
             self.ret(self.get_var(0), lineno=0)
 
-        ins = []
-
+    
         for func in self.funcs.values():
+            ins = []
             if self.optimizations['remove_unreachable_code']:
                 unreachable = self.unreachable(func.name)
 
@@ -2277,15 +2280,17 @@ class Builder(object):
             code = func.generate()
             ins.extend(code)
 
-        self.code = ins
-        return ins
+            self.code[func.name] = ins
+
+        return self.code
 
     def assemble(self):
         self.bytecode = []
 
-        for ins in self.code:
-            print ins, ins.assemble()
-            # self.bytecode.extend()
+        for func in self.code:
+            for ins in self.code[func]:
+                print ins, ins.assemble()
+                # self.bytecode.extend()
 
         return self.bytecode
 
