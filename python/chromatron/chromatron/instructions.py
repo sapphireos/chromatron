@@ -27,68 +27,90 @@ class ReturnException(Exception):
 
 opcodes = {
     'MOV':                  0x01,
+    'CLR':                  0x02,
 
-    'COMP_EQ':              0x02,
-    'COMP_NEQ':             0x03,
-    'COMP_GT':              0x04,
-    'COMP_GTE':             0x05,
-    'COMP_LT':              0x06,
-    'COMP_LTE':             0x07,
-    'AND':                  0x08,
-    'OR':                   0x09,
-    'ADD':                  0x0A,
-    'SUB':                  0x0B,
-    'MUL':                  0x0C,
-    'DIV':                  0x0D,
-    'MOD':                  0x0E,
+    'NOT':                  0x03,
 
-    'JMP':                  0x0F,
+    'COMP_EQ':              0x04,
+    'COMP_NEQ':             0x05,
+    'COMP_GT':              0x06,
+    'COMP_GTE':             0x07,
+    'COMP_LT':              0x08,
+    'COMP_LTE':             0x09,
+    'AND':                  0x0A,
+    'OR':                   0x0B,
+    'ADD':                  0x0C,
+    'SUB':                  0x0D,
+    'MUL':                  0x0E,
+    'DIV':                  0x0F,
+    'MOD':                  0x10,
+    
+    'F16_COMP_EQ':          0x11,
+    'F16_COMP_NEQ':         0x12,
+    'F16_COMP_GT':          0x13,
+    'F16_COMP_GTE':         0x14,
+    'F16_COMP_LT':          0x15,
+    'F16_COMP_LTE':         0x16,
+    'F16_AND':              0x17,
+    'F16_OR':               0x18,
+    'F16_ADD':              0x19,
+    'F16_SUB':              0x1A,
+    'F16_MUL':              0x1B,
+    'F16_DIV':              0x1C,
+    'F16_MOD':              0x1D,
 
-    'JMP_IF_Z':             0x10,
-    'JMP_IF_NOT_Z':         0x11,
-    # 'JMP_IF_Z_DEC':         0x12,
-    # 'JMP_IF_GTE':           0x13,
-    'JMP_IF_LESS_PRE_INC':  0x14,
+    'JMP':                  0x1E,
 
-    'PRINT':                0x15,
+    'JMP_IF_Z':             0x1F,
+    'JMP_IF_NOT_Z':         0x20,
+    
+    'JMP_IF_LESS_PRE_INC':  0x21,
 
-    'RET':                  0x16,
-    'CALL':                 0x17,
+    'RET':                  0x22,
+    'CALL':                 0x23,
+    'LCALL':                0x24,
+    'DBCALL':               0x25,
 
-    'INDEX':                0x18,
+    'INDEX':                0x26,
+    'LOAD_INDIRECT':        0x27,
+    'STORE_INDIRECT':       0x28,
 
-    'LOAD_INDIRECT':        0x19,
-    'STORE_INDIRECT':       0x1A,
+    'RAND':                 0x29,
 
-    'RAND':                 0x1B,
-    'ASSERT':               0x1C,
-    'HALT':                 0x1D,
+    'ASSERT':               0x2A,
+    'HALT':                 0x2B,
 
-    'VECTOR':               0x1E,
+    'VMOV':                 0x2C,
+    'VADD':                 0x2D,
+    'VSUB':                 0x2E,
+    'VMUL':                 0x2F,
+    'VDIV':                 0x30,
+    'VMOD':                 0x31,
+    
+    'PMOV':                 0x32,
+    'PADD':                 0x33,
+    'PSUB':                 0x34,
+    'PMUL':                 0x35,
+    'PDIV':                 0x36,
+    'PMOD':                 0x37,
+    
+    'PSTORE_HUE':           0x38,
+    'PSTORE_SAT':           0x39,
+    'PSTORE_VAL':           0x3A,
+    'PSTORE_HSFADE':        0x3B,
+    'PSTORE_VFADE':         0x3C,
 
-    # 'VADD':                 0x1E,
-    # 'VSUB':                 0x1F,
-    # 'VMUL':                 0x20,
-    # 'VDIV':                 0x21,
-    # 'VMOD':                 0x22,
-    # 'VMOV':                 0x23,
+    'PLOAD_HUE':            0x3D,
+    'PLOAD_SAT':            0x3E,
+    'PLOAD_VAL':            0x3F,
+    'PLOAD_HSFADE':         0x40,
+    'PLOAD_VFADE':          0x41,
 
-    'CONV_I32_TO_F16':      0x24,
-    'CONV_F16_TO_I32':      0x25,
-
-    'F16_COMP_EQ':          0x26,
-    'F16_COMP_NEQ':         0x27,
-    'F16_COMP_GT':          0x28,
-    'F16_COMP_GTE':         0x29,
-    'F16_COMP_LT':          0x2A,
-    'F16_COMP_LTE':         0x2B,
-    'F16_AND':              0x2C,
-    'F16_OR':               0x2D,
-    'F16_ADD':              0x2E,
-    'F16_SUB':              0x2F,
-    'F16_MUL':              0x30,
-    'F16_DIV':              0x31,
-    'F16_MOD':              0x32,
+    'DB_STORE':             0x42,    
+    'DB_LOAD':              0x43,    
+    
+    'CONV_I32_TO_F16':      0x44,
+    'CONV_F16_TO_I32':      0x45,
 }
 
 
@@ -117,6 +139,9 @@ class insNop(BaseInstruction):
     def execute(self, vm):
         pass
 
+    def assemble(self):
+        return []
+
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
     def __init__(self, addr=None, var=None):
@@ -131,18 +156,32 @@ class insAddr(BaseInstruction):
             return "Addr(%s)" % (self.addr)
     
     def assemble(self):
-        return [self.addr]
+        # convert to 16 bits
+        l = self.addr & 0xff
+        h = (self.addr >> 8) & 0xff
+
+        return [l, h]
 
 
 class insLabel(BaseInstruction):
     def __init__(self, name=None):
         self.name = name
 
+        self.addr = 0
+
     def __str__(self):
         return "Label(%s)" % (self.name)
 
     def execute(self, vm):
         pass
+
+    def assemble(self):
+        # convert to 16 bits
+        l = self.addr & 0xff
+        h = (self.addr >> 8) & 0xff
+
+        return [l, h]
+
 
 class insFunction(BaseInstruction):
     def __init__(self, name=None, args=[]):
@@ -161,6 +200,9 @@ class insFunction(BaseInstruction):
     def execute(self, vm):
         pass
 
+    def assemble(self):
+        return []
+
 
 class insMov(BaseInstruction):
     mnemonic = 'MOV'
@@ -175,12 +217,12 @@ class insMov(BaseInstruction):
     def execute(self, vm):
         vm.memory[self.dest.addr] = vm.memory[self.src.addr]
 
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.extend(self.dest.assemble())
-    #     bc.extend(self.src.assemble())
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
 
-    #     return bc
+        return bc
 
 class insClr(BaseInstruction):
     mnemonic = 'CLR'
@@ -194,6 +236,11 @@ class insClr(BaseInstruction):
     def execute(self, vm):
         vm.memory[self.dest.addr] = 0
 
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+
+        return bc
 
 class insNot(BaseInstruction):
     mnemonic = 'NOT'
@@ -212,12 +259,12 @@ class insNot(BaseInstruction):
         else:            
             vm.memory[self.dest.addr] = 0
 
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.extend(self.dest.assemble())
-    #     bc.extend(self.src.assemble())
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
 
-    #     return bc
+        return bc
 
 class insBinop(BaseInstruction):
     def __init__(self, result, op1, op2):
@@ -445,6 +492,12 @@ class insJmp(BaseJmp):
     def execute(self, vm):
         return self.label
 
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.label.assemble())
+
+        return bc
+
 class insJmpConditional(BaseJmp):
     def __init__(self, op1, label):
         super(insJmpConditional, self).__init__(label)
@@ -454,9 +507,12 @@ class insJmpConditional(BaseJmp):
     def __str__(self):
         return "%s, %s -> %s" % (self.mnemonic, self.op1, self.label)
 
-    # def assemble(self):
-        # return [self.opcode, self.op1.addr, ('label', self.label.name), 0]
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.label.assemble())
+        bc.extend(self.op1.assemble())
 
+        return bc
 
 class insJmpIfZero(insJmpConditional):
     mnemonic = 'JMP_IF_Z'
@@ -487,9 +543,6 @@ class insJmpNotZero(insJmpConditional):
 #     def __str__(self):
 #         return "%s, %s >= %s -> %s" % (self.mnemonic, self.op1, self.op2, self.label)
 
-    # def assemble(self):
-        # return [self.opcode, self.op1.addr, self.op2.addr, ('label', self.label.name), 0]
-
 
 class insJmpIfLessThanPreInc(BaseJmp):
     mnemonic = 'JMP_IF_LESS_PRE_INC'
@@ -512,8 +565,13 @@ class insJmpIfLessThanPreInc(BaseJmp):
             # return jump target
             return self.label
 
-    # def assemble(self):
-        # return [self.opcode, self.op1.addr, self.op2.addr, ('label', self.label.name), 0]
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.label.assemble())
+        bc.extend(self.op1.assemble())
+        bc.extend(self.op2.assemble())
+
+        return bc
 
 class insReturn(BaseInstruction):
     mnemonic = 'RET'
@@ -529,8 +587,11 @@ class insReturn(BaseInstruction):
 
         raise ReturnException
 
-    # def assemble(self):
-        # return [self.opcode, self.op1.addr]
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.op1.assemble())
+        
+        return bc
 
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
@@ -773,9 +834,12 @@ class insIndirectLoad(BaseInstruction):
         addr = vm.memory[self.addr.addr]
         vm.memory[self.dest.addr] = vm.memory[addr]
 
-    # def assemble(self):
-        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.addr.assemble())
 
+        return bc
 
 
 class insIndirectStore(BaseInstruction):
@@ -791,13 +855,13 @@ class insIndirectStore(BaseInstruction):
     def execute(self, vm):
         addr = vm.memory[self.addr.addr]
         vm.memory[addr] = vm.memory[self.src.addr]
+    
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.src.assemble())
+        bc.extend(self.addr.assemble())
 
-    # def assemble(self):
-        # return [self.opcode, self.dest.addr, self.src.addr, self.index.addr]
-
-
-
-
+        return bc
 
 
 class insRand(BaseInstruction):
@@ -811,8 +875,13 @@ class insRand(BaseInstruction):
     def __str__(self):
         return "%s %s <- rand(%s, %s)" % (self.mnemonic, self.dest, self.start, self.end)
 
-    # def assemble(self):
-        # return [self.opcode, self.dest.addr, self.start.addr, self.end.addr]
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.start.assemble())
+        bc.extend(self.end.assemble())
+
+        return bc
 
 class insAssert(BaseInstruction):
     mnemonic = 'ASSERT'
@@ -823,8 +892,11 @@ class insAssert(BaseInstruction):
     def __str__(self):
         return "%s %s == TRUE" % (self.mnemonic, self.op1)
 
-    # def assemble(self):
-        # return [self.opcode, self.op1.addr]
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.op1.assemble())
+        
+        return bc
 
 class insHalt(BaseInstruction):
     mnemonic = 'HALT'
@@ -835,9 +907,10 @@ class insHalt(BaseInstruction):
     def __str__(self):
         return "%s" % (self.mnemonic)
 
-    # def assemble(self):
-        # return [self.opcode]
-
+    def assemble(self):
+        bc = [self.opcode]
+        
+        return bc
 
 class insVector(BaseInstruction):
     mnemonic = 'VECTOR'
@@ -851,6 +924,20 @@ class insVector(BaseInstruction):
 
     def __str__(self):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.target.assemble())
+        bc.extend(self.value.assemble())
+
+        # convert to 16 bits
+        l = self.addr & 0xff
+        h = (self.addr >> 8) & 0xff
+
+        bc.extend([l, h])
+
+        return bc
+
 
 class insVectorMov(insVector):
     mnemonic = 'VMOV'
@@ -964,6 +1051,19 @@ class insPixelVector(BaseInstruction):
 
     def __str__(self):
         return "%s *%s.%s %s= %s" % (self.mnemonic, self.pixel_array, self.attr, self.symbol, self.value)
+
+    # def assemble(self):
+    #     bc = [self.opcode]
+    #     bc.extend(self.target.assemble())
+    #     bc.extend(self.value.assemble())
+
+    #     # convert to 16 bits
+    #     l = self.addr & 0xff
+    #     h = (self.addr >> 8) & 0xff
+
+    #     bc.extend([l, h])
+
+    #     return bc
 
 class insPixelVectorMov(insPixelVector):
     mnemonic = 'PMOV'
@@ -1323,7 +1423,7 @@ class insDBLoad(BaseInstruction):
 
 
 class insConvMov(insMov):
-    mnemonic = 'MOV (conv)'
+    mnemonic = 'MOV'
 
 
 class insConvI32toF16(BaseInstruction):
@@ -1339,12 +1439,12 @@ class insConvI32toF16(BaseInstruction):
     def execute(self, vm):
         vm.memory[self.dest.addr] = (vm.memory[self.src.addr] << 16) & 0xffffffff
 
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.extend(self.dest.assemble())
-    #     bc.extend(self.src.assemble())
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
 
-    #     return bc
+        return bc
 
 class insConvF16toI32(BaseInstruction):
     mnemonic = 'CONV_F16_TO_I32'
@@ -1359,10 +1459,10 @@ class insConvF16toI32(BaseInstruction):
     def execute(self, vm):
         vm.memory[self.dest.addr] = int(vm.memory[self.src.addr] / 65536.0)
 
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.extend(self.dest.assemble())
-    #     bc.extend(self.src.assemble())
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
 
-    #     return bc
+        return bc
 

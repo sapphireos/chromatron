@@ -1152,6 +1152,7 @@ class Builder(object):
 
         self.data_table = []
         self.code = []
+        self.bytecode = []
 
         self.cron_tab = {}
 
@@ -2252,6 +2253,8 @@ class Builder(object):
             i += 1
 
     def generate_instructions(self):
+        self.code = []
+
         # check if there is no init function
         if 'init' not in self.funcs:
             self.func('init', lineno=0)
@@ -2277,6 +2280,14 @@ class Builder(object):
         self.code = ins
         return ins
 
+    def assemble(self):
+        self.bytecode = []
+
+        for ins in self.code:
+            print ins, ins.assemble()
+            # self.bytecode.extend()
+
+        return self.bytecode
 
 
 class VM(object):
