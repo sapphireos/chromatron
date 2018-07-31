@@ -1184,8 +1184,8 @@ class Builder(object):
         # optimizations
         self.optimizations = {
             'fold_constants': True,
-            'optimize_register_usage': True,
-            'remove_unreachable_code': True,
+            'optimize_register_usage': False,
+            'remove_unreachable_code': False,
         }
 
         # make sure we always have 0 const
@@ -1750,6 +1750,10 @@ class Builder(object):
     def end_for(self, iterator, stop, top, lineno=None):
         if stop.length != 1:
             raise SyntaxError("Invalid loop iteration count for '%s'" % (stop.name), lineno=lineno)
+
+        if not isinstance(stop, irVar):
+            print "MEOW"
+        print 'END', type(stop)
 
         ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
         self.append_node(ir)

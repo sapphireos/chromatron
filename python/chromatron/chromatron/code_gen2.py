@@ -373,7 +373,15 @@ class cg1For(cg1CodeNode):
         i_declare.build(builder)
 
         i = self.iterator.build(builder)
-        stop = self.stop.build(builder)
+        stop_temp = self.stop.build(builder)
+
+        stop = builder.add_temp(lineno=self.lineno)
+
+        builder.assign(stop_temp, stop, lineno=self.lineno)
+
+        print "EWMGER"
+        print self.stop
+        print stop
 
         top, cont, end = builder.begin_for(i, lineno=self.lineno)
 
@@ -850,12 +858,12 @@ def compile_text(source, debug_print=False):
     return builder
 
 if __name__ == '__main__':
-    # with open('cg2_test.fx') as f:
-        # source = f.read()
-
-
-    with open('chandelier.fx') as f:
+    with open('cg2_test.fx') as f:
         source = f.read()
+
+
+    # with open('chandelier.fx') as f:
+        # source = f.read()
 
     tree = ast.parse(source)
 
