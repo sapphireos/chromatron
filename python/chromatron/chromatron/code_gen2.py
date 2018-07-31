@@ -850,12 +850,12 @@ def compile_text(source, debug_print=False):
     return builder
 
 if __name__ == '__main__':
-    with open('cg2_test.fx') as f:
-        source = f.read()
-
-
-    # with open('chandelier.fx') as f:
+    # with open('cg2_test.fx') as f:
         # source = f.read()
+
+
+    with open('chandelier.fx') as f:
+        source = f.read()
 
     tree = ast.parse(source)
 

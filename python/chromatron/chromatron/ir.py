@@ -756,14 +756,14 @@ class irLibCall(IR):
                 raise SyntaxError("Array functions take one argument", lineno=self.lineno)
 
             if isinstance(params[0], irDBAttr):
-                call_ins = insDBCall(self.target, self.result, params)
+                call_ins = insDBCall(self.target, self.result.generate(), params)
 
             else:
-                call_ins = insLibCall(self.target, self.result, params)
+                call_ins = insLibCall(self.target, self.result.generate(), params)
 
         else:
             # call func
-            call_ins = insLibCall(self.target, self.result, params)
+            call_ins = insLibCall(self.target, self.result.generate(), params)
 
         return call_ins
 
@@ -1061,10 +1061,14 @@ class irPixelStore(IR):
             'v_fade': insPixelStoreVFade,
         }
 
+        indexes = []
+        for index in self.target.indexes:
+            indexes.append(index.generate())
+
         try:
-            return ins[self.target.attr](self.target.name, self.target.attr, self.target.indexes, self.value.generate())
+            return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate())
         except KeyError:
-            return insPixelStore(self.target.name, self.target.attr, self.target.indexes, self.value.generate())
+            return insPixelStore(self.target.name, self.target.attr, indexes, self.value.generate())
 
 class irPixelLoad(IR):
     def __init__(self, target, value, **kwargs):

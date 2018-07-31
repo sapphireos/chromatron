@@ -746,6 +746,8 @@ class insLibCall(BaseInstruction):
 
         bc.extend(self.result.assemble())
 
+        return bc
+
 class insDBCall(BaseInstruction):
     mnemonic = 'DBCALL'
 
@@ -837,6 +839,9 @@ class insDBCall(BaseInstruction):
             bc.extend(param.assemble())
 
         bc.extend(self.result.assemble())
+        
+        return bc
+
 
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
@@ -1103,18 +1108,15 @@ class insPixelVector(BaseInstruction):
     def __str__(self):
         return "%s *%s.%s %s= %s" % (self.mnemonic, self.pixel_array, self.attr, self.symbol, self.value)
 
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.extend(self.target.assemble())
-    #     bc.extend(self.value.assemble())
+    def assemble(self):
+        bc = [self.opcode]
+        
+        bc.extend(hash_to_bc(self.pixel_array))
+        bc.extend(hash_to_bc(self.attr))
 
-    #     # convert to 16 bits
-    #     l = self.addr & 0xff
-    #     h = (self.addr >> 8) & 0xff
+        bc.extend(self.value.assemble())
 
-    #     bc.extend([l, h])
-
-    #     return bc
+        return bc
 
 class insPixelVectorMov(insPixelVector):
     mnemonic = 'PMOV'
@@ -1281,7 +1283,7 @@ class insPixelStore(BaseInstruction):
     def __str__(self):
         indexes = ''
         for index in self.indexes:
-            indexes += '[%s]' % (index.name)
+            indexes += '[%s]' % (index)
 
         return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
 
@@ -1309,6 +1311,21 @@ class insPixelStore(BaseInstruction):
         else:
             # pixel attributes not settable in code for now
             pass 
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.pixel_array))
+        bc.extend(hash_to_bc(self.attr))
+
+        bc.append(len(self.indexes))
+        for index in self.indexes:
+            bc.extend(index.assemble())
+
+        bc.extend(self.value.assemble())
+        
+        return bc
+
+
 
 class insPixelStoreHue(insPixelStore):
     mnemonic = 'PSTORE_HUE'
