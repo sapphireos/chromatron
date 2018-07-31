@@ -119,6 +119,11 @@ opcodes = {
 def string_hash_func(s):
     return catbus_string_hash(s)
 
+def hash_to_bc(s):
+    h = string_hash_func(s)
+    
+    return [(h >> 24) & 0xff, (h >> 16) & 0xff, (h >> 8) & 0xff, (h >> 0) & 0xff]
+
 
 class BaseInstruction(object):
     mnemonic = 'NOP'
@@ -731,6 +736,15 @@ class insLibCall(BaseInstruction):
 
         vm.memory[self.result.addr] = result
 
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.target))
+
+        bc.append(len(self.params))
+        for param in self.params:
+            bc.extend(param.assemble())
+
+        bc.extend(self.result.assemble())
 
 class insDBCall(BaseInstruction):
     mnemonic = 'DBCALL'
@@ -814,6 +828,15 @@ class insDBCall(BaseInstruction):
 
         vm.memory[self.result.addr] = result
 
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.target))
+
+        bc.append(len(self.params))
+        for param in self.params:
+            bc.extend(param.assemble())
+
+        bc.extend(self.result.assemble())
 
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
