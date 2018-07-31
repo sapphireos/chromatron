@@ -20,6 +20,8 @@
 # 
 # </license>
 
+from catbus import catbus_string_hash
+
 
 class ReturnException(Exception):
     pass
@@ -114,6 +116,10 @@ opcodes = {
 }
 
 
+def string_hash_func(s):
+    return catbus_string_hash(s)
+
+
 class BaseInstruction(object):
     mnemonic = 'NOP'
     opcode = None
@@ -177,6 +183,19 @@ class insLabel(BaseInstruction):
         # leave room for 16 bits
         return [self, None]
 
+class insFuncTarget(BaseInstruction):
+    def __init__(self, name=None):
+        self.name = name
+
+    def __str__(self):
+        return "Target(%s)" % (self.name)
+
+    def execute(self, vm):
+        pass
+
+    def assemble(self):
+        # leave room for 16 bits
+        return [self, None]
 
 class insFunction(BaseInstruction):
     def __init__(self, name=None, args=[]):
@@ -620,6 +639,20 @@ class insCall(BaseInstruction):
             vm.memory[arg.addr] = vm.memory[param.addr]
 
         return insLabel(self.target)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(insFuncTarget(self.target).assemble())
+
+        bc.append(len(self.params))
+        for param in self.params:
+            bc.extend(param.assemble())
+
+        bc.append(len(self.args))
+        for arg in self.args:
+            bc.extend(arg.assemble())
+
+        return bc
 
 
 class insLibCall(BaseInstruction):

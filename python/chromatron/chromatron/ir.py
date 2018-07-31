@@ -2302,6 +2302,8 @@ class Builder(object):
                 elif isinstance(ins, insLabel):
                     self.label_addrs[ins.name] = len(self.bytecode)
 
+                # elif isinstance(ins, insFuncTarget):
+
                 else:
                     self.bytecode.extend(ins.assemble())
 
