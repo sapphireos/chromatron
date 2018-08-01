@@ -35,7 +35,8 @@ static int8_t hal_info_kv_handler(
     if( op == KV_OP_GET ){
 
     	if( hash == __KV__hw_type ){
-
+            
+            memset( data, 0, len );
     		strlcpy_P( data, PSTR("Chromatron"), len );
     	}
     	else if( hash == __KV__cpu_clock ){
