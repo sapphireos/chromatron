@@ -468,7 +468,6 @@ void thread_v_clear_alarm( void ){
 
     thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
 
-    state->alarm = 0;
     state->flags &= ~THREAD_FLAGS_ALARM;
 }
 
