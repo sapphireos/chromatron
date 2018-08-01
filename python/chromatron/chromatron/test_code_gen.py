@@ -462,459 +462,6 @@ def loop():
 
 """
 
-hue_array_1 = """
-
-def init():
-    pixels[1].hue = 1.0
-    pixels[1][2].hue = 0.5
-    pixels[1][2].hue += 0.1
-
-def loop():
-    pass
-
-"""
-
-hue_array_2 = """
-
-def init():
-    pixels.hue = 0.5
-
-def loop():
-    pass
-
-"""
-
-hue_array_add = """
-
-def init():
-    pixels.hue += 0.1
-
-def loop():
-    pass
-
-"""
-
-hue_array_add_2 = """
-
-def init():
-    pixels.hue = 1.0
-    pixels.hue += 0.1
-
-def loop():
-    pass
-
-"""
-
-
-hue_array_sub = """
-
-def init():
-    pixels.hue -= 0.1
-
-def loop():
-    pass
-
-"""
-
-hue_array_mul = """
-
-def init():
-    pixels.hue = 0.5
-    pixels.hue *= 0.5
-
-def loop():
-    pass
-
-"""
-
-
-hue_array_mul_f16 = """
-
-def init():
-    pixels.hue = 1.0
-    pixels.hue *= 0.5
-
-def loop():
-    pass
-
-"""
-
-hue_array_div = """
-
-def init():
-    pixels.hue = 0.5
-    pixels.hue /= 2.0
-
-def loop():
-    pass
-
-"""
-
-hue_array_div_f16 = """
-
-def init():
-    pixels.hue = 0.8
-    pixels.hue /= 2.0
-
-def loop():
-    pass
-
-"""
-
-hue_array_mod = """
-
-def init():
-    pixels.hue = 0.5
-    pixels.hue %= 0.3
-
-def loop():
-    pass
-
-"""
-
-
-
-sat_array_1 = """
-
-def init():
-    pixels[1].sat = 1.0
-    pixels[1][2].sat = 0.5
-
-def loop():
-    pass
-
-"""
-
-sat_array_2 = """
-
-def init():
-    pixels.sat = 0.5
-
-def loop():
-    pass
-
-"""
-
-sat_array_add = """
-
-def init():
-    pixels.sat += 0.1
-
-def loop():
-    pass
-
-"""
-
-sat_array_sub = """
-
-def init():
-    pixels.sat -= 0.1
-
-def loop():
-    pass
-
-"""
-
-sat_array_mul = """
-
-def init():
-    pixels.sat = 0.5
-    pixels.sat *= 0.25
-
-def loop():
-    pass
-
-"""
-
-sat_array_div = """
-
-def init():
-    pixels.sat = 0.5
-    pixels.sat /= 2.0
-
-def loop():
-    pass
-
-"""
-
-sat_array_mod = """
-
-def init():
-    pixels.sat = 0.5
-    pixels.sat %= 0.3
-
-def loop():
-    pass
-
-"""
-
-val_array_1 = """
-
-def init():
-    pixels[1].val = 1.0
-    pixels[1][2].val = 0.5
-
-def loop():
-    pass
-
-"""
-
-val_array_2 = """
-
-def init():
-    pixels.val = 0.5
-
-def loop():
-    pass
-
-"""
-
-val_array_add = """
-
-def init():
-    pixels.val += 0.1
-
-def loop():
-    pass
-
-"""
-
-val_array_sub = """
-
-def init():
-    pixels.val -= 0.1
-
-def loop():
-    pass
-
-"""
-
-val_array_mul = """
-
-def init():
-    pixels.val = 0.5
-    pixels.val *= 0.5
-
-def loop():
-    pass
-
-"""
-
-val_array_div = """
-
-def init():
-    pixels.val = 0.5
-    pixels.val /= 2.0
-
-def loop():
-    pass
-
-"""
-
-val_array_mod = """
-
-def init():
-    pixels.val = 0.5
-    pixels.val %= 0.3
-
-def loop():
-    pass
-
-"""
-
-
-hs_fade_array_1 = """
-
-def init():
-    pixels[1].hs_fade = 1.0
-    pixels[1][2].hs_fade = 0.5
-
-def loop():
-    pass
-
-"""
-
-hs_fade_array_2 = """
-
-def init():
-    pixels.hs_fade = 0.5
-
-def loop():
-    pass
-
-"""
-
-hs_fade_array_add = """
-
-def init():
-    pixels.hs_fade += 0.1
-
-def loop():
-    pass
-
-"""
-
-hs_fade_array_sub = """
-
-def init():
-    pixels.hs_fade -= 0.1
-
-def loop():
-    pass
-
-"""
-
-hs_fade_array_mul = """
-
-def init():
-    pixels.hs_fade = 0.5
-    pixels.hs_fade *= 0.5
-
-def loop():
-    pass
-
-"""
-
-hs_fade_array_div = """
-
-def init():
-    pixels.hs_fade = 0.5
-    pixels.hs_fade /= 2.0
-
-def loop():
-    pass
-
-"""
-
-hs_fade_array_mod = """
-
-def init():
-    pixels.hs_fade = 0.5
-    pixels.hs_fade %= 0.3
-
-def loop():
-    pass
-
-"""
-
-
-v_fade_array_1 = """
-
-def init():
-    pixels[1].v_fade = 1.0
-    pixels[1][2].v_fade = 0.5
-
-def loop():
-    pass
-
-"""
-
-v_fade_array_2 = """
-
-def init():
-    pixels.v_fade = 0.5
-
-def loop():
-    pass
-
-"""
-
-v_fade_array_add = """
-
-def init():
-    pixels.v_fade += 0.1
-
-def loop():
-    pass
-
-"""
-
-v_fade_array_sub = """
-
-def init():
-    pixels.v_fade -= 0.1
-
-def loop():
-    pass
-
-"""
-
-v_fade_array_mul = """
-
-def init():
-    pixels.v_fade = 0.5
-    pixels.v_fade *= 0.5
-
-def loop():
-    pass
-
-"""
-
-v_fade_array_div = """
-
-def init():
-    pixels.v_fade = 0.5
-    pixels.v_fade /= 2.0
-
-def loop():
-    pass
-
-"""
-
-v_fade_array_mod = """
-
-def init():
-    pixels.v_fade = 0.5
-    pixels.v_fade %= 0.3
-
-def loop():
-    pass
-
-"""
-
-
-gfx_array_indexing = """
-
-a = Number(publish=True)
-
-def init():
-    pixels[a].val = 0.1
-    pixels[a + 1].val = 0.2
-
-    a += 1
-    pixels[a].val = 0.3
-    pixels[3].val = 0.4
-
-
-def loop():
-    pass
-
-"""
-
-gfx_array_load = """
-
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
-i = Number(publish=True)
-
-def init():
-    pixels[0].val = 0.1
-    pixels[1].val = 0.2
-    pixels[2].val = 0.3
-    pixels[3].val = 0.4
-
-    a = pixels[0].val
-    b = pixels[1].val
-    i = 2
-    c = pixels[2].val
-    d = pixels[i + 1].val
-
-def loop():
-    pass
-
-"""
 
 
 break_node_while = """
@@ -2649,6 +2196,460 @@ class CGTestsBase(unittest.TestCase):
                 'd': 0,
             })
 
+
+hue_array_1 = """
+
+def init():
+    pixels[1].hue = 1.0
+    pixels[1][2].hue = 0.5
+    pixels[1][2].hue += 0.1
+
+def loop():
+    pass
+
+"""
+
+hue_array_2 = """
+
+def init():
+    pixels.hue = 0.5
+
+def loop():
+    pass
+
+"""
+
+hue_array_add = """
+
+def init():
+    pixels.hue += 0.1
+
+def loop():
+    pass
+
+"""
+
+hue_array_add_2 = """
+
+def init():
+    pixels.hue = 1.0
+    pixels.hue += 0.1
+
+def loop():
+    pass
+
+"""
+
+
+hue_array_sub = """
+
+def init():
+    pixels.hue -= 0.1
+
+def loop():
+    pass
+
+"""
+
+hue_array_mul = """
+
+def init():
+    pixels.hue = 0.5
+    pixels.hue *= 0.5
+
+def loop():
+    pass
+
+"""
+
+
+hue_array_mul_f16 = """
+
+def init():
+    pixels.hue = 1.0
+    pixels.hue *= 0.5
+
+def loop():
+    pass
+
+"""
+
+hue_array_div = """
+
+def init():
+    pixels.hue = 0.5
+    pixels.hue /= 2.0
+
+def loop():
+    pass
+
+"""
+
+hue_array_div_f16 = """
+
+def init():
+    pixels.hue = 0.8
+    pixels.hue /= 2.0
+
+def loop():
+    pass
+
+"""
+
+hue_array_mod = """
+
+def init():
+    pixels.hue = 0.5
+    pixels.hue %= 0.3
+
+def loop():
+    pass
+
+"""
+
+
+
+sat_array_1 = """
+
+def init():
+    pixels[1].sat = 1.0
+    pixels[1][2].sat = 0.5
+
+def loop():
+    pass
+
+"""
+
+sat_array_2 = """
+
+def init():
+    pixels.sat = 0.5
+
+def loop():
+    pass
+
+"""
+
+sat_array_add = """
+
+def init():
+    pixels.sat += 0.1
+
+def loop():
+    pass
+
+"""
+
+sat_array_sub = """
+
+def init():
+    pixels.sat -= 0.1
+
+def loop():
+    pass
+
+"""
+
+sat_array_mul = """
+
+def init():
+    pixels.sat = 0.5
+    pixels.sat *= 0.25
+
+def loop():
+    pass
+
+"""
+
+sat_array_div = """
+
+def init():
+    pixels.sat = 0.5
+    pixels.sat /= 2.0
+
+def loop():
+    pass
+
+"""
+
+sat_array_mod = """
+
+def init():
+    pixels.sat = 0.5
+    pixels.sat %= 0.3
+
+def loop():
+    pass
+
+"""
+
+val_array_1 = """
+
+def init():
+    pixels[1].val = 1.0
+    pixels[1][2].val = 0.5
+
+def loop():
+    pass
+
+"""
+
+val_array_2 = """
+
+def init():
+    pixels.val = 0.5
+
+def loop():
+    pass
+
+"""
+
+val_array_add = """
+
+def init():
+    pixels.val += 0.1
+
+def loop():
+    pass
+
+"""
+
+val_array_sub = """
+
+def init():
+    pixels.val -= 0.1
+
+def loop():
+    pass
+
+"""
+
+val_array_mul = """
+
+def init():
+    pixels.val = 0.5
+    pixels.val *= 0.5
+
+def loop():
+    pass
+
+"""
+
+val_array_div = """
+
+def init():
+    pixels.val = 0.5
+    pixels.val /= 2.0
+
+def loop():
+    pass
+
+"""
+
+val_array_mod = """
+
+def init():
+    pixels.val = 0.5
+    pixels.val %= 0.3
+
+def loop():
+    pass
+
+"""
+
+
+hs_fade_array_1 = """
+
+def init():
+    pixels[1].hs_fade = 1.0
+    pixels[1][2].hs_fade = 0.5
+
+def loop():
+    pass
+
+"""
+
+hs_fade_array_2 = """
+
+def init():
+    pixels.hs_fade = 0.5
+
+def loop():
+    pass
+
+"""
+
+hs_fade_array_add = """
+
+def init():
+    pixels.hs_fade += 0.1
+
+def loop():
+    pass
+
+"""
+
+hs_fade_array_sub = """
+
+def init():
+    pixels.hs_fade -= 0.1
+
+def loop():
+    pass
+
+"""
+
+hs_fade_array_mul = """
+
+def init():
+    pixels.hs_fade = 0.5
+    pixels.hs_fade *= 0.5
+
+def loop():
+    pass
+
+"""
+
+hs_fade_array_div = """
+
+def init():
+    pixels.hs_fade = 0.5
+    pixels.hs_fade /= 2.0
+
+def loop():
+    pass
+
+"""
+
+hs_fade_array_mod = """
+
+def init():
+    pixels.hs_fade = 0.5
+    pixels.hs_fade %= 0.3
+
+def loop():
+    pass
+
+"""
+
+
+v_fade_array_1 = """
+
+def init():
+    pixels[1].v_fade = 1.0
+    pixels[1][2].v_fade = 0.5
+
+def loop():
+    pass
+
+"""
+
+v_fade_array_2 = """
+
+def init():
+    pixels.v_fade = 0.5
+
+def loop():
+    pass
+
+"""
+
+v_fade_array_add = """
+
+def init():
+    pixels.v_fade += 0.1
+
+def loop():
+    pass
+
+"""
+
+v_fade_array_sub = """
+
+def init():
+    pixels.v_fade -= 0.1
+
+def loop():
+    pass
+
+"""
+
+v_fade_array_mul = """
+
+def init():
+    pixels.v_fade = 0.5
+    pixels.v_fade *= 0.5
+
+def loop():
+    pass
+
+"""
+
+v_fade_array_div = """
+
+def init():
+    pixels.v_fade = 0.5
+    pixels.v_fade /= 2.0
+
+def loop():
+    pass
+
+"""
+
+v_fade_array_mod = """
+
+def init():
+    pixels.v_fade = 0.5
+    pixels.v_fade %= 0.3
+
+def loop():
+    pass
+
+"""
+
+
+gfx_array_indexing = """
+
+a = Number(publish=True)
+
+def init():
+    pixels[a].val = 0.1
+    pixels[a + 1].val = 0.2
+
+    a += 1
+    pixels[a].val = 0.3
+    pixels[3].val = 0.4
+
+
+def loop():
+    pass
+
+"""
+
+gfx_array_load = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+i = Number(publish=True)
+
+def init():
+    pixels[0].val = 0.1
+    pixels[1].val = 0.2
+    pixels[2].val = 0.3
+    pixels[3].val = 0.4
+
+    a = pixels[0].val
+    b = pixels[1].val
+    i = 2
+    c = pixels[2].val
+    d = pixels[i + 1].val
+
+def loop():
+    pass
+
+"""
 
 class CGHSVArrayTests(unittest.TestCase):
     def test_hue_array_1(self):
