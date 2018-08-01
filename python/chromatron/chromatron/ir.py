@@ -2469,9 +2469,14 @@ class VM(object):
 
         offsets = {}
 
+        # linearize code stream
+        code = []
+        for v in self.code.values():
+            code.extend(v)
+
         # scan code stream and get offsets for all functions and labels
-        for i in xrange(len(self.code)):
-            ins = self.code[i]
+        for i in xrange(len(code)):
+            ins = code[i]
             if isinstance(ins, insFunction) or isinstance(ins, insLabel):
                 offsets[ins.name] = i
 
@@ -2486,7 +2491,7 @@ class VM(object):
         while True:
             cycles += 1
 
-            ins = self.code[pc]
+            ins = code[pc]
 
             # print cycles, pc, ins
 
