@@ -451,13 +451,14 @@ messages = {
 
 def deserialize(buf):
     msg_id = ord(buf[CATBUS_MSG_TYPE_OFFSET])
+
     try:
         return messages[msg_id]().unpack(buf)
 
     except KeyError:
         raise UnknownMessageException(msg_id)
 
-    except struct.error as e:
+    except (struct.error, UnicodeDecodeError) as e:
         print msg_id
         raise InvalidMessageException(e)
 
