@@ -1574,11 +1574,17 @@ class Builder(object):
             # also note we skip this conversion for pixel array accesses,
             # as the gfx16 type works seamlessly as i32 and f16 without conversions.
 
-            # convert value to target type and replace value with result
-            conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-            ir = irConvertType(conv_result, value, lineno=lineno)
-            self.append_node(ir)
-            value = conv_result
+            # check if value is const 0
+            # if so, we don't need to convert
+            if isinstance(value, irConst) and value.name == 0:
+                pass
+
+            else:
+                # convert value to target type and replace value with result
+                conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                ir = irConvertType(conv_result, value, lineno=lineno)
+                self.append_node(ir)
+                value = conv_result
 
         if isinstance(target, irAddress):
             if target.target.length == 1:
