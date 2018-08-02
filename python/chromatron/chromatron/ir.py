@@ -341,8 +341,11 @@ class irPixelAttr(irObjectAttr):
     def __init__(self, obj, attr, **kwargs):
         lineno = kwargs['lineno']
 
-        if attr in ['hue', 'val', 'sat', 'hs_fade', 'v_fade']:
+        if attr in ['hue', 'val', 'sat']:
             attr = irArray(attr, irVar_f16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
+
+        elif attr in ['hs_fade', 'v_fade']:
+            attr = irArray(attr, irVar_i32(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
 
         elif attr in ['count', 'size_x', 'size_y', 'index']:
             attr = irVar_i32(attr, lineno=lineno)
@@ -1492,11 +1495,17 @@ class Builder(object):
             # however, for the assign, the assignment target will 
             # have priority.
             
-            # convert value to target type and replace value with result
-            conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-            ir = irConvertType(conv_result, value, lineno=lineno)
-            self.append_node(ir)
-            value = conv_result
+            # check if value is const 0
+            # if so, we don't need to convert
+            if isinstance(value, irConst) and value.name == 0:
+                pass
+
+            else:
+                # convert value to target type and replace value with result
+                conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                ir = irConvertType(conv_result, value, lineno=lineno)
+                self.append_node(ir)
+                value = conv_result
 
         if isinstance(value, irAddress):
             if value.target.length > 1:
@@ -1757,7 +1766,7 @@ class Builder(object):
     def end_for(self, iterator, stop, top, lineno=None):
         if stop.length != 1:
             raise SyntaxError("Invalid loop iteration count for '%s'" % (stop.name), lineno=lineno)
-            
+
         ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
         self.append_node(ir)
 
