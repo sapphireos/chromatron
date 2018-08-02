@@ -385,14 +385,22 @@ class insDiv(insBinop):
     symbol = "/"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] / vm.memory[self.op2.addr]
+        if vm.memory[self.op2.addr] == 0:
+            vm.memory[self.result.addr] = 0
+
+        else:
+            vm.memory[self.result.addr] = vm.memory[self.op1.addr] / vm.memory[self.op2.addr]
 
 class insMod(insBinop):
     mnemonic = 'MOD'
     symbol = "%"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] % vm.memory[self.op2.addr]
+        if vm.memory[self.op2.addr] == 0:
+            vm.memory[self.result.addr] = 0
+
+        else:
+            vm.memory[self.result.addr] = vm.memory[self.op1.addr] % vm.memory[self.op2.addr]
 
 
 class insF16CompareEq(insBinop):
@@ -480,17 +488,25 @@ class insF16Div(insBinop):
     symbol = "/"
 
     def execute(self, vm):
-        # NOTE!
-        # need to cast left hand side to i64 for multiply by 65536.
-        # doing it in this order prevents loss of precision on the fractional side.
-        vm.memory[self.result.addr] = (vm.memory[self.op1.addr] * 65536) / vm.memory[self.op2.addr]
+        if vm.memory[self.op2.addr] == 0.0:
+            vm.memory[self.result.addr] = 0
+
+        else:
+            # NOTE!
+            # need to cast left hand side to i64 for multiply by 65536.
+            # doing it in this order prevents loss of precision on the fractional side.
+            vm.memory[self.result.addr] = (vm.memory[self.op1.addr] * 65536) / vm.memory[self.op2.addr]
 
 class insF16Mod(insBinop):
     mnemonic = 'F16_MOD'
     symbol = "%"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] % vm.memory[self.op2.addr]
+        if vm.memory[self.op2.addr] == 0:
+            vm.memory[self.result.addr] = 0
+
+        else:
+            vm.memory[self.result.addr] = vm.memory[self.op1.addr] % vm.memory[self.op2.addr]
 
 
 class BaseJmp(BaseInstruction):
