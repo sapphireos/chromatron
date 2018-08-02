@@ -1757,11 +1757,7 @@ class Builder(object):
     def end_for(self, iterator, stop, top, lineno=None):
         if stop.length != 1:
             raise SyntaxError("Invalid loop iteration count for '%s'" % (stop.name), lineno=lineno)
-
-        if not isinstance(stop, irVar):
-            print "MEOW"
-        print 'END', type(stop)
-
+            
         ir = irJumpLessPreInc(top, iterator, stop, lineno=lineno)
         self.append_node(ir)
 
