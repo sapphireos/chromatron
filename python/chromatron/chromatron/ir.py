@@ -393,6 +393,9 @@ class irFunc(IR):
     def append(self, node):
         self.body.append(node)
 
+    def insert(self, index, node):
+        self.body.insert(index, node)
+
     def __str__(self):
         params = params_to_string(self.params)
 
@@ -1184,8 +1187,8 @@ class Builder(object):
         # optimizations
         self.optimizations = {
             'fold_constants': True,
-            'optimize_register_usage': False,
-            'remove_unreachable_code': False,
+            'optimize_register_usage': True,
+            'remove_unreachable_code': True,
         }
 
         # make sure we always have 0 const
@@ -1336,7 +1339,11 @@ class Builder(object):
             raise SyntaxError("Variable '%s' not declared" % (name), lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
-        if obj_name in self.pixel_arrays:
+        name = '%s.%s' % (obj_name, attr)
+        if name in self.globals:
+            return self.globals[name]
+
+        elif obj_name in self.pixel_arrays:
             obj = self.pixel_arrays[obj_name]
 
             ir = irPixelAttr(obj, attr, lineno=lineno)
@@ -1836,6 +1843,10 @@ class Builder(object):
 
         self.pixel_arrays[name] = irPixelArray(name, args, kw, lineno=lineno)
 
+        for field, value in self.pixel_arrays[name].fields.items():
+            self.add_const(value, lineno=lineno)
+            self.add_global('%s.%s' % (name, field), lineno=lineno)
+        
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
         if data_type == 'PixelArray':
             self.pixelarray_object(name, args, kw, lineno=lineno)
@@ -2278,7 +2289,14 @@ class Builder(object):
             self.func('loop', lineno=0)
             self.ret(self.get_var(0), lineno=0)
 
-    
+        
+        # add initializers to pixel arrays
+        for name, array in self.pixel_arrays.items():
+            for field, value in array.fields.items():
+                ir = irAssign(self.get_var('%s.%s' % (name, field)), self.get_var(value), lineno=0)
+                self.funcs['init'].insert(0, ir)
+
+        
         for func in self.funcs.values():
             ins = []
             if self.optimizations['remove_unreachable_code']:
