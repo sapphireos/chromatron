@@ -1079,7 +1079,13 @@ class insVectorDiv(insVector):
         value = vm.memory[self.value.addr]
         addr = vm.memory[self.target.addr]
 
-        if self.target.var.get_base_type() == 'f16':
+        # check for divide by zero
+        if value == 0:
+            for i in xrange(self.length):
+                vm.memory[addr] = value
+                addr += 1
+
+        elif self.target.var.get_base_type() == 'f16':
             for i in xrange(self.length):
                 vm.memory[addr] = (vm.memory[addr] * 65536) / value
                     
@@ -1099,7 +1105,13 @@ class insVectorMod(insVector):
         value = vm.memory[self.value.addr]
         addr = vm.memory[self.target.addr]
 
-        if self.target.var.get_base_type() == 'f16':
+        # check for divide by zero
+        if value == 0:
+            for i in xrange(self.length):
+                vm.memory[addr] = value
+                addr += 1
+
+        elif self.target.var.get_base_type() == 'f16':
             for i in xrange(self.length):
                 vm.memory[addr] = vm.memory[addr] % value
                     
@@ -1240,7 +1252,12 @@ class insPixelVectorDiv(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        if self.attr == 'hue':
+        # check for divide by zero
+        if value == 0:
+            for i in xrange(self.length):
+                array[i] = value
+
+        elif self.attr == 'hue':
             for i in xrange(len(array)):
                 array[i] = (array[i] * 65536) / value
 
@@ -1266,8 +1283,12 @@ class insPixelVectorMod(insPixelVector):
         value = vm.memory[self.value.addr]
         array = vm.gfx_data[self.attr]
 
-        
-        if self.attr == 'hue':
+        # check for divide by zero
+        if value == 0:
+            for i in xrange(self.length):
+                array[i] = value
+
+        elif self.attr == 'hue':
             for i in xrange(len(array)):
                 array[i] %= value
 
