@@ -1254,15 +1254,20 @@ class insPixelVectorDiv(insPixelVector):
 
         # check for divide by zero
         if value == 0:
-            for i in xrange(self.length):
+            for i in xrange(len(array)):
                 array[i] = value
 
-        elif self.attr == 'hue':
+        elif self.attr in ['hue']:
             for i in xrange(len(array)):
                 array[i] = (array[i] * 65536) / value
 
                 array[i] %= 65536
 
+        elif self.attr in ['hs_fade, v_fade']:
+            for i in xrange(len(array)):
+                array[i] = array[i] / value
+
+                array[i] %= 65536
 
         else:
             for i in xrange(len(array)):
@@ -1285,7 +1290,7 @@ class insPixelVectorMod(insPixelVector):
 
         # check for divide by zero
         if value == 0:
-            for i in xrange(self.length):
+            for i in xrange(len(array)):
                 array[i] = value
 
         elif self.attr == 'hue':

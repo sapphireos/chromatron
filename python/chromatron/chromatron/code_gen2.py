@@ -916,3 +916,4 @@ if __name__ == '__main__':
     print vm.memory
     print vm.db
     print vm.pixel_arrays
+    print vm.dump_hsv()
