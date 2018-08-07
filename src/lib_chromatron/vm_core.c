@@ -359,6 +359,14 @@ static int8_t _vm_i8_run_stream(
     ins_2op_t *ins2;
     ins_3op_t *ins3;
 
+    uint16_t call_target;
+    uint16_t call_param;
+    uint16_t call_arg;
+    uint8_t call_param_len;
+
+    uint8_t *call_stack[VM_MAX_CALL_DEPTH];
+    call_depth = 0;
+
     // uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
     // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
     // bool yield;
@@ -366,12 +374,11 @@ static int8_t _vm_i8_run_stream(
     // uint16_t addr;
     // catbus_hash_t32 hash;
 
-    call_depth++;
+    
 
     #ifdef ESP8266
         #define DISPATCH cycles--; \
                          if( cycles == 0 ){ \
-                            call_depth--; \
                             return VM_STATUS_ERR_MAX_CYCLES; \
                         } \
                         opcode = *pc++; \
@@ -387,7 +394,6 @@ static int8_t _vm_i8_run_stream(
 
             if( cycles == 0 ){
 
-                call_depth--;
                 return VM_STATUS_ERR_MAX_CYCLES;
             }
 
@@ -700,134 +706,119 @@ opcode_f16_mod:
     DISPATCH;
 
 
-// opcode_jmp:
+opcode_jmp:
+    ins1 = (ins_1op_t *)pc;
 
-//     addr = *pc++;
-//     addr += ( *pc ) << 8;
+    pc = code + ins1->dest;
 
-//     pc = code + addr;
-
-//     DISPATCH;
+    DISPATCH;
 
 
-// opcode_jmp_if_z:
+opcode_jmp_if_z:
+    ins2 = (ins_2op_t *)pc;
 
-//     op1_addr = *pc++;
+    if( data[ins2->src] == 0 ){
 
-//     addr = *pc++;
-//     addr += ( *pc++ ) << 8;
+        pc = code + ins2->dest;
+    }
+    else{
 
-//     if( data[op1_addr] == 0 ){
+        pc += sizeof(ins_2op_t);
+    }
 
-//         pc = code + addr;
-//     }
-
-//     DISPATCH;
-
-
-// opcode_jmp_if_not_z:
-
-//     op1_addr = *pc++;
-
-//     addr = *pc++;
-//     addr += ( *pc++ ) << 8;
-
-//     if( data[op1_addr] != 0 ){
-
-//         pc = code + addr;
-//     }
-
-//     DISPATCH;
+    DISPATCH;
 
 
-// opcode_jmp_if_z_dec:
+opcode_jmp_if_not_z:
+    ins2 = (ins_2op_t *)pc; 
 
-//     op1_addr = *pc++;
+    if( data[ins2->src] != 0 ){
 
-//     addr = *pc++;
-//     addr += ( *pc++ ) << 8;
+        pc = code + ins2->dest;
+    }
+    else{
 
-//     if( data[op1_addr] == 0 ){
+        pc += sizeof(ins_2op_t);
+    }
 
-//         pc = code + addr;
-//     }
-//     else{
-
-//         data[op1_addr]--;
-//     }
-
-//     DISPATCH;
+    DISPATCH;
 
 
-// opcode_jmp_if_gte:
+opcode_jmp_if_l_pre_inc:
+    ins3 = (ins_3op_t *)pc; 
 
-//     op1_addr = *pc++;
-//     op2_addr = *pc++;
+    data[ins3->op1]++;
 
-//     addr = *pc++;
-//     addr += ( *pc++ ) << 8;
+    if( data[ins3->op1] < data[ins3->op2] ){
 
-//     if( data[op1_addr] >= data[op2_addr] ){
+        pc = code + ins3->dest;
+    }
+    else{
 
-//         pc = code + addr;
-//     }
+        pc += sizeof(ins_3op_t);    
+    }
 
-//     DISPATCH;
-
-
-// opcode_jmp_if_l_pre_inc:
-
-//     op1_addr = *pc++;
-//     op2_addr = *pc++;
-
-//     data[op1_addr]++;
-
-//     if( data[op1_addr] < data[op2_addr] ){
-
-//         addr = *pc++;
-//         addr += ( *pc ) << 8;
-
-//         pc = code + addr;
-//     }
-//     else{
-
-//         pc += 2;
-//     }
-
-//     DISPATCH;
+    DISPATCH;
 
 
-// opcode_print:
+opcode_ret:
+    ins1 = (ins_1op_t *)pc;
+    
+    // move return val to return register
+    data[RETURN_VAL_ADDR] = data[ins1->dest];
 
-//     src = *pc++;
-//     op1  = data[src];
+    // check if call depth is 0
+    // if so, we are exiting the VM
+    if( call_depth == 0 ){
 
-//     // log_v_debug_P( PSTR("%d = %d"), src, op1 );
+        return VM_STATUS_OK;
+    }
 
-//     DISPATCH;
+    // pop PC from call stack
+    call_depth--;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+
+    pc = call_stack[call_depth];
+        
+    DISPATCH;
 
 
-// opcode_ret:
-//     op1_addr = *pc++;
-//     data[RETURN_VAL_ADDR] = data[op1_addr];
+opcode_call:
+    
+    call_target = *pc++;
+    call_target += ( *pc++ ) << 8;
 
-//     call_depth--;
-//     return VM_STATUS_OK;
+    call_param_len = *pc++;
 
+    for( uint8_t i = 0; i < call_param_len; i++ ){
 
-// opcode_call:
-//     addr = *pc++;
-//     addr += ( *pc++ ) << 8;
+        // decode
+        call_param = *pc++;
+        call_param += ( *pc++ ) << 8;
+        call_arg = *pc++;
+        call_arg += ( *pc++ ) << 8;
 
-//     // call function, by recursively calling into VM
-//     int8_t status = _vm_i8_run_stream( stream, addr, state, data );
-//     if( status < 0 ){
+        // move param to arg
+        data[call_arg] = data[call_param];
+    }
 
-//         call_depth--;
-//         return status;
-//     }
+    // set up return stack
+    call_stack[call_depth] = pc;
+    call_depth++;
 
-//     DISPATCH;
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+
+    // call by jumping to target
+    pc = code + call_target;
+
+    DISPATCH;
 
 
 // opcode_idx_load:
@@ -1559,7 +1550,6 @@ opcode_f16_mod:
 //     DISPATCH;
 
 opcode_trap:
-    call_depth--;
     return VM_STATUS_TRAP;
 }
 
@@ -1570,8 +1560,6 @@ int8_t vm_i8_run(
     vm_state_t *state ){
 
     cycles = VM_MAX_CYCLES;
-
-    call_depth = 0;
 
     int32_t *data = (int32_t *)( stream + state->data_start );
 

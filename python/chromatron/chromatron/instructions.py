@@ -665,13 +665,12 @@ class insCall(BaseInstruction):
         bc = [self.opcode]
         bc.extend(insFuncTarget(self.target).assemble())
 
-        bc.append(len(self.params))
-        for param in self.params:
-            bc.extend(param.assemble())
+        assert len(self.params) == len(self.args)
 
-        bc.append(len(self.args))
-        for arg in self.args:
-            bc.extend(arg.assemble())
+        bc.append(len(self.params))
+        for i in xrange(len(self.params)):
+            bc.extend(self.params[i].assemble())
+            bc.extend(self.args[i].assemble())
 
         return bc
 
