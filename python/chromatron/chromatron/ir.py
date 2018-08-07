@@ -2538,7 +2538,7 @@ class Builder(object):
             addr = var.addr
 
             for i in xrange(var.length):
-                stream += struct.pack('<L', var.default_value)
+                stream += struct.pack('<l', var.default_value)
 
             addr += var.length - 1
 

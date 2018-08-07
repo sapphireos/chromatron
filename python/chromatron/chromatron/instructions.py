@@ -917,9 +917,9 @@ class insIndex(BaseInstruction):
 
         for i in xrange(len(self.indexes)):
             bc.extend(self.indexes[i].assemble())
-            bc.extend(self.counts[i].assemble())
-            bc.extend(self.strides[i].assemble())
-
+            bc.extend([self.counts[i] % 0xff, (self.counts[i] >> 8) % 0xff])
+            bc.extend([self.strides[i] % 0xff, (self.strides[i] >> 8) % 0xff])
+            
         return bc
 
 
