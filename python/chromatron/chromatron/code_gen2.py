@@ -357,6 +357,15 @@ class cg1UnaryNot(cg1CodeNode):
 
         return builder.unary_not(value, lineno=self.lineno)
 
+class cg1List(cg1CodeNode):
+    _fields = ["value"]
+
+    def __init__(self, value, **kwargs):
+        super(cg1List, self).__init__(**kwargs)
+        self.value = value
+
+    def build(self, builder):
+        pass
         
 
 class cg1For(cg1CodeNode): 
@@ -660,6 +669,8 @@ class CodeGenPass1(ast.NodeVisitor):
             # function call at module level
             raise TypeError
 
+    def visit_List(self, node):
+        return cg1List([self.visit(e) for e in node.elts], lineno=node.lineno)
 
     def visit_If(self, node):
         return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse), lineno=node.lineno)

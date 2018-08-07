@@ -44,7 +44,11 @@ def params_to_string(params):
     s = ''
 
     for p in params:
-        s += '%s %s,' % (p.type, p.name)
+        try:
+            s += '%s %s,' % (p.type, p.name)
+
+        except AttributeError:
+            s += '%s' % (p.name)            
 
     # strip last comma
     s = s[:len(s) - 1]
