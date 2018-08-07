@@ -20,14 +20,10 @@
 # 
 # </license>
 
-from catbus import catbus_string_hash
+from catbus import *
 
 import random
 
-TYPES = {
-    'i32': 0,
-    'f16': 1,
-}
 
 
 class ReturnException(Exception):
@@ -1045,7 +1041,7 @@ class insVector(BaseInstruction):
 
         bc.extend([l, h])
 
-        target_type = TYPES[self.type]
+        target_type = get_type_id(self.type)
 
         bc.append(target_type)
 

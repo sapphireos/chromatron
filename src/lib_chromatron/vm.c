@@ -406,7 +406,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
 
-        kvdb_i8_add( publish.hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
         kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
 
         gfx_v_subscribe_key( publish.hash, ( 1 << vm_id ) );

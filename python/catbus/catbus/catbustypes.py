@@ -86,10 +86,12 @@ type_id_registry = {
     'int16': CATBUS_TYPE_INT16,
     'uint32': CATBUS_TYPE_UINT32,
     'int32': CATBUS_TYPE_INT32,
+    'i32': CATBUS_TYPE_INT32,
     'uint64': CATBUS_TYPE_UINT64,
     'int64': CATBUS_TYPE_INT64,
     'float': CATBUS_TYPE_FLOAT,
     'fixed16': CATBUS_TYPE_FIXED16,
+    'f16': CATBUS_TYPE_FIXED16,
 
     'string128': CATBUS_TYPE_STRING128,
     'string32': CATBUS_TYPE_STRING32,

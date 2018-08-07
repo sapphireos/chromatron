@@ -114,8 +114,9 @@ typedef struct __attribute__((packed)){
 // note this needs to pad to 32 bit alignment!
 typedef struct __attribute__((packed)){
     uint32_t hash;
-    uint8_t addr;
-    uint8_t padding[3];
+    uint16_t addr;
+    uint8_t type;
+    uint8_t padding[1];
 } vm_publish_t;
 
 

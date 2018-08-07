@@ -64,7 +64,14 @@ class ProgramHeader(StructField):
 
         super(ProgramHeader, self).__init__(_name="program_header", _fields=fields, **kwargs)
 
+class VMPublishVar(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="hash"),
+                  Uint16Field(_name="addr"),
+                  Uint8Field(_name="type"),
+                  ArrayField(_name="padding", _length=1, _field=Uint8Field)]
 
+        super(VMPublishVar, self).__init__(_name="vm_publish", _fields=fields, **kwargs)
 
 
 class SyntaxError(Exception):
@@ -2472,6 +2479,22 @@ class Builder(object):
         padding_len = 4 - (code_len % 4)
         code_len += padding_len
 
+
+        # set up published registers
+        publish_count = 0
+        packed_publish = ''
+        for var in self.data_table:
+            if var.publish:
+                packed_publish += VMPublishVar(
+                                    hash=catbus_string_hash(var.name), 
+                                    addr=var.addr,
+                                    type=get_type_id(var.type)).pack()
+
+                meta_names.append(var.name)
+
+                publish_count += 1
+
+
         # build program header
         header = ProgramHeader(
                     file_magic=FILE_MAGIC,
@@ -2483,7 +2506,7 @@ class Builder(object):
                     pix_obj_len=0,
                     read_keys_len=0,
                     write_keys_len=0,
-                    publish_len=0,
+                    publish_len=publish_count,
                     link_len=0,
                     db_len=0,
                     init_start=self.function_addrs['init'],
@@ -2492,6 +2515,8 @@ class Builder(object):
         print header
 
         stream += header.pack()
+
+        stream += packed_publish
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)
