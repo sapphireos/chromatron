@@ -905,6 +905,23 @@ class insIndex(BaseInstruction):
 
         vm.memory[self.result.addr] = addr
 
+    def assemble(self):
+        assert len(self.indexes) == len(self.counts)
+        assert len(self.indexes) == len(self.strides)
+
+        bc = [self.opcode]
+        bc.extend(self.result.assemble())
+        bc.extend(self.base_addr.assemble())
+        bc.append(len(self.indexes))
+
+        for i in xrange(len(self.indexes)):
+            bc.extend(self.indexes[i].assemble())
+            bc.extend(self.counts[i].assemble())
+            bc.extend(self.strides[i].assemble())
+
+        return bc
+        
+
 class insIndirectLoad(BaseInstruction):
     mnemonic = 'LOAD_INDIRECT'
 

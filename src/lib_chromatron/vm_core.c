@@ -363,6 +363,13 @@ static int8_t _vm_i8_run_stream(
     uint16_t call_param;
     uint16_t call_arg;
     uint8_t call_param_len;
+    uint16_t result;
+    uint16_t base_addr;
+    uint16_t index;
+    uint16_t count;
+    uint16_t stride;
+    uint16_t temp;
+    uint8_t len;
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     call_depth = 0;
@@ -794,7 +801,8 @@ opcode_call:
 
     call_param_len = *pc++;
 
-    for( uint8_t i = 0; i < call_param_len; i++ ){
+    while( call_param_len > 0 ){
+        call_param_len--;
 
         // decode
         call_param = *pc++;
@@ -817,6 +825,44 @@ opcode_call:
 
     // call by jumping to target
     pc = code + call_target;
+
+    DISPATCH;
+
+
+opcode_index:
+    result = *pc++;
+    result += ( *pc++ ) << 8;
+
+    base_addr = *pc++;
+    base_addr += ( *pc++ ) << 8;
+    
+    data[result] = base_addr;
+
+    len = *pc++;
+
+    while( len > 0 ){
+        len--;
+
+        // decode
+        index = *pc++;
+        index += ( *pc++ ) << 8;
+
+        count = *pc++;
+        count += ( *pc++ ) << 8;
+
+        stride = *pc++;
+        stride += ( *pc++ ) << 8;
+
+        temp = data[index];
+
+        if( data[count] > 0 ){
+
+            temp %= data[count];
+            temp *= data[stride];
+        }
+
+        data[result] += temp;
+    }
 
     DISPATCH;
 
