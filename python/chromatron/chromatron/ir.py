@@ -1511,10 +1511,6 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):   
-
-        print "MEOW", target, value
-        print  target.get_base_type(), value.get_base_type()
-
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
@@ -2099,9 +2095,9 @@ class Builder(object):
 
         cfgs = self.control_flow(func)
 
-        print 'unreachable'
+        # print 'unreachable'
         unreachable = self.unreachable(func, cfgs)
-        print unreachable
+        # print unreachable
 
         code = self.funcs[func].body
 
@@ -2111,10 +2107,10 @@ class Builder(object):
         for line in unreachable:
             liveness[line] = None
 
-        print 'CFG:'
+        # print 'CFG:'
         for cfg in cfgs:
 
-            print cfg
+            # print cfg
     
             prev = []
             for i in reversed(cfg):
@@ -2146,31 +2142,31 @@ class Builder(object):
 
 
 
-        print '------', func, '---------'
+        # print '------', func, '---------'
 
-        print 'use'
-        for i in use:
-            print [a.name for a in i]
-        print 'define'
-        for i in define:
-            print [a.name for a in i]
+        # print 'use'
+        # for i in use:
+        #     print [a.name for a in i]
+        # print 'define'
+        # for i in define:
+        #     print [a.name for a in i]
                 
-        pc = 0
-        for l in liveness:
-            print pc, ': ',
+        # pc = 0
+        # for l in liveness:
+        #     print pc, ': ',
             
-            if l == None:
-                print 'UNREACHABLE',
+        #     if l == None:
+        #         print 'UNREACHABLE',
 
-            else:
-                for a in l:
-                    print a.name,
+        #     else:
+        #         for a in l:
+        #             print a.name,
 
-            print '\t', code[pc]
+        #     print '\t', code[pc]
 
-            pc += 1
+        #     pc += 1
 
-        print '------'
+        # print '------'
 
         return liveness
 
@@ -2227,7 +2223,7 @@ class Builder(object):
 
         if self.optimizations['optimize_register_usage']:
             for func in self.funcs:
-                print 'optimize', func
+                # print 'optimize', func
                 registers = {}
                 address_pool = []
 
@@ -2282,18 +2278,18 @@ class Builder(object):
                                     var_addr = addr
 
                                     addr += var.length
-                                    print 'alloc', var, var_addr
+                                    # print 'alloc', var, var_addr
 
-                                else:
-                                    print 'pool', var, var_addr                                    
+                                # else:
+                                    # print 'pool', var, var_addr                                    
 
                                 # assign address to var
                                 var.addr = var_addr
 
                                 
                             
-                    print line, registers, address_pool
-                    print ''
+                    # print line, registers, address_pool
+                    # print ''
                 
 
                 trash_var = None
@@ -2360,14 +2356,6 @@ class Builder(object):
         if 'loop' not in self.funcs:
             self.func('loop', lineno=0)
             self.ret(self.get_var(0), lineno=0)
-
-        
-        # add initializers to pixel arrays
-        # for name, array in self.pixel_arrays.items():
-        #     for field, value in array.fields.items():
-        #         ir = irAssign(self.get_var('%s.%s' % (name, field), lineno=0), self.get_var(value, lineno=0), lineno=0)
-        #         self.funcs['init'].insert(0, ir)
-
         
         for func in self.funcs.values():
             ins = []
@@ -2477,8 +2465,8 @@ class VM(object):
         # sort data by addresses
         data = [a for a in sorted(self.data, key=lambda data: data.addr)]
 
-        for a in data:
-            print a.addr, a.length
+        # for a in data:
+            # print a.addr, a.length
 
         addr = -1
         for var in data:
