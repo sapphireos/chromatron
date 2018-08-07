@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include "catbus_common.h"
 
-#define VM_ISA_VERSION              9
+#define VM_ISA_VERSION              10
 
 #define RETURN_VAL_ADDR             0
 
