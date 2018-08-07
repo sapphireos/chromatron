@@ -2419,8 +2419,12 @@ class Builder(object):
             if self.optimizations['remove_unreachable_code']:
                 unreachable = self.unreachable(func.name)
 
-                for i in unreachable:
-                    del func.body[i]
+                new_code = []
+                for i in xrange(len(func.body)):
+                    if i not in unreachable:
+                        new_code.append(func.body[i])
+
+                func.body = new_code
                     
             code = func.generate()
             ins.extend(code)

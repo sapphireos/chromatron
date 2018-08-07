@@ -982,10 +982,10 @@ opcode_index:
 
         temp = data[index];
 
-        if( data[count] > 0 ){
+        if( count > 0 ){
 
-            temp %= data[count];
-            temp *= data[stride];
+            temp %= count;
+            temp *= stride;
         }
 
         data[result] += temp;
@@ -1019,7 +1019,7 @@ opcode_store_indirect:
     src = *pc++;
     src += ( *pc++ ) << 8;
     
-    temp = data[src];
+    temp = data[dest];
 
     // bounds check
     if( temp >= state->data_count ){
@@ -1027,7 +1027,7 @@ opcode_store_indirect:
         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
     }
 
-    data[temp] = data[dest];
+    data[temp] = data[src];
 
     DISPATCH;
 
