@@ -2509,7 +2509,7 @@ class Builder(object):
                     init_start=self.function_addrs['init'],
                     loop_start=self.function_addrs['loop'])
 
-        print header
+        # print header
 
         stream += header.pack()
 
