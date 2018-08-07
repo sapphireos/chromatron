@@ -353,7 +353,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t count;
     uint16_t stride;
     uint16_t temp;
-    uint8_t len;
+    uint16_t len;
     uint8_t type;
     catbus_hash_t32 hash;
 
@@ -1062,6 +1062,9 @@ opcode_vmov:
     len += ( *pc++ ) << 8;
     type = *pc++;
 
+    // deference pointer
+    dest = data[dest];
+
     for( uint16_t i = 0; i < len; i++ ){
 
         data[dest + i] = data[src];
@@ -1078,6 +1081,9 @@ opcode_vadd:
     len = *pc++;
     len += ( *pc++ ) << 8;
     type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
     
     for( uint16_t i = 0; i < len; i++ ){
 
@@ -1095,6 +1101,9 @@ opcode_vsub:
     len = *pc++;
     len += ( *pc++ ) << 8;
     type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
     
     for( uint16_t i = 0; i < len; i++ ){
 
@@ -1112,6 +1121,9 @@ opcode_vmul:
     len = *pc++;
     len += ( *pc++ ) << 8;
     type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
         
     if( type == VM_TYPE_F16 ){
 
@@ -1139,6 +1151,9 @@ opcode_vdiv:
     len = *pc++;
     len += ( *pc++ ) << 8;
     type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
 
     // check for divide by zero
     if( data[src] == 0 ){
@@ -1174,6 +1189,9 @@ opcode_vmod:
     len = *pc++;
     len += ( *pc++ ) << 8;
     type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
 
     // check for divide by zero
     if( data[src] == 0 ){
