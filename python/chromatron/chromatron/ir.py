@@ -2243,7 +2243,7 @@ class Builder(object):
                         assert var.length < 65535
 
                         if var not in line:
-                            print 'remove', var, var.addr
+                            # print 'remove', var, var.addr
 
                             del registers[var.name]
 
