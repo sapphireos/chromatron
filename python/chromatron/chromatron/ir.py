@@ -149,6 +149,8 @@ class irConst(irVar):
     def __init__(self, *args, **kwargs):
         super(irConst, self).__init__(*args, **kwargs)
 
+        self.default_value = self.name
+
         self.is_const = True
 
     def __str__(self):
