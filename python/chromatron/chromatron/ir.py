@@ -78,6 +78,7 @@ class irVar(IR):
         self.addr = None
         self.is_global = False
         self.is_const = False
+        self.default_value = 0
 
         self.publish = False
         self.persist = False
@@ -208,7 +209,7 @@ class irRecord(irVar):
         self.count = 0
             
     def __call__(self, name, dimensions=[], options=None, lineno=None):
-        return irRecord(name, self.type, self.fields, self.offsets, options=options, lineno=lineno)
+        return irRecord(name, self.type, deepcopy(self.fields), self.offsets, options=options, lineno=lineno)
 
     def __str__(self):
         return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
@@ -283,11 +284,15 @@ class irPixelArray(irObject):
             index = args[0].name
         except AttributeError:
             index = args[0]
+        except IndexError:
+            index = 0 
 
         try:
             count = args[1].name
         except AttributeError:
             count = args[1]
+        except IndexError:
+            count = 0 
 
         try:
             self.fields = {
@@ -1071,10 +1076,10 @@ class irPixelStore(IR):
         for index in self.target.indexes:
             indexes.append(index.generate())
 
-        try:
-            return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate())
-        except KeyError:
-            return insPixelStore(self.target.name, self.target.attr, indexes, self.value.generate())
+        # try:
+        return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate())
+        # except KeyError:
+            # return insPixelStore(self.target.name, self.target.attr, indexes, self.value.generate())
 
 class irPixelLoad(IR):
     def __init__(self, target, value, **kwargs):
@@ -1104,10 +1109,10 @@ class irPixelLoad(IR):
             'v_fade': insPixelLoadVFade,
         }
 
-        try:
-            return ins[self.value.attr](self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
-        except KeyError:
-            return insPixelLoad(self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
+        # try:
+        return ins[self.value.attr](self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
+        # except KeyError:
+            # return insPixelLoad(self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
 
 
 class irIndexLoad(IR):
@@ -1197,6 +1202,13 @@ class Builder(object):
         # make sure we always have 0 const
         self.add_const(0, lineno=0)
 
+        pixarray = irPixelArray('temp', lineno=0)
+        pixfields = {}
+        for field, value in pixarray.fields.items():
+            pixfields[field] = {'type': 'i32', 'dimensions': []}
+
+        self.create_record('PixelArray', pixfields, lineno=0)
+
         # create main pixels object
         self.pixelarray_object('pixels', args=[0, 65535], lineno=0)
 
@@ -1236,7 +1248,10 @@ class Builder(object):
         offsets = {}
         offset = 0
         for field_name, field in fields.items():
-            new_fields[field_name] = self.build_var(field_name, field['type'], field['dimensions'], lineno=lineno)
+            field_type = field['type']
+            field_dims = field['dimensions']
+    
+            new_fields[field_name] = self.build_var(field_name, field_type, field_dims, lineno=lineno)
 
             offsets[field_name] = self.add_const(offset, lineno=lineno)
             offset += new_fields[field_name].length
@@ -1347,8 +1362,11 @@ class Builder(object):
             return self.globals[name]
 
         elif obj_name in self.pixel_arrays:
-            obj = self.pixel_arrays[obj_name]
+            if obj_name in self.globals:
+                return self.globals[obj_name].fields[attr]
 
+            obj = self.pixel_arrays[obj_name]
+            
             ir = irPixelAttr(obj, attr, lineno=lineno)
 
             return ir
@@ -1797,18 +1815,15 @@ class Builder(object):
 
         self.append_node(ir)
 
-    # def lookup_attribute(self, obj, attr, lineno=None):
-    #     if len(self.compound_lookup) == 0:
-    #         self.compound_lookup.append(obj)  
-
-    #     self.compound_lookup.append(irField(attr, obj, lineno=lineno))
-
     def lookup_subscript(self, target, index, lineno=None):
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(target)
 
         if isinstance(index, irStr):
             resolved_target = target.lookup(self.compound_lookup[1:])
+
+            if isinstance(resolved_target, irPixelArray):
+                raise SyntaxError("Invalid syntax for PixelArray type, should be: %s.%s" % (target.name, index.name), lineno=lineno)
 
             if not isinstance(resolved_target, irRecord):
                 raise SyntaxError("Invalid index: %s" % (index.name), lineno=lineno)
@@ -1854,10 +1869,8 @@ class Builder(object):
 
         self.pixel_arrays[name] = irPixelArray(name, args, kw, lineno=lineno)
 
-        for field, value in self.pixel_arrays[name].fields.items():
-            self.add_const(value, lineno=lineno)
-            self.add_global('%s.%s' % (name, field), lineno=lineno)
-        
+        self.add_global(name, 'PixelArray', lineno=lineno)
+
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
         if data_type == 'PixelArray':
             self.pixelarray_object(name, args, kw, lineno=lineno)
@@ -2151,18 +2164,53 @@ class Builder(object):
     def allocate(self):
         self.data_table = []
 
+        addr = 0
+
         ret_var = irVar('$return', lineno=0)
-        ret_var.addr = 0
+        ret_var.addr = addr
+        addr += 1
 
         self.data_table.append(ret_var)
 
+        # allocate pixel array data
+        # start with master array
+        global_pixels = self.globals['pixels']
+        for field_name in sorted(global_pixels.fields.keys()):
+            field = global_pixels.fields[field_name]
 
-        addr = 1
+            field.name = '%s.%s' % (global_pixels.name, field_name)
+            field.addr = addr
+            addr += 1
+
+            # set default value
+            field.default_value = self.pixel_arrays['pixels'].fields[field_name]
+            
+            self.data_table.append(field)
+
         for i in self.globals.values():
+            if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
+                for field_name in sorted(i.fields.keys()):
+                    field = i.fields[field_name]
+
+                    field.name = '%s.%s' % (i.name, field_name)
+                    field.addr = addr
+                    addr += 1
+
+                    # set default value
+                    field.default_value = self.pixel_arrays[i.name].fields[field_name]
+
+                    self.data_table.append(field)
+
+        # allocate all other globals
+        for i in self.globals.values():
+            if isinstance(i, irRecord) and i.type == 'PixelArray':
+                continue
+
             i.addr = addr
             addr += i.length
 
             self.data_table.append(i)
+
 
         if self.optimizations['optimize_register_usage']:
             for func in self.funcs:
@@ -2302,10 +2350,10 @@ class Builder(object):
 
         
         # add initializers to pixel arrays
-        for name, array in self.pixel_arrays.items():
-            for field, value in array.fields.items():
-                ir = irAssign(self.get_var('%s.%s' % (name, field)), self.get_var(value), lineno=0)
-                self.funcs['init'].insert(0, ir)
+        # for name, array in self.pixel_arrays.items():
+        #     for field, value in array.fields.items():
+        #         ir = irAssign(self.get_var('%s.%s' % (name, field), lineno=0), self.get_var(value, lineno=0), lineno=0)
+        #         self.funcs['init'].insert(0, ir)
 
         
         for func in self.funcs.values():
@@ -2426,14 +2474,14 @@ class VM(object):
 
             addr = var.addr
 
-            if isinstance(var, irConst):
-                self.memory.append(var.name)
+            # if isinstance(var, irConst):
+                # self.memory.append(var.name)
 
-            else:
-                for i in xrange(var.length):
-                    self.memory.append(0)
+            # else:
+            for i in xrange(var.length):
+                self.memory.append(var.default_value)
 
-                addr += var.length -1
+            addr += var.length -1
 
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
