@@ -2557,7 +2557,7 @@ def loop():
 v_fade_array_add = """
 
 def init():
-    pixels.v_fade += 0.1
+    pixels.v_fade += 100
 
 def loop():
     pass
@@ -2567,7 +2567,7 @@ def loop():
 v_fade_array_sub = """
 
 def init():
-    pixels.v_fade -= 0.1
+    pixels.v_fade -= 100
 
 def loop():
     pass
@@ -2577,8 +2577,8 @@ def loop():
 v_fade_array_mul = """
 
 def init():
-    pixels.v_fade = 0.5
-    pixels.v_fade *= 0.5
+    pixels.v_fade = 500
+    pixels.v_fade *= 2
 
 def loop():
     pass
@@ -2588,8 +2588,8 @@ def loop():
 v_fade_array_div = """
 
 def init():
-    pixels.v_fade = 0.5
-    pixels.v_fade /= 2.0
+    pixels.v_fade = 500
+    pixels.v_fade /= 2
 
 def loop():
     pass
@@ -2599,8 +2599,8 @@ def loop():
 v_fade_array_mod = """
 
 def init():
-    pixels.v_fade = 0.5
-    pixels.v_fade %= 0.3
+    pixels.v_fade = 500
+    pixels.v_fade %= 3
 
 def loop():
     pass
