@@ -568,6 +568,138 @@ opcode_mod:
     DISPATCH;
 
 
+opcode_f16_compeq:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] == data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_compneq:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] != data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_compgt:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] > data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_compgte:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] >= data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_complt:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] < data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_complte:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] <= data[ins3->op2];
+
+    DISPATCH;
+
+
+
+opcode_f16_and:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] && data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_or:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] || data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_add:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] + data[ins3->op2];
+
+    DISPATCH;
+
+    
+opcode_f16_sub:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = data[ins3->op1] - data[ins3->op2];
+
+    DISPATCH;
+
+
+opcode_f16_mul:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    data[ins3->dest] = ( (int64_t)data[ins3->op1] * (int64_t)data[ins3->op2] ) / 65536;
+
+    DISPATCH;
+
+
+opcode_f16_div:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    if( data[ins3->op2] != 0 ){
+
+        data[ins3->dest] = ( (int64_t)data[ins3->op1] * 65536 ) / data[ins3->op2];
+    }
+    else{
+
+        data[ins3->dest] = 0;
+    }
+
+    DISPATCH;
+
+
+opcode_f16_mod:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
+
+    if( data[ins3->op2] != 0 ){
+
+        data[ins3->dest] = data[ins3->op1] % data[ins3->op2];
+    }
+    else{
+
+        data[ins3->dest] = 0;
+    }
+
+    DISPATCH;
+
+
 // opcode_jmp:
 
 //     addr = *pc++;
