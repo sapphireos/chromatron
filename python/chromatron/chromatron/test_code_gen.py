@@ -2461,7 +2461,7 @@ def loop():
 hs_fade_array_1 = """
 
 def init():
-    pixels[1].hs_fade = 1.0
+    pixels[1].hs_fade = 19.0
     pixels[1][2].hs_fade = 500
 
 def loop():
@@ -2492,6 +2492,7 @@ def loop():
 hs_fade_array_sub = """
 
 def init():
+    pixels.hs_fade = 200
     pixels.hs_fade -= 100
 
 def loop():
@@ -2524,8 +2525,8 @@ def loop():
 hs_fade_array_mod = """
 
 def init():
-    pixels.hs_fade = 0.5
-    pixels.hs_fade %= 0.3
+    pixels.hs_fade = 500
+    pixels.hs_fade %= 3
 
 def loop():
     pass
@@ -2536,8 +2537,8 @@ def loop():
 v_fade_array_1 = """
 
 def init():
-    pixels[1].v_fade = 1.0
-    pixels[1][2].v_fade = 0.5
+    pixels[1].v_fade = 500
+    pixels[1][2].v_fade = 250
 
 def loop():
     pass
@@ -2547,7 +2548,7 @@ def loop():
 v_fade_array_2 = """
 
 def init():
-    pixels.v_fade = 0.5
+    pixels.v_fade = 500.0
 
 def loop():
     pass
@@ -2926,7 +2927,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['hs_fade'][1], 65535)
+        self.assertEqual(hsv['hs_fade'][1], 19)
         self.assertEqual(hsv['hs_fade'][9], 500)
 
     def test_hs_fade_array_2(self):
@@ -2960,7 +2961,7 @@ class CGHSVArrayTests(unittest.TestCase):
         hsv = vm.dump_hsv()
 
         for a in hsv['hs_fade']:
-            self.assertEqual(a, -100)
+            self.assertEqual(a, 100)
 
     def test_hs_fade_array_mul(self):
         builder = code_gen.compile_text(hs_fade_array_mul, debug_print=False)
@@ -2993,7 +2994,7 @@ class CGHSVArrayTests(unittest.TestCase):
         hsv = vm.dump_hsv()
 
         for a in hsv['hs_fade']:
-            self.assertEqual(a, 13108)
+            self.assertEqual(a, 2)
 
     def test_v_fade_array_1(self):
         builder = code_gen.compile_text(v_fade_array_1, debug_print=False)
@@ -3003,8 +3004,8 @@ class CGHSVArrayTests(unittest.TestCase):
 
         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['v_fade'][1], 65535)
-        self.assertEqual(hsv['v_fade'][9], 32768)
+        self.assertEqual(hsv['v_fade'][1], 500)
+        self.assertEqual(hsv['v_fade'][9], 250)
 
     def test_v_fade_array_2(self):
         builder = code_gen.compile_text(v_fade_array_2, debug_print=False)
@@ -3015,7 +3016,7 @@ class CGHSVArrayTests(unittest.TestCase):
         hsv = vm.dump_hsv()
 
         for a in hsv['v_fade']:
-            self.assertEqual(a, 32768)
+            self.assertEqual(a, 500)
 
     def test_v_fade_array_add(self):
         builder = code_gen.compile_text(v_fade_array_add, debug_print=False)
@@ -3070,7 +3071,7 @@ class CGHSVArrayTests(unittest.TestCase):
         hsv = vm.dump_hsv()
 
         for a in hsv['v_fade']:
-            self.assertEqual(a, 13108)
+            self.assertEqual(a, 2)
 
 
     def test_gfx_array_indexing(self):

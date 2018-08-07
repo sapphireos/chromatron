@@ -332,16 +332,17 @@ class irObjectAttr(irAddress):
         return "ObjAttr (%s.%s)" % (self.name, self.attr)
 
 
-PIX_ATTRS = {
-    'hue': 0,
-    'sat': 1,
-    'val': 2,
-    'hs_fade': 3,
-    'v_fade': 4,
-    'count': 5,
-    'size_x': 6,
-    'size_y': 7,
-    'index': 8,
+
+PIX_ATTR_TYPES = {
+    'hue': 'f16',
+    'sat': 'f16',
+    'val': 'f16',
+    'hs_fade': 'i32',
+    'v_fade': 'i32',
+    'count': 'i32',
+    'size_x': 'i32',
+    'size_y': 'i32',
+    'index': 'i32',
 }
 
 class irPixelAttr(irObjectAttr):
@@ -944,7 +945,6 @@ class irPixelIndex(IR):
         self.target = target
         self.indexes = indexes
         self.attr = None
-        self.type = 'f16'
 
     def __str__(self):
         indexes = ''
@@ -959,7 +959,8 @@ class irPixelIndex(IR):
         return self.indexes
 
     def get_base_type(self):
-        return self.type
+        return PIX_ATTR_TYPES[self.attr]
+
 
 
 class irDBIndex(IR):
@@ -1510,6 +1511,10 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):   
+
+        print "MEOW", target, value
+        print  target.get_base_type(), value.get_base_type()
+
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
