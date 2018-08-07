@@ -838,6 +838,16 @@ opcode_call:
     DISPATCH;
 
 
+opcode_lcall:
+    
+    DISPATCH;
+
+
+opcode_dbcall:
+    
+    DISPATCH;
+
+
 opcode_index:
     result = *pc++;
     result += ( *pc++ ) << 8;
@@ -1041,40 +1051,114 @@ opcode_vmod:
 
     DISPATCH;
 
-// opcode_idx_load:
-//     dest = *pc++;
-//     src = *pc++;
-//     index = data[*pc++];
 
-//     data[dest] = data[src + index];
-
-//     DISPATCH;
+opcode_pmov:
+    
+    DISPATCH;
 
 
-// opcode_idx_store:
-//     dest = *pc++;
-//     src = *pc++;
-//     index = data[*pc++];
-
-//     data[dest + index] = data[src];
-
-//     DISPATCH;
+opcode_padd:
+    
+    DISPATCH;
 
 
-// opcode_offset_array:
-//     dest = *pc++;
-//     base = data[*pc++];
-//     index = data[*pc++];
-//     ary_length = data[*pc++];
-//     ary_stride = data[*pc++];
+opcode_psub:
+    
+    DISPATCH;
 
-//     index %= ary_length;
-//     index *= ary_stride;
-//     index += base;
 
-//     data[dest] = index;
+opcode_pmul:
+    
+    DISPATCH;
 
-//     DISPATCH;
+
+opcode_pdiv:
+    
+    DISPATCH;
+
+
+opcode_pmod:
+    
+    DISPATCH;
+
+
+opcode_pstore_hue:
+    
+    DISPATCH;
+
+
+opcode_pstore_sat:
+    
+    DISPATCH;
+
+
+opcode_pstore_val:
+    
+    DISPATCH;
+
+
+opcode_pstore_vfade:
+    
+    DISPATCH;
+
+
+opcode_pstore_hsfade:
+    
+    DISPATCH;
+
+
+opcode_pload_hue:
+    
+    DISPATCH;
+
+
+opcode_pload_sat:
+    
+    DISPATCH;
+
+
+opcode_pload_val:
+    
+    DISPATCH;
+
+
+opcode_pload_vfade:
+    
+    DISPATCH;
+
+
+opcode_pload_hsfade:
+    
+    DISPATCH;
+
+
+opcode_db_store:
+    
+    DISPATCH;
+
+
+opcode_db_load:
+    
+    DISPATCH;
+
+
+opcode_conv_i32_to_f16:        
+    ins2 = (ins_2op_t *)pc;
+    pc += sizeof(ins_2op_t);
+
+    data[ins2->dest] = ( data[ins2->src] << 16 );
+
+    DISPATCH;
+
+
+opcode_conv_f16_to_i32:
+    ins2 = (ins_2op_t *)pc;
+    pc += sizeof(ins_2op_t);
+
+    data[ins2->dest] = data[ins2->src] / 65536;
+    
+    DISPATCH;
+
 
 
 // opcode_array_func:
