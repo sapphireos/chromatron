@@ -379,6 +379,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t stride;
     uint16_t temp;
     uint8_t len;
+    catbus_hash_t32 hash;
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     call_depth = 0;
@@ -386,9 +387,9 @@ static int8_t _vm_i8_run_stream(
     // uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
     // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
     // bool yield;
-    // int32_t params[8];
+    int32_t params[8];
     // uint16_t addr;
-    // catbus_hash_t32 hash;
+    
 
     
 
@@ -839,6 +840,28 @@ opcode_call:
 
 
 opcode_lcall:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
+    
+    for( uint32_t i = 0; i < len; i++ ){
+        temp = *pc++;
+        temp += ( *pc++ ) << 8;
+
+        params[i] = data[temp];
+    }
+
+    result = *pc++;
+    result += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[result] = gfx_i32_lib_call( hash, params, len );
+    #else   
+    data[result] = 0;
+    #endif
     
     DISPATCH;
 
