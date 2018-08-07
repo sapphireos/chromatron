@@ -1364,8 +1364,14 @@ class Builder(object):
             return self.globals[name]
 
         elif obj_name in self.pixel_arrays:
-            if obj_name in self.globals:
-                return self.globals[obj_name].fields[attr]
+            try:
+                if obj_name in self.globals:
+                    return self.globals[obj_name].fields[attr]
+
+            except KeyError:
+                # attribute not found in pixel array record, 
+                # so it must be an array
+                pass                
 
             obj = self.pixel_arrays[obj_name]
             
