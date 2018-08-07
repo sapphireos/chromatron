@@ -2482,14 +2482,10 @@ class VM(object):
 
             addr = var.addr
 
-            # if isinstance(var, irConst):
-                # self.memory.append(var.name)
-
-            # else:
             for i in xrange(var.length):
                 self.memory.append(var.default_value)
 
-            addr += var.length -1
+            addr += var.length - 1
 
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']

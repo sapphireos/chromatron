@@ -1232,6 +1232,12 @@ class insPixelVectorMul(insPixelVector):
 
                 array[i] %= 65536
 
+        elif self.attr in ['hs_fade', 'v_fade']:
+            for i in xrange(len(array)):
+
+                array[i] = array[i] * value
+
+                array[i] %= 65536
 
         else:
             for i in xrange(len(array)):
@@ -1263,7 +1269,7 @@ class insPixelVectorDiv(insPixelVector):
 
                 array[i] %= 65536
 
-        elif self.attr in ['hs_fade, v_fade']:
+        elif self.attr in ['hs_fade', 'v_fade']:
             for i in xrange(len(array)):
                 array[i] = array[i] / value
 
@@ -1298,7 +1304,6 @@ class insPixelVectorMod(insPixelVector):
                 array[i] %= value
 
                 array[i] %= 65536
-
 
         else:
             for i in xrange(len(array)):
