@@ -51,6 +51,14 @@ typedef struct{
     uint16_t op2;
 } ins_3op_t;
 
+typedef struct{
+    uint16_t dest;
+    uint16_t src;
+    uint16_t length;
+    uint8_t type;
+} ins_vector_t;
+
+
 
 static int32_t _vm_i32_sys_call( 
     vm_state_t *state, 
@@ -358,6 +366,7 @@ static int8_t _vm_i8_run_stream(
     ins_1op_t *ins1;
     ins_2op_t *ins2;
     ins_3op_t *ins3;
+    ins_vector_t *insv;
 
     uint16_t call_target;
     uint16_t call_param;
@@ -866,6 +875,171 @@ opcode_index:
 
     DISPATCH;
 
+
+opcode_load_indirect:
+    ins2 = (ins_2op_t *)pc; 
+    pc += sizeof(ins_2op_t);
+
+    temp = data[ins2->src];
+
+    // bounds check
+    if( temp >= state->data_count ){
+
+        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+    }
+
+    data[ins2->dest] = data[temp];
+    
+    DISPATCH;
+
+
+opcode_store_indirect:
+    ins2 = (ins_2op_t *)pc; 
+    pc += sizeof(ins_2op_t);
+
+    temp = data[ins2->src];
+
+    // bounds check
+    if( temp >= state->data_count ){
+
+        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+    }
+
+    data[temp] = data[ins2->dest];
+
+    DISPATCH;
+
+
+opcode_assert:
+    ins1 = (ins_1op_t *)pc;
+    pc += sizeof(ins_1op_t);
+
+    if( data[ins1->dest] == FALSE ){
+
+        #ifndef VM_TARGET_ESP
+        // log_v_debug_P( PSTR("VM assertion failed") );
+        #endif
+        return VM_STATUS_ASSERT;
+    }
+
+    DISPATCH;
+
+
+opcode_halt:
+    return VM_STATUS_HALT;
+
+    DISPATCH;
+
+
+opcode_vmov:
+    insv = (ins_vector_t *)pc;
+    pc += sizeof(ins_vector_t);
+    
+    for( uint16_t i = 0; i < insv->length; i++ ){
+
+        data[insv->dest + i] = data[insv->src];
+    }
+
+    DISPATCH;
+
+
+opcode_vadd:
+    insv = (ins_vector_t *)pc;
+    pc += sizeof(ins_vector_t);
+    
+    for( uint16_t i = 0; i < insv->length; i++ ){
+
+        data[insv->dest + i] += data[insv->src];
+    }
+
+    DISPATCH;
+
+
+opcode_vsub:
+    insv = (ins_vector_t *)pc;
+    pc += sizeof(ins_vector_t);
+    
+    for( uint16_t i = 0; i < insv->length; i++ ){
+
+        data[insv->dest + i] -= data[insv->src];
+    }
+
+    DISPATCH;
+
+
+opcode_vmul:
+    insv = (ins_vector_t *)pc;
+    pc += sizeof(ins_vector_t);
+        
+    if( insv->type == VM_TYPE_F16 ){
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] = ( (int64_t)data[insv->dest + i] * data[insv->src] ) / 65536;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] *= data[insv->src];
+        }
+    }
+
+    DISPATCH;
+
+
+opcode_vdiv:
+    insv = (ins_vector_t *)pc;
+    pc += sizeof(ins_vector_t);
+
+    // check for divide by zero
+    if( data[insv->src] == 0 ){
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] = 0;
+        }
+    }
+    else if( insv->type == VM_TYPE_F16 ){
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] = ( (int64_t)data[insv->dest + i] * 65536 ) / data[insv->src];
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] /= data[insv->src];
+        }
+    }
+
+    DISPATCH;
+
+
+opcode_vmod:
+    insv = (ins_vector_t *)pc;
+    pc += sizeof(ins_vector_t);
+
+    // check for divide by zero
+    if( data[insv->src] == 0 ){
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] = 0;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < insv->length; i++ ){
+
+            data[insv->dest + i] %= data[insv->src];
+        }
+    }
+
+    DISPATCH;
 
 // opcode_idx_load:
 //     dest = *pc++;

@@ -24,6 +24,11 @@ from catbus import catbus_string_hash
 
 import random
 
+TYPES = {
+    'i32': 0,
+    'f16': 1,
+}
+
 
 class ReturnException(Exception):
     pass
@@ -920,7 +925,7 @@ class insIndex(BaseInstruction):
             bc.extend(self.strides[i].assemble())
 
         return bc
-        
+
 
 class insIndirectLoad(BaseInstruction):
     mnemonic = 'LOAD_INDIRECT'
@@ -960,8 +965,8 @@ class insIndirectStore(BaseInstruction):
     
     def assemble(self):
         bc = [self.opcode]
-        bc.extend(self.src.assemble())
         bc.extend(self.addr.assemble())
+        bc.extend(self.src.assemble())
 
         return bc
 
@@ -1022,6 +1027,8 @@ class insVector(BaseInstruction):
         self.target = target
         self.value = value
 
+        self.type = self.target.var.get_base_type()
+
         self.length = self.target.var.length
 
     def __str__(self):
@@ -1033,10 +1040,14 @@ class insVector(BaseInstruction):
         bc.extend(self.value.assemble())
 
         # convert to 16 bits
-        l = self.addr & 0xff
-        h = (self.addr >> 8) & 0xff
+        l = self.length & 0xff
+        h = (self.length >> 8) & 0xff
 
         bc.extend([l, h])
+
+        target_type = TYPES[self.type]
+
+        bc.append(target_type)
 
         return bc
 
@@ -1089,7 +1100,7 @@ class insVectorMul(insVector):
         value = vm.memory[self.value.addr]
         addr = vm.memory[self.target.addr]
 
-        if self.target.var.get_base_type() == 'f16':
+        if self.type == 'f16':
             for i in xrange(self.length):
                 vm.memory[addr] = (vm.memory[addr] * value) / 65536
                     
@@ -1115,7 +1126,7 @@ class insVectorDiv(insVector):
                 vm.memory[addr] = value
                 addr += 1
 
-        elif self.target.var.get_base_type() == 'f16':
+        elif self.type == 'f16':
             for i in xrange(self.length):
                 vm.memory[addr] = (vm.memory[addr] * 65536) / value
                     
@@ -1141,7 +1152,7 @@ class insVectorMod(insVector):
                 vm.memory[addr] = value
                 addr += 1
 
-        elif self.target.var.get_base_type() == 'f16':
+        elif self.type == 'f16':
             for i in xrange(self.length):
                 vm.memory[addr] = vm.memory[addr] % value
                     
