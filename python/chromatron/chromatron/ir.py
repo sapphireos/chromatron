@@ -2481,7 +2481,6 @@ class Builder(object):
 
 
         # set up published registers
-        publish_count = 0
         packed_publish = ''
         for var in self.data_table:
             if var.publish:
@@ -2491,8 +2490,6 @@ class Builder(object):
                                     type=get_type_id(var.type)).pack()
 
                 meta_names.append(var.name)
-
-                publish_count += 1
 
 
         # build program header
@@ -2506,7 +2503,7 @@ class Builder(object):
                     pix_obj_len=0,
                     read_keys_len=0,
                     write_keys_len=0,
-                    publish_len=publish_count,
+                    publish_len=len(packed_publish),
                     link_len=0,
                     db_len=0,
                     init_start=self.function_addrs['init'],
