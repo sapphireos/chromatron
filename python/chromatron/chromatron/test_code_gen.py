@@ -3149,10 +3149,12 @@ class CGTestsOnDevice(CGTestsBase):
                 data = builder.generate_binary('test.fxb')
 
                 ct.stop_vm()
+                # change vm program
+                ct.set_key('vm_prog', 'test.fxb')
                 ct.put_file('test.fxb', data)
                 ct.start_vm()
 
-                time.sleep(0.2)
+                time.sleep(0.5)
 
                 ct.init_scan()
 

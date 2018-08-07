@@ -336,6 +336,7 @@ class Client(object):
 
             try:
                 response, sender = self._exchange(msg)
+                print response
                 
                 if len(response.data) == 0:
                     raise KeyError
@@ -774,7 +775,7 @@ if __name__ == '__main__':
     # for node in c.discover().values():
         # pprint(node)
 
-    c.connect(('10.0.0.121', 44632))
+    c.connect(('10.0.0.119', 44632))
     # c.connect(('10.0.0.102', 44632))
     # pprint(c.get_links())
 
@@ -783,7 +784,7 @@ if __name__ == '__main__':
 
     # c.delete_link("test")
 
-    pprint(c.get_links())
+    # pprint(c.get_links())
 
     # print c.get_key('test_meow')
 
@@ -792,7 +793,7 @@ if __name__ == '__main__':
     # print c.get_key('test_woof')
     # c.set_key('test_woof', ['4','5','6','7'])
 
-    # print c.get_key('test_woof')
+    print c.get_key('fx_a')
 
 
 

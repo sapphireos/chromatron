@@ -1308,7 +1308,7 @@ opcode_conv_i32_to_f16:
     src = *pc++;
     src += ( *pc++ ) << 8;
 
-    data[dest] = ( data[src] << 16 );
+    data[dest] = data[src] * 65536;
 
     DISPATCH;
 
@@ -2038,7 +2038,7 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        kvdb_i8_get( publish->hash, CATBUS_TYPE_INT32, &data[publish->addr], sizeof(data[publish->addr]) );
+        kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
 
         publish++;
         count--;
@@ -2060,7 +2060,7 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        kvdb_i8_set( publish->hash, CATBUS_TYPE_INT32, &data[publish->addr], sizeof(data[publish->addr]) );
+        kvdb_i8_set( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
 
         publish++;
         count--;
