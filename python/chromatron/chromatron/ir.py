@@ -2466,6 +2466,7 @@ class Builder(object):
         meta_names = []
 
         code_len = len(self.bytecode)
+        data_len = self.data_count * DATA_LEN
 
         # set up padding so data start will be on 32 bit boundary
         padding_len = 4 - (code_len % 4)
@@ -2478,7 +2479,7 @@ class Builder(object):
                     isa_version=VM_ISA_VERSION,
                     program_name_hash=catbus_string_hash(self.script_name),
                     code_len=code_len,
-                    data_len=self.data_count,
+                    data_len=data_len,
                     pix_obj_len=0,
                     read_keys_len=0,
                     write_keys_len=0,

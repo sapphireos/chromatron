@@ -36,6 +36,12 @@
 #endif
 #endif
 
+uint32_t vm_debug;
+uint32_t vm_debug2;
+uint32_t vm_debug3;
+uint32_t vm_debug4;
+
+
 typedef struct{
     uint16_t dest;
 } ins_1op_t;
@@ -72,7 +78,6 @@ static uint32_t cycles;
 #else
 static uint16_t cycles;
 #endif
-static uint8_t call_depth;
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
@@ -359,7 +364,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,	            // 255
     };
 
-    uint8_t *code = (uint8_t *)( stream + state->code_start );
+    uint8_t *code = stream + state->code_start;
     uint8_t *pc = code + offset;
     uint8_t opcode;
 
@@ -368,6 +373,8 @@ static int8_t _vm_i8_run_stream(
     ins_3op_t *ins3;
     ins_vector_t *insv;
 
+    uint16_t dest;
+    uint16_t src;
     uint16_t call_target;
     uint16_t call_param;
     uint16_t call_arg;
@@ -382,16 +389,14 @@ static int8_t _vm_i8_run_stream(
     catbus_hash_t32 hash;
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
-    call_depth = 0;
+    uint8_t call_depth = 0;
 
     // uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
     // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
     // bool yield;
     int32_t params[8];
     // uint16_t addr;
-    
 
-    
 
     #ifdef ESP8266
         #define DISPATCH cycles--; \
@@ -424,6 +429,7 @@ static int8_t _vm_i8_run_stream(
         #endif
 
     #endif
+
 
 opcode_mov:
     ins2 = (ins_2op_t *)pc;
@@ -779,10 +785,11 @@ opcode_jmp_if_l_pre_inc:
 
 
 opcode_ret:
-    ins1 = (ins_1op_t *)pc;
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
     
     // move return val to return register
-    data[RETURN_VAL_ADDR] = data[ins1->dest];
+    data[RETURN_VAL_ADDR] = data[dest];
 
     // check if call depth is 0
     // if so, we are exiting the VM
@@ -1689,7 +1696,7 @@ opcode_conv_f16_to_i32:
 
 //     yield = FALSE;
 //     data[dest] = _vm_i32_sys_call( state, func_id, params, param_len, &yield );
-
+ 
 //     if( yield && ( call_depth == 1 ) && ( state->current_thread >= 0 ) ){
 
 //         // store code offset
@@ -1938,9 +1945,9 @@ int8_t vm_i8_run_init(
     #ifdef VM_ENABLE_GFX
 
     // init pixel array pointer
-    gfx_pixel_array_t *pix_array = (gfx_pixel_array_t *)( stream + state->pix_obj_start );
+    // gfx_pixel_array_t *pix_array = (gfx_pixel_array_t *)( stream + state->pix_obj_start );
 
-    gfx_v_init_pixel_arrays( pix_array, state->pix_obj_count );
+    // gfx_v_init_pixel_arrays( pix_array, state->pix_obj_count );
 
     #endif
 

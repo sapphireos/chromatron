@@ -74,6 +74,8 @@
 
 #define VM_STATUS_RESTRICTED_KEY        -70
 
+#define VM_STATUS_ERROR                 -80
+
 #define VM_STATUS_INDEX_OUT_OF_BOUNDS   -97
 #define VM_STATUS_CALL_DEPTH_EXCEEDED   -98
 #define VM_STATUS_ASSERT                -99

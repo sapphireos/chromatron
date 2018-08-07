@@ -156,7 +156,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     uint32_t start_time = micros();
 
-    int8_t return_code;
+    int8_t return_code = VM_STATUS_ERROR;
 
     uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
 
