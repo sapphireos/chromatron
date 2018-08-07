@@ -36,35 +36,6 @@
 #endif
 #endif
 
-uint32_t vm_debug;
-uint32_t vm_debug2;
-uint32_t vm_debug3;
-uint32_t vm_debug4;
-
-
-typedef struct{
-    uint16_t dest;
-} ins_1op_t;
-
-typedef struct{
-    uint16_t dest;
-    uint16_t src;
-} ins_2op_t;
-
-typedef struct{
-    uint16_t dest;
-    uint16_t op1;
-    uint16_t op2;
-} ins_3op_t;
-
-typedef struct{
-    uint16_t dest;
-    uint16_t src;
-    uint16_t length;
-    uint8_t type;
-} ins_vector_t;
-
-
 
 static int32_t _vm_i32_sys_call( 
     vm_state_t *state, 
@@ -368,13 +339,10 @@ static int8_t _vm_i8_run_stream(
     uint8_t *pc = code + offset;
     uint8_t opcode;
 
-    ins_1op_t *ins1;
-    ins_2op_t *ins2;
-    ins_3op_t *ins3;
-    ins_vector_t *insv;
-
     uint16_t dest;
     uint16_t src;
+    uint16_t op1;
+    uint16_t op2;
     uint16_t call_target;
     uint16_t call_param;
     uint16_t call_arg;
@@ -386,6 +354,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t stride;
     uint16_t temp;
     uint8_t len;
+    uint8_t type;
     catbus_hash_t32 hash;
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -432,355 +401,464 @@ static int8_t _vm_i8_run_stream(
 
 
 opcode_mov:
-    ins2 = (ins_2op_t *)pc;
-    pc += sizeof(ins_2op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    data[ins2->dest] = data[ins2->src];
+    data[dest] = data[src];
 
     DISPATCH;
 
 
 opcode_clr:
-    ins1 = (ins_1op_t *)pc;
-    pc += sizeof(ins_1op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
     
-    data[ins1->dest] = 0;
+    data[dest] = 0;
 
     DISPATCH;
 
 
 opcode_not:    
-    ins2 = (ins_2op_t *)pc;
-    pc += sizeof(ins_2op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    if( data[ins2->src] == 0 ){
+    if( data[src] == 0 ){
 
-        data[ins2->dest] = 1;
+        data[dest] = 1;
     }
     else{
         
-        data[ins2->dest] = 0;
+        data[dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_compeq:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] == data[ins3->op2];
+    data[dest] = data[op1] == data[op2];
 
     DISPATCH;
 
 
 opcode_compneq:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] != data[ins3->op2];
+    data[dest] = data[op1] != data[op2];
 
     DISPATCH;
 
 
 opcode_compgt:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] > data[ins3->op2];
+    data[dest] = data[op1] > data[op2];
 
     DISPATCH;
 
 
 opcode_compgte:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] >= data[ins3->op2];
+    data[dest] = data[op1] >= data[op2];
 
     DISPATCH;
 
 
 opcode_complt:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] < data[ins3->op2];
+    data[dest] = data[op1] < data[op2];
 
     DISPATCH;
 
 
 opcode_complte:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] <= data[ins3->op2];
+    data[dest] = data[op1] <= data[op2];
 
     DISPATCH;
 
 
 
 opcode_and:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] && data[ins3->op2];
+    data[dest] = data[op1] && data[op2];
 
     DISPATCH;
 
 
 opcode_or:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] || data[ins3->op2];
+    data[dest] = data[op1] || data[op2];
 
     DISPATCH;
 
 
 opcode_add:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] + data[ins3->op2];
+    data[dest] = data[op1] + data[op2];
 
     DISPATCH;
 
     
 opcode_sub:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] - data[ins3->op2];
+    data[dest] = data[op1] - data[op2];
 
     DISPATCH;
 
 
 opcode_mul:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
-
-    data[ins3->dest] = data[ins3->op1] * data[ins3->op2];
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+    data[dest] = data[op1] * data[op2];
 
     DISPATCH;
 
 
 opcode_div:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    if( data[ins3->op2] != 0 ){
+    if( data[op2] != 0 ){
 
-        data[ins3->dest] = data[ins3->op1] / data[ins3->op2];
+        data[dest] = data[op1] / data[op2];
     }
     else{
 
-        data[ins3->dest] = 0;
+        data[dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_mod:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    if( data[ins3->op2] != 0 ){
+    if( data[op2] != 0 ){
 
-        data[ins3->dest] = data[ins3->op1] % data[ins3->op2];
+        data[dest] = data[op1] % data[op2];
     }
     else{
 
-        data[ins3->dest] = 0;
+        data[dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_f16_compeq:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] == data[ins3->op2];
+    data[dest] = data[op1] == data[op2];
 
     DISPATCH;
 
 
 opcode_f16_compneq:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] != data[ins3->op2];
+    data[dest] = data[op1] != data[op2];
 
     DISPATCH;
 
 
 opcode_f16_compgt:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] > data[ins3->op2];
+    data[dest] = data[op1] > data[op2];
 
     DISPATCH;
 
 
 opcode_f16_compgte:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] >= data[ins3->op2];
+    data[dest] = data[op1] >= data[op2];
 
     DISPATCH;
 
 
 opcode_f16_complt:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] < data[ins3->op2];
+    data[dest] = data[op1] < data[op2];
 
     DISPATCH;
 
 
 opcode_f16_complte:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] <= data[ins3->op2];
+    data[dest] = data[op1] <= data[op2];
 
     DISPATCH;
 
 
 
 opcode_f16_and:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] && data[ins3->op2];
+    data[dest] = data[op1] && data[op2];
 
     DISPATCH;
 
 
 opcode_f16_or:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] || data[ins3->op2];
+    data[dest] = data[op1] || data[op2];
 
     DISPATCH;
 
 
 opcode_f16_add:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] + data[ins3->op2];
+    data[dest] = data[op1] + data[op2];
 
     DISPATCH;
 
     
 opcode_f16_sub:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = data[ins3->op1] - data[ins3->op2];
+    data[dest] = data[op1] - data[op2];
 
     DISPATCH;
 
 
 opcode_f16_mul:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->dest] = ( (int64_t)data[ins3->op1] * (int64_t)data[ins3->op2] ) / 65536;
+    data[dest] = ( (int64_t)data[op1] * (int64_t)data[op2] ) / 65536;
 
     DISPATCH;
 
 
 opcode_f16_div:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    if( data[ins3->op2] != 0 ){
+    if( data[op2] != 0 ){
 
-        data[ins3->dest] = ( (int64_t)data[ins3->op1] * 65536 ) / data[ins3->op2];
+        data[dest] = ( (int64_t)data[op1] * 65536 ) / data[op2];
     }
     else{
 
-        data[ins3->dest] = 0;
+        data[dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_f16_mod:
-    ins3 = (ins_3op_t *)pc;
-    pc += sizeof(ins_3op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    if( data[ins3->op2] != 0 ){
+    if( data[op2] != 0 ){
 
-        data[ins3->dest] = data[ins3->op1] % data[ins3->op2];
+        data[dest] = data[op1] % data[op2];
     }
     else{
 
-        data[ins3->dest] = 0;
+        data[dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_jmp:
-    ins1 = (ins_1op_t *)pc;
-
-    pc = code + ins1->dest;
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    
+    pc = code + dest;
 
     DISPATCH;
 
 
 opcode_jmp_if_z:
-    ins2 = (ins_2op_t *)pc;
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    if( data[ins2->src] == 0 ){
+    if( data[src] == 0 ){
 
-        pc = code + ins2->dest;
+        pc = code + dest;
     }
-    else{
-
-        pc += sizeof(ins_2op_t);
-    }
+    
 
     DISPATCH;
 
 
 opcode_jmp_if_not_z:
-    ins2 = (ins_2op_t *)pc; 
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    if( data[ins2->src] != 0 ){
+    if( data[src] != 0 ){
 
-        pc = code + ins2->dest;
+        pc = code + dest;
     }
-    else{
-
-        pc += sizeof(ins_2op_t);
-    }
+    
 
     DISPATCH;
 
 
 opcode_jmp_if_l_pre_inc:
-    ins3 = (ins_3op_t *)pc; 
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    data[ins3->op1]++;
+    data[op1]++;
 
-    if( data[ins3->op1] < data[ins3->op2] ){
+    if( data[op1] < data[op2] ){
 
-        pc = code + ins3->dest;
+        pc = code + dest;
     }
-    else{
-
-        pc += sizeof(ins_3op_t);    
-    }
-
+    
     DISPATCH;
 
 
@@ -917,10 +995,12 @@ opcode_index:
 
 
 opcode_load_indirect:
-    ins2 = (ins_2op_t *)pc; 
-    pc += sizeof(ins_2op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    temp = data[ins2->src];
+    temp = data[src];
 
     // bounds check
     if( temp >= state->data_count ){
@@ -928,16 +1008,18 @@ opcode_load_indirect:
         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
     }
 
-    data[ins2->dest] = data[temp];
+    data[dest] = data[temp];
     
     DISPATCH;
 
 
 opcode_store_indirect:
-    ins2 = (ins_2op_t *)pc; 
-    pc += sizeof(ins_2op_t);
-
-    temp = data[ins2->src];
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    temp = data[src];
 
     // bounds check
     if( temp >= state->data_count ){
@@ -945,16 +1027,16 @@ opcode_store_indirect:
         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
     }
 
-    data[temp] = data[ins2->dest];
+    data[temp] = data[dest];
 
     DISPATCH;
 
 
 opcode_assert:
-    ins1 = (ins_1op_t *)pc;
-    pc += sizeof(ins_1op_t);
-
-    if( data[ins1->dest] == FALSE ){
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    
+    if( data[dest] == FALSE ){
 
         #ifndef VM_TARGET_ESP
         // log_v_debug_P( PSTR("VM assertion failed") );
@@ -972,57 +1054,77 @@ opcode_halt:
 
 
 opcode_vmov:
-    insv = (ins_vector_t *)pc;
-    pc += sizeof(ins_vector_t);
-    
-    for( uint16_t i = 0; i < insv->length; i++ ){
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
 
-        data[insv->dest + i] = data[insv->src];
+    for( uint16_t i = 0; i < len; i++ ){
+
+        data[dest + i] = data[src];
     }
 
     DISPATCH;
 
 
 opcode_vadd:
-    insv = (ins_vector_t *)pc;
-    pc += sizeof(ins_vector_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
     
-    for( uint16_t i = 0; i < insv->length; i++ ){
+    for( uint16_t i = 0; i < len; i++ ){
 
-        data[insv->dest + i] += data[insv->src];
+        data[dest + i] += data[src];
     }
 
     DISPATCH;
 
 
 opcode_vsub:
-    insv = (ins_vector_t *)pc;
-    pc += sizeof(ins_vector_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
     
-    for( uint16_t i = 0; i < insv->length; i++ ){
+    for( uint16_t i = 0; i < len; i++ ){
 
-        data[insv->dest + i] -= data[insv->src];
+        data[dest + i] -= data[src];
     }
 
     DISPATCH;
 
 
 opcode_vmul:
-    insv = (ins_vector_t *)pc;
-    pc += sizeof(ins_vector_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
         
-    if( insv->type == VM_TYPE_F16 ){
+    if( type == VM_TYPE_F16 ){
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] = ( (int64_t)data[insv->dest + i] * data[insv->src] ) / 65536;
+            data[dest + i] = ( (int64_t)data[dest + i] * data[src] ) / 65536;
         }
     }
     else{
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] *= data[insv->src];
+            data[dest + i] *= data[src];
         }
     }
 
@@ -1030,29 +1132,34 @@ opcode_vmul:
 
 
 opcode_vdiv:
-    insv = (ins_vector_t *)pc;
-    pc += sizeof(ins_vector_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
 
     // check for divide by zero
-    if( data[insv->src] == 0 ){
+    if( data[src] == 0 ){
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] = 0;
+            data[dest + i] = 0;
         }
     }
-    else if( insv->type == VM_TYPE_F16 ){
+    else if( type == VM_TYPE_F16 ){
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] = ( (int64_t)data[insv->dest + i] * 65536 ) / data[insv->src];
+            data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[src];
         }
     }
     else{
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] /= data[insv->src];
+            data[dest + i] /= data[src];
         }
     }
 
@@ -1060,22 +1167,27 @@ opcode_vdiv:
 
 
 opcode_vmod:
-    insv = (ins_vector_t *)pc;
-    pc += sizeof(ins_vector_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
 
     // check for divide by zero
-    if( data[insv->src] == 0 ){
+    if( data[src] == 0 ){
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] = 0;
+            data[dest + i] = 0;
         }
     }
     else{
 
-        for( uint16_t i = 0; i < insv->length; i++ ){
+        for( uint16_t i = 0; i < len; i++ ){
 
-            data[insv->dest + i] %= data[insv->src];
+            data[dest + i] %= data[src];
         }
     }
 
@@ -1173,19 +1285,23 @@ opcode_db_load:
 
 
 opcode_conv_i32_to_f16:        
-    ins2 = (ins_2op_t *)pc;
-    pc += sizeof(ins_2op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    data[ins2->dest] = ( data[ins2->src] << 16 );
+    data[dest] = ( data[src] << 16 );
 
     DISPATCH;
 
 
 opcode_conv_f16_to_i32:
-    ins2 = (ins_2op_t *)pc;
-    pc += sizeof(ins_2op_t);
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    data[ins2->dest] = data[ins2->src] / 65536;
+    data[dest] = data[src] / 65536;
     
     DISPATCH;
 
