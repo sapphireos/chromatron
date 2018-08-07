@@ -36,6 +36,21 @@
 #endif
 #endif
 
+typedef struct{
+    uint16_t dest;
+} ins_1op_t;
+
+typedef struct{
+    uint16_t dest;
+    uint16_t src;
+} ins_2op_t;
+
+typedef struct{
+    uint16_t dest;
+    uint16_t op1;
+    uint16_t op2;
+} ins_3op_t;
+
 
 static int32_t _vm_i32_sys_call( 
     vm_state_t *state, 
@@ -63,75 +78,90 @@ static int8_t _vm_i8_run_stream(
     static void *const opcode_table[] PROGMEM = {
 #endif
 
-        &&opcode_mov,	            // 0
-        &&opcode_clr,	            // 1
-        &&opcode_compeq,	        // 2
-        &&opcode_compneq,	        // 3
-        &&opcode_compgt,	        // 4
-        &&opcode_compgte,	        // 5
-        &&opcode_complt,	        // 6
-        &&opcode_complte,	        // 7
-        &&opcode_and,	            // 8
-        &&opcode_or,	            // 9
-        &&opcode_add,	            // 10
-        &&opcode_sub,	            // 11
-        &&opcode_mul,	            // 12
-        &&opcode_div,	            // 13
-        &&opcode_mod,	            // 14
-        &&opcode_jmp,	            // 15
-        &&opcode_jmp_if_z,	        // 16
-        &&opcode_jmp_if_not_z,	    // 17
-        &&opcode_jmp_if_z_dec,	    // 18
-        &&opcode_jmp_if_gte,	    // 19
-        &&opcode_jmp_if_l_pre_inc,  // 20
-        &&opcode_print,	            // 21
-        &&opcode_ret,	            // 22
-        &&opcode_call,	            // 23
-        &&opcode_idx_load,          // 24
-        &&opcode_idx_store,         // 25
-        &&opcode_offset_array,      // 26
-        &&opcode_array_func,        // 27
-        &&opcode_ltah,	            // 28
-        &&opcode_ltas,	            // 29
-        &&opcode_ltav,	            // 30
-        &&opcode_lfah,	            // 31
-        &&opcode_lfas,	            // 32
-        &&opcode_lfav,	            // 33
-        &&opcode_array_add,	        // 34
-        &&opcode_array_sub,	        // 35
-        &&opcode_array_mul,	        // 36
-        &&opcode_array_div,	        // 37
-        &&opcode_array_mod,	        // 38
-        &&opcode_array_mov,	        // 39
-        &&opcode_rand,	            // 40
-        &&opcode_assert,	        // 41
-        &&opcode_halt,	            // 42
-        &&opcode_is_fading,	        // 43
-        &&opcode_lib_call,	        // 44
-        &&opcode_sys_call,	        // 45
-        &&opcode_trap,	            // 46
-        &&opcode_trap,	            // 47
-        &&opcode_trap,	            // 48
-        &&opcode_lfahsf,            // 49
-        &&opcode_lfavf,	            // 50
-        &&opcode_ltahsf,            // 51
-        &&opcode_ltavf,	            // 52
-        &&opcode_trap,	            // 53
-        &&opcode_obj_load,	        // 54
-        &&opcode_obj_store,	        // 55
-        &&opcode_not,	            // 56
-        &&opcode_db_load,	        // 57
-        &&opcode_db_store,	        // 58
-        &&opcode_db_idx_load,	    // 59
-        &&opcode_db_idx_store,	    // 60
-        &&opcode_db_len,	        // 61
-        &&opcode_trap,	            // 62
-        &&opcode_trap,	            // 63
-        &&opcode_trap,	            // 64
-        &&opcode_trap,	            // 65
-        &&opcode_trap,	            // 66
-        &&opcode_trap,	            // 67
-        &&opcode_trap,	            // 68
+        &&opcode_trap,              // 0
+
+        &&opcode_mov,	            // 1
+        &&opcode_clr,	            // 2
+        
+        &&opcode_not,	            // 3
+        
+        &&opcode_compeq,            // 4
+        &&opcode_compneq,	        // 5
+        &&opcode_compgt,	        // 6
+        &&opcode_compgte,	        // 7
+        &&opcode_complt,	        // 8
+        &&opcode_complte,	        // 9
+        &&opcode_and,	            // 10
+        &&opcode_or,	            // 11
+        &&opcode_add,	            // 12
+        &&opcode_sub,	            // 13
+        &&opcode_mul,	            // 14
+        &&opcode_div,	            // 15
+        &&opcode_mod,	            // 16
+
+        &&opcode_f16_compeq,        // 17
+        &&opcode_f16_compneq,       // 18
+        &&opcode_f16_compgt,        // 19
+        &&opcode_f16_compgte,       // 20
+        &&opcode_f16_complt,        // 21
+        &&opcode_f16_complte,       // 22
+        &&opcode_f16_and,           // 23
+        &&opcode_f16_or,            // 24
+        &&opcode_f16_add,           // 25
+        &&opcode_f16_sub,           // 26
+        &&opcode_f16_mul,           // 27
+        &&opcode_f16_div,           // 28
+        &&opcode_f16_mod,           // 29
+
+        &&opcode_jmp,	            // 30
+        &&opcode_jmp_if_z,	        // 31
+        &&opcode_jmp_if_not_z,	    // 32
+        &&opcode_jmp_if_l_pre_inc,  // 33
+
+        &&opcode_ret,	            // 34
+        &&opcode_call,	            // 35
+        &&opcode_lcall,             // 36
+        &&opcode_dbcall,            // 37
+
+        &&opcode_index,             // 38
+        &&opcode_load_indirect,     // 39
+        &&opcode_store_indirect,    // 40
+
+        &&opcode_assert,            // 41
+        &&opcode_halt,              // 42
+
+        &&opcode_vmov,              // 43
+        &&opcode_vadd,              // 44
+        &&opcode_vsub,              // 45
+        &&opcode_vmul,              // 46
+        &&opcode_vdiv,              // 47
+        &&opcode_vmod,              // 48
+
+        &&opcode_pmov,              // 49
+        &&opcode_padd,              // 50
+        &&opcode_psub,              // 51
+        &&opcode_pmul,              // 52
+        &&opcode_pdiv,              // 53
+        &&opcode_pmod,              // 54
+
+        &&opcode_pstore_hue,        // 55
+        &&opcode_pstore_sat,        // 56
+        &&opcode_pstore_val,        // 57
+        &&opcode_pstore_vfade,      // 58
+        &&opcode_pstore_hsfade,     // 59
+
+        &&opcode_pload_hue,         // 60
+        &&opcode_pload_sat,         // 61
+        &&opcode_pload_val,         // 62
+        &&opcode_pload_vfade,       // 63
+        &&opcode_pload_hsfade,      // 64
+
+        &&opcode_db_store,          // 65
+        &&opcode_db_load,           // 66
+
+        &&opcode_conv_i32_to_f16,   // 67
+        &&opcode_conv_f16_to_i32,   // 68
+
         &&opcode_trap,	            // 69
         &&opcode_trap,	            // 70
         &&opcode_trap,	            // 71
@@ -323,12 +353,18 @@ static int8_t _vm_i8_run_stream(
 
     uint8_t *code = (uint8_t *)( stream + state->code_start );
     uint8_t *pc = code + offset;
-    uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
-    int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
-    bool yield;
-    int32_t params[8];
-    uint16_t addr;
-    catbus_hash_t32 hash;
+    uint8_t opcode;
+
+    ins_1op_t *ins1;
+    ins_2op_t *ins2;
+    ins_3op_t *ins3;
+
+    // uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
+    // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
+    // bool yield;
+    // int32_t params[8];
+    // uint16_t addr;
+    // catbus_hash_t32 hash;
 
     call_depth++;
 
@@ -367,1051 +403,1028 @@ static int8_t _vm_i8_run_stream(
     #endif
 
 opcode_mov:
-    dest = *pc++;
-    src  = *pc++;
+    ins2 = (ins_2op_t *)pc;
+    pc += sizeof(ins_2op_t);
 
-    data[dest] = data[src];
+    data[ins2->dest] = data[ins2->src];
 
     DISPATCH;
 
 
 opcode_clr:
-
-    dest = *pc++;
-
-    data[dest] = 0;
+    ins1 = (ins_1op_t *)pc;
+    pc += sizeof(ins_1op_t);
+    
+    data[ins1->dest] = 0;
 
     DISPATCH;
 
 
-opcode_not:
-    
-    dest = *pc++;
-    src = *pc++;
+opcode_not:    
+    ins2 = (ins_2op_t *)pc;
+    pc += sizeof(ins_2op_t);
 
-    if( data[src] == 0 ){
+    if( data[ins2->src] == 0 ){
 
-        data[dest] = 1;
+        data[ins2->dest] = 1;
     }
     else{
         
-        data[dest] = 0;
+        data[ins2->dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_compeq:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 == op2;
+    data[ins3->dest] = data[ins3->op1] == data[ins3->op2];
 
     DISPATCH;
 
+
 opcode_compneq:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 != op2;
+    data[ins3->dest] = data[ins3->op1] != data[ins3->op2];
 
     DISPATCH;
 
 
 opcode_compgt:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 > op2;
+    data[ins3->dest] = data[ins3->op1] > data[ins3->op2];
 
     DISPATCH;
 
 
 opcode_compgte:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 >= op2;
+    data[ins3->dest] = data[ins3->op1] >= data[ins3->op2];
 
     DISPATCH;
 
 
 opcode_complt:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 < op2;
+    data[ins3->dest] = data[ins3->op1] < data[ins3->op2];
 
     DISPATCH;
 
 
 opcode_complte:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 <= op2;
+    data[ins3->dest] = data[ins3->op1] <= data[ins3->op2];
 
     DISPATCH;
 
 
 
 opcode_and:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 && op2;
+    data[ins3->dest] = data[ins3->op1] && data[ins3->op2];
 
     DISPATCH;
 
+
 opcode_or:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 || op2;
+    data[ins3->dest] = data[ins3->op1] || data[ins3->op2];
 
     DISPATCH;
 
 
 opcode_add:
-        
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    data[result] = op1 + op2;
-    
+    data[ins3->dest] = data[ins3->op1] + data[ins3->op2];
+
     DISPATCH;
+
     
 opcode_sub:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 - op2;
+    data[ins3->dest] = data[ins3->op1] - data[ins3->op2];
 
     DISPATCH;
 
 
 opcode_mul:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
-
-    data[result] = op1 * op2;
+    data[ins3->dest] = data[ins3->op1] * data[ins3->op2];
 
     DISPATCH;
 
+
 opcode_div:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    if( data[ins3->op2] != 0 ){
 
-    if( op2 != 0 ){
-
-        data[result] = op1 / op2;
+        data[ins3->dest] = data[ins3->op1] / data[ins3->op2];
     }
     else{
 
-        data[result] = 0;        
+        data[ins3->dest] = 0;
     }
 
     DISPATCH;
 
 
 opcode_mod:
+    ins3 = (ins_3op_t *)pc;
+    pc += sizeof(ins_3op_t);
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    if( data[ins3->op2] != 0 ){
 
-    if( op2 != 0 ){
-
-        data[result] = op1 % op2;
+        data[ins3->dest] = data[ins3->op1] % data[ins3->op2];
     }
     else{
 
-        data[result] = 0;        
+        data[ins3->dest] = 0;
     }
 
     DISPATCH;
 
 
-opcode_jmp:
+// opcode_jmp:
 
-    addr = *pc++;
-    addr += ( *pc ) << 8;
+//     addr = *pc++;
+//     addr += ( *pc ) << 8;
 
-    pc = code + addr;
+//     pc = code + addr;
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_z:
+// opcode_jmp_if_z:
 
-    op1_addr = *pc++;
+//     op1_addr = *pc++;
 
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
+//     addr = *pc++;
+//     addr += ( *pc++ ) << 8;
 
-    if( data[op1_addr] == 0 ){
+//     if( data[op1_addr] == 0 ){
 
-        pc = code + addr;
-    }
+//         pc = code + addr;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_not_z:
+// opcode_jmp_if_not_z:
 
-    op1_addr = *pc++;
+//     op1_addr = *pc++;
 
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
+//     addr = *pc++;
+//     addr += ( *pc++ ) << 8;
 
-    if( data[op1_addr] != 0 ){
+//     if( data[op1_addr] != 0 ){
 
-        pc = code + addr;
-    }
+//         pc = code + addr;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_z_dec:
+// opcode_jmp_if_z_dec:
 
-    op1_addr = *pc++;
+//     op1_addr = *pc++;
 
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
+//     addr = *pc++;
+//     addr += ( *pc++ ) << 8;
 
-    if( data[op1_addr] == 0 ){
+//     if( data[op1_addr] == 0 ){
 
-        pc = code + addr;
-    }
-    else{
+//         pc = code + addr;
+//     }
+//     else{
 
-        data[op1_addr]--;
-    }
+//         data[op1_addr]--;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_gte:
+// opcode_jmp_if_gte:
 
-    op1_addr = *pc++;
-    op2_addr = *pc++;
+//     op1_addr = *pc++;
+//     op2_addr = *pc++;
 
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
+//     addr = *pc++;
+//     addr += ( *pc++ ) << 8;
 
-    if( data[op1_addr] >= data[op2_addr] ){
+//     if( data[op1_addr] >= data[op2_addr] ){
 
-        pc = code + addr;
-    }
+//         pc = code + addr;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_l_pre_inc:
+// opcode_jmp_if_l_pre_inc:
 
-    op1_addr = *pc++;
-    op2_addr = *pc++;
+//     op1_addr = *pc++;
+//     op2_addr = *pc++;
 
-    data[op1_addr]++;
+//     data[op1_addr]++;
 
-    if( data[op1_addr] < data[op2_addr] ){
+//     if( data[op1_addr] < data[op2_addr] ){
 
-        addr = *pc++;
-        addr += ( *pc ) << 8;
+//         addr = *pc++;
+//         addr += ( *pc ) << 8;
 
-        pc = code + addr;
-    }
-    else{
+//         pc = code + addr;
+//     }
+//     else{
 
-        pc += 2;
-    }
+//         pc += 2;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_print:
+// opcode_print:
 
-    src = *pc++;
-    op1  = data[src];
+//     src = *pc++;
+//     op1  = data[src];
 
-    // log_v_debug_P( PSTR("%d = %d"), src, op1 );
+//     // log_v_debug_P( PSTR("%d = %d"), src, op1 );
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_ret:
-    op1_addr = *pc++;
-    data[RETURN_VAL_ADDR] = data[op1_addr];
+// opcode_ret:
+//     op1_addr = *pc++;
+//     data[RETURN_VAL_ADDR] = data[op1_addr];
 
-    call_depth--;
-    return VM_STATUS_OK;
+//     call_depth--;
+//     return VM_STATUS_OK;
 
 
-opcode_call:
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
+// opcode_call:
+//     addr = *pc++;
+//     addr += ( *pc++ ) << 8;
 
-    // call function, by recursively calling into VM
-    int8_t status = _vm_i8_run_stream( stream, addr, state, data );
-    if( status < 0 ){
+//     // call function, by recursively calling into VM
+//     int8_t status = _vm_i8_run_stream( stream, addr, state, data );
+//     if( status < 0 ){
 
-        call_depth--;
-        return status;
-    }
+//         call_depth--;
+//         return status;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_idx_load:
-    dest = *pc++;
-    src = *pc++;
-    index = data[*pc++];
+// opcode_idx_load:
+//     dest = *pc++;
+//     src = *pc++;
+//     index = data[*pc++];
 
-    data[dest] = data[src + index];
+//     data[dest] = data[src + index];
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_idx_store:
-    dest = *pc++;
-    src = *pc++;
-    index = data[*pc++];
+// opcode_idx_store:
+//     dest = *pc++;
+//     src = *pc++;
+//     index = data[*pc++];
 
-    data[dest + index] = data[src];
+//     data[dest + index] = data[src];
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_offset_array:
-    dest = *pc++;
-    base = data[*pc++];
-    index = data[*pc++];
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
+// opcode_offset_array:
+//     dest = *pc++;
+//     base = data[*pc++];
+//     index = data[*pc++];
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
 
-    index %= ary_length;
-    index *= ary_stride;
-    index += base;
+//     index %= ary_length;
+//     index *= ary_stride;
+//     index += base;
 
-    data[dest] = index;
+//     data[dest] = index;
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_array_func:
-    dest = *pc++;
-    src = *pc++;
-    func_id = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
+// opcode_array_func:
+//     dest = *pc++;
+//     src = *pc++;
+//     func_id = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
 
-    if( func_id == VM_ARRAY_FUNC_LEN ){
+//     if( func_id == VM_ARRAY_FUNC_LEN ){
 
-        data[dest] = ary_length;     
-    }
-    else if( func_id == VM_ARRAY_FUNC_MIN ){
+//         data[dest] = ary_length;     
+//     }
+//     else if( func_id == VM_ARRAY_FUNC_MIN ){
 
-        data[dest] = data[src];
+//         data[dest] = data[src];
 
-        for( uint16_t i = 1; i < ary_length; i++ ){
+//         for( uint16_t i = 1; i < ary_length; i++ ){
 
-            src += ary_stride;
+//             src += ary_stride;
 
-            if( data[src] < data[dest] ){
+//             if( data[src] < data[dest] ){
 
-                data[dest] = data[src];   
-            }
-        }
-    }
-    else if( func_id == VM_ARRAY_FUNC_MAX ){
+//                 data[dest] = data[src];   
+//             }
+//         }
+//     }
+//     else if( func_id == VM_ARRAY_FUNC_MAX ){
 
-        data[dest] = data[src];
+//         data[dest] = data[src];
 
-        for( uint16_t i = 1; i < ary_length; i++ ){
+//         for( uint16_t i = 1; i < ary_length; i++ ){
 
-            src += ary_stride;
+//             src += ary_stride;
 
-            if( data[src] > data[dest] ){
+//             if( data[src] > data[dest] ){
 
-                data[dest] = data[src];   
-            }
-        }
-    }
-    else if( func_id == VM_ARRAY_FUNC_AVG ){
+//                 data[dest] = data[src];   
+//             }
+//         }
+//     }
+//     else if( func_id == VM_ARRAY_FUNC_AVG ){
 
-        data[dest] = data[src];
+//         data[dest] = data[src];
 
-        for( uint16_t i = 1; i < ary_length; i++ ){
+//         for( uint16_t i = 1; i < ary_length; i++ ){
 
-            src += ary_stride;
+//             src += ary_stride;
 
-            data[dest] += data[src];
-        }
+//             data[dest] += data[src];
+//         }
 
-        data[dest] /= ary_length;        
-    }
-    else if( func_id == VM_ARRAY_FUNC_SUM ){
+//         data[dest] /= ary_length;        
+//     }
+//     else if( func_id == VM_ARRAY_FUNC_SUM ){
 
-        data[dest] = data[src];
+//         data[dest] = data[src];
 
-        for( uint16_t i = 1; i < ary_length; i++ ){
+//         for( uint16_t i = 1; i < ary_length; i++ ){
 
-            src += ary_stride;
+//             src += ary_stride;
 
-            data[dest] += data[src];
-        }    
-    }
-    else{
+//             data[dest] += data[src];
+//         }    
+//     }
+//     else{
 
-        data[dest] = 0;
-    }
+//         data[dest] = 0;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_ltah:
+// opcode_ltah:
 
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     src  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
 
-    op1 = data[src];
-    // wraparound to 16 bit range.
-    // this makes it easy to run a circular rainbow
-    op1 %= 65536;
+//     op1 = data[src];
+//     // wraparound to 16 bit range.
+//     // this makes it easy to run a circular rainbow
+//     op1 %= 65536;
 
-    gfx_v_set_hue( op1, data[index_x], data[index_y], obj );
-    #endif
+//     gfx_v_set_hue( op1, data[index_x], data[index_y], obj );
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_ltas:
+// opcode_ltas:
 
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     src  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
 
-    op1 = data[src];
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( op1 > 65535 ){
+//     op1 = data[src];
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( op1 > 65535 ){
 
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
+//         op1 = 65535;
+//     }
+//     else if( op1 < 0 ){
 
-        op1 = 0;
-    }
+//         op1 = 0;
+//     }
 
-    gfx_v_set_sat( op1, data[index_x], data[index_y], obj );
+//     gfx_v_set_sat( op1, data[index_x], data[index_y], obj );
 
-    #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_ltav:
+// opcode_ltav:
 
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     src  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
 
-    op1 = data[src];
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( op1 > 65535 ){
+//     op1 = data[src];
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( op1 > 65535 ){
 
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
+//         op1 = 65535;
+//     }
+//     else if( op1 < 0 ){
 
-        op1 = 0;
-    }
+//         op1 = 0;
+//     }
 
-    gfx_v_set_val( op1, data[index_x], data[index_y], obj );
+//     gfx_v_set_val( op1, data[index_x], data[index_y], obj );
 
-    #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_ltahsf:
+// opcode_ltahsf:
 
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     src  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
 
-    op1 = data[src];
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
+//     op1 = data[src];
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
 
-    if( op1 > 65535 ){
+//     if( op1 > 65535 ){
 
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
+//         op1 = 65535;
+//     }
+//     else if( op1 < 0 ){
 
-        op1 = 0;
-    }
+//         op1 = 0;
+//     }
 
-    gfx_v_set_hs_fade( op1, data[index_x], data[index_y], obj );
-    #endif
+//     gfx_v_set_hs_fade( op1, data[index_x], data[index_y], obj );
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_ltavf:
+// opcode_ltavf:
 
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     src  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
     
-    op1 = data[src];
+//     op1 = data[src];
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
 
-    if( op1 > 65535 ){
+//     if( op1 > 65535 ){
 
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
+//         op1 = 65535;
+//     }
+//     else if( op1 < 0 ){
 
-        op1 = 0;
-    }
+//         op1 = 0;
+//     }
     
-    gfx_v_set_v_fade( op1, data[index_x], data[index_y], obj );
-    #endif
+//     gfx_v_set_v_fade( op1, data[index_x], data[index_y], obj );
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_lfah:
+// opcode_lfah:
 
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     dest  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], obj );
-    #endif
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], obj );
+//     #endif
 
-    DISPATCH;
-
-
-opcode_lfas:
-
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], obj );
-    #endif
-
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_lfav:
+// opcode_lfas:
 
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+//     dest  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_val( data[index_x], data[index_y], obj );
-    #endif
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], obj );
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_lfahsf:
 
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+// opcode_lfav:
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], obj );
-    #endif
+//     dest  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_val( data[index_x], data[index_y], obj );
+//     #endif
 
-opcode_lfavf:
+//     DISPATCH;
 
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+// opcode_lfahsf:
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], obj );
-    #endif
+//     dest  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], obj );
+//     #endif
 
-opcode_array_add:
+//     DISPATCH;
+
+// opcode_lfavf:
+
+//     dest  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
+
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], obj );
+//     #endif
+
+//     DISPATCH;
+
+// opcode_array_add:
     
-    obj = *pc++;
-    dest = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
-    attr = *pc++;
-    op1 = data[*pc++];
+//     obj = *pc++;
+//     dest = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
+//     attr = *pc++;
+//     op1 = data[*pc++];
 
-    if( obj == ARRAY_OBJ_TYPE ){
-        ary_addr = dest;
+//     if( obj == ARRAY_OBJ_TYPE ){
+//         ary_addr = dest;
 
-        for( uint16_t i = 0; i < ary_length; i++ ){
+//         for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[ary_addr] += op1;
+//             data[ary_addr] += op1;
 
-            ary_addr += ary_stride;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
+//             ary_addr += ary_stride;
+//         }
+//     }
+//     else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_add( dest, attr, op1 );
-        #endif
-    }
+//         #ifdef VM_ENABLE_GFX
+//         gfx_v_array_add( dest, attr, op1 );
+//         #endif
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_array_sub:
+// opcode_array_sub:
 
-    obj = *pc++;
-    dest = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
-    attr = *pc++;
-    op1 = data[*pc++];
+//     obj = *pc++;
+//     dest = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
+//     attr = *pc++;
+//     op1 = data[*pc++];
 
-    if( obj == ARRAY_OBJ_TYPE ){
-        ary_addr = dest;
+//     if( obj == ARRAY_OBJ_TYPE ){
+//         ary_addr = dest;
 
-        for( uint16_t i = 0; i < ary_length; i++ ){
+//         for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[ary_addr] -= op1;
+//             data[ary_addr] -= op1;
 
-            ary_addr += ary_stride;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
+//             ary_addr += ary_stride;
+//         }
+//     }
+//     else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_sub( dest, attr, op1 );
-        #endif
-    }
+//         #ifdef VM_ENABLE_GFX
+//         gfx_v_array_sub( dest, attr, op1 );
+//         #endif
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_array_mul:
+// opcode_array_mul:
 
-    obj = *pc++;
-    dest = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
-    attr = *pc++;
-    op1 = data[*pc++];
+//     obj = *pc++;
+//     dest = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
+//     attr = *pc++;
+//     op1 = data[*pc++];
 
-    if( obj == ARRAY_OBJ_TYPE ){
-        ary_addr = dest;
+//     if( obj == ARRAY_OBJ_TYPE ){
+//         ary_addr = dest;
 
-        for( uint16_t i = 0; i < ary_length; i++ ){
+//         for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[ary_addr] *= op1;
+//             data[ary_addr] *= op1;
 
-            ary_addr += ary_stride;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
+//             ary_addr += ary_stride;
+//         }
+//     }
+//     else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_mul( dest, attr, op1 );
-        #endif
-    }
+//         #ifdef VM_ENABLE_GFX
+//         gfx_v_array_mul( dest, attr, op1 );
+//         #endif
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_array_div:
+// opcode_array_div:
 
-    obj = *pc++;
-    dest = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
-    attr = *pc++;
-    op1 = data[*pc++];
+//     obj = *pc++;
+//     dest = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
+//     attr = *pc++;
+//     op1 = data[*pc++];
 
-    if( obj == ARRAY_OBJ_TYPE ){
-        ary_addr = dest;
+//     if( obj == ARRAY_OBJ_TYPE ){
+//         ary_addr = dest;
 
-        for( uint16_t i = 0; i < ary_length; i++ ){
+//         for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[ary_addr] /= op1;
+//             data[ary_addr] /= op1;
 
-            ary_addr += ary_stride;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
+//             ary_addr += ary_stride;
+//         }
+//     }
+//     else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_div( dest, attr, op1 );
-        #endif
-    }
+//         #ifdef VM_ENABLE_GFX
+//         gfx_v_array_div( dest, attr, op1 );
+//         #endif
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_array_mod:
+// opcode_array_mod:
 
-    obj = *pc++;
-    dest = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
-    attr = *pc++;
-    op1 = data[*pc++];
+//     obj = *pc++;
+//     dest = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
+//     attr = *pc++;
+//     op1 = data[*pc++];
 
-    if( obj == ARRAY_OBJ_TYPE ){
-        ary_addr = dest;
+//     if( obj == ARRAY_OBJ_TYPE ){
+//         ary_addr = dest;
 
-        for( uint16_t i = 0; i < ary_length; i++ ){
+//         for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[ary_addr] %= op1;
+//             data[ary_addr] %= op1;
 
-            ary_addr += ary_stride;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
+//             ary_addr += ary_stride;
+//         }
+//     }
+//     else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_mod( dest, attr, op1 );
-        #endif
-    }
-    DISPATCH;
+//         #ifdef VM_ENABLE_GFX
+//         gfx_v_array_mod( dest, attr, op1 );
+//         #endif
+//     }
+//     DISPATCH;
 
 
-opcode_array_mov:
+// opcode_array_mov:
 
-    obj = *pc++;
-    dest = *pc++;
-    ary_length = data[*pc++];
-    ary_stride = data[*pc++];
-    attr = *pc++;
-    op1 = data[*pc++];
+//     obj = *pc++;
+//     dest = *pc++;
+//     ary_length = data[*pc++];
+//     ary_stride = data[*pc++];
+//     attr = *pc++;
+//     op1 = data[*pc++];
 
-    if( obj == ARRAY_OBJ_TYPE ){
-        ary_addr = dest;
+//     if( obj == ARRAY_OBJ_TYPE ){
+//         ary_addr = dest;
 
-        for( uint16_t i = 0; i < ary_length; i++ ){
+//         for( uint16_t i = 0; i < ary_length; i++ ){
 
-            data[ary_addr] = op1;
+//             data[ary_addr] = op1;
 
-            ary_addr += ary_stride;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
+//             ary_addr += ary_stride;
+//         }
+//     }
+//     else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_move( dest, attr, op1 );
-        #endif
-    }
+//         #ifdef VM_ENABLE_GFX
+//         gfx_v_array_move( dest, attr, op1 );
+//         #endif
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_rand:
+// opcode_rand:
 
-    dest = *pc++;
-    op1_addr = *pc++;
-    op2_addr = *pc++;
+//     dest = *pc++;
+//     op1_addr = *pc++;
+//     op2_addr = *pc++;
 
-    uint16_t val;
-    uint16_t diff = data[op2_addr] - data[op1_addr];
+//     uint16_t val;
+//     uint16_t diff = data[op2_addr] - data[op1_addr];
 
-    // check for divide by 0!
-    if( diff == 0 ){
+//     // check for divide by 0!
+//     if( diff == 0 ){
 
-        val = 0;
-    }
-    else{
+//         val = 0;
+//     }
+//     else{
 
-        val = rnd_u16_get_int_with_seed( &state->rng_seed ) % diff;
-    }
+//         val = rnd_u16_get_int_with_seed( &state->rng_seed ) % diff;
+//     }
 
-    data[dest] = val + data[op1_addr];
+//     data[dest] = val + data[op1_addr];
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_lib_call:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_lib_call:
+//     hash        =  (catbus_hash_t32)(*pc++) << 24;
+//     hash        |= (catbus_hash_t32)(*pc++) << 16;
+//     hash        |= (catbus_hash_t32)(*pc++) << 8;
+//     hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    dest        = *pc++;
-    param_len   = *pc++;    
+//     dest        = *pc++;
+//     param_len   = *pc++;    
 
-    for( uint32_t i = 0; i < param_len; i++ ){
+//     for( uint32_t i = 0; i < param_len; i++ ){
 
-        params[i] = data[*pc];
-        pc++;
-    }
+//         params[i] = data[*pc];
+//         pc++;
+//     }
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_i32_lib_call( hash, params, param_len );
-    #else   
-    data[dest] = 0;
-    #endif
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_i32_lib_call( hash, params, param_len );
+//     #else   
+//     data[dest] = 0;
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
     
-opcode_sys_call:
-    func_id     = *pc++;
-    dest        = *pc++;
-    param_len   = *pc++;    
+// opcode_sys_call:
+//     func_id     = *pc++;
+//     dest        = *pc++;
+//     param_len   = *pc++;    
 
-    for( uint32_t i = 0; i < param_len; i++ ){
+//     for( uint32_t i = 0; i < param_len; i++ ){
 
-        params[i] = data[*pc];
-        pc++;
-    }
+//         params[i] = data[*pc];
+//         pc++;
+//     }
 
-    yield = FALSE;
-    data[dest] = _vm_i32_sys_call( state, func_id, params, param_len, &yield );
+//     yield = FALSE;
+//     data[dest] = _vm_i32_sys_call( state, func_id, params, param_len, &yield );
 
-    if( yield && ( call_depth == 1 ) && ( state->current_thread >= 0 ) ){
+//     if( yield && ( call_depth == 1 ) && ( state->current_thread >= 0 ) ){
 
-        // store code offset
-        state->threads[state->current_thread].pc_offset = pc - code;
+//         // store code offset
+//         state->threads[state->current_thread].pc_offset = pc - code;
 
-        call_depth--;
-        return VM_STATUS_YIELDED;
-    }
+//         call_depth--;
+//         return VM_STATUS_YIELDED;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_assert:
-    op1 = data[*pc++];
+// opcode_assert:
+//     op1 = data[*pc++];
 
-    if( op1 == FALSE ){
+//     if( op1 == FALSE ){
 
-        #ifndef VM_TARGET_ESP
-        // log_v_debug_P( PSTR("VM assertion failed") );
-        #endif
-        call_depth--;
-        return VM_STATUS_ASSERT;
-    }
+//         #ifndef VM_TARGET_ESP
+//         // log_v_debug_P( PSTR("VM assertion failed") );
+//         #endif
+//         call_depth--;
+//         return VM_STATUS_ASSERT;
+//     }
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_halt:
+// opcode_halt:
     
-    call_depth--;
-    return VM_STATUS_HALT;
+//     call_depth--;
+//     return VM_STATUS_HALT;
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_is_fading:
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+// opcode_is_fading:
+//     dest  = *pc++;
+//     index_x = *pc++;
+//     index_y  = *pc++;
+//     obj = *pc++;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_is_fading( data[index_x], data[index_y], obj );
-    #endif
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_is_fading( data[index_x], data[index_y], obj );
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_obj_load:
-    obj         = *pc++;
-    attr        = *pc++;
-    op1_addr    = *pc++;
-    dest        = *pc++;
+// opcode_obj_load:
+//     obj         = *pc++;
+//     attr        = *pc++;
+//     op1_addr    = *pc++;
+//     dest        = *pc++;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_i32_get_obj_attr( obj, attr, op1_addr );
-    #endif
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_i32_get_obj_attr( obj, attr, op1_addr );
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_obj_store:
-    obj         = *pc++;
-    attr        = *pc++;
-    op1_addr    = *pc++;
-    dest        = *pc++;
+// opcode_obj_store:
+//     obj         = *pc++;
+//     attr        = *pc++;
+//     op1_addr    = *pc++;
+//     dest        = *pc++;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
 
-    // object store is a no-op for now
+//     // object store is a no-op for now
 
-    #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_db_load:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_db_load:
+//     hash        =  (catbus_hash_t32)(*pc++) << 24;
+//     hash        |= (catbus_hash_t32)(*pc++) << 16;
+//     hash        |= (catbus_hash_t32)(*pc++) << 8;
+//     hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    dest        = *pc++;
+//     dest        = *pc++;
 
-    #ifdef VM_ENABLE_KV
-    #ifdef ESP8266
-    if( kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest], sizeof(data[dest]) ) < 0 ){
+//     #ifdef VM_ENABLE_KV
+//     #ifdef ESP8266
+//     if( kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data[dest], sizeof(data[dest]) ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    #else
-    if( catbus_i8_get( hash, CATBUS_TYPE_INT32, &data[dest] ) < 0 ){
+//         data[dest] = 0;        
+//     }
+//     #else
+//     if( catbus_i8_get( hash, CATBUS_TYPE_INT32, &data[dest] ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    #endif
-    #endif
+//         data[dest] = 0;        
+//     }
+//     #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_db_store:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_db_store:
+//     hash        =  (catbus_hash_t32)(*pc++) << 24;
+//     hash        |= (catbus_hash_t32)(*pc++) << 16;
+//     hash        |= (catbus_hash_t32)(*pc++) << 8;
+//     hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    op1_addr    = *pc++;
+//     op1_addr    = *pc++;
 
-    #ifdef VM_ENABLE_KV
-    #ifdef ESP8266
-    kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr], sizeof(data[op1_addr]) );
-    kvdb_i8_publish( hash );
-    #else
-    catbus_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr] );
-    catbus_i8_publish( hash );
-    #endif
-    #endif
+//     #ifdef VM_ENABLE_KV
+//     #ifdef ESP8266
+//     kvdb_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr], sizeof(data[op1_addr]) );
+//     kvdb_i8_publish( hash );
+//     #else
+//     catbus_i8_set( hash, CATBUS_TYPE_INT32, &data[op1_addr] );
+//     catbus_i8_publish( hash );
+//     #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_db_idx_load:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_db_idx_load:
+//     hash        =  (catbus_hash_t32)(*pc++) << 24;
+//     hash        |= (catbus_hash_t32)(*pc++) << 16;
+//     hash        |= (catbus_hash_t32)(*pc++) << 8;
+//     hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    dest        = *pc++;
-    index       = data[*pc++];
+//     dest        = *pc++;
+//     index       = data[*pc++];
 
-    #ifdef VM_ENABLE_KV
-    #ifdef ESP8266
-    if( kvdb_i8_array_get( hash, CATBUS_TYPE_INT32, index, &data[dest], sizeof(data[dest]) ) < 0 ){
+//     #ifdef VM_ENABLE_KV
+//     #ifdef ESP8266
+//     if( kvdb_i8_array_get( hash, CATBUS_TYPE_INT32, index, &data[dest], sizeof(data[dest]) ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    #else
-    if( catbus_i8_array_get( hash, CATBUS_TYPE_INT32, index, 1, &data[dest] ) < 0 ){
+//         data[dest] = 0;        
+//     }
+//     #else
+//     if( catbus_i8_array_get( hash, CATBUS_TYPE_INT32, index, 1, &data[dest] ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    #endif
-    #endif
+//         data[dest] = 0;        
+//     }
+//     #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_db_idx_store:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_db_idx_store:
+//     hash        =  (catbus_hash_t32)(*pc++) << 24;
+//     hash        |= (catbus_hash_t32)(*pc++) << 16;
+//     hash        |= (catbus_hash_t32)(*pc++) << 8;
+//     hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    op1_addr    = *pc++;
-    index       = data[*pc++];
+//     op1_addr    = *pc++;
+//     index       = data[*pc++];
 
-    #ifdef VM_ENABLE_KV
-    #ifdef ESP8266
-    kvdb_i8_array_set( hash, CATBUS_TYPE_INT32, index, &data[op1_addr], sizeof(data[op1_addr]) );
-    kvdb_i8_publish( hash );
-    #else
-    catbus_i8_array_set( hash, CATBUS_TYPE_INT32, index, 1, &data[op1_addr] );
-    catbus_i8_publish( hash );
-    #endif
-    #endif
+//     #ifdef VM_ENABLE_KV
+//     #ifdef ESP8266
+//     kvdb_i8_array_set( hash, CATBUS_TYPE_INT32, index, &data[op1_addr], sizeof(data[op1_addr]) );
+//     kvdb_i8_publish( hash );
+//     #else
+//     catbus_i8_array_set( hash, CATBUS_TYPE_INT32, index, 1, &data[op1_addr] );
+//     catbus_i8_publish( hash );
+//     #endif
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
-opcode_db_len:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_db_len:
+//     hash        =  (catbus_hash_t32)(*pc++) << 24;
+//     hash        |= (catbus_hash_t32)(*pc++) << 16;
+//     hash        |= (catbus_hash_t32)(*pc++) << 8;
+//     hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    dest        = *pc++;
+//     dest        = *pc++;
 
-    #ifdef VM_ENABLE_KV
-    catbus_meta_t meta;
+//     #ifdef VM_ENABLE_KV
+//     catbus_meta_t meta;
     
-    if( kv_i8_get_meta( hash, &meta ) < 0 ){
+//     if( kv_i8_get_meta( hash, &meta ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    else{
+//         data[dest] = 0;        
+//     }
+//     else{
 
-        data[dest] = meta.count + 1;
-    }
-    #else
-    data[dest] = 0;        
-    #endif
+//         data[dest] = meta.count + 1;
+//     }
+//     #else
+//     data[dest] = 0;        
+//     #endif
 
-    DISPATCH;
+//     DISPATCH;
 
 opcode_trap:
     call_depth--;

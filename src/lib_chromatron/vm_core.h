@@ -29,6 +29,7 @@
 #define VM_ISA_VERSION              10
 
 #define RETURN_VAL_ADDR             0
+#define PIX_ARRAY_ADDR              1
 
 #define FILE_MAGIC      0x20205846  // 'FX  '
 #define PROGRAM_MAGIC   0x474f5250  // 'PROG'
