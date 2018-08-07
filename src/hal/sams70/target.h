@@ -29,7 +29,6 @@
 
 
 // modules
-// #define ENABLE_AUTOMATON
 #define ENABLE_CATBUS_LINK
 // #define ENABLE_CMD2
 #define ENABLE_TIME_SYNC

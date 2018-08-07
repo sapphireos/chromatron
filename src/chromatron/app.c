@@ -31,7 +31,6 @@
 #include "vm.h"
 #include "energy.h"
 #include "timesync.h"
-#include "automaton.h"
 #include "io_kv.h"
 
 #ifdef LIB_DNS
@@ -127,10 +126,6 @@ void app_v_init( void ){
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
-    #endif
-
-    #ifdef ENABLE_AUTOMATON
-    auto_v_init();
     #endif
 
     svr_v_init();

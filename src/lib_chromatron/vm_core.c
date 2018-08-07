@@ -2383,24 +2383,6 @@ void vm_v_clear_db( uint8_t tag ){
     kvdb_v_clear_tag( 0, tag );
 }
 
-int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
-
-    // this is broken
-
-    return -1;
-    // uint64_t rng_seed = rnd_u64_get_seed();
-
-    // cycles = 0;
-
-    // int8_t status = _vm_i8_run_stream( stream, 0, state, data );
-
-    // rnd_v_seed( rng_seed );
-
-    // *result = data[RETURN_VAL_ADDR];
-
-    // return status;
-}
-
 
 static int32_t _vm_i32_sys_call( 
     vm_state_t *state, 
