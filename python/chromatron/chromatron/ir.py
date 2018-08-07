@@ -22,9 +22,49 @@
 
 from instructions import *
 
+from elysianfields import *
+from catbus import *
 from copy import deepcopy, copy
 
+
+VM_ISA_VERSION  = 10
+
+FILE_MAGIC      = 0x20205846 # 'FX  '
+PROGRAM_MAGIC   = 0x474f5250 # 'PROG'
+FUNCTION_MAGIC  = 0x434e5546 # 'FUNC'
+CODE_MAGIC      = 0x45444f43 # 'CODE'
+DATA_MAGIC      = 0x41544144 # 'DATA'
+KEYS_MAGIC      = 0x5359454B # 'KEYS'
+META_MAGIC      = 0x4154454d # 'META'
+
+VM_STRING_LEN = 32
+DATA_LEN = 4
+
+
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+
+
+class ProgramHeader(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="file_magic"),
+                  Uint32Field(_name="prog_magic"),
+                  Uint16Field(_name="isa_version"),
+                  CatbusHash(_name="program_name_hash"),
+                  Uint16Field(_name="code_len"),
+                  Uint16Field(_name="data_len"),
+                  Uint16Field(_name="read_keys_len"),
+                  Uint16Field(_name="write_keys_len"),
+                  Uint16Field(_name="publish_len"),
+                  Uint16Field(_name="pix_obj_len"),
+                  Uint16Field(_name="link_len"),
+                  Uint16Field(_name="db_len"),
+                  Uint16Field(_name="padding"),
+                  Uint16Field(_name="init_start"),
+                  Uint16Field(_name="loop_start")]
+
+        super(ProgramHeader, self).__init__(_name="program_header", _fields=fields, **kwargs)
+
+
 
 
 class SyntaxError(Exception):
@@ -1164,7 +1204,9 @@ class irIndexStore(IR):
 
 
 class Builder(object):
-    def __init__(self):
+    def __init__(self, script_name='fx_script'):
+        self.script_name = script_name
+
         self.funcs = {}
         self.locals = {}
         self.globals = {}
@@ -1173,6 +1215,7 @@ class Builder(object):
         self.labels = {}
 
         self.data_table = []
+        self.data_count = 0
         self.code = []
         self.bytecode = []
         self.function_addrs = {}
@@ -2176,6 +2219,7 @@ class Builder(object):
 
     def allocate(self):
         self.data_table = []
+        self.data_count = 0
 
         addr = 0
 
@@ -2330,6 +2374,8 @@ class Builder(object):
 
                     self.data_table.append(i)
 
+        self.data_count = addr
+
         return self.data_table
 
     def print_data_table(self, data):
@@ -2414,6 +2460,117 @@ class Builder(object):
 
 
         return self.bytecode
+
+    def generate_binary(self, filename):
+        stream = ''
+        meta_names = []
+
+        code_len = len(self.bytecode)
+
+        # set up padding so data start will be on 32 bit boundary
+        padding_len = 4 - (code_len % 4)
+        code_len += padding_len
+
+        # build program header
+        header = ProgramHeader(
+                    file_magic=FILE_MAGIC,
+                    prog_magic=PROGRAM_MAGIC,
+                    isa_version=VM_ISA_VERSION,
+                    program_name_hash=catbus_string_hash(self.script_name),
+                    code_len=code_len,
+                    data_len=self.data_count,
+                    pix_obj_len=0,
+                    read_keys_len=0,
+                    write_keys_len=0,
+                    publish_len=0,
+                    link_len=0,
+                    db_len=0,
+                    init_start=self.function_addrs['init'],
+                    loop_start=self.function_addrs['loop'])
+
+        print header
+
+        stream += header.pack()
+
+        # add code stream
+        stream += struct.pack('<L', CODE_MAGIC)
+
+        for b in self.bytecode:
+            stream += struct.pack('<B', b)
+
+        # add padding if necessary to make sure data is 32 bit aligned
+        stream += '\0' * padding_len
+
+        # ensure padding is correct
+        assert len(stream) % 4 == 0
+
+        # add data table
+        stream += struct.pack('<L', DATA_MAGIC)
+
+        addr = -1
+        for var in self.data_table:
+            if var.addr <= addr:
+                continue
+
+            addr = var.addr
+
+            for i in xrange(var.length):
+                stream += struct.pack('<L', var.default_value)
+
+            addr += var.length - 1
+
+        # create hash of stream
+        stream_hash = catbus_string_hash(stream)
+        stream += struct.pack('<L', stream_hash)
+
+        # but wait, that's not all!
+        # now we're going attach meta data.
+        # first, prepend 32 bit (signed) program length to stream.
+        # this makes it trivial to read the VM image length from the file.
+        # this also gives us the offset into the file where the meta data begins.
+        # note all strings will be padded to the VM_STRING_LEN.
+        prog_len = len(stream)
+        stream = struct.pack('<l', prog_len) + stream
+
+        meta_data = ''
+
+        # marker for meta
+        meta_data += struct.pack('<L', META_MAGIC)
+
+        # first string is script name
+        # note the conversion with str(), this is because from a CLI
+        # we might end up with unicode, when we really, really need ASCII.
+        padded_string = str(self.script_name)
+        # pad to string len
+        padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
+
+        meta_data += padded_string
+
+        # next, attach names of stuff
+        for s in meta_names:
+            padded_string = s
+
+            if len(padded_string) > VM_STRING_LEN:
+                raise SyntaxError("%s exceeds %d characters" % (padded_string, VM_STRING_LEN))
+
+            padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
+            meta_data += padded_string
+
+
+        # add meta data to end of stream
+        stream += meta_data
+
+        
+        # attach hash of entire file
+        file_hash = catbus_string_hash(stream)
+        stream += struct.pack('<L', file_hash)
+
+
+        # write to file
+        with open(filename, 'w') as f:
+            f.write(stream)
+
+        return stream
 
 
 class VM(object):
