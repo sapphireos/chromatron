@@ -22,6 +22,8 @@
 
 from catbus import catbus_string_hash
 
+import random
+
 
 class ReturnException(Exception):
     pass
@@ -690,6 +692,7 @@ class insLibCall(BaseInstruction):
             'max': self._max,
             'sum': self._sum,
             'avg': self._avg,
+            'rand': self._rand,
         }
 
     def __str__(self):
@@ -699,6 +702,19 @@ class insLibCall(BaseInstruction):
         params = params[:len(params) - 2]
 
         return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
+
+    def _rand(self, memory):
+        start = 0
+        end = 65535
+
+        if len(self.params) == 1:
+            end = memory[self.params[0].addr]
+
+        if len(self.params) == 2:
+            start = memory[self.params[0].addr]
+            end = memory[self.params[1].addr]
+
+        return random.randint(start, end)
 
     def _len(self, memory):
         return self.params[0].var.count
@@ -936,24 +952,24 @@ class insIndirectStore(BaseInstruction):
         return bc
 
 
-class insRand(BaseInstruction):
-    mnemonic = 'RAND'
+# class insRand(BaseInstruction):
+#     mnemonic = 'RAND'
 
-    def __init__(self, dest, start=0, end=65535):
-        self.dest = dest
-        self.start = start
-        self.end = end
+#     def __init__(self, dest, start=0, end=65535):
+#         self.dest = dest
+#         self.start = start
+#         self.end = end
 
-    def __str__(self):
-        return "%s %s <- rand(%s, %s)" % (self.mnemonic, self.dest, self.start, self.end)
+#     def __str__(self):
+#         return "%s %s <- rand(%s, %s)" % (self.mnemonic, self.dest, self.start, self.end)
 
-    def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.start.assemble())
-        bc.extend(self.end.assemble())
+#     def assemble(self):
+#         bc = [self.opcode]
+#         bc.extend(self.dest.assemble())
+#         bc.extend(self.start.assemble())
+#         bc.extend(self.end.assemble())
 
-        return bc
+#         return bc
 
 class insAssert(BaseInstruction):
     mnemonic = 'ASSERT'
