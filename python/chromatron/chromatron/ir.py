@@ -817,9 +817,6 @@ class irLibCall(IR):
         params = [a.generate() for a in self.params]
 
         if self.target in ARRAY_FUNCS:
-            if len(params) != 1:
-                raise SyntaxError("Array functions take one argument", lineno=self.lineno)
-
             if isinstance(params[0], irDBAttr):
                 call_ins = insDBCall(self.target, self.result.generate(), params)
 
@@ -1778,6 +1775,18 @@ class Builder(object):
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
         except KeyError:
+            if isinstance(params[0], irArray):
+                if len(params) == 1:
+                    # array function.
+                    # we have the array address in the first parameter.
+                    # we'll put the array length in the second.
+                    array_len = self.get_var(params[0].count, lineno=lineno)
+                    params.append(array_len)
+
+                else:
+                    raise SyntaxError("Array functions take one argument", lineno=self.lineno)                    
+                    
+
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
         self.append_node(ir)        
@@ -2529,8 +2538,6 @@ class Builder(object):
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)
-
-        print self.bytecode
 
         for b in self.bytecode:
             stream += struct.pack('<B', b)
