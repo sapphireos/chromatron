@@ -1775,12 +1775,17 @@ class Builder(object):
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
         except KeyError:
-            if isinstance(params[0], irArray):
+            if func_name in ARRAY_FUNCS:
                 if len(params) == 1:
-                    # array function.
-                    # we have the array address in the first parameter.
-                    # we'll put the array length in the second.
-                    array_len = self.get_var(params[0].count, lineno=lineno)
+                    try:
+                        # array function.
+                        # we have the array address in the first parameter.
+                        # we'll put the array length in the second.
+                        array_len = self.add_const(params[0].count, lineno=lineno)
+
+                    except AttributeError:
+                        array_len = self.add_const(1, lineno=lineno)
+                        
                     params.append(array_len)
 
                 else:
