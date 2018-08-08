@@ -1785,13 +1785,23 @@ class Builder(object):
 
                     except AttributeError:
                         array_len = self.add_const(1, lineno=lineno)
-                        
-                    params.append(array_len)
+                    
+
+                    # check if function is array length
+                    if func_name == 'len':
+                        # since arrays are fixed length, we don't need a libcall, we 
+                        # can just do an assignment.
+                        self.assign(result, array_len, lineno=lineno)
+
+                        return result
+
+                    else:
+                        params.append(array_len)
 
                 else:
                     raise SyntaxError("Array functions take one argument", lineno=self.lineno)                    
                     
-
+            
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
         self.append_node(ir)        
