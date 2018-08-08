@@ -338,16 +338,6 @@ uint16_t urand( int32_t *params, uint16_t param_len ){
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len ){
 
     switch( func_hash ){
-
-        case __KV__test_lib_call:
-            if( param_len != 2 ){
-
-                return 0;
-            }
-
-            return params[0] + params[1];
-            break;
-
         // unique random
         // this works the same as the rand() call
         // in the FX VM, however, it always uses

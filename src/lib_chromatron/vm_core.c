@@ -27,6 +27,7 @@
 #include "trig.h"
 #include "hash.h"
 #include "vm_config.h"
+#include "vm_lib.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -942,11 +943,15 @@ opcode_lcall:
     result = *pc++;
     result += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[result] = gfx_i32_lib_call( hash, params, len );
-    #else   
-    data[result] = 0;
-    #endif
+    // #ifdef VM_ENABLE_GFX
+    // data[result] = gfx_i32_lib_call( hash, params, len );
+    // #else   
+    // data[result] = 0;
+    // #endif
+    if( vm_lib_i8_libcall_built_in( hash, &data[result], params, len ) != 0 ){
+        
+        
+    }
     
     DISPATCH;
 
@@ -2020,6 +2025,10 @@ opcode_conv_f16_to_i32:
 opcode_trap:
     return VM_STATUS_TRAP;
 }
+
+
+
+
 
 
 int8_t vm_i8_run(
