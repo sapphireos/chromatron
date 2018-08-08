@@ -2449,8 +2449,6 @@ class Builder(object):
                 elif isinstance(ins, insLabel):
                     self.label_addrs[ins.name] = len(self.bytecode)
 
-                # elif isinstance(ins, insFuncTarget):
-
                 else:
                     self.bytecode.extend(ins.assemble())
 
@@ -2462,6 +2460,16 @@ class Builder(object):
 
                 l = self.label_addrs[name] & 0xff
                 h = (self.label_addrs[name] >> 8) & 0xff 
+
+                self.bytecode[i] = l
+                i += 1
+                self.bytecode[i] = h
+
+            elif isinstance(self.bytecode[i], insFuncTarget):
+                name = self.bytecode[i].name
+
+                l = self.function_addrs[name] & 0xff
+                h = (self.function_addrs[name] >> 8) & 0xff 
 
                 self.bytecode[i] = l
                 i += 1
@@ -2521,6 +2529,8 @@ class Builder(object):
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)
+
+        print self.bytecode
 
         for b in self.bytecode:
             stream += struct.pack('<B', b)
