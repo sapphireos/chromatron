@@ -26,6 +26,7 @@
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
+	int32_t *data,
 	int32_t *result, 
 	int32_t *params, 
 	uint16_t param_len );

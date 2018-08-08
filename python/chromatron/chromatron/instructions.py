@@ -691,6 +691,7 @@ class insLibCall(BaseInstruction):
             'sum': self._sum,
             'avg': self._avg,
             'rand': self._rand,
+            'test_lib_call': self._test_lib_call,
         }
 
     def __str__(self):
@@ -700,6 +701,9 @@ class insLibCall(BaseInstruction):
         params = params[:len(params) - 2]
 
         return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
+
+    def _test_lib_call(self, memory):
+        return memory[self.params[0].addr] + memory[self.params[1].addr]
 
     def _rand(self, memory):
         start = 0

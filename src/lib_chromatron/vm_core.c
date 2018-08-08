@@ -951,7 +951,7 @@ opcode_lcall:
     // #else   
     // data[result] = 0;
     // #endif
-    if( vm_lib_i8_libcall_built_in( hash, &data[result], params, len ) != 0 ){
+    if( vm_lib_i8_libcall_built_in( hash, data, &data[result], params, len ) != 0 ){
 
 
     }
