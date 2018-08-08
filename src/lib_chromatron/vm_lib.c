@@ -39,7 +39,8 @@ int8_t vm_lib_i8_libcall_built_in(
                 return 0;
             }
 
-            return params[0] + params[1];
+            *result = params[0] + params[1];
+            return 0;
             break;
 
 		default:

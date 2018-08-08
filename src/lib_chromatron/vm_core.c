@@ -943,14 +943,17 @@ opcode_lcall:
     result = *pc++;
     result += ( *pc++ ) << 8;
 
+    // initialize result to 0
+    data[result] = 0;
+
     // #ifdef VM_ENABLE_GFX
     // data[result] = gfx_i32_lib_call( hash, params, len );
     // #else   
     // data[result] = 0;
     // #endif
     if( vm_lib_i8_libcall_built_in( hash, &data[result], params, len ) != 0 ){
-        
-        
+
+
     }
     
     DISPATCH;
