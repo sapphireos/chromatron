@@ -1822,10 +1822,6 @@ def fs_get(ctx, filename):
     """Get a file"""
     group = ctx.obj['GROUP']()
 
-    f = open(filename, 'rb')
-    data = f.read()
-    f.close()
-
     for ct in group.itervalues():
         echo_name(ct, nl=False)
 
