@@ -937,7 +937,8 @@ opcode_lcall:
         temp = *pc++;
         temp += ( *pc++ ) << 8;
 
-        params[i] = data[temp];
+        // params[i] = data[temp]; // by value
+        params[i] = temp; // by reference
     }
 
     result = *pc++;

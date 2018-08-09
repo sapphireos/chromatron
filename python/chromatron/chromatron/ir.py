@@ -1775,7 +1775,10 @@ class Builder(object):
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
         except KeyError:
-            if func_name in ARRAY_FUNCS:
+            if func_name in ARRAY_FUNCS and not isinstance(params[0], irDBAttr):
+                # note we skip this check for DB items, we don't know their
+                # length beforehand.
+
                 if len(params) == 1:
                     try:
                         # array function.

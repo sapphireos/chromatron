@@ -911,22 +911,23 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
-    stream = builder.assemble()
+    # stream = builder.assemble()
 
     # pprint.pprint(stream)
 
-    builder.generate_binary('cg2_test.fxb')
+    # builder.generate_binary('cg2_test.fxb')
     
 
-    # vm = VM(builder)
+    vm = VM(builder)
 
-    # pprint.pprint(vm.dump_registers())
-    # # vm.run('init')
-    # vm.run_once()
+    pprint.pprint(vm.dump_registers())
+    # vm.run('init')
+    vm.run_once()
 
-    # pprint.pprint(vm.dump_registers())
+    pprint.pprint(vm.dump_registers())
 
-    # print vm.memory
-    # print vm.db
-    # print vm.pixel_arrays
-    # print vm.dump_hsv()
+    print vm.memory
+    print vm.db
+    print vm.pixel_arrays
+    print vm.dump_hsv()
+

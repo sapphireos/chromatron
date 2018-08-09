@@ -1599,11 +1599,11 @@ class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
 
-    # def test_lib_call(self):
-    #     self.run_test(test_lib_call,
-    #         expected={
-    #             'a': 3,
-    #         })
+    def test_lib_call(self):
+        self.run_test(test_lib_call,
+            expected={
+                'a': 3,
+            })
 
     def test_local_declare(self):
         self.run_test(test_local_declare,
@@ -3188,3 +3188,7 @@ class CGTestsLocal(CGTestsBase):
 #             except ProtocolErrorException:
 #                 print "Protocol error, trying again."
 #                 tries -= 1
+
+
+
+

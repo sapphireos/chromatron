@@ -52,6 +52,9 @@ int8_t vm_lib_i8_libcall_built_in(
                 return 0;
             }
 
+            *result = params[0];
+            return 0;
+
             temp0 = data[params[0]];
 
             // second param is array len

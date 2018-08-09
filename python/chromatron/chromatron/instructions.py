@@ -702,6 +702,23 @@ class insLibCall(BaseInstruction):
 
         return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
 
+    def execute(self, vm):
+        result = self.lib_funcs[self.target](vm.memory)
+
+        vm.memory[self.result.addr] = result
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.target))
+
+        bc.append(len(self.params))
+        for param in self.params:
+            bc.extend(param.assemble())
+
+        bc.extend(self.result.assemble())
+
+        return bc
+
     def _test_lib_call(self, memory):
         return memory[self.params[0].addr] + memory[self.params[1].addr]
 
@@ -764,23 +781,6 @@ class insLibCall(BaseInstruction):
             addr += 1
 
         return a / self.params[0].var.length
-
-    def execute(self, vm):
-        result = self.lib_funcs[self.target](vm.memory)
-
-        vm.memory[self.result.addr] = result
-
-    def assemble(self):
-        bc = [self.opcode]
-        bc.extend(hash_to_bc(self.target))
-
-        bc.append(len(self.params))
-        for param in self.params:
-            bc.extend(param.assemble())
-
-        bc.extend(self.result.assemble())
-
-        return bc
 
 class insDBCall(BaseInstruction):
     mnemonic = 'DBCALL'
