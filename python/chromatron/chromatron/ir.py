@@ -2493,12 +2493,12 @@ class Builder(object):
 
                 else:
                     if isinstance(ins, insDBStore):
-                        if ins.attr not in self.write_keys:
-                            self.write_keys.append(ins.attr)
+                        if ins.db_item not in self.write_keys:
+                            self.write_keys.append(ins.db_item)
 
-                    elif isinstance(ins, insDBLoad):
-                        if ins.attr not in self.read_keys:
-                            self.read_keys.append(ins.attr)
+                    elif isinstance(ins, insDBLoad) or isinstance(ins, insDBCall):
+                        if ins.db_item not in self.read_keys:
+                            self.read_keys.append(ins.db_item)
 
                     self.bytecode.extend(ins.assemble())
 

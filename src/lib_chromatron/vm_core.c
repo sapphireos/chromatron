@@ -1002,7 +1002,7 @@ opcode_dbcall:
         
         if( kv_i8_get_meta( db_hash, &meta ) < 0 ){
 
-            data[result] = 0;        
+            data[result] = 0;
         }
         else{
 

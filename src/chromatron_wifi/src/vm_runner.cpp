@@ -191,6 +191,10 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
         vm_status[vm_index] = VM_STATUS_HALT;
     }
+    else if( return_code < 0 ){
+
+        vm_status[vm_index] = return_code;   
+    }
 
     uint32_t elapsed = elapsed_time_micros( start_time );
 

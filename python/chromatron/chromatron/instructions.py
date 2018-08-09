@@ -839,7 +839,7 @@ class insDBCall(BaseInstruction):
             bc.extend(param.assemble())
 
         bc.extend(self.result.assemble())
-        print bc
+        
         return bc
 
     def _len(self, vm):
@@ -1548,9 +1548,9 @@ class insPixelLoadVFade(insPixelLoad):
 class insDBStore(BaseInstruction):
     mnemonic = 'DB_STORE'
 
-    def __init__(self, attr, indexes, value):
+    def __init__(self, db_item, indexes, value):
         super(insDBStore, self).__init__()
-        self.attr = attr
+        self.db_item = db_item
         self.indexes = indexes
         self.value = value
 
@@ -1559,27 +1559,27 @@ class insDBStore(BaseInstruction):
         for index in self.indexes:
             indexes += '[%s]' % (index.var.name)
 
-        return "%s db.%s%s = %s" % (self.mnemonic, self.attr, indexes, self.value)
+        return "%s db.%s%s = %s" % (self.mnemonic, self.db_item, indexes, self.value)
 
     def execute(self, vm):
         try:
-            if len(vm.db[self.attr]) <= 1:
+            if len(vm.db[self.db_item]) <= 1:
                 raise TypeError
 
             try:
-                index = self.indexes[0].var.name % len(vm.db[self.attr])
-                vm.db[self.attr][index] = vm.memory[self.value.addr]
+                index = self.indexes[0].var.name % len(vm.db[self.db_item])
+                vm.db[self.db_item][index] = vm.memory[self.value.addr]
 
             except IndexError:
-                for i in xrange(len(vm.db[self.attr])):
-                    vm.db[self.attr][i] = vm.memory[self.value.addr]                    
+                for i in xrange(len(vm.db[self.db_item])):
+                    vm.db[self.db_item][i] = vm.memory[self.value.addr]                    
 
         except TypeError:
-            vm.db[self.attr] = vm.memory[self.value.addr]
+            vm.db[self.db_item] = vm.memory[self.value.addr]
 
     def assemble(self):
         bc = [self.opcode]
-        bc.extend(hash_to_bc(self.attr))
+        bc.extend(hash_to_bc(self.db_item))
 
         bc.append(len(self.indexes))
         for index in self.indexes:
@@ -1596,9 +1596,9 @@ class insDBStore(BaseInstruction):
 class insDBLoad(BaseInstruction):
     mnemonic = 'DB_LOAD'
 
-    def __init__(self, target, attr, indexes):
+    def __init__(self, target, db_item, indexes):
         super(insDBLoad, self).__init__()
-        self.attr = attr
+        self.db_item = db_item
         self.indexes = indexes
         self.target = target
 
@@ -1607,27 +1607,27 @@ class insDBLoad(BaseInstruction):
         for index in self.indexes:
             indexes += '[%s]' % (index.var.name)
 
-        return "%s %s = db.%s%s" % (self.mnemonic, self.target, self.attr, indexes)
+        return "%s %s = db.%s%s" % (self.mnemonic, self.target, self.db_item, indexes)
 
     def execute(self, vm):
         try:
-            if len(vm.db[self.attr]) <= 1:
+            if len(vm.db[self.db_item]) <= 1:
                 raise TypeError
 
             try:
-                index = self.indexes[0].var.name % len(vm.db[self.attr])
+                index = self.indexes[0].var.name % len(vm.db[self.db_item])
 
             except IndexError:
                 index = 0 
 
-            vm.memory[self.target.addr] = vm.db[self.attr][index]
+            vm.memory[self.target.addr] = vm.db[self.db_item][index]
 
         except TypeError:
-            vm.memory[self.target.addr] = vm.db[self.attr]
+            vm.memory[self.target.addr] = vm.db[self.db_item]
 
     def assemble(self):
         bc = [self.opcode]
-        bc.extend(hash_to_bc(self.attr))
+        bc.extend(hash_to_bc(self.db_item))
 
         bc.append(len(self.indexes))
         for index in self.indexes:
