@@ -23,11 +23,13 @@
 #include <stdint.h>
 #include "bool.h"
 #include "catbus_common.h"
+#include "random.h"
 
 #include "vm_lib.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
+    vm_state_t *state, 
 	int32_t *data,
 	int32_t *result, 
 	int32_t *params, 

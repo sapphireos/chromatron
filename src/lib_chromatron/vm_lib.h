@@ -24,8 +24,11 @@
 #ifndef _VM_LIB_H_
 #define _VM_LIB_H_
 
+#include "vm_core.h"
+
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
+	vm_state_t *state, 
 	int32_t *data,
 	int32_t *result, 
 	int32_t *params, 
