@@ -2263,6 +2263,8 @@ class Builder(object):
         return liveness
 
     def allocate(self):
+        self.remove_unreachable()        
+
         self.data_table = []
         self.data_count = 0
 
@@ -2443,6 +2445,18 @@ class Builder(object):
                 print s
                 i += 1
 
+    def remove_unreachable(self):
+        if self.optimizations['remove_unreachable_code']:
+            for func in self.funcs.values():
+                unreachable = self.unreachable(func.name)
+
+                new_code = []
+                for i in xrange(len(func.body)):
+                    if i not in unreachable:
+                        new_code.append(func.body[i])
+
+                func.body = new_code        
+
     def generate_instructions(self):
         self.code = {}
 
@@ -2458,15 +2472,6 @@ class Builder(object):
         
         for func in self.funcs.values():
             ins = []
-            if self.optimizations['remove_unreachable_code']:
-                unreachable = self.unreachable(func.name)
-
-                new_code = []
-                for i in xrange(len(func.body)):
-                    if i not in unreachable:
-                        new_code.append(func.body[i])
-
-                func.body = new_code
                     
             code = func.generate()
             ins.extend(code)
