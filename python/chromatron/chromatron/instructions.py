@@ -1490,10 +1490,12 @@ class insPixelLoad(BaseInstruction):
         self.indexes = indexes
         self.target = target
 
+        assert len(self.indexes) == 2
+
     def __str__(self):
         indexes = ''
         for index in self.indexes:
-            indexes += '[%s]' % (index.name)
+            indexes += '[%s]' % (index.var.name)
 
         return "%s %s = %s.%s%s" % (self.mnemonic, self.target, self.pixel_array, self.attr, indexes)
 
@@ -1502,11 +1504,7 @@ class insPixelLoad(BaseInstruction):
             array = vm.gfx_data[self.attr]
 
             index_x = vm.memory[self.indexes[0].addr]
-            try:
-                index_y = vm.memory[self.indexes[1].addr]
-
-            except IndexError:
-                index_y = 65535
+            index_y = vm.memory[self.indexes[1].addr]
 
             vm.memory[self.target.addr] = array[vm.calc_index(index_x, index_y)]
 
@@ -1514,6 +1512,21 @@ class insPixelLoad(BaseInstruction):
             pixel_array = vm.pixel_arrays[self.pixel_array]
 
             vm.memory[self.target.addr] = pixel_array[self.attr]
+
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.append(insPixelArray(self.pixel_array))
+
+        index_x = self.indexes[0]
+        bc.extend(index_x.assemble())
+        index_y = self.indexes[1]
+        bc.extend(index_y.assemble())
+
+        bc.extend(self.target.assemble())
+
+        return bc
+
 
 class insPixelLoadHue(insPixelLoad):
     mnemonic = 'PLOAD_HUE'

@@ -1484,40 +1484,89 @@ opcode_pload_hue:
     index_y = *pc++;
     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
 
     #ifdef VM_ENABLE_GFX
-
-//     // wraparound to 16 bit range.
-//     // this makes it easy to run a circular rainbow
-//     op1 %= 65536;
-    // ^^^^^^ I don't think we actually need to do this.
-    // gfx will crunch from i32 to u16, which does the mod for free.
-
-    gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
+    data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], array );
     #endif
     
     DISPATCH;
 
 
 opcode_pload_sat:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
     
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], array );
+    #endif
+
     DISPATCH;
 
 
 opcode_pload_val:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_val( data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 
 
 opcode_pload_vfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 
 
 opcode_pload_hsfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
     
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], array );
+    #endif
+
     DISPATCH;
 
 

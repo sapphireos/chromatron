@@ -1128,10 +1128,8 @@ class irPixelStore(IR):
         for index in self.target.indexes:
             indexes.append(index.generate())
 
-        # try:
         return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate())
-        # except KeyError:
-            # return insPixelStore(self.target.name, self.target.attr, indexes, self.value.generate())
+
 
 class irPixelLoad(IR):
     def __init__(self, target, value, **kwargs):
@@ -1161,10 +1159,11 @@ class irPixelLoad(IR):
             'v_fade': insPixelLoadVFade,
         }
 
-        # try:
-        return ins[self.value.attr](self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
-        # except KeyError:
-            # return insPixelLoad(self.target.generate(), self.value.name, self.value.attr, self.value.indexes)
+        indexes = []
+        for index in self.value.indexes:
+            indexes.append(index.generate())
+
+        return ins[self.value.attr](self.target.generate(), self.value.name, self.value.attr, indexes)
 
 
 class irIndexLoad(IR):
