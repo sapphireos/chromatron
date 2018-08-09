@@ -359,6 +359,9 @@ static int8_t _vm_i8_run_stream(
     uint8_t array;
     uint8_t attr;
     catbus_hash_t32 hash;
+    uint16_t index_x;
+    uint16_t index_y;
+    int32_t value_i32;
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     uint8_t call_depth = 0;
@@ -1310,31 +1313,190 @@ opcode_pmod:
 
 
 opcode_pstore_hue:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+
+//     // wraparound to 16 bit range.
+//     // this makes it easy to run a circular rainbow
+//     op1 %= 65536;
+    // ^^^^^^ I don't think we actually need to do this.
+    // gfx will crunch from i32 to u16, which does the mod for free.
+
+    gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 
 
 opcode_pstore_sat:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_sat( value_i32, data[index_x], data[index_y], array );
+    #endif
+
     
     DISPATCH;
 
 
 opcode_pstore_val:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_val( value_i32, data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 
 
 opcode_pstore_vfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
     
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_v_fade( value_i32, data[index_x], data[index_y], array );
+    #endif
+
     DISPATCH;
 
 
 opcode_pstore_hsfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_hs_fade( value_i32, data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 
 
 opcode_pload_hue:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+
+//     // wraparound to 16 bit range.
+//     // this makes it easy to run a circular rainbow
+//     op1 %= 65536;
+    // ^^^^^^ I don't think we actually need to do this.
+    // gfx will crunch from i32 to u16, which does the mod for free.
+
+    gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 

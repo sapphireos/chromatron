@@ -1392,6 +1392,8 @@ class insPixelStore(BaseInstruction):
         self.indexes = indexes
         self.value = value
 
+        assert len(self.indexes) == 2
+
     def __str__(self):
         indexes = ''
         for index in self.indexes:
@@ -1404,11 +1406,7 @@ class insPixelStore(BaseInstruction):
             array = vm.gfx_data[self.attr]
 
             index_x = vm.memory[self.indexes[0].addr]
-            try:
-                index_y = vm.memory[self.indexes[1].addr]
-
-            except IndexError:
-                index_y = 65535
+            index_y = vm.memory[self.indexes[1].addr]
 
             a = vm.memory[self.value.addr]
 
@@ -1426,15 +1424,15 @@ class insPixelStore(BaseInstruction):
 
     def assemble(self):
         bc = [self.opcode]
-        bc.extend(hash_to_bc(self.pixel_array))
-        bc.extend(hash_to_bc(self.attr))
+        bc.append(insPixelArray(self.pixel_array))
 
-        bc.append(len(self.indexes))
-        for index in self.indexes:
-            bc.extend(index.assemble())
+        index_x = self.indexes[0]
+        bc.extend(index_x.assemble())
+        index_y = self.indexes[1]
+        bc.extend(index_y.assemble())
 
         bc.extend(self.value.assemble())
-        
+
         return bc
 
 

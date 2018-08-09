@@ -991,6 +991,8 @@ class irPixelIndex(IR):
         self.indexes = indexes
         self.attr = None
 
+        assert len(self.indexes) == 2
+
     def __str__(self):
         indexes = ''
         for index in self.indexes:
@@ -1252,8 +1254,9 @@ class Builder(object):
             'remove_unreachable_code': True,
         }
 
-        # make sure we always have 0 const
+        # make sure we always have 0 and 65535 const
         self.add_const(0, lineno=0)
+        self.add_const(65535, lineno=0)
 
         pixarray = irPixelArray('temp', lineno=0)
         pixfields = {}
@@ -1939,6 +1942,12 @@ class Builder(object):
             return irDBIndex(target, indexes, lineno=lineno)
 
         elif isinstance(target, irPixelArray):
+            # pixel index access requires 2D
+            # default 65535 for y value if index not provided.
+            # the gfx system knows how to handle this.
+            if len(indexes) == 1:
+                indexes.append(self.get_var(65535))
+
             return irPixelIndex(target, indexes, lineno=lineno)
 
         else:
