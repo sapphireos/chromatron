@@ -911,6 +911,10 @@ if __name__ == '__main__':
     builder.print_instructions(ins)
     builder.print_data_table(data)
 
+
+    builder.allocate()
+    builder.generate_instructions()
+
     stream = builder.assemble()
 
     # pprint.pprint(stream)

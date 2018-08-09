@@ -3163,8 +3163,6 @@ class CGTestsOnDevice(CGTestsBase):
             try:
                 # ct.load_vm(bin_data=program)
                 builder = code_gen.compile_text(program, debug_print=False)
-                builder.allocate()
-                builder.generate_instructions()
                 builder.assemble()
                 data = builder.generate_binary('test.fxb')
 
@@ -3175,7 +3173,9 @@ class CGTestsOnDevice(CGTestsBase):
                 ct.put_file('test.fxb', data)
                 ct.start_vm()
 
-                time.sleep(0.5)
+                time.sleep(0.2)
+
+                print len(data), ct.list_files()['test.fxb']
 
                 vm_status = ct.get_key('vm_status')
 

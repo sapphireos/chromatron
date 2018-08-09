@@ -2479,6 +2479,8 @@ class Builder(object):
         self.function_addrs = {}
         self.label_addrs = {}
         self.bytecode = []
+        self.write_keys = []
+        self.read_keys = []
 
         # generate byte code, store addresses of functions and labels
         for func in self.code:
