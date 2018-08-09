@@ -576,6 +576,9 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
+
+                send_reset_message( i );
+                reset_published_data( i );
             }
 
             // Did VM that was not running just get told to start?

@@ -3169,6 +3169,7 @@ class CGTestsOnDevice(CGTestsBase):
                 data = builder.generate_binary('test.fxb')
 
                 ct.stop_vm()
+                ct.reset_vm()
                 # change vm program
                 ct.set_key('vm_prog', 'test.fxb')
                 ct.put_file('test.fxb', data)
