@@ -758,6 +758,7 @@ db_len2 = Number(publish=True)
 a = Number(publish=True)
 b = Number(publish=True)
 c = Number(publish=True)
+d = Number(publish=True)
 
 
 def init():
@@ -767,10 +768,12 @@ def init():
     db.kv_test_array[0] = 1
     db.kv_test_array[8] = 2
     db.kv_test_array[5] = 3
+    db.kv_test_array[2] = 4
     
     a = db.kv_test_array[0]
     b = db.kv_test_array[8]
     c = db.kv_test_array[5]
+    d = db.kv_test_array[2]
 
 """
 
@@ -1919,11 +1922,12 @@ class CGTestsBase(unittest.TestCase):
     def test_db_array_access(self):
         self.run_test(test_db_array_access,
             expected={
-                'db_len': 8,
+                'db_len': 4,
                 'db_len2': 1,
                 'a': 2,
                 'b': 2,
                 'c': 3,
+                'c': 4,
             })
 
     def test_empty(self):

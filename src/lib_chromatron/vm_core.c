@@ -1660,8 +1660,10 @@ opcode_db_load:
 
     for( uint32_t i = 0; i < len; i++ ){
 
-        indexes[i] = *pc++;
-        indexes[i] += ( *pc++ ) << 8;
+        index = *pc++;
+        index += ( *pc++ ) << 8;
+
+        indexes[i] = data[index];
     }
     
     type = *pc++;
