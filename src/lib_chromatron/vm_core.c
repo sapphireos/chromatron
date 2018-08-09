@@ -1310,6 +1310,8 @@ opcode_db_store:
 
     len = *pc++;
 
+    indexes[0] = 0;
+
     for( uint32_t i = 0; i < len; i++ ){
 
         indexes[i] = *pc++;
@@ -1341,6 +1343,8 @@ opcode_db_load:
     hash |= (catbus_hash_t32)(*pc++) << 0;
 
     len = *pc++;
+
+    indexes[0] = 0;
 
     for( uint32_t i = 0; i < len; i++ ){
 
