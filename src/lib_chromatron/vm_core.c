@@ -28,6 +28,7 @@
 #include "hash.h"
 #include "vm_config.h"
 #include "vm_lib.h"
+#include "catbus_types.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -1170,7 +1171,7 @@ opcode_vmul:
     // deference pointer
     dest = data[dest];
         
-    if( type == VM_TYPE_F16 ){
+    if( type == CATBUS_TYPE_FIXED16 ){
 
         for( uint16_t i = 0; i < len; i++ ){
 
@@ -1208,7 +1209,7 @@ opcode_vdiv:
             data[dest + i] = 0;
         }
     }
-    else if( type == VM_TYPE_F16 ){
+    else if( type == CATBUS_TYPE_FIXED16 ){
 
         for( uint16_t i = 0; i < len; i++ ){
 

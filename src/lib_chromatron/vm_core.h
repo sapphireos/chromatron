@@ -41,9 +41,6 @@
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
 
-#define VM_TYPE_I32                 0
-#define VM_TYPE_F16                 1
-
 #define DATA_LEN                    4
 
 #define VM_MAX_THREADS              4
