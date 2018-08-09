@@ -1225,6 +1225,10 @@ class Builder(object):
         self.function_addrs = {}
         self.label_addrs = {}
 
+        self.pixel_array_indexes = ['pixels']
+        self.read_keys = []
+        self.write_keys = []
+
         self.cron_tab = {}
 
         self.loop_top = []
@@ -2290,7 +2294,7 @@ class Builder(object):
         for i in self.globals.values():
             if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
                 self.pixel_array_indexes.append(i.name)
-                
+
                 for field_name in sorted(i.fields.keys()):
                     field = i.fields[field_name]
 
@@ -2488,6 +2492,14 @@ class Builder(object):
                     self.label_addrs[ins.name] = len(self.bytecode)
 
                 else:
+                    if isinstance(ins, insDBStore):
+                        if ins.attr not in self.write_keys:
+                            self.write_keys.append(ins.attr)
+
+                    elif isinstance(ins, insDBLoad):
+                        if ins.attr not in self.read_keys:
+                            self.read_keys.append(ins.attr)
+
                     self.bytecode.extend(ins.assemble())
 
         # go through byte code and replace labels with addresses
@@ -2517,6 +2529,7 @@ class Builder(object):
                 # replace array with index
                 self.bytecode[i] = self.pixel_array_indexes.index(self.bytecode[i].name)
 
+
             i += 1
 
 
@@ -2533,6 +2546,16 @@ class Builder(object):
         padding_len = 4 - (code_len % 4)
         code_len += padding_len
 
+
+        # set up read keys
+        packed_read_keys = ''
+        for key in self.read_keys:
+            packed_read_keys += struct.pack('<L', catbus_string_hash(key))
+
+        # set up write keys
+        packed_write_keys = ''
+        for key in self.write_keys:
+            packed_write_keys += struct.pack('<L', catbus_string_hash(key))
 
         # set up published registers
         packed_publish = ''
@@ -2555,8 +2578,8 @@ class Builder(object):
                     code_len=code_len,
                     data_len=data_len,
                     pix_obj_len=0,
-                    read_keys_len=0,
-                    write_keys_len=0,
+                    read_keys_len=len(packed_read_keys),
+                    write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
                     link_len=0,
                     db_len=0,
@@ -2566,7 +2589,8 @@ class Builder(object):
         # print header
 
         stream += header.pack()
-
+        stream += packed_read_keys  
+        stream += packed_write_keys
         stream += packed_publish
 
         # add code stream

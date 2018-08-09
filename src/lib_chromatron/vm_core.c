@@ -1625,7 +1625,6 @@ opcode_db_store:
     #ifdef VM_ENABLE_KV
     #ifdef ESP8266
     kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
-    kvdb_i8_publish( hash );
     #else
     catbus_i8_array_set( hash, type, indexes[0], 1, &data[src] );
     catbus_i8_publish( hash );
