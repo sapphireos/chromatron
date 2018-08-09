@@ -1525,7 +1525,7 @@ class insDBStore(BaseInstruction):
     def __str__(self):
         indexes = ''
         for index in self.indexes:
-            indexes += '[%s]' % (index.name)
+            indexes += '[%s]' % (index.var.name)
 
         return "%s db.%s%s = %s" % (self.mnemonic, self.attr, indexes, self.value)
 
@@ -1535,7 +1535,7 @@ class insDBStore(BaseInstruction):
                 raise TypeError
 
             try:
-                index = self.indexes[0].name % len(vm.db[self.attr])
+                index = self.indexes[0].var.name % len(vm.db[self.attr])
                 vm.db[self.attr][index] = vm.memory[self.value.addr]
 
             except IndexError:
@@ -1544,6 +1544,18 @@ class insDBStore(BaseInstruction):
 
         except TypeError:
             vm.db[self.attr] = vm.memory[self.value.addr]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.attr))
+
+        bc.append(len(self.indexes))
+        for index in self.indexes:
+            bc.extend(index.assemble())
+
+        bc.extend(self.value.assemble())
+
+        return bc
 
 
 class insDBLoad(BaseInstruction):
@@ -1558,7 +1570,7 @@ class insDBLoad(BaseInstruction):
     def __str__(self):
         indexes = ''
         for index in self.indexes:
-            indexes += '[%s]' % (index.name)
+            indexes += '[%s]' % (index.var.name)
 
         return "%s %s = db.%s%s" % (self.mnemonic, self.target, self.attr, indexes)
 
@@ -1568,7 +1580,7 @@ class insDBLoad(BaseInstruction):
                 raise TypeError
 
             try:
-                index = self.indexes[0].name % len(vm.db[self.attr])
+                index = self.indexes[0].var.name % len(vm.db[self.attr])
 
             except IndexError:
                 index = 0 
@@ -1578,8 +1590,17 @@ class insDBLoad(BaseInstruction):
         except TypeError:
             vm.memory[self.target.addr] = vm.db[self.attr]
 
-        
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.attr))
 
+        bc.append(len(self.indexes))
+        for index in self.indexes:
+            bc.extend(index.assemble())
+
+        bc.extend(self.target.assemble())
+
+        return bc
 
 class insConvMov(insMov):
     mnemonic = 'MOV'

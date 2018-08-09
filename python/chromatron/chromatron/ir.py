@@ -1058,7 +1058,8 @@ class irDBStore(IR):
         return temp
 
     def generate(self):
-        return insDBStore(self.target.attr, self.indexes, self.value.generate())
+        indexes = [a.generate() for a in self.indexes]
+        return insDBStore(self.target.attr, indexes, self.value.generate())
 
 
 class irDBLoad(IR):
@@ -1087,7 +1088,8 @@ class irDBLoad(IR):
         return [self.target]
 
     def generate(self):
-        return insDBLoad(self.target.generate(), self.value.attr, self.indexes)
+        indexes = [a.generate() for a in self.indexes]
+        return insDBLoad(self.target.generate(), self.value.attr, indexes)
 
 
 
