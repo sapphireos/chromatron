@@ -155,7 +155,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 *result += data[params[0] + i];
             }
 
-            *result /= params[1];
+            *result /= array_len;
 
             return 0;
             break;
