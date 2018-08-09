@@ -589,7 +589,7 @@ PT_BEGIN( pt );
 
                     vm_run[i] = FALSE;
 
-                    log_v_debug_P( PSTR("VM load fail: %d"), i );
+                    log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
 
                     goto error; 
                 }
