@@ -30,6 +30,15 @@ class ReturnException(Exception):
     pass
 
 
+PIX_ATTR_CODES = {
+    'hue':      0,
+    'sat':      1,
+    'val':      2,
+    'hs_fade':  3,
+    'v_fade':   4,
+}
+
+
 opcodes = {
     'MOV':                  0x01,
     'CLR':                  0x02,
@@ -202,6 +211,19 @@ class insFuncTarget(BaseInstruction):
     def assemble(self):
         # leave room for 16 bits
         return [self, None]
+
+class insPixelArray(BaseInstruction):
+    def __init__(self, name=None):
+        self.name = name
+
+    def __str__(self):
+        return "PixelArray(%s)" % (self.name)
+
+    def execute(self, vm):
+        pass
+
+    def assemble(self):
+        return [self]
 
 class insFunction(BaseInstruction):
     def __init__(self, name=None, args=[]):
@@ -1182,8 +1204,8 @@ class insPixelVector(BaseInstruction):
     def assemble(self):
         bc = [self.opcode]
         
-        bc.extend(hash_to_bc(self.pixel_array))
-        bc.extend(hash_to_bc(self.attr))
+        bc.append(insPixelArray(self.pixel_array))
+        bc.append(PIX_ATTR_CODES[self.attr])
 
         bc.extend(self.value.assemble())
 

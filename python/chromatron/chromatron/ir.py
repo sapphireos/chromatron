@@ -396,6 +396,7 @@ PIX_ATTR_TYPES = {
     'index': 'i32',
 }
 
+
 class irPixelAttr(irObjectAttr):
     def __init__(self, obj, attr, **kwargs):
         lineno = kwargs['lineno']
@@ -2261,6 +2262,8 @@ class Builder(object):
 
         self.data_table.append(ret_var)
 
+        self.pixel_array_indexes = ['pixels']
+
         # allocate pixel array data
         # start with master array
         global_pixels = self.globals['pixels']
@@ -2278,6 +2281,8 @@ class Builder(object):
 
         for i in self.globals.values():
             if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
+                self.pixel_array_indexes.append(i.name)
+                
                 for field_name in sorted(i.fields.keys()):
                     field = i.fields[field_name]
 
@@ -2499,6 +2504,10 @@ class Builder(object):
                 self.bytecode[i] = l
                 i += 1
                 self.bytecode[i] = h
+
+            elif isinstance(self.bytecode[i], insPixelArray):
+                # replace array with index
+                self.bytecode[i] = self.pixel_array_indexes.index(self.bytecode[i].name)
 
             i += 1
 

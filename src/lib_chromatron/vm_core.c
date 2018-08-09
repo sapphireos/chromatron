@@ -356,6 +356,8 @@ static int8_t _vm_i8_run_stream(
     uint16_t temp;
     uint16_t len;
     uint8_t type;
+    uint8_t array;
+    uint8_t attr;
     catbus_hash_t32 hash;
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -1223,32 +1225,87 @@ opcode_vmod:
 
 
 opcode_pmov:
+    array = *pc++;
+    attr = *pc++;
     
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_move( array, attr, data[src] );
+    #endif
+
     DISPATCH;
 
 
 opcode_padd:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_add( array, attr, data[src] );
+    #endif
     
     DISPATCH;
 
 
 opcode_psub:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_sub( array, attr, data[src] );
+    #endif
+
     
     DISPATCH;
 
 
 opcode_pmul:
+    array = *pc++;
+    attr = *pc++;
     
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_mul( array, attr, data[src] );
+    #endif
+
     DISPATCH;
 
 
 opcode_pdiv:
+    array = *pc++;
+    attr = *pc++;
     
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_div( array, attr, data[src] );
+    #endif
+
     DISPATCH;
 
 
 opcode_pmod:
+    array = *pc++;
+    attr = *pc++;
     
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_mod( array, attr, data[src] );
+    #endif
+
     DISPATCH;
 
 

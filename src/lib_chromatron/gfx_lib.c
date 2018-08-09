@@ -362,38 +362,38 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
     return 0;
 }
 
-int32_t gfx_i32_get_obj_attr( uint8_t obj, uint8_t attr, uint8_t addr ){
+// int32_t gfx_i32_get_obj_attr( uint8_t obj, uint8_t attr, uint8_t addr ){
 
-    if( obj == PIX_OBJ_TYPE ){
+//     if( obj == PIX_OBJ_TYPE ){
 
-        switch( attr ){
-            case PIX_ATTR_INDEX:
-                return pix_arrays[addr].index;
-                break;
+//         switch( attr ){
+//             case PIX_ATTR_INDEX:
+//                 return pix_arrays[addr].index;
+//                 break;
 
-            case PIX_ATTR_COUNT:
-                // check if using virtual arrays
-                // AND if accessing master array
-                if( ( addr == 0 ) && ( virtual_array_length > 0 ) ){
+//             case PIX_ATTR_COUNT:
+//                 // check if using virtual arrays
+//                 // AND if accessing master array
+//                 if( ( addr == 0 ) && ( virtual_array_length > 0 ) ){
 
-                    return virtual_array_length;          
-                }
+//                     return virtual_array_length;          
+//                 }
 
-                return pix_arrays[addr].count;
-                break;
+//                 return pix_arrays[addr].count;
+//                 break;
 
-            case PIX_ATTR_SIZE_X:
-                return pix_arrays[addr].size_x;
-                break;
+//             case PIX_ATTR_SIZE_X:
+//                 return pix_arrays[addr].size_x;
+//                 break;
 
-            case PIX_ATTR_SIZE_Y:
-                return pix_arrays[addr].size_y;
-                break;
-        }
-    }
+//             case PIX_ATTR_SIZE_Y:
+//                 return pix_arrays[addr].size_y;
+//                 break;
+//         }
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 void gfx_v_set_pix_count( uint16_t setting ){
 
