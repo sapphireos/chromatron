@@ -3173,11 +3173,16 @@ class CGTestsOnDevice(CGTestsBase):
                 ct.put_file('test.fxb', data)
                 ct.start_vm()
 
-                time.sleep(0.2)
+                for i in xrange(100):
+                    time.sleep(0.1)
 
-                print len(data), ct.list_files()['test.fxb']
+                    vm_status = ct.get_key('vm_status')
 
-                vm_status = ct.get_key('vm_status')
+                    if vm_status != 4 and vm_status != -127:
+                        # vm reports READY (4), we need to wait until it changes 
+                        # (READY means it is waiting for the internal VM to start)
+                        # -127 means the VM is not initialized
+                        break
 
                 self.assertEqual(0, vm_status)
 

@@ -484,7 +484,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
     fs_f_close( f );
 
-    vm_status[vm_id]        = 0;
+    vm_status[vm_id]        = VM_STATUS_READY;
     vm_loop_time[vm_id]     = 0;
     vm_thread_time[vm_id]   = 0;
     vm_max_cycles[vm_id]    = 0;
