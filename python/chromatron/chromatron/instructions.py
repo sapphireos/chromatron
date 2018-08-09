@@ -839,7 +839,7 @@ class insDBCall(BaseInstruction):
             bc.extend(param.assemble())
 
         bc.extend(self.result.assemble())
-        
+        print bc
         return bc
 
     def _len(self, vm):

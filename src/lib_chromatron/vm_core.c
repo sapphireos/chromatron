@@ -995,9 +995,21 @@ opcode_dbcall:
     data[result] = 0;
 
     // call db func
-    
+    if( hash == __KV__len ){
 
-    goto opcode_trap;
+        #ifdef VM_ENABLE_KV
+        catbus_meta_t meta;
+        
+        if( kv_i8_get_meta( db_hash, &meta ) < 0 ){
+
+            data[result] = 0;        
+        }
+        else{
+
+            data[result] = meta.count + 1;
+        }
+        #endif
+    }    
     
     DISPATCH;
 
@@ -1613,8 +1625,10 @@ opcode_db_store:
 
     for( uint32_t i = 0; i < len; i++ ){
 
-        indexes[i] = *pc++;
-        indexes[i] += ( *pc++ ) << 8;
+        index = *pc++;
+        index += ( *pc++ ) << 8;
+
+        indexes[i] = data[index];
     }
     
     type = *pc++;

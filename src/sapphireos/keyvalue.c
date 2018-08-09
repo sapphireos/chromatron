@@ -42,6 +42,7 @@
 
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
+static int32_t kv_test_array[4];
 
 static int16_t cached_index = -1;
 static catbus_hash_t32 cached_hash;
@@ -95,6 +96,7 @@ static int8_t _kv_i8_dynamic_count_handler(
 KV_SECTION_META kv_meta_t kv_cfg[] = {
     { SAPPHIRE_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { SAPPHIRE_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
+    { SAPPHIRE_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
 };
