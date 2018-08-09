@@ -2450,15 +2450,6 @@ int8_t vm_i8_run_init(
 
     state->frame_number = 0;
 
-    #ifdef VM_ENABLE_GFX
-
-    // init pixel array pointer
-    // gfx_pixel_array_t *pix_array = (gfx_pixel_array_t *)( stream + state->pix_obj_start );
-
-    // gfx_v_init_pixel_arrays( pix_array, state->pix_obj_count );
-
-    #endif
-
     return vm_i8_run( stream, state->init_start, state );
 }
 

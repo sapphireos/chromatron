@@ -3141,53 +3141,53 @@ class CGTestsLocal(CGTestsBase):
 
 
 
-# import chromatron
-# from catbus import ProtocolErrorException
-# import time
+import chromatron
+from catbus import ProtocolErrorException
+import time
 
-# ct = chromatron.Chromatron(host='10.0.0.119')
+ct = chromatron.Chromatron(host='10.0.0.119')
 
-# class CGTestsOnDevice(CGTestsBase):
-#     def run_test(self, program, expected={}):
-#         global ct
-#         # ct = chromatron.Chromatron(host='usb', force_network=True)
-#         # ct = chromatron.Chromatron(host='10.0.0.108')
+class CGTestsOnDevice(CGTestsBase):
+    def run_test(self, program, expected={}):
+        global ct
+        # ct = chromatron.Chromatron(host='usb', force_network=True)
+        # ct = chromatron.Chromatron(host='10.0.0.108')
 
-#         tries = 3
+        tries = 3
 
-#         while tries > 0:
-#             try:
-#                 # ct.load_vm(bin_data=program)
-#                 builder = code_gen.compile_text(program, debug_print=False)
-#                 builder.allocate()
-#                 builder.generate_instructions()
-#                 builder.assemble()
-#                 data = builder.generate_binary('test.fxb')
+        while tries > 0:
+            try:
+                # ct.load_vm(bin_data=program)
+                builder = code_gen.compile_text(program, debug_print=False)
+                builder.allocate()
+                builder.generate_instructions()
+                builder.assemble()
+                data = builder.generate_binary('test.fxb')
 
-#                 ct.stop_vm()
-#                 # change vm program
-#                 ct.set_key('vm_prog', 'test.fxb')
-#                 ct.put_file('test.fxb', data)
-#                 ct.start_vm()
+                ct.stop_vm()
+                # change vm program
+                ct.set_key('vm_prog', 'test.fxb')
+                ct.put_file('test.fxb', data)
+                ct.start_vm()
 
-#                 time.sleep(0.5)
+                time.sleep(0.5)
 
-#                 ct.init_scan()
+                ct.init_scan()
 
-#                 for reg, expected_value in expected.iteritems():
-#                     if reg == 'kv_test_key':
-#                         actual = ct.get_key(reg)
+                for reg, expected_value in expected.iteritems():
+                    if reg == 'kv_test_key':
+                        actual = ct.get_key(reg)
 
-#                     else:
-#                         actual = ct.get_vm_reg(str(reg))
+                    else:
+                        actual = ct.get_vm_reg(str(reg))
 
-#                     self.assertEqual(expected_value, actual)
+                    self.assertEqual(expected_value, actual)
 
-#                 return
+                return
 
-#             except ProtocolErrorException:
-#                 print "Protocol error, trying again."
-#                 tries -= 1
+            except ProtocolErrorException:
+                print "Protocol error, trying again."
+                tries -= 1
 
 
 

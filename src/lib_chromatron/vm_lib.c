@@ -35,7 +35,7 @@ int8_t vm_lib_i8_libcall_built_in(
 	int32_t *params, 
 	uint16_t param_len ){
 
-	int32_t temp0, temp1;
+	int32_t temp0, temp1, array_len;
 
 	switch( func_hash ){
         case __KV__rand:
@@ -74,10 +74,12 @@ int8_t vm_lib_i8_libcall_built_in(
                 return 0;
             }
 
+            array_len = data[params[1]];
+
             temp0 = data[params[0]];
 
             // second param is array len
-            for( int32_t i = 1; i < params[1]; i++ ){
+            for( int32_t i = 1; i < array_len; i++ ){
 
             	temp1 = data[params[0] + i];
 
@@ -97,10 +99,12 @@ int8_t vm_lib_i8_libcall_built_in(
                 return 0;
             }
 
+            array_len = data[params[1]];
+
             temp0 = data[params[0]];
 
             // second param is array len
-            for( int32_t i = 1; i < params[1]; i++ ){
+            for( int32_t i = 1; i < array_len; i++ ){
 
                 temp1 = data[params[0] + i];
 
@@ -120,8 +124,10 @@ int8_t vm_lib_i8_libcall_built_in(
                 return 0;
             }
 
+            array_len = data[params[1]];
+
             // second param is array len
-            for( int32_t i = 0; i < params[1]; i++ ){
+            for( int32_t i = 0; i < array_len; i++ ){
 
                 *result += data[params[0] + i];
             }
@@ -141,8 +147,10 @@ int8_t vm_lib_i8_libcall_built_in(
                 return 0;
             }
 
+            array_len = data[params[1]];
+
             // second param is array len
-            for( int32_t i = 0; i < params[1]; i++ ){
+            for( int32_t i = 0; i < array_len; i++ ){
 
                 *result += data[params[0] + i];
             }
