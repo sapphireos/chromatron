@@ -785,8 +785,9 @@ class insLibCall(BaseInstruction):
 class insDBCall(BaseInstruction):
     mnemonic = 'DBCALL'
 
-    def __init__(self, target, result, params=[]):
+    def __init__(self, target, db_item, result, params=[]):
         self.target = target
+        self.db_item = db_item
         self.result = result
         self.params = params
 
@@ -804,10 +805,23 @@ class insDBCall(BaseInstruction):
             params += '%s, ' % (param)
         params = params[:len(params) - 2]
 
-        return "%s %s = %s (%s)" % (self.mnemonic, self.result, self.target, params)
+        return "%s %s = %s (%s, %s)" % (self.mnemonic, self.result, self.target, self.db_item, params)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(hash_to_bc(self.target))
+        bc.extend(hash_to_bc(self.db_item))
+
+        bc.append(len(self.params))
+        for param in self.params:
+            bc.extend(param.assemble())
+
+        bc.extend(self.result.assemble())
+        
+        return bc
 
     def _len(self, vm):
-        item = vm.db[self.params[0].attr]
+        item = vm.db[self.db_item]
         
         try:
             return len(item)
@@ -864,17 +878,6 @@ class insDBCall(BaseInstruction):
 
         vm.memory[self.result.addr] = result
 
-    def assemble(self):
-        bc = [self.opcode]
-        bc.extend(hash_to_bc(self.target))
-
-        bc.append(len(self.params))
-        for param in self.params:
-            bc.extend(param.assemble())
-
-        bc.extend(self.result.assemble())
-        
-        return bc
 
 
 class insIndex(BaseInstruction):

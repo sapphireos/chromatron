@@ -433,7 +433,7 @@ class irDBAttr(irVar):
         return "DBAttr (%s)" % (self.name)
 
     def generate(self):
-        return self
+        return self.attr
 
     def lookup(self, indexes):
         return self
@@ -816,15 +816,11 @@ class irLibCall(IR):
     def generate(self):        
         params = [a.generate() for a in self.params]
 
-        if self.target in ARRAY_FUNCS:
-            if isinstance(params[0], irDBAttr):
-                call_ins = insDBCall(self.target, self.result.generate(), params)
-
-            else:
-                call_ins = insLibCall(self.target, self.result.generate(), params)
+        if isinstance(self.params[0], irDBAttr):
+            db_item = params.pop(0)
+            call_ins = insDBCall(self.target, db_item, self.result.generate(), params)
 
         else:
-            # call func
             call_ins = insLibCall(self.target, self.result.generate(), params)
 
         return call_ins
