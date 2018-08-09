@@ -359,6 +359,7 @@ static int8_t _vm_i8_run_stream(
     uint8_t array;
     uint8_t attr;
     catbus_hash_t32 hash;
+    catbus_hash_t32 db_hash;
     uint16_t index_x;
     uint16_t index_y;
     int32_t value_i32;
@@ -967,6 +968,35 @@ opcode_lcall:
 
 
 opcode_dbcall:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    db_hash =  (catbus_hash_t32)(*pc++) << 24;
+    db_hash |= (catbus_hash_t32)(*pc++) << 16;
+    db_hash |= (catbus_hash_t32)(*pc++) << 8;
+    db_hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
+
+    for( uint32_t i = 0; i < len; i++ ){
+        temp = *pc++;
+        temp += ( *pc++ ) << 8;
+
+        params[i] = temp; // by reference
+    }
+
+    result = *pc++;
+    result += ( *pc++ ) << 8;
+
+    // initialize result to 0
+    data[result] = 0;
+
+    // call db func
+    
+
+    goto opcode_trap;
     
     DISPATCH;
 
