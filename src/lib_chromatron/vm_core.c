@@ -365,6 +365,7 @@ static int8_t _vm_i8_run_stream(
     // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
     // bool yield;
     int32_t params[8];
+    int32_t indexes[8];
     // uint16_t addr;
 
 
@@ -1302,11 +1303,69 @@ opcode_pload_hsfade:
 
 
 opcode_db_store:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
+
+    for( uint32_t i = 0; i < len; i++ ){
+
+        indexes[i] = *pc++;
+        indexes[i] += ( *pc++ ) << 8;
+    }
+    
+    type = *pc++;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
+    kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
+    kvdb_i8_publish( hash );
+    #else
+    catbus_i8_array_set( hash, type, indexes[0], 1, &data[src] );
+    catbus_i8_publish( hash );
+    #endif
+    #endif
     
     DISPATCH;
 
 
 opcode_db_load:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
+
+    for( uint32_t i = 0; i < len; i++ ){
+
+        indexes[i] = *pc++;
+        indexes[i] += ( *pc++ ) << 8;
+    }
+    
+    type = *pc++;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
+    if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
+
+        data[dest] = 0;        
+    }
+    #else
+    if( catbus_i8_array_get( hash, type, indexes[0], 1, &data[dest] ) < 0 ){
+
+        data[dest] = 0;        
+    }
+    #endif
+    #endif
     
     DISPATCH;
 

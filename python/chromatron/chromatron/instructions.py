@@ -1049,7 +1049,6 @@ class insVector(BaseInstruction):
         bc.extend([l, h])
 
         target_type = get_type_id(self.type)
-
         bc.append(target_type)
 
         return bc
@@ -1553,6 +1552,9 @@ class insDBStore(BaseInstruction):
         for index in self.indexes:
             bc.extend(index.assemble())
 
+        value_type = get_type_id(self.value.var.type)
+        bc.append(value_type)
+
         bc.extend(self.value.assemble())
 
         return bc
@@ -1598,6 +1600,8 @@ class insDBLoad(BaseInstruction):
         for index in self.indexes:
             bc.extend(index.assemble())
 
+        target_type = get_type_id(self.target.var.type)
+        bc.append(target_type)
         bc.extend(self.target.assemble())
 
         return bc
