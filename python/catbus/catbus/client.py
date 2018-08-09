@@ -336,7 +336,6 @@ class Client(object):
 
             try:
                 response, sender = self._exchange(msg)
-                print response
                 
                 if len(response.data) == 0:
                     raise KeyError

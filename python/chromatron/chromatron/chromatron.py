@@ -1833,7 +1833,7 @@ def fs_get(ctx, filename):
             pass
 
         try:
-            data = ct.get_file(filename, data)
+            data = ct.get_file(filename)
 
             with open(os.path.join(ct.name, filename), 'w+') as f:
                 f.write(data)
