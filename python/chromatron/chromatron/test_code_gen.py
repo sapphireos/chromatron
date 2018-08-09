@@ -1927,7 +1927,7 @@ class CGTestsBase(unittest.TestCase):
                 'a': 2,
                 'b': 2,
                 'c': 3,
-                'c': 4,
+                'd': 4,
             })
 
     def test_empty(self):
@@ -3175,6 +3175,10 @@ class CGTestsOnDevice(CGTestsBase):
                 ct.start_vm()
 
                 time.sleep(0.5)
+
+                vm_status = ct.get_key('vm_status')
+
+                self.assertEqual(0, vm_status)
 
                 ct.init_scan()
 

@@ -2710,7 +2710,7 @@ class VM(object):
         self.db['pix_size_x'] = pix_size_x
         self.db['pix_size_y'] = pix_size_y
         self.db['pix_count'] = self.pix_count
-        self.db['kv_test_array'] = [0] * 8
+        self.db['kv_test_array'] = [0] * 4
         self.db['kv_test_key'] = 0
 
         # set up master pixel array
