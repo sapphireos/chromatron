@@ -159,6 +159,25 @@ int8_t vm_lib_i8_libcall_built_in(
             state->yield = TRUE;
             break;
 
+        case __KV__delay:
+            // default to yield (no delay) if no parameters
+            if( param_len < 1 ){
+
+                temp0 = 0;
+            }
+            else{
+                // first parameter is delay time, all other params ignored
+                temp0 = data[params[0]];
+            }
+
+            // set up delay
+            state->threads[state->current_thread].delay_ticks = temp0 / state->tick_rate;
+
+            // delay also yields
+            state->yield = TRUE;
+            break;
+
+
 		default:
             // function not found
             return -1;
