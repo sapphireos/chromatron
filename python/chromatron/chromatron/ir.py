@@ -1004,6 +1004,10 @@ class irPixelIndex(IR):
 
         return s
 
+    @property
+    def type(self):
+        return self.get_base_type()
+
     def get_input_vars(self):
         return self.indexes
 
@@ -1601,7 +1605,7 @@ class Builder(object):
             # check types
             if target.get_base_type() != value.get_base_type():
                 # mismatch.
-            # in this case, we've already done the indirect load into the target, but 
+                # in this case, we've already done the indirect load into the target, but 
                 # it has the wrong type. we're going to do the conversion on top of itself.
                 ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
                 self.append_node(ir)
@@ -1638,6 +1642,11 @@ class Builder(object):
         elif isinstance(value, irPixelIndex):
             ir = irPixelLoad(target, value, lineno=lineno)
             self.append_node(ir)
+
+            # check if we need to convert
+            if target.get_base_type() != value.get_base_type():
+                ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+                self.append_node(ir)                
 
         else:
             ir = irAssign(target, value, lineno=lineno)
@@ -1706,7 +1715,7 @@ class Builder(object):
             self.assign(target, result, lineno=lineno)
 
         elif isinstance(target, irPixelIndex):
-            result = self.add_temp(lineno=lineno, data_type=value.type)
+            result = self.add_temp(lineno=lineno, data_type=target.type)
             ir = irPixelLoad(result, target, lineno=lineno)
             self.append_node(ir)
 
@@ -1719,6 +1728,11 @@ class Builder(object):
             result = self.add_temp(lineno=lineno, data_type=target.type)
             ir = irPixelLoad(result, value, lineno=lineno)
             self.append_node(ir)
+
+            # check if we need to convert
+            if result.get_base_type() != value.get_base_type():
+                ir = irConvertTypeInPlace(result, value.get_base_type(), lineno=lineno)
+                self.append_node(ir)                
 
             result = self.binop(op, result, target, lineno=lineno)
 
