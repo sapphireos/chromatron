@@ -83,6 +83,19 @@ class Link(StructField):
         super(Link, self).__init__(_name="link", _fields=fields, **kwargs)
 
 
+class ScheduleItem(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="func"),
+                  Int8Field(_name="second"),
+                  Int8Field(_name="minute"),
+                  Int8Field(_name="hour"),
+                  Int8Field(_name="day_of_month"),
+                  Int8Field(_name="day_of_week"),
+                  Int8Field(_name="month")]
+
+        super(ScheduleItem, self).__init__(_name="schedule_item", _fields=fields, **kwargs)
+
+
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
         self.lineno = lineno
