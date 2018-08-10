@@ -202,7 +202,8 @@ typedef struct{
 
 int8_t vm_i8_run(
     uint8_t *stream,
-    uint16_t offset,
+    uint16_t func_addr,
+    uint16_t pc_offset,
     vm_state_t *state );
 
 int8_t vm_i8_run_init(

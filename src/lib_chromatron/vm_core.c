@@ -46,7 +46,8 @@ static uint16_t cycles;
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
-    uint16_t offset,
+    uint16_t func_addr,
+    uint16_t pc_offset,
     vm_state_t *state,
     int32_t *data ){
 
@@ -331,7 +332,7 @@ static int8_t _vm_i8_run_stream(
     };
 
     uint8_t *code = stream + state->code_start;
-    uint8_t *pc = code + offset;
+    uint8_t *pc = code + func_addr + pc_offset;
     uint8_t opcode;
 
     uint16_t dest;
@@ -975,7 +976,7 @@ opcode_lcall:
             }
 
             // store PC offset
-            state->threads[state->current_thread].pc_offset = pc - code;
+            state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
 
             // yield!
             return VM_STATUS_YIELDED;
@@ -1776,7 +1777,8 @@ opcode_trap:
 
 int8_t vm_i8_run(
     uint8_t *stream,
-    uint16_t offset,
+    uint16_t func_addr,
+    uint16_t pc_offset,
     vm_state_t *state ){
 
     cycles = VM_MAX_CYCLES;
@@ -1805,7 +1807,7 @@ int8_t vm_i8_run(
 
     state->yield = FALSE;
 
-    int8_t status = _vm_i8_run_stream( stream, offset, state, data );
+    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
 
     cycles = VM_MAX_CYCLES - cycles;
 
@@ -1837,7 +1839,7 @@ int8_t vm_i8_run_init(
 
     state->frame_number = 0;
 
-    return vm_i8_run( stream, state->init_start, state );
+    return vm_i8_run( stream, state->init_start, 0, state );
 }
 
 
@@ -1847,7 +1849,7 @@ int8_t vm_i8_run_loop(
 
     state->frame_number++;
 
-    return vm_i8_run( stream, state->loop_start, state );
+    return vm_i8_run( stream, state->loop_start, 0, state );
 }
 
 int8_t vm_i8_run_threads(
@@ -1874,7 +1876,7 @@ int8_t vm_i8_run_threads(
 
         state->current_thread = i;
 
-        int8_t status = vm_i8_run( stream, state->threads[i].func_addr + state->threads[i].pc_offset, state );
+        int8_t status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
 
         threads_running = TRUE;
 

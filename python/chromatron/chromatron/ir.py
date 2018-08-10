@@ -2594,6 +2594,8 @@ class Builder(object):
 
                     self.bytecode.extend(ins.assemble())
 
+        print self.function_addrs
+
         # go through byte code and replace labels with addresses
         i = 0
         while i < len(self.bytecode):
@@ -2617,6 +2619,8 @@ class Builder(object):
                 i += 1
                 self.bytecode[i] = h
 
+                print name, l, h
+
             elif isinstance(self.bytecode[i], insPixelArray):
                 # replace array with index
                 self.bytecode[i] = self.pixel_array_indexes.index(self.bytecode[i].name)
@@ -2624,8 +2628,8 @@ class Builder(object):
 
             i += 1
 
-
         return self.bytecode
+
 
     def generate_binary(self, filename):
         stream = ''
