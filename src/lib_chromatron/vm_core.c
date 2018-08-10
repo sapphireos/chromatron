@@ -956,14 +956,18 @@ opcode_lcall:
     // initialize result to 0
     data[result] = 0;
 
-    // #ifdef VM_ENABLE_GFX
-    // data[result] = gfx_i32_lib_call( hash, params, len );
-    // #else   
-    // data[result] = 0;
-    // #endif
     if( vm_lib_i8_libcall_built_in( hash, state, data, &data[result], params, len ) != 0 ){
 
+        #ifdef VM_ENABLE_GFX
+        // try gfx lib
+        // load params by value
+        for( uint32_t i = 0; i < len; i++ ){
 
+            params[i] = data[params[i]];
+        }
+
+        data[result] = gfx_i32_lib_call( hash, params, len );
+        #endif
     }
     
     DISPATCH;
@@ -1786,6 +1790,8 @@ int8_t vm_i8_run(
     gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&data[PIX_ARRAY_ADDR], state->pix_obj_count );
 
     #endif
+
+    state->yield = FALSE;
 
     int8_t status = _vm_i8_run_stream( stream, offset, state, data );
 

@@ -176,6 +176,7 @@ typedef struct{
     uint8_t tick_rate;
 
     vm_thread_t threads[VM_MAX_THREADS];
+    bool yield;
 
     int8_t current_thread;
     uint16_t max_cycles;
