@@ -192,7 +192,7 @@ int8_t vm_lib_i8_libcall_built_in(
 
                     memset( &state->threads[i], 0, sizeof(state->threads[i]) );
 
-                    state->threads[i].func_addr = data[params[0]];
+                    state->threads[i].func_addr = params[0];
 
                     break;
                 }
@@ -211,7 +211,7 @@ int8_t vm_lib_i8_libcall_built_in(
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == data[params[0]] ){
+                if( state->threads[i].func_addr == params[0] ){
 
                     state->threads[i].func_addr = 0xffff;
 
@@ -232,7 +232,7 @@ int8_t vm_lib_i8_libcall_built_in(
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == data[params[0]] ){
+                if( state->threads[i].func_addr == params[0] ){
 
                     return TRUE;
                 }

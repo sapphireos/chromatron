@@ -719,6 +719,8 @@ class insLibCall(BaseInstruction):
             'test_lib_call': self._test_lib_call,
         }
 
+        self.thread_funcs = ['start_thread', 'stop_thread', 'thread_running']
+
     def __str__(self):
         params = ''
         for param in self.params:
@@ -738,7 +740,17 @@ class insLibCall(BaseInstruction):
 
         bc.append(len(self.params))
         for param in self.params:
-            bc.extend(param.assemble())
+            try:
+                bc.extend(param.assemble())
+
+            except AttributeError:
+                # maybe got a string or something that can't assemble()
+
+                # check if this is a thread call
+                if self.target in self.thread_funcs:
+                    param = insFuncTarget(param)
+                    
+                    bc.extend(param.assemble())
 
         bc.extend(self.result.assemble())
 
