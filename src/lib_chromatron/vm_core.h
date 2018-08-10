@@ -73,6 +73,7 @@
 
 #define VM_STATUS_ERROR                 -80
 
+#define VM_STATUS_IMPROPER_YIELD        -96
 #define VM_STATUS_INDEX_OUT_OF_BOUNDS   -97
 #define VM_STATUS_CALL_DEPTH_EXCEEDED   -98
 #define VM_STATUS_ASSERT                -99

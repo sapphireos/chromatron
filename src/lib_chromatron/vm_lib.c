@@ -55,7 +55,6 @@ int8_t vm_lib_i8_libcall_built_in(
 
             *result = temp1 + params[0];
 
-            return 0;
             break;
 
 		case __KV__test_lib_call:
@@ -65,7 +64,6 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             *result = data[params[0]] + data[params[1]];
-            return 0;
             break;
 
       	case __KV__min:
@@ -90,7 +88,6 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             *result = temp0;
-            return 0;
             break;
 
         case __KV__max:
@@ -115,7 +112,6 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             *result = temp0;
-            return 0;
             break;
 
         case __KV__sum:
@@ -132,7 +128,6 @@ int8_t vm_lib_i8_libcall_built_in(
                 *result += data[params[0] + i];
             }
 
-            return 0;
             break;
 
         case __KV__avg:
@@ -157,12 +152,18 @@ int8_t vm_lib_i8_libcall_built_in(
 
             *result /= array_len;
 
-            return 0;
+            break;
+
+        case __KV__yield:
+
+            state->yield = TRUE;
             break;
 
 		default:
+            // function not found
+            return -1;
             break;
     }    
-	// function not found
-	return -1;
+	
+    return 0;
 }

@@ -38,14 +38,6 @@
 #endif
 #endif
 
-
-static int32_t _vm_i32_sys_call( 
-    vm_state_t *state, 
-    uint8_t func_id, 
-    int32_t *params, 
-    uint16_t param_len,
-    bool *yield );
-
 #ifdef ESP8266 // very slight speed boost using 32 bit numbers on Xtensa
 static uint32_t cycles;
 #else
@@ -968,6 +960,26 @@ opcode_lcall:
 
         data[result] = gfx_i32_lib_call( hash, params, len );
         #endif
+    }
+    else{
+
+        // internal lib call completed successfully
+
+        // check yield flag
+        if( state->yield ){
+
+            // check call depth, can only yield from top level functions running as a thread
+            if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
+
+                return VM_STATUS_IMPROPER_YIELD;
+            }
+
+            // store PC offset
+            state->threads[state->current_thread].pc_offset = pc - code;
+
+            // yield!
+            return VM_STATUS_YIELDED;
+        }
     }
     
     DISPATCH;
