@@ -383,6 +383,14 @@ PT_BEGIN( pt );
 
                 time_msg_master_t *msg = (time_msg_master_t *)magic;
 
+                // check sync flag
+                if( ( msg->flags & TIME_FLAGS_SYNC ) == 0 ){
+                    
+                    // not synced
+
+                    continue;
+                }
+
                 if( sync_state == STATE_WAIT ){
 
                     // select master

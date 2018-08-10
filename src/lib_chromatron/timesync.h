@@ -38,6 +38,10 @@
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION           2
 
+#define TIME_FLAGS_SYNC                 0x01
+#define TIME_FLAGS_SOURCE_GPS           0x80
+#define TIME_FLAGS_SOURCE_NTP           0x40
+
 
 #define TIME_MASTER_SYNC_RATE           4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
