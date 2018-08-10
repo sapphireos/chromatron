@@ -431,11 +431,11 @@ PT_BEGIN( pt );
             goto retry;
         }
 
-        log_v_debug_P( PSTR("SNTP sync sent: %d.%d.%d.%d"), 
-            ntp_server_addr.ipaddr.ip3,
-            ntp_server_addr.ipaddr.ip2,
-            ntp_server_addr.ipaddr.ip1,
-            ntp_server_addr.ipaddr.ip0 );
+        // log_v_debug_P( PSTR("SNTP sync sent: %d.%d.%d.%d"), 
+        //     ntp_server_addr.ipaddr.ip3,
+        //     ntp_server_addr.ipaddr.ip2,
+        //     ntp_server_addr.ipaddr.ip1,
+        //     ntp_server_addr.ipaddr.ip0 );
 
         // set timeout
         sock_v_set_timeout( sock, SNTP_TIMEOUT );
@@ -446,7 +446,7 @@ PT_BEGIN( pt );
         // check for timeout (no data received)
         if( sock_i16_get_bytes_read( sock ) < 0 ){
 
-            log_v_debug_P( PSTR("SNTP sync timed out") );
+            // log_v_debug_P( PSTR("SNTP sync timed out") );
 
             continue;
         }
@@ -469,7 +469,7 @@ PT_BEGIN( pt );
         char time_str[ISO8601_STRING_MIN_LEN];
         datetime_v_to_iso8601( time_str, sizeof(time_str), &datetime );
 
-        log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str, last_offset, last_delay );
+        // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str, last_offset, last_delay );
 
 
         goto clean_up;
