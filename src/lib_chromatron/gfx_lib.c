@@ -127,6 +127,7 @@ static void setup_master_array( void ){
         return;
     }
 
+    pix_arrays[0].reverse = FALSE;
     pix_arrays[0].index = 0;
     pix_arrays[0].count = pix_count;
     pix_arrays[0].size_x = pix_size_x;

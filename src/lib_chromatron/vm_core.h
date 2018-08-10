@@ -145,7 +145,6 @@ typedef struct __attribute__((packed)){
     // - read keys
     // - write keys
     // - publish vars
-    // - pixel objects
     // - links
     // - code stream
     // - data table
@@ -191,7 +190,6 @@ typedef struct{
     uint16_t publish_start;
 
     uint8_t pix_obj_count;
-    uint16_t pix_obj_start;
 
     uint8_t link_count;
     uint16_t link_start;

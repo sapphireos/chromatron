@@ -2434,6 +2434,13 @@ int8_t vm_i8_run(
         count--;
     }
 
+    #ifdef VM_ENABLE_GFX
+
+    // set pixel arrays
+    gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&data[PIX_ARRAY_ADDR], state->pix_obj_count );
+
+    #endif
+
     int8_t status = _vm_i8_run_stream( stream, offset, state, data );
 
     cycles = VM_MAX_CYCLES - cycles;
@@ -2676,13 +2683,6 @@ int8_t vm_i8_load_program(
     }
 
     state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
-    state->pix_obj_start = obj_start;
-    obj_start += prog_header->pix_obj_len;
-
-    if( ( state->pix_obj_start % 4 ) != 0 ){
-
-        return VM_STATUS_PIXEL_MISALIGN;
-    }
 
     state->link_count = prog_header->link_len / sizeof(link_t);
     state->link_start = obj_start;

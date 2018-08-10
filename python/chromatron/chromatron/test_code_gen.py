@@ -3188,14 +3188,27 @@ class CGTestsOnDevice(CGTestsBase):
 
                 ct.init_scan()
 
+                
                 for reg, expected_value in expected.iteritems():
-                    if reg == 'kv_test_key':
-                        actual = ct.get_key(reg)
+                    tries = 3
+                    while tries > 0:
+                        tries -= 1
 
-                    else:
-                        actual = ct.get_vm_reg(str(reg))
+                        if reg == 'kv_test_key':
+                            actual = ct.get_key(reg)
 
-                    self.assertEqual(expected_value, actual)
+                        else:
+                            actual = ct.get_vm_reg(str(reg))
+
+                        try:
+                            self.assertEqual(expected_value, actual)
+
+                        except AssertionError:
+                            print tries
+                            if tries == 0:
+                                raise
+
+                            time.sleep(0.2)
 
                 return
 

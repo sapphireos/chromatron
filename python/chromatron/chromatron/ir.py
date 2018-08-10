@@ -364,6 +364,8 @@ class irPixelArray(irObject):
                 raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
 
             self.fields[k] = v.name
+
+        self.length = len(self.fields) * DATA_LEN
         
     def __str__(self):
         return "PixelArray %s" % (self.name)
@@ -2554,6 +2556,11 @@ class Builder(object):
         code_len += padding_len
 
 
+        # set up pixel arrays
+        pix_obj_len = 0
+        for pix in self.pixel_arrays.values():
+            pix_obj_len += pix.length
+
         # set up read keys
         packed_read_keys = ''
         for key in self.read_keys:
@@ -2584,7 +2591,7 @@ class Builder(object):
                     program_name_hash=catbus_string_hash(self.script_name),
                     code_len=code_len,
                     data_len=data_len,
-                    pix_obj_len=0,
+                    pix_obj_len=pix_obj_len,
                     read_keys_len=len(packed_read_keys),
                     write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
@@ -2593,7 +2600,7 @@ class Builder(object):
                     init_start=self.function_addrs['init'],
                     loop_start=self.function_addrs['loop'])
 
-        # print header
+        print header
 
         stream += header.pack()
         stream += packed_read_keys  
