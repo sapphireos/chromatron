@@ -1866,6 +1866,9 @@ int8_t vm_i8_run_threads(
         // check thread delay
         if( state->threads[i].delay_ticks > 0 ){
 
+            // decrement
+            state->threads[i].delay_ticks--;
+
             continue;
         }
 
