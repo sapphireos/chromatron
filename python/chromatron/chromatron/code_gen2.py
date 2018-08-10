@@ -226,6 +226,27 @@ class cg1Module(cg1Node):
                 else:
                     raise SyntaxError("Unknown declaration in module body", lineno=node.lineno)
 
+            elif isinstance(node, cg1Call):
+                if node.target == 'send':
+                    send = True
+                    src = node.params[0]
+                    dest = node.params[1]
+                    query = node.params[2].value
+
+                    builder.link(send, src, dest, query, lineno=node.lineno)
+
+                elif node.target == 'receive':
+                    send = False
+                    src = node.params[1]
+                    dest = node.params[0]
+                    query = node.params[2].value
+
+                    builder.link(send, src, dest, query, lineno=node.lineno)
+
+                elif node.target == 'db':
+                    builder.db(node.params[0].s, node.params[1].s, node.params[2].name, lineno=node.lineno)
+
+
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
 
@@ -667,7 +688,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         else:
             # function call at module level
-            raise TypeError
+            return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
 
     def visit_List(self, node):
         return cg1List([self.visit(e) for e in node.elts], lineno=node.lineno)

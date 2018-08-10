@@ -73,6 +73,16 @@ class VMPublishVar(StructField):
 
         super(VMPublishVar, self).__init__(_name="vm_publish", _fields=fields, **kwargs)
 
+class Link(StructField):
+    def __init__(self, **kwargs):
+        fields = [BooleanField(_name="send"),
+                  ArrayField(_name="padding", _length=3, _field=Uint8Field),
+                  CatbusHash(_name="source_hash"),
+                  CatbusHash(_name="dest_hash"),
+                  CatbusQuery(_name="query")]
+
+        super(Link, self).__init__(_name="link", _fields=fields, **kwargs)
+
 
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
@@ -1235,6 +1245,9 @@ class Builder(object):
         self.read_keys = []
         self.write_keys = []
 
+        self.links = []
+        self.db_entries = []
+
         self.cron_tab = {}
 
         self.loop_top = []
@@ -1301,6 +1314,25 @@ class Builder(object):
             s += '%d\t%s\n' % (func.lineno, func)
 
         return s
+
+    def link(self, send, source, dest, query, lineno=None):
+        source_hash = catbus_string_hash(source)
+        dest_hash = catbus_string_hash(dest)
+        query_hash = [catbus_string_hash(q) for q in query]
+
+        new_link = Link(send=send, 
+                        source_hash=source_hash,
+                        dest_hash=dest_hash,
+                        query=query_hash)
+
+        self.links.append(new_link)
+
+    def db(self, name, type, count, lineno=None):
+        db_entry = CatbusMeta(hash=catbus_string_hash(name), 
+                              type=type,
+                              array_len=count - 1)
+
+        self.db_entries.append(db_entry)
 
     def add_type(self, name, data_type, lineno=None):
         if name in self.data_types:
