@@ -41,20 +41,30 @@ int8_t vm_lib_i8_libcall_built_in(
 	switch( func_hash ){
         case __KV__rand:
 
-            temp0 = data[params[1]] - data[params[0]];
+            if( param_len == 0 ){
 
-            // check for divide by 0, or negative spread
-            if( temp0 <= 0 ){
+                temp0 = 65535;
+                temp1 = 0;                
+            }
+            else if( param_len == 1 ){
 
-                // no spread, so just return the param
-                temp1 = params[0];
+                temp0 = data[params[0]];
+                temp1 = 0;
             }
             else{
 
-                temp1 = rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0;
-            }
+                temp0 = data[params[1]] - data[params[0]];
+                temp1 = data[params[0]];
 
-            *result = temp1 + params[0];
+                // check for divide by 0, or negative spread
+                if( temp0 <= 0 ){
+
+                    // no spread, so just return the offset
+                    temp1 = temp1;
+                }
+            }
+            
+            *result = temp1 + ( rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0 );
 
             break;
 
