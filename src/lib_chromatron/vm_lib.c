@@ -177,6 +177,68 @@ int8_t vm_lib_i8_libcall_built_in(
             state->yield = TRUE;
             break;
 
+        case __KV__start_thread:
+            if( param_len != 1 ){
+
+                return 0;
+            }
+
+            // params[0] - thread addr
+
+            // search for an empty slot
+            for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+                if( state->threads[i].func_addr == 0xffff ){
+
+                    memset( &state->threads[i], 0, sizeof(state->threads[i]) );
+
+                    state->threads[i].func_addr = data[params[0]];
+
+                    break;
+                }
+            }
+
+            break;
+
+        case __KV__stop_thread:
+            if( param_len != 1 ){
+
+                return 0;
+            }
+
+            // params[0] - thread addr
+
+            // search for matching threads
+            for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+                if( state->threads[i].func_addr == data[params[0]] ){
+
+                    state->threads[i].func_addr = 0xffff;
+
+                    break;
+                }
+            }
+
+            break;
+
+        case __KV__thread_running:
+            if( param_len != 1 ){
+
+                return 0;
+            }
+
+            // params[0] - thread addr
+
+            // search for matching threads
+            for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+                if( state->threads[i].func_addr == data[params[0]] ){
+
+                    return TRUE;
+                }
+            }
+
+            break;
 
 		default:
             // function not found
