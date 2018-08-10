@@ -1463,6 +1463,13 @@ class Builder(object):
         return ir
 
     def get_var(self, name, lineno=None):
+        # map true and false to 1/0 respectively
+        if name == 'True':
+            return self.globals[1]
+
+        if name == 'False':
+            return self.globals[0]
+
         if name in self.pixel_arrays:
             return self.pixel_arrays[name]
 
@@ -2461,6 +2468,13 @@ class Builder(object):
                     # print line, registers, address_pool
                     # print ''
                 
+                
+                # Trash vars:
+                # Some instructions return a value that doesn't get used by anything.
+                # A common example is a lib call who's return value isn't being assigned
+                # to a variable.
+                # These instructions still have to store their result somewhere,
+                # so we create a dummy var called trash for them.
 
                 trash_var = None
 

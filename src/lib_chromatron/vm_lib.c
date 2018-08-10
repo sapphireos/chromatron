@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#include <string.h>
 #include <stdint.h>
 #include "bool.h"
 #include "catbus_common.h"
