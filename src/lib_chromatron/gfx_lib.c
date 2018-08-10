@@ -1249,7 +1249,42 @@ uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj ){
 }
 
 
-uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj ){
+uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
+
+    if( ( x == 65535 ) && ( y == 65535 ) ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            if( target_val[i] != val[i] ){
+
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+    else{
+
+        uint16_t i = calc_index( obj, x, y );
+
+        if( i < MAX_PIXELS ){        
+
+            if( target_val[i] == val[i] ){
+
+                return 0;
+            }
+        }
+
+        return 1;    
+    }
+}
+
+
+uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
     if( ( x == 65535 ) && ( y == 65535 ) ){
 
@@ -1260,8 +1295,7 @@ uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj ){
             index %= pix_count;
 
             if( ( target_hue[i] != hue[i] ) ||
-                ( target_sat[i] != sat[i] ) ||
-                ( target_val[i] != val[i] ) ){
+                ( target_sat[i] != sat[i] ) ){
 
                 return 1;
             }
@@ -1275,8 +1309,7 @@ uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
         if( i < MAX_PIXELS ){        
             if( ( target_hue[i] == hue[i] ) &&
-                ( target_sat[i] == sat[i] ) &&
-                ( target_val[i] == val[i] ) ){
+                ( target_sat[i] == sat[i] ) ){
 
                 return 0;
             }

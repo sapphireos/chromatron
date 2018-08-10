@@ -148,8 +148,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_conv_i32_to_f16,   // 67
         &&opcode_conv_f16_to_i32,   // 68
 
-        &&opcode_trap,	            // 69
-        &&opcode_trap,	            // 70
+        &&opcode_is_v_fading,	    // 69
+        &&opcode_is_hs_fading,	    // 70
+
         &&opcode_trap,	            // 71
         &&opcode_trap,	            // 72
         &&opcode_trap,	            // 73
@@ -1706,6 +1707,44 @@ opcode_conv_f16_to_i32:
     src += ( *pc++ ) << 8;
 
     data[dest] = data[src] / 65536;
+    
+    DISPATCH;
+
+
+opcode_is_v_fading:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_is_v_fading( data[index_x], data[index_y], array );
+    #endif
+
+    DISPATCH;
+
+
+opcode_is_hs_fading:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_is_hs_fading( data[index_x], data[index_y], array );
+    #endif
     
     DISPATCH;
 

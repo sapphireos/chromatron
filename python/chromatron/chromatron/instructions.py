@@ -123,6 +123,9 @@ opcodes = {
     
     'CONV_I32_TO_F16':      0x43,
     'CONV_F16_TO_I32':      0x44,
+
+    'IS_V_FADING':          0x45,
+    'IS_HS_FADING':         0x46,
 }
 
 
@@ -1542,6 +1545,21 @@ class insPixelLoadHSFade(insPixelLoad):
 
 class insPixelLoadVFade(insPixelLoad):
     mnemonic = 'PLOAD_VFADE'
+
+
+
+class insPixelFading(insPixelLoad):
+    def execute(self, vm):
+        # not implemented for now, because the Python VM doesn't have faders
+
+        pass
+
+
+class insPixelIsHSFade(insPixelFading):
+    mnemonic = 'IS_HS_FADING'
+
+class insPixelIsVFade(insPixelFading):
+    mnemonic = 'IS_V_FADING'
 
 
 

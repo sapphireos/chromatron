@@ -418,6 +418,8 @@ PIX_ATTR_TYPES = {
     'size_x': 'i32',
     'size_y': 'i32',
     'index': 'i32',
+    'is_hs_fading': 'i32',
+    'is_v_fading': 'i32',
 }
 
 
@@ -431,7 +433,7 @@ class irPixelAttr(irObjectAttr):
         elif attr in ['hs_fade', 'v_fade']:
             attr = irArray(attr, irVar_i32(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
 
-        elif attr in ['count', 'size_x', 'size_y', 'index']:
+        elif attr in ['count', 'size_x', 'size_y', 'index', 'is_hs_fading', 'is_v_fading']:
             attr = irVar_i32(attr, lineno=lineno)
 
         else:
@@ -1179,19 +1181,28 @@ class irPixelLoad(IR):
         return [self.target]
 
     def generate(self):
-        ins = {
+        ins_table = {
             'hue': insPixelLoadHue,
             'sat': insPixelLoadSat,
             'val': insPixelLoadVal,
             'hs_fade': insPixelLoadHSFade,
             'v_fade': insPixelLoadVFade,
+            'is_hs_fading': insPixelIsHSFade,
+            'is_v_fading': insPixelIsVFade,
         }
+
+        ins = ins_table[self.value.attr]
 
         indexes = []
         for index in self.value.indexes:
             indexes.append(index.generate())
 
-        return ins[self.value.attr](self.target.generate(), self.value.name, self.value.attr, indexes)
+        if insPixelFading in ins.__bases__:
+            # fade detection instructions need both indexes
+            while len(indexes) < 2:
+                indexes.append(CONST65535.generate())
+
+        return ins(self.target.generate(), self.value.name, self.value.attr, indexes)
 
 
 class irIndexLoad(IR):
@@ -1233,6 +1244,9 @@ class irIndexStore(IR):
 
     def generate(self):
         return insIndirectStore(self.value.generate(), self.address.generate())
+
+
+CONST65535 = irConst(65535, lineno=0)
 
 
 class Builder(object):
@@ -1290,7 +1304,7 @@ class Builder(object):
 
         # make sure we always have 0 and 65535 const
         self.add_const(0, lineno=0)
-        self.add_const(65535, lineno=0)
+        self.globals[65535] = CONST65535
 
         pixarray = irPixelArray('temp', lineno=0)
         pixfields = {}
