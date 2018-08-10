@@ -1246,7 +1246,7 @@ class Builder(object):
         self.write_keys = []
 
         self.links = []
-        self.db_entries = []
+        self.db_entries = {}
 
         self.cron_tab = {}
 
@@ -1316,14 +1316,10 @@ class Builder(object):
         return s
 
     def link(self, send, source, dest, query, lineno=None):
-        source_hash = catbus_string_hash(source)
-        dest_hash = catbus_string_hash(dest)
-        query_hash = [catbus_string_hash(q) for q in query]
-
-        new_link = Link(send=send, 
-                        source_hash=source_hash,
-                        dest_hash=dest_hash,
-                        query=query_hash)
+        new_link = {'send': send,
+                    'source': source,
+                    'dest': dest,
+                    'query': query}
 
         self.links.append(new_link)
 
@@ -1332,7 +1328,7 @@ class Builder(object):
                               type=type,
                               array_len=count - 1)
 
-        self.db_entries.append(db_entry)
+        self.db_entries[name] = db_entry
 
     def add_type(self, name, data_type, lineno=None):
         if name in self.data_types:
@@ -2628,6 +2624,30 @@ class Builder(object):
 
                 meta_names.append(var.name)
 
+        # set up links
+        packed_links = ''
+        for link in self.links:
+            source_hash = catbus_string_hash(link['source'])
+            dest_hash = catbus_string_hash(link['dest'])
+            query = [catbus_string_hash(a) for a in link['query']]
+
+            meta_names.append(link['source'])
+            meta_names.append(link['dest'])
+            for q in link['query']:
+                meta_names.append(q)
+
+            packed_links += Link(send=link['send'],
+                                 source_hash=source_hash, 
+                                 dest_hash=dest_hash, 
+                                 query=query).pack()
+
+        # set up DB entries
+        packed_db = ''
+        for name, entry in self.db_entries.items():
+            packed_db += entry.pack()
+
+            meta_names.append(name)
+
 
         # build program header
         header = ProgramHeader(
@@ -2641,17 +2661,19 @@ class Builder(object):
                     read_keys_len=len(packed_read_keys),
                     write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
-                    link_len=0,
-                    db_len=0,
+                    link_len=len(packed_links),
+                    db_len=len(packed_db),
                     init_start=self.function_addrs['init'],
                     loop_start=self.function_addrs['loop'])
 
-        # print header
+        print header
 
         stream += header.pack()
         stream += packed_read_keys  
         stream += packed_write_keys
         stream += packed_publish
+        stream += packed_links
+        stream += packed_db
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)

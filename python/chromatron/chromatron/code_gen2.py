@@ -229,17 +229,17 @@ class cg1Module(cg1Node):
             elif isinstance(node, cg1Call):
                 if node.target == 'send':
                     send = True
-                    src = node.params[0]
-                    dest = node.params[1]
-                    query = node.params[2].value
+                    src = node.params[0].s
+                    dest = node.params[1].s
+                    query = [a.s for a in node.params[2].value]
 
                     builder.link(send, src, dest, query, lineno=node.lineno)
 
                 elif node.target == 'receive':
                     send = False
-                    src = node.params[1]
-                    dest = node.params[0]
-                    query = node.params[2].value
+                    src = node.params[1].s
+                    dest = node.params[0].s
+                    query = [a.s for a in node.params[2].value]
 
                     builder.link(send, src, dest, query, lineno=node.lineno)
 
