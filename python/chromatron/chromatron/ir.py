@@ -843,7 +843,7 @@ class irLibCall(IR):
     def generate(self):        
         params = [a.generate() for a in self.params]
 
-        if isinstance(self.params[0], irDBAttr):
+        if len(self.params) > 0 and isinstance(self.params[0], irDBAttr):
             db_item = params.pop(0)
             call_ins = insDBCall(self.target, db_item, self.result.generate(), params)
 
@@ -2468,7 +2468,7 @@ class Builder(object):
                     # print line, registers, address_pool
                     # print ''
                 
-                
+
                 # Trash vars:
                 # Some instructions return a value that doesn't get used by anything.
                 # A common example is a lib call who's return value isn't being assigned
