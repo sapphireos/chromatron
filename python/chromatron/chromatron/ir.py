@@ -2085,14 +2085,12 @@ class Builder(object):
             return self.add_const(int(val), lineno=lineno)
 
 
-    def cron(self, func, params, lineno=None):
+    def schedule(self, func, params, lineno=None):
         if func not in self.cron_tab:
             self.cron_tab[func] = []
 
         self.cron_tab[func].append(params)
 
-        
-        
 
     def usedef(self, func):
         use = []

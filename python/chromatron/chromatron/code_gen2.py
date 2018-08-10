@@ -286,10 +286,8 @@ class cg1Func(cg1CodeNode):
 
         # check decorators
         for dec in self.decorators:
-            if dec.target == 'cron':
-                cron_param = dec.params[0].s
-                
-                builder.cron(self.name, cron_param, lineno=self.lineno)
+            if dec.target == 'schedule':
+                builder.schedule(self.name, dec.keywords, lineno=self.lineno)
 
         return func
 
@@ -310,10 +308,11 @@ class cg1Return(cg1CodeNode):
 class cg1Call(cg1CodeNode):
     _fields = ["target", "params"]
 
-    def __init__(self, target, params, **kwargs):
+    def __init__(self, target, params, keywords={}, **kwargs):
         super(cg1Call, self).__init__(**kwargs)
         self.target = target
         self.params = params
+        self.keywords = keywords
 
     def build(self, builder):
         params = [p.build(builder) for p in self.params]
@@ -684,11 +683,19 @@ class CodeGenPass1(ast.NodeVisitor):
             return cg1DeclareRecord(record=record_type, lineno=node.lineno)
 
         elif self.in_func:
-            return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
+            kwargs = {}
+            for kw in map(self.visit, node.keywords):
+                kwargs.update(kw)
+
+            args = map(self.visit, node.args)
+            return cg1Call(node.func.id, args, kwargs, lineno=node.lineno)
 
         else:
             # function call at module level
             return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
+
+    def visit_keyword(self, node):
+        return {node.arg: self.visit(node.value)}
 
     def visit_List(self, node):
         return cg1List([self.visit(e) for e in node.elts], lineno=node.lineno)
