@@ -224,6 +224,7 @@ class cg1Module(cg1Node):
                     builder.generic_object(node.target.name, node.value.name, args, node.value.kw, lineno=node.lineno)
 
                 else:
+                    print node.value
                     raise SyntaxError("Unknown declaration in module body", lineno=node.lineno)
 
             elif isinstance(node, cg1Call):
@@ -570,6 +571,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Fixed16': self._handle_Fixed16,
             'Array': self._handle_Array,
             'Record': self._handle_Record,
+            'PixelArray': self.create_GenericObject,
         }
 
         self._record_types = {}
