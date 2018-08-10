@@ -35,7 +35,6 @@ import pkg_resources
 from filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 import json
-import automaton as automaton_code_gen
 
 from sapphire.devices.device import Device, DeviceUnreachableException
 from elysianfields import *
@@ -533,20 +532,6 @@ class Chromatron(object):
 
     def reboot(self):
         self._device.reboot()
-
-    def load_automaton(self, filename=None):
-        self.set_key("automaton_enable", False)
-
-        automaton_file = automaton_code_gen.compile_file(filename)
-
-        with open(automaton_file) as f:
-            data = f.read()
-
-        self.put_file(automaton_file, data)
-
-        self.set_key("automaton_prog", automaton_file)
-
-        self.set_key("automaton_enable", True)
 
     def load_vm(self, filename=None, start=True, bin_data=None):
         self.stop_vm()
@@ -1503,78 +1488,6 @@ def reboot(ctx):
 
     echo_group(group)
 
-@cli.group()
-@click.pass_context
-def automaton(ctx):
-    """Automaton controls"""
-
-@automaton.command('start')
-@click.pass_context
-def automaton_start(ctx):
-    """Start automaton"""
-
-    group = ctx.obj['GROUP']()
-    group.set_key('automaton_enable', True)
-    echo_group(group)
-
-@automaton.command('stop')
-@click.pass_context
-def automaton_stop(ctx):
-    """Stop automaton"""
-
-    group = ctx.obj['GROUP']()
-    group.set_key('automaton_enable', False)
-    echo_group(group)
-
-
-@automaton.command('load')
-@click.pass_context
-@click.argument('filename')
-@click.option('--live', default=None, is_flag=True, help='Live mode')
-def automaton_load(ctx, filename, live):
-    """Compile and load script to automaton"""
-
-    group = ctx.obj['GROUP']()
-
-    click.echo('Loading...')
-
-    if live:
-        click.secho('Live mode', fg='magenta')
-
-    try:
-        group.load_automaton(filename)
-        
-        click.echo('Loaded %s on:' % (click.style(filename, fg=VAL_COLOR)))
-
-        echo_group(group)
-
-    except Exception as e:
-        click.secho("Error:", fg='magenta')
-        click.secho(str(e), fg=ERROR_COLOR)
-
-
-    if live:
-        watcher = Watcher(filename)
-
-        try:
-            while True:
-                time.sleep(0.5)
-
-                if watcher.changed():
-                    try:
-                        group.load_automaton(filename)
-                     
-                        click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
-
-                    except Exception as e:
-                        click.secho("Error:", fg='magenta')
-                        click.secho(str(e), fg=ERROR_COLOR)
-
-
-        except KeyboardInterrupt:
-            pass
-
-        watcher.stop()
 
 @cli.group()
 @click.pass_context
