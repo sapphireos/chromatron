@@ -125,7 +125,7 @@ uint8_t i2c_v_send_byte( uint8_t b ){
 }
 
 
-static uint8_t read_byte( bool ack ){
+uint8_t i2c_u8_read_byte( bool ack ){
 
     uint8_t b = 0;
 
@@ -290,11 +290,11 @@ void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
 
         if( len > 1 ){
 
-            *dst = read_byte( TRUE );
+            *dst = i2c_u8_read_byte( TRUE );
         }
         else{
 
-            *dst = read_byte( FALSE );
+            *dst = i2c_u8_read_byte( FALSE );
         }
 
         dst++;
