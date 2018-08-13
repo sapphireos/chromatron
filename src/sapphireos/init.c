@@ -44,6 +44,8 @@
 #include "kvdb.h"
 #include "event_log.h"
 #include "watchdog.h"
+#include "dns.h"
+#include "sntp.h"
 
 #ifdef ENABLE_NETWORK
 #include "netmsg.h"
@@ -203,6 +205,11 @@ int8_t sapphire_i8_init( void ){
     else if( sys_u8_get_mode() == SYS_MODE_NO_APP ){
         return -2;
     }
+
+
+    dns_v_init();
+
+    sntp_v_init();
 
     // return system OK
     return 0;
