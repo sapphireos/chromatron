@@ -109,7 +109,7 @@ static bool read_bit( void ){
     return b != 0;
 }
 
-static uint8_t send_byte( uint8_t b ){
+uint8_t i2c_v_send_byte( uint8_t b ){
     
     send_bit( b & 0x80 );
     send_bit( b & 0x40 );
@@ -263,11 +263,11 @@ void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
     i2c_v_start();
 
     // send address/read bit
-    send_byte( address );
+    i2c_v_send_byte( address );
 
     while( len > 0 ){
 
-        send_byte( *src );
+        i2c_v_send_byte( *src );
 
         src++;
         len--;
@@ -284,7 +284,7 @@ void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
     i2c_v_start();
 
     // send address/write bit
-    send_byte( address );
+    i2c_v_send_byte( address );
 
     while( len > 0 ){
 
