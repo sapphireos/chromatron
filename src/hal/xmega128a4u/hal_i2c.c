@@ -257,13 +257,9 @@ void i2c_v_stop( void ){
 
 void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
 
-    address <<= 1;
-    address &= ~0x01; // set write
-
     i2c_v_start();
 
-    // send address/read bit
-    i2c_v_send_byte( address );
+    i2c_v_send_address( address, TRUE );
 
     while( len > 0 ){
 
@@ -278,13 +274,9 @@ void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
 
 void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
 
-    address <<= 1;
-    address |= 0x01; // set read bit
-
     i2c_v_start();
 
-    // send address/write bit
-    i2c_v_send_byte( address );
+    i2c_v_send_address( address, FALSE );
 
     while( len > 0 ){
 

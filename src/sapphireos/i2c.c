@@ -26,6 +26,19 @@
 
 #include "hal_i2c.h"
 
+
+void i2c_v_send_address( uint8_t address, bool write ){
+
+    if( write ){
+        
+        i2c_v_send_byte( ( address << 1 ) & ~0x01 );
+    }
+    else{
+
+        i2c_v_send_byte( ( address << 1 ) | 0x01 );   
+    }
+}
+
 void i2c_v_write_reg8( uint8_t address, uint8_t reg_addr, uint8_t data ){
     
     uint8_t cmd[2];
