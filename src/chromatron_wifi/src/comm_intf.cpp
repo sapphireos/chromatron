@@ -317,12 +317,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             }
         }
     }
-    else if( data_id == WIFI_DATA_ID_DUMP_VM_DATA ){
-
-        uint32_t *vm_id = (uint32_t *)data;
-
-        vm_v_dump_frame_data( *vm_id );
-    }
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 
         // wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
@@ -332,7 +326,9 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
         
-        // intf_v_request_vm_frame_sync();
+        uint32_t *vm_id = (uint32_t *)data;
+
+        vm_v_request_frame_data( *vm_id );
     }
     else if( data_id == WIFI_DATA_ID_RUN_VM ){
 
