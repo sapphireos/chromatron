@@ -594,6 +594,8 @@ void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16
 
         intf_v_printf( "sync param error" );
 
+        vm_status[index] = VM_STATUS_SYNC_FAIL;
+
         return;
     }
 
@@ -618,6 +620,8 @@ void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t
     if( ( msg->offset + data_len ) > vm_state[index].data_len ){
 
         intf_v_printf( "sync overflow" );
+
+        vm_status[index] = VM_STATUS_SYNC_FAIL;
 
         return;
     }
@@ -653,6 +657,8 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
         vm_status[index] = VM_STATUS_OK;
     }
     else{
+
+        vm_status[index] = VM_STATUS_SYNC_FAIL;
 
         intf_v_printf( "%lx != %lx", hash, msg->hash );
     }

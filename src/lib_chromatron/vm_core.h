@@ -68,6 +68,7 @@
 #define VM_STATUS_DB_MISALIGN           -49
 
 #define VM_STATUS_LOAD_ALLOC_FAIL       -50
+#define VM_STATUS_SYNC_FAIL             -51
 
 #define VM_STATUS_RESTRICTED_KEY        -70
 
