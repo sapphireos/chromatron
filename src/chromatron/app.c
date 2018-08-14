@@ -32,6 +32,7 @@
 #include "energy.h"
 #include "timesync.h"
 #include "io_kv.h"
+#include "vm_sync.h"
 
 
 SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
@@ -109,6 +110,7 @@ void app_v_init( void ){
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
+    vm_sync_v_init();
     #endif
 
     svr_v_init();

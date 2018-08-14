@@ -22,16 +22,28 @@
 
 #include "sapphire.h"
 
+#ifdef ENABLE_TIME_SYNC
+
+#include "vm_sync.h"
 #include "hash.h"
 #include "esp8266.h"
 #include "vm_wifi_cmd.h"
 
 
+static uint8_t sync_state;
+#define STATE_IDLE 		0
+#define STATE_MASTER 	1
+#define STATE_SLAVE 	2
+
+static ip_addr_t master_ip;
+static uint64_t master_uptime;
 
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
-    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, 0, "gfx_sync_group" },
+    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, 			0, "gfx_sync_group" },
+    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,    0, "vm_sync_master_ip" },
 };
+
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
@@ -208,20 +220,96 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+	static socket_t sock;
+	sock = sock_s_create( SOCK_DGRAM );
+
+	if( sock < 0 ){
+
+		THREAD_EXIT( pt );
+	}
+
+	sock_v_bind( sock, SYNC_SERVER_PORT );
     
     TMR_WAIT( pt, 4000 );
 
     vm_sync_i8_request_frame_sync();
 
 
-    // while( TRUE ){
+    while( TRUE ){
 
-    	// THREAD_WAIT_WHILE( pt, vm_sync_u32_get_sync_group_hash() == 0 );
+    	THREAD_WAIT_WHILE( pt, vm_sync_u32_get_sync_group_hash() == 0 );
 
-    	// THREAD_WAIT_WHILE( pt, data_remaining != 0 );
+    	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+	
+		// check if data received
+        if( sock_i16_get_bytes_read( sock ) > 0 ){
+
+	        uint32_t *magic = sock_vp_get_data( sock );
+
+	        if( *magic != SYNC_PROTOCOL_MAGIC ){
+
+	            continue;
+	        }
+
+	        uint8_t *version = (uint8_t *)(magic + 1);
+
+	        if( *version != SYNC_PROTOCOL_VERSION ){
+
+	            continue;
+	        }
+
+	        uint8_t *type = version + 1;
+
+	        if( *type == VM_SYNC_MSG_MASTER ){
+
+	        	vm_sync_msg_master_t *msg = (vm_sync_msg_master_t *)magic;
+
+	        }
+	        else if( *type == VM_SYNC_MSG_GET_TIMESTAMP ){
+
+	        	vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)magic;
+	        }
+	        else if( *type == VM_SYNC_MSG_TIMESTAMP ){
+
+	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)magic;
+	        }
+	        else if( *type == VM_SYNC_MSG_GET_SYNC_DATA ){
+
+	        	vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)magic;
+	        }
+	        else if( *type == VM_SYNC_MSG_SYNC_INIT ){
+
+	        	vm_sync_msg_sync_init_t *msg = (vm_sync_msg_sync_init_t *)magic;
+	        }
+	        else if( *type == VM_SYNC_MSG_SYNC_DATA ){
+
+	        	vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)magic;
+	        }
+	        else if( *type == VM_SYNC_MSG_SYNC_DONE ){
+
+				vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)magic;	        	
+	        }
+    	}
 
 
-    // }
+    	if( sync_state == STATE_IDLE ){
+
+
+    	}
+    	else if( sync_state == STATE_MASTER ){
+
+    		
+    	}
+    	else if( sync_state == STATE_SLAVE ){
+
+    		
+    	}
+
+    	// prevent runaway thread
+    	THREAD_YIELD( pt );
+    }
+
 
 PT_END( pt );
 }
@@ -237,4 +325,4 @@ void vm_sync_v_init( void ){
 }
 
 
-
+#endif
