@@ -38,10 +38,31 @@ static uint8_t sync_state;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
+static uint32_t sync_group_hash;
+
+
+int8_t vmsync_i8_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+
+    if( op == KV_OP_SET ){
+
+    	if( hash == __KV__gfx_sync_group ){
+
+		    sync_group_hash = hash_u32_string( data );    
+    	}
+    }
+
+    return 0;
+}
+
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
-    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, 			0, "gfx_sync_group" },
-    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,    0, "vm_sync_master_ip" },
+    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler, 	"gfx_sync_group" },
+    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,    	0, 		"vm_sync_master_ip" },
 };
 
 
@@ -49,13 +70,7 @@ PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
-    char sync_group[32];
-    if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
-
-        return 0;
-    }
-
-    return hash_u32_string( sync_group );    
+	return sync_group_hash;
 }
 
 
@@ -249,13 +264,11 @@ PT_BEGIN( pt );
 
     last_run = tmr_u32_get_system_time_ms();
 
-    THREAD_EXIT( pt );
-
 
 
     while( TRUE ){
 
-    	THREAD_WAIT_WHILE( pt, vm_sync_u32_get_sync_group_hash() == 0 );
+    	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
     	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 	
