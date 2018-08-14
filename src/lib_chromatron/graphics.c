@@ -486,7 +486,8 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
         log_v_debug_P( PSTR("ESP: %s"), data );
     }
     else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
-             ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ){
+             ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
+             ( data_id == WIFI_DATA_ID_VM_SYNC_DONE ) ){
 
         vm_sync_v_process_msg( data_id, data, len );
     }

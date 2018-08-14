@@ -20,7 +20,7 @@
 // 
 // </license>
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -383,14 +383,6 @@ PT_BEGIN( pt );
 
                 time_msg_master_t *msg = (time_msg_master_t *)magic;
 
-                // check sync flag
-                if( ( msg->flags & TIME_FLAGS_SYNC ) == 0 ){
-                    
-                    // not synced
-
-                    continue;
-                }
-
                 if( sync_state == STATE_WAIT ){
 
                     // select master
@@ -472,12 +464,17 @@ PT_BEGIN( pt );
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
-                // does not compensate for transmission time, so there will be a fraction of a
-                // second offset in NTP time.
-                // this is probably OK, we don't usually need better than second precision
-                // on the NTP clock for most use cases.
-                sntp_v_set( msg->ntp_time );
-
+                // check sync flag
+                if( ( msg->flags & TIME_FLAGS_SYNC ) != 0 ){
+                    
+                    // does not compensate for transmission time, so there will be a fraction of a
+                    // second offset in NTP time.
+                    // this is probably OK, we don't usually need better than second precision
+                    // on the NTP clock for most use cases.
+                    sntp_v_set( msg->ntp_time );
+                }
+                
+                
                 uint32_t now = tmr_u32_get_system_time_ms();
                 uint32_t est_net_time = time_u32_get_network_time();
 

@@ -739,7 +739,7 @@ void vm_v_request_frame_data( uint8_t index ){
         return;
     }
 
-    uint8_t buf[WIFI_MAX_SYNC_DATA];
+    uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_frame_sync_t)];
     
     wifi_msg_vm_frame_sync_t msg;
     msg.rng_seed            = vm_state[index].rng_seed;
@@ -753,10 +753,24 @@ void vm_v_request_frame_data( uint8_t index ){
     // hash = hash_u32_partial( hash, (uint8_t *)&msg, sizeof(msg) );
 
     uint16_t len = vm_state[index].data_len;
-    uint8_t *src = (uint8_t *)( vm_data[vm_start[index]] + vm_state[index].data_start );
+
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[index]];
+    uint8_t *src = stream + vm_state[index].data_start;
 
     wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
-    uint8_t *dst = &buf[sizeof(wifi_msg_vm_sync_data_t)];
+    uint8_t *dst = (uint8_t *)( sync + 1 );
+
+    if( ( (uint32_t)dst & 0x03 ) != 0 ){
+
+        intf_v_printf("sync dst alignment error");
+        return;
+    }
+
+    if( ( (uint32_t)src & 0x03 ) != 0 ){
+
+        intf_v_printf("sync src alignment error");
+        return;
+    }
 
     sync->offset = 0;
     sync->padding = 0;

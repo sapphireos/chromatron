@@ -61,7 +61,9 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 int8_t vm_sync_i8_request_frame_sync( void ){
 
-	return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, 0, 0 );
+	uint32_t vm_id = 0;
+
+	return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, (uint8_t *)&vm_id, sizeof(vm_id) );
 }
 
 
@@ -169,6 +171,8 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 			return;
 		}
 
+		log_v_debug_P( PSTR("sync") );
+
 		wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
 		// delete file and recreate
@@ -195,22 +199,25 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
         data += sizeof(wifi_msg_vm_sync_data_t);
 
-        log_v_debug_P( PSTR("sync offset: %u"), msg->offset );
+        log_v_debug_P( PSTR("sync offset: %u len %u"), msg->offset, len );
 
-        write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
+        // write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
     }
     else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
 
     	wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
 
-    	uint32_t hash = get_file_hash();
 
-		if( hash == msg->hash ){
+    	log_v_debug_P( PSTR("done") );
 
-			log_v_debug_P( PSTR("Verified") );
+    	// uint32_t hash = get_file_hash();
 
-			load_frame_data();
-		}
+		// if( hash == msg->hash ){
+
+			// log_v_debug_P( PSTR("Verified") );
+
+			// load_frame_data();
+		// }
     }
 }
 
@@ -233,7 +240,7 @@ PT_BEGIN( pt );
 	sock_v_bind( sock, SYNC_SERVER_PORT );
 	sock_v_set_timeout( sock, 8 );
     
-    TMR_WAIT( pt, 4000 );
+    TMR_WAIT( pt, 8000 );
 
     vm_sync_i8_request_frame_sync();
 
@@ -352,7 +359,8 @@ done:
 	
 
     	// prevent runaway thread
-    	THREAD_YIELD( pt );
+    	// THREAD_YIELD( pt );
+    	TMR_WAIT( pt, 100 );
     }
 
 

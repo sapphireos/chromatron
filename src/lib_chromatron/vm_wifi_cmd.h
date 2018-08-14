@@ -62,7 +62,7 @@ typedef struct __attribute__((packed)){
     uint16_t padding;
 } wifi_msg_vm_sync_data_t;
 #define WIFI_DATA_ID_VM_SYNC_DATA      	0x24
-#define WIFI_MAX_SYNC_DATA 	( WIFI_MAIN_MAX_DATA_LEN - sizeof(wifi_msg_vm_frame_sync_t) )
+#define WIFI_MAX_SYNC_DATA 	( 244 - sizeof(wifi_msg_vm_frame_sync_t) )
 
 typedef struct __attribute__((packed)){
     uint32_t hash;
