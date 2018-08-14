@@ -135,11 +135,14 @@ void load_frame_data( void ){
 	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
 
 	uint16_t data_len = sync.data_len;
-	uint8_t buf[WIFI_MAX_SYNC_DATA];
+	uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+	wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)buf;
+    uint8_t *data = (uint8_t *)( msg + 1 );
+    msg->offset = 0;
 
 	while( data_len > 0 ){
 
-		int16_t read_len = fs_i16_read( f, buf, sizeof(buf) );
+		int16_t read_len = fs_i16_read( f, data, WIFI_MAX_SYNC_DATA );
 
 		if( read_len < 0 ){
 
@@ -148,12 +151,13 @@ void load_frame_data( void ){
 
 		wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DATA, buf, read_len );
 
-		data_len -= read_len;
+		msg->offset += read_len;
+		data_len 	-= read_len;
 	}
 
 
 	wifi_msg_vm_sync_done_t done;
-	done.hash = get_file_hash();;
+	done.hash = get_file_hash();
 
 	// send done
 	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
@@ -201,23 +205,22 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         log_v_debug_P( PSTR("sync offset: %u len %u"), msg->offset, len );
 
-        // write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
+        write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
     }
     else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
 
     	wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
 
-
     	log_v_debug_P( PSTR("done") );
 
-    	// uint32_t hash = get_file_hash();
+    	uint32_t hash = get_file_hash();
 
-		// if( hash == msg->hash ){
+		if( hash == msg->hash ){
 
-			// log_v_debug_P( PSTR("Verified") );
+			log_v_debug_P( PSTR("Verified %lx"), hash );
 
-			// load_frame_data();
-		// }
+			load_frame_data();
+		}
     }
 }
 
@@ -245,6 +248,10 @@ PT_BEGIN( pt );
     vm_sync_i8_request_frame_sync();
 
     last_run = tmr_u32_get_system_time_ms();
+
+    THREAD_EXIT( pt );
+
+
 
     while( TRUE ){
 

@@ -592,6 +592,8 @@ void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16
     if( ( vm_state[index].program_name_hash != msg->program_name_hash ) ||
         ( vm_state[index].data_len != msg->data_len ) ){
 
+        intf_v_printf( "sync param error" );
+
         return;
     }
 
@@ -615,12 +617,15 @@ void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t
 
     if( ( msg->offset + data_len ) > vm_state[index].data_len ){
 
+        intf_v_printf( "sync overflow" );
+
         return;
     }
 
     uint8_t *src = (uint8_t *)( msg + 1 );
 
-    uint8_t *data = (uint8_t *)( vm_data[vm_start[index]] + vm_state[index].data_start );
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[index]];
+    uint8_t *data = stream + vm_state[index].data_start;
 
     memcpy( &data[msg->offset], src, data_len );
 }
@@ -632,22 +637,25 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
         return;
     }
 
-    intf_v_printf( "done: %lu", msg->hash );
+    intf_v_printf( "done: %lx", msg->hash );
 
     // check hash
-
-    uint8_t *data = (uint8_t *)( vm_data[vm_start[index]] + vm_state[index].data_start );
+    uint8_t *stream = (uint8_t *)&vm_data[vm_start[index]];
+    uint8_t *data = stream + vm_state[index].data_start;
 
     uint32_t hash = hash_u32_data( data, vm_state[index].data_len );
 
     if( hash == msg->hash ){
 
         intf_v_printf( "verified" );
+
+        // set state
+        vm_status[index] = VM_STATUS_OK;
     }
+    else{
 
-
-    // set state
-    vm_status[index] = VM_STATUS_OK;
+        intf_v_printf( "%lx != %lx", hash, msg->hash );
+    }
 }
 
 
