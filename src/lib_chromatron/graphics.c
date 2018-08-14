@@ -497,6 +497,22 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         log_v_debug_P( PSTR("ESP: %s"), data );
     }
+    else if( data_id == WIFI_DATA_ID_DUMP_VM_DATA ){
+
+        uint32_t *page = (uint32_t *)data;
+
+        if( *page == 0 ){
+
+            vm_state_t *vm_state = (vm_state_t *)&data[sizeof(uint32_t)];
+
+            log_v_debug_P( PSTR("page: %u %lx %u"), *page, vm_state->program_name_hash, vm_state->data_len );
+        }
+        else{
+
+            log_v_debug_P( PSTR("page: %u"), *page );
+        }
+
+    }
 
     return 0;    
 }

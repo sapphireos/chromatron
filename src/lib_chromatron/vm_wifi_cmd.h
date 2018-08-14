@@ -44,6 +44,7 @@ typedef struct __attribute__((packed)){
 } wifi_msg_vm_info_t;
 #define WIFI_DATA_ID_VM_INFO           0x22
 
+#define WIFI_DATA_ID_DUMP_VM_DATA      0x24
 #define WIFI_DATA_ID_INIT_VM           0x23
 #define WIFI_DATA_ID_RUN_VM            0x26
 

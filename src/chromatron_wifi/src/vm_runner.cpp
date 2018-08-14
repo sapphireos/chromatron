@@ -650,6 +650,42 @@ uint16_t vm_u16_get_frame_number( void ){
     return vm_state[0].frame_number;
 }
 
+void vm_v_dump_frame_data( uint8_t index ){
+
+    uint16_t len = sizeof(vm_state_t) + vm_state[index].data_len;
+
+    uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
+    #define BUF_DATA_LEN ( sizeof(buf) - sizeof(uint32_t) )
+    volatile uint32_t *page = (uint32_t *)buf;
+    *page = 0;
+    uint8_t *data = &buf[sizeof(uint32_t)];
+
+    // send first message, vm_state
+    memcpy( data, &vm_state[index], sizeof(vm_state_t) );
+
+    intf_i8_send_msg( WIFI_DATA_ID_DUMP_VM_DATA, buf, sizeof(uint32_t) + sizeof(vm_state_t) );
+
+
+    uint8_t *src = (uint8_t *)( vm_data[vm_start[index]] + vm_state[index].data_start );
+
+    while( len > 0 ){
+
+        *page++;
+
+        uint32_t copy_len = len;
+        if( copy_len > BUF_DATA_LEN){
+
+            copy_len = BUF_DATA_LEN;
+        }
+
+        memcpy( data, src, copy_len );
+
+        intf_i8_send_msg( WIFI_DATA_ID_DUMP_VM_DATA, buf, sizeof(uint32_t) + copy_len );
+
+        src += copy_len;
+        len -= copy_len;
+    }
+}
 
 void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){
 

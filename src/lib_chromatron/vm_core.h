@@ -154,11 +154,10 @@ typedef struct __attribute__((packed)){
 typedef struct{
     uint16_t func_addr;
     uint16_t pc_offset;
-    uint16_t delay_ticks;
+    uint32_t delay_ticks;
 } vm_thread_t;
 
-// do not set packed on this struct, will crash the Xtensa
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t code_start;
     uint16_t data_start;
     uint16_t prog_size;
@@ -174,30 +173,30 @@ typedef struct{
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
 
-    uint8_t tick_rate;
+    uint32_t tick_rate;
 
     vm_thread_t threads[VM_MAX_THREADS];
-    bool yield;
+    uint32_t yield;
 
-    int8_t current_thread;
+    int32_t current_thread;
     uint16_t max_cycles;
 
-    uint8_t read_keys_count;
-    uint16_t read_keys_start;
+    uint32_t read_keys_count;
+    uint32_t read_keys_start;
 
-    uint8_t write_keys_count;
-    uint16_t write_keys_start;
+    uint32_t write_keys_count;
+    uint32_t write_keys_start;
 
-    uint8_t publish_count;
-    uint16_t publish_start;
+    uint32_t publish_count;
+    uint32_t publish_start;
 
-    uint8_t pix_obj_count;
+    uint32_t pix_obj_count;
 
-    uint8_t link_count;
-    uint16_t link_start;
+    uint32_t link_count;
+    uint32_t link_start;
 
-    uint8_t db_count;
-    uint16_t db_start;
+    uint32_t db_count;
+    uint32_t db_start;
 } vm_state_t;
 
 int8_t vm_i8_run(

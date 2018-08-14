@@ -52,6 +52,7 @@ uint16_t vm_u16_get_frame_number( void );
 int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index );
 void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index );
 
+void vm_v_dump_frame_data( uint8_t index );
 void vm_v_run_fader( void );
 
 #endif
