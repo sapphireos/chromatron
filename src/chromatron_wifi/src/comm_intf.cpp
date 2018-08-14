@@ -319,10 +319,18 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 
-        // wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
-        // vm_frame_sync_status = vm_u8_set_frame_sync( msg );
-        // request_vm_frame_sync_status = true;
+    }
+    else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
+
+        wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
+
+    }
+    else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
+
+        wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
+        
     }
     else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
         

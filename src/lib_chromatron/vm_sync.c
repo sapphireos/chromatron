@@ -74,6 +74,78 @@ done:
 	f = fs_f_close( f ); 
 }
 
+uint32_t get_file_hash( void ){
+
+	// check file hash
+	uint32_t hash = hash_u32_start();
+
+	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
+
+	if( f < 0 ){
+
+		return 0;
+	}
+
+	uint8_t buf[64];
+	int16_t read_len = 0;
+
+	do{
+
+		read_len = fs_i16_read( f, buf, sizeof(buf) );
+
+		hash = hash_u32_partial( hash, buf, read_len );
+
+	} while( read_len == sizeof(buf) );
+
+	f = fs_f_close( f ); 
+
+	return hash;
+}
+
+
+void load_frame_data( void ){
+
+	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
+
+	if( f < 0 ){
+
+		return;
+	}
+
+	wifi_msg_vm_frame_sync_t sync;
+	fs_i16_read( f, &sync, sizeof(sync) );
+
+	// send sync
+	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
+
+	uint16_t data_len = sync.data_len;
+	uint8_t buf[WIFI_MAX_SYNC_DATA];
+
+	while( data_len > 0 ){
+
+		int16_t read_len = fs_i16_read( f, buf, sizeof(buf) );
+
+		if( read_len < 0 ){
+
+			goto done;
+		}
+
+		wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DATA, buf, read_len );
+
+		data_len -= read_len;
+	}
+
+
+	wifi_msg_vm_sync_done_t done;
+	done.hash = get_file_hash();;
+
+	// send done
+	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
+
+done:
+	f = fs_f_close( f );
+}
+
 void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
 	if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
@@ -117,51 +189,37 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     	wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
 
-    	// check file hash
-    	uint32_t hash = hash_u32_start();
-
-    	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY);
-
-		if( f < 0 ){
-
-			return;
-		}
-
-		uint8_t buf[64];
-		int16_t read_len = 0;
-
-		do{
-
-			read_len = fs_i16_read( f, buf, sizeof(buf) );
-
-			hash = hash_u32_partial( hash, buf, read_len );
-
-		} while( read_len == sizeof(buf) );
-
-		f = fs_f_close( f ); 
+    	uint32_t hash = get_file_hash();
 
 		if( hash == msg->hash ){
 
 			log_v_debug_P( PSTR("Verified") );
 
+			load_frame_data();
 		}
     }
 }
 
 
 
+
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    	
-    while( TRUE ){
+    
+    TMR_WAIT( pt, 4000 );
 
-    	THREAD_WAIT_WHILE( pt, vm_sync_u32_get_sync_group_hash() == 0 );
+    vm_sync_i8_request_frame_sync();
+
+
+    // while( TRUE ){
+
+    	// THREAD_WAIT_WHILE( pt, vm_sync_u32_get_sync_group_hash() == 0 );
 
     	// THREAD_WAIT_WHILE( pt, data_remaining != 0 );
 
 
-    }
+    // }
 
 PT_END( pt );
 }

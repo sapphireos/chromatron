@@ -658,9 +658,8 @@ void vm_v_request_frame_data( uint8_t index ){
         return;
     }
 
-    uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
-    #define BUF_DATA_LEN ( sizeof(buf) - sizeof(wifi_msg_vm_frame_sync_t) )
-
+    uint8_t buf[WIFI_MAX_SYNC_DATA];
+    
     wifi_msg_vm_frame_sync_t msg;
     msg.rng_seed            = vm_state[index].rng_seed;
     msg.frame_number        = vm_state[index].frame_number;
@@ -684,9 +683,9 @@ void vm_v_request_frame_data( uint8_t index ){
     while( len > 0 ){
 
         uint32_t copy_len = len;
-        if( copy_len > BUF_DATA_LEN){
+        if( copy_len > WIFI_MAX_SYNC_DATA){
 
-            copy_len = BUF_DATA_LEN;
+            copy_len = WIFI_MAX_SYNC_DATA;
         }
 
         memcpy( dst, src, copy_len );
