@@ -46,13 +46,9 @@ void vm_v_get_info( uint8_t index, vm_info_t *info );
 uint16_t vm_u16_get_fader_time( void );
 uint16_t vm_u16_get_total_size( void );
 
-// int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync );
-// uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync );
-// uint16_t vm_u16_get_frame_number( void );
-
-void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync );
-void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *sync );
-void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *sync );
+void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len );
+void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
+void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len );
 
 int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index );
 void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index );

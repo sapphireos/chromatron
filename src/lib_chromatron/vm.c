@@ -505,7 +505,7 @@ error:
 
 static bool is_vm_running( uint8_t vm_id ){
 
-    return ( vm_status[vm_id] == VM_STATUS_OK ) || ( vm_status[vm_id] == VM_STATUS_READY );
+    return ( vm_status[vm_id] >= VM_STATUS_OK ) && ( vm_status[vm_id] != VM_STATUS_HALT );
 }
 
 

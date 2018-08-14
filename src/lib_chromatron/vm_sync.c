@@ -86,6 +86,8 @@ uint32_t get_file_hash( void ){
 		return 0;
 	}
 
+	fs_v_seek( f, sizeof(wifi_msg_vm_frame_sync_t) );
+
 	uint8_t buf[64];
 	int16_t read_len = 0;
 
