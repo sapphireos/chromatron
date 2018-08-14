@@ -357,7 +357,10 @@ static int8_t _vm_i8_run_stream(
     catbus_hash_t32 db_hash;
     uint16_t index_x;
     uint16_t index_y;
+
+    #ifdef VM_ENABLE_GFX
     int32_t value_i32;
+    #endif
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     uint8_t call_depth = 0;

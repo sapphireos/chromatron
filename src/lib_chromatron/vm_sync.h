@@ -26,6 +26,8 @@
 
 int8_t vm_sync_i8_request_frame_sync( void );
 
+void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len );
+
 void vm_sync_v_init( void );
 
 #endif
