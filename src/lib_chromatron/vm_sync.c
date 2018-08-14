@@ -26,11 +26,12 @@
 #include "esp8266.h"
 #include "vm_wifi_cmd.h"
 
+
+
+
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, 0, "gfx_sync_group" },
 };
-
-static int16_t data_remaining = -1;
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
@@ -69,8 +70,6 @@ static void write_to_sync_file( uint16_t offset, uint8_t *data, uint16_t len ){
 
 	fs_i16_write( f, data, len );
 
-	data_remaining -= len;
-
 done:
 	f = fs_f_close( f ); 
 }
@@ -85,8 +84,6 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 		}
 
 		wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
-
-		data_remaining = msg->data_len;
 
 		// delete file and recreate
 		file_id_t8 id = fs_i8_get_file_id_P( PSTR("vm_sync") );
@@ -116,6 +113,39 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
     }
+    else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
+
+    	wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
+
+    	// check file hash
+    	uint32_t hash = hash_u32_start();
+
+    	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY);
+
+		if( f < 0 ){
+
+			return;
+		}
+
+		uint8_t buf[64];
+		int16_t read_len = 0;
+
+		do{
+
+			read_len = fs_i16_read( f, buf, sizeof(buf) );
+
+			hash = hash_u32_partial( hash, buf, read_len );
+
+		} while( read_len == sizeof(buf) );
+
+		f = fs_f_close( f ); 
+
+		if( hash == msg->hash ){
+
+			log_v_debug_P( PSTR("Verified") );
+
+		}
+    }
 }
 
 
@@ -128,7 +158,7 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, vm_sync_u32_get_sync_group_hash() == 0 );
 
-    	THREAD_WAIT_WHILE( pt, data_remaining != 0 );
+    	// THREAD_WAIT_WHILE( pt, data_remaining != 0 );
 
 
     }

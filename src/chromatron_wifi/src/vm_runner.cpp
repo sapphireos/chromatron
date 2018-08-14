@@ -33,6 +33,7 @@ extern "C"{
     #include "kvdb.h"
     #include "vm_wifi_cmd.h"
     #include "catbus_common.h"
+    #include "hash.h"
 }
 
 static uint16_t vm_load_len;
@@ -668,6 +669,8 @@ void vm_v_request_frame_data( uint8_t index ){
 
     intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
 
+    uint32_t hash = hash_u32_start();
+    hash = hash_u32_partial( hash, (uint8_t *)&msg, sizeof(msg) );
 
     uint16_t len = vm_state[index].data_len;
     uint8_t *src = (uint8_t *)( vm_data[vm_start[index]] + vm_state[index].data_start );
@@ -687,6 +690,7 @@ void vm_v_request_frame_data( uint8_t index ){
         }
 
         memcpy( dst, src, copy_len );
+        hash = hash_u32_partial( hash, dst, copy_len );
 
         intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, sizeof(wifi_msg_vm_sync_data_t) + copy_len );
 
@@ -695,6 +699,11 @@ void vm_v_request_frame_data( uint8_t index ){
         src += copy_len;
         len -= copy_len;
     }
+
+    wifi_msg_vm_sync_done_t done;
+    done.hash = hash;
+
+    intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
 }
 
 void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ){

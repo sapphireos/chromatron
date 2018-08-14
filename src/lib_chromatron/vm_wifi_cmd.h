@@ -63,15 +63,12 @@ typedef struct __attribute__((packed)){
 } wifi_msg_vm_sync_data_t;
 #define WIFI_DATA_ID_VM_SYNC_DATA      	0x24
 
+typedef struct __attribute__((packed)){
+    uint32_t hash;
+} wifi_msg_vm_sync_done_t;
+#define WIFI_DATA_ID_VM_SYNC_DONE      	0x29
+
 #define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x28
-
-
-// typedef struct __attribute__((packed)){
-//     uint16_t frame_number;
-//     uint8_t status;
-// } wifi_msg_vm_frame_sync_status_t;
-// #define WIFI_DATA_ID_FRAME_SYNC_STATUS  0x29
-
 
 #endif
 
