@@ -570,6 +570,31 @@ uint16_t vm_u16_get_total_size( void ){
     return vm_total_size;
 }
 
+void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
+
+    if( index >= VM_MAX_VMS ){
+
+        return;
+    }
+}
+
+void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *sync ){
+
+    if( index >= VM_MAX_VMS ){
+
+        return;
+    }
+}
+
+void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *sync ){
+
+    if( index >= VM_MAX_VMS ){
+
+        return;
+    }
+}
+
+
 // int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
 
 //     if( index > 0 ){

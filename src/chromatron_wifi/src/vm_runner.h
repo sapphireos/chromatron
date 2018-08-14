@@ -27,6 +27,7 @@
 #include "gfx_lib.h"
 #include "vm_core.h"
 #include "wifi_cmd.h"
+#include "vm_wifi_cmd.h"
 
 #define VM_RUNNER_MAX_SIZE 		8192
 
@@ -48,6 +49,10 @@ uint16_t vm_u16_get_total_size( void );
 // int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync );
 // uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync );
 // uint16_t vm_u16_get_frame_number( void );
+
+void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync );
+void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *sync );
+void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *sync );
 
 int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index );
 void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index );

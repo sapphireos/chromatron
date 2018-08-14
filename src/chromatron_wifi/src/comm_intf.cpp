@@ -321,16 +321,27 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
+        intf_v_printf( "sync: %u", msg->data_len );
+
+        vm_v_start_frame_sync( 0, msg );
+
     }
     else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
 
         wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
 
+        intf_v_printf( "offset: %u", msg->offset );
+
+        vm_v_frame_sync_data( 0, msg );
+
     }
     else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
 
         wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
-        
+
+        intf_v_printf( "done: %lu", msg->hash );
+
+        vm_v_frame_sync_done( 0, msg );
     }
     else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
         
