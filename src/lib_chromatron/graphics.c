@@ -90,17 +90,6 @@ static void update_vm_timer( void ){
     }
 }
 
-static uint32_t get_sync_group_hash( void ){
-
-    char sync_group[32];
-    if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
-
-        return 0;
-    }
-
-    return hash_u32_string( sync_group );    
-}
-
 static void param_error_check( void ){
 
     // error check
@@ -193,7 +182,6 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
-    { SAPPHIRE_TYPE_STRING32,   0, KV_FLAGS_PERSIST, 0,                            gfx_i8_kv_handler,   "gfx_sync_group" },
 };
 
 // void gfx_v_set_params( gfx_params_t *params ){
@@ -244,7 +232,7 @@ void gfx_v_get_params( gfx_params_t *params ){
 
     params->virtual_array_start   = gfx_virtual_array_start;
     params->virtual_array_length  = gfx_virtual_array_length;
-    params->sync_group_hash       = get_sync_group_hash();
+    params->sync_group_hash       = vm_sync_u32_get_sync_group_hash();
 
     // override dimmer curve for the Pixie, since it already has curves built in
     if( pixel_u8_get_mode() == PIX_MODE_PIXIE ){

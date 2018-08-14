@@ -25,6 +25,24 @@
 #include "esp8266.h"
 #include "vm_wifi_cmd.h"
 
+KV_SECTION_META kv_meta_t vm_sync_kv[] = {
+    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, 0, "gfx_sync_group" },
+};
+
+
+PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
+
+uint32_t vm_sync_u32_get_sync_group_hash( void ){
+
+    char sync_group[32];
+    if( kv_i8_get( __KV__gfx_sync_group, sync_group, sizeof(sync_group) ) < 0 ){
+
+        return 0;
+    }
+
+    return hash_u32_string( sync_group );    
+}
+
 
 int8_t vm_sync_i8_request_frame_sync( void ){
 
@@ -57,7 +75,32 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
 }
 
+
+
+
+PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    	
+    while( TRUE ){
+
+    	THREAD_WAIT_WHILE( pt, get_sync_group_hash() == 0 );
+
+
+    }
+
+PT_END( pt );
+}
+
+
+
 void vm_sync_v_init( void ){
 
-
+    thread_t_create( vm_sync_thread,
+                    PSTR("vm_sync"),
+                    0,
+                    0 );    
 }
+
+
+

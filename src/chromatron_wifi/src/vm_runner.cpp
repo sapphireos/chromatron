@@ -657,17 +657,8 @@ void vm_v_request_frame_data( uint8_t index ){
         return;
     }
 
-    // uint16_t len = sizeof(vm_state_t) + vm_state[index].data_len;
-
     uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
     #define BUF_DATA_LEN ( sizeof(buf) - sizeof(wifi_msg_vm_frame_sync_t) )
-    // volatile uint32_t *page = (uint32_t *)buf;
-    // *page = 0;
-    // uint8_t *data = &buf[sizeof(uint32_t)];
-
-    // // send first message, vm_state
-    // memcpy( data, &vm_state[index], sizeof(vm_state_t) );
-
 
     wifi_msg_vm_frame_sync_t msg;
     msg.rng_seed            = vm_state[index].rng_seed;
