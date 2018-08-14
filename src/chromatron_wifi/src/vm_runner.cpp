@@ -652,25 +652,42 @@ uint16_t vm_u16_get_total_size( void ){
 
 void vm_v_request_frame_data( uint8_t index ){
 
-    uint16_t len = sizeof(vm_state_t) + vm_state[index].data_len;
+    if( index >= VM_MAX_VMS ){
+
+        return;
+    }
+
+    // uint16_t len = sizeof(vm_state_t) + vm_state[index].data_len;
 
     uint8_t buf[WIFI_MAIN_MAX_DATA_LEN];
-    #define BUF_DATA_LEN ( sizeof(buf) - sizeof(uint32_t) )
-    volatile uint32_t *page = (uint32_t *)buf;
-    *page = 0;
-    uint8_t *data = &buf[sizeof(uint32_t)];
+    #define BUF_DATA_LEN ( sizeof(buf) - sizeof(wifi_msg_vm_frame_sync_t) )
+    // volatile uint32_t *page = (uint32_t *)buf;
+    // *page = 0;
+    // uint8_t *data = &buf[sizeof(uint32_t)];
 
-    // send first message, vm_state
-    memcpy( data, &vm_state[index], sizeof(vm_state_t) );
-
-    intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, buf, sizeof(uint32_t) + sizeof(vm_state_t) );
+    // // send first message, vm_state
+    // memcpy( data, &vm_state[index], sizeof(vm_state_t) );
 
 
+    wifi_msg_vm_frame_sync_t msg;
+    msg.rng_seed            = vm_state[index].rng_seed;
+    msg.frame_number        = vm_state[index].frame_number;
+    msg.data_len            = vm_state[index].data_len;
+    msg.program_name_hash   = vm_state[index].program_name_hash;
+
+    intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
+
+
+    uint16_t len = vm_state[index].data_len;
     uint8_t *src = (uint8_t *)( vm_data[vm_start[index]] + vm_state[index].data_start );
 
-    while( len > 0 ){
+    wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
+    uint8_t *dst = &buf[sizeof(wifi_msg_vm_sync_data_t)];
 
-        *page++;
+    sync->page = 0;
+    sync->padding = 0;
+
+    while( len > 0 ){
 
         uint32_t copy_len = len;
         if( copy_len > BUF_DATA_LEN){
@@ -678,9 +695,11 @@ void vm_v_request_frame_data( uint8_t index ){
             copy_len = BUF_DATA_LEN;
         }
 
-        memcpy( data, src, copy_len );
+        memcpy( dst, src, copy_len );
 
-        intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, sizeof(uint32_t) + copy_len );
+        intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, sizeof(wifi_msg_vm_sync_data_t) + copy_len );
+
+        sync->page++;
 
         src += copy_len;
         len -= copy_len;
