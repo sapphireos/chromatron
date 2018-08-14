@@ -221,6 +221,7 @@ PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	static uint32_t last_run;
 	static socket_t sock;
 	sock = sock_s_create( SOCK_DGRAM );
 
@@ -230,11 +231,13 @@ PT_BEGIN( pt );
 	}
 
 	sock_v_bind( sock, SYNC_SERVER_PORT );
+	sock_v_set_timeout( sock, 8 );
     
     TMR_WAIT( pt, 4000 );
 
     vm_sync_i8_request_frame_sync();
 
+    last_run = tmr_u32_get_system_time_ms();
 
     while( TRUE ){
 
@@ -265,46 +268,88 @@ PT_BEGIN( pt );
 
 	        	vm_sync_msg_master_t *msg = (vm_sync_msg_master_t *)magic;
 
+
+	        	// master selection
+
 	        }
 	        else if( *type == VM_SYNC_MSG_GET_TIMESTAMP ){
+
+	        	if( sync_state != STATE_MASTER ){
+
+	        		goto done;
+	        	}
 
 	        	vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)magic;
 	        }
 	        else if( *type == VM_SYNC_MSG_TIMESTAMP ){
 
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		goto done;
+	        	}
+
 	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)magic;
 	        }
 	        else if( *type == VM_SYNC_MSG_GET_SYNC_DATA ){
+
+	        	if( sync_state != STATE_MASTER ){
+
+	        		goto done;
+	        	}
 
 	        	vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)magic;
 	        }
 	        else if( *type == VM_SYNC_MSG_SYNC_INIT ){
 
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		goto done;
+	        	}
+
 	        	vm_sync_msg_sync_init_t *msg = (vm_sync_msg_sync_init_t *)magic;
 	        }
 	        else if( *type == VM_SYNC_MSG_SYNC_DATA ){
 
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		goto done;
+	        	}
+
 	        	vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)magic;
 	        }
 	        else if( *type == VM_SYNC_MSG_SYNC_DONE ){
+
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		goto done;
+	        	}
 
 				vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)magic;	        	
 	        }
     	}
 
 
-    	if( sync_state == STATE_IDLE ){
+    	
+
+done:
+		if( tmr_u32_elapsed_time_ms( last_run ) > 7000 ){
+
+			if( sync_state == STATE_IDLE ){
 
 
-    	}
-    	else if( sync_state == STATE_MASTER ){
+	    	}
+	    	else if( sync_state == STATE_MASTER ){
 
-    		
-    	}
-    	else if( sync_state == STATE_SLAVE ){
+	    		
+	    	}
+	    	else if( sync_state == STATE_SLAVE ){
 
-    		
-    	}
+	    		
+	    	}
+
+	    	last_run = tmr_u32_get_system_time_ms();
+		}
+	
 
     	// prevent runaway thread
     	THREAD_YIELD( pt );
