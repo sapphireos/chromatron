@@ -675,7 +675,7 @@ void vm_v_request_frame_data( uint8_t index ){
     wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
     uint8_t *dst = &buf[sizeof(wifi_msg_vm_sync_data_t)];
 
-    sync->page = 0;
+    sync->offset = 0;
     sync->padding = 0;
 
     while( len > 0 ){
@@ -690,7 +690,7 @@ void vm_v_request_frame_data( uint8_t index ){
 
         intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, sizeof(wifi_msg_vm_sync_data_t) + copy_len );
 
-        sync->page++;
+        sync->offset =+ copy_len;
 
         src += copy_len;
         len -= copy_len;

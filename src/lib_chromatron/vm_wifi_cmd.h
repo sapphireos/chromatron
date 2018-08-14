@@ -58,7 +58,7 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_VM_FRAME_SYNC      0x25
 
 typedef struct __attribute__((packed)){
-    uint16_t page;
+    uint16_t offset;
     uint16_t padding;
 } wifi_msg_vm_sync_data_t;
 #define WIFI_DATA_ID_VM_SYNC_DATA      	0x24
