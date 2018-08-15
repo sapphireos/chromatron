@@ -36,6 +36,11 @@ static uint8_t sync_state;
 #define STATE_SLAVE 		2
 #define STATE_SLAVE_SYNC 	3
 
+static uint8_t esp_sync_state;
+#define ESP_SYNC_IDLE 			0
+#define ESP_SYNC_DOWNLOADING  	1
+#define ESP_SYNC_READY  		2
+
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
@@ -87,6 +92,8 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 
 int8_t vm_sync_i8_request_frame_sync( void ){
+
+	esp_sync_state = ESP_SYNC_DOWNLOADING;
 
 	uint32_t vm_id = 0;
 
@@ -164,22 +171,6 @@ uint32_t get_file_hash( void ){
 	f = fs_f_close( f ); 
 
 	return hash;
-}
-
-int8_t read_frame_sync_init( wifi_msg_vm_frame_sync_t *sync ){
-
-	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
-
-	if( f < 0 ){
-
-		return -1;
-	}
-	
-	fs_i16_read( f, sync, sizeof(wifi_msg_vm_frame_sync_t) );
-
-	fs_f_close( f );	
-
-	return 0;
 }
 
 void load_frame_data( void ){
@@ -266,6 +257,8 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 			// log_v_debug_P( PSTR("Verified %lx"), hash );
 
 			// load_frame_data();
+
+			esp_sync_state = ESP_SYNC_READY;
 		}
     }
 }
@@ -373,7 +366,7 @@ PT_BEGIN( pt );
 
 	    		send_master();
 
-	    		vm_sync_i8_request_frame_sync();
+	    		// vm_sync_i8_request_frame_sync();
 	    	}
 	    	else if( sync_state >= STATE_SLAVE ){
 
@@ -492,6 +485,13 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
+	        	if( esp_sync_state != ESP_SYNC_IDLE ){
+
+	        		// we're only syncing one at a time for now
+
+	        		continue;
+	        	}
+
 	        	// vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)header;
 
 	        	data_sender_state_t sender_state;
@@ -539,6 +539,10 @@ PT_BEGIN( pt );
 				if( get_file_hash() == msg->hash ){
 
 					log_v_debug_P( PSTR("slave hash verified!") );
+
+					sync_state = STATE_SLAVE_SYNC;
+
+					load_frame_data();
 				}
 	        }
     	}
@@ -559,6 +563,11 @@ PT_BEGIN( pt );
 
 		THREAD_EXIT( pt );
 	}
+
+	vm_sync_i8_request_frame_sync();
+
+	THREAD_WAIT_WHILE( pt, esp_sync_state == ESP_SYNC_READY );
+
 
 	state->f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
 
@@ -641,6 +650,8 @@ PT_BEGIN( pt );
 done:
 	fs_f_close( state->f );
 	sock_v_release( state->sock );
+
+	esp_sync_state = ESP_SYNC_IDLE;
 
 PT_END( pt );
 }
