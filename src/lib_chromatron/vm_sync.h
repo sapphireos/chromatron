@@ -36,6 +36,8 @@
 
 #define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
 
+#define SYNC_DATA_MAX                       512
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;

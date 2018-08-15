@@ -45,7 +45,10 @@ static socket_t sock;
 
 typedef struct{
 	sock_addr_t raddr;
-
+	file_t f;
+	socket_t sock;
+	uint16_t data_len;
+	uint16_t offset;
 } data_sender_state_t;
 
 
@@ -519,7 +522,10 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-	        	// vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)header;
+	        	vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)header;
+	        	uint8_t *data = (uint8_t *)( msg + 1 );
+
+	        	write_to_sync_file( msg->offset, data, sock_i16_get_bytes_read( sock ) - sizeof(vm_sync_msg_sync_data_t) );
 	        }
 	        else if( header->type == VM_SYNC_MSG_SYNC_DONE ){
 
@@ -542,6 +548,28 @@ PT_THREAD( vm_data_sender_thread( pt_t *pt, data_sender_state_t *state ) )
 {
 PT_BEGIN( pt );
 	
+	state->sock = sock_s_create( SOCK_DGRAM );
+
+	if( sock < 0 ){
+
+		THREAD_EXIT( pt );
+	}
+
+	state->f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
+
+	if( state->f < 0 ){
+
+		log_v_debug_P( PSTR("sync file not ready") );
+
+		sock_v_release( state->sock );
+
+		THREAD_EXIT( pt );
+	}
+
+	TMR_WAIT( pt, 50 );
+
+	state->offset = 0;
+	
 	vm_sync_msg_sync_init_t sync;
 	sync.header.magic           = SYNC_PROTOCOL_MAGIC;
     sync.header.version         = SYNC_PROTOCOL_VERSION;
@@ -549,12 +577,55 @@ PT_BEGIN( pt );
     sync.header.flags 		    = 0;
     sync.header.sync_group_hash = sync_group_hash;
 
-    if( read_frame_sync_init( &sync.sync ) < 0 ){
+    fs_i16_read( state->f, &sync.sync, sizeof(sync.sync) );
 
-    	log_v_debug_P( PSTR("sync file not ready") );
+    state->data_len = sync.sync.data_len;
+
+    sock_i16_sendto( state->sock, (uint8_t *)&sync, sizeof(sync), &state->raddr );
+
+    TMR_WAIT( pt, 50 );
+
+    while( state->data_len > 0 ){
+
+    	uint16_t copy_len = state->data_len;
+    	if( copy_len > SYNC_DATA_MAX ){
+
+    		copy_len = SYNC_DATA_MAX;
+    	}
+
+    	mem_handle_t h = mem2_h_alloc( sizeof(vm_sync_msg_sync_data_t) + copy_len );
+
+    	if( h < 0 ){
+
+    		goto done;
+    	}
+
+    	vm_sync_msg_sync_data_t *msg = mem2_vp_get_ptr( h );
+    	uint8_t *dest = (uint8_t *)( msg + 1 );
+
+		fs_i16_read( state->f, dest, copy_len );
+
+    	msg->header.magic           = SYNC_PROTOCOL_MAGIC;
+	    msg->header.version         = SYNC_PROTOCOL_VERSION;
+	    msg->header.type            = VM_SYNC_MSG_SYNC_DATA;
+	    msg->header.flags 		    = 0;
+	    msg->header.sync_group_hash = sync_group_hash;
+
+	    msg->offset = state->offset;
+
+	    sock_i16_sendto_m( state->sock, h, &state->raddr );
+
+		state->offset 		+= copy_len;
+		state->data_len 	-= copy_len;
+
+		TMR_WAIT( pt, 50 );
     }
 
-    sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), &state->raddr );  
+
+
+done:
+	fs_f_close( state->f );
+	sock_v_release( state->sock );
 
 PT_END( pt );
 }
