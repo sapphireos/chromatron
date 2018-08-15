@@ -31,9 +31,10 @@
 
 
 static uint8_t sync_state;
-#define STATE_IDLE 		0
-#define STATE_MASTER 	1
-#define STATE_SLAVE 	2
+#define STATE_IDLE 			0
+#define STATE_MASTER 		1
+#define STATE_SLAVE 		2
+#define STATE_SLAVE_SYNC 	3
 
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
@@ -41,6 +42,11 @@ static uint64_t master_uptime;
 static uint32_t sync_group_hash;
 
 static socket_t sock;
+
+typedef struct{
+	sock_addr_t raddr;
+
+} data_sender_state_t;
 
 
 int8_t vmsync_i8_kv_handler(
@@ -69,6 +75,7 @@ KV_SECTION_META kv_meta_t vm_sync_kv[] = {
 
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
+PT_THREAD( vm_data_sender_thread( pt_t *pt, data_sender_state_t *state ) );
 
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
@@ -83,6 +90,27 @@ int8_t vm_sync_i8_request_frame_sync( void ){
 	return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, (uint8_t *)&vm_id, sizeof(vm_id) );
 }
 
+static void init_sync_file( wifi_msg_vm_frame_sync_t *sync ){
+
+	// delete file and recreate
+	file_id_t8 id = fs_i8_get_file_id_P( PSTR("vm_sync") );
+
+	if( id > 0 ){
+
+		fs_i8_delete_id( id );
+	}
+
+	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+
+	if( f < 0 ){
+
+		return;
+	}
+
+	fs_i16_write( f, sync, sizeof(wifi_msg_vm_frame_sync_t) );
+
+	f = fs_f_close( f ); 
+}
 
 static void write_to_sync_file( uint16_t offset, uint8_t *data, uint16_t len ){
 
@@ -135,6 +163,21 @@ uint32_t get_file_hash( void ){
 	return hash;
 }
 
+int8_t read_frame_sync_init( wifi_msg_vm_frame_sync_t *sync ){
+
+	file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
+
+	if( f < 0 ){
+
+		return -1;
+	}
+	
+	fs_i16_read( f, sync, sizeof(wifi_msg_vm_frame_sync_t) );
+
+	fs_f_close( f );	
+
+	return 0;
+}
 
 void load_frame_data( void ){
 
@@ -192,35 +235,18 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 			return;
 		}
 
-		log_v_debug_P( PSTR("sync") );
+		// log_v_debug_P( PSTR("sync") );
 
 		wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
-		// delete file and recreate
-		file_id_t8 id = fs_i8_get_file_id_P( PSTR("vm_sync") );
-
-		if( id > 0 ){
-
-			fs_i8_delete_id( id );
-		}
-
-		file_t f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
-
-		if( f < 0 ){
-
-			return;
-		}
-
-		fs_i16_write( f, msg, sizeof(wifi_msg_vm_frame_sync_t) );
-
-		f = fs_f_close( f ); 
+		init_sync_file( msg );
     }
     else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
 
         wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
         data += sizeof(wifi_msg_vm_sync_data_t);
 
-        log_v_debug_P( PSTR("sync offset: %u len %u"), msg->offset, len );
+        // log_v_debug_P( PSTR("sync offset: %u len %u"), msg->offset, len );
 
         write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
     }
@@ -228,13 +254,13 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     	wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
 
-    	log_v_debug_P( PSTR("done") );
+    	// log_v_debug_P( PSTR("done") );
 
     	uint32_t hash = get_file_hash();
 
 		if( hash == msg->hash ){
 
-			log_v_debug_P( PSTR("Verified %lx"), hash );
+			// log_v_debug_P( PSTR("Verified %lx"), hash );
 
 			// load_frame_data();
 		}
@@ -259,7 +285,41 @@ static void send_master( void ){
     msg.uptime = master_uptime;
     
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+}
 
+
+static void send_request_sync( void ){
+
+    // set up address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = master_ip;
+
+    vm_sync_msg_get_sync_data_t msg;
+    msg.header.magic           = SYNC_PROTOCOL_MAGIC;
+    msg.header.version         = SYNC_PROTOCOL_VERSION;
+    msg.header.type            = VM_SYNC_MSG_GET_SYNC_DATA;
+    msg.header.flags 		   = 0;
+    msg.header.sync_group_hash = sync_group_hash;
+    
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+}
+
+static void send_request_ts( void ){
+
+    // set up address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = master_ip;
+
+    vm_sync_msg_get_ts_t msg;
+    msg.header.magic           = SYNC_PROTOCOL_MAGIC;
+    msg.header.version         = SYNC_PROTOCOL_VERSION;
+    msg.header.type            = VM_SYNC_MSG_GET_TIMESTAMP;
+    msg.header.flags 		   = 0;
+    msg.header.sync_group_hash = sync_group_hash;
+    
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 }
 
 
@@ -302,21 +362,34 @@ PT_BEGIN( pt );
 				// start out as master
 			    sync_state = STATE_MASTER;
 
-			    log_v_debug_P( PSTR("we are sync master"), 
+			    log_v_debug_P( PSTR("we are sync master") );
 	    	}
 	    	else if( sync_state == STATE_MASTER ){
 
 	    		master_uptime = tmr_u64_get_system_time_us();
 
 	    		send_master();
-	    	}
-	    	else if( sync_state == STATE_SLAVE ){
 
+	    		vm_sync_i8_request_frame_sync();
+	    	}
+	    	else if( sync_state >= STATE_SLAVE ){
+
+	    		// check for master timeout
 	    		if( tmr_u32_elapsed_time_ms( last_sync ) > SYNC_MASTER_TIMEOUT ){
 
 	    			sync_state = STATE_IDLE;
 	    			master_ip = ip_a_addr(0,0,0,0);
 	    			master_uptime = 0;
+	    		}
+	    		else if( sync_state == STATE_SLAVE ){
+
+	    			// not synced
+	    			send_request_sync();
+	    		}
+	    		else if( sync_state == STATE_SLAVE_SYNC ){
+
+	    			// synced
+	    			send_request_ts();
 	    		}
 	    	}
 
@@ -398,7 +471,7 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-	        	vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)header;
+	        	// vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)header;
 	        }
 	        else if( header->type == VM_SYNC_MSG_TIMESTAMP ){
 
@@ -407,7 +480,7 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
+	        	// vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
 	        }
 	        else if( header->type == VM_SYNC_MSG_GET_SYNC_DATA ){
 
@@ -416,7 +489,17 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-	        	vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)header;
+	        	// vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)header;
+
+	        	data_sender_state_t sender_state;
+	        	memset( &sender_state, 0, sizeof(sender_state) );
+	        	sender_state.raddr = raddr;
+
+        	    thread_t_create( THREAD_CAST(vm_data_sender_thread),
+                    			 PSTR("vm_sync_data_sender"),
+                    			 &sender_state,
+                    			 sizeof(sender_state) );    
+
 	        }
 	        else if( header->type == VM_SYNC_MSG_SYNC_INIT ){
 
@@ -426,6 +509,8 @@ PT_BEGIN( pt );
 	        	}
 
 	        	vm_sync_msg_sync_init_t *msg = (vm_sync_msg_sync_init_t *)header;
+
+	        	init_sync_file( &msg->sync );
 	        }
 	        else if( header->type == VM_SYNC_MSG_SYNC_DATA ){
 
@@ -434,7 +519,7 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-	        	vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)header;
+	        	// vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)header;
 	        }
 	        else if( header->type == VM_SYNC_MSG_SYNC_DONE ){
 
@@ -443,11 +528,33 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-				vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)header;	        	
+				// vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)header;	        	
 	        }
     	}
     }
 
+
+PT_END( pt );
+}
+
+
+PT_THREAD( vm_data_sender_thread( pt_t *pt, data_sender_state_t *state ) )
+{
+PT_BEGIN( pt );
+	
+	vm_sync_msg_sync_init_t sync;
+	sync.header.magic           = SYNC_PROTOCOL_MAGIC;
+    sync.header.version         = SYNC_PROTOCOL_VERSION;
+    sync.header.type            = VM_SYNC_MSG_SYNC_INIT;
+    sync.header.flags 		    = 0;
+    sync.header.sync_group_hash = sync_group_hash;
+
+    if( read_frame_sync_init( &sync.sync ) < 0 ){
+
+    	log_v_debug_P( PSTR("sync file not ready") );
+    }
+
+    sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), &state->raddr );  
 
 PT_END( pt );
 }
