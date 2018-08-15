@@ -380,12 +380,22 @@ bool gfx_b_running( void ){
 
 uint16_t gfx_u16_get_frame_number( void ){
 
-    return vm0_frame_number;    
+    return vm0_frame_number;
 }
 
 uint32_t gfx_u32_get_frame_ts( void ){
 
     return last_vm0_frame_ts;
+}
+
+void gfx_v_set_frame_number( uint16_t frame ){
+
+    vm0_frame_number = frame;
+}
+
+void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
+
+    
 }
 
 void gfx_v_pixel_bridge_enable( void ){

@@ -218,6 +218,8 @@ void load_frame_data( void ){
 	// send done
 	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
 
+	gfx_v_set_frame_number( sync.frame_number );
+
 done:
 	f = fs_f_close( f );
 }
@@ -491,6 +493,8 @@ PT_BEGIN( pt );
 
 	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
 
+	        	gfx_v_set_sync0( msg->frame_number, msg->net_time );
+
 	        	int32_t offset = (int32_t)time_u32_get_network_time() - (int32_t)msg->net_time;
 
 	        	log_v_debug_P( PSTR("offset: %ld frame: remote: %u local: %u"), offset, msg->frame_number, gfx_u16_get_frame_number() );
@@ -566,6 +570,8 @@ PT_BEGIN( pt );
 					sync_state = STATE_SLAVE_SYNC;
 
 					load_frame_data();
+
+					send_request_ts();
 
 					last_sync = tmr_u32_get_system_time_ms();
 				}
