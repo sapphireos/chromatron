@@ -102,10 +102,11 @@ static int8_t ntp_kv_handler(
 
 
 KV_SECTION_META kv_meta_t sntp_cfg_kv[] = {
-    { SAPPHIRE_TYPE_STRING64,     0, 0,  0, cfg_i8_kv_handler,  "sntp_server" },
-    { SAPPHIRE_TYPE_UINT16,       0, 0,  0, cfg_i8_kv_handler,  "sntp_sync_interval" },
-    { SAPPHIRE_TYPE_BOOL,         0, 0,  0, cfg_i8_kv_handler,  "enable_sntp" },
-    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, ntp_kv_handler, "ntp_seconds" },
+    { SAPPHIRE_TYPE_STRING64,     0, 0,  0,                  cfg_i8_kv_handler,  "sntp_server" },
+    { SAPPHIRE_TYPE_UINT8,        0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
+    { SAPPHIRE_TYPE_UINT16,       0, 0,  0,                  cfg_i8_kv_handler,  "sntp_sync_interval" },
+    { SAPPHIRE_TYPE_BOOL,         0, 0,  0,                  cfg_i8_kv_handler,  "enable_sntp" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, ntp_kv_handler,     "ntp_seconds" },
 };
 
 
@@ -173,9 +174,7 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 
 ntp_ts_t sntp_t_now( void ){
 
-    ntp_ts_t now;
-    now.seconds = 0;
-    now.fraction = 0;
+    ntp_ts_t now = network_time;
     
     if( status >= SNTP_STATUS_SYNCHRONIZED ){
 
@@ -191,6 +190,11 @@ ntp_ts_t sntp_t_now( void ){
 
         now.seconds = a >> 32;
         now.fraction = a & 0xffffffff;
+    }
+    else{
+
+        now.seconds = 0;
+        now.fraction = 0;
     }
 
     return now;

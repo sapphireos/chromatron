@@ -189,6 +189,21 @@ static bool is_master_better( uint64_t uptime1, uint8_t source1, uint64_t uptime
     return FALSE;
 }
 
+static uint8_t get_best_local_source( void ){
+
+    if( gps_sync ){
+
+        return TIME_FLAGS_SOURCE_GPS;
+    }
+
+    if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+
+        return TIME_FLAGS_SOURCE_NTP;
+    }
+
+    return 0;
+}
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -311,6 +326,8 @@ PT_BEGIN( pt );
                 // STROBE;
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
+
+                master_source = msg->source;
 
                 // check sync
                 if( msg->source > 0 ){
@@ -586,6 +603,16 @@ PT_BEGIN( pt );
         }
 
         TMR_WAIT( pt, delay );
+
+        if( get_best_local_source() > master_source ){
+
+            // elect ourselves as master
+            sync_state = STATE_MASTER;
+            master_uptime = 0;
+
+            log_v_debug_P( PSTR("we are master (local source)") );
+        } 
+
 
         // check state
         if( sync_state != STATE_SLAVE ){
