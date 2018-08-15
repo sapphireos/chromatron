@@ -20,7 +20,7 @@
 // 
 // </license>
 
-// #define NO_LOGGING
+#define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -215,6 +215,9 @@ PT_BEGIN( pt );
                 else if( sync_state == STATE_MASTER ){
 
                     log_v_debug_P( PSTR("rx sync while master") );
+
+                    // update our master uptime
+                    master_uptime = tmr_u64_get_system_time_us();
 
                     // check if this master is better
                     if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){

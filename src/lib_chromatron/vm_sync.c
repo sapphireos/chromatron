@@ -40,6 +40,8 @@ static uint64_t master_uptime;
 
 static uint32_t sync_group_hash;
 
+static socket_t sock;
+
 
 int8_t vmsync_i8_kv_handler(
     kv_op_t8 op,
@@ -234,12 +236,31 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
 			log_v_debug_P( PSTR("Verified %lx"), hash );
 
-			load_frame_data();
+			// load_frame_data();
 		}
     }
 }
 
 
+static void send_master( void ){
+
+    // set up broadcast address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    vm_sync_msg_master_t msg;
+    msg.header.magic           = SYNC_PROTOCOL_MAGIC;
+    msg.header.version         = SYNC_PROTOCOL_VERSION;
+    msg.header.type            = VM_SYNC_MSG_MASTER;
+    msg.header.flags 		   = 0;
+    msg.header.sync_group_hash = sync_group_hash;
+
+    msg.uptime = master_uptime;
+    
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+
+}
 
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
@@ -247,7 +268,8 @@ PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	static uint32_t last_run;
-	static socket_t sock;
+	static uint32_t last_sync;
+
 	sock = sock_s_create( SOCK_DGRAM );
 
 	if( sock < 0 ){
@@ -258,120 +280,44 @@ PT_BEGIN( pt );
 	sock_v_bind( sock, SYNC_SERVER_PORT );
 	sock_v_set_timeout( sock, 8 );
     
-    TMR_WAIT( pt, 8000 );
 
-    vm_sync_i8_request_frame_sync();
+    THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+
 
     last_run = tmr_u32_get_system_time_ms();
 
+    // TMR_WAIT( pt, 8000 + ( rnd_u16_get_int() >> 5 ) );
+
+    // vm_sync_i8_request_frame_sync();
 
 
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
-    	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-	
-		// check if data received
-        if( sock_i16_get_bytes_read( sock ) > 0 ){
-
-	        uint32_t *magic = sock_vp_get_data( sock );
-
-	        if( *magic != SYNC_PROTOCOL_MAGIC ){
-
-	            continue;
-	        }
-
-	        uint8_t *version = (uint8_t *)(magic + 1);
-
-	        if( *version != SYNC_PROTOCOL_VERSION ){
-
-	            continue;
-	        }
-
-	        uint8_t *type = version + 1;
-
-	        if( *type == VM_SYNC_MSG_MASTER ){
-
-	        	vm_sync_msg_master_t *msg = (vm_sync_msg_master_t *)magic;
-
-
-	        	// master selection
-
-	        }
-	        else if( *type == VM_SYNC_MSG_GET_TIMESTAMP ){
-
-	        	if( sync_state != STATE_MASTER ){
-
-	        		goto done;
-	        	}
-
-	        	vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)magic;
-	        }
-	        else if( *type == VM_SYNC_MSG_TIMESTAMP ){
-
-	        	if( sync_state != STATE_SLAVE ){
-
-	        		goto done;
-	        	}
-
-	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)magic;
-	        }
-	        else if( *type == VM_SYNC_MSG_GET_SYNC_DATA ){
-
-	        	if( sync_state != STATE_MASTER ){
-
-	        		goto done;
-	        	}
-
-	        	vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)magic;
-	        }
-	        else if( *type == VM_SYNC_MSG_SYNC_INIT ){
-
-	        	if( sync_state != STATE_SLAVE ){
-
-	        		goto done;
-	        	}
-
-	        	vm_sync_msg_sync_init_t *msg = (vm_sync_msg_sync_init_t *)magic;
-	        }
-	        else if( *type == VM_SYNC_MSG_SYNC_DATA ){
-
-	        	if( sync_state != STATE_SLAVE ){
-
-	        		goto done;
-	        	}
-
-	        	vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)magic;
-	        }
-	        else if( *type == VM_SYNC_MSG_SYNC_DONE ){
-
-	        	if( sync_state != STATE_SLAVE ){
-
-	        		goto done;
-	        	}
-
-				vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)magic;	        	
-	        }
-    	}
-
-
-    	
-
-done:
 		if( tmr_u32_elapsed_time_ms( last_run ) > 7000 ){
 
 			if( sync_state == STATE_IDLE ){
 
+				// start out as master
+			    sync_state = STATE_MASTER;
 
+			    log_v_debug_P( PSTR("we are sync master"), 
 	    	}
 	    	else if( sync_state == STATE_MASTER ){
 
-	    		
+	    		master_uptime = tmr_u64_get_system_time_us();
+
+	    		send_master();
 	    	}
 	    	else if( sync_state == STATE_SLAVE ){
 
-	    		
+	    		if( tmr_u32_elapsed_time_ms( last_sync ) > SYNC_MASTER_TIMEOUT ){
+
+	    			sync_state = STATE_IDLE;
+	    			master_ip = ip_a_addr(0,0,0,0);
+	    			master_uptime = 0;
+	    		}
 	    	}
 
 	    	last_run = tmr_u32_get_system_time_ms();
@@ -381,6 +327,125 @@ done:
     	// prevent runaway thread
     	// THREAD_YIELD( pt );
     	TMR_WAIT( pt, 100 );
+
+    	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+	
+		// check if data received
+        if( sock_i16_get_bytes_read( sock ) > 0 ){
+
+	        vm_sync_msg_header_t *header = sock_vp_get_data( sock );
+
+	        if( header->magic != SYNC_PROTOCOL_MAGIC ){
+
+	            continue;
+	        }
+
+	        
+	        if( header->version != SYNC_PROTOCOL_VERSION ){
+
+	            continue;
+	        }
+
+	        // check sync group
+	        if( header->sync_group_hash != sync_group_hash ){
+
+	        	continue;
+	        }
+
+	        sock_addr_t raddr;
+            sock_v_get_raddr( sock, &raddr );
+	        
+
+	        if( header->type == VM_SYNC_MSG_MASTER ){
+
+	        	vm_sync_msg_master_t *msg = (vm_sync_msg_master_t *)header;
+
+				// check if this message is from the current master
+				if( ip_b_addr_compare( raddr.ipaddr, master_ip ) ){
+
+					continue;
+				}					        	
+
+	        	// check if we are master
+	        	if( sync_state == STATE_MASTER ){
+
+	        		// update uptime
+		    		master_uptime = tmr_u64_get_system_time_us();
+		    	}
+
+	        	// master selection
+	        	if( msg->uptime > master_uptime ){
+
+	        		// ok, this master is better than ours
+	        		master_ip = raddr.ipaddr;
+                    master_uptime = msg->uptime;
+
+                    sync_state = STATE_SLAVE;
+
+                    log_v_debug_P( PSTR("assigning sync master: %d.%d.%d.%d"), 
+                        master_ip.ip3, 
+                        master_ip.ip2, 
+                        master_ip.ip1, 
+                        master_ip.ip0 );
+
+                    last_sync = tmr_u32_get_system_time_ms();
+	        	}
+	        }
+	        else if( header->type == VM_SYNC_MSG_GET_TIMESTAMP ){
+
+	        	if( sync_state != STATE_MASTER ){
+
+	        		continue;
+	        	}
+
+	        	vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)header;
+	        }
+	        else if( header->type == VM_SYNC_MSG_TIMESTAMP ){
+
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		continue;
+	        	}
+
+	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
+	        }
+	        else if( header->type == VM_SYNC_MSG_GET_SYNC_DATA ){
+
+	        	if( sync_state != STATE_MASTER ){
+
+	        		continue;
+	        	}
+
+	        	vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)header;
+	        }
+	        else if( header->type == VM_SYNC_MSG_SYNC_INIT ){
+
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		continue;
+	        	}
+
+	        	vm_sync_msg_sync_init_t *msg = (vm_sync_msg_sync_init_t *)header;
+	        }
+	        else if( header->type == VM_SYNC_MSG_SYNC_DATA ){
+
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		continue;
+	        	}
+
+	        	vm_sync_msg_sync_data_t *msg = (vm_sync_msg_sync_data_t *)header;
+	        }
+	        else if( header->type == VM_SYNC_MSG_SYNC_DONE ){
+
+	        	if( sync_state != STATE_SLAVE ){
+
+	        		continue;
+	        	}
+
+				vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)header;	        	
+	        }
+    	}
     }
 
 
@@ -390,6 +455,14 @@ PT_END( pt );
 
 
 void vm_sync_v_init( void ){
+
+	// init sync group hash
+	char buf[32];
+	memset( buf, 0, sizeof(buf) );
+	kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
+
+	sync_group_hash = hash_u32_string( buf );    
+
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),

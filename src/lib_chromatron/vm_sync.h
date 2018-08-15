@@ -34,71 +34,53 @@
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	2
 
+#define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
     uint8_t flags;
     uint32_t sync_group_hash;
+} vm_sync_msg_header_t;
+
+typedef struct __attribute__((packed)){
+    vm_sync_msg_header_t header;
     uint64_t uptime;
 } vm_sync_msg_master_t;
 #define VM_SYNC_MSG_MASTER             		1
 
 typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint32_t sync_group_hash;
+    vm_sync_msg_header_t header;
 } vm_sync_msg_get_ts_t;
 #define VM_SYNC_MSG_GET_TIMESTAMP           2
 
 typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint32_t sync_group_hash;
+    vm_sync_msg_header_t header;
     uint32_t net_time;
     uint16_t frame_number;
 } vm_sync_msg_ts_t;
 #define VM_SYNC_MSG_TIMESTAMP           	3
 
 typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint32_t sync_group_hash;
+    vm_sync_msg_header_t header;
 } vm_sync_msg_get_sync_data_t;
 #define VM_SYNC_MSG_GET_SYNC_DATA           4
 
 typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint32_t sync_group_hash;
+    vm_sync_msg_header_t header;
     wifi_msg_vm_frame_sync_t sync;
 } vm_sync_msg_sync_init_t;
 #define VM_SYNC_MSG_SYNC_INIT           	5
 
 typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint32_t sync_group_hash;
+    vm_sync_msg_header_t header;
     uint16_t offset;
 } vm_sync_msg_sync_data_t;
 #define VM_SYNC_MSG_SYNC_DATA           	6
 	
 typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint32_t sync_group_hash;
+    vm_sync_msg_header_t header;
     uint32_t hash;
 } vm_sync_msg_sync_done_t;
 #define VM_SYNC_MSG_SYNC_DONE           	7
