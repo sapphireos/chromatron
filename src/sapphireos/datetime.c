@@ -31,8 +31,6 @@
 
 #include <stdlib.h>
 
-#ifdef LIB_SNTP
-
 #include "sntp.h"
 #include "keyvalue.h"
 
@@ -53,8 +51,6 @@ KV_SECTION_META kv_meta_t datetime_kv[] = {
 
 	{ SAPPHIRE_TYPE_INT16, 0, KV_FLAGS_PERSIST,	   &tz_offset, 			 	 0,  "datetime_tz_offset" },
 };
-
-#endif
 
 
 static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {

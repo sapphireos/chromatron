@@ -454,7 +454,7 @@ static void enable_irq( void ){
     WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL |= PORT_ISC_FALLING_gc;
 
     // enable port interrupt
-    WIFI_BOOT_PORT.INTCTRL = PORT_INT0LVL_HI_gc;
+    WIFI_BOOT_PORT.INTCTRL |= PORT_INT0LVL_HI_gc;
 }
 
 

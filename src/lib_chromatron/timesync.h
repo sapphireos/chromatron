@@ -92,6 +92,7 @@ typedef struct __attribute__((packed)){
 
 void time_v_init( void );
 uint32_t time_u32_get_network_time( void );
+void time_v_set_gps_sync( bool sync );
 
 #endif
 #endif
