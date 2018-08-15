@@ -308,7 +308,7 @@ uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime ){
 	}
 
 	// calculate days from month
-    for( uint8_t month = JANUARY; month <= MONTHS_PER_YEAR; month++ ){
+    for( uint8_t month = JANUARY; month < datetime->month; month++ ){
 
         uint8_t days_per_month = pgm_read_byte( &days_per_month_table[month - 1] );
 
@@ -320,12 +320,12 @@ uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime ){
         temp_days += days_per_month;
     }	
 
-    temp_days += datetime->day;
+    temp_days += ( datetime->day - 1 );
 
     uint32_t seconds = temp_days * SECONDS_PER_DAY;
 
-    seconds += ( datetime->hours * MINUTES_PER_HOUR * SECONDS_PER_MINUTE );
-    seconds += ( datetime->minutes * SECONDS_PER_MINUTE );
+    seconds += ( (uint32_t)datetime->hours * MINUTES_PER_HOUR * SECONDS_PER_MINUTE );
+    seconds += ( (uint32_t)datetime->minutes * SECONDS_PER_MINUTE );
     seconds += datetime->seconds;
 
     return seconds;
