@@ -328,6 +328,7 @@ PT_BEGIN( pt );
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
                 master_source = msg->source;
+                master_uptime = msg->uptime;
 
                 // check sync
                 if( msg->source > 0 ){
