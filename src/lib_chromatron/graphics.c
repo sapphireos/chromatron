@@ -67,6 +67,7 @@ static volatile uint8_t run_flags;
 static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
 static uint32_t last_vm0_frame_ts;
+static int16_t frame_rate_adjust;
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -75,7 +76,7 @@ static uint16_t calc_vm_timer( uint32_t ms ){
 
 static void update_vm_timer( void ){
 
-    uint16_t new_timer = calc_vm_timer( gfx_frame_rate );
+    uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
 
     if( new_timer != vm_timer_rate ){
 
@@ -395,7 +396,27 @@ void gfx_v_set_frame_number( uint16_t frame ){
 
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
-    
+    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
+
+    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+
+    // we are ahead
+    if( corrected_time_offset > 10 ){
+
+        // slow down
+        frame_rate_adjust = 10;
+    }
+    // we are behind
+    else if( corrected_time_offset < 10 ){
+
+        // speed up
+        frame_rate_adjust = -10;
+    }
+
+    log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
+
+    update_vm_timer();
 }
 
 void gfx_v_pixel_bridge_enable( void ){

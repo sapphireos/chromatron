@@ -495,10 +495,6 @@ PT_BEGIN( pt );
 
 	        	gfx_v_set_sync0( msg->frame_number, msg->net_time );
 
-	        	int32_t offset = (int32_t)time_u32_get_network_time() - (int32_t)msg->net_time;
-
-	        	log_v_debug_P( PSTR("offset: %ld frame: remote: %u local: %u"), offset, msg->frame_number, gfx_u16_get_frame_number() );
-
 	        	last_sync = tmr_u32_get_system_time_ms();
 	        }
 	        else if( header->type == VM_SYNC_MSG_GET_SYNC_DATA ){
