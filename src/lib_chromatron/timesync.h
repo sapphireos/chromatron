@@ -29,7 +29,6 @@
 #ifdef ENABLE_TIME_SYNC
 
 #include "ntp.h"
-#include "graphics.h"
 
 #include "wifi_cmd.h"
 
@@ -47,11 +46,6 @@
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds
 
-// // Timer
-// #define TIMESYNC_TIMER                 GFX_TIMER
-// #define TIMESYNC_TIMER_CC              CCC
-// #define TIMESYNC_TIMER_CC_VECT         GFX_TIMER_CCC_vect
-// #define TIMESYNC_TIMER_CC_INTLVL       TC_CCCINTLVL_HI_gc
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
