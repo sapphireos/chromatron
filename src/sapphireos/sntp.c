@@ -79,19 +79,10 @@ static int8_t ntp_kv_handler(
 
     if( op == KV_OP_GET ){
 
-        // check if synchronized
-        if( status >= SNTP_STATUS_SYNCHRONIZED ){
+        uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
+        uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
 
-            uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-            uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
-
-            memcpy( data, &seconds, len );
-        }
-        else{
-
-            // set to 0s
-            memset( data, 0, len );
-        }
+        memcpy( data, &seconds, len );
 
         return 0;
     }
@@ -175,28 +166,20 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 ntp_ts_t sntp_t_now( void ){
 
     ntp_ts_t now = network_time;
+
+    // get time elapsed since base time was set
+    uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
+
+    ntp_ts_t elapsed = sntp_ts_from_ms( elapsed_ms );
+
+    uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
+    uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
+
+    a += b;
+
+    now.seconds = a >> 32;
+    now.fraction = a & 0xffffffff;
     
-    if( status >= SNTP_STATUS_SYNCHRONIZED ){
-
-        // get time elapsed since base time was set
-        uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
-
-        ntp_ts_t elapsed = sntp_ts_from_ms( elapsed_ms );
-
-        uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
-        uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
-
-        a += b;
-
-        now.seconds = a >> 32;
-        now.fraction = a & 0xffffffff;
-    }
-    else{
-
-        now.seconds = 0;
-        now.fraction = 0;
-    }
-
     return now;
 }
 
@@ -216,10 +199,10 @@ void sntp_v_start( void ){
         return;
     }
 
-    // initialize network time
-    network_time.seconds = 0x00000000;
-    network_time.fraction = 0;
-    base_system_time = tmr_u32_get_system_time_ms();
+    // // initialize network time
+    // network_time.seconds = 0x00000000;
+    // network_time.fraction = 0;
+    // base_system_time = tmr_u32_get_system_time_ms();
 
     // check if SNTP is enabled
     if( cfg_b_get_boolean( CFG_PARAM_ENABLE_SNTP ) ){
@@ -242,8 +225,6 @@ void sntp_v_start( void ){
 
 void sntp_v_stop( void ){
 
-    log_v_debug_P( PSTR("stopping SNTP client") );
-
     if( sock > 0 ){
 
         sock_v_release( sock );
@@ -251,6 +232,8 @@ void sntp_v_stop( void ){
     }
 
     if( thread > 0 ){
+
+        log_v_debug_P( PSTR("stopping SNTP client") );
 
         thread_v_kill( thread );
         thread = -1;

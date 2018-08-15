@@ -324,6 +324,10 @@ PT_BEGIN( pt );
             else if( *type == TIME_MSG_SYNC ){
 
                 // STROBE;
+                if( sync_state == STATE_MASTER ){
+
+                    continue;
+                }
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
@@ -590,6 +594,8 @@ PT_BEGIN( pt );
     }
 
     while( sync_state == STATE_SLAVE ){
+
+        sntp_v_stop();
 
         // random delay
         uint16_t delay;
