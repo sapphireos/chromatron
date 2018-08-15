@@ -1639,6 +1639,7 @@ class Builder(object):
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(value, irAddress) and \
             not isinstance(value, irPixelIndex) and \
+            not isinstance(target, irPixelIndex) and \
             not isinstance(value, irDBIndex) and \
             not isinstance(value, irDBAttr):
             # in normal expressions, f16 will take precedence over i32.
@@ -1704,10 +1705,10 @@ class Builder(object):
             ir = irPixelLoad(target, value, lineno=lineno)
             self.append_node(ir)
 
-            # check if we need to convert
-            if target.get_base_type() != value.get_base_type():
-                ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-                self.append_node(ir)                
+            # # check if we need to convert
+            # if target.get_base_type() != value.get_base_type():
+            #     ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+            #     self.append_node(ir)                
 
         else:
             ir = irAssign(target, value, lineno=lineno)
