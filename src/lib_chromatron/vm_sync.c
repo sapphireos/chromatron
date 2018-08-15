@@ -377,6 +377,8 @@ PT_BEGIN( pt );
 	    		// check for master timeout
 	    		if( tmr_u32_elapsed_time_ms( last_sync ) > SYNC_MASTER_TIMEOUT ){
 
+	    			log_v_debug_P( PSTR("sync timeout") );
+
 	    			sync_state = STATE_IDLE;
 	    			master_ip = ip_a_addr(0,0,0,0);
 	    			master_uptime = 0;
@@ -482,14 +484,18 @@ PT_BEGIN( pt );
 	        }
 	        else if( header->type == VM_SYNC_MSG_TIMESTAMP ){
 
-	        	if( sync_state != STATE_SLAVE ){
+	        	if( sync_state != STATE_SLAVE_SYNC ){
 
 	        		continue;
 	        	}
 
 	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
 
-	        	log_v_debug_P( PSTR("now: %lu sync: %lu frame: %u"), time_u32_get_network_time(), msg->net_time, msg->frame_number );
+	        	int32_t offset = (int32_t)time_u32_get_network_time() - (int32_t)msg->net_time;
+
+	        	log_v_debug_P( PSTR("offset: %ld frame: %u"), offset, msg->frame_number );
+
+	        	last_sync = tmr_u32_get_system_time_ms();
 	        }
 	        else if( header->type == VM_SYNC_MSG_GET_SYNC_DATA ){
 
