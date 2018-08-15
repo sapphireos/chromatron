@@ -38,6 +38,8 @@
 
 void gfx_v_init( void );
 bool gfx_b_running( void );
+uint16_t gfx_u16_get_frame_number( void );
+uint32_t gfx_u32_get_frame_ts( void );
 void gfx_v_pixel_bridge_enable( void );
 void gfx_v_pixel_bridge_disable( void );
 

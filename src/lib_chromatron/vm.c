@@ -698,3 +698,10 @@ bool vm_b_running( void ){
 
     return FALSE;
 }
+
+bool vm_b_is_vm_running( uint8_t i ){
+
+    ASSERT( i < VM_MAX_VMS );
+
+    return is_vm_running( i );   
+}

@@ -65,7 +65,8 @@ static volatile uint8_t run_flags;
 #define FLAG_RUN_FADER          0x04
 
 static uint16_t vm_timer_rate; 
-
+static uint16_t vm0_frame_number;
+static uint32_t last_vm0_frame_ts;
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -377,6 +378,16 @@ bool gfx_b_running( void ){
     return pixel_transfer_enable;
 }
 
+uint16_t gfx_u16_get_frame_number( void ){
+
+    return vm0_frame_number;    
+}
+
+uint32_t gfx_u32_get_frame_ts( void ){
+
+    return last_vm0_frame_ts;
+}
+
 void gfx_v_pixel_bridge_enable( void ){
 
     pixel_transfer_enable = TRUE;
@@ -547,6 +558,12 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_run_vm_cmd();
+
+            if( vm_b_is_vm_running( 0 ) ){
+                
+                vm0_frame_number++;
+                last_vm0_frame_ts = time_u32_get_network_time();
+            }
         }
 
 end:
@@ -641,7 +658,12 @@ void gfx_v_init_vm( uint8_t vm_id ){
 
     run_xfer = TRUE;
 
-    init_vm |= ( 1 << vm_id );    
+    init_vm |= ( 1 << vm_id );
+
+    if( vm_id == 0 ){
+
+        vm0_frame_number = 0;
+    }
 }
 
 

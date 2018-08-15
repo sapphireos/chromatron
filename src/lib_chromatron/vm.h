@@ -38,5 +38,6 @@ void vm_v_reset( void );
 void vm_v_received_info( wifi_msg_vm_info_t *msg );
 
 bool vm_b_running( void );
+bool vm_b_is_vm_running( uint8_t i );
 
 #endif

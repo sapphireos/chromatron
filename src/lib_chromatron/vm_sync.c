@@ -24,10 +24,12 @@
 
 #ifdef ENABLE_TIME_SYNC
 
+#include "timesync.h"
 #include "vm_sync.h"
 #include "hash.h"
 #include "esp8266.h"
 #include "vm_wifi_cmd.h"
+#include "graphics.h"
 
 
 static uint8_t sync_state;
@@ -229,7 +231,7 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 			return;
 		}
 
-		// log_v_debug_P( PSTR("sync") );
+		log_v_debug_P( PSTR("sync") );
 
 		wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
@@ -240,7 +242,7 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
         data += sizeof(wifi_msg_vm_sync_data_t);
 
-        // log_v_debug_P( PSTR("sync offset: %u len %u"), msg->offset, len );
+        log_v_debug_P( PSTR("sync offset: %u len %u"), msg->offset, len );
 
         write_to_sync_file( msg->offset, data, len - sizeof(wifi_msg_vm_sync_data_t) );
     }
@@ -248,17 +250,19 @@ void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     	wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
 
-    	// log_v_debug_P( PSTR("done") );
+    	log_v_debug_P( PSTR("done") );
 
     	uint32_t hash = get_file_hash();
 
 		if( hash == msg->hash ){
 
-			// log_v_debug_P( PSTR("Verified %lx"), hash );
-
-			// load_frame_data();
-
 			esp_sync_state = ESP_SYNC_READY;
+		}
+		else{
+
+			log_v_debug_P( PSTR("error %lx %lx"), hash, msg->hash );
+
+			esp_sync_state = ESP_SYNC_IDLE;
 		}
     }
 }
@@ -463,6 +467,18 @@ PT_BEGIN( pt );
 	        	}
 
 	        	// vm_sync_msg_get_ts_t *msg = (vm_sync_msg_get_ts_t *)header;
+
+	        	vm_sync_msg_ts_t msg;
+			    msg.header.magic           = SYNC_PROTOCOL_MAGIC;
+			    msg.header.version         = SYNC_PROTOCOL_VERSION;
+			    msg.header.type            = VM_SYNC_MSG_TIMESTAMP;
+			    msg.header.flags 		   = 0;
+			    msg.header.sync_group_hash = sync_group_hash;
+
+			    msg.net_time 			   = gfx_u32_get_frame_ts();
+			    msg.frame_number 		   = gfx_u16_get_frame_number();
+			    
+			    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 	        }
 	        else if( header->type == VM_SYNC_MSG_TIMESTAMP ){
 
@@ -471,7 +487,9 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-	        	// vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
+	        	vm_sync_msg_ts_t *msg = (vm_sync_msg_ts_t *)header;
+
+	        	log_v_debug_P( PSTR("now: %lu sync: %lu frame: %u"), time_u32_get_network_time(), msg->net_time, msg->frame_number );
 	        }
 	        else if( header->type == VM_SYNC_MSG_GET_SYNC_DATA ){
 
@@ -486,6 +504,8 @@ PT_BEGIN( pt );
 
 	        		continue;
 	        	}
+
+	        	log_v_debug_P( PSTR("sync requested") );
 
 	        	// vm_sync_msg_get_sync_data_t *msg = (vm_sync_msg_get_sync_data_t *)header;
 
@@ -540,6 +560,8 @@ PT_BEGIN( pt );
 					sync_state = STATE_SLAVE_SYNC;
 
 					load_frame_data();
+
+					last_sync = tmr_u32_get_system_time_ms();
 				}
 	        }
     	}
@@ -561,10 +583,19 @@ PT_BEGIN( pt );
 		THREAD_EXIT( pt );
 	}
 
+	THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+	// important! must ensure wifi comm is ready!
 	vm_sync_i8_request_frame_sync();
 
-	THREAD_WAIT_WHILE( pt, esp_sync_state != ESP_SYNC_READY );
 
+	THREAD_WAIT_WHILE( pt, esp_sync_state == ESP_SYNC_DOWNLOADING );
+
+	if( esp_sync_state != ESP_SYNC_READY ){
+
+		sock_v_release( state->sock );
+		THREAD_EXIT( pt );
+	}
 
 	state->f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
 
@@ -573,7 +604,6 @@ PT_BEGIN( pt );
 		log_v_debug_P( PSTR("sync file not ready") );
 
 		sock_v_release( state->sock );
-
 		THREAD_EXIT( pt );
 	}
 
@@ -649,6 +679,8 @@ done:
 	sock_v_release( state->sock );
 
 	esp_sync_state = ESP_SYNC_IDLE;
+
+	log_v_debug_P( PSTR("sync send done") );
 
 PT_END( pt );
 }
