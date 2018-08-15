@@ -534,7 +534,12 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
-				// vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)header;	        	
+				vm_sync_msg_sync_done_t *msg = (vm_sync_msg_sync_done_t *)header;
+
+				if( get_file_hash() == msg->hash ){
+
+					log_v_debug_P( PSTR("slave hash verified!") );
+				}
 	        }
     	}
     }
@@ -621,7 +626,17 @@ PT_BEGIN( pt );
 		TMR_WAIT( pt, 50 );
     }
 
+    // send done message
+    vm_sync_msg_sync_done_t done;
+    done.header.magic           = SYNC_PROTOCOL_MAGIC;
+    done.header.version         = SYNC_PROTOCOL_VERSION;
+    done.header.type            = VM_SYNC_MSG_SYNC_DONE;
+    done.header.flags 		    = 0;
+    done.header.sync_group_hash = sync_group_hash;
 
+    done.hash = get_file_hash();
+
+    sock_i16_sendto( state->sock, (uint8_t *)&done, sizeof(done), &state->raddr );
 
 done:
 	fs_f_close( state->f );
