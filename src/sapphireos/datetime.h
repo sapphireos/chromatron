@@ -79,8 +79,9 @@ uint32_t datetime_u32_now( void );
 void datetime_v_set_now( uint32_t seconds );
 void datetime_v_get_epoch( datetime_t *datetime );
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime );
+uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime );
 void datetime_v_increment_seconds( datetime_t *datetime );
-bool datetime_b_is_leap_year( datetime_t *datetime );
+bool datetime_b_is_leap_year( const datetime_t *datetime );
 
 
 

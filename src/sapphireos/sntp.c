@@ -173,7 +173,9 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 
 ntp_ts_t sntp_t_now( void ){
 
-    ntp_ts_t now = network_time;
+    ntp_ts_t now;
+    now.seconds = 0;
+    now.fraction = 0;
     
     if( status >= SNTP_STATUS_SYNCHRONIZED ){
 
@@ -211,7 +213,7 @@ void sntp_v_start( void ){
     }
 
     // initialize network time
-    network_time.seconds = 0xD0000000;
+    network_time.seconds = 0x00000000;
     network_time.fraction = 0;
     base_system_time = tmr_u32_get_system_time_ms();
 

@@ -216,10 +216,10 @@ void datetime_v_get_epoch( datetime_t *datetime ){
 
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
-	// adjust seconds by timezone offset
-	// tz_offset is in minutse
-	int32_t tz_seconds = tz_offset * 60;
-	seconds += tz_seconds;
+	// // adjust seconds by timezone offset
+	// // tz_offset is in minutse
+	// int32_t tz_seconds = tz_offset * 60;
+	// seconds += tz_seconds;
 
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
@@ -287,6 +287,50 @@ void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
     datetime->seconds = seconds;
 }
 
+uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime ){
+
+	datetime_t datetime_copy = *datetime;
+	
+	uint16_t temp_days = 0;
+
+	// compute total days from year
+	while( datetime_copy.year > 1900 ){
+
+		temp_days += DAYS_PER_YEAR;
+
+		// check for leap year
+        if( datetime_b_is_leap_year( &datetime_copy ) ){
+
+            temp_days++;
+        }
+
+        datetime_copy.year--;
+	}
+
+	// calculate days from month
+    for( uint8_t month = JANUARY; month <= MONTHS_PER_YEAR; month++ ){
+
+        uint8_t days_per_month = pgm_read_byte( &days_per_month_table[month - 1] );
+
+        if( ( month == FEBRUARY ) && datetime_b_is_leap_year( datetime ) ){
+
+            days_per_month = FEBRUARY_LEAP_YEAR_DAYS;
+        }
+
+        temp_days += days_per_month;
+    }	
+
+    temp_days += datetime->day;
+
+    uint32_t seconds = temp_days * SECONDS_PER_DAY;
+
+    seconds += ( datetime->hours * MINUTES_PER_HOUR * SECONDS_PER_MINUTE );
+    seconds += ( datetime->minutes * SECONDS_PER_MINUTE );
+    seconds += datetime->seconds;
+
+    return seconds;
+}
+
 void datetime_v_increment_seconds( datetime_t *datetime ){
 
 	datetime->seconds++;
@@ -341,7 +385,7 @@ void datetime_v_increment_seconds( datetime_t *datetime ){
 	}
 }
 
-bool datetime_b_is_leap_year( datetime_t *datetime ){
+bool datetime_b_is_leap_year( const datetime_t *datetime ){
 
 	if( ( datetime->year % 4 ) == 0 ){
 

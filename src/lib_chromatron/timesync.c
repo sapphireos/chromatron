@@ -319,9 +319,9 @@ PT_BEGIN( pt );
                     // second offset in NTP time.
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
-                    sntp_v_set( msg->ntp_time );
+
+                    sntp_v_set( msg->ntp_time, tmr_u32_get_system_time_ms() );
                 }
-                
                 
                 uint32_t now = tmr_u32_get_system_time_ms();
                 uint32_t est_net_time = time_u32_get_network_time();

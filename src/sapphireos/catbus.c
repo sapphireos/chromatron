@@ -28,9 +28,8 @@
 #include "catbus.h"
 #include "random.h"
 
-#ifdef LIB_SNTP
 #include "sntp.h"
-#endif
+
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -62,9 +61,7 @@ typedef struct{
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     uint16_t sequence;
-    #ifdef LIB_SNTP
     ntp_ts_t ntp_timestamp;
-    #endif
     int8_t ttl;
     uint8_t flags;
 } catbus_send_data_entry_t;
@@ -1011,14 +1008,12 @@ PT_BEGIN( pt );
 
             msg->flags = 0;
 
-            #ifdef LIB_SNTP
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
             if( sntp_u8_get_status() >= SNTP_STATUS_SYNCHRONIZED ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }
-            #endif
 
             _catbus_v_get_query( &msg->source_query );
             msg->source_hash    = send_state->source_hash;
@@ -1177,9 +1172,7 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
     }
 
 
-    #ifdef LIB_SNTP
     ntp_ts_t ntp_timestamp = sntp_t_now();
-    #endif
 
     list_node_t sender_ln = send_list.head;    
 
@@ -1192,9 +1185,7 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
             goto next;
         }
 
-        #ifdef LIB_SNTP
         send_state->ntp_timestamp = ntp_timestamp;
-        #endif
 
         send_state->sequence++;
         send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
