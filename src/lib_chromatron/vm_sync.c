@@ -205,7 +205,7 @@ void load_frame_data( void ){
 			goto done;
 		}
 
-		wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DATA, buf, read_len );
+		wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DATA, buf, read_len + sizeof(wifi_msg_vm_sync_data_t) );
 
 		msg->offset += read_len;
 		data_len 	-= read_len;
@@ -493,7 +493,7 @@ PT_BEGIN( pt );
 
 	        	int32_t offset = (int32_t)time_u32_get_network_time() - (int32_t)msg->net_time;
 
-	        	log_v_debug_P( PSTR("offset: %ld frame: %u"), offset, msg->frame_number );
+	        	log_v_debug_P( PSTR("offset: %ld frame: remote: %u local: %u"), offset, msg->frame_number, gfx_u16_get_frame_number() );
 
 	        	last_sync = tmr_u32_get_system_time_ms();
 	        }
