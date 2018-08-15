@@ -619,7 +619,7 @@ void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t
 
     if( ( msg->offset + data_len ) > vm_state[index].data_len ){
 
-        intf_v_printf( "sync overflow" );
+        intf_v_printf( "sync overflow: %u", len );
 
         vm_status[index] = VM_STATUS_SYNC_FAIL;
 

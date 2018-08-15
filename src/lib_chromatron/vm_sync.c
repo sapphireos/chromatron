@@ -107,7 +107,7 @@ static void init_sync_file( wifi_msg_vm_frame_sync_t *sync ){
 	// delete file and recreate
 	file_id_t8 id = fs_i8_get_file_id_P( PSTR("vm_sync") );
 
-	if( id > 0 ){
+	if( id >= 0 ){
 
 		fs_i8_delete_id( id );
 	}
@@ -555,7 +555,7 @@ PT_BEGIN( pt );
 
 				if( get_file_hash() == msg->hash ){
 
-					log_v_debug_P( PSTR("slave hash verified!") );
+					log_v_debug_P( PSTR("slave hash verified %lx"), msg->hash );
 
 					sync_state = STATE_SLAVE_SYNC;
 
