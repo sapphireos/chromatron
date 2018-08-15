@@ -64,7 +64,7 @@ static uint32_t base_system_time; // system timer in ms last time network time w
 static int16_t last_offset;
 static uint16_t last_delay;
 
-static sntp_status_t8 status;
+static sntp_status_t8 status = SNTP_STATUS_DISABLED;
 
 static socket_t sock = -1;
 static thread_t thread = -1;
@@ -80,7 +80,7 @@ static int8_t ntp_kv_handler(
     if( op == KV_OP_GET ){
 
         // check if synchronized
-        if( status == SNTP_STATUS_SYNCHRONIZED ){
+        if( status >= SNTP_STATUS_SYNCHRONIZED ){
 
             uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
             uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
@@ -175,7 +175,7 @@ ntp_ts_t sntp_t_now( void ){
 
     ntp_ts_t now = network_time;
     
-    if( status == SNTP_STATUS_SYNCHRONIZED ){
+    if( status >= SNTP_STATUS_SYNCHRONIZED ){
 
         // get time elapsed since base time was set
         uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
@@ -204,6 +204,11 @@ void sntp_v_init( void ){
 }
 
 void sntp_v_start( void ){
+
+    if( status != SNTP_STATUS_DISABLED ){
+
+        return;
+    }
 
     // initialize network time
     network_time.seconds = 0xD0000000;
@@ -301,12 +306,12 @@ uint16_t sntp_u16_get_fraction_as_ms( ntp_ts_t t ){
     return (uint16_t)frac;
 }
 
-void sntp_v_set( ntp_ts_t t ){
+void sntp_v_set( ntp_ts_t t, uint32_t base_time ){
 
-    status = SNTP_STATUS_SYNCHRONIZED;
+    status = SNTP_STATUS_EXTERNAL_SYNC;
 
     network_time = t;
-    base_system_time = tmr_u32_get_system_time_ms();    
+    base_system_time = base_time;    
 }
 
 void process_packet( ntp_packet_t *packet ){

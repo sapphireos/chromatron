@@ -1014,7 +1014,7 @@ PT_BEGIN( pt );
             #ifdef LIB_SNTP
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
-            if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+            if( sntp_u8_get_status() >= SNTP_STATUS_SYNCHRONIZED ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }

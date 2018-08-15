@@ -30,41 +30,42 @@
 #include "hash.h"
 #include "sntp.h"
 
-#include "pixel.h"
+// #include "pixel.h"
 
 
-
+/*
 #define STROBE PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
             _delay_us(10); \
             PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
+*/
 
-#define TICKS_PER_SECOND    31250
+// #define TICKS_PER_SECOND    31250
 
-#define BASE_RATE_MS        250
+// #define BASE_RATE_MS        250
 
-static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000;
-static volatile uint16_t timer_rate;
+// static uint16_t base_rate = ( (uint32_t)BASE_RATE_MS * TICKS_PER_SECOND ) / 1000;
+// static volatile uint16_t timer_rate;
 
-static volatile uint16_t frame_number;
+// static volatile uint16_t frame_number;
 
-ISR(GFX_TIMER_CCC_vect){
+// ISR(GFX_TIMER_CCC_vect){
 
-    frame_number++;
+//     frame_number++;
 
-    GFX_TIMER.CCC += timer_rate;
+//     GFX_TIMER.CCC += timer_rate;
 
 
-    if( ( frame_number % 4 ) == 0 ){
+//     if( ( frame_number % 4 ) == 0 ){
 
-        STROBE;
-    }
-}
+//         STROBE;
+//     }
+// }
 
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
-PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
+// PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
@@ -73,6 +74,8 @@ static uint32_t last_net_time;
 static uint32_t net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
+static uint8_t master_source;
+
 static bool gps_sync;
 
 // static int16_t filtered_offset;
@@ -96,9 +99,11 @@ static uint16_t filtered_rtt;
 
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,     0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
-    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+    { SAPPHIRE_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
+    { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
+    { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
 };
 
 
@@ -110,11 +115,11 @@ void time_v_init( void ){
         return;
     }
 
-    timer_rate = base_rate;
+    // timer_rate = base_rate;
 
-    PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
-    PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
-    PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
+    // PIXEL_EN_PORT.OUTSET = ( 1 << PIXEL_EN_PIN );
+    // PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
+    // PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
 
     // GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
 
@@ -164,6 +169,25 @@ void time_v_set_gps_sync( bool sync ){
     gps_sync = sync;
 }
 
+// return TRUE if 1 is better than 2
+static bool is_master_better( uint64_t uptime1, uint8_t source1, uint64_t uptime2, uint8_t source2 ){
+
+    // check if sources are the same
+    if( source1 == source2 ){
+
+        // priority by uptime
+        if( uptime1 >= uptime2 ){
+
+            return TRUE;
+        }
+    }
+    else if( source1 > source2 ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
@@ -207,6 +231,8 @@ PT_BEGIN( pt );
                     // select master
                     master_ip = raddr.ipaddr;
                     master_uptime = msg->uptime;
+                    master_source = msg->source;
+
                     filtered_drift = 0;
                     drift_init = 0;
                     filtered_rtt = 0;
@@ -224,11 +250,13 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("rx sync while master") );
 
                     // check if this master is better
-                    if( msg->uptime > master_uptime ){
+                    if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
 
                         // select master
                         master_ip = raddr.ipaddr;
                         master_uptime = msg->uptime;
+                        master_source = msg->source;
+
                         filtered_drift = 0;
                         drift_init = 0;
                         filtered_rtt = 0;
@@ -272,6 +300,7 @@ PT_BEGIN( pt );
                 msg.uptime          = master_uptime;
                 msg.flags           = 0;
                 msg.ntp_time        = sntp_t_now();
+                msg.source          = master_source;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
 
@@ -283,8 +312,8 @@ PT_BEGIN( pt );
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
-                // check sync flag
-                if( ( msg->flags & TIME_FLAGS_SYNC ) != 0 ){
+                // check sync
+                if( msg->source > 0 ){
                     
                     // does not compensate for transmission time, so there will be a fraction of a
                     // second offset in NTP time.
@@ -381,9 +410,9 @@ PT_BEGIN( pt );
 
 
                     // frame sync:
-                    ATOMIC;
-                    frame_number = 0;
-                    END_ATOMIC;
+                    // ATOMIC;
+                    // frame_number = 0;
+                    // END_ATOMIC;
                 }
                 else{
 
@@ -436,6 +465,7 @@ static void send_master( void ){
     msg.net_time        = net_time;
     msg.uptime          = master_uptime;
     msg.flags           = 0;
+    msg.source          = master_source;
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
@@ -503,11 +533,6 @@ PT_BEGIN( pt );
         log_v_debug_P( PSTR("we are master") );
     }
 
-    if( sync_state == STATE_MASTER ){
-
-        sntp_v_start();
-    }
-
     while( sync_state == STATE_MASTER ){
 
         // check state
@@ -521,7 +546,25 @@ PT_BEGIN( pt );
             break;
         }
 
-        master_uptime += TIME_MASTER_SYNC_RATE;
+        // check sync sources
+        if( gps_sync ){
+
+            sntp_v_stop();
+            master_source = TIME_FLAGS_SOURCE_GPS;
+        }
+        else{
+
+            // start SNTP (ignored if already running)
+            sntp_v_start();
+
+            // check if synchronized
+            if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+
+                master_source = TIME_FLAGS_SOURCE_NTP;
+            }
+        }
+
+        master_uptime = tmr_u64_get_system_time_us();
 
         send_master();
 

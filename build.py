@@ -8,7 +8,7 @@ projects = [
     'sapphire',
     'xmega128a4u',
     'lib_chromatron',
-    'lib_fixmath',
+    # 'lib_fixmath',
     'chromatron',
     #'chromatron_recovery',
 ]

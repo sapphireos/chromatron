@@ -39,26 +39,26 @@
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION           2
 
-#define TIME_FLAGS_SYNC                 0x01
-#define TIME_FLAGS_SOURCE_GPS           0x80
-#define TIME_FLAGS_SOURCE_NTP           0x40
+#define TIME_FLAGS_SOURCE_GPS           64
+#define TIME_FLAGS_SOURCE_NTP           32
 
 
 #define TIME_MASTER_SYNC_RATE           4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds
 
-// Timer
-#define TIMESYNC_TIMER                 GFX_TIMER
-#define TIMESYNC_TIMER_CC              CCC
-#define TIMESYNC_TIMER_CC_VECT         GFX_TIMER_CCC_vect
-#define TIMESYNC_TIMER_CC_INTLVL       TC_CCCINTLVL_HI_gc
+// // Timer
+// #define TIMESYNC_TIMER                 GFX_TIMER
+// #define TIMESYNC_TIMER_CC              CCC
+// #define TIMESYNC_TIMER_CC_VECT         GFX_TIMER_CCC_vect
+// #define TIMESYNC_TIMER_CC_INTLVL       TC_CCCINTLVL_HI_gc
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
     uint8_t flags;
+    uint8_t source;
     uint32_t net_time;
     uint64_t uptime;
 } time_msg_master_t;
@@ -83,6 +83,7 @@ typedef struct __attribute__((packed)){
     uint8_t version;
     uint8_t type;
     uint8_t flags;
+    uint8_t source;
     uint32_t net_time;
     uint64_t uptime;
     ntp_ts_t ntp_time;

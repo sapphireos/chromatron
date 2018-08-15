@@ -76,9 +76,7 @@ void datetime_v_init( void ){
 
 void datetime_v_update( void ){
 
-	#ifdef LIB_SNTP
 	datetime_v_now( &current_datetime );
-	#endif
 }
 
 
@@ -192,24 +190,17 @@ void datetime_v_to_iso8601( char *iso8601, uint8_t len, datetime_t *datetime ){
 
 // return now
 void datetime_v_now( datetime_t *datetime ){
-    #if defined LIB_SNTP
+ 
     ntp_ts_t now = sntp_t_now();
 
     datetime_v_seconds_to_datetime( now.seconds, datetime );
-    #endif
 }
 
 uint32_t datetime_u32_now( void ){
-    #if defined LIB_SNTP
-
+    
     ntp_ts_t now = sntp_t_now();
 
     return now.seconds;
-
-    #else
-
-    return 0;
-    #endif
 }
 
 // set the given datetime to the lowest valid date and time in the epoch
@@ -225,13 +216,10 @@ void datetime_v_get_epoch( datetime_t *datetime ){
 
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
-
-	#ifdef LIB_SNTP
 	// adjust seconds by timezone offset
 	// tz_offset is in minutse
 	int32_t tz_seconds = tz_offset * 60;
 	seconds += tz_seconds;
-	#endif
 
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
