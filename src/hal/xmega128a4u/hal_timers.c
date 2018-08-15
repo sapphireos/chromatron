@@ -41,6 +41,8 @@ On overflow: increment microseconds counter by 131072.
 
 */
 
+#define OVERFLOW_MICROSECONDS ( 65536 * 2 )
+
 static volatile uint64_t microseconds;
 static volatile uint32_t alarm_microseconds;
 
@@ -66,30 +68,83 @@ bool tmr_b_io_timers_running( void ){
 uint64_t tmr_u64_get_system_time_us( void ){
 
     // full 64 bit system time is:
-    // microseconds + current timer count * 2
-
+    // microseconds + ( current timer count * 2 )
 
     // read timer twice.
     // if second read is lower than the first,
     // the timer has rolled over. in that case,
-    // repeat the procedure.
+    // manually increment microseconds by the overflow value.
     
 
-    uint16_t timer1, timer2;
+    uint32_t timer1, timer2;
     uint64_t current_microseconds;
+    bool overflow;
 
-    do{
-        ATOMIC;
+    /*
+    Overflow scenario 1:
 
-        timer1 = TCC1.CNT;
-        timer2 = TCC1.CNT;
-        current_microseconds = microseconds;
+    CNT is 65535
+    tick
+    CNT is 0, overflow flag is set
 
-        END_ATOMIC;
+    first read = 0
+    overflow = true
+    second read = 0 (or 1, it won't really matter)
 
-    } while( timer1 > timer2 );
+    need to add the amount of rollover microseconds to the reading since the overflow
+    interrupt has not run yet.
 
-    return current_microseconds + timer2;
+    
+    Scenario 2:
+    
+    CNT is 65535
+
+    first read = 65535
+    overflow = false
+    tick
+    CNT is 0, overflow flag is set
+    second read = 0
+        
+    need to compensate here as well (timer1 > timer2)
+    
+
+    Scenario 3:
+    
+    CNT is 65535
+    tick
+    CNT is 0, overflow flag is set
+
+    first read = 0
+    overflow = true
+    second read = 0
+    
+    */
+
+    ATOMIC;
+
+    // first read from timer
+    timer1 = TCC1.CNT;
+
+    // check for overflow
+    overflow = ( TCC1.INTFLAGS & TC1_OVFIF_bm ) != 0;
+
+    // second read from timer
+    timer2 = TCC1.CNT;
+
+
+    // get copy of microsecond counter
+    current_microseconds = microseconds;
+    
+    END_ATOMIC;
+
+    // check for overflow while we read microseconds.
+    // if so, we need to manually compensate.
+    if( ( timer1 > timer2 ) || overflow ){
+
+        current_microseconds += OVERFLOW_MICROSECONDS;
+    }
+
+    return current_microseconds + ( timer2 * 2 );
 }
 
 
@@ -130,7 +185,7 @@ int8_t tmr_i8_set_alarm_microseconds( int64_t alarm ){
     alarm_microseconds = time_to_alarm;
 
     // check if within current timer range
-    if( alarm_microseconds < 131072 ){
+    if( alarm_microseconds < OVERFLOW_MICROSECONDS ){
 
         // set alarm
         TCC1.CCA = TCC1.CNT + MICROSECONDS_TO_TIMER_TICKS( alarm_microseconds );
@@ -179,14 +234,14 @@ ISR(TCC1_OVF_vect){
 // the system time functions, and the timer rollover
 // will yield an incorrect timing update.
 
-    microseconds += 131072;
+    microseconds += OVERFLOW_MICROSECONDS;
 
     // check if we need to arm the alarm
     if( alarm_microseconds > 0 ){
 
-        if( alarm_microseconds >= 131072 ){
+        if( alarm_microseconds >= OVERFLOW_MICROSECONDS ){
 
-            alarm_microseconds -= 131072;
+            alarm_microseconds -= OVERFLOW_MICROSECONDS;
 
             // check if alarm is very very soon
             if( alarm_microseconds < 32 ){
