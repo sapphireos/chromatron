@@ -392,11 +392,6 @@ PT_BEGIN( pt );
 	    	last_run = tmr_u32_get_system_time_ms();
 		}
 	
-
-    	// prevent runaway thread
-    	// THREAD_YIELD( pt );
-    	TMR_WAIT( pt, 100 );
-
     	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 	
 		// check if data received
@@ -511,6 +506,8 @@ PT_BEGIN( pt );
 	        		continue;
 	        	}
 
+	        	log_v_debug_P( PSTR("slave sync init!") );
+
 	        	vm_sync_msg_sync_init_t *msg = (vm_sync_msg_sync_init_t *)header;
 
 	        	init_sync_file( &msg->sync );
@@ -566,7 +563,7 @@ PT_BEGIN( pt );
 
 	vm_sync_i8_request_frame_sync();
 
-	THREAD_WAIT_WHILE( pt, esp_sync_state == ESP_SYNC_READY );
+	THREAD_WAIT_WHILE( pt, esp_sync_state != ESP_SYNC_READY );
 
 
 	state->f = fs_f_open_P( PSTR("vm_sync"), FS_MODE_READ_ONLY );
