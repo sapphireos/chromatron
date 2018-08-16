@@ -1657,12 +1657,14 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):   
+        print target, value
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(value, irAddress) and \
             not isinstance(value, irPixelIndex) and \
             not isinstance(target, irPixelIndex) and \
+            not isinstance(target, irPixelAttr) and \
             not isinstance(value, irDBIndex) and \
             not isinstance(value, irDBAttr):
             # in normal expressions, f16 will take precedence over i32.
@@ -1675,6 +1677,7 @@ class Builder(object):
                 pass
 
             else:
+                print "CONVERT"
                 # convert value to target type and replace value with result
                 conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
                 ir = irConvertType(conv_result, value, lineno=lineno)
@@ -1742,6 +1745,7 @@ class Builder(object):
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(target, irPixelIndex) and \
             not isinstance(value, irPixelIndex) and \
+            not isinstance(target, irPixelAttr) and \
             not isinstance(target, irDBAttr) and \
             not isinstance(value, irDBAttr) and \
             not isinstance(target, irDBIndex) and \
@@ -2033,7 +2037,7 @@ class Builder(object):
 
         elif isinstance(index, irDBAttr):
             # need to load from the db access
-            
+
             result = self.add_temp(lineno=lineno)
             self.assign(result, index, lineno=lineno)
             index = result
