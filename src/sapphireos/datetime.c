@@ -46,6 +46,7 @@ KV_SECTION_META kv_meta_t datetime_kv[] = {
 	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.minutes, 0,  "datetime_minutes" },
 	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.hours, 	 0,  "datetime_hours" },
 	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.day, 	 0,  "datetime_day" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.weekday, 0,  "datetime_weekday" },
 	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.month, 	 0,  "datetime_month" },
 	{ SAPPHIRE_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY, &current_datetime.year, 	 0,  "datetime_year" },
 
@@ -211,18 +212,25 @@ uint32_t datetime_u32_now( void ){
 // set the given datetime to the lowest valid date and time in the epoch
 void datetime_v_get_epoch( datetime_t *datetime ){
 
-	datetime->seconds 	= 0;
-	datetime->minutes 	= 0;
-	datetime->hours		= 0;
-	datetime->day		= 1;
-	datetime->month		= 1;
-	datetime->year		= 1900;
+	datetime->seconds 		= 0;
+	datetime->minutes 		= 0;
+	datetime->hours			= 0;
+	datetime->day			= 1;
+	datetime->weekday		= MONDAY;
+	datetime->month			= 1;
+	datetime->year			= 1900;
 }
 
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
+
+ 	// January 1, 1900 is a Monday.
+    // Monday is a 1, but we are offsetting by -1 to start at 0 so we can use modulo
+    // arithmetic to get the current day of week.
+    // then we'll add 1 back.
+    datetime->weekday = ( days % 7 ) + 1;
 
     // get year
     datetime->year = 1900 - 1;
@@ -352,6 +360,12 @@ void datetime_v_increment_seconds( datetime_t *datetime ){
 				datetime->hours = 0;
 
 				datetime->day++;
+				datetime->weekday++;
+
+				if( datetime->weekday > SUNDAY ){
+
+					datetime->weekday = MONDAY;
+				}
 
 				uint8_t days_per_month;
 

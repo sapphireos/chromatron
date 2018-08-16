@@ -29,6 +29,7 @@
 #include "list.h"
 #include "catbus_common.h"
 #include "catbus.h"
+#include "datetime.h"
 
 #include "pixel.h"
 #include "graphics.h"
@@ -63,6 +64,7 @@ static volatile uint8_t run_flags;
 #define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
 #define FLAG_RUN_FADER          0x04
+#define FLAG_RUN_ONESEC         0x08
 
 static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
@@ -294,17 +296,10 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
 
-#define FADER_TIMER_RATE 625 // 20 ms
+#define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
-#define PARAMS_TIMER_RATE 1000 // 1000 ms
-
-#define STROBE_CLK PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
-                   _delay_us(10); \
-                   PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
-
-#define STROBE_DATA PIX_DATA_PORT.OUTSET = ( 1 << PIX_DATA_PIN ); \
-                    _delay_us(10); \
-                    PIX_DATA_PORT.OUTCLR = ( 1 << PIX_DATA_PIN )
+#define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
+#define ONESEC_TIMER_RATE 31250 // 1000 ms (gfx timer)
 
 
 ISR(GFX_TIMER_CCA_vect){
@@ -312,8 +307,6 @@ ISR(GFX_TIMER_CCA_vect){
     GFX_TIMER.CCA += FADER_TIMER_RATE;
 
     run_flags |= FLAG_RUN_FADER;
-
-    // STROBE_CLK;
 }
 
 ISR(GFX_TIMER_CCB_vect){
@@ -321,8 +314,13 @@ ISR(GFX_TIMER_CCB_vect){
     GFX_TIMER.CCB += vm_timer_rate;
 
     run_flags |= FLAG_RUN_VM_LOOP;
+}
 
-    // STROBE_DATA;
+ISR(GFX_TIMER_CCC_vect){
+
+    GFX_TIMER.CCC += ONESEC_TIMER_RATE;
+
+    run_flags |= FLAG_RUN_ONESEC;
 }
 
 void gfx_v_init( void ){
@@ -336,7 +334,6 @@ void gfx_v_init( void ){
     }
 
     param_error_check();
-
 
     // debug
     // PIXEL_EN_PORT.DIRSET = ( 1 << PIXEL_EN_PIN );
@@ -353,9 +350,13 @@ void gfx_v_init( void ){
     update_vm_timer();
     GFX_TIMER.CCB = vm_timer_rate;
 
+    // one sec
+    GFX_TIMER.CCC = ONESEC_TIMER_RATE;
+
     GFX_TIMER.INTCTRLB = 0;
     GFX_TIMER.INTCTRLB |= TC_CCAINTLVL_HI_gc;
     GFX_TIMER.INTCTRLB |= TC_CCBINTLVL_HI_gc;
+    GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
 
     GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
     GFX_TIMER.CTRLB = 0;
@@ -605,6 +606,25 @@ end:
                 THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
                 send_run_fader_cmd();
             }
+        }
+
+        if( flags & FLAG_RUN_ONESEC ){
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+            datetime_t datetime;
+            datetime_v_now( &datetime );
+
+            wifi_msg_vm_time_of_day_t msg;
+            msg.seconds         = datetime.seconds;
+            msg.minutes         = datetime.minutes;
+            msg.hours           = datetime.hours;
+            msg.day_of_month    = datetime.day;
+            msg.day_of_week     = datetime.weekday;
+            msg.month           = datetime.month;
+            msg.year            = datetime.year;
+
+            wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
         }
 
         if( ( flags & FLAG_RUN_PARAMS ) ||

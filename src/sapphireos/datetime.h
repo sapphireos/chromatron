@@ -25,7 +25,8 @@
 #ifndef _DATETIME_H
 #define _DATETIME_H
 
-#include "system.h"
+#include <stdint.h>
+#include "datetime_struct.h"
 
 // minimum string length for iso 8601 date/time string.
 // multiple formats are possible, but the format used by
@@ -58,16 +59,14 @@
 #define NOVEMBER	11
 #define DECEMBER	12
 
-
-
-typedef struct{
-	uint8_t seconds;
-	uint8_t minutes;
-	uint8_t hours;
-	uint8_t day; // day represents current day of the current month, not current day of the year (hence 8 bits)
-	uint8_t month;
-	uint16_t year;
-} datetime_t;
+// day names
+#define MONDAY 		1
+#define TUESDAY 	2
+#define WEDNESDAY 	3
+#define THURSDAY 	4
+#define FRIDAY 		5
+#define SATURDAY 	6
+#define SUNDAY 		7
 
 void datetime_v_init( void );
     
