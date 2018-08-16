@@ -78,6 +78,15 @@ void datetime_v_init( void ){
 void datetime_v_update( void ){
 
 	datetime_v_now( &current_datetime );
+
+	//publish all
+	kv_i8_publish( __KV__datetime_seconds );
+	kv_i8_publish( __KV__datetime_minutes );
+	kv_i8_publish( __KV__datetime_hours );
+	kv_i8_publish( __KV__datetime_day );
+	kv_i8_publish( __KV__datetime_weekday );
+	kv_i8_publish( __KV__datetime_month );
+	kv_i8_publish( __KV__datetime_year );
 }
 
 
