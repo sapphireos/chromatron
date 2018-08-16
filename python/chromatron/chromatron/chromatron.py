@@ -1583,7 +1583,7 @@ def load(ctx, filename, live):
 
         try:
             while True:
-                time.sleep(0.5)
+                time.sleep(0.2)
 
                 if watcher.changed():
                     try:
