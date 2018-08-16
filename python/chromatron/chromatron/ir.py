@@ -1058,8 +1058,9 @@ class irPixelIndex(IR):
     def get_input_vars(self):
         return self.indexes
 
-    def get_base_type(self):
+    def get_base_type(self):    
         return PIX_ATTR_TYPES[self.attr]
+
 
 
 
@@ -1658,7 +1659,6 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):   
-        print target, value
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
@@ -1678,7 +1678,6 @@ class Builder(object):
                 pass
 
             else:
-                print "CONVERT"
                 # convert value to target type and replace value with result
                 conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
                 ir = irConvertType(conv_result, value, lineno=lineno)
@@ -1848,7 +1847,11 @@ class Builder(object):
             isinstance(address, irDBAttr) or \
             isinstance(address, irDBIndex):
 
-            data_type = address.type
+            try:
+                data_type = address.type
+
+            except KeyError:
+                raise SyntaxError("Attribute %s not recognized" % (address.attr), lineno=lineno)
 
         else:
             data_type = address.target.type
@@ -2202,8 +2205,6 @@ class Builder(object):
         for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
             if i not in params:
                 params[i] = -1
-
-        print params
 
         self.cron_tab[func].append(params)
 
@@ -2675,8 +2676,6 @@ class Builder(object):
 
                     self.bytecode.extend(ins.assemble())
 
-        print self.function_addrs
-
         # go through byte code and replace labels with addresses
         i = 0
         while i < len(self.bytecode):
@@ -2699,8 +2698,6 @@ class Builder(object):
                 self.bytecode[i] = l
                 i += 1
                 self.bytecode[i] = h
-
-                print name, l, h
 
             elif isinstance(self.bytecode[i], insPixelArray):
                 # replace array with index

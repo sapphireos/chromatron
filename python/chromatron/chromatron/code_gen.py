@@ -195,9 +195,9 @@ class cg1Module(cg1Node):
         self.module = None
         self.ctx = {}
 
-    def build(self, builder=None):
+    def build(self, builder=None, script_name=''):
         if builder == None:
-            builder = Builder()
+            builder = Builder(script_name=script_name)
 
         # collect everything at module level that is not part of a function
         startup_code = [a for a in self.body if not isinstance(a, cg1Func)]
@@ -879,14 +879,14 @@ class CodeGenPass1(ast.NodeVisitor):
         raise NotImplementedError(node)
 
 
-def compile_text(source, debug_print=False):
+def compile_text(source, debug_print=False, script_name=''):
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
     if debug_print:
         print pformat_ast(cg1_data)
 
-    builder = cg1_data.build()
+    builder = cg1_data.build(script_name=script_name)
     if debug_print:
         print builder
 

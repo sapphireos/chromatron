@@ -1612,7 +1612,7 @@ def compile(ctx, filename, debug):
     click.echo('Compiling: %s' % (filename))
 
     try:
-        code = code_gen.compile_script(filename, debug_print=debug)
+        code = code_gen.compile_script(filename, debug_print=debug).stream
 
     except IOError:
         click.secho("No such file", fg=ERROR_COLOR)
