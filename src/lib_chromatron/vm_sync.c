@@ -344,7 +344,7 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-    	if( ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) ){
+    	if( vm_sync_wait() ){
 
     		// release socket if sync is disabled
     	 	if( sock > 0 ){
@@ -352,6 +352,9 @@ PT_BEGIN( pt );
     	 		sock_v_release( sock );
     	 		sock = -1;
     	 	}
+
+    	 	// reset state machine
+    	 	sync_state = STATE_IDLE;
     	}
 
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
