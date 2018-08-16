@@ -380,6 +380,8 @@ PT_BEGIN( pt );
 
 				// start out as master
 			    sync_state = STATE_MASTER;
+			    master_ip = ip_a_addr(0,0,0,0);
+			    esp_sync_state = ESP_SYNC_IDLE;
 
 			    log_v_debug_P( PSTR("we are sync master") );
 	    	}
