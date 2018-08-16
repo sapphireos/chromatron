@@ -1775,9 +1775,6 @@ opcode_trap:
 
 
 
-
-
-
 int8_t vm_i8_run(
     uint8_t *stream,
     uint16_t func_addr,
@@ -1908,6 +1905,63 @@ int8_t vm_i8_run_threads(
     return VM_STATUS_OK;
 }
 
+int8_t vm_i8_run_cron(
+    uint8_t *stream,
+    vm_state_t *state,
+    datetime_t *datetime ){
+
+    cron_t *cron = (cron_t *)&stream[state->cron_start];
+
+    for( uint8_t i = 0; i < state->cron_count; i++ ){
+
+        bool match = TRUE;
+
+        if( ( cron->seconds >= 0 ) && ( cron->seconds != datetime->seconds ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->minutes >= 0 ) && ( cron->minutes != datetime->minutes ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->hours >= 0 ) && ( cron->hours != datetime->hours ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->day_of_month >= 0 ) && ( cron->day_of_month != datetime->day ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->day_of_week >= 0 ) && ( cron->day_of_week != datetime->weekday ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->month >= 0 ) && ( cron->month != datetime->month ) ){
+
+            match = FALSE;
+        }
+
+
+        if( match ){
+
+            int8_t status = vm_i8_run( stream, cron->func_addr, 0, state );
+
+            if( status == VM_STATUS_HALT ){
+
+                return status;
+            }
+        }
+
+        cron++;
+    }
+
+    return VM_STATUS_OK;
+}
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,

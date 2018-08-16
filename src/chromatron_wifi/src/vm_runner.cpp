@@ -62,6 +62,7 @@ static uint32_t thread_tick;
 #define VM_RUN_INIT     0
 #define VM_RUN_LOOP     1
 #define VM_RUN_THREADS  2
+#define VM_RUN_CRON     3
 
 static catbus_hash_t32 kv_hashes[32];
 static uint8_t kv_index;
@@ -174,7 +175,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
         return_code = vm_i8_run_loop( stream, &vm_state[vm_index] );
     }
-    else{
+    else if( mode == VM_RUN_THREADS ){
 
         // check if there are any threads to run
         return_code = vm_i8_run_threads( stream, &vm_state[vm_index] );   
@@ -185,6 +186,15 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
             return VM_STATUS_OK;
         }
+    }
+    else if( mode == VM_RUN_CRON ){
+
+        return_code = vm_i8_run_cron( stream, &vm_state[vm_index], &datetime ); 
+    }
+    else{
+
+        // not running anything.
+        return VM_STATUS_OK;
     }
 
     // if return is anything other than OK, send status immediately
@@ -289,6 +299,11 @@ void vm_v_process( void ){
 
     // check cron jobs
     if( run_cron ){
+
+        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+            _vm_i8_run_vm( VM_RUN_CRON, i );
+        }
 
         run_cron = false;
     }

@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include "catbus_common.h"
+#include "datetime_struct.h"
 
 #define VM_ISA_VERSION              10
 
@@ -133,9 +134,9 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint16_t func_addr;
-    int8_t second;
-    int8_t minute;
-    int8_t hour;
+    int8_t seconds;
+    int8_t minutes;
+    int8_t hours;
     int8_t day_of_month;
     int8_t day_of_week;
     int8_t month;
@@ -237,6 +238,11 @@ int8_t vm_i8_run_loop(
 int8_t vm_i8_run_threads(
     uint8_t *stream,
     vm_state_t *state );
+
+int8_t vm_i8_run_cron(
+    uint8_t *stream,
+    vm_state_t *state,
+    datetime_t *datetime );
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,
