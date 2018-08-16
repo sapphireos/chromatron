@@ -48,7 +48,7 @@ static uint64_t master_uptime;
 
 static uint32_t sync_group_hash;
 
-static socket_t sock;
+static socket_t sock = -1;
 
 typedef struct{
 	sock_addr_t raddr;
@@ -331,31 +331,40 @@ PT_BEGIN( pt );
 
 	static uint32_t last_run;
 	static uint32_t last_sync;
-
-	sock = sock_s_create( SOCK_DGRAM );
-
-	if( sock < 0 ){
-
-		THREAD_EXIT( pt );
-	}
-
-	sock_v_bind( sock, SYNC_SERVER_PORT );
-	sock_v_set_timeout( sock, 8 );
-    
-
+	
     THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
-
     last_run = tmr_u32_get_system_time_ms();
-
-    // TMR_WAIT( pt, 8000 + ( rnd_u16_get_int() >> 5 ) );
-
-    // vm_sync_i8_request_frame_sync();
 
 
     while( TRUE ){
 
+    	if( sync_group_hash == 0 ){
+
+    		// release socket if sync is disabled
+    	 	if( sock > 0 ){
+
+    	 		sock_v_release( sock );
+    	 		sock = -1;
+    	 	}
+    	}
+
     	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+
+    	if( sock < 0 ){
+
+    		sock = sock_s_create( SOCK_DGRAM );	
+
+    		// try again later if socket could not be opened
+    		if( sock < 0 ){
+
+    			TMR_WAIT( pt, 5000 );
+    			continue;
+    		}	
+
+    		sock_v_bind( sock, SYNC_SERVER_PORT );
+			sock_v_set_timeout( sock, 8 );
+    	}
 
 		if( tmr_u32_elapsed_time_ms( last_run ) > 7000 ){
 
