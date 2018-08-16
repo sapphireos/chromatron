@@ -2030,7 +2030,14 @@ class Builder(object):
 
             except KeyError:
                 raise SyntaxError("Field '%s' not found in '%s'" % (index.name, target.name), lineno=lineno)
+
+        elif isinstance(index, irDBAttr):
+            # need to load from the db access
             
+            result = self.add_temp(lineno=lineno)
+            self.assign(result, index, lineno=lineno)
+            index = result
+
         self.compound_lookup.append(index)
 
     def resolve_lookup(self, lineno=None):    
