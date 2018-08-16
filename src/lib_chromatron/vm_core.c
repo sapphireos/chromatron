@@ -2073,6 +2073,15 @@ int8_t vm_i8_load_program(
 
         return VM_STATUS_DB_MISALIGN;
     }
+
+    state->cron_count = prog_header->cron_len / sizeof(cron_t);
+    state->cron_start = obj_start;
+    obj_start += prog_header->cron_len;
+
+    if( ( state->cron_start % 4 ) != 0 ){
+
+        return VM_STATUS_CRON_MISALIGN;
+    }
     
 
     // if just checking the header, we're done at this point

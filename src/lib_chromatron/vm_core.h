@@ -66,9 +66,12 @@
 #define VM_STATUS_PIXEL_MISALIGN        -47
 #define VM_STATUS_LINK_MISALIGN         -48
 #define VM_STATUS_DB_MISALIGN           -49
+#define VM_STATUS_CRON_MISALIGN         -52
 
 #define VM_STATUS_LOAD_ALLOC_FAIL       -50
 #define VM_STATUS_SYNC_FAIL             -51
+
+
 
 #define VM_STATUS_RESTRICTED_KEY        -70
 
@@ -129,6 +132,17 @@ typedef struct __attribute__((packed)){
 } link_t;
 
 typedef struct __attribute__((packed)){
+    uint16_t func_addr;
+    int8_t second;
+    int8_t minute;
+    int8_t hour;
+    int8_t day_of_month;
+    int8_t day_of_week;
+    int8_t month;
+    uint32_t padding;
+} cron_t;
+
+typedef struct __attribute__((packed)){
     uint32_t file_magic;
     uint32_t prog_magic;
     uint16_t isa_version;
@@ -149,6 +163,8 @@ typedef struct __attribute__((packed)){
     // - write keys
     // - publish vars
     // - links
+    // - db entries
+    // - cron entries
     // - code stream
     // - data table
 } vm_program_header_t;
@@ -199,6 +215,9 @@ typedef struct __attribute__((packed)){
 
     uint32_t db_count;
     uint32_t db_start;
+
+    uint32_t cron_count;
+    uint32_t cron_start;
 } vm_state_t;
 
 int8_t vm_i8_run(

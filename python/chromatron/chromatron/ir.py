@@ -83,7 +83,7 @@ class Link(StructField):
         super(Link, self).__init__(_name="link", _fields=fields, **kwargs)
 
 
-class ScheduleItem(StructField):
+class CronItem(StructField):
     def __init__(self, **kwargs):
         fields = [Uint16Field(_name="func"),
                   Int8Field(_name="second"),
@@ -91,9 +91,10 @@ class ScheduleItem(StructField):
                   Int8Field(_name="hour"),
                   Int8Field(_name="day_of_month"),
                   Int8Field(_name="day_of_week"),
-                  Int8Field(_name="month")]
+                  Int8Field(_name="month"),
+                  Uint32Field(_name="padding")]
 
-        super(ScheduleItem, self).__init__(_name="schedule_item", _fields=fields, **kwargs)
+        super(CronItem, self).__init__(_name="cron_item", _fields=fields, **kwargs)
 
 
 class SyntaxError(Exception):
@@ -2706,8 +2707,7 @@ class Builder(object):
         for func_name, entries in self.cron_tab.items():
             
             for entry in entries:
-                # print i
-                item = ScheduleItem(
+                item = CronItem(
                         func=self.function_addrs[func_name],
                         second=entry['seconds'],
                         minute=entry['minutes'],
@@ -2715,7 +2715,6 @@ class Builder(object):
                         day_of_month=entry['day_of_month'],
                         day_of_week=entry['day_of_week'],
                         month=entry['month'])
-
 
                 packed_cron += item.pack()
 
