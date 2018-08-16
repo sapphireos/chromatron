@@ -193,6 +193,11 @@ void datetime_v_now( datetime_t *datetime ){
  
     ntp_ts_t now = sntp_t_now();
 
+    // adjust seconds by timezone offset
+	// tz_offset is in minutse
+	int32_t tz_seconds = tz_offset * 60;
+	now.seconds += tz_seconds;
+
     datetime_v_seconds_to_datetime( now.seconds, datetime );
 }
 
@@ -216,11 +221,6 @@ void datetime_v_get_epoch( datetime_t *datetime ){
 
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
-	// // adjust seconds by timezone offset
-	// // tz_offset is in minutse
-	// int32_t tz_seconds = tz_offset * 60;
-	// seconds += tz_seconds;
-
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
 
