@@ -40,7 +40,7 @@ extern "C"{
     #include "memory.h"
 }
 
-#define MEM_HEAP_SIZE 4096
+#define MEM_HEAP_SIZE 8192
 
 static uint8_t mem_heap[MEM_HEAP_SIZE];
 
