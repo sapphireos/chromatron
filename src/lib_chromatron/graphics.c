@@ -610,21 +610,25 @@ end:
 
         if( flags & FLAG_RUN_ONESEC ){
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            // check if time is synced
+            if( time_b_is_sync() ){
 
-            datetime_t datetime;
-            datetime_v_now( &datetime );
+                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
-            wifi_msg_vm_time_of_day_t msg;
-            msg.seconds         = datetime.seconds;
-            msg.minutes         = datetime.minutes;
-            msg.hours           = datetime.hours;
-            msg.day_of_month    = datetime.day;
-            msg.day_of_week     = datetime.weekday;
-            msg.month           = datetime.month;
-            msg.year            = datetime.year;
+                datetime_t datetime;
+                datetime_v_now( &datetime );
 
-            wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
+                wifi_msg_vm_time_of_day_t msg;
+                msg.seconds         = datetime.seconds;
+                msg.minutes         = datetime.minutes;
+                msg.hours           = datetime.hours;
+                msg.day_of_month    = datetime.day;
+                msg.day_of_week     = datetime.weekday;
+                msg.month           = datetime.month;
+                msg.year            = datetime.year;
+
+                wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
+            }
         }
 
         if( ( flags & FLAG_RUN_PARAMS ) ||

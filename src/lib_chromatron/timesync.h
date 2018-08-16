@@ -32,8 +32,7 @@
 
 #include "wifi_cmd.h"
 
-// #define TIME_SERVER_PORT                32037
-#define TIME_SERVER_PORT                32039
+#define TIME_SERVER_PORT                32037
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION           2
@@ -86,6 +85,7 @@ typedef struct __attribute__((packed)){
 
 
 void time_v_init( void );
+bool time_b_is_sync( void );
 uint32_t time_u32_get_network_time( void );
 void time_v_set_gps_sync( bool sync );
 

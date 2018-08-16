@@ -26,10 +26,6 @@
 #include "vm_core.h"
 #include "vm_wifi_cmd.h"
 
-#define VM_MAX_FILENAME_LEN 	32
-#define VM_MAX_SUBSCRIBED_DB	32 	
-
-
 void vm_v_init( void );
 void vm_v_start( void );
 void vm_v_stop( void );

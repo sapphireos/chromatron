@@ -104,6 +104,11 @@ void time_v_init( void ){
                     0 );    
 }
 
+bool time_b_is_sync( void ){
+
+    return master_source != 0;
+}
+
 uint32_t time_u32_get_network_time( void ){
 
     int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );

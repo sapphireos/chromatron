@@ -26,6 +26,7 @@
 
 #include "timesync.h"
 #include "vm_sync.h"
+#include "vm.h"
 #include "hash.h"
 #include "esp8266.h"
 #include "vm_wifi_cmd.h"
@@ -332,14 +333,14 @@ PT_BEGIN( pt );
 	static uint32_t last_run;
 	static uint32_t last_sync;
 	
-    THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+    THREAD_WAIT_WHILE( pt, ( sync_group_hash == 0 ) && ( !vm_b_is_vm_running( 0 ) ) );
 
     last_run = tmr_u32_get_system_time_ms();
 
 
     while( TRUE ){
 
-    	if( sync_group_hash == 0 ){
+    	if( ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) ){
 
     		// release socket if sync is disabled
     	 	if( sock > 0 ){
@@ -349,7 +350,7 @@ PT_BEGIN( pt );
     	 	}
     	}
 
-    	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+    	THREAD_WAIT_WHILE( pt, ( sync_group_hash == 0 ) && ( !vm_b_is_vm_running( 0 ) ) );
 
     	if( sock < 0 ){
 
