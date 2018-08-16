@@ -537,11 +537,11 @@ class Chromatron(object):
         self.stop_vm()
 
         if bin_data:
-            code = code_gen.compile_text(bin_data)["stream"]
+            code = code_gen.compile_text(bin_data)
             bin_filename = 'vm.fxb'
 
         elif filename:
-            code = code_gen.compile_script(filename)["stream"]
+            code = code_gen.compile_script(filename)
             bin_filename = os.path.split(filename)[1] + 'b'
 
         try:
@@ -581,9 +581,6 @@ class Chromatron(object):
 
     def get_vm_reg(self, regname):
         assert self.client.is_connected()
-
-        if not regname.startswith(code_gen.PUBLISHED_VAR_NAME_PREFIX):
-            regname = code_gen.PUBLISHED_VAR_NAME_PREFIX + regname
 
         # must go through the client to get VM dynamic keys.
         # the USB interface can only retrieve static keys.
@@ -1615,7 +1612,7 @@ def compile(ctx, filename, debug):
     click.echo('Compiling: %s' % (filename))
 
     try:
-        code = code_gen.compile_script(filename, debug_print=debug)["stream"]
+        code = code_gen.compile_script(filename, debug_print=debug)
 
     except IOError:
         click.secho("No such file", fg=ERROR_COLOR)

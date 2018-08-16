@@ -1289,6 +1289,7 @@ class Builder(object):
         self.bytecode = []
         self.function_addrs = {}
         self.label_addrs = {}
+        self.stream = ''
 
         self.pixel_array_indexes = ['pixels']
         self.read_keys = []
@@ -2711,7 +2712,7 @@ class Builder(object):
         return self.bytecode
 
 
-    def generate_binary(self, filename):
+    def generate_binary(self, filename=None):
         stream = ''
         meta_names = []
 
@@ -2808,8 +2809,6 @@ class Builder(object):
                     init_start=self.function_addrs['init'],
                     loop_start=self.function_addrs['loop'])
 
-        print header
-
         stream += header.pack()
         stream += packed_read_keys  
         stream += packed_write_keys
@@ -2892,9 +2891,12 @@ class Builder(object):
         stream += struct.pack('<L', file_hash)
 
 
-        # write to file
-        with open(filename, 'w') as f:
-            f.write(stream)
+        if filename:
+            # write to file
+            with open(filename, 'w') as f:
+                f.write(stream)
+
+        self.stream = stream
 
         return stream
 
