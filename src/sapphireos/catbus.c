@@ -1808,6 +1808,8 @@ PT_BEGIN( pt );
                     entry->ttl = 20;
 
                     update = TRUE;
+
+                    break;
                 }
                 
 
