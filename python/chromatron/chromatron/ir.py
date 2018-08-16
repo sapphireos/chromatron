@@ -2843,7 +2843,15 @@ class Builder(object):
             addr = var.addr
 
             for i in xrange(var.length):
-                stream += struct.pack('<l', var.default_value)
+                default_value = var.default_value
+
+                if default_value == 'True':
+                    default_value = 1
+
+                elif default_value == 'False':
+                    default_value = 0
+
+                stream += struct.pack('<l', default_value)
 
             addr += var.length - 1
 

@@ -131,7 +131,7 @@ class cg1RecordType(cg1Node):
 
 
 class cg1GenericObject(cg1Node):
-    _fields = ["name", "args", "kwargs"]
+    _fields = ["name", "args", "kw"]
 
     def __init__(self, name, args, kw, **kwargs):
         super(cg1GenericObject, self).__init__(**kwargs)
