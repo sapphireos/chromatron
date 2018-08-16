@@ -533,8 +533,8 @@ class Chromatron(object):
     def reboot(self):
         self._device.reboot()
 
-    def load_vm(self, filename=None, start=True, bin_data=None):
-        self.stop_vm()
+    def load_vm(self, vm_index, filename=None, start=True, bin_data=None):
+        self.stop_vm(vm_index)
 
         if bin_data:
             code = code_gen.compile_text(bin_data).stream
@@ -553,19 +553,40 @@ class Chromatron(object):
         self.put_file(bin_filename, code)
 
         # change vm program
-        self.set_key('vm_prog', bin_filename)
+        if vm_index == 0:
+            s = 'vm_prog'
+        else:
+            s = 'vm_prog_%d' % (vm_index)
+
+        self.set_key(s, bin_filename)
+
 
         if start:
-            self.start_vm()
+            self.start_vm(vm_index)
 
-    def reset_vm(self):
-        self.set_key('vm_reset', True)
+    def reset_vm(self, vm_index):
+        if vm_index == 0:
+            s = 'vm_reset'
+        else:
+            s = 'vm_reset_%d' % (vm_index)
 
-    def start_vm(self):
-        self.set_key('vm_run', True)
+        self.set_key(s, True)
 
-    def stop_vm(self):
-        self.set_key('vm_run', False)
+    def start_vm(self, vm_index):
+        if vm_index == 0:
+            s = 'vm_run'
+        else:
+            s = 'vm_run_%d' % (vm_index)
+
+        self.set_key(s, True)
+
+    def stop_vm(self, vm_index):
+        if vm_index == 0:
+            s = 'vm_run'
+        else:
+            s = 'vm_run_%d' % (vm_index)
+
+        self.set_key(s, False)
 
     def clean_vm_files(self):
         """Deletes all .fxb files from device"""
@@ -1488,17 +1509,20 @@ def reboot(ctx):
 
 @cli.group()
 @click.pass_context
-def vm(ctx):
+@click.option('-n', default=0, help='VM slot')
+def vm(ctx, n):
     """Virtual machine controls"""
+    ctx.obj['n'] = n
 
 @vm.command()
 @click.pass_context
 def start(ctx):
     """Start virtual machine"""
     group = ctx.obj['GROUP']()
-    group.start_vm()
+    n = ctx.obj['n']
+    group.start_vm(n)
 
-    click.echo("Started VM on:")
+    click.echo("Started VM %d on:" % (n))
 
     echo_group(group)
 
@@ -1508,9 +1532,10 @@ def stop(ctx):
     """Stop virtual machine"""
 
     group = ctx.obj['GROUP']()
-    group.stop_vm()
+    n = ctx.obj['n']
+    group.stop_vm(n)
 
-    click.echo("Stopped VM on:")
+    click.echo("Stopped VM %d on:" % (n))
 
     echo_group(group)
 
@@ -1520,9 +1545,10 @@ def stop(ctx):
 def vm_reset(ctx):
     """Reset virtual machine"""
     group = ctx.obj['GROUP']()
-    group.reset_vm()
+    n = ctx.obj['n']
+    group.reset_vm(n)
 
-    click.echo("Reset VM on:")
+    click.echo("Reset VM %d on:" % (n))
 
     echo_group(group)
 
@@ -1535,14 +1561,15 @@ def load(ctx, filename, live):
     """Compile and load script to virtual machine"""
 
     group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
 
     if live:
         click.secho('Live mode', fg='magenta')
 
 
     try:
-        group.load_vm(filename)
-        click.echo('Loaded %s on:' % (click.style(filename, fg=VAL_COLOR)))
+        group.load_vm(n, filename)
+        click.echo('Loaded %s to VM %d on:' % (click.style(filename, fg=VAL_COLOR), n))
 
         echo_group(group)
 
@@ -1560,7 +1587,7 @@ def load(ctx, filename, live):
 
                 if watcher.changed():
                     try:
-                        group.load_vm(filename)
+                        group.load_vm(n, filename)
                         click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
 
                     except Exception as e:
@@ -1580,6 +1607,7 @@ def reload(ctx):
     """Recompile and reload the FX script on device"""
 
     group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
 
     for ct in group.itervalues():
         echo_name(ct, nl=False)
@@ -1590,7 +1618,7 @@ def reload(ctx):
             filename, ext = os.path.splitext(prog)
             filename += '.fx'        
 
-            ct.load_vm(filename)
+            ct.load_vm(n, filename)
 
             click.echo(" %s" % (filename))
             
