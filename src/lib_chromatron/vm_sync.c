@@ -325,6 +325,10 @@ static void send_request_ts( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 }
 
+static bool vm_sync_wait( void ){
+
+	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
+}
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
@@ -333,7 +337,7 @@ PT_BEGIN( pt );
 	static uint32_t last_run;
 	static uint32_t last_sync;
 	
-    THREAD_WAIT_WHILE( pt, ( sync_group_hash == 0 ) && ( !vm_b_is_vm_running( 0 ) ) );
+    THREAD_WAIT_WHILE( pt, vm_sync_wait() );
 
     last_run = tmr_u32_get_system_time_ms();
 
@@ -350,7 +354,7 @@ PT_BEGIN( pt );
     	 	}
     	}
 
-    	THREAD_WAIT_WHILE( pt, ( sync_group_hash == 0 ) && ( !vm_b_is_vm_running( 0 ) ) );
+    	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
 
     	if( sock < 0 ){
 
@@ -410,7 +414,7 @@ PT_BEGIN( pt );
 	    	last_run = tmr_u32_get_system_time_ms();
 		}
 	
-    	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+    	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && !vm_sync_wait() );
 	
 		// check if data received
         if( sock_i16_get_bytes_read( sock ) > 0 ){
