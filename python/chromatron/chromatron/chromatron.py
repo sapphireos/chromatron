@@ -533,7 +533,7 @@ class Chromatron(object):
     def reboot(self):
         self._device.reboot()
 
-    def load_vm(self, vm_index, filename=None, start=True, bin_data=None):
+    def load_vm(self, vm_index=0, filename=None, start=True, bin_data=None):
         self.stop_vm(vm_index)
 
         if bin_data:
@@ -564,7 +564,7 @@ class Chromatron(object):
         if start:
             self.start_vm(vm_index)
 
-    def reset_vm(self, vm_index):
+    def reset_vm(self, vm_index=0):
         if vm_index == 0:
             s = 'vm_reset'
         else:
@@ -572,7 +572,7 @@ class Chromatron(object):
 
         self.set_key(s, True)
 
-    def start_vm(self, vm_index):
+    def start_vm(self, vm_index=0):
         if vm_index == 0:
             s = 'vm_run'
         else:
@@ -580,7 +580,7 @@ class Chromatron(object):
 
         self.set_key(s, True)
 
-    def stop_vm(self, vm_index):
+    def stop_vm(self, vm_index=0):
         if vm_index == 0:
             s = 'vm_run'
         else:
