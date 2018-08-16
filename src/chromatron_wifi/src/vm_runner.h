@@ -53,6 +53,8 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
 int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index );
 void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index );
 
+void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg );
+
 void vm_v_request_frame_data( uint8_t index );
 void vm_v_run_fader( void );
 

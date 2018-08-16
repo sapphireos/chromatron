@@ -34,6 +34,7 @@ extern "C"{
     #include "vm_wifi_cmd.h"
     #include "catbus_common.h"
     #include "hash.h"
+    #include "datetime_struct.h"
 }
 
 static uint16_t vm_load_len;
@@ -52,6 +53,9 @@ static uint16_t vm_thread_time[VM_MAX_VMS];
 
 static bool run_vm;
 static bool run_faders;
+static bool run_cron;
+
+static datetime_t datetime;
 
 static uint32_t thread_tick;
 
@@ -281,6 +285,12 @@ void vm_v_process( void ){
 
             _vm_i8_run_vm( VM_RUN_THREADS, i );
         }
+    }
+
+    // check cron jobs
+    if( run_cron ){
+
+        run_cron = false;
     }
 
     // get all updated KVDB items and transmit them
@@ -664,6 +674,19 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
     }
 }
 
+
+void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg ){
+
+    datetime.seconds    = msg->seconds;
+    datetime.minutes    = msg->minutes;
+    datetime.hours      = msg->hours;
+    datetime.day        = msg->day_of_month;
+    datetime.weekday    = msg->day_of_week;
+    datetime.month      = msg->month;
+    datetime.year       = msg->year;
+
+    run_cron = true;
+}
 
 // int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync ){
 
