@@ -159,7 +159,7 @@ class KVSendField(StructField):
                   Uint32Field(_name="source_hash"),
                   Uint32Field(_name="dest_hash"),
                   Uint16Field(_name="sequence"),
-                  #NTPTimestampField(_name="ntp_timestamp"),
+                  NTPTimestampField(_name="ntp_timestamp"),
                   Int8Field(_name="ttl"),
                   Uint8Field(_name="flags")]
 
