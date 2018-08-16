@@ -42,6 +42,28 @@ DATA_LEN = 4
 
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
 
+DAY_OF_WEEK = {'monday':    1,
+               'tuesday':   2,
+               'wednesday': 3,
+               'thursday':  4,
+               'friday':    5,
+               'saturday':  6,
+               'sunday':    7}
+
+
+MONTHS =      {'january':   1,
+               'february':  2,
+               'march':     3,
+               'april':     4,
+               'may':       5,
+               'june':      6,
+               'july':      7,
+               'august':    8,
+               'september': 9,
+               'october':   10,
+               'november':  11,
+               'december':  12}
+
 
 class ProgramHeader(StructField):
     def __init__(self, **kwargs):
@@ -2127,11 +2149,49 @@ class Builder(object):
 
         # convert parameters from const objects into raw integers
         for k, v in params.items():
-            params[k] = v.name
+            try:
+                params[k] = v.name
+
+            except AttributeError:
+                params[k] = v.s                
+
+        # check parameters
+        if 'seconds' in params:
+            if params['seconds'] < 0 or params['seconds'] > 59:
+                raise SyntaxError("Seconds must be within 0 - 59, got %d" % (params['seconds']), lineno=lineno)
+        
+        if 'minutes' in params:
+            if params['minutes'] < 0 or params['minutes'] > 59:
+                raise SyntaxError("Minutes must be within 0 - 59, got %d" % (params['minutes']), lineno=lineno)
+
+        if 'hours' in params:
+            if params['hours'] < 0 or params['hours'] > 23:
+                raise SyntaxError("Hours must be within 0 - 23, got %d" % (params['hours']), lineno=lineno)
+        
+        if 'day_of_month' in params:
+            if params['day_of_month'] < 0 or params['day_of_month'] > 31:
+                raise SyntaxError("Day of month must be within 0 - 31, got %d" % (params['day_of_month']), lineno=lineno)
+        
+        if 'day_of_week' in params:
+            if isinstance(params['day_of_week'], basestring):
+                params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
+
+            if params['day_of_week'] < 1 or params['day_of_week'] > 7:
+                raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
+        
+        if 'month' in params:
+            if isinstance(params['month'], basestring):
+                params['month'] = MONTHS[params['month'].lower()]
+
+            if params['month'] < 1 or params['month'] > 12:
+                raise SyntaxError("Month must be within 1 - 12, got %d" % (params['month']), lineno=lineno)
+                        
 
         for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
             if i not in params:
                 params[i] = -1
+
+        print params
 
         self.cron_tab[func].append(params)
 
