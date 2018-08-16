@@ -706,7 +706,6 @@ void vm_v_request_frame_data( uint8_t index ){
     intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
 
     uint32_t hash = hash_u32_start();
-    // hash = hash_u32_partial( hash, (uint8_t *)&msg, sizeof(msg) );
 
     uint16_t len = vm_state[index].data_len;
 
