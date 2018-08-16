@@ -57,7 +57,7 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="pix_obj_len"),
                   Uint16Field(_name="link_len"),
                   Uint16Field(_name="db_len"),
-                  Uint16Field(_name="padding"),
+                  Uint16Field(_name="cron_len"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 
@@ -2124,8 +2124,15 @@ class Builder(object):
         if func not in self.cron_tab:
             self.cron_tab[func] = []
 
-        self.cron_tab[func].append(params)
+        # convert parameters from const objects into raw integers
+        for k, v in params.items():
+            params[k] = v.name
 
+        for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
+            if i not in params:
+                params[i] = -1
+
+        self.cron_tab[func].append(params)
 
     def usedef(self, func):
         use = []
@@ -2693,6 +2700,24 @@ class Builder(object):
             packed_db += entry.pack()
 
             meta_names.append(name)
+        
+        # set up cron entries
+        packed_cron = ''
+        for func_name, entries in self.cron_tab.items():
+            
+            for entry in entries:
+                # print i
+                item = ScheduleItem(
+                        func=self.function_addrs[func_name],
+                        second=entry['seconds'],
+                        minute=entry['minutes'],
+                        hour=entry['hours'],
+                        day_of_month=entry['day_of_month'],
+                        day_of_week=entry['day_of_week'],
+                        month=entry['month'])
+
+
+                packed_cron += item.pack()
 
 
         # build program header
@@ -2709,6 +2734,7 @@ class Builder(object):
                     publish_len=len(packed_publish),
                     link_len=len(packed_links),
                     db_len=len(packed_db),
+                    cron_len=len(packed_cron),
                     init_start=self.function_addrs['init'],
                     loop_start=self.function_addrs['loop'])
 
@@ -2720,6 +2746,7 @@ class Builder(object):
         stream += packed_publish
         stream += packed_links
         stream += packed_db
+        stream += packed_cron
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)

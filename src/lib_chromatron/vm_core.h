@@ -141,7 +141,7 @@ typedef struct __attribute__((packed)){
     uint16_t pix_obj_len;       // length in BYTES, not number of objects!
     uint16_t link_len;          // length in BYTES, not number of objects!
     uint16_t db_len;            // length in BYTES, not number of objects!
-    uint16_t padding;
+    uint16_t cron_len;          // length in BYTES, not number of objects!
     uint16_t init_start;
     uint16_t loop_start;
     // variable length data:
