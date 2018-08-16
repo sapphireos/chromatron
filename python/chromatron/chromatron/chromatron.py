@@ -1512,7 +1512,7 @@ def reboot(ctx):
 @click.option('-n', default=0, help='VM slot')
 def vm(ctx, n):
     """Virtual machine controls"""
-    ctx.obj['n'] = n
+    ctx.obj['n'] = int(n)
 
 @vm.command()
 @click.pass_context
@@ -1995,7 +1995,7 @@ def setup_pixels(ctx):
                 pix_count = click.prompt('Enter pixel count', type=int)
                 ct.set_key('pix_count', pix_count)
                 ct.set_pixel_mode(pix_type)
-                ct.load_vm(get_package_fx_script('pix_count_test.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_count_test.fx'))
 
                 click.secho("Confirming pixel count.", fg=NAME_COLOR)
                 click.secho("The first and last pixels should be on.", fg=NAME_COLOR)
@@ -2026,11 +2026,11 @@ def setup_pixels(ctx):
             # pix_test_green turns on pixels in position 1
             # pix_test_blue turns on pixels in position 2
 
-            ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
             if click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                 # red in position 0
 
-                ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
                 if click.confirm("Are the pixels %s?" % (click.style('green', fg='green'))):
                     # green in position 1
                     order = 'rgb'
@@ -2039,11 +2039,11 @@ def setup_pixels(ctx):
                     order = 'rbg'
 
             if order == None:
-                ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
                 if click.confirm("Are the pixels %s?" % (click.style('green', fg='green'))):
                     # green in position 0
 
-                    ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+                    ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
                     if click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                         # red in position 1
                         order = 'grb'
@@ -2053,11 +2053,11 @@ def setup_pixels(ctx):
                         order = 'gbr'
 
             if order == None:
-                ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
                 if click.confirm("Are the pixels %s?" % (click.style('blue', fg='blue'))):
                     # blue in position 0
 
-                    ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+                    ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
                     if click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                         # red in position 1
                         order = 'brg'
@@ -2098,17 +2098,17 @@ def setup_pixels(ctx):
             click.echo('\n')
             click.echo("Confirm RGB order:")
 
-            ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
             if not click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                 click.secho("Incorrect RGB ordering, we'll try again.", fg=ERROR_COLOR)
                 continue
 
-            ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
             if not click.confirm("Are the pixels %s?" % (click.style('green', fg='green'))):
                 click.secho("Incorrect RGB ordering, we'll try again.", fg=ERROR_COLOR)
                 continue
 
-            ct.load_vm(get_package_fx_script('pix_test_blue.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_blue.fx'))
             if not click.confirm("Are the pixels %s?" % (click.style('blue', fg='blue'))):
                 click.secho("Incorrect RGB ordering, we'll try again.", fg=ERROR_COLOR)
                 continue
@@ -2134,7 +2134,7 @@ def setup_pixels(ctx):
 
         ct.set_key('gfx_master_dimmer', 16384)
         ct.set_key('gfx_sub_dimmer', 65535)
-        ct.load_vm(get_package_fx_script('rainbow.fx'))
+        ct.load_vm(filename=get_package_fx_script('rainbow.fx'))
 
         # delay to make sure the device has had time to save parameters
         time.sleep(2.0)
