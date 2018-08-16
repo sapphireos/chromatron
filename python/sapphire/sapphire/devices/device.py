@@ -872,15 +872,16 @@ class Device(object):
     def cli_sendinfo(self, line):
         info = self.get_kvsend_info()
 
-        s = "\nTTL IP:             Port  Source       Dest         \n"
+        s = "\nTTL IP:             Port  Source       Dest         Sequence\n"
 
         for n in info:
-            s += "%3d %15s %5u %-12d %-12d" % \
+            s += "%3d %15s %5u %-12d %-12d %5u" % \
                 (n.ttl,
                  n.ip,
                  n.port,
                  n.source_hash,
-                 n.dest_hash)
+                 n.dest_hash,
+                 n.sequence)
 
             s += "\n"
 

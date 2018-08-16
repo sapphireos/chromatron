@@ -127,6 +127,12 @@ class SyntaxError(Exception):
 
         super(SyntaxError, self).__init__(message)
 
+class VariableNotDeclared(SyntaxError):
+    def __init__(self, var, message='', lineno=None):
+        super(VariableNotDeclared, self).__init__(message, lineno)
+
+        self.var = var
+
 class VMRuntimeError(Exception):
     def __init__(self, message=''):
         super(VMRuntimeError, self).__init__(message)
@@ -1505,7 +1511,7 @@ class Builder(object):
             return self.locals[self.current_func][name]
 
         except KeyError:
-            raise SyntaxError("Variable '%s' not declared" % (name), lineno=lineno)
+            raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -1534,7 +1540,7 @@ class Builder(object):
             return ir
 
         else:
-            raise SyntaxError("Object '%s' not declared" % (obj_name), lineno=lineno)            
+            raise VariableNotDeclared(obj_name, "Object '%s' not declared" % (obj_name), lineno=lineno)            
 
     def add_const(self, name, data_type='i32', lineno=None):
         if name in self.globals:

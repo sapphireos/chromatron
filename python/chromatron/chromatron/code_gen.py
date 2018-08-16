@@ -27,6 +27,7 @@ import sys
 from textwrap import dedent
 
 from ir import *
+from instructions import *
 
 
 # see http://dev.stephendiehl.com/numpile/
@@ -316,7 +317,12 @@ class cg1Call(cg1CodeNode):
         self.keywords = keywords
 
     def build(self, builder):
-        params = [p.build(builder) for p in self.params]
+        try:
+            params = [p.build(builder) for p in self.params]
+
+        except VariableNotDeclared as e:
+            if self.target in THREAD_FUNCS:
+                raise SyntaxError("Parameter '%s' not found for function '%s'.  Thread functions require string parameters." % (e.var, self.target), self.lineno)
 
         return builder.call(self.target, params, lineno=self.lineno)
 
@@ -917,7 +923,7 @@ if __name__ == '__main__':
     with open(path) as f:
         text = f.read()
 
-    stream = compile_text(text, debug_print=True, script_name=script_name)['stream']
+    stream = compile_text(text, debug_print=True, script_name=script_name).stream
 
     try:
         output_path = sys.argv[2]

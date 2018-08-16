@@ -38,6 +38,8 @@ PIX_ATTR_CODES = {
     'v_fade':   4,
 }
 
+THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running']
+
 
 opcodes = {
     'MOV':                  0x01,
@@ -719,7 +721,7 @@ class insLibCall(BaseInstruction):
             'test_lib_call': self._test_lib_call,
         }
 
-        self.thread_funcs = ['start_thread', 'stop_thread', 'thread_running']
+        self.thread_funcs = THREAD_FUNCS
 
     def __str__(self):
         params = ''
