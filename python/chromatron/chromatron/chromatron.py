@@ -537,11 +537,11 @@ class Chromatron(object):
         self.stop_vm()
 
         if bin_data:
-            code = code_gen.compile_text(bin_data)
+            code = code_gen.compile_text(bin_data).stream
             bin_filename = 'vm.fxb'
 
         elif filename:
-            code = code_gen.compile_script(filename)
+            code = code_gen.compile_script(filename).stream
             bin_filename = os.path.split(filename)[1] + 'b'
 
         try:
