@@ -89,5 +89,5 @@
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["stm32f7", "lib_fixmath"]
+    "LIBRARIES": ["stm32f7"]
 }

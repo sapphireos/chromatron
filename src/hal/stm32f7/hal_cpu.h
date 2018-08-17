@@ -24,8 +24,7 @@
 #ifndef _HAL_CPU_H
 #define _HAL_CPU_H
 
-#include "system.h"
-
+#include "bool.h"
 
 #define ENABLE_INTERRUPTS 
 #define DISABLE_INTERRUPTS 
@@ -35,6 +34,13 @@
 #define RESET_SOURCE_EXTERNAL   2
 #define RESET_SOURCE_BROWNOUT   3
 
+#define ATOMIC
+#define END_ATOMIC
+
+#define FLASH_STRING(x) x
+#define FLASH_STRING_T const char*
+
+#define FW_INFO_SECTION
 
 
 #endif

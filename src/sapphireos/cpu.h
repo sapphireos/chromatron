@@ -69,8 +69,7 @@
     char *itoa(long i, char* s, int dummy_radix);
 
 #elif defined(ARM)
-    // #include "sam.h"
-
+    
     #define PGM_P const char*
     #define PROGMEM
     // #define PSTR(s) ({static char c[ ] = (s); c;})
