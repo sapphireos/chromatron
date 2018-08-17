@@ -1948,6 +1948,11 @@ class Builder(object):
         else_label = self.label('if.else', lineno=lineno)
         end_label = self.label('if.end', lineno=lineno)
 
+        if not isinstance(test, irBinop):
+            result = self.add_temp(lineno=lineno)
+            self.assign(result, test, lineno=lineno)
+            test = result
+
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
