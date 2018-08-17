@@ -61,6 +61,11 @@ bool cpu_b_osc_fail( void ){
     return 0;
 }
 
+uint32_t cpu_u32_get_clock_speed( void ){
+
+    return SystemCoreClock;
+}
+
 void SystemClock_Config(void)
 {
 
