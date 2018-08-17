@@ -21,7 +21,7 @@
 // </license>
 
 
-#ifndef _HAL_CPU_H
+#ifndef _HAL_CPU_H	
 #define _HAL_CPU_H
 
 #include "bool.h"

@@ -25,7 +25,7 @@
 
     "DEFINES": ["BOOTLOADER"],
 
-    "LINKER_SCRIPT": "STM32F746ZGTx_BOOT.ld",
+    "LINKER_SCRIPT": "STM32F722RETx_BOOT.ld",
 
      "LINK_FLAGS": [
         "-specs=nosys.specs",
