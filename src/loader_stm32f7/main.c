@@ -99,11 +99,15 @@ char sw_id[7];
 extern boot_data_t BOOTDATA boot_data;
 
 
+static volatile uint8_t test[128000];
+
 void main( void ){
 
     cpu_v_init();
 
     trace_printf("Welcome to Sapphire\n");
+
+    memset( test, 1, sizeof(test) );
 
 
     LL_GPIO_InitTypeDef GPIO_InitStruct;
@@ -115,9 +119,9 @@ void main( void ){
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
 
 
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_1);
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_2);
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_3); 
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_1);
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_2);
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3); 
   
     GPIO_InitStruct.Pin = LL_GPIO_PIN_1;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -143,14 +147,23 @@ void main( void ){
 
     trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
 
+
+
 while(1){
 
     LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_1);
     LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_2);
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3); 
     HAL_Delay(500);
     
     LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_1);
     LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_2);
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3); 
+    HAL_Delay(500);
+
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_1);
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_2);
+    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_3); 
     HAL_Delay(500);
 }
 
