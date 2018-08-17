@@ -1946,8 +1946,15 @@ int8_t vm_i8_run_cron(
             match = FALSE;
         }
 
+        // the check for cron->run ensures the entry only runs one time
+        // for each time specified.
+        // if you set for instance hours = 15, but set nothing else,
+        // then without the run flag the task would run every second
+        // for the entire hour.
 
-        if( match ){
+        if( match && !cron->run ){
+
+            cron->run = TRUE;
 
             int8_t status = vm_i8_run( stream, cron->func_addr, 0, state );
 
@@ -1955,6 +1962,11 @@ int8_t vm_i8_run_cron(
 
                 return status;
             }
+        }
+
+        if( !match ){
+
+            cron->run = FALSE;
         }
 
         cron++;

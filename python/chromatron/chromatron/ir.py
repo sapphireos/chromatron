@@ -114,7 +114,7 @@ class CronItem(StructField):
                   Int8Field(_name="day_of_month"),
                   Int8Field(_name="day_of_week"),
                   Int8Field(_name="month"),
-                  Uint32Field(_name="padding")]
+                  ArrayField(_name="padding", _length=4, _field=Uint8Field)]
 
         super(CronItem, self).__init__(_name="cron_item", _fields=fields, **kwargs)
 

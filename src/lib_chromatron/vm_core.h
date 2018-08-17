@@ -140,7 +140,8 @@ typedef struct __attribute__((packed)){
     int8_t day_of_month;
     int8_t day_of_week;
     int8_t month;
-    uint32_t padding;
+    bool run;
+    uint8_t padding[3];
 } cron_t;
 
 typedef struct __attribute__((packed)){
