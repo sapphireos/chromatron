@@ -37,7 +37,7 @@ bool tmr_b_io_timers_running( void ){
 }
 
 
-uint64_t tmr_u64_get_ticks( void ){
+uint64_t tmr_u64_get_system_time_us( void ){
 
     return 0;
 }

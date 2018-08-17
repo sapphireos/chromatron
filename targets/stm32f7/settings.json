@@ -10,7 +10,7 @@
         "-mcpu=cortex-m7",
         "-mfloat-abi=hard",
         "-mfpu=fpv5-sp-d16",
-        "-DSTM32F746xx",
+        "-DSTM32F722xx",
         "-D__STM32F7__",
         "-DARM_MATH_CM7",
         "-D__FPU_PRESENT",

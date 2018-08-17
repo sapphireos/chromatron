@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file      startup_stm32f746xx.s
+  * @file      startup_stm32f722xx.s
   * @author    MCD Application Team
-  * @brief     STM32F746xx Devices vector table for GCC based toolchain. 
+  * @brief     STM32F722xx Devices vector table for GCC based toolchain. 
   *            This module performs:
   *                - Set the initial SP
   *                - Set the initial PC == Reset_Handler,
@@ -43,7 +43,7 @@
     
   .syntax unified
   .cpu cortex-m7
-  .fpu softvfp
+  .fpu fpv5-sp-d16
   .thumb
 
 .global  g_pfnVectors
@@ -105,7 +105,7 @@ LoopFillZerobss:
   cmp  r2, r3
   bcc  FillZerobss
 
-/* Call the clock system initialization function.*/
+/* Call the clock system intitialization function.*/
   bl  SystemInit   
 /* Call static constructors */
     bl __libc_init_array
@@ -219,12 +219,12 @@ g_pfnVectors:
   .word     DMA2_Stream2_IRQHandler           /* DMA2 Stream 2                */                   
   .word     DMA2_Stream3_IRQHandler           /* DMA2 Stream 3                */                   
   .word     DMA2_Stream4_IRQHandler           /* DMA2 Stream 4                */                   
-  .word     ETH_IRQHandler                    /* Ethernet                     */                   
-  .word     ETH_WKUP_IRQHandler               /* Ethernet Wakeup through EXTI line */                     
-  .word     CAN2_TX_IRQHandler                /* CAN2 TX                      */                          
-  .word     CAN2_RX0_IRQHandler               /* CAN2 RX0                     */                          
-  .word     CAN2_RX1_IRQHandler               /* CAN2 RX1                     */                          
-  .word     CAN2_SCE_IRQHandler               /* CAN2 SCE                     */                          
+  .word     0                                 /* Reserved                     */                   
+  .word     0                                 /* Reserved                     */                    
+  .word     0                                 /* Reserved                     */                          
+  .word     0                                 /* Reserved                     */                          
+  .word     0                                 /* Reserved                     */                          
+  .word     0                                 /* Reserved                     */                          
   .word     OTG_FS_IRQHandler                 /* USB OTG FS                   */                   
   .word     DMA2_Stream5_IRQHandler           /* DMA2 Stream 5                */                   
   .word     DMA2_Stream6_IRQHandler           /* DMA2 Stream 6                */                   
@@ -236,26 +236,32 @@ g_pfnVectors:
   .word     OTG_HS_EP1_IN_IRQHandler          /* USB OTG HS End Point 1 In    */                   
   .word     OTG_HS_WKUP_IRQHandler            /* USB OTG HS Wakeup through EXTI */                         
   .word     OTG_HS_IRQHandler                 /* USB OTG HS                   */                   
-  .word     DCMI_IRQHandler                   /* DCMI                         */                   
   .word     0                                 /* Reserved                     */                   
-  .word     RNG_IRQHandler                    /* Rng                          */
+  .word     0                                 /* Reserved                     */                   
+  .word     RNG_IRQHandler                    /* RNG                          */
   .word     FPU_IRQHandler                    /* FPU                          */
   .word     UART7_IRQHandler                  /* UART7                        */      
   .word     UART8_IRQHandler                  /* UART8                        */
   .word     SPI4_IRQHandler                   /* SPI4                         */
-  .word     SPI5_IRQHandler                   /* SPI5                           */
-  .word     SPI6_IRQHandler                   /* SPI6                         */
-  .word     SAI1_IRQHandler                   /* SAI1                          */
-  .word     LTDC_IRQHandler                   /* LTDC                          */
-  .word     LTDC_ER_IRQHandler                /* LTDC error                      */
-  .word     DMA2D_IRQHandler                  /* DMA2D                          */
+  .word     SPI5_IRQHandler                   /* SPI5                         */
+  .word     0                                 /* Reserved                     */
+  .word     SAI1_IRQHandler                   /* SAI1                         */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
   .word     SAI2_IRQHandler                   /* SAI2                         */
   .word     QUADSPI_IRQHandler                /* QUADSPI                      */
   .word     LPTIM1_IRQHandler                 /* LPTIM1                       */
-  .word     CEC_IRQHandler                    /* HDMI_CEC                     */
-  .word     I2C4_EV_IRQHandler                /* I2C4 Event                   */
-  .word     I2C4_ER_IRQHandler                /* I2C4 Error                   */
-  .word     SPDIF_RX_IRQHandler               /* SPDIF_RX                     */  
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     SDMMC2_IRQHandler                 /* SDMMC2                       */ 
   
 /*******************************************************************************
 *
@@ -476,24 +482,6 @@ g_pfnVectors:
    
    .weak      DMA2_Stream4_IRQHandler               
    .thumb_set DMA2_Stream4_IRQHandler,Default_Handler   
-
-   .weak      ETH_IRQHandler   
-   .thumb_set ETH_IRQHandler,Default_Handler
-   
-   .weak      ETH_WKUP_IRQHandler   
-   .thumb_set ETH_WKUP_IRQHandler,Default_Handler
-
-   .weak      CAN2_TX_IRQHandler   
-   .thumb_set CAN2_TX_IRQHandler,Default_Handler   
-                           
-   .weak      CAN2_RX0_IRQHandler                  
-   .thumb_set CAN2_RX0_IRQHandler,Default_Handler
-                           
-   .weak      CAN2_RX1_IRQHandler                  
-   .thumb_set CAN2_RX1_IRQHandler,Default_Handler
-                           
-   .weak      CAN2_SCE_IRQHandler                  
-   .thumb_set CAN2_SCE_IRQHandler,Default_Handler
                            
    .weak      OTG_FS_IRQHandler      
    .thumb_set OTG_FS_IRQHandler,Default_Handler
@@ -527,9 +515,6 @@ g_pfnVectors:
             
    .weak      OTG_HS_IRQHandler      
    .thumb_set OTG_HS_IRQHandler,Default_Handler
-                  
-   .weak      DCMI_IRQHandler            
-   .thumb_set DCMI_IRQHandler,Default_Handler
 
    .weak      RNG_IRQHandler            
    .thumb_set RNG_IRQHandler,Default_Handler   
@@ -547,22 +532,10 @@ g_pfnVectors:
    .thumb_set SPI4_IRQHandler,Default_Handler
    
    .weak      SPI5_IRQHandler            
-   .thumb_set SPI5_IRQHandler,Default_Handler
-
-   .weak      SPI6_IRQHandler            
-   .thumb_set SPI6_IRQHandler,Default_Handler   
+   .thumb_set SPI5_IRQHandler,Default_Handler  
 
    .weak      SAI1_IRQHandler            
    .thumb_set SAI1_IRQHandler,Default_Handler
-   
-   .weak      LTDC_IRQHandler            
-   .thumb_set LTDC_IRQHandler,Default_Handler
-
-   .weak      LTDC_ER_IRQHandler            
-   .thumb_set LTDC_ER_IRQHandler,Default_Handler
-
-   .weak      DMA2D_IRQHandler            
-   .thumb_set DMA2D_IRQHandler,Default_Handler   
 
    .weak      SAI2_IRQHandler            
    .thumb_set SAI2_IRQHandler,Default_Handler
@@ -573,17 +546,8 @@ g_pfnVectors:
    .weak      LPTIM1_IRQHandler            
    .thumb_set LPTIM1_IRQHandler,Default_Handler
 
-   .weak      CEC_IRQHandler            
-   .thumb_set CEC_IRQHandler,Default_Handler
-   
-   .weak      I2C4_EV_IRQHandler            
-   .thumb_set I2C4_EV_IRQHandler,Default_Handler 
- 
-   .weak      I2C4_ER_IRQHandler            
-   .thumb_set I2C4_ER_IRQHandler,Default_Handler
-   
-   .weak      SPDIF_RX_IRQHandler            
-   .thumb_set SPDIF_RX_IRQHandler,Default_Handler 
+   .weak      SDMMC2_IRQHandler            
+   .thumb_set SDMMC2_IRQHandler,Default_Handler  
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/        
  
