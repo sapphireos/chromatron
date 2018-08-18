@@ -64,6 +64,7 @@ MONTHS =      {'january':   1,
                'november':  11,
                'december':  12}
 
+COMPARE_BINOPS = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte']
 
 class ProgramHeader(StructField):
     def __init__(self, **kwargs):
@@ -622,7 +623,7 @@ class irBinop(IR):
                 'mod': insF16Mod},
         }
 
-        data_type = self.result.type
+        data_type = self.left.type
 
         # gfx16 type can just default to i32
         if data_type == 'gfx16':
@@ -1637,6 +1638,10 @@ class Builder(object):
 
                 ir = irConvertType(right_result, right, lineno=lineno)
                 self.append_node(ir)
+
+        if op in COMPARE_BINOPS:
+            # need i32 for comparisons
+            data_type = 'i32'
 
         # generate result register with target data type
         result = self.add_temp(data_type=data_type, lineno=lineno)
