@@ -439,9 +439,9 @@ class irObjectAttr(irAddress):
 
 
 PIX_ATTR_TYPES = {
-    'hue': 'f16',
-    'sat': 'f16',
-    'val': 'f16',
+    'hue': 'gfx16',
+    'sat': 'gfx16',
+    'val': 'gfx16',
     'hs_fade': 'i32',
     'v_fade': 'i32',
     'count': 'i32',
@@ -1682,6 +1682,9 @@ class Builder(object):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
+
+            # also note we skip this conversion for pixel array accesses,
+            # as the gfx16 type works seamlessly as i32 and f16 without conversions.
             
             # check if value is const 0
             # if so, we don't need to convert
