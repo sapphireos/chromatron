@@ -1538,6 +1538,21 @@ def init():
 
 """
 
+
+test_expr_db = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    
+    a = db.kv_test_key + 1
+    b = db.kv_test_key + db.kv_test_key
+
+"""
+
+
 test_array_expr_db = """
 
 a = Number(publish=True)
@@ -1552,6 +1567,7 @@ def init():
     b = db.kv_test_array[1] + db.kv_test_array[2]
 
 """
+
 
 test_local_declare = """
 
@@ -1637,6 +1653,13 @@ class CGTestsBase(unittest.TestCase):
                 'b': 0,
                 'c': 0,
                 'd': 0,
+            })
+
+    def test_expr_db(self):
+        self.run_test(test_expr_db,
+            expected={
+                'a': 124,
+                'b': 246,
             })
 
     def test_array_expr_db(self):

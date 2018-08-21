@@ -458,7 +458,7 @@ class irPixelAttr(irObjectAttr):
         lineno = kwargs['lineno']
 
         if attr in ['hue', 'val', 'sat']:
-            attr = irArray(attr, irVar_f16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
+            attr = irArray(attr, irVar_gfx16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
 
         elif attr in ['hs_fade', 'v_fade']:
             attr = irArray(attr, irVar_i32(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
