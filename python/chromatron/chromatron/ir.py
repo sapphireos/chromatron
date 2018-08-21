@@ -1675,8 +1675,6 @@ class Builder(object):
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(value, irAddress) and \
             not isinstance(value, irPixelIndex) and \
-            not isinstance(target, irPixelIndex) and \
-            not isinstance(target, irPixelAttr) and \
             not isinstance(value, irDBIndex) and \
             not isinstance(value, irDBAttr):
             # in normal expressions, f16 will take precedence over i32.
