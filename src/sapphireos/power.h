@@ -29,5 +29,7 @@ void pwr_v_init( void );
 
 void pwr_v_sleep( void );
 
+void pwr_v_wake( void );
+
 #endif
 

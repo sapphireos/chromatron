@@ -64,6 +64,7 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "fw_load_count" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
     { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_led_quiet" },
+    { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "catbus_data_port" },
     // { SAPPHIRE_TYPE_BOOL,        0,                   0, cfg_i8_kv_handler,  "enable_cpu_sleep" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   &slowest_time, 0,        "cfg_slowest_time" },

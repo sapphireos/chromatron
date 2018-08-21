@@ -49,5 +49,9 @@ void pwr_v_sleep( void ){
     cpu_v_sleep();
 }
 
+void pwr_v_wake( void ){
+
+}
+
 
 #endif

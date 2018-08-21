@@ -223,7 +223,7 @@ static void alarm( void ){
     tmr_v_cancel_alarm();
 
     #ifdef ENABLE_POWER
-    pwr_v_wake_up( PWR_WAKE_SOURCE_TIMER );
+    pwr_v_wake();
     #endif
 }
 
@@ -264,12 +264,10 @@ ISR(TCC1_OVF_vect){
 }
 
 
-    #ifdef ENABLE_POWER
-    pwr_v_wake_up( PWR_WAKE_SOURCE_TIMER );
-    #endif
+ISR(TCC1_CCA_vect){
+OS_IRQ_BEGIN(TCC1_CCA_vect);
 
    alarm();
 
 OS_IRQ_END();
 }
-
