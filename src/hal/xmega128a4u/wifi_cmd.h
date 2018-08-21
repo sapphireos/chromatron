@@ -45,6 +45,7 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_STATUS_CONNECTED           0x40
 #define WIFI_STATUS_AP_MODE             0x10
 #define WIFI_STATUS_IRQ_FLAG            0x08
+#define WIFI_STATUS_160MHz              0x02
 
 
 #define WIFI_COMM_RESET                 0x27

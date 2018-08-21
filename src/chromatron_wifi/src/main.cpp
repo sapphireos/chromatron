@@ -29,6 +29,7 @@
 #include "irq_line.h"
 #include "version.h"
 #include "comm_printf.h"
+#include "options.h"
 
 extern "C"{
     #include "random.h"
@@ -172,7 +173,7 @@ void loop(){
 
         intf_v_printf( "CPU CLK -> 160 MHz" );
 
-        system_update_cpu_freq( SYS_CPU_160MHZ );        
+        opt_v_set_high_speed( true );        
 
         // reset max time so we compute a new one with the new clock frequency
         stats->vm_max_time = 0;

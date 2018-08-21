@@ -29,6 +29,8 @@
 #include "comm_intf.h"
 #include "comm_printf.h"
 
+#include "options.h"
+
 extern "C"{
     #include "crc.h"
     #include "wifi_cmd.h"
@@ -182,6 +184,11 @@ void wifi_v_send_status( void ){
 
     wifi_msg_status_t status_msg;
     status_msg.flags = wifi_u8_get_status();
+
+    if( opt_b_get_high_speed() ){
+
+        status_msg.flags |= WIFI_STATUS_160MHz;
+    }
 
     intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
 }

@@ -28,6 +28,7 @@
 #include "wifi.h"
 #include "irq_line.h"
 #include "version.h"
+#include "options.h"
 #include <ESP8266WiFi.h>
 
 extern "C"{
@@ -111,6 +112,11 @@ static list_t tx_q;
 
 
 void intf_v_led_on(){
+
+    if( opt_b_get_led_quiet() ){
+
+        return;
+    }
 
     digitalWrite( LED_GPIO, LOW );
 }
@@ -390,6 +396,13 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
 
         vm_v_set_time_of_day( msg );        
+    }
+    else if( data_id == WIFI_DATA_ID_SET_OPTIONS ){
+
+        wifi_msg_set_options_t *msg = (wifi_msg_set_options_t *)data;
+
+        opt_v_set_low_power( msg->low_power );
+        opt_v_set_led_quiet( msg->led_quiet );
     }
 }
 
