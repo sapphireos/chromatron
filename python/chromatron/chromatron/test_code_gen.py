@@ -2717,7 +2717,6 @@ def loop():
     pass
 
 """
-
 class CGHSVArrayTests(unittest.TestCase):
     def test_hue_array_1(self):
         builder = code_gen.compile_text(hue_array_1, debug_print=False)

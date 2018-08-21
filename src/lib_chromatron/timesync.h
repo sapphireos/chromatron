@@ -35,7 +35,7 @@
 #define TIME_SERVER_PORT                32037
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION           2
+#define TIME_PROTOCOL_VERSION           3
 
 #define TIME_FLAGS_SOURCE_GPS           64
 #define TIME_FLAGS_SOURCE_NTP           32
