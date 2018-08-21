@@ -1,4 +1,4 @@
-// <license>
+ // <license>
 // 
 //     This file is part of the Sapphire Operating System.
 // 
@@ -26,18 +26,22 @@
 #include "keyvalue.h"
 #include "threading.h"
 #include "timers.h"
+#include "list.h"
 #include "catbus_common.h"
 #include "catbus.h"
+#include "datetime.h"
 
-#include "trig.h"
 #include "pixel.h"
 #include "graphics.h"
 #include "esp8266.h"
 #include "vm.h"
 #include "timesync.h"
 #include "kvdb.h"
+#include "hash.h"
+#include "vm_wifi_cmd.h"
+#include "vm_sync.h"
 
-#include "event_log.h"
+
 
 static uint16_t hs_fade = 1000;
 static uint16_t v_fade = 1000;
@@ -56,15 +60,16 @@ static uint16_t gfx_virtual_array_length;
 
 static bool pixel_transfer_enable = TRUE;
 
-static mem_handle_t subscribed_keys_h = -1;
-
 static volatile uint8_t run_flags;
 #define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
 #define FLAG_RUN_FADER          0x04
+#define FLAG_RUN_ONESEC         0x08
 
 static uint16_t vm_timer_rate; 
-
+static uint16_t vm0_frame_number;
+static uint32_t last_vm0_frame_ts;
+static int16_t frame_rate_adjust;
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -73,7 +78,7 @@ static uint16_t calc_vm_timer( uint32_t ms ){
 
 static void update_vm_timer( void ){
 
-    uint16_t new_timer = calc_vm_timer( gfx_frame_rate );
+    uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
 
     if( new_timer != vm_timer_rate ){
 
@@ -88,7 +93,6 @@ static void update_vm_timer( void ){
         END_ATOMIC;
     }
 }
-
 
 static void param_error_check( void ){
 
@@ -168,51 +172,51 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count,                   gfx_i8_kv_handler,   "pix_count" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_sub_dimmer,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_master_dimmer,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_size_x,                  gfx_i8_kv_handler,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_size_y,                  gfx_i8_kv_handler,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &gfx_interleave_x,            gfx_i8_kv_handler,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &gfx_transpose,               gfx_i8_kv_handler,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &hs_fade,                     gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_count,                   gfx_i8_kv_handler,   "pix_count" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_sub_dimmer,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_master_dimmer,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  gfx_i8_kv_handler,   "pix_size_x" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  gfx_i8_kv_handler,   "pix_size_y" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            gfx_i8_kv_handler,   "gfx_interleave_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               gfx_i8_kv_handler,   "gfx_transpose" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     gfx_i8_kv_handler,   "gfx_hsfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
 };
 
-void gfx_v_set_params( gfx_params_t *params ){
+// void gfx_v_set_params( gfx_params_t *params ){
 
-    if( params->version != GFX_VERSION ){
+//     if( params->version != GFX_VERSION ){
 
-        return;
-    }
+//         return;
+//     }
 
-    pix_count                   = params->pix_count;
-    pix_size_x                  = params->pix_size_x;
-    pix_size_y                  = params->pix_size_y;
-    gfx_interleave_x            = params->interleave_x;
-    gfx_transpose               = params->transpose;
-    hs_fade                     = params->hs_fade;
-    v_fade                      = params->v_fade;
-    gfx_master_dimmer           = params->master_dimmer;
-    gfx_sub_dimmer              = params->sub_dimmer;
-    gfx_frame_rate              = params->frame_rate;
-    gfx_dimmer_curve            = params->dimmer_curve;
-    gfx_virtual_array_start     = params->virtual_array_start;
-    gfx_virtual_array_length    = params->virtual_array_length;
+//     pix_count                   = params->pix_count;
+//     pix_size_x                  = params->pix_size_x;
+//     pix_size_y                  = params->pix_size_y;
+//     gfx_interleave_x            = params->interleave_x;
+//     gfx_transpose               = params->transpose;
+//     hs_fade                     = params->hs_fade;
+//     v_fade                      = params->v_fade;
+//     gfx_master_dimmer           = params->master_dimmer;
+//     gfx_sub_dimmer              = params->sub_dimmer;
+//     gfx_frame_rate              = params->frame_rate;
+//     gfx_dimmer_curve            = params->dimmer_curve;
+//     gfx_virtual_array_start     = params->virtual_array_start;
+//     gfx_virtual_array_length    = params->virtual_array_length;
 
-    // we cannot set pix mode via this function
-    // pix_mode                = params->pix_mode;
+//     // we cannot set pix mode via this function
+//     // pix_mode                = params->pix_mode;
 
 
-    param_error_check();
+//     param_error_check();
 
-    update_vm_timer();
-}
+//     update_vm_timer();
+// }
 
 void gfx_v_get_params( gfx_params_t *params ){
 
@@ -232,6 +236,7 @@ void gfx_v_get_params( gfx_params_t *params ){
 
     params->virtual_array_start   = gfx_virtual_array_start;
     params->virtual_array_length  = gfx_virtual_array_length;
+    params->sync_group_hash       = vm_sync_u32_get_sync_group_hash();
 
     // override dimmer curve for the Pixie, since it already has curves built in
     if( pixel_u8_get_mode() == PIX_MODE_PIXIE ){
@@ -289,17 +294,12 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
 
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
+PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
 
-#define FADER_TIMER_RATE 625 // 20 ms
-#define PARAMS_TIMER_RATE 31250 // 1000 ms
+#define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
-#define STROBE_CLK PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN ); \
-                   _delay_us(10); \
-                   PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN )
-
-#define STROBE_DATA PIX_DATA_PORT.OUTSET = ( 1 << PIX_DATA_PIN ); \
-                    _delay_us(10); \
-                    PIX_DATA_PORT.OUTCLR = ( 1 << PIX_DATA_PIN )
+#define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
+#define ONESEC_TIMER_RATE 31250 // 1000 ms (gfx timer)
 
 
 ISR(GFX_TIMER_CCA_vect){
@@ -307,8 +307,6 @@ ISR(GFX_TIMER_CCA_vect){
     GFX_TIMER.CCA += FADER_TIMER_RATE;
 
     run_flags |= FLAG_RUN_FADER;
-
-    // STROBE_CLK;
 }
 
 ISR(GFX_TIMER_CCB_vect){
@@ -316,17 +314,14 @@ ISR(GFX_TIMER_CCB_vect){
     GFX_TIMER.CCB += vm_timer_rate;
 
     run_flags |= FLAG_RUN_VM_LOOP;
-
-    // STROBE_DATA;
 }
 
 ISR(GFX_TIMER_CCC_vect){
 
-    GFX_TIMER.CCC += PARAMS_TIMER_RATE;
+    GFX_TIMER.CCC += ONESEC_TIMER_RATE;
 
-    run_flags |= FLAG_RUN_PARAMS;
+    run_flags |= FLAG_RUN_ONESEC;
 }
-
 
 void gfx_v_init( void ){
 
@@ -339,9 +334,6 @@ void gfx_v_init( void ){
     }
 
     param_error_check();
-
-    pixel_v_init();
-
 
     // debug
     // PIXEL_EN_PORT.DIRSET = ( 1 << PIXEL_EN_PIN );
@@ -358,8 +350,8 @@ void gfx_v_init( void ){
     update_vm_timer();
     GFX_TIMER.CCB = vm_timer_rate;
 
-    // params
-    GFX_TIMER.CCC = PARAMS_TIMER_RATE;
+    // one sec
+    GFX_TIMER.CCC = ONESEC_TIMER_RATE;
 
     GFX_TIMER.INTCTRLB = 0;
     GFX_TIMER.INTCTRLB |= TC_CCAINTLVL_HI_gc;
@@ -369,9 +361,16 @@ void gfx_v_init( void ){
     GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
     GFX_TIMER.CTRLB = 0;
 
+    pixel_v_init();
+
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
+                0,
+                0 );
+
+    thread_t_create( gfx_db_xfer_thread,
+                PSTR("gfx_db_xfer"),
                 0,
                 0 );
 }
@@ -379,6 +378,46 @@ void gfx_v_init( void ){
 bool gfx_b_running( void ){
 
     return pixel_transfer_enable;
+}
+
+uint16_t gfx_u16_get_frame_number( void ){
+
+    return vm0_frame_number;
+}
+
+uint32_t gfx_u32_get_frame_ts( void ){
+
+    return last_vm0_frame_ts;
+}
+
+void gfx_v_set_frame_number( uint16_t frame ){
+
+    vm0_frame_number = frame;
+}
+
+void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
+
+    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
+
+    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+
+    // we are ahead
+    if( corrected_time_offset > 10 ){
+
+        // slow down
+        frame_rate_adjust = 10;
+    }
+    // we are behind
+    else if( corrected_time_offset < 10 ){
+
+        // speed up
+        frame_rate_adjust = -10;
+    }
+
+    log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
+
+    update_vm_timer();
 }
 
 void gfx_v_pixel_bridge_enable( void ){
@@ -412,60 +451,31 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-static int8_t send_read_keys( void ){
-
-    if( subscribed_keys_h < 0 ){
-
-        return 0;
-    }
-
-    wifi_msg_kv_batch_t batch;
-    batch.count = 0;
-
-    uint32_t read_keys_count = mem2_u16_get_size( subscribed_keys_h ) / sizeof(uint32_t);
-    uint32_t *read_key = mem2_vp_get_ptr_fast( subscribed_keys_h );
-
-    if( read_keys_count > WIFI_KV_BATCH_LEN ){
-
-        read_keys_count = WIFI_KV_BATCH_LEN;
-
-        log_v_debug_P( PSTR("read keys limited to %d"), WIFI_KV_BATCH_LEN );
-    }
-
-    for( uint8_t i = 0; i < read_keys_count; i++ ){
-    
-        batch.entries[i].hash = *read_key;
-
-        catbus_i8_get( *read_key, &batch.entries[i].data );
-
-        read_key++;
-        batch.count++;
-    }
-
-    return wifi_i8_send_msg( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, sizeof(batch) );  
-}
-
 static int8_t send_run_fader_cmd( void ){
 
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
 }
 
-#ifdef ENABLE_TIME_SYNC
-static int8_t send_request_frame_sync_cmd( void ){
-    
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
+int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
+    
+    
+    #ifdef USE_HSV_BRIDGE
+    if( data_id == WIFI_DATA_ID_HSV_ARRAY ){
+
+        if( pixel_transfer_enable ){
+
+            wifi_msg_hsv_array_t *msg = (wifi_msg_hsv_array_t *)data;
+
+            // // unpack HSV pointers
+            uint16_t *h = (uint16_t *)msg->hsv_array;
+            uint16_t *s = h + msg->count;
+            uint16_t *v = s + msg->count;
+
+            pixel_v_load_hsv( msg->index, msg->count, h, s, v );   
+        }
     }
-
-    return wifi_i8_send_msg( WIFI_DATA_ID_REQUEST_FRAME_SYNC, 0, 0 );   
-}
-
-static uint16_t current_frame;
-#endif
-
-int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
-    
+    #else
     if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
 
         if( pixel_transfer_enable ){
@@ -495,183 +505,63 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ){
             pixel_v_load_rgb( msg->index, msg->count, r, g, b, d );   
         }
     }
+    #endif
     else if( data_id == WIFI_DATA_ID_VM_INFO ){
 
-        if( len != sizeof(vm_info_t) ){
+        if( len != sizeof(wifi_msg_vm_info_t) ){
 
             return -1;
         }
 
-        vm_v_received_info( (vm_info_t *)data );
+        wifi_msg_vm_info_t *msg = (wifi_msg_vm_info_t *)data;
+
+        vm_v_received_info( msg );
     }
-    #ifdef ENABLE_TIME_SYNC
-    else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
-        
-        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+    else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
-        time_v_send_frame_sync( msg );
+        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
+        uint8_t *kv_data = (uint8_t *)( msg + 1 );
 
-        // log_v_debug_P( PSTR("frame sync: #%5d RNG:%5d Data0:%5ld 1:%5ld 2:%5ld 3:%5ld"),
-        //     msg->frame_number,
-        //     (uint16_t)msg->rng_seed,
-        //     msg->data[0],
-        //     msg->data[1],
-        //     msg->data[2],
-        //     msg->data[3] );
-    }
-    else if( data_id == WIFI_DATA_ID_FRAME_SYNC_STATUS ){
-
-        // wifi_msg_vm_frame_sync_status_t *msg = (wifi_msg_vm_frame_sync_status_t *)data;
-        // log_v_debug_P( PSTR("frame sync status: 0x%02x frame: %u"), msg->status, msg->frame_number );
-
-        // if( current_frame > msg->frame_number ){
-
-        //     log_v_debug_P( PSTR("ahead: %u"), current_frame - msg->frame_number );
-        // }
-        // else if( current_frame < msg->frame_number ){
-
-        //     log_v_debug_P( PSTR("behind: %u"), msg->frame_number - current_frame);
-        // }
-
-        // current_frame = msg->frame_number;
-    }
-    #endif
-    else if( data_id == WIFI_DATA_ID_KV_BATCH ){
-
-        wifi_msg_kv_batch_t *msg = (wifi_msg_kv_batch_t *)data;
-
-        for( uint8_t i = 0; i < msg->count; i++ ){
-
-            // log_v_debug_P( PSTR("from ESP: %lx %ld"), msg->entries[i].hash, msg->entries[i].data );
-
-            catbus_i8_set( msg->entries[i].hash, msg->entries[i].data );
-        }
+        catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data );
     }
     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
         log_v_debug_P( PSTR("ESP: %s"), data );
     }
+    else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
+             ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
+             ( data_id == WIFI_DATA_ID_VM_SYNC_DONE ) ){
+
+        vm_sync_v_process_msg( data_id, data, len );
+    }
 
     return 0;    
 }
 
-void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, void *data ){
 
-    // right now, this only works for the i32 that the VM supports.
-    if( meta->type != CATBUS_TYPE_INT32 ){
-
-        return;
-    }
-
-    int32_t i32_data = *(int32_t *)data;
-
-    wifi_msg_kv_batch_t batch;
-    batch.count = 1;
-    batch.entries[0].hash = hash;
-    batch.entries[0].data = i32_data;
-    
-    uint8_t msg_size = ( sizeof(batch) - sizeof(batch.entries) ) + sizeof(batch.entries[0]);
-
-    // log_v_debug_P(PSTR("set to ESP: %lx %ld"), hash, i32_data);
-
-    wifi_i8_send_msg_blocking( WIFI_DATA_ID_KV_BATCH, (uint8_t *)&batch, msg_size );     
-}
-
-
-#ifdef ENABLE_TIME_SYNC
-static bool frame_sync;
-static int8_t frame_adjust;
-
-
-void gfx_v_frame_sync(
-    uint16_t frame_number,
-    uint64_t rng_seed,
-    uint16_t data_index,
-    uint16_t data_count,
-    int32_t data[WIFI_DATA_FRAME_SYNC_MAX_DATA]
-){
-
-    int16_t temp_frame_adjust = frame_number - current_frame;
-
-    if( temp_frame_adjust > 100 ){
-
-        temp_frame_adjust = 100;
-    }
-    else if( temp_frame_adjust < -100 ){
-
-        temp_frame_adjust = -100;
-    }
-
-    frame_adjust = temp_frame_adjust;
-
-    if( current_frame > frame_number ){
-
-        // log_v_debug_P( PSTR("local frame: %5u remote: %5u +%3u"), current_frame, frame_number, current_frame - frame_number );
-    }
-    else if( current_frame < frame_number ){
-
-        // log_v_debug_P( PSTR("local frame: %5u remote: %5u -%3u"), current_frame, frame_number, frame_number - current_frame);
-    }
-
-    if( ( frame_adjust < -16 ) || ( frame_adjust > 16 ) || ( frame_sync == FALSE ) ){
-
-        current_frame = frame_number + 1;
-        frame_adjust = 0;
-
-        frame_sync = TRUE;
-
-        wifi_msg_vm_frame_sync_t sync;
-        memset( &sync, 0, sizeof(sync) );
-
-        sync.frame_number  = frame_number;
-        sync.rng_seed      = rng_seed;
-        sync.data_index    = data_index;
-        sync.data_count    = data_count;
-
-        memcpy( sync.data, data, sync.data_count * sizeof(int32_t) );
-
-        wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
-    }
-}
-#endif
 
 void gfx_v_sync_params( void ){
 
     send_params( TRUE );    
 }
 
-#ifdef ENABLE_TIME_SYNC
-void gfx_v_reset_frame_sync( void ){
 
-    current_frame = 0;
-    frame_sync = FALSE;
-}
-#endif
+typedef struct{
+    catbus_hash_t32 hash;
+    uint8_t tag;
+    uint8_t flags;
+} subscribed_key_t;
+#define KEY_FLAG_UPDATED        0x01
 
-void gfx_v_set_subscribed_keys( mem_handle_t h ){
-
-    subscribed_keys_h = h;
-}
-
-void gfx_v_reset_subscribed( void ){
-
-    if( subscribed_keys_h > 0 ){
-
-        mem2_v_free( subscribed_keys_h );
-    }
-
-    subscribed_keys_h = -1;
-}
+static bool run_xfer;
+static subscribed_key_t subscribed_keys[32];
 
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    #ifdef ENABLE_TIME_SYNC
-    static uint32_t last_frame_sync_time;
-    #endif
-
+    static uint32_t last_param_sync;
     static uint8_t flags;
 
     // wait until wifi is attached before starting up pixel driver
@@ -682,14 +572,13 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, run_flags == 0 );        
+        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && 
+                               ( tmr_u32_elapsed_time_ms( last_param_sync ) < PARAMS_TIMER_RATE ) );
 
         ATOMIC;
         flags = run_flags;
         run_flags = 0;
         END_ATOMIC;
-
-        // log_v_debug_P( PSTR("%x"), flags );
 
         if( flags & FLAG_RUN_VM_LOOP ){
 
@@ -699,70 +588,248 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            #ifdef ENABLE_TIME_SYNC
-            if( frame_adjust < 0 ){
-
-                frame_adjust++;
-
-                // log_v_debug_P( PSTR("skip frame") );
-
-                // skip this frame
-                goto end;
-            }
-            #endif
-
-            #ifdef ENABLE_TIME_SYNC
-            current_frame++;
-
-            if( frame_adjust > 0 ){
-                
-                // log_v_debug_P( PSTR("extra frame") );
-
-                frame_adjust--;
-                
-                // add extra frame
-                TMR_WAIT( pt, 5 );
-    
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-                send_read_keys();
-
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-                send_run_vm_cmd();
-                current_frame++;
-            }
-
-            if( tmr_u32_elapsed_time_ms( last_frame_sync_time ) > 4000 ){ 
-
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
-                send_request_frame_sync_cmd();
-                last_frame_sync_time = tmr_u32_get_system_time_ms();
-            }
-            #else
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_read_keys();
-
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_run_vm_cmd();
-            #endif
+
+            if( vm_b_is_vm_running( 0 ) ){
+                
+                vm0_frame_number++;
+                last_vm0_frame_ts = time_u32_get_network_time();
+            }
         }
 
 end:
         if( flags & FLAG_RUN_FADER ){   
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_run_fader_cmd();
+            if( pixel_u8_get_mode() != PIX_MODE_OFF ){
+                
+                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+                send_run_fader_cmd();
+            }
         }
 
-        if( flags & FLAG_RUN_PARAMS ){
+        if( flags & FLAG_RUN_ONESEC ){
+
+            // check if time is synced
+            if( time_b_is_sync() ){
+
+                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+                datetime_t datetime;
+                datetime_v_now( &datetime );
+
+                wifi_msg_vm_time_of_day_t msg;
+                msg.seconds         = datetime.seconds;
+                msg.minutes         = datetime.minutes;
+                msg.hours           = datetime.hours;
+                msg.day_of_month    = datetime.day;
+                msg.day_of_week     = datetime.weekday;
+                msg.month           = datetime.month;
+                msg.year            = datetime.year;
+
+                wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
+            }
+        }
+
+        if( ( flags & FLAG_RUN_PARAMS ) ||
+            ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_params( FALSE );
+
+            // run DB transfer
+            run_xfer = TRUE;
+            for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+                if( subscribed_keys[i].hash == 0 ){
+
+                   continue;
+                }
+                    
+                subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
+            }   
+
+            last_param_sync = tmr_u32_get_system_time_ms();
         }
 
         THREAD_YIELD( pt ); 
     }
 
+PT_END( pt );
+}
+    
+
+void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
+
+    int8_t empty = -1;
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+        if( subscribed_keys[i].hash == hash ){
+
+            subscribed_keys[i].tag |= tag;
+            return;
+        }
+        else if( ( subscribed_keys[i].hash == 0 ) && ( empty < 0 ) ){
+
+            empty = i;
+        }
+    }
+
+    if( empty < 0 ){
+
+        log_v_debug_P( PSTR("subscribed keys full") );
+
+        return;
+    }
+
+    subscribed_keys[empty].hash     = hash;
+    subscribed_keys[empty].tag      = tag;
+    subscribed_keys[empty].flags    = KEY_FLAG_UPDATED;
+
+    run_xfer = TRUE;
+}
+
+
+void gfx_v_reset_subscribed( uint8_t tag ){
+
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+        if( subscribed_keys[i].tag & tag ){
+
+            subscribed_keys[i].tag &= ~tag;
+
+            if( subscribed_keys[i].tag == 0 ){
+
+                subscribed_keys[i].hash = 0;
+            } 
+        }
+    }  
+}
+
+
+static uint8_t init_vm;
+
+void gfx_v_init_vm( uint8_t vm_id ){
+
+    run_xfer = TRUE;
+
+    init_vm |= ( 1 << vm_id );
+
+    if( vm_id == 0 ){
+
+        vm0_frame_number = 0;
+    }
+}
+
+
+void kv_v_notify_hash_set( catbus_hash_t32 hash ){
+
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+        if( subscribed_keys[i].hash == hash ){
+
+            subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
+
+            run_xfer = TRUE;
+
+            break;
+        }
+    }   
+}
+
+
+
+PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static uint8_t index;
+
+
+    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, !run_xfer );
+
+        while( index < cnt_of_array(subscribed_keys) ){
+
+            if( subscribed_keys[index].hash == 0 ){
+
+                goto end;
+            }
+
+            if( subscribed_keys[index].flags == 0 ){
+
+                goto end;
+            }
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+            subscribed_keys[index].flags = 0;
+
+            kv_meta_t meta;
+            if( kv_i8_lookup_hash( subscribed_keys[index].hash, &meta, 0 ) < 0 ){
+
+                goto end;
+            }
+
+            // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+            uint8_t buf[128 + sizeof(wifi_msg_kv_data_t)];
+            wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+            uint8_t *data = (uint8_t *)( msg + 1 );
+        
+            if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
+
+                goto end;
+            }  
+
+            uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
+
+            msg->meta.hash        = meta.hash;
+            msg->meta.type        = meta.type;
+            msg->meta.count       = meta.array_len;
+            msg->meta.flags       = meta.flags;
+            msg->meta.reserved    = 0;
+            msg->tag              = subscribed_keys[index].tag;
+
+            wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
+
+
+end:
+            index++;
+        }
+
+        index = 0;
+        run_xfer = FALSE;
+
+        if( init_vm != 0 ){
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+            uint32_t vm_id = init_vm;
+
+            wifi_i8_send_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&vm_id, sizeof(vm_id) );
+            init_vm = 0;
+        }
+
+        // check if any flags are set
+        for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+            if( subscribed_keys[i].hash == 0 ){
+
+                continue;
+            }
+
+            if( subscribed_keys[i].flags & KEY_FLAG_UPDATED ){
+
+                run_xfer = TRUE;
+                break;
+            }
+        }
+
+    }
+        
 PT_END( pt );
 }
 

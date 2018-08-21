@@ -38,12 +38,12 @@
 
 #include <math.h>
 
-#define PWM_FADE_TIMER_VALUE 500
-#define PWM_FADE_TIMER_VALUE_PIXIE 1000 // Pixie needs at least 1 ms between frames
-#define PWM_FADE_TIMER_VALUE_WS2811 500
-#define PWM_FADE_TIMER_WATCHDOG_VALUE 25000
+// on GFX timer, prescaler /1024:
+#define PWM_FADE_TIMER_VALUE 32 // 1 ms
+#define PWM_FADE_TIMER_VALUE_PIXIE 64 // Pixie needs at least 1 ms between frames (this setting gets 2 ms)
+#define PWM_FADE_TIMER_VALUE_WS2811 32 // 1 ms
+#define PWM_FADE_TIMER_WATCHDOG_VALUE 1250 // 40 ms
 
-#define PIXEL_TIMER_RATE TC_CLKSEL_DIV64_gc
 
 static bool pix_dither;
 static uint8_t pix_mode;
@@ -122,6 +122,11 @@ static void enable_double_buffer( void ){
 static void disable_double_buffer( void ){
 
     DMA.CTRL &= ~DMA_DBUFMODE_gm;
+}
+
+static bool double_buffer_enabled( void ){
+
+    return ( DMA.CTRL & DMA_DBUFMODE_CH01_gc ) != 0;
 }
 
 static void setup_tx_dma_A( uint8_t *buf, uint8_t len ){
@@ -393,6 +398,24 @@ static void pixel_v_start_frame( void ){
 }
 
 
+static void setup_pixel_timer( void ){
+    
+    if( ( pix_mode == PIX_MODE_WS2811 ) ||
+        ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+
+        PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_VALUE_WS2811;
+    }
+    else if( pix_mode == PIX_MODE_PIXIE ){
+
+        PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_VALUE_PIXIE;
+    }
+    else{
+
+        PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_VALUE;
+    }
+}
+
+
 ISR(PIXEL_DMA_CH_A_vect){
 OS_IRQ_BEGIN(PIXEL_DMA_CH_A_vect);
 
@@ -420,23 +443,15 @@ OS_IRQ_BEGIN(PIXEL_DMA_CH_A_vect);
 
             DMA.PIXEL_DMA_CH_A.CTRLB &= ~DMA_CH_TRNINTLVL_gm;
 
-            disable_double_buffer();
+            if( double_buffer_enabled() ){
 
-            PIXEL_TIMER.CTRLA = 0;
-            PIXEL_TIMER.CNT = 0;
-            PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE;
-
-            if( ( pix_mode == PIX_MODE_WS2811 ) ||
-                ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
-
-                PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE_WS2811;
+                disable_double_buffer();
             }
-            else if( pix_mode == PIX_MODE_PIXIE ){
+            else{
 
-                PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE_PIXIE;
+                // reset timer
+                setup_pixel_timer();
             }
-
-            PIXEL_TIMER.CTRLA = PIXEL_TIMER_RATE;
         }
     }
 
@@ -470,44 +485,27 @@ OS_IRQ_BEGIN(PIXEL_DMA_CH_B_vect);
 
             DMA.PIXEL_DMA_CH_B.CTRLB &= ~DMA_CH_TRNINTLVL_gm;
 
-            disable_double_buffer();
+            if( double_buffer_enabled() ){
 
-            // reset timer
-            PIXEL_TIMER.CTRLA = 0;
-            PIXEL_TIMER.CNT = 0;
-            PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE;
-
-            if( ( pix_mode == PIX_MODE_WS2811 ) ||
-                ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
-
-                PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE_WS2811;
+                disable_double_buffer();
             }
-            else if( pix_mode == PIX_MODE_PIXIE ){
+            else{
 
-                PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE_PIXIE;
+                // reset timer
+                setup_pixel_timer();
             }
-
-            PIXEL_TIMER.CTRLA = PIXEL_TIMER_RATE;
         }
     }
 
 OS_IRQ_END();
 }
 
-// fade timer
-ISR(PIXEL_TIMER_OVF_vect){
-OS_IRQ_BEGIN(PIXEL_TIMER_OVF_vect);
-
-    PIXEL_TIMER.CTRLA = 0;
+ISR(PIXEL_TIMER_CC_VECT){
 
     pixel_v_start_frame();
 
     // reset timer with watchdog value
-    PIXEL_TIMER.CNT = 0;
-    PIXEL_TIMER.PER = PWM_FADE_TIMER_WATCHDOG_VALUE;
-    PIXEL_TIMER.CTRLA = PIXEL_TIMER_RATE;
-
-OS_IRQ_END();
+    PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_WATCHDOG_VALUE;
 }
 
 
@@ -606,8 +604,8 @@ void pixel_v_init( void ){
     ATOMIC;
 
     // stop timer
-    PIXEL_TIMER.CTRLA = 0;
-    PIXEL_TIMER.CTRLB = 0;
+    // PIXEL_TIMER.CTRLA = 0;
+    // PIXEL_TIMER.CTRLB = 0;
 
     // reset DMA channels
     DMA.PIXEL_DMA_CH_A.CTRLA = 0;
@@ -721,14 +719,11 @@ void pixel_v_init( void ){
         PIXEL_DATA_PORT.BAUDCTRLB = 0;
     }
 
+    // setup pixel timer
+    PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_VALUE;
+    PIXEL_TIMER.INTCTRLB |= PIXEL_TIMER_CC_INTLVL;
 
-    // enable overflow interrupt and set priority level to high
-    PIXEL_TIMER.INTCTRLA |= TC_OVFINTLVL_HI_gc;
 
-    PIXEL_TIMER.PER = PWM_FADE_TIMER_VALUE;
-
-    // start timer
-    PIXEL_TIMER.CTRLA = PIXEL_TIMER_RATE;
 
     pixel_v_enable();
 }
@@ -776,6 +771,127 @@ void pixel_v_load_rgb(
     memcpy( &array_misc.dither[index], d, transfer_count );
 
     END_ATOMIC;
+}
+
+void pixel_v_load_rgb16(
+    uint16_t index,
+    uint16_t r,
+    uint16_t g,
+    uint16_t b ){
+
+    uint8_t dither;
+
+    r /= 64;
+    g /= 64;
+    b /= 64;
+
+    dither =  ( r & 0x0003 ) << 4;
+    dither |= ( g & 0x0003 ) << 2;
+    dither |= ( b & 0x0003 );
+
+    r /= 4;
+    g /= 4;
+    b /= 4;
+    
+    // need to do the copy with interrupts disabled,
+    // so that way we have access into the arrays without
+    // the pixel driver touching them
+    ATOMIC;
+    array_r[index] = r;
+    array_g[index] = g;
+    array_b[index] = b;
+    array_misc.dither[index] = dither;
+    END_ATOMIC;
+}
+
+void pixel_v_load_hsv(
+    uint16_t index,
+    uint16_t len,
+    uint16_t *h,
+    uint16_t *s,
+    uint16_t *v ){
+
+
+    uint16_t r, g, b, w;
+
+    // if first pixel and analog mode:
+    if( ( index == 0 ) && ( pix_mode == PIX_MODE_ANALOG ) ){
+
+        gfx_v_hsv_to_rgb(
+                h[0],
+                s[0],
+                v[0],
+                &r,
+                &g,
+                &b
+            );
+
+        pixel_v_set_analog_rgb( r, g, b );
+
+        return;
+    }
+
+    uint16_t transfer_count = len;
+
+    if( ( index + transfer_count ) > MAX_PIXELS ){
+
+        transfer_count = MAX_PIXELS - index;
+    }
+
+    // bounds check
+    if( ( index + transfer_count ) > MAX_PIXELS ){
+
+        log_v_debug_P( PSTR("pix transfer out of bounds") );
+        return;
+    }
+
+    if( pix_mode == PIX_MODE_SK6812_RGBW ){
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            gfx_v_hsv_to_rgbw(
+                h[i],
+                s[i],
+                v[i],
+                &r,
+                &g,
+                &b,
+                &w
+            );
+      
+            r /= 256;
+            g /= 256;
+            b /= 256;
+            w /= 256;
+            
+            // need to do the copy with interrupts disabled,
+            // so that way we have access into the arrays without
+            // the pixel driver touching them
+            ATOMIC;
+            array_r[i + index] = r;
+            array_g[i + index] = g;
+            array_b[i + index] = b;
+            array_misc.white[i + index] = w;
+            END_ATOMIC;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            gfx_v_hsv_to_rgb(
+                h[i],
+                s[i],
+                v[i],
+                &r,
+                &g,
+                &b
+            );
+        
+            pixel_v_load_rgb16( i + index, r, g, b );
+        }
+    }
+
 }
 
 void pixel_v_get_rgb_totals( uint16_t *r, uint16_t *g, uint16_t *b ){

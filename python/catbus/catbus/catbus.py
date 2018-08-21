@@ -87,10 +87,18 @@ class CatbusService(Database):
 
         self._callbacks = {}
 
+        self.default_callback = None
+
+        self._server._default_callback = self._default_callback
+
         # self.add_item('ip', self.host[0], 'ipv4', readonly=True) # getting source IP is not reliable
         self.add_item('process_name', sys.argv[0], 'string64', readonly=True)
         self.add_item('process_id', os.getpid(), 'uint32', readonly=True)
         self.add_item('kv_test_key', os.getpid(), 'uint32')
+
+    def _default_callback(self, key, value, query, timestamp):    
+        if self.default_callback != None:
+            self.default_callback(key, value, query, timestamp)
 
     def _item_notify(self, key, value):
         try:
@@ -377,24 +385,46 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    # main()
 
-    # from pprint import pprint
+    from pprint import pprint
 
-    # kv1 = CatbusService(data_port=11632, tags=['meow'])
-    # kv1['woof'] = 0
+    # kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
+    kv1 = CatbusService(tags=['stuff'], visible=False)
+    # kv1['kv_test_key'] = 0
 
-    # # kv1.receive('woof', 'kv_test_key', ['sender'])
+    # kv1.receive('woof', 'kv_test_key', ['test'])
+    # kv1.receive('woof', 'kv_test_array', ['test'])
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
 
-    # try:
-    #     while True:
-    #         time.sleep(0.5)
-    #         # print kv1['woof']
-    #         kv1['woof'] += 1
+    # kv1.receive('amg_data', 'amg_data', ['test'])
+    kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
+    kv1.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
 
-    # except KeyboardInterrupt:
-    #     pass
+
+    kv1['track_1_fader'] = 0
+    kv1['track_2_fader'] = 0
+
+    try:
+        while True:
+            time.sleep(0.1)
+            kv1['track_1_fader'] += 1024
+            kv1['track_2_fader'] += 1024
+
+            # print kv1['track_1_fader']
+
+            # print kv1['kv_test_key']
+            # kv1['woof'] += 1
+            # print kv1['woof']
+
+            # try:
+                # print kv1['amg_data']
+                
+            # except KeyError:
+                # pass
+
+    except KeyboardInterrupt:
+        pass
 
 
 

@@ -14,12 +14,32 @@ def build():
     b = core.Builder(os.path.join(os.getcwd(), 'src'))
     hashes = b.create_kv_hashes()
 
-    defines = []
-    for k, v in hashes.iteritems():
-        defines.append('-D%s=%s ' % (k, v))
+    with open('__kv_hashes.h', 'w+') as f:
+        f.write("/* AUTO GENERATED FILE! DO NOT EDIT! */\n")
+        f.write("#ifndef __KV_HASHES_H__\n")
+        f.write("#define __KV_HASHES_H__\n")
 
-    flags = ''.join(defines)
-    os.environ['PLATFORMIO_BUILD_FLAGS'] = flags
+        f.write("#include <stdint.h>\n")
+
+        for k, v in hashes.iteritems():
+            f.write("#define %s (uint32_t)%s\n" % (k, v))
+
+        f.write("#endif\n")
+
+    # this doesn't work, because we need to cast the hashes to uint32_t.
+    # if we don't, the xtensa compiler will sometimes glitch on some values and
+    # screw up a function call.
+    # we can't send them through the -D option, because the command 
+    # can't parse the () 
+
+    # defines = []
+    # for k, v in hashes.iteritems():
+    #     defines.append("-D%s=%s " % (k, v))
+
+    # flags = ''.join(defines)
+    # os.environ['PLATFORMIO_BUILD_FLAGS'] = flags
+
+    os.environ['PLATFORMIO_BUILD_FLAGS'] = "-include __kv_hashes.h"
 
     os.system('platformio run')
 

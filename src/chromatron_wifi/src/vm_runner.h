@@ -27,26 +27,35 @@
 #include "gfx_lib.h"
 #include "vm_core.h"
 #include "wifi_cmd.h"
+#include "vm_wifi_cmd.h"
 
-#define KVDB_VM_RUNNER_TAG      70
+#define VM_RUNNER_MAX_SIZE 		8192
+
+#define VM_RUNNER_THREAD_RATE 	10
 
 void vm_v_init( void );
 void vm_v_run_faders( void );
 void vm_v_run_vm( void );
 void vm_v_process( void );
-
-void vm_v_reset( void );
-int8_t vm_i8_load( uint8_t *data, uint16_t len );
+void vm_v_send_info( void );
+void vm_v_reset(  uint8_t vm_index );
+int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index );
+int8_t vm_i8_start( uint32_t vm_index );
 void vm_v_request( void );
-void vm_v_get_info( vm_info_t *info );
-int8_t vm_i8_get_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *sync );
-uint8_t vm_u8_set_frame_sync( wifi_msg_vm_frame_sync_t *sync );
-uint16_t vm_u16_get_frame_number( void );
-void vm_v_run_loop( void );
-int32_t vm_i32_get_reg( uint8_t addr );
-void vm_v_set_reg( uint8_t addr, int32_t data );
+void vm_v_get_info( uint8_t index, vm_info_t *info );
+uint16_t vm_u16_get_fader_time( void );
+uint16_t vm_u16_get_total_size( void );
 
+void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len );
+void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
+void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len );
+
+int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index );
+void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index );
+
+void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg );
+
+void vm_v_request_frame_data( uint8_t index );
 void vm_v_run_fader( void );
-void vm_v_get_send_list( list_t **list );
 
 #endif

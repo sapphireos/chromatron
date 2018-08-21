@@ -49,7 +49,11 @@
 #endif
 //#define ENABLE_RECORD_CREATOR
 
-typedef int8_t mem_handle_t;
+#if MAX_MEM_HANDLES < 256
+    typedef int8_t mem_handle_t;
+#else
+    typedef int16_t mem_handle_t;
+#endif
 
 typedef struct{
 	uint16_t size;
@@ -86,7 +90,7 @@ mem_block_header_t mem2_h_get_header( uint16_t index );
 bool mem2_b_verify_handle( mem_handle_t handle );
 mem_handle_t mem2_h_alloc( uint16_t size );
 mem_handle_t mem2_h_alloc2( uint16_t size, mem_type_t8 type );
-mem_handle_t mem2_h_get_handle( uint8_t index, mem_type_t8 type );
+mem_handle_t mem2_h_get_handle( uint16_t index, mem_type_t8 type );
 #define MEM_ERR_INCORRECT_TYPE  -10
 #define MEM_ERR_INVALID_HANDLE  -11
 #define MEM_ERR_END_OF_LIST     -20

@@ -22,16 +22,11 @@
 // </license>
  */
 
-#include "threading.h"
 #include "timers.h"
 #include "random.h"
 #include "system.h"
 #include "sockets.h"
 #include "udp.h"
-
-#ifdef ENABLE_UDPX
-#include "udpx.h"
-#endif
 
 #include "list.h"
 #include "memory.h"
@@ -62,39 +57,30 @@ typedef struct{
     sock_state_raw_t raw;
     uint8_t state;              // current state
     uint16_t lport;             // local port
+
+    #ifndef SOCK_SINGLE_BUF
     mem_handle_t handle;        // received data handle
     uint8_t header_len;         // length of non-data headers in data handle
     sock_addr_t raddr;          // bound remote address
+    #endif
+
     struct{
         uint8_t setting;
         uint8_t current;
     } timer;                    // receive timeout state
 } sock_state_dgram_t;
 
-#ifdef ENABLE_UDPX
-// UDPX client structure
-typedef struct{
-    sock_state_dgram_t dgram;
-    uint8_t msg_id;
-    uint8_t time_left;
-    uint8_t tries;
-} sock_state_udpx_client_t;
-
-// UDPX server structure
-typedef struct{
-    sock_state_dgram_t dgram;
-    uint8_t msg_id;
-    bool ack_request;
-} sock_state_udpx_server_t;
-#endif
 
 static list_t sockets;
 
 static uint16_t current_ephemeral_port;
 
-
-PT_THREAD( timeout_thread( pt_t *pt, void *state ) );
-
+#ifdef SOCK_SINGLE_BUF
+static mem_handle_t rx_handle = -1;        // received data handle
+static uint16_t rx_port;
+static uint8_t rx_header_len;         // length of non-data headers in data handle
+static sock_addr_t rx_raddr;          // bound remote address
+#endif
 
 bool sock_b_port_in_use( uint16_t port ){
 
@@ -123,6 +109,13 @@ bool sock_b_port_in_use( uint16_t port ){
 
 bool sock_b_port_busy( uint16_t port ){
 
+    #ifdef SOCK_SINGLE_BUF
+    if( rx_handle > 0 ){
+
+        return TRUE;
+    }
+    #else
+
     socket_t sock = sockets.head;
 
     while( sock >= 0 ){
@@ -149,6 +142,55 @@ bool sock_b_port_busy( uint16_t port ){
 next:
         sock = list_ln_next( sock );
     }
+    #endif
+
+    return FALSE;
+}
+
+bool sock_b_rx_pending( void ){
+
+    #ifdef SOCK_SINGLE_BUF
+    if( rx_handle > 0 ){
+
+        // check if receiving socket already saw this message
+
+        socket_t sock = sockets.head;
+        sock_state_dgram_t *dgram;
+
+        while( sock >= 0 ){
+
+            // derefence to datagram
+            dgram = list_vp_get_data( sock );
+
+            // check socket type and port number (if datagram)
+            if( ( SOCK_IS_DGRAM( dgram->raw.type ) ) &&
+                ( dgram->lport == rx_port ) ){
+
+                // if socket has already seen this message
+                if( dgram->state == SOCK_UDP_STATE_RX_DATA_RECEIVED ){
+
+                    // go ahead and release buffer
+
+                    // free the receive buffer
+                    mem2_v_free( rx_handle );
+
+                    // mark handle as empty
+                    rx_handle = -1;
+                    rx_port = 0;
+
+                    return FALSE;
+                }                
+
+                break;
+            }
+
+            sock = list_ln_next( sock );
+        }
+
+
+        return TRUE;
+    }
+    #endif
 
     return FALSE;
 }
@@ -188,16 +230,6 @@ socket_t sock_s_create( sock_type_t8 type ){
 
         state_size = sizeof(sock_state_dgram_t);
     }
-    #ifdef ENABLE_UDPX
-    else if( type == SOCK_UDPX_CLIENT ){
-
-        state_size = sizeof(sock_state_udpx_client_t);
-    }
-    else if( type == SOCK_UDPX_SERVER ){
-
-        state_size = sizeof(sock_state_udpx_server_t);
-    }
-    #endif
     else{
 
         // invalid socket type
@@ -229,35 +261,17 @@ socket_t sock_s_create( sock_type_t8 type ){
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)socket;
 
         dgram->lport            = get_lport();
-        dgram->handle           = -1;
         dgram->state            = SOCK_UDP_STATE_IDLE;
         dgram->timer.setting    = 0;
         dgram->timer.current    = 0;
+
+        #ifndef SOCK_SINGLE_BUF
+        dgram->handle           = -1;
         dgram->header_len       = 0;
+        #endif
 
         netmsg_v_open_close_port( IP_PROTO_UDP, dgram->lport, TRUE );
     }
-
-    #ifdef ENABLE_UDPX
-    if( SOCK_IS_UDPX_CLIENT( socket->type ) ){
-
-        // upgrade pointer to datagram structure
-        sock_state_udpx_client_t *client = (sock_state_udpx_client_t *)socket;
-
-        client->dgram.timer.setting = UDPX_INITIAL_TIMEOUT;
-
-        client->msg_id      = 0;
-        client->time_left   = 0;
-        client->tries       = 0;
-    }
-    else if( SOCK_IS_UDPX_SERVER( socket->type ) ){
-
-        // upgrade pointer to datagram structure
-        sock_state_udpx_server_t *server = (sock_state_udpx_server_t *)socket;
-
-        server->msg_id      = 0;
-    }
-    #endif
 
     // add socket to list
     list_v_insert_tail( &sockets, ln );
@@ -275,11 +289,22 @@ void sock_v_release( socket_t sock ){
 
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+
+        if( ( rx_port == dgram->lport ) && ( rx_handle > 0 ) ){
+
+            mem2_v_free( rx_handle );
+            rx_handle = -1;
+            rx_port = 0;
+        }
+
+        #else
         // check if there is data in the socket's buffer
         if( dgram->handle >= 0 ){
 
             mem2_v_free( dgram->handle );
         }
+        #endif
 
         netmsg_v_open_close_port( IP_PROTO_UDP, dgram->lport, FALSE );
     }
@@ -368,7 +393,18 @@ void sock_v_get_raddr( socket_t sock, sock_addr_t *raddr ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+        if( dgram->lport == rx_port ){
+
+            *raddr = rx_raddr;
+        }
+        else{
+
+            memset( raddr, 0, sizeof(sock_addr_t) );
+        }
+        #else
         *raddr = dgram->raddr;
+        #endif
     }
     else{
 
@@ -377,24 +413,24 @@ void sock_v_get_raddr( socket_t sock, sock_addr_t *raddr ){
     }
 }
 
-// set the remote address for a socket
-void sock_v_set_raddr( socket_t sock, sock_addr_t *raddr ){
+// // set the remote address for a socket
+// void sock_v_set_raddr( socket_t sock, sock_addr_t *raddr ){
 
-    sock_state_raw_t *s = list_vp_get_data( sock );
+//     sock_state_raw_t *s = list_vp_get_data( sock );
 
-    if( SOCK_IS_DGRAM( s->type ) ){
+//     if( SOCK_IS_DGRAM( s->type ) ){
 
-        // get more specific pointer
-        sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
+//         // get more specific pointer
+//         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-        dgram->raddr = *raddr;
-    }
-    else{
+//         dgram->raddr = *raddr;
+//     }
+//     else{
 
-        // invalid socket type
-        ASSERT( FALSE );
-    }
-}
+//         // invalid socket type
+//         ASSERT( FALSE );
+//     }
+// }
 
 uint16_t sock_u16_get_lport( socket_t sock ){
 
@@ -427,10 +463,17 @@ int16_t sock_i16_get_bytes_read( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-        if( dgram->handle >= 0 ){
+        #ifdef SOCK_SINGLE_BUF        
+        if( ( dgram->lport == rx_port ) && ( rx_handle > 0 ) ){
+
+            return mem2_u16_get_size( rx_handle ) - rx_header_len;
+        }
+        #else
+        if( dgram->handle > 0 ){
 
             return mem2_u16_get_size( dgram->handle ) - dgram->header_len;
         }
+        #endif
     }
     else{
 
@@ -453,10 +496,23 @@ void *sock_vp_get_data( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+
+        if( dgram->lport == rx_port ){
+
+            // ensure data has been received for the socket
+            ASSERT( rx_handle > 0 );    
+
+            return mem2_vp_get_ptr( rx_handle ) + rx_header_len;
+        }
+
+        #else
         // ensure data has been received for the socket
-        ASSERT( dgram->handle >= 0 );
+        ASSERT( dgram->handle > 0 );
 
         return mem2_vp_get_ptr( dgram->handle ) + dgram->header_len;
+
+        #endif
     }
     else{
 
@@ -482,9 +538,20 @@ mem_handle_t sock_h_get_data_handle( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
+        #ifdef SOCK_SINGLE_BUF
+
+        if( dgram->lport == rx_port ){
+
+            h = rx_handle;
+            rx_handle = -1;
+            rx_port = 0;
+        }
+
+        #else
         h = dgram->handle;
 
         dgram->handle = -1;
+        #endif
     }
     else{
 
@@ -527,18 +594,6 @@ int8_t sock_i8_recvfrom( socket_t sock ){
         // get more specific pointer
         sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-        #ifdef ENABLE_UDPX
-        // check UDPX client
-        if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-            // if waiting for ack
-            if( dgram->state == SOCK_UDPX_STATE_WAIT_ACK ){
-
-                return -1;
-            }
-        }
-        #endif
-
         // check if idle
         if( dgram->state == SOCK_UDP_STATE_IDLE ){
 
@@ -558,7 +613,11 @@ int8_t sock_i8_recvfrom( socket_t sock ){
         // check if data has been buffered
         else if( dgram->state == SOCK_UDP_STATE_RX_DATA_PENDING ){
 
-            ASSERT( dgram->handle >= 0 );
+            #ifdef SOCK_SINGLE_BUF
+            ASSERT( rx_handle > 0 );
+            #else
+            ASSERT( dgram->handle > 0 );
+            #endif
 
             // advance state to received
             dgram->state = SOCK_UDP_STATE_RX_DATA_RECEIVED;
@@ -571,6 +630,20 @@ int8_t sock_i8_recvfrom( socket_t sock ){
             // reset state
             dgram->state = SOCK_UDP_STATE_IDLE;
 
+            #ifdef SOCK_SINGLE_BUF
+
+            if( rx_port == dgram->lport ){
+
+                if( rx_handle > 0 ){
+
+                    mem2_v_free( rx_handle );
+                }   
+
+                rx_port = 0;
+                rx_handle = -1;
+            }
+
+            #else
             // check if socket has memory attached
             if( dgram->handle > 0 ){
 
@@ -580,6 +653,8 @@ int8_t sock_i8_recvfrom( socket_t sock ){
 
             // mark handle as empty
             dgram->handle = -1;
+
+            #endif
 
             return -1;
         }
@@ -650,8 +725,12 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
         // attach remote address
         if( raddr == 0 ){
 
+            #ifdef SOCK_SINGLE_BUF
+            state->raddr = rx_raddr;
+            #else
             // get raddr from socket
             state->raddr = dgram_state->raddr;
+            #endif
         }
         else{
 
@@ -666,63 +745,6 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
 
         // set ttl
         state->ttl = ttl;
-
-        #ifdef ENABLE_UDPX
-        // UDPX processing
-        if( SOCK_IS_UDPX_CLIENT( s->type ) || SOCK_IS_UDPX_SERVER( s->type ) ){
-
-            state->header_2_handle = mem2_h_alloc( sizeof(udpx_header_t) );
-
-            if( state->header_2_handle < 0 ){
-
-                netmsg_v_release( netmsg );
-
-                return -1;
-            }
-
-            udpx_header_t *udpx_header = mem2_vp_get_ptr( state->header_2_handle );
-
-            // check for UDPX client
-            if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-                // set retain, so netmsg does not release the data handle
-                // after transmission.
-                nm_flags |= NETMSG_FLAGS_RETAIN_DATA;
-
-                // get more specific pointer
-                sock_state_udpx_client_t *udpx_client_dgram = (sock_state_udpx_client_t *)s;
-
-                uint8_t flags = 0;
-
-                if( !( udpx_client_dgram->dgram.raw.options & SOCK_OPTIONS_UDPX_NO_ACK_REQUEST ) ){
-
-                    flags |= UDPX_FLAGS_ARQ;
-                }
-
-                udpx_v_init_header( udpx_header, flags, udpx_client_dgram->msg_id );
-            }
-            else{
-
-                // get more specific pointer
-                sock_state_udpx_server_t *udpx_server_dgram = (sock_state_udpx_server_t *)s;
-
-                uint8_t flags = UDPX_FLAGS_SVR;
-
-                if( udpx_server_dgram->ack_request ){
-
-                    flags |= UDPX_FLAGS_ACK;
-                }
-
-                udpx_v_init_header( udpx_header, flags, udpx_server_dgram->msg_id );
-
-                // log_v_debug_P( PSTR("UDPX send %x %x"), flags, udpx_server_dgram->msg_id );
-
-                // clear message ID and ack request
-                udpx_server_dgram->msg_id       = 0;
-                udpx_server_dgram->ack_request  = FALSE;
-            }
-        }
-        #endif
 
         // set flags
         netmsg_v_set_flags( netmsg, nm_flags );
@@ -771,71 +793,7 @@ int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *radd
 	sock_state_raw_t *s = list_vp_get_data( sock );
 
     // check socket type
-    #ifdef ENABLE_UDPX
-    if( SOCK_IS_UDPX_CLIENT( s->type ) ){
-
-        // get more specific pointer
-        sock_state_udpx_client_t *udpx_client_dgram = (sock_state_udpx_client_t *)s;
-
-        // check if a remote address was given
-        if( raddr != 0 ){
-
-            udpx_client_dgram->dgram.raddr = *raddr;
-        }
-
-        // set up message id
-        udpx_client_dgram->msg_id = rnd_u16_get_int();
-
-        // check if we already have a buffer
-        if( udpx_client_dgram->dgram.handle >= 0 ){
-
-            // release it
-            mem2_v_free( udpx_client_dgram->dgram.handle );
-            udpx_client_dgram->dgram.handle = -1;
-            udpx_client_dgram->dgram.header_len = 0;
-        }
-
-        // set up timeouts
-        udpx_client_dgram->time_left = udpx_client_dgram->dgram.timer.setting;
-
-        // check retry configuration
-        if( udpx_client_dgram->dgram.raw.options & SOCK_OPTIONS_UDPX_NO_RETRY ){
-
-            udpx_client_dgram->tries = 1; // udpx decrements first
-        }
-        else{
-
-            udpx_client_dgram->tries = UDPX_MAX_TRIES;
-        }
-
-        // start first transmission
-        int8_t status = sock_i8_transmit( sock, handle, raddr );
-
-        // check that transmission was successful
-        if( status == 0 ){
-
-            // assign handle
-            udpx_client_dgram->dgram.handle = handle;
-
-            // set state to wait ack
-            udpx_client_dgram->dgram.state = SOCK_UDPX_STATE_WAIT_ACK;
-        }
-
-        return status;
-    }
-    else if( SOCK_IS_DGRAM( s->type ) ){
-    #else
     if( SOCK_IS_DGRAM( s->type ) ){
-    #endif
-
-        // get more specific pointer
-        sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
-
-        // check if a remote address was given
-        if( raddr != 0 ){
-
-            dgram->raddr = *raddr;
-        }
 
         return sock_i8_transmit( sock, handle, raddr );
     }
@@ -900,88 +858,36 @@ void sock_v_recv( netmsg_t netmsg ){
         }
     }
 
-    dgram->header_len = state->header_len;
+    #ifdef SOCK_SINGLE_BUF
+    // check if the socket is already holding data that has not been
+    // received by the owning application.  if so, we'll throw away the
+    // incoming data
+    if( ( rx_handle > 0 ) && ( rx_port == dgram->lport ) ){
 
-    #ifdef ENABLE_UDPX
-    void *data_ptr = mem2_vp_get_ptr( state->data_handle ) + state->header_len;
+        // so there is buffered data, lets see if the app has
+        // retrieved it
+        if( dgram->state == SOCK_UDP_STATE_RX_DATA_RECEIVED ){
 
-    // check for UDPX client
-    if( SOCK_IS_UDPX_CLIENT( dgram->raw.type ) ){
+            // app already saw this, so we'll release it here.
 
-        // get pointer to client state
-        sock_state_udpx_client_t *client_dgram = (sock_state_udpx_client_t *)dgram;
+            // free the receive buffer
+            mem2_v_free( rx_handle );
 
-        // get UDPX header
-        udpx_header_t *udpx_header = (udpx_header_t *)( data_ptr );
-
-        // check flags for appropriate bits (SVR and ACK), check message ID, and check
-        // that the socket is actually waiting for an ACK
-        if( ( ( udpx_header->flags & UDPX_FLAGS_VER1 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_VER0 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_SVR )  != 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_ARQ )  == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_ACK )  != 0 ) &&
-            ( client_dgram->msg_id == udpx_header->id )       &&
-            ( client_dgram->dgram.state == SOCK_UDPX_STATE_WAIT_ACK ) ){
-
-            // delete send buffer
-            if( client_dgram->dgram.handle >= 0 ){
-
-                mem2_v_free( client_dgram->dgram.handle );
-                client_dgram->dgram.handle = -1;
-            }
-
-            // set data pointer
-            data_ptr += sizeof(udpx_header_t);
-            dgram->header_len += sizeof(udpx_header_t);
+            // mark handle as empty
+            rx_handle = -1;
+            rx_port = 0;
         }
         else{
 
-            // invalid message, throw it away
+            // app hasn't received data, so we bail out and this new data
+            // gets dropped.
+
+            log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
+
             return;
         }
     }
-    // check for UDPX server
-    else if( SOCK_IS_UDPX_SERVER( dgram->raw.type ) ){
-
-        // get pointer to state
-        sock_state_udpx_server_t *server_dgram = (sock_state_udpx_server_t *)dgram;
-
-        // get UDPX header
-        udpx_header_t *udpx_header = (udpx_header_t *)( data_ptr );
-
-        // check flags for appropriate bits (SVR and ACK), check message ID, and check
-        // that the socket is actually waiting for an ACK
-        if( ( ( udpx_header->flags & UDPX_FLAGS_VER1 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_VER0 ) == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_SVR )  == 0 ) &&
-            ( ( udpx_header->flags & UDPX_FLAGS_ACK )  == 0 ) ){
-
-            // assign message ID
-            server_dgram->msg_id = udpx_header->id;
-
-            // check ack request
-            if( udpx_header->flags & UDPX_FLAGS_ARQ ){
-
-                server_dgram->ack_request = TRUE;
-            }
-            else{
-
-                server_dgram->ack_request = FALSE;
-            }
-
-            // set data pointer
-            data_ptr += sizeof(udpx_header_t);
-            dgram->header_len += sizeof(udpx_header_t);
-        }
-        else{
-
-            // invalid message
-            return;
-        }
-    }
-    #endif
-
+    #else
     // check if the socket is already holding data that has not been
     // received by the owning application.  if so, we'll throw away the
     // incoming data
@@ -1009,16 +915,36 @@ void sock_v_recv( netmsg_t netmsg ){
             return;
         }
     }
+    #endif
+
+    #ifdef SOCK_SINGLE_BUF
+    
+    rx_header_len   = state->header_len;
+    rx_handle       = state->data_handle;
+
+    rx_raddr.ipaddr = state->raddr.ipaddr;
+    rx_raddr.port   = state->raddr.port;
+
+    rx_port         = dgram->lport;
+
+    #else
+
+    dgram->header_len = state->header_len;
 
     // assign handle to socket
     dgram->handle = state->data_handle;
 
-    // remove handle from netmsg
-    state->data_handle = -1;
-
     // set remote address
     dgram->raddr.ipaddr = state->raddr.ipaddr;
     dgram->raddr.port   = state->raddr.port;
+
+    #endif
+
+    ASSERT( state->data_handle > 0 );
+    
+    // remove handle from netmsg
+    state->data_handle = -1;
+
 
     // set state
     dgram->state = SOCK_UDP_STATE_RX_DATA_PENDING;
@@ -1030,13 +956,6 @@ void sock_v_init( void ){
 
     // set a random starting port number
 	current_ephemeral_port = SOCK_EPHEMERAL_PORT_LOW + ( rnd_u16_get_int() >> 3 );
-
-    // start timeout thread
-    thread_t_create( timeout_thread,
-                     PSTR("socket_timeout"),
-                     0,
-                     0 );
-
 }
 
 uint8_t sock_u8_count( void ){
@@ -1044,108 +963,39 @@ uint8_t sock_u8_count( void ){
     return list_u8_count( &sockets );
 }
 
-// timeout thread
-PT_THREAD( timeout_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+void sock_v_process_timeouts( void ){
 
-    while(1){
+    // scan through all sockets with timers set
+    socket_t sock = sockets.head;
 
-        TMR_WAIT( pt, SOCK_TIMER_TICK_MS );
+    while( sock >= 0 ){
 
-        // scan through all sockets with timers set
-        socket_t sock = sockets.head;
+        sock_state_raw_t *s = list_vp_get_data( sock );
 
-        while( sock >= 0 ){
+        if( SOCK_IS_DGRAM( s->type ) ){            
 
-            sock_state_raw_t *s = list_vp_get_data( sock );
+            sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
 
-            #ifdef ENABLE_UDPX
-            if( SOCK_IS_UDPX_CLIENT( s->type ) ){
+            // check if timer is active
+            if( dgram->timer.current > 0 ){
 
-                // get more specific pointer
-                sock_state_udpx_client_t *client_dgram = (sock_state_udpx_client_t *)s;
-
-                // check state
-                if( client_dgram->dgram.state == SOCK_UDPX_STATE_WAIT_ACK ){
-
-                    if( client_dgram->time_left > 0 ){
-
-                        client_dgram->time_left--;
-                    }
-                    else{
-
-                        client_dgram->tries--;
-
-                        if( client_dgram->tries > 0 ){
-
-                            log_v_debug_P( PSTR("UDPX retry") );
-
-                            // attempt transmission
-                            sock_i8_transmit( sock,
-                                              client_dgram->dgram.handle,
-                                              &client_dgram->dgram.raddr );
-
-                            // reset timeout
-                            client_dgram->time_left = ( client_dgram->dgram.timer.setting ) *
-                                                      ( UDPX_MAX_TRIES - client_dgram->tries );
-
-                            // check if this was the last try,
-                            // if so, we can go ahead and delete the send buffer.
-                            if( client_dgram->tries == 1 ){
-
-                                if( client_dgram->dgram.handle >= 0 ){
-
-                                    mem2_v_free( client_dgram->dgram.handle );
-                                    client_dgram->dgram.handle = -1;
-                                }
-                            }
-                        }
-                        else{
-
-                            // delete send buffer
-                            if( client_dgram->dgram.handle >= 0 ){
-
-                                mem2_v_free( client_dgram->dgram.handle );
-                                client_dgram->dgram.handle = -1;
-                            }
-
-                            // no tries left
-                            client_dgram->dgram.state = SOCK_UDP_STATE_TIMED_OUT;
-                        }
-                    }
-                }
-            }
-            else if( SOCK_IS_DGRAM( s->type ) ){
-            #else
-            if( SOCK_IS_DGRAM( s->type ) ){
-            #endif
-
-                sock_state_dgram_t *dgram = (sock_state_dgram_t *)s;
-
-                // check if timer is active
-                if( dgram->timer.current > 0 ){
-
-                    // decrement
-                    dgram->timer.current--;
-                }
-
-                // check for timeout
-                if( ( dgram->timer.setting > 0 ) &&
-                    ( dgram->timer.current == 0 ) &&
-                    ( dgram->state == SOCK_UDP_STATE_RX_WAITING ) ){
-
-                    // set state to timed out
-                    dgram->state = SOCK_UDP_STATE_TIMED_OUT;
-                }
+                // decrement
+                dgram->timer.current--;
             }
 
-            // get next socket
-            sock = list_ln_next( sock );
+            // check for timeout
+            if( ( dgram->timer.setting > 0 ) &&
+                ( dgram->timer.current == 0 ) &&
+                ( dgram->state == SOCK_UDP_STATE_RX_WAITING ) ){
+
+                // set state to timed out
+                dgram->state = SOCK_UDP_STATE_TIMED_OUT;
+            }
         }
-    }
 
-PT_END( pt );
+        // get next socket
+        sock = list_ln_next( sock );
+    }
 }
 
 

@@ -23,6 +23,14 @@
 #ifndef _BOOL_H
 #define _BOOL_H
 
+#ifdef ARM
+#include <stdbool.h>
+
+#define TRUE true
+#define FALSE false
+
+#else
+
 #include <stdint.h>
 
 typedef uint8_t bool;
@@ -31,4 +39,5 @@ typedef uint8_t bool;
 #define true TRUE
 #define false FALSE
 
+#endif
 #endif

@@ -28,13 +28,27 @@
 
 #include "i2c.h"
 
+
+
+
 /*
 
 This is a bit bang driver, so it can work on any set of pins.
 
 */
 
-static uint8_t status;
+static uint8_t delay_1;
+static uint8_t delay_2;
+
+
+// map delays to KV system for easy hand tuning
+// #include "keyvalue.h"
+// KV_SECTION_META kv_meta_t meow_info_kv[] = {
+//     { SAPPHIRE_TYPE_UINT8,  0, 0, &delay_1,                   0,   "delay_1" },
+//     { SAPPHIRE_TYPE_UINT8,  0, 0, &delay_2,                   0,   "delay_2" }, 
+// };
+
+
 
 static io_port_t *scl_port = &IO_PIN0_PORT;
 static uint8_t scl_pin = ( 1 << IO_PIN0_PIN );
@@ -51,6 +65,9 @@ static uint8_t sda_pin = ( 1 << IO_PIN1_PIN );
 
 #define I2C_DELAY() for( uint8_t __i = 0; __i < 8; __i++ ){ asm volatile("nop"); }
 
+#define I2C_DELAY_1() for( uint8_t __i = delay_1; __i > 0; __i-- ){ asm volatile("nop"); }
+#define I2C_DELAY_2() for( uint8_t __i = delay_2; __i > 0; __i-- ){ asm volatile("nop"); }
+
 
 static void send_bit( uint8_t b ){
 
@@ -63,43 +80,36 @@ static void send_bit( uint8_t b ){
         SDA_LOW();
     }
 
-    I2C_DELAY();
+    I2C_DELAY_1();
 
     SCL_HIGH();
 
-    I2C_DELAY();
-    I2C_DELAY();
-    I2C_DELAY();   
-
+    I2C_DELAY_2();
+    
     SCL_LOW();
-
-    I2C_DELAY();
 }
 
 
 static bool read_bit( void ){
 
-    I2C_DELAY();
-
     // release bus
     SDA_HIGH();
+
+    I2C_DELAY_1();
+
     SCL_HIGH();
 
-    I2C_DELAY();
-    I2C_DELAY();
-    I2C_DELAY();
+    I2C_DELAY_2();
     
     // read bit
     uint8_t b = sda_port->IN & sda_pin;
 
     SCL_LOW();
 
-    I2C_DELAY();
-
     return b != 0;
 }
 
-static uint8_t send_byte( uint8_t b ){
+uint8_t i2c_v_send_byte( uint8_t b ){
     
     send_bit( b & 0x80 );
     send_bit( b & 0x40 );
@@ -115,19 +125,9 @@ static uint8_t send_byte( uint8_t b ){
 }
 
 
-static uint8_t read_byte( bool ack ){
+uint8_t i2c_u8_read_byte( bool ack ){
 
     uint8_t b = 0;
-
-    // for( uint8_t i = 0; i < 8; i++ ){
-
-    //     b <<= 1;
-
-    //     if( read_bit() ){
-
-    //         b |= 1;
-    //     }
-    // }
 
     if( read_bit() ){
 
@@ -176,6 +176,30 @@ static uint8_t read_byte( bool ack ){
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
+    // these are all hand timed.
+    if( baud == I2C_BAUD_400K ){
+
+        delay_1 = 0;
+        delay_2 = 5;
+    }
+    else if( baud == I2C_BAUD_300K ){
+
+        delay_1 = 1;
+        delay_2 = 9;   
+    }
+    else if( baud == I2C_BAUD_200K ){
+
+        delay_1 = 4;
+        delay_2 = 15;   
+    }
+    else{
+
+        // default is 100K
+
+        delay_1 = 18;
+        delay_2 = 28;   
+    }
+
     i2c_v_set_pins( IO_PIN_1_XCK, IO_PIN_0_GPIO );
 }
 
@@ -201,7 +225,7 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 
 uint8_t i2c_u8_status( void ){
 
-    return status;
+    return 0;
 }
 
 void i2c_v_start( void ){
@@ -233,17 +257,13 @@ void i2c_v_stop( void ){
 
 void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
 
-    address <<= 1;
-    address &= ~0x01; // set write
-
     i2c_v_start();
 
-    // send address/read bit
-    send_byte( address );
+    i2c_v_send_address( address, TRUE );
 
     while( len > 0 ){
 
-        send_byte( *src );
+        i2c_v_send_byte( *src );
 
         src++;
         len--;
@@ -254,23 +274,19 @@ void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
 
 void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
 
-    address <<= 1;
-    address |= 0x01; // set read bit
-
     i2c_v_start();
 
-    // send address/write bit
-    send_byte( address );
+    i2c_v_send_address( address, FALSE );
 
     while( len > 0 ){
 
         if( len > 1 ){
 
-            *dst = read_byte( TRUE );
+            *dst = i2c_u8_read_byte( TRUE );
         }
         else{
 
-            *dst = read_byte( FALSE );
+            *dst = i2c_u8_read_byte( FALSE );
         }
 
         dst++;

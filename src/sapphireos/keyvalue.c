@@ -32,6 +32,7 @@
 #include "ffs_fw.h"
 #include "crc.h"
 #include "kvdb.h"
+#include "catbus_common.h"
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -41,6 +42,7 @@
 
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
+static int32_t kv_test_array[4];
 
 static int16_t cached_index = -1;
 static catbus_hash_t32 cached_hash;
@@ -94,6 +96,7 @@ static int8_t _kv_i8_dynamic_count_handler(
 KV_SECTION_META kv_meta_t kv_cfg[] = {
     { SAPPHIRE_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { SAPPHIRE_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
+    { SAPPHIRE_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
 };
@@ -109,9 +112,6 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
 #else
     #define KV_SECTION_DYNAMIC_END         __attribute__ ((section (".kv_dynamic_end"), used))
 #endif
-// KV_SECTION_DYNAMIC_START kv_dynamic_t dynamic_start[] = {{0, 0, 0}};
-// KV_SECTION_DYNAMIC_END kv_dynamic_t dynamic_end[] = {{0, 0, 0}};
-
 
 #ifdef __SIM__
     #define SERVICE_SECTION_START
@@ -149,53 +149,6 @@ static int8_t _kv_i8_persist_set_internal(
     catbus_hash_t32 hash,
     const void *data,
     uint16_t len );
-
-// static uint16_t kv_meta_vfile_handler(
-//     vfile_op_t8 op,
-//     uint32_t pos,
-//     void *ptr,
-//     uint16_t len )
-// {
-
-//     // the pos and len values are already bounds checked by the FS driver
-//     switch( op ){
-
-//         case FS_VFILE_OP_READ:
-//             memcpy_P( ptr, (void *)kv_start + sizeof(kv_meta_t) + pos, len );
-//             break;
-
-//         case FS_VFILE_OP_SIZE:
-//             len = ( (void *)kv_end - (void *)kv_start ) - sizeof(kv_meta_t);
-//             break;
-
-//         case FS_VFILE_OP_DELETE:
-//             break;
-
-//         default:
-//             len = 0;
-//             break;
-//     }
-
-//     return len;
-// }
-
-static int8_t _kv_i8_dynamic_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len ){
-    
-    if( op == KV_OP_GET ){
-
-        return kvdb_i8_get( hash, data );
-    }
-    else if( op == KV_OP_SET ){
-
-        return kvdb_i8_set( hash, *(int32_t *)data );   
-    }
-
-    return -1;
-}
 
 static uint16_t _kv_u16_fixed_count( void ){
 
@@ -249,7 +202,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
             cached_hash = hash;
             cached_index = index_entry.index;
 
-            return index_entry.index;
+            return cached_index;
         }
         else{
 
@@ -264,32 +217,22 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     if( index >= 0 ){
 
-        return _kv_u16_fixed_count() + index;
+        // update cache
+        cached_hash = hash;
+        cached_index = _kv_u16_fixed_count() + index;
+
+        return cached_index;
     }
 
     return KV_ERR_STATUS_NOT_FOUND;
 }
 
+void kv_v_reset_cache( void ){
 
-uint32_t kv_u32_get_hash_from_index( uint16_t index ){
-
-    uint32_t kv_index_start = ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
-                              ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-
-    kv_hash_index_t index_entry;
-
-    for( uint16_t i = 0; i < _kv_u16_fixed_count(); i++ ){
-    
-        memcpy_PF( &index_entry, kv_index_start + ( (uint32_t)i * sizeof(kv_hash_index_t) ), sizeof(index_entry) );    
-
-        if( index_entry.index == index ){
-
-            return index_entry.hash;
-        }
-    }
-
-    return 0;
+    cached_hash = 0;
 }
+
+
 
 int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
 {
@@ -327,11 +270,12 @@ int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
             kvdb_i8_lookup_name( hash, meta->name );
         }
 
-        // attach handler
-        meta->handler   = _kv_i8_dynamic_handler;
+        meta->handler   = 0;
+        meta->hash      = catbus_meta.hash;
         meta->type      = catbus_meta.type;
         meta->flags     = catbus_meta.flags;
         meta->array_len = catbus_meta.count;
+        meta->ptr       = kvdb_vp_get_ptr( hash );
     }
     else{
 
@@ -368,6 +312,23 @@ int8_t kv_i8_lookup_hash(
     }
 
     return kv_i8_lookup_index( index, meta, flags );
+}
+
+int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
+
+    kv_meta_t kv_meta;
+    if( kv_i8_lookup_hash( hash, &kv_meta, 0 ) < 0 ){
+
+        return -1;
+    }
+
+    meta->hash      = hash;
+    meta->type      = kv_meta.type;
+    meta->count     = kv_meta.array_len;
+    meta->flags     = kv_meta.flags;
+    meta->reserved  = 0;
+
+    return 0;
 }
 
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[KV_NAME_LEN] ){
@@ -445,11 +406,13 @@ retry:;
 
         // look up meta data, verify type matches, and check if there is
         // a memory pointer
+        // AND not an array.
         int8_t status = kv_i8_lookup_hash( hdr->hash, &meta, 0 );
 
         if( ( status >= 0 ) &&
             ( meta.type == hdr->type ) &&
-            ( meta.ptr != 0 ) ){
+            ( meta.ptr != 0 ) &&
+            ( meta.array_len == 0 ) ){
 
             uint16_t type_size = kv_u16_get_size_meta( &meta );
 
@@ -469,8 +432,6 @@ retry:;
 
 
 void kv_v_init( void ){
-
-    // fs_f_create_virtual( PSTR("kvmeta"), kv_meta_vfile_handler );
 
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
@@ -505,6 +466,12 @@ static int8_t _kv_i8_persist_set_internal(
 {
 
     if( persist_fail ){
+
+        return 0;
+    }
+
+    // check that we aren't persisting an array
+    if( meta->array_len > 0 ){
 
         return 0;
     }
@@ -615,6 +582,8 @@ static int8_t _kv_i8_persist_set(
 static int8_t _kv_i8_internal_set(
     kv_meta_t *meta,
     catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     const void *data,
     uint16_t len )
 {
@@ -625,58 +594,120 @@ static int8_t _kv_i8_internal_set(
         return KV_ERR_STATUS_READONLY;
     }
 
-    // set copy length
-    uint16_t copy_len = kv_u16_get_size_meta( meta );
+    uint16_t array_len = meta->array_len + 1;
 
-    if( copy_len > len ){
+    // bound index
+    if( index >= array_len ){
 
-        copy_len = len;
+        return KV_ERR_STATUS_OUT_OF_BOUNDS;
     }
 
-    // check if persist flag is set
-    if( meta->flags & KV_FLAGS_PERSIST ){
+    // set copy length
+    uint16_t copy_len = type_u16_size( meta->type );
 
-        // check if we *don't* have a RAM pointer
-        if( meta->ptr == 0 ){
+    // check if count and index are 0, if so, that requests the entire array/item
+    if( ( index == 0 ) && ( count == 0 ) ){
 
-            _kv_i8_persist_set( meta, hash, data, copy_len );
-        }
-        else{
+        copy_len *= array_len;
 
-            // signal thread to persist in background
-            run_persist = TRUE;
-        }
+        // set count to 1 so our loop works
+        count = 1;
+    }
+
+    // do we have enough data?
+    if( copy_len > len ){
+
+        return KV_ERR_STATUS_TYPE_MISMATCH;
     }
 
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
+        meta->ptr += ( index * type_u16_size( meta->type ) );
+
+        int diff = 0;
+
         ATOMIC;
 
-        // set data
-        memcpy( meta->ptr, data, copy_len );
+        for( uint16_t i = 0; i < count; i++ ){
+
+            if( diff == 0 ){
+
+                diff = memcmp( meta->ptr, data, copy_len );
+            }
+
+            // set data
+            memcpy( meta->ptr, data, copy_len );
+
+            meta->ptr += copy_len;
+            data += copy_len;
+            index++;
+
+            // check for overflow
+            if( index >= array_len ){
+
+                break;
+            }
+        }   
+
+        // check if dynamic and changed
+        if( ( meta->flags & CATBUS_FLAGS_DYNAMIC ) && ( diff != 0 ) ){
+
+            kvdb_i8_notify( hash );
+        }
 
         END_ATOMIC;
     }
 
-    // check if parameter has a notifier
-    if( meta->handler == 0 ){
+    int8_t status = KV_ERR_STATUS_OK;
 
-        return KV_ERR_STATUS_OK;
+    // check if array
+    // we don't support the function mapping or persistence for arrays
+    if( array_len == 1 ){
+
+        // check if parameter has a notifier
+        if( meta->handler != 0 ){
+
+            ATOMIC;
+
+            // call handler
+            status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
+
+            END_ATOMIC;
+        }
+
+        // check if persist flag is set
+        if( meta->flags & KV_FLAGS_PERSIST ){
+
+            // check if we *don't* have a RAM pointer
+            if( meta->ptr == 0 ){
+
+                _kv_i8_persist_set( meta, hash, data, copy_len );
+            }
+            else{
+
+                // signal thread to persist in background
+                run_persist = TRUE;
+            }
+        }
     }
-
-    ATOMIC;
-
-    // call handler
-    int8_t status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
-
-    END_ATOMIC;
 
     return status;
 }
 
-int8_t kv_i8_set_by_hash(
+int8_t kv_i8_set(
     catbus_hash_t32 hash,
+    const void *data,
+    uint16_t len )
+{
+
+    return kv_i8_array_set( hash, 0, 0, data, len );
+}
+
+int8_t kv_i8_array_set(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     const void *data,
     uint16_t len )
 {
@@ -691,7 +722,7 @@ int8_t kv_i8_set_by_hash(
         return status;
     }
 
-    return _kv_i8_internal_set( &meta, hash, data, len );
+    return _kv_i8_internal_set( &meta, hash, index, count, data, len );
 }
 
 
@@ -745,37 +776,73 @@ static int8_t _kv_i8_persist_get(
     return 0;
 }
 
-static int8_t _kv_i8_internal_get(
+int8_t kv_i8_internal_get(
     kv_meta_t *meta,
     catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     void *data,
     uint16_t max_len )
 {
 
+    uint16_t array_len = meta->array_len + 1;
+
+    // bound index
+    if( index >= array_len ){
+
+        return KV_ERR_STATUS_OUT_OF_BOUNDS;
+    }
 
     // set copy length
-    uint16_t copy_len = kv_u16_get_size_meta( meta );
+    uint16_t copy_len = type_u16_size( meta->type );
 
+    // check if count and index are 0, if so, that requests the entire array/item
+    if( ( index == 0 ) && ( count == 0 ) ){
+
+        copy_len *= array_len;
+
+        // set count to 1 so our loop works
+        count = 1;
+    }
+
+    // do we have enough data?
     if( copy_len > max_len ){
 
-        copy_len = max_len;
+        return KV_ERR_STATUS_TYPE_MISMATCH;
     }
 
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
+        meta->ptr += ( index * type_u16_size( meta->type ) );
+
         // atomic because interrupts may access RAM data
         ATOMIC;
 
-        // get data
-        memcpy( data, meta->ptr, copy_len );
+        for( uint16_t i = 0; i < count; i++ ){
+            
+            // get data
+            memcpy( data, meta->ptr, copy_len );
+
+            meta->ptr += copy_len;
+            data += copy_len;
+            index++;
+
+            // check for overflow
+            if( index >= array_len ){
+
+                break;
+            }
+        }
 
         END_ATOMIC;
     }
     // didn't have a ram pointer:
     // check if persist flag is set, if it is,
     // we'll try to get data from the file.
-    else if( meta->flags & KV_FLAGS_PERSIST ){
+    // also check if array:
+    // we don't have persistence on arrays
+    else if( ( meta->flags & KV_FLAGS_PERSIST ) && ( array_len == 1 ) ){
 
         // check data from file system
         if( _kv_i8_persist_get( meta, hash, data, max_len ) < 0 ){
@@ -785,24 +852,36 @@ static int8_t _kv_i8_internal_get(
         }
     }
 
+    int8_t status = KV_ERR_STATUS_OK;
+
     // check if parameter has a notifier
-    if( meta->handler == 0 ){
+    // AND is not an array
+    if( ( meta->handler != 0 ) && ( array_len == 1 ) ){
 
-        return KV_ERR_STATUS_OK;
+        ATOMIC;
+
+        // call handler
+        status = meta->handler( KV_OP_GET, hash, data, copy_len );
+
+        END_ATOMIC;    
     }
-
-    ATOMIC;
-
-    // call handler
-    int8_t status = meta->handler( KV_OP_GET, hash, data, copy_len );
-
-    END_ATOMIC;
 
     return status;
 }
 
-int8_t kv_i8_get_by_hash(
+int8_t kv_i8_get(
     catbus_hash_t32 hash,
+    void *data,
+    uint16_t max_len )
+{
+
+    return kv_i8_array_get( hash, 0, 0, data, max_len );
+}
+
+int8_t kv_i8_array_get(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
     void *data,
     uint16_t max_len )
 {
@@ -817,7 +896,7 @@ int8_t kv_i8_get_by_hash(
         return status;
     }
 
-    return _kv_i8_internal_get( &meta, hash, data, max_len );
+    return kv_i8_internal_get( &meta, hash, index, count, data, max_len );
 }
 
 
@@ -875,7 +954,7 @@ int8_t kv_i8_persist( catbus_hash_t32 hash )
 
     // get parameter data
     uint8_t data[KV_PERSIST_MAX_DATA_LEN];
-    _kv_i8_internal_get( &meta, hash, data, sizeof(data) );
+    kv_i8_internal_get( &meta, hash, 0, 1, data, sizeof(data) );
 
     // get parameter length
     uint16_t param_len = kv_u16_get_size_meta( &meta );
@@ -922,11 +1001,11 @@ PT_BEGIN( pt );
 
                 uint32_t hash = hash_u32_string( meta.name );
                 _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+
+                TMR_WAIT( pt, 5 );
             }   
 
             ptr++;
-
-            TMR_WAIT( pt, 20 );
         }
 
         f = fs_f_close( f );
@@ -939,7 +1018,6 @@ end:
 PT_END( pt );
 }
 
-
 int8_t kv_i8_publish( catbus_hash_t32 hash ){
     
     return catbus_i8_publish( hash );
@@ -950,3 +1028,10 @@ uint8_t kv_u8_get_dynamic_count( void ){
 
     return kvdb_u16_count();
 }
+
+void kv_v_shutdown( void ){
+
+    // run persistence on shutdown
+    run_persist = TRUE;       
+}
+

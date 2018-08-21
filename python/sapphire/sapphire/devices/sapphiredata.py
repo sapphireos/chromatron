@@ -119,12 +119,23 @@ class NTPTimestampField(StructField):
     def copy(self):
         return NTPTimestampField()
 
+class KVLinkFileHeaderField(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="magic"),
+                  Uint8Field(_name="version"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=11)]
+
+        super(KVLinkFileHeaderField, self).__init__(_fields=fields, **kwargs)
+
 class KVLinkField(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
-                  Int32Field(_name="source_hash"),
-                  Int32Field(_name="dest_hash"),
-                  ArrayField(_name="query", _field=Int32Field, _length=8)]
+        fields = [Uint32Field(_name="tag"),
+                  Uint8Field(_name="flags"),
+                  Uint32Field(_name="source_hash"),
+                  Uint32Field(_name="dest_hash"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=7),
+                  Uint32Field(_name="check_hash")]
 
         super(KVLinkField, self).__init__(_fields=fields, **kwargs)
 
@@ -134,13 +145,23 @@ class KVLinkArray(ArrayField):
 
         super(KVLinkArray, self).__init__(_field=field, **kwargs)
 
+class KVLinkFile(StructField):
+    def __init__(self, **kwargs):
+        fields = [KVLinkFileHeaderField(_name="header"),
+                  KVLinkArray(_name="links")]
+
+        super(KVLinkFile, self).__init__(_fields=fields, **kwargs)
+
 class KVSendField(StructField):
     def __init__(self, **kwargs):
         fields = [Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
-                  Int32Field(_name="source_hash"),
-                  Int32Field(_name="dest_hash"),
-                  Int8Field(_name="ttl")]
+                  Uint32Field(_name="source_hash"),
+                  Uint32Field(_name="dest_hash"),
+                  Uint16Field(_name="sequence"),
+                  NTPTimestampField(_name="ntp_timestamp"),
+                  Int8Field(_name="ttl"),
+                  Uint8Field(_name="flags")]
 
         super(KVSendField, self).__init__(_fields=fields, **kwargs)
 
@@ -154,8 +175,7 @@ class KVReceiveCacheField(StructField):
     def __init__(self, **kwargs):
         fields = [Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
-                  Int32Field(_name="dest_hash"),
-                  Int32Field(_name="data"),
+                  Uint32Field(_name="dest_hash"),
                   Uint16Field(_name="sequence"),
                   Int8Field(_name="ttl")]
 
@@ -170,10 +190,6 @@ class KVReceiveCacheArray(ArrayField):
 
 
 
-
-
-
-
 class KVMetaField(StructField):
     def __init__(self, **kwargs):
         fields = [Int8Field(_name="type"),
@@ -181,9 +197,24 @@ class KVMetaField(StructField):
                   Uint8Field(_name="flags"),
                   Uint16Field(_name="__var_ptr"),
                   Uint16Field(_name="__notifier_ptr"),
-                  StringField(_name="param_name", _length=32)]
+                  StringField(_name="param_name", _length=32),
+                  Uint32Field(_name="hash"),
+                  Uint8Field(_name="padding")]
 
         super(KVMetaField, self).__init__(_fields=fields, **kwargs)
+
+class KVMetaFieldWidePtr(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int8Field(_name="type"),
+                  Uint8Field(_name="array_count"),
+                  Uint8Field(_name="flags"),
+                  Uint32Field(_name="__var_ptr"),
+                  Uint32Field(_name="__notifier_ptr"),
+                  StringField(_name="param_name", _length=32),
+                  Uint32Field(_name="hash"),
+                  Uint8Field(_name="padding")]
+
+        super(KVMetaFieldWidePtr, self).__init__(_fields=fields, **kwargs)
 
 class KVMetaArray(ArrayField):
     def __init__(self, **kwargs):

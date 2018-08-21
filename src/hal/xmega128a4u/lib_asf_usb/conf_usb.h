@@ -79,6 +79,9 @@
 #define  USB_DEVICE_PRODUCT_NAME          "Chromatron"
 //#define  USB_DEVICE_SERIAL_NAME           "123456"
 
+// don't use this:
+// CDC protocol does not support low speed mode
+// #define USB_DEVICE_LOW_SPEED
 
 #define UDD_NO_SLEEP_MGR
 

@@ -28,6 +28,7 @@
 #include "wifi.h"
 #include "irq_line.h"
 #include "version.h"
+#include "comm_printf.h"
 
 extern "C"{
     #include "random.h"
@@ -39,8 +40,9 @@ extern "C"{
     #include "memory.h"
 }
 
+#define MEM_HEAP_SIZE 8192
 
-static uint8_t mem_heap[8192];
+static uint8_t mem_heap[MEM_HEAP_SIZE];
 
 
 void setup(){
@@ -65,11 +67,6 @@ void setup(){
     Serial.println(info);
     delay(10);
 
-    Serial.print( "Free heap:" );
-    Serial.println( ESP.getFreeHeap() );
-
-    delay(10);
-
     Serial.end();
 
     system_update_cpu_freq( SYS_CPU_80MHZ );
@@ -88,9 +85,13 @@ void setup(){
 
     vm_v_init();
 
-    //SPIFFS.begin();
+
 
     wifi_set_sleep_type( MODEM_SLEEP_T );
+
+
+    intf_v_printf( "ESP online" );
+    intf_v_printf( "ESP free heap: %d", ESP.getFreeHeap() );
 }
 
 uint32_t elapsed_time( uint32_t start_time ){
@@ -116,9 +117,12 @@ uint32_t elapsed_time( uint32_t start_time ){
     return elapsed;
 }
 
+#define FILTER_CURRENT ( PROCESS_STATS_AVG_FILTER * 256 )
+#define FILTER_MEMORY ( 256 - FILTER_CURRENT )
+
 void loop(){
 
-    uint32_t start, elapsed;
+    uint32_t start;
 
     process_stats_t *stats;
     intf_v_get_proc_stats( &stats );
@@ -145,16 +149,19 @@ void loop(){
 
         stats->intf_max_time = stats->intf_run_time;
     }
+    stats->intf_avg_time = ( ( FILTER_CURRENT * stats->intf_run_time ) + ( FILTER_MEMORY * stats->intf_avg_time ) ) / 256;
 
     if( stats->wifi_run_time > stats->wifi_max_time ){
 
         stats->wifi_max_time = stats->wifi_run_time;
     }
+    stats->wifi_avg_time = ( ( FILTER_CURRENT * stats->wifi_run_time ) + ( FILTER_MEMORY * stats->wifi_avg_time ) ) / 256;
 
     if( stats->vm_run_time > stats->vm_max_time ){
 
         stats->vm_max_time = stats->vm_run_time;
     }
+    stats->vm_avg_time = ( ( FILTER_CURRENT * stats->vm_run_time ) + ( FILTER_MEMORY * stats->vm_avg_time ) ) / 256;
 
     if( stats->mem_run_time > stats->mem_max_time ){
 

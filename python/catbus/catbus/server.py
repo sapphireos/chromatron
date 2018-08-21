@@ -28,6 +28,7 @@ import select
 from client import Client
 
 from messages import *
+from catbustypes import *
 
 from sapphire.common import Ribbon, MsgQueueEmptyException
 
@@ -249,6 +250,8 @@ class Server(Ribbon):
 
         self.__lock = threading.Lock()
 
+        self._default_callback = None
+
     def send(self, source_key=None, dest_key=None, dest_query=[]):
         link = Link(source=True,
                     source_key=source_key,
@@ -259,6 +262,10 @@ class Server(Ribbon):
             if link not in self._links:
                 self._links.append(link)
 
+                # add link hashes to lookup cache
+                self._hash_lookup[link.source_hash] = link.source_key
+                self._hash_lookup[link.dest_hash] = link.dest_key
+
     def receive(self, dest_key=None, source_key=None, source_query=[], callback=None):
         link = Link(source=False,
                     source_key=source_key,
@@ -266,15 +273,13 @@ class Server(Ribbon):
                     query=source_query,
                     callback=callback)
 
-        try:
-            self._database.add_item(dest_key, 0, data_type='int32')
-
-        except KeyError: # key already exists
-            pass
-
         with self.__lock:
             if link not in self._links:
                 self._links.append(link)
+
+                # add link hashes to lookup cache
+                self._hash_lookup[link.source_hash] = link.source_key
+                self._hash_lookup[link.dest_hash] = link.dest_key
 
     def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
@@ -289,7 +294,7 @@ class Server(Ribbon):
                     c = Client()
                     c.connect(host)
 
-                    key = c.lookup_hash(hashed_key)[0]
+                    key = c.lookup_hash(hashed_key)[hashed_key]
 
                     if len(key) == 0:
                         raise KeyError(hashed_key)
@@ -337,18 +342,29 @@ class Server(Ribbon):
 
             # check send list
             senders = [a for a in self._send_list if a['source_hash'] == key_hash]
-
+            # print senders
             for sender in senders:
-                msg = LinkDataMsg(
-                        flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
-                        ntp_timestamp=ntp_timestamp,
-                        source_query=source_query,
-                        source_hash=key_hash,
-                        dest_hash=sender['dest_hash'],
-                        data=self._database[key],
-                        sequence=self._sequences[key_hash])
+                try:
+                    try:
+                        data = self._database._kv_items[key]
 
-                self._publisher.post_msg((msg, sender['host']))
+                    except KeyError:
+                        data = self._database._kv_items[self._database.lookup_hash(key)]
+
+
+                    msg = LinkDataMsg(
+                            flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
+                            ntp_timestamp=ntp_timestamp,
+                            source_query=source_query,
+                            source_hash=key_hash,
+                            dest_hash=sender['dest_hash'],
+                            data=data,
+                            sequence=self._sequences[key_hash])
+
+                    self._publisher.post_msg((msg, sender['host']))
+
+                except KeyError:
+                    pass
 
         finally:
             if _lock:
@@ -357,12 +373,22 @@ class Server(Ribbon):
     def _send_data_msg(self, msg, host):
         msg.header.origin_id = self._origin_id
         s = self.__data_sock
-        s.sendto(serialize(msg), host)
+
+        try:
+            s.sendto(serialize(msg), host)
+
+        except socket.error:
+            pass
 
     def _send_announce_msg(self, msg, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
         msg.header.origin_id = self._origin_id
         s = self.__announce_sock
-        s.sendto(serialize(msg), host)
+
+        try:
+            s.sendto(serialize(msg), host)
+
+        except socket.error:
+            pass
 
     def _send_announce(self, host=('<broadcast>', CATBUS_DISCOVERY_PORT), discovery_id=None):
         msg = AnnounceMsg(
@@ -375,7 +401,8 @@ class Server(Ribbon):
         self._send_announce_msg(msg, host)
 
     def _handle_error(self, msg, host):
-        print msg
+        if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
+            print msg, host
 
     def _handle_discover(self, msg, host):
         if self.visible:
@@ -417,7 +444,7 @@ class Server(Ribbon):
 
         reply_msg = KeyMetaMsg(page=msg.page, page_count=page_count, item_count=item_count, meta=meta)
 
-        return reply_msg
+        return reply_msg, host
 
     def _handle_get_keys(self, msg, host):
         if msg.count == 0:
@@ -430,7 +457,7 @@ class Server(Ribbon):
 
         reply_msg = KeyDataMsg(data=items)
 
-        return reply_msg
+        return reply_msg, host
 
     def _handle_set_keys(self, msg, host):
         reply_items = []
@@ -458,7 +485,7 @@ class Server(Ribbon):
 
         reply_msg = KeyDataMsg(data=reply_items)
 
-        return reply_msg
+        return reply_msg, host
 
     def _handle_link(self, msg, host):
         # check flags
@@ -472,31 +499,38 @@ class Server(Ribbon):
 
         # source link
         if msg.flags & CATBUS_MSG_LINK_FLAG_SOURCE:
-            # check if we have dest key
-            if msg.dest_hash not in self._database:
+            # check if we have dest key OR a default callback
+            if (msg.dest_hash not in self._database) and (self._default_callback == None):
                 return
 
             # change link flags and echo message back to sender
             reply_msg = LinkMsg(flags=CATBUS_MSG_LINK_FLAGS_DEST,
+                                data_port=self._data_port,
                                 source_hash=msg.source_hash,
                                 dest_hash=msg.dest_hash,
                                 query=msg.query)
             reply_msg.header.transaction_id = msg.header.transaction_id
 
-            return reply_msg
+            # change host reply port to data port
+            host = (host[0], msg.data_port)
+
+            return reply_msg, host
 
         # receiver link
         else:
             # check if we have the source key
             if msg.source_hash not in self._database:
                 return
+            
+            # change host reply port to data port
+            host = (host[0], msg.data_port)
 
             # remove current entries for this host
             self._send_list = [a for a in self._send_list if 
-                                (a['host'] != host) and
-                                (a['dest_hash'] != msg.dest_hash) and
+                                (a['host'] != host) or
+                                (a['dest_hash'] != msg.dest_hash) or
                                 (a['source_hash'] != msg.source_hash)]
-
+            
             # add to sender list
             entry = {'host': host, 
                      'dest_hash': msg.dest_hash, 
@@ -516,7 +550,33 @@ class Server(Ribbon):
             item = self._database.get_item(msg.dest_hash)
 
         except KeyError:
-            return
+            # entry not in data base
+
+            # check if we have a link requesting this item
+            found = False
+            with self.__lock:
+                for link in self._links:
+                    if link.dest_hash == msg.dest_hash:
+                        found = True
+
+            if found:
+                self._database.add_item(
+                            self.resolve_hash(msg.dest_hash),
+                            msg.data.value, 
+                            data_type=get_type_name(msg.data.meta.type),
+                            count=msg.data.meta.array_len + 1)
+
+                item = self._database.get_item(msg.dest_hash)
+
+            elif self._default_callback != None:
+
+                # resolve hashes
+                source_key = self.resolve_hash(msg.source_hash, host=host)
+                # dest_key = self.resolve_hash(msg.dest_hash, host=host)
+                source_query = [self.resolve_hash(a, host=host) for a in msg.source_query]
+
+                self._default_callback(source_key, msg.data.value, source_query, timestamp)
+                return
 
         # check read only flag
         if item.meta.flags & CATBUS_FLAGS_READ_ONLY:
@@ -526,11 +586,11 @@ class Server(Ribbon):
         try:
             if self._receive_cache[msg.dest_hash][host]['sequence'] != msg.sequence:
                 # set data
-                self._database[msg.dest_hash] = msg.data
+                self._database[msg.dest_hash] = msg.data.value
 
         except KeyError:
             # set data
-            self._database[msg.dest_hash] = msg.data
+            self._database[msg.dest_hash] = msg.data.value
 
         with self.__lock:
             if msg.dest_hash not in self._receive_cache:
@@ -552,14 +612,25 @@ class Server(Ribbon):
                 for hashed_key in msg.source_query:
                     source_query.append(self.resolve_hash(hashed_key, host))
 
-                link.callback(link.source_key, msg.data, source_query, timestamp)
+                link.callback(link.source_key, msg.data.value, source_query, timestamp)
 
 
-    def _process_msg(self, msg, host):
-        response = self._msg_handlers[type(msg)](msg, host)
+    def _process_msg(self, msg, host):        
+        tokens = self._msg_handlers[type(msg)](msg, host)
 
-        return response
+        # normally, you'd just try to access the tuple and
+        # handle the exception. However, that will raise a TypeError, 
+        # and if we handle a TypeError here, then any TypeError generated
+        # in the message handler will essentially get eaten.
+        if not isinstance(tokens, tuple):
+            return None, None
 
+        if len(tokens) < 2:
+            return None, None
+
+        return tokens[0], tokens[1]
+
+        
     def loop(self):
         try:
             readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
@@ -569,7 +640,7 @@ class Server(Ribbon):
                     data, host = s.recvfrom(1024)
 
                     msg = deserialize(data)
-                    response = None
+                    response = None                    
 
                     # filter our own messages
                     try:
@@ -582,7 +653,7 @@ class Server(Ribbon):
                     except KeyError:
                         pass
 
-                    response = self._process_msg(msg, host)
+                    response, host = self._process_msg(msg, host)
 
                     if response:
                         response.header.transaction_id = msg.header.transaction_id
@@ -624,6 +695,7 @@ class Server(Ribbon):
                     msg = LinkMsg(
                             msg_flags=0,
                             flags=link_flags,
+                            data_port=self._data_port,
                             source_hash=link.source_hash,
                             dest_hash=link.dest_hash,
                             query=query)

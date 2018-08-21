@@ -61,7 +61,7 @@ void ee_v_erase_block( uint16_t address, uint16_t len ){
         len--;
         address++;
 
-        wdt_reset();
+        sys_v_wdt_reset();
     }
 }
 

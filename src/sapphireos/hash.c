@@ -46,7 +46,7 @@ static uint32_t fnv1a( uint32_t base, uint8_t *data, uint16_t len ){
     return hash;
 }
 
-uint32_t hash_u32_data( uint8_t *data, uint8_t len ){
+uint32_t hash_u32_data( uint8_t *data, uint16_t len ){
     
     if( len == 0 ){
 

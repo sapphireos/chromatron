@@ -28,6 +28,8 @@
 
 #include "list.h"
 
+// #include "comm_printf.h"
+
 #define ASSERT(a)
 #define ASSERT_MSG(a, b)
 
@@ -75,7 +77,7 @@ list_node_t list_ln_create_node2( void *data, uint16_t len, mem_type_t8 type ){
     // check if data is provided
     if( data != 0 ){
 
-        // copy data into netmsg object
+        // copy data into object
         memcpy( &state->data, data, len );
     }
 
@@ -159,6 +161,17 @@ void *list_vp_get_data( list_node_t node ){
 #endif
     // atomic
 	list_node_state_t *state = mem2_vp_get_ptr( node );
+
+    // if( ( (uint32_t)state & 3 ) != 0 ){
+
+    //     intf_v_printf("list NODE align error: %lx", (uint32_t)&state->data);  
+    // }
+
+    // if( ( (uint32_t)&state->data & 3 ) != 0 ){
+
+    //     intf_v_printf("list DATA align error: %lx", (uint32_t)&state->data);  
+    // }
+
 
     return &state->data;
 }

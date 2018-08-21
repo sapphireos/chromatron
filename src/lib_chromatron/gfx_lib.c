@@ -38,6 +38,7 @@
 #define pgm_read_word(a) *a
 #endif
 
+#ifndef USE_HSV_BRIDGE
 static uint8_t array_red[MAX_PIXELS];
 static uint8_t array_green[MAX_PIXELS];
 static uint8_t array_blue[MAX_PIXELS];
@@ -46,6 +47,7 @@ static uint8_t array_misc[MAX_PIXELS];
 static uint16_t pix0_16bit_red;
 static uint16_t pix0_16bit_green;
 static uint16_t pix0_16bit_blue;
+#endif
 
 static uint16_t hue[MAX_PIXELS];
 static uint16_t sat[MAX_PIXELS];
@@ -104,8 +106,6 @@ static uint8_t smootherstep_lookup[DIMMER_LOOKUP_SIZE] = {
 #define NOISE_TABLE_SIZE 256
 static uint8_t noise_table[NOISE_TABLE_SIZE];
 
-static int32_t kv_test_key;
-
 
 static void compute_dimmer_lookup( void ){
 
@@ -127,6 +127,7 @@ static void setup_master_array( void ){
         return;
     }
 
+    pix_arrays[0].reverse = FALSE;
     pix_arrays[0].index = 0;
     pix_arrays[0].count = pix_count;
     pix_arrays[0].size_x = pix_size_x;
@@ -170,22 +171,22 @@ static void update_master_fader( void ){
     dimmer_step = step;
 }
 
-static void sync_db( void ){
+// static void sync_db( void ){
 
-    kvdb_i8_add( __KV__pix_count,                   pix_count,                 0, 0 );
-    kvdb_i8_add( __KV__pix_size_x,                  pix_size_x,                0, 0 );
-    kvdb_i8_add( __KV__pix_size_y,                  pix_size_y,                0, 0 );
-    kvdb_i8_add( __KV__pix_mode,                    pix_mode,                  0, 0 );
-    kvdb_i8_add( __KV__gfx_hsfade,                  global_hs_fade,            0, 0 );
-    kvdb_i8_add( __KV__gfx_vfade,                   global_v_fade,             0, 0 );
-    kvdb_i8_add( __KV__gfx_interleave_x,            pix_interleave_x,          0, 0 );
-    kvdb_i8_add( __KV__gfx_transpose,               pix_transpose,             0, 0 );
-    kvdb_i8_add( __KV__gfx_master_dimmer,           pix_master_dimmer,         0, 0 );
-    kvdb_i8_add( __KV__gfx_sub_dimmer,              pix_sub_dimmer,            0, 0 );
-    kvdb_i8_add( __KV__gfx_frame_rate,              gfx_frame_rate,            0, 0 );
-    kvdb_i8_add( __KV__gfx_virtual_array_start,     virtual_array_start,       0, 0 );
-    kvdb_i8_add( __KV__gfx_virtual_array_length,    virtual_array_length,      0, 0 );
-}
+//     kvdb_i8_add( __KV__pix_count,                   CATBUS_TYPE_UINT16, 1, &pix_count,                 sizeof(pix_count)            );
+//     kvdb_i8_add( __KV__pix_size_x,                  CATBUS_TYPE_UINT16, 1, &pix_size_x,                sizeof(pix_size_x)           );
+//     kvdb_i8_add( __KV__pix_size_y,                  CATBUS_TYPE_UINT16, 1, &pix_size_y,                sizeof(pix_size_y)           );
+//     kvdb_i8_add( __KV__pix_mode,                    CATBUS_TYPE_UINT8,  1, &pix_mode,                  sizeof(pix_mode)             );
+//     kvdb_i8_add( __KV__gfx_hsfade,                  CATBUS_TYPE_UINT16, 1, &global_hs_fade,            sizeof(global_hs_fade)       );
+//     kvdb_i8_add( __KV__gfx_vfade,                   CATBUS_TYPE_UINT16, 1, &global_v_fade,             sizeof(global_v_fade)        );
+//     kvdb_i8_add( __KV__gfx_interleave_x,            CATBUS_TYPE_BOOL,   1, &pix_interleave_x,          sizeof(pix_interleave_x)     );
+//     kvdb_i8_add( __KV__gfx_transpose,               CATBUS_TYPE_BOOL,   1, &pix_transpose,             sizeof(pix_transpose)        );
+//     kvdb_i8_add( __KV__gfx_master_dimmer,           CATBUS_TYPE_UINT16, 1, &pix_master_dimmer,         sizeof(pix_master_dimmer)    );
+//     kvdb_i8_add( __KV__gfx_sub_dimmer,              CATBUS_TYPE_UINT16, 1, &pix_sub_dimmer,            sizeof(pix_sub_dimmer)       );
+//     kvdb_i8_add( __KV__gfx_frame_rate,              CATBUS_TYPE_UINT16, 1, &gfx_frame_rate,            sizeof(gfx_frame_rate)       );
+//     kvdb_i8_add( __KV__gfx_virtual_array_start,     CATBUS_TYPE_UINT16, 1, &virtual_array_start,       sizeof(virtual_array_start)  );
+//     kvdb_i8_add( __KV__gfx_virtual_array_length,    CATBUS_TYPE_UINT16, 1, &virtual_array_length,      sizeof(virtual_array_length) );
+// }
 
 static void param_error_check( void ){
 
@@ -280,7 +281,7 @@ void gfx_v_set_params( gfx_params_t *params ){
 
     update_master_fader();
 
-    sync_db();
+    // sync_db();
 
     virtual_array_sub_position      = virtual_array_start / pix_count;
     scaled_pix_count                = (uint32_t)pix_count * 65536;
@@ -306,14 +307,50 @@ void gfx_v_get_params( gfx_params_t *params ){
     params->virtual_array_length    = virtual_array_length;
 }
 
+uint16_t urand( int32_t *params, uint16_t param_len ){
+
+    uint16_t op1, op2;
+
+    if( param_len == 0 ){
+
+        return rnd_u16_get_int();
+    }
+    else if( param_len == 1 ){
+
+        op2 = params[0];
+        op1 = 0;
+    }
+    else if( param_len == 2 ){
+
+        op2 = params[1];
+        op1 = params[0];   
+    }
+    else{ 
+        // invalid param len
+
+        return 0;
+    }
+
+    uint16_t diff = op2 - op1;
+
+    return ( rnd_u16_get_int() % diff ) + op1;
+}
+
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len ){
 
     switch( func_hash ){
-
-        case __KV__test_lib_call:
-            return params[0] + params[1];
+        // unique random
+        // this works the same as the rand() call
+        // in the FX VM, however, it always uses
+        // the system rng seed instead of the VM
+        // seed.
+        // this allows scripts to get random numbers
+        // unique to themselves when doing a frame sync
+        // with other nodes (which syncs the VM rng)
+        case __KV__urand:
+            return urand( params, param_len );
+    
             break;
-
 
         case __KV__noise:
             return gfx_u16_noise( params[0] % 65536 );
@@ -326,38 +363,38 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
     return 0;
 }
 
-int32_t gfx_i32_get_obj_attr( uint8_t obj, uint8_t attr, uint8_t addr ){
+// int32_t gfx_i32_get_obj_attr( uint8_t obj, uint8_t attr, uint8_t addr ){
 
-    if( obj == PIX_OBJ_TYPE ){
+//     if( obj == PIX_OBJ_TYPE ){
 
-        switch( attr ){
-            case PIX_ATTR_INDEX:
-                return pix_arrays[addr].index;
-                break;
+//         switch( attr ){
+//             case PIX_ATTR_INDEX:
+//                 return pix_arrays[addr].index;
+//                 break;
 
-            case PIX_ATTR_COUNT:
-                // check if using virtual arrays
-                // AND if accessing master array
-                if( ( addr == 0 ) && ( virtual_array_length > 0 ) ){
+//             case PIX_ATTR_COUNT:
+//                 // check if using virtual arrays
+//                 // AND if accessing master array
+//                 if( ( addr == 0 ) && ( virtual_array_length > 0 ) ){
 
-                    return virtual_array_length;          
-                }
+//                     return virtual_array_length;          
+//                 }
 
-                return pix_arrays[addr].count;
-                break;
+//                 return pix_arrays[addr].count;
+//                 break;
 
-            case PIX_ATTR_SIZE_X:
-                return pix_arrays[addr].size_x;
-                break;
+//             case PIX_ATTR_SIZE_X:
+//                 return pix_arrays[addr].size_x;
+//                 break;
 
-            case PIX_ATTR_SIZE_Y:
-                return pix_arrays[addr].size_y;
-                break;
-        }
-    }
+//             case PIX_ATTR_SIZE_Y:
+//                 return pix_arrays[addr].size_y;
+//                 break;
+//         }
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 void gfx_v_set_pix_count( uint16_t setting ){
 
@@ -456,6 +493,9 @@ uint16_t gfx_u16_get_vfade( void ){
 void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
     // bounds check
+    // optimization note:
+    // possibly can remove this, ensure all functions that call
+    // it have already wrapped index (which is the normal case)
     if( index >= MAX_PIXELS ){
 
         return;
@@ -561,6 +601,30 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
         return;
     }
 
+    // possible optimization:
+    // void ( *array_func )( uint16_t a, uint16_t i );
+
+    // if( attr == PIX_ATTR_HUE ){
+
+    //     array_func = _gfx_v_set_hue_1d;
+    // }
+    // else if( attr == PIX_ATTR_SAT ){
+
+    //     array_func = _gfx_v_set_sat_1d;
+    // }
+    // else if( attr == PIX_ATTR_HS_FADE ){
+
+    //     array_func = _gfx_v_set_hs_fade_1d;
+    // }
+    // else if( attr == PIX_ATTR_V_FADE ){
+
+    //     array_func = _gfx_v_set_v_fade_1d;
+    // }   
+    // else{
+
+    //     array_func = _gfx_v_set_val_1d;
+    // }
+
     for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
         uint16_t index = i + pix_arrays[obj].index;
@@ -584,7 +648,9 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
                 a = 0;
             }
         }
-
+        // possible optimization:
+        // array_func( a, index );
+        
         if( attr == PIX_ATTR_HUE ){
 
             _gfx_v_set_hue_1d( a, index );
@@ -905,19 +971,19 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
 uint16_t *gfx_u16p_get_hue( void ){
 
-    return target_hue;
+    return hue;
 }
 
 uint16_t *gfx_u16p_get_sat( void ){
 
-    return target_sat;
+    return sat;
 }
 
 uint16_t *gfx_u16p_get_val( void ){
 
-    return target_val;
+    return val;
 }
-
+#ifndef USE_HSV_BRIDGE
 uint8_t *gfx_u8p_get_red( void ){
 
     return array_red;
@@ -952,6 +1018,7 @@ uint16_t gfx_u16_get_pix0_blue( void ){
 
     return pix0_16bit_blue;
 }
+#endif
 
 void gfx_v_set_background_hsv( int32_t h, int32_t s, int32_t v ){
 
@@ -975,7 +1042,9 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         x = temp;
     }
 
-    if( pix_interleave_x ){
+    // interleaving only works on 2D access.
+    // 1D will address array linearly along its physical axis.
+    if( pix_interleave_x && ( y < 65535 ) ){
 
         if( y & 1 ){
 
@@ -1180,7 +1249,42 @@ uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj ){
 }
 
 
-uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj ){
+uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
+
+    if( ( x == 65535 ) && ( y == 65535 ) ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            if( target_val[i] != val[i] ){
+
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+    else{
+
+        uint16_t i = calc_index( obj, x, y );
+
+        if( i < MAX_PIXELS ){        
+
+            if( target_val[i] == val[i] ){
+
+                return 0;
+            }
+        }
+
+        return 1;    
+    }
+}
+
+
+uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
     if( ( x == 65535 ) && ( y == 65535 ) ){
 
@@ -1191,8 +1295,7 @@ uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj ){
             index %= pix_count;
 
             if( ( target_hue[i] != hue[i] ) ||
-                ( target_sat[i] != sat[i] ) ||
-                ( target_val[i] != val[i] ) ){
+                ( target_sat[i] != sat[i] ) ){
 
                 return 1;
             }
@@ -1206,8 +1309,7 @@ uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
         if( i < MAX_PIXELS ){        
             if( ( target_hue[i] == hue[i] ) &&
-                ( target_sat[i] == sat[i] ) &&
-                ( target_val[i] == val[i] ) ){
+                ( target_sat[i] == sat[i] ) ){
 
                 return 0;
             }
@@ -1518,6 +1620,10 @@ void gfxlib_v_init( void ){
 // convert all HSV to RGB
 void gfx_v_sync_array( void ){
 
+    #ifdef USE_HSV_BRIDGE
+
+    #else
+
     uint16_t r, g, b, w;
     uint8_t dither;
     uint16_t dimmed_val;
@@ -1600,6 +1706,8 @@ void gfx_v_sync_array( void ){
             array_misc[i] = dither;
         }
     }
+
+    #endif
 }
 
 

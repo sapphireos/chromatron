@@ -27,7 +27,7 @@
 
 #include <inttypes.h>
 
-uint32_t hash_u32_data( uint8_t *data, uint8_t len );
+uint32_t hash_u32_data( uint8_t *data, uint16_t len );
 uint32_t hash_u32_string( char *src );
 
 #ifdef PGM_P

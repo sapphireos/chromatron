@@ -108,7 +108,7 @@ class CatbusData(StructField):
         # look up type
         if 'meta' in kwargs:
             valuefield = get_field_for_type(kwargs['meta'].type, _name='value')
-
+            
             if kwargs['meta'].array_len == 0:
                 fields.append(valuefield)
 
@@ -118,8 +118,8 @@ class CatbusData(StructField):
                 valuefield = array
 
             if 'value' in kwargs:
-                valuefield.value = kwargs['value']
-                kwargs['value'] = valuefield.value
+                valuefield._value = kwargs['value']
+                kwargs['value'] = valuefield._value
 
         super(CatbusData, self).__init__(_fields=fields, **kwargs)
 

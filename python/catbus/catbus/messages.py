@@ -58,6 +58,11 @@ CATBUS_MSG_TYPE_KEY_DATA                   = CATBUS_MSG_DATABASE_GROUP_OFFSET + 
 
 CATBUS_MSG_TYPE_LINK                       = CATBUS_MSG_LINK_GROUP_OFFSET + 1
 CATBUS_MSG_TYPE_LINK_DATA                  = CATBUS_MSG_LINK_GROUP_OFFSET + 2
+CATBUS_MSG_TYPE_LINK_GET                   = CATBUS_MSG_LINK_GROUP_OFFSET + 3
+CATBUS_MSG_TYPE_LINK_META                  = CATBUS_MSG_LINK_GROUP_OFFSET + 4
+CATBUS_MSG_TYPE_LINK_DELETE                = CATBUS_MSG_LINK_GROUP_OFFSET + 5
+CATBUS_MSG_TYPE_LINK_ADD                   = CATBUS_MSG_LINK_GROUP_OFFSET + 6
+CATBUS_MSG_TYPE_LINK_OK                    = CATBUS_MSG_LINK_GROUP_OFFSET + 7
 
 CATBUS_MSG_TYPE_FILE_OPEN                  = ( 1 + CATBUS_MSG_FILE_GROUP_OFFSET )
 CATBUS_MSG_TYPE_FILE_CONFIRM               = ( 2 + CATBUS_MSG_FILE_GROUP_OFFSET )
@@ -76,6 +81,8 @@ CATBUS_MSG_FILE_FLAG_WRITE                 = 0x02
 
 CATBUS_DISC_FLAG_QUERY_ALL                 = 0x01
 
+CATBUS_LINK_FLAGS_SOURCE                   = 0x01
+CATBUS_LINK_FLAGS_VALID                    = 0x80
 
 
 class MsgHeader(StructField):
@@ -210,9 +217,11 @@ class LinkMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MsgHeader(_name="header"),
                   Uint8Field(_name="flags"),
+                  Uint16Field(_name="data_port"),
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
-                  CatbusQuery(_name="query")]
+                  CatbusQuery(_name="query"),
+                  CatbusHash(_name="tag")]
 
         super(LinkMsg, self).__init__(_name="link_msg", _fields=fields, **kwargs)
 
@@ -227,11 +236,58 @@ class LinkDataMsg(StructField):
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
                   Uint16Field(_name="sequence"),
-                  Int32Field(_name="data")]
+                  CatbusData(_name="data")]
 
         super(LinkDataMsg, self).__init__(_name="link_data_msg", _fields=fields, **kwargs)
 
         self.header.msg_type = CATBUS_MSG_TYPE_LINK_DATA
+
+class LinkGetMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  Uint16Field(_name="index")]
+
+        super(LinkGetMsg, self).__init__(_name="link_get_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_GET
+
+class LinkMetaMsg(LinkMsg):
+    def __init__(self, **kwargs):
+        super(LinkMetaMsg, self).__init__(**kwargs)
+
+        self._name = "link_meta_msg"
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_META
+
+class LinkDeleteMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  CatbusHash(_name="tag")]
+
+        super(LinkDeleteMsg, self).__init__(_name="link_delete_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_DELETE
+
+
+class LinkAddMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  Uint8Field(_name="flags"),
+                  CatbusStringField(_name="source_key"),
+                  CatbusStringField(_name="dest_key"),
+                  FixedArrayField(_name="query", _length=CATBUS_QUERY_TAG_LEN, _field=CatbusStringField),
+                  CatbusStringField(_name="tag")]
+
+        super(LinkAddMsg, self).__init__(_name="link_add_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_ADD
+
+class LinkOkMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header")]
+
+        super(LinkOkMsg, self).__init__(_name="link_ok_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_LINK_OK
 
 
 class FileOpenMsg(StructField):
@@ -372,6 +428,11 @@ messages = {
 
     CATBUS_MSG_TYPE_LINK:                   LinkMsg,
     CATBUS_MSG_TYPE_LINK_DATA:              LinkDataMsg,
+    CATBUS_MSG_TYPE_LINK_META:              LinkMetaMsg,
+    CATBUS_MSG_TYPE_LINK_ADD:               LinkAddMsg,
+    CATBUS_MSG_TYPE_LINK_GET:               LinkGetMsg,
+    CATBUS_MSG_TYPE_LINK_DELETE:            LinkDeleteMsg,
+    CATBUS_MSG_TYPE_LINK_OK:                LinkOkMsg,
 
     CATBUS_MSG_TYPE_FILE_OPEN:              FileOpenMsg,
     CATBUS_MSG_TYPE_FILE_CONFIRM:           FileConfirmMsg,
@@ -390,13 +451,14 @@ messages = {
 
 def deserialize(buf):
     msg_id = ord(buf[CATBUS_MSG_TYPE_OFFSET])
+
     try:
         return messages[msg_id]().unpack(buf)
 
     except KeyError:
         raise UnknownMessageException(msg_id)
 
-    except struct.error as e:
+    except (struct.error, UnicodeDecodeError) as e:
         print msg_id
         raise InvalidMessageException(e)
 
@@ -412,11 +474,14 @@ CATBUS_ERROR_ALLOC_FAIL                     = 0x0002
 CATBUS_ERROR_KEY_NOT_FOUND                  = 0x0003
 CATBUS_ERROR_INVALID_TYPE                   = 0x0004
 CATBUS_ERROR_READ_ONLY                      = 0x0005
+CATBUS_ERROR_GENERIC_ERROR                  = 0x0006
 
 CATBUS_ERROR_FILE_NOT_FOUND                 = 0x0101
 CATBUS_ERROR_FILESYSTEM_FULL                = 0x0102
 CATBUS_ERROR_FILESYSTEM_BUSY                = 0x0103
 CATBUS_ERROR_INVALID_FILE_SESSION           = 0x0104
+
+CATBUS_ERROR_LINK_EOF                       = 0x0201
 
 error_codes = {
     CATBUS_ERROR_OK:                "OK",
@@ -426,10 +491,12 @@ error_codes = {
     CATBUS_ERROR_KEY_NOT_FOUND:     "Key not found",
     CATBUS_ERROR_INVALID_TYPE:      "Invalid type",
     CATBUS_ERROR_READ_ONLY:         "Read only",
+    CATBUS_ERROR_GENERIC_ERROR:     "Generic error",
     CATBUS_ERROR_FILE_NOT_FOUND:    "File not found",
     CATBUS_ERROR_FILESYSTEM_FULL:   "Filesystem full",
     CATBUS_ERROR_FILESYSTEM_BUSY:   "Filesystem busy",
     CATBUS_ERROR_INVALID_FILE_SESSION: "Invalid file session",
+    CATBUS_ERROR_LINK_EOF:          "Link end of file",
 }
 
 def lookup_error_msg(error):

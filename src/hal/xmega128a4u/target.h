@@ -29,10 +29,9 @@
 
 
 // modules
-// #define ENABLE_AUTOMATON
-// #define ENABLE_CATBUS_LINK
+#define ENABLE_CATBUS_LINK
 // #define ENABLE_CMD2
-// #define ENABLE_TIME_SYNC
+#define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
 #define ENABLE_WIFI
 #define ENABLE_FFS
@@ -46,7 +45,7 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         64
+#define MAX_MEM_HANDLES         80
 #define MEM_MAX_STACK           1024
 
 // flash fs

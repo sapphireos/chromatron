@@ -148,31 +148,6 @@ static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, 
     return len;
 }
 
-static uint16_t hw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
-
-    // read hardware info from sys module
-    hw_info_t hw_info;
-    sys_v_get_hw_info( &hw_info );
-
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-
-        case FS_VFILE_OP_READ:
-            memcpy_P( ptr, (void *)&hw_info + pos, len );
-            break;
-
-        case FS_VFILE_OP_SIZE:
-            len = sizeof(hw_info_t);
-            break;
-
-        default:
-            len = 0;
-
-            break;
-    }
-
-    return len;
-}
 
 #ifdef ENABLE_CFG_VFILE
 static uint16_t eeprom_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
@@ -944,7 +919,6 @@ void cfg_v_init( void ){
     // create virtual files
     fs_f_create_virtual( PSTR("error_log.txt"), error_log_vfile_handler );
     fs_f_create_virtual( PSTR("fwinfo"), fw_info_vfile_handler );
-    fs_f_create_virtual( PSTR("hwinfo"), hw_info_vfile_handler );
 
     #ifdef ENABLE_CFG_VFILE
     fs_f_create_virtual( PSTR("cfg_eeprom"), eeprom_vfile_handler );
@@ -1031,7 +1005,7 @@ void cfg_v_read_error_log( cfg_error_log_t *log ){
 
 void cfg_v_erase_error_log( void ){
 
-    ee_v_erase_block( CFG_FILE_ERROR_LOG_START, sizeof(cfg_error_log_t) );
+    ee_v_write_byte_blocking( CFG_FILE_ERROR_LOG_START, 0xff );
 }
 
 uint16_t cfg_u16_error_log_size( void ){

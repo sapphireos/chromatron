@@ -25,6 +25,7 @@
 
 #include "cpu.h"
 #include "system.h"
+#include "timers.h"
 
 #include "flash25.h"
 #include "ffs_fw.h"

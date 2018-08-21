@@ -533,15 +533,15 @@ class Chromatron(object):
     def reboot(self):
         self._device.reboot()
 
-    def load_vm(self, filename=None, start=True, bin_data=None):
-        self.stop_vm()
+    def load_vm(self, vm_index=0, filename=None, start=True, bin_data=None):
+        self.stop_vm(vm_index)
 
         if bin_data:
-            code = code_gen.compile_text(bin_data)["stream"]
+            code = code_gen.compile_text(bin_data).stream
             bin_filename = 'vm.fxb'
 
         elif filename:
-            code = code_gen.compile_script(filename)["stream"]
+            code = code_gen.compile_script(filename).stream
             bin_filename = os.path.split(filename)[1] + 'b'
 
         try:
@@ -553,19 +553,40 @@ class Chromatron(object):
         self.put_file(bin_filename, code)
 
         # change vm program
-        self.set_key('vm_prog', bin_filename)
+        if vm_index == 0:
+            s = 'vm_prog'
+        else:
+            s = 'vm_prog_%d' % (vm_index)
+
+        self.set_key(s, bin_filename)
+
 
         if start:
-            self.start_vm()
+            self.start_vm(vm_index)
 
-    def reset_vm(self):
-        self.set_key('vm_reset', True)
+    def reset_vm(self, vm_index=0):
+        if vm_index == 0:
+            s = 'vm_reset'
+        else:
+            s = 'vm_reset_%d' % (vm_index)
 
-    def start_vm(self):
-        self.set_key('vm_run', True)
+        self.set_key(s, True)
 
-    def stop_vm(self):
-        self.set_key('vm_run', False)
+    def start_vm(self, vm_index=0):
+        if vm_index == 0:
+            s = 'vm_run'
+        else:
+            s = 'vm_run_%d' % (vm_index)
+
+        self.set_key(s, True)
+
+    def stop_vm(self, vm_index=0):
+        if vm_index == 0:
+            s = 'vm_run'
+        else:
+            s = 'vm_run_%d' % (vm_index)
+
+        self.set_key(s, False)
 
     def clean_vm_files(self):
         """Deletes all .fxb files from device"""
@@ -581,9 +602,6 @@ class Chromatron(object):
 
     def get_vm_reg(self, regname):
         assert self.client.is_connected()
-
-        if not regname.startswith('fx_'):
-            regname = 'fx_' + regname
 
         # must go through the client to get VM dynamic keys.
         # the USB interface can only retrieve static keys.
@@ -1172,7 +1190,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
             return
 
-        click.echo('Connected!')
+        click.echo('Connected! IP: %s' % (ct.get_key('ip')))
 
 
 
@@ -1488,84 +1506,23 @@ def reboot(ctx):
 
     echo_group(group)
 
-@cli.group()
-@click.pass_context
-def automaton(ctx):
-    """Automaton controls"""
-
-
-@automaton.command('load')
-@click.pass_context
-@click.argument('filename')
-@click.option('--live', default=None, is_flag=True, help='Live mode')
-def automaton_load(ctx, filename, live):
-    """Compile and load script to automaton"""
-
-    import automaton
-    group = ctx.obj['GROUP']()
-
-    if live:
-        click.secho('Live mode', fg='magenta')
-
-
-    try:
-        automaton.compile_file(filename)
-
-        with open('automaton.auto') as f:
-            data = f.read()
-
-        group.put_file('automaton.auto', data)
-        
-        click.echo('Loaded %s on:' % (click.style(filename, fg=VAL_COLOR)))
-
-        echo_group(group)
-
-    except Exception as e:
-        click.secho("Error:", fg='magenta')
-        click.secho(str(e), fg=ERROR_COLOR)
-
-
-    if live:
-        watcher = Watcher(filename)
-
-        try:
-            while True:
-                time.sleep(0.5)
-
-                if watcher.changed():
-                    try:
-                        automaton.compile_file(filename)   
-                        
-                        with open('automaton.auto') as f:
-                            data = f.read()
-
-                        group.put_file('automaton.auto', data)
-
-                        click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
-
-                    except Exception as e:
-                        click.secho("Error:", fg='magenta')
-                        click.secho(str(e), fg=ERROR_COLOR)
-
-
-        except KeyboardInterrupt:
-            pass
-
-        watcher.stop()
 
 @cli.group()
 @click.pass_context
-def vm(ctx):
+@click.option('-n', default=0, help='VM slot')
+def vm(ctx, n):
     """Virtual machine controls"""
+    ctx.obj['n'] = int(n)
 
 @vm.command()
 @click.pass_context
 def start(ctx):
     """Start virtual machine"""
     group = ctx.obj['GROUP']()
-    group.start_vm()
+    n = ctx.obj['n']
+    group.start_vm(n)
 
-    click.echo("Started VM on:")
+    click.echo("Started VM %d on:" % (n))
 
     echo_group(group)
 
@@ -1575,9 +1532,10 @@ def stop(ctx):
     """Stop virtual machine"""
 
     group = ctx.obj['GROUP']()
-    group.stop_vm()
+    n = ctx.obj['n']
+    group.stop_vm(n)
 
-    click.echo("Stopped VM on:")
+    click.echo("Stopped VM %d on:" % (n))
 
     echo_group(group)
 
@@ -1587,9 +1545,10 @@ def stop(ctx):
 def vm_reset(ctx):
     """Reset virtual machine"""
     group = ctx.obj['GROUP']()
-    group.reset_vm()
+    n = ctx.obj['n']
+    group.reset_vm(n)
 
-    click.echo("Reset VM on:")
+    click.echo("Reset VM %d on:" % (n))
 
     echo_group(group)
 
@@ -1602,14 +1561,15 @@ def load(ctx, filename, live):
     """Compile and load script to virtual machine"""
 
     group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
 
     if live:
         click.secho('Live mode', fg='magenta')
 
 
     try:
-        group.load_vm(filename)
-        click.echo('Loaded %s on:' % (click.style(filename, fg=VAL_COLOR)))
+        group.load_vm(n, filename)
+        click.echo('Loaded %s to VM %d on:' % (click.style(filename, fg=VAL_COLOR), n))
 
         echo_group(group)
 
@@ -1623,11 +1583,11 @@ def load(ctx, filename, live):
 
         try:
             while True:
-                time.sleep(0.5)
+                time.sleep(0.2)
 
                 if watcher.changed():
                     try:
-                        group.load_vm(filename)
+                        group.load_vm(n, filename)
                         click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
 
                     except Exception as e:
@@ -1647,6 +1607,7 @@ def reload(ctx):
     """Recompile and reload the FX script on device"""
 
     group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
 
     for ct in group.itervalues():
         echo_name(ct, nl=False)
@@ -1657,7 +1618,7 @@ def reload(ctx):
             filename, ext = os.path.splitext(prog)
             filename += '.fx'        
 
-            ct.load_vm(filename)
+            ct.load_vm(n, filename)
 
             click.echo(" %s" % (filename))
             
@@ -1678,7 +1639,12 @@ def compile(ctx, filename, debug):
 
     click.echo('Compiling: %s' % (filename))
 
-    code = code_gen.compile_script(filename, debug_print=debug)["stream"]
+    try:
+        code = code_gen.compile_script(filename, debug_print=debug).stream
+
+    except IOError:
+        click.secho("No such file", fg=ERROR_COLOR)
+        return
 
     bin_filename = filename + 'b'
 
@@ -1794,10 +1760,6 @@ def fs_get(ctx, filename):
     """Get a file"""
     group = ctx.obj['GROUP']()
 
-    f = open(filename, 'rb')
-    data = f.read()
-    f.close()
-
     for ct in group.itervalues():
         echo_name(ct, nl=False)
 
@@ -1809,7 +1771,7 @@ def fs_get(ctx, filename):
             pass
 
         try:
-            data = ct.get_file(filename, data)
+            data = ct.get_file(filename)
 
             with open(os.path.join(ct.name, filename), 'w+') as f:
                 f.write(data)
@@ -1832,9 +1794,9 @@ def keys():
 
     """
 
-@keys.command()
+@keys.command('list')
 @click.pass_context
-def list(ctx):
+def keys_list(ctx):
     """List all keys on devices"""
 
     group = ctx.obj['GROUP']()
@@ -1850,10 +1812,10 @@ def list(ctx):
             click.echo('    %-40s %s' % (click.style(k, fg=KEY_COLOR), click.style(str(v), fg=VAL_COLOR)))
 
 
-@keys.command()
+@keys.command('get')
 @click.argument('key')
 @click.pass_context
-def get(ctx, key):
+def keys_get(ctx, key):
     """Get key on devices"""
 
     group = ctx.obj['GROUP']()
@@ -1870,11 +1832,11 @@ def get(ctx, key):
         click.echo(' %s' % (click.style(str(val), fg=VAL_COLOR)))
 
 
-@keys.command()
+@keys.command('set')
 @click.argument('key')
 @click.argument('value')
 @click.pass_context
-def set(ctx, key, value):
+def keys_set(ctx, key, value):
     """Set key on devices"""
 
     group = ctx.obj['GROUP']()
@@ -2033,7 +1995,7 @@ def setup_pixels(ctx):
                 pix_count = click.prompt('Enter pixel count', type=int)
                 ct.set_key('pix_count', pix_count)
                 ct.set_pixel_mode(pix_type)
-                ct.load_vm(get_package_fx_script('pix_count_test.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_count_test.fx'))
 
                 click.secho("Confirming pixel count.", fg=NAME_COLOR)
                 click.secho("The first and last pixels should be on.", fg=NAME_COLOR)
@@ -2064,11 +2026,11 @@ def setup_pixels(ctx):
             # pix_test_green turns on pixels in position 1
             # pix_test_blue turns on pixels in position 2
 
-            ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
             if click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                 # red in position 0
 
-                ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
                 if click.confirm("Are the pixels %s?" % (click.style('green', fg='green'))):
                     # green in position 1
                     order = 'rgb'
@@ -2077,11 +2039,11 @@ def setup_pixels(ctx):
                     order = 'rbg'
 
             if order == None:
-                ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
                 if click.confirm("Are the pixels %s?" % (click.style('green', fg='green'))):
                     # green in position 0
 
-                    ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+                    ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
                     if click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                         # red in position 1
                         order = 'grb'
@@ -2091,11 +2053,11 @@ def setup_pixels(ctx):
                         order = 'gbr'
 
             if order == None:
-                ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+                ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
                 if click.confirm("Are the pixels %s?" % (click.style('blue', fg='blue'))):
                     # blue in position 0
 
-                    ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+                    ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
                     if click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                         # red in position 1
                         order = 'brg'
@@ -2136,17 +2098,17 @@ def setup_pixels(ctx):
             click.echo('\n')
             click.echo("Confirm RGB order:")
 
-            ct.load_vm(get_package_fx_script('pix_test_red.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_red.fx'))
             if not click.confirm("Are the pixels %s?" % (click.style('red', fg='red'))):
                 click.secho("Incorrect RGB ordering, we'll try again.", fg=ERROR_COLOR)
                 continue
 
-            ct.load_vm(get_package_fx_script('pix_test_green.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_green.fx'))
             if not click.confirm("Are the pixels %s?" % (click.style('green', fg='green'))):
                 click.secho("Incorrect RGB ordering, we'll try again.", fg=ERROR_COLOR)
                 continue
 
-            ct.load_vm(get_package_fx_script('pix_test_blue.fx'))
+            ct.load_vm(filename=get_package_fx_script('pix_test_blue.fx'))
             if not click.confirm("Are the pixels %s?" % (click.style('blue', fg='blue'))):
                 click.secho("Incorrect RGB ordering, we'll try again.", fg=ERROR_COLOR)
                 continue
@@ -2172,7 +2134,7 @@ def setup_pixels(ctx):
 
         ct.set_key('gfx_master_dimmer', 16384)
         ct.set_key('gfx_sub_dimmer', 65535)
-        ct.load_vm(get_package_fx_script('rainbow.fx'))
+        ct.load_vm(filename=get_package_fx_script('rainbow.fx'))
 
         # delay to make sure the device has had time to save parameters
         time.sleep(2.0)
@@ -2470,7 +2432,8 @@ def restore(ctx):
 @click.option('--force', default=False, is_flag=True, help='Force firmware upgrade even if versions match.')
 @click.option('--change_firmware', default=None, help='Change firmware on device.')
 @click.option('--yes', default=False, is_flag=True, help='Answer yes to all firmware change confirmation prompts.')
-def upgrade(ctx, release, force, change_firmware, yes):
+@click.option('--skip_verify', default=False, is_flag=True, help='Skip verification.  Do not use this unless you have a really good reason.')
+def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
     """Upgrade firmware on selected devices"""
     # this weirdness is to deal with the difference in how Click handles progress updates
     # vs the device driver.
@@ -2518,7 +2481,8 @@ def upgrade(ctx, release, force, change_firmware, yes):
         if not click.confirm(click.style("Are you sure you want to do this?\nThere will be no further confirmation prompts.", fg='red')):
             click.echo("Firmware change cancelled")
             return
-                
+
+    click.style("Skip verification enabled!!!", fg='white')
 
     # we're going to manually run though the update sequence,
     # since it is kind of messy to try to get the click progress bar
@@ -2584,17 +2548,18 @@ def upgrade(ctx, release, force, change_firmware, yes):
             with click.progressbar(length=len(ct_fw_data), label='Loading main CPU firmware  ') as progress_bar:
                 ct.put_file('firmware.bin', ct_fw_data, progress=Progress(progress_bar))
 
-            # verify
-            try:
-                click.echo("Verifying... ", nl=False)
+            if not skip_verify:
+                # verify
+                try:
+                    click.echo("Verifying... ", nl=False)
 
-                ct.check_file('firmware.bin', ct_fw_data)
+                    ct.check_file('firmware.bin', ct_fw_data)
 
-                click.echo("OK")
+                    click.echo("OK")
 
-            except IOError:
-                click.echo(click.style("Firmware verify fail!", fg='red'))
-                return
+                except IOError:
+                    click.echo(click.style("Firmware verify fail!", fg='red'))
+                    return
 
         # get firmware version
         wifi_md5 = ct.get_key('wifi_md5')
@@ -2625,16 +2590,17 @@ def upgrade(ctx, release, force, change_firmware, yes):
 
 
             # verify
-            try:
-                click.echo("Verifying... ", nl=False)
+            if not skip_verify:
+                try:
+                    click.echo("Verifying... ", nl=False)
 
-                ct.check_file('wifi_firmware.bin', ct_wifi_fw_data)
+                    ct.check_file('wifi_firmware.bin', ct_wifi_fw_data)
 
-                click.echo("OK")
+                    click.echo("OK")
 
-            except IOError:
-                click.echo(click.style("Firmware verify fail!", fg='red'))
-                return
+                except IOError:
+                    click.echo(click.style("Firmware verify fail!", fg='red'))
+                    return
 
             wifi_fw_len = len(ct_wifi_fw_data) - 16
             ct.set_key('wifi_fw_len', wifi_fw_len)
@@ -2707,6 +2673,101 @@ def version(ctx):
         s = '%s %s' % (name_s, val_s)
 
         click.echo(s)
+
+@cli.group()
+@click.pass_context
+def link(ctx):
+    """Link system commands"""
+
+@link.command('show')
+@click.pass_context
+def link_show(ctx):
+    """Show links"""
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        links = ct.client.get_links()
+
+        for link in links:
+            tag_s = '%s' % (click.style('%s' % (link['tag']), fg='white'))
+            source_key_s = '%s' % (click.style('%s' % (link['source_key']), fg='green'))
+            dest_key_s = '%s' % (click.style('%s' % (link['dest_key']), fg='cyan'))
+
+            query_s = ''
+            for tag in link['query']:
+                if tag == None:
+                    continue
+
+                query_s += '%s, ' % (click.style('%s' % (tag), fg='magenta'))
+
+            # print link
+            if link['source']:
+                s = '%32s: Send %32s -> %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
+            else:
+                s = '%32s: Recv %32s <- %32s @ [%s]' % (tag_s, dest_key_s, source_key_s, query_s)
+            
+            click.echo(s)
+
+@link.command('send')
+@click.pass_context
+@click.argument('link')
+def link_send(ctx, link):
+    """Add a sender link"""
+    group = ctx.obj['GROUP']()
+
+    link = automaton_code_gen.send.parseString('send ' + link, parseAll=True).asDict()['send'][0]
+
+    source = True
+
+    if 'tag' not in link:
+        link['tag'] = ['manual']
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        # note dest var is actually query[0]
+        ct.client.add_link(source, link['source_var'], link['query'][0], link['query'][1], link['tag'][0])
+
+
+@link.command('receive')
+@click.pass_context
+@click.argument('link')
+def link_receive(ctx, link):
+    """Add a receiver link"""
+    group = ctx.obj['GROUP']()
+
+    link = automaton_code_gen.receive.parseString('receive ' + link, parseAll=True).asDict()['receive'][0]
+
+    source = False
+
+    if 'tag' not in link:
+        link['tag'] = ['manual']
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        # note source var is actually query[0]
+        ct.client.add_link(source, link['query'][0], link['dest_var'], link['query'][1], link['tag'][0])
+        
+@link.command('delete')
+@click.pass_context
+@click.argument('tag')
+def link_delete(ctx, tag):
+    """Delete links matching tag"""
+
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        click.echo(name_s)
+
+        ct.client.delete_link(tag)
+
 
 
 def main():

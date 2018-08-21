@@ -26,13 +26,33 @@
 #include "system.h"
 #include "ntp.h"
 
-#ifdef LIB_SNTP
-#include "sntp.h"
-#endif
 
 #include "datetime.h"
 
 #include <stdlib.h>
+
+#include "sntp.h"
+#include "keyvalue.h"
+
+// NOTE!
+// tz_offset is in MINUTES, because not all timezones
+// are aligned on the hour.
+static int16_t tz_offset;
+
+static datetime_t current_datetime;
+
+KV_SECTION_META kv_meta_t datetime_kv[] = {
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.seconds, 0,  "datetime_seconds" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.minutes, 0,  "datetime_minutes" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.hours, 	 0,  "datetime_hours" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.day, 	 0,  "datetime_day" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.weekday, 0,  "datetime_weekday" },
+	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.month, 	 0,  "datetime_month" },
+	{ SAPPHIRE_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY, &current_datetime.year, 	 0,  "datetime_year" },
+
+	{ SAPPHIRE_TYPE_INT16, 0, KV_FLAGS_PERSIST,	   &tz_offset, 			 	 0,  "datetime_tz_offset" },
+};
+
 
 static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 	31, // january
@@ -53,6 +73,20 @@ static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 // initialize the timekeeping module
 void datetime_v_init( void ){
 
+}
+
+void datetime_v_update( void ){
+
+	datetime_v_now( &current_datetime );
+
+	//publish all
+	kv_i8_publish( __KV__datetime_seconds );
+	kv_i8_publish( __KV__datetime_minutes );
+	kv_i8_publish( __KV__datetime_hours );
+	kv_i8_publish( __KV__datetime_day );
+	kv_i8_publish( __KV__datetime_weekday );
+	kv_i8_publish( __KV__datetime_month );
+	kv_i8_publish( __KV__datetime_year );
 }
 
 
@@ -166,42 +200,46 @@ void datetime_v_to_iso8601( char *iso8601, uint8_t len, datetime_t *datetime ){
 
 // return now
 void datetime_v_now( datetime_t *datetime ){
-    #if defined LIB_SNTP
+ 
     ntp_ts_t now = sntp_t_now();
 
+    // adjust seconds by timezone offset
+	// tz_offset is in minutse
+	int32_t tz_seconds = tz_offset * 60;
+	now.seconds += tz_seconds;
+
     datetime_v_seconds_to_datetime( now.seconds, datetime );
-    #endif
 }
 
 uint32_t datetime_u32_now( void ){
-    #if defined LIB_SNTP
-
+    
     ntp_ts_t now = sntp_t_now();
 
     return now.seconds;
-
-    #else
-
-    return 0;
-    #endif
 }
 
 // set the given datetime to the lowest valid date and time in the epoch
 void datetime_v_get_epoch( datetime_t *datetime ){
 
-	datetime->seconds 	= 0;
-	datetime->minutes 	= 0;
-	datetime->hours		= 0;
-	datetime->day		= 1;
-	datetime->month		= 1;
-	datetime->year		= 1900;
+	datetime->seconds 		= 0;
+	datetime->minutes 		= 0;
+	datetime->hours			= 0;
+	datetime->day			= 1;
+	datetime->weekday		= MONDAY;
+	datetime->month			= 1;
+	datetime->year			= 1900;
 }
 
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
-
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
+
+ 	// January 1, 1900 is a Monday.
+    // Monday is a 1, but we are offsetting by -1 to start at 0 so we can use modulo
+    // arithmetic to get the current day of week.
+    // then we'll add 1 back.
+    datetime->weekday = ( days % 7 ) + 1;
 
     // get year
     datetime->year = 1900 - 1;
@@ -266,6 +304,50 @@ void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
     datetime->seconds = seconds;
 }
 
+uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime ){
+
+	datetime_t datetime_copy = *datetime;
+	
+	uint16_t temp_days = 0;
+
+	// compute total days from year
+	while( datetime_copy.year > 1900 ){
+
+		temp_days += DAYS_PER_YEAR;
+
+		// check for leap year
+        if( datetime_b_is_leap_year( &datetime_copy ) ){
+
+            temp_days++;
+        }
+
+        datetime_copy.year--;
+	}
+
+	// calculate days from month
+    for( uint8_t month = JANUARY; month < datetime->month; month++ ){
+
+        uint8_t days_per_month = pgm_read_byte( &days_per_month_table[month - 1] );
+
+        if( ( month == FEBRUARY ) && datetime_b_is_leap_year( datetime ) ){
+
+            days_per_month = FEBRUARY_LEAP_YEAR_DAYS;
+        }
+
+        temp_days += days_per_month;
+    }	
+
+    temp_days += ( datetime->day - 1 );
+
+    uint32_t seconds = temp_days * SECONDS_PER_DAY;
+
+    seconds += ( (uint32_t)datetime->hours * MINUTES_PER_HOUR * SECONDS_PER_MINUTE );
+    seconds += ( (uint32_t)datetime->minutes * SECONDS_PER_MINUTE );
+    seconds += datetime->seconds;
+
+    return seconds;
+}
+
 void datetime_v_increment_seconds( datetime_t *datetime ){
 
 	datetime->seconds++;
@@ -287,6 +369,12 @@ void datetime_v_increment_seconds( datetime_t *datetime ){
 				datetime->hours = 0;
 
 				datetime->day++;
+				datetime->weekday++;
+
+				if( datetime->weekday > SUNDAY ){
+
+					datetime->weekday = MONDAY;
+				}
 
 				uint8_t days_per_month;
 
@@ -320,7 +408,7 @@ void datetime_v_increment_seconds( datetime_t *datetime ){
 	}
 }
 
-bool datetime_b_is_leap_year( datetime_t *datetime ){
+bool datetime_b_is_leap_year( const datetime_t *datetime ){
 
 	if( ( datetime->year % 4 ) == 0 ){
 

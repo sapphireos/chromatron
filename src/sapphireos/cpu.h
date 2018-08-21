@@ -25,16 +25,18 @@
 #ifndef _CPU_H_
 #define _CPU_H_
 
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+#include <math.h>
+
 #include "bool.h"
+#include "hal_cpu.h"
 
-#ifdef __SIM__
 
-    #include <stdio.h>
-    #include <stdint.h>
-    #include <stddef.h>
-    #include <string.h>
-    #include <math.h>
-
+#if defined(__SIM__)
+    
     #define PGM_P const char*
     #define PROGMEM
     // #define PSTR(s) ({static char c[ ] = (s); c;})
@@ -66,16 +68,40 @@
 
     char *itoa(long i, char* s, int dummy_radix);
 
-#else
-    #include <avr/io.h>
-    #include <avr/interrupt.h>
-    #include <avr/pgmspace.h>
-    #include <avr/eeprom.h>
-    #include <avr/wdt.h>
-    #include <avr/sleep.h>
-    #include <util/delay.h>
-    #include <stdio.h>
-    #include <string.h>
+#elif defined(ARM)
+    
+    #define PGM_P const char*
+    #define PROGMEM
+    // #define PSTR(s) ({static char c[ ] = (s); c;})
+    #define PSTR(s) s
+
+    #define strncpy_P strncpy
+    #define strncmp_P strncmp
+    #define strlcpy_P strlcpy
+    #define strlcmp_P strlcmp
+    #define strcmp_P strcmp
+    #define strlen_P strlen
+    #define memcpy_P memcpy
+    #define memcpy_PF memcpy
+    #define strnlen(s, n) strlen(s) // NOT SAFE!!!
+    #define strstr_P strstr
+
+    #define sprintf_P sprintf
+    #define snprintf_P snprintf
+    #define vsnprintf_P vsnprintf
+    #define printf_P printf
+
+    #define pgm_read_word(x) *(uint16_t *)x
+    #define pgm_read_byte_far(x) *(uint8_t *)x
+    #define pgm_read_byte(x) *(uint8_t *)x
+    // uint16_t pgm_read_word(void *a);
+    // uint8_t pgm_read_byte_far(void *a);
+
+    #define wdt_reset()
+    #define _delay_us(x)
+
+    #define cli()
+
 #endif
 
 void cpu_v_init( void );
@@ -84,5 +110,6 @@ void cpu_v_remap_isrs( void );
 void cpu_v_sleep( void );
 void cpu_v_clear_reset_source( void );
 bool cpu_b_osc_fail( void );
+uint32_t cpu_u32_get_clock_speed( void );
 
 #endif

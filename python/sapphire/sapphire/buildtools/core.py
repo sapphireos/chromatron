@@ -51,7 +51,7 @@ from intelhex import IntelHex
 
 import global_settings
 
-from sapphire.devices.sapphiredata import KVMetaField
+from sapphire.devices.sapphiredata import KVMetaField, KVMetaFieldWidePtr
 from sapphire.common import util
 from catbus import catbus_string_hash
 from fnvhash import fnv1a_32
@@ -175,7 +175,12 @@ def runcmd(cmd, tofile=False, tolog=True):
 def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True):
     builder = Builder(target_dir, target_type, fnv_hash=fnv_hash)
 
-    modes = {"os": OSBuilder, "loader": LoaderBuilder, "app": AppBuilder, "lib": LibBuilder, "exe": ExeBuilder}
+    modes = {"os": OSBuilder, 
+             "loader": LoaderBuilder, 
+             "arm_loader": ARMLoaderBuilder, 
+             "app": AppBuilder, 
+             "lib": LibBuilder, 
+             "exe": ExeBuilder}
 
     return modes[builder.settings["BUILD_TYPE"]](target_dir, target_type, build_loader=build_loader, fnv_hash=fnv_hash)
 
@@ -280,11 +285,28 @@ class Builder(object):
             else:
                 settings[k] = v
 
-        if "CC" not in settings:
-            settings["CC"] = os.path.join(TOOLS_DIR, 'avr', 'bin', 'avr-gcc')
+        if "LINKER_SCRIPT" not in settings:
+            settings["LINKER_SCRIPT"] = "linker.x"
 
-        if "BINTOOLS" not in settings:
-            settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'avr', 'bin')
+        if "TOOLCHAIN" not in settings:
+            settings["TOOLCHAIN"] = "AVR"
+
+        if settings["TOOLCHAIN"] == "AVR":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'avr', 'bin', 'avr-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'avr', 'bin')
+
+        elif settings["TOOLCHAIN"] == "ARM":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'arm', 'bin', 'arm-none-eabi-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'arm', 'bin')
+
+        else:
+            raise SettingsParseException("Unknown toolchain")
 
         if 'FULL_NAME' not in settings:
             try:
@@ -325,7 +347,7 @@ class Builder(object):
 
         for d in self.source_dirs:
             for f in os.listdir(d):
-                if f.endswith('.c'):
+                if f.endswith('.c') or f.endswith('.cpp') or f.endswith('.s') or f.endswith('.S'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
                     if fpath not in source_files:
@@ -607,6 +629,10 @@ class Builder(object):
 
             # build command string
             cmd = '"' + self.settings["CC"] + '"'
+                        
+            if source_file.endswith('.s'):
+                cmd += " -x assembler-with-cpp"
+
             cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
@@ -681,7 +707,6 @@ class ConfigBuilder(Builder):
         self.app_builder.settings['PROJ_NAME'] = self.build_config['PROJ_NAME']
         self.app_builder.settings['PROJ_VERSION'] = self.build_config['PROJ_VERSION']
         self.app_builder.settings['FULL_NAME'] = self.build_config['FULL_NAME']
-
 
         self.lib_builders = []
         for lib in self.build_config['LIBS']:
@@ -827,8 +852,10 @@ class HexBuilder(Builder):
 
         obj_dir = self.settings["OBJ_DIR"]
 
+        source_files = self.list_source()
+
         # source object files
-        for source in self.list_source():
+        for source in source_files:
             source_path, source_fname = os.path.split(source)
             cmd += obj_dir + '/' + source_fname + '.o' + ' '
 
@@ -857,7 +884,7 @@ class HexBuilder(Builder):
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
         cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
-        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, "linker.x"))
+        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
 
@@ -868,12 +895,24 @@ class HexBuilder(Builder):
 
         logging.info("Generating output files")
 
+
         # enclose in quotes so we can handle spaces in the command filepath
         bintools = '"' + self.settings["BINTOOLS"] + '"'
-        runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
-        runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
-        runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
-        runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
+
+        if self.settings["TOOLCHAIN"] == "AVR":
+            runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
+            runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
+
+        else:
+            runcmd(os.path.join(bintools, 'arm-none-eabi-objcopy -O ihex -R .eeprom main.elf main.hex'))
+            runcmd(os.path.join(bintools, 'arm-none-eabi-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'arm-none-eabi-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
+
+        ih = IntelHex('main.hex')
+        ih.tobinfile('main.bin')
 
         # change back to working dir
         os.chdir(cwd)
@@ -891,7 +930,9 @@ class AppBuilder(HexBuilder):
 
     def merge_hex(self, hex1, hex2, target):
         ih = IntelHex(hex1)
-        ih.merge(IntelHex(hex2))
+        ih2 = IntelHex(hex2)
+
+        ih.merge(ih2, overlap='replace')
 
         ih.write_hex_file(target)
 
@@ -910,18 +951,36 @@ class AppBuilder(HexBuilder):
 
         ih = IntelHex('main.hex')
 
+        starting_offset = ih.minaddr()
+
         fwid = uuid.UUID('{' + self.settings["FWID"] + '}')
 
         # get KV meta start
         kv_meta_addr = fw_info_addr + struct.calcsize(fw_info_fmt)
-        kv_meta_len = KVMetaField().size()
+
+        if self.settings['TOOLCHAIN'] == 'ARM':
+            kv_meta_len = KVMetaFieldWidePtr().size()
+
+        else:
+            kv_meta_len = KVMetaField().size()
 
         bindata = ih.tobinstr()
 
         kv_meta_data = []
 
         while True:
-            kv_meta = KVMetaField().unpack(bindata[kv_meta_addr:kv_meta_addr + kv_meta_len])
+            kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
+
+            if self.settings['TOOLCHAIN'] == 'ARM':
+                kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
+
+            else:
+                kv_meta = KVMetaField().unpack(kv_meta_s)
+
+            # compute hash and repack into binary
+            kv_meta.hash = catbus_string_hash(str(kv_meta.param_name))
+
+            ih.puts(kv_meta_addr, kv_meta.pack())
 
             kv_meta_addr += kv_meta_len
 
@@ -944,7 +1003,7 @@ class AppBuilder(HexBuilder):
             hash32 = fnv1a_32(str(kv.param_name))
 
             if hash32 in kv_meta_by_hash:
-                raise Exception("Hash collision!")
+                raise Exception("Hash collision! %s 0x%lx" % (str(kv.param_name), hash32))
 
             kv_meta_by_hash[hash32] = (kv, index)
 
@@ -1006,7 +1065,11 @@ class AppBuilder(HexBuilder):
 
         # create loader image
         loader_hex = os.path.join(loader_project.target_dir, "main.hex")
-        self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+        try:
+            self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+
+        except Exception as e:
+            logging.exception(e)
 
         # create sha256 of binary
         sha256 = hashlib.sha256(ih.tobinstr())
@@ -1024,7 +1087,7 @@ class AppBuilder(HexBuilder):
             f.write(json.dumps(data))
 
         # create firmware zip file
-        zf = zipfile.ZipFile('chromatron_main_fw.zip', 'wb')
+        zf = zipfile.ZipFile('chromatron_main_fw.zip', 'w')
         zf.write('manifest.txt')
         zf.write('firmware.bin')
         zf.close()
@@ -1032,7 +1095,7 @@ class AppBuilder(HexBuilder):
         # create second, project specific zip
         # we'll remove the first zip after
         # we update the firmware tools
-        zf = zipfile.ZipFile('%s.zip' % (self.settings['PROJ_NAME']), 'wb')
+        zf = zipfile.ZipFile('%s.zip' % (self.settings['PROJ_NAME']), 'w')
         zf.write('manifest.txt')
         zf.write('firmware.bin')
         zf.close()
@@ -1067,10 +1130,10 @@ class LoaderBuilder(HexBuilder):
     def __init__(self, *args, **kwargs):
         super(LoaderBuilder, self).__init__(*args, **kwargs)
 
-        # try:
-        #     self.libraries.insert(0, self.settings["OS_PROJECT"])
-        # except KeyError:
-        #     pass
+        try:
+            self.libraries.insert(0, self.settings["OS_PROJECT"])
+        except KeyError:
+            pass
 
         for lib in self.libraries:
             self.includes.append(lib)
@@ -1082,7 +1145,22 @@ class LoaderBuilder(HexBuilder):
         except KeyError:
             pass
 
-        self.settings["LINK_FLAGS"].append("-Wl,--section-start=.text=%s" % (self.settings["LOADER_ADDRESS"]))
+        if "LOADER_ADDRESS" in self.settings:
+            self.settings["LINK_FLAGS"].append("-Wl,--section-start=.text=%s" % (self.settings["LOADER_ADDRESS"]))
+
+class ARMLoaderBuilder(HexBuilder):
+    def __init__(self, *args, **kwargs):
+        super(ARMLoaderBuilder, self).__init__(*args, **kwargs)
+
+        try:
+            self.libraries.insert(0, self.settings["OS_PROJECT"])
+        except KeyError:
+            pass
+
+        try:
+            self.includes.append(self.settings["OS_PROJECT"])
+        except KeyError:
+            pass
 
 
 class ExeBuilder(Builder):
@@ -1161,7 +1239,7 @@ class ExeBuilder(Builder):
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
         cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
-        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, "linker.x"))
+        cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
 

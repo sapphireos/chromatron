@@ -35,6 +35,7 @@
 #include "list.h"
 #include "fs.h"
 #include "power.h"
+#include "background.h"
 
 #ifdef ENABLE_USB
 #include "usb_intf.h"
@@ -119,7 +120,6 @@ KV_SECTION_META kv_meta_t thread_info_kv[] = {
 };
 
 
-PT_THREAD( background_thread( pt_t *pt, void *state ) );
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) );
 
 
@@ -457,11 +457,17 @@ void thread_v_set_alarm( uint32_t alarm ){
     state->flags |= THREAD_FLAGS_ALARM;
 }
 
+uint32_t thread_u32_get_alarm( void ){
+
+    thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
+    
+    return state->alarm;
+}
+
 void thread_v_clear_alarm( void ){
 
     thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
 
-    state->alarm = 0;
     state->flags &= ~THREAD_FLAGS_ALARM;
 }
 
@@ -510,7 +516,7 @@ int32_t thread_i32_get_next_alarm( void ){
 
 void run_thread( thread_t thread, thread_state_t *state ){
 
-    uint32_t thread_ticks = tmr_u32_get_ticks();
+    uint32_t thread_us = tmr_u32_get_system_time_us();
 
 	// set current thread
 	current_thread = thread;
@@ -554,7 +560,7 @@ void run_thread( thread_t thread, thread_state_t *state ){
     if( thread_flags & FLAGS_ACTIVE ){
 
         uint32_t last_run_time = state->run_time;
-        uint32_t elapsed_us = tmr_u32_ticks_to_us( tmr_u32_elapsed_ticks( thread_ticks ) );
+        uint32_t elapsed_us = tmr_u32_elapsed_time_us( thread_us );
         task_us += elapsed_us;
         state->run_time += elapsed_us;
 
@@ -619,8 +625,10 @@ void run_thread( thread_t thread, thread_state_t *state ){
     run_cause = 0;
 
     #ifdef ENABLE_THREAD_DISABLE_INTERRUPTS_CHECK
-    // check if the global interrupts are still enabled
-    ASSERT_MSG( ( SREG & 0x80 ) != 0, "Global interrupts disabled!" );
+        #ifdef AVR
+        // check if the global interrupts are still enabled
+        ASSERT_MSG( ( SREG & 0x80 ) != 0, "Global interrupts disabled!" );
+        #endif
     #endif
 }
 
@@ -694,7 +702,7 @@ void thread_start( void ){
     #endif
 
 	// start the background threads
-	thread_t_create( background_thread, PSTR("background"), 0, 0 );
+    background_v_init();
     thread_t_create( cpu_stats_thread, PSTR("cpu_stats"), 0, 0 );
 
     // create vfile
@@ -753,8 +761,8 @@ void thread_start( void ){
             usb_v_poll();
             #endif
 		}
-        
-        mem2_v_collect_garbage();
+
+        mem2_v_collect_garbage();        
 
 		// ********************************************************************
 		// Check for sleep conditions
@@ -765,12 +773,13 @@ void thread_start( void ){
 		if( ( thread_flags & FLAGS_SLEEP ) &&
             ( thread_u16_get_signals() == 0 ) ){
 
-            uint32_t ticks = tmr_u32_get_ticks();
-            
+            uint32_t sleep_start = tmr_u32_get_system_time_us();
+
             pwr_v_sleep();
+
             // zzzzzzzzzzzzz
 
-            sleep_us += tmr_u32_ticks_to_us( tmr_u32_elapsed_ticks( ticks ) );
+            sleep_us += tmr_u32_elapsed_time_us( sleep_start );
 		}
         #endif
 
@@ -784,22 +793,6 @@ void thread_start( void ){
         }
 	}
 }
-
-PT_THREAD( background_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-	while(1){
-
-        TMR_WAIT( pt, 1000 );
-
-        // EVENT( EVENT_ID_WATCHDOG_KICK, 0 );
-        sys_v_wdt_reset();
-	}
-
-PT_END( pt );
-}
-
 
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) )
 {

@@ -27,8 +27,6 @@
 
 #include "system.h"
 
-#define CHECK_WATCHDOG_RESET        FALSE    
-
 #define WATCHDOG_TIMEOUT_16MS       WDT_PER_16CLK_gc
 #define WATCHDOG_TIMEOUT_32MS       WDT_PER_32CLK_gc
 #define WATCHDOG_TIMEOUT_64MS       WDT_PER_64CLK_gc

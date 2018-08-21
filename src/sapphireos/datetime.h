@@ -25,7 +25,8 @@
 #ifndef _DATETIME_H
 #define _DATETIME_H
 
-#include "system.h"
+#include <stdint.h>
+#include "datetime_struct.h"
 
 // minimum string length for iso 8601 date/time string.
 // multiple formats are possible, but the format used by
@@ -58,19 +59,18 @@
 #define NOVEMBER	11
 #define DECEMBER	12
 
-
-
-typedef struct{
-	uint8_t seconds;
-	uint8_t minutes;
-	uint8_t hours;
-	uint8_t day; // day represents current day of the current month, not current day of the year (hence 8 bits)
-	uint8_t month;
-	uint16_t year;
-} datetime_t;
+// day names
+#define MONDAY 		1
+#define TUESDAY 	2
+#define WEDNESDAY 	3
+#define THURSDAY 	4
+#define FRIDAY 		5
+#define SATURDAY 	6
+#define SUNDAY 		7
 
 void datetime_v_init( void );
     
+void datetime_v_update( void );
 void datetime_v_parse_iso8601( char *iso8601, uint8_t len, datetime_t *datetime );
 void datetime_v_to_iso8601( char *iso8601, uint8_t len, datetime_t *datetime );
 void datetime_v_now( datetime_t *datetime );
@@ -78,8 +78,9 @@ uint32_t datetime_u32_now( void );
 void datetime_v_set_now( uint32_t seconds );
 void datetime_v_get_epoch( datetime_t *datetime );
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime );
+uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime );
 void datetime_v_increment_seconds( datetime_t *datetime );
-bool datetime_b_is_leap_year( datetime_t *datetime );
+bool datetime_b_is_leap_year( const datetime_t *datetime );
 
 
 

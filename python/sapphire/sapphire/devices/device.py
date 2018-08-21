@@ -465,7 +465,7 @@ class Device(object):
             if filter_unchanged:
                 # filter out keys which are not changing
                 if kwargs[key] == self._keys[key].value:
-                   continue
+                    continue
 
             # check if key is set to read only
             if 'read_only' in self._keys[key].flags:
@@ -626,10 +626,10 @@ class Device(object):
     def get_kvlink_info(self):
         data = self.get_file("kvlinks")
 
-        info = sapphiredata.KVLinkArray()
+        info = sapphiredata.KVLinkFile()
         info.unpack(data)
-
-        return info
+        
+        return info.links
 
     def get_kvsend_info(self):
         data = self.get_file("kvsend")
@@ -833,9 +833,14 @@ class Device(object):
         s = "\nFlags Source     Dest       Query ->\n"
 
         KV_MSG_LINK_FLAG_SOURCE             = 0x01
+        KV_MSG_LINK_FLAG_DEST               = 0x04
+        KV_MSG_LINK_FLAG_VALID              = 0x80
 
         for n in info:
             flags = ''
+
+            if n.flags & KV_MSG_LINK_FLAG_VALID == 0:
+                continue
 
             if n.flags & KV_MSG_LINK_FLAG_SOURCE:
                 flags += 'S'
@@ -867,15 +872,16 @@ class Device(object):
     def cli_sendinfo(self, line):
         info = self.get_kvsend_info()
 
-        s = "\nTTL IP:             Port  Source       Dest         \n"
+        s = "\nTTL IP:             Port  Source       Dest         Sequence\n"
 
         for n in info:
-            s += "%3d %15s %5u %-12d %-12d" % \
+            s += "%3d %15s %5u %-12d %-12d %5u" % \
                 (n.ttl,
                  n.ip,
                  n.port,
                  n.source_hash,
-                 n.dest_hash)
+                 n.dest_hash,
+                 n.sequence)
 
             s += "\n"
 
@@ -884,15 +890,14 @@ class Device(object):
     def cli_rxcacheinfo(self, line):
         info = self.get_kvreceivecache_info()
 
-        s = "\nTTL IP:             Port  Dest         Data         Sequence\n"
+        s = "\nTTL IP:             Port  Dest         Sequence\n"
 
         for n in info:
-            s += "%3d %15s %5u %-12d %-12d %5u" % \
+            s += "%3d %15s %5u %-12d %5u" % \
                 (n.ttl,
                  n.ip,
                  n.port,
                  n.dest_hash,
-                 n.data,
                  n.sequence)
 
 
@@ -1003,6 +1008,8 @@ class Device(object):
             15: "kv_link",
             16: "kv_send",
             17: "kv_rx_cache",
+            18: "kv_db_entry",
+            19: "subscribed_keys",
         }
 
         total_size = 0
@@ -1140,7 +1147,13 @@ class Device(object):
         if str(value) == '__null__':
             value = ''
 
-        self.set_key(param, value)
+        value_tok = value.split(' ')
+
+        if len(value_tok) == 1:
+            self.set_key(param, value)
+            
+        else:
+            self.set_key(param, value_tok)
 
         new_param = self.get_key(param)
 
@@ -1349,8 +1362,6 @@ class Device(object):
 
         except IOError: # file not found
             pass
-
-        time.sleep(2.0) # give a second while file system erases blocks
 
         # calculate crc of file data
         filehash = catbus_string_hash(data)

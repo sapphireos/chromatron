@@ -337,6 +337,9 @@ int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
     routing_table_entry_t *ptr = &route_start;
     routing_table_entry_t route;    
 
+    routing_table_entry_t default_route;
+    default_route.tx_func = 0;
+
     // iterate through routes to find a match
     while( ptr < route_end ){
 
@@ -346,9 +349,16 @@ int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
         ip_addr_t subnet;
         ip_addr_t subnet_mask;
 
-        if( route.get_route( &subnet, &subnet_mask ) < 0 ){
+        int8_t route_status = route.get_route( &subnet, &subnet_mask );
+        if( route_status < 0 ){
 
             goto next;
+        }
+
+        // check if default route
+        if( route_status == NETMSG_ROUTE_DEFAULT ){
+   
+            memcpy_P( &default_route, ptr, sizeof(route) );      
         }
 
         // check if global broadcast
@@ -372,6 +382,14 @@ int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
 next:
         ptr++;
     }
+
+    // check if default route available:
+    if( default_route.tx_func != 0 ){
+
+        return default_route.tx_func( msg );    
+    }
+
+    log_v_debug_P( PSTR("no route found") );
 
     // no route found
     return NETMSG_TX_ERR_RELEASE;

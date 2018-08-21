@@ -52,8 +52,8 @@ class Client(object):
 
         self._connected_host = None
 
-        self.read_window_size = 4
-        self.write_window_size = 2
+        self.read_window_size = 1
+        self.write_window_size = 1
 
         self.nodes = {}
 
@@ -187,8 +187,13 @@ class Client(object):
                 # try computing hash from meta tags
                 if tags is None:
                     tags = {catbus_string_hash(v): v for v in self.get_tags().itervalues() if len(v) > 0}
+                
+                try:
+                    resolved_keys[k] = tags[k]
 
-                resolved_keys[k] = tags[k]
+                except KeyError:
+                    # can't find anything, just return hash itself
+                    resolved_keys[k] = k
 
         return resolved_keys
 
@@ -331,7 +336,7 @@ class Client(object):
 
             try:
                 response, sender = self._exchange(msg)
-
+                
                 if len(response.data) == 0:
                     raise KeyError
 
@@ -403,7 +408,7 @@ class Client(object):
         # send each batch
         for batch in batches:
             msg = SetKeysMsg(data=batch)
-
+            
             response, sender = self._exchange(msg)
             
             for item in response.data:
@@ -687,6 +692,75 @@ class Client(object):
 
         return d
 
+    def get_links(self):
+        index = 0
+
+        exc = None
+
+        links = []
+
+        while True:
+            msg = LinkGetMsg(index=index)
+            index += 1
+
+            try:
+                response, host = self._exchange(msg)
+
+            except ProtocolErrorException as e:
+                exc = e
+                break
+
+            # check flags
+            if response.flags & CATBUS_LINK_FLAGS_VALID == 0:
+                continue
+
+            if response.flags & CATBUS_LINK_FLAGS_SOURCE:
+                source = True
+            else:
+                source = False
+
+            # look up hashes    
+            resolved_keys = self.lookup_hash(response.source_hash, response.dest_hash, response.tag, *response.query)
+
+            link = {
+                "source": source,
+                "source_key": resolved_keys[response.source_hash],
+                "dest_key": resolved_keys[response.dest_hash],
+                "query": [resolved_keys[a] for a in response.query],
+                "tag": resolved_keys[response.tag]
+            }
+
+            links.append(link)
+
+
+        if exc.error_code != CATBUS_ERROR_LINK_EOF:
+            raise exc
+
+        return links
+
+    def add_link(self, source, source_key, dest_key, query, tag):
+        if source:
+            flags = CATBUS_LINK_FLAGS_SOURCE
+
+        else:
+            flags = 0
+
+        flags |= CATBUS_LINK_FLAGS_VALID
+
+        msg = LinkAddMsg(
+                flags=flags,
+                source_key=source_key,
+                dest_key=dest_key,
+                query=query,
+                tag=tag)
+
+        response, host = self._exchange(msg)
+
+    def delete_link(self, tag):
+        msg = LinkDeleteMsg(tag=catbus_string_hash(tag))
+
+        response, host = self._exchange(msg)
+
 
 if __name__ == '__main__':
 
@@ -695,12 +769,32 @@ if __name__ == '__main__':
     
     c = Client()
 
-    c.discover()
-    # print get_broadcast_addresses()
+    # c.discover()
 
-    for node in c.discover().values():
-        pprint(node)
+    # for node in c.discover().values():
+        # pprint(node)
 
-    # c.connect(('10.0.0.122', 44632))
+    c.connect(('10.0.0.119', 44632))
+    # c.connect(('10.0.0.102', 44632))
+    # pprint(c.get_links())
 
-    # c.delete_file('rainbow.fxb')
+    # c.add_link(True, "wifi_rssi", "wifi_rssi", ["datalog"], "datalog")
+    # c.add_link(True, "supply_voltage", "supply_voltage", ["datalog"], "datalog")
+
+    # c.delete_link("test")
+
+    # pprint(c.get_links())
+
+    # print c.get_key('test_meow')
+
+    # c.set_key('test_meow', '4')
+
+    # print c.get_key('test_woof')
+    # c.set_key('test_woof', ['4','5','6','7'])
+
+    print c.get_key('fx_a')
+
+
+
+
+

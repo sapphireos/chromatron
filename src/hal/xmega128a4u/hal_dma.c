@@ -23,6 +23,7 @@
  */
 
 #include "system.h"
+#include "timers.h"
 
 #include "hal_dma.h"
 
@@ -52,7 +53,7 @@ void dma_v_memcpy( void *dest, const void *src, uint16_t len ){
     DMA.DMA_CH.CTRLA = DMA_CH_ENABLE_bm | DMA_CH_BURSTLEN_4BYTE_gc;
     DMA.DMA_CH.CTRLA |= DMA_CH_TRFREQ_bm;
 
-    SAFE_BUSY_WAIT( ( DMA.INTFLAGS & DMA_CHTRNIF ) == 0 );
+    BUSY_WAIT( ( DMA.INTFLAGS & DMA_CHTRNIF ) == 0 );
 
     DMA.DMA_CH.CTRLA = 0;
 }

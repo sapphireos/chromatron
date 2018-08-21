@@ -53,6 +53,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "wifi_cmd.h"
 #include "netmsg.h"
 #include "ip.h"
+#include "list.h"
 #include "config.h"
 #include "crc.h"
 #include "sockets.h"
@@ -81,6 +82,9 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 
 #define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
 
+static uint8_t rx_dma_buf[WIFI_UART_RX_BUF_SIZE];
+
+static volatile bool buffer_busy;
 static uint8_t rx_buf[WIFI_UART_RX_BUF_SIZE];
 
 
@@ -100,31 +104,44 @@ static uint32_t wifi_uptime;
 static bool default_ap_mode;
 
 static uint16_t wifi_comm_errors;
+static uint16_t wifi_comm_errors2;
 static uint8_t wifi_connects;
 
-static uint32_t wifi_echo_sent;
-static uint32_t wifi_echo_recv;
-
-static uint16_t wifi_rx_udp_fifo_overruns;
-static uint16_t wifi_rx_udp_port_overruns;
+static uint16_t wifi_rx_udp_overruns;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static uint16_t mem_heap_peak;
+static uint16_t mem_used;
 static uint16_t intf_max_time;
 static uint16_t vm_max_time;
 static uint16_t wifi_max_time;
 static uint16_t mem_max_time;
+static uint16_t intf_avg_time;
+static uint16_t vm_avg_time;
+static uint16_t wifi_avg_time;
+static uint16_t mem_avg_time;
 
+static uint32_t comm_rx_rate;
+static uint32_t comm_tx_rate;
+static uint32_t current_tx_bytes;
+static uint32_t current_rx_bytes;
 
 static uint16_t wifi_version;
-
-static uint8_t next_msg_id;
 
 static netmsg_t rx_netmsg;
 static uint16_t rx_netmsg_index;
 static uint16_t rx_netmsg_crc;
 
 static uint8_t router;
+
+static uint32_t ready_time_start;
+static volatile uint16_t max_ready_wait_isr;
+static uint16_t max_ready_wait;
+
+static uint8_t comm_stalls;
+
+static list_t netmsg_list;
+static bool udp_busy;
 
 // static mem_handle_t wifi_networks_handle = -1;
 
@@ -156,32 +173,45 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version,                     0,   "wifi_version" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors,                 0,   "wifi_comm_errors" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_fifo_overruns,        0,   "wifi_comm_rx_udp_fifo_overruns" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors2,                0,   "wifi_comm_errors2" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_overruns,             0,   "wifi_comm_rx_udp_overruns" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_sent,                    0,   "wifi_udp_sent" },
 
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_echo_sent,                   0,   "wifi_echo_sent" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_echo_recv,                   0,   "wifi_echo_recv" },
-
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_port_overruns,        0,   "wifi_comm_rx_udp_port_overruns" },
-
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_heap_peak,                    0,   "wifi_mem_heap_peak" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_used,                         0,   "wifi_mem_used" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &intf_max_time,                    0,   "wifi_proc_intf_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_max_time,                      0,   "wifi_proc_vm_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_max_time,                    0,   "wifi_proc_wifi_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_max_time,                     0,   "wifi_proc_mem_max_time" },
+
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &intf_avg_time,                    0,   "wifi_proc_intf_avg_time" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_avg_time,                      0,   "wifi_proc_vm_avg_time" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_avg_time,                    0,   "wifi_proc_wifi_avg_time" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_avg_time,                     0,   "wifi_proc_mem_avg_time" },
+
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &max_ready_wait,                   0,   "wifi_max_ready_wait" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_rate_tx" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rate_rx" },
+
+    { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
-
+ 
 static void _wifi_v_usart_send_char( uint8_t b ){
 
     usart_v_send_byte( &WIFI_USART, b );
+
+    current_tx_bytes += 1;
 }
 
 static void _wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
 
     usart_v_send_data( &WIFI_USART, data, len );
+
+    current_tx_bytes += len;
 }
 
 static int16_t _wifi_i16_usart_get_char( void ){
@@ -191,37 +221,59 @@ static int16_t _wifi_i16_usart_get_char( void ){
 
 static void _wifi_v_usart_flush( void ){
 
-    SAFE_BUSY_WAIT( _wifi_i16_usart_get_char() >= 0 );
+    BUSY_WAIT( _wifi_i16_usart_get_char() >= 0 );
 }
 
-#include "io.h"
 
+// #include "io.h"
 // void strobe_ss( void ){
 
-//     // WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-//     // WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
-//     // _delay_us( 1 );
-//     // WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
-
-//     IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
-//     IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+//     WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+//     WIFI_SS_PORT.OUTSET                 = ( 1 << WIFI_SS_PIN );
 //     _delay_us( 1 );
-//     IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
+//     WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+
+//     // IO_PIN4_PORT.DIRSET                 = ( 1 << IO_PIN4_PIN );
+//     // IO_PIN4_PORT.OUTSET                 = ( 1 << IO_PIN4_PIN );
+//     // _delay_us( 1 );
+//     // IO_PIN4_PORT.OUTCLR                 = ( 1 << IO_PIN4_PIN );
 // }
+
+
+static bool is_udp_rx_released( void ){
+
+    if( udp_busy ){
+
+        if( !sock_b_rx_pending() ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
 
 static uint16_t dma_rx_bytes( void ){
 
     uint16_t len;
 
+    uint16_t dest_addr0, dest_addr1;
+
     ATOMIC;
-    if( ( DMA.INTFLAGS & WIFI_DMA_CHTRNIF ) != 0 ){
 
-        len = sizeof(rx_buf);
-    }
-    else{
+    do{
 
-        len = sizeof(rx_buf) - DMA.WIFI_DMA_CH.TRFCNT;
-    }
+        volatile uint8_t temp;
+        temp = DMA.WIFI_DMA_CH.DESTADDR0;
+        dest_addr0 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+        temp = DMA.WIFI_DMA_CH.DESTADDR0;
+        dest_addr1 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+    } while( dest_addr0 != dest_addr1 );
+
+    len = dest_addr0 - (uint16_t)rx_dma_buf;
+
     END_ATOMIC;
 
     return len;
@@ -232,10 +284,14 @@ static void disable_rx_dma( void ){
     ATOMIC;
     DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
     DMA.WIFI_DMA_CH.TRFCNT = 0;
+
+    // make sure DMA timer is disabled
+    TCD1.CTRLA = 0;
+    TCD1.INTFLAGS = TC0_OVFIF_bm;
     END_ATOMIC;
 }
 
-static void enable_rx_dma( void ){
+static void enable_rx_dma( bool irq ){
 
     ATOMIC;
 
@@ -246,24 +302,133 @@ static void enable_rx_dma( void ){
 
     DMA.INTFLAGS = WIFI_DMA_CHTRNIF | WIFI_DMA_CHERRIF; // clear transaction complete interrupt
 
-    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | DMA_CH_BURSTLEN_1BYTE_gc;
+    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | DMA_CH_REPEAT_bm | DMA_CH_BURSTLEN_1BYTE_gc;
+    DMA.WIFI_DMA_CH.CTRLB = 0;
     DMA.WIFI_DMA_CH.REPCNT = 0;
     DMA.WIFI_DMA_CH.ADDRCTRL = DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_SRCDIR_FIXED_gc | DMA_CH_DESTRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc;
     DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
-    DMA.WIFI_DMA_CH.TRFCNT = sizeof(rx_buf);
+    DMA.WIFI_DMA_CH.TRFCNT = sizeof(wifi_data_header_t) + 1;
 
     DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 0 ) & 0xFF;
     DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 8 ) & 0xFF;
     DMA.WIFI_DMA_CH.SRCADDR2 = 0;
 
-    DMA.WIFI_DMA_CH.DESTADDR0 = ( ( (uint16_t)rx_buf ) >> 0 ) & 0xFF;
-    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_buf ) >> 8 ) & 0xFF;
+    DMA.WIFI_DMA_CH.DESTADDR0 = ( ( (uint16_t)rx_dma_buf ) >> 0 ) & 0xFF;
+    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_dma_buf ) >> 8 ) & 0xFF;
     DMA.WIFI_DMA_CH.DESTADDR2 = 0;
 
+    if( irq ){
+
+        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
+    }
+
     DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
+
     END_ATOMIC;
 }
 
+static void wifi_v_reset_rx_buffer( void ){
+
+    disable_rx_dma();
+
+    // set up DMA
+    enable_rx_dma( TRUE );
+}
+
+static void wifi_v_reset_control_byte( void ){
+
+    rx_buf[0] = WIFI_COMM_IDLE;   
+}
+
+static void wifi_v_reset_comm( void ){
+
+    wifi_v_reset_rx_buffer();
+    _wifi_v_usart_send_char( WIFI_COMM_RESET );   
+}
+
+static void wifi_v_set_rx_ready( void ){
+        
+    wifi_v_reset_rx_buffer();
+
+    WIFI_USART_XCK_PORT.OUTCLR = ( 1 << WIFI_USART_XCK_PIN );
+    _delay_us( 20 );
+    WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
+}
+
+
+ISR(WIFI_DMA_IRQ_VECTOR){
+        
+    // disable IRQ
+    DMA.WIFI_DMA_CH.CTRLB = 0;
+
+    if( rx_dma_buf[0] == WIFI_COMM_DATA ){
+
+        // we can't set a TRFCNT interrupt to inform us when the message is finished,
+        // because at this point we are already somewhere in the middle of receiving it
+        // and we don't want to mess up the DMA transfer.
+        // however, at this point, we do know how long the message is, and therefore, how
+        // long it will take to receive it.  we can set a timer to fire when the message
+        // is finished.
+
+        // reset timer
+        TCD1.CTRLA = 0;
+        TCD1.CTRLB = 0;
+        TCD1.CNT = 0;
+        
+        wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buf[1];
+
+        // calculate timer length based on packet length
+        // at 4 MHz USART, each byte is 2.5 microseconds.
+        // we tick at 4 MHz, which yields 10 ticks per byte.
+        TCD1.PER = header->len * 10;
+
+        // start timer
+        TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
+    }
+    else{
+
+        // incorrect control byte on frame
+
+        // reset DMA and send ready signal
+        wifi_v_set_rx_ready();
+    }
+}
+
+ISR(TCD1_OVF_vect){
+
+    // disable timer and make sure interrupt flags are cleared.
+    // this is important because on very short messages, the timer
+    // may set a second pending OVF interrupt before the timer is
+    // disabled while handling the first interrupt.  this will
+    // cause the interrupt to run again as if there were a second message
+    // being processed.  this will then cause the buffer wait logic to trigger,
+    // causing the timer to fire again in 100 uS.  once the original message
+    // has been processed and the buffer freed, the interrupt handler will
+    // then think that it can copy the second (non-existant) message into the
+    // main buffer and reset the receive ready flag and the DMA engine.
+    // if this occurs while a message was being received, it breaks the interface.
+    TCD1.CTRLA = 0;
+    TCD1.INTFLAGS = TC0_OVFIF_bm;
+
+    if( buffer_busy ){
+
+        // check again in 100 microseconds
+        TCD1.PER = 400;
+        TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
+        
+        return;
+    }
+
+    buffer_busy = TRUE;
+
+    // copy to process buffer
+    memcpy( rx_buf, rx_dma_buf, sizeof(rx_buf) );
+
+    wifi_v_set_rx_ready();
+
+    // packet complete
+    thread_v_signal( WIFI_SIGNAL );
+}
 
 static void disable_irq( void ){
 
@@ -289,7 +454,7 @@ static void enable_irq( void ){
     WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL |= PORT_ISC_FALLING_gc;
 
     // enable port interrupt
-    WIFI_BOOT_PORT.INTCTRL = PORT_INT0LVL_HI_gc;
+    WIFI_BOOT_PORT.INTCTRL |= PORT_INT0LVL_HI_gc;
 }
 
 
@@ -398,37 +563,12 @@ static void _wifi_v_enter_normal_mode( void ){
 }
 
 
-static void wifi_v_reset_rx_buffer( void ){
-
-    disable_rx_dma();
-
-    rx_buf[0] = WIFI_COMM_IDLE;
-
-    // set up DMA
-    enable_rx_dma();
-}
-
-static void wifi_v_reset_comm( void ){
-
-    wifi_v_reset_rx_buffer();
-    _wifi_v_usart_send_char( WIFI_COMM_RESET );   
-}
-
-static void wifi_v_set_rx_ready( void ){
-        
-    wifi_v_reset_rx_buffer();
-
-    WIFI_USART_XCK_PORT.OUTCLR = ( 1 << WIFI_USART_XCK_PIN );
-    _delay_us( 10 );
-    WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
-}
-
 static uint8_t wifi_u8_get_control_byte( void ){
 
     return rx_buf[0];
 }
 
-static int8_t wifi_i8_rx_data_received( void ){
+static int16_t wifi_i16_rx_data_received( void ){
 
     if( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ){
 
@@ -437,12 +577,17 @@ static int8_t wifi_i8_rx_data_received( void ){
 
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
-    if( dma_rx_bytes() >= ( 1 + sizeof(wifi_data_header_t) + header->len ) ){
+    return ( sizeof(wifi_data_header_t) + header->len + 1 );
+}
 
-        return 0;
-    }
+static void clear_rx_ready( void ){
 
-    return -2;
+    ATOMIC;
+    wifi_rx_ready = FALSE;
+
+    ready_time_start = tmr_u32_get_system_time_us();
+
+    END_ATOMIC;
 }
 
 bool wifi_b_comm_ready( void ){
@@ -457,32 +602,28 @@ bool wifi_b_comm_ready( void ){
 // waits up to WIFI_USART_TIMEOUT microseconds for comm to be ready
 bool wifi_b_wait_comm_ready( void ){
     
-    uint32_t timeout = tmr_u32_get_system_time_us();
-
-    SAFE_BUSY_WAIT( ( tmr_u32_elapsed_time_us( timeout ) < WIFI_USART_TIMEOUT ) && !wifi_b_comm_ready() );
+    BUSY_WAIT_TIMEOUT( !wifi_b_comm_ready(), WIFI_USART_TIMEOUT );
 
     return wifi_b_comm_ready();
 }
 
 
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
+int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     ASSERT( len <= WIFI_MAX_DATA_LEN );
     
     if( !wifi_b_comm_ready() ){
 
-        log_v_debug_P( PSTR("rx not ready! %d"), data_id ); 
+        log_v_debug_P( PSTR("rx not ready! %x"), data_id ); 
 
         return -1;  
     }
 
-    next_msg_id++;
-
     uint16_t crc = crc_u16_start();
 
     wifi_data_header_t header;
-    header.msg_id   = next_msg_id;
     header.len      = len;
+    header.reserved = 0;
     header.data_id  = data_id;
     header.crc      = 0;
     crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );    
@@ -492,9 +633,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     header.crc = crc_u16_finish( crc );
 
 
-    ATOMIC;
-    wifi_rx_ready = FALSE;
-    END_ATOMIC;
+    clear_rx_ready();
 
     _wifi_v_usart_send_char( WIFI_COMM_DATA );
     _wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
@@ -503,7 +642,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len ){
     return 0;
 }
 
-int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len ){
+int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     if( !wifi_b_wait_comm_ready() ){
 
@@ -516,59 +655,6 @@ int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len ){
     }
 
     return 0;
-}
-
-int8_t wifi_i8_send_msg_response( 
-    uint8_t data_id, 
-    uint8_t *data, 
-    uint8_t len,
-    uint8_t *response,
-    uint8_t response_len ){
-
-    int8_t status = 0;
-
-    uint32_t timeout = tmr_u32_get_system_time_us();
-
-    SAFE_BUSY_WAIT( ( tmr_u32_elapsed_time_us( timeout ) < WIFI_USART_TIMEOUT ) && !wifi_b_comm_ready() );
-
-    if( wifi_i8_send_msg( data_id, data, len ) < 0 ){
-
-        status = -1;
-        goto end;
-    }
-
-    SAFE_BUSY_WAIT( ( tmr_u32_elapsed_time_us( timeout ) < WIFI_USART_TIMEOUT ) && ( wifi_i8_rx_data_received() < 0 ) );
-
-    if( wifi_i8_rx_data_received() < 0 ){
-
-        status = -2;
-        goto end;
-    }
-
-
-    wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
-    uint8_t *response_data = (uint8_t *)( header + 1 );
-
-    if( crc_u16_block( response_data, header->len ) == header->crc ){
-
-        // bounds check
-        if( header->len < response_len ){
-
-            response_len = header->len;
-        }
-
-        memcpy( response, response_data, response_len );
-    }
-    else{
-
-        log_v_debug_P( PSTR("Wifi crc error") );
-        status = -3;
-    }
-
-end:
-    wifi_v_set_rx_ready();
-
-    return status;
 }
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
@@ -624,95 +710,18 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         return NETMSG_TX_ERR_RELEASE;
     }
 
-    int8_t status = -1;
+    if( list_u8_count( &netmsg_list ) >= WIFI_MAX_NETMSGS ){
 
-    netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
-
-    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
-
-    uint16_t data_len = 0;
-
-    uint16_t crc = crc_u16_start();
-
-    uint8_t *data = 0;
-    uint8_t *h2 = 0;
-    uint16_t h2_len = 0;
-
-    if( netmsg_state->data_handle > 0 ){
-
-        data = mem2_vp_get_ptr( netmsg_state->data_handle );
-        data_len = mem2_u16_get_size( netmsg_state->data_handle );
+        return NETMSG_TX_ERR_RELEASE;   
     }
 
-    // header 2, if present
-    if( netmsg_state->header_2_handle > 0 ){
+    // add to list
+    list_v_insert_head( &netmsg_list, netmsg );
 
-        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+    // signal comm thread
+    thread_v_signal( WIFI_SIGNAL );
 
-        crc = crc_u16_partial_block( crc, h2, h2_len );
-    }
-
-    if( netmsg_state->data_handle > 0 ){
-
-        crc = crc_u16_partial_block( crc, data, data_len );
-    }
-
-    // setup header
-    wifi_msg_udp_header_t udp_header;
-    udp_header.addr = netmsg_state->raddr.ipaddr;
-    udp_header.lport = netmsg_state->laddr.port;
-    udp_header.rport = netmsg_state->raddr.port;
-    udp_header.len = data_len + h2_len;
-    udp_header.crc = crc_u16_finish( crc );
-
-    // send header
-    int8_t ret_val = wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_HEADER, (uint8_t *)&udp_header, sizeof(udp_header) );
-
-    if( ret_val < 0 ){
-
-        log_v_debug_P( PSTR("error %d"), ret_val );
-
-        status = -5;
-        goto error;
-    }
-
-    if( h2_len > 0 ){
-
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, h2, h2_len ) < 0 ){
-
-            status = -3;
-            goto error;
-        }
-    }
-
-    while( data_len > 0 ){
-
-        uint16_t copy_len = data_len;
-
-        if( copy_len > WIFI_MAX_DATA_LEN ){
-
-            copy_len = WIFI_MAX_DATA_LEN;
-        }
-
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_UDP_DATA, data, copy_len ) < 0 ){
-
-            log_v_debug_P( PSTR("port %u -> %u len %d datalen: %d"), udp_header.lport, udp_header.rport, copy_len, data_len );
-
-            status = -4;
-            goto error;
-        }
-
-        data += copy_len;
-        data_len -= copy_len;
-    }
-
-    return NETMSG_TX_OK_RELEASE;
-
-error:
-    log_v_debug_P( PSTR("send udp error %d"), status );
-    
-    return NETMSG_TX_ERR_RELEASE;
+    return NETMSG_TX_OK_NORELEASE;
 }
 
 
@@ -886,11 +895,11 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     uint32_t start_time = tmr_u32_get_system_time_us();
 
     uint8_t next_byte = 0;
-    memset( rx_buf, 0xff, sizeof(rx_buf) );
-    enable_rx_dma();
+    memset( rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+    enable_rx_dma( FALSE );
 
     // waiting for frame start
-    while( rx_buf[next_byte] != SLIP_END ){
+    while( rx_dma_buf[next_byte] != SLIP_END ){
 
         if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
 
@@ -919,7 +928,7 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
             }
         }
 
-        uint8_t b = rx_buf[next_byte];
+        uint8_t b = rx_dma_buf[next_byte];
         next_byte++;
 
         if( b == SLIP_END ){
@@ -939,7 +948,7 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
                 }
             }
 
-            b = rx_buf[next_byte];
+            b = rx_dma_buf[next_byte];
             next_byte++;
 
             if( b == SLIP_ESC_END ){
@@ -973,7 +982,7 @@ end:
     if( status != 0 ){
 
         log_v_debug_P( PSTR("loader error: %d"), status );
-        log_v_debug_P( PSTR("%2x %2x %2x %2x %2x %2x %2x %2x"), rx_buf[0], rx_buf[1], rx_buf[2], rx_buf[3], rx_buf[4], rx_buf[5], rx_buf[6], rx_buf[7] );
+        log_v_debug_P( PSTR("%2x %2x %2x %2x %2x %2x %2x %2x"), rx_dma_buf[0], rx_dma_buf[1], rx_dma_buf[2], rx_dma_buf[3], rx_dma_buf[4], rx_dma_buf[5], rx_dma_buf[6], rx_dma_buf[7] );
     }
 
     disable_rx_dma();
@@ -1176,14 +1185,14 @@ int8_t esp_i8_load_flash( file_t file ){
         return -1;
     }
 
-    memset( (uint8_t *)rx_buf, 0xff, sizeof(rx_buf) );
-    enable_rx_dma();
+    memset( (uint8_t *)rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+    enable_rx_dma( FALSE );
 
-    // cast rx_buf to a volatile pointer.
+    // cast rx_dma_buf to a volatile pointer.
     // otherwise, GCC will attempt to be clever and cache
-    // the first byte of rx_buf, which will cause
+    // the first byte of rx_dma_buf, which will cause
     // the check for SLIP_END to fail.
-    volatile uint8_t *buf = rx_buf;
+    volatile uint8_t *buf = rx_dma_buf;
 
     esp_write_flash_t cmd;
     cmd.addr = 0;
@@ -1222,7 +1231,7 @@ int8_t esp_i8_load_flash( file_t file ){
     }
 
     // This buffer eats a lot of stack.
-    // At some point we could rework this to use the rx_buf,
+    // At some point we could rework this to use the rx_dma_buf,
     // or load the data in smaller chunks.
     uint8_t file_buf[256];
     int32_t len = 0;
@@ -1253,8 +1262,8 @@ int8_t esp_i8_load_flash( file_t file ){
 
         if( ( len % 1024 ) == 0 ){
 
-            memset( (uint8_t *)rx_buf, 0xff, sizeof(rx_buf) );
-            enable_rx_dma();
+            memset( (uint8_t *)rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+            enable_rx_dma( FALSE );
 
             for( uint8_t i = 0; i < 250; i++ ){
 
@@ -1286,8 +1295,8 @@ typedef struct{
 
 int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
 
-    memset( rx_buf, 0xff, sizeof(rx_buf) );
-    enable_rx_dma();
+    memset( rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+    enable_rx_dma( FALSE );
 
     esp_digest_t cmd;
     cmd.addr = 0;
@@ -1303,11 +1312,11 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     slip_v_send_data( (uint8_t *)&cmd, sizeof(cmd) );
     _wifi_v_usart_send_char( SLIP_END );
 
-    // cast rx_buf to a volatile pointer.
+    // cast rx_dma_buf to a volatile pointer.
     // otherwise, GCC will attempt to be clever and cache
-    // the first byte of rx_buf, which will cause
+    // the first byte of rx_dma_buf, which will cause
     // the check for SLIP_END to fail.
-    volatile uint8_t *buf = rx_buf;
+    volatile uint8_t *buf = rx_dma_buf;
 
     for( uint8_t i = 0; i < 250; i++ ){
 
@@ -1334,27 +1343,27 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     uint8_t md5_idx = 0;
 
     // parse response
-    for( uint8_t i = 1; i < sizeof(rx_buf); i++ ){
+    for( uint8_t i = 1; i < sizeof(rx_dma_buf); i++ ){
 
         if( md5_idx >= MD5_LEN ){
 
             break;
         }
 
-        if( rx_buf[i] == SLIP_END ){
+        if( rx_dma_buf[i] == SLIP_END ){
 
             break;
         }
-        else if( rx_buf[i] == SLIP_ESC ){
+        else if( rx_dma_buf[i] == SLIP_ESC ){
 
             i++;
 
-            if( rx_buf[i] == SLIP_ESC_END ){
+            if( rx_dma_buf[i] == SLIP_ESC_END ){
 
                 digest[md5_idx] = SLIP_END;
                 md5_idx++;
             }
-            else if( rx_buf[i] == SLIP_ESC_ESC ){
+            else if( rx_dma_buf[i] == SLIP_ESC_ESC ){
 
                 digest[md5_idx] = SLIP_ESC;
                 md5_idx++;
@@ -1362,7 +1371,7 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
         }
         else{
 
-            digest[md5_idx] = rx_buf[i];
+            digest[md5_idx] = rx_dma_buf[i];
             md5_idx++;
         }
     }
@@ -1382,6 +1391,7 @@ void esp_v_flash_end( void ){
 typedef struct{
     uint8_t timeout;
     file_t fw_file;
+    uint8_t tries;
 } loader_thread_state_t;
 
 PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
@@ -1439,15 +1449,15 @@ PT_BEGIN( pt );
             //     network_hashes[0] = hash_u32_string( ssid );
 
             //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get_by_hash( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
             //     network_hashes[1] = hash_u32_string( ssid );
 
             //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get_by_hash( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
             //     network_hashes[2] = hash_u32_string( ssid );
 
             //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get_by_hash( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
             //     network_hashes[3] = hash_u32_string( ssid );
 
 
@@ -1501,18 +1511,18 @@ PT_BEGIN( pt );
 
             if( router == 1 ){
 
-                kv_i8_get_by_hash( __KV__wifi_ssid2, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get_by_hash( __KV__wifi_password2, msg.pass, sizeof(msg.pass) );  
+                kv_i8_get( __KV__wifi_ssid2, msg.ssid, sizeof(msg.ssid) );
+                kv_i8_get( __KV__wifi_password2, msg.pass, sizeof(msg.pass) );  
             }
             else if( router == 2 ){
 
-                kv_i8_get_by_hash( __KV__wifi_ssid3, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get_by_hash( __KV__wifi_password3, msg.pass, sizeof(msg.pass) );  
+                kv_i8_get( __KV__wifi_ssid3, msg.ssid, sizeof(msg.ssid) );
+                kv_i8_get( __KV__wifi_password3, msg.pass, sizeof(msg.pass) );  
             }
             else if( router == 3 ){
 
-                kv_i8_get_by_hash( __KV__wifi_ssid4, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get_by_hash( __KV__wifi_password4, msg.pass, sizeof(msg.pass) );  
+                kv_i8_get( __KV__wifi_ssid4, msg.ssid, sizeof(msg.ssid) );
+                kv_i8_get( __KV__wifi_password4, msg.pass, sizeof(msg.pass) );  
             }
             else{
 
@@ -1543,7 +1553,12 @@ PT_BEGIN( pt );
                                    ( thread_b_alarm_set() ) );
 
             // check if connected
-            if( !wifi_b_connected() ){
+            if( wifi_b_connected() ){
+
+                kv_i8_persist( __KV__wifi_router );
+            }
+            else{
+                // not connected, try next router
 
                 router++;
 
@@ -1652,18 +1667,34 @@ PT_END( pt );
 
 static int8_t process_rx_data( void ){
 
-    if( wifi_i8_rx_data_received() < 0 ){
+    int8_t status = 0;
+
+    int16_t rx_bytes = wifi_i16_rx_data_received();
+
+    if( rx_bytes < 0 ){
 
         return -1;
     }
 
-    
+    // reset buffer control byte
+    wifi_v_reset_control_byte();
+
     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
+    // uint8_t *buf = &rx_buf[1];
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
     memcpy( buf, &rx_buf[1], sizeof(wifi_data_header_t) + header->len );
 
-    wifi_v_set_rx_ready();
+
+    ATOMIC;
+
+    // release buffer
+    buffer_busy = FALSE;
+
+    END_ATOMIC;
+
+
+    current_rx_bytes += rx_bytes;
 
     header = (wifi_data_header_t *)buf;
     uint8_t *data = (uint8_t *)( header + 1 );
@@ -1674,8 +1705,9 @@ static int8_t process_rx_data( void ){
 
     if( crc_u16_block( (uint8_t *)header, header->len + sizeof(wifi_data_header_t) ) != msg_crc ){
 
-        log_v_debug_P( PSTR("Wifi crc error") );
-        return -2;
+        log_v_debug_P( PSTR("Wifi crc error: %d"), header->data_id );
+        status = -2;
+        goto end;
     }
 
 
@@ -1700,7 +1732,12 @@ static int8_t process_rx_data( void ){
         wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
 
         wifi_version            = msg->version;
-        wifi_rssi               = msg->rssi;
+        
+        if( wifi_b_connected() ){
+            
+            wifi_rssi               = msg->rssi;
+        }
+        
         memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
 
         uint64_t current_device_id = 0;
@@ -1717,44 +1754,47 @@ static int8_t process_rx_data( void ){
         cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
         cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
 
-        wifi_rx_udp_fifo_overruns   = msg->rx_udp_fifo_overruns;
-        wifi_rx_udp_port_overruns   = msg->rx_udp_port_overruns;
+        wifi_rx_udp_overruns        = msg->rx_udp_overruns;
         wifi_udp_received           = msg->udp_received;
         wifi_udp_sent               = msg->udp_sent;
         wifi_comm_errors            = msg->comm_errors;
         mem_heap_peak               = msg->mem_heap_peak;
+        mem_used                    = msg->mem_used;
 
         intf_max_time               = msg->intf_max_time;
         vm_max_time                 = msg->vm_max_time;
         wifi_max_time               = msg->wifi_max_time;
         mem_max_time                = msg->mem_max_time;
-    }
-    else if( header->data_id == WIFI_DATA_ID_DEBUG ){
 
-        if( header->len != sizeof(wifi_msg_debug_t) ){
-
-            goto len_error;
-        }
-
-        wifi_msg_debug_t *msg = (wifi_msg_debug_t *)data;
-
-        log_v_debug_P( PSTR("ESP free heap: %u"), msg->free_heap );
+        intf_avg_time               = msg->intf_avg_time;
+        vm_avg_time                 = msg->vm_avg_time;
+        wifi_avg_time               = msg->wifi_avg_time;
+        mem_avg_time                = msg->mem_avg_time;
     }
     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
 
-        if( header->len != sizeof(wifi_msg_udp_header_t) ){
+        if( header->len < sizeof(wifi_msg_udp_header_t) ){
 
             goto len_error;
         }
 
         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+
+        // check if sockets module is busy
+        if( sock_b_rx_pending() ){
+
+            log_v_debug_P( PSTR("sock rx pending: %u"), msg->rport );
+            goto error;
+        }
         
+        #ifndef SOCK_SINGLE_BUF
         // check if port is busy
         if( sock_b_port_busy( msg->rport ) ){
 
             log_v_debug_P( PSTR("port busy: %u"), msg->rport );
             goto error;
         }
+        #endif
 
         // check if we have a netmsg that didn't get freed for some reason
         if( rx_netmsg > 0 ){
@@ -1770,7 +1810,7 @@ static int8_t process_rx_data( void ){
 
         if( rx_netmsg < 0 ){
 
-            log_v_debug_P( PSTR("rx udp no netmsg") );     
+            log_v_debug_P( PSTR("rx udp alloc fail") );     
 
             goto error;
         }
@@ -1788,7 +1828,10 @@ static int8_t process_rx_data( void ){
             rx_netmsg = 0;
 
             goto error;
-        }        
+        }      
+
+
+        udp_busy = TRUE;
 
         // set up address info
         state->laddr.port   = msg->lport;
@@ -1797,13 +1840,21 @@ static int8_t process_rx_data( void ){
 
         rx_netmsg_crc       = msg->crc;
 
-        rx_netmsg_index = 0;
+        // copy data
+        data += sizeof(wifi_msg_udp_header_t);
+
+        uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
+
+        // we can get a fast ptr because we've already verified the handle
+        memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
+
+        rx_netmsg_index = data_len;
     }
     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
 
         if( rx_netmsg <= 0 ){
 
-            log_v_debug_P( PSTR("rx udp no netmsg") );     
+            // log_v_debug_P( PSTR("rx udp no netmsg") );     
 
             goto error;
         }
@@ -1844,6 +1895,9 @@ static int8_t process_rx_data( void ){
 
             netmsg_v_receive( rx_netmsg );
             rx_netmsg = 0;
+
+            // signals receiver that a UDP msg was received
+            status = 1;
         }   
     }
     // else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
@@ -1871,35 +1925,42 @@ static int8_t process_rx_data( void ){
         wifi_i8_msg_handler( header->data_id, data, header->len );
     }
 
-    return 0;
+    goto end;
 
 len_error:
 
-    log_v_debug_P( PSTR("Wifi len error") );
-    return -3;    
+    wifi_comm_errors2++;
+
+    log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
+    status = -3;    
+    goto end;
 
 error:
-    return -4;    
+    wifi_comm_errors2++;
+    status = -4;
+    goto end;    
+
+end:
+    return status;
 }
 
 
 PT_THREAD( wifi_comm_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
 restart:
     
     _wifi_v_enter_normal_mode();
 
-    ATOMIC;
-    wifi_rx_ready = FALSE;
-    END_ATOMIC;
+    clear_rx_ready();
 
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
 
     enable_irq();
     
+    wifi_v_reset_control_byte();
     wifi_v_reset_comm();
 
     TMR_WAIT( pt, 100 );
@@ -1911,42 +1972,137 @@ restart:
 
     wifi_status = WIFI_STATE_ALIVE;
 
-    // log_v_debug_P( PSTR("Wifi RX ready") );
-
-
     // set ready and wait for message
     wifi_v_set_rx_ready();
 
         
     while(1){
 
-        THREAD_WAIT_WHILE( pt, wifi_u8_get_control_byte() == WIFI_COMM_IDLE );
+        thread_v_set_signal_flag();
+        THREAD_WAIT_WHILE( pt, ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
+                               ( wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) &&
+                               ( !is_udp_rx_released() ) );
+        thread_v_clear_signal( WIFI_SIGNAL );
+        thread_v_clear_signal_flag();
 
-        uint8_t control_byte = wifi_u8_get_control_byte();
+        // check if UDP buffer is clear (and transmit interface is available)
+        if( is_udp_rx_released() && wifi_b_comm_ready() ){
+            
+            wifi_i8_send_msg( WIFI_DATA_ID_UDP_BUF_READY, 0, 0 );
 
-        if( control_byte == WIFI_COMM_DATA ){
-
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 20 );    
-            THREAD_WAIT_WHILE( pt, ( process_rx_data() < 0 ) &&
-                                   ( thread_b_alarm_set() ) );
-
-            if( thread_b_alarm() ){
-
-                log_v_debug_P( PSTR("Wifi rx timeout") );
-
-                wifi_v_set_rx_ready();
-            }
+            udp_busy = FALSE;        
         }
-        else if( control_byte == WIFI_COMM_QUERY_READY ){
+
+        // check control byte for a ready query
+        if( wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){
 
             log_v_debug_P( PSTR("query ready") );
+            wifi_v_reset_control_byte();
+
+            // send ready signal
+            // this will also reset the DMA engine.
             wifi_v_set_rx_ready();
+
+            if( comm_stalls < 255 ){
+
+                comm_stalls++;
+            }
+
+            continue;
         }
-        else{
-            log_v_debug_P( PSTR("control: %x %c"), control_byte, control_byte );
-            wifi_v_set_rx_ready();
+
+        uint8_t msgs_received = 0;
+
+        // check for udp transmission
+        if( list_u8_count( &netmsg_list ) > 0 ){
+
+            // check if transmission is available
+            if( !wifi_b_comm_ready() ){
+
+                // comm is not ready.
+
+                // re-signal thread, then bail out to receive handler
+                thread_v_signal( WIFI_SIGNAL );
+
+                goto receive;
+            }
+
+            
+            netmsg_t tx_netmsg = list_ln_remove_tail( &netmsg_list );
+
+            netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
+
+            ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
+
+            uint16_t data_len = 0;
+
+            uint16_t crc = crc_u16_start();
+
+            uint8_t *data = 0;
+            uint8_t *h2 = 0;
+            uint16_t h2_len = 0;
+
+            if( netmsg_state->data_handle > 0 ){
+
+                data = mem2_vp_get_ptr( netmsg_state->data_handle );
+                data_len = mem2_u16_get_size( netmsg_state->data_handle );
+            }
+
+            // header 2, if present
+            if( netmsg_state->header_2_handle > 0 ){
+
+                h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+                h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+            }
+
+            // setup header
+            wifi_msg_udp_header_t udp_header;
+            udp_header.addr = netmsg_state->raddr.ipaddr;
+            udp_header.lport = netmsg_state->laddr.port;
+            udp_header.rport = netmsg_state->raddr.port;
+            udp_header.len = data_len + h2_len;
+            udp_header.crc = 0;
+            
+
+            uint16_t len = data_len + h2_len + sizeof(udp_header);
+
+            wifi_data_header_t header;
+            header.len      = len;
+            header.reserved = 0;
+            header.data_id  = WIFI_DATA_ID_UDP_EXT;
+            header.crc      = 0;                
+
+            crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
+            crc = crc_u16_partial_block( crc, (uint8_t *)&udp_header, sizeof(udp_header) );
+            crc = crc_u16_partial_block( crc, h2, h2_len );
+            crc = crc_u16_partial_block( crc, data, data_len );
+            header.crc = crc_u16_finish( crc );
+
+            clear_rx_ready();
+
+            _wifi_v_usart_send_char( WIFI_COMM_DATA );
+            _wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
+            _wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
+            _wifi_v_usart_send_data( h2, h2_len );
+            _wifi_v_usart_send_data( data, data_len );   
+        
+
+            // release netmsg
+            netmsg_v_release( tx_netmsg );
         }
+
+receive:
+        while( ( process_rx_data() == 0 ) &&
+               ( msgs_received < 8 ) ){
+
+            msgs_received++;
+        }
+
+        ATOMIC;
+        max_ready_wait = max_ready_wait_isr;
+        END_ATOMIC;
     
+        THREAD_YIELD( pt );
         THREAD_YIELD( pt );
     }
 
@@ -1960,16 +2116,24 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-
         TMR_WAIT( pt, 1000 );
 
-        wifi_uptime += 1;
+        if( wifi_b_connected() ){
 
-        if( !wifi_b_connected() ){
+            wifi_uptime += 1;
+        }
+        else{
 
             wifi_uptime = 0;
         }
+
+        // update comm traffic counters
+        comm_rx_rate = current_rx_bytes;
+        comm_tx_rate = current_tx_bytes;
+
+        // reset counters
+        current_rx_bytes = 0;
+        current_tx_bytes = 0;
     }
 
 PT_END( pt );
@@ -1982,11 +2146,21 @@ PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) )
 PT_BEGIN( pt );
 
     state->fw_file = 0;
+    state->tries = WIFI_LOADER_MAX_TRIES;
 
     // log_v_debug_P( PSTR("wifi loader starting") );
 
     
 restart:
+
+    // check if we've exceeded our retries
+    if( state->tries == 0 ){
+
+        // wifi is hosed, give up.
+        goto error;
+    }
+
+    state->tries--;
 
     _wifi_v_enter_boot_mode();
     wifi_status = WIFI_STATE_BOOT;
@@ -1997,8 +2171,6 @@ restart:
     }
 
     if( state->fw_file <= 0 ){
-
-        log_v_debug_P( PSTR("Wifi firmware image not found! Trying to start anyway...") );
 
         goto run_wifi;
     }
@@ -2016,6 +2188,7 @@ restart:
         if( state->timeout == 0 ){
 
             log_v_debug_P( PSTR("wifi loader timeout") );
+
             goto restart;
         }
 
@@ -2064,19 +2237,19 @@ restart:
     usart_v_set_baud( &WIFI_USART, ESP_CESANTA_BAUD_USART_SETTING );
     _wifi_v_usart_flush();
 
-    memset( rx_buf, 0, sizeof(rx_buf) );
-    enable_rx_dma();
+    memset( rx_dma_buf, 0, sizeof(rx_dma_buf) );
+    enable_rx_dma( FALSE );
 
     // cesanta stub has a delay, so make sure we wait plenty long enough
     _delay_ms( 50 );
 
     // now check buffer, Cesanta will send us a hello message
-    if( !( ( rx_buf[0] == SLIP_END ) &&
-           ( rx_buf[1] == 'O' ) &&
-           ( rx_buf[2] == 'H' ) &&
-           ( rx_buf[3] == 'A' ) &&
-           ( rx_buf[4] == 'I' ) &&
-           ( rx_buf[5] == SLIP_END ) ) ){
+    if( !( ( rx_dma_buf[0] == SLIP_END ) &&
+           ( rx_dma_buf[1] == 'O' ) &&
+           ( rx_dma_buf[2] == 'H' ) &&
+           ( rx_dma_buf[3] == 'A' ) &&
+           ( rx_dma_buf[4] == 'I' ) &&
+           ( rx_dma_buf[5] == SLIP_END ) ) ){
 
         log_v_debug_P( PSTR("error") );
 
@@ -2113,7 +2286,6 @@ restart:
     uint8_t cfg_digest[MD5_LEN];
     cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
 
-
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // file and cfg match, so our file is valid
@@ -2129,17 +2301,26 @@ restart:
         else{
             // wifi does not match file - need to load
 
+            log_v_debug_P( PSTR("Wifi firmware image fail") );
+
             goto load_image;
         }
+    }
+    else{
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );        
     }
 
     if( memcmp( wifi_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // wifi matches cfg, this is ok, run.
         // maybe the file is bad.
-        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );
-
+        
         goto run_wifi;
+    }
+    else{
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad config") );                
     }
 
     if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
@@ -2162,13 +2343,6 @@ restart:
     goto run_wifi;
 
 
-    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
-
-    log_v_debug_P( PSTR("error") );
-
-    TMR_WAIT( pt, 50000000 );
-
-    ASSERT( FALSE );
 
 load_image:
 
@@ -2201,7 +2375,7 @@ load_image:
     }
 
     // restart
-    sys_v_reboot_delay( SYS_MODE_NORMAL );
+    sys_reboot();
 
     THREAD_EXIT( pt );
 
@@ -2252,24 +2426,12 @@ PT_BEGIN( pt );
 
     while(1){
 
-        // sock_addr_t raddr;
-        // raddr.ipaddr = ip_a_addr(255,255,255,255);
-        // raddr.port = 12345;
-        // uint8_t data[256];
-        //
-        // sock_i16_sendto( sock, data, sizeof(data), &raddr );
-        //
-        // THREAD_YIELD( pt );
-
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        wifi_echo_recv++;
 
         EVENT( EVENT_ID_DEBUG_0, 2 );
 
         if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
-
-            wifi_echo_sent++;
+            
         }
     }
 
@@ -2282,13 +2444,14 @@ int8_t get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
     // check if interface is up
     if( !wifi_b_connected() ){
 
-        return -1;
+        return NETMSG_ROUTE_MATCH;
     }
 
     cfg_i8_get( CFG_PARAM_IP_ADDRESS, subnet );
     cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, subnet_mask );
 
-    return 0;
+    // set this route as default
+    return NETMSG_ROUTE_DEFAULT;
 }
 
 ROUTING_TABLE routing_table_entry_t route_wifi = {
@@ -2301,10 +2464,21 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 void wifi_v_init( void ){
 
+    list_v_init( &netmsg_list );
+
+
     wifi_status = WIFI_STATE_BOOT;
 
     // enable DMA controller
     DMA.CTRL |= DMA_ENABLE_bm;
+
+
+    // reset timer
+    TCD1.CTRLA = 0;
+    TCD1.CTRLB = 0;
+    TCD1.CNT = 0;
+    TCD1.INTCTRLA = TC_OVFINTLVL_HI_gc;
+    TCD1.INTCTRLB = 0;
 
 
     // set up IO
@@ -2319,22 +2493,16 @@ void wifi_v_init( void ){
     WIFI_USART_XCK_PORT.WIFI_USART_XCK_PINCTRL  = PORT_OPC_PULLDOWN_gc;
     WIFI_USART_XCK_PORT.OUTCLR                  = ( 1 << WIFI_USART_XCK_PIN );
 
-    // return;
-     // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-     //     return;
-     // }
-
-     thread_t_create( THREAD_CAST(wifi_loader_thread),
-                      PSTR("wifi_loader"),
-                      0,
-                      sizeof(loader_thread_state_t) );
+    thread_t_create( THREAD_CAST(wifi_loader_thread),
+                        PSTR("wifi_loader"),
+                        0,
+                        sizeof(loader_thread_state_t) );
 
 
     thread_t_create( wifi_status_thread,
-                          PSTR("wifi_status"),
-                          0,
-                          0 );
+                        PSTR("wifi_status"),
+                        0,
+                        0 );
 
     thread_t_create( wifi_echo_thread,
                         PSTR("wifi_echo"),
@@ -2386,6 +2554,18 @@ ISR(WIFI_IRQ_VECTOR){
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
     wifi_rx_ready = TRUE;
+
+    uint32_t elapsed_ready_time = tmr_u32_elapsed_time_us( ready_time_start );
+
+    if( elapsed_ready_time > 60000 ){
+
+        return;
+    }
+
+    if( elapsed_ready_time > max_ready_wait_isr ){
+
+        max_ready_wait_isr = elapsed_ready_time;
+    }
 
 // OS_IRQ_END();
 }

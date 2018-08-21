@@ -25,44 +25,69 @@
 
 #include "target.h"
 
+
 #ifdef ENABLE_TIME_SYNC
+
+#include "ntp.h"
 
 #include "wifi_cmd.h"
 
-#define TIME_SERVER_PORT        32037
+#define TIME_SERVER_PORT                32037
 
-#define TIME_PROTOCOL_MAGIC     0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION   1
+#define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
+#define TIME_PROTOCOL_VERSION           3
+
+#define TIME_FLAGS_SOURCE_GPS           64
+#define TIME_FLAGS_SOURCE_NTP           32
 
 
-typedef struct{
+#define TIME_MASTER_SYNC_RATE           4 // in seconds
+#define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
+#define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds
+
+
+typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
-    uint32_t network_time;
-    uint32_t uptime;
+    uint8_t flags;
+    uint8_t source;
+    uint32_t net_time;
+    uint64_t uptime;
+} time_msg_master_t;
+#define TIME_MSG_MASTER             1
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_not_master_t;
+#define TIME_MSG_NOT_MASTER         2
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_request_sync_t;
+#define TIME_MSG_REQUEST_SYNC       3
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+    uint8_t flags;
+    uint8_t source;
+    uint32_t net_time;
+    uint64_t uptime;
+    ntp_ts_t ntp_time;
 } time_msg_sync_t;
-#define TIME_MSG_SYNC           1
+#define TIME_MSG_SYNC               4
 
-
-typedef struct{
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint32_t sync_group;
-    uint32_t network_time;
-    uint16_t frame_number;
-    uint64_t rng_seed;
-    uint32_t reserved;
-    uint16_t data_index;
-    uint16_t data_count;
-    // register data starts here
-} time_msg_frame_sync_t;
-#define TIME_MSG_FRAME_SYNC     2
 
 void time_v_init( void );
-void time_v_send_frame_sync( wifi_msg_vm_frame_sync_t *sync );
+bool time_b_is_sync( void );
 uint32_t time_u32_get_network_time( void );
+void time_v_set_gps_sync( bool sync );
 
 #endif
 #endif

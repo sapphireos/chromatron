@@ -24,6 +24,7 @@
 #define _ESP8266_H
 
 #include "netmsg.h"
+#include "threading.h"
 #include "wifi_cmd.h"
 
 
@@ -33,13 +34,15 @@
 #define WIFI_STATE_UNKNOWN      0
 #define WIFI_STATE_ALIVE        1
 
-
+#define WIFI_MAX_NETMSGS		4
 
 #define WIFI_USART              USARTE0
 #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
 #define WIFI_DMA_CH             CH2
 #define WIFI_DMA_CHTRNIF        DMA_CH2TRNIF_bm
 #define WIFI_DMA_CHERRIF        DMA_CH2ERRIF_bm
+#define WIFI_DMA_IRQ_VECTOR     DMA_CH2_vect
+
 #define WIFI_USART_TXD_PORT     PORTE
 #define WIFI_USART_TXD_PIN      3
 #define WIFI_USART_RXD_PORT     PORTE
@@ -49,6 +52,8 @@
 #define WIFI_USART_XCK_PINCTRL  PIN1CTRL
 
 #define WIFI_IRQ_VECTOR         PORTA_INT0_vect
+
+#define WIFI_SIGNAL 			SIGNAL_SYS_3
 
 
 #define WIFI_PD_PORT            PORTE
@@ -72,6 +77,9 @@
 #define WIFI_AP_MIN_PASS_LEN    8
 
 
+#define WIFI_LOADER_MAX_TRIES   8
+
+
 void wifi_v_init( void );
 bool wifi_b_connected( void );
 bool wifi_b_ap_mode( void );
@@ -84,19 +92,13 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg );
 
 bool wifi_b_running( void );
 
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint8_t len );
-int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint8_t len );
-int8_t wifi_i8_send_msg_response( 
-    uint8_t data_id, 
-    uint8_t *data, 
-    uint8_t len,
-    uint8_t *response,
-    uint8_t response_len );
+int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
+int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len );
 
 bool wifi_b_comm_ready( void );
 bool wifi_b_wait_comm_ready( void );
 
 
-extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint8_t len ) __attribute__((weak));
+extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ) __attribute__((weak));
 
 #endif

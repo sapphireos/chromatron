@@ -44,7 +44,7 @@ var_name = Word(alphanums + '_')
 
 alias = Group(Suppress(Keyword('alias')) + var_name + Suppress(Keyword('as')) + var_name).setResultsName('alias', listAllMatches=True)
 var = Group(Suppress(Keyword('var')) + var_name).setResultsName('var', listAllMatches=True)
-downcounter = Group(Suppress(Keyword('downcounter')) + var_name).setResultsName('downcounter', listAllMatches=True)
+db = Group(Suppress(Keyword('db')) + var_name).setResultsName('db', listAllMatches=True)
 
 day_of_week = Or([CaselessLiteral('Monday'), 
                   CaselessLiteral('Tuesday'), 
@@ -72,9 +72,10 @@ query = Group(var_name + Suppress(Literal('@')) + tags).setResultsName('query')
 
 dest_var = var_name.setResultsName('dest_var')
 source_var = var_name.setResultsName('source_var')
+link_tag = Group(var_name + Suppress(Literal(':'))).setResultsName('tag')
 
-receive = Group(Keyword('receive') + dest_var + Keyword('from') + query).setResultsName('receive', listAllMatches=True)
-send = Group(Keyword('send') + source_var + Keyword('to') + query).setResultsName('send', listAllMatches=True)
+receive = Group(Keyword('receive') + Optional(link_tag) + dest_var + Keyword('from') + query).setResultsName('receive', listAllMatches=True)
+send = Group(Keyword('send') + Optional(link_tag) + source_var + Keyword('to') + query).setResultsName('send', listAllMatches=True)
 
 when_ = Keyword('when')
 do_ = Keyword('do')
@@ -94,27 +95,22 @@ at_rule = Group(at + action + end_).setResultsName('at_rule', listAllMatches=Tru
 every_rule = Group(every + action + end_).setResultsName('every_rule', listAllMatches=True)
 
 
-directives = ZeroOrMore(Or([var, downcounter, alias, receive, send, rule, at_rule, every_rule]))
+directives = ZeroOrMore(Or([var, db, alias, receive, send, rule, at_rule, every_rule]))
 
 automaton_file = directives().ignore(pythonStyleComment)
 
 
 AUTOMATON_FILE_MAGIC       = 0x4F545541  # 'AUTO'
 AUTOMATON_RULE_MAGIC       = 0x454C5552  # 'RULE'
-AUTOMATON_VERSION          = 1
-
-AUTOMATON_VAR_TYPE_KV               = 0
-AUTOMATON_VAR_TYPE_DOWNCOUNTER      = 1
+AUTOMATON_VERSION          = 2
 
 
-class AutomatonVar(StructField):
+class AutomatonDBVar(StructField):
     def __init__(self, **kwargs):
         fields = [CatbusHash(_name="hash"),
-                  Uint8Field(_name="type"),
                   CatbusStringField(_name="name")]
 
-        super(AutomatonVar, self).__init__(_name="automaton_var", _fields=fields, **kwargs)
-
+        super(AutomatonDBVar, self).__init__(_name="automaton_db_var", _fields=fields, **kwargs)
 
 class AutomatonLink(StructField):
     def __init__(self, **kwargs):
@@ -132,36 +128,23 @@ class AutomatonTriggerIndex(StructField):
 
         super(AutomatonTriggerIndex, self).__init__(_name="automaton_trigger_index", _fields=fields, **kwargs)
 
-class AutomatonKVLoad(StructField):
-    def __init__(self, **kwargs):
-        fields = [CatbusHash(_name="hash"),
-                  Uint8Field(_name="addr")]
-
-        super(AutomatonKVLoad, self).__init__(_name="automaton_kv_load", _fields=fields, **kwargs)
-
 class AutomatonRule(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="magic"),
                   Uint8Field(_name="condition_data_len"),
-                  Uint8Field(_name="condition_kv_len"),
-                  Uint8Field(_name="condition_code_len"),
+                  Uint16Field(_name="condition_code_len"),
                   Uint8Field(_name="action_data_len"),
-                  Uint8Field(_name="action_kv_len"),
-                  Uint8Field(_name="action_code_len"),
+                  Uint16Field(_name="action_code_len"),
                   ArrayField(_name="condition_data", _field=Int32Field),
-                  ArrayField(_name="condition_kv", _field=AutomatonKVLoad),
                   ArrayField(_name="condition_code", _field=Uint8Field),
                   ArrayField(_name="action_data", _field=Int32Field),
-                  ArrayField(_name="action_kv", _field=AutomatonKVLoad),
                   ArrayField(_name="action_code", _field=Uint8Field)]
 
         super(AutomatonRule, self).__init__(_name="automaton_rule", _fields=fields, **kwargs)
 
         self.magic              = AUTOMATON_RULE_MAGIC
-        self.condition_kv_len   = len(self.condition_kv)
         self.condition_data_len = len(self.condition_data)
         self.condition_code_len = len(self.condition_code)
-        self.action_kv_len      = len(self.action_kv)
         self.action_data_len    = len(self.action_data)
         self.action_code_len    = len(self.action_code)
 
@@ -170,12 +153,13 @@ class AutomatonFile(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="prog_magic"),
                   Uint8Field(_name="version"),
-                  Uint8Field(_name="vars_len"),
+                  Uint8Field(_name="local_vars_len"),
+                  Uint8Field(_name="db_vars_len"),
                   Uint8Field(_name="send_len"),
                   Uint8Field(_name="recv_len"),
                   Uint8Field(_name="trigger_index_len"),
                   Uint8Field(_name="rules_len"),
-                  ArrayField(_name="vars", _field=AutomatonVar),
+                  ArrayField(_name="db_vars", _field=AutomatonDBVar),
                   ArrayField(_name="send_links", _field=AutomatonLink),
                   ArrayField(_name="receive_links", _field=AutomatonLink),
                   ArrayField(_name="trigger_index", _field=AutomatonTriggerIndex),
@@ -186,7 +170,7 @@ class AutomatonFile(StructField):
         self.prog_magic         = AUTOMATON_FILE_MAGIC
         self.version            = AUTOMATON_VERSION
 
-        self.vars_len           = len(self.vars)
+        self.db_vars_len        = len(self.db_vars)
         self.send_len           = len(self.send_links)
         self.recv_len           = len(self.receive_links)
         self.trigger_index_len  = len(self.trigger_index)
@@ -218,43 +202,51 @@ def format_code(s, condition=True):
           
         return '\n'.join(tokens)
 
-def compile_vm_code(text, debug_print=True, condition=True):
-    return code_gen.compile_automaton_text(text, debug_print=debug_print, condition=condition)
+def compile_vm_code(text, debug_print=True, condition=True, local_vars=[]):
+    return code_gen.compile_automaton_text(text, debug_print=debug_print, condition=condition, local_vars=local_vars)
 
-def compile_file(filename):
-    global automaton_file
-
+def compile_file(filename, debug_print=False):
     with open(filename) as f:
         data = f.read()
 
     scriptname = os.path.split(filename)[1]
 
     results = automaton_file.parseString(data, parseAll=True).asDict()
-    pprint(results)
 
-    print '\n'
+    if debug_print:
+        pprint(results)
+        print '\n'
         
     # aliases = results['alias']
 
     # print "Aliases:"
     # print aliases
 
+    db_vars = []
 
-    kv_vars = []
+    if 'db' in results:
+        for v in results['db']:
+            v = v[0]
+            kv = AutomatonDBVar(hash=catbus_string_hash(v), name=v)
+            db_vars.append(kv)
 
+    if debug_print:
+        print "DB Vars:"
+        for v in db_vars:
+            print v
+
+
+    local_vars = []
     if 'var' in results:
         for v in results['var']:
             v = v[0]
-            kv = AutomatonVar(hash=catbus_string_hash(v), type=AUTOMATON_VAR_TYPE_KV, name=v)
-            kv_vars.append(kv)
+            local_vars.append(v)
 
-    if 'downcounter' in results:
-        for v in results['downcounter']:
-            v = v[0]
-            kv = AutomatonVar(hash=catbus_string_hash(v), type=AUTOMATON_VAR_TYPE_DOWNCOUNTER, name=v)
-            kv_vars.append(kv)
 
-    print "Vars:"
+    if debug_print:
+        print "Local Vars:"
+        for v in local_vars:
+            print v
 
     send_links = []
 
@@ -274,8 +266,9 @@ def compile_file(filename):
             
             send_links.append(info)
 
-    # print "Send:"
-    # print send_links
+    if debug_print:
+        print "Send:"
+        print send_links
 
     receive_links = []
 
@@ -295,11 +288,13 @@ def compile_file(filename):
             
             receive_links.append(info)
 
-    # print "Recv:"
-    # print receive_links
+    if debug_print:
+        print "Recv:"
+        print receive_links
 
     
     rules = []
+    triggers = []
     largest_data = 0
     largest_code = 0
 
@@ -308,16 +303,23 @@ def compile_file(filename):
             action = format_code(rule['action'][0], False)
             condition = format_code(rule['condition'][0])
 
-            print "Condition:"
-            # print condition
+            if debug_print:
+                print "\n\nCondition:"
+                print condition
 
-            condition = compile_vm_code(condition)
+            condition = compile_vm_code(condition, local_vars=local_vars, debug_print=debug_print)
 
-            pprint(condition)
+            # pprint(condition)
 
-            condition_kv = []
-            for name, addr in condition['automaton_kv'].iteritems():
-                condition_kv.append(AutomatonKVLoad(hash=catbus_string_hash(name), addr=addr))
+            condition_triggers = []
+            for name, hashed_val in condition['data']['read_keys'].iteritems():
+                condition_triggers.append(hashed_val)
+
+            for name, reg in condition['data']['local_registers'].iteritems():
+                if name in local_vars:
+                    condition_triggers.append(reg.addr)
+
+            triggers.append(condition_triggers)
 
             condition_data = condition['data_stream']
             condition_code = condition['code_stream']
@@ -328,17 +330,12 @@ def compile_file(filename):
             if len(condition_code) > largest_code:
                 largest_code = len(condition_code)
 
+            if debug_print:
+                print "\n\nAction:"
+                print action
 
-            print "Action:"
-            # print action
-
-            action = compile_vm_code(action, condition=False)
-            pprint(action)
-
-
-            action_kv = []
-            for name, addr in action['automaton_kv'].iteritems():
-                action_kv.append(AutomatonKVLoad(hash=catbus_string_hash(name), addr=addr))
+            action = compile_vm_code(action, condition=False, local_vars=local_vars, debug_print=debug_print)
+            # pprint(action)
 
             action_data = action['data_stream']
             action_code = action['code_stream']
@@ -351,10 +348,8 @@ def compile_file(filename):
 
 
             info = AutomatonRule(
-                        condition_kv=condition_kv,
                         condition_data=condition_data,
                         condition_code=condition_code,
-                        action_kv=action_kv,
                         action_data=action_data,
                         action_code=action_code)
 
@@ -362,45 +357,50 @@ def compile_file(filename):
     
     index = 0
     trigger_index = []
-    for rule in rules:
-        for trigger in rule.condition_kv:
+    for i in xrange(len(rules)):
+        for trigger in triggers[i]:
             info = AutomatonTriggerIndex(
-                    hash=trigger.hash,
+                    hash=trigger,
                     condition_offset=index)
 
             trigger_index.append(info)
 
-        index += rule.size()
+        index += rules[i].size()
 
-    automaton_file = AutomatonFile(
-                        vars=kv_vars,
+    automaton_data = AutomatonFile(
+                        local_vars_len=len(local_vars),
+                        db_vars=db_vars,
                         send_links=send_links,
                         receive_links=receive_links,
                         trigger_index=trigger_index,
                         rules=rules)
 
-    print ''
-    print ''
-    print ''
-    print ''
-    print automaton_file
+    if debug_print:
+        print ''
+        print ''
+        print ''
+        print ''
+        print automaton_data
 
-    # bin_filename = scriptname + '.bin'
-    bin_filename = 'automaton.auto'
+    bin_filename = scriptname + '.auto'
+    # bin_filename = 'automaton.auto'
     with open(bin_filename, 'wb+') as f:
-        f.write(automaton_file.pack())
+        f.write(automaton_data.pack())
 
-    print "Saved as %s" % (bin_filename)
+    if debug_print:
+        print "Saved as %s" % (bin_filename)
 
-    print "%d bytes" % (automaton_file.size())
+        print "%d bytes" % (automaton_data.size())
 
-    print "Max code: %d bytes" % (largest_code)
-    print "Max data: %d bytes" % (largest_data * 4)
+        print "Max code: %d bytes" % (largest_code)
+        print "Max data: %d bytes" % (largest_data * 4)
 
+
+    return bin_filename
 
 
 if __name__ == "__main__":
     filename = sys.argv[1]
 
-    compile_file(filename)
+    compile_file(filename, debug_print=True)
     # pass

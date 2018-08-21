@@ -1,0 +1,41 @@
+{
+	"_comment": "This is the project name.",
+    "_comment": "The project name is used by the build system",
+    "_comment": "to identify and search for projects",
+    "PROJ_NAME": "loader_stm32f7",
+
+    "_comment": "Project version",
+    "PROJ_VERSION": "0.1",
+
+    "_comment": "Firmware ID",
+    "_comment": "This is automatically generated",
+    "_comment": "and should not be modified",
+    "FWID": "13c8214a-9d05-403d-8dbe-dca6e0e2d1df",
+
+    "_comment": "Select build type:",
+    "_comment": "app - builds as a standalone application",
+    "_comment": "os - build as operating system library",
+    "_comment": "loader - build as boot loader application",
+    "_comment": "arm_loader - build as boot loader application for ARM",
+    "_comment": "lib - build as a library",
+ 	"BUILD_TYPE": "arm_loader",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": [],
+
+    "DEFINES": ["BOOTLOADER"],
+
+    "LINKER_SCRIPT": "STM32F722RETx_BOOT.ld",
+
+     "LINK_FLAGS": [
+        "-specs=nosys.specs",
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-lc",
+        "-lm",
+        "-lnosys",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ]
+}

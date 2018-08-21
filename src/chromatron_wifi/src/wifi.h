@@ -38,6 +38,7 @@ extern "C"{
 uint8_t wifi_u8_get_status( void );
 void wifi_v_set_status_bits( uint8_t bits );
 void wifi_v_clr_status_bits( uint8_t bits );
+void wifi_v_send_status( void );
 
 IPAddress wifi_ip_get_ip( void );
 IPAddress wifi_ip_get_subnet( void );
@@ -58,8 +59,7 @@ int8_t wifi_i8_get_rx_udp_header( wifi_msg_udp_header_t *header );
 uint8_t* wifi_u8p_get_rx_udp_data( void );
 void wifi_v_rx_udp_clear_last( void );
 
-uint32_t wifi_u32_get_rx_udp_fifo_overruns( void );
-uint32_t wifi_u32_get_rx_udp_port_overruns( void );
+uint32_t wifi_u32_get_rx_udp_overruns( void );
 uint32_t wifi_u32_get_udp_received( void );
 uint32_t wifi_u32_get_udp_sent( void );
 

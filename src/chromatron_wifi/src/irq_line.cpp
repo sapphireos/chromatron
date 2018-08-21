@@ -24,7 +24,6 @@
 #include "irq_line.h"
 
 static volatile bool irq_enabled;
-static uint8_t irq_gpio_released;
 
 void irqline_v_init( void ){
 

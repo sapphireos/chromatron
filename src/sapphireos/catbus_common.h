@@ -27,6 +27,10 @@
 
 #include <inttypes.h>
 
+#ifndef cnt_of_array
+    #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
+#endif
+
 #include "catbus_types.h"
 
 typedef uint8_t catbus_flags_t8;
@@ -64,5 +68,16 @@ typedef struct __attribute__((packed)){
     char filename[CATBUS_STRING_LEN];
 } catbus_file_meta_t;
 
+
+int64_t specific_to_i64( catbus_type_t8 type, const void *data );
+void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data );
+
+int8_t type_i8_convert( 
+    catbus_type_t8 dest_type,
+    void *dest_data,
+    catbus_type_t8 src_type,
+    const void *src_data );
+
+uint16_t type_u16_size_meta( catbus_meta_t *meta );
 
 #endif

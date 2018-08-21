@@ -29,7 +29,7 @@ uint16_t type_u16_size( catbus_type_t8 type ){
 
     uint16_t size = CATBUS_TYPE_INVALID;
 
-    switch( type){
+    switch( type ){
         case CATBUS_TYPE_NONE:
             size = 0;
             break;
@@ -48,6 +48,7 @@ uint16_t type_u16_size( catbus_type_t8 type ){
         case CATBUS_TYPE_UINT32:
         case CATBUS_TYPE_INT32:
         case CATBUS_TYPE_FLOAT:
+        case CATBUS_TYPE_FIXED16:
         case CATBUS_TYPE_IPv4:
             size = 4;
             break;
@@ -88,4 +89,21 @@ uint16_t type_u16_size( catbus_type_t8 type ){
     }
 
     return size;
+}
+
+bool type_b_is_string( catbus_type_t8 type ){
+
+    switch( type){
+        case CATBUS_TYPE_STRING128:
+        case CATBUS_TYPE_STRING32:
+        case CATBUS_TYPE_STRING64:
+        case CATBUS_TYPE_STRING512:
+        case CATBUS_TYPE_MAC48:
+        case CATBUS_TYPE_MAC64:
+        case CATBUS_TYPE_KEY128:
+            return TRUE;
+            break;
+    }
+
+    return FALSE;
 }

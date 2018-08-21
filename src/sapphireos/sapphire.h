@@ -48,7 +48,7 @@
 #include "list.h"
 #include "i2c.h"
 #include "catbus.h"
-
+#include "kvdb.h"
 
 
 #endif

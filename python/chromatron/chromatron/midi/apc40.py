@@ -184,13 +184,18 @@ if __name__ == "__main__":
                 # apc40.kv.send('device_6_control_knob', 'fx_sat', ['demo'])
                 # apc40.kv.send('device_7_control_knob', 'fx_val', ['demo'])
 
-                apc40.kv.send('track_1_fader', 'gfx_master_dimmer', ['lantern_4'])
-                apc40.kv.send('track_2_fader', 'gfx_master_dimmer', ['lantern_6'])
-                apc40.kv.send('track_3_fader', 'gfx_master_dimmer', ['lantern_3'])
-                apc40.kv.send('track_4_fader', 'gfx_master_dimmer', ['lantern_5'])
-                apc40.kv.send('track_5_fader', 'gfx_master_dimmer', ['lantern_1'])
+                # apc40.kv.send('track_1_fader', 'gfx_master_dimmer', ['lantern_4'])
+                # apc40.kv.send('track_2_fader', 'gfx_master_dimmer', ['lantern_6'])
+                # apc40.kv.send('track_3_fader', 'gfx_master_dimmer', ['lantern_3'])
+                # apc40.kv.send('track_4_fader', 'gfx_master_dimmer', ['lantern_5'])
+                # apc40.kv.send('track_5_fader', 'gfx_master_dimmer', ['lantern_1'])
 
-                apc40.kv.send('track_8_fader', 'gfx_master_dimmer', ['pixelator'])
+                # apc40.kv.send('track_8_fader', 'gfx_master_dimmer', ['pixelator'])
+
+                apc40.kv.send('track_1_fader', 'gfx_master_dimmer', ['chandelier'])
+                apc40.kv.send('track_2_fader', 'gfx_master_dimmer', ['ir_frame'])
+                # apc40.kv.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
+
 
 
                 while True:

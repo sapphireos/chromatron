@@ -1,0 +1,9 @@
+Load flash on Nucleo board:
+
+st-flash write main.bin 0x08000000
+
+st-flash does not know about the ITCM interface that we're selecting for the flash, so we
+have to manually specify the address for the AXIM interface.
+
+
+

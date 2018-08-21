@@ -20,5 +20,12 @@
  	"BUILD_TYPE": "lib",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": []
+    "LIBRARIES": [],
+
+    "_comment": "The following options are only used for libraries:",
+    "_comment": "Init function for library",
+    "LIB_INIT": "",
+
+    "_comment": "Includes for library",
+    "LIB_INCLUDES": []
 }

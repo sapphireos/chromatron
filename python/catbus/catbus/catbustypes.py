@@ -39,6 +39,7 @@ CATBUS_TYPE_INT32            = 7
 CATBUS_TYPE_UINT64           = 8
 CATBUS_TYPE_INT64            = 9
 CATBUS_TYPE_FLOAT            = 10
+CATBUS_TYPE_FIXED16          = 11
 
 CATBUS_TYPE_STRING128        = 40
 CATBUS_TYPE_MAC48            = 41
@@ -63,6 +64,7 @@ type_registry = {
     CATBUS_TYPE_UINT64: Uint64Field,
     CATBUS_TYPE_INT64: Int64Field,
     CATBUS_TYPE_FLOAT: FloatField,
+    CATBUS_TYPE_FIXED16: Fixed16Field,
 
     CATBUS_TYPE_STRING128: String128Field,
     CATBUS_TYPE_STRING32: String32Field,
@@ -84,9 +86,12 @@ type_id_registry = {
     'int16': CATBUS_TYPE_INT16,
     'uint32': CATBUS_TYPE_UINT32,
     'int32': CATBUS_TYPE_INT32,
+    'i32': CATBUS_TYPE_INT32,
     'uint64': CATBUS_TYPE_UINT64,
     'int64': CATBUS_TYPE_INT64,
     'float': CATBUS_TYPE_FLOAT,
+    'fixed16': CATBUS_TYPE_FIXED16,
+    'f16': CATBUS_TYPE_FIXED16,
 
     'string128': CATBUS_TYPE_STRING128,
     'string32': CATBUS_TYPE_STRING32,

@@ -27,6 +27,7 @@
 #include "irq_line.h"
 
 #include "comm_intf.h"
+#include "comm_printf.h"
 
 extern "C"{
     #include "crc.h"
@@ -49,19 +50,42 @@ static list_t tx_q;
 static uint8_t last_status;
 static uint8_t g_wifi_status;
 
-static uint32_t rx_udp_fifo_overruns;
-static uint32_t rx_udp_port_overruns;
+static uint16_t rx_udp_overruns;
 static uint32_t udp_received;
 static uint32_t udp_sent;
 static uint16_t connects;
 
 static bool request_ap_mode;
 static bool request_connect;
-static bool request_connect_multi;
 static bool request_disconnect;
 static bool request_ports;
 static bool ap_mode;
-static bool scanning;
+// static bool scanning;
+
+static int32_t elapsed_millis( uint32_t start ){
+
+    uint32_t now = millis();
+    int32_t distance = (int32_t)( now - start );
+
+    // check for rollover
+    if( distance < 0 ){
+
+        distance = ( UINT32_MAX - now ) + abs(distance);
+    }
+
+    return distance;
+}
+
+
+static void led_on( void ){
+
+    intf_v_led_on();
+}
+
+static void led_off( void ){
+
+    intf_v_led_off();
+}
 
 
 static void flush_port( WiFiUDP *udp_socket ){
@@ -154,6 +178,14 @@ void wifi_v_init( void ){
     WiFi.hostname(host_str);
 }
 
+void wifi_v_send_status( void ){
+
+    wifi_msg_status_t status_msg;
+    status_msg.flags = wifi_u8_get_status();
+
+    intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
+}
+
 void wifi_v_process( void ){
     
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
@@ -164,8 +196,9 @@ void wifi_v_process( void ){
             connects++;
 
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
-            intf_v_request_status();
+            wifi_v_send_status();
 
+            
             intf_v_printf("Connected!");
         }
     }
@@ -175,54 +208,54 @@ void wifi_v_process( void ){
         if( ( last_status & WIFI_STATUS_CONNECTED ) != 0 ){
 
             wifi_v_clr_status_bits( WIFI_STATUS_CONNECTED );
-            intf_v_request_status();
+            wifi_v_send_status();
         }
     }
 
-    if( scanning ){
+    // if( scanning ){
 
-        int32_t networks_found = WiFi.scanComplete();
+    //     int32_t networks_found = WiFi.scanComplete();
 
-        if( networks_found >= 0 ){
+    //     if( networks_found >= 0 ){
 
-            wifi_msg_scan_results_t msg;
-            memset( &msg, 0, sizeof(msg) );
+    //         wifi_msg_scan_results_t msg;
+    //         memset( &msg, 0, sizeof(msg) );
 
-            String network_ssid;
-            int32_t network_rssi;
-            // int32_t channel;
+    //         String network_ssid;
+    //         int32_t network_rssi;
+    //         // int32_t channel;
 
-            for( uint32_t i = 0; i < networks_found; i++ ){
+    //         for( int32_t i = 0; i < networks_found; i++ ){
 
-                network_ssid = WiFi.SSID( i );
-                network_rssi = WiFi.RSSI( i );
-                // channel = WiFi.channel( i );
+    //             network_ssid = WiFi.SSID( i );
+    //             network_rssi = WiFi.RSSI( i );
+    //             // channel = WiFi.channel( i );
 
-                // intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
+    //             // intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
 
-                msg.count++;
-                msg.networks[i].ssid_hash = hash_u32_string( (char *)network_ssid.c_str() );
-                msg.networks[i].rssi = network_rssi;
+    //             msg.count++;
+    //             msg.networks[i].ssid_hash = hash_u32_string( (char *)network_ssid.c_str() );
+    //             msg.networks[i].rssi = network_rssi;
 
-                if( msg.count >= WIFI_SCAN_RESULTS_LEN ){
+    //             if( msg.count >= WIFI_SCAN_RESULTS_LEN ){
 
-                    break;
-                }
-            }
+    //                 break;
+    //             }
+    //         }
         
-            if( intf_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN_RESULTS, (uint8_t *)&msg, sizeof(msg) ) >= 0 ){
+    //         if( intf_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN_RESULTS, (uint8_t *)&msg, sizeof(msg) ) >= 0 ){
 
-                scanning = false;
-            }
-        }
-    }
-    else if( request_connect ){
+    //             scanning = false;
+    //         }
+    //     }
+    // }
+    if( request_connect ){
 
         WiFi.mode( WIFI_STA );
         ap_mode = false;
 
         WiFi.begin( ssid, pass );    
-
+        
         request_connect = false;
         request_disconnect = false;
 
@@ -302,7 +335,10 @@ void wifi_v_process( void ){
         // if( rx_size >= RX_BUF_SIZE ){
         if( list_u8_count( &rx_q ) >= RX_BUF_SIZE ){
 
-            rx_udp_fifo_overruns++;
+            if( rx_udp_overruns < 65535 ){
+
+                rx_udp_overruns++;
+            }
 
             // receive overrun!
             // flush the current received data
@@ -316,7 +352,10 @@ void wifi_v_process( void ){
         // check if this port exceeds its bandwidth
         if( rx_depth >= MAX_PORT_DEPTH ){
 
-            rx_udp_port_overruns++;
+            if( rx_udp_overruns < 65535 ){
+                
+                rx_udp_overruns++;
+            }
 
             // port receive overrun!
             // flush the current received data
@@ -331,13 +370,14 @@ void wifi_v_process( void ){
         if( ln < 0 ){
 
             // buffer full
-            return;
+            break;
         }
 
         list_v_insert_head( &rx_q, ln );
 
 
         // data available!
+        led_on();
 
         IPAddress remote_ip = udp[i].remoteIP();
 
@@ -359,9 +399,7 @@ void wifi_v_process( void ){
 
         port_rx_depth[i]++;
 
-        wifi_v_set_status_bits( WIFI_STATUS_RX_MSG );
-
-        intf_v_request_status();
+        led_off();
     }
 
     // check transmit buffer
@@ -371,7 +409,18 @@ void wifi_v_process( void ){
 
         if( ln > 0 ){
 
-            wifi_msg_udp_header_t *header = (wifi_msg_udp_header_t *)list_vp_get_data( ln );
+            uint32_t *timeout = (uint32_t *)list_vp_get_data( ln );
+            wifi_msg_udp_header_t *header = (wifi_msg_udp_header_t *)( timeout + 1 );
+
+            if( elapsed_millis( *timeout ) > 1000 ){
+
+                list_v_release_node( ln );
+
+                intf_v_printf( "TX timeout: %u -> %u", header->lport, header->rport );
+
+                return;                                
+            }
+
             uint8_t *tx_data = (uint8_t *)( header + 1 );
 
             // find matching UDP socket
@@ -430,9 +479,7 @@ void wifi_v_process( void ){
 
     if( ( wifi_status != last_status ) ){
 
-        intf_v_request_status();
-
-        // irqline_v_strobe_irq();
+        wifi_v_send_status();
 
         last_status = wifi_status;
     }
@@ -448,12 +495,16 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
     // check tx buffer size
     if( list_u8_count( &tx_q ) >= TX_BUF_SIZE ){
 
+        intf_v_printf( "TX FIFO overrun" );
+
         return;
     }
 
-    list_node_t ln = list_ln_create_node( 0, sizeof(wifi_msg_udp_header_t) + header->len );
+    list_node_t ln = list_ln_create_node( 0, sizeof(uint32_t) + sizeof(wifi_msg_udp_header_t) + header->len );
 
     if( ln < 0 ){
+
+        intf_v_printf( "TX alloc fail" );
 
         // buffer full
         return;
@@ -463,7 +514,9 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
 
 
     // add to buffer
-    wifi_msg_udp_header_t *tx_header = (wifi_msg_udp_header_t *)list_vp_get_data( ln );
+    uint32_t *timeout = (uint32_t *)list_vp_get_data( ln );
+    *timeout = millis();
+    wifi_msg_udp_header_t *tx_header = (wifi_msg_udp_header_t *)( timeout + 1 );
     uint8_t *tx_data = (uint8_t *)( tx_header + 1 );
         
     memcpy( tx_header, header, sizeof(wifi_msg_udp_header_t) );
@@ -517,15 +570,15 @@ void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
 
 void wifi_v_scan( void ){
 
-    if( scanning ){
+    // if( scanning ){
 
-        return;
-    }
+    //     return;
+    // }
 
-    WiFi.scanDelete();
+    // WiFi.scanDelete();
 
-    scanning = true;
-    WiFi.scanNetworks(true, false);
+    // scanning = true;
+    // WiFi.scanNetworks(true, false);
 }
 
 void wifi_v_set_ports( uint16_t _ports[WIFI_MAX_PORTS] ){
@@ -587,24 +640,14 @@ void wifi_v_rx_udp_clear_last( void ){
     }
 
     list_v_release_node( ln );
-
-    if( list_u8_count( &rx_q ) == 0 ){
-
-        wifi_v_clr_status_bits( WIFI_STATUS_RX_MSG );
-    }
 }
 
 
 
 
-uint32_t wifi_u32_get_rx_udp_fifo_overruns( void ){
+uint32_t wifi_u32_get_rx_udp_overruns( void ){
 
-    return rx_udp_fifo_overruns;
-}
-
-uint32_t wifi_u32_get_rx_udp_port_overruns( void ){
-
-    return rx_udp_port_overruns;
+    return rx_udp_overruns;
 }
 
 uint32_t wifi_u32_get_udp_received( void ){

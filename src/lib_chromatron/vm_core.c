@@ -23,25 +23,32 @@
 #include <string.h>
 #include "gfx_lib.h"
 #include "random.h"
-#include "crc.h"
 #include "vm_core.h"
 #include "trig.h"
+#include "hash.h"
 #include "vm_config.h"
+#include "vm_lib.h"
+#include "catbus_types.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
-#endif
-
-#ifdef VM_ENABLE_KVDB
 #include "kvdb.h"
+#ifndef ESP8266
+#include "catbus.h"
+#endif
 #endif
 
+#ifdef ESP8266 // very slight speed boost using 32 bit numbers on Xtensa
+static uint32_t cycles;
+#else
 static uint16_t cycles;
+#endif
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
-    uint16_t offset,
-    uint64_t *rng_seed,
+    uint16_t func_addr,
+    uint16_t pc_offset,
+    vm_state_t *state,
     int32_t *data ){
 
 #ifdef ESP8266
@@ -50,77 +57,93 @@ static int8_t _vm_i8_run_stream(
     static void *const opcode_table[] PROGMEM = {
 #endif
 
-        &&opcode_mov,	            // 0
-        &&opcode_clr,	            // 1
-        &&opcode_compeq,	        // 2
-        &&opcode_compneq,	        // 3
-        &&opcode_compgt,	        // 4
-        &&opcode_compgte,	        // 5
-        &&opcode_complt,	        // 6
-        &&opcode_complte,	        // 7
-        &&opcode_and,	            // 8
-        &&opcode_or,	            // 9
-        &&opcode_add,	            // 10
-        &&opcode_sub,	            // 11
-        &&opcode_mul,	            // 12
-        &&opcode_div,	            // 13
-        &&opcode_mod,	            // 14
-        &&opcode_jmp,	            // 15
-        &&opcode_jmp_if_z,	        // 16
-        &&opcode_jmp_if_not_z,	    // 17
-        &&opcode_jmp_if_z_dec,	    // 18
-        &&opcode_jmp_if_gte,	    // 19
-        &&opcode_jmp_if_l_pre_inc,  // 20
-        &&opcode_print,	            // 21
-        &&opcode_ret,	            // 22
-        &&opcode_call,	            // 23
-        &&opcode_lta,	            // 24
-        &&opcode_lfa,	            // 25
-        &&opcode_lfa2d,	            // 26
-        &&opcode_lta2d,	            // 27
-        &&opcode_ltah,	            // 28
-        &&opcode_ltas,	            // 29
-        &&opcode_ltav,	            // 30
-        &&opcode_lfah,	            // 31
-        &&opcode_lfas,	            // 32
-        &&opcode_lfav,	            // 33
-        &&opcode_array_add,	        // 34
-        &&opcode_array_sub,	        // 35
-        &&opcode_array_mul,	        // 36
-        &&opcode_array_div,	        // 37
-        &&opcode_array_mod,	        // 38
-        &&opcode_array_mov,	        // 39
-        &&opcode_rand,	            // 40
-        &&opcode_assert,	        // 41
-        &&opcode_halt,	            // 42
-        &&opcode_is_fading,	        // 43
-        &&opcode_lib_call,	        // 44
-        &&opcode_trap,	            // 45
-        &&opcode_trap,	            // 46
-        &&opcode_trap,	            // 47
-        &&opcode_trap,	            // 48
-        &&opcode_lfahsf,            // 49
-        &&opcode_lfavf,	            // 50
-        &&opcode_ltahsf,            // 51
-        &&opcode_ltavf,	            // 52
-        &&opcode_trap,	            // 53
-        &&opcode_obj_load,	        // 54
-        &&opcode_obj_store,	        // 55
-        &&opcode_not,	            // 56
-        &&opcode_db_load,	        // 57
-        &&opcode_db_store,	        // 58
-        &&opcode_trap,	            // 59
-        &&opcode_trap,	            // 60
-        &&opcode_trap,	            // 61
-        &&opcode_trap,	            // 62
-        &&opcode_trap,	            // 63
-        &&opcode_trap,	            // 64
-        &&opcode_trap,	            // 65
-        &&opcode_trap,	            // 66
-        &&opcode_trap,	            // 67
-        &&opcode_trap,	            // 68
-        &&opcode_trap,	            // 69
-        &&opcode_trap,	            // 70
+        &&opcode_trap,              // 0
+
+        &&opcode_mov,	            // 1
+        &&opcode_clr,	            // 2
+        
+        &&opcode_not,	            // 3
+        
+        &&opcode_compeq,            // 4
+        &&opcode_compneq,	        // 5
+        &&opcode_compgt,	        // 6
+        &&opcode_compgte,	        // 7
+        &&opcode_complt,	        // 8
+        &&opcode_complte,	        // 9
+        &&opcode_and,	            // 10
+        &&opcode_or,	            // 11
+        &&opcode_add,	            // 12
+        &&opcode_sub,	            // 13
+        &&opcode_mul,	            // 14
+        &&opcode_div,	            // 15
+        &&opcode_mod,	            // 16
+
+        &&opcode_f16_compeq,        // 17
+        &&opcode_f16_compneq,       // 18
+        &&opcode_f16_compgt,        // 19
+        &&opcode_f16_compgte,       // 20
+        &&opcode_f16_complt,        // 21
+        &&opcode_f16_complte,       // 22
+        &&opcode_f16_and,           // 23
+        &&opcode_f16_or,            // 24
+        &&opcode_f16_add,           // 25
+        &&opcode_f16_sub,           // 26
+        &&opcode_f16_mul,           // 27
+        &&opcode_f16_div,           // 28
+        &&opcode_f16_mod,           // 29
+
+        &&opcode_jmp,	            // 30
+        &&opcode_jmp_if_z,	        // 31
+        &&opcode_jmp_if_not_z,	    // 32
+        &&opcode_jmp_if_l_pre_inc,  // 33
+
+        &&opcode_ret,	            // 34
+        &&opcode_call,	            // 35
+        &&opcode_lcall,             // 36
+        &&opcode_dbcall,            // 37
+
+        &&opcode_index,             // 38
+        &&opcode_load_indirect,     // 39
+        &&opcode_store_indirect,    // 40
+
+        &&opcode_assert,            // 41
+        &&opcode_halt,              // 42
+
+        &&opcode_vmov,              // 43
+        &&opcode_vadd,              // 44
+        &&opcode_vsub,              // 45
+        &&opcode_vmul,              // 46
+        &&opcode_vdiv,              // 47
+        &&opcode_vmod,              // 48
+
+        &&opcode_pmov,              // 49
+        &&opcode_padd,              // 50
+        &&opcode_psub,              // 51
+        &&opcode_pmul,              // 52
+        &&opcode_pdiv,              // 53
+        &&opcode_pmod,              // 54
+
+        &&opcode_pstore_hue,        // 55
+        &&opcode_pstore_sat,        // 56
+        &&opcode_pstore_val,        // 57
+        &&opcode_pstore_vfade,      // 58
+        &&opcode_pstore_hsfade,     // 59
+
+        &&opcode_pload_hue,         // 60
+        &&opcode_pload_sat,         // 61
+        &&opcode_pload_val,         // 62
+        &&opcode_pload_vfade,       // 63
+        &&opcode_pload_hsfade,      // 64
+
+        &&opcode_db_store,          // 65
+        &&opcode_db_load,           // 66
+
+        &&opcode_conv_i32_to_f16,   // 67
+        &&opcode_conv_f16_to_i32,   // 68
+
+        &&opcode_is_v_fading,	    // 69
+        &&opcode_is_hs_fading,	    // 70
+
         &&opcode_trap,	            // 71
         &&opcode_trap,	            // 72
         &&opcode_trap,	            // 73
@@ -306,54 +329,108 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,	            // 253
         &&opcode_trap,	            // 254
         &&opcode_trap,	            // 255
-     };
+    };
 
-    uint8_t *pc = stream + offset;
-    uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len;
-    int32_t op1, op2, index, index_x32, index_y32, size_x32, size_y32, size;
-    int32_t params[8];
-    uint16_t addr;
+    uint8_t *code = stream + state->code_start;
+    uint8_t *pc = code + func_addr + pc_offset;
+    uint8_t opcode;
+
+    uint16_t dest;
+    uint16_t src;
+    uint16_t op1;
+    uint16_t op2;
+    uint16_t call_target;
+    uint16_t call_param;
+    uint16_t call_arg;
+    uint8_t call_param_len;
+    uint16_t result;
+    uint16_t base_addr;
+    uint16_t index;
+    uint16_t count;
+    uint16_t stride;
+    uint16_t temp;
+    uint16_t len;
+    uint8_t type;
+    uint8_t array;
+    uint8_t attr;
     catbus_hash_t32 hash;
+    catbus_hash_t32 db_hash;
+    uint16_t index_x;
+    uint16_t index_y;
 
-dispatch:
-    cycles++;
+    #ifdef VM_ENABLE_GFX
+    int32_t value_i32;
+    #endif
 
-    if( cycles > VM_MAX_CYCLES ){
+    uint8_t *call_stack[VM_MAX_CALL_DEPTH];
+    uint8_t call_depth = 0;
 
-        return VM_STATUS_ERR_MAX_CYCLES;
-    }
+    // uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
+    // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
+    // bool yield;
+    int32_t params[8];
+    int32_t indexes[8];
+    // uint16_t addr;
 
-    opcode = *pc++;
 
-#ifdef ESP8266
-    goto *opcode_table[opcode];
-#else
-    void *target = (void*)pgm_read_word( &opcode_table[opcode] );
-    goto *target;
-#endif
+    #ifdef ESP8266
+        #define DISPATCH cycles--; \
+                         if( cycles == 0 ){ \
+                            return VM_STATUS_ERR_MAX_CYCLES; \
+                        } \
+                        opcode = *pc++; \
+                        goto *opcode_table[opcode]
+
+
+        DISPATCH;
+
+    #else
+        #define DISPATCH goto dispatch
+        dispatch:
+            cycles--;
+
+            if( cycles == 0 ){
+
+                return VM_STATUS_ERR_MAX_CYCLES;
+            }
+
+            opcode = *pc++;
+
+        #ifdef ESP8266
+            goto *opcode_table[opcode];
+        #else
+            void *target = (void*)pgm_read_word( &opcode_table[opcode] );
+            goto *target;
+        #endif
+
+    #endif
+
 
 opcode_mov:
     dest = *pc++;
-    src  = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
     data[dest] = data[src];
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_clr:
-
     dest = *pc++;
-
+    dest += ( *pc++ ) << 8;
+    
     data[dest] = 0;
 
-    goto dispatch;
+    DISPATCH;
 
 
-opcode_not:
-    
+opcode_not:    
     dest = *pc++;
+    dest += ( *pc++ ) << 8;
     src = *pc++;
+    src += ( *pc++ ) << 8;
 
     if( data[src] == 0 ){
 
@@ -364,755 +441,681 @@ opcode_not:
         data[dest] = 0;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_compeq:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] == data[op2];
 
-    data[result] = op1 == op2;
+    DISPATCH;
 
-    goto dispatch;
 
 opcode_compneq:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] != data[op2];
 
-    data[result] = op1 != op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_compgt:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] > data[op2];
 
-    data[result] = op1 > op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_compgte:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] >= data[op2];
 
-    data[result] = op1 >= op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_complt:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] < data[op2];
 
-    data[result] = op1 < op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_complte:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] <= data[op2];
 
-    data[result] = op1 <= op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 
 opcode_and:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] && data[op2];
 
-    data[result] = op1 && op2;
+    DISPATCH;
 
-    goto dispatch;
 
 opcode_or:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] || data[op2];
 
-    data[result] = op1 || op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_add:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] + data[op2];
 
-    data[result] = op1 + op2;
+    DISPATCH;
 
-    goto dispatch;
-
-
+    
 opcode_sub:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    data[dest] = data[op1] - data[op2];
 
-    data[result] = op1 - op2;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_mul:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+    data[dest] = data[op1] * data[op2];
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    DISPATCH;
 
-    data[result] = op1 * op2;
-
-    goto dispatch;
 
 opcode_div:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    if( data[op2] != 0 ){
 
-    if( op2 != 0 ){
-
-        data[result] = op1 / op2;
+        data[dest] = data[op1] / data[op2];
     }
     else{
 
-        data[result] = 0;        
+        data[dest] = 0;
     }
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_mod:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    result = *pc++;
-    op1  = data[*pc++];
-    op2  = data[*pc++];
+    if( data[op2] != 0 ){
 
-    if( op2 != 0 ){
-
-        data[result] = op1 % op2;
+        data[dest] = data[op1] % data[op2];
     }
     else{
 
-        data[result] = 0;        
+        data[dest] = 0;
     }
 
-    goto dispatch;
+    DISPATCH;
+
+
+opcode_f16_compeq:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] == data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_compneq:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] != data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_compgt:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] > data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_compgte:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] >= data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_complt:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] < data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_complte:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] <= data[op2];
+
+    DISPATCH;
+
+
+
+opcode_f16_and:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] && data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_or:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] || data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_add:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] + data[op2];
+
+    DISPATCH;
+
+    
+opcode_f16_sub:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = data[op1] - data[op2];
+
+    DISPATCH;
+
+
+opcode_f16_mul:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    data[dest] = ( (int64_t)data[op1] * (int64_t)data[op2] ) / 65536;
+
+    DISPATCH;
+
+
+opcode_f16_div:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    if( data[op2] != 0 ){
+
+        data[dest] = ( (int64_t)data[op1] * 65536 ) / data[op2];
+    }
+    else{
+
+        data[dest] = 0;
+    }
+
+    DISPATCH;
+
+
+opcode_f16_mod:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
+
+    if( data[op2] != 0 ){
+
+        data[dest] = data[op1] % data[op2];
+    }
+    else{
+
+        data[dest] = 0;
+    }
+
+    DISPATCH;
 
 
 opcode_jmp:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    
+    pc = code + dest;
 
-    addr = *pc++;
-    addr += ( *pc ) << 8;
-
-    pc = stream + addr;
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_z:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    op1_addr = *pc++;
+    if( data[src] == 0 ){
 
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
-
-    if( data[op1_addr] == 0 ){
-
-        pc = stream + addr;
+        pc = code + dest;
     }
+    
 
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_not_z:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
-    op1_addr = *pc++;
+    if( data[src] != 0 ){
 
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
-
-    if( data[op1_addr] != 0 ){
-
-        pc = stream + addr;
+        pc = code + dest;
     }
+    
 
-    goto dispatch;
-
-
-opcode_jmp_if_z_dec:
-
-    op1_addr = *pc++;
-
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
-
-    if( data[op1_addr] == 0 ){
-
-        pc = stream + addr;
-    }
-    else{
-
-        data[op1_addr]--;
-    }
-
-    goto dispatch;
-
-
-opcode_jmp_if_gte:
-
-    op1_addr = *pc++;
-    op2_addr = *pc++;
-
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
-
-    if( data[op1_addr] >= data[op2_addr] ){
-
-        pc = stream + addr;
-    }
-
-    goto dispatch;
+    DISPATCH;
 
 
 opcode_jmp_if_l_pre_inc:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    op1 = *pc++;
+    op1 += ( *pc++ ) << 8;
+    op2 = *pc++;
+    op2 += ( *pc++ ) << 8;
 
-    op1_addr = *pc++;
-    op2_addr = *pc++;
+    data[op1]++;
 
-    data[op1_addr]++;
+    if( data[op1] < data[op2] ){
 
-    if( data[op1_addr] < data[op2_addr] ){
-
-        addr = *pc++;
-        addr += ( *pc ) << 8;
-
-        pc = stream + addr;
+        pc = code + dest;
     }
-    else{
-
-        pc += 2;
-    }
-
-    goto dispatch;
-
-
-opcode_print:
-
-    src = *pc++;
-    op1  = data[src];
-
-    // log_v_debug_P( PSTR("%d = %d"), src, op1 );
-
-    goto dispatch;
+    
+    DISPATCH;
 
 
 opcode_ret:
-    op1_addr = *pc++;
-    data[RETURN_VAL_ADDR] = data[op1_addr];
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    
+    // move return val to return register
+    data[RETURN_VAL_ADDR] = data[dest];
 
-    return VM_STATUS_OK;
+    // check if call depth is 0
+    // if so, we are exiting the VM
+    if( call_depth == 0 ){
+
+        return VM_STATUS_OK;
+    }
+
+    // pop PC from call stack
+    call_depth--;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+
+    pc = call_stack[call_depth];
+        
+    DISPATCH;
 
 
 opcode_call:
-    addr = *pc++;
-    addr += ( *pc++ ) << 8;
-
-    // call function, by recursively calling into VM
-    int8_t status = _vm_i8_run_stream( stream, addr, rng_seed, data );
-    if( status < 0 ){
-
-        return status;
-    }
-
-    goto dispatch;
-
-
-opcode_lta:
-
-    dest = *pc++;
-    src  = *pc++;
-    index = data[*pc++];
-    size = data[*pc++];
-
-    index %= size;
-
-    data[dest + index] = data[src];
-
-    goto dispatch;
-
-
-opcode_lfa:
-
-    dest = *pc++;
-    src  = *pc++;
-    index = data[*pc++];
-    size = data[*pc++];
-
-    index %= size;
-
-    data[dest] = data[src + index];
-
-    goto dispatch;
-
-
-opcode_lfa2d:
-
-    dest = *pc++;
-    src  = *pc++;
-    index_x32 = data[*pc++];
-    index_y32 = data[*pc++];
-    size_x32 = data[*pc++];
-    size_y32 = data[*pc++];
-
-    index_x32 %= size_x32;
-    index_y32 %= size_y32;
-
-    data[dest] = data[src + index_x32 + (index_y32 * size_x32)];
-
-    goto dispatch;
-
-opcode_lta2d:
-
-    dest = *pc++;
-    src  = *pc++;
-    index_x32 = data[*pc++];
-    index_y32 = data[*pc++];
-    size_x32 = data[*pc++];
-    size_y32 = data[*pc++];
-
-    index_x32 %= size_x32;
-    index_y32 %= size_y32;
-
-    data[dest + index_x32 + (index_y32 * size_x32)] = data[src];
-
-    goto dispatch;
-
-
-opcode_ltah:
-
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-
-    op1 = data[src];
-    // wraparound to 16 bit range.
-    // this makes it easy to run a circular rainbow
-    op1 %= 65536;
-
-    gfx_v_set_hue( op1, data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-
-opcode_ltas:
-
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-
-    op1 = data[src];
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( op1 > 65535 ){
-
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
-
-        op1 = 0;
-    }
-
-    gfx_v_set_sat( op1, data[index_x], data[index_y], obj );
-
-    #endif
-
-    goto dispatch;
-
-
-opcode_ltav:
-
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-
-    op1 = data[src];
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( op1 > 65535 ){
-
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
-
-        op1 = 0;
-    }
-
-    gfx_v_set_val( op1, data[index_x], data[index_y], obj );
-
-    #endif
-
-    goto dispatch;
-
-opcode_ltahsf:
-
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-
-    op1 = data[src];
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-
-    if( op1 > 65535 ){
-
-        op1 = 65535;
-    }
-    else if( op1 < 0 ){
-
-        op1 = 0;
-    }
-
-    gfx_v_set_hs_fade( op1, data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-opcode_ltavf:
-
-    src  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
     
-    op1 = data[src];
+    call_target = *pc++;
+    call_target += ( *pc++ ) << 8;
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
+    call_param_len = *pc++;
 
-    if( op1 > 65535 ){
+    while( call_param_len > 0 ){
+        call_param_len--;
 
-        op1 = 65535;
+        // decode
+        call_param = *pc++;
+        call_param += ( *pc++ ) << 8;
+        call_arg = *pc++;
+        call_arg += ( *pc++ ) << 8;
+
+        // move param to arg
+        data[call_arg] = data[call_param];
     }
-    else if( op1 < 0 ){
 
-        op1 = 0;
+    // set up return stack
+    call_stack[call_depth] = pc;
+    call_depth++;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
     }
+
+    // call by jumping to target
+    pc = code + call_target;
+
+    DISPATCH;
+
+
+opcode_lcall:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
     
-    gfx_v_set_v_fade( op1, data[index_x], data[index_y], obj );
-    #endif
+    for( uint32_t i = 0; i < len; i++ ){
+        temp = *pc++;
+        temp += ( *pc++ ) << 8;
 
-    goto dispatch;
-
-opcode_lfah:
-
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-
-opcode_lfas:
-
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-
-opcode_lfav:
-
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_val( data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-opcode_lfahsf:
-
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-opcode_lfavf:
-
-    dest  = *pc++;
-    index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-opcode_array_add:
-    
-    obj = *pc++;
-    dest = *pc++;
-    attr = *pc++;
-    op1 = data[*pc++];
-    size = data[*pc++];
-
-    if( obj == ARRAY_OBJ_TYPE ){
-
-        for( uint16_t i = 0; i < size; i++ ){
-
-            data[dest + i] += op1;
-        }
+        // params[i] = data[temp]; // by value
+        params[i] = temp; // by reference
     }
-    else if( obj == PIX_OBJ_TYPE ){
+
+    result = *pc++;
+    result += ( *pc++ ) << 8;
+
+    // initialize result to 0
+    data[result] = 0;
+
+    if( vm_lib_i8_libcall_built_in( hash, state, data, &data[result], params, len ) != 0 ){
 
         #ifdef VM_ENABLE_GFX
-        gfx_v_array_add( dest, attr, op1 );
-        #endif
-    }
+        // try gfx lib
+        // load params by value
+        for( uint32_t i = 0; i < len; i++ ){
 
-    goto dispatch;
-
-
-opcode_array_sub:
-
-    obj = *pc++;
-    dest = *pc++;
-    attr = *pc++;
-    op1 = data[*pc++];
-    size = data[*pc++];
-
-    if( obj == ARRAY_OBJ_TYPE ){
-
-        for( uint16_t i = 0; i < size; i++ ){
-
-            data[dest + i] -= op1;
+            params[i] = data[params[i]];
         }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
 
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_sub( dest, attr, op1 );
+        data[result] = gfx_i32_lib_call( hash, params, len );
         #endif
-    }
-
-    goto dispatch;
-
-
-opcode_array_mul:
-
-    obj = *pc++;
-    dest = *pc++;
-    attr = *pc++;
-    op1 = data[*pc++];
-    size = data[*pc++];
-
-    if( obj == ARRAY_OBJ_TYPE ){
-
-        for( uint16_t i = 0; i < size; i++ ){
-
-            data[dest + i] *= op1;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
-
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_mul( dest, attr, op1 );
-        #endif
-    }
-
-    goto dispatch;
-
-
-opcode_array_div:
-
-    obj = *pc++;
-    dest = *pc++;
-    attr = *pc++;
-    op1 = data[*pc++];
-    size = data[*pc++];
-
-    if( obj == ARRAY_OBJ_TYPE ){
-
-        for( uint16_t i = 0; i < size; i++ ){
-
-            data[dest + i] /= op1;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
-
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_div( dest, attr, op1 );
-        #endif
-    }
-
-    goto dispatch;
-
-
-opcode_array_mod:
-
-    obj = *pc++;
-    dest = *pc++;
-    attr = *pc++;
-    op1 = data[*pc++];
-    size = data[*pc++];
-
-    if( obj == ARRAY_OBJ_TYPE ){
-
-        for( uint16_t i = 0; i < size; i++ ){
-
-            data[dest + i] %= op1;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
-
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_mod( dest, attr, op1 );
-        #endif
-    }
-    goto dispatch;
-
-
-opcode_array_mov:
-
-    obj = *pc++;
-    dest = *pc++;
-    attr = *pc++;
-    op1 = data[*pc++];
-    size = data[*pc++];
-
-    if( obj == ARRAY_OBJ_TYPE ){
-
-        for( uint16_t i = 0; i < size; i++ ){
-
-            data[dest + i] = op1;
-        }
-    }
-    else if( obj == PIX_OBJ_TYPE ){
-
-        #ifdef VM_ENABLE_GFX
-        gfx_v_array_move( dest, attr, op1 );
-        #endif
-    }
-
-    goto dispatch;
-
-
-opcode_rand:
-
-    dest = *pc++;
-    op1_addr = *pc++;
-    op2_addr = *pc++;
-
-    uint16_t val;
-    uint16_t diff = data[op2_addr] - data[op1_addr];
-
-    // check for divide by 0!
-    if( diff == 0 ){
-
-        val = 0;
     }
     else{
 
-        val = rnd_u16_get_int_with_seed( rng_seed ) % diff;
+        // internal lib call completed successfully
+
+        // check yield flag
+        if( state->yield ){
+
+            // check call depth, can only yield from top level functions running as a thread
+            if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
+
+                return VM_STATUS_IMPROPER_YIELD;
+            }
+
+            // store PC offset
+            state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
+
+            // yield!
+            return VM_STATUS_YIELDED;
+        }
+    }
+    
+    DISPATCH;
+
+
+opcode_dbcall:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    db_hash =  (catbus_hash_t32)(*pc++) << 24;
+    db_hash |= (catbus_hash_t32)(*pc++) << 16;
+    db_hash |= (catbus_hash_t32)(*pc++) << 8;
+    db_hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
+
+    for( uint32_t i = 0; i < len; i++ ){
+        temp = *pc++;
+        temp += ( *pc++ ) << 8;
+
+        params[i] = temp; // by reference
     }
 
-    data[dest] = val + data[op1_addr];
+    result = *pc++;
+    result += ( *pc++ ) << 8;
 
-    goto dispatch;
+    // initialize result to 0
+    data[result] = 0;
+
+    // call db func
+    if( hash == __KV__len ){
+
+        #ifdef VM_ENABLE_KV
+        catbus_meta_t meta;
+        
+        if( kv_i8_get_meta( db_hash, &meta ) < 0 ){
+
+            data[result] = 0;
+        }
+        else{
+
+            data[result] = meta.count + 1;
+        }
+        #endif
+    }    
+    
+    DISPATCH;
 
 
-opcode_lib_call:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+opcode_index:
+    result = *pc++;
+    result += ( *pc++ ) << 8;
 
-    dest        = *pc++;
-    param_len   = *pc++;    
+    base_addr = *pc++;
+    base_addr += ( *pc++ ) << 8;
+    
+    data[result] = base_addr;
 
-    for( uint32_t i = 0; i < param_len; i++ ){
+    len = *pc++;
 
-        params[i] = data[*pc];
-        pc++;
+    while( len > 0 ){
+        len--;
+
+        // decode
+        index = *pc++;
+        index += ( *pc++ ) << 8;
+
+        count = *pc++;
+        count += ( *pc++ ) << 8;
+
+        stride = *pc++;
+        stride += ( *pc++ ) << 8;
+
+        temp = data[index];
+
+        if( count > 0 ){
+
+            temp %= count;
+            temp *= stride;
+        }
+
+        data[result] += temp;
     }
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_i32_lib_call( hash, params, param_len );
-    #else   
-    data[dest] = 0;
-    #endif
+    DISPATCH;
 
-    goto dispatch;
+
+opcode_load_indirect:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    temp = data[src];
+
+    // bounds check
+    if( temp >= state->data_count ){
+
+        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+    }
+
+    data[dest] = data[temp];
+    
+    DISPATCH;
+
+
+opcode_store_indirect:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    temp = data[dest];
+
+    // bounds check
+    if( temp >= state->data_count ){
+
+        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+    }
+
+    data[temp] = data[src];
+
+    DISPATCH;
 
 
 opcode_assert:
-    op1 = data[*pc++];
-
-    if( op1 == FALSE ){
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    
+    if( data[dest] == FALSE ){
 
         #ifndef VM_TARGET_ESP
         // log_v_debug_P( PSTR("VM assertion failed") );
@@ -1120,81 +1123,650 @@ opcode_assert:
         return VM_STATUS_ASSERT;
     }
 
-    goto dispatch;
+    DISPATCH;
+
 
 opcode_halt:
-
     return VM_STATUS_HALT;
 
-    goto dispatch;
+    DISPATCH;
 
 
-opcode_is_fading:
-    dest  = *pc++;
+opcode_vmov:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
+
+    for( uint16_t i = 0; i < len; i++ ){
+
+        data[dest + i] = data[src];
+    }
+
+    DISPATCH;
+
+
+opcode_vadd:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
+    
+    for( uint16_t i = 0; i < len; i++ ){
+
+        data[dest + i] += data[src];
+    }
+
+    DISPATCH;
+
+
+opcode_vsub:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
+    
+    for( uint16_t i = 0; i < len; i++ ){
+
+        data[dest + i] -= data[src];
+    }
+
+    DISPATCH;
+
+
+opcode_vmul:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
+        
+    if( type == CATBUS_TYPE_FIXED16 ){
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] = ( (int64_t)data[dest + i] * data[src] ) / 65536;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] *= data[src];
+        }
+    }
+
+    DISPATCH;
+
+
+opcode_vdiv:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
+
+    // check for divide by zero
+    if( data[src] == 0 ){
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] = 0;
+        }
+    }
+    else if( type == CATBUS_TYPE_FIXED16 ){
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[src];
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] /= data[src];
+        }
+    }
+
+    DISPATCH;
+
+
+opcode_vmod:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    len = *pc++;
+    len += ( *pc++ ) << 8;
+    type = *pc++;
+
+    // deference pointer
+    dest = data[dest];
+
+    // check for divide by zero
+    if( data[src] == 0 ){
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] = 0;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < len; i++ ){
+
+            data[dest + i] %= data[src];
+        }
+    }
+
+    DISPATCH;
+
+
+opcode_pmov:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_move( array, attr, data[src] );
+    #endif
+
+    DISPATCH;
+
+
+opcode_padd:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_add( array, attr, data[src] );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_psub:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_sub( array, attr, data[src] );
+    #endif
+
+    
+    DISPATCH;
+
+
+opcode_pmul:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_mul( array, attr, data[src] );
+    #endif
+
+    DISPATCH;
+
+
+opcode_pdiv:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_div( array, attr, data[src] );
+    #endif
+
+    DISPATCH;
+
+
+opcode_pmod:
+    array = *pc++;
+    attr = *pc++;
+    
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+    
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_mod( array, attr, data[src] );
+    #endif
+
+    DISPATCH;
+
+
+opcode_pstore_hue:
+    array = *pc++;
+
     index_x = *pc++;
-    index_y  = *pc++;
-    obj = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_is_fading( data[index_x], data[index_y], obj );
-    #endif
-
-    goto dispatch;
-
-opcode_obj_load:
-    obj         = *pc++;
-    attr        = *pc++;
-    op1_addr    = *pc++;
-    dest        = *pc++;
-
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_i32_get_obj_attr( obj, attr, op1_addr );
-    #endif
-
-    goto dispatch;
-
-opcode_obj_store:
-    obj         = *pc++;
-    attr        = *pc++;
-    op1_addr    = *pc++;
-    dest        = *pc++;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
 
     #ifdef VM_ENABLE_GFX
 
-    // object store is a no-op for now
+//     // wraparound to 16 bit range.
+//     // this makes it easy to run a circular rainbow
+//     op1 %= 65536;
+    // ^^^^^^ I don't think we actually need to do this.
+    // gfx will crunch from i32 to u16, which does the mod for free.
 
+    gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_pstore_sat:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_sat( value_i32, data[index_x], data[index_y], array );
     #endif
 
-    goto dispatch;
+    
+    DISPATCH;
 
-opcode_db_load:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
 
-    dest        = *pc++;
+opcode_pstore_val:
+    array = *pc++;
 
-    #ifdef VM_ENABLE_KVDB
-    kvdb_i8_get( hash, &data[dest] );
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_val( value_i32, data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_pstore_vfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_v_fade( value_i32, data[index_x], data[index_y], array );
     #endif
 
-    goto dispatch;
+    DISPATCH;
+
+
+opcode_pstore_hsfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_hs_fade( value_i32, data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_pload_hue:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_pload_sat:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], array );
+    #endif
+
+    DISPATCH;
+
+
+opcode_pload_val:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_val( data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_pload_vfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
+
+
+opcode_pload_hsfade:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], array );
+    #endif
+
+    DISPATCH;
+
 
 opcode_db_store:
-    hash        =  (catbus_hash_t32)(*pc++) << 24;
-    hash        |= (catbus_hash_t32)(*pc++) << 16;
-    hash        |= (catbus_hash_t32)(*pc++) << 8;
-    hash        |= (catbus_hash_t32)(*pc++) << 0;
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
 
-    op1_addr    = *pc++;
+    len = *pc++;
 
-    #ifdef VM_ENABLE_KVDB
-    kvdb_i8_set( hash, data[op1_addr] );
-    kvdb_i8_publish( hash );
+    indexes[0] = 0;
+
+    for( uint32_t i = 0; i < len; i++ ){
+
+        index = *pc++;
+        index += ( *pc++ ) << 8;
+
+        indexes[i] = data[index];
+    }
+    
+    type = *pc++;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
+    kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
+    #else
+    catbus_i8_array_set( hash, type, indexes[0], 1, &data[src] );
+    catbus_i8_publish( hash );
+    #endif
+    #endif
+    
+    DISPATCH;
+
+
+opcode_db_load:
+    hash =  (catbus_hash_t32)(*pc++) << 24;
+    hash |= (catbus_hash_t32)(*pc++) << 16;
+    hash |= (catbus_hash_t32)(*pc++) << 8;
+    hash |= (catbus_hash_t32)(*pc++) << 0;
+
+    len = *pc++;
+
+    indexes[0] = 0;
+
+    for( uint32_t i = 0; i < len; i++ ){
+
+        index = *pc++;
+        index += ( *pc++ ) << 8;
+
+        indexes[i] = data[index];
+    }
+    
+    type = *pc++;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_KV
+    #ifdef ESP8266
+    if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
+
+        data[dest] = 0;        
+    }
+    #else
+    if( catbus_i8_array_get( hash, type, indexes[0], 1, &data[dest] ) < 0 ){
+
+        data[dest] = 0;        
+    }
+    #endif
+    #endif
+    
+    DISPATCH;
+
+
+opcode_conv_i32_to_f16:        
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    data[dest] = data[src] * 65536;
+
+    DISPATCH;
+
+
+opcode_conv_f16_to_i32:
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    data[dest] = data[src] / 65536;
+    
+    DISPATCH;
+
+
+opcode_is_v_fading:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_is_v_fading( data[index_x], data[index_y], array );
     #endif
 
-    goto dispatch;
+    DISPATCH;
+
+
+opcode_is_hs_fading:
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_is_hs_fading( data[index_x], data[index_y], array );
+    #endif
+    
+    DISPATCH;
 
 
 opcode_trap:
@@ -1202,13 +1774,62 @@ opcode_trap:
 }
 
 
+
 int8_t vm_i8_run(
     uint8_t *stream,
-    uint16_t offset,
-    vm_state_t *state,
-    int32_t *data ){
+    uint16_t func_addr,
+    uint16_t pc_offset,
+    vm_state_t *state ){
 
-    return _vm_i8_run_stream( stream, offset, &state->rng_seed, data );
+    cycles = VM_MAX_CYCLES;
+
+    int32_t *data = (int32_t *)( stream + state->data_start );
+
+    // load published vars
+    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+
+    uint32_t count = state->publish_count;
+
+    while( count > 0 ){
+
+        kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+
+        publish++;
+        count--;
+    }
+
+    #ifdef VM_ENABLE_GFX
+
+    // set pixel arrays
+    gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&data[PIX_ARRAY_ADDR], state->pix_obj_count );
+
+    #endif
+
+    state->yield = FALSE;
+
+    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
+
+    cycles = VM_MAX_CYCLES - cycles;
+
+    if( cycles > state->max_cycles ){
+
+        state->max_cycles = cycles;        
+    }
+
+    // store published vars back to DB
+    publish = (vm_publish_t *)&stream[state->publish_start];
+
+    count = state->publish_count;
+
+    while( count > 0 ){
+
+        kvdb_i8_set( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+
+        publish++;
+        count--;
+    }
+
+    return status;
 }
 
 
@@ -1216,23 +1837,9 @@ int8_t vm_i8_run_init(
     uint8_t *stream,
     vm_state_t *state ){
 
-    cycles = 0;
-
     state->frame_number = 0;
 
-    uint8_t *code = (uint8_t *)( stream + state->code_start );
-    int32_t *data = (int32_t *)( stream + state->data_start );
-
-    uint16_t offset = state->init_start;
-
-    int8_t status = _vm_i8_run_stream( code, offset, &state->rng_seed, data );
-
-    if( cycles > state->max_cycles ){
-
-        state->max_cycles = cycles;        
-    }
-
-    return status;
+    return vm_i8_run( stream, state->init_start, 0, state );
 }
 
 
@@ -1240,24 +1847,133 @@ int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state ){
 
-    cycles = 0;
     state->frame_number++;
 
-    uint8_t *code = (uint8_t *)( stream + state->code_start );
-    int32_t *data = (int32_t *)( stream + state->data_start );
-
-    uint16_t offset = state->loop_start;
-
-    int8_t status = _vm_i8_run_stream( code, offset, &state->rng_seed, data );
-
-    if( cycles > state->max_cycles ){
-
-        state->max_cycles = cycles;        
-    }
-
-    return status;
+    return vm_i8_run( stream, state->loop_start, 0, state );
 }
 
+int8_t vm_i8_run_threads(
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    bool threads_running = FALSE;
+
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        // check thread delay
+        if( state->threads[i].delay_ticks > 0 ){
+
+            // decrement
+            state->threads[i].delay_ticks--;
+
+            continue;
+        }
+
+        state->current_thread = i;
+
+        int8_t status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
+
+        threads_running = TRUE;
+
+        state->current_thread = -1;
+
+        if( status == VM_STATUS_OK ){
+
+            // thread returned, kill it
+            state->threads[i].func_addr = 0xffff;
+        }
+        else if( status == VM_STATUS_YIELDED ){
+
+
+        }
+        else if( status == VM_STATUS_HALT ){
+
+            return status;
+        }
+    }
+
+    if( !threads_running ){
+
+        return VM_STATUS_NO_THREADS;
+    } 
+
+    return VM_STATUS_OK;
+}
+
+int8_t vm_i8_run_cron(
+    uint8_t *stream,
+    vm_state_t *state,
+    datetime_t *datetime ){
+
+    cron_t *cron = (cron_t *)&stream[state->cron_start];
+
+    for( uint8_t i = 0; i < state->cron_count; i++ ){
+
+        bool match = TRUE;
+
+        if( ( cron->seconds >= 0 ) && ( cron->seconds != datetime->seconds ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->minutes >= 0 ) && ( cron->minutes != datetime->minutes ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->hours >= 0 ) && ( cron->hours != datetime->hours ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->day_of_month >= 0 ) && ( cron->day_of_month != datetime->day ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->day_of_week >= 0 ) && ( cron->day_of_week != datetime->weekday ) ){
+
+            match = FALSE;
+        }
+
+        if( ( cron->month >= 0 ) && ( cron->month != datetime->month ) ){
+
+            match = FALSE;
+        }
+
+        // the check for cron->run ensures the entry only runs one time
+        // for each time specified.
+        // if you set for instance hours = 15, but set nothing else,
+        // then without the run flag the task would run every second
+        // for the entire hour.
+
+        if( match && !cron->run ){
+
+            cron->run = TRUE;
+
+            int8_t status = vm_i8_run( stream, cron->func_addr, 0, state );
+
+            if( status == VM_STATUS_HALT ){
+
+                return status;
+            }
+        }
+
+        if( !match ){
+
+            cron->run = FALSE;
+        }
+
+        cron++;
+    }
+
+    return VM_STATUS_OK;
+}
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,
@@ -1317,7 +2033,6 @@ void vm_v_set_data(
     data_table[addr] = data;
 }
 
-
 int8_t vm_i8_load_program(
     uint8_t flags,
     uint8_t *stream,
@@ -1326,12 +2041,25 @@ int8_t vm_i8_load_program(
 
     memset( state, 0, sizeof(vm_state_t) );
 
+    // reset thread state
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        state->threads[i].func_addr = 0xffff;
+    }
+
+    state->current_thread = -1;
+    state->tick_rate = 1; // set default tick rate
+
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) == 0 ){
 
         // verify crc
-        if( crc_u16_block( stream, len ) != 0 ){
+        uint32_t check_len = len - sizeof(uint32_t);
+        uint32_t hash;
+        memcpy( &hash, stream + check_len, sizeof(hash) );
 
-            return VM_STATUS_ERR_BAD_CRC;
+        if( hash_u32_data( stream, check_len ) != hash ){
+
+            return VM_STATUS_ERR_BAD_HASH;
         }
     }
 
@@ -1357,6 +2085,8 @@ int8_t vm_i8_load_program(
 
         return VM_STATUS_HEADER_MISALIGN;
     }
+    
+    state->program_name_hash = prog_header->program_name_hash;    
 
     state->init_start = prog_header->init_start;
     state->loop_start = prog_header->loop_start;
@@ -1391,18 +2121,43 @@ int8_t vm_i8_load_program(
     }
 
     state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
-    state->pix_obj_start = obj_start;
-    obj_start += prog_header->pix_obj_len;
 
-    if( ( state->pix_obj_start % 4 ) != 0 ){
+    state->link_count = prog_header->link_len / sizeof(link_t);
+    state->link_start = obj_start;
+    obj_start += prog_header->link_len;
 
-        return VM_STATUS_PIXEL_MISALIGN;
+    if( ( state->link_start % 4 ) != 0 ){
+
+        return VM_STATUS_LINK_MISALIGN;
     }
 
+    state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
+    state->db_start = obj_start;
+    obj_start += prog_header->db_len;
+
+    if( ( state->db_start % 4 ) != 0 ){
+
+        return VM_STATUS_DB_MISALIGN;
+    }
+
+    state->cron_count = prog_header->cron_len / sizeof(cron_t);
+    state->cron_start = obj_start;
+    obj_start += prog_header->cron_len;
+
+    if( ( state->cron_start % 4 ) != 0 ){
+
+        return VM_STATUS_CRON_MISALIGN;
+    }
+    
+
+    // if just checking the header, we're done at this point
     if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) != 0 ){
 
         return VM_STATUS_OK;
     }
+
+
+    // set up final items for VM execution
 
     state->code_start = obj_start;
 
@@ -1448,19 +2203,29 @@ int8_t vm_i8_load_program(
 }
 
 
-int8_t vm_i8_eval( uint8_t *stream, int32_t *data, int32_t *result ){
+void vm_v_init_db(
+    uint8_t *stream,
+    vm_state_t *state,
+    uint8_t tag ){
 
-    uint64_t rng_seed = rnd_u64_get_seed();
+    // add published vars to DB
+    uint32_t count = state->publish_count;
+    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
 
-    cycles = 0;
+    while( count > 0 ){        
 
-    int8_t status = _vm_i8_run_stream( stream, 0, &rng_seed, data );
+        kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        kvdb_v_set_tag( publish->hash, tag );
 
-    rnd_v_seed( rng_seed );
-
-    *result = data[RETURN_VAL_ADDR];
-
-    return status;
+        publish++;
+        count--;
+    }
 }
 
+
+void vm_v_clear_db( uint8_t tag ){
+
+    // delete existing entries
+    kvdb_v_clear_tag( 0, tag );
+}
 

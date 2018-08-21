@@ -25,12 +25,10 @@
 #ifndef _KVDB_CONFIG_H
 #define _KVDB_CONFIG_H
 
-#define KVDB_INITIAL_SIZE               8
-#define KVDB_SIZE_INCREMENT             4
+#include "system.h"
 
 #define KVDB_MAX_ENTRIES                128
 
 #define KVDB_ENABLE_NAME_LOOKUP         
-#define KVDB_ENABLE_SAFE_MODE_CHECK
 
 #endif

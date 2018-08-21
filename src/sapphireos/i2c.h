@@ -27,7 +27,9 @@
 
 typedef uint8_t i2c_baud_t8;
 #define I2C_BAUD_100K       0
-#define I2C_BAUD_400K       1
+#define I2C_BAUD_200K       1
+#define I2C_BAUD_300K       2
+#define I2C_BAUD_400K       3
 
 
 void i2c_v_init( i2c_baud_t8 baud );
@@ -35,6 +37,9 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data );
 uint8_t i2c_u8_status( void );
 void i2c_v_start( void );
 void i2c_v_stop( void );
+void i2c_v_send_address( uint8_t address, bool write );
+uint8_t i2c_v_send_byte( uint8_t b );
+uint8_t i2c_u8_read_byte( bool ack );
 void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len );
 void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len );
 

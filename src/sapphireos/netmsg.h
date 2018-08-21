@@ -43,6 +43,10 @@ typedef int8_t netmsg_type_t;
 #define NETMSG_TYPE_ICMP                    0x02
 #define NETMSG_TYPE_UDP                     0x04
 
+#define NETMSG_ROUTE_NOT_AVAILABLE          -1
+#define NETMSG_ROUTE_MATCH                  0
+#define NETMSG_ROUTE_DEFAULT                1
+
 typedef struct{
 	ip_addr_t ipaddr;
 	uint16_t port;

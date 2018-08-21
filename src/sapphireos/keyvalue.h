@@ -89,6 +89,7 @@ typedef uint8_t kv_flags_t8;
 #define KV_ERR_STATUS_SAFE_MODE                 -7
 #define KV_ERR_STATUS_PARAMETER_NOT_SET         -8
 #define KV_ERR_STATUS_CANNOT_CONVERT_TYPES      -9
+#define KV_ERR_STATUS_OUT_OF_BOUNDS            -10
 
 typedef struct{
     uint32_t magic;
@@ -103,13 +104,15 @@ typedef int8_t ( *kv_handler_t )(
     void *data,
     uint16_t len );
     
-typedef struct{
+typedef struct  __attribute__((packed)){
     sapphire_type_t8 type;
     uint8_t array_len;
     kv_flags_t8 flags;
     void *ptr;
     kv_handler_t handler;
     char name[CATBUS_STRING_LEN];
+    catbus_hash_t32 hash;
+    uint8_t padding;
 } kv_meta_t;
 
 typedef struct{
@@ -126,45 +129,60 @@ void kv_v_init( void );
 
 int16_t kv_i16_len( catbus_hash_t32 hash );
 sapphire_type_t8 kv_i8_type( catbus_hash_t32 hash );
+void kv_v_reset_cache( void );
 
 int8_t kv_i8_persist( catbus_hash_t32 hash );
     
 uint16_t kv_u16_get_size_meta( kv_meta_t *meta );
 
-int8_t kv_i8_set_by_hash(
+int8_t kv_i8_set(
     catbus_hash_t32 hash,
     const void *data,
     uint16_t len );
 
-int8_t kv_i8_get_by_hash(
+int8_t kv_i8_array_set(
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    const void *data,
+    uint16_t len );
+
+int8_t kv_i8_get(
     catbus_hash_t32 hash,
     void *data,
     uint16_t max_len );
 
-int8_t kv_i8_link_get(
+int8_t kv_i8_array_get(
     catbus_hash_t32 hash,
-    int32_t *data );
-
-int8_t kv_i8_link_set(
-    catbus_hash_t32 hash,
-    int32_t data );
+    uint16_t index,
+    uint16_t count,
+    void *data,
+    uint16_t max_len );
 
 int16_t kv_i16_search_hash( catbus_hash_t32 hash );
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );
 uint16_t kv_u16_count( void );
 int8_t kv_i8_publish( catbus_hash_t32 hash );
-uint32_t kv_u32_get_hash_from_index( uint16_t index );
 int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags );
 int8_t kv_i8_lookup_hash(
     catbus_hash_t32 hash,
     kv_meta_t *meta,
     uint8_t flags );
+int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 
+int8_t kv_i8_internal_get(
+    kv_meta_t *meta,
+    catbus_hash_t32 hash,
+    uint16_t index,
+    uint16_t count,
+    void *data,
+    uint16_t max_len );
 
 // dynamic keys
 #define KV_META_FLAGS_GET_NAME      0x01
 
 uint8_t kv_u8_get_dynamic_count( void );
+void kv_v_shutdown( void );
 
 extern void kv_v_notify_hash_set( catbus_hash_t32 hash ) __attribute__((weak));
 

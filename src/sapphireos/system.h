@@ -31,6 +31,7 @@
 #include "hal_watchdog.h"
 #include "hal_cpu.h"
 #include "bool.h"
+#include "cnt_of_array.h"
 
 //#define ENABLE_MEMORY_DUMP
 // #define ATOMIC_TIMING
@@ -38,11 +39,10 @@
 
 // no user selectable options exist below this line!
 
-#ifdef __SIM__
+#ifndef FW_INFO_SECTION
     #define FW_INFO_SECTION
-#else
-    #define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
 #endif
+
 
 #define FW_ID_LENGTH 16
 #define OS_NAME_LEN  128
@@ -50,7 +50,7 @@
 #define FW_NAME_LEN  128
 #define FW_VER_LEN  16
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t fw_length;
     uint8_t fwid[FW_ID_LENGTH];
     char os_name[OS_NAME_LEN];
@@ -59,12 +59,6 @@ typedef struct{
     char firmware_version[FW_VER_LEN];
 } fw_info_t;
 
-typedef struct{
-	uint64_t serial_number;
-	uint64_t mac;
-	uint16_t model;
-	uint16_t rev;
-} hw_info_t;
 
 #define SYS_REBOOT_SAFE         -2
 #define SYS_REBOOT_NOAPP        -3 // not yet supported
@@ -100,36 +94,10 @@ typedef uint32_t sys_warnings_t;
 #define SYS_WARN_SYSTEM_ERROR           0x8000
 
 
-#define FLASH_STRING(x) PSTR(x)
-#define FLASH_STRING_T  PGM_P
-
-
-// Critical Section
-//
-// Notes:  ATOMIC creates a local copy of SREG, but only copies the I bit.
-// END_ATOMIC restores the original value of the SREG I bit, but does not modify any other bits.
-// This guarantees interrupts will be disabled within the critical section, but does not
-// enable interrupts if they were already disabled.  Since it also doesn't modify any of the
-// other SREG bits, it will not disturb instructions after the critical section.
-// An example of this would be performing a comparison inside the critical section, and then
-// performing a branch immediately thereafter.  If we restored SREG in its entirety, we will
-// have destroyed the result of the compare and the code will not execute as intended.
-#ifndef __SIM__
-
-    #ifdef EXPERIMENTAL_ATOMIC
-        #define ATOMIC _sys_v_enter_critical()
-        #define END_ATOMIC _sys_v_exit_critical(FLASH_STRING( __FILE__ ), __LINE__)
-    #else
-        #ifndef ATOMIC_TIMING
-            #define ATOMIC uint8_t __sreg_i = ( SREG & 0b10000000 ); cli()
-            #define END_ATOMIC SREG |= __sreg_i
-        #else
-            #define ATOMIC uint8_t __sreg_i = ( SREG & 0b10000000 ); cli(); _sys_v_start_atomic_timestamp()
-            #define END_ATOMIC SREG |= __sreg_i; _sys_v_end_atomic_timestamp()
-        #endif
-    #endif
-#else
+#ifndef ATOMIC
     #define ATOMIC
+#endif
+#ifndef END_ATOMIC
     #define END_ATOMIC
 #endif
 
@@ -176,16 +144,6 @@ typedef uint32_t sys_warnings_t;
 	#define ASSERT_MSG(expr, str)
 #endif
 
-#define SAFE_BUSY_WAIT(expr) \
-    while( expr ){ \
-        if( CHECK_WATCHDOG_RESET ){ \
-            ASSERT(0); \
-        } \
-    }
-
-// Count of array macro
-#define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
-
 
 
 void sys_v_init( void );
@@ -200,13 +158,14 @@ void sys_v_get_os_version( char ver[OS_VER_LEN] );
 void sys_v_get_fw_version( char ver[FW_VER_LEN] );
 void sys_v_get_fw_info( fw_info_t *fw_info );
 uint32_t sys_v_get_fw_length( void );
-void sys_v_get_hw_info( hw_info_t *hw_info );
 
 void sys_reboot( void ) __attribute__((noreturn));
 void sys_reboot_to_loader( void ) __attribute__((noreturn));
 void sys_v_load_fw( void );
 void sys_v_load_recovery( void );
 void sys_v_reboot_delay( sys_mode_t8 mode );
+
+bool sys_b_shutdown( void );
 
 void sys_v_wdt_reset( void );
 void sys_v_init_watchdog( void );
@@ -229,15 +188,5 @@ sys_warnings_t sys_u32_get_warnings( void );
 
 void sys_v_enable_interrupts( void );
 void sys_v_disable_interrupts( void );
-
-#ifdef EXPERIMENTAL_ATOMIC
-void _sys_v_enter_critical( void );
-void _sys_v_exit_critical( FLASH_STRING_T file, int line  );
-#endif
-
-#ifdef ATOMIC_TIMING
-void _sys_v_start_atomic_timestamp( void );
-void _sys_v_end_atomic_timestamp( void );
-#endif
 
 #endif

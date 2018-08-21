@@ -24,23 +24,16 @@
 #define _VM_H
 
 #include "vm_core.h"
-
-#define VM_MAX_FILENAME_LEN 32
-
-#define VM_KV_TAG   0x30
-
+#include "vm_wifi_cmd.h"
 
 void vm_v_init( void );
 void vm_v_start( void );
 void vm_v_stop( void );
 void vm_v_reset( void );
-void vm_v_shutdown( void );
 
-void vm_v_set_program_P( PGM_P ptr );
-void vm_v_set_program( char progname[VM_MAX_FILENAME_LEN] );
-
-void vm_v_received_info( vm_info_t *info );
+void vm_v_received_info( wifi_msg_vm_info_t *msg );
 
 bool vm_b_running( void );
+bool vm_b_is_vm_running( uint8_t i );
 
 #endif

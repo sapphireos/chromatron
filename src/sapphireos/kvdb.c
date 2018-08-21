@@ -28,6 +28,8 @@
 #include "bool.h"
 #include "kvdb.h"
 #include "memory.h"
+#include "list.h"
+#include "keyvalue.h"
 
 #include "kvdb_config.h"
 
@@ -37,20 +39,37 @@
 #include "hash.h"
 #endif
 
-// #include "logging.h"
+#ifdef ESP8266
+#include "comm_printf.h"
+#else
+#include "logging.h"
+#endif
 
-static uint16_t kv_count;
-static uint16_t db_size;
-static mem_handle_t handle = -1;
+
+static list_t db_list;
+static catbus_hash_t32 cache_hash;
+static list_node_t cache_ln;
 
 
-typedef struct __attribute__((packed)){
+typedef struct{
     catbus_hash_t32 hash;
     catbus_type_t8 type;
     catbus_flags_t8 flags;
+    uint8_t count;
     uint8_t tag;
-    int32_t data;
-} db_entry32_t;
+    #ifdef KVDB_ENABLE_NOTIFIER
+    kvdb_notifier_t notifier;
+    #endif
+} db_entry_t;
+// 8 bytes of meta data
+// N bytes for data
+// 5 bytes for mem block
+// 2 bytes for list node
+// in linked list: 15 bytes of overhead per item
+// 19 bytes for i32
+// 26 items in less than 512 bytes of RAM
+// we will have to do linear searches for linked list. binary would require a tree or array.
+
 
 
 #ifdef KVDB_ENABLE_NAME_LOOKUP
@@ -62,81 +81,59 @@ typedef struct __attribute__((packed)){
 } name_entry_t;
 #endif
 
-static int16_t cached_index = -1;
-static catbus_hash_t32 cached_hash;
-
-static int16_t _kvdb_i16_search_hash( catbus_hash_t32 hash ){
+static db_entry_t * _kvdb_dbp_search_hash( catbus_hash_t32 hash ){
 
     if( hash == 0 ){
 
-        return -1;
+        return 0;
     }
 
-    // check cache
-    if( ( cached_index >= 0 ) && ( cached_hash == hash ) ){
+    list_node_t ln;
 
-        return cached_index;
+    if( cache_hash == hash ){
+
+        ln = cache_ln;
+    }
+    else{
+
+        ln = db_list.head;
     }
 
-    db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-    int16_t first = 0;
-    int16_t last = db_size - 1;
-    int16_t middle = ( first + last ) / 2;
-    
-    // binary search through hash index
-    while( first <= last ){
+    while( ln > 0 ){
 
-        if( entry[middle].hash > hash ){
+        db_entry_t *entry = list_vp_get_data( ln );
 
-            first = middle + 1;
-        }    
-        else if( entry[middle].hash == hash ){
+        if( entry->hash == hash ){
 
-            cached_hash = hash;
-            cached_index = middle;
+            cache_hash = hash;
+            cache_ln = ln;
 
-            return middle;
-        }
-        else{
-
-            last = middle - 1;
+            return entry;
         }
 
-        middle = ( first + last ) / 2;
+        ln = list_ln_next( ln );
     }
 
-    return -1;
+    return 0;
 }
 
-static void _kvdb_v_sort( void ){
+static void _kvdb_v_reset_cache( void ){
 
-    // bubble sort
-
-    db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-
-    bool swapped;
-    do{
-
-        swapped = FALSE;
-    
-        for( uint16_t i = 1; i < db_size; i++ ){            
-
-            if( entry[i - 1].hash < entry[i].hash ){
-
-                // swap values
-                db_entry32_t temp = entry[i];
-                entry[i] = entry[i - 1];
-                entry[i - 1] = temp;
-
-                swapped = TRUE;
-            }
-        }                
-
-    } while( swapped );
+    cache_hash = 0;
+    cache_ln = -1;    
 }
+
 
 #ifdef KVDB_ENABLE_NAME_LOOKUP
 static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
+
+    uint32_t hash = hash_u32_string( name );
+
+    // check if we have this name already
+    if( kvdb_i8_lookup_name( hash, 0 ) == KVDB_STATUS_OK ){
+
+        return;
+    }
 
     file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -146,7 +143,7 @@ static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
     }
 
     name_entry_t entry;
-    entry.hash = hash_u32_string( name );
+    entry.hash = hash;
     memset( entry.name, 0, sizeof(entry.name) );
     strlcpy( entry.name, name, sizeof(entry.name) );
 
@@ -158,69 +155,51 @@ static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
 
 void kvdb_v_init( void ){
 
-    #ifdef KVDB_ENABLE_SAFE_MODE_CHECK
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-    #endif
-
     #ifdef KVDB_ENABLE_NAME_LOOKUP
 
-    // delete name file
-    file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+    // don't delete name file, this would break hash lookups on manually installed links
 
-    if( f > 0 ){
+    // // delete name file
+    // file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
 
-        fs_v_delete( f );
+    // if( f > 0 ){
+
+    //     fs_v_delete( f );
             
-        fs_f_close( f );
-    }
+    //     fs_f_close( f );
+    // }
 
     #endif
 
-    // create initial database
-    uint16_t size = KVDB_INITIAL_SIZE * sizeof(db_entry32_t);
-
-    handle = mem2_h_alloc( size );
-
-    if( handle < 0 ){
-
-        return;
-    }
-
-    db_size = KVDB_INITIAL_SIZE;
-
-    // init to all 0s
-    uint8_t *ptr = mem2_vp_get_ptr( handle );
-
-    memset( ptr, 0, size );
-
-
-    // kvdb_i8_add( __KV__test_meow, 123, 0, "test_meow" );
-    // kvdb_i8_add( __KV__test_woof, 456, 0, "test_woof" );
-    // kvdb_i8_add( __KV__test_stuff, 999, 0, "test_stuff" );
-    // kvdb_i8_add( __KV__test_things, 777, 0, "test_things" );
+    list_v_init( &db_list );
 }
 
 uint16_t kvdb_u16_count( void ){
 
-    return kv_count;
+    return list_u8_count( &db_list );
 }
 
 uint16_t kvdb_u16_db_size( void ){
 
-    return db_size * sizeof(db_entry32_t);
+    return list_u16_size( &db_list );
 }
 
-int8_t kvdb_i8_add( catbus_hash_t32 hash, int32_t data, uint8_t tag, char name[CATBUS_STRING_LEN] ){
+int8_t kvdb_i8_add( 
+    catbus_hash_t32 hash, 
+    catbus_type_t8 type,
+    uint16_t count,
+    const void *data,
+    uint16_t len ){
 
     // try a set first
-    int8_t status = kvdb_i8_set( hash, data );
+    if( data != 0 ){
 
-    if( status == KVDB_STATUS_OK ){
+        int8_t status = kvdb_i8_set( hash, type, data, len );
 
-        return status;
+        if( status == KVDB_STATUS_OK ){
+
+            return status;
+        }
     }
 
     if( hash == 0 ){
@@ -228,235 +207,463 @@ int8_t kvdb_i8_add( catbus_hash_t32 hash, int32_t data, uint8_t tag, char name[C
         return KVDB_STATUS_INVALID_HASH;    
     }
 
-    if( handle < 0 ){
+    // check if this hash is already in another part of the database:
+    catbus_meta_t meta;
+    if( kv_i8_get_meta( hash, &meta ) >= 0 ){
 
-        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+        return KVDB_STATUS_HASH_CONFLICT;
     }
+
+    if( count > 256 ){
+
+        count = 256;
+    }
+
+    if( count == 0 ){
+
+        count = 1;
+    }
+
+    uint16_t data_len = type_u16_size( type ) * count;
+
+    if( data_len > KVDB_MAX_DATA ){
+
+        return KVDB_STATUS_DATA_TOO_LARGE;
+    }
+
+    count--;
 
     // not found, we need to add this entry
+    #ifdef MEM_TYPE_KVDB_ENTRY
+    list_node_t ln = list_ln_create_node2( 0, sizeof(db_entry_t) + data_len, MEM_TYPE_KVDB_ENTRY );
+    #else
+    list_node_t ln = list_ln_create_node( 0, sizeof(db_entry_t) + data_len );
+    #endif
 
-    // check if we have enough space
-    if( kv_count >= KVDB_MAX_ENTRIES ){
+    if( ln < 0 ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
 
-    if( kv_count >= db_size ){
+    db_entry_t *entry = list_vp_get_data( ln );
 
-        uint16_t new_size = ( db_size + KVDB_SIZE_INCREMENT ) * sizeof(db_entry32_t);
+    entry->hash      = hash;
+    entry->type      = type;
+    entry->flags     = CATBUS_FLAGS_DYNAMIC;
+    entry->tag       = 0;
+    entry->count     = count;
+    #ifdef KVDB_ENABLE_NOTIFIER
+    entry->notifier  = 0;
+    #endif
 
-        // try to increase database size
-        if( mem2_i8_realloc( handle, new_size ) < 0 ){
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
 
-            return KVDB_STATUS_NOT_ENOUGH_SPACE;    
-        }
+    if( data != 0 ){
+        
+        memcpy( data_ptr, data, data_len );
+    }
+    else{
 
-        // success!
-
-        // lets 0 out the new entries
-        db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-
-        for( uint16_t i = db_size; i < ( db_size + KVDB_SIZE_INCREMENT ); i++ ){
-
-            entry[i].hash = 0;
-        }
-
-        // adjust db size
-        db_size += KVDB_SIZE_INCREMENT;
+        memset( data_ptr, 0, data_len );
     }
 
-    db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-
-    // find a free index
-    for( uint16_t i = 0; i < db_size; i++ ){
-
-        // check if free
-        if( entry[i].hash == 0 ){
-
-            // add
-            entry[i].hash   = hash;
-            entry[i].data   = data;
-            entry[i].flags  = CATBUS_FLAGS_DYNAMIC;
-            entry[i].tag    = tag;
-            entry[i].type   = CATBUS_TYPE_INT32;
-
-            #ifdef KVDB_ENABLE_NAME_LOOKUP
-            // add name
-            if( name != 0 ){
-
-                _kvdb_v_add_name( name );
-            }
-            #endif
-
-            break;
-        }
-    }
-
-    kv_count++;
-
-    // now we need to sort
-
-    // bubble sort
-    _kvdb_v_sort();
-
+    list_v_insert_tail( &db_list, ln );
 
     return KVDB_STATUS_OK;
 }
 
-int8_t kvdb_i8_set( catbus_hash_t32 hash, int32_t data ){
+void kvdb_v_set_name( char name[CATBUS_STRING_LEN] ){
+    
+    #ifdef KVDB_ENABLE_NAME_LOOKUP
+    _kvdb_v_add_name( name );   
+    #endif 
+}
+
+
+#ifdef PGM_P
+void kvdb_v_set_name_P( PGM_P name ){
+
+    char buf[CATBUS_STRING_LEN];
+    strlcpy_P( buf, name, sizeof(buf) );
+
+    #ifdef KVDB_ENABLE_NAME_LOOKUP
+    _kvdb_v_add_name( buf );   
+    #endif 
+}
+#endif
+
+void kvdb_v_set_tag( catbus_hash_t32 hash, uint8_t tag ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return;
+    }
+
+    entry->tag |= tag;
+}
+
+void kvdb_v_clear_tag( catbus_hash_t32 hash, uint8_t tag ){
+
+    if( hash == 0 ){
+
+        // clear all entries matching tag
+        list_node_t ln = db_list.head;
+
+        while( ln > 0 ){
+
+            list_node_t next_ln = list_ln_next( ln );
+
+            db_entry_t *entry = list_vp_get_data( ln );
+
+            if( entry->tag & tag ){
+
+                entry->tag &= ~tag;
+            
+                if( entry->tag == 0 ){
+
+                    // purge entry
+                    list_v_remove( &db_list, ln );
+                    list_v_release_node( ln );
+                }
+            }
+
+            ln = next_ln;
+        }
+
+        _kvdb_v_reset_cache();
+        kv_v_reset_cache();
+    }
+    else{
+
+        // get entry for hash
+        db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+        if( entry == 0 ){
+
+            return;
+        }
+
+        entry->tag &= ~tag;
+
+        // check if tag is 0, if so, purge
+        if( entry->tag == 0 ){
+
+            kvdb_v_delete( hash );        
+        }
+    }
+}
+
+void kvdb_v_set_notifier( catbus_hash_t32 hash, kvdb_notifier_t notifier ){
+
+    #ifdef KVDB_ENABLE_NOTIFIER
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return;
+    }
+
+    entry->notifier = notifier;
+    #endif
+}
+
+int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data, uint16_t len ){
 
     if( hash == 0 ){
 
         return KVDB_STATUS_INVALID_HASH;    
     }
 
-    if( handle < 0 ){
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return KVDB_STATUS_NOT_FOUND;    
+    }
+
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
+    uint16_t data_len = type_u16_size( type ) * ( (uint16_t)entry->count + 1 );
+
+    if( len != data_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
+
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+    bool changed = FALSE;
+
+    uint16_t count = entry->count + 1;
+
+    while( count > 0 ){
+
+        int8_t convert = type_i8_convert( entry->type, data_ptr, type, data );
+
+        if( convert != 0 ){
+
+            changed = TRUE;
+        }
+
+        data = (uint8_t *)data + type_u16_size( type );
+        data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
+
+        count--;
+    }
     
-    // get index for hash
-    int16_t index = _kvdb_i16_search_hash( hash );
+    data_ptr = (uint8_t *)( entry + 1 );
 
-    // check if found
-    if( index >= 0 ){
+    // check if there is a notifier and data is changing
+    if( changed ){
 
-        db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-
-        bool changed = entry[index].data != data;
-
-        entry[index].data = data;
-
-        // check if there is a notifier and data is changing
-        if( ( kvdb_v_notify_set != 0 ) && ( changed ) ){
+        if( kvdb_v_notify_set != 0 ){
 
             catbus_meta_t meta;
             kvdb_i8_get_meta( hash, &meta );
 
-            kvdb_v_notify_set( hash, &meta, &data );
+            kvdb_v_notify_set( hash, &meta, data_ptr );
         }
 
-        return KVDB_STATUS_OK;
+        #ifdef KVDB_ENABLE_NOTIFIER
+        if( entry->notifier != 0 ){
+
+            entry->notifier( hash, entry->type, data_ptr );
+        }
+        #endif
     }
-    
-    return KVDB_STATUS_NOT_FOUND;    
+
+    return KVDB_STATUS_OK;
 }
 
-int8_t kvdb_i8_get( catbus_hash_t32 hash, int32_t *data ){
 
-    if( handle < 0 ){
+int8_t kvdb_i8_get( catbus_hash_t32 hash, catbus_type_t8 type, void *data, uint16_t max_len ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+        
+        return KVDB_STATUS_NOT_FOUND;
+    }
+
+    uint16_t data_len = type_u16_size(type) * ( entry->count + 1 );
+
+    if( max_len < data_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
-    
-    // get index for hash
-    int16_t index = _kvdb_i16_search_hash( hash );
 
-    // check if found
-    if( index >= 0 ){
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
 
-        db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-        *data = entry[index].data;
-
-        return KVDB_STATUS_OK;
+        type = entry->type;
     }
-    
-    // not found
-    // set data to 0 so we at least have a sane default
-    *data = 0;
 
-    return KVDB_STATUS_NOT_FOUND;
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+
+    for( uint8_t i = 0; i <= entry->count; i++ ){
+        
+        type_i8_convert( type, data, entry->type, data_ptr );
+
+        data = (uint8_t *)data + type_u16_size( type );
+        data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
+    }
+
+    return KVDB_STATUS_OK;
+}
+
+int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, const void *data, uint16_t len ){
+
+    if( hash == 0 ){
+
+        return KVDB_STATUS_INVALID_HASH;    
+    }
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return KVDB_STATUS_NOT_FOUND;    
+    }
+
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
+    uint16_t type_len = type_u16_size( type );
+    uint16_t array_len = entry->count + 1;
+
+    if( len < type_len ){
+
+        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+    }
+
+    // wrap around index
+    if( index >= array_len ){
+        
+        index %= array_len;
+    }
+
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+    bool changed = FALSE;
+
+    int8_t convert = type_i8_convert( entry->type, data_ptr + ( index * type_u16_size( entry->type ) ), type, data );
+
+    if( convert != 0 ){
+
+        changed = TRUE;
+    }
+
+    // check if there is a notifier and data is changing
+    if( changed ){
+
+        if( kvdb_v_notify_set != 0 ){
+
+            catbus_meta_t meta;
+            kvdb_i8_get_meta( hash, &meta );
+
+            kvdb_v_notify_set( hash, &meta, data_ptr );
+        }
+
+        #ifdef KVDB_ENABLE_NOTIFIER
+        if( entry->notifier != 0 ){
+
+            entry->notifier( hash, entry->type, data_ptr );
+        }
+        #endif
+    }
+
+    return KVDB_STATUS_OK;
+}
+
+
+// get a single item from an array
+int8_t kvdb_i8_array_get( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t index, void *data, uint16_t max_len ){
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+        
+        return KVDB_STATUS_NOT_FOUND;
+    }
+
+    // send type NONE indicates that source and destination types match
+    if( type == CATBUS_TYPE_NONE ){
+
+        type = entry->type;
+    }
+
+    uint16_t type_len = type_u16_size( type );
+    uint16_t array_len = entry->count + 1;
+
+    if( max_len < type_len ){
+
+        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+    }
+
+    // wrap around index
+    if( index >= array_len ){
+        
+        index %= array_len;
+    }
+
+    uint8_t *data_ptr = (uint8_t *)( entry + 1 );
+        
+    type_i8_convert( type, data, entry->type, data_ptr + ( index * type_u16_size( entry->type ) ) );
+
+    return KVDB_STATUS_OK;
+}
+
+int8_t kvdb_i8_notify( catbus_hash_t32 hash ){
+
+    #ifdef KVDB_ENABLE_NOTIFIER
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+        
+        return -1;
+    }    
+
+    if( entry->notifier != 0 ){
+
+        entry->notifier( hash, entry->type, (void *)( entry + 1 ) );
+    }
+
+    #endif
+
+    return 0;
 }
 
 int8_t kvdb_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 
-    if( handle < 0 ){
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
 
-        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+    if( entry == 0 ){
+
+        // not found
+        // set data to 0 so we at least have a sane default
+        memset( meta, 0, sizeof(catbus_meta_t) );
+
+        return KVDB_STATUS_NOT_FOUND;    
     }
-    
-    // get index for hash
-    int16_t index = _kvdb_i16_search_hash( hash );
 
-    // check if found
-    if( index >= 0 ){
+    meta->hash      = hash;
+    meta->count     = entry->count;
+    meta->flags     = entry->flags;
+    meta->type      = entry->type;
+    meta->reserved  = 0;
 
-        db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-        
-        meta->hash      = hash;
-        meta->count     = 0;
-        meta->flags     = entry[index].flags;
-        meta->type      = entry[index].type;
-        meta->reserved  = 0;
+    return KVDB_STATUS_OK;
+}
 
-        return KVDB_STATUS_OK;
+void *kvdb_vp_get_ptr( catbus_hash_t32 hash ){
+
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return 0;
     }
-    
-    // not found
-    // set data to 0 so we at least have a sane default
-    memset( meta, 0, sizeof(catbus_meta_t) );
 
-    return KVDB_STATUS_NOT_FOUND;
+    return entry + 1;
 }
 
 
-int8_t kvdb_i8_delete( catbus_hash_t32 hash ){
+void kvdb_v_delete( catbus_hash_t32 hash ){
 
-    if( handle < 0 ){
+    list_node_t ln = db_list.head;
 
-        return KVDB_STATUS_NOT_ENOUGH_SPACE;
-    }
+    while( ln > 0 ){
 
-    // get index for hash
-    int16_t index = _kvdb_i16_search_hash( hash );
+        db_entry_t *entry = list_vp_get_data( ln );
 
-    if( index >= 0 ){
+        if( entry->hash == hash ){
 
-        db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-        entry[index].hash = 0;
-
-        kv_count--;
-
-        // need to resort
-
-        _kvdb_v_sort();
-
-        // reset cache
-        cached_index = -1;
-
-        return KVDB_STATUS_OK;
-    }
-    
-    return KVDB_STATUS_NOT_FOUND;    
-}
-
-void kvdb_v_delete_tag( uint8_t tag ){
-
-    if( handle < 0 ){
-
-        return;
-    }
-
-    db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
-
-    for( uint16_t i = 0; i < db_size; i++ ){
-
-        if( entry[i].hash == 0 ){
-
-            continue;
+            list_v_remove( &db_list, ln );
+            list_v_release_node( ln );
+            break;
         }
 
-        if( entry[i].tag == tag ){
+        ln = list_ln_next( ln );
+    }   
 
-            entry[i].hash = 0;       
-            kv_count--;
-        }
-    }
+    _kvdb_v_reset_cache();
 
-    // reset cache
-    cached_index = -1;
-
-    _kvdb_v_sort();
+    kv_v_reset_cache();
 }
 
 int8_t kvdb_i8_publish( catbus_hash_t32 hash ){
@@ -487,7 +694,10 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 
         if( entry.hash == hash ){
 
-            strlcpy( name, entry.name, CATBUS_STRING_LEN );
+            if( name != 0 ){
+                
+                strlcpy( name, entry.name, CATBUS_STRING_LEN );
+            }
 
             status = KVDB_STATUS_OK;
 
@@ -503,76 +713,96 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 
 catbus_hash_t32 kvdb_h_get_hash_for_index( uint16_t index ){
 
-    if( handle < 0 ){
+    uint16_t i = 0;
 
-        return 0;
-    }
+    list_node_t ln = db_list.head;
 
-    if( index >= db_size ){
+    while( ln > 0 ){
 
-        return 0;
-    }
+        if( i == index ){
 
-    db_entry32_t *entry = (db_entry32_t *)mem2_vp_get_ptr( handle );
+            db_entry_t *entry = list_vp_get_data( ln );
 
-    return entry[index].hash;
+            return entry->hash;
+        }
+
+        ln = list_ln_next( ln );
+        i++;
+    }   
+
+    return 0;
 }
 
 int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash ){
 
-    if( handle < 0 ){
+    uint16_t i = 0;
 
-        return 0;
-    }
+    list_node_t ln = db_list.head;
 
-    return _kvdb_i16_search_hash( hash );
+    while( ln > 0 ){
+
+        db_entry_t *entry = list_vp_get_data( ln );
+
+        if( entry->hash == hash ){
+
+            return i;
+
+            return entry->hash;
+        }
+
+        ln = list_ln_next( ln );
+        i++;
+    }   
+
+    return -1;
 }
 
-// direct retrieval functions, for those who like to throw caution to the wind!
-uint16_t kvdb_u16_read( catbus_hash_t32 hash ){
+// // direct retrieval functions, for those who like to throw caution to the wind!
+// uint16_t kvdb_u16_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, &data );
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-    return data;
-}
+//     return data;
+// }
 
-uint8_t kvdb_u8_read( catbus_hash_t32 hash ){
+// uint8_t kvdb_u8_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, &data );
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-    return data;
-}
+//     return data;
+// }
 
-int8_t kvdb_i8_read( catbus_hash_t32 hash ){
+// int8_t kvdb_i8_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, &data );
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-    return data;
-}
+//     return data;
+// }
 
-int16_t kvdb_i16_read( catbus_hash_t32 hash ){
+// int16_t kvdb_i16_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, &data );
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-    return data;
-}
+//     return data;
+// }
 
-int32_t kvdb_i32_read( catbus_hash_t32 hash ){
+// int32_t kvdb_i32_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, &data );
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-    return data;
-}
+//     return data;
+// }
 
-bool kvdb_b_read( catbus_hash_t32 hash ){
+// bool kvdb_b_read( catbus_hash_t32 hash ){
 
-    int32_t data;
-    kvdb_i8_get( hash, &data );
+//     int32_t data;
+//     kvdb_i8_get( hash, CATBUS_TYPE_INT32, &data );
 
-    return data;
-}
+//     return data;
+// }
+

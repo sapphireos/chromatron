@@ -26,7 +26,8 @@
 
 #include "usart_bauds.h"
 
-#define USER_USART USARTC1
+#define USER_USART          USARTC1
+#define USER_USART_RX_VECT  USARTC1_RXC_vect
 
 void usart_v_init( USART_t *usart );
 void usart_v_set_baud( USART_t *usart, baud_t8 baud );

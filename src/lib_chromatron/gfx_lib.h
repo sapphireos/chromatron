@@ -35,6 +35,8 @@
 
 #define GFX_VERSION             1
 
+#define USE_HSV_BRIDGE
+
 typedef struct  __attribute__((packed)){
     uint8_t version;
     uint16_t pix_count;
@@ -51,6 +53,7 @@ typedef struct  __attribute__((packed)){
     uint16_t dimmer_curve;
     uint16_t virtual_array_start;
     uint16_t virtual_array_length;
+    uint32_t sync_group_hash;
 } gfx_params_t;
 
 typedef struct  __attribute__((packed)){
@@ -69,19 +72,18 @@ typedef struct  __attribute__((packed)){
 #define PIX_ATTR_VAL        2
 #define PIX_ATTR_HS_FADE    3
 #define PIX_ATTR_V_FADE     4
-#define PIX_ATTR_COUNT      5
-#define PIX_ATTR_SIZE_X     6
-#define PIX_ATTR_SIZE_Y     7
-#define PIX_ATTR_INDEX      8
+// #define PIX_ATTR_COUNT      5
+// #define PIX_ATTR_SIZE_X     6
+// #define PIX_ATTR_SIZE_Y     7
+// #define PIX_ATTR_INDEX      8
 
 // note this needs to pad to 32 bit alignment!
 typedef struct  __attribute__((packed)){
-    uint16_t index;
-    uint16_t count;
-    uint16_t size_x;
-    uint16_t size_y;
-    bool reverse;
-    uint8_t padding[3];
+    int32_t count;
+    int32_t index;
+    int32_t reverse;
+    int32_t size_x;
+    int32_t size_y;
 } gfx_pixel_array_t;
 
 
@@ -92,7 +94,7 @@ void gfx_v_get_params( gfx_params_t *params );
 
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len );
 
-int32_t gfx_i32_get_obj_attr( uint8_t obj, uint8_t attr, uint8_t addr );
+// int32_t gfx_i32_get_obj_attr( uint8_t obj, uint8_t attr, uint8_t addr );
 
 void gfx_v_set_pix_count( uint16_t setting );
 uint16_t gfx_u16_get_pix_count( void );
@@ -136,10 +138,12 @@ uint16_t *gfx_u16p_get_hue( void );
 uint16_t *gfx_u16p_get_sat( void );
 uint16_t *gfx_u16p_get_val( void );
 
+#ifndef USE_HSV_BRIDGE
 uint8_t *gfx_u8p_get_red( void );
 uint8_t *gfx_u8p_get_green( void );
 uint8_t *gfx_u8p_get_blue( void );
 uint8_t *gfx_u8p_get_dither( void );
+#endif
 
 void gfx_v_set_background_hsv( int32_t h, int32_t s, int32_t v );
 
@@ -161,11 +165,14 @@ uint16_t gfx_u16_get_hs_fade( uint16_t x, uint16_t y, uint8_t obj );
 void gfx_v_set_v_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj );
 
-uint16_t gfx_u16_get_is_fading( uint16_t x, uint16_t y, uint8_t obj );
+uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj );
+uint16_t gfx_u16_get_is_h_fading( uint16_t x, uint16_t y, uint8_t obj );
 
+#ifndef USE_HSV_BRIDGE
 uint16_t gfx_u16_get_pix0_red( void );
 uint16_t gfx_u16_get_pix0_green( void );
 uint16_t gfx_u16_get_pix0_blue( void );
+#endif
 
 void gfx_v_clear( void );
 void gfx_v_reset_faders( void );

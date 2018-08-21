@@ -24,11 +24,36 @@
 #ifndef _HAL_CPU_H
 #define _HAL_CPU_H
 
-#include "system.h"
-
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <avr/eeprom.h>
+#include <avr/wdt.h>
+#include <avr/sleep.h>
+#include <util/delay.h>
 
 #define ENABLE_INTERRUPTS sei()
 #define DISABLE_INTERRUPTS cli()
+
+
+// Critical Section
+//
+// Notes:  ATOMIC creates a local copy of SREG, but only copies the I bit.
+// END_ATOMIC restores the original value of the SREG I bit, but does not modify any other bits.
+// This guarantees interrupts will be disabled within the critical section, but does not
+// enable interrupts if they were already disabled.  Since it also doesn't modify any of the
+// other SREG bits, it will not disturb instructions after the critical section.
+// An example of this would be performing a comparison inside the critical section, and then
+// performing a branch immediately thereafter.  If we restored SREG in its entirety, we will
+// have destroyed the result of the compare and the code will not execute as intended.
+#define ATOMIC uint8_t __sreg_i = ( SREG & 0b10000000 ); cli()
+#define END_ATOMIC SREG |= __sreg_i
+
+#define FLASH_STRING(x) PSTR(x)
+#define FLASH_STRING_T  PGM_P
+
+#define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
+
 
 #define RESET_SOURCE_POWER_ON   RST_PORF_bm
 #define RESET_SOURCE_JTAG       RST_PDIRF_bm
