@@ -2602,7 +2602,7 @@ def loop():
 v_fade_array_1 = """
 
 def init():
-    pixels[1].v_fade = 500
+    pixels[1].v_fade = 19.0
     pixels[1][2].v_fade = 250
 
 def loop():
@@ -3069,7 +3069,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['v_fade'][1], 500)
+        self.assertEqual(hsv['v_fade'][1], 19)
         self.assertEqual(hsv['v_fade'][9], 250)
 
     def test_v_fade_array_2(self):
