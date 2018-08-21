@@ -488,11 +488,15 @@ PT_BEGIN( pt );
 
     if( sync_state == STATE_WAIT ){
 
-        // elect ourselves as master
-        sync_state = STATE_MASTER;
-        master_uptime = 0;
+        // check if we have a clock source
+        if( get_best_local_source() > 0 ){
 
-        log_v_debug_P( PSTR("we are master") );
+            // elect ourselves as master
+            sync_state = STATE_MASTER;
+            master_uptime = 0;
+
+            log_v_debug_P( PSTR("we are master") );
+        }
     }
 
     while( sync_state == STATE_MASTER ){
