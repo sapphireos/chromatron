@@ -497,6 +497,13 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("we are master") );
         }
+        else{
+
+            // no clock source available, but try to start SNTP 
+            // and maybe we'll get a sync from that.
+            sntp_v_start();
+        }
+
     }
 
     while( sync_state == STATE_MASTER ){
