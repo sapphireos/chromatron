@@ -121,12 +121,12 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
-    SLEEP.CTRL = SLEEP_MODE_IDLE;
-    DISABLE_INTERRUPTS;
-    sleep_enable();
-    ENABLE_INTERRUPTS;
-    sleep_cpu();
-    sleep_disable();
+    // SLEEP.CTRL = SLEEP_MODE_IDLE;
+    // DISABLE_INTERRUPTS;
+    // sleep_enable();
+    // ENABLE_INTERRUPTS;
+    // sleep_cpu();
+    // sleep_disable();
 }
 
 bool cpu_b_osc_fail( void ){
