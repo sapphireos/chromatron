@@ -2116,7 +2116,8 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 1000 );
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         if( wifi_b_connected() ){
 
@@ -2134,6 +2135,18 @@ PT_BEGIN( pt );
         // reset counters
         current_rx_bytes = 0;
         current_tx_bytes = 0;
+
+        THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+        
+        // send options message
+
+        wifi_msg_set_options_t options_msg;
+        memset( options_msg.padding, 0, sizeof(options_msg.padding) );
+        options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
+        options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
+
+        wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
     }
 
 PT_END( pt );

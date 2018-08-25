@@ -169,7 +169,7 @@ void loop(){
         stats->mem_max_time = stats->mem_run_time;
     }
 
-    if( stats->vm_max_time > 2000 ){
+    if( ( stats->vm_max_time > 2000 ) && !opt_b_get_high_speed() ){
 
         intf_v_printf( "CPU CLK -> 160 MHz" );
 

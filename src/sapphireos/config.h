@@ -87,6 +87,7 @@
 #define CFG_PARAM_ENABLE_MANUAL_IP              __KV__enable_manual_ip
 
 #define CFG_PARAM_ENABLE_LED_QUIET_MODE         __KV__enable_led_quiet
+#define CFG_PARAM_ENABLE_LOW_POWER_MODE         __KV__enable_low_power
 
 #define CFG_PARAM_SNTP_SERVER                   __KV__sntp_server
 #define CFG_PARAM_SNTP_SYNC_INTERVAL            __KV__sntp_sync_interval
