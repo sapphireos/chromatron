@@ -23,6 +23,7 @@
 
 #include "sapphire.h"
 
+#include "config.h"
 #include "pixel.h"
 #include "graphics.h"
 #include "pwm.h"
@@ -39,14 +40,16 @@
 #include <math.h>
 
 // on GFX timer, prescaler /1024:
-#define PWM_FADE_TIMER_VALUE 32 // 1 ms
-#define PWM_FADE_TIMER_VALUE_PIXIE 64 // Pixie needs at least 1 ms between frames (this setting gets 2 ms)
-#define PWM_FADE_TIMER_VALUE_WS2811 32 // 1 ms
-#define PWM_FADE_TIMER_WATCHDOG_VALUE 1250 // 40 ms
+#define PWM_FADE_TIMER_VALUE            32 // 1 ms
+#define PWM_FADE_TIMER_VALUE_PIXIE      64 // Pixie needs at least 1 ms between frames (this setting gets 2 ms)
+#define PWM_FADE_TIMER_VALUE_WS2811     32 // 1 ms
+#define PWM_FADE_TIMER_LOW_POWER        625 // 20 ms
+#define PWM_FADE_TIMER_WATCHDOG_VALUE   1250 // 40 ms
 
 
 static bool pix_dither;
 static uint8_t pix_mode;
+static bool low_power;
 
 static uint8_t pix_clock;
 static uint8_t pix_rgb_order;
@@ -400,8 +403,12 @@ static void pixel_v_start_frame( void ){
 
 static void setup_pixel_timer( void ){
     
-    if( ( pix_mode == PIX_MODE_WS2811 ) ||
-        ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+    if( low_power ){
+
+        PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_LOW_POWER;
+    }
+    else if( ( pix_mode == PIX_MODE_WS2811 ) ||
+             ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
         PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_VALUE_WS2811;
     }
@@ -622,6 +629,9 @@ void pixel_v_init( void ){
     // reset IO to input
     PIX_CLK_PORT.DIRCLR = ( 1 << PIX_CLK_PIN );
     PIX_DATA_PORT.DIRCLR = ( 1 << PIX_DATA_PIN );
+
+    // get low power mode state
+    low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
 
     // bounds check
     if( pix_apa102_dimmer > 31 ){
