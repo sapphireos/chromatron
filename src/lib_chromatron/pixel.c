@@ -403,7 +403,7 @@ static void pixel_v_start_frame( void ){
 
 static void setup_pixel_timer( void ){
     
-    if( low_power ){
+    if( low_power && !pix_dither ){
 
         PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_LOW_POWER;
     }
