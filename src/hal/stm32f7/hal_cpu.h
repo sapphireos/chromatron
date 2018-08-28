@@ -56,7 +56,7 @@
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*
 
-#define FW_INFO_SECTION
+#define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
 
 
 #endif
