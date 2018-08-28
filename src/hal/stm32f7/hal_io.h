@@ -31,6 +31,26 @@
 
 #include "stm32f7xx_hal.h"
 
+#define IO_PIN_0       		0 // PA4
+#define IO_PIN_1      		1 // PA5
+#define IO_PIN_2       		2 // PA6
+#define IO_PIN_3       		3 // PA7
+#define IO_PIN_4       		4 // PB10
+#define IO_PIN_5       		5 // PB11
+#define IO_PIN_COUNT        6
+
+#define IO_PIN0_PORT        GPIOA
+#define IO_PIN0_PIN         LL_GPIO_PIN_4
+#define IO_PIN1_PORT        GPIOA
+#define IO_PIN1_PIN         LL_GPIO_PIN_5
+#define IO_PIN2_PORT        GPIOA
+#define IO_PIN2_PIN         LL_GPIO_PIN_6
+#define IO_PIN3_PORT        GPIOA
+#define IO_PIN3_PIN         LL_GPIO_PIN_7
+#define IO_PIN4_PORT        GPIOB
+#define IO_PIN4_PIN         LL_GPIO_PIN_10
+#define IO_PIN5_PORT        GPIOB
+#define IO_PIN5_PIN         LL_GPIO_PIN_11
 
 
 #endif

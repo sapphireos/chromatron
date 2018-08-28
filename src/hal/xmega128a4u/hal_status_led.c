@@ -162,13 +162,6 @@ void status_led_v_init( void ){
                      0 );
 
     reset_all();
-
-    status_led_v_set_blink_speed( LED_BLINK_NORMAL );
-}
-
-
-void status_led_v_set_blink_speed( uint16_t speed ){
-
 }
 
 void status_led_v_enable( void ){
@@ -227,12 +220,4 @@ void status_led_v_set( uint8_t state, uint8_t led ){
         default:
             break;
     }
-}
-
-void status_led_v_strobe( uint16_t us, uint8_t led ){
-
-    status_led_v_set( 1, led );
-    _delay_us( us );
-    status_led_v_set( 0, led );
-    _delay_us( us );
 }

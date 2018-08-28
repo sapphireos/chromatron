@@ -21,7 +21,6 @@
 // </license>
 
 
-#include "stm32f7xx_hal.h"
 #include "hal_cpu.h"
 
 void SystemClock_Config(void);
@@ -29,13 +28,20 @@ void SystemClock_Config(void);
 
 void cpu_v_init( void ){
 
-	SCB_EnableICache();
-	SCB_EnableDCache();
+    SCB_EnableICache();
+    SCB_EnableDCache();
 
-	HAL_Init();
+    HAL_Init();
 
-	SystemClock_Config();
-	SystemCoreClockUpdate();
+    SystemClock_Config();
+    SystemCoreClockUpdate();
+
+    // enable gpio clocks
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOH);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
 }
 
 uint8_t cpu_u8_get_reset_source( void ){

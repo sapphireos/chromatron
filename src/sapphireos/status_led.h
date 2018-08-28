@@ -25,17 +25,19 @@
 #ifndef _STATUS_LED_H
 #define _STATUS_LED_H
 
-#define STATUS_LED_GREEN 0
-#define STATUS_LED_YELLOW 1
-#define STATUS_LED_RED 2
+#define STATUS_LED_GREEN 		0
+#define STATUS_LED_YELLOW 		1
+#define STATUS_LED_RED 			2
+#define STATUS_LED_BLUE         3
+#define STATUS_LED_PURPLE       4
+#define STATUS_LED_TEAL         5
+#define STATUS_LED_WHITE        6
+
 
 
 void status_led_v_init( void );
-void status_led_v_set_blink_speed( uint16_t speed );
 void status_led_v_enable( void );
 void status_led_v_disable( void );
-
 void status_led_v_set( uint8_t state, uint8_t led );
-void status_led_v_strobe( uint16_t us, uint8_t led );
 
 #endif

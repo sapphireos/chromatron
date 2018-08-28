@@ -27,15 +27,6 @@
 
 #include "status_led.h"
 
-#define LED_BLINK_NORMAL    500
-
-// #define LED_RED_PORT    PORTC
-// #define LED_RED_PIN     4
-// #define LED_GREEN_PORT  PORTC
-// #define LED_GREEN_PIN   5
-// #define LED_BLUE_PORT   PORTD
-// #define LED_BLUE_PIN    4
-
 // rev 0.2
 #define LED_RED_PORT    PORTC
 #define LED_RED_PIN     4
@@ -43,12 +34,6 @@
 #define LED_GREEN_PIN   5
 #define LED_BLUE_PORT   PORTD
 #define LED_BLUE_PIN    4
-
-
-#define STATUS_LED_BLUE         10
-#define STATUS_LED_PURPLE       11
-#define STATUS_LED_TEAL         12
-#define STATUS_LED_WHITE        13
 
 
 #endif

@@ -27,5 +27,15 @@
 
 #include "status_led.h"
 
+#include "stm32f7xx.h"
+#include "stm32f7xx_ll_gpio.h"
+
+#define LED_RED_PORT    GPIOA
+#define LED_RED_PIN     1
+#define LED_GREEN_PORT  GPIOA
+#define LED_GREEN_PIN   2
+#define LED_BLUE_PORT   GPIOA
+#define LED_BLUE_PIN    3
+
 
 #endif
