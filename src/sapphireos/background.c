@@ -47,7 +47,9 @@ PT_BEGIN( pt );
 
         datetime_v_update();
         
+        #ifdef ENABLE_NETWORK
         sock_v_process_timeouts();
+        #endif
 	}
 
 PT_END( pt );

@@ -78,7 +78,11 @@ static int8_t fs_i8_kv_handler(
         }
         else if( hash == __KV__fs_capacity ){
 
+            #ifdef ENABLE_FFS
             a = flash25_u32_capacity();
+            #else
+            a = 0;
+            #endif
         }
 
         memcpy( data, &a, sizeof(a) );
