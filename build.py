@@ -6,7 +6,7 @@ import json
 
 projects = [
     'sapphire',
-    'xmega128a4u',
+    'hal_xmega128a4u',
     'lib_chromatron',
     # 'lib_fixmath',
     'chromatron',

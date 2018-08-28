@@ -2,7 +2,7 @@
 	"_comment": "This is the project name.",
     "_comment": "The project name is used by the build system",
     "_comment": "to identify and search for projects",
-    "PROJ_NAME": "xmega128a4u",
+    "PROJ_NAME": "hal_xmega128a4u",
 
     "_comment": "Project version",
     "PROJ_VERSION": "0.1",
