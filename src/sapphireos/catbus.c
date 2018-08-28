@@ -23,6 +23,7 @@
  */
 
 #include "sapphire.h"
+
 #include "config.h"
 #include "hash.h"
 #include "catbus.h"
@@ -83,10 +84,12 @@ static bool run_publish;
 PT_THREAD( publish_thread( pt_t *pt, void *state ) );
 #endif
 
+#ifdef ENABLE_NETWORK
 static uint64_t origin_id;
 
 static socket_t sock;
 static thread_t file_sessions[CATBUS_MAX_FILE_SESSIONS];
+#endif
 
 static catbus_hash_t32 meta_tag_hashes[CATBUS_QUERY_LEN];
 // start of adjustable tags through the add/rm interface
@@ -371,6 +374,7 @@ void catbus_v_init( void ){
     }
     #endif
 
+    #ifdef ENABLE_NETWORK
     thread_t_create( catbus_server_thread,
                      PSTR("catbus_server"),
                      0,
@@ -380,6 +384,7 @@ void catbus_v_init( void ){
                      PSTR("catbus_announce"),
                      0,
                      0 );
+    #endif
 }
 
 void catbus_v_set_options( uint32_t options ){
@@ -396,6 +401,7 @@ void catbus_v_set_options( uint32_t options ){
     #endif
 }
 
+#ifdef ENABLE_NETWORK
 static void _catbus_v_msg_init( catbus_header_t *header, 
                                 uint8_t msg_type,
                                 uint32_t transaction_id ){
@@ -455,6 +461,7 @@ static bool _catbus_b_query_self( catbus_query_t *query ){
 
     return TRUE;
 }
+#endif
 
 #ifdef ENABLE_CATBUS_LINK
 static bool _catbus_b_hash_in_query( catbus_hash_t32 hash, catbus_query_t *query ){
@@ -492,6 +499,7 @@ static bool _catbus_b_compare_queries( catbus_query_t *query1, catbus_query_t *q
 }
 #endif
 
+#ifdef ENABLE_NETWORK
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_announce_t) );
@@ -532,6 +540,7 @@ static void _catbus_v_send_shutdown( void ){
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
+#endif
 
 #ifdef ENABLE_CATBUS_LINK
 static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash_t32 dest_hash, sock_addr_t *raddr ){
@@ -1202,6 +1211,7 @@ next:
 }
 
 
+#ifdef ENABLE_NETWORK
 typedef struct{
     file_t file;
     uint32_t session_id;
@@ -2428,10 +2438,14 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif
+
 PT_THREAD( catbus_shutdown_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    #ifdef ENABLE_NETWORK
+    
     // broadcast shutdown messages
     
     _catbus_v_send_shutdown();
@@ -2443,10 +2457,13 @@ PT_BEGIN( pt );
     TMR_WAIT( pt, 100 );
 
     _catbus_v_send_shutdown();
-    
+        
+    #endif
 
 PT_END( pt );
 }
+
+
 
 void catbus_v_shutdown( void ){
 
@@ -2455,5 +2472,5 @@ void catbus_v_shutdown( void ){
                      PSTR("catbus_shutdown"),
                      0,
                      0 );
-}
 
+}
