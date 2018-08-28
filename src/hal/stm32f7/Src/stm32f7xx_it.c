@@ -34,8 +34,8 @@
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx.h"
 #include "stm32f7xx_it.h"
-#include "../Trace.h"
-#include "../semihosting.h"
+#include "Trace.h"
+#include "semihosting.h"
 #include <string.h>
 
 // Exception Stack Frame of the Cortex-M3 or Cortex-M4 processor.
