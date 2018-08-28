@@ -642,10 +642,14 @@ class Builder(object):
                 cmd += '-I%s ' % (include_dir)
 
             for include in self.libraries:
-                include_dir = get_project_builder(include, target=self.target_type).target_dir
+                lib_proj = get_project_builder(include, target=self.target_type)
+                include_dirs = [lib_proj.target_dir]
+                include_dirs.extend(lib_proj.source_dirs)
 
-                cmd += '-I%s ' % (include_dir)
                 cmd += '-D%s ' % (include.upper())
+
+                for i in include_dirs:
+                    cmd += '-I%s ' % (i)
 
             # add extra source dirs to include
             for source_dir in self.source_dirs:
