@@ -45,8 +45,11 @@
 // check if flash file system is disabled,
 // if so, disable logging module
 #ifndef ENABLE_FFS
-    #undef LOG_ENABLE
+    #ifndef TRACE
+        #undef LOG_ENABLE
+    #endif
 #endif
+
 
 #define LOG_STR_BUF_SIZE        192
 
@@ -60,7 +63,7 @@
 
 
 #ifdef LOG_ENABLE
-    
+        
     #include "system.h"
     #include "netmsg.h"
 

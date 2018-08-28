@@ -46,7 +46,7 @@ void cpu_v_init( void ){
 
 uint8_t cpu_u8_get_reset_source( void ){
 
-    return 0;
+    return RESET_SOURCE_POWER_ON;
 }
 
 void cpu_v_clear_reset_source( void ){

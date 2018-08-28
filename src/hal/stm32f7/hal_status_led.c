@@ -170,6 +170,29 @@ void reset_all( void ){
     LL_GPIO_SetOutputPin(LED_RED_PORT, 		LED_RED_PIN);
     LL_GPIO_SetOutputPin(LED_GREEN_PORT, 	LED_GREEN_PIN);
     LL_GPIO_SetOutputPin(LED_BLUE_PORT, 	LED_BLUE_PIN);
+
+    LL_GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Pin         = LED_RED_PIN;
+    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LED_RED_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin         = LED_GREEN_PIN;
+    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LED_GREEN_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin         = LED_BLUE_PIN;
+    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LED_BLUE_PORT, &GPIO_InitStruct);
 }
 
 void status_led_v_init( void ){
@@ -177,30 +200,6 @@ void status_led_v_init( void ){
 	enabled = TRUE;
 
     reset_all();
-
-
-	LL_GPIO_InitTypeDef GPIO_InitStruct;
-
-    GPIO_InitStruct.Pin 		= LED_RED_PIN;
-    GPIO_InitStruct.Mode 		= LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed 		= LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType	= LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull 		= LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_RED_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin 		= LED_GREEN_PIN;
-    GPIO_InitStruct.Mode 		= LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed 		= LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType 	= LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull 		= LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_GREEN_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin 		= LED_BLUE_PIN;
-    GPIO_InitStruct.Mode 		= LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed 		= LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType 	= LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull 		= LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_BLUE_PORT, &GPIO_InitStruct);
 
 
     thread_t_create( status_led_thread,
