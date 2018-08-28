@@ -85,7 +85,7 @@ typedef uint8_t kv_flags_t8;
 #define KV_ERR_STATUS_CANNOT_CONVERT_TYPES      -9
 #define KV_ERR_STATUS_OUT_OF_BOUNDS            -10
 
-typedef struct{
+typedef struct  __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t reserved[3];
@@ -109,7 +109,7 @@ typedef struct  __attribute__((packed)){
     uint8_t padding;
 } kv_meta_t;
 
-typedef struct{
+typedef struct  __attribute__((packed)){
     catbus_hash_t32 hash;
     uint8_t index;
 } kv_hash_index_t;
