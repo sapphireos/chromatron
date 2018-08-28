@@ -71,23 +71,9 @@ Generic mode:
 #include "flash25.h"
 #include "button.h"
 #include "hal_cpu.h"
+#include "hal_status_led.h"
 #include "watchdog.h"
 
-
-#include "stm32f7xx_ll_rcc.h"
-#include "stm32f7xx_ll_bus.h"
-#include "stm32f7xx_ll_system.h"
-#include "stm32f7xx_ll_exti.h"
-#include "stm32f7xx_ll_cortex.h"
-#include "stm32f7xx_ll_utils.h"
-#include "stm32f7xx_ll_pwr.h"
-#include "stm32f7xx_ll_dma.h"
-#include "stm32f7xx_ll_spi.h"
-#include "stm32f7xx_ll_usart.h"
-#include "stm32f7xx.h"
-#include "stm32f7xx_ll_gpio.h"
-
-#include "Trace.h"
     
 static uint8_t mode;
 #define MODE_SAPPHIRE   0
@@ -112,38 +98,31 @@ void main( void ){
 
     LL_GPIO_InitTypeDef GPIO_InitStruct;
 
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOH);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
+    LL_GPIO_SetOutputPin(LED_RED_PORT,      LED_RED_PIN);
+    LL_GPIO_SetOutputPin(LED_GREEN_PORT,    LED_GREEN_PIN);
+    LL_GPIO_SetOutputPin(LED_BLUE_PORT,     LED_BLUE_PIN);
 
+    GPIO_InitStruct.Pin         = LED_RED_PIN;
+    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LED_RED_PORT, &GPIO_InitStruct);
 
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_1);
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_2);
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3); 
-  
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_1;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin         = LED_GREEN_PIN;
+    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LED_GREEN_PORT, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_2;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin         = LED_BLUE_PIN;
+    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LED_BLUE_PORT, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-    
 
     trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
 

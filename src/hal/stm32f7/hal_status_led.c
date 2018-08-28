@@ -133,7 +133,7 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, 500 );
 
 
-            
+
 
             // status_led_v_set( 0, STATUS_LED_GREEN );
 
@@ -176,10 +176,10 @@ void status_led_v_init( void ){
 
 	enabled = TRUE;
 
-	LL_GPIO_InitTypeDef GPIO_InitStruct;
-
     reset_all();
 
+
+	LL_GPIO_InitTypeDef GPIO_InitStruct;
 
     GPIO_InitStruct.Pin 		= LED_RED_PIN;
     GPIO_InitStruct.Mode 		= LL_GPIO_MODE_OUTPUT;
