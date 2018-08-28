@@ -537,6 +537,7 @@ class Builder(object):
 
     def build(self):
         logging.info("Building %s for target: %s" % (self.settings["PROJ_NAME"], self.target_type))
+        logging.info("Toolchain: %s" % (self.settings["TOOLCHAIN"]))
 
         self.pre_process()
         self.compile()
