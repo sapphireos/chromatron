@@ -101,18 +101,6 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
 };
 
-#if defined(__SIM__) || defined(BOOTLOADER)
-    #define KV_SECTION_DYNAMIC_START
-#else
-    #define KV_SECTION_DYNAMIC_START       __attribute__ ((section (".kv_dynamic_start"), used))
-#endif
-
-#if defined(__SIM__) || defined(BOOTLOADER)
-    #define KV_SECTION_DYNAMIC_END
-#else
-    #define KV_SECTION_DYNAMIC_END         __attribute__ ((section (".kv_dynamic_end"), used))
-#endif
-
 #ifdef __SIM__
     #define SERVICE_SECTION_START
 #else

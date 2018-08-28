@@ -49,12 +49,6 @@
 #endif
 
 #if defined(__SIM__) || defined(BOOTLOADER)
-    #define KV_SECTION_DYNAMIC
-#else
-    #define KV_SECTION_DYNAMIC           __attribute__ ((section (".kv_dynamic"), used))
-#endif
-
-#if defined(__SIM__) || defined(BOOTLOADER)
     #define SERVICE_SECTION
 #else
     #define SERVICE_SECTION              __attribute__ ((section (".service"), used))

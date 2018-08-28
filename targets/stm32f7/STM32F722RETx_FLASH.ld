@@ -74,14 +74,6 @@ SECTIONS
     *(.kv_meta_end)
     KEEP(*(.kv_meta_end))
 
-    /* Dynamic key-value meta data sections */
-    *(.kv_dynamic_start)
-    KEEP(*(.kv_dynamic_start))
-    *(.kv_dynamic)
-    KEEP(*(.kv_dynamic))
-    *(.kv_dynamic_end)
-    KEEP(*(.kv_dynamic_end))
-
     /* Presence service meta data sections */
     *(.service_start)
     KEEP(*(.service_start))
