@@ -178,7 +178,11 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     while( first <= last ){
 
         kv_hash_index_t index_entry;
-        memcpy_PF( (uint8_t *)&index_entry, (uint8_t *)( kv_index_start + ( middle * sizeof(kv_hash_index_t) ) ), sizeof(index_entry) );
+
+        // ARM NOTES
+        // need to offset by flash start address, which is not 0, unlike the AVR.
+
+        memcpy_PF( &index_entry, ( kv_index_start + ( middle * sizeof(kv_hash_index_t) ) ), sizeof(index_entry) );
 
         if( index_entry.hash < hash ){
 
