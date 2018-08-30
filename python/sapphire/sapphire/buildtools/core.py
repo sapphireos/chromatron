@@ -1085,7 +1085,8 @@ class AppBuilder(HexBuilder):
             'timestamp': datetime.utcnow().isoformat(),
             'sha256': sha256.hexdigest(),
             'fwid': self.settings['FWID'],
-            'version': self.version
+            'version': self.version,
+            'target': self.target_type
         }
 
         with open('manifest.txt', 'w+') as f:
