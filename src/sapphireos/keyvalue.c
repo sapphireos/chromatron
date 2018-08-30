@@ -167,7 +167,8 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // get address of hash index
-    uint32_t kv_index_start = ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
+    uint32_t kv_index_start = FLASH_START +
+                              ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
                               ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
 
     int16_t first = 0;

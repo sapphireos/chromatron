@@ -69,7 +69,7 @@
 // total pages
 #define TOTAL_PAGES ( 512 + 32 )
 
-
+#define FLASH_START 	0x00
 #define FW_INFO_ADDRESS 0x1FC // this must match the offset in the makefile!
 #define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
 
