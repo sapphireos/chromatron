@@ -23,7 +23,7 @@
  */
 
 
-#ifdef _HAL_SPI_H
+#ifndef _HAL_SPI_H
 #define _HAL_SPI_H
 
 #include "cpu.h"
