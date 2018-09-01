@@ -22,6 +22,7 @@
 
 
 #include "hal_cpu.h"
+#include "cpu.h"
 
 void SystemClock_Config(void);
 
@@ -42,6 +43,9 @@ void cpu_v_init( void ){
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
+
+
+    trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
