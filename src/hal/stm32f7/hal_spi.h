@@ -23,6 +23,8 @@
  */
 
 
+#ifdef _HAL_SPI_H
+#define _HAL_SPI_H
 
 #include "cpu.h"
 
@@ -33,27 +35,10 @@
 #include "timers.h"
 
 
-static inline void spi_v_init( void );
-static inline uint8_t spi_u8_send( uint8_t data ) __attribute__((always_inline));
-static inline void spi_v_write_block( const uint8_t *data, uint16_t length ) __attribute__((always_inline));
-static inline void spi_v_read_block( uint8_t *data, uint16_t length ) __attribute__((always_inline));
+void spi_v_init( void );
+uint8_t spi_u8_send( uint8_t data );
+void spi_v_write_block( const uint8_t *data, uint16_t length );
+void spi_v_read_block( uint8_t *data, uint16_t length );
 
 
-static inline void spi_v_init( void ){
-
-}
-
-static inline uint8_t spi_u8_send( uint8_t data ){
-
-    return 0;
-}
-
-static inline void spi_v_write_block( const uint8_t *data, uint16_t length ){
-
-    
-}
-
-// read a block of data from the SPI port.
-static inline void spi_v_read_block( uint8_t *data, uint16_t length ){
-
-}
+#endif
