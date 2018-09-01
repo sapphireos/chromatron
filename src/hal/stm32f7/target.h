@@ -46,7 +46,7 @@
 // memory
 #define MAX_MEM_HANDLES         512
 #define MEM_MAX_STACK           4096
-#define MEM_HEAP_SIZE			65536
+#define MEM_HEAP_SIZE			65535
 
 // flash fs
 #define FLASH_FS_MAX_USER_FILES 24

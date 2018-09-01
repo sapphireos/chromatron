@@ -288,15 +288,13 @@ static void verify_handle( mem_handle_t handle ){
 
 void mem2_v_init( void ){
 
-    #ifdef __SIM__
+    #if defined(__SIM__) || defined(ARM)
     uint16_t heap_size = cnt_of_array(_heap);
     #elif defined(AVR)
     uint16_t heap_start = (uintptr_t)&__heap_start;
     uint16_t stack_end = (uintptr_t)&__stack - ( MEM_MAX_STACK + MEM_STACK_HEAP_GUARD );
     uint16_t heap_size = stack_end - heap_start;
     heap = (uint8_t *)heap_start;
-    #else
-    uint16_t heap_size = 0;
     #endif
 
     mem_rt_data.heap_size = heap_size;
