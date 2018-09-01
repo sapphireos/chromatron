@@ -59,11 +59,8 @@ This module provides a low level SPI driver for 25 series flash memory.
     static uint8_t array[524288];
 #endif
 
-static bool aai_write_enabled;
-
-#define BLOCK0_UNLOCK_CODE  0x1701
-static uint16_t block0_unlock;
-
+extern bool aai_write_enabled;
+extern uint16_t block0_unlock;
 
 void hal_flash25_v_init( void ){
 
@@ -71,26 +68,13 @@ void hal_flash25_v_init( void ){
     FLASH_CS_DDR |= ( 1 << FLASH_CS_PIN );
 
     CHIP_DISABLE();
-}
 
 
+    // enable the write protect
+    WRITE_PROTECT();
 
-
-void flash25_v_init( void ){
-
-    #ifdef __SIM__
-
-    flash25_v_erase_chip();
-
-    #else
-
-	hal_flash25_v_init();
-
-	// enable the write protect
-	WRITE_PROTECT();
-
-	// set the CS line to inactive
-	CHIP_DISABLE();
+    // set the CS line to inactive
+    CHIP_DISABLE();
 
     // send write disable
     flash25_v_write_disable();
@@ -111,16 +95,14 @@ void flash25_v_init( void ){
         CHIP_DISABLE();
     }
 
-	// enable writes
-	flash25_v_write_enable();
+    // enable writes
+    flash25_v_write_enable();
 
-	// clear block protection bits
-	flash25_v_write_status( 0x00 );
+    // clear block protection bits
+    flash25_v_write_status( 0x00 );
 
     // disable writes
-	flash25_v_write_disable();
-
-    #endif
+    flash25_v_write_disable();
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -524,11 +506,6 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
 
 	CHIP_DISABLE();
 	#endif
-}
-
-void flash25_v_unlock_block0( void ){
-
-    block0_unlock = BLOCK0_UNLOCK_CODE;
 }
 
 #endif

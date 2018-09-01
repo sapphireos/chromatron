@@ -27,6 +27,23 @@
 #include "flash25.h"
 #include "hal_flash25.h"
 
+bool aai_write_enabled;
+uint16_t block0_unlock;
+
+
+void flash25_v_init( void ){
+
+    #ifdef __SIM__
+
+    flash25_v_erase_chip();
+
+    #else
+
+    hal_flash25_v_init();
+    
+    #endif
+}
+
 uint8_t flash25_u8_read_mfg_id( void ){
 
 	flash25_device_info_t info;
@@ -106,3 +123,9 @@ uint32_t flash25_u32_capacity( void ){
 
 	return capacity;
 }
+
+void flash25_v_unlock_block0( void ){
+
+    block0_unlock = BLOCK0_UNLOCK_CODE;
+}
+

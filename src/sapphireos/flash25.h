@@ -97,6 +97,8 @@ typedef struct{
 #define FLASH_DEV_ID2_WINBOND_32MBIT    0x16
 
 
+#define BLOCK0_UNLOCK_CODE  0x1701
+
 void flash25_v_init( void );
 uint8_t flash25_u8_read_status( void );
 void flash25_v_write_status( uint8_t status );

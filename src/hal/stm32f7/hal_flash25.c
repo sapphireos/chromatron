@@ -28,38 +28,23 @@
 #ifdef ENABLE_FFS
 
 
-static bool aai_write_enabled;
 
-#define BLOCK0_UNLOCK_CODE  0x1701
-static uint16_t block0_unlock;
+extern bool aai_write_enabled;
+extern uint16_t block0_unlock;
 
 
 void hal_flash25_v_init( void ){
 
     // set CS to output
-    FLASH_CS_DDR |= ( 1 << FLASH_CS_PIN );
+    
 
+
+
+    // enable the write protect
+    WRITE_PROTECT();
+
+    // set the CS line to inactive
     CHIP_DISABLE();
-}
-
-
-
-
-void flash25_v_init( void ){
-
-    #ifdef __SIM__
-
-    flash25_v_erase_chip();
-
-    #else
-
-	hal_flash25_v_init();
-
-	// enable the write protect
-	WRITE_PROTECT();
-
-	// set the CS line to inactive
-	CHIP_DISABLE();
 
     // send write disable
     flash25_v_write_disable();
@@ -74,59 +59,28 @@ void flash25_v_init( void ){
 
     if( aai_write_enabled ){
 
-        // disable busy status output on SO line
-        CHIP_ENABLE();
-        spi_u8_send( FLASH_CMD_DBUSY );
-        CHIP_DISABLE();
+        // // disable busy status output on SO line
+        // CHIP_ENABLE();
+        // spi_u8_send( FLASH_CMD_DBUSY );
+        // CHIP_DISABLE();
     }
 
-	// enable writes
-	flash25_v_write_enable();
+    // enable writes
+    flash25_v_write_enable();
 
-	// clear block protection bits
-	flash25_v_write_status( 0x00 );
+    // clear block protection bits
+    flash25_v_write_status( 0x00 );
 
     // disable writes
-	flash25_v_write_disable();
-
-    #endif
+    flash25_v_write_disable();
 }
 
 uint8_t flash25_u8_read_status( void ){
 
-    #ifdef __SIM__
-    return 0;
-    #else
-	uint8_t status;
-
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_READ_STATUS );
-	status = spi_u8_send( 0 );
-
-	CHIP_DISABLE();
-
-	return status;
-    #endif
 }
 
 void flash25_v_write_status( uint8_t status ){
 
-    #ifndef __SIM__
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_ENABLE_WRITE_STATUS );
-
-	CHIP_DISABLE();
-
-
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_WRITE_STATUS );
-	spi_u8_send( status );
-
-	CHIP_DISABLE();
-    #endif
 }
 
 // read len bytes into ptr
@@ -140,29 +94,16 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     }
 
     // busy wait
-    BUSY_WAIT( flash25_b_busy() );
+    // BUSY_WAIT( flash25_b_busy() );
 
-    #ifdef __SIM__
-    memcpy( ptr, &array[address], len );
-    #else
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_READ );
-	spi_u8_send( address >> 16 );
-	spi_u8_send( address >> 8 );
-	spi_u8_send( address );
-
-    spi_v_read_block( ptr, len );
-
-	CHIP_DISABLE();
-    #endif
+    
 }
 
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
 
     // busy wait
-    BUSY_WAIT( flash25_b_busy() );
+    // BUSY_WAIT( flash25_b_busy() );
 
 	uint8_t byte;
 
@@ -173,28 +114,12 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 
 void flash25_v_write_enable( void ){
 
-    #ifndef __SIM__
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_WRITE_ENABLE );
-
-	CHIP_DISABLE();
-
-	WRITE_UNPROTECT();
-    #endif
+    
 }
 
 void flash25_v_write_disable( void ){
 
-    #ifndef __SIM__
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_WRITE_DISABLE );
-
-	CHIP_DISABLE();
-
-	WRITE_PROTECT();
-    #endif
+    
 }
 
 // write a single byte to the device
@@ -212,29 +137,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         block0_unlock = 0;
 	}
 
-    #ifdef __SIM__
-    array[address] = byte;
-    #else
-	// wait on busy bit in status register
-	// note that if the flash chip malfunctions and never completes
-	// an operation, this will cause the entire system to hang
-	// until the watchdog kicks it.  this is acceptable,
-	// since at that point we have a hardware failure anyway.
-	BUSY_WAIT( flash25_b_busy() );
-
-	flash25_v_write_enable();
-
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_WRITE_BYTE );
-	spi_u8_send( address >> 16 );
-	spi_u8_send( address >> 8 );
-	spi_u8_send( address );
-
-	spi_u8_send( byte );
-
-	CHIP_DISABLE();
-    #endif
+    
 }
 
 // write an array of data
@@ -263,143 +166,6 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
-    #ifdef __SIM__
-    memcpy( &array[address], ptr, len );
-    #else
-
-    if( aai_write_enabled ){
-
-        // check if odd address
-        if( ( address & 1 ) != 0 ){
-
-            flash25_v_write_byte( address, *(uint8_t *)ptr );
-
-            address++;
-            ptr++;
-            len--;
-        }
-
-        if( len > 1 ){
-
-            // busy wait
-            BUSY_WAIT( flash25_b_busy() );
-
-            // enable writes
-            flash25_v_write_enable();
-
-            // enable busy status output on SO line
-            CHIP_ENABLE();
-            spi_u8_send( FLASH_CMD_EBUSY );
-            CHIP_DISABLE();
-
-            // use autoincrement write command
-            CHIP_ENABLE();
-
-            spi_u8_send( FLASH_CMD_AAI_WRITE );
-            spi_u8_send( address >> 16 );
-            spi_u8_send( address >> 8 );
-            spi_u8_send( address );
-
-            // write two bytes
-            spi_u8_send( *(uint8_t *)ptr  );
-            spi_u8_send( *(uint8_t *)(ptr + 1) );
-
-            CHIP_DISABLE(); // this will begin the program cycle
-
-            ptr += 2;
-            len -= 2;
-            address += 2;
-
-            while( len > 1 ){
-
-                // poll status output
-                CHIP_ENABLE();
-                _delay_us(FLASH_WAIT_DELAY_US);
-                BUSY_WAIT( AAI_STATUS() == 0 );
-                CHIP_DISABLE();
-
-                CHIP_ENABLE();
-
-                // send command
-                spi_u8_send( FLASH_CMD_AAI_WRITE );
-
-                // write two bytes
-                spi_u8_send( *(uint8_t *)ptr  );
-                spi_u8_send( *(uint8_t *)(ptr + 1) );
-
-                CHIP_DISABLE(); // this will begin the program cycle
-
-                ptr += 2;
-                len -= 2;
-                address += 2;
-            }
-
-            // poll status output
-            CHIP_ENABLE();
-            _delay_us(FLASH_WAIT_DELAY_US);
-            BUSY_WAIT( AAI_STATUS() == 0 );
-            CHIP_DISABLE();
-
-            // send write disable to end command
-            flash25_v_write_disable();
-
-            // disable busy status output on SO line
-            CHIP_ENABLE();
-            spi_u8_send( FLASH_CMD_DBUSY );
-            CHIP_DISABLE();
-        }
-
-        // check if there is data left
-        // this also handles the case where there is only one byte to be written
-        if( len == 1 ){
-
-            flash25_v_write_byte( address, *(uint8_t *)ptr );
-        }
-    }
-    // non-AAI write
-    else{
-
-        while( len > 0 ){
-
-            // compute page data
-            uint16_t page_len = 256 - ( address & 0xff );
-
-            if( page_len > len ){
-
-                page_len = len;
-            }
-
-            // enable writes
-            flash25_v_write_enable();
-
-            CHIP_ENABLE();
-
-            // set up command and address
-            spi_u8_send( FLASH_CMD_WRITE_BYTE );
-        	spi_u8_send( address >> 16 );
-        	spi_u8_send( address >> 8 );
-        	spi_u8_send( address );
-
-            // write page data
-            spi_v_write_block( (uint8_t *)ptr, page_len );
-
-        	CHIP_DISABLE();
-
-            address += page_len;
-            ptr += page_len;
-            len -= page_len;
-
-            // writes will automatically be disabled following completion
-            // of the write.
-
-            BUSY_WAIT( flash25_b_busy() );
-        }
-
-        // send write disable to end command
-        // this should already be disabled, but lets make certain.
-        flash25_v_write_disable();
-    }
-    #endif
 }
 
 // erase a 4 KB block
@@ -421,84 +187,27 @@ void flash25_v_erase_4k( uint32_t address ){
         block0_unlock = 0;
 	}
 
-    #ifdef __SIM__
-    memset( &array[address], 0xff, 4096 );
-    #else
-	BUSY_WAIT( flash25_b_busy() );
-
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_ERASE_BLOCK_4K );
-	spi_u8_send( address >> 16 );
-	spi_u8_send( address >> 8 );
-	spi_u8_send( address );
-
-	CHIP_DISABLE();
-
-    #endif
+    
 }
 
 // erase the entire array
 void flash25_v_erase_chip( void ){
-
-    #ifdef __SIM__
-
-    memset( &array[FLASH_FS_ERASE_BLOCK_SIZE], 0xff, ( sizeof(array) - FLASH_FS_ERASE_BLOCK_SIZE ) );
-
-    #else
-
-	// #ifndef FLASH_ENABLE_BLOCK_0
 
     uint32_t array_size = flash25_u32_capacity();
 
 	// block 0 disabled, skip block 0
     for( uint32_t i = FLASH_FS_ERASE_BLOCK_SIZE; i < array_size; i += FLASH_FS_ERASE_BLOCK_SIZE ){
 
-        BUSY_WAIT( flash25_b_busy() );
+        // BUSY_WAIT( flash25_b_busy() );
         flash25_v_write_enable();
         flash25_v_erase_4k( i );
     }
- //    #else
-	// // block 0 enabled, we can use chip erase command
-
-	// BUSY_WAIT( flash25_b_busy() );
-
-	// CHIP_ENABLE();
-
-	// spi_u8_send( FLASH_CMD_CHIP_ERASE );
-
-	// CHIP_DISABLE();
-
-	// #endif
-
-    #endif
 }
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
 
-    #ifdef __SIM__
-
-    info->mfg_id = FLASH_MFG_SST;
-	info->dev_id_1 = FLASH_DEV_ID1_SST25;
-	info->dev_id_2 = FLASH_DEV_ID2_SST25_4MBIT;
-
-    #else
-	CHIP_ENABLE();
-
-	spi_u8_send( FLASH_CMD_READ_ID );
-
-	info->mfg_id = spi_u8_send( 0 );
-	info->dev_id_1 = spi_u8_send( 0 );
-	info->dev_id_2 = spi_u8_send( 0 );
-
-	CHIP_DISABLE();
-	#endif
 }
 
-void flash25_v_unlock_block0( void ){
-
-    block0_unlock = BLOCK0_UNLOCK_CODE;
-}
 
 #endif
 
