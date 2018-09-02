@@ -40,7 +40,7 @@ typedef uint8_t block_t;
 #define FFS_BLOCK_INVALID 0xff
 #else
 typedef uint16_t block_t;
-#define FFS_BLOCK_INVALID (FFS_BLOCK_MAX_BLOCKS + 1)
+#define FFS_BLOCK_INVALID 0xffff
 #endif
 
 // macro to compute a block address from an FS block number

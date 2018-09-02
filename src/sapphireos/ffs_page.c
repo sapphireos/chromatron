@@ -69,7 +69,7 @@ KV_SECTION_META kv_meta_t ffs_page_info_kv[] = {
 
 
 static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block );
-static int16_t ffs_page_i16_alloc_block( ffs_file_t file_id );
+static int8_t ffs_page_i8_alloc_block( ffs_file_t file_id );
 static int32_t ffs_page_i32_seek_page( ffs_file_t file_id, uint16_t page );
 
 
@@ -407,13 +407,12 @@ ffs_file_t ffs_page_i8_create_file( void ){
     }
 
     // allocate a block
-    int16_t block = ffs_page_i16_alloc_block( file );
+    int8_t status = ffs_page_i8_alloc_block( file );
 
     // check status
-    if( ( block >= FFS_BLOCK_INVALID ) ||
-        ( block < 0 ) ){
+    if( status < 0 ){
 
-        return block; // error code
+        return status; // error code
     }
 
     // set file size
@@ -559,12 +558,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
             // Ex: we have 2 blocks, and we want a 3rd block (number 2)
 
             // allocate a new block
-            block_t new_block = ffs_page_i16_alloc_block( file_id );
+            if( ffs_page_i8_alloc_block( file_id ) != FFS_STATUS_OK ){
 
-            // check status
-            if( new_block == FFS_BLOCK_INVALID ){
-
-                // return error code
                 continue;
             }
         }
@@ -692,7 +687,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
 
 // allocate a new block and add it to the end of the file
-static int16_t ffs_page_i16_alloc_block( ffs_file_t file_id ){
+static int8_t ffs_page_i8_alloc_block( ffs_file_t file_id ){
 
     ASSERT( file_id < FFS_MAX_FILES );
 
