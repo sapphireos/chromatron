@@ -30,7 +30,6 @@
 
 void hal_timer_v_init( void ){
 
-    HAL_NVIC_EnableIRQ( TIM2_IRQn );
 
 	LL_TIM_InitTypeDef init;
 	LL_TIM_StructInit( &init );
@@ -43,6 +42,13 @@ void hal_timer_v_init( void ){
 
 	LL_TIM_Init( HAL_SYS_TIMER, &init );
 
+	LL_TIM_SetUpdateSource( HAL_SYS_TIMER, LL_TIM_UPDATESOURCE_COUNTER );
+	LL_TIM_EnableUpdateEvent( HAL_SYS_TIMER ); 
+	LL_TIM_EnableIT_UPDATE( HAL_SYS_TIMER );
+    
+    HAL_NVIC_EnableIRQ( TIM2_IRQn );
+
+    LL_TIM_EnableCounter( HAL_SYS_TIMER );
 }
 
 bool tmr_b_io_timers_running( void ){
@@ -76,6 +82,7 @@ bool tmr_b_alarm_armed( void ){
 
 void TIM2_IRQHandler(void) {
     
+    trace_printf("meow\n");
 }
  
 

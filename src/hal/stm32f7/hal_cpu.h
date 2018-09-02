@@ -42,8 +42,8 @@
 #include "Trace.h"
 
 
-#define ENABLE_INTERRUPTS 
-#define DISABLE_INTERRUPTS 
+#define ENABLE_INTERRUPTS __enable_irq()
+#define DISABLE_INTERRUPTS __disable_irq()
 
 #define RESET_SOURCE_POWER_ON   0x01
 #define RESET_SOURCE_JTAG       0x02

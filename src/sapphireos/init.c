@@ -151,7 +151,7 @@ int8_t sapphire_i8_init( void ){
     ee_v_init();
 
 	// init config manager
-	cfg_v_init();
+	// cfg_v_init();
 
     #ifdef ENABLE_USB
     usb_v_init();
