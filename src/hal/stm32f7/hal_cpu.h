@@ -50,8 +50,8 @@
 #define RESET_SOURCE_EXTERNAL   0x04
 #define RESET_SOURCE_BROWNOUT   0x08
 
-#define ATOMIC
-#define END_ATOMIC
+#define ATOMIC uint32_t __primask = __get_PRIMASK(); DISABLE_INTERRUPTS;
+#define END_ATOMIC if( !__primask ){ ENABLE_INTERRUPTS; }
 
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*

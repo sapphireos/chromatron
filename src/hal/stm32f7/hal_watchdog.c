@@ -41,5 +41,4 @@ void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
 void wdg_v_disable( void ){
 
-    END_ATOMIC;
 }
