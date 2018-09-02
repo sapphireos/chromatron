@@ -21,6 +21,7 @@
 // </license>
 
 #include "system.h"
+#include "timers.h"
 #include "flash_fs_partitions.h"
 #include "flash25.h"
 #include "hal_flash25.h"
@@ -36,6 +37,8 @@ extern uint16_t block0_unlock;
 
 static QSPI_HandleTypeDef hqspi;
 
+
+uint8_t meow;
 
 void hal_flash25_v_init( void ){
 
@@ -67,7 +70,7 @@ void hal_flash25_v_init( void ){
     
     // init qspi module
     hqspi.Instance = QUADSPI;
-    hqspi.Init.ClockPrescaler = 255;
+    hqspi.Init.ClockPrescaler = 128;
     hqspi.Init.FifoThreshold = 1;
     hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
     hqspi.Init.FlashSize = 23;
@@ -95,14 +98,63 @@ void hal_flash25_v_init( void ){
 
     // disable writes
     flash25_v_write_disable();
+
+
+    flash25_v_write_enable();
+    flash25_v_write_byte( 10000, 0x43 );
+
+
+    meow = flash25_u8_read_byte( 10000 );
 }
 
 uint8_t flash25_u8_read_status( void ){
 
+    uint8_t status = 0;
+
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_READ_STATUS;
+    cmd.Address             = 0;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = 0;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_NONE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = sizeof(status);
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
+    
+    HAL_QSPI_Receive( &hqspi, (uint8_t *)&status, 50 );    
+
+    return status;
 }
 
 void flash25_v_write_status( uint8_t status ){
 
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_READ_STATUS;
+    cmd.Address             = 0;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = 0;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_NONE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = sizeof(status);
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
+    
+    HAL_QSPI_Transmit( &hqspi, (uint8_t *)&status, 50 );    
 }
 
 // read len bytes into ptr
@@ -116,16 +168,35 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     }
 
     // busy wait
-    // BUSY_WAIT( flash25_b_busy() );
+    BUSY_WAIT( flash25_b_busy() );
 
     
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_READ;
+    cmd.Address             = address;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = QSPI_ADDRESS_24_BITS;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_1_LINE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = len;
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
+
+    HAL_QSPI_Transmit( &hqspi, (uint8_t *)ptr, 50 );   
 }
 
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
 
     // busy wait
-    // BUSY_WAIT( flash25_b_busy() );
+    BUSY_WAIT( flash25_b_busy() );
 
 	uint8_t byte;
 
@@ -136,10 +207,44 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 
 void flash25_v_write_enable( void ){
 
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_WRITE_ENABLE;
+    cmd.Address             = 0;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = 0;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_NONE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = 0;
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
 }
 
 void flash25_v_write_disable( void ){
     
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_WRITE_DISABLE;
+    cmd.Address             = 0;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = 0;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_NONE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = 0;
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
 }
 
 // write a single byte to the device
@@ -157,7 +262,25 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         block0_unlock = 0;
 	}
 
-    
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_WRITE_BYTE;
+    cmd.Address             = address;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = QSPI_ADDRESS_24_BITS;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_1_LINE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = 1;
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
+
+    HAL_QSPI_Transmit( &hqspi, (uint8_t *)&byte, 50 );    
 }
 
 // write an array of data
@@ -186,6 +309,54 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_WRITE_BYTE;
+    cmd.Address             = address;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = QSPI_ADDRESS_24_BITS;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_1_LINE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = 0;
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    while( len > 0 ){
+
+        // compute page data
+        uint16_t page_len = 256 - ( address & 0xff );
+
+        if( page_len > len ){
+
+            page_len = len;
+        }
+
+        // enable writes
+        flash25_v_write_enable();
+
+
+        cmd.Address     = address;
+        cmd.NbData      = page_len;
+        HAL_QSPI_Command( &hqspi, &cmd, 50 );
+        HAL_QSPI_Transmit( &hqspi, (uint8_t *)ptr, 50 );  
+
+        address += page_len;
+        ptr += page_len;
+        len -= page_len;
+
+        // writes will automatically be disabled following completion
+        // of the write.
+
+        BUSY_WAIT( flash25_b_busy() );
+    }
+
+    // send write disable to end command
+    // this should already be disabled, but lets make certain.
+    flash25_v_write_disable();
 }
 
 // erase a 4 KB block
@@ -207,7 +378,25 @@ void flash25_v_erase_4k( uint32_t address ){
         block0_unlock = 0;
 	}
 
-    
+    BUSY_WAIT( flash25_b_busy() );
+
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_ERASE_BLOCK_4K;
+    cmd.Address             = address;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = QSPI_ADDRESS_24_BITS;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_1_LINE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = 0;
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
+
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );    
 }
 
 // erase the entire array
