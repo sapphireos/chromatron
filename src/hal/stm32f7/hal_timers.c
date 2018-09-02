@@ -28,8 +28,15 @@
 #include "power.h"
 #include "hal_timers.h"
 
+volatile uint32_t meow;
+
+TIM_TypeDef *timer2;
+
 void hal_timer_v_init( void ){
 
+	__HAL_RCC_TIM2_CLK_ENABLE();
+
+	timer2 = TIM2;
 
 	LL_TIM_InitTypeDef init;
 	LL_TIM_StructInit( &init );
@@ -46,9 +53,15 @@ void hal_timer_v_init( void ){
 	LL_TIM_EnableUpdateEvent( HAL_SYS_TIMER ); 
 	LL_TIM_EnableIT_UPDATE( HAL_SYS_TIMER );
     
+    HAL_NVIC_SetPriority( TIM2_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( TIM2_IRQn );
 
     LL_TIM_EnableCounter( HAL_SYS_TIMER );
+
+    while(1){
+
+    	meow = TIM2->CNT;
+    }
 }
 
 bool tmr_b_io_timers_running( void ){
