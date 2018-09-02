@@ -49,6 +49,10 @@
 #define MEM_MAX_STACK           1024
 
 // flash fs
+
+// maximum number of blocks the FS can handle
+#define FFS_BLOCK_MAX_BLOCKS 254
+
 #define FLASH_FS_MAX_USER_FILES 24
 
 // virtual fs

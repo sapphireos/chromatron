@@ -49,9 +49,16 @@ typedef struct{
 static index_cache_t index_cache;
 
 static mem_handle_t blocks_h;
+
+#if FFS_BLOCK_MAX_BLOCKS < 256
 uint8_t _total_blocks;
 uint8_t _free_blocks;
 uint8_t _dirty_blocks;
+#else
+uint16_t _total_blocks;
+uint16_t _free_blocks;
+uint16_t _dirty_blocks;
+#endif
 
 static block_t free_list;
 static block_t dirty_list;

@@ -49,17 +49,20 @@
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
-#define FLASH_FS_MAX_USER_FILES 24
+// maximum number of blocks the FS can handle
+#define FFS_BLOCK_MAX_BLOCKS 16384
+
+#define FLASH_FS_MAX_USER_FILES 64
 
 // virtual fs
-#define FS_MAX_VIRTUAL_FILES 16
+#define FS_MAX_VIRTUAL_FILES 32
 
-#define FLASH_FS_FIRMWARE_0_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_1_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_2_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_0_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_1_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_2_SIZE_KB     512
 
 // logging
-#define LOG_MAX_BUFFER_SIZE     512
+#define LOG_MAX_BUFFER_SIZE     2048
 
 // bootloader target settings
 // page size in bytes

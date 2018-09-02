@@ -25,11 +25,8 @@
 #ifndef _FFS_BLOCK_H
 #define _FFS_BLOCK_H
 
+#include "target.h"
 #include "ffs_global.h"
-
-
-// maximum number of blocks the FS can handle
-#define FFS_BLOCK_MAX_BLOCKS 254
 
 // flags
 #define FFS_FLAG_DIRTY          0x80 // 0 if block is dirty
@@ -38,8 +35,13 @@
 #define FFS_FLAGS_INVALID   0
 #define FFS_FLAGS_FREE      0xff
 
+#if FFS_BLOCK_MAX_BLOCKS < 256
 typedef uint8_t block_t;
 #define FFS_BLOCK_INVALID 0xff
+#else
+typedef uint16_t block_t;
+#define FFS_BLOCK_INVALID (FFS_BLOCK_MAX_BLOCKS + 1)
+#endif
 
 // macro to compute a block address from an FS block number
 #define FFS_BLOCK_ADDRESS(block_num) ( ( (uint32_t)block_num * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + (uint32_t)FLASH_FS_FILE_SYSTEM_START )
@@ -110,9 +112,15 @@ void ffs_block_v_hard_error( void );
 
 // these are extern so the inlining works.
 // directly access them at your own risk.
+#if FFS_BLOCK_MAX_BLOCKS < 256
 extern uint8_t _total_blocks;
 extern uint8_t _free_blocks;
 extern uint8_t _dirty_blocks;
+#else
+extern uint16_t _total_blocks;
+extern uint16_t _free_blocks;
+extern uint16_t _dirty_blocks;
+#endif
 
 static inline uint16_t ffs_block_u16_free_blocks( void );
 static inline uint16_t ffs_block_u16_dirty_blocks( void );

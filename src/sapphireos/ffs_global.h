@@ -26,6 +26,7 @@
 #define _FFS_GLOBAL_H
 
 #include "system.h"
+#include "target.h"
 #include "flash_fs_partitions.h"
 
 #define FFS_VERSION                 2
@@ -47,7 +48,6 @@
 #define FFS_WEAR_THRESHOLD          1024
 
 typedef int8_t ffs_file_t;
-
 
 #define FFS_PAGE_DATA_SIZE          64
 #define FFS_DATA_PAGES_PER_BLOCK    51
