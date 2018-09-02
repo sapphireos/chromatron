@@ -356,7 +356,7 @@ void sys_v_get_fw_id( uint8_t id[FW_ID_LENGTH] ){
     #ifdef __SIM__
         memset( id, 2, FW_ID_LENGTH );
     #else
-        memcpy_P( id, (void *)FW_INFO_ADDRESS + offsetof(fw_info_t, fwid), FW_ID_LENGTH );
+        memcpy_P( id, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fwid), FW_ID_LENGTH );
     #endif
 }
 
@@ -365,7 +365,7 @@ void sys_v_get_os_version( char ver[OS_VER_LEN] ){
     #ifdef __SIM__
         memset( id, 2, OS_VER_LEN );
     #else
-        memcpy_P( ver, (void *)FW_INFO_ADDRESS + offsetof(fw_info_t, os_version), OS_VER_LEN );
+        memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, os_version), OS_VER_LEN );
     #endif
 }
 
@@ -374,7 +374,7 @@ void sys_v_get_fw_version( char ver[FW_VER_LEN] ){
     #ifdef __SIM__
         memset( id, 2, FW_VER_LEN );
     #else
-        memcpy_P( ver, (void *)FW_INFO_ADDRESS + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
+        memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
     #endif
 }
 
@@ -383,7 +383,7 @@ void sys_v_get_fw_info( fw_info_t *fw_info ){
     #ifdef __SIM__
 
     #else
-        memcpy_P( fw_info, (void *)FW_INFO_ADDRESS, sizeof(fw_info_t) );
+        memcpy_P( fw_info, (void *)FW_INFO_ADDRESS + FLASH_START, sizeof(fw_info_t) );
     #endif
 }
 
@@ -394,7 +394,7 @@ uint32_t sys_v_get_fw_length( void ){
     #ifdef __SIM__
         length = 100;
     #else
-        memcpy_P( &length, (void *)FW_INFO_ADDRESS + offsetof(fw_info_t, fw_length), sizeof(length) );
+        memcpy_P( &length, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fw_length), sizeof(length) );
     #endif
 
     return length;
