@@ -27,7 +27,6 @@
 #include "flash25.h"
 #include "hal_flash25.h"
 
-bool aai_write_enabled;
 uint16_t block0_unlock;
 
 

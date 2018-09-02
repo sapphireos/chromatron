@@ -59,8 +59,8 @@ This module provides a low level SPI driver for 25 series flash memory.
     static uint8_t array[524288];
 #endif
 
-extern bool aai_write_enabled;
 extern uint16_t block0_unlock;
+static bool aai_write_enabled;
 
 void hal_flash25_v_init( void ){
 

@@ -53,4 +53,49 @@
 #define IO_PIN5_PIN         LL_GPIO_PIN_11
 
 
+
+
+#define LED0_Pin LL_GPIO_PIN_1
+#define LED0_GPIO_Port GPIOA
+#define LED1_Pin LL_GPIO_PIN_2
+#define LED1_GPIO_Port GPIOA
+#define LED2_Pin LL_GPIO_PIN_3
+#define LED2_GPIO_Port GPIOA
+#define FSPI_CLK_Pin LL_GPIO_PIN_2
+#define FSPI_CLK_GPIO_Port GPIOB
+#define GPIO4_Pin LL_GPIO_PIN_10
+#define GPIO4_GPIO_Port GPIOB
+#define GPIO5_Pin LL_GPIO_PIN_11
+#define GPIO5_GPIO_Port GPIOB
+#define PIX_CLK2_Pin LL_GPIO_PIN_13
+#define PIX_CLK2_GPIO_Port GPIOB
+#define PIX_DAT2_Pin LL_GPIO_PIN_15
+#define PIX_DAT2_GPIO_Port GPIOB
+#define WIFI_TXD_Pin LL_GPIO_PIN_6
+#define WIFI_TXD_GPIO_Port GPIOC
+#define WIFI_RXD_Pin LL_GPIO_PIN_7
+#define WIFI_RXD_GPIO_Port GPIOC
+#define FSPI_MISO_Pin LL_GPIO_PIN_9
+#define FSPI_MISO_GPIO_Port GPIOC
+#define COMM_TX_Pin LL_GPIO_PIN_9
+#define COMM_TX_GPIO_Port GPIOA
+#define COMM_RX_Pin LL_GPIO_PIN_10
+#define COMM_RX_GPIO_Port GPIOA
+#define FSPI_MOSI_Pin LL_GPIO_PIN_10
+#define FSPI_MOSI_GPIO_Port GPIOC
+#define WIFI_PD_Pin LL_GPIO_PIN_12
+#define WIFI_PD_GPIO_Port GPIOC
+#define PIX_CLK_Pin LL_GPIO_PIN_3
+#define PIX_CLK_GPIO_Port GPIOB
+#define WIFI_RST_Pin LL_GPIO_PIN_4
+#define WIFI_RST_GPIO_Port GPIOB
+#define PIX_DAT_Pin LL_GPIO_PIN_5
+#define PIX_DAT_GPIO_Port GPIOB
+#define FLASH_CS_Pin LL_GPIO_PIN_6
+#define FLASH_CS_GPIO_Port GPIOB
+#define WIFI_BOOT_R_Pin LL_GPIO_PIN_8
+#define WIFI_BOOT_R_GPIO_Port GPIOB
+#define WIFI_SS_Pin LL_GPIO_PIN_9
+#define WIFI_SS_GPIO_Port GPIOB
+
 #endif

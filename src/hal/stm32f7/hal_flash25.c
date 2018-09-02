@@ -25,15 +25,32 @@
 #include "flash25.h"
 #include "hal_flash25.h"
 
+#include "stm32f7xx_hal_qspi.h"
+
 #ifdef ENABLE_FFS
 
 
 
-extern bool aai_write_enabled;
 extern uint16_t block0_unlock;
+
+static QSPI_HandleTypeDef hqspi;
 
 
 void hal_flash25_v_init( void ){
+    
+    // init qspi module
+    hqspi.Instance = QUADSPI;
+    hqspi.Init.ClockPrescaler = 255;
+    hqspi.Init.FifoThreshold = 1;
+    hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
+    hqspi.Init.FlashSize = 1;
+    hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
+    hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
+    hqspi.Init.FlashID = QSPI_FLASH_ID_1;
+    hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
+
+    HAL_QSPI_Init( &hqspi );
+
 
     // set CS to output
     
@@ -52,18 +69,18 @@ void hal_flash25_v_init( void ){
     flash25_device_info_t info;
     flash25_v_read_device_info( &info );
 
-    if( info.mfg_id == FLASH_MFG_SST ){
+    // if( info.mfg_id == FLASH_MFG_SST ){
 
-        aai_write_enabled = TRUE;
-    }
+    //     aai_write_enabled = TRUE;
+    // }
 
-    if( aai_write_enabled ){
+    // if( aai_write_enabled ){
 
         // // disable busy status output on SO line
         // CHIP_ENABLE();
         // spi_u8_send( FLASH_CMD_DBUSY );
         // CHIP_DISABLE();
-    }
+    // }
 
     // enable writes
     flash25_v_write_enable();
