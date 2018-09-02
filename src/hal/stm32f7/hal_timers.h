@@ -23,10 +23,13 @@
 #ifndef _HAL_TIMERS_H
 #define _HAL_TIMERS_H
 
+#include "stm32f7xx_ll_tim.h"
 
 
-#define TIMER_TICKS_TO_MICROSECONDS(a) ( (uint64_t)a * 32 )
-#define MICROSECONDS_TO_TIMER_TICKS(a) ( a / 32 )
+#define HAL_SYS_TIMER TIM2
+
+#define TIMER_TICKS_TO_MICROSECONDS(a) ( a )
+#define MICROSECONDS_TO_TIMER_TICKS(a) ( a )
 
 
 void hal_timer_v_init( void );

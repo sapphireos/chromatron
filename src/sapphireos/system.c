@@ -473,10 +473,7 @@ void reboot( void ){
 	// make sure interrupts are disabled
 	DISABLE_INTERRUPTS;
 
-    #ifdef AVR
-	// enable watchdog timer:
-    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );
-    #endif
+    cpu_reboot();
 
 	// infinite loop, wait for reset
 	for(;;);

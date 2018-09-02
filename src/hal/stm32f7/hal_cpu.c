@@ -115,6 +115,11 @@ uint32_t cpu_u32_get_clock_speed( void ){
     return SystemCoreClock;
 }
 
+void cpu_reboot( void ){
+
+    HAL_NVIC_SystemReset();    
+}
+
 void SystemClock_Config(void)
 {
   // RCC_OscInitTypeDef RCC_OscInitStruct;

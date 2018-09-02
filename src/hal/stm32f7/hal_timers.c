@@ -22,12 +22,26 @@
 
 #include "system.h"
 
+#include "hal_cpu.h"
 #include "os_irq.h"
 #include "timers.h"
 #include "power.h"
 #include "hal_timers.h"
 
 void hal_timer_v_init( void ){
+
+    HAL_NVIC_EnableIRQ( TIM2_IRQn );
+
+	LL_TIM_InitTypeDef init;
+	LL_TIM_StructInit( &init );
+
+	init.Prescaler 			= 108;
+	init.CounterMode 		= LL_TIM_COUNTERMODE_UP;
+	init.Autoreload			= 0;
+	init.ClockDivision      = LL_TIM_CLOCKDIVISION_DIV1;
+	init.RepetitionCounter  = 0;
+
+	LL_TIM_Init( HAL_SYS_TIMER, &init );
 
 }
 
@@ -58,3 +72,10 @@ bool tmr_b_alarm_armed( void ){
 
     return 0;
 }
+
+
+void TIM2_IRQHandler(void) {
+    
+}
+ 
+

@@ -24,6 +24,7 @@
 #include "system.h"
 
 #include "hal_cpu.h"
+#include "watchdog.h"
 
 void cpu_v_init( void ){
 
@@ -137,6 +138,12 @@ bool cpu_b_osc_fail( void ){
 uint32_t cpu_u32_get_clock_speed( void ){
 
     return 32000000;
+}
+
+void cpu_reboot( void ){
+
+    // enable watchdog timer:
+    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
 }
 
 ISR(OSC_OSCF_vect){
