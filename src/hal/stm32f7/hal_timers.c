@@ -32,8 +32,6 @@
 
 static volatile uint64_t microseconds;
 
-volatile uint32_t meow;
-
 TIM_TypeDef *timer2;
 
 void hal_timer_v_init( void ){

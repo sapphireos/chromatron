@@ -221,12 +221,12 @@ void status_led_v_disable( void ){
 
 void status_led_v_set( uint8_t state, uint8_t led ){
 
-	reset_all();
-
     if( state == 0 ){
 
         return;
     }
+
+    reset_all();
 
     switch( led ){
         case STATUS_LED_BLUE:

@@ -85,6 +85,9 @@ void cpu_v_init( void ){
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
 
     trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
+    trace_printf("HCLK     : %u\n", HAL_RCC_GetHCLKFreq());
+    trace_printf("PCLK1    : %u\n", HAL_RCC_GetPCLK1Freq());
+    trace_printf("PCLK2    : %u\n", HAL_RCC_GetPCLK2Freq());
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
