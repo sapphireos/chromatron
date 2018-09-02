@@ -24,20 +24,6 @@
 #define _HAL_FLASH25_H
 
 
-// #define FLASH_CS_DDR PORTD.DIR
-// #define FLASH_CS_PORT PORTD.OUT
-// #define FLASH_CS_PIN 0
-
-#define CHIP_ENABLE()
-#define CHIP_DISABLE() 
-
-#define WRITE_PROTECT()
-#define WRITE_UNPROTECT()
-
-
-#define AAI_STATUS() 0
-
-
 void hal_flash25_v_init( void );
 
 

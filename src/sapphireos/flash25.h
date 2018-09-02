@@ -71,7 +71,7 @@
 #define FLASH_CMD_DBUSY 				0x80
 
 
-typedef struct{
+typedef struct __attribute__((packed)){
 	uint8_t mfg_id; // manufacturer's ID
 	uint8_t dev_id_1;
 	uint8_t dev_id_2;

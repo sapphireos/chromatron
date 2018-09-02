@@ -42,7 +42,7 @@ void hal_flash25_v_init( void ){
     __HAL_RCC_QSPI_CLK_ENABLE();
 
     GPIO_InitTypeDef GPIO_InitStruct;
-    
+
     GPIO_InitStruct.Pin = GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -70,7 +70,7 @@ void hal_flash25_v_init( void ){
     hqspi.Init.ClockPrescaler = 255;
     hqspi.Init.FifoThreshold = 1;
     hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
-    hqspi.Init.FlashSize = 1;
+    hqspi.Init.FlashSize = 23;
     hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
     hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
     hqspi.Init.FlashID = QSPI_FLASH_ID_1;
@@ -79,35 +79,13 @@ void hal_flash25_v_init( void ){
     HAL_QSPI_Init( &hqspi );
 
 
-    // set CS to output
-    
-
-
-
-    // enable the write protect
-    WRITE_PROTECT();
-
-    // set the CS line to inactive
-    CHIP_DISABLE();
-
     // send write disable
     flash25_v_write_disable();
 
     flash25_device_info_t info;
     flash25_v_read_device_info( &info );
+    
 
-    // if( info.mfg_id == FLASH_MFG_SST ){
-
-    //     aai_write_enabled = TRUE;
-    // }
-
-    // if( aai_write_enabled ){
-
-        // // disable busy status output on SO line
-        // CHIP_ENABLE();
-        // spi_u8_send( FLASH_CMD_DBUSY );
-        // CHIP_DISABLE();
-    // }
 
     // enable writes
     flash25_v_write_enable();
@@ -158,11 +136,9 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 
 void flash25_v_write_enable( void ){
 
-    
 }
 
 void flash25_v_write_disable( void ){
-
     
 }
 
@@ -249,7 +225,26 @@ void flash25_v_erase_chip( void ){
 }
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
+    
+    QSPI_CommandTypeDef cmd;
+    cmd.Instruction         = FLASH_CMD_READ_ID;
+    cmd.Address             = 0;
+    cmd.AlternateBytes      = 0;
+    cmd.AddressSize         = 0;
+    cmd.AlternateBytesSize  = 0;
+    cmd.DummyCycles         = 0;
+    cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
+    cmd.AddressMode         = QSPI_ADDRESS_NONE;
+    cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
+    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.NbData              = sizeof(flash25_device_info_t);
+    cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
+    cmd.DdrHoldHalfCycle    = 0;
+    cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
 
+    HAL_QSPI_Command( &hqspi, &cmd, 50 );
+    
+    HAL_QSPI_Receive( &hqspi, (uint8_t *)info, 50 );    
 }
 
 
