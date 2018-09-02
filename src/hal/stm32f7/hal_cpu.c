@@ -67,8 +67,15 @@ void cpu_v_init( void ){
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
 
+    // update clock
     SystemClock_Config();
+
+    // update clock frequency info
     SystemCoreClockUpdate();
+
+    // enable SYSTICK
+    LL_Init1msTick(cpu_u32_get_clock_speed());
+    LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);
 
     // enable gpio clocks
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
@@ -76,7 +83,6 @@ void cpu_v_init( void ){
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
-
 
     trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
 }
@@ -206,36 +212,10 @@ void SystemClock_Config(void)
   {
   
   }
-  LL_Init1msTick(216000000);
-
-  LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);
-
-  LL_SetSystemCoreClock(216000000);
-
+  
   LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK2);
 
   LL_RCC_SetUSARTClockSource(LL_RCC_USART6_CLKSOURCE_PCLK2);
-
-
-
-
-  // HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
-  // /* System interrupt init*/
-  // /* MemoryManagement_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(MemoryManagement_IRQn, 0, 0);
-  // /* BusFault_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(BusFault_IRQn, 0, 0);
-  // /* UsageFault_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(UsageFault_IRQn, 0, 0);
-  // /* SVCall_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(SVCall_IRQn, 0, 0);
-  // /* DebugMonitor_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
-  // /* PendSV_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(PendSV_IRQn, 0, 0);
-  // /* SysTick_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 
