@@ -132,7 +132,7 @@ void cmd_usart_v_init( void ){
 
     LL_USART_InitTypeDef init;
     LL_USART_StructInit( &init );
-    init.BaudRate               = 2000000;
+    init.BaudRate               = 115200;
     init.DataWidth              = LL_USART_DATAWIDTH_8B;
     init.StopBits               = LL_USART_STOPBITS_1;
     init.Parity                 = LL_USART_PARITY_NONE;
@@ -145,8 +145,8 @@ void cmd_usart_v_init( void ){
     LL_USART_Enable( HAL_CMD_USART );
 
 
-    LL_USART_TransmitData8( HAL_CMD_USART, 0x43 );
-
+    
+    
     // create serial thread
     thread_t_create( serial_cmd_thread,
                      PSTR("serial_cmd"),
@@ -167,12 +167,13 @@ bool cmd_usart_b_received_char( void ){
 
 void cmd_usart_v_send_char( uint8_t data ){
 
-    
+    BUSY_WAIT( LL_USART_IsActiveFlag_TXE( HAL_CMD_USART ) == 0 );
+    LL_USART_TransmitData8( HAL_CMD_USART, data );
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
-
     
+        
 }
 
 

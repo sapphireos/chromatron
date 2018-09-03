@@ -627,7 +627,7 @@ class SerialUDPChannel(Channel):
         self.rport = 1
 
     def open(self, host):
-        self.port = serial.Serial(host, baudrate=2000000)
+        self.port = serial.Serial(host, baudrate=115200)
         self.settimeout(timeout=2.0)
         self.host = self.port.port
 
@@ -976,7 +976,7 @@ def createChannel(host, port=None):
         return UdpxChannel(host=(host, port))
 
     except:
-        return SerialChannel(host)
+        return SerialUDPChannel(host)
 
 
 if __name__ == '__main__':
