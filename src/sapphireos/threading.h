@@ -79,7 +79,7 @@ typedef struct{
     uint32_t runs;
 } thread_state_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     char name[THREAD_MAX_NAME_LEN];
     uint16_t flags;
     uint32_t thread_addr;
