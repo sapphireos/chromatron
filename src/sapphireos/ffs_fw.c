@@ -170,7 +170,7 @@ int8_t ffs_fw_i8_init( void ){
             sys_v_wdt_reset();
 
             // read byte from internal flash
-            uint8_t temp = pgm_read_byte_far( i + FLASH_START );
+            uint8_t temp = pgm_read_byte_far( i );
 
             // write to external flash
             flash25_v_write_byte( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, temp );
@@ -261,7 +261,7 @@ uint16_t ffs_fw_u16_get_internal_crc( void ){
 
     for( uint32_t i = 0; i < length; i++ ){
 
-        crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
+        crc = crc_u16_byte( crc, pgm_read_byte_far( i ) );
 
         // reset watchdog timer
         sys_v_wdt_reset();
