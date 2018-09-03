@@ -387,7 +387,7 @@ void flash25_v_erase_4k( uint32_t address ){
     cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
     cmd.AddressMode         = QSPI_ADDRESS_1_LINE;
     cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
-    cmd.DataMode            = QSPI_DATA_1_LINE;
+    cmd.DataMode            = QSPI_DATA_NONE;
     cmd.NbData              = 0;
     cmd.DdrMode             = QSPI_DDR_MODE_DISABLE;
     cmd.DdrHoldHalfCycle    = 0;
