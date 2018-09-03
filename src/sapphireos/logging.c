@@ -57,8 +57,7 @@ static void append_log( char *buf ){
 
     #ifdef TRACE
     trace_printf("%s", buf);
-    
-    #else
+    #endif
 
     // check if file is not open
     if( f < 0 ){
@@ -106,8 +105,6 @@ static void append_log( char *buf ){
 cleanup:
     // close handle if error so we will try to reopen next time
     f = fs_f_close( f );
-
-    #endif
 }
 
 
