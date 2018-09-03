@@ -59,6 +59,8 @@ static int uart_putchar( char c, FILE *stream )
 #endif
 
 
+USART_TypeDef *usart_ptr;
+
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
 static volatile uint8_t rx_ins;
 static volatile uint8_t rx_ext;
@@ -66,7 +68,7 @@ static volatile uint8_t rx_size;
 
 void USART1_IRQHandler( void ){
 
-    if( LL_USART_IsActiveFlag_RXNE( HAL_CMD_USART ) ){
+    while( LL_USART_IsActiveFlag_RXNE( HAL_CMD_USART ) ){
 
         rx_buf[rx_ins] = LL_USART_ReceiveData8( HAL_CMD_USART );
         rx_ins++;
@@ -77,6 +79,11 @@ void USART1_IRQHandler( void ){
         }
 
         rx_size++;
+    }
+
+    if( LL_USART_IsActiveFlag_ORE( HAL_CMD_USART ) ){
+
+        LL_USART_ClearFlag_ORE( HAL_CMD_USART );    
     }
 }
 
@@ -128,7 +135,9 @@ void cmd_usart_v_init( void ){
     // initialize command usart
     
     // enable clock
-    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+    LL_APB2_GRP1_EnableClock( LL_APB2_GRP1_PERIPH_USART1 );
+
+    usart_ptr = USART1;
 
     // init IO pins
     LL_GPIO_InitTypeDef GPIO_InitStruct;

@@ -40,10 +40,12 @@
 #include "target.h"
 #include "crc.h"
 
+#include "stm32f7xx_ll_crc.h"
 
 
 uint16_t crc_u16_start( void ){
 
+    LL_CRC_ResetCRCCalculationUnit( CRC );
 
     return 0xffff;
 }
@@ -62,19 +64,39 @@ uint16_t crc_u16_block( uint8_t *ptr, uint16_t length ){
 // finishing the last two 0 bytes
 uint16_t crc_u16_partial_block( uint16_t crc, uint8_t *ptr, uint16_t length ){
 
-    return 0;
+    while( length > 0 ){
+
+        LL_CRC_FeedData8( CRC, *ptr );
+
+        ptr++;
+        length--;
+    }
+
+    return LL_CRC_ReadData16( CRC );
 }
 
 uint16_t crc_u16_byte( uint16_t crc, uint8_t data ){
 
-    return 0;
+    LL_CRC_FeedData8( CRC, data );
+
+    return LL_CRC_ReadData16( CRC );
 }
 
 uint16_t crc_u16_finish( uint16_t crc ){
     
-    return 0;
+    return LL_CRC_ReadData16( CRC );
 }
 
 void crc_v_init( void ){
+
+    // enable clock
+    LL_AHB1_GRP1_EnableClock( LL_AHB1_GRP1_PERIPH_CRC );
+
+    LL_CRC_SetPolynomialSize( CRC, LL_CRC_POLYLENGTH_16B );
+    LL_CRC_SetInputDataReverseMode( CRC, LL_CRC_INDATA_REVERSE_NONE );
+    LL_CRC_SetOutputDataReverseMode( CRC, LL_CRC_OUTDATA_REVERSE_NONE );
+    LL_CRC_SetInitialData( CRC, 0xffff );
+    LL_CRC_SetPolynomialCoef( CRC, 0x1021 );
+
 
 }
