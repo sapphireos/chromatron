@@ -91,12 +91,10 @@
     #define vsnprintf_P vsnprintf
     #define printf_P printf
 
-    #define pgm_read_word(x) *(uint16_t *)x
-    #define pgm_read_byte_far(x) *(uint8_t *)x
-    #define pgm_read_byte(x) *(uint8_t *)x
-    // uint16_t pgm_read_word(void *a);
-    // uint8_t pgm_read_byte_far(void *a);
-
+    #define pgm_read_word(x) *(uint16_t *)(x)
+    #define pgm_read_byte_far(x) *(uint8_t *)(x)
+    #define pgm_read_byte(x) *(uint8_t *)(x)
+    
     #define wdt_reset()
     #define _delay_us(x)
 
