@@ -92,12 +92,32 @@ void cpu_v_init( void ){
 
 uint8_t cpu_u8_get_reset_source( void ){
 
-    return RESET_SOURCE_POWER_ON;
+    if( LL_RCC_IsActiveFlag_SFTRST() ){
+
+        return 0;
+    }
+
+    if( LL_RCC_IsActiveFlag_PORRST() ){
+
+        return RESET_SOURCE_POWER_ON;  
+    }
+
+    if( LL_RCC_IsActiveFlag_BORRST() ){
+
+        return RESET_SOURCE_BROWNOUT;
+    }
+
+    if( LL_RCC_IsActiveFlag_PINRST() ){
+
+        return RESET_SOURCE_EXTERNAL;
+    }
+
+    return 0;
 }
 
 void cpu_v_clear_reset_source( void ){
 
-    
+    LL_RCC_ClearResetFlags();    
 }
 
 void cpu_v_remap_isrs( void ){
