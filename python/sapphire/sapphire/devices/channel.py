@@ -626,6 +626,8 @@ class SerialUDPChannel(Channel):
         self.lport = 1
         self.rport = 1
 
+        self.open(host)
+
     def open(self, host):
         self.port = serial.Serial(host, baudrate=115200)
         self.settimeout(timeout=2.0)
@@ -846,8 +848,6 @@ class LegacyUSBUDPChannel(LegacySerialUDPChannel):
 class USBUDPChannel(SerialUDPChannel):
     def __init__(self, host):
         super(USBUDPChannel, self).__init__(host)
-
-        self.open(host)
 
     def close(self):
         try:

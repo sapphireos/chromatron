@@ -59,6 +59,10 @@ static int uart_putchar( char c, FILE *stream )
 #endif
 
 
+void USART1_IRQHandler( void ){
+
+}
+
 int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
 
     *subnet = ip_a_addr(240,1,2,3);
@@ -144,8 +148,10 @@ void cmd_usart_v_init( void ){
     LL_USART_ConfigAsyncMode( HAL_CMD_USART );
     LL_USART_Enable( HAL_CMD_USART );
 
+    LL_USART_EnableIT_RXNE( HAL_CMD_USART );
 
-    
+    HAL_NVIC_SetPriority( USART1_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( USART1_IRQn );
     
     // create serial thread
     thread_t_create( serial_cmd_thread,
@@ -172,8 +178,13 @@ void cmd_usart_v_send_char( uint8_t data ){
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
-    
-        
+
+    while( len > 0 ){
+
+        cmd_usart_v_send_char( *data );
+        data++;
+        len--;        
+    }
 }
 
 

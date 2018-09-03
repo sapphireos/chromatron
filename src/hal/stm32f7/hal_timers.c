@@ -172,7 +172,7 @@ bool tmr_b_alarm_armed( void ){
 }
 
 
-void TIM2_IRQHandler(void) {
+void TIM2_IRQHandler( void ){
     	
     if( !LL_TIM_IsActiveFlag_UPDATE( HAL_SYS_TIMER ) ){
 
