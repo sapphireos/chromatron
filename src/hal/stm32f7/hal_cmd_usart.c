@@ -38,9 +38,7 @@
 #include <stdio.h>
 #endif
 
-#ifdef ENABLE_USB_UDP_TRANSPORT
-PT_THREAD( serial_udp_thread( pt_t *pt, void *state ) );
-#endif
+PT_THREAD( serial_cmd_thread( pt_t *pt, void *state ) );
 
 #ifdef PRINTF_SUPPORT
 static int uart_putchar( char c, FILE *stream );
@@ -62,22 +60,14 @@ static int uart_putchar( char c, FILE *stream )
 
 int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
 
-    #ifdef ENABLE_USB_UDP_TRANSPORT
-
     *subnet = ip_a_addr(240,1,2,3);
     *subnet_mask = ip_a_addr(255,255,255,255);
 
     return 0;
-
-    #else
-
-    return -1;
-    #endif
 }
 
 int8_t cmd_usart_i8_transmit( netmsg_t msg ){
 
-    #ifdef ENABLE_USB_UDP_TRANSPORT
     netmsg_state_t *state = netmsg_vp_get_state( msg );
 
     cmd_usart_v_send_char( CMD_USART_UDP_SOF );
@@ -99,7 +89,6 @@ int8_t cmd_usart_i8_transmit( netmsg_t msg ){
     cmd_usart_v_send_data( mem2_vp_get_ptr( state->data_handle ), header.data_len );
 
     cmd_usart_v_send_data( (uint8_t *)&crc, sizeof(crc) );
-    #endif
 
     return NETMSG_TX_OK_RELEASE;
 }
@@ -114,14 +103,12 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 
 void cmd_usart_v_init( void ){
 
-    #ifdef ENABLE_USB_UDP_TRANSPORT
     // create serial thread
-    thread_t_create( serial_udp_thread,
-                     PSTR("serial_udp"),
+    thread_t_create( serial_cmd_thread,
+                     PSTR("serial_cmd"),
                      0,
                      0 );
 
-    #endif
 }
 
 void cmd_usart_v_set_baud( baud_t8 baud ){
@@ -130,38 +117,24 @@ void cmd_usart_v_set_baud( baud_t8 baud ){
 
 bool cmd_usart_b_received_char( void ){
 
-    #ifdef ENABLE_USB
-    if( usb_u8_rx_size() > 0 ){
-
-        return TRUE;
-    }
-    #endif
-
+    
     return FALSE;
 }
 
 void cmd_usart_v_send_char( uint8_t data ){
 
-    #ifdef ENABLE_USB
-    usb_v_send_char( data );
-    #endif
+    
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
-    #ifdef ENABLE_USB
-    usb_v_send_data( data, len );
-    #endif
+    
 }
 
 
 int16_t cmd_usart_i16_get_char( void ){
 
-    #ifdef ENABLE_USB
-    return usb_i16_get_char();
-    #else
     return -1;
-    #endif
 }
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
@@ -188,28 +161,20 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 
 uint8_t cmd_usart_u8_rx_size( void ){
 
-    #ifdef ENABLE_USB
-    return usb_u8_rx_size();
-    #else
     return 0;
-    #endif
 }
 
 void cmd_usart_v_flush( void ){
 
-    #ifdef ENABLE_USB
-    usb_v_flush();
-    #endif
+    
 }
-
-#ifdef ENABLE_USB_UDP_TRANSPORT
 
 static netmsg_t netmsg;
 static uint16_t idx;
 static uint16_t count;
 
 
-PT_THREAD( serial_udp_thread( pt_t *pt, void *state ) )
+PT_THREAD( serial_cmd_thread( pt_t *pt, void *state ) )
 {
 
     netmsg_state_t *nm_state = 0;
@@ -427,4 +392,4 @@ cleanup:
 
 PT_END( pt );
 }
-#endif
+
