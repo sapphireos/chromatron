@@ -32,6 +32,7 @@
 #include "crc.h"
 #include "timers.h"
 #include "logging.h"
+#include "hal_io.h"
 
 
 #ifdef PRINTF_SUPPORT
@@ -102,6 +103,49 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 };
 
 void cmd_usart_v_init( void ){
+
+    // initialize command usart
+    
+    // enable clock
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+
+    // init IO pins
+    LL_GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Pin = COMM_TX_Pin;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
+    LL_GPIO_Init(COMM_TX_GPIO_Port, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = COMM_RX_Pin;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
+    LL_GPIO_Init(COMM_RX_GPIO_Port, &GPIO_InitStruct);
+
+
+
+    LL_USART_InitTypeDef init;
+    LL_USART_StructInit( &init );
+    init.BaudRate               = 2000000;
+    init.DataWidth              = LL_USART_DATAWIDTH_8B;
+    init.StopBits               = LL_USART_STOPBITS_1;
+    init.Parity                 = LL_USART_PARITY_NONE;
+    init.TransferDirection      = LL_USART_DIRECTION_TX_RX;
+    init.HardwareFlowControl    = LL_USART_HWCONTROL_NONE;
+    init.OverSampling           = LL_USART_OVERSAMPLING_16;
+
+    LL_USART_Init( HAL_CMD_USART, &init );
+    LL_USART_ConfigAsyncMode( HAL_CMD_USART );
+    LL_USART_Enable( HAL_CMD_USART );
+
+
+    LL_USART_TransmitData8( HAL_CMD_USART, 0x43 );
 
     // create serial thread
     thread_t_create( serial_cmd_thread,

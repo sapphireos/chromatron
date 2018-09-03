@@ -30,6 +30,8 @@
 
 #include "udp.h"
 
+#define HAL_CMD_USART USART1
+
 #define CMD_USART_MAX_PACKET_LEN    548
 
 #define CMD_USART_TIMEOUT_MS        250
