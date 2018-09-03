@@ -123,7 +123,7 @@ static uint16_t _app_u16_internal_crc( void ){
 
     for( uint32_t i = 0; i < length; i++ ){
 
-        crc = crc_u16_byte( crc, pgm_read_byte_far( i ) );
+        crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
 
         // reset watchdog timer
         sys_v_wdt_reset();
@@ -276,7 +276,7 @@ void app_v_init( void ){
             sys_v_wdt_reset();
 
             // read byte from internal flash
-            uint8_t temp = pgm_read_byte_far( i );
+            uint8_t temp = pgm_read_byte_far( i + FLASH_START );
 
             // write to external flash
             flash25_v_write_byte( i + (uint32_t)FLASH_FS_FIRMWARE_1_PARTITION_START, temp );

@@ -270,6 +270,11 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
     cmd.DdrHoldHalfCycle    = 0;
     cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
 
+    BUSY_WAIT( flash25_b_busy() );
+
+    flash25_v_write_enable();
+
+
     HAL_QSPI_Command( &hqspi, &cmd, 50 );
 
     HAL_QSPI_Transmit( &hqspi, (uint8_t *)&byte, 50 );    
