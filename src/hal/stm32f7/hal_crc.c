@@ -95,7 +95,7 @@ void crc_v_init( void ){
     LL_CRC_SetPolynomialSize( CRC, LL_CRC_POLYLENGTH_16B );
     LL_CRC_SetInputDataReverseMode( CRC, LL_CRC_INDATA_REVERSE_NONE );
     LL_CRC_SetOutputDataReverseMode( CRC, LL_CRC_OUTDATA_REVERSE_NONE );
-    LL_CRC_SetInitialData( CRC, 0xffff );
+    LL_CRC_SetInitialData( CRC, 0x1D0F );
     LL_CRC_SetPolynomialCoef( CRC, 0x1021 );
 
 
