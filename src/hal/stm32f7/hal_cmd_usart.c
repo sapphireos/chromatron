@@ -59,8 +59,25 @@ static int uart_putchar( char c, FILE *stream )
 #endif
 
 
+static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
+static volatile uint8_t rx_ins;
+static volatile uint8_t rx_ext;
+static volatile uint8_t rx_size;
+
 void USART1_IRQHandler( void ){
 
+    if( LL_USART_IsActiveFlag_RXNE( HAL_CMD_USART ) ){
+
+        rx_buf[rx_ins] = LL_USART_ReceiveData8( HAL_CMD_USART );
+        rx_ins++;
+
+        if( rx_ins >= cnt_of_array(rx_buf) ){
+
+            rx_ins = 0;
+        }
+
+        rx_size++;
+    }
 }
 
 int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
@@ -167,8 +184,7 @@ void cmd_usart_v_set_baud( baud_t8 baud ){
 
 bool cmd_usart_b_received_char( void ){
 
-    
-    return FALSE;
+    return cmd_usart_u8_rx_size() > 0;
 }
 
 void cmd_usart_v_send_char( uint8_t data ){
@@ -190,7 +206,24 @@ void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
 int16_t cmd_usart_i16_get_char( void ){
 
-    return -1;
+    if( cmd_usart_u8_rx_size() == 0 ){
+
+        return -1;
+    }
+
+    uint8_t temp = rx_buf[rx_ext];
+    rx_ext++;
+
+    if( rx_ext >= cnt_of_array(rx_buf) ){
+
+        rx_ext = 0;
+    }
+
+    ATOMIC;
+    rx_size--;
+    END_ATOMIC;
+
+    return temp;
 }
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
@@ -217,12 +250,19 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 
 uint8_t cmd_usart_u8_rx_size( void ){
 
-    return 0;
+    ATOMIC;
+    uint8_t temp = rx_size;
+    END_ATOMIC;
+
+    return temp;
 }
 
 void cmd_usart_v_flush( void ){
 
-    
+    ATOMIC;
+    rx_ins = rx_ext;
+    rx_size = 0;
+    END_ATOMIC;
 }
 
 static netmsg_t netmsg;
