@@ -56,6 +56,7 @@ class Client(object):
         self.write_window_size = 1
 
         self.nodes = {}
+        self.meta = {}
 
     def _exchange(self, msg, host=None, timeout=1.0, tries=5):
         self.__sock.settimeout(timeout)
@@ -69,11 +70,13 @@ class Client(object):
 
             try:
                 self.__sock.sendto(msg.pack(), host)
+                # print msg
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
+                    # print reply_msg
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
                         # bad transaction IDs coming in, this doesn't count

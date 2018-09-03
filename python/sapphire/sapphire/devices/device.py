@@ -493,7 +493,6 @@ class Device(object):
         for key in args:
             expanded_keys.extend(fnmatch.filter(self._keys.keys(), key))
 
-
         responses = self._client.get_keys(expanded_keys)
     
         for k, v in responses.iteritems():
@@ -596,7 +595,10 @@ class Device(object):
         self.reboot_and_load_fw()
 
     def get_firmware_info(self):
-        data = self.get_file("fwinfo")
+        try:
+            data = self.get_file("fwinfo")
+        except IOError: # file not found
+            return None
 
         # create hash of firmware info
         h = hashlib.new('sha256')
