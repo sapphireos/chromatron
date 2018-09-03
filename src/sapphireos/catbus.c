@@ -320,6 +320,11 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+// DEBUG ONLY! delete after config module is working!
+#ifdef ARM
+origin_id = 123;
+#endif
+
     #ifdef ENABLE_CATBUS_LINK
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
