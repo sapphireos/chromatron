@@ -30,7 +30,7 @@
 
 #define FFS_PAGE_INDEX_FREE     0xff
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint8_t len;
     uint8_t data[FFS_PAGE_DATA_SIZE];
     uint16_t crc;

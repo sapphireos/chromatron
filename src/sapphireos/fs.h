@@ -56,7 +56,7 @@ typedef uint8_t vfile_op_t8;
 #define FS_VFILE_OP_SIZE            5
 #define FS_VFILE_OP_DELETE          6
 
-typedef struct{
+typedef struct __attribute__((packed)){
     int32_t size; 
     char filename[FS_MAX_FILE_NAME_LEN];
     uint8_t flags;

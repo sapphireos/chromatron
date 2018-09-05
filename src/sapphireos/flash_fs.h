@@ -32,12 +32,12 @@
 #define FFS_FILE_PAGE_META_1        1
 #define FFS_FILE_PAGE_DATA_0        2
 
-typedef struct{
+typedef struct __attribute__((packed)){
     char filename[FFS_FILENAME_LEN];
     uint8_t reserved[FFS_PAGE_DATA_SIZE - FFS_FILENAME_LEN];
 } ffs_file_meta0_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint8_t reserved[FFS_PAGE_DATA_SIZE];
 } ffs_file_meta1_t;
 
