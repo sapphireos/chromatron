@@ -179,8 +179,13 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     while( first <= last ){
 
         kv_hash_index_t index_entry;
+        uint32_t addr = kv_index_start + ( middle * sizeof(kv_hash_index_t) );
 
-        memcpy_PF( &index_entry, (uint8_t *)( kv_index_start + ( middle * sizeof(kv_hash_index_t) ) ), sizeof(index_entry) );
+        #ifdef AVR
+        memcpy_PF( &index_entry, addr, sizeof(index_entry) );
+        #else
+        memcpy_PF( &index_entry, (void *)addr, sizeof(index_entry) );
+        #endif
 
         if( index_entry.hash < hash ){
 
