@@ -330,8 +330,12 @@ uint32_t thread_u32_get_current_addr( void ){
 
     if( thread != 0 ){
 
+        #ifdef AVR
         thread_addr = (uint32_t)((uint16_t)thread_p_get_function( thread_t_get_current_thread() ));
         // the double casts are to prevent a compiler warning from the pointer casting to a larger integer.
+        #else
+        thread_addr = (uint32_t)thread_p_get_function( thread_t_get_current_thread() );
+        #endif
     }
 
     // multiply the address by 2 to get the byte address.
