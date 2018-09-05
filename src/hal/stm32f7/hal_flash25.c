@@ -199,6 +199,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 
 void flash25_v_write_enable( void ){
 
+    BUSY_WAIT( flash25_b_busy() );
+
     QSPI_CommandTypeDef cmd;
     cmd.Instruction         = FLASH_CMD_WRITE_ENABLE;
     cmd.Address             = 0;
@@ -219,6 +221,8 @@ void flash25_v_write_enable( void ){
 }
 
 void flash25_v_write_disable( void ){
+
+    BUSY_WAIT( flash25_b_busy() );
     
     QSPI_CommandTypeDef cmd;
     cmd.Instruction         = FLASH_CMD_WRITE_DISABLE;
@@ -270,10 +274,9 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
     cmd.DdrHoldHalfCycle    = 0;
     cmd.SIOOMode            = QSPI_SIOO_INST_EVERY_CMD;
 
-    BUSY_WAIT( flash25_b_busy() );
-
     flash25_v_write_enable();
 
+    BUSY_WAIT( flash25_b_busy() );
 
     HAL_QSPI_Command( &hqspi, &cmd, 50 );
 
@@ -404,7 +407,6 @@ void flash25_v_erase_chip( void ){
 	// block 0 disabled, skip block 0
     for( uint32_t i = FLASH_FS_ERASE_BLOCK_SIZE; i < array_size; i += FLASH_FS_ERASE_BLOCK_SIZE ){
 
-        // BUSY_WAIT( flash25_b_busy() );
         flash25_v_write_enable();
         flash25_v_erase_4k( i );
     }

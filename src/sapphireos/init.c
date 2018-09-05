@@ -229,6 +229,7 @@ void sapphire_run( void ){
     // enable watchdog timer
     sys_v_init_watchdog();
 
+trace_printf("Start\n");
 	// start the thread scheduler
 	thread_start();
 }

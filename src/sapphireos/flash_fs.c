@@ -82,14 +82,16 @@ void ffs_v_init( void ){
 
 
 void ffs_v_mount( void ){
+trace_printf("Mounting...\n");
     #ifdef ENABLE_FFS
     ffs_block_v_init();
     ffs_page_v_init();
     #endif
 }
 
-void ffs_v_format( void ){
 
+void ffs_v_format( void ){
+trace_printf("Formatting...\n");
     #ifdef ENABLE_FFS
 	// enable writes
 	flash25_v_write_enable();

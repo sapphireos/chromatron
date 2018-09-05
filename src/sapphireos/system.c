@@ -468,10 +468,18 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
     }
 }
 
+volatile uint8_t boot_a;
+
 void reboot( void ){
 
 	// make sure interrupts are disabled
 	DISABLE_INTERRUPTS;
+
+trace_printf("Reboot\n");
+
+boot_a = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
+
+ASSERT( boot_a == 2 );
 
     cpu_reboot();
 
