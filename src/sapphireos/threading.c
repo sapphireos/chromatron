@@ -691,7 +691,6 @@ void process_signalled_threads( void ){
 //     }
 // }
 
-extern uint8_t block0[4096];
 // start the thread scheduler
 void thread_start( void ){
 
@@ -766,8 +765,6 @@ void thread_start( void ){
             #endif
 		}
 
-flash25_v_read( 0, block0, sizeof(block0) );
-ASSERT( flash25_u8_read_byte( FLASH_FS_VERSION_ADDR ) == 2 );
         mem2_v_collect_garbage();        
 
 		// ********************************************************************
