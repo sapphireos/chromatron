@@ -42,6 +42,8 @@
 
 static bool ffs_fail;
 
+uint8_t block0[4096];
+
 void ffs_v_init( void ){
 
     #ifdef ENABLE_FFS
@@ -60,6 +62,8 @@ void ffs_v_init( void ){
 
     uint8_t fs_version = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
 
+flash25_v_read( 0, block0, sizeof(block0) );
+
     // check system mode and version
     if( ( sys_u8_get_mode() == SYS_MODE_FORMAT ) ||
         ( fs_version != FFS_VERSION ) ){
@@ -67,14 +71,18 @@ void ffs_v_init( void ){
         // format the file system.  this will also re-mount.
         ffs_v_format();
 
+        flash25_v_read( 0, block0, sizeof(block0) );
+
         // restart in normal mode
         sys_reboot();
     }
 
     ffs_fw_i8_init();
 
+flash25_v_read( 0, block0, sizeof(block0) );
     ffs_v_mount();
 
+ flash25_v_read( 0, block0, sizeof(block0) );
     ffs_gc_v_init();
 
     #endif
@@ -102,16 +110,26 @@ trace_printf("Formatting...\n");
 	// wait until finished
 	SAFE_BUSY_WAIT( flash25_b_busy() );
 
+flash25_v_read( 0, block0, sizeof(block0) );
+
     // erase block 0
     flash25_v_unlock_block0();
     flash25_v_erase_4k( 0 );
+
+flash25_v_read( 0, block0, sizeof(block0) );
 
     // write version
     flash25_v_unlock_block0();
     flash25_v_write_byte( FLASH_FS_VERSION_ADDR, FFS_VERSION );
 
+flash25_v_read( 0, block0, sizeof(block0) );
+
     // re-mount
     ffs_v_mount();
+
+    uint8_t fs_version = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
+
+    ASSERT( fs_version == 2 );
 
     #endif
 }

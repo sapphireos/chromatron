@@ -160,6 +160,7 @@ int8_t ffs_fw_i8_init( void ){
     if( ffs_fw_u16_crc() != 0 ){
 
         // CRC is bad
+        trace_printf("FFS FW init\n");
 
         // erase partition
         erase_fw_partition( 0 );
