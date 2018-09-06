@@ -98,7 +98,7 @@ static uint16_t mem_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr,
             // iterate over data length and fill info buffers as needed
             while( len > 0 ){
 
-                uint8_t page = pos / sizeof(mem_info_t);
+                uint16_t page = pos / sizeof(mem_info_t);
 
                 // set up info page
                 mem_info_t info;

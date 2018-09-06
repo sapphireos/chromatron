@@ -55,11 +55,8 @@
     typedef int16_t mem_handle_t;
 #endif
 
-typedef struct __attribute__((packed)){
+typedef struct{
 	uint16_t size;
-    #if MAX_MEM_HANDLES < 256
-    uint8_t padding;
-    #endif
 	mem_handle_t handle;
     mem_type_t8 type;
     #ifdef ENABLE_RECORD_CREATOR
@@ -81,7 +78,7 @@ typedef struct{
 	uint16_t peak_usage;
 } mem_rt_data_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t size;
     mem_type_t8 type;
 } mem_info_t;
