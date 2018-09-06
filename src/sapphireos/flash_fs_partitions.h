@@ -56,10 +56,9 @@
 
 // User file system partition 3:
 // file system size is the size of the file system partition
-#define FLASH_FS_FILE_SYSTEM_START		( FLASH_FS_FIRMWARE_1_PARTITION_START + \
-                                          FLASH_FS_FIRMWARE_1_PARTITION_SIZE + \
+#define FLASH_FS_FILE_SYSTEM_START		( FLASH_FS_FIRMWARE_2_PARTITION_START + \
                                           FLASH_FS_FIRMWARE_2_PARTITION_SIZE )
 
-
+#define FLASH_FS_FILE_SYSTEM_START_BLOCK ( FLASH_FS_FILE_SYSTEM_START / FLASH_FS_ERASE_BLOCK_SIZE )
 
 #endif

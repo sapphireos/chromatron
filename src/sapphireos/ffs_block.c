@@ -103,7 +103,7 @@ void ffs_block_v_init( void ){
     uint32_t flash_size = flash25_u32_capacity();
     uint16_t n_blocks = flash_size / FLASH_FS_ERASE_BLOCK_SIZE;
 
-    _total_blocks = n_blocks - ( FLASH_FS_FIRMWARE_0_N_BLOCKS + FLASH_FS_FIRMWARE_1_N_BLOCKS + 1 );
+    _total_blocks = n_blocks - FLASH_FS_FILE_SYSTEM_START_BLOCK;
 
     if( _total_blocks > FFS_BLOCK_MAX_BLOCKS ){
 

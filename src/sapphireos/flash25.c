@@ -102,7 +102,6 @@ uint32_t flash25_u32_capacity( void ){
                 else if( info.dev_id_2 == FLASH_DEV_ID2_WINBOND_32MBIT ){
 
                     capacity = 4194304;
-                    // capacity = 2097152;
                 }
             }
 
