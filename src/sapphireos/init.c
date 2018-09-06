@@ -150,8 +150,11 @@ int8_t sapphire_i8_init( void ){
     // init EEPROM
     ee_v_init();
 
+// debug for now, until config works on ARM
+#ifndef ARM
 	// init config manager
-	// cfg_v_init();
+	cfg_v_init();
+#endif
 
     #ifdef ENABLE_USB
     usb_v_init();
@@ -229,7 +232,6 @@ void sapphire_run( void ){
     // enable watchdog timer
     sys_v_init_watchdog();
 
-trace_printf("Start\n");
 	// start the thread scheduler
 	thread_start();
 }
