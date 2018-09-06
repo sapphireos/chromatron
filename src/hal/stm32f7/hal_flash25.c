@@ -84,7 +84,7 @@ void hal_flash25_v_init( void ){
 
 
     // read max address
-    max_address = flash25_u32_capacity();
+    max_address = flash25_u32_read_capacity_from_info();
 
     // enable writes
     flash25_v_write_enable();
@@ -440,6 +440,11 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
     HAL_QSPI_Command( &hqspi, &cmd, 50 );
     
     HAL_QSPI_Receive( &hqspi, (uint8_t *)info, 50 );    
+}
+
+uint32_t flash25_u32_capacity( void ){
+
+    return max_address;
 }
 
 

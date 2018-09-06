@@ -113,6 +113,7 @@ void flash25_v_erase_chip( void );
 void flash25_v_read_device_info( flash25_device_info_t *info );
 uint8_t flash25_u8_read_mfg_id( void );
 uint32_t flash25_u32_capacity( void );
+uint32_t flash25_u32_read_capacity_from_info( void );
 void flash25_v_unlock_block0( void );
 
 

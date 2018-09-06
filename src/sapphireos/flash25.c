@@ -53,7 +53,7 @@ uint8_t flash25_u8_read_mfg_id( void ){
 }
 
 // returns capacity in bytes
-uint32_t flash25_u32_capacity( void ){
+uint32_t flash25_u32_read_capacity_from_info( void ){
 
 	flash25_device_info_t info;
 
