@@ -467,24 +467,9 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
         reboot();
     }
 }
-extern uint8_t block0[4096];
-volatile uint8_t boot_a, boot_b;
 
 void reboot( void ){
 
-trace_printf("Reboot\n");
-
-boot_a = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
-
-if( boot_a != 2 ){
-
-    flash25_v_read( 0, block0, sizeof(block0) );
-    boot_b = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
-    
-    ASSERT( boot_b == 2 );    
-}
-
-    
     // make sure interrupts are disabled
     DISABLE_INTERRUPTS;
     

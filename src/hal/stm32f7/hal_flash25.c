@@ -37,6 +37,8 @@ extern uint16_t block0_unlock;
 
 static QSPI_HandleTypeDef hqspi;
 
+static uint32_t max_address;
+
 
 void hal_flash25_v_init( void ){
 
@@ -81,14 +83,8 @@ void hal_flash25_v_init( void ){
     HAL_QSPI_Init( &hqspi );
 
 
-
-    // send write disable
-    flash25_v_write_disable();
-
-    flash25_device_info_t info;
-    flash25_v_read_device_info( &info );
-    
-
+    // read max address
+    max_address = flash25_u32_capacity();
 
     // enable writes
     flash25_v_write_enable();
@@ -153,6 +149,8 @@ void flash25_v_write_status( uint8_t status ){
 // read len bytes into ptr
 void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
+    ASSERT( address < max_address );
+
     // this could probably be an assert, since a read of 0 is pretty useless.
     // on the other hand, it is also somewhat harmless.
     if( len == 0 ){
@@ -187,6 +185,8 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
+
+    ASSERT( address < max_address );
 
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
@@ -247,6 +247,8 @@ void flash25_v_write_disable( void ){
 // write a single byte to the device
 void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
+    ASSERT( address < max_address );
+
 	// don't write to block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
 
@@ -289,6 +291,8 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 // this function will NOT check for a valid address, reaching the
 // end of the array, etc.
 void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
+
+    ASSERT( address < max_address );
 
     // don't write to  block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
@@ -366,6 +370,8 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 // since erases may take a long time, it would be best to
 // check the busy bit before calling this function.
 void flash25_v_erase_4k( uint32_t address ){
+
+    ASSERT( address < max_address );
 
 	// don't erase block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
