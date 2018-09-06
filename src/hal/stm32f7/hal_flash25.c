@@ -70,8 +70,8 @@ void hal_flash25_v_init( void ){
     
     // init qspi module
     hqspi.Instance                  = QUADSPI;
-    // hqspi.Init.ClockPrescaler       = 3; // 54 MHz (at AHB 216 MHz)
-    hqspi.Init.ClockPrescaler       = 7; // 27 MHz (at AHB 216 MHz)
+    // hqspi.Init.ClockPrescaler       = 3; // 54 MHz (at AHB 216 MHz) this exceeds the limit for the write instruction (50 MHz)
+    hqspi.Init.ClockPrescaler       = 4; // 43.2 MHz (at AHB 216 MHz)
     hqspi.Init.FifoThreshold        = 1;
     hqspi.Init.SampleShifting       = QSPI_SAMPLE_SHIFTING_NONE;
     hqspi.Init.FlashSize            = 23;
