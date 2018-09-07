@@ -97,6 +97,7 @@
     
     #define wdt_reset()
     #define _delay_us(x)
+    #define _delay_ms(x) HAL_Delay(x)
 
     #define cli()
 

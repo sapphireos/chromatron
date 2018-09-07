@@ -48,7 +48,6 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "os_irq.h"
 #include "keyvalue.h"
 #include "hal_usart.h"
-#include "hal_usb.h"
 #include "esp8266.h"
 #include "wifi_cmd.h"
 #include "netmsg.h"
@@ -62,6 +61,11 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "hal_status_led.h"
 #include "hal_dma.h"
 #include "hash.h"
+#include "hal_esp8266.h"
+
+#ifdef ENABLE_USB
+#include "hal_usb.h"
+#endif
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -429,6 +433,27 @@ ISR(TCD1_OVF_vect){
     // packet complete
     thread_v_signal( WIFI_SIGNAL );
 }
+
+ISR(WIFI_IRQ_VECTOR){
+// OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
+
+    wifi_rx_ready = TRUE;
+
+    uint32_t elapsed_ready_time = tmr_u32_elapsed_time_us( ready_time_start );
+
+    if( elapsed_ready_time > 60000 ){
+
+        return;
+    }
+
+    if( elapsed_ready_time > max_ready_wait_isr ){
+
+        max_ready_wait_isr = elapsed_ready_time;
+    }
+
+// OS_IRQ_END();
+}
+
 
 static void disable_irq( void ){
 
@@ -2358,8 +2383,10 @@ restart:
 
 
 load_image:
-
+    
+    #ifdef ENABLE_USB
     usb_v_detach();
+    #endif
 
     log_v_debug_P( PSTR("Loading wifi image...") );
 
@@ -2479,6 +2506,8 @@ void wifi_v_init( void ){
 
     list_v_init( &netmsg_list );
 
+    hal_wifi_v_init();
+
 
     wifi_status = WIFI_STATE_BOOT;
 
@@ -2560,29 +2589,6 @@ uint32_t wifi_u32_get_received( void ){
 
     return wifi_udp_received;
 }
-
-
-
-ISR(WIFI_IRQ_VECTOR){
-// OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
-
-    wifi_rx_ready = TRUE;
-
-    uint32_t elapsed_ready_time = tmr_u32_elapsed_time_us( ready_time_start );
-
-    if( elapsed_ready_time > 60000 ){
-
-        return;
-    }
-
-    if( elapsed_ready_time > max_ready_wait_isr ){
-
-        max_ready_wait_isr = elapsed_ready_time;
-    }
-
-// OS_IRQ_END();
-}
-
 
 bool wifi_b_running( void ){
 
