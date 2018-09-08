@@ -38,7 +38,6 @@
 
 #define WIFI_AP_MIN_PASS_LEN    8
 
-
 #define WIFI_LOADER_MAX_TRIES   8
 
 

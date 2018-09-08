@@ -76,13 +76,11 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "esp_stub.txt"
 
 
-#define WIFI_USART_TIMEOUT 20000
+#define WIFI_COMM_TIMEOUT 20000
 #define WIFI_CONNECT_TIMEOUT 10000
 
 static uint16_t ports[WIFI_MAX_PORTS];
 static bool run_manager;
-
-#define WIFI_RESET_DELAY_MS     20
 
 static int8_t wifi_status;
 static uint8_t wifi_mac[6];
@@ -199,118 +197,15 @@ static bool is_udp_rx_released( void ){
 }
 
 
-// reset:
-// PD transition low to high
-
-// boot mode:
-// low = ROM bootloader
-// high = normal execution
-
-static void _wifi_v_enter_boot_mode( void ){
-
-    // set up IO
-    WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
-    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
-
-    _delay_ms(WIFI_RESET_DELAY_MS);
-
-    WIFI_USART_XCK_PORT.DIRCLR          = ( 1 << WIFI_USART_XCK_PIN );
-
-    WIFI_BOOT_PORT.DIRSET               = ( 1 << WIFI_BOOT_PIN );
-    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
-    WIFI_BOOT_PORT.OUTCLR               = ( 1 << WIFI_BOOT_PIN );
-
-    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-    WIFI_SS_PORT.WIFI_SS_PINCTRL        = 0;
-    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
-
-    hal_wifi_v_disable_irq();
-
-    // re-init uart
-    WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
-    WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
-    usart_v_init( &WIFI_USART );
-
-    hal_wifi_v_disable_rx_dma();
-
-    usart_v_set_double_speed( &WIFI_USART, FALSE );
-    usart_v_set_baud( &WIFI_USART, BAUD_115200 );
-    hal_wifi_v_usart_flush();
-
-    wifi_status_reg = 0;
-
-    _delay_ms(WIFI_RESET_DELAY_MS);
-
-    // release reset
-    WIFI_PD_PORT.OUTSET = ( 1 << WIFI_PD_PIN );
-
-    _delay_ms(WIFI_RESET_DELAY_MS);
-    _delay_ms(WIFI_RESET_DELAY_MS);
-    _delay_ms(WIFI_RESET_DELAY_MS);
-
-    // return to inputs
-    WIFI_BOOT_PORT.DIRCLR               = ( 1 << WIFI_BOOT_PIN );
-    WIFI_SS_PORT.DIRCLR                 = ( 1 << WIFI_SS_PIN );
-}
-
-static void _wifi_v_enter_normal_mode( void ){
-
-    hal_wifi_v_disable_irq();
-
-    // set up IO
-    WIFI_BOOT_PORT.DIRCLR = ( 1 << WIFI_BOOT_PIN );
-    WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
-    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
-
-    _delay_ms(WIFI_RESET_DELAY_MS);
-
-    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
-
-    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
-    WIFI_SS_PORT.WIFI_SS_PINCTRL        = 0;
-    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
-
-    // disable receive interrupt
-    WIFI_USART.CTRLA &= ~USART_RXCINTLVL_HI_gc;
-
-    wifi_status_reg = 0;
-
-
-    // set XCK pin to output
-    WIFI_USART_XCK_PORT.DIRSET = ( 1 << WIFI_USART_XCK_PIN );
-    WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
-
-    // set boot pin to high
-    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = PORT_OPC_PULLUP_gc;
-
-    _delay_ms(WIFI_RESET_DELAY_MS);
-
-    // release reset
-    WIFI_PD_PORT.OUTSET = ( 1 << WIFI_PD_PIN );
-
-    _delay_ms(WIFI_RESET_DELAY_MS);
-
-    hal_wifi_v_disable_rx_dma();
-
-    // re-init uart
-    WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
-    WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
-    usart_v_init( &WIFI_USART );
-    usart_v_set_double_speed( &WIFI_USART, TRUE );
-    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
-
-    wifi_status_reg = 0;
-}
-
 bool wifi_b_comm_ready( void ){
 
     return hal_wifi_b_comm_ready();
 }
 
-// waits up to WIFI_USART_TIMEOUT microseconds for comm to be ready
+// waits up to WIFI_COMM_TIMEOUT microseconds for comm to be ready
 bool wifi_b_wait_comm_ready( void ){
     
-    BUSY_WAIT_TIMEOUT( !hal_wifi_b_comm_ready(), WIFI_USART_TIMEOUT );
+    BUSY_WAIT_TIMEOUT( !hal_wifi_b_comm_ready(), WIFI_COMM_TIMEOUT );
 
     return hal_wifi_b_comm_ready();
 }
@@ -1654,7 +1549,8 @@ PT_BEGIN( pt );
 
 restart:
     
-    _wifi_v_enter_normal_mode();
+    hal_wifi_v_enter_normal_mode();
+    wifi_status_reg = 0;
 
     hal_wifi_v_clear_rx_ready();
 
@@ -1873,7 +1769,9 @@ restart:
 
     state->tries--;
 
-    _wifi_v_enter_boot_mode();
+    hal_wifi_v_enter_boot_mode();
+    wifi_status_reg = 0;
+
     wifi_status = WIFI_STATE_BOOT;
 
     if( state->fw_file == 0 ){

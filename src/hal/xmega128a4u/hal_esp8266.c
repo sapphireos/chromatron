@@ -37,6 +37,11 @@
 #define UCPHA 1
 
 
+
+#define WIFI_RESET_DELAY_MS     20
+
+
+
 static uint8_t rx_dma_buf[WIFI_UART_RX_BUF_SIZE];
 
 static volatile bool buffer_busy;
@@ -352,13 +357,13 @@ void hal_wifi_v_enable_irq( void ){
     WIFI_BOOT_PORT.INTCTRL |= PORT_INT0LVL_HI_gc;
 }
 
-void hal_wifi_v_set_io_mode( uint8_t pin, io_mode_t8 mode ){
+// void hal_wifi_v_set_io_mode( uint8_t pin, io_mode_t8 mode ){
 
-}
+// }
 
-void hal_wifi_v_write_io( uint8_t pin, bool state ){
+// void hal_wifi_v_write_io( uint8_t pin, bool state ){
 
-}
+// }
 
 uint8_t hal_wifi_u8_get_control_byte( void ){
 
@@ -426,3 +431,98 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 }
 
 
+// reset:
+// PD transition low to high
+
+// boot mode:
+// low = ROM bootloader
+// high = normal execution
+
+void hal_wifi_v_enter_boot_mode( void ){
+
+    // set up IO
+    WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
+    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
+
+    _delay_ms(WIFI_RESET_DELAY_MS);
+
+    WIFI_USART_XCK_PORT.DIRCLR          = ( 1 << WIFI_USART_XCK_PIN );
+
+    WIFI_BOOT_PORT.DIRSET               = ( 1 << WIFI_BOOT_PIN );
+    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
+    WIFI_BOOT_PORT.OUTCLR               = ( 1 << WIFI_BOOT_PIN );
+
+    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.WIFI_SS_PINCTRL        = 0;
+    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+
+    hal_wifi_v_disable_irq();
+
+    // re-init uart
+    WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
+    WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
+    usart_v_init( &WIFI_USART );
+
+    hal_wifi_v_disable_rx_dma();
+
+    usart_v_set_double_speed( &WIFI_USART, FALSE );
+    usart_v_set_baud( &WIFI_USART, BAUD_115200 );
+    hal_wifi_v_usart_flush();
+
+    _delay_ms(WIFI_RESET_DELAY_MS);
+
+    // release reset
+    WIFI_PD_PORT.OUTSET = ( 1 << WIFI_PD_PIN );
+
+    _delay_ms(WIFI_RESET_DELAY_MS);
+    _delay_ms(WIFI_RESET_DELAY_MS);
+    _delay_ms(WIFI_RESET_DELAY_MS);
+
+    // return to inputs
+    WIFI_BOOT_PORT.DIRCLR               = ( 1 << WIFI_BOOT_PIN );
+    WIFI_SS_PORT.DIRCLR                 = ( 1 << WIFI_SS_PIN );
+}
+
+void hal_wifi_v_enter_normal_mode( void ){
+
+    hal_wifi_v_disable_irq();
+
+    // set up IO
+    WIFI_BOOT_PORT.DIRCLR = ( 1 << WIFI_BOOT_PIN );
+    WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
+    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
+
+    _delay_ms(WIFI_RESET_DELAY_MS);
+
+    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
+
+    WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
+    WIFI_SS_PORT.WIFI_SS_PINCTRL        = 0;
+    WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
+
+    // disable receive interrupt
+    WIFI_USART.CTRLA &= ~USART_RXCINTLVL_HI_gc;
+
+    // set XCK pin to output
+    WIFI_USART_XCK_PORT.DIRSET = ( 1 << WIFI_USART_XCK_PIN );
+    WIFI_USART_XCK_PORT.OUTSET = ( 1 << WIFI_USART_XCK_PIN );
+
+    // set boot pin to high
+    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = PORT_OPC_PULLUP_gc;
+
+    _delay_ms(WIFI_RESET_DELAY_MS);
+
+    // release reset
+    WIFI_PD_PORT.OUTSET = ( 1 << WIFI_PD_PIN );
+
+    _delay_ms(WIFI_RESET_DELAY_MS);
+
+    hal_wifi_v_disable_rx_dma();
+
+    // re-init uart
+    WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
+    WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
+    usart_v_init( &WIFI_USART );
+    usart_v_set_double_speed( &WIFI_USART, TRUE );
+    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
+}

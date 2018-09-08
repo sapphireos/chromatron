@@ -86,8 +86,8 @@ void hal_wifi_v_set_rx_ready( void );
 void hal_wifi_v_disable_irq( void );
 void hal_wifi_v_enable_irq( void );
 
-void hal_wifi_v_set_io_mode( uint8_t pin, io_mode_t8 mode );
-void hal_wifi_v_write_io( uint8_t pin, bool state );
+// void hal_wifi_v_set_io_mode( uint8_t pin, io_mode_t8 mode );
+// void hal_wifi_v_write_io( uint8_t pin, bool state );
 
 uint8_t hal_wifi_u8_get_control_byte( void );
 int16_t hal_wifi_i16_rx_data_received( void );
@@ -98,6 +98,9 @@ bool hal_wifi_b_comm_ready( void );
 uint32_t hal_wifi_u32_get_max_ready_wait( void );
 uint32_t hal_wifi_u32_get_rx_bytes( void );
 uint32_t hal_wifi_u32_get_tx_bytes( void );
+
+void hal_wifi_v_enter_boot_mode( void );
+void hal_wifi_v_enter_normal_mode( void );
 
 #endif
 
