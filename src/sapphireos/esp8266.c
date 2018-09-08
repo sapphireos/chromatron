@@ -43,6 +43,8 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 
 #include "system.h"
 
+#ifdef ENABLE_WIFI
+
 #include "threading.h"
 #include "timers.h"
 #include "os_irq.h"
@@ -1471,3 +1473,5 @@ bool wifi_b_running( void ){
 
     return TRUE;
 }
+
+#endif

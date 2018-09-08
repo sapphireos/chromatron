@@ -21,6 +21,9 @@
 // </license>
 
 #include "system.h"
+
+#ifdef ENABLE_WIFI
+
 #include "fs.h"
 #include "timers.h"
 #include "config.h"
@@ -644,3 +647,4 @@ void esp_v_flash_end( void ){
     esp_v_command( ESP_FLASH_END, (uint8_t *)&cmd, sizeof(cmd), 0 );
 }
 
+#endif
