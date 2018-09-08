@@ -26,10 +26,10 @@
 
 #define MD5_LEN 16
 
-#define ESP_SYNC_TIMEOUT 5000
-#define ESP_CMD_TIMEOUT 50000
-#define ESP_CESANTA_TIMEOUT 50000
-#define ESP_ERASE_TIMEOUT 5000000
+#define ESP_SYNC_TIMEOUT 		5000
+#define ESP_CMD_TIMEOUT 		50000
+#define ESP_CESANTA_TIMEOUT 	50000
+#define ESP_ERASE_TIMEOUT 		5000000
 
 
 #define SLIP_END        0xC0
@@ -47,7 +47,7 @@
 #define ESP_WRITE_REG   0x09
 #define ESP_READ_REG    0x0a
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint8_t resp;
     uint8_t opcode;
     uint16_t len;
@@ -55,34 +55,34 @@ typedef struct{
 } esp_response_t;
 
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t size;
     uint32_t num_blocks;
     uint32_t block_size;
     uint32_t offset;
 } esp_mem_begin_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t size;
     uint32_t seq;
     uint32_t reserved0;
     uint32_t reserved1;
 } esp_mem_block_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t zero;
     uint32_t entrypoint;
 } esp_mem_finish_t;
 
 // Cesanta protocol
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t addr;
     uint32_t len;
     uint32_t erase;
 } esp_write_flash_t;
 
 // Cesanta protocol
-typedef struct{
+typedef struct __attribute__((packed)){
     uint32_t addr;
     uint32_t len;
     uint32_t block_size;
