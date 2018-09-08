@@ -1384,18 +1384,12 @@ static int8_t process_rx_data( void ){
     hal_wifi_v_reset_control_byte();
 
     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
-    // uint8_t *buf = &rx_buf[1];
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
     memcpy( buf, &rx_buf[1], sizeof(wifi_data_header_t) + header->len );
 
 
-    ATOMIC;
-
-    // release buffer
-    buffer_busy = FALSE;
-
-    END_ATOMIC;
+    hal_wifi_v_release_rx_buffer();
 
 
     current_rx_bytes += rx_bytes;
@@ -1802,10 +1796,8 @@ receive:
             msgs_received++;
         }
 
-        ATOMIC;
-        max_ready_wait = max_ready_wait_isr;
-        END_ATOMIC;
-    
+        max_ready_wait = hal_wifi_u32_get_max_ready_wait();
+            
         THREAD_YIELD( pt );
         THREAD_YIELD( pt );
     }
@@ -1833,13 +1825,10 @@ PT_BEGIN( pt );
         }
 
         // update comm traffic counters
-        comm_rx_rate = current_rx_bytes;
-        comm_tx_rate = current_tx_bytes;
+        comm_rx_rate = hal_wifi_u32_get_rx_bytes();
+        comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
-        // reset counters
-        current_rx_bytes = 0;
-        current_tx_bytes = 0;
-
+        
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_comm_ready() );
 
         

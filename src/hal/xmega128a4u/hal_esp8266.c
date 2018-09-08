@@ -37,8 +37,6 @@
 #define UCPHA 1
 
 
-#define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
-
 static uint8_t rx_dma_buf[WIFI_UART_RX_BUF_SIZE];
 
 static volatile bool buffer_busy;
@@ -286,6 +284,16 @@ void hal_wifi_v_clear_rx_buffer( void ){
 	memset( rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
 }
 
+void hal_wifi_v_release_rx_buffer( void ){
+
+    ATOMIC;
+
+    // release buffer
+    buffer_busy = FALSE;
+
+    END_ATOMIC;
+}
+
 void hal_wifi_v_reset_control_byte( void ){
 
     rx_buf[0] = WIFI_COMM_IDLE;   
@@ -376,4 +384,34 @@ bool hal_wifi_b_comm_ready( void ){
 
     return temp;
 }	
+
+uint32_t hal_wifi_u32_get_max_ready_wait( void ){
+
+	ATOMIC;
+
+	uint32_t temp = max_ready_wait_isr;
+
+	END_ATOMIC;
+
+	return temp;
+}
+
+uint32_t hal_wifi_u32_get_rx_bytes( void ){
+
+	uint32_t temp = current_rx_bytes;
+
+	current_rx_bytes = 0;
+
+	return temp;
+}
+
+uint32_t hal_wifi_u32_get_tx_bytes( void ){
+
+	uint32_t temp = current_tx_bytes;
+
+	current_tx_bytes = 0;
+
+	return temp;
+}
+
 

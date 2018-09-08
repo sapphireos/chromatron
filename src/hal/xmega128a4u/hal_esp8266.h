@@ -25,10 +25,12 @@
 
 #include "system.h"
 #include "io.h"
+#include "wifi_cmd.h"
 
 #define WIFI_TIMER 				TCD1
 #define WIFI_TIMER_ISR  		TCD1_OVF_vect
 
+#define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
 
 #define WIFI_USART              USARTE0
 #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
@@ -73,6 +75,8 @@ void hal_wifi_v_enable_rx_dma( bool irq );
 
 void hal_wifi_v_reset_rx_buffer( void );
 void hal_wifi_v_clear_rx_buffer( void );
+void hal_wifi_v_release_rx_buffer( void );
+
 void hal_wifi_v_reset_control_byte( void );
 void hal_wifi_v_reset_comm( void );
 void hal_wifi_v_set_rx_ready( void );
@@ -87,6 +91,10 @@ int16_t hal_wifi_i16_rx_data_received( void );
 
 void hal_wifi_v_clear_rx_ready( void );
 bool hal_wifi_b_comm_ready( void );
+
+uint32_t hal_wifi_u32_get_max_ready_wait( void );
+uint32_t hal_wifi_u32_get_rx_bytes( void );
+uint32_t hal_wifi_u32_get_tx_bytes( void );
 
 #endif
 
