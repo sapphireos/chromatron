@@ -602,6 +602,8 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     hal_wifi_v_clear_rx_buffer();
     hal_wifi_v_enable_rx_dma( FALSE );
 
+    uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
+
     // waiting for frame start
     while( rx_dma_buf[next_byte] != SLIP_END ){
 
@@ -889,14 +891,14 @@ int8_t esp_i8_load_flash( file_t file ){
         return -1;
     }
 
-    memset( (uint8_t *)rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+    hal_wifi_v_clear_rx_buffer();
     hal_wifi_v_enable_rx_dma( FALSE );
 
     // cast rx_dma_buf to a volatile pointer.
     // otherwise, GCC will attempt to be clever and cache
     // the first byte of rx_dma_buf, which will cause
     // the check for SLIP_END to fail.
-    volatile uint8_t *buf = rx_dma_buf;
+    volatile uint8_t *buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
 
     esp_write_flash_t cmd;
     cmd.addr = 0;
@@ -966,7 +968,7 @@ int8_t esp_i8_load_flash( file_t file ){
 
         if( ( len % 1024 ) == 0 ){
 
-            memset( (uint8_t *)rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+            hal_wifi_v_clear_rx_buffer();
             hal_wifi_v_enable_rx_dma( FALSE );
 
             for( uint8_t i = 0; i < 250; i++ ){
@@ -999,7 +1001,7 @@ typedef struct{
 
 int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
 
-    memset( rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+    hal_wifi_v_clear_rx_buffer();
     hal_wifi_v_enable_rx_dma( FALSE );
 
     esp_digest_t cmd;
@@ -1020,7 +1022,7 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     // otherwise, GCC will attempt to be clever and cache
     // the first byte of rx_dma_buf, which will cause
     // the check for SLIP_END to fail.
-    volatile uint8_t *buf = rx_dma_buf;
+    volatile uint8_t *buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
 
     for( uint8_t i = 0; i < 250; i++ ){
 
@@ -1047,27 +1049,27 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     uint8_t md5_idx = 0;
 
     // parse response
-    for( uint8_t i = 1; i < sizeof(rx_dma_buf); i++ ){
+    for( uint8_t i = 1; i < WIFI_UART_RX_BUF_SIZE; i++ ){
 
         if( md5_idx >= MD5_LEN ){
 
             break;
         }
 
-        if( rx_dma_buf[i] == SLIP_END ){
+        if( buf[i] == SLIP_END ){
 
             break;
         }
-        else if( rx_dma_buf[i] == SLIP_ESC ){
+        else if( buf[i] == SLIP_ESC ){
 
             i++;
 
-            if( rx_dma_buf[i] == SLIP_ESC_END ){
+            if( buf[i] == SLIP_ESC_END ){
 
                 digest[md5_idx] = SLIP_END;
                 md5_idx++;
             }
-            else if( rx_dma_buf[i] == SLIP_ESC_ESC ){
+            else if( buf[i] == SLIP_ESC_ESC ){
 
                 digest[md5_idx] = SLIP_ESC;
                 md5_idx++;
@@ -1075,7 +1077,7 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
         }
         else{
 
-            digest[md5_idx] = rx_dma_buf[i];
+            digest[md5_idx] = buf[i];
             md5_idx++;
         }
     }
@@ -1384,15 +1386,14 @@ static int8_t process_rx_data( void ){
     hal_wifi_v_reset_control_byte();
 
     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
+
+    uint8_t *rx_buf = hal_wifi_u8p_get_rx_buf_ptr();
+
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
     memcpy( buf, &rx_buf[1], sizeof(wifi_data_header_t) + header->len );
 
-
     hal_wifi_v_release_rx_buffer();
-
-
-    current_rx_bytes += rx_bytes;
 
     header = (wifi_data_header_t *)buf;
     uint8_t *data = (uint8_t *)( header + 1 );
@@ -1942,6 +1943,8 @@ restart:
     // change baud rate
 // cesanta stub has a delay, so make sure we wait plenty long enough
     _delay_ms( 50 );
+
+    uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
 
     // now check buffer, Cesanta will send us a hello message
     if( !( ( rx_dma_buf[0] == SLIP_END ) &&

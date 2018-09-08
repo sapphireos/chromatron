@@ -64,6 +64,9 @@
 
 void hal_wifi_v_init( void );
 
+uint8_t *hal_wifi_u8p_get_rx_dma_buf_ptr( void );
+uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void );
+
 void hal_wifi_v_usart_send_char( uint8_t b );
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len );
 int16_t hal_wifi_i16_usart_get_char( void );

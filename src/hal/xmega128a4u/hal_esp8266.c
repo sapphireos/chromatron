@@ -171,6 +171,15 @@ void hal_wifi_v_init( void ){
     WIFI_USART_XCK_PORT.OUTCLR                  = ( 1 << WIFI_USART_XCK_PIN );
 }
 
+uint8_t *hal_wifi_u8p_get_rx_dma_buf_ptr( void ){
+
+	return rx_dma_buf;
+}
+
+uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void ){
+
+	return rx_buf;
+}
 
 void hal_wifi_v_usart_send_char( uint8_t b ){
 
@@ -285,6 +294,8 @@ void hal_wifi_v_clear_rx_buffer( void ){
 }
 
 void hal_wifi_v_release_rx_buffer( void ){
+
+	current_rx_bytes += hal_wifi_i16_rx_data_received();
 
     ATOMIC;
 
