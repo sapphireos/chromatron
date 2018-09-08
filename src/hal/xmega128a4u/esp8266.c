@@ -302,6 +302,10 @@ static void _wifi_v_enter_normal_mode( void ){
     wifi_status_reg = 0;
 }
 
+bool wifi_b_comm_ready( void ){
+
+    return hal_wifi_b_comm_ready();
+}
 
 // waits up to WIFI_USART_TIMEOUT microseconds for comm to be ready
 bool wifi_b_wait_comm_ready( void ){
