@@ -72,6 +72,7 @@ void hal_wifi_v_disable_rx_dma( void );
 void hal_wifi_v_enable_rx_dma( bool irq );
 
 void hal_wifi_v_reset_rx_buffer( void );
+void hal_wifi_v_clear_rx_buffer( void );
 void hal_wifi_v_reset_control_byte( void );
 void hal_wifi_v_reset_comm( void );
 void hal_wifi_v_set_rx_ready( void );

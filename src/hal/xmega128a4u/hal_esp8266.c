@@ -22,10 +22,14 @@
 
 
 #include "system.h"
+#include "timers.h"
 
 #include "hal_usart.h"
 
 #include "hal_esp8266.h"
+#include "wifi_cmd.h"
+
+#include "esp8266.h"
 
 
 // these bits in USART.CTRLC seem to be missing from the IO header
@@ -45,6 +49,8 @@ static uint32_t current_rx_bytes;
 
 static volatile bool wifi_rx_ready;
 
+static uint32_t ready_time_start;
+static volatile uint16_t max_ready_wait_isr;
 
 
 ISR(WIFI_DMA_IRQ_VECTOR){
@@ -81,7 +87,7 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         // incorrect control byte on frame
 
         // reset DMA and send ready signal
-        wifi_v_set_rx_ready();
+        hal_wifi_v_set_rx_ready();
     }
 }
 
@@ -115,7 +121,7 @@ ISR(WIFI_TIMER_ISR){
     // copy to process buffer
     memcpy( rx_buf, rx_dma_buf, sizeof(rx_buf) );
 
-    wifi_v_set_rx_ready();
+    hal_wifi_v_set_rx_ready();
 
     // packet complete
     thread_v_signal( WIFI_SIGNAL );
@@ -189,7 +195,7 @@ int16_t hal_wifi_i16_usart_get_char( void ){
 
 void hal_wifi_v_usart_flush( void ){
 
-	BUSY_WAIT( _wifi_i16_usart_get_char() >= 0 );
+	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
 }
 
 uint16_t hal_wifi_u16_dma_rx_bytes( void ){
@@ -273,6 +279,11 @@ void hal_wifi_v_reset_rx_buffer( void ){
 
     // set up DMA
     hal_wifi_v_enable_rx_dma( TRUE );
+}
+
+void hal_wifi_v_clear_rx_buffer( void ){
+
+	memset( rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
 }
 
 void hal_wifi_v_reset_control_byte( void ){

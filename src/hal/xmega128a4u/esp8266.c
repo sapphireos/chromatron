@@ -121,8 +121,6 @@ static uint16_t rx_netmsg_crc;
 
 static uint8_t router;
 
-static uint32_t ready_time_start;
-static volatile uint16_t max_ready_wait_isr;
 static uint16_t max_ready_wait;
 
 static uint8_t comm_stalls;
@@ -601,7 +599,7 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     uint32_t start_time = tmr_u32_get_system_time_us();
 
     uint8_t next_byte = 0;
-    memset( rx_dma_buf, 0xff, sizeof(rx_dma_buf) );
+    hal_wifi_v_clear_rx_buffer();
     hal_wifi_v_enable_rx_dma( FALSE );
 
     // waiting for frame start
