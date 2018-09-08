@@ -1,1 +1,1 @@
-../../hal/xmega128a4u/wifi_cmd.h
+../../sapphireos/wifi_cmd.h
