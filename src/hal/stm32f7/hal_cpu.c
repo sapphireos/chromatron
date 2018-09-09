@@ -77,6 +77,9 @@ void cpu_v_init( void ){
     LL_Init1msTick(cpu_u32_get_clock_speed());
     LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);
 
+    // enable SYSCFG controller clock
+    __HAL_RCC_SYSCFG_CLK_ENABLE();
+
     // enable gpio clocks
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOH);
