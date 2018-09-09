@@ -29,7 +29,7 @@
 
 
 // modules
-// #define ENABLE_CATBUS_LINK
+#define ENABLE_CATBUS_LINK
 // #define ENABLE_TIME_SYNC
 // #define ENABLE_USB_UDP_TRANSPORT
 #define ENABLE_WIFI
@@ -89,14 +89,5 @@
 // comment this out to turn off run-time asserts
 #define INCLUDE_ASSERTS
 
-
-// usartd0 spi
-#define SPI_MOSI_PORT PORTD
-#define SPI_MISO_PORT PORTD
-#define SPI_SCK_PIN 1
-#define SPI_MISO_PIN 2
-#define SPI_MOSI_PIN 3
-#define SPI_IO_PORT PORTD
-#define SPI_PORT USARTD0
 
 #endif
