@@ -61,7 +61,6 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "fs.h"
 #include "watchdog.h"
 #include "hal_status_led.h"
-#include "hal_dma.h"
 #include "hash.h"
 #include "hal_esp8266.h"
 #include "esp8266_loader.h"
@@ -1324,7 +1323,7 @@ load_image:
 
 error:
 
-    WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
+    hal_wifi_v_reset(); // hold chip in reset
 
     status_led_v_set( 1, STATUS_LED_RED );
 

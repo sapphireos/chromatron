@@ -170,6 +170,10 @@ void hal_wifi_v_init( void ){
     // WIFI_USART_XCK_PORT.OUTCLR                  = ( 1 << WIFI_USART_XCK_PIN );
 }
 
+void hal_wifi_v_reset( void ){
+
+}
+
 uint8_t *hal_wifi_u8p_get_rx_dma_buf_ptr( void ){
 
 	return rx_dma_buf;
