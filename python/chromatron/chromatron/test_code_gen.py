@@ -21,7 +21,7 @@
 # </license>
 
 import unittest
-import code_gen2 as code_gen
+import code_gen
 
 empty_program = """
 def init():
@@ -1629,10 +1629,29 @@ def init():
 
 """
 
+test_loop_var_redeclare = """
+
+
+def init():
+    for i in 4:
+        pass
+    
+    for i in 4:
+        pass
+"""
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_loop_var_redeclare(self):
+        # no value check.
+        # this test passes if the compilation
+        # succeeds without error.
+        self.run_test(test_loop_var_redeclare,
+            expected={
+            })
 
     def test_array_index_call(self):
         self.run_test(test_array_index_call,
