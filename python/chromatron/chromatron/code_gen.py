@@ -917,82 +917,82 @@ def compile_script(path, debug_print=False):
 
 
 if __name__ == '__main__':
-    # path = sys.argv[1]
-    # script_name = os.path.split(path)[1]
+    path = sys.argv[1]
+    script_name = os.path.split(path)[1]
 
-    # with open(path) as f:
-    #     text = f.read()
+    with open(path) as f:
+        text = f.read()
 
-    # stream = compile_text(text, debug_print=True, script_name=script_name).stream
+    stream = compile_text(text, debug_print=True, script_name=script_name).stream
 
-    # try:
-    #     output_path = sys.argv[2]
-    #     with open(output_path, 'w+') as f:
-    #         f.write(stream)
+    try:
+        output_path = sys.argv[2]
+        with open(output_path, 'w+') as f:
+            f.write(stream)
 
-    # except IndexError:
-    #     pass
+    except IndexError:
+        pass
 
 
 
-    with open('cg2_test.fx') as f:
-        source = f.read()
+    # with open('cg2_test.fx') as f:
+    #     source = f.read()
 
 
     # with open('chandelier.fx') as f:
         # source = f.read()
 
-    tree = ast.parse(source)
+    # tree = ast.parse(source)
 
-    print pformat_ast(tree)
+    # print pformat_ast(tree)
 
-    print '\n'
+    # print '\n'
 
-    cg1 = CodeGenPass1()
+    # cg1 = CodeGenPass1()
 
-    cg1_data = cg1(source)
+    # cg1_data = cg1(source)
 
-    print pformat_ast(cg1_data)
+    # print pformat_ast(cg1_data)
 
-    try:
-        builder = cg1_data.build()
+    # try:
+    #     builder = cg1_data.build()
 
-        print builder
+    #     print builder
 
-    except SyntaxError as e:
-        print e
+    # except SyntaxError as e:
+    #     print e
 
-        raise
-        # sys.exit(0)
+    #     raise
+    #     # sys.exit(0)
 
 
 
-    data = builder.allocate()
+    # data = builder.allocate()
 
-    # print builder
+    # # print builder
 
-    ins = builder.generate_instructions()
+    # ins = builder.generate_instructions()
 
-    builder.print_instructions(ins)
-    builder.print_data_table(data)
+    # builder.print_instructions(ins)
+    # builder.print_data_table(data)
 
-    stream = builder.assemble()
+    # stream = builder.assemble()
 
-    # pprint.pprint(stream)
+    # # pprint.pprint(stream)
 
-    builder.generate_binary('cg2_test.fxb')
+    # builder.generate_binary('cg2_test.fxb')
     
 
-    vm = VM(builder)
+    # vm = VM(builder)
 
-    pprint.pprint(vm.dump_registers())
-    # vm.run('init')
-    vm.run_once()
+    # pprint.pprint(vm.dump_registers())
+    # # vm.run('init')
+    # vm.run_once()
 
-    pprint.pprint(vm.dump_registers())
+    # pprint.pprint(vm.dump_registers())
 
-    print vm.memory
-    print vm.db
-    print vm.pixel_arrays
-    print vm.dump_hsv()
+    # print vm.memory
+    # print vm.db
+    # print vm.pixel_arrays
+    # print vm.dump_hsv()
 

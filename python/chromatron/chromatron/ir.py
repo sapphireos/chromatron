@@ -236,11 +236,18 @@ class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
         super(irAddress, self).__init__(name, **kwargs)
         self.target = target
-        self.type = 'addr_i32'
 
     def __str__(self):
-        return "Addr (%s -> %s)" % (self.name, self.target)
+        return "Addr (%s -> %s)" % (self.name, self.target) 
 
+    @property
+    def type(self):
+        return self.target.type
+
+    @type.setter
+    def type(self, value):
+        pass
+    
     def generate(self):
         assert self.addr != None
         return insAddr(self.addr, self.target)
@@ -1674,9 +1681,14 @@ class Builder(object):
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(value, irAddress) and \
+            not isinstance(target, irAddress) and \
+            not isinstance(target, irPixelIndex) and \
             not isinstance(value, irPixelIndex) and \
-            not isinstance(value, irDBIndex) and \
-            not isinstance(value, irDBAttr):
+            not isinstance(target, irPixelAttr) and \
+            not isinstance(target, irDBAttr) and \
+            not isinstance(value, irDBAttr) and \
+            not isinstance(target, irDBIndex) and \
+            not isinstance(value, irDBIndex):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
