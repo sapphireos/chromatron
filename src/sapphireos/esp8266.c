@@ -1178,7 +1178,7 @@ restart:
     }
 
     // change baud rate
-// cesanta stub has a delay, so make sure we wait plenty long enough
+    // cesanta stub has a delay, so make sure we wait plenty long enough
     _delay_ms( 50 );
 
     uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
@@ -1196,7 +1196,7 @@ restart:
         hal_wifi_v_disable_rx_dma();
 
         TMR_WAIT( pt, 500 );
-        goto error;
+        goto restart;
     }
 
     status_led_v_set( 1, STATUS_LED_BLUE );
