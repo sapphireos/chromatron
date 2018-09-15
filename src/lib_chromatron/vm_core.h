@@ -177,7 +177,7 @@ typedef struct{
     uint32_t delay_ticks;
 } vm_thread_t;
 
-typedef struct __attribute__((packed)){
+typedef struct __attribute__((packed)){ // MUST be 32 bit aligned!
     uint16_t code_start;
     uint16_t data_start;
     uint16_t prog_size;
@@ -199,7 +199,7 @@ typedef struct __attribute__((packed)){
     uint32_t yield;
 
     int32_t current_thread;
-    uint16_t max_cycles;
+    uint32_t max_cycles;
 
     uint32_t read_keys_count;
     uint32_t read_keys_start;

@@ -645,6 +645,8 @@ void vm_v_init( void ){
         return;
     }
 
+    COMPILER_ASSERT( ( sizeof(vm_state_t) % 4 ) == 0 );
+
     memset( vm_status, VM_STATUS_NOT_RUNNING, sizeof(vm_status) );
 
     thread_t_create( vm_loader,
