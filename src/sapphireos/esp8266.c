@@ -1181,6 +1181,9 @@ restart:
     hal_wifi_v_usart_set_baud( ESP_CESANTA_BAUD_USART_SETTING );
     hal_wifi_v_usart_flush();    
 
+    // clear buffer
+    hal_wifi_v_reset_rx_buffer();
+
     // cesanta stub has a delay, so make sure we wait plenty long enough
     _delay_ms( 50 );
 
