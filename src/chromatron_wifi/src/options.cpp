@@ -22,6 +22,10 @@
 
 #include "options.h"
 
+extern "C"{
+	#include "user_interface.h"
+}
+
 static bool low_power;
 static bool led_quiet;
 static bool high_speed;
@@ -48,6 +52,11 @@ bool opt_b_get_led_quiet( void ){
 
 void opt_v_set_high_speed( bool mode ){
 
+	if( mode && !high_speed ){
+
+		system_update_cpu_freq( SYS_CPU_160MHZ );
+	}
+
 	high_speed = mode;
 }
 
@@ -55,3 +64,5 @@ bool opt_b_get_high_speed( void ){
 
 	return high_speed;
 }
+
+
