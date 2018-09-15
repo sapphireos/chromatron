@@ -628,11 +628,12 @@ class Client(object):
 
                 if isinstance(reply_msg, ErrorMsg):
                     self.flush()
-                    raise ProtocolErrorException(data_msg.error_code, lookup_error_msg(reply_msg.error_code))
+                    raise ProtocolErrorException(reply_msg.error_code, lookup_error_msg(reply_msg.error_code))
 
                 elif not isinstance(reply_msg, FileGetMsg):
                     self.flush()
-                    raise ProtocolErrorException("invalid message")
+                    # raise ProtocolErrorException(CATBUS_ERROR_UNKNOWN_MSG, "invalid message: %s" % (str(reply_msg)))
+                    continue
 
                 if reply_msg.session_id != session_id:
                     continue
