@@ -26,6 +26,7 @@
 #include "system.h"
 #include "io.h"
 #include "wifi_cmd.h"
+#include "hal_usart.h"
 
 #define WIFI_TIMER 				TCD1
 #define WIFI_TIMER_ISR  		TCD1_OVF_vect
@@ -71,6 +72,7 @@ uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void );
 
 void hal_wifi_v_usart_send_char( uint8_t b );
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len );
+void hal_wifi_v_usart_set_baud( baud_t8 baud );
 int16_t hal_wifi_i16_usart_get_char( void );
 void hal_wifi_v_usart_flush( void );
 

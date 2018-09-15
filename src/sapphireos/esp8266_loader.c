@@ -61,9 +61,6 @@
 // Flash sector size, minimum unit of erase.
 #define ESP_FLASH_SECTOR 0x1000
 
-#define ESP_CESANTA_BAUD                2000000
-#define ESP_CESANTA_BAUD_USART_SETTING  BAUD_2000000
-
 #define ESP_CESANTA_FLASH_SECTOR_SIZE   4096
 
 #define ESP_CESANTA_CMD_FLASH_ERASE     0

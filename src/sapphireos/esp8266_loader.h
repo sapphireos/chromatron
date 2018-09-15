@@ -31,6 +31,9 @@
 #define ESP_CESANTA_TIMEOUT 	50000
 #define ESP_ERASE_TIMEOUT 		5000000
 
+#define ESP_CESANTA_BAUD                2000000
+#define ESP_CESANTA_BAUD_USART_SETTING  BAUD_2000000
+
 
 #define SLIP_END        0xC0
 #define SLIP_ESC        0xDB

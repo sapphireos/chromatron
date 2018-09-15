@@ -1178,6 +1178,9 @@ restart:
     }
 
     // change baud rate
+    hal_wifi_v_usart_set_baud( ESP_CESANTA_BAUD_USART_SETTING );
+    hal_wifi_v_usart_flush();    
+
     // cesanta stub has a delay, so make sure we wait plenty long enough
     _delay_ms( 50 );
 

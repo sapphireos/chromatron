@@ -205,6 +205,11 @@ void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
     current_tx_bytes += len;
 }
 
+void hal_wifi_v_usart_set_baud( baud_t8 baud ){
+
+    usart_v_set_baud( &WIFI_USART, baud );
+}
+
 int16_t hal_wifi_i16_usart_get_char( void ){
 
 	return usart_i16_get_byte( &WIFI_USART );
