@@ -86,7 +86,7 @@ void setup(){
 
     vm_v_init();
 
-
+    opt_v_set_high_speed( true );        
 
     wifi_set_sleep_type( MODEM_SLEEP_T );
 
@@ -169,15 +169,16 @@ void loop(){
         stats->mem_max_time = stats->mem_run_time;
     }
 
-    if( ( stats->vm_max_time > 2000 ) && !opt_b_get_high_speed() ){
+    // if( ( stats->vm_max_time > 2000 ) && !opt_b_get_high_speed() ){
 
-        intf_v_printf( "CPU CLK -> 160 MHz" );
+    //     intf_v_printf( "CPU CLK -> 160 MHz" );
+        
+    //     // reset max time so we compute a new one with the new clock frequency
+    //     stats->vm_max_time = 0;
+    // }
 
-        opt_v_set_high_speed( true );        
-
-        // reset max time so we compute a new one with the new clock frequency
-        stats->vm_max_time = 0;
+    if( opt_b_get_low_power() ){
+        
+        delay(1);
     }
-
-    delay(1);
 }
