@@ -128,6 +128,9 @@ class SyntaxError(Exception):
 
         super(SyntaxError, self).__init__(message)
 
+class VariableAlreadyDeclared(SyntaxError):
+    pass
+
 class VariableNotDeclared(SyntaxError):
     def __init__(self, var, message='', lineno=None):
         super(VariableNotDeclared, self).__init__(message, lineno)
@@ -1477,11 +1480,11 @@ class Builder(object):
         # check if this is already in the globals
         if name in self.globals:
             # return self.globals[name]
-            raise SyntaxError("Variable '%s' already declared as global" % (name), lineno=lineno)
+            raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
         if name in self.locals[self.current_func]:
             # return self.locals[self.current_func][name]
-            raise SyntaxError("Local variable '%s' already declared" % (name), lineno=lineno)
+            raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
 
         if keywords != None:
             if 'publish' in keywords:
