@@ -34,6 +34,7 @@
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
+PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
@@ -100,6 +101,11 @@ void time_v_init( void ){
 
     thread_t_create( time_master_thread,
                     PSTR("time_master"),
+                    0,
+                    0 );    
+
+    thread_t_create( time_clock_thread,
+                    PSTR("time_clock"),
                     0,
                     0 );    
 }
@@ -591,6 +597,22 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+
+PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( TRUE ){
+
+        TMR_WAIT( pt, 1000 );
+
+    }
+
+PT_END( pt );
+}
+
 
 
 #endif

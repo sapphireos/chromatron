@@ -24,6 +24,7 @@
 #ifndef _SNTP_H
 #define _SNTP_H
 
+#include "ntp.h"
 
 #define SNTP_SERVER_PORT    123
 
