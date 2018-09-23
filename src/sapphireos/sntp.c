@@ -218,11 +218,10 @@ void sntp_v_start( void ){
 
         status = SNTP_STATUS_NO_SYNC;
 
-        thread = 
-        thread_t_create( sntp_client_thread,
-                         PSTR("sntp_client"),
-                         0,
-                         0 );
+        thread = thread_t_create( sntp_client_thread,
+                                  PSTR("sntp_client"),
+                                  0,
+                                  0 );
     }
     else{
 
