@@ -30,7 +30,6 @@
 #include "graphics.h"
 #include "vm.h"
 #include "energy.h"
-#include "timesync.h"
 #include "io_kv.h"
 #include "vm_sync.h"
 
@@ -109,7 +108,6 @@ void app_v_init( void ){
     vm_v_init();
 
     #ifdef ENABLE_TIME_SYNC
-    time_v_init();
     vm_sync_v_init();
     #endif
 

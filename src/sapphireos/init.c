@@ -69,6 +69,10 @@
 #include "esp8266.h"
 #endif
 
+#ifdef ENABLE_TIME_SYNC
+#include "timesync.h"
+#endif
+
 #include "init.h"
 
 
@@ -198,6 +202,10 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_WIFI
     wifi_v_init();
+    #endif
+
+    #ifdef ENABLE_TIME_SYNC
+    time_v_init();
     #endif
 
     catbus_v_init();
