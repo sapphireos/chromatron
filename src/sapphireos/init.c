@@ -36,7 +36,6 @@
 #include "fs.h"
 #include "io.h"
 #include "status_led.h"
-#include "command2.h"
 #include "logging.h"
 #include "datetime.h"
 #include "keyvalue.h"
@@ -179,11 +178,6 @@ int8_t sapphire_i8_init( void ){
     // init netmsg
     netmsg_v_init();
 
-    #endif
-
-    #ifdef ENABLE_CMD2
-    // init command interface
-    cmd2_v_init();
     #endif
 
     // init random number generator
