@@ -76,7 +76,6 @@ typedef int8_t sntp_status_t8;
 #define SNTP_STATUS_DISABLED            -1
 #define SNTP_STATUS_NO_SYNC             0
 #define SNTP_STATUS_SYNCHRONIZED        1
-#define SNTP_STATUS_EXTERNAL_SYNC       2
 
 
 void sntp_v_init( void );
@@ -87,11 +86,6 @@ sntp_status_t8 sntp_u8_get_status( void );
 
 ntp_ts_t sntp_t_now( void );
 ntp_ts_t sntp_t_last_sync( void );
-
-void sntp_v_set( ntp_ts_t t, uint32_t base_time );
-
-ntp_ts_t sntp_ts_from_ms( uint32_t ms );
-uint16_t sntp_u16_get_fraction_as_ms( ntp_ts_t t );
 
 int16_t sntp_i16_get_offset( void );
 uint16_t sntp_u16_get_delay( void );

@@ -177,7 +177,7 @@ ntp_ts_t sntp_t_now( void ){
     // get time elapsed since base time was set
     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
 
-    ntp_ts_t elapsed = sntp_ts_from_ms( elapsed_ms );
+    ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
 
     uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
     uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
@@ -282,32 +282,6 @@ From the RFC:
 
 */
 
-ntp_ts_t sntp_ts_from_ms( uint32_t ms ){
-
-    ntp_ts_t n;
-
-    n.seconds = ms / 1000;
-    n.fraction = ( ( ( ms % 1000 ) * 1000 ) / 1024 ) << 22;
-
-    return n;
-}
-
-uint16_t sntp_u16_get_fraction_as_ms( ntp_ts_t t ){
-
-    uint64_t frac = t.fraction * 1000;
-
-    frac /= ( 2^32 );
-
-    return (uint16_t)frac;
-}
-
-void sntp_v_set( ntp_ts_t t, uint32_t base_time ){
-
-    status = SNTP_STATUS_EXTERNAL_SYNC;
-
-    network_time = t;
-    base_system_time = base_time;    
-}
 
 void process_packet( ntp_packet_t *packet ){
 

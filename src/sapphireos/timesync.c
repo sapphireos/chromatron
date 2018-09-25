@@ -149,7 +149,7 @@ ntp_ts_t time_t_now( void ){
     // get time elapsed since base time was set
     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
 
-    ntp_ts_t elapsed = sntp_ts_from_ms( elapsed_ms );
+    ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
 
     uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
     uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
@@ -335,7 +335,7 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    sntp_v_set( msg->ntp_time, tmr_u32_get_system_time_ms() );
+                    time_v_set_master_clock( msg->ntp_time, tmr_u32_get_system_time_ms(), TIME_FLAGS_SOURCE_NTP );
                 }
                 
                 uint32_t now = tmr_u32_get_system_time_ms();
