@@ -89,5 +89,9 @@ bool time_b_is_sync( void );
 uint32_t time_u32_get_network_time( void );
 void time_v_set_gps_sync( bool sync );
 
+void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source );
+ntp_ts_t time_t_now( void );
+
+
 #endif
 #endif

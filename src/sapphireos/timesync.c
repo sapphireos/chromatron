@@ -45,6 +45,11 @@ static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
 
+// master clock
+static ntp_ts_t master_time;
+static uint32_t base_system_time;
+static int32_t sync_difference;
+
 static bool gps_sync;
 
 static uint8_t sync_state;
@@ -130,6 +135,31 @@ uint32_t time_u32_get_network_time( void ){
 void time_v_set_gps_sync( bool sync ){
 
     gps_sync = sync;
+}
+
+void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
+
+
+}
+
+ntp_ts_t time_t_now( void ){
+
+    ntp_ts_t now = master_time;
+
+    // get time elapsed since base time was set
+    uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
+
+    ntp_ts_t elapsed = sntp_ts_from_ms( elapsed_ms );
+
+    uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
+    uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
+
+    a += b;
+
+    now.seconds = a >> 32;
+    now.fraction = a & 0xffffffff;
+    
+    return now;
 }
 
 // return TRUE if 1 is better than 2

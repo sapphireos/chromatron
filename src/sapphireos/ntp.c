@@ -19,16 +19,27 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
-#ifndef _NTP_H
-#define _NTP_H
 
-// NTP timestamp
-typedef struct{
-    uint32_t seconds;
-    uint32_t fraction;
-} ntp_ts_t;
+#include "system.h"
 
-ntp_ts_t ntp_ts_from_ms( uint32_t ms );
-uint16_t ntp_u16_get_fraction_as_ms( ntp_ts_t t );
+#include "ntp.h"
 
-#endif
+
+ntp_ts_t ntp_ts_from_ms( uint32_t ms ){
+
+    ntp_ts_t n;
+
+    n.seconds = ms / 1000;
+    n.fraction = ( ( ( ms % 1000 ) * 1000 ) / 1024 ) << 22;
+
+    return n;
+}
+
+uint16_t ntp_u16_get_fraction_as_ms( ntp_ts_t t ){
+
+    uint64_t frac = t.fraction * 1000;
+
+    frac >>= 32; // divide by 2^32, without having to cast to 64 bits
+
+    return (uint16_t)frac;
+}
