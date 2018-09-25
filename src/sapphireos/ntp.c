@@ -43,3 +43,18 @@ uint16_t ntp_u16_get_fraction_as_ms( ntp_ts_t t ){
 
     return (uint16_t)frac;
 }
+
+uint64_t ntp_u64_conv_to_u64( ntp_ts_t t ){
+
+	return ( (uint64_t)t.seconds << 32 ) + ( t.fraction );
+}
+
+ntp_ts_t ntp_ts_from_u64( uint64_t u64 ){
+
+	ntp_ts_t ts;
+
+	ts.seconds = u64 >> 32;
+    ts.fraction = u64 & 0xffffffff;
+
+    return ts;
+}

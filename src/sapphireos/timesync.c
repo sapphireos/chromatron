@@ -139,6 +139,8 @@ void time_v_set_gps_sync( bool sync ){
 
 void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
+    master_source = source;
+    
 
 }
 
@@ -150,14 +152,8 @@ ntp_ts_t time_t_now( void ){
     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
 
     ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
-
-    uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
-    uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
-
-    a += b;
-
-    now.seconds = a >> 32;
-    now.fraction = a & 0xffffffff;
+    
+    now = ntp_ts_from_u64( ntp_u64_conv_to_u64( now ) + ntp_u64_conv_to_u64( elapsed ) );
     
     return now;
 }
@@ -324,7 +320,6 @@ PT_BEGIN( pt );
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
-                master_source = msg->source;
                 master_uptime = msg->uptime;
 
                 // check sync
@@ -335,7 +330,7 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    time_v_set_master_clock( msg->ntp_time, tmr_u32_get_system_time_ms(), TIME_FLAGS_SOURCE_NTP );
+                    time_v_set_master_clock( msg->ntp_time, tmr_u32_get_system_time_ms(), msg->source );
                 }
                 
                 uint32_t now = tmr_u32_get_system_time_ms();

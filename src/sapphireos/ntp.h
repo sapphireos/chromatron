@@ -30,5 +30,7 @@ typedef struct{
 
 ntp_ts_t ntp_ts_from_ms( uint32_t ms );
 uint16_t ntp_u16_get_fraction_as_ms( ntp_ts_t t );
+uint64_t ntp_u64_conv_to_u64( ntp_ts_t t );
+ntp_ts_t ntp_ts_from_u64( uint64_t u64 );
 
 #endif
