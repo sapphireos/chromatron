@@ -56,6 +56,16 @@ uint32_t abs32( int32_t a ){
     return a;
 }
 
+uint64_t abs64( int64_t a ){
+
+    if( a < 0 ){
+
+        return a * -1;
+    }
+
+    return a;
+}
+
 // return 1 if a > b
 // return -1 if a < b
 // return 0 if a == b

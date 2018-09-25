@@ -30,6 +30,7 @@
 float f_abs( float x );
 uint16_t abs16( int16_t a );
 uint32_t abs32( int32_t a );
+uint64_t abs64( int64_t a );
 int8_t util_i8_compare_sequence_u16( uint16_t a, uint16_t b );
 int8_t util_i8_compare_sequence_u32( uint32_t a, uint32_t b );
 uint16_t util_u16_linear_interp(

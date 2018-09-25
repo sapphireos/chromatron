@@ -29,6 +29,7 @@
 #include "timesync.h"
 #include "hash.h"
 #include "sntp.h"
+#include "util.h"
 
 
 
@@ -141,6 +142,35 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     master_source = source;
 
+    // base time is the millisecond system timer that corresponds
+    // with the given ntp timestamp
+
+
+    // get master time at base time
+    ntp_ts_t master = ntp_ts_from_u64( 
+                        ntp_u64_conv_to_u64( master_time ) + 
+                        ntp_u64_conv_to_u64( ntp_ts_from_ms( tmr_u32_elapsed_time_ms( base_time ) ) ) );
+    
+    // get deltas
+    int64_t delta_seconds = (int64_t)master.seconds - (int64_t)t.seconds;
+    int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( master ) - (int16_t)ntp_u16_get_fraction_as_ms( t );
+
+
+    if( abs64( delta_seconds ) > 60 ){
+
+        log_v_debug_P( PSTR("HARD SYNC") );
+
+        // hard sync
+        master_time = t;
+        base_system_time = base_time;
+
+        return;
+    }
+
+    // gradual adjustment
+
+    // set difference
+    sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
 }
 
@@ -152,7 +182,7 @@ ntp_ts_t time_t_now( void ){
     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
 
     ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
-    
+
     now = ntp_ts_from_u64( ntp_u64_conv_to_u64( now ) + ntp_u64_conv_to_u64( elapsed ) );
     
     return now;
