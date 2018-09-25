@@ -140,7 +140,7 @@ void time_v_set_gps_sync( bool sync ){
 void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     master_source = source;
-    
+
 
 }
 
@@ -538,6 +538,10 @@ PT_BEGIN( pt );
     }
 
     while( sync_state == STATE_MASTER ){
+
+        // reset drift filter in master mode, because the
+        // master does not have drift, by definition.
+        filtered_drift = 0;
 
         // check state
         if( sync_state != STATE_MASTER ){
