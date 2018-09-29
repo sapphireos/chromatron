@@ -336,7 +336,7 @@ PT_BEGIN( pt );
                 msg.net_time        = net_time;
                 msg.uptime          = master_uptime;
                 msg.flags           = 0;
-                msg.ntp_time        = sntp_t_now();
+                // msg.ntp_time        = sntp_t_now();
                 msg.source          = master_source;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );

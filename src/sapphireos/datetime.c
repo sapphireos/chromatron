@@ -25,13 +25,12 @@
 
 #include "system.h"
 #include "ntp.h"
-
+#include "timesync.h"
 
 #include "datetime.h"
 
 #include <stdlib.h>
 
-#include "sntp.h"
 #include "keyvalue.h"
 
 // NOTE!
@@ -201,7 +200,7 @@ void datetime_v_to_iso8601( char *iso8601, uint8_t len, datetime_t *datetime ){
 // return now
 void datetime_v_now( datetime_t *datetime ){
  
-    ntp_ts_t now = sntp_t_now();
+    ntp_ts_t now = time_t_now();
 
     // adjust seconds by timezone offset
 	// tz_offset is in minutse
@@ -213,7 +212,7 @@ void datetime_v_now( datetime_t *datetime ){
 
 uint32_t datetime_u32_now( void ){
     
-    ntp_ts_t now = sntp_t_now();
+    ntp_ts_t now = time_t_now();
 
     return now.seconds;
 }

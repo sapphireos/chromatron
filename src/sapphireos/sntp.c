@@ -170,7 +170,7 @@ void process_packet( ntp_packet_t *packet );
 PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 
 
-ntp_ts_t sntp_t_now( void ){
+static ntp_ts_t sntp_t_now( void ){
 
     ntp_ts_t now = network_time;
 
@@ -190,10 +190,10 @@ ntp_ts_t sntp_t_now( void ){
     return now;
 }
 
-ntp_ts_t sntp_t_last_sync( void ){
+// ntp_ts_t sntp_t_last_sync( void ){
 
-    return network_time;
-}
+//     return network_time;
+// }
 
 void sntp_v_init( void ){
 

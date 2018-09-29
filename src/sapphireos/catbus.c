@@ -29,7 +29,7 @@
 #include "catbus.h"
 #include "random.h"
 
-#include "sntp.h"
+#include "timesync.h"
 
 
 // #define NO_LOGGING
@@ -1024,7 +1024,7 @@ PT_BEGIN( pt );
 
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
-            if( sntp_u8_get_status() >= SNTP_STATUS_SYNCHRONIZED ){
+            if(time_b_is_sync() ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }
@@ -1186,7 +1186,7 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
     }
 
 
-    ntp_ts_t ntp_timestamp = sntp_t_now();
+    ntp_ts_t ntp_timestamp = time_t_now();
 
     list_node_t sender_ln = send_list.head;    
 
