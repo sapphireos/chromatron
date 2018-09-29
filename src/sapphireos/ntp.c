@@ -23,6 +23,9 @@
 #include "system.h"
 
 #include "ntp.h"
+#include "datetime.h"
+
+#include <stdlib.h>
 
 
 ntp_ts_t ntp_ts_from_ms( uint32_t ms ){
@@ -58,3 +61,22 @@ ntp_ts_t ntp_ts_from_u64( uint64_t u64 ){
 
     return ts;
 }
+
+void ntp_v_to_iso8601( char *iso8601, uint8_t len, ntp_ts_t t ){
+
+	datetime_t datetime;
+    	
+    datetime_v_seconds_to_datetime( t.seconds, &datetime );
+
+    uint16_t ms = ntp_u16_get_fraction_as_ms( t );
+
+    datetime_v_to_iso8601( iso8601, len, &datetime );
+
+    if( len > ISO8601_STRING_MIN_LEN + 4 ){
+
+    	iso8601[ISO8601_STRING_MIN_LEN] = '.';
+
+    	itoa( ms, &iso8601[ISO8601_STRING_MIN_LEN + 1], 10 );
+    }
+}
+

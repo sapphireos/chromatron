@@ -31,7 +31,10 @@
 // minimum string length for iso 8601 date/time string.
 // multiple formats are possible, but the format used by
 // this implementation is 19 bytes long
-#define ISO8601_STRING_MIN_LEN 20
+#define ISO8601_STRING_MIN_LEN 		20
+
+// long enough for ms precision
+#define ISO8601_STRING_MIN_LEN_MS	24
 
 // time interval definitions
 #define SECONDS_PER_MINUTE 		60

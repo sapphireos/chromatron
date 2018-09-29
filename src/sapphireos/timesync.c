@@ -171,6 +171,13 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
+    
+        
+
+
+
+
+
 
 }
 
