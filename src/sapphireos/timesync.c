@@ -155,6 +155,11 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     int64_t delta_seconds = (int64_t)master.seconds - (int64_t)t.seconds;
     int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( master ) - (int16_t)ntp_u16_get_fraction_as_ms( t );
 
+    char s[ISO8601_STRING_MIN_LEN_MS];
+    ntp_v_to_iso8601( s, sizeof(s), master_time );
+    log_v_debug_P( PSTR("Master: %s"), s );
+    ntp_v_to_iso8601( s, sizeof(s), t );
+    log_v_debug_P( PSTR("Remote: %s"), s );
 
     if( abs64( delta_seconds ) > 60 ){
 
@@ -171,8 +176,8 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
-    
-        
+
+
 
 
 
