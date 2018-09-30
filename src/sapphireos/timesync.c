@@ -20,7 +20,7 @@
 // 
 // </license>
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -142,6 +142,8 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     master_source = source;
 
+    log_v_debug_P( PSTR("set master clock source: %u"), source );
+
     // base time is the millisecond system timer that corresponds
     // with the given ntp timestamp
 
@@ -178,6 +180,7 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
 
+    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
 
 
 

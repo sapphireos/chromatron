@@ -72,11 +72,11 @@ void ntp_v_to_iso8601( char *iso8601, uint8_t len, ntp_ts_t t ){
 
     datetime_v_to_iso8601( iso8601, len, &datetime );
 
-    if( len > ISO8601_STRING_MIN_LEN + 4 ){
+    if( len >= ISO8601_STRING_MIN_LEN_MS ){
 
-    	iso8601[ISO8601_STRING_MIN_LEN] = '.';
+    	snprintf_P( &iso8601[ISO8601_STRING_MIN_LEN - 1], 5, PSTR(".%03d"), ms );
 
-    	itoa( ms, &iso8601[ISO8601_STRING_MIN_LEN + 1], 10 );
+    	// itoa( ms, &iso8601[ISO8601_STRING_MIN_LEN], 10 );
     }
 
     iso8601[len - 1] = 0; // null terminate
