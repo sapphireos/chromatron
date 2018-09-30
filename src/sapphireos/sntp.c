@@ -51,7 +51,7 @@
 #include "keyvalue.h"
 
 #include "sntp.h"
-
+#include "timesync.h"
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -435,13 +435,15 @@ PT_BEGIN( pt );
         // process received packet
         process_packet( recv_pkt );
 
+        // sync master clock
+        time_v_set_master_clock( network_time, base_system_time, TIME_FLAGS_SOURCE_NTP );
 
         // parse current time to ISO so we can read it in the log file
-        datetime_t datetime;
-        datetime_v_seconds_to_datetime( network_time.seconds, &datetime );
+        // datetime_t datetime;
+        // datetime_v_seconds_to_datetime( network_time.seconds, &datetime );
 
-        char time_str[ISO8601_STRING_MIN_LEN];
-        datetime_v_to_iso8601( time_str, sizeof(time_str), &datetime );
+        // char time_str[ISO8601_STRING_MIN_LEN];
+        // datetime_v_to_iso8601( time_str, sizeof(time_str), &datetime );
 
         // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str, last_offset, last_delay );
 
