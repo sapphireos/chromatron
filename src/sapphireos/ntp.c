@@ -40,7 +40,7 @@ ntp_ts_t ntp_ts_from_ms( uint32_t ms ){
 
 uint16_t ntp_u16_get_fraction_as_ms( ntp_ts_t t ){
 
-    uint64_t frac = t.fraction * 1000;
+    uint64_t frac = (uint64_t)t.fraction * 1000;
 
     frac >>= 32; // divide by 2^32, without having to cast to 64 bits
 

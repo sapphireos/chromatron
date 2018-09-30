@@ -79,17 +79,17 @@ static int8_t ntp_kv_handler(
 
     if( op == KV_OP_GET ){
 
-        if( status >= SNTP_STATUS_SYNCHRONIZED ){
+        // if( status >= SNTP_STATUS_SYNCHRONIZED ){
 
-            uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-            uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
+        //     uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
+        //     uint32_t seconds = network_time.seconds + ( elapsed / 1000 );
 
-            memcpy( data, &seconds, len );
-        }
-        else{
+        //     memcpy( data, &seconds, len );
+        // }
+        // else{
 
-            memset( data, 0, len );
-        }
+        //     memset( data, 0, len );
+        // }
 
         return 0;
     }
@@ -291,7 +291,7 @@ void process_packet( ntp_packet_t *packet ){
     // get destination timestamp (our local network time when we receive the packet)
     ntp_ts_t dest_ts = sntp_t_now();
 
-    uint64_t dest_timestamp = ( (uint64_t)dest_ts.seconds << 32 ) + dest_ts.fraction;
+    uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 
     // get timestamps from packet, noting the conversion from big endian to little endian
     uint64_t originate_timestamp =  ( (uint64_t)( HTONL( packet->originate_timestamp.seconds ) ) << 32 ) +
@@ -330,9 +330,8 @@ void process_packet( ntp_packet_t *packet ){
     }
 
     // set network time
-    network_time.seconds = current_time >> 32;
-    network_time.fraction = current_time & 0xffffffff;
-
+    network_time = ntp_ts_from_u64( current_time );
+    
     // set base system time
     base_system_time = new_base_system_time;
 
