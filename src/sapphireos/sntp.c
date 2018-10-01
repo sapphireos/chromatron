@@ -307,8 +307,8 @@ void process_packet( ntp_packet_t *packet ){
 
     int64_t offset = ( (int64_t)( receive_timestamp - originate_timestamp ) + (int64_t)( transmit_timestamp - dest_timestamp ) ) / 2;
 
-    // current network time is originate time + delay + offset
-    uint64_t current_time = originate_timestamp + delay + offset;
+    // current network time is current time + offset
+    uint64_t current_time = dest_timestamp + offset;
 
     // set offset and delay variables
     if( ( ( offset >> 32 ) < 32 ) && ( ( offset >> 32 ) > -32 ) ){
