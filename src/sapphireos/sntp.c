@@ -294,14 +294,21 @@ void process_packet( ntp_packet_t *packet ){
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 
     // get timestamps from packet, noting the conversion from big endian to little endian
-    uint64_t originate_timestamp =  ( (uint64_t)( HTONL( packet->originate_timestamp.seconds ) ) << 32 ) +
-                                                ( HTONL( packet->originate_timestamp.fraction ) );
+    packet->originate_timestamp.seconds  = HTONL( packet->originate_timestamp.seconds );
+    packet->originate_timestamp.fraction = HTONL( packet->originate_timestamp.fraction );
 
-    uint64_t receive_timestamp =    ( (uint64_t)( HTONL( packet->receive_timestamp.seconds ) ) << 32 ) +
-                                                ( HTONL( packet->receive_timestamp.fraction ) );
+    packet->receive_timestamp.seconds    = HTONL( packet->receive_timestamp.seconds );
+    packet->receive_timestamp.fraction   = HTONL( packet->receive_timestamp.fraction );
 
-    uint64_t transmit_timestamp =   ( (uint64_t)( HTONL( packet->transmit_timestamp.seconds ) ) << 32 ) +
-                                                ( HTONL( packet->transmit_timestamp.fraction ) );
+    packet->transmit_timestamp.seconds   = HTONL( packet->transmit_timestamp.seconds );
+    packet->transmit_timestamp.fraction  = HTONL( packet->transmit_timestamp.fraction );
+
+
+    uint64_t originate_timestamp = ntp_u64_conv_to_u64( packet->originate_timestamp );
+
+    uint64_t receive_timestamp   = ntp_u64_conv_to_u64( packet->receive_timestamp );
+
+    uint64_t transmit_timestamp  = ntp_u64_conv_to_u64( packet->transmit_timestamp );
 
     int64_t delay = ( dest_timestamp - originate_timestamp ) - ( transmit_timestamp - receive_timestamp );
 
