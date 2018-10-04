@@ -51,6 +51,9 @@ void hal_rtc_v_init( void ){
 	// enable overflow interrupt
 	// set for low priority
 	RTC.INTCTRL = RTC_OVFINTLVL_LO_gc;
+
+	// start RTC
+	RTC.CTRL = RTC_PRESCALER_DIV1_gc;
 }
 
 uint16_t hal_rtc_u16_get_period( void ){
