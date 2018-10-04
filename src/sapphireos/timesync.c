@@ -49,6 +49,7 @@ static uint8_t master_source;
 static ntp_ts_t master_time;
 static uint32_t base_system_time;
 static int32_t sync_difference;
+static int16_t clock_adjust;
 
 static bool gps_sync;
 
@@ -186,8 +187,16 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
 
 
+    if( sync_difference > 0){
 
+        // our clock is ahead, so we need to slow down
+        clock_adjust = 10;
+    }
+    else if( sync_difference < 0){
 
+        // our clock is behind, so we need to speed up
+        clock_adjust = -10;
+    }
 
 
 }
@@ -677,20 +686,26 @@ PT_END( pt );
 }
 
 
-static uint16_t clock_rate = 1000;
-
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
+    static uint16_t clock_rate;
+
     while( TRUE ){
-    
+
+        sync_difference -= clock_adjust;
+
+        clock_rate = 1000 + clock_adjust;
+
         thread_v_set_alarm( thread_u32_get_alarm() + clock_rate );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // increment master clock by 1 second
         master_time.seconds++;
-        base_system_time += 1000;
+        base_system_time += clock_rate; // base system time needs to track actual elapsed time
+
+
     }
 
 PT_END( pt );
