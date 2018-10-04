@@ -31,6 +31,8 @@
 #include "sntp.h"
 #include "util.h"
 
+#include "hal_rtc.h"
+
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
@@ -79,6 +81,11 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
 };
 
 
+void hal_rtc_v_irq( void ){
+
+
+}
+
 void time_v_init( void ){
 
     // check if time sync is enabled
@@ -92,6 +99,7 @@ void time_v_init( void ){
         return;
     }
 
+    hal_rtc_v_init();
 
     sync_state = STATE_WAIT;
 

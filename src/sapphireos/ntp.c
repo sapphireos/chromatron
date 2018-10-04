@@ -75,8 +75,6 @@ void ntp_v_to_iso8601( char *iso8601, uint8_t len, ntp_ts_t t ){
     if( len >= ISO8601_STRING_MIN_LEN_MS ){
 
     	snprintf_P( &iso8601[ISO8601_STRING_MIN_LEN - 1], 5, PSTR(".%03d"), ms );
-
-    	// itoa( ms, &iso8601[ISO8601_STRING_MIN_LEN], 10 );
     }
 
     iso8601[len - 1] = 0; // null terminate
