@@ -21,15 +21,22 @@
 // </license>
 
 #include "system.h"
+#include "timers.h"
 #include "hal_rtc.h"
 
 static uint16_t current_period;
+
+static void wait_sync_busy( void ){
+
+	BUSY_WAIT( RTC.STATUS & RTC_SYNCBUSY_bm );
+}
 
 ISR(RTC_OVF_vect){
 
 	hal_rtc_v_irq();
 
 	// set next period
+	wait_sync_busy();
 	RTC.PER = current_period;
 }
 	
@@ -44,6 +51,8 @@ void hal_rtc_v_init( void ){
 	// set RTC to run on 32.768 khz crystal oscillator
 	// and enable RTC
 	CLK.RTCCTRL = CLK_RTCSRC_TOSC32_gc | CLK_RTCEN_bm;
+
+	wait_sync_busy();
 
 	// set overflow period to one second
 	RTC.PER = 32767;
