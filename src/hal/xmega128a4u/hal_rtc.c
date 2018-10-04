@@ -77,3 +77,11 @@ void hal_rtc_v_set_period( uint16_t period ){
 	END_ATOMIC;
 }
 
+uint16_t hal_rtc_u16_get_time( void ){
+
+	ATOMIC;
+	wait_sync_busy();
+	uint16_t temp = RTC.CNT;
+	END_ATOMIC;
+}
+

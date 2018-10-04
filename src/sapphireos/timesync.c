@@ -31,9 +31,6 @@
 #include "sntp.h"
 #include "util.h"
 
-#include "hal_rtc.h"
-
-
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
@@ -98,8 +95,6 @@ void time_v_init( void ){
 
         return;
     }
-
-    hal_rtc_v_init();
 
     sync_state = STATE_WAIT;
 
@@ -199,6 +194,7 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
 ntp_ts_t time_t_now( void ){
 
+    // uint16_t rtc_time = hal_rtc_u16_get_time();
     ntp_ts_t now = master_time;
 
     // get time elapsed since base time was set
@@ -681,15 +677,20 @@ PT_END( pt );
 }
 
 
+static uint16_t clock_rate = 1000;
 
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
     while( TRUE ){
+    
+        thread_v_set_alarm( thread_u32_get_alarm() + clock_rate );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        TMR_WAIT( pt, 1000 );
-
+        // increment master clock by 1 second
+        master_time.seconds++;
+        base_system_time += 1000;
     }
 
 PT_END( pt );

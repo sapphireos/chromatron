@@ -57,8 +57,8 @@
 #include "logging.h"
 
 
-static ntp_ts_t network_time;
-static uint32_t base_system_time; // system timer in ms last time network time was set
+// static ntp_ts_t network_time;
+// static uint32_t base_system_time; // system timer in ms last time network time was set
 
 // offset and delay in ms from last sync
 static int16_t last_offset;
@@ -166,29 +166,28 @@ It might be interesting to track statistics on the delays and offsets we get fro
 */
 
 
-void process_packet( ntp_packet_t *packet );
 PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 
 
-static ntp_ts_t sntp_t_now( void ){
+// static ntp_ts_t sntp_t_now( void ){
 
-    ntp_ts_t now = network_time;
+//     ntp_ts_t now = network_time;
 
-    // get time elapsed since base time was set
-    uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
+//     // get time elapsed since base time was set
+//     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
 
-    ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
+//     ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
 
-    uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
-    uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
+//     uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
+//     uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
 
-    a += b;
+//     a += b;
 
-    now.seconds = a >> 32;
-    now.fraction = a & 0xffffffff;
+//     now.seconds = a >> 32;
+//     now.fraction = a & 0xffffffff;
     
-    return now;
-}
+//     return now;
+// }
 
 // ntp_ts_t sntp_t_last_sync( void ){
 
@@ -283,13 +282,14 @@ From the RFC:
 */
 
 
-void process_packet( ntp_packet_t *packet ){
+ntp_ts_t process_packet( ntp_packet_t *packet ){
 
     // get new base system time, we'll hang on to this until the end of the time calculations
-    uint32_t new_base_system_time = tmr_u32_get_system_time_ms();
+    // uint32_t new_base_system_time = tmr_u32_get_system_time_ms();
 
     // get destination timestamp (our local network time when we receive the packet)
-    ntp_ts_t dest_ts = sntp_t_now();
+    // ntp_ts_t dest_ts = sntp_t_now();
+    ntp_ts_t dest_ts = time_t_now();
 
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 
@@ -337,13 +337,15 @@ void process_packet( ntp_packet_t *packet ){
     }
 
     // set network time
-    network_time = ntp_ts_from_u64( current_time );
+    // network_time = ntp_ts_from_u64( current_time );
     
     // set base system time
-    base_system_time = new_base_system_time;
+    // base_system_time = new_base_system_time;
 
     // set sync status
     status = SNTP_STATUS_SYNCHRONIZED;
+
+    return ntp_ts_from_u64( current_time );
 }
 
 
@@ -398,7 +400,7 @@ PT_BEGIN( pt );
         pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT | SNTP_LI_ALARM;
 
         // get our current network time with the maximum available precision
-        ntp_ts_t transmit_ts = sntp_t_now();
+        ntp_ts_t transmit_ts = time_t_now();
 
         // set transmit timestamp (converting from little endian to big endian)
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
@@ -438,8 +440,10 @@ PT_BEGIN( pt );
         // be corrupt at this point in the thread, DO NOT USE IT!
         ntp_packet_t *recv_pkt = sock_vp_get_data( sock );
 
+        uint32_t base_system_time = tmr_u32_get_system_time_ms();
+
         // process received packet
-        process_packet( recv_pkt );
+        ntp_ts_t network_time = process_packet( recv_pkt );
 
         // sync master clock
         time_v_set_master_clock( network_time, base_system_time, TIME_FLAGS_SOURCE_NTP );

@@ -26,6 +26,7 @@
 void hal_rtc_v_init( void );
 uint16_t hal_rtc_u16_get_period( void );
 void hal_rtc_v_set_period( uint16_t period );
+uint16_t hal_rtc_u16_get_time( void );
 
 void hal_rtc_v_irq( void ) __attribute__((weak));
 
