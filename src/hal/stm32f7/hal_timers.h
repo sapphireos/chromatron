@@ -23,7 +23,6 @@
 #ifndef _HAL_TIMERS_H
 #define _HAL_TIMERS_H
 
-#include "stm32f7xx_ll_tim.h"
 
 
 #define HAL_SYS_TIMER TIM2

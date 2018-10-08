@@ -33,7 +33,7 @@
 #include "timers.h"
 #include "logging.h"
 #include "hal_io.h"
-
+#include "stm32f7xx_hal_uart.h"
 
 #ifdef PRINTF_SUPPORT
 #include <stdio.h>
@@ -58,8 +58,7 @@ static int uart_putchar( char c, FILE *stream )
 }
 #endif
 
-
-USART_TypeDef *usart_ptr;
+static UART_HandleTypeDef huart1;
 
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
 static volatile uint8_t rx_ins;
@@ -68,9 +67,10 @@ static volatile uint8_t rx_size;
 
 void USART1_IRQHandler( void ){
 
-    while( LL_USART_IsActiveFlag_RXNE( HAL_CMD_USART ) ){
+    while( __HAL_UART_GET_FLAG( &huart1, UART_FLAG_RXNE ) ){
 
-        rx_buf[rx_ins] = LL_USART_ReceiveData8( HAL_CMD_USART );
+        HAL_UART_Receive( &huart1, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
+
         rx_ins++;
 
         if( rx_ins >= cnt_of_array(rx_buf) ){
@@ -81,9 +81,9 @@ void USART1_IRQHandler( void ){
         rx_size++;
     }
 
-    if( LL_USART_IsActiveFlag_ORE( HAL_CMD_USART ) ){
+    while( __HAL_UART_GET_FLAG( &huart1, UART_FLAG_ORE ) ){
 
-        LL_USART_ClearFlag_ORE( HAL_CMD_USART );    
+        __HAL_UART_CLEAR_IT( &huart1, UART_FLAG_ORE );    
     }
 }
 
@@ -132,49 +132,40 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 
 void cmd_usart_v_init( void ){
 
-    // initialize command usart
-    
     // enable clock
-    LL_APB2_GRP1_EnableClock( LL_APB2_GRP1_PERIPH_USART1 );
+    __HAL_RCC_USART1_CLK_ENABLE();
 
-    usart_ptr = USART1;
+    // initialize command usart
+    huart1.Instance = HAL_CMD_USART;
+    huart1.Init.BaudRate = 115200;
+    huart1.Init.WordLength = UART_WORDLENGTH_8B;
+    huart1.Init.StopBits = UART_STOPBITS_1;
+    huart1.Init.Parity = UART_PARITY_NONE;
+    huart1.Init.Mode = UART_MODE_TX_RX;
+    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+    huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&huart1) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
     // init IO pins
-    LL_GPIO_InitTypeDef GPIO_InitStruct;
-
-    GPIO_InitStruct.Pin = COMM_TX_Pin;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
-    LL_GPIO_Init(COMM_TX_GPIO_Port, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = COMM_RX_Pin;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
-    LL_GPIO_Init(COMM_RX_GPIO_Port, &GPIO_InitStruct);
+    /**USART1 GPIO Configuration    
+    PA9     ------> USART1_TX
+    PA10     ------> USART1_RX 
+    */
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = COMM_TX_Pin|COMM_RX_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 
-
-    LL_USART_InitTypeDef init;
-    LL_USART_StructInit( &init );
-    init.BaudRate               = 115200;
-    init.DataWidth              = LL_USART_DATAWIDTH_8B;
-    init.StopBits               = LL_USART_STOPBITS_1;
-    init.Parity                 = LL_USART_PARITY_NONE;
-    init.TransferDirection      = LL_USART_DIRECTION_TX_RX;
-    init.HardwareFlowControl    = LL_USART_HWCONTROL_NONE;
-    init.OverSampling           = LL_USART_OVERSAMPLING_16;
-
-    LL_USART_Init( HAL_CMD_USART, &init );
-    LL_USART_ConfigAsyncMode( HAL_CMD_USART );
-    LL_USART_Enable( HAL_CMD_USART );
-
-    LL_USART_EnableIT_RXNE( HAL_CMD_USART );
+    __HAL_UART_ENABLE_IT( &huart1, UART_IT_RXNE );
 
     HAL_NVIC_SetPriority( USART1_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( USART1_IRQn );
@@ -198,18 +189,12 @@ bool cmd_usart_b_received_char( void ){
 
 void cmd_usart_v_send_char( uint8_t data ){
 
-    BUSY_WAIT( LL_USART_IsActiveFlag_TXE( HAL_CMD_USART ) == 0 );
-    LL_USART_TransmitData8( HAL_CMD_USART, data );
+    HAL_UART_Transmit( &huart1, &data, sizeof(data), 100 );
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
-    while( len > 0 ){
-
-        cmd_usart_v_send_char( *data );
-        data++;
-        len--;        
-    }
+    HAL_UART_Transmit( &huart1, (uint8_t *)data, len, 100 );
 }
 
 
