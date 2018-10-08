@@ -56,6 +56,8 @@ void ffs_v_init( void ){
         sys_v_set_warnings( SYS_WARN_FLASHFS_FAIL );
         ffs_fail = TRUE;
 
+        trace_printf("FlashFS FAIL\n");
+
         return;
     }
 
@@ -79,10 +81,14 @@ void ffs_v_init( void ){
     ffs_gc_v_init();
 
     #endif
+
+    trace_printf("FlashFS files: %d free space: %d\n", ffs_u32_get_file_count(), ffs_u32_get_free_space() );
 }
 
 
 void ffs_v_mount( void ){
+
+    trace_printf("Mounting FlashFS\n");
 
     #ifdef ENABLE_FFS
     ffs_block_v_init();
@@ -92,6 +98,8 @@ void ffs_v_mount( void ){
 
 
 void ffs_v_format( void ){
+
+    trace_printf("Formatting FlashFS...\n");
 
     #ifdef ENABLE_FFS
 	// enable writes

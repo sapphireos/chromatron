@@ -32,7 +32,7 @@
 #include <avr/sleep.h>
 #include <util/delay.h>
 
-#define trace_printf()
+#define trace_printf(...)
 
 #define ENABLE_INTERRUPTS sei()
 #define DISABLE_INTERRUPTS cli()

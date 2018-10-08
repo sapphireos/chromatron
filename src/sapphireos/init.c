@@ -216,6 +216,8 @@ int8_t sapphire_i8_init( void ){
 
     sntp_v_init();
 
+    trace_printf( "SapphireOS ready\n" );
+
     // return system OK
     return 0;
 }

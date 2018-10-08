@@ -243,6 +243,8 @@ void sys_v_init( void ){
     cpu_v_remap_isrs();
 
 	#endif
+
+    trace_printf( "Reset source: %d mode: %d\n", reset_source, sys_mode );
 }
 
 void sys_v_check_io_for_safe_mode( void ){

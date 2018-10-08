@@ -86,10 +86,12 @@ void cpu_v_init( void ){
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
-    trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
-    trace_printf("HCLK     : %u\n", HAL_RCC_GetHCLKFreq());
-    trace_printf("PCLK1    : %u\n", HAL_RCC_GetPCLK1Freq());
-    trace_printf("PCLK2    : %u\n", HAL_RCC_GetPCLK2Freq());
+    trace_printf( "STM32F7\n" );
+
+    trace_printf( "CPU Clock: %u\n", cpu_u32_get_clock_speed() );
+    trace_printf( "HCLK     : %u\n", HAL_RCC_GetHCLKFreq() );
+    trace_printf( "PCLK1    : %u\n", HAL_RCC_GetPCLK1Freq() );
+    trace_printf( "PCLK2    : %u\n", HAL_RCC_GetPCLK2Freq() );
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
