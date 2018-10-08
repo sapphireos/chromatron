@@ -20,6 +20,8 @@
 // 
 // </license>
 
+#if 0
+
 #ifndef _HAL_RTC_H
 #define _HAL_RTC_H
 
@@ -29,5 +31,7 @@ void hal_rtc_v_set_period( uint16_t period );
 uint16_t hal_rtc_u16_get_time( void );
 
 void hal_rtc_v_irq( void ) __attribute__((weak));
+
+#endif
 
 #endif

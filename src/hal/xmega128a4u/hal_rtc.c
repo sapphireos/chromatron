@@ -20,6 +20,8 @@
 // 
 // </license>
 
+#if 0
+
 #include "system.h"
 #include "timers.h"
 #include "hal_rtc.h"
@@ -85,3 +87,4 @@ uint16_t hal_rtc_u16_get_time( void ){
 	END_ATOMIC;
 }
 
+#endif
