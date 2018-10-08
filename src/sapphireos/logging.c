@@ -38,10 +38,6 @@
 #define NO_EVENT_LOGGING
 #include "event_log.h"
 
-#ifdef ARM
-#include "Trace.h"
-#endif
-
 
 #ifdef LOG_ENABLE
 
@@ -55,9 +51,7 @@ void log_v_init( void ){
 
 static void append_log( char *buf ){
 
-    #ifdef TRACE
     trace_printf("%s", buf);
-    #endif
 
     // check if file is not open
     if( f < 0 ){
