@@ -33,7 +33,6 @@
 #include "timers.h"
 #include "logging.h"
 #include "hal_io.h"
-#include "stm32f7xx_hal_uart.h"
 
 #ifdef PRINTF_SUPPORT
 #include <stdio.h>
