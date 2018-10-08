@@ -67,26 +67,24 @@ void cpu_v_init( void ){
     /* SysTick_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
-
     // update clock
     SystemClock_Config();
 
     // update clock frequency info
     SystemCoreClockUpdate();
 
-    // enable SYSTICK
-    LL_Init1msTick(cpu_u32_get_clock_speed());
-    LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);
-
     // enable SYSCFG controller clock
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
     // enable gpio clocks
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOH);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+    __HAL_RCC_GPIOH_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
 
     trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
     trace_printf("HCLK     : %u\n", HAL_RCC_GetHCLKFreq());
@@ -96,22 +94,22 @@ void cpu_v_init( void ){
 
 uint8_t cpu_u8_get_reset_source( void ){
 
-    if( LL_RCC_IsActiveFlag_SFTRST() ){
+    if( __HAL_RCC_GET_FLAG( RCC_FLAG_SFTRST ) ){
 
         return 0;
     }
 
-    if( LL_RCC_IsActiveFlag_PORRST() ){
+    if( __HAL_RCC_GET_FLAG( RCC_FLAG_PORRST ) ){
 
         return RESET_SOURCE_POWER_ON;  
     }
 
-    if( LL_RCC_IsActiveFlag_BORRST() ){
+    if( __HAL_RCC_GET_FLAG( RCC_FLAG_BORRST ) ){
 
         return RESET_SOURCE_BROWNOUT;
     }
 
-    if( LL_RCC_IsActiveFlag_PINRST() ){
+    if( __HAL_RCC_GET_FLAG( RCC_FLAG_PINRST ) ){
 
         return RESET_SOURCE_EXTERNAL;
     }
@@ -121,7 +119,7 @@ uint8_t cpu_u8_get_reset_source( void ){
 
 void cpu_v_clear_reset_source( void ){
 
-    LL_RCC_ClearResetFlags();    
+    __HAL_RCC_CLEAR_RESET_FLAGS();    
 }
 
 void cpu_v_remap_isrs( void ){
@@ -148,44 +146,73 @@ void cpu_reboot( void ){
 }
 
 void SystemClock_Config( void ){
-  
-    LL_FLASH_SetLatency(LL_FLASH_LATENCY_7);
 
-    if(LL_FLASH_GetLatency() != LL_FLASH_LATENCY_7){
+    RCC_OscInitTypeDef RCC_OscInitStruct;
+    RCC_ClkInitTypeDef RCC_ClkInitStruct;
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
-        Error_Handler();  
+    /**Configure the main internal regulator output voltage 
+    */
+    __HAL_RCC_PWR_CLK_ENABLE();
+
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+    /**Initializes the CPU, AHB and APB busses clocks 
+    */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM = 16;
+    RCC_OscInitStruct.PLL.PLLN = 432;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 9;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
     }
 
-    LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
+    /**Activate the Over-Drive mode 
+    */
+    if (HAL_PWREx_EnableOverDrive() != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
-    LL_PWR_EnableOverDriveMode();
+    /**Initializes the CPU, AHB and APB busses clocks 
+    */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-    LL_RCC_HSE_Enable();
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
-    /* Wait till HSE is ready */
-    while(LL_RCC_HSE_IsReady() != 1);
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART6
+                              |RCC_PERIPHCLK_CLK48;
+    PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+    PeriphClkInitStruct.Usart6ClockSelection = RCC_USART6CLKSOURCE_PCLK2;
+    PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
-    LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_16, 432, LL_RCC_PLLP_DIV_2);
+    /**Configure the Systick interrupt time 
+    */
+    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-    LL_RCC_PLL_Enable();
+    /**Configure the Systick 
+    */
+    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
-    /* Wait till PLL is ready */
-    while(LL_RCC_PLL_IsReady() != 1);
-    
-    LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
-
-    LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_4);
-
-    LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_2);
-
-    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
-
-    /* Wait till System clock is ready */
-    while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL);
-
-    LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK2);
-
-    LL_RCC_SetUSARTClockSource(LL_RCC_USART6_CLKSOURCE_PCLK2);
+    /* SysTick_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 
