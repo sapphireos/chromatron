@@ -132,7 +132,6 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 	GPIO_TypeDef *GPIOx;
     gpio_config[pin].Mode        = GPIO_MODE_INPUT;
     gpio_config[pin].Speed       = GPIO_SPEED_FREQ_LOW;
-    gpio_config[pin].OutputType  = GPIO_OUTPUT_OPENDRAIN;
     gpio_config[pin].Pull        = GPIO_NOPULL;
 
 	switch( pin ){
@@ -313,11 +312,11 @@ void io_v_digital_write( uint8_t pin, bool state ){
 
     if( state ){
 
-    	HAL_GPIO_SetOutputPin( GPIOx, gpio_pin );
+    	HAL_GPIO_WritePin( GPIOx, gpio_pin, GPIO_PIN_SET );
     }
     else{
 
-    	HAL_GPIO_ResetOutputPin( GPIOx, gpio_pin );
+    	HAL_GPIO_WritePin( GPIOx, gpio_pin, GPIO_PIN_RESET );
     }
 }
 
@@ -362,9 +361,7 @@ bool io_b_digital_read( uint8_t pin ){
             break;
     }
 
-    uint32_t port = HAL_GPIO_ReadInputPort( GPIOx );
-
-    return ( port & ( 1 << gpio_pin ) ) != 0;
+    return HAL_GPIO_ReadPin( GPIOx, gpio_pin ) == GPIO_PIN_SET;
 }
 
 bool io_b_button_down( void ){
