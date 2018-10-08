@@ -183,10 +183,6 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-
-    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
-
-
     if( sync_difference > 0){
 
         // our clock is ahead, so we need to slow down
@@ -197,8 +193,12 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
         // our clock is behind, so we need to speed up
         clock_adjust = -10;
     }
+    else{
 
+        clock_adjust = 0;   
+    }
 
+    log_v_debug_P( PSTR("sync_difference: %ld adjust: %d"), sync_difference, clock_adjust );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -705,7 +705,14 @@ PT_BEGIN( pt );
         master_time.seconds++;
         base_system_time += clock_rate; // base system time needs to track actual elapsed time
 
-
+        if( sync_difference < 0 ){
+            
+            sync_difference += 1000;
+        }
+        else if( sync_difference > 0 ){
+            
+            sync_difference -= 1000;
+        }
     }
 
 PT_END( pt );
