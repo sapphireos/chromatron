@@ -48,6 +48,7 @@ static volatile bool wifi_rx_ready;
 static uint32_t ready_time_start;
 static volatile uint16_t max_ready_wait_isr;
 
+static DMA_HandleTypeDef hdma1;
 
 void DMA1_Stream0_IRQHandler( void ){
         
@@ -144,11 +145,30 @@ void WIFI_TIMER_ISR( void ){
 }
 
 
+
 void hal_wifi_v_init( void ){
 
     // enable DMA controller
     __HAL_RCC_DMA1_CLK_ENABLE();
+
+    hdma1.Instance                  = WIFI_DMA;
+    hdma1.Init.Channel              = 0;
+    hdma1.Init.Direction            = DMA_PERIPH_TO_MEMORY;
+    hdma1.Init.PeriphInc            = DMA_PINC_DISABLE;
+    hdma1.Init.MemInc               = DMA_MINC_ENABLE;
+    hdma1.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    hdma1.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    hdma1.Init.Mode                 = DMA_NORMAL;
+    hdma1.Init.Priority             = DMA_PRIORITY_HIGH;
+    hdma1.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    hdma1.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
+    hdma1.Init.MemBurst             = DMA_MBURST_SINGLE;
+    hdma1.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    HAL_DMA_Init( &hdma1 );
     
+    HAL_NVIC_SetPriority( DMA1_Stream0_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
 
     // // reset timer
     // WIFI_TIMER.CTRLA = 0;
@@ -238,7 +258,7 @@ void hal_wifi_v_disable_rx_dma( void ){
 
 	ATOMIC;
 
-    LL_DMA_DeInit( WIFI_DMA, WIFI_DMA_STREAM );
+    __HAL_DMA_DISABLE( &hdma1 );
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
@@ -258,11 +278,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     // flush buffer
     hal_wifi_v_usart_flush();
 
-    LL_DMA_InitTypeDef init;
-    LL_DMA_StructInit( &init );
-
-    LL_DMA_Init( WIFI_DMA, WIFI_DMA_STREAM, &init );
-
+    __HAL_DMA_ENABLE( &hdma1 );
+    
 
  //    DMA.INTFLAGS = WIFI_DMA_CHTRNIF | WIFI_DMA_CHERRIF; // clear transaction complete interrupt
 
@@ -291,6 +308,10 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     END_ATOMIC;
 }
 
+void hal_wifi_v_usart_set_baud( baud_t8 baud ){
+
+    
+}
 
 void hal_wifi_v_reset_rx_buffer( void ){
 

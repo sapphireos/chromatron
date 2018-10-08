@@ -25,13 +25,14 @@
 
 #include "system.h"
 #include "wifi_cmd.h"
+#include "hal_usart.h"
 
 #define WIFI_TIMER 				TIM3
 #define WIFI_TIMER_ISR  		TIM3_IRQHandler
 
 #define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
 
-#define WIFI_DMA 				DMA1
+#define WIFI_DMA 				DMA1_Stream0 
 #define WIFI_DMA_STREAM			0
 
 // #define WIFI_USART              USARTE0
@@ -79,6 +80,8 @@ void hal_wifi_v_usart_flush( void );
 uint16_t hal_wifi_u16_dma_rx_bytes( void );
 void hal_wifi_v_disable_rx_dma( void );
 void hal_wifi_v_enable_rx_dma( bool irq );
+
+void hal_wifi_v_usart_set_baud( baud_t8 baud );
 
 void hal_wifi_v_reset_rx_buffer( void );
 void hal_wifi_v_clear_rx_buffer( void );
