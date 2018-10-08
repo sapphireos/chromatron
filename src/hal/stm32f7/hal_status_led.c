@@ -167,32 +167,29 @@ PT_END( pt );
 
 void reset_all( void ){
 
-    LL_GPIO_SetOutputPin(LED_RED_PORT, 		LED_RED_PIN);
-    LL_GPIO_SetOutputPin(LED_GREEN_PORT, 	LED_GREEN_PIN);
-    LL_GPIO_SetOutputPin(LED_BLUE_PORT, 	LED_BLUE_PIN);
+    HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, GPIO_PIN_SET);
 
-    LL_GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitTypeDef GPIO_InitStruct;
 
     GPIO_InitStruct.Pin         = LED_RED_PIN;
-    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_RED_PORT, &GPIO_InitStruct);
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(LED_RED_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin         = LED_GREEN_PIN;
-    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_GREEN_PORT, &GPIO_InitStruct);
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(LED_GREEN_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin         = LED_BLUE_PIN;
-    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_BLUE_PORT, &GPIO_InitStruct);
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(LED_BLUE_PORT, &GPIO_InitStruct);
 }
 
 void status_led_v_init( void ){
@@ -230,36 +227,36 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            LL_GPIO_ResetOutputPin(LED_BLUE_PORT, 	LED_BLUE_PIN);
+            HAL_GPIO_WritePin(LED_BLUE_PORT, 	LED_BLUE_PIN, GPIO_PIN_RESET);
             break;
 
         case STATUS_LED_GREEN:
-            LL_GPIO_ResetOutputPin(LED_GREEN_PORT, 	LED_GREEN_PIN);
+            HAL_GPIO_WritePin(LED_GREEN_PORT, 	LED_GREEN_PIN, GPIO_PIN_RESET);
             break;
 
         case STATUS_LED_RED:
-            LL_GPIO_ResetOutputPin(LED_RED_PORT, 	LED_RED_PIN);
+            HAL_GPIO_WritePin(LED_RED_PORT, 	LED_RED_PIN, GPIO_PIN_RESET);
             break;
 
         case STATUS_LED_YELLOW:
-            LL_GPIO_ResetOutputPin(LED_GREEN_PORT, 	LED_GREEN_PIN);
-            LL_GPIO_ResetOutputPin(LED_RED_PORT, 	LED_RED_PIN);
+            HAL_GPIO_WritePin(LED_GREEN_PORT, 	LED_GREEN_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_RED_PORT, 	LED_RED_PIN, GPIO_PIN_RESET);
             break;
 
         case STATUS_LED_PURPLE:
-            LL_GPIO_ResetOutputPin(LED_BLUE_PORT, 	LED_BLUE_PIN);
-            LL_GPIO_ResetOutputPin(LED_RED_PORT, 	LED_RED_PIN);
+            HAL_GPIO_WritePin(LED_BLUE_PORT, 	LED_BLUE_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_RED_PORT, 	LED_RED_PIN, GPIO_PIN_RESET);
             break;
 
         case STATUS_LED_TEAL:
-            LL_GPIO_ResetOutputPin(LED_GREEN_PORT, 	LED_GREEN_PIN);
-            LL_GPIO_ResetOutputPin(LED_BLUE_PORT, 	LED_BLUE_PIN);
+            HAL_GPIO_WritePin(LED_GREEN_PORT, 	LED_GREEN_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_BLUE_PORT, 	LED_BLUE_PIN, GPIO_PIN_RESET);
             break;
 
         case STATUS_LED_WHITE:
-            LL_GPIO_ResetOutputPin(LED_GREEN_PORT, 	LED_GREEN_PIN);
-            LL_GPIO_ResetOutputPin(LED_RED_PORT, 	LED_RED_PIN);
-            LL_GPIO_ResetOutputPin(LED_BLUE_PORT, 	LED_BLUE_PIN);
+            HAL_GPIO_WritePin(LED_GREEN_PORT, 	LED_GREEN_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_RED_PORT, 	LED_RED_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(LED_BLUE_PORT, 	LED_BLUE_PIN, GPIO_PIN_RESET);
             break;
 
         default:

@@ -171,7 +171,7 @@ void TIM2_IRQHandler( void ){
     }
 
     // clear flag
-    __HAL_TIM_CLEAR_FLAG( &timer, TIM_IT_UPDATE )
+    __HAL_TIM_CLEAR_FLAG( &timer, TIM_IT_UPDATE );
 
     // trace_printf("meow\n");
 	microseconds += OVERFLOW_MICROSECONDS;
