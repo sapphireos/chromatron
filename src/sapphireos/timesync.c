@@ -149,7 +149,7 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     master_source = source;
 
-    log_v_debug_P( PSTR("set master clock source: %u"), source );
+    // log_v_debug_P( PSTR("set master clock source: %u"), source );
 
     // base time is the millisecond system timer that corresponds
     // with the given ntp timestamp

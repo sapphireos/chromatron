@@ -417,9 +417,9 @@ PT_BEGIN( pt );
         pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
 
         // parse current time to ISO so we can read it in the log file
-        char time_str[ISO8601_STRING_MIN_LEN_MS];
-        ntp_v_to_iso8601( time_str, sizeof(time_str), transmit_ts );
-        log_v_info_P( PSTR("TX Time is now: %s"), time_str );
+        // char time_str[ISO8601_STRING_MIN_LEN_MS];
+        // ntp_v_to_iso8601( time_str, sizeof(time_str), transmit_ts );
+        // log_v_info_P( PSTR("TX Time is now: %s"), time_str );
 
 
         // send packet
