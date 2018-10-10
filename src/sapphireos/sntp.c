@@ -303,6 +303,16 @@ ntp_ts_t process_packet( ntp_packet_t *packet ){
     packet->transmit_timestamp.seconds   = HTONL( packet->transmit_timestamp.seconds );
     packet->transmit_timestamp.fraction  = HTONL( packet->transmit_timestamp.fraction );
 
+    char time_str[ISO8601_STRING_MIN_LEN_MS];
+    ntp_v_to_iso8601( time_str, sizeof(time_str), packet->originate_timestamp );
+    log_v_info_P( PSTR("Originate %s"), time_str );
+    ntp_v_to_iso8601( time_str, sizeof(time_str), packet->receive_timestamp );
+    log_v_info_P( PSTR("Receive   %s"), time_str );
+    ntp_v_to_iso8601( time_str, sizeof(time_str), packet->transmit_timestamp );
+    log_v_info_P( PSTR("Transmit  %s"), time_str );
+    ntp_v_to_iso8601( time_str, sizeof(time_str), dest_ts );
+    log_v_info_P( PSTR("Dest      %s"), time_str );
+
 
     uint64_t originate_timestamp = ntp_u64_conv_to_u64( packet->originate_timestamp );
 
@@ -406,6 +416,12 @@ PT_BEGIN( pt );
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
         pkt.transmit_timestamp.fraction = HTONL(transmit_ts.fraction);
 
+        // parse current time to ISO so we can read it in the log file
+        char time_str[ISO8601_STRING_MIN_LEN_MS];
+        ntp_v_to_iso8601( time_str, sizeof(time_str), transmit_ts );
+        log_v_info_P( PSTR("TX Time is now: %s"), time_str );
+
+
         // send packet
         // if packet transmission fails, we'll try again on the next polling cycle
         if( sock_i16_sendto( sock, &pkt, sizeof(pkt), &ntp_server_addr ) < 0 ){
@@ -449,13 +465,9 @@ PT_BEGIN( pt );
         time_v_set_master_clock( network_time, base_system_time, TIME_FLAGS_SOURCE_NTP );
 
         // parse current time to ISO so we can read it in the log file
-        // datetime_t datetime;
-        // datetime_v_seconds_to_datetime( network_time.seconds, &datetime );
-
-        // char time_str[ISO8601_STRING_MIN_LEN];
-        // datetime_v_to_iso8601( time_str, sizeof(time_str), &datetime );
-
-        // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str, last_offset, last_delay );
+        char time_str2[ISO8601_STRING_MIN_LEN_MS];
+        ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
+        log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
 
 
         goto clean_up;
