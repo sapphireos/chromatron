@@ -330,7 +330,7 @@ ntp_ts_t process_packet( ntp_packet_t *packet ){
     // set offset and delay variables
     if( ( ( offset >> 32 ) < 32 ) && ( ( offset >> 32 ) > -32 ) ){
 
-        last_offset = ( ( offset >> 32 ) * 1000 ) + ( ( offset & 0xffffffff ) % 1000 );
+        last_offset = ( ( offset >> 32 ) * 1000 ) + ( ( ( offset & 0xffffffff ) * 1000 ) >> 32 );
     }
     else{
 
@@ -339,7 +339,7 @@ ntp_ts_t process_packet( ntp_packet_t *packet ){
 
     if( ( delay >> 32 ) < 64 ){
 
-        last_delay = ( ( delay >> 32 ) * 1000 ) + ( ( delay & 0xffffffff ) % 1000 );
+        last_delay = ( ( delay >> 32 ) * 1000 ) + ( ( ( delay & 0xffffffff ) * 1000 ) >> 32);
     }
     else{
 
