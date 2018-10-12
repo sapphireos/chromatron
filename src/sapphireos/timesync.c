@@ -174,7 +174,7 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( master ) - (int16_t)ntp_u16_get_fraction_as_ms( t );
 
     char s[ISO8601_STRING_MIN_LEN_MS];
-    ntp_v_to_iso8601( s, sizeof(s), master_time );
+    ntp_v_to_iso8601( s, sizeof(s), master );
     log_v_debug_P( PSTR("Master:   %s"), s );
     ntp_v_to_iso8601( s, sizeof(s), t );
     log_v_debug_P( PSTR("Remote:   %s"), s );
@@ -190,6 +190,7 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
         return;
     }
 
+    log_v_debug_P( PSTR("master ms: %u remote: %u"), ntp_u16_get_fraction_as_ms( master ), ntp_u16_get_fraction_as_ms( t ) );
     log_v_debug_P( PSTR("delta seconds: %ld ms: %d"), (int32_t)delta_seconds, delta_ms );
 
     // gradual adjustment
@@ -197,20 +198,20 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    // if( sync_difference > 0){
+    if( sync_difference > 50){
 
-    //     // our clock is ahead, so we need to slow down
-    //     clock_adjust = 10;
-    // }
-    // else if( sync_difference < 0){
+        // our clock is ahead, so we need to slow down
+        clock_adjust = 10;
+    }
+    else if( sync_difference < -50){
 
-    //     // our clock is behind, so we need to speed up
-    //     clock_adjust = -10;
-    // }
-    // else{
+        // our clock is behind, so we need to speed up
+        clock_adjust = -10;
+    }
+    else{
 
-    //     clock_adjust = 0;   
-    // }
+        clock_adjust = 0;   
+    }
 
     log_v_debug_P( PSTR("sync_difference: %ld adjust: %d"), sync_difference, clock_adjust );
 }
