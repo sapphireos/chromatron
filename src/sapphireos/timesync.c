@@ -86,6 +86,8 @@ void hal_rtc_v_irq( void ){
 
 void time_v_init( void ){
 
+    catbus_v_set_options( CATBUS_OPTION_LINK_DISABLE );
+
     // January 1, 2018, midnight
     master_time.seconds = 1514786400 + 2208988800 - 21600;
 
@@ -219,18 +221,19 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 ntp_ts_t time_t_now( void ){
 
     // uint16_t rtc_time = hal_rtc_u16_get_time();
-    ntp_ts_t now = master_time;
+    // ntp_ts_t now = master_time;
+    uint64_t now = ntp_u64_conv_to_u64( master_time );
 
     // get time elapsed since base time was set
     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
 
+    log_v_debug_P( PSTR("master: %lu frac: %lu elapsed: %lu"), master_time.seconds, master_time.fraction, elapsed_ms );
+    
+
     // now.seconds += ( elapsed_ms / 1000 );
     // elapsed_ms %= 1000;
 
-    uint64_t fraction = now.fraction + ( ( (uint64_t)elapsed_ms << 32 ) / 1000 );
-
-    now.seconds += ( fraction >> 32 );
-    now.fraction += ( fraction & 0xffffffff );
+    now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 );
 
     // now.fraction += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 );
 
@@ -238,7 +241,7 @@ ntp_ts_t time_t_now( void ){
 
     // now = ntp_ts_from_u64( ntp_u64_conv_to_u64( now ) + ntp_u64_conv_to_u64( elapsed ) );
     
-    return now;
+    return ntp_ts_from_u64( now );
 }
 
 // return TRUE if 1 is better than 2

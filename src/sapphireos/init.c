@@ -198,12 +198,12 @@ int8_t sapphire_i8_init( void ){
     wifi_v_init();
     #endif
 
+    catbus_v_init();
+
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
     #endif
-
-    catbus_v_init();
-
+    
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
         return -1;
     }
