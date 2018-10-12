@@ -198,20 +198,20 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    if( sync_difference > 50){
+    // if( sync_difference > 50){
 
-        // our clock is ahead, so we need to slow down
-        clock_adjust = 10;
-    }
-    else if( sync_difference < -50){
+    //     // our clock is ahead, so we need to slow down
+    //     clock_adjust = 10;
+    // }
+    // else if( sync_difference < -50){
 
-        // our clock is behind, so we need to speed up
-        clock_adjust = -10;
-    }
-    else{
+    //     // our clock is behind, so we need to speed up
+    //     clock_adjust = -10;
+    // }
+    // else{
 
-        clock_adjust = 0;   
-    }
+    //     clock_adjust = 0;   
+    // }
 
     log_v_debug_P( PSTR("sync_difference: %ld adjust: %d"), sync_difference, clock_adjust );
 }
@@ -716,14 +716,17 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static uint16_t clock_rate;
+    static uint32_t alarm;
+    alarm = tmr_u32_get_system_time_ms();
 
     while( TRUE ){
 
-        sync_difference -= clock_adjust;
+        // sync_difference -= clock_adjust;
 
         clock_rate = 1000 + clock_adjust;
+        alarm += clock_rate;
 
-        thread_v_set_alarm( thread_u32_get_alarm() + clock_rate );
+        thread_v_set_alarm( alarm );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // increment master clock by 1 second
@@ -738,6 +741,11 @@ PT_BEGIN( pt );
             
             sync_difference -= 1000;
         }
+
+        char s[ISO8601_STRING_MIN_LEN_MS];
+        ntp_v_to_iso8601( s, sizeof(s), master_time );
+
+        log_v_debug_P( PSTR("time: %s diff: %ld alarm: %lu"), s, sync_difference, alarm );
     }
 
 PT_END( pt );
