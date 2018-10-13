@@ -45,7 +45,7 @@ PT_BEGIN( pt );
 
         sys_v_wdt_reset();
 
-        datetime_v_update();
+        // datetime_v_update();
         
         #ifdef ENABLE_NETWORK
         sock_v_process_timeouts();

@@ -456,10 +456,9 @@ PT_BEGIN( pt );
         // be corrupt at this point in the thread, DO NOT USE IT!
         ntp_packet_t *recv_pkt = sock_vp_get_data( sock );
 
-        uint32_t base_system_time = tmr_u32_get_system_time_ms();
-
         // process received packet
         ntp_ts_t network_time = process_packet( recv_pkt );
+        uint32_t base_system_time = tmr_u32_get_system_time_ms();
 
         // sync master clock
         time_v_set_master_clock( network_time, base_system_time, TIME_FLAGS_SOURCE_NTP );
