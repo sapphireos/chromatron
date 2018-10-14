@@ -210,8 +210,8 @@ void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t so
         return;
     }
 
-    log_v_debug_P( PSTR("master ms: %u remote: %u"), ntp_u16_get_fraction_as_ms( master ), ntp_u16_get_fraction_as_ms( source_ts ) );
-    log_v_debug_P( PSTR("delta seconds: %ld ms: %d"), (int32_t)delta_seconds, delta_ms );
+    // log_v_debug_P( PSTR("master ms: %u remote: %u"), ntp_u16_get_fraction_as_ms( master ), ntp_u16_get_fraction_as_ms( source_ts ) );
+    // log_v_debug_P( PSTR("delta seconds: %ld ms: %d"), (int32_t)delta_seconds, delta_ms );
 
     // gradual adjustment
 

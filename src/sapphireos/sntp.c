@@ -303,15 +303,15 @@ ntp_ts_t process_packet( ntp_packet_t *packet ){
     packet->transmit_timestamp.seconds   = HTONL( packet->transmit_timestamp.seconds );
     packet->transmit_timestamp.fraction  = HTONL( packet->transmit_timestamp.fraction );
 
-    char time_str[ISO8601_STRING_MIN_LEN_MS];
-    ntp_v_to_iso8601( time_str, sizeof(time_str), packet->originate_timestamp );
-    log_v_info_P( PSTR("Originate %s"), time_str );
-    ntp_v_to_iso8601( time_str, sizeof(time_str), packet->receive_timestamp );
-    log_v_info_P( PSTR("Receive   %s"), time_str );
-    ntp_v_to_iso8601( time_str, sizeof(time_str), packet->transmit_timestamp );
-    log_v_info_P( PSTR("Transmit  %s"), time_str );
-    ntp_v_to_iso8601( time_str, sizeof(time_str), dest_ts );
-    log_v_info_P( PSTR("Dest      %s"), time_str );
+    // char time_str[ISO8601_STRING_MIN_LEN_MS];
+    // ntp_v_to_iso8601( time_str, sizeof(time_str), packet->originate_timestamp );
+    // log_v_info_P( PSTR("Originate %s"), time_str );
+    // ntp_v_to_iso8601( time_str, sizeof(time_str), packet->receive_timestamp );
+    // log_v_info_P( PSTR("Receive   %s"), time_str );
+    // ntp_v_to_iso8601( time_str, sizeof(time_str), packet->transmit_timestamp );
+    // log_v_info_P( PSTR("Transmit  %s"), time_str );
+    // ntp_v_to_iso8601( time_str, sizeof(time_str), dest_ts );
+    // log_v_info_P( PSTR("Dest      %s"), time_str );
 
 
     uint64_t originate_timestamp = ntp_u64_conv_to_u64( packet->originate_timestamp );
@@ -466,7 +466,7 @@ PT_BEGIN( pt );
         // parse current time to ISO so we can read it in the log file
         char time_str2[ISO8601_STRING_MIN_LEN_MS];
         ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
-        log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
+        // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
 
 
         goto clean_up;
