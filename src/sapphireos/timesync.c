@@ -70,12 +70,36 @@ static uint16_t filtered_rtt;
 #define RTT_RELAX               4
 
 
+
+
+static int8_t ntp_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+
+    if( op == KV_OP_GET ){
+
+        uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
+        uint32_t seconds = master_time.seconds + ( elapsed / 1000 );
+
+        memcpy( data, &seconds, len );
+
+        return 0;
+    }
+
+    return -1;
+}
+
+
 KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
     { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
     { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
 };
 
 
