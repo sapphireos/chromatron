@@ -147,6 +147,23 @@ void time_v_set_gps_sync( bool sync ){
     gps_sync = sync;
 }
 
+
+static ntp_ts_t _time_t_time_from_system_time( uint32_t end_time ){
+
+    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
+
+    ASSERT( elapsed_ms < 4000000000 );
+
+    uint64_t now = ntp_u64_conv_to_u64( master_time );
+
+    // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
+
+    now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 ); 
+    
+    return ntp_ts_from_u64( now ); 
+}
+
+
 void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
     master_source = source;
@@ -162,13 +179,14 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     //                     ntp_u64_conv_to_u64( master_time ) + 
     //                     ntp_u64_conv_to_u64( ntp_ts_from_ms( tmr_u32_elapsed_time_ms( base_time ) ) ) );
     
-    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, base_time );
+    // uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, base_time );
 
-    ntp_ts_t master = master_time;
-    uint64_t fraction = master.fraction + ( ( (uint64_t)elapsed_ms << 32 ) / 1000 );
+    // ntp_ts_t master = master_time;
+    // uint64_t fraction = master.fraction + ( ( (uint64_t)elapsed_ms << 32 ) / 1000 );
 
-    master.seconds += ( fraction >> 32 );
-    master.fraction += ( fraction & 0xffffffff );
+    // master.seconds += ( fraction >> 32 );
+    // master.fraction += ( fraction & 0xffffffff );
+    ntp_ts_t master = _time_t_time_from_system_time( base_time );
 
 
     // get deltas
@@ -216,21 +234,6 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
     // }
 
     log_v_debug_P( PSTR("sync_difference: %ld adjust: %d"), sync_difference, clock_adjust );
-}
-
-static ntp_ts_t _time_t_time_from_system_time( uint32_t end_time ){
-
-    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
-
-    ASSERT( elapsed_ms < 4000000000 );
-
-    uint64_t now = ntp_u64_conv_to_u64( master_time );
-
-    log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
-
-    now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 ); 
-    
-    return ntp_ts_from_u64( now ); 
 }
 
 ntp_ts_t time_t_now( void ){
