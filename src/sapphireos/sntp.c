@@ -225,7 +225,6 @@ From the RFC:
 void process_packet( 
     ntp_packet_t *packet, 
     ntp_ts_t *network_time, 
-    ntp_ts_t *local_time,
     uint32_t *base_system_time ){
 
     // get destination timestamp (our local network time when we receive the packet)
@@ -290,7 +289,6 @@ void process_packet(
     // set sync status
     status = SNTP_STATUS_SYNCHRONIZED;
 
-    *local_time = dest_ts;
     *network_time = ntp_ts_from_u64( current_time );
 }
 
@@ -394,12 +392,11 @@ PT_BEGIN( pt );
 
         // process received packet
         ntp_ts_t network_time;
-        ntp_ts_t local_time;
         uint32_t sys_time;
-        process_packet( recv_pkt, &network_time, &local_time, &sys_time );
+        process_packet( recv_pkt, &network_time, &sys_time );
 
         // sync master clock
-        time_v_set_master_clock( network_time, local_time, sys_time, TIME_FLAGS_SOURCE_NTP );
+        time_v_set_master_clock( network_time, sys_time, TIME_FLAGS_SOURCE_NTP );
 
         // parse current time to ISO so we can read it in the log file
         // char time_str2[ISO8601_STRING_MIN_LEN_MS];

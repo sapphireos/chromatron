@@ -190,11 +190,12 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
 void time_v_set_master_clock( 
     ntp_ts_t source_ts, 
-    ntp_ts_t local_ts, 
     uint32_t local_system_time,
     uint8_t source ){
 
     master_source = source;
+
+    ntp_ts_t local_ts = time_t_from_system_time( local_system_time );
 
     // get deltas
     int64_t delta_seconds = (int64_t)local_ts.seconds - (int64_t)source_ts.seconds;
