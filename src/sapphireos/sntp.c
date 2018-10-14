@@ -222,10 +222,15 @@ From the RFC:
 */
 
 
-ntp_ts_t process_packet( ntp_packet_t *packet ){
+void process_packet( 
+    ntp_packet_t *packet, 
+    ntp_ts_t *network_time, 
+    ntp_ts_t *local_time,
+    uint32_t *base_system_time ){
 
     // get destination timestamp (our local network time when we receive the packet)
-    ntp_ts_t dest_ts = time_t_now();
+    *base_system_time = tmr_u32_get_system_time_ms();
+    ntp_ts_t dest_ts = time_t_from_system_time( *base_system_time );
 
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 
@@ -285,7 +290,8 @@ ntp_ts_t process_packet( ntp_packet_t *packet ){
     // set sync status
     status = SNTP_STATUS_SYNCHRONIZED;
 
-    return ntp_ts_from_u64( current_time );
+    *local_time = dest_ts;
+    *network_time = ntp_ts_from_u64( current_time );
 }
 
 
@@ -387,15 +393,17 @@ PT_BEGIN( pt );
         ntp_packet_t *recv_pkt = sock_vp_get_data( sock );
 
         // process received packet
-        ntp_ts_t network_time = process_packet( recv_pkt );
-        uint32_t base_system_time = tmr_u32_get_system_time_ms();
+        ntp_ts_t network_time;
+        ntp_ts_t local_time;
+        uint32_t sys_time;
+        process_packet( recv_pkt, &network_time, &local_time, &sys_time );
 
         // sync master clock
-        time_v_set_master_clock( network_time, base_system_time, TIME_FLAGS_SOURCE_NTP );
+        time_v_set_master_clock( network_time, local_time, sys_time, TIME_FLAGS_SOURCE_NTP );
 
         // parse current time to ISO so we can read it in the log file
-        char time_str2[ISO8601_STRING_MIN_LEN_MS];
-        ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
+        // char time_str2[ISO8601_STRING_MIN_LEN_MS];
+        // ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
         // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
 
 

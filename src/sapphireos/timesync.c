@@ -172,7 +172,7 @@ void time_v_set_gps_sync( bool sync ){
 }
 
 
-static ntp_ts_t _time_t_time_from_system_time( uint32_t end_time ){
+ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
 
@@ -188,22 +188,21 @@ static ntp_ts_t _time_t_time_from_system_time( uint32_t end_time ){
 }
 
 
-void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t source ){
+void time_v_set_master_clock( 
+    ntp_ts_t source_ts, 
+    ntp_ts_t local_ts, 
+    uint32_t local_system_time,
+    uint8_t source ){
 
     master_source = source;
 
-    // log_v_debug_P( PSTR("set master clock source: %u"), source );
-
-    ntp_ts_t master = _time_t_time_from_system_time( base_time );
-
-
     // get deltas
-    int64_t delta_seconds = (int64_t)master.seconds - (int64_t)source_ts.seconds;
-    int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( master ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
+    int64_t delta_seconds = (int64_t)local_ts.seconds - (int64_t)source_ts.seconds;
+    int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ts ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
 
     char s[ISO8601_STRING_MIN_LEN_MS];
-    ntp_v_to_iso8601( s, sizeof(s), master );
-    log_v_debug_P( PSTR("Master:   %s"), s );
+    ntp_v_to_iso8601( s, sizeof(s), local_ts );
+    log_v_debug_P( PSTR("Local:    %s"), s );
     ntp_v_to_iso8601( s, sizeof(s), source_ts );
     log_v_debug_P( PSTR("Remote:   %s"), s );
 
@@ -213,7 +212,7 @@ void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t so
 
         // hard sync
         master_time = source_ts;
-        base_system_time = base_time;
+        base_system_time = local_system_time;
 
         return;
     }
@@ -243,7 +242,7 @@ void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t so
 
 ntp_ts_t time_t_now( void ){
 
-    return _time_t_time_from_system_time( tmr_u32_get_system_time_ms() );
+    return time_t_from_system_time( tmr_u32_get_system_time_ms() );
 }
 
 // return TRUE if 1 is better than 2
@@ -418,7 +417,7 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    time_v_set_master_clock( msg->ntp_time, tmr_u32_get_system_time_ms(), msg->source );
+                    // time_v_set_master_clock( msg->ntp_time, tmr_u32_get_system_time_ms(), msg->source );
                 }
                 
                 uint32_t now = tmr_u32_get_system_time_ms();
