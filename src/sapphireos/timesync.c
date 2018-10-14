@@ -164,7 +164,7 @@ static ntp_ts_t _time_t_time_from_system_time( uint32_t end_time ){
 }
 
 
-void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
+void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t source ){
 
     master_source = source;
 
@@ -190,13 +190,13 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
 
 
     // get deltas
-    int64_t delta_seconds = (int64_t)master.seconds - (int64_t)t.seconds;
-    int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( master ) - (int16_t)ntp_u16_get_fraction_as_ms( t );
+    int64_t delta_seconds = (int64_t)master.seconds - (int64_t)source_ts.seconds;
+    int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( master ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
 
     char s[ISO8601_STRING_MIN_LEN_MS];
     ntp_v_to_iso8601( s, sizeof(s), master );
     log_v_debug_P( PSTR("Master:   %s"), s );
-    ntp_v_to_iso8601( s, sizeof(s), t );
+    ntp_v_to_iso8601( s, sizeof(s), source_ts );
     log_v_debug_P( PSTR("Remote:   %s"), s );
 
     if( abs64( delta_seconds ) > 60 ){
@@ -204,13 +204,13 @@ void time_v_set_master_clock( ntp_ts_t t, uint32_t base_time, uint8_t source ){
         log_v_debug_P( PSTR("HARD SYNC") );
 
         // hard sync
-        master_time = t;
+        master_time = source_ts;
         base_system_time = base_time;
 
         return;
     }
 
-    log_v_debug_P( PSTR("master ms: %u remote: %u"), ntp_u16_get_fraction_as_ms( master ), ntp_u16_get_fraction_as_ms( t ) );
+    log_v_debug_P( PSTR("master ms: %u remote: %u"), ntp_u16_get_fraction_as_ms( master ), ntp_u16_get_fraction_as_ms( source_ts ) );
     log_v_debug_P( PSTR("delta seconds: %ld ms: %d"), (int32_t)delta_seconds, delta_ms );
 
     // gradual adjustment
