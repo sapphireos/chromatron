@@ -194,22 +194,6 @@ void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t so
 
     // log_v_debug_P( PSTR("set master clock source: %u"), source );
 
-    // base time is the millisecond system timer that corresponds
-    // with the given ntp timestamp
-
-
-    // get master time at base time
-    // ntp_ts_t master = ntp_ts_from_u64( 
-    //                     ntp_u64_conv_to_u64( master_time ) + 
-    //                     ntp_u64_conv_to_u64( ntp_ts_from_ms( tmr_u32_elapsed_time_ms( base_time ) ) ) );
-    
-    // uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, base_time );
-
-    // ntp_ts_t master = master_time;
-    // uint64_t fraction = master.fraction + ( ( (uint64_t)elapsed_ms << 32 ) / 1000 );
-
-    // master.seconds += ( fraction >> 32 );
-    // master.fraction += ( fraction & 0xffffffff );
     ntp_ts_t master = _time_t_time_from_system_time( base_time );
 
 
@@ -233,9 +217,6 @@ void time_v_set_master_clock( ntp_ts_t source_ts, uint32_t base_time, uint8_t so
 
         return;
     }
-
-    // log_v_debug_P( PSTR("master ms: %u remote: %u"), ntp_u16_get_fraction_as_ms( master ), ntp_u16_get_fraction_as_ms( source_ts ) );
-    // log_v_debug_P( PSTR("delta seconds: %ld ms: %d"), (int32_t)delta_seconds, delta_ms );
 
     // gradual adjustment
 

@@ -139,31 +139,6 @@ It might be interesting to track statistics on the delays and offsets we get fro
 PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) );
 
 
-// static ntp_ts_t sntp_t_now( void ){
-
-//     ntp_ts_t now = network_time;
-
-//     // get time elapsed since base time was set
-//     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_system_time );
-
-//     ntp_ts_t elapsed = ntp_ts_from_ms( elapsed_ms );
-
-//     uint64_t a = ( (uint64_t)now.seconds << 32 ) + ( now.fraction );
-//     uint64_t b = ( (uint64_t)elapsed.seconds << 32 ) + ( elapsed.fraction );
-
-//     a += b;
-
-//     now.seconds = a >> 32;
-//     now.fraction = a & 0xffffffff;
-    
-//     return now;
-// }
-
-// ntp_ts_t sntp_t_last_sync( void ){
-
-//     return network_time;
-// }
-
 void sntp_v_init( void ){
 
 }
@@ -174,11 +149,6 @@ void sntp_v_start( void ){
 
         return;
     }
-
-    // // initialize network time
-    // network_time.seconds = 0x00000000;
-    // network_time.fraction = 0;
-    // base_system_time = tmr_u32_get_system_time_ms();
 
     // check if SNTP is enabled
     if( cfg_b_get_boolean( CFG_PARAM_ENABLE_SNTP ) ){
@@ -254,11 +224,7 @@ From the RFC:
 
 ntp_ts_t process_packet( ntp_packet_t *packet ){
 
-    // get new base system time, we'll hang on to this until the end of the time calculations
-    // uint32_t new_base_system_time = tmr_u32_get_system_time_ms();
-
     // get destination timestamp (our local network time when we receive the packet)
-    // ntp_ts_t dest_ts = sntp_t_now();
     ntp_ts_t dest_ts = time_t_now();
 
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
@@ -315,12 +281,6 @@ ntp_ts_t process_packet( ntp_packet_t *packet ){
 
         last_delay = 0;
     }
-
-    // set network time
-    // network_time = ntp_ts_from_u64( current_time );
-    
-    // set base system time
-    // base_system_time = new_base_system_time;
 
     // set sync status
     status = SNTP_STATUS_SYNCHRONIZED;
