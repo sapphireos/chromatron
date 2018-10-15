@@ -177,6 +177,11 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
 
+    if( elapsed_ms >= 4000000000 ){
+
+        log_v_debug_P( PSTR("emwo") );
+    }
+
     ASSERT( elapsed_ms < 4000000000 );
 
     uint64_t now = ntp_u64_conv_to_u64( master_time );
@@ -762,7 +767,7 @@ PT_BEGIN( pt );
         master_time = ntp_ts_from_u64( master );
         network_time = ntp_ts_from_u64( network );
 
-        // base_system_time += elapsed;  
+        base_system_time += elapsed;  
         last_sync = now;
 
 

@@ -543,11 +543,11 @@ void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     ptr += sprintf_P( ptr, PSTR("System Time: %lu \r\n"), tmr_u32_get_system_time_ms() );
 
     // write network time
-    datetime_t datetime;
-    datetime_v_now( &datetime );
-    char buf[ISO8601_STRING_MIN_LEN];
-    datetime_v_to_iso8601( buf, sizeof(buf), &datetime );
-    ptr += sprintf_P( ptr, PSTR("SNTP Time: %s \r\n"), buf );
+    // datetime_t datetime;
+    // datetime_v_now( &datetime );
+    // char buf[ISO8601_STRING_MIN_LEN];
+    // datetime_v_to_iso8601( buf, sizeof(buf), &datetime );
+    // ptr += sprintf_P( ptr, PSTR("SNTP Time: %s \r\n"), buf );
 
     // write memory data
     mem_rt_data_t rt_data;
