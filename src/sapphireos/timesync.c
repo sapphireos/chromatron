@@ -713,24 +713,10 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // static uint16_t clock_rate;
-    // static uint32_t alarm;
-    // alarm = tmr_u32_get_system_time_ms();
-
-    // THREAD_EXIT( pt );
-
     while( TRUE ){
 
-        // sync_difference -= clock_adjust;
-
-        // clock_rate = 1000 + clock_adjust;
-        // clock_rate = 1000;
-        // alarm += clock_rate;
-
-        // thread_v_set_alarm( alarm );
-        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-        TMR_WAIT( pt, 1000 );
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         uint32_t now = tmr_u32_get_system_time_ms();
 
