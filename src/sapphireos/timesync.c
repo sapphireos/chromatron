@@ -37,6 +37,7 @@ PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
+static thread_t clock_thread;
 
 static uint32_t local_time;
 static uint32_t last_net_time;
@@ -48,6 +49,7 @@ static uint8_t master_source;
 // master clock
 static ntp_ts_t master_time;
 static ntp_ts_t network_time;
+static uint32_t last_clock_update;
 static uint32_t base_system_time;
 static int32_t sync_difference;
 static int16_t clock_adjust;
@@ -144,10 +146,11 @@ void time_v_init( void ){
                     0,
                     0 );    
 
-    thread_t_create( time_clock_thread,
-                    PSTR("time_clock"),
-                    0,
-                    0 );    
+    clock_thread = 
+        thread_t_create( time_clock_thread,
+                        PSTR("time_clock"),
+                        0,
+                        0 );    
 }
 
 bool time_b_is_sync( void ){
@@ -176,11 +179,6 @@ void time_v_set_gps_sync( bool sync ){
 ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
-
-    if( elapsed_ms >= 4000000000 ){
-
-        log_v_debug_P( PSTR("emwo") );
-    }
 
     ASSERT( elapsed_ms < 4000000000 );
 
@@ -221,6 +219,9 @@ void time_v_set_master_clock(
         master_time = source_ts;
         network_time = source_ts;
         base_system_time = local_system_time;
+        last_clock_update = base_system_time;
+
+        thread_v_restart( clock_thread );
 
         return;
     }
@@ -739,7 +740,6 @@ PT_BEGIN( pt );
 
     static uint16_t clock_rate;
     static uint32_t alarm;
-    static uint32_t last_sync;
     alarm = tmr_u32_get_system_time_ms();
 
     // THREAD_EXIT( pt );
@@ -756,7 +756,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         uint32_t now = tmr_u32_get_system_time_ms();
-        uint32_t elapsed = tmr_u32_elapsed_times( last_sync, now );
+        uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
 
         uint64_t master = ntp_u64_conv_to_u64( master_time );
         uint64_t network = ntp_u64_conv_to_u64( network_time );
@@ -768,7 +768,7 @@ PT_BEGIN( pt );
         network_time = ntp_ts_from_u64( network );
 
         base_system_time += elapsed;  
-        last_sync = now;
+        last_clock_update = now;
 
 
 
