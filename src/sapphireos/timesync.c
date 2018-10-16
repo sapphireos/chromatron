@@ -215,10 +215,11 @@ void time_v_set_master_clock(
         log_v_debug_P( PSTR("HARD SYNC") );
 
         // hard sync
-        master_time = source_ts;
-        network_time = source_ts;
-        base_system_time = local_system_time;
-        last_clock_update = base_system_time;
+        master_time         = source_ts;
+        network_time        = source_ts;
+        base_system_time    = local_system_time;
+        last_clock_update   = base_system_time;
+        sync_difference     = 0;
 
         thread_v_restart( clock_thread );
 

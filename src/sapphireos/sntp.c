@@ -63,6 +63,7 @@
 // offset and delay in ms from last sync
 static int16_t last_offset;
 static uint16_t last_delay;
+static uint16_t delay_window;
 
 static sntp_status_t8 status = SNTP_STATUS_DISABLED;
 
@@ -149,6 +150,8 @@ void sntp_v_start( void ){
 
         return;
     }
+
+    delay_window = 500;
 
     // check if SNTP is enabled
     if( cfg_b_get_boolean( CFG_PARAM_ENABLE_SNTP ) ){
@@ -395,14 +398,25 @@ PT_BEGIN( pt );
         uint32_t sys_time;
         process_packet( recv_pkt, &network_time, &sys_time );
 
-        // sync master clock
-        time_v_set_master_clock( network_time, sys_time, TIME_FLAGS_SOURCE_NTP );
+        if( last_delay < delay_window ){
 
-        // parse current time to ISO so we can read it in the log file
-        // char time_str2[ISO8601_STRING_MIN_LEN_MS];
-        // ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
-        // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
+            if( delay_window > 20 ){
+                
+                delay_window -= 10;
+            }
 
+            // sync master clock
+            time_v_set_master_clock( network_time, sys_time, TIME_FLAGS_SOURCE_NTP );
+
+            // parse current time to ISO so we can read it in the log file
+            char time_str2[ISO8601_STRING_MIN_LEN_MS];
+            ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
+            log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d Window: %u"), time_str2, last_offset, last_delay, delay_window );
+        }
+        else{
+
+            delay_window *= 2;
+        }
 
         goto clean_up;
 
