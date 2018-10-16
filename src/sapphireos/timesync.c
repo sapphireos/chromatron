@@ -52,7 +52,6 @@ static ntp_ts_t network_time;
 static uint32_t last_clock_update;
 static uint32_t base_system_time;
 static int32_t sync_difference;
-static int16_t clock_adjust;
 
 static bool gps_sync;
 
@@ -231,32 +230,7 @@ void time_v_set_master_clock(
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    if( sync_difference > 50){
-
-        // our clock is ahead, so we need to slow down
-        clock_adjust = 10;
-    }
-    else if( sync_difference > 10){
-
-        // our clock is ahead, so we need to slow down
-        clock_adjust = 1;
-    }
-    else if( sync_difference < -50){
-
-        // our clock is behind, so we need to speed up
-        clock_adjust = -10;
-    }
-    else if( sync_difference < -10){
-
-        // our clock is behind, so we need to speed up
-        clock_adjust = -1;
-    }
-    else{
-
-        clock_adjust = 0;   
-    }
-
-    log_v_debug_P( PSTR("sync_difference: %ld adjust: %d"), sync_difference, clock_adjust );
+    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -738,9 +712,9 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint16_t clock_rate;
-    static uint32_t alarm;
-    alarm = tmr_u32_get_system_time_ms();
+    // static uint16_t clock_rate;
+    // static uint32_t alarm;
+    // alarm = tmr_u32_get_system_time_ms();
 
     // THREAD_EXIT( pt );
 
@@ -749,19 +723,47 @@ PT_BEGIN( pt );
         // sync_difference -= clock_adjust;
 
         // clock_rate = 1000 + clock_adjust;
-        clock_rate = 1000;
-        alarm += clock_rate;
+        // clock_rate = 1000;
+        // alarm += clock_rate;
 
-        thread_v_set_alarm( alarm );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        // thread_v_set_alarm( alarm );
+        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        TMR_WAIT( pt, 1000 );
 
         uint32_t now = tmr_u32_get_system_time_ms();
+
         uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
 
         uint64_t master = ntp_u64_conv_to_u64( master_time );
         uint64_t network = ntp_u64_conv_to_u64( network_time );
 
-        master += ( ( (uint64_t)elapsed << 32 ) / 1000 );
+        int16_t clock_adjust = 0;
+
+        if( sync_difference > 50){
+
+            // our clock is ahead, so we need to slow down
+            clock_adjust = 10;
+        }
+        else if( sync_difference > 2){
+
+            // our clock is ahead, so we need to slow down
+            clock_adjust = 1;
+        }
+        else if( sync_difference < -50){
+
+            // our clock is behind, so we need to speed up
+            clock_adjust = -10;
+        }
+        else if( sync_difference < -2){
+
+            // our clock is behind, so we need to speed up
+            clock_adjust = -1;
+        }
+
+        sync_difference -= clock_adjust;
+
+        master += ( ( (uint64_t)( elapsed - clock_adjust ) << 32 ) / 1000 );
         network += ( ( (uint64_t)elapsed << 32 ) / 1000 );
 
         master_time = ntp_ts_from_u64( master );
@@ -771,31 +773,9 @@ PT_BEGIN( pt );
         last_clock_update = now;
 
 
-
-
-
-
-
-
-
-
-        // increment master clock by 1 second
-        // master_time.seconds++;
-        // base_system_time += clock_rate; // base system time needs to track actual elapsed time
-
-        // if( sync_difference < 0 ){
-            
-        //     sync_difference += 1000;
-        // }
-        // else if( sync_difference > 0 ){
-            
-        //     sync_difference -= 1000;
-        // }
-
         // char s[ISO8601_STRING_MIN_LEN_MS];
         // ntp_v_to_iso8601( s, sizeof(s), master_time );
-
-        // log_v_debug_P( PSTR("time: %s diff: %ld alarm: %lu"), s, sync_difference, alarm );
+        // log_v_debug_P( PSTR("time: %s diff: %ld adjust: %d"), s, sync_difference, clock_adjust );
     }
 
 PT_END( pt );
