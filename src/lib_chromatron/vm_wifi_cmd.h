@@ -71,21 +71,6 @@ typedef struct __attribute__((packed)){
 
 #define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x28
 
-
-typedef struct __attribute__((packed)){
-    uint8_t seconds;
-    uint8_t minutes;
-    uint8_t hours;
-
-    uint8_t day_of_month;
-    uint8_t day_of_week;
-    
-    uint8_t month;
-
-    uint16_t year;
-} wifi_msg_vm_time_of_day_t;
-#define WIFI_DATA_ID_VM_TIME_OF_DAY     0x50
-
 #endif
 
 

@@ -30,14 +30,13 @@
 #include "hash.h"
 #include "sntp.h"
 #include "util.h"
-
+#include "esp8266.h"
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
-static thread_t clock_thread;
 
 static uint32_t local_time;
 static uint32_t last_net_time;
@@ -144,12 +143,11 @@ void time_v_init( void ){
                     PSTR("time_master"),
                     0,
                     0 );    
-
-    clock_thread = 
-        thread_t_create( time_clock_thread,
-                        PSTR("time_clock"),
-                        0,
-                        0 );    
+    
+    thread_t_create( time_clock_thread,
+                    PSTR("time_clock"),
+                    0,
+                    0 );    
 }
 
 bool time_b_is_sync( void ){
@@ -220,8 +218,6 @@ void time_v_set_master_clock(
         base_system_time    = local_system_time;
         last_clock_update   = base_system_time;
         sync_difference     = 0;
-
-        // thread_v_restart( clock_thread );
 
         return;
     }
@@ -763,6 +759,27 @@ PT_BEGIN( pt );
         // char s[ISO8601_STRING_MIN_LEN_MS];
         // ntp_v_to_iso8601( s, sizeof(s), master_time );
         // log_v_debug_P( PSTR("time: %s diff: %ld adjust: %d"), s, sync_difference, clock_adjust );
+
+        if( time_b_is_sync() ){
+
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+            datetime_t datetime;
+            datetime_v_now( &datetime );
+
+            wifi_msg_vm_time_of_day_t msg;
+            msg.seconds         = datetime.seconds;
+            msg.minutes         = datetime.minutes;
+            msg.hours           = datetime.hours;
+            msg.day_of_month    = datetime.day;
+            msg.day_of_week     = datetime.weekday;
+            msg.month           = datetime.month;
+            msg.year            = datetime.year;
+
+            wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
+        }
+
+
     }
 
 PT_END( pt );

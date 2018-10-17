@@ -64,7 +64,6 @@ static volatile uint8_t run_flags;
 #define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
 #define FLAG_RUN_FADER          0x04
-#define FLAG_RUN_ONESEC         0x08
 
 static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
@@ -299,8 +298,6 @@ PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
 #define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
-#define ONESEC_TIMER_RATE 31250 // 1000 ms (gfx timer)
-
 
 ISR(GFX_TIMER_CCA_vect){
 
@@ -318,9 +315,6 @@ ISR(GFX_TIMER_CCB_vect){
 
 ISR(GFX_TIMER_CCC_vect){
 
-    GFX_TIMER.CCC += ONESEC_TIMER_RATE;
-
-    run_flags |= FLAG_RUN_ONESEC;
 }
 
 void gfx_v_init( void ){
@@ -350,13 +344,10 @@ void gfx_v_init( void ){
     update_vm_timer();
     GFX_TIMER.CCB = vm_timer_rate;
 
-    // one sec
-    GFX_TIMER.CCC = ONESEC_TIMER_RATE;
-
     GFX_TIMER.INTCTRLB = 0;
     GFX_TIMER.INTCTRLB |= TC_CCAINTLVL_HI_gc;
     GFX_TIMER.INTCTRLB |= TC_CCBINTLVL_HI_gc;
-    GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
+    // GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
 
     GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
     GFX_TIMER.CTRLB = 0;
@@ -605,29 +596,6 @@ end:
                 
                 THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
                 send_run_fader_cmd();
-            }
-        }
-
-        if( flags & FLAG_RUN_ONESEC ){
-
-            // check if time is synced
-            if( time_b_is_sync() ){
-
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
-                datetime_t datetime;
-                datetime_v_now( &datetime );
-
-                wifi_msg_vm_time_of_day_t msg;
-                msg.seconds         = datetime.seconds;
-                msg.minutes         = datetime.minutes;
-                msg.hours           = datetime.hours;
-                msg.day_of_month    = datetime.day;
-                msg.day_of_week     = datetime.weekday;
-                msg.month           = datetime.month;
-                msg.year            = datetime.year;
-
-                wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
             }
         }
 
