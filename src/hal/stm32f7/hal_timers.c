@@ -53,7 +53,7 @@ void hal_timer_v_init( void ){
     HAL_NVIC_SetPriority( TIM2_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( TIM2_IRQn );
 
-    HAL_TIM_Base_Start( &system_timer );
+    HAL_TIM_Base_Start_IT( &system_timer );
 }
 
 bool tmr_b_io_timers_running( void ){
