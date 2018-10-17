@@ -55,7 +55,7 @@ static bool run_vm;
 static bool run_faders;
 static bool run_cron;
 
-static datetime_t datetime;
+static uint32_t cron_seconds;
 
 static uint32_t thread_tick;
 
@@ -189,7 +189,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
     }
     else if( mode == VM_RUN_CRON ){
 
-        return_code = vm_i8_run_cron( stream, &vm_state[vm_index], &datetime ); 
+        return_code = vm_i8_run_cron( stream, &vm_state[vm_index], cron_seconds ); 
     }
     else{
 
@@ -692,14 +692,8 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
 
 void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg ){
 
-    datetime.seconds    = msg->seconds;
-    datetime.minutes    = msg->minutes;
-    datetime.hours      = msg->hours;
-    datetime.day        = msg->day_of_month;
-    datetime.weekday    = msg->day_of_week;
-    datetime.month      = msg->month;
-    datetime.year       = msg->year;
-
+    cron_seconds = msg->seconds;
+    
     run_cron = true;
 }
 

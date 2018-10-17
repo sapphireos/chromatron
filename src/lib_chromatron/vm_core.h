@@ -220,6 +220,7 @@ typedef struct __attribute__((packed)){ // MUST be 32 bit aligned!
 
     uint32_t cron_count;
     uint32_t cron_start;
+    uint32_t last_cron;
 } vm_state_t;
 
 int8_t vm_i8_run(
@@ -243,7 +244,7 @@ int8_t vm_i8_run_threads(
 int8_t vm_i8_run_cron(
     uint8_t *stream,
     vm_state_t *state,
-    datetime_t *datetime );
+    uint32_t ntp_seconds );
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,

@@ -29,6 +29,7 @@
 #include "vm_config.h"
 #include "vm_lib.h"
 #include "catbus_types.h"
+#include "datetime.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -1908,40 +1909,43 @@ int8_t vm_i8_run_threads(
 int8_t vm_i8_run_cron(
     uint8_t *stream,
     vm_state_t *state,
-    datetime_t *datetime ){
+    uint32_t ntp_seconds ){
 
     cron_t *cron = (cron_t *)&stream[state->cron_start];
+
+    datetime_t datetime;
+    datetime_v_seconds_to_datetime( ntp_seconds, &datetime );
 
     for( uint8_t i = 0; i < state->cron_count; i++ ){
 
         bool match = TRUE;
 
-        if( ( cron->seconds >= 0 ) && ( cron->seconds != datetime->seconds ) ){
+        if( ( cron->seconds >= 0 ) && ( cron->seconds != datetime.seconds ) ){
 
             match = FALSE;
         }
 
-        if( ( cron->minutes >= 0 ) && ( cron->minutes != datetime->minutes ) ){
+        if( ( cron->minutes >= 0 ) && ( cron->minutes != datetime.minutes ) ){
 
             match = FALSE;
         }
 
-        if( ( cron->hours >= 0 ) && ( cron->hours != datetime->hours ) ){
+        if( ( cron->hours >= 0 ) && ( cron->hours != datetime.hours ) ){
 
             match = FALSE;
         }
 
-        if( ( cron->day_of_month >= 0 ) && ( cron->day_of_month != datetime->day ) ){
+        if( ( cron->day_of_month >= 0 ) && ( cron->day_of_month != datetime.day ) ){
 
             match = FALSE;
         }
 
-        if( ( cron->day_of_week >= 0 ) && ( cron->day_of_week != datetime->weekday ) ){
+        if( ( cron->day_of_week >= 0 ) && ( cron->day_of_week != datetime.weekday ) ){
 
             match = FALSE;
         }
 
-        if( ( cron->month >= 0 ) && ( cron->month != datetime->month ) ){
+        if( ( cron->month >= 0 ) && ( cron->month != datetime.month ) ){
 
             match = FALSE;
         }
