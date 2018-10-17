@@ -221,7 +221,7 @@ void time_v_set_master_clock(
         last_clock_update   = base_system_time;
         sync_difference     = 0;
 
-        thread_v_restart( clock_thread );
+        // thread_v_restart( clock_thread );
 
         return;
     }
