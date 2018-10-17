@@ -32,28 +32,28 @@
 
 static volatile uint64_t microseconds;
 
-TIM_HandleTypeDef timer;
+static TIM_HandleTypeDef system_timer;
 
 void hal_timer_v_init( void ){
 
 	// enable clock
 	__HAL_RCC_TIM2_CLK_ENABLE();
 
-	timer.Instance = HAL_SYS_TIMER;
+	system_timer.Instance = HAL_SYS_TIMER;
 
-	timer.Init.Prescaler 		  = 108;
-    timer.Init.Period             = 65535;
-	timer.Init.CounterMode 		  = TIM_COUNTERMODE_UP;
-	timer.Init.AutoReloadPreload  = TIM_AUTORELOAD_PRELOAD_ENABLE;
-	timer.Init.ClockDivision      = TIM_CLOCKDIVISION_DIV1;
-	timer.Init.RepetitionCounter  = 0;
+	system_timer.Init.Prescaler 		 = 108;
+    system_timer.Init.Period             = 65535;
+	system_timer.Init.CounterMode 		 = TIM_COUNTERMODE_UP;
+	system_timer.Init.AutoReloadPreload  = TIM_AUTORELOAD_PRELOAD_ENABLE;
+	system_timer.Init.ClockDivision      = TIM_CLOCKDIVISION_DIV1;
+	system_timer.Init.RepetitionCounter  = 0;
 
-	HAL_TIM_Base_Init( &timer );
+	HAL_TIM_Base_Init( &system_timer );
 
     HAL_NVIC_SetPriority( TIM2_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( TIM2_IRQn );
 
-    HAL_TIM_Base_Start( &timer );
+    HAL_TIM_Base_Start( &system_timer );
 }
 
 bool tmr_b_io_timers_running( void ){
@@ -121,13 +121,13 @@ uint64_t tmr_u64_get_system_time_us( void ){
     ATOMIC;
 
     // first read from timer
-    timer1 = __HAL_TIM_GET_COUNTER( &timer );
+    timer1 = __HAL_TIM_GET_COUNTER( &system_timer );
 
     // check for overflow
-    overflow = __HAL_TIM_GET_FLAG( &timer, TIM_IT_UPDATE ) != 0;
+    overflow = __HAL_TIM_GET_FLAG( &system_timer, TIM_IT_UPDATE ) != 0;
 
     // second read from timer
-    timer2 = __HAL_TIM_GET_COUNTER( &timer );
+    timer2 = __HAL_TIM_GET_COUNTER( &system_timer );
 
 
     // get copy of microsecond counter
@@ -165,13 +165,13 @@ bool tmr_b_alarm_armed( void ){
 
 void TIM2_IRQHandler( void ){
     	
-    if( !__HAL_TIM_GET_FLAG( &timer, TIM_IT_UPDATE ) ){
+    if( !__HAL_TIM_GET_FLAG( &system_timer, TIM_IT_UPDATE ) ){
 
     	return;
     }
 
     // clear flag
-    __HAL_TIM_CLEAR_FLAG( &timer, TIM_IT_UPDATE );
+    __HAL_TIM_CLEAR_FLAG( &system_timer, TIM_IT_UPDATE );
 
     // trace_printf("meow\n");
 	microseconds += OVERFLOW_MICROSECONDS;
