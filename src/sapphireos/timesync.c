@@ -723,22 +723,22 @@ PT_BEGIN( pt );
 
         int16_t clock_adjust = 0;
 
-        if( sync_difference > 50){
+        if( sync_difference > 50 ){
 
             // our clock is ahead, so we need to slow down
             clock_adjust = 10;
         }
-        else if( sync_difference > 2){
+        else if( sync_difference > 2 ){
 
             // our clock is ahead, so we need to slow down
             clock_adjust = 1;
         }
-        else if( sync_difference < -50){
+        else if( sync_difference < -50 ){
 
             // our clock is behind, so we need to speed up
             clock_adjust = -10;
         }
-        else if( sync_difference < -2){
+        else if( sync_difference < -2 ){
 
             // our clock is behind, so we need to speed up
             clock_adjust = -1;
@@ -778,8 +778,6 @@ PT_BEGIN( pt );
 
             wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
         }
-
-
     }
 
 PT_END( pt );
