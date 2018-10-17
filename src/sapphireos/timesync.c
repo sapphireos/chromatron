@@ -70,6 +70,10 @@ static uint16_t filtered_rtt;
 #define RTT_QUALITY_LIMIT       10
 #define RTT_RELAX               4
 
+// NOTE!
+// tz_offset is in MINUTES, because not all timezones
+// are aligned on the hour.
+static int16_t tz_offset;
 
 
 
@@ -101,6 +105,7 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
     { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
+    { SAPPHIRE_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
 };
 
 
@@ -764,8 +769,12 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
+            // adjust seconds by timezone offset
+            // tz_offset is in minutse
+            int32_t tz_seconds = tz_offset * 60;
+
             datetime_t datetime;
-            datetime_v_now( &datetime );
+            datetime_v_seconds_to_datetime( master_time.seconds + tz_seconds, &datetime );
 
             wifi_msg_vm_time_of_day_t msg;
             msg.seconds         = datetime.seconds;

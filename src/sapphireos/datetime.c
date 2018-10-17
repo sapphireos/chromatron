@@ -24,34 +24,9 @@
 
 
 #include "system.h"
-#include "ntp.h"
-#include "timesync.h"
-
 #include "datetime.h"
 
 #include <stdlib.h>
-
-#include "keyvalue.h"
-
-// NOTE!
-// tz_offset is in MINUTES, because not all timezones
-// are aligned on the hour.
-static int16_t tz_offset;
-
-static datetime_t current_datetime;
-
-KV_SECTION_META kv_meta_t datetime_kv[] = {
-	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.seconds, 0,  "datetime_seconds" },
-	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.minutes, 0,  "datetime_minutes" },
-	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.hours, 	 0,  "datetime_hours" },
-	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.day, 	 0,  "datetime_day" },
-	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.weekday, 0,  "datetime_weekday" },
-	{ SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_READ_ONLY, &current_datetime.month, 	 0,  "datetime_month" },
-	{ SAPPHIRE_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY, &current_datetime.year, 	 0,  "datetime_year" },
-
-	{ SAPPHIRE_TYPE_INT16, 0, KV_FLAGS_PERSIST,	   &tz_offset, 			 	 0,  "datetime_tz_offset" },
-};
-
 
 static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 	31, // january
@@ -72,20 +47,6 @@ static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 // initialize the timekeeping module
 void datetime_v_init( void ){
 
-}
-
-void datetime_v_update( void ){
-
-	datetime_v_now( &current_datetime );
-
-	//publish all
-	kv_i8_publish( __KV__datetime_seconds );
-	kv_i8_publish( __KV__datetime_minutes );
-	kv_i8_publish( __KV__datetime_hours );
-	kv_i8_publish( __KV__datetime_day );
-	kv_i8_publish( __KV__datetime_weekday );
-	kv_i8_publish( __KV__datetime_month );
-	kv_i8_publish( __KV__datetime_year );
 }
 
 
@@ -195,26 +156,6 @@ void datetime_v_to_iso8601( char *iso8601, uint8_t len, datetime_t *datetime ){
 	}
 
 	iso8601[19] = 0;
-}
-
-// return now
-void datetime_v_now( datetime_t *datetime ){
- 
-    ntp_ts_t now = time_t_now();
-
-    // adjust seconds by timezone offset
-	// tz_offset is in minutse
-	int32_t tz_seconds = tz_offset * 60;
-	now.seconds += tz_seconds;
-
-    datetime_v_seconds_to_datetime( now.seconds, datetime );
-}
-
-uint32_t datetime_u32_now( void ){
-    
-    ntp_ts_t now = time_t_now();
-
-    return now.seconds;
 }
 
 // set the given datetime to the lowest valid date and time in the epoch

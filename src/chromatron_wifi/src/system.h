@@ -22,34 +22,15 @@
 // </license>
  */
 
-#include "sapphire.h"
+#ifndef _SYSTEM_H
+#define _SYSTEM_H
 
-#include "background.h"
+#include "bool.h"
 
-PT_THREAD( background_thread( pt_t *pt, void *state ) );
+#define PROGMEM
 
-void background_v_init( void ){
-
-	thread_t_create( background_thread, PSTR("background"), 0, 0 );
-}
+#define ASSERT(expr)
+#define ASSERT_MSG(expr, str)
 
 
-PT_THREAD( background_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-	while(1){
-
-		thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-        sys_v_wdt_reset();
-        
-        #ifdef ENABLE_NETWORK
-        sock_v_process_timeouts();
-        #endif
-	}
-
-PT_END( pt );
-}
-
+#endif
