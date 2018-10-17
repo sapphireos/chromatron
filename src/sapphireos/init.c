@@ -205,6 +205,9 @@ int8_t sapphire_i8_init( void ){
     #endif
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        trace_printf( "SapphireOS SAFE MODE\n" );
+
         return -1;
     }
     else if( sys_u8_get_mode() == SYS_MODE_NO_APP ){

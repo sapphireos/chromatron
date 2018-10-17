@@ -68,7 +68,9 @@ void USART1_IRQHandler( void ){
 
     while( __HAL_UART_GET_FLAG( &huart1, UART_FLAG_RXNE ) ){
 
-        HAL_UART_Receive( &huart1, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
+        // HAL_UART_Receive( &huart1, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
+
+        rx_buf[rx_ins] = huart1.Instance->RDR;
 
         rx_ins++;
 

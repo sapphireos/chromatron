@@ -24,11 +24,10 @@
 #ifndef _HAL_USART_H
 #define _HAL_USART_H
 
+#include "cpu.h"
 #include "usart_bauds.h"
 
-typedef struct{
-	uint8_t dummy;
-} USART_t;
+typedef UART_HandleTypeDef USART_t;
 
 void usart_v_init( USART_t *usart );
 void usart_v_set_baud( USART_t *usart, baud_t8 baud );
