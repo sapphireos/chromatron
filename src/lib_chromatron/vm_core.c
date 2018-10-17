@@ -1913,67 +1913,81 @@ int8_t vm_i8_run_cron(
 
     cron_t *cron = (cron_t *)&stream[state->cron_start];
 
-    datetime_t datetime;
-    datetime_v_seconds_to_datetime( ntp_seconds, &datetime );
+    if( state->last_cron < ntp_seconds ){
 
-    for( uint8_t i = 0; i < state->cron_count; i++ ){
+        state->last_cron = ntp_seconds - 1;
+    }
+    else if( ( ntp_seconds - state->last_cron ) > 5 ){
 
-        bool match = TRUE;
+        state->last_cron = ntp_seconds - 1;
+    }
+    
+    while( state->last_cron < ntp_seconds ){
 
-        if( ( cron->seconds >= 0 ) && ( cron->seconds != datetime.seconds ) ){
+        state->last_cron++;
 
-            match = FALSE;
-        }
+        datetime_t datetime;
+        datetime_v_seconds_to_datetime( state->last_cron, &datetime );
 
-        if( ( cron->minutes >= 0 ) && ( cron->minutes != datetime.minutes ) ){
+        for( uint8_t i = 0; i < state->cron_count; i++ ){
 
-            match = FALSE;
-        }
+            bool match = TRUE;
 
-        if( ( cron->hours >= 0 ) && ( cron->hours != datetime.hours ) ){
+            if( ( cron->seconds >= 0 ) && ( cron->seconds != datetime.seconds ) ){
 
-            match = FALSE;
-        }
-
-        if( ( cron->day_of_month >= 0 ) && ( cron->day_of_month != datetime.day ) ){
-
-            match = FALSE;
-        }
-
-        if( ( cron->day_of_week >= 0 ) && ( cron->day_of_week != datetime.weekday ) ){
-
-            match = FALSE;
-        }
-
-        if( ( cron->month >= 0 ) && ( cron->month != datetime.month ) ){
-
-            match = FALSE;
-        }
-
-        // the check for cron->run ensures the entry only runs one time
-        // for each time specified.
-        // if you set for instance hours = 15, but set nothing else,
-        // then without the run flag the task would run every second
-        // for the entire hour.
-
-        if( match && !cron->run ){
-
-            cron->run = TRUE;
-
-            int8_t status = vm_i8_run( stream, cron->func_addr, 0, state );
-
-            if( status == VM_STATUS_HALT ){
-
-                return status;
+                match = FALSE;
             }
+
+            if( ( cron->minutes >= 0 ) && ( cron->minutes != datetime.minutes ) ){
+
+                match = FALSE;
+            }
+
+            if( ( cron->hours >= 0 ) && ( cron->hours != datetime.hours ) ){
+
+                match = FALSE;
+            }
+
+            if( ( cron->day_of_month >= 0 ) && ( cron->day_of_month != datetime.day ) ){
+
+                match = FALSE;
+            }
+
+            if( ( cron->day_of_week >= 0 ) && ( cron->day_of_week != datetime.weekday ) ){
+
+                match = FALSE;
+            }
+
+            if( ( cron->month >= 0 ) && ( cron->month != datetime.month ) ){
+
+                match = FALSE;
+            }
+
+            // the check for cron->run ensures the entry only runs one time
+            // for each time specified.
+            // if you set for instance hours = 15, but set nothing else,
+            // then without the run flag the task would run every second
+            // for the entire hour.
+
+            if( match && !cron->run ){
+
+                cron->run = TRUE;
+
+                int8_t status = vm_i8_run( stream, cron->func_addr, 0, state );
+
+                if( status == VM_STATUS_HALT ){
+
+                    return status;
+                }
+            }
+
+            if( !match ){
+
+                cron->run = FALSE;
+            }
+
+            cron++;
         }
-
-        if( !match ){
-
-            cron->run = FALSE;
-        }
-
-        cron++;
     }
 
     return VM_STATUS_OK;
