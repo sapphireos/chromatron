@@ -320,6 +320,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
     HAL_DMA_Init( &wifi_dma );
+
+    __HAL_LINKDMA(&wifi_usart, hdmarx, wifi_dma);
     
     __HAL_DMA_ENABLE( &wifi_dma );
 
@@ -346,12 +348,14 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
 
  //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
-        HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
+        // HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
     }
     else{
 
-        HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
+        // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
     }
+
+    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
 
  //    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 
@@ -582,12 +586,23 @@ void hal_wifi_v_enter_boot_mode( void ){
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
-    usart_v_init( &wifi_usart );
+    // usart_v_init( &wifi_usart );
+    wifi_usart.Init.BaudRate = 115200;
+    wifi_usart.Init.WordLength = UART_WORDLENGTH_8B;
+    wifi_usart.Init.StopBits = UART_STOPBITS_1;
+    wifi_usart.Init.Parity = UART_PARITY_NONE;
+    wifi_usart.Init.Mode = UART_MODE_TX_RX;
+    wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
+    wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&wifi_usart) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
     hal_wifi_v_disable_rx_dma();
 
-    usart_v_set_double_speed( &wifi_usart, FALSE );
-    usart_v_set_baud( &wifi_usart, BAUD_115200 );
     hal_wifi_v_usart_flush();
 
     HAL_Delay(WIFI_RESET_DELAY_MS);
@@ -704,8 +719,21 @@ void hal_wifi_v_enter_normal_mode( void ){
     // usart_v_init( &WIFI_USART );
     // usart_v_set_double_speed( &WIFI_USART, TRUE );
     // usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
-    usart_v_init( &wifi_usart );
-    usart_v_set_baud( &wifi_usart, 4000000 );
+    // usart_v_init( &wifi_usart );
+    // usart_v_set_baud( &wifi_usart, 4000000 );
+    wifi_usart.Init.BaudRate = 4000000;
+    wifi_usart.Init.WordLength = UART_WORDLENGTH_8B;
+    wifi_usart.Init.StopBits = UART_STOPBITS_1;
+    wifi_usart.Init.Parity = UART_PARITY_NONE;
+    wifi_usart.Init.Mode = UART_MODE_TX_RX;
+    wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
+    wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&wifi_usart) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 }
 
 
