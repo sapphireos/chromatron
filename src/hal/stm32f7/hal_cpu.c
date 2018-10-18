@@ -31,6 +31,8 @@ void SystemClock_Config(void);
 
 void cpu_v_init( void ){
 
+    DISABLE_INTERRUPTS;
+
     SCB_EnableICache();
     SCB_EnableDCache();
 
