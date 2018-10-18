@@ -25,26 +25,24 @@
 #ifndef _USART_BAUDS_H
 #define _USART_BAUDS_H
 
-typedef uint8_t baud_t8;
+typedef uint32_t baud_t;
 
-#define BAUD_2400       0
-#define BAUD_4800       1
-#define BAUD_9600       2
-#define BAUD_14400      3
-#define BAUD_19200      4
-#define BAUD_28800      5
-#define BAUD_38400      6
-#define BAUD_57600      7
-#define BAUD_76800      8
-#define BAUD_115200     9
-#define BAUD_230400     10
-#define BAUD_250000     11
-#define BAUD_460800     12
-#define BAUD_500000     13
-#define BAUD_1000000    14
-#define BAUD_2000000    15
-#define BAUD_74880      16
-
-extern const PROGMEM uint16_t bauds[];
+#define BAUD_2400       2400
+#define BAUD_4800       4800
+#define BAUD_9600       9600
+#define BAUD_14400      14400
+#define BAUD_19200      19200
+#define BAUD_28800      28800
+#define BAUD_38400      38400
+#define BAUD_57600      57600
+#define BAUD_76800      76800
+#define BAUD_115200     115200
+#define BAUD_230400     230400
+#define BAUD_250000     250000
+#define BAUD_460800     460800
+#define BAUD_500000     500000
+#define BAUD_1000000    1000000
+#define BAUD_2000000    2000000
+#define BAUD_74880      74880
 
 #endif

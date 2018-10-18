@@ -81,7 +81,7 @@ uint16_t hal_wifi_u16_dma_rx_bytes( void );
 void hal_wifi_v_disable_rx_dma( void );
 void hal_wifi_v_enable_rx_dma( bool irq );
 
-void hal_wifi_v_usart_set_baud( baud_t8 baud );
+void hal_wifi_v_usart_set_baud( baud_t baud );
 
 void hal_wifi_v_reset_rx_buffer( void );
 void hal_wifi_v_clear_rx_buffer( void );

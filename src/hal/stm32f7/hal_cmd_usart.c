@@ -143,14 +143,14 @@ void cmd_usart_v_init( void ){
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(COMM_RX_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = COMM_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(COMM_TX_GPIO_Port, &GPIO_InitStruct);
 
     // initialize command usart
     huart1.Instance = HAL_CMD_USART;
@@ -181,7 +181,7 @@ void cmd_usart_v_init( void ){
 
 }
 
-void cmd_usart_v_set_baud( baud_t8 baud ){
+void cmd_usart_v_set_baud( baud_t baud ){
 
 }
 

@@ -77,7 +77,7 @@ void usart_v_init( USART_t *usart ){
     usart->CTRLC = 0x03; // datasheet reset default
 }
 
-void usart_v_set_baud( USART_t *usart, baud_t8 baud ){
+void usart_v_set_baud( USART_t *usart, baud_t baud ){
 
     ASSERT( baud < cnt_of_array(bsel_table) );
 

@@ -28,7 +28,7 @@
 
 void cmd_usart_v_init( void );
 
-void cmd_usart_v_set_baud( baud_t8 baud );
+void cmd_usart_v_set_baud( baud_t baud );
 
 bool cmd_usart_b_received_char( void );
 

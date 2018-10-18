@@ -49,7 +49,7 @@ static volatile bool wifi_rx_ready;
 static uint32_t ready_time_start;
 static volatile uint16_t max_ready_wait_isr;
 
-static USART_HandleTypeDef wifi_usart;
+static USART_t wifi_usart;
 static DMA_HandleTypeDef hdma1;
 
 void DMA1_Stream0_IRQHandler( void ){
@@ -152,6 +152,9 @@ void hal_wifi_v_init( void ){
 
     wifi_usart.Instance = WIFI_USART;
 
+    // enable clock
+    __HAL_RCC_USART6_CLK_ENABLE();
+
     // enable DMA controller
     __HAL_RCC_DMA1_CLK_ENABLE();
 
@@ -237,26 +240,26 @@ uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void ){
 
 void hal_wifi_v_usart_send_char( uint8_t b ){
 
-	// usart_v_send_byte( &WIFI_USART, b );
+	usart_v_send_byte( &wifi_usart, b );
 
     current_tx_bytes += 1;
 }
 
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
 
-	// usart_v_send_data( &WIFI_USART, data, len );
+	usart_v_send_data( &wifi_usart, data, len );
 
     current_tx_bytes += len;
 }
 
 int16_t hal_wifi_i16_usart_get_char( void ){
 
-	// return usart_i16_get_byte( &WIFI_USART );
+	return usart_i16_get_byte( &wifi_usart );
 }
 
 void hal_wifi_v_usart_flush( void ){
 
-	// BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
+	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
 }
 
 uint16_t hal_wifi_u16_dma_rx_bytes( void ){
@@ -339,9 +342,9 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     END_ATOMIC;
 }
 
-void hal_wifi_v_usart_set_baud( baud_t8 baud ){
+void hal_wifi_v_usart_set_baud( baud_t baud ){
 
-    
+    usart_v_set_baud( &wifi_usart, baud );    
 }
 
 void hal_wifi_v_reset_rx_buffer( void ){
@@ -551,6 +554,20 @@ void hal_wifi_v_enter_boot_mode( void ){
     // re-init uart
     // WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
     // WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
+    GPIO_InitStruct.Pin = WIFI_RXD_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = WIFI_TXD_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
+
     usart_v_init( &wifi_usart );
 
     hal_wifi_v_disable_rx_dma();
