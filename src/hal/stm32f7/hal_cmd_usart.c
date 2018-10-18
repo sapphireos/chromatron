@@ -136,6 +136,22 @@ void cmd_usart_v_init( void ){
     // enable clock
     __HAL_RCC_USART1_CLK_ENABLE();
 
+    // init IO pins
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = COMM_RX_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = COMM_TX_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
     // initialize command usart
     huart1.Instance = HAL_CMD_USART;
     huart1.Init.BaudRate = 115200;
@@ -151,20 +167,6 @@ void cmd_usart_v_init( void ){
     {
         _Error_Handler(__FILE__, __LINE__);
     }
-
-    // init IO pins
-    /**USART1 GPIO Configuration    
-    PA9     ------> USART1_TX
-    PA10     ------> USART1_RX 
-    */
-    GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.Pin = COMM_TX_Pin|COMM_RX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
 
     __HAL_UART_ENABLE_IT( &huart1, UART_IT_RXNE );
 
