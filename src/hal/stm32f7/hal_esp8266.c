@@ -153,6 +153,21 @@ void hal_wifi_v_init( void ){
 
     wifi_usart.Instance = WIFI_USART;
 
+    // set up DMA
+    wifi_dma.Instance                  = WIFI_DMA;
+    wifi_dma.Init.Channel              = WIFI_DMA_CHANNEL;
+    wifi_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
+    wifi_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    wifi_dma.Init.Mode                 = DMA_NORMAL;
+    wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
+    wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
     // enable clock
     __HAL_RCC_USART6_CLK_ENABLE();
 
@@ -283,7 +298,7 @@ void hal_wifi_v_disable_rx_dma( void ){
 	ATOMIC;
 
     __HAL_DMA_DISABLE( &wifi_dma );
-    HAL_DMA_Init( &wifi_dma );
+    HAL_DMA_DeInit( &wifi_dma );
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
@@ -304,20 +319,6 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
 
     // flush buffer
     hal_wifi_v_usart_flush();
-
-    wifi_dma.Instance                  = WIFI_DMA;
-    wifi_dma.Init.Channel              = WIFI_DMA_CHANNEL;
-    wifi_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
-    wifi_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
-    wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
-    wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
-    wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
-    wifi_dma.Init.Mode                 = DMA_NORMAL;
-    wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
-    wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
-    wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
-    wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
-    wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
     HAL_DMA_Init( &wifi_dma );
 
