@@ -79,6 +79,9 @@ uint16_t crc_u16_finish( uint16_t crc ){
 void crc_v_init( void ){
 
     // enable clock
+    __HAL_RCC_CRC_CLK_ENABLE();
+
+    // init CRC module
     hcrc.Instance = CRC;
     hcrc.Init.DefaultPolynomialUse      = DEFAULT_POLYNOMIAL_DISABLE;
     hcrc.Init.DefaultInitValueUse       = DEFAULT_INIT_VALUE_DISABLE;
