@@ -50,14 +50,15 @@ static uint32_t ready_time_start;
 static volatile uint16_t max_ready_wait_isr;
 
 static USART_t wifi_usart;
-static DMA_HandleTypeDef hdma1;
+static DMA_HandleTypeDef wifi_dma;
 
 void DMA1_Stream0_IRQHandler( void ){
         
 //     // disable IRQ
 //     DMA.WIFI_DMA_CH.CTRLB = 0;
+    __HAL_DMA_DISABLE( &wifi_dma );
 
-//     if( rx_dma_buf[0] == WIFI_COMM_DATA ){
+    if( rx_dma_buf[0] == WIFI_COMM_DATA ){
 
 //         // we can't set a TRFCNT interrupt to inform us when the message is finished,
 //         // because at this point we are already somewhere in the middle of receiving it
@@ -80,14 +81,14 @@ void DMA1_Stream0_IRQHandler( void ){
 
 //         // start timer
 //         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
-//     }
-//     else{
+    }
+    else{
 
-//         // incorrect control byte on frame
+        // incorrect control byte on frame
 
-//         // reset DMA and send ready signal
-//         hal_wifi_v_set_rx_ready();
-//     }
+        // reset DMA and send ready signal
+        hal_wifi_v_set_rx_ready();
+    }
 }
 
 // ISR(WIFI_TIMER_ISR){
@@ -158,25 +159,9 @@ void hal_wifi_v_init( void ){
     // enable DMA controller
     __HAL_RCC_DMA1_CLK_ENABLE();
 
-    hdma1.Instance                  = WIFI_DMA;
-    hdma1.Init.Channel              = 0;
-    hdma1.Init.Direction            = DMA_PERIPH_TO_MEMORY;
-    hdma1.Init.PeriphInc            = DMA_PINC_DISABLE;
-    hdma1.Init.MemInc               = DMA_MINC_ENABLE;
-    hdma1.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
-    hdma1.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
-    hdma1.Init.Mode                 = DMA_NORMAL;
-    hdma1.Init.Priority             = DMA_PRIORITY_HIGH;
-    hdma1.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
-    hdma1.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
-    hdma1.Init.MemBurst             = DMA_MBURST_SINGLE;
-    hdma1.Init.PeriphBurst          = DMA_PBURST_SINGLE;
-
-    HAL_DMA_Init( &hdma1 );
     
     HAL_NVIC_SetPriority( DMA1_Stream0_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
-
+    
     // // reset timer
     // WIFI_TIMER.CTRLA = 0;
     // WIFI_TIMER.CTRLB = 0;
@@ -268,11 +253,11 @@ void hal_wifi_v_usart_flush( void ){
 
 uint16_t hal_wifi_u16_dma_rx_bytes( void ){
 
-    // uint16_t len;
+    uint16_t len = 0;
 
     // uint16_t dest_addr0, dest_addr1;
 
-    // ATOMIC;
+    ATOMIC;
 
     // do{
 
@@ -286,20 +271,24 @@ uint16_t hal_wifi_u16_dma_rx_bytes( void ){
     // } while( dest_addr0 != dest_addr1 );
 
     // len = dest_addr0 - (uint16_t)rx_dma_buf;
+    len = sizeof(rx_dma_buf) - __HAL_DMA_GET_COUNTER( &wifi_dma );
 
-    // END_ATOMIC;
+    END_ATOMIC;
 
-    // return len;
+    return len;
 }
 
 void hal_wifi_v_disable_rx_dma( void ){
 
 	ATOMIC;
 
-    __HAL_DMA_DISABLE( &hdma1 );
+    __HAL_DMA_DISABLE( &wifi_dma );
+    HAL_DMA_Init( &wifi_dma );
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
+    HAL_NVIC_DisableIRQ( DMA1_Stream0_IRQn );
+
 
  //    // make sure DMA timer is disabled
  //    TCD1.CTRLA = 0;
@@ -316,8 +305,24 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     // flush buffer
     hal_wifi_v_usart_flush();
 
-    __HAL_DMA_ENABLE( &hdma1 );
+    wifi_dma.Instance                  = WIFI_DMA;
+    wifi_dma.Init.Channel              = WIFI_DMA_CHANNEL;
+    wifi_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
+    wifi_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    wifi_dma.Init.Mode                 = DMA_NORMAL;
+    wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
+    wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    HAL_DMA_Init( &wifi_dma );
     
+    __HAL_DMA_ENABLE( &wifi_dma );
+
 
  //    DMA.INTFLAGS = WIFI_DMA_CHTRNIF | WIFI_DMA_CHERRIF; // clear transaction complete interrupt
 
@@ -336,10 +341,17 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
  //    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_dma_buf ) >> 8 ) & 0xFF;
  //    DMA.WIFI_DMA_CH.DESTADDR2 = 0;
 
- //    if( irq ){
+    if( irq ){
+
+        HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
 
  //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
- //    }
+        HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
+    }
+    else{
+
+        HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buf, sizeof(wifi_data_header_t) + 1 );
+    }
 
  //    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 
@@ -378,7 +390,7 @@ void hal_wifi_v_release_rx_buffer( void ){
 
 void hal_wifi_v_reset_control_byte( void ){
 
-    // rx_buf[0] = WIFI_COMM_IDLE;   
+    rx_buf[0] = WIFI_COMM_IDLE;   
 }
 
 void hal_wifi_v_reset_comm( void ){
@@ -423,17 +435,10 @@ void hal_wifi_v_enable_irq( void ){
     // WIFI_BOOT_PORT.INTCTRL |= PORT_INT0LVL_HI_gc;
 }
 
-// void hal_wifi_v_set_io_mode( uint8_t pin, io_mode_t8 mode ){
-
-// }
-
-// void hal_wifi_v_write_io( uint8_t pin, bool state ){
-
-// }
 
 uint8_t hal_wifi_u8_get_control_byte( void ){
 
-	// return rx_buf[0];
+	return rx_buf[0];
 }	
 
 int16_t hal_wifi_i16_rx_data_received( void ){
