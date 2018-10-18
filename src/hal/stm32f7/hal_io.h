@@ -94,8 +94,8 @@
 #define PIX_DAT_GPIO_Port GPIOB
 #define FLASH_CS_Pin GPIO_PIN_6
 #define FLASH_CS_GPIO_Port GPIOB
-#define WIFI_BOOT_R_Pin GPIO_PIN_8
-#define WIFI_BOOT_R_GPIO_Port GPIOB
+#define WIFI_BOOT_Pin GPIO_PIN_8
+#define WIFI_BOOT_GPIO_Port GPIOB
 #define WIFI_SS_Pin GPIO_PIN_9
 #define WIFI_SS_GPIO_Port GPIOB
 

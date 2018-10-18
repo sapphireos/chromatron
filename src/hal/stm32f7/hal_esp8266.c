@@ -25,6 +25,7 @@
 #include "timers.h"
 
 #include "hal_usart.h"
+#include "hal_io.h"
 
 #include "hal_esp8266.h"
 #include "wifi_cmd.h"
@@ -48,6 +49,7 @@ static volatile bool wifi_rx_ready;
 static uint32_t ready_time_start;
 static volatile uint16_t max_ready_wait_isr;
 
+static USART_HandleTypeDef wifi_usart;
 static DMA_HandleTypeDef hdma1;
 
 void DMA1_Stream0_IRQHandler( void ){
@@ -148,6 +150,8 @@ void WIFI_TIMER_ISR( void ){
 
 void hal_wifi_v_init( void ){
 
+    wifi_usart.Instance = WIFI_USART;
+
     // enable DMA controller
     __HAL_RCC_DMA1_CLK_ENABLE();
 
@@ -177,7 +181,34 @@ void hal_wifi_v_init( void ){
     // WIFI_TIMER.INTCTRLA = TC_OVFINTLVL_HI_gc;
     // WIFI_TIMER.INTCTRLB = 0;
 
-    // // set up IO
+    // set up IO
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Pin         = WIFI_PD_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(WIFI_PD_GPIO_Port, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin         = WIFI_SS_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
+    HAL_GPIO_Init(WIFI_SS_GPIO_Port, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin         = WIFI_BOOT_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
+    HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
+
+    // USART_XCK PIN MISSING
+
+
+    // hold module in reset
+    HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
+
+
     // WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
     // WIFI_SS_PORT.DIRCLR = ( 1 << WIFI_SS_PIN );
     // WIFI_USART_XCK_PORT.DIRCLR = ( 1 << WIFI_USART_XCK_PIN );
@@ -468,50 +499,95 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 
 void hal_wifi_v_enter_boot_mode( void ){
 
-    // set up IO
+    GPIO_InitTypeDef GPIO_InitStruct;
+
     // WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
     // WIFI_PD_PORT.OUTCLR = ( 1 << WIFI_PD_PIN ); // hold chip in reset
 
-    // _delay_ms(WIFI_RESET_DELAY_MS);
+    // set up IO
+    GPIO_InitStruct.Pin         = WIFI_PD_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(WIFI_PD_GPIO_Port, &GPIO_InitStruct);
 
+    // hold module in reset
+    HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
+
+    // _delay_ms(WIFI_RESET_DELAY_MS);
+    HAL_Delay(WIFI_RESET_DELAY_MS);
+
+
+// pin connection missing
     // WIFI_USART_XCK_PORT.DIRCLR          = ( 1 << WIFI_USART_XCK_PIN );
+
+
 
     // WIFI_BOOT_PORT.DIRSET               = ( 1 << WIFI_BOOT_PIN );
     // WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
     // WIFI_BOOT_PORT.OUTCLR               = ( 1 << WIFI_BOOT_PIN );
 
+    GPIO_InitStruct.Pin         = WIFI_BOOT_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
+
+
     // WIFI_SS_PORT.DIRSET                 = ( 1 << WIFI_SS_PIN );
     // WIFI_SS_PORT.WIFI_SS_PINCTRL        = 0;
     // WIFI_SS_PORT.OUTCLR                 = ( 1 << WIFI_SS_PIN );
 
-    // hal_wifi_v_disable_irq();
+    GPIO_InitStruct.Pin         = WIFI_SS_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_NOPULL;
+    HAL_GPIO_Init(WIFI_SS_GPIO_Port, &GPIO_InitStruct);
+    
+    hal_wifi_v_disable_irq();
 
-    // // re-init uart
+    // re-init uart
     // WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
     // WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
-    // usart_v_init( &WIFI_USART );
+    usart_v_init( &wifi_usart );
 
-    // hal_wifi_v_disable_rx_dma();
+    hal_wifi_v_disable_rx_dma();
 
-    // usart_v_set_double_speed( &WIFI_USART, FALSE );
-    // usart_v_set_baud( &WIFI_USART, BAUD_115200 );
-    // hal_wifi_v_usart_flush();
+    usart_v_set_double_speed( &wifi_usart, FALSE );
+    usart_v_set_baud( &wifi_usart, BAUD_115200 );
+    hal_wifi_v_usart_flush();
 
-    // _delay_ms(WIFI_RESET_DELAY_MS);
+    HAL_Delay(WIFI_RESET_DELAY_MS);
 
-    // // release reset
+    // release reset
     // WIFI_PD_PORT.OUTSET = ( 1 << WIFI_PD_PIN );
+    HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_SET);
 
-    // _delay_ms(WIFI_RESET_DELAY_MS);
-    // _delay_ms(WIFI_RESET_DELAY_MS);
-    // _delay_ms(WIFI_RESET_DELAY_MS);
+    HAL_Delay(WIFI_RESET_DELAY_MS);
+    HAL_Delay(WIFI_RESET_DELAY_MS);
+    HAL_Delay(WIFI_RESET_DELAY_MS);
 
-    // // return to inputs
+    // return to inputs
     // WIFI_BOOT_PORT.DIRCLR               = ( 1 << WIFI_BOOT_PIN );
+    GPIO_InitStruct.Pin         = WIFI_BOOT_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
+    HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
+
     // WIFI_SS_PORT.DIRCLR                 = ( 1 << WIFI_SS_PIN );
+    GPIO_InitStruct.Pin         = WIFI_SS_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
+    HAL_GPIO_Init(WIFI_SS_GPIO_Port, &GPIO_InitStruct);
 }
 
 void hal_wifi_v_enter_normal_mode( void ){
+
+    GPIO_InitTypeDef GPIO_InitStruct;
 
     hal_wifi_v_disable_irq();
 

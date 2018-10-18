@@ -195,7 +195,7 @@ int8_t sapphire_i8_init( void ){
     status_led_v_init();
 
     #ifdef ENABLE_WIFI
-    // wifi_v_init();
+    wifi_v_init();
     #endif
 
     catbus_v_init();

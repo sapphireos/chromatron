@@ -45,7 +45,7 @@ void io_v_init( void ){
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, WIFI_RST_Pin|WIFI_BOOT_R_Pin|WIFI_SS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, WIFI_RST_Pin|WIFI_BOOT_Pin|WIFI_SS_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : PC13 PC14 PC15 PCPin 
                        PC1 PC2 PC3 PC4 
@@ -108,7 +108,7 @@ void io_v_init( void ){
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PBPin PBPin PBPin */
-    GPIO_InitStruct.Pin = WIFI_RST_Pin|WIFI_BOOT_R_Pin|WIFI_SS_Pin;
+    GPIO_InitStruct.Pin = WIFI_RST_Pin|WIFI_BOOT_Pin|WIFI_SS_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

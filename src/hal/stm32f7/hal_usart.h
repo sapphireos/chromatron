@@ -27,7 +27,7 @@
 #include "cpu.h"
 #include "usart_bauds.h"
 
-typedef UART_HandleTypeDef USART_t;
+typedef USART_HandleTypeDef USART_t;
 
 void usart_v_init( USART_t *usart );
 void usart_v_set_baud( USART_t *usart, baud_t8 baud );

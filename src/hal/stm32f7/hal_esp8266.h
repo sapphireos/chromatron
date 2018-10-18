@@ -35,7 +35,7 @@
 #define WIFI_DMA 				DMA1_Stream0 
 #define WIFI_DMA_STREAM			0
 
-// #define WIFI_USART              USARTE0
+#define WIFI_USART              USART6
 // #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
 // #define WIFI_DMA_CH             CH2
 // #define WIFI_DMA_CHTRNIF        DMA_CH2TRNIF_bm
