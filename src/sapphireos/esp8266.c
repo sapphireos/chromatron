@@ -1091,7 +1091,7 @@ PT_BEGIN( pt );
     state->tries = WIFI_LOADER_MAX_TRIES;
 
     // log_v_debug_P( PSTR("wifi loader starting") );
-
+    trace_printf( "Starting Wifi loader\n" );
     
 restart:
 

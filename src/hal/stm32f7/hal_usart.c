@@ -36,7 +36,10 @@ void usart_v_init( USART_t *usart ){
     usart->Init.HwFlowCtl = UART_HWCONTROL_NONE;
     usart->Init.OverSampling = UART_OVERSAMPLING_16;
     usart->Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+
+    usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+
     if (HAL_UART_Init(usart) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
@@ -56,7 +59,15 @@ void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
 
 	uint32_t baud = usart->Init.BaudRate;
 
-	usart->Init.BaudRate = baud * 2;
+	if( clk2x ){
+
+		usart->Init.BaudRate = baud * 2;	
+	}
+	else{
+
+		usart->Init.BaudRate = baud;			
+	}
+	
 	if (HAL_UART_Init(usart) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
