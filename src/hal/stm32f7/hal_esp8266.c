@@ -374,6 +374,7 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     }
 
     // SCB_InvalidateDCache();
+    SCB_CleanDCache();
 
 
     __HAL_UART_CLEAR_IT( &wifi_usart, UART_FLAG_ORE );        
