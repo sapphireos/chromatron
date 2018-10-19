@@ -131,7 +131,7 @@ void DMA2_Stream2_IRQHandler( void ){
 
 void USART6_IRQHandler( void )
 { 
-  HAL_UART_IRQHandler( &wifi_usart );
+    HAL_UART_IRQHandler( &wifi_usart );
 }
 
 
@@ -370,13 +370,17 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     }
 
-    HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
-    HAL_NVIC_EnableIRQ( USART6_IRQn );
 
-    HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
+    __HAL_UART_CLEAR_IT( &wifi_usart, UART_FLAG_ORE );        
 
-    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
+    // HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
+    // HAL_NVIC_EnableIRQ( USART6_IRQn );
+
+    // HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
+    // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
+
+    // HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
+    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(rx_dma_buffer) );
 
  //    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 
