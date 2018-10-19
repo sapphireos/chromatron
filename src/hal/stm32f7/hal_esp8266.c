@@ -187,6 +187,13 @@ void hal_wifi_v_init( void ){
     // set up IO
     GPIO_InitTypeDef GPIO_InitStruct;
 
+    GPIO_InitStruct.Pin         = WIFI_RST_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLUP;
+    HAL_GPIO_Init(WIFI_RST_GPIO_Port, &GPIO_InitStruct);
+    
+
     GPIO_InitStruct.Pin         = WIFI_PD_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
@@ -574,6 +581,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     // WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
     // WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
     GPIO_InitStruct.Pin = WIFI_RXD_Pin;
+    // GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -581,6 +589,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
+    // GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -596,7 +605,9 @@ void hal_wifi_v_enter_boot_mode( void ){
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
@@ -705,18 +716,19 @@ void hal_wifi_v_enter_normal_mode( void ){
     // WIFI_USART_TXD_PORT.DIRSET = ( 1 << WIFI_USART_TXD_PIN );
     // WIFI_USART_RXD_PORT.DIRCLR = ( 1 << WIFI_USART_RXD_PIN );
     GPIO_InitStruct.Pin = WIFI_RXD_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
+
     // usart_v_init( &WIFI_USART );
     // usart_v_set_double_speed( &WIFI_USART, TRUE );
     // usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
@@ -730,7 +742,9 @@ void hal_wifi_v_enter_normal_mode( void ){
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
