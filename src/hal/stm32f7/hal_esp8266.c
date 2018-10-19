@@ -56,41 +56,41 @@ void DMA2_Stream2_IRQHandler( void ){
         
     HAL_DMA_IRQHandler( &wifi_dma );
 
-// //     // disable IRQ
-// //     DMA.WIFI_DMA_CH.CTRLB = 0;
-    __HAL_DMA_DISABLE( &wifi_dma );
+// // //     // disable IRQ
+// // //     DMA.WIFI_DMA_CH.CTRLB = 0;
+//     __HAL_DMA_DISABLE( &wifi_dma );
 
-    if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
+//     if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
 
-// //         // we can't set a TRFCNT interrupt to inform us when the message is finished,
-// //         // because at this point we are already somewhere in the middle of receiving it
-// //         // and we don't want to mess up the DMA transfer.
-// //         // however, at this point, we do know how long the message is, and therefore, how
-// //         // long it will take to receive it.  we can set a timer to fire when the message
-// //         // is finished.
+// // //         // we can't set a TRFCNT interrupt to inform us when the message is finished,
+// // //         // because at this point we are already somewhere in the middle of receiving it
+// // //         // and we don't want to mess up the DMA transfer.
+// // //         // however, at this point, we do know how long the message is, and therefore, how
+// // //         // long it will take to receive it.  we can set a timer to fire when the message
+// // //         // is finished.
 
-// //         // reset timer
-// //         TCD1.CTRLA = 0;
-// //         TCD1.CTRLB = 0;
-// //         TCD1.CNT = 0;
+// // //         // reset timer
+// // //         TCD1.CTRLA = 0;
+// // //         TCD1.CTRLB = 0;
+// // //         TCD1.CNT = 0;
         
-// //         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
+// // //         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
 
-// //         // calculate timer length based on packet length
-// //         // at 4 MHz USART, each byte is 2.5 microseconds.
-// //         // we tick at 4 MHz, which yields 10 ticks per byte.
-// //         TCD1.PER = header->len * 10;
+// // //         // calculate timer length based on packet length
+// // //         // at 4 MHz USART, each byte is 2.5 microseconds.
+// // //         // we tick at 4 MHz, which yields 10 ticks per byte.
+// // //         TCD1.PER = header->len * 10;
 
-// //         // start timer
-// //         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
-    }
-    else{
+// // //         // start timer
+// // //         TCD1.CTRLA = TC_CLKSEL_DIV8_gc;
+//     }
+//     else{
 
-//         // incorrect control byte on frame
+// //         // incorrect control byte on frame
 
-        // reset DMA and send ready signal
-        hal_wifi_v_set_rx_ready();
-    }
+//         // reset DMA and send ready signal
+//         hal_wifi_v_set_rx_ready();
+//     }
 }
 
 // ISR(WIFI_TIMER_ISR){
@@ -312,7 +312,6 @@ void hal_wifi_v_disable_rx_dma( void ){
 
     HAL_UART_DMAStop( &wifi_usart );
 
-    __HAL_DMA_DISABLE( &wifi_dma );
     HAL_DMA_DeInit( &wifi_dma );
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
@@ -371,11 +370,11 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     }
 
-    // HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
-    // HAL_NVIC_EnableIRQ( USART6_IRQn );
+    HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
+    HAL_NVIC_EnableIRQ( USART6_IRQn );
 
-    // HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
-    // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
+    HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
     HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
 
