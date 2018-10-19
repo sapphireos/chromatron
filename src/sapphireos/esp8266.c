@@ -1139,6 +1139,10 @@ restart:
         uint8_t buf[32];
         memset( buf, 0xff, sizeof(buf) );
 
+        
+        hal_wifi_v_clear_rx_buffer();
+        hal_wifi_v_enable_rx_dma( FALSE );
+
         // ESP seems to miss the first sync for some reason,
         // so we'll just send twice.
         // it's not really a big deal from a timing standpoint since

@@ -54,6 +54,8 @@ static DMA_HandleTypeDef wifi_dma;
 
 void DMA1_Stream0_IRQHandler( void ){
         
+    HAL_DMA_IRQHandler( &wifi_dma );
+
 // //     // disable IRQ
 // //     DMA.WIFI_DMA_CH.CTRLB = 0;
     __HAL_DMA_DISABLE( &wifi_dma );
@@ -369,8 +371,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     }
 
-    HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
-    HAL_NVIC_EnableIRQ( USART6_IRQn );
+    // HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
+    // HAL_NVIC_EnableIRQ( USART6_IRQn );
 
     // HAL_NVIC_SetPriority( DMA1_Stream0_IRQn, 0, 0 );
     // HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
