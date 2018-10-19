@@ -30,6 +30,10 @@
 
 #include "Trace.h"
 
+#define hal_cpu_v_invalidate_d_cache SCB_InvalidateDCache
+#define hal_cpu_v_clean_d_cache SCB_CleanDCache
+#define hal_cpu_v_clean_and_invalidate_d_cache SCB_CleanInvalidateDCache
+
 
 #define ENABLE_INTERRUPTS __enable_irq()
 #define DISABLE_INTERRUPTS __disable_irq()
