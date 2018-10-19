@@ -172,9 +172,12 @@ void hal_wifi_v_init( void ){
     wifi_dma.Init.Mode                 = DMA_NORMAL;
     wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
     wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    // wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_ENABLE;
     wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
     wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
     wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+    // wifi_dma.Init.MemBurst             = DMA_MBURST_INC4;
+    // wifi_dma.Init.PeriphBurst          = DMA_PBURST_INC4;
 
     // enable clock
     __HAL_RCC_USART6_CLK_ENABLE();
@@ -369,6 +372,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
 
         // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     }
+
+    // SCB_InvalidateDCache();
 
 
     __HAL_UART_CLEAR_IT( &wifi_usart, UART_FLAG_ORE );        

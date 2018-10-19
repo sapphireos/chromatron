@@ -33,8 +33,8 @@ void cpu_v_init( void ){
 
     DISABLE_INTERRUPTS;
 
-    SCB_EnableICache();
-    SCB_EnableDCache();
+    // SCB_EnableICache();
+    // SCB_EnableDCache();
 
 
     __HAL_FLASH_ART_ENABLE();

@@ -1139,7 +1139,7 @@ restart:
         uint8_t buf[32];
         memset( buf, 0xff, sizeof(buf) );
 
-        
+
         hal_wifi_v_clear_rx_buffer();
         hal_wifi_v_enable_rx_dma( FALSE );
 
@@ -1154,6 +1154,8 @@ restart:
 
         // blocking wait!
         int8_t status = esp_i8_wait_response( buf, sizeof(buf), ESP_SYNC_TIMEOUT );
+
+        
 
         if( status == 0 ){
 
