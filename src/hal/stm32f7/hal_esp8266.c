@@ -52,7 +52,7 @@ static volatile uint16_t max_ready_wait_isr;
 static USART_t wifi_usart;
 static DMA_HandleTypeDef wifi_dma;
 
-void DMA1_Stream0_IRQHandler( void ){
+void DMA2_Stream2_IRQHandler( void ){
         
     HAL_DMA_IRQHandler( &wifi_dma );
 
@@ -180,7 +180,7 @@ void hal_wifi_v_init( void ){
     __HAL_RCC_USART6_CLK_ENABLE();
 
     // enable DMA controller
-    __HAL_RCC_DMA1_CLK_ENABLE();
+    __HAL_RCC_DMA2_CLK_ENABLE();
 
         
     // // reset timer
@@ -360,8 +360,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
 
     if( irq ){
 
-        HAL_NVIC_SetPriority( DMA1_Stream0_IRQn, 0, 0 );
-        HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
+        HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
+        HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
  //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
         // HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
@@ -374,8 +374,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     // HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
     // HAL_NVIC_EnableIRQ( USART6_IRQn );
 
-    // HAL_NVIC_SetPriority( DMA1_Stream0_IRQn, 0, 0 );
-    // HAL_NVIC_EnableIRQ( DMA1_Stream0_IRQn );
+    // HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
+    // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
     HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
 

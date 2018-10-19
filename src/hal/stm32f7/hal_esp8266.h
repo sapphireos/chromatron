@@ -32,8 +32,8 @@
 
 #define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
 
-#define WIFI_DMA 				DMA1_Stream0 
-#define WIFI_DMA_CHANNEL		DMA_CHANNEL_0
+#define WIFI_DMA 				DMA2_Stream2
+#define WIFI_DMA_CHANNEL		DMA_CHANNEL_5
 
 #define WIFI_USART              USART6
 // #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
