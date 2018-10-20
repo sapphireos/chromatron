@@ -60,6 +60,7 @@
 #define FLASH_FS_FIRMWARE_0_SIZE_KB     384
 #define FLASH_FS_FIRMWARE_1_SIZE_KB     384
 #define FLASH_FS_FIRMWARE_2_SIZE_KB     512
+#define FLASH_FS_EEPROM_SIZE_KB     	32
 
 // logging
 #define LOG_MAX_BUFFER_SIZE     2048

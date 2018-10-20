@@ -60,6 +60,7 @@
 #define FLASH_FS_FIRMWARE_0_SIZE_KB     128
 #define FLASH_FS_FIRMWARE_1_SIZE_KB     128
 #define FLASH_FS_FIRMWARE_2_SIZE_KB     384
+#define FLASH_FS_EEPROM_SIZE_KB     	0 // MUST be 0 on the Xmega target!
 
 // logging
 #define LOG_MAX_BUFFER_SIZE     512
