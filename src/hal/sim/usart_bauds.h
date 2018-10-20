@@ -25,7 +25,7 @@
 #ifndef _USART_BAUDS_H
 #define _USART_BAUDS_H
 
-typedef uint8_t baud_t8;
+typedef uint8_t baud_t;
 
 #define BAUD_2400       0
 #define BAUD_4800       1

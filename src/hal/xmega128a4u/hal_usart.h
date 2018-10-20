@@ -30,7 +30,7 @@
 #define USER_USART_RX_VECT  USARTC1_RXC_vect
 
 void usart_v_init( USART_t *usart );
-void usart_v_set_baud( USART_t *usart, baud_t8 baud );
+void usart_v_set_baud( USART_t *usart, baud_t baud );
 void usart_v_set_double_speed( USART_t *usart, bool clk2x );
 void usart_v_send_byte( USART_t *usart, uint8_t data );
 void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len );

@@ -125,7 +125,7 @@ void cmd_usart_v_init( void ){
     #endif
 }
 
-void cmd_usart_v_set_baud( baud_t8 baud ){
+void cmd_usart_v_set_baud( baud_t baud ){
 
 }
 
