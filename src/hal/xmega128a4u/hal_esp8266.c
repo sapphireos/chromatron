@@ -42,7 +42,8 @@
 
 
 
-static uint8_t rx_dma_buf[WIFI_UART_RX_BUF_SIZE];
+static uint8_t rx_dma_buf[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
+// the padding is in case the wifi sends more data than it is supposed to.
 
 static volatile bool buffer_busy;
 static uint8_t rx_buf[WIFI_UART_RX_BUF_SIZE];
