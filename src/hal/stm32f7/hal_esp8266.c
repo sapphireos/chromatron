@@ -373,8 +373,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     }
 
-    // SCB_InvalidateDCache();
-    hal_cpu_v_clean_d_cache();
+    // hal_cpu_v_clean_d_cache();
+    hal_cpu_v_clean_d_cache_by_addr( (uint32_t *)rx_dma_buffer, sizeof(rx_dma_buffer) );
 
 
     __HAL_UART_CLEAR_IT( &wifi_usart, UART_FLAG_ORE );        
