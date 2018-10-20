@@ -208,10 +208,7 @@ static uint8_t read_block_number( uint16_t block_number ){
 }
 
 static void erase_block( uint16_t block_number ){
-
-    // remove from index
-    // cfg_index[block_number] = CFG_PARAM_EMPTY_BLOCK;
-
+    
     ee_v_erase_block( block_address( block_number ), sizeof(cfg_block_t) );
 }
 
