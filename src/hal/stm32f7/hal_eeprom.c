@@ -40,10 +40,18 @@
 static uint8_t current_block;
 static uint32_t total_block_writes;
 
+static bool commit;
+
 static uint8_t ee_data[EE_ARRAY_SIZE];
+
+PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) );
 
 void ee_v_init( void ){
 
+	thread_t_create( ee_manager_thread,
+                     PSTR("ee_manager_thread"),
+                     0,
+                     0 );
 }
 
 bool ee_b_busy( void ){
@@ -73,6 +81,8 @@ void ee_v_erase_block( uint16_t address, uint16_t len ){
 	ASSERT( ( address + len ) < cnt_of_array(ee_data) );
 	   
   	memset( &ee_data[address], 0xff, len );
+
+  	commit = TRUE;
 }
 
 uint8_t ee_u8_read_byte( uint16_t address ){
@@ -89,3 +99,24 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
 	memcpy( data, &ee_data[address], len );
 }
+
+
+PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+    	THREAD_WAIT_WHILE( pt, !commit );
+
+    	TMR_WAIT( pt, 1000 );
+    	commit = FALSE;
+    	
+    	
+    	
+    }
+
+PT_END( pt );
+}
+
+
