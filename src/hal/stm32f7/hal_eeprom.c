@@ -33,6 +33,7 @@
 #include "timers.h"
 #include "threading.h"
 
+#include "hal_flash25.h"
 #include "ffs_eeprom.h"
 #include "hal_eeprom.h"
 
@@ -65,6 +66,8 @@ void ee_v_write_byte_blocking( uint16_t address, uint8_t data ){
 	ASSERT( address < cnt_of_array(ee_data) );
 
 	ee_data[address] = data;    
+
+	commit = TRUE;
 }
 
 void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len ){
@@ -73,6 +76,8 @@ void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len ){
     ASSERT( ( address + len ) < cnt_of_array(ee_data) );
 
     memcpy( &ee_data[address], data, len );
+
+    commit = TRUE;
 }
 
 void ee_v_erase_block( uint16_t address, uint16_t len ){
@@ -101,6 +106,27 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 }
 
 
+static void commit_to_flash( void ){
+
+
+}
+
+
+void ee_v_commit( void ){
+
+	if( !commit ){
+
+		return;
+	}
+
+	// assume we are rebooting.  if we've asserted on an error,
+	// we need to make sure the flash interface is re-initialized
+	// in case we were in the middle of an operation.
+	hal_flash25_v_init();
+
+	commit_to_flash();
+}
+
 PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -111,9 +137,9 @@ PT_BEGIN( pt );
 
     	TMR_WAIT( pt, 1000 );
     	commit = FALSE;
-    	
-    	
-    	
+
+
+    	commit_to_flash();
     }
 
 PT_END( pt );

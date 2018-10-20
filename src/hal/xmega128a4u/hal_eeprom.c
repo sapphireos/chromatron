@@ -74,3 +74,8 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
     eeprom_read_block( (void *)data, (const void *)address, len );
 }
+
+
+void ee_v_commit( void ){
+
+}

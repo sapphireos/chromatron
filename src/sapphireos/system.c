@@ -477,6 +477,8 @@ void reboot( void ){
 
     // make sure interrupts are disabled
     DISABLE_INTERRUPTS;
+
+    ee_v_commit();
     
     cpu_reboot();
 

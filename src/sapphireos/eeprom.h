@@ -38,5 +38,6 @@ void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len );
 void ee_v_erase_block( uint16_t address, uint16_t len );
 uint8_t ee_u8_read_byte( uint16_t address );
 void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len );
+void ee_v_commit( void );
 
 #endif
