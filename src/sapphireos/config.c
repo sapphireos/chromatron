@@ -208,7 +208,7 @@ static uint8_t read_block_number( uint16_t block_number ){
 }
 
 static void erase_block( uint16_t block_number ){
-    
+
     ee_v_erase_block( block_address( block_number ), sizeof(cfg_block_t) );
 }
 
@@ -319,71 +319,6 @@ static void clean_blocks( void ){
             erase_block( i );
         }
     }
-
-    
-    
-    // cfg_block_t block;
-
-    // uint16_t blocks_present[CFG_TOTAL_BLOCKS];
-    // memset( blocks_present, 0, sizeof(blocks_present) );
-
-    // for( uint16_t i = 0; i < CFG_TOTAL_BLOCKS; i++ ){
-
-    //     read_block( i, &block );
-
-    //     // check ID
-    //     if( block.id == CFG_PARAM_EMPTY_BLOCK ){
-
-    //         // empty block
-    //         continue;
-    //     }
-
-    //     // get type
-    //     sapphire_type_t8 type = kv_i8_type( block.id );
-
-    //     // check if ID is invalid
-    //     if( block.id >= CFG_TOTAL_BLOCKS ){
-
-    //         log_v_error_P( PSTR("Invalid config ID: %lu"), block.id );
-    //         sys_v_set_warnings( SYS_WARN_SYSTEM_ERROR );
-
-    //         erase_block( i );
-
-    //         continue;
-    //     }
-
-    //     // check if parameter was not found in the KV system
-    //     // (possibly a parameter was removed)
-    //     // OR
-    //     // the type listed in the parameter data does not match the
-    //     // type listed in the KV system (parameter type may have been
-    //     // changed)
-    //     // OR 
-    //     // block number exceeds number of blocks for this item
-    //     // OR
-    //     // the parameter is already in the eeprom and this is a duplicate.
-    //     //
-    //     if( ( type < 0 ) ||
-    //         ( type != block.type ) ||
-    //         ( block.block_number >= calc_n_blocks( type_u16_size( type ) ) ) ||
-    //         ( ( blocks_present[block.id] & ( 1 << block.block_number ) ) != 0 ) ){
-
-    //         log_v_debug_P( PSTR("Cfg check found bad block ID:%lu type:%d/%d #%d addr:%d present:%04x"), 
-    //                        block.id, type, block.type, block.block_number, i, blocks_present[block.id] );
-
-    //         erase_block( i );
-    //     }
-
-    //     // bounds check against array.
-    //     // technically this should be an assert, but the problem with that is
-    //     // this is so early in the startup that safe mode would also be broken if
-    //     // we assert here.
-    //     if( block.id < cnt_of_array(blocks_present) ){
-
-    //         // mark this parameter as present
-    //         blocks_present[block.id] |= ( 1 << block.block_number );
-    //     }
-    // }
 }
 
 uint16_t cfg_u16_total_blocks( void ){
