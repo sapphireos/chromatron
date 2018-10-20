@@ -28,6 +28,14 @@
 
 #include "hal_adc.h"
 
+void adc_v_init( void );
+void adc_v_shutdown( void );
+
+void adc_v_set_ref( uint8_t ref );
+
+uint16_t adc_u16_read_raw( uint8_t channel );
+uint16_t adc_u16_read_vcc( void );
+
 float adc_f_read( uint8_t channel );
 uint16_t adc_u16_read_mv( uint8_t channel );
 

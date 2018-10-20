@@ -26,12 +26,16 @@
 #ifndef _HAL_ADC_H
 #define _HAL_ADC_H
 
-void adc_v_init( void );
-void adc_v_shutdown( void );
+#include "hal_io.h"
 
-void adc_v_set_ref( uint8_t ref );
+#define ADC_CHANNEL_VSUPPLY     0 // divided VIN measurement
+#define ADC_CHANNEL_REF         1 // ADC reference
+#define ADC_CHANNEL_VCC         2 // VCC
+#define ADC_CHANNEL_TEMP        3 // internal temperature sensor
 
-uint16_t adc_u16_read_raw( uint8_t channel );
-uint16_t adc_u16_read_vcc( void );
+// vsupply pin
+#define ADC_VSUPPLY_PORT        VMON_GPIO_Port
+#define ADC_VSUPPLY_PIN         VMON_Pin
+
 
 #endif

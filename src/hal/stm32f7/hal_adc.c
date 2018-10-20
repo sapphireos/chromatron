@@ -28,7 +28,34 @@
 #include "hal_io.h"
 #include "hal_adc.h"
 
+
+// static int8_t adc_kv_handler(
+//     kv_op_t8 op,
+//     catbus_hash_t32 hash,
+//     void *data,
+//     uint16_t len )
+// {
+//     if( op == KV_OP_GET ){
+
+//         if( hash == __KV__vcc ){
+
+//             uint16_t mv = adc_u16_read_vcc();
+//             memcpy( data, &mv, sizeof(mv) );
+//         }
+//     }
+
+//     return 0;
+// }
+
+// KV_SECTION_META kv_meta_t hal_adc_kv[] = {
+//     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, adc_kv_handler,   "vcc" },
+// };
+
+
+
+
 static ADC_HandleTypeDef hadc1;
+
 
 void adc_v_init( void ){
 
@@ -38,42 +65,65 @@ void adc_v_init( void ){
     PC0     ------> ADC1_IN10 
     */
     GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.Pin = VMON_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(VMON_GPIO_Port, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin 		= ADC_VSUPPLY_PIN;
+    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
+    HAL_GPIO_Init(ADC_VSUPPLY_PORT, &GPIO_InitStruct);
 
-
-	ADC_ChannelConfTypeDef sConfig;
 
 	/**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
 	*/
 	hadc1.Instance = ADC1;
-	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-	hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-	hadc1.Init.ScanConvMode = DISABLE;
-	hadc1.Init.ContinuousConvMode = DISABLE;
-	hadc1.Init.DiscontinuousConvMode = DISABLE;
-	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-	hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-	hadc1.Init.NbrOfConversion = 1;
-	hadc1.Init.DMAContinuousRequests = DISABLE;
-	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+	hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
+	hadc1.Init.Resolution 				= ADC_RESOLUTION_12B;
+	hadc1.Init.ScanConvMode 			= DISABLE;
+	hadc1.Init.ContinuousConvMode 		= DISABLE;
+	hadc1.Init.DiscontinuousConvMode 	= DISABLE;
+	hadc1.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
+	hadc1.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
+	hadc1.Init.DataAlign 				= ADC_DATAALIGN_RIGHT;
+	hadc1.Init.NbrOfConversion 			= 1;
+	hadc1.Init.DMAContinuousRequests 	= DISABLE;
+	hadc1.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
 	if (HAL_ADC_Init(&hadc1) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
+}
+
+static int16_t _adc_i16_internal_read( uint8_t channel ){
+
+    uint32_t internal_channel = 0;
+
+    switch( channel ){
+        case ADC_CHANNEL_VSUPPLY:
+            internal_channel = ADC_CHANNEL_10;
+            break;
+
+        default:
+        	return 0;
+            break;
+    }
+
 	/**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
 	*/
-	sConfig.Channel = ADC_CHANNEL_10;
+	ADC_ChannelConfTypeDef sConfig;
+	sConfig.Channel = internal_channel;
 	sConfig.Rank = ADC_REGULAR_RANK_1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+	sConfig.Offset = 0;
+	if (HAL_ADC_ConfigChannel( &hadc1, &sConfig ) != HAL_OK)
 	{
-		_Error_Handler(__FILE__, __LINE__);
+		_Error_Handler( __FILE__, __LINE__ );
 	}
+
+	HAL_ADC_Start( &hadc1 );        
+    HAL_ADC_PollForConversion( &hadc1, 5 );
+
+    uint32_t value = HAL_ADC_GetValue( &hadc1 );
+ 	
+    return (int16_t)value;
 }
 
 void adc_v_shutdown( void ){
@@ -90,12 +140,15 @@ void adc_v_set_ref( uint8_t ref ){
 
 uint16_t adc_u16_read_raw( uint8_t channel ){
 
-    return 0;
+    return _adc_i16_internal_read( channel );
 }
 
 uint16_t adc_u16_read_supply_voltage( void ){
 
-    return 0;
+	uint16_t raw = adc_u16_read_raw( ADC_CHANNEL_VSUPPLY );
+	uint16_t mv = adc_u16_convert_to_millivolts( raw );
+
+    return mv * 2;
 }
 
 uint16_t adc_u16_read_vcc( void ){
@@ -105,5 +158,14 @@ uint16_t adc_u16_read_vcc( void ){
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
 
-	return 0;
+	uint32_t millivolts = 0;
+
+	// assuming 3300 mv VREF at 12 bits (4095 codes)
+
+	millivolts = (uint32_t)raw_value * 3300;
+	millivolts /= 4096;
+
+	return millivolts;
 }
+
+
