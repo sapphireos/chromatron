@@ -33,10 +33,16 @@
 #include "timers.h"
 #include "threading.h"
 
+#include "ffs_global.h"
 #include "hal_flash25.h"
 #include "ffs_eeprom.h"
 #include "hal_eeprom.h"
 
+
+#include "logging.h"
+
+
+#define N_BLOCKS FLASH_FS_EEPROM_N_BLOCKS
 
 static uint8_t current_block;
 static uint32_t total_block_writes;
@@ -45,9 +51,87 @@ static bool commit;
 
 static uint8_t ee_data[EE_ARRAY_SIZE];
 
+
+#define STATUS_ERASED 			0xff
+#define STATUS_PARTIAL_WRITE 	0xef
+#define STATUS_VALID 			0x0f
+#define STATUS_DIRTY 			0x00
+
+
+typedef struct __attribute__((packed)){
+    uint8_t status;
+    uint8_t reserved;
+    uint32_t total_writes;
+    uint8_t reserved2[10];
+} block_header_t;
+
+
 PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) );
 
+
+static void set_block_status( uint8_t block, uint8_t status ){
+
+	ffs_eeprom_v_write( block, 0, &status, sizeof(status) );
+}
+
+
 void ee_v_init( void ){
+
+	memset( ee_data, 0xff, sizeof(ee_data) );
+
+	block_header_t header;
+
+	// scan for first valid block
+	for( uint8_t i = 0; i < N_BLOCKS; i++ ){
+
+		// read block header
+		ffs_eeprom_v_read( i, 0, (uint8_t *)&header, sizeof(header) );
+
+		// check status
+		if( header.status == STATUS_VALID ){
+
+			current_block = i;
+			total_block_writes = header.total_writes;
+		}
+	}
+
+	// clean up any other blocks
+	for( uint8_t i = 0; i < N_BLOCKS; i++ ){
+
+		// read block header
+		ffs_eeprom_v_read( i, 0, (uint8_t *)&header, sizeof(header) );
+
+		// check status
+		if( ( header.status != STATUS_ERASED ) && ( i != current_block ) ){
+
+			// erase block
+			ffs_eeprom_v_erase( i );
+		}
+	}
+
+	ASSERT( current_block < N_BLOCKS );
+
+	// check current block for any errors (or if it needs to be initialized)
+	ffs_eeprom_v_read( current_block, 0, (uint8_t *)&header, sizeof(header) );
+
+	if( header.status == STATUS_VALID ){
+			
+		// load eeprom contents
+		ffs_eeprom_v_read( current_block, sizeof(header), ee_data, sizeof(ee_data) );
+	}
+	else{
+
+		// erase and initialize
+		ffs_eeprom_v_erase( current_block );
+
+		memset( &header, 0xff, sizeof(header) );
+		header.total_writes = 0;
+		total_block_writes = 0;
+
+		ffs_eeprom_v_write( current_block, 0, (uint8_t *)&header, sizeof(header) );
+		set_block_status( current_block, STATUS_VALID );
+	}
+
 
 	thread_t_create( ee_manager_thread,
                      PSTR("ee_manager_thread"),
@@ -107,8 +191,39 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
 
 static void commit_to_flash( void ){
+	
+	// get next block
+	uint8_t next_block = current_block;
 
+	if( next_block >= N_BLOCKS ){
 
+		next_block = 0;
+	}
+
+	// erase next block
+	ffs_eeprom_v_erase( next_block );
+
+	total_block_writes++;
+
+	block_header_t header;
+
+	// read header
+	ffs_eeprom_v_read( current_block, 0, (uint8_t *)&header, sizeof(header) );
+	header.total_writes = total_block_writes;
+	header.status = STATUS_PARTIAL_WRITE;
+	
+	// write header and data to new block
+	ffs_eeprom_v_write( next_block, 0, (uint8_t *)&header, sizeof(header) );
+	ffs_eeprom_v_write( next_block, sizeof(header), ee_data, sizeof(ee_data) );	
+
+	// set status on new block to valid
+	set_block_status( next_block, STATUS_VALID );
+
+	// set old block to dirty
+	set_block_status( current_block, STATUS_DIRTY );
+
+	// switch current block
+	current_block = next_block;
 }
 
 
@@ -131,6 +246,8 @@ PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    log_v_debug_P( PSTR("EE block: %u total_writes: %lu"), current_block, total_block_writes );
+
     while(1){
 
     	THREAD_WAIT_WHILE( pt, !commit );
@@ -138,8 +255,9 @@ PT_BEGIN( pt );
     	TMR_WAIT( pt, 1000 );
     	commit = FALSE;
 
-
     	commit_to_flash();
+
+    	log_v_debug_P( PSTR("EE commit block %u total_writes: %lu"), current_block, total_block_writes );
     }
 
 PT_END( pt );
