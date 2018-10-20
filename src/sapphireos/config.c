@@ -89,7 +89,7 @@ static cfg_ip_config_t ip_config;
 
 
 #define CFG_PARAM_DATA_LEN 8
-typedef struct{
+typedef struct __attribute__((packed)){
     catbus_hash_t32 id;
     sapphire_type_t8 type;
     uint8_t block_number;

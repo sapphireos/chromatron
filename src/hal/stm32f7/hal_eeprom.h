@@ -24,7 +24,7 @@
 #define _HAL_EEPROM_H
 
 
-#define EE_ARRAY_SIZE 1024
+#define EE_ARRAY_SIZE 3072
 
 
 #endif

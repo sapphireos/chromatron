@@ -29,3 +29,26 @@
 #include "flash_fs_partitions.h"
 #include "ffs_eeprom.h"
 
+static uint32_t flash_addr( uint8_t block, uint16_t addr ){
+
+	return FLASH_FS_EEPROM_PARTITION_START + 
+    	   ( (uint32_t)block * FLASH_FS_ERASE_BLOCK_SIZE ) +
+    	   addr;
+}
+
+void ffs_eeprom_v_write( uint8_t block, uint16_t addr, uint8_t *src, uint16_t len ){
+
+	flash25_v_write( flash_addr( block, addr ), src, len );
+}
+
+void ffs_eeprom_v_read( uint8_t block, uint16_t addr, uint8_t *dest, uint16_t len ){
+
+	flash25_v_read( flash_addr( block, addr ), dest, len );	
+}
+
+void ffs_eeprom_v_erase( uint8_t block ){
+
+	flash25_v_erase_4k( flash_addr( block, 0 ) );
+}
+
+

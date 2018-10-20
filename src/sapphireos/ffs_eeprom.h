@@ -25,6 +25,8 @@
 #ifndef _FFS_EEPROM_H
 #define _FFS_EEPROM_H
 
-
+void ffs_eeprom_v_write( uint8_t block, uint16_t addr, uint8_t *src, uint16_t len );
+void ffs_eeprom_v_read( uint8_t block, uint16_t addr, uint8_t *dest, uint16_t len );
+void ffs_eeprom_v_erase( uint8_t block );
 
 #endif

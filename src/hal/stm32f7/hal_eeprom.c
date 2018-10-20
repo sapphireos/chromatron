@@ -28,8 +28,19 @@
 #include "system.h"
 #include "target.h"
 
+#include "keyvalue.h"
+
+#include "timers.h"
+#include "threading.h"
+
+#include "ffs_eeprom.h"
 #include "hal_eeprom.h"
 
+
+static uint8_t current_block;
+static uint32_t total_block_writes;
+
+static uint8_t ee_data[EE_ARRAY_SIZE];
 
 void ee_v_init( void ){
 
@@ -43,25 +54,38 @@ bool ee_b_busy( void ){
 // write a byte to eeprom and wait for the completion of the write
 void ee_v_write_byte_blocking( uint16_t address, uint8_t data ){
 
-    
+	ASSERT( address < cnt_of_array(ee_data) );
+
+	ee_data[address] = data;    
 }
 
 void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len ){
 
-    
+	ASSERT( address < cnt_of_array(ee_data) );
+    ASSERT( ( address + len ) < cnt_of_array(ee_data) );
+
+    memcpy( &ee_data[address], data, len );
 }
 
 void ee_v_erase_block( uint16_t address, uint16_t len ){
 
-    
+	ASSERT( address < cnt_of_array(ee_data) );
+	ASSERT( ( address + len ) < cnt_of_array(ee_data) );
+	   
+  	memset( &ee_data[address], 0xff, len );
 }
 
 uint8_t ee_u8_read_byte( uint16_t address ){
 
-    return 0;
+	ASSERT( address < cnt_of_array(ee_data) );
+
+    return ee_data[address];
 }
 
 void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
+	ASSERT( address < cnt_of_array(ee_data) );
+	ASSERT( ( address + len ) < cnt_of_array(ee_data) );
 
+	memcpy( data, &ee_data[address], len );
 }
