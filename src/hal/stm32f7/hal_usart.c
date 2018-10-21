@@ -88,10 +88,20 @@ void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
 
 int16_t usart_i16_get_byte( USART_t *usart ){
 
+    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXNE ) ){
+
+        return usart->Instance->RDR;
+    }
+
 	return -1;
 }
 
 uint8_t usart_u8_bytes_available( USART_t *usart ){
+
+    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXNE ) ){
+
+        return 1;
+    }
 
 	return 0;
 }
