@@ -193,7 +193,7 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 static void commit_to_flash( void ){
 	
 	// get next block
-	uint8_t next_block = current_block;
+	uint8_t next_block = current_block + 1;
 
 	if( next_block >= N_BLOCKS ){
 
