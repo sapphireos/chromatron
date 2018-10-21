@@ -36,7 +36,8 @@
 #define WIFI_RESET_DELAY_MS     20
 
 
-static uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE];
+static uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
+// the padding is in case the wifi sends more data than it is supposed to.
 
 static volatile bool buffer_busy;
 static uint8_t rx_buf[WIFI_UART_RX_BUF_SIZE];
@@ -244,6 +245,28 @@ void hal_wifi_v_init( void ){
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
 
 
+    // set up DMA buffer to non-cacheable using ARM MPU
+    HAL_MPU_Disable();
+
+    MPU_Region_InitTypeDef mpu_init;
+    mpu_init.Enable             = MPU_REGION_ENABLE;
+    mpu_init.BaseAddress        = (uint32_t)rx_dma_buffer;
+    mpu_init.Size               = MPU_REGION_SIZE_256B;
+    mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
+    mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
+    mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;
+    mpu_init.IsShareable        = MPU_ACCESS_SHAREABLE;
+    mpu_init.Number             = MPU_REGION_NUMBER0;
+    mpu_init.TypeExtField       = MPU_TEX_LEVEL0;
+    mpu_init.SubRegionDisable   = 0x00;
+    mpu_init.DisableExec        = MPU_INSTRUCTION_ACCESS_ENABLE;
+    HAL_MPU_ConfigRegion(&mpu_init);
+    
+    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+
+
+
+
     // WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
     // WIFI_SS_PORT.DIRCLR = ( 1 << WIFI_SS_PIN );
     // WIFI_USART_XCK_PORT.DIRCLR = ( 1 << WIFI_USART_XCK_PIN );
@@ -386,8 +409,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     }
 
     // hal_cpu_v_clean_d_cache();
-    hal_cpu_v_clean_d_cache_by_addr( (uint32_t *)rx_dma_buffer, sizeof(rx_dma_buffer) );
-
+    // hal_cpu_v_clean_d_cache_by_addr( (uint32_t *)rx_dma_buffer, sizeof(rx_dma_buffer) );
+    // hal_cpu_v_clean_and_invalidate_d_cache();
 
     __HAL_UART_CLEAR_IT( &wifi_usart, UART_FLAG_ORE );        
 
@@ -397,8 +420,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     // HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
     // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
-    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
-    // HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(rx_dma_buffer) );
+    // HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
+    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(rx_dma_buffer) );
 
  //    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 
