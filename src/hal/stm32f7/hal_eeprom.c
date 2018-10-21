@@ -157,7 +157,7 @@ void ee_v_write_byte_blocking( uint16_t address, uint8_t data ){
 void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len ){
 
 	ASSERT( address < cnt_of_array(ee_data) );
-    ASSERT( ( address + len ) < cnt_of_array(ee_data) );
+    ASSERT( ( address + len ) <= cnt_of_array(ee_data) );
 
     memcpy( &ee_data[address], data, len );
 
@@ -167,7 +167,7 @@ void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len ){
 void ee_v_erase_block( uint16_t address, uint16_t len ){
 
 	ASSERT( address < cnt_of_array(ee_data) );
-	ASSERT( ( address + len ) < cnt_of_array(ee_data) );
+	ASSERT( ( address + len ) <= cnt_of_array(ee_data) );
 	   
   	memset( &ee_data[address], 0xff, len );
 
@@ -184,7 +184,7 @@ uint8_t ee_u8_read_byte( uint16_t address ){
 void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
 	ASSERT( address < cnt_of_array(ee_data) );
-	ASSERT( ( address + len ) < cnt_of_array(ee_data) );
+	ASSERT( ( address + len ) <= cnt_of_array(ee_data) );
 
 	memcpy( data, &ee_data[address], len );
 }

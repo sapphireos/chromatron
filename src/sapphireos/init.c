@@ -153,11 +153,8 @@ int8_t sapphire_i8_init( void ){
     // init EEPROM
     ee_v_init();
 
-// debug for now, until config works on ARM
-#ifndef ARM
 	// init config manager
 	cfg_v_init();
-#endif
 
     #ifdef ENABLE_USB
     usb_v_init();
@@ -195,7 +192,7 @@ int8_t sapphire_i8_init( void ){
     status_led_v_init();
 
     #ifdef ENABLE_WIFI
-    wifi_v_init();
+    // wifi_v_init();
     #endif
 
     catbus_v_init();
