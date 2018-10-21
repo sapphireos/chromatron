@@ -1213,6 +1213,7 @@ restart:
 
     status_led_v_set( 1, STATUS_LED_BLUE );
 
+    trace_printf( "Cesanta flasher ready!" );
     // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
     uint32_t file_len;

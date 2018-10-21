@@ -435,7 +435,7 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
 
 void hal_wifi_v_reset_rx_buffer( void ){
 
-	hal_wifi_v_disable_rx_dma();
+	hal_wifi_v_clear_rx_buffer();
 
     // set up DMA
     hal_wifi_v_enable_rx_dma( TRUE );
