@@ -139,7 +139,7 @@ void cmd_usart_v_init( void ){
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = COMM_RX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;

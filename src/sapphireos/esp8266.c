@@ -1213,7 +1213,7 @@ restart:
 
     status_led_v_set( 1, STATUS_LED_BLUE );
 
-    trace_printf( "Cesanta flasher ready!" );
+    trace_printf( "Cesanta flasher ready!\n" );
     // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
     uint32_t file_len;
@@ -1291,6 +1291,8 @@ restart:
     }
 
     // probably don't want to actually assert here...
+
+    trace_printf( "Starting wifi\n" );
 
     // try to run anyway
     goto run_wifi;

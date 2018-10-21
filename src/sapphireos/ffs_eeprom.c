@@ -48,6 +48,7 @@ void ffs_eeprom_v_read( uint8_t block, uint16_t addr, uint8_t *dest, uint16_t le
 
 void ffs_eeprom_v_erase( uint8_t block ){
 
+	flash25_v_write_enable();
 	flash25_v_erase_4k( flash_addr( block, 0 ) );
 }
 
