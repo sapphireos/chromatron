@@ -39,6 +39,7 @@ void hal_timer_v_init( void ){
 	// enable clock
 	__HAL_RCC_TIM2_CLK_ENABLE();
 
+    // Timer 2 is on APB1 (108 MHz nominally)
 	system_timer.Instance = HAL_SYS_TIMER;
 
 	system_timer.Init.Prescaler 		 = 108;
