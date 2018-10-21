@@ -49,6 +49,7 @@ void usart_v_init( USART_t *usart ){
 void usart_v_set_baud( USART_t *usart, baud_t baud ){
 
 	usart->Init.BaudRate = baud;
+    
 	if (HAL_UART_Init(usart) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
