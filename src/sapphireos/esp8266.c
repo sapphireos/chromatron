@@ -931,6 +931,8 @@ restart:
         thread_v_clear_signal_flag();
 
         if( watchdog == 0 ){
+
+            log_v_debug_P( PSTR("Wifi watchdog triggered") );
         
             goto restart;
         }
