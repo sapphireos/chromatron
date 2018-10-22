@@ -39,6 +39,7 @@
 #define WIFI_AP_MIN_PASS_LEN    8
 
 #define WIFI_LOADER_MAX_TRIES   8
+#define WIFI_WATCHDOG_TIMEOUT   8
 
 
 void wifi_v_init( void );

@@ -126,6 +126,8 @@ static uint8_t comm_stalls;
 static list_t netmsg_list;
 static bool udp_busy;
 
+static uint8_t watchdog;
+
 // static mem_handle_t wifi_networks_handle = -1;
 
 
@@ -204,6 +206,12 @@ bool wifi_b_comm_ready( void ){
 
 // waits up to WIFI_COMM_TIMEOUT microseconds for comm to be ready
 bool wifi_b_wait_comm_ready( void ){
+
+    if( watchdog == 0 ){
+
+        return FALSE;
+    }
+
     
     BUSY_WAIT_TIMEOUT( !hal_wifi_b_comm_ready(), WIFI_COMM_TIMEOUT );
 
@@ -643,6 +651,7 @@ static int8_t process_rx_data( void ){
         goto end;
     }
 
+    watchdog = WIFI_WATCHDOG_TIMEOUT;
 
     if( header->data_id == WIFI_DATA_ID_STATUS ){
 
@@ -884,6 +893,8 @@ PT_BEGIN( pt );
 
 restart:
     
+    watchdog = WIFI_WATCHDOG_TIMEOUT;
+
     hal_wifi_v_enter_normal_mode();
     wifi_status_reg = 0;
 
@@ -918,6 +929,11 @@ restart:
                                ( !is_udp_rx_released() ) );
         thread_v_clear_signal( WIFI_SIGNAL );
         thread_v_clear_signal_flag();
+
+        if( watchdog == 0 ){
+        
+            goto restart;
+        }
 
         // check if UDP buffer is clear (and transmit interface is available)
         if( is_udp_rx_released() && hal_wifi_b_comm_ready() ){
@@ -1051,6 +1067,11 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
+        if( watchdog > 0 ){
+
+            watchdog--;
+        }
+
         if( wifi_b_connected() ){
 
             wifi_uptime += 1;
@@ -1065,17 +1086,17 @@ PT_BEGIN( pt );
         comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
         
-        THREAD_WAIT_WHILE( pt, !hal_wifi_b_comm_ready() );
+        if( hal_wifi_b_comm_ready() ){
 
-        
-        // send options message
+            // send options message
 
-        wifi_msg_set_options_t options_msg;
-        memset( options_msg.padding, 0, sizeof(options_msg.padding) );
-        options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
-        options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
+            wifi_msg_set_options_t options_msg;
+            memset( options_msg.padding, 0, sizeof(options_msg.padding) );
+            options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
+            options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
 
-        wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
+            wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
+        }
     }
 
 PT_END( pt );
