@@ -224,16 +224,17 @@ void _Error_Handler( char *file, int line ){
   
     assert( 0, file, line );
 }
-
-
+    
+#pragma GCC push_options
+#pragma GCC optimize ("O3")
 void hal_cpu_v_delay_us( uint16_t us ){
 
-    uint32_t target_count = ( cpu_u32_get_clock_speed() / 1000000 ) * (uint32_t)us;
-
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // enable cycle counter
-    DWT->CYCCNT = 0; // reset cycle counter
 
-    while( DWT->CYCCNT < target_count );
+    volatile uint32_t target_count = ( cpu_u32_get_clock_speed() / 1000000 ) * (uint32_t)us;
+    volatile uint32_t start_cycles = DWT->CYCCNT;
+
+    while( ( DWT->CYCCNT - start_cycles ) < target_count );
 }
-
+#pragma GCC pop_options
 
