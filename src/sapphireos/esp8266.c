@@ -1315,8 +1315,6 @@ restart:
 
     // probably don't want to actually assert here...
 
-    trace_printf( "Starting wifi\n" );
-
     // try to run anyway
     goto run_wifi;
 
@@ -1376,6 +1374,8 @@ error:
     THREAD_EXIT( pt );
 
 run_wifi:
+
+    trace_printf( "Starting wifi!\n" );
 
     thread_t_create( wifi_comm_thread,
                      PSTR("wifi_comm"),
