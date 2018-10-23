@@ -36,32 +36,6 @@
 #define WIFI_DMA_CHANNEL		DMA_CHANNEL_5
 
 #define WIFI_USART              USART6
-// #define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
-// #define WIFI_DMA_CH             CH2
-// #define WIFI_DMA_CHTRNIF        DMA_CH2TRNIF_bm
-// #define WIFI_DMA_CHERRIF        DMA_CH2ERRIF_bm
-// #define WIFI_DMA_IRQ_VECTOR     DMA_CH2_vect
-
-// #define WIFI_USART_TXD_PORT     PORTE
-// #define WIFI_USART_TXD_PIN      3
-// #define WIFI_USART_RXD_PORT     PORTE
-// #define WIFI_USART_RXD_PIN      2
-// #define WIFI_USART_XCK_PORT     PORTE
-// #define WIFI_USART_XCK_PIN      1
-// #define WIFI_USART_XCK_PINCTRL  PIN1CTRL
-
-// #define WIFI_IRQ_VECTOR         PORTA_INT0_vect
-
-// #define WIFI_PD_PORT            PORTE
-// #define WIFI_PD_PIN             0
-
-// #define WIFI_BOOT_PORT          PORTA
-// #define WIFI_BOOT_PIN           5
-// #define WIFI_BOOT_PINCTRL       PIN5CTRL
-
-// #define WIFI_SS_PORT            PORTA
-// #define WIFI_SS_PIN             6
-// #define WIFI_SS_PINCTRL         PIN6CTRL
 
 
 
