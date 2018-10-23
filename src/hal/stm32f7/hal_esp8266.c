@@ -140,24 +140,29 @@ void USART6_IRQHandler( void )
 
 
 // GPIO RX ready IRQ
-void EXTI0_IRQHandler( void ){
-// // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
+void EXTI9_5_IRQHandler( void ){
+// OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
-//     wifi_rx_ready = TRUE;
+    if( __HAL_GPIO_EXTI_GET_FLAG( GPIO_PIN_8 ) ){
 
-// //     uint32_t elapsed_ready_time = tmr_u32_elapsed_time_us( ready_time_start );
+        __HAL_GPIO_EXTI_CLEAR_FLAG( GPIO_PIN_8 );        
 
-// //     if( elapsed_ready_time > 60000 ){
+        wifi_rx_ready = TRUE;
 
-// //         return;
-// //     }
+        uint32_t elapsed_ready_time = tmr_u32_elapsed_time_us( ready_time_start );
 
-// //     if( elapsed_ready_time > max_ready_wait_isr ){
+        if( elapsed_ready_time > 60000 ){
 
-// //         max_ready_wait_isr = elapsed_ready_time;
-// //     }
+            return;
+        }
 
-// // OS_IRQ_END();
+        if( elapsed_ready_time > max_ready_wait_isr ){
+
+            max_ready_wait_isr = elapsed_ready_time;
+        }
+    }
+
+// OS_IRQ_END();
 }
 
 
@@ -367,6 +372,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
         HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
+        __HAL_DMA_ENABLE_IT( &wifi_dma, DMA_IT_TC );
+
  //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
         // HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     }
@@ -447,29 +454,12 @@ void hal_wifi_v_set_rx_ready( void ){
 
 void hal_wifi_v_disable_irq( void ){
 
-    // disable port interrupt
-    // leave edge detection and pin int mask alone,
-    // so we can still get edge detection.
-
-
-    // WIFI_BOOT_PORT.INTCTRL &= ~PORT_INT0LVL_HI_gc;
-
-    // // clear the int flag though
-    // WIFI_BOOT_PORT.INTFLAGS = PORT_INT0IF_bm;
+    HAL_NVIC_DisableIRQ( EXTI9_5_IRQn );
 }
 
 void hal_wifi_v_enable_irq( void ){
 
-	// clear flag
-    // WIFI_BOOT_PORT.INTFLAGS = PORT_INT0IF_bm;
-
-    // // configure boot pin to interrupt, falling edge triggered
-    // WIFI_BOOT_PORT.INT0MASK |= ( 1 << WIFI_BOOT_PIN );
-    // WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL &= ~PORT_ISC_LEVEL_gc;
-    // WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL |= PORT_ISC_FALLING_gc;
-
-    // // enable port interrupt
-    // WIFI_BOOT_PORT.INTCTRL |= PORT_INT0LVL_HI_gc;
+    HAL_NVIC_EnableIRQ( EXTI9_5_IRQn );
 }
 
 
@@ -656,7 +646,7 @@ void hal_wifi_v_enter_normal_mode( void ){
 
     // set up IO
     GPIO_InitStruct.Pin         = WIFI_BOOT_Pin;
-    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Mode        = GPIO_MODE_IT_FALLING; // falling edge triggered
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_PULLUP; // set boot pin to high
     HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
@@ -727,6 +717,14 @@ void hal_wifi_v_enter_normal_mode( void ){
     {
         _Error_Handler(__FILE__, __LINE__);
     }
+
+
+    // connect BOOT pin to EXTI IRQ 8
+    HAL_NVIC_SetPriority( EXTI9_5_IRQn, 0, 0 );
+    HAL_NVIC_DisableIRQ( EXTI9_5_IRQn );
+
+
+
 }
 
 
