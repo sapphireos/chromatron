@@ -96,7 +96,7 @@
     #define pgm_read_byte(x) *(uint8_t *)(x)
     
     #define wdt_reset()
-    #define _delay_us(x)
+    #define _delay_us(x) hal_cpu_v_delay_us(x)
     #define _delay_ms(x) HAL_Delay(x)
 
     #define cli()

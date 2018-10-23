@@ -224,3 +224,16 @@ void _Error_Handler( char *file, int line ){
   
     assert( 0, file, line );
 }
+
+
+void hal_cpu_v_delay_us( uint16_t us ){
+
+    uint32_t target_count = ( cpu_u32_get_clock_speed() / 1000000 ) * (uint32_t)us;
+
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // enable cycle counter
+    DWT->CYCCNT = 0; // reset cycle counter
+
+    while( DWT->CYCCNT < target_count );
+}
+
+

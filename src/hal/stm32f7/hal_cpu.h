@@ -55,5 +55,7 @@
 
 #define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
 
+void hal_cpu_v_delay_us( uint16_t us );
+
 
 #endif
