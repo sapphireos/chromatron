@@ -41,9 +41,10 @@ _Min_Stack_Size = 0x2000; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 256K
-/* FLASH (rx)      : ORIGIN = 0x00208000, LENGTH = 480K */
-FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 480K
+RAM_NO_CACHE (xrw)      : ORIGIN = 0x20000000, LENGTH = 4K
+RAM (xrw)               : ORIGIN = 0x20001000, LENGTH = 252K
+/* FLASH (rx)           : ORIGIN = 0x00208000, LENGTH = 480K */ /* ITCM interface */
+FLASH (rx)              : ORIGIN = 0x08000000, LENGTH = 480K /* AXI interface */
 }
 
 /* Define output sections */
@@ -182,7 +183,17 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  
+  /* Non-cacheable data section */
+  .non_cacheable (NOLOAD):
+  {
+    . = ALIGN(8);
+    _snon_cacheable = .;        /* create a global symbol at non_cacheable start */
+    *(.non_cacheable)           /* .non_cacheable sections */
+    *(.non_cacheable*)          /* .non_cacheable* sections */
+
+    . = ALIGN(4);
+    _enon_cacheable = .;        /* define a global symbol at non_cacheable end */
+  } >RAM_NO_CACHE
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

@@ -78,6 +78,28 @@ void cpu_v_init( void ){
     // enable SYSCFG controller clock
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
+    // set up MPU and initialize non-cacheable RAM section
+    HAL_MPU_Disable();
+
+    extern uint8_t _snon_cacheable;
+
+    MPU_Region_InitTypeDef mpu_init;
+    mpu_init.Enable             = MPU_REGION_ENABLE;
+    mpu_init.BaseAddress        = (uint32_t)&_snon_cacheable;
+    mpu_init.Size               = MPU_REGION_SIZE_4KB;
+    mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
+    mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
+    mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;
+    mpu_init.IsShareable        = MPU_ACCESS_SHAREABLE;
+    mpu_init.Number             = MPU_REGION_NUMBER0;
+    mpu_init.TypeExtField       = MPU_TEX_LEVEL0;
+    mpu_init.SubRegionDisable   = 0x00;
+    mpu_init.DisableExec        = MPU_INSTRUCTION_ACCESS_ENABLE;
+    HAL_MPU_ConfigRegion(&mpu_init);
+    
+    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+
+
     // enable gpio clocks
     __HAL_RCC_GPIOE_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();

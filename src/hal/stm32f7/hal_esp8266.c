@@ -36,7 +36,8 @@
 #define WIFI_RESET_DELAY_MS     20
 
 
-static uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
+static NON_CACHEABLE uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
+// static uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
 // the padding is in case the wifi sends more data than it is supposed to.
 
 static volatile bool buffer_busy;
@@ -243,28 +244,6 @@ void hal_wifi_v_init( void ){
 
     // hold module in reset
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
-
-
-    // set up DMA buffer to non-cacheable using ARM MPU
-    HAL_MPU_Disable();
-
-    MPU_Region_InitTypeDef mpu_init;
-    mpu_init.Enable             = MPU_REGION_ENABLE;
-    mpu_init.BaseAddress        = (uint32_t)rx_dma_buffer;
-    mpu_init.Size               = MPU_REGION_SIZE_256B;
-    mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
-    mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
-    mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;
-    mpu_init.IsShareable        = MPU_ACCESS_SHAREABLE;
-    mpu_init.Number             = MPU_REGION_NUMBER0;
-    mpu_init.TypeExtField       = MPU_TEX_LEVEL0;
-    mpu_init.SubRegionDisable   = 0x00;
-    mpu_init.DisableExec        = MPU_INSTRUCTION_ACCESS_ENABLE;
-    HAL_MPU_ConfigRegion(&mpu_init);
-    
-    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
-
-
 
 
     // WIFI_PD_PORT.DIRSET = ( 1 << WIFI_PD_PIN );
