@@ -90,7 +90,7 @@ void cpu_v_init( void ){
     mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
     mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
     mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;
-    mpu_init.IsShareable        = MPU_ACCESS_SHAREABLE;
+    mpu_init.IsShareable        = MPU_ACCESS_NOT_SHAREABLE;
     mpu_init.Number             = MPU_REGION_NUMBER0;
     mpu_init.TypeExtField       = MPU_TEX_LEVEL0;
     mpu_init.SubRegionDisable   = 0x00;
