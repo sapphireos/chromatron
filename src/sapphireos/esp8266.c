@@ -861,6 +861,10 @@ static int8_t process_rx_data( void ){
     //     //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
     //     // }
     // }
+    else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
+
+        log_v_debug_P( PSTR("ESP: %s"), data );
+    }
     // check if msg handler is installed
     else if( wifi_i8_msg_handler ){
 

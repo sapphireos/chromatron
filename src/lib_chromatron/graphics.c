@@ -515,10 +515,6 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data );
     }
-    else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
-
-        log_v_debug_P( PSTR("ESP: %s"), data );
-    }
     else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
              ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
              ( data_id == WIFI_DATA_ID_VM_SYNC_DONE ) ){
