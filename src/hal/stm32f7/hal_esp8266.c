@@ -96,6 +96,11 @@ void DMA2_Stream2_IRQHandler( void ){
 
 void WIFI_TIMER_ISR( void ){
 
+    if( !__HAL_TIM_GET_FLAG( &wifi_timer, TIM_IT_UPDATE ) ){
+
+        return;
+    }
+
     // disable timer and make sure interrupt flags are cleared.
     // this is important because on very short messages, the timer
     // may set a second pending OVF interrupt before the timer is
@@ -109,11 +114,14 @@ void WIFI_TIMER_ISR( void ){
     // if this occurs while a message was being received, it breaks the interface.
     HAL_TIM_Base_Stop( &wifi_timer );
 
+    // clear flag
+    __HAL_TIM_CLEAR_FLAG( &wifi_timer, TIM_IT_UPDATE );
+
     if( buffer_busy ){
 
         // check again in 100 microseconds
         wifi_timer.Init.Period = 200;
-        HAL_TIM_Base_Start_IT( &wifi_timer );  
+        // HAL_TIM_Base_Start_IT( &wifi_timer );  
         
         return;
     }
