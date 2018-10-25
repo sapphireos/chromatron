@@ -55,15 +55,12 @@ static USART_t wifi_usart;
 static DMA_HandleTypeDef wifi_dma;
 static TIM_HandleTypeDef wifi_timer;
 
-
-volatile uint32_t meow;
-
 void DMA2_Stream2_IRQHandler( void ){
         
     HAL_DMA_IRQHandler( &wifi_dma );
 
-// // //     // disable IRQ
-//     __HAL_DMA_DISABLE( &wifi_dma );
+    // disable IRQ
+    HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
 
     if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
 
@@ -78,15 +75,14 @@ void DMA2_Stream2_IRQHandler( void ){
         HAL_TIM_Base_Stop( &wifi_timer );
             
         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
-        meow = header->len;
 
         // calculate timer length based on packet length
         // at 4 MHz USART, each byte is 2.5 microseconds.
-        // we tick at 4 MHz, which yields 10 ticks per byte.
+        // we tick at 2 MHz, which yields 5 ticks per byte.
         wifi_timer.Init.Period = header->len * 5;
 
         // start timer
-        HAL_TIM_Base_Start( &wifi_timer );    
+        HAL_TIM_Base_Start_IT( &wifi_timer );    
 
     }
     else{
@@ -117,7 +113,7 @@ void WIFI_TIMER_ISR( void ){
 
         // check again in 100 microseconds
         wifi_timer.Init.Period = 200;
-        HAL_TIM_Base_Start( &wifi_timer );  
+        HAL_TIM_Base_Start_IT( &wifi_timer );  
         
         return;
     }
@@ -327,7 +323,7 @@ void hal_wifi_v_disable_rx_dma( void ){
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
-    HAL_NVIC_DisableIRQ( DMA1_Stream0_IRQn );
+    HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
 
 
  //    // make sure DMA timer is disabled
