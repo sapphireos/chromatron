@@ -121,7 +121,9 @@ void WIFI_TIMER_ISR( void ){
 
         // check again in 100 microseconds
         wifi_timer.Init.Period = 200;
-        // HAL_TIM_Base_Start_IT( &wifi_timer );  
+
+        __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
+        HAL_TIM_Base_Start_IT( &wifi_timer );  
         
         return;
     }
@@ -184,7 +186,7 @@ void hal_wifi_v_init( void ){
     wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
     wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
     wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
-    wifi_dma.Init.Mode                 = DMA_NORMAL;
+    wifi_dma.Init.Mode                 = DMA_CIRCULAR;
     wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
     wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
     // wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_ENABLE;
@@ -399,8 +401,8 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     // HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
     // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
-    // HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
-    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(rx_dma_buffer) );
+    HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
+    // HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(rx_dma_buffer) );
 
  //    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 
