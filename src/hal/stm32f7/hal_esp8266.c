@@ -55,6 +55,7 @@ static USART_t wifi_usart;
 static DMA_HandleTypeDef wifi_dma;
 static TIM_HandleTypeDef wifi_timer;
 
+
 void DMA2_Stream2_IRQHandler( void ){
         
     HAL_DMA_IRQHandler( &wifi_dma );
@@ -176,6 +177,12 @@ void EXTI9_5_IRQHandler( void ){
 
 void hal_wifi_v_init( void ){
 
+    // enable clocks
+    __HAL_RCC_USART6_CLK_ENABLE();
+    __HAL_RCC_DMA2_CLK_ENABLE();
+    __HAL_RCC_TIM3_CLK_ENABLE();
+    
+
     wifi_usart.Instance = WIFI_USART;
 
     // set up DMA
@@ -196,10 +203,7 @@ void hal_wifi_v_init( void ){
     // wifi_dma.Init.MemBurst             = DMA_MBURST_INC4;
     // wifi_dma.Init.PeriphBurst          = DMA_PBURST_INC4;
 
-    // enable clocks
-    __HAL_RCC_USART6_CLK_ENABLE();
-    __HAL_RCC_DMA2_CLK_ENABLE();
-    __HAL_RCC_TIM3_CLK_ENABLE();
+    HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
         
     // reset timer
     // Timer 3 is on APB1 (108 MHz nominally)
@@ -333,6 +337,7 @@ void hal_wifi_v_disable_rx_dma( void ){
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
+    HAL_NVIC_DisableIRQ( DMA2_Stream1_IRQn );
     HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
 
 
@@ -376,7 +381,6 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
 
     if( irq ){
 
-        HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
         HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
 
         __HAL_DMA_ENABLE_IT( &wifi_dma, DMA_IT_TC );
