@@ -37,6 +37,8 @@
 
 #define WIFI_USART              USART6
 
+#define HAL_WIFI_SIGNAL			SIGNAL_SYS_4
+
 
 
 void hal_wifi_v_init( void );
