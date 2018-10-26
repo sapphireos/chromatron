@@ -55,25 +55,61 @@ static USART_t wifi_usart;
 static DMA_HandleTypeDef wifi_dma;
 static TIM_HandleTypeDef wifi_timer;
 
+static bool wait_header;
+
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
 
-void DMA2_Stream2_IRQHandler( void ){
+// void DMA2_Stream2_IRQHandler( void ){
         
-    HAL_DMA_IRQHandler( &wifi_dma );
+//     HAL_DMA_IRQHandler( &wifi_dma );
 
-    // disable IRQ
-    HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
+//     // disable IRQ
+//     HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
 
-    if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
+//     if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
 
-        // we can't set a TRFCNT interrupt to inform us when the message is finished,
-        // because at this point we are already somewhere in the middle of receiving it
-        // and we don't want to mess up the DMA transfer.
-        // however, at this point, we do know how long the message is, and therefore, how
-        // long it will take to receive it.  we can set a timer to fire when the message
-        // is finished.
+//         // we can't set a TRFCNT interrupt to inform us when the message is finished,
+//         // because at this point we are already somewhere in the middle of receiving it
+//         // and we don't want to mess up the DMA transfer.
+//         // however, at this point, we do know how long the message is, and therefore, how
+//         // long it will take to receive it.  we can set a timer to fire when the message
+//         // is finished.
 
+//         // reset timer
+//         HAL_TIM_Base_Stop( &wifi_timer );
+            
+//         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
+
+//         // calculate timer length based on packet length
+//         // at 4 MHz USART, each byte is 2.5 microseconds.
+//         // we tick at 2 MHz, which yields 5 ticks per byte.
+//         wifi_timer.Init.Period = header->len * 5;
+
+//         // start timer
+//         HAL_TIM_Base_Start_IT( &wifi_timer );    
+
+//     }
+//     else{
+
+//         // incorrect control byte on frame
+
+//         // reset DMA and send ready signal
+//         hal_wifi_v_set_rx_ready();
+//     }
+// }
+
+void WIFI_TIMER_ISR( void ){
+
+    if( !__HAL_TIM_GET_FLAG( &wifi_timer, TIM_IT_UPDATE ) ){
+
+        return;
+    }
+
+    if( wait_header ){
+
+        wait_header = FALSE;
+        
         // reset timer
         HAL_TIM_Base_Stop( &wifi_timer );
             
@@ -85,61 +121,50 @@ void DMA2_Stream2_IRQHandler( void ){
         wifi_timer.Init.Period = header->len * 5;
 
         // start timer
-        HAL_TIM_Base_Start_IT( &wifi_timer );    
-
+        HAL_TIM_Base_Start_IT( &wifi_timer );  
     }
     else{
 
-        // incorrect control byte on frame
-
-        // reset DMA and send ready signal
-        hal_wifi_v_set_rx_ready();
-    }
-}
-
-void WIFI_TIMER_ISR( void ){
-
-    if( !__HAL_TIM_GET_FLAG( &wifi_timer, TIM_IT_UPDATE ) ){
-
-        return;
+        thread_v_signal( WIFI_SIGNAL );
     }
 
-    // disable timer and make sure interrupt flags are cleared.
-    // this is important because on very short messages, the timer
-    // may set a second pending OVF interrupt before the timer is
-    // disabled while handling the first interrupt.  this will
-    // cause the interrupt to run again as if there were a second message
-    // being processed.  this will then cause the buffer wait logic to trigger,
-    // causing the timer to fire again in 100 uS.  once the original message
-    // has been processed and the buffer freed, the interrupt handler will
-    // then think that it can copy the second (non-existant) message into the
-    // main buffer and reset the receive ready flag and the DMA engine.
-    // if this occurs while a message was being received, it breaks the interface.
-    HAL_TIM_Base_Stop( &wifi_timer );
 
-    // clear flag
-    __HAL_TIM_CLEAR_FLAG( &wifi_timer, TIM_IT_UPDATE );
+    // // disable timer and make sure interrupt flags are cleared.
+    // // this is important because on very short messages, the timer
+    // // may set a second pending OVF interrupt before the timer is
+    // // disabled while handling the first interrupt.  this will
+    // // cause the interrupt to run again as if there were a second message
+    // // being processed.  this will then cause the buffer wait logic to trigger,
+    // // causing the timer to fire again in 100 uS.  once the original message
+    // // has been processed and the buffer freed, the interrupt handler will
+    // // then think that it can copy the second (non-existant) message into the
+    // // main buffer and reset the receive ready flag and the DMA engine.
+    // // if this occurs while a message was being received, it breaks the interface.
+    // HAL_TIM_Base_Stop( &wifi_timer );
 
-    if( buffer_busy ){
+    // // clear flag
+    // __HAL_TIM_CLEAR_FLAG( &wifi_timer, TIM_IT_UPDATE );
 
-        // check again in 100 microseconds
-        wifi_timer.Init.Period = 200;
+    // if( buffer_busy ){
 
-        __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
-        HAL_TIM_Base_Start_IT( &wifi_timer );  
+    //     // check again in 100 microseconds
+    //     wifi_timer.Init.Period = 200;
+
+    //     __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
+    //     HAL_TIM_Base_Start_IT( &wifi_timer );  
         
-        return;
-    }
+    //     return;
+    // }
 
-    buffer_busy = TRUE;
+    // buffer_busy = TRUE;
 
-    // copy to process buffer
-    memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
+    // // copy to process buffer
+    // memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
 
-    hal_wifi_v_set_rx_ready();
+    // hal_wifi_v_set_rx_ready();
 
-    // packet complete
-    thread_v_signal( WIFI_SIGNAL );
+    // // packet complete
+    // thread_v_signal( WIFI_SIGNAL );
 }
 
 void USART6_IRQHandler( void )
@@ -156,7 +181,19 @@ void USART6_IRQHandler( void )
 
         if( control_byte == WIFI_COMM_DATA ){
 
-            thread_v_signal( HAL_WIFI_SIGNAL );
+            // thread_v_signal( HAL_WIFI_SIGNAL );
+            HAL_TIM_Base_Stop( &wifi_timer );
+            
+        
+            // calculate timer length based on packet length
+            // at 4 MHz USART, each byte is 2.5 microseconds.
+            // we tick at 2 MHz, which yields 5 ticks per byte.
+            wifi_timer.Init.Period = sizeof(wifi_data_header_t) * 5;
+
+            // start timer
+            HAL_TIM_Base_Start_IT( &wifi_timer );   
+
+            wait_header = TRUE;
         }
     }
 }
@@ -278,10 +315,10 @@ void hal_wifi_v_init( void ){
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
 
 
-    thread_t_create( hal_wifi_thread,
-                     PSTR("hal_wifi"),
-                     0,
-                     0 );
+    // thread_t_create( hal_wifi_thread,
+    //                  PSTR("hal_wifi"),
+    //                  0,
+    //                  0 );
 }
 
 
@@ -372,10 +409,11 @@ void hal_wifi_v_disable_rx_dma( void ){
 
     HAL_DMA_DeInit( &wifi_dma );
 
+    __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
+
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
-    HAL_NVIC_DisableIRQ( DMA2_Stream1_IRQn );
-    HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
+    // HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
 
 
  //    // make sure DMA timer is disabled
@@ -416,7 +454,10 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
  //    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_dma_buffer ) >> 8 ) & 0xFF;
  //    DMA.WIFI_DMA_CH.DESTADDR2 = 0;
 
-    __HAL_UART_CLEAR_OREFLAG( &wifi_usart );      
+    __HAL_UART_CLEAR_OREFLAG( &wifi_usart );   
+
+    
+    wait_header = FALSE;
 
     if( irq ){
 
