@@ -204,6 +204,10 @@ void USART6_IRQHandler( void )
 
             wait_header = TRUE;
         }
+        else{
+
+            trace_printf("meow\n");
+        }
     // }
 }
 
@@ -477,11 +481,11 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     if( irq ){
 
         // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
-        HAL_NVIC_EnableIRQ( USART6_IRQn );
-
         // __HAL_DMA_ENABLE_IT( &wifi_dma, DMA_IT_TC );
 
         __HAL_UART_ENABLE_IT( &wifi_usart, UART_IT_RXNE );
+
+        HAL_NVIC_EnableIRQ( USART6_IRQn );
 
  //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
         // HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
