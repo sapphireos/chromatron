@@ -36,9 +36,7 @@
 #define WIFI_RESET_DELAY_MS     20
 
 
-static NON_CACHEABLE uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
-// static uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
-// the padding is in case the wifi sends more data than it is supposed to.
+static NON_CACHEABLE uint8_t rx_dma_buffer[WIFI_UART_RX_BUF_SIZE];
 
 static volatile bool buffer_busy;
 static uint8_t rx_buf[WIFI_UART_RX_BUF_SIZE];
@@ -56,6 +54,11 @@ static DMA_HandleTypeDef wifi_dma;
 static TIM_HandleTypeDef wifi_timer;
 
 static bool wait_header;
+
+static bool normal_mode;
+
+static uint8_t control_byte;
+
 
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
@@ -98,6 +101,11 @@ PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 //         hal_wifi_v_set_rx_ready();
 //     }
 // }
+
+static uint16_t get_dma_bytes( void ){
+
+    return sizeof(rx_dma_buffer) - __HAL_DMA_GET_COUNTER( &wifi_dma );
+}
 
 void WIFI_TIMER_ISR( void ){
 
@@ -211,6 +219,8 @@ void USART6_IRQHandler( void )
         }
         else{
             // incorrect control byte on frame
+
+            trace_printf("awfe");
 
             // reset DMA and send ready signal
             //hal_wifi_v_set_rx_ready();
@@ -340,10 +350,10 @@ void hal_wifi_v_init( void ){
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
 
 
-    // thread_t_create( hal_wifi_thread,
-    //                  PSTR("hal_wifi"),
-    //                  0,
-    //                  0 );
+    thread_t_create( hal_wifi_thread,
+                     PSTR("hal_wifi"),
+                     0,
+                     0 );
 }
 
 
@@ -351,10 +361,48 @@ PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    static wifi_data_header_t *header;
+
     while(1){
 
-        THREAD_WAIT_SIGNAL( pt, HAL_WIFI_SIGNAL );
+        THREAD_WAIT_WHILE( pt, !normal_mode );
 
+        THREAD_WAIT_WHILE( pt, rx_dma_buffer[0] == WIFI_COMM_IDLE );
+
+        if( rx_dma_buffer[0] == WIFI_COMM_QUERY_READY ){
+
+            // set control byte for main ESP thread
+            control_byte = rx_dma_buffer[0];
+
+            rx_dma_buffer[0] = WIFI_COMM_IDLE;
+        }
+        else if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
+
+            THREAD_WAIT_WHILE( pt, buffer_busy );
+
+            // trace_printf("data\n");
+
+            THREAD_WAIT_WHILE( pt, get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 ) );
+
+            header = (wifi_data_header_t *)&rx_dma_buffer[1];
+
+            // trace_printf("header\n");
+
+            THREAD_WAIT_WHILE( pt, get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 + header->len ) );
+
+            // trace_printf("msg\n");
+
+            memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
+
+            hal_wifi_v_set_rx_ready();
+
+            buffer_busy = TRUE;;
+
+            control_byte = WIFI_COMM_DATA;
+            thread_v_signal( WIFI_SIGNAL );
+        }   
+
+        THREAD_YIELD( pt );
     }
 
 PT_END( pt );
@@ -491,9 +539,9 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
         // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
         // __HAL_DMA_ENABLE_IT( &wifi_dma, DMA_IT_TC );
 
-        __HAL_UART_ENABLE_IT( &wifi_usart, UART_IT_RXNE );
+        // __HAL_UART_ENABLE_IT( &wifi_usart, UART_IT_RXNE );
 
-        HAL_NVIC_EnableIRQ( USART6_IRQn );
+        // HAL_NVIC_EnableIRQ( USART6_IRQn );
 
  //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
         // HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
@@ -553,7 +601,8 @@ void hal_wifi_v_release_rx_buffer( void ){
 
 void hal_wifi_v_reset_control_byte( void ){
 
-    rx_buf[0] = WIFI_COMM_IDLE;   
+    // rx_dma_buffer[0] = WIFI_COMM_IDLE;   
+    control_byte = WIFI_COMM_IDLE;
 }
 
 void hal_wifi_v_reset_comm( void ){
@@ -584,7 +633,8 @@ void hal_wifi_v_enable_irq( void ){
 
 uint8_t hal_wifi_u8_get_control_byte( void ){
 
-	return rx_buf[0];
+	// return rx_dma_buffer[0];
+    return control_byte;
 }	
 
 int16_t hal_wifi_i16_rx_data_received( void ){
@@ -656,6 +706,8 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 // high = normal execution
 
 void hal_wifi_v_enter_boot_mode( void ){
+
+    normal_mode = FALSE;
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -806,8 +858,8 @@ void hal_wifi_v_enter_normal_mode( void ){
 
     // re-init uart
     GPIO_InitStruct.Pin = WIFI_RXD_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    // GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
@@ -843,7 +895,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     HAL_NVIC_DisableIRQ( EXTI9_5_IRQn );
 
 
-
+    normal_mode = TRUE;
 }
 
 
