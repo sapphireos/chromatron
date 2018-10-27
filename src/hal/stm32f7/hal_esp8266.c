@@ -125,10 +125,13 @@ void WIFI_TIMER_ISR( void ){
             wifi_timer.Init.Period = header->len * 5;
 
             // start timer
+            __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
             HAL_TIM_Base_Start_IT( &wifi_timer );  
         }
     }
     else{
+
+        HAL_NVIC_DisableIRQ( TIM3_IRQn );
 
         memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
 
@@ -183,7 +186,7 @@ void USART6_IRQHandler( void )
 
     // if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
 
-    //     __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
+        // __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
 
         // check first byte, but read it from dma buf
         uint8_t control_byte = rx_dma_buffer[0];
@@ -200,13 +203,17 @@ void USART6_IRQHandler( void )
             wifi_timer.Init.Period = sizeof(wifi_data_header_t) * 5;
 
             // start timer
+            __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
+            HAL_NVIC_EnableIRQ( TIM3_IRQn );
             HAL_TIM_Base_Start_IT( &wifi_timer );   
 
             wait_header = TRUE;
         }
         else{
+            // incorrect control byte on frame
 
-            trace_printf("meow\n");
+            // reset DMA and send ready signal
+            //hal_wifi_v_set_rx_ready();
         }
     // }
 }
@@ -262,7 +269,7 @@ void hal_wifi_v_init( void ){
     wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
     wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
     wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
-    wifi_dma.Init.Mode                 = DMA_CIRCULAR;
+    wifi_dma.Init.Mode                 = DMA_NORMAL;
     wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
     wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
     // wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_ENABLE;
@@ -474,6 +481,7 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
  //    DMA.WIFI_DMA_CH.DESTADDR2 = 0;
 
     __HAL_UART_CLEAR_OREFLAG( &wifi_usart );   
+    __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
 
     
     wait_header = FALSE;
@@ -520,7 +528,7 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
 
 void hal_wifi_v_reset_rx_buffer( void ){
 
-	hal_wifi_v_clear_rx_buffer();
+	// hal_wifi_v_clear_rx_buffer();
 
     // set up DMA
     hal_wifi_v_enable_rx_dma( TRUE );
@@ -550,7 +558,7 @@ void hal_wifi_v_reset_control_byte( void ){
 
 void hal_wifi_v_reset_comm( void ){
 
-	hal_wifi_v_reset_rx_buffer();
+	// hal_wifi_v_reset_rx_buffer();
     hal_wifi_v_usart_send_char( WIFI_COMM_RESET );   
 }
 
