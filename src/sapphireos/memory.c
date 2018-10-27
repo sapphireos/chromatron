@@ -82,8 +82,12 @@ static uint16_t stack_usage;
 static uint32_t mem_allocs;
 static uint32_t mem_alloc_fails;
 
-#ifndef __SIM__
+#ifdef AVR
     extern uint8_t __stack, __heap_start, _end;
+#endif
+
+#ifdef ARM
+    extern uint8_t _estack;
 #endif
 
 
@@ -260,8 +264,14 @@ static void verify_handle( mem_handle_t handle ){
 }
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER) || defined(ARM)
+#if defined(__SIM__) || defined(BOOTLOADER)
     void stack_fill( void ){}
+
+#elif defined(ARM)
+    void stack_fill( void ){
+
+
+    }
 
 #elif defined(AVR)
     void stack_fill( void ) __attribute__ ((section (".init1"), naked, used));
@@ -948,6 +958,9 @@ done_defrag:
 
 uint16_t mem2_u16_stack_count( void ){
 
+#ifdef __SIM__
+    return 0;
+#endif
 #ifdef AVR
     uint16_t count = 0;
     uint8_t *stack = &__stack - MEM_MAX_STACK;
@@ -965,8 +978,26 @@ uint16_t mem2_u16_stack_count( void ){
 
     stack_usage = MEM_MAX_STACK - count;
 
-    return stack_usage;
-#else
-    return 0;
+    return stack_usage;    
+#endif
+#ifdef ARM
+    uint16_t count = stack_usage;
+    uint8_t *stack = &_estack - MEM_MAX_STACK;
+    stack += count;
+
+    while( count < MEM_MAX_STACK ){
+
+        if( *stack != CANARY_VALUE ){
+
+            break;
+        }
+
+        stack++;
+        count++;
+    }
+
+    stack_usage = MEM_MAX_STACK - count;
+
+    return stack_usage; 
 #endif
 }
