@@ -1215,7 +1215,9 @@ restart:
     hal_wifi_v_usart_flush();    
 
     // clear buffer
-    hal_wifi_v_reset_rx_buffer();
+    hal_wifi_v_clear_rx_buffer();
+    // re-enable rx buffer
+    hal_wifi_v_enable_rx_dma( FALSE );
 
     // cesanta stub has a delay, so make sure we wait plenty long enough
     _delay_ms( 50 );

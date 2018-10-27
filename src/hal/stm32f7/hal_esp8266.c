@@ -106,24 +106,33 @@ void WIFI_TIMER_ISR( void ){
         return;
     }
 
+    // reset timer
+    HAL_TIM_Base_Stop( &wifi_timer );    
+
     if( wait_header ){
 
-        wait_header = FALSE;
-        
-        // reset timer
-        HAL_TIM_Base_Stop( &wifi_timer );
-            
-        wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
+        uint8_t control_byte = rx_dma_buffer[0];
 
-        // calculate timer length based on packet length
-        // at 4 MHz USART, each byte is 2.5 microseconds.
-        // we tick at 2 MHz, which yields 5 ticks per byte.
-        wifi_timer.Init.Period = header->len * 5;
+        if( control_byte == WIFI_COMM_DATA ){
 
-        // start timer
-        HAL_TIM_Base_Start_IT( &wifi_timer );  
+            wait_header = FALSE;
+
+            wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
+
+            // calculate timer length based on packet length
+            // at 4 MHz USART, each byte is 2.5 microseconds.
+            // we tick at 2 MHz, which yields 5 ticks per byte.
+            wifi_timer.Init.Period = header->len * 5;
+
+            // start timer
+            HAL_TIM_Base_Start_IT( &wifi_timer );  
+        }
     }
     else{
+
+        memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
+
+        hal_wifi_v_set_rx_ready();
 
         thread_v_signal( WIFI_SIGNAL );
     }
@@ -172,9 +181,9 @@ void USART6_IRQHandler( void )
     // HAL_UART_IRQHandler( &wifi_usart );
     HAL_NVIC_DisableIRQ( USART6_IRQn );
 
-    if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
+    // if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
 
-        __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
+    //     __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
 
         // check first byte, but read it from dma buf
         uint8_t control_byte = rx_dma_buffer[0];
@@ -195,7 +204,7 @@ void USART6_IRQHandler( void )
 
             wait_header = TRUE;
         }
-    }
+    // }
 }
 
 
@@ -238,6 +247,9 @@ void hal_wifi_v_init( void ){
 
     wifi_usart.Instance = WIFI_USART;
 
+    HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );
+    HAL_NVIC_DisableIRQ( USART6_IRQn );
+
     // set up DMA
     wifi_dma.Instance                  = WIFI_DMA;
     wifi_dma.Init.Channel              = WIFI_DMA_CHANNEL;
@@ -257,6 +269,7 @@ void hal_wifi_v_init( void ){
     // wifi_dma.Init.PeriphBurst          = DMA_PBURST_INC4;
 
     HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
+    HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
         
     // reset timer
     // Timer 3 is on APB1 (108 MHz nominally)
@@ -272,7 +285,8 @@ void hal_wifi_v_init( void ){
     HAL_TIM_Base_Init( &wifi_timer );
 
     HAL_NVIC_SetPriority( TIM3_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( TIM3_IRQn );
+    // HAL_NVIC_EnableIRQ( TIM3_IRQn );
+    HAL_NVIC_DisableIRQ( TIM3_IRQn );
 
 
 
@@ -410,6 +424,7 @@ void hal_wifi_v_disable_rx_dma( void ){
     HAL_DMA_DeInit( &wifi_dma );
 
     __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
+    HAL_NVIC_DisableIRQ( USART6_IRQn );
 
  //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
  //    DMA.WIFI_DMA_CH.TRFCNT = 0;
