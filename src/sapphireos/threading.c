@@ -147,7 +147,12 @@ static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
                 strlcpy_P( info.name, state->name, sizeof(info.name) );
                 info.flags          = state->flags;
+
+                #ifdef AVR
                 info.thread_addr    = (uint32_t)((uintptr_t)state->thread) * 2; //multiply by 2 to get byte address
+                #else
+                info.thread_addr    = (uint32_t)((uintptr_t)state->thread);
+                #endif
                 info.data_size      = list_u16_node_size( thread ) - sizeof(thread_state_t);
                 info.run_time       = state->run_time;
                 info.runs           = state->runs;
