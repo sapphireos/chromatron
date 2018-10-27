@@ -117,12 +117,9 @@ void hal_wifi_v_init( void ){
     wifi_dma.Init.Mode                 = DMA_NORMAL;
     wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
     wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
-    // wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_ENABLE;
-    wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_HALFFULL; 
+    wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
     wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
     wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
-    // wifi_dma.Init.MemBurst             = DMA_MBURST_INC4;
-    // wifi_dma.Init.PeriphBurst          = DMA_PBURST_INC4;
 
     HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
     HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
