@@ -83,6 +83,9 @@ void cpu_v_init( void ){
 
     extern uint8_t _snon_cacheable;
 
+    // clear non-cacheable region
+    memset( &_snon_cacheable, 0, 4096 );
+
     MPU_Region_InitTypeDef mpu_init;
     mpu_init.Enable             = MPU_REGION_ENABLE;
     mpu_init.BaseAddress        = (uint32_t)&_snon_cacheable;
