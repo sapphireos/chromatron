@@ -27,8 +27,7 @@
 #include "wifi_cmd.h"
 #include "hal_usart.h"
 
-#define WIFI_TIMER 				TIM3
-#define WIFI_TIMER_ISR  		TIM3_IRQHandler
+
 
 #define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
 

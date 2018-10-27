@@ -51,184 +51,23 @@ static volatile uint16_t max_ready_wait_isr;
 
 static USART_t wifi_usart;
 static DMA_HandleTypeDef wifi_dma;
-static TIM_HandleTypeDef wifi_timer;
 
-static bool wait_header;
 
 static bool normal_mode;
-
 static uint8_t control_byte;
 
 
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
 
-// void DMA2_Stream2_IRQHandler( void ){
-        
-//     HAL_DMA_IRQHandler( &wifi_dma );
-
-//     // disable IRQ
-//     HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
-
-//     if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
-
-//         // we can't set a TRFCNT interrupt to inform us when the message is finished,
-//         // because at this point we are already somewhere in the middle of receiving it
-//         // and we don't want to mess up the DMA transfer.
-//         // however, at this point, we do know how long the message is, and therefore, how
-//         // long it will take to receive it.  we can set a timer to fire when the message
-//         // is finished.
-
-//         // reset timer
-//         HAL_TIM_Base_Stop( &wifi_timer );
-            
-//         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
-
-//         // calculate timer length based on packet length
-//         // at 4 MHz USART, each byte is 2.5 microseconds.
-//         // we tick at 2 MHz, which yields 5 ticks per byte.
-//         wifi_timer.Init.Period = header->len * 5;
-
-//         // start timer
-//         HAL_TIM_Base_Start_IT( &wifi_timer );    
-
-//     }
-//     else{
-
-//         // incorrect control byte on frame
-
-//         // reset DMA and send ready signal
-//         hal_wifi_v_set_rx_ready();
-//     }
-// }
-
 static uint16_t get_dma_bytes( void ){
 
-    return sizeof(rx_dma_buffer) - __HAL_DMA_GET_COUNTER( &wifi_dma );
+    ATOMIC;
+    uint16_t temp = sizeof(rx_dma_buffer) - __HAL_DMA_GET_COUNTER( &wifi_dma );
+    END_ATOMIC;
+
+    return temp;
 }
-
-void WIFI_TIMER_ISR( void ){
-
-    if( !__HAL_TIM_GET_FLAG( &wifi_timer, TIM_IT_UPDATE ) ){
-
-        return;
-    }
-
-    // reset timer
-    HAL_TIM_Base_Stop( &wifi_timer );    
-
-    if( wait_header ){
-
-        uint8_t control_byte = rx_dma_buffer[0];
-
-        if( control_byte == WIFI_COMM_DATA ){
-
-            wait_header = FALSE;
-
-            wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buffer[1];
-
-            // calculate timer length based on packet length
-            // at 4 MHz USART, each byte is 2.5 microseconds.
-            // we tick at 2 MHz, which yields 5 ticks per byte.
-            wifi_timer.Init.Period = header->len * 5;
-
-            // start timer
-            __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
-            HAL_TIM_Base_Start_IT( &wifi_timer );  
-        }
-    }
-    else{
-
-        HAL_NVIC_DisableIRQ( TIM3_IRQn );
-
-        memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
-
-        hal_wifi_v_set_rx_ready();
-
-        thread_v_signal( WIFI_SIGNAL );
-    }
-
-
-    // // disable timer and make sure interrupt flags are cleared.
-    // // this is important because on very short messages, the timer
-    // // may set a second pending OVF interrupt before the timer is
-    // // disabled while handling the first interrupt.  this will
-    // // cause the interrupt to run again as if there were a second message
-    // // being processed.  this will then cause the buffer wait logic to trigger,
-    // // causing the timer to fire again in 100 uS.  once the original message
-    // // has been processed and the buffer freed, the interrupt handler will
-    // // then think that it can copy the second (non-existant) message into the
-    // // main buffer and reset the receive ready flag and the DMA engine.
-    // // if this occurs while a message was being received, it breaks the interface.
-    // HAL_TIM_Base_Stop( &wifi_timer );
-
-    // // clear flag
-    // __HAL_TIM_CLEAR_FLAG( &wifi_timer, TIM_IT_UPDATE );
-
-    // if( buffer_busy ){
-
-    //     // check again in 100 microseconds
-    //     wifi_timer.Init.Period = 200;
-
-    //     __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
-    //     HAL_TIM_Base_Start_IT( &wifi_timer );  
-        
-    //     return;
-    // }
-
-    // buffer_busy = TRUE;
-
-    // // copy to process buffer
-    // memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
-
-    // hal_wifi_v_set_rx_ready();
-
-    // // packet complete
-    // thread_v_signal( WIFI_SIGNAL );
-}
-
-void USART6_IRQHandler( void )
-{ 
-    // HAL_UART_IRQHandler( &wifi_usart );
-    HAL_NVIC_DisableIRQ( USART6_IRQn );
-
-    // if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
-
-        // __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
-
-        // check first byte, but read it from dma buf
-        uint8_t control_byte = rx_dma_buffer[0];
-
-        if( control_byte == WIFI_COMM_DATA ){
-
-            // thread_v_signal( HAL_WIFI_SIGNAL );
-            HAL_TIM_Base_Stop( &wifi_timer );
-            
-        
-            // calculate timer length based on packet length
-            // at 4 MHz USART, each byte is 2.5 microseconds.
-            // we tick at 2 MHz, which yields 5 ticks per byte.
-            wifi_timer.Init.Period = sizeof(wifi_data_header_t) * 5;
-
-            // start timer
-            __HAL_TIM_SET_COUNTER( &wifi_timer, 0 );
-            HAL_NVIC_EnableIRQ( TIM3_IRQn );
-            HAL_TIM_Base_Start_IT( &wifi_timer );   
-
-            wait_header = TRUE;
-        }
-        else{
-            // incorrect control byte on frame
-
-            trace_printf("awfe");
-
-            // reset DMA and send ready signal
-            //hal_wifi_v_set_rx_ready();
-        }
-    // }
-}
-
-
 
 // GPIO RX ready IRQ
 void EXTI9_5_IRQHandler( void ){
@@ -263,13 +102,9 @@ void hal_wifi_v_init( void ){
     // enable clocks
     __HAL_RCC_USART6_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
-    __HAL_RCC_TIM3_CLK_ENABLE();
     
 
     wifi_usart.Instance = WIFI_USART;
-
-    HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );
-    HAL_NVIC_DisableIRQ( USART6_IRQn );
 
     // set up DMA
     wifi_dma.Instance                  = WIFI_DMA;
@@ -292,25 +127,6 @@ void hal_wifi_v_init( void ){
     HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
     HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
         
-    // reset timer
-    // Timer 3 is on APB1 (108 MHz nominally)
-    wifi_timer.Instance = WIFI_TIMER;
-
-    wifi_timer.Init.Prescaler          = 54;
-    wifi_timer.Init.Period             = 65535;
-    wifi_timer.Init.CounterMode        = TIM_COUNTERMODE_UP;
-    wifi_timer.Init.AutoReloadPreload  = TIM_AUTORELOAD_PRELOAD_ENABLE;
-    wifi_timer.Init.ClockDivision      = TIM_CLOCKDIVISION_DIV1;
-    wifi_timer.Init.RepetitionCounter  = 0;
-
-    HAL_TIM_Base_Init( &wifi_timer );
-
-    HAL_NVIC_SetPriority( TIM3_IRQn, 0, 0 );
-    // HAL_NVIC_EnableIRQ( TIM3_IRQn );
-    HAL_NVIC_DisableIRQ( TIM3_IRQn );
-
-
-
     // set up IO
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -380,17 +196,13 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, buffer_busy );
 
-            // trace_printf("data\n");
-
             THREAD_WAIT_WHILE( pt, get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 ) );
 
             header = (wifi_data_header_t *)&rx_dma_buffer[1];
 
-            // trace_printf("header\n");
-
             THREAD_WAIT_WHILE( pt, get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 + header->len ) );
 
-            // trace_printf("msg\n");
+            current_rx_bytes += sizeof(wifi_data_header_t) + 1 + header->len;
 
             memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
 
@@ -449,29 +261,7 @@ void hal_wifi_v_usart_flush( void ){
 
 uint16_t hal_wifi_u16_dma_rx_bytes( void ){
 
-    uint16_t len = 0;
-
-    // uint16_t dest_addr0, dest_addr1;
-
-    ATOMIC;
-
-    // do{
-
-    //     volatile uint8_t temp;
-    //     temp = DMA.WIFI_DMA_CH.DESTADDR0;
-    //     dest_addr0 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
-
-    //     temp = DMA.WIFI_DMA_CH.DESTADDR0;
-    //     dest_addr1 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
-
-    // } while( dest_addr0 != dest_addr1 );
-
-    // len = dest_addr0 - (uint16_t)rx_dma_buffer;
-    len = sizeof(rx_dma_buffer) - __HAL_DMA_GET_COUNTER( &wifi_dma );
-
-    END_ATOMIC;
-
-    return len;
+    return get_dma_bytes();
 }
 
 void hal_wifi_v_disable_rx_dma( void ){
@@ -482,17 +272,6 @@ void hal_wifi_v_disable_rx_dma( void ){
 
     HAL_DMA_DeInit( &wifi_dma );
 
-    __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
-    HAL_NVIC_DisableIRQ( USART6_IRQn );
-
- //    DMA.WIFI_DMA_CH.CTRLA &= ~DMA_CH_ENABLE_bm;
- //    DMA.WIFI_DMA_CH.TRFCNT = 0;
-    // HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
-
-
- //    // make sure DMA timer is disabled
- //    TCD1.CTRLA = 0;
- //    TCD1.INTFLAGS = TC0_OVFIF_bm;
     END_ATOMIC;
 }	
 
@@ -507,64 +286,11 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
 
     HAL_DMA_Init( &wifi_dma );
 
-    // __HAL_DMA_ENABLE( &wifi_dma );
-
     __HAL_LINKDMA( &wifi_usart, hdmarx, wifi_dma );
 
- //    DMA.INTFLAGS = WIFI_DMA_CHTRNIF | WIFI_DMA_CHERRIF; // clear transaction complete interrupt
-
- //    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | DMA_CH_REPEAT_bm | DMA_CH_BURSTLEN_1BYTE_gc;
- //    DMA.WIFI_DMA_CH.CTRLB = 0;
- //    DMA.WIFI_DMA_CH.REPCNT = 0;
- //    DMA.WIFI_DMA_CH.ADDRCTRL = DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_SRCDIR_FIXED_gc | DMA_CH_DESTRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc;
- //    DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
- //    DMA.WIFI_DMA_CH.TRFCNT = sizeof(wifi_data_header_t) + 1;
-
- //    DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 0 ) & 0xFF;
- //    DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 8 ) & 0xFF;
- //    DMA.WIFI_DMA_CH.SRCADDR2 = 0;
-
- //    DMA.WIFI_DMA_CH.DESTADDR0 = ( ( (uint16_t)rx_dma_buffer ) >> 0 ) & 0xFF;
- //    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_dma_buffer ) >> 8 ) & 0xFF;
- //    DMA.WIFI_DMA_CH.DESTADDR2 = 0;
-
     __HAL_UART_CLEAR_OREFLAG( &wifi_usart );   
-    __HAL_UART_DISABLE_IT( &wifi_usart, UART_IT_RXNE );
-
     
-    wait_header = FALSE;
-
-    if( irq ){
-
-        // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
-        // __HAL_DMA_ENABLE_IT( &wifi_dma, DMA_IT_TC );
-
-        // __HAL_UART_ENABLE_IT( &wifi_usart, UART_IT_RXNE );
-
-        // HAL_NVIC_EnableIRQ( USART6_IRQn );
-
- //        DMA.WIFI_DMA_CH.CTRLB = DMA_CH_TRNINTLVL_HI_gc; // enable transfer complete interrupt
-        // HAL_DMA_Start_IT( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
-    }
-    else{
-
-        // HAL_DMA_Start( &wifi_dma, (uint32_t)&wifi_usart.Instance->RDR, (uint32_t)rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
-    }
-
-    // hal_cpu_v_clean_d_cache();
-    // hal_cpu_v_clean_d_cache_by_addr( (uint32_t *)rx_dma_buffer, sizeof(rx_dma_buffer) );
-    // hal_cpu_v_clean_and_invalidate_d_cache();
-
-    // HAL_NVIC_SetPriority( USART6_IRQn, 0, 0 );                                        
-    // HAL_NVIC_EnableIRQ( USART6_IRQn );
-
-    // HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
-    // HAL_NVIC_EnableIRQ( DMA2_Stream2_IRQn );
-
-    // HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(wifi_data_header_t) + 1 );
     HAL_UART_Receive_DMA( &wifi_usart, rx_dma_buffer, sizeof(rx_dma_buffer) );
-
- //    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 
     END_ATOMIC;
 }
@@ -575,8 +301,6 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
 }
 
 void hal_wifi_v_reset_rx_buffer( void ){
-
-	// hal_wifi_v_clear_rx_buffer();
 
     // set up DMA
     hal_wifi_v_enable_rx_dma( TRUE );
@@ -589,8 +313,6 @@ void hal_wifi_v_clear_rx_buffer( void ){
 
 void hal_wifi_v_release_rx_buffer( void ){
 
-	current_rx_bytes += hal_wifi_i16_rx_data_received();
-
     ATOMIC;
 
     // release buffer
@@ -601,13 +323,11 @@ void hal_wifi_v_release_rx_buffer( void ){
 
 void hal_wifi_v_reset_control_byte( void ){
 
-    // rx_dma_buffer[0] = WIFI_COMM_IDLE;   
     control_byte = WIFI_COMM_IDLE;
 }
 
 void hal_wifi_v_reset_comm( void ){
 
-	// hal_wifi_v_reset_rx_buffer();
     hal_wifi_v_usart_send_char( WIFI_COMM_RESET );   
 }
 
@@ -633,7 +353,6 @@ void hal_wifi_v_enable_irq( void ){
 
 uint8_t hal_wifi_u8_get_control_byte( void ){
 
-	// return rx_dma_buffer[0];
     return control_byte;
 }	
 
