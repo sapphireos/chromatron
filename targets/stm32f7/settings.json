@@ -19,7 +19,7 @@
         "-DTRACE",
         "-DARM",
         "-g",
-        "-O3",
+        "-Og",
         "-mno-unaligned-access",
         "-fstack-usage",
         "-funsigned-char",

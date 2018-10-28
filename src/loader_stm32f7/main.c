@@ -83,56 +83,7 @@ void main( void ){
 
     trace_printf("Welcome to Sapphire\n");
 
-
-    LL_GPIO_InitTypeDef GPIO_InitStruct;
-
-    LL_GPIO_SetOutputPin(LED_RED_PORT,      LED_RED_PIN);
-    LL_GPIO_SetOutputPin(LED_GREEN_PORT,    LED_GREEN_PIN);
-    LL_GPIO_SetOutputPin(LED_BLUE_PORT,     LED_BLUE_PIN);
-
-    GPIO_InitStruct.Pin         = LED_RED_PIN;
-    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_RED_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin         = LED_GREEN_PIN;
-    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_GREEN_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin         = LED_BLUE_PIN;
-    GPIO_InitStruct.Mode        = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed       = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType  = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull        = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(LED_BLUE_PORT, &GPIO_InitStruct);
-
-
     trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
-
-
-
-while(1){
-
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_1);
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_2);
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3); 
-    HAL_Delay(500);
-    
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_1);
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_2);
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3); 
-    HAL_Delay(500);
-
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_1);
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_2);
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_3); 
-    HAL_Delay(500);
-}
 
 
 restart:

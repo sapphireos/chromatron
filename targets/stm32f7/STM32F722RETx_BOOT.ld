@@ -32,18 +32,22 @@
 /* Entry Point */
 ENTRY(Reset_Handler)
 
-/* Highest address of the user mode stack */
-_estack = 0x20040000;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Stack_Size = 0x1000; /* required amount of stack */
+
+/* Highest address of the user mode stack */
+_estack = 0x20040000;     /* end of RAM */
+/* set start of stack */
+_sstack = _estack - _Min_Stack_Size;
 
 /* Specify the memory areas */
 MEMORY
 {
-RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 256K
+RAM_NO_CACHE (xrw)      : ORIGIN = 0x20000000, LENGTH = 4K
+RAM (xrw)               : ORIGIN = 0x20001000, LENGTH = 252K
 /*FLASH (rx)      : ORIGIN = 0x00200000, LENGTH = 128K*/
-FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 128K
+FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 64K
 }
 
 /* Define output sections */
@@ -155,7 +159,17 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  
+  /* Non-cacheable data section */
+  .non_cacheable (NOLOAD):
+  {
+    . = ALIGN(8);
+    _snon_cacheable = .;        /* create a global symbol at non_cacheable start */
+    *(.non_cacheable)           /* .non_cacheable sections */
+    *(.non_cacheable*)          /* .non_cacheable* sections */
+
+    . = ALIGN(4);
+    _enon_cacheable = .;        /* define a global symbol at non_cacheable end */
+  } >RAM_NO_CACHE  
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
