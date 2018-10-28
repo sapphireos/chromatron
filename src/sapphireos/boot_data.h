@@ -53,7 +53,7 @@ typedef uint8_t loader_status_t8;
 #define LDR_STATUS_PARTITION_CRC_BAD    3
 #define LDR_STATUS_RECOVERY_MODE        4
 
-typedef struct{
+typedef struct __attribute__((packed)){
 	uint16_t reboots;
 	boot_mode_t8 boot_mode;
     loader_command_t16 loader_command;

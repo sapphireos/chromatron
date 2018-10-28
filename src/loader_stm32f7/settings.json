@@ -34,6 +34,8 @@
         "-lc",
         "-lm",
         "-lnosys",
+        "-Wl,--section-start=.noinit=0x20000000",
+        "-Wl,--section-start=.fwinfo=0x08000200",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
