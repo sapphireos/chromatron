@@ -77,7 +77,7 @@
 #define FLASH_START 	0x08000000
 // #define FW_INFO_ADDRESS 0x00008200 // this must match the offset in the makefile!
 #define FW_INFO_ADDRESS 0x08000200 // this must match the offset in the makefile!
-#define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
+#define FW_LENGTH_ADDRESS 0x00000200
 
 #define MAX_PROGRAM_LENGTH ( (uint32_t)( (uint32_t)PAGE_SIZE * (uint32_t)N_APP_PAGES ) )
 #define FLASH_LENGTH ( (uint32_t)( (uint32_t)PAGE_SIZE * (uint32_t)TOTAL_PAGES ) )
