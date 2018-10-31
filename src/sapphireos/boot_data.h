@@ -32,7 +32,11 @@
 #ifdef __SIM__
     #define BOOTDATA
 #else
+	#ifdef AVR
     #define BOOTDATA __attribute ((section (".noinit")))
+	#else
+	#define BOOTDATA __attribute ((section (".bootdata")))
+	#endif
 #endif
 
 typedef uint8_t boot_mode_t8;

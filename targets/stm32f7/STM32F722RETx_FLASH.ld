@@ -186,18 +186,6 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  /* No-init data section */
-  .noinit (NOLOAD):
-  {
-    . = ALIGN(8);
-    _snoinit = .;        /* create a global symbol at noinit start */
-    *(.noinit)           /* .noinit sections */
-    *(.noinit*)          /* .noinit* sections */
-
-    . = ALIGN(4);
-    _enoinit = .;        /* define a global symbol at noinit end */
-  } >RAM
-
   /* Non-cacheable data section */
   .non_cacheable (NOLOAD):
   {
@@ -209,7 +197,19 @@ SECTIONS
     . = ALIGN(4);
     _enon_cacheable = .;        /* define a global symbol at non_cacheable end */
   } >RAM_NO_CACHE
- 
+  
+  /* Boot data section */
+  .bootdata (NOLOAD):
+  {
+    . = ALIGN(8);
+    _sbootdata = .;        /* create a global symbol at bootdata start */
+    *(.bootdata)           /* .bootdata sections */
+    *(.bootdata*)          /* .bootdata* sections */
+
+    . = ALIGN(4);
+    _ebootdata = .;        /* define a global symbol at bootdata end */
+  } >RAM_NO_CACHE
+
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {
