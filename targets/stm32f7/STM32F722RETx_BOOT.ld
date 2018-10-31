@@ -34,10 +34,10 @@ ENTRY(Reset_Handler)
 
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
-_Min_Stack_Size = 0x1000; /* required amount of stack */
+_Min_Stack_Size = 0x8000; /* required amount of stack */
 
 /* Highest address of the user mode stack */
-_estack = 0x2003F000;     /* end of RAM */
+_estack = 0x2003F000 - 4;     /* end of RAM */
 /* set start of stack */
 _sstack = _estack - _Min_Stack_Size;
 
@@ -159,18 +159,6 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  /* No-init data section */
-  .noinit (NOLOAD):
-  {
-    . = ALIGN(8);
-    _snoinit = .;        /* create a global symbol at noinit start */
-    *(.noinit)           /* .noinit sections */
-    *(.noinit*)          /* .noinit* sections */
-
-    . = ALIGN(4);
-    _enoinit = .;        /* define a global symbol at noinit end */
-  } >RAM
-
   /* Non-cacheable data section */
   .non_cacheable (NOLOAD):
   {
@@ -182,6 +170,18 @@ SECTIONS
     . = ALIGN(4);
     _enon_cacheable = .;        /* define a global symbol at non_cacheable end */
   } >RAM_NO_CACHE  
+
+  /* Boot data section */
+  .bootdata (NOLOAD):
+  {
+    . = ALIGN(8);
+    _sbootdata = .;        /* create a global symbol at bootdata start */
+    *(.bootdata)           /* .bootdata sections */
+    *(.bootdata*)          /* .bootdata* sections */
+
+    . = ALIGN(4);
+    _ebootdata = .;        /* define a global symbol at bootdata end */
+  } >RAM_NO_CACHE
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
