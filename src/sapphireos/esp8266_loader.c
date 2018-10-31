@@ -166,6 +166,7 @@ static const PROGMEM uint8_t sync_data[] = {
     0x55,
 };
 
+
 void esp_v_send_sync( void ){
 
     uint8_t buf[sizeof(sync_data)];
@@ -184,7 +185,7 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     // hal_wifi_v_clear_rx_buffer();
     // hal_wifi_v_enable_rx_dma( FALSE );
 
-    uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
+    volatile uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
 
     // waiting for frame start
     while( rx_dma_buf[next_byte] != SLIP_END ){
