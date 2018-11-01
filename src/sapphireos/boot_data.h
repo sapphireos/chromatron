@@ -35,7 +35,8 @@
 	#ifdef AVR
     #define BOOTDATA __attribute ((section (".noinit")))
 	#else
-	#define BOOTDATA __attribute ((section (".bootdata")))
+	// #define BOOTDATA __attribute ((section (".bootdata")))
+	#define BOOTDATA
 	#endif
 #endif
 

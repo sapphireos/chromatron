@@ -44,8 +44,8 @@ _sstack = _estack - _Min_Stack_Size;
 /* Specify the memory areas */
 MEMORY
 {
-RAM (xrw)               : ORIGIN = 0x20000000, LENGTH = 252K
-RAM_NO_CACHE (xrw)      : ORIGIN = 0x2003F000, LENGTH = 4K
+RAM (xrw)               : ORIGIN = 0x20001000, LENGTH = 252K
+RAM_NO_CACHE (xrw)      : ORIGIN = 0x20000000, LENGTH = 4K
 /* FLASH (rx)           : ORIGIN = 0x00208000, LENGTH = 480K */ /* ITCM interface */
 FLASH (rx)              : ORIGIN = 0x08000000, LENGTH = 480K /* AXI interface */
 }
