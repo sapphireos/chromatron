@@ -1224,13 +1224,23 @@ restart:
 
     uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
 
+    bool ok = FALSE;
     // now check buffer, Cesanta will send us a hello message
-    if( !( ( rx_dma_buf[1] == SLIP_END ) &&
-           ( rx_dma_buf[2] == 'O' ) &&
-           ( rx_dma_buf[3] == 'H' ) &&
-           ( rx_dma_buf[4] == 'A' ) &&
-           ( rx_dma_buf[5] == 'I' ) &&
-           ( rx_dma_buf[6] == SLIP_END ) ) ){
+    for( uint8_t i = 0; i < 4; i++){
+
+        if( ( ( rx_dma_buf[i + 0] == SLIP_END ) &&
+               ( rx_dma_buf[i + 1] == 'O' ) &&
+               ( rx_dma_buf[i + 2] == 'H' ) &&
+               ( rx_dma_buf[i + 3] == 'A' ) &&
+               ( rx_dma_buf[i + 4] == 'I' ) &&
+               ( rx_dma_buf[i + 5] == SLIP_END ) ) ){
+
+            ok = TRUE;
+            break;
+        }
+    }
+
+    if( !ok ){
 
         log_v_debug_P( PSTR("error") );
 
