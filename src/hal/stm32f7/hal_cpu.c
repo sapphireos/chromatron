@@ -88,17 +88,26 @@ void cpu_v_init( void ){
 
     // NOTE
     // this does set for non-cacheable.  The S, C, and B bits don't mean what the say
-    // on the Cortex.  Clearing B is what disables cache.
+    // on the Cortex.  
+    //
+    // With Type Ext 0:
+    // Clearing B (bufferable) is what changes to write-through policy (but reads are still cached!)
+    // Clearing C will cause hard faults.
+    //
+    // With Type Ext 1:
+    // Clear B and C to disable caching alltogether.
+    // This is what we want for a true non-cacheable region, so no writes or reads will be cached.
+
     MPU_Region_InitTypeDef mpu_init;
     mpu_init.Enable             = MPU_REGION_ENABLE;
     mpu_init.BaseAddress        = (uint32_t)&_snon_cacheable;
     mpu_init.Size               = MPU_REGION_SIZE_4KB;
     mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
     mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
-    mpu_init.IsCacheable        = MPU_ACCESS_CACHEABLE;
+    mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;
     mpu_init.IsShareable        = MPU_ACCESS_NOT_SHAREABLE;
     mpu_init.Number             = MPU_REGION_NUMBER0;
-    mpu_init.TypeExtField       = MPU_TEX_LEVEL0;
+    mpu_init.TypeExtField       = MPU_TEX_LEVEL1;
     mpu_init.SubRegionDisable   = 0x00;
     mpu_init.DisableExec        = MPU_INSTRUCTION_ACCESS_ENABLE;
     HAL_MPU_ConfigRegion(&mpu_init);
