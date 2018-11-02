@@ -100,7 +100,7 @@ void cpu_v_init( void ){
     mpu_init.DisableExec        = MPU_INSTRUCTION_ACCESS_ENABLE;
     HAL_MPU_ConfigRegion(&mpu_init);
     
-    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+    // HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 
     // enable gpio clocks
