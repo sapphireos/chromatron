@@ -34,7 +34,7 @@ void cpu_v_init( void ){
     DISABLE_INTERRUPTS;
 
     SCB_EnableICache();
-    // SCB_EnableDCache();
+    SCB_EnableDCache();
 
 
     __HAL_FLASH_ART_ENABLE();
@@ -86,6 +86,9 @@ void cpu_v_init( void ){
     // clear non-cacheable region
     memset( &_snon_cacheable, 0, 4096 );
 
+    // NOTE
+    // this does set for non-cacheable.  The S, C, and B bits don't mean what the say
+    // on the Cortex.  Clearing B is what disables cache.
     MPU_Region_InitTypeDef mpu_init;
     mpu_init.Enable             = MPU_REGION_ENABLE;
     mpu_init.BaseAddress        = (uint32_t)&_snon_cacheable;
