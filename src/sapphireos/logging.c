@@ -66,7 +66,6 @@ static void append_log( char *buf ){
 
     uint32_t max_log_size;
     if( cfg_i8_get( CFG_PARAM_MAX_LOG_SIZE, &max_log_size ) < 0 ){
-
         max_log_size = LOG_MAX_SIZE;
     }
 

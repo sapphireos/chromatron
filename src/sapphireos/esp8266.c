@@ -1118,7 +1118,7 @@ PT_BEGIN( pt );
     state->tries = WIFI_LOADER_MAX_TRIES;
 
     // log_v_debug_P( PSTR("wifi loader starting") );
-    trace_printf( "Starting Wifi loader\n" );
+    trace_printf( "Starting Wifi loader\r\n" );
     
 restart:
 
@@ -1252,7 +1252,7 @@ restart:
 
     status_led_v_set( 1, STATUS_LED_BLUE );
 
-    trace_printf( "Cesanta flasher ready!\n" );
+    trace_printf( "Cesanta flasher ready!\r\n" );
     // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
     uint32_t file_len;
@@ -1391,7 +1391,7 @@ error:
 
 run_wifi:
 
-    trace_printf( "Starting wifi!\n" );
+    trace_printf( "Starting wifi!\r\n" );
 
     thread_t_create( wifi_comm_thread,
                      PSTR("wifi_comm"),

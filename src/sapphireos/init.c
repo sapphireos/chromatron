@@ -147,9 +147,6 @@ int8_t sapphire_i8_init( void ){
         log_v_init();
     }
 
-    trace_printf("MEOW\r\n");
-    while(1);
-
     // init event log
     event_v_init();
 
