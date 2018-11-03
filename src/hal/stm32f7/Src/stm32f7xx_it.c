@@ -41,12 +41,13 @@
 #include "hal_io.h"
 #include "hal_cmd_usart.h"
 
-
 #ifdef DEBUG
 #define fault_printf trace_printf
 #else
 #define fault_printf serial_printf
 #endif
+
+
 
 int
 serial_printf(const char* format, ...)
@@ -101,6 +102,7 @@ serial_printf(const char* format, ...)
   va_end (ap);
   return ret;
 }
+
 
 // Exception Stack Frame of the Cortex-M3 or Cortex-M4 processor.
   typedef struct

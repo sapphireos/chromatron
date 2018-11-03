@@ -34,6 +34,7 @@
 #include "diag/Trace.h"
 #include "string.h"
 
+
 #ifndef OS_INTEGER_TRACE_PRINTF_TMP_ARRAY_SIZE
 #define OS_INTEGER_TRACE_PRINTF_TMP_ARRAY_SIZE (128)
 #endif

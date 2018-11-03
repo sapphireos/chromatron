@@ -129,8 +129,6 @@ int8_t sapphire_i8_init( void ){
     // init serial port
     cmd_usart_v_init();
 
-    status_led_v_set( 1, STATUS_LED_BLUE );
-    
     #ifdef ENABLE_FFS
     // init flash driver
     flash25_v_init();

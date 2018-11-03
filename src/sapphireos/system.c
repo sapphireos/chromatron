@@ -493,6 +493,10 @@ bool sys_b_shutdown( void ){
     return reboot_delay > 0;
 }
 
+
+#include "hal_io.h"
+#include "hal_cmd_usart.h"
+
 // runtime assertion handling.
 // note all assertions are considered fatal, and will result in the system
 // rebooting into the bootloader.  it will pass the assertion information
@@ -588,7 +592,39 @@ void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     }
     #endif
 
-    trace_printf( error_log.log );
+UART_HandleTypeDef huart;
+
+  // init IO pins
+  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitStruct.Pin = COMM_RX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+  HAL_GPIO_Init(COMM_RX_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = COMM_TX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+  HAL_GPIO_Init(COMM_TX_GPIO_Port, &GPIO_InitStruct);
+
+  // initialize command usart
+  huart.Instance = HAL_CMD_USART;
+  huart.Init.BaudRate = 115200;
+  huart.Init.WordLength = UART_WORDLENGTH_8B;
+  huart.Init.StopBits = UART_STOPBITS_1;
+  huart.Init.Parity = UART_PARITY_NONE;
+  huart.Init.Mode = UART_MODE_TX_RX;
+  huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  HAL_UART_Init(&huart);
+  HAL_UART_Transmit( &huart, (uint8_t *)error_log.log, sizeof(error_log.log), 100 );
+
+    // trace_printf( error_log.log );
 
     // write error log
     cfg_v_write_error_log( &error_log );
