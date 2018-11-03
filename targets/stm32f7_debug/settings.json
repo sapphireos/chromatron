@@ -18,6 +18,7 @@
         "-DOS_USE_TRACE_SEMIHOSTING_DEBUG",
         "-DTRACE",
         "-DARM",
+        "-DDEBUG",
         "-g",
         "-Og",
         "-mno-unaligned-access",

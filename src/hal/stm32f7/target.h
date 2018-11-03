@@ -77,7 +77,7 @@
 #ifdef DEBUG
 	#define FLASH_START 	0x08000000
 #else
-	#define FLASH_START 	0x02000000
+	#define FLASH_START 	0x00200000
 #endif
 
 #define FW_INFO_ADDRESS 0x00000200 // this must match the offset in the makefile!
