@@ -79,19 +79,17 @@ extern boot_data_t BOOTDATA boot_data;
 
 void main( void ){
 
+    // disable watchdog timer
+    wdg_v_disable();
+
     hal_cpu_v_boot_init();
 
     trace_printf("Welcome to Sapphire\n");
-    
 
 restart:
-
-	DISABLE_INTERRUPTS;
-
-    cpu_v_init();
-
-	// disable watchdog timer
-    wdg_v_disable();
+    
+    // init CRC
+    crc_v_init();
 
     // init boot module
     boot_v_init();
@@ -115,16 +113,18 @@ restart:
 
     boot_data.loader_status = LDR_STATUS_NORMAL;
 
-    // check if button is held down, or if the serial boot command was set
-    if( ( button_b_is_pressed() ) || ( boot_data.loader_command == LDR_CMD_SERIAL_BOOT ) ){
+    // check if button is held down
+    if( button_b_is_pressed() ){
+
+        _delay_ms( 2000 );
 
         ldr_v_clear_yellow_led();
         ldr_v_set_green_led();
-        // _delay_ms( 250 );
+
+        _delay_ms( 2000 );
+
         ldr_v_clear_green_led();
         ldr_v_set_yellow_led();
-
-        serial_v_loop( TRUE );
     }
 
     // initialize spi
