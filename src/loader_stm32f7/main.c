@@ -79,12 +79,10 @@ extern boot_data_t BOOTDATA boot_data;
 
 void main( void ){
 
-    cpu_v_init();
+    hal_cpu_v_boot_init();
 
     trace_printf("Welcome to Sapphire\n");
-
-    trace_printf("CPU Clock: %u\n", cpu_u32_get_clock_speed());
-
+    
 
 restart:
 

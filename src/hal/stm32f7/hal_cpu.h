@@ -38,6 +38,7 @@
 #define hal_cpu_v_clean_d_cache_by_addr 					SCB_CleanDCache_by_Addr
 #define hal_cpu_v_clean_and_invalidate_d_cache_by_addr 		SCB_CleanInvalidateDCache_by_Addr
 
+void hal_cpu_v_boot_init( void );
 
 #define ENABLE_INTERRUPTS __enable_irq()
 #define DISABLE_INTERRUPTS __disable_irq()
