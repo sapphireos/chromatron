@@ -51,6 +51,10 @@ serial_printf(const char* format, ...)
   va_list ap;
   UART_HandleTypeDef huart;
 
+    // enable clock
+    __HAL_RCC_USART1_CLK_ENABLE();
+
+
   // init IO pins
   GPIO_InitTypeDef GPIO_InitStruct;
   GPIO_InitStruct.Pin = COMM_RX_Pin;

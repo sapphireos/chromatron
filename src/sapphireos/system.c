@@ -241,14 +241,14 @@ void sys_v_init( void ){
     sys_mode = SYS_MODE_NORMAL;
     #endif
 
+    trace_printf( "Reset source: %d sys_mode: %d boot_mode: %d\r\n", reset_source, sys_mode, boot_data.boot_mode );
+
     // set boot mode to normal
     boot_data.boot_mode = BOOT_MODE_NORMAL;
 
     cpu_v_remap_isrs();
 
 	#endif
-
-    trace_printf( "Reset source: %d mode: %d\n", reset_source, sys_mode );
 }
 
 void sys_v_check_io_for_safe_mode( void ){
