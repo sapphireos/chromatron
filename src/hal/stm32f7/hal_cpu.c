@@ -176,7 +176,7 @@ static void cpu_boot_clock_config( void ){
 }
 
 static void cpu_init_noncacheable( void ){
-
+    
     // set up MPU and initialize non-cacheable RAM section
     HAL_MPU_Disable();
 

@@ -38,8 +38,6 @@
 #include "semihosting.h"
 #include <string.h>
 #include <stdarg.h>
-#include "hal_io.h"
-#include "hal_cmd_usart.h"
 
 #ifdef DEBUG
 #define fault_printf trace_printf
@@ -48,60 +46,6 @@
 #endif
 
 
-
-int
-serial_printf(const char* format, ...)
-{
-  int ret;
-  va_list ap;
-  UART_HandleTypeDef huart;
-
-  // init IO pins
-  GPIO_InitTypeDef GPIO_InitStruct;
-  GPIO_InitStruct.Pin = COMM_RX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-  HAL_GPIO_Init(COMM_RX_GPIO_Port, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = COMM_TX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-  HAL_GPIO_Init(COMM_TX_GPIO_Port, &GPIO_InitStruct);
-
-  // initialize command usart
-  huart.Instance = HAL_CMD_USART;
-  huart.Init.BaudRate = 115200;
-  huart.Init.WordLength = UART_WORDLENGTH_8B;
-  huart.Init.StopBits = UART_STOPBITS_1;
-  huart.Init.Parity = UART_PARITY_NONE;
-  huart.Init.Mode = UART_MODE_TX_RX;
-  huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  HAL_UART_Init(&huart);
-  
-  va_start (ap, format);
-
-  // TODO: rewrite it to no longer use newlib, it is way too heavy
-
-  static char buf[128];
-
-  // Print to the local buffer
-  ret = vsnprintf (buf, sizeof(buf), format, ap);
-  if (ret > 0)
-    {
-      // Transfer the buffer to the device
-      HAL_UART_Transmit( &huart, (uint8_t *)buf, ret, 100 );
-    }
-
-  va_end (ap);
-  return ret;
-}
 
 
 // Exception Stack Frame of the Cortex-M3 or Cortex-M4 processor.
@@ -125,31 +69,31 @@ dumpExceptionStack (ExceptionStackFrame* frame,
                 uint32_t cfsr, uint32_t mmfar, uint32_t bfar,
                                         uint32_t lr)
 {
-  fault_printf ("Stack frame:\n");
-  fault_printf (" R0 =  %08X\n", frame->r0);
-  fault_printf (" R1 =  %08X\n", frame->r1);
-  fault_printf (" R2 =  %08X\n", frame->r2);
-  fault_printf (" R3 =  %08X\n", frame->r3);
-  fault_printf (" R12 = %08X\n", frame->r12);
-  fault_printf (" LR =  %08X\n", frame->lr);
-  fault_printf (" PC =  %08X\n", frame->pc);
-  fault_printf (" PSR = %08X\n", frame->psr);
-  fault_printf ("FSR/FAR:\n");
-  fault_printf (" CFSR =  %08X\n", cfsr);
-  fault_printf (" HFSR =  %08X\n", SCB->HFSR);
-  fault_printf (" DFSR =  %08X\n", SCB->DFSR);
-  fault_printf (" AFSR =  %08X\n", SCB->AFSR);
+  fault_printf ("Stack frame:\r\n");
+  fault_printf (" R0 =  %08X\r\n", frame->r0);
+  fault_printf (" R1 =  %08X\r\n", frame->r1);
+  fault_printf (" R2 =  %08X\r\n", frame->r2);
+  fault_printf (" R3 =  %08X\r\n", frame->r3);
+  fault_printf (" R12 = %08X\r\n", frame->r12);
+  fault_printf (" LR =  %08X\r\n", frame->lr);
+  fault_printf (" PC =  %08X\r\n", frame->pc);
+  fault_printf (" PSR = %08X\r\n", frame->psr);
+  fault_printf ("FSR/FAR:\r\n");
+  fault_printf (" CFSR =  %08X\r\n", cfsr);
+  fault_printf (" HFSR =  %08X\r\n", SCB->HFSR);
+  fault_printf (" DFSR =  %08X\r\n", SCB->DFSR);
+  fault_printf (" AFSR =  %08X\r\n", SCB->AFSR);
 
   if (cfsr & (1UL << 7))
     {
-      fault_printf (" MMFAR = %08X\n", mmfar);
+      fault_printf (" MMFAR = %08X\r\n", mmfar);
     }
   if (cfsr & (1UL << 15))
     {
-      fault_printf (" BFAR =  %08X\n", bfar);
+      fault_printf (" BFAR =  %08X\r\n", bfar);
     }
-  fault_printf ("Misc\n");
-  fault_printf (" LR/EXC_RETURN= %08X\n", lr);
+  fault_printf ("Misc\r\n");
+  fault_printf (" LR/EXC_RETURN= %08X\r\n", lr);
 }
 
 
@@ -177,7 +121,7 @@ isSemihosting (ExceptionStackFrame* frame, uint16_t opCode)
 #endif
 
 #if defined(OS_DEBUG_SEMIHOSTING_FAULTS)
-      // fault_printf ("sh r0=%d\n", r0);
+      // fault_printf ("sh r0=%d\r\n", r0);
 #endif
 
       switch (r0)
@@ -376,12 +320,12 @@ void __attribute__ ((section(".after_vectors"),weak,naked))
 HardFault_Handler (void)
 {
   asm volatile(
-      " tst lr,#4       \n"
-      " ite eq          \n"
-      " mrseq r0,msp    \n"
-      " mrsne r0,psp    \n"
-      " mov r1,lr       \n"
-      " ldr r2,=HardFault_Handler_C \n"
+      " tst lr,#4       \r\n"
+      " ite eq          \r\n"
+      " mrseq r0,msp    \r\n"
+      " mrsne r0,psp    \r\n"
+      " mov r1,lr       \r\n"
+      " ldr r2,=HardFault_Handler_C \r\n"
       " bx r2"
 
       : /* Outputs */
@@ -423,7 +367,7 @@ HardFault_Handler_C (ExceptionStackFrame* frame __attribute__((unused)),
 #endif
 
 #if defined(TRACE)
-  fault_printf ("[HardFault]\n");
+  fault_printf ("[HardFault]\r\n");
   dumpExceptionStack (frame, cfsr, mmfar, bfar, lr);
 #endif // defined(TRACE)
 

@@ -51,7 +51,7 @@ void log_v_init( void ){
 
 static void append_log( char *buf ){
 
-    trace_printf("%s", buf);
+    trace_printf("%s\r\n", buf);
 
     // check if file is not open
     if( f < 0 ){
