@@ -237,8 +237,9 @@ void sys_v_init( void ){
        sys_mode = SYS_MODE_NORMAL;
     }
 
-// debug
-sys_mode = SYS_MODE_NORMAL;
+    #ifdef DEBUG
+    sys_mode = SYS_MODE_NORMAL;
+    #endif
 
     // set boot mode to normal
     boot_data.boot_mode = BOOT_MODE_NORMAL;
