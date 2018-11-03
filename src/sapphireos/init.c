@@ -122,7 +122,15 @@ int8_t sapphire_i8_init( void ){
 	// init SPI port
 	spi_v_init();
 
+    #ifdef ENABLE_USB
+    usb_v_init();
+    #endif
 
+    // init serial port
+    cmd_usart_v_init();
+
+    status_led_v_set( 1, STATUS_LED_BLUE );
+    
     #ifdef ENABLE_FFS
     // init flash driver
     flash25_v_init();
@@ -155,13 +163,6 @@ int8_t sapphire_i8_init( void ){
 
 	// init config manager
 	cfg_v_init();
-
-    #ifdef ENABLE_USB
-    usb_v_init();
-    #endif
-
-	// init serial port
-	cmd_usart_v_init();
 
     #ifdef ENABLE_IP
     // init IP module
