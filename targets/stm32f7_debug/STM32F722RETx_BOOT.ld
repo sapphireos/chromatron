@@ -34,7 +34,7 @@ ENTRY(Reset_Handler)
 
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
-_Min_Stack_Size = 0x2000; /* required amount of stack */
+_Min_Stack_Size = 0x8000; /* required amount of stack */
 
 /* Highest address of the user mode stack */
 _estack = 0x2003F000 - 4;     /* end of RAM */
@@ -46,7 +46,8 @@ MEMORY
 {
 RAM (xrw)               : ORIGIN = 0x20000000, LENGTH = 252K
 RAM_NO_CACHE (xrw)      : ORIGIN = 0x2003F000, LENGTH = 4K
-FLASH (rx)              : ORIGIN = 0x00200000, LENGTH = 480K /* ITCM interface */
+/*FLASH (rx)      : ORIGIN = 0x00200000, LENGTH = 128K*/
+FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 64K
 }
 
 /* Define output sections */
@@ -64,34 +65,6 @@ SECTIONS
   .text :
   {
     . = ALIGN(4);
-
-    /* Sapphire firmware info section */
-    *(.fwinfo)
-    KEEP(*(.fwinfo))
-
-    /* Key-value service meta data sections */
-    *(.kv_meta_start)
-    KEEP(*(.kv_meta_start))
-    *(.kv_meta)
-    KEEP(*(.kv_meta))
-    *(.kv_meta_end)
-    KEEP(*(.kv_meta_end))
-
-    /* Presence service meta data sections */
-    *(.service_start)
-    KEEP(*(.service_start))
-    *(.service)
-    KEEP(*(.service))
-    *(.service_end)
-    KEEP(*(.service_end))
-
-    /* Routing table entry sections */
-    *(.routing_start)
-    KEEP(*(.routing_start))
-    *(.routing)
-    KEEP(*(.routing))
-    *(.routing_end)
-    KEEP(*(.routing_end))
 
     *(.text)           /* .text sections (code) */
     *(.text*)          /* .text* sections (code) */
@@ -157,6 +130,7 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> FLASH
+
   
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -195,8 +169,8 @@ SECTIONS
 
     . = ALIGN(4);
     _enon_cacheable = .;        /* define a global symbol at non_cacheable end */
-  } >RAM_NO_CACHE
-  
+  } >RAM_NO_CACHE  
+
   /* Boot data section */
   .bootdata (NOLOAD):
   {

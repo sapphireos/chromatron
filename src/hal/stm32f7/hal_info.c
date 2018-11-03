@@ -43,6 +43,10 @@ static int8_t hal_info_kv_handler(
 
     		*(uint32_t *)data = cpu_u32_get_clock_speed();
     	}
+        else if( hash == __KV__flash_intf_addr ){
+
+            *(uint32_t *)data = (uint32_t)__builtin_return_address(0);
+        }
 
         return 0;
     }
@@ -54,6 +58,7 @@ static int8_t hal_info_kv_handler(
 KV_SECTION_META kv_meta_t hal_info_kv[] = {
     { SAPPHIRE_TYPE_STRING32,     0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "hw_type" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_clock" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "flash_intf_addr" },
 };
 
 

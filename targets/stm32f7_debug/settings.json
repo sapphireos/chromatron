@@ -15,6 +15,8 @@
         "-DARM_MATH_CM7",
         "-DUSE_FULL_LL_DRIVER",
         "-DUSE_HAL_DRIVER",
+        "-DOS_USE_TRACE_SEMIHOSTING_DEBUG",
+        "-DTRACE",
         "-DARM",
         "-g",
         "-Og",
@@ -53,7 +55,7 @@
         "-lnosys",
         "-Wl,-u,vfprintf",
         "-Wl,--section-start=.bootdata=0x2003FFF8",
-        "-Wl,--section-start=.fwinfo=0x00200200",
+        "-Wl,--section-start=.fwinfo=0x08000200",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
@@ -84,7 +86,7 @@
     "OS_PROJECT": "sapphire",
     "LOADER_PROJECT": "loader_stm32f7",
 
-    "FW_INFO_ADDR": "0x00200200",
+    "FW_INFO_ADDR": "0x08000200",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
