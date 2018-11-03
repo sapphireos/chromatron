@@ -273,7 +273,7 @@ void hal_wifi_v_disable_rx_dma( void ){
 }	
 
 void hal_wifi_v_enable_rx_dma( bool irq ){
-
+    
 	ATOMIC;
 
     hal_wifi_v_disable_rx_dma();

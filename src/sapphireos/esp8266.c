@@ -920,7 +920,7 @@ restart:
     }
 
     wifi_status = WIFI_STATE_ALIVE;
-
+    
     // set ready and wait for message
     hal_wifi_v_set_rx_ready();
 
