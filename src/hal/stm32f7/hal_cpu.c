@@ -180,10 +180,10 @@ static void cpu_init_noncacheable( void ){
     // set up MPU and initialize non-cacheable RAM section
     HAL_MPU_Disable();
 
-    extern uint8_t _snon_cacheable;
+    extern uint8_t _snon_cacheable, _enon_cacheable;
 
     // clear non-cacheable region
-    memset( &_snon_cacheable, 0, 4096 );
+    memset( &_snon_cacheable, 0, &_enon_cacheable - &_snon_cacheable );
 
     // NOTE
     // this does set for non-cacheable.  The S, C, and B bits don't mean what the say
