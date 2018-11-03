@@ -22,8 +22,6 @@
     "RECURSIVE_BUILD": "true",
 
     "DEFINES": [],
-    
-    "TARGET": "stm32f7",    
 
     "_comment": "Additional libraries to include with the build",
     "LIBRARIES": [],
