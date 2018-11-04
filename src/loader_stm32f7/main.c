@@ -63,10 +63,8 @@ Generic mode:
 #include "cpu.h"
 
 #include "eeprom.h"
-#include "spi.h"
 #include "bootcore.h"
 #include "boot_data.h"
-#include "serial.h"
 #include "loader.h"
 #include "flash25.h"
 #include "button.h"
@@ -79,16 +77,16 @@ Generic mode:
 extern boot_data_t BOOTDATA boot_data;
 
 void main( void ){
-
+    return;
     // disable watchdog timer
-    wdg_v_disable();
+    // wdg_v_disable();
 
-    hal_cpu_v_boot_init();
+    // hal_cpu_v_boot_init();
 
     // trace_printf("Welcome to Sapphire\n");
 
 restart:
-    
+    return;
     // init CRC
     crc_v_init();
 
@@ -127,9 +125,6 @@ restart:
         ldr_v_clear_green_led();
         ldr_v_set_yellow_led();
     }
-
-    // initialize spi
-    spi_v_init();
 
     // initialize external flash
     flash25_v_init();
