@@ -8,6 +8,7 @@ projects = [
     'sapphire',
     'hal_xmega128a4u',
     'lib_chromatron',
+    'lib_gfx',
     # 'lib_fixmath',
     'chromatron',
     #'chromatron_recovery',
