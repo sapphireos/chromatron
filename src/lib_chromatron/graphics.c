@@ -31,10 +31,10 @@
 #include "catbus.h"
 #include "datetime.h"
 
-// #include "pixel.h"
+#include "pixel.h"
 #include "graphics.h"
 #include "esp8266.h"
-// #include "vm.h"
+#include "vm.h"
 #include "timesync.h"
 #include "kvdb.h"
 #include "hash.h"
