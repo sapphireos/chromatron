@@ -80,20 +80,15 @@ void ldr_v_copy_partition_to_internal( void ){
 	}
 }
 
-// void (*app_ptr)( void ) = 0x0000;
+void (*app_ptr)( void ) = FLASH_START;
 
 void ldr_run_app( void ){
 
-	// DISABLE_INTERRUPTS;
+	DISABLE_INTERRUPTS;
+	HAL_FLASH_Lock();
+	wdg_v_disable();
 
- //    #ifndef LOADER_MODULE_TEST
- //        #ifdef LDR_HAS_EIND
- //        EIND = 0x00;
- //        #endif
- //    app_ptr(); // Jump to Reset vector 0x0000 in Application Section.
- //    #else
- //    app_run = TRUE;
- //    #endif
+    app_ptr(); // Jump to Reset vector 0x0000 in Application Section.
 }
 
 // read data from an external partition
