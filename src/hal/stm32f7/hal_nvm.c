@@ -36,14 +36,18 @@ bool nvm_b_busy( void ){
     return FALSE;
 }
 
-void nvm_v_load_flash_buffer( uint32_t addr, uint16_t data ){
 
-    
-}
+void nvm_v_write_flash_page( uint32_t addr, uint8_t *data ){
 
-void nvm_v_write_flash_page( uint32_t addr ){
+	HAL_FLASH_Unlock();
+	
+	for(uint16_t i = 0; i < PAGE_SIZE; i++){
 
-    
+		HAL_FLASH_Program( FLASH_TYPEPROGRAM_BYTE, 0x08000000 + i, *data );
+		data++;
+	}    
+
+    HAL_FLASH_Lock();
 }
 
 void nvm_v_erase_app_flash( void ){

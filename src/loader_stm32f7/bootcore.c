@@ -39,18 +39,7 @@ void boot_v_write_page( uint16_t pagenumber, uint8_t *data ){
 
 	uint32_t addr = ( uint32_t )pagenumber * ( uint32_t )PAGE_SIZE;
 
-	// fill page buffer:
-
-	for(uint32_t i = addr; i < addr + PAGE_SIZE; i += 2){
-
-		uint8_t lsb = *data++;
-		uint8_t msb = *data++;
-		uint16_t data = (msb << 8) + lsb;
-
-        nvm_v_load_flash_buffer( i, data );
-	}
-
-    nvm_v_write_flash_page( addr );
+    nvm_v_write_flash_page( addr, data );
 
     while( nvm_b_busy() );
 }
