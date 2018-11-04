@@ -29,9 +29,6 @@
 
 void nvm_v_init( void ){
 
-
-
-
 }
 
 bool nvm_b_busy( void ){

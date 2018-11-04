@@ -85,7 +85,7 @@ void main( void ){
 
     hal_cpu_v_boot_init();
 
-    trace_printf("Welcome to Sapphire\n");
+    // trace_printf("Welcome to Sapphire\n");
 
 restart:
     
@@ -213,8 +213,6 @@ fatal_error:
 
     ldr_v_clear_yellow_led();
     ldr_v_set_red_led();
-
-    serial_v_loop( FALSE );
 
     // if the serial processor exits, we restart the loader
     goto restart;    
