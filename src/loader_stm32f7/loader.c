@@ -122,7 +122,7 @@ uint32_t ldr_u32_read_internal_length( void ){
 
 	uint32_t internal_length;
 
-	memcpy_P( &internal_length, (void *)(FLASH_START + 32768 + FW_LENGTH_ADDRESS), sizeof(internal_length) );
+	memcpy_P( &internal_length, (void *)(FLASH_START + FW_LENGTH_ADDRESS), sizeof(internal_length) );
 
 	internal_length += sizeof(uint16_t);
 
@@ -142,7 +142,7 @@ uint16_t ldr_u16_get_internal_crc( void ){
 
 	for( uint32_t i = 0; i < length; i++ ){
 
-		crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START + 32768 ) );
+		crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
 
 		// reset watchdog timer
 		wdg_v_reset();
