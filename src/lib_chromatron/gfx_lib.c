@@ -20,17 +20,17 @@
 // 
 // </license>
 
-#include <inttypes.h>
+#include "target.h"
 
 #ifdef USE_GFX_LIB
 
+#include <inttypes.h>
 #include "bool.h"
 #include "trig.h"
 #include "util.h"
 #include "random.h"
 #include "pix_modes.h"
 #include "kvdb.h"
-#include "target.h"
 #include "hsv_to_rgb.h"
 
 #include "gfx_lib.h"

@@ -26,6 +26,7 @@
 #include "config.h"
 #include "pixel.h"
 #include "graphics.h"
+#include "hsv_to_rgb.h"
 #include "pwm.h"
 #include "hal_usart.h"
 
