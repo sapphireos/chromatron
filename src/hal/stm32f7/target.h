@@ -40,6 +40,19 @@
 // #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
 
+// pixel config
+// #define USE_HSV_BRIDGE
+#define MAX_PIXELS              1024
+#define FADER_RATE              20
+#define USE_GFX_LIB
+
+// VM config
+// #define VM_TARGET_ESP
+#define VM_ENABLE_GFX
+#define VM_ENABLE_KV
+#define VM_ENABLE_CATBUS
+#define VM_MAX_IMAGE_SIZE   	8192
+
 // list
 // #define ENABLE_LIST_ATOMIC
 
