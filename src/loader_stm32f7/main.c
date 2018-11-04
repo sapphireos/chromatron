@@ -77,16 +77,14 @@ Generic mode:
 extern boot_data_t BOOTDATA boot_data;
 
 void main( void ){
-    return;
     // disable watchdog timer
-    // wdg_v_disable();
+    wdg_v_disable();
 
-    // hal_cpu_v_boot_init();
+    hal_cpu_v_boot_init();
 
-    // trace_printf("Welcome to Sapphire\n");
+    trace_printf("Welcome to Sapphire\n");
 
 restart:
-    return;
     // init CRC
     crc_v_init();
 
@@ -211,4 +209,9 @@ fatal_error:
 
     // if the serial processor exits, we restart the loader
     goto restart;    
+}
+
+// dummy sbrk for newlib nano
+void *_sbrk(int32_t inc){
+    return 0;
 }

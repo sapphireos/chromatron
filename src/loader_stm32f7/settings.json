@@ -28,7 +28,7 @@
     "LINKER_SCRIPT": "STM32F722RETx_BOOT.ld",
 
      "LINK_FLAGS": [
-        "-specs=nosys.specs",
+        "-specs=nano.specs",
         "--output %(TARGET_DIR)/main.elf",
         "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
         "-lm",
