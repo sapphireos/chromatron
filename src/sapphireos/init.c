@@ -202,7 +202,7 @@ int8_t sapphire_i8_init( void ){
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        trace_printf( "SapphireOS SAFE MODE\n" );
+        trace_printf( "SapphireOS SAFE MODE\r\n" );
 
         return -1;
     }
@@ -215,7 +215,7 @@ int8_t sapphire_i8_init( void ){
 
     sntp_v_init();
 
-    trace_printf( "SapphireOS ready\n" );
+    trace_printf( "SapphireOS ready\r\n" );
 
     // return system OK
     return 0;
