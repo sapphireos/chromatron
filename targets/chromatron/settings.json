@@ -9,7 +9,6 @@
         "-D__DELAY_BACKWARD_COMPATIBLE__",
         "-DAVR",
         "-Os",
-        "-fstack-usage",
         "-funsigned-char",
         "-funsigned-bitfields",
         "-fpack-struct",
@@ -71,6 +70,8 @@
         "obj",
         "dep"
     ],
+
+    "__STACKUSAGE_C_FLAG": "-fstack-usage",
 
     "OS_PROJECT": "sapphire",
     "LOADER_PROJECT": "loader_xmega128a4u",
