@@ -30,13 +30,9 @@
 #include "random.h"
 #include "pix_modes.h"
 #include "kvdb.h"
+#include "target.h"
 
 #include "gfx_lib.h"
-
-#ifndef PROGMEM
-#define PROGMEM
-#define pgm_read_word(a) *a
-#endif
 
 #ifndef USE_HSV_BRIDGE
 static uint8_t array_red[MAX_PIXELS];

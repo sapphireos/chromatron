@@ -40,6 +40,11 @@
 #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
 
+// pixel config
+#define USE_HSV_BRIDGE
+#define MAX_PIXELS              320
+#define FADER_RATE              20
+
 // list
 // #define ENABLE_LIST_ATOMIC
 

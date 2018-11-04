@@ -28,14 +28,9 @@
 #include <stdint.h>
 #include "bool.h"
 #include "catbus_common.h"
-
-#define MAX_PIXELS              320
-
-#define FADER_RATE              20
+#include "target.h"
 
 #define GFX_VERSION             1
-
-#define USE_HSV_BRIDGE
 
 typedef struct  __attribute__((packed)){
     uint8_t version;
@@ -72,10 +67,6 @@ typedef struct  __attribute__((packed)){
 #define PIX_ATTR_VAL        2
 #define PIX_ATTR_HS_FADE    3
 #define PIX_ATTR_V_FADE     4
-// #define PIX_ATTR_COUNT      5
-// #define PIX_ATTR_SIZE_X     6
-// #define PIX_ATTR_SIZE_Y     7
-// #define PIX_ATTR_INDEX      8
 
 // note this needs to pad to 32 bit alignment!
 typedef struct  __attribute__((packed)){
