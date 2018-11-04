@@ -21,6 +21,7 @@
 // </license>
 
 #include <string.h>
+#include "cpu.h"
 #include "gfx_lib.h"
 #include "random.h"
 #include "vm_core.h"
@@ -39,7 +40,7 @@
 #endif
 #endif
 
-#ifdef ESP8266 // very slight speed boost using 32 bit numbers on Xtensa
+#if defined(ESP8266) || defined(ARM) // very slight speed boost using 32 bit numbers on Xtensa
 static uint32_t cycles;
 #else
 static uint16_t cycles;
@@ -52,7 +53,7 @@ static int8_t _vm_i8_run_stream(
     vm_state_t *state,
     int32_t *data ){
 
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ARM)
     static void *opcode_table[] = {
 #else
     static void *const opcode_table[] PROGMEM = {
@@ -374,7 +375,7 @@ static int8_t _vm_i8_run_stream(
     // uint16_t addr;
 
 
-    #ifdef ESP8266
+    #if defined(ESP8266) || defined(ARM)
         #define DISPATCH cycles--; \
                          if( cycles == 0 ){ \
                             return VM_STATUS_ERR_MAX_CYCLES; \
