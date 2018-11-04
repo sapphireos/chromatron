@@ -30,12 +30,9 @@
 #include "hal_usart.h"
 
 #include "os_irq.h"
-#include "event_log.h"
 
 #include "logging.h"
 #include "hal_dma.h"
-
-#include "event_log.h"
 
 #include <math.h>
 
