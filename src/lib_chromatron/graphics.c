@@ -69,6 +69,24 @@ static uint16_t vm_timer_rate;
 static uint16_t vm0_frame_number;
 static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
+static uint8_t init_vm;
+
+#define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
+#define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
+
+PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
+PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
+
+typedef struct{
+    catbus_hash_t32 hash;
+    uint8_t tag;
+    uint8_t flags;
+} subscribed_key_t;
+#define KEY_FLAG_UPDATED        0x01
+
+static bool run_xfer;
+static subscribed_key_t subscribed_keys[32];
+
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -290,14 +308,6 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
 
     return gfx_sub_dimmer;
 }
-
-
-PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
-PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
-
-#define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
-
-#define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
 
 ISR(GFX_TIMER_CCA_vect){
 
@@ -525,23 +535,10 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     return 0;    
 }
 
-
-
 void gfx_v_sync_params( void ){
 
     send_params( TRUE );    
 }
-
-
-typedef struct{
-    catbus_hash_t32 hash;
-    uint8_t tag;
-    uint8_t flags;
-} subscribed_key_t;
-#define KEY_FLAG_UPDATED        0x01
-
-static bool run_xfer;
-static subscribed_key_t subscribed_keys[32];
 
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
@@ -670,9 +667,6 @@ void gfx_v_reset_subscribed( uint8_t tag ){
     }  
 }
 
-
-static uint8_t init_vm;
-
 void gfx_v_init_vm( uint8_t vm_id ){
 
     run_xfer = TRUE;
@@ -700,7 +694,6 @@ void kv_v_notify_hash_set( catbus_hash_t32 hash ){
         }
     }   
 }
-
 
 
 PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
