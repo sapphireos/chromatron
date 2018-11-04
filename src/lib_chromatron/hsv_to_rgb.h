@@ -22,17 +22,24 @@
 // </license>
  */
 
-#ifndef _TARGET_H
-#define _TARGET_H
+#ifndef _HSV_TO_RGB_H
+#define _HSV_TO_RGB_H
 
-#ifndef PROGMEM
-	#define PROGMEM
-	#define pgm_read_word(a) *a
-#endif
+void gfx_v_hsv_to_rgb(
+    uint16_t h,
+    uint16_t s,
+    uint16_t v,
+    uint16_t *r,
+    uint16_t *g,
+    uint16_t *b );
 
-#define USE_HSV_BRIDGE
-#define MAX_PIXELS              320
-#define FADER_RATE              20
-#define USE_GFX_LIB
+void gfx_v_hsv_to_rgbw(
+    uint16_t h,
+    uint16_t s,
+    uint16_t v,
+    uint16_t *r,
+    uint16_t *g,
+    uint16_t *b,
+    uint16_t *w );
 
 #endif

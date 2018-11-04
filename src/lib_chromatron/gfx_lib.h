@@ -172,23 +172,6 @@ void gfxlib_v_init( void );
 
 void gfx_v_sync_array( void );
 
-void gfx_v_hsv_to_rgb(
-    uint16_t h,
-    uint16_t s,
-    uint16_t v,
-    uint16_t *r,
-    uint16_t *g,
-    uint16_t *b );
-
-void gfx_v_hsv_to_rgbw(
-    uint16_t h,
-    uint16_t s,
-    uint16_t v,
-    uint16_t *r,
-    uint16_t *g,
-    uint16_t *b,
-    uint16_t *w );
-
 void gfx_v_reset( void );
 void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count );
 
