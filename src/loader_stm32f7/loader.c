@@ -35,6 +35,7 @@
 #include "flash_fs_partitions.h"
 #include "spi.h"
 #include "watchdog.h"
+#include "hal_nvm.h"
 
 #include "loader.h"
 
@@ -43,14 +44,7 @@
 
 void ldr_v_erase_app( void ){
 
-	// erase app section
-	for( uint16_t i = 0; i < N_APP_PAGES; i++ ){
-
-		boot_v_erase_page( i );
-
-		// reset watchdog timer
-		wdg_v_reset();
-	}
+	nvm_v_erase_app_flash();
 }
 
 void ldr_v_copy_partition_to_internal( void ){

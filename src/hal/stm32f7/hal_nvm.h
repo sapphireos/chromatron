@@ -30,6 +30,6 @@ void nvm_v_init( void );
 bool nvm_b_busy( void );
 void nvm_v_load_flash_buffer( uint32_t addr, uint16_t data );
 void nvm_v_write_flash_page( uint32_t addr );
-void nvm_v_erase_flash_page( uint32_t addr );
+void nvm_v_erase_app_flash( void );
 
 #endif

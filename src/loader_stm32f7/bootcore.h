@@ -26,7 +26,6 @@
 #define BOOTCORE_H
 
 void boot_v_init( void );
-void boot_v_erase_page( uint16_t pagenumber );
 void boot_v_write_page( uint16_t pagenumber, uint8_t *data );
 void boot_v_read_page( uint16_t pagenumber, uint8_t *dest );
 void boot_v_read_data( uint32_t offset, uint8_t *dest, uint16_t length );

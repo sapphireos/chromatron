@@ -34,17 +34,6 @@ void boot_v_init( void ){
     nvm_v_init();
 }
 
-
-void boot_v_erase_page( uint16_t pagenumber ){
-
-	uint32_t addr = ( uint32_t )pagenumber * ( uint32_t )PAGE_SIZE;
-
-	// erase page:
-    nvm_v_erase_flash_page( addr );
-
-    while( nvm_b_busy() );
-}
-
 // write a page to flash.  This will NOT pre-erase the page!
 void boot_v_write_page( uint16_t pagenumber, uint8_t *data ){
 

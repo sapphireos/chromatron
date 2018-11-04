@@ -46,7 +46,20 @@ void nvm_v_write_flash_page( uint32_t addr ){
     
 }
 
-void nvm_v_erase_flash_page( uint32_t addr ){
+void nvm_v_erase_app_flash( void ){
 
-    
+	uint32_t error;
+    FLASH_EraseInitTypeDef erase;
+    erase.TypeErase 		= FLASH_TYPEERASE_SECTORS; 
+    erase.Sector 			= 2; 
+    erase.NbSectors 		= 6; 
+    erase.VoltageRange 		= FLASH_VOLTAGE_RANGE_3; 
+
+    HAL_FLASH_Unlock();
+
+    HAL_FLASHEx_Erase(&erase, &error);
+
+    HAL_FLASH_Lock();
 }
+
+

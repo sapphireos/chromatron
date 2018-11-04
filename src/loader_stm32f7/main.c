@@ -82,6 +82,8 @@ void main( void ){
 
     hal_cpu_v_boot_init();
 
+    HAL_FLASH_Lock();
+
     trace_printf("Welcome to Sapphire\n");
 
 restart:
@@ -199,6 +201,7 @@ restart:
     boot_data.loader_command = LDR_CMD_NONE;
 
     // run application
+    HAL_FLASH_Lock();
     ldr_run_app();
 
 
