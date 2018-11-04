@@ -27,29 +27,29 @@
 #include "adc.h"
 #include "hal_io.h"
 #include "hal_adc.h"
+#include "keyvalue.h"
 
+static int8_t hal_adc_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
 
-// static int8_t adc_kv_handler(
-//     kv_op_t8 op,
-//     catbus_hash_t32 hash,
-//     void *data,
-//     uint16_t len )
-// {
-//     if( op == KV_OP_GET ){
+        if( hash == __KV__adc_vref_int ){
 
-//         if( hash == __KV__vcc ){
+            uint16_t mv = adc_u16_convert_to_millivolts( adc_u16_read_raw( ADC_CHANNEL_REF ) );
+            memcpy( data, &mv, sizeof(mv) );
+        }
+    }
 
-//             uint16_t mv = adc_u16_read_vcc();
-//             memcpy( data, &mv, sizeof(mv) );
-//         }
-//     }
+    return 0;
+}
 
-//     return 0;
-// }
-
-// KV_SECTION_META kv_meta_t hal_adc_kv[] = {
-//     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, adc_kv_handler,   "vcc" },
-// };
+KV_SECTION_META kv_meta_t hal_adc_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "adc_vref_int" },
+};
 
 
 
@@ -99,6 +99,10 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
     switch( channel ){
         case ADC_CHANNEL_VSUPPLY:
             internal_channel = ADC_CHANNEL_10;
+            break;
+
+        case ADC_CHANNEL_REF:
+            internal_channel = ADC_CHANNEL_17;
             break;
 
         default:
