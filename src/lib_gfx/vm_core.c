@@ -34,7 +34,7 @@
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
 #include "kvdb.h"
-#ifndef ESP8266
+#ifdef VM_ENABLE_CATBUS
 #include "catbus.h"
 #endif
 #endif
@@ -1659,7 +1659,7 @@ opcode_db_store:
     src += ( *pc++ ) << 8;
 
     #ifdef VM_ENABLE_KV
-    #ifdef ESP8266
+    #ifndef VM_ENABLE_CATBUS
     kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
     #else
     catbus_i8_array_set( hash, type, indexes[0], 1, &data[src] );
@@ -1694,7 +1694,7 @@ opcode_db_load:
     dest += ( *pc++ ) << 8;
 
     #ifdef VM_ENABLE_KV
-    #ifdef ESP8266
+    #ifndef VM_ENABLE_CATBUS
     if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
 
         data[dest] = 0;        
