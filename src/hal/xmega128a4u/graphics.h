@@ -24,7 +24,7 @@
 #define _GRAPHICS_H
 
 #include "target.h"
-#include "gfx_lib.h"
+// #include "gfx_lib.h"
 #include "wifi_cmd.h"
 #include "keyvalue.h"
 
