@@ -35,4 +35,10 @@
 #define FADER_RATE              20
 #define USE_GFX_LIB
 
+#define VM_TARGET_ESP
+#define VM_ENABLE_GFX
+#define VM_ENABLE_KV
+
+#define VM_MAX_IMAGE_SIZE   4096
+
 #endif
