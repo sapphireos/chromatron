@@ -41,6 +41,7 @@
 
 #include <string.h>
 
+volatile uint8_t test_buf[256];
 
 void ldr_v_erase_app( void ){
 
@@ -50,6 +51,7 @@ void ldr_v_erase_app( void ){
 void ldr_v_copy_partition_to_internal( void ){
 
     ldr_v_erase_app();
+    memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 
 	// page data buffer
 	uint8_t buf[PAGE_SIZE];
@@ -71,6 +73,7 @@ void ldr_v_copy_partition_to_internal( void ){
 
 		// write page data to app page
 		boot_v_write_page( i, buf );
+		memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 
 		// reset watchdog timer
 		wdg_v_reset();
