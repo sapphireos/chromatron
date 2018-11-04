@@ -87,7 +87,7 @@
     "OS_PROJECT": "sapphire",
     "LOADER_PROJECT": "loader_stm32f7",
 
-    "FW_INFO_ADDR": "0x08000200",
+    "FW_INFO_ADDR": "0x08008200",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
