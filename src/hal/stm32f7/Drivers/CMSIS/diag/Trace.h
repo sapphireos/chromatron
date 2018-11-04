@@ -59,7 +59,7 @@
 int
 serial_printf(const char* format, ...);
 
-#define trace_printf serial_printf
+// #define trace_printf serial_printf
 
 #if defined(TRACE)
 
@@ -77,8 +77,8 @@ extern "C"
 
   // ----- Portable -----
 
-  // int
-  // trace_printf(const char* format, ...);
+  int
+  trace_printf(const char* format, ...);
 
   int
   trace_puts(const char *s);

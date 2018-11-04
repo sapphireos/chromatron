@@ -102,29 +102,29 @@ serial_printf(const char* format, ...)
   return ret;
 }
 
-// int
-// trace_printf(const char* format, ...)
-// {
-//   int ret;
-//   va_list ap;
+int
+trace_printf(const char* format, ...)
+{
+  int ret;
+  va_list ap;
 
-//   va_start (ap, format);
+  va_start (ap, format);
 
-//   // TODO: rewrite it to no longer use newlib, it is way too heavy
+  // TODO: rewrite it to no longer use newlib, it is way too heavy
 
-//   static char buf[OS_INTEGER_TRACE_PRINTF_TMP_ARRAY_SIZE];
+  static char buf[OS_INTEGER_TRACE_PRINTF_TMP_ARRAY_SIZE];
 
-//   // Print to the local buffer
-//   ret = vsnprintf (buf, sizeof(buf), format, ap);
-//   if (ret > 0)
-//     {
-//       // Transfer the buffer to the device
-//       ret = trace_write (buf, (size_t)ret);
-//     }
+  // Print to the local buffer
+  ret = vsnprintf (buf, sizeof(buf), format, ap);
+  if (ret > 0)
+    {
+      // Transfer the buffer to the device
+      ret = trace_write (buf, (size_t)ret);
+    }
 
-//   va_end (ap);
-//   return ret;
-// }
+  va_end (ap);
+  return ret;
+}
 
 int
 trace_puts(const char *s)
