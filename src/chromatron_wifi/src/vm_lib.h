@@ -1,1 +1,1 @@
-../../lib_chromatron/vm_lib.h
+../../lib_gfx/vm_lib.h

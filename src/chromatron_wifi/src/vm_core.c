@@ -1,1 +1,1 @@
-../../lib_chromatron/vm_core.c
+../../lib_gfx/vm_core.c

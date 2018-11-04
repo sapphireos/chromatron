@@ -1,1 +1,1 @@
-../../lib_chromatron/hsv_to_rgb.c
+../../lib_gfx/hsv_to_rgb.c

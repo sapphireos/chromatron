@@ -1,1 +1,1 @@
-../../lib_chromatron/gfx_lib.c
+../../lib_gfx/gfx_lib.c
