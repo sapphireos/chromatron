@@ -1,1 +1,1 @@
-../../lib_chromatron/pix_modes.h
+../../lib_gfx/pix_modes.h
