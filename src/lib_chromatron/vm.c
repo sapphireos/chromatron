@@ -35,7 +35,6 @@
 
 #include "vm.h"
 #include "vm_core.h"
-#include "vm_config.h"
 
 
 static bool vm_reset[VM_MAX_VMS];

@@ -27,7 +27,7 @@
 #include "vm_core.h"
 #include "trig.h"
 #include "hash.h"
-#include "vm_config.h"
+#include "target.h"
 #include "vm_lib.h"
 #include "catbus_types.h"
 #include "datetime.h"
