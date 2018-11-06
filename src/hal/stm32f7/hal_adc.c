@@ -42,12 +42,7 @@ static int8_t hal_adc_kv_handler(
 {
     if( op == KV_OP_GET ){
 
-        if( hash == __KV__adc_vref_int ){
-
-            uint16_t mv = adc_u16_convert_to_millivolts( adc_u16_read_raw( ADC_CHANNEL_REF ) );
-            memcpy( data, &mv, sizeof(mv) );
-        }
-        else if( hash == __KV__vcc ){
+       if( hash == __KV__vcc ){
 
             uint16_t mv = adc_u16_read_vcc();
             memcpy( data, &mv, sizeof(mv) );
@@ -58,7 +53,6 @@ static int8_t hal_adc_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t hal_adc_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "adc_vref_int" },
     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "vcc" },
 };
 
@@ -114,9 +108,21 @@ PT_BEGIN( pt );
     
     while(1){
 
-        TMR_WAIT( pt, 1000 );
+        // vref calibration
 
-        
+        #define SAMPLES 8
+        uint32_t accum = 0;
+
+        for( uint32_t i = 0; i <SAMPLES; i++ ){
+
+            accum += adc_u16_read_vcc();
+            _delay_us(20);
+        }
+
+        vref = accum / SAMPLES;
+
+
+        TMR_WAIT( pt, 4000 );
     }
 
 PT_END( pt );
