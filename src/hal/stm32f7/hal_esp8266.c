@@ -23,6 +23,7 @@
 
 #include "system.h"
 #include "timers.h"
+#include "keyvalue.h"
 
 #include "hal_usart.h"
 #include "hal_io.h"
@@ -56,6 +57,11 @@ static DMA_HandleTypeDef wifi_dma;
 static bool normal_mode;
 static uint8_t control_byte;
 
+static uint16_t timeouts;
+
+KV_SECTION_META kv_meta_t hal_wifi_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, &timeouts, 0,   "wifi_hal_timeouts" },
+};
 
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
@@ -207,6 +213,7 @@ PT_BEGIN( pt );
             // check for timeout
             if( !thread_b_alarm_set() ){
 
+                timeouts++;
                 continue;
             }
 
