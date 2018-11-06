@@ -42,6 +42,11 @@ static int8_t hal_adc_kv_handler(
             uint16_t mv = adc_u16_convert_to_millivolts( adc_u16_read_raw( ADC_CHANNEL_REF ) );
             memcpy( data, &mv, sizeof(mv) );
         }
+        else if( hash == __KV__vcc ){
+
+            uint16_t mv = adc_u16_read_vcc();
+            memcpy( data, &mv, sizeof(mv) );
+        }
     }
 
     return 0;
@@ -49,6 +54,7 @@ static int8_t hal_adc_kv_handler(
 
 KV_SECTION_META kv_meta_t hal_adc_kv[] = {
     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "adc_vref_int" },
+    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "vcc" },
 };
 
 
@@ -157,7 +163,10 @@ uint16_t adc_u16_read_supply_voltage( void ){
 
 uint16_t adc_u16_read_vcc( void ){
 
-    return 0;
+	uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
+	// this is nominally 1.2V
+
+    return ( 1200 * 4095 ) / vref_int;
 }
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
