@@ -80,7 +80,7 @@ void ldr_v_copy_partition_to_internal( void ){
 	}
 }
 
-void (*app_ptr)( void ) = FLASH_START;
+void (*app_ptr)( void ) = (void *)FLASH_START;
 
 void ldr_run_app( void ){
 

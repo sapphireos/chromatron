@@ -20,9 +20,13 @@
 // 
 // </license>
 
+#include "cpu.h"
 #include "hal_pixel.h"
 
 void hal_pixel_v_init( void ){
 
 
+	
+
 }
+
