@@ -236,6 +236,8 @@ void cpu_v_init( void ){
     __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
+    SCB->VTOR = FLASH_START;
+
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
     /* System interrupt init*/
