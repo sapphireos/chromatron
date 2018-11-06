@@ -43,7 +43,7 @@ void nvm_v_write_flash_page( uint32_t addr, uint8_t *data ){
 	
 	for(uint16_t i = 0; i < PAGE_SIZE; i++){
 
-		HAL_FLASH_Program( FLASH_TYPEPROGRAM_BYTE, 0x08000000 + 32768 + i, *data );
+		HAL_FLASH_Program( FLASH_TYPEPROGRAM_BYTE, FLASH_START + addr + i, *data );
 		data++;
 	}    
 

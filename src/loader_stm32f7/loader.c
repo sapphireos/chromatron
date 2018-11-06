@@ -41,7 +41,7 @@
 
 #include <string.h>
 
-volatile uint8_t test_buf[256];
+volatile uint8_t test_buf[1024];
 
 void ldr_v_erase_app( void ){
 
@@ -73,11 +73,14 @@ void ldr_v_copy_partition_to_internal( void ){
 
 		// write page data to app page
 		boot_v_write_page( i, buf );
-		memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
+		// memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 
 		// reset watchdog timer
 		wdg_v_reset();
 	}
+
+
+	memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 }
 
 void (*app_ptr)( void ) = (void *)FLASH_START;
@@ -104,6 +107,7 @@ uint32_t ldr_u32_read_partition_length( void ){
 	uint32_t start_address = FLASH_FS_FIRMWARE_0_PARTITION_START;
 
 	flash25_v_read( FW_LENGTH_ADDRESS + start_address, &partition_length, sizeof(partition_length) );
+	flash25_v_read( start_address, test_buf, sizeof(test_buf) );
 
     partition_length += sizeof(uint16_t);
 
