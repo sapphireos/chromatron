@@ -178,6 +178,8 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_YIELD( pt );
+
         THREAD_WAIT_WHILE( pt, !normal_mode );
 
         THREAD_WAIT_WHILE( pt, rx_dma_buffer[0] == WIFI_COMM_IDLE );
@@ -191,13 +193,22 @@ PT_BEGIN( pt );
         }
         else if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
 
-            THREAD_WAIT_WHILE( pt, buffer_busy );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_THREAD_TIMEOUT );    
+            THREAD_WAIT_WHILE( pt, buffer_busy && thread_b_alarm_set() );
 
-            THREAD_WAIT_WHILE( pt, get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 ) );
+            THREAD_WAIT_WHILE( pt, ( get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 ) ) &&
+                                   ( thread_b_alarm_set() ) );
 
             header = (wifi_data_header_t *)&rx_dma_buffer[1];
 
-            THREAD_WAIT_WHILE( pt, get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 + header->len ) );
+            THREAD_WAIT_WHILE( pt, ( get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 + header->len ) ) &&
+                                   ( thread_b_alarm_set() ) );            
+            
+            // check for timeout
+            if( !thread_b_alarm_set() ){
+
+                continue;
+            }
 
             current_rx_bytes += sizeof(wifi_data_header_t) + 1 + header->len;
 
@@ -210,8 +221,6 @@ PT_BEGIN( pt );
             control_byte = WIFI_COMM_DATA;
             thread_v_signal( WIFI_SIGNAL );
         }   
-
-        THREAD_YIELD( pt );
     }
 
 PT_END( pt );
