@@ -28,6 +28,11 @@
 #include "hal_io.h"
 #include "hal_adc.h"
 #include "keyvalue.h"
+#include "logging.h"
+#include "timers.h"
+
+static ADC_HandleTypeDef hadc1;
+static uint16_t vref = 3300;
 
 static int8_t hal_adc_kv_handler(
     kv_op_t8 op,
@@ -58,10 +63,7 @@ KV_SECTION_META kv_meta_t hal_adc_kv[] = {
 };
 
 
-
-
-static ADC_HandleTypeDef hadc1;
-
+PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 
 void adc_v_init( void ){
 
@@ -96,7 +98,30 @@ void adc_v_init( void ){
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
+	thread_t_create( hal_adc_thread,
+                     PSTR("hal_adc"),
+                     0,
+                     0 );
 }
+
+PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+	TMR_WAIT( pt, 1000 );
+
+	log_v_debug_P( PSTR("VCC: %u Vrefint: %u"), adc_u16_read_vcc(), adc_u16_read_raw( ADC_CHANNEL_REF ) );
+    
+    while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+        
+    }
+
+PT_END( pt );
+}
+
 
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
@@ -175,7 +200,7 @@ uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
 
 	// assuming 3300 mv VREF at 12 bits (4095 codes)
 
-	millivolts = (uint32_t)raw_value * 3300;
+	millivolts = (uint32_t)raw_value * vref;
 	millivolts /= 4096;
 
 	return millivolts;
