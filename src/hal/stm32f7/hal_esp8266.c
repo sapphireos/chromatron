@@ -199,19 +199,41 @@ PT_BEGIN( pt );
         }
         else if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_THREAD_TIMEOUT );    
+            thread_v_set_alarm( tmr_u32_get_system_time_us() + WIFI_THREAD_TIMEOUT );
             THREAD_WAIT_WHILE( pt, buffer_busy && thread_b_alarm_set() );
 
+            // check for timeout
+            if( thread_b_alarm() ){
+
+                trace_printf("timeout\r\n");
+
+                timeouts++;
+                continue;
+            }
+
+            thread_v_set_alarm( tmr_u32_get_system_time_us() + WIFI_THREAD_TIMEOUT );
             THREAD_WAIT_WHILE( pt, ( get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 ) ) &&
                                    ( thread_b_alarm_set() ) );
 
+            // check for timeout
+            if( thread_b_alarm() ){
+
+                trace_printf("timeout\r\n");
+
+                timeouts++;
+                continue;
+            }
+
             header = (wifi_data_header_t *)&rx_dma_buffer[1];
 
+            thread_v_set_alarm( tmr_u32_get_system_time_us() + WIFI_THREAD_TIMEOUT );
             THREAD_WAIT_WHILE( pt, ( get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 + header->len ) ) &&
                                    ( thread_b_alarm_set() ) );            
             
             // check for timeout
-            if( !thread_b_alarm_set() ){
+            if( thread_b_alarm() ){
+
+                trace_printf("timeout\r\n");
 
                 timeouts++;
                 continue;
