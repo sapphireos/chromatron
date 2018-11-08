@@ -57,29 +57,32 @@ static uint8_t dither_cycle;
 
 static uint8_t output0[MAX_PIXELS * MAX_BYTES_PER_PIXEL];
 
+static const uint8_t ws2811_lookup[256][3] = {
+    #include "ws2811_lookup.txt"
+};
 
-// static uint8_t bytes_per_pixel( void ){
+static uint8_t bytes_per_pixel( void ){
 
-//     if( pix_mode == PIX_MODE_APA102 ){
+    if( pix_mode == PIX_MODE_APA102 ){
 
-//         return 4; // APA102
-//     }
-//     else if( pix_mode == PIX_MODE_WS2811 ){
+        return 4; // APA102
+    }
+    else if( pix_mode == PIX_MODE_WS2811 ){
 
-//         return 3; // WS2811
-//     }
-//     else if( pix_mode == PIX_MODE_SK6812_RGBW ){
+        return 9; // WS2811
+    }
+    else if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
-//         return 4; // SK6812 RGBW
-//     }
+        return 12; // SK6812 RGBW
+    }
 
-//     return 3; // WS2801 and others
-// }
+    return 3; // WS2801 and others
+}
 
 
 static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
 
-    uint16_t pixels_per_buf = len / MAX_BYTES_PER_PIXEL;
+    uint16_t pixels_per_buf = len / bytes_per_pixel();
     uint16_t transfer_pixel_count = pixels_per_buf;
     uint16_t pixels_remaining = gfx_u16_get_pix_count();
 
@@ -174,10 +177,39 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
             data1 = b;
             data2 = r;
         }
+        
+        if( ( pix_mode == PIX_MODE_WS2811 ) ||
+            ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-        buf[buf_index++] = data0;
-        buf[buf_index++] = data1;
-        buf[buf_index++] = data2;
+            // ws2811 bitstream lookup
+
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][0] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][1] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][2] );
+
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][0] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][1] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][2] );
+
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][0] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][1] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][2] );
+
+            if( pix_mode == PIX_MODE_SK6812_RGBW ){
+
+                uint8_t white = array_misc.white[i];
+
+                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][0] );
+                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][1] );
+                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][2] );
+            }
+        }
+        else{
+
+            buf[buf_index++] = data0;
+            buf[buf_index++] = data1;
+            buf[buf_index++] = data2;
+        }
     }
 
     return buf_index;
@@ -201,7 +233,7 @@ static SPI_HandleTypeDef pix_spi1;
 
 void pixel_v_init( void ){
 
-    pix_mode = PIX_MODE_APA102;
+    pix_mode = PIX_MODE_SK6812_RGBW;
 
     __HAL_RCC_SPI1_CLK_ENABLE();
     __HAL_RCC_SPI2_CLK_ENABLE();
@@ -216,22 +248,22 @@ void pixel_v_init( void ){
     GPIO_InitStruct.Pin = PIX_CLK_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_CLK_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK_GPIO_Port, PIX_CLK_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(PIX_CLK_GPIO_Port, PIX_CLK_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_DAT_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_GPIO_Port, PIX_DAT_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(PIX_DAT_GPIO_Port, PIX_DAT_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_CLK2_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_CLK2_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK2_GPIO_Port, PIX_CLK2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(PIX_CLK2_GPIO_Port, PIX_CLK2_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT2_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_DAT2_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT2_GPIO_Port, PIX_DAT2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(PIX_DAT2_GPIO_Port, PIX_DAT2_Pin, GPIO_PIN_RESET);
 
 
     pix_spi0.Instance = PIX0_SPI;
@@ -244,7 +276,7 @@ void pixel_v_init( void ){
     spi_init.CLKPolarity        = SPI_POLARITY_LOW;
     spi_init.CLKPhase           = SPI_PHASE_1EDGE;
     spi_init.NSS                = SPI_NSS_SOFT;
-    spi_init.BaudRatePrescaler  = SPI_BAUDRATEPRESCALER_128;
+    spi_init.BaudRatePrescaler  = SPI_BAUDRATEPRESCALER_32;
     spi_init.FirstBit           = SPI_FIRSTBIT_MSB;
     spi_init.TIMode             = SPI_TIMODE_DISABLE;
     spi_init.CRCCalculation     = SPI_CRCCALCULATION_DISABLE;
@@ -268,12 +300,22 @@ void pixel_v_init( void ){
 
     // HAL_SPI_Transmit( &pix_spi1, &data, sizeof(data), 100 );
 
-    memset(array_r, 0xff, sizeof(array_r));
+    memset(array_r, 0x11, sizeof(array_r));
+    array_r[2] = 0xff;
+    array_g[3] = 0xff;
+    array_b[4] = 0xff;
+
+    uint8_t zeros[32];
+    memset(zeros, 0, sizeof(zeros));
 
     setup_pixel_buffer(output0, sizeof(output0));
 
-    HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
-    HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
+
+    HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
+    // HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
+    HAL_SPI_Transmit( &pix_spi0, output0, 12 * 8, 100 );
+    // HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
+    HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
 
     pixel_v_enable();
 }

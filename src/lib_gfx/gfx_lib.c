@@ -1606,7 +1606,7 @@ void gfx_v_process_faders( void ){
 void gfxlib_v_init( void ){
 
     param_error_check();
-pix_count = MAX_PIXELS;
+pix_count = 8;
     compute_dimmer_lookup();
 
     // initialize pixel arrays to defaults
