@@ -244,7 +244,7 @@ void pixel_v_init( void ){
     spi_init.CLKPolarity        = SPI_POLARITY_LOW;
     spi_init.CLKPhase           = SPI_PHASE_1EDGE;
     spi_init.NSS                = SPI_NSS_SOFT;
-    spi_init.BaudRatePrescaler  = SPI_BAUDRATEPRESCALER_256;
+    spi_init.BaudRatePrescaler  = SPI_BAUDRATEPRESCALER_128;
     spi_init.FirstBit           = SPI_FIRSTBIT_MSB;
     spi_init.TIMode             = SPI_TIMODE_DISABLE;
     spi_init.CRCCalculation     = SPI_CRCCALCULATION_DISABLE;

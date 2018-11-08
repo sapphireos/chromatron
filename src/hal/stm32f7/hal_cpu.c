@@ -48,7 +48,8 @@ static void cpu_normal_clock_config( void ){
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     RCC_OscInitStruct.PLL.PLLM = 16;
-    RCC_OscInitStruct.PLL.PLLN = 432;
+    // RCC_OscInitStruct.PLL.PLLN = 432; // 216 MHz
+    RCC_OscInitStruct.PLL.PLLN = 410; // 205 MHZ
     RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
     RCC_OscInitStruct.PLL.PLLQ = 9;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
