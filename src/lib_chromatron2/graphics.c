@@ -39,117 +39,115 @@
 #include "hash.h"
 
 
-static uint16_t hs_fade = 1000;
-static uint16_t v_fade = 1000;
-static uint16_t gfx_master_dimmer = 65535;
-static uint16_t gfx_sub_dimmer = 65535;
-static uint16_t pix_count;
-static uint16_t pix_size_x;
-static uint16_t pix_size_y;
-static bool gfx_interleave_x;
-static bool gfx_transpose;
-static uint16_t gfx_frame_rate = 100;
-static uint8_t gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
+// static uint16_t hs_fade = 1000;
+// static uint16_t v_fade = 1000;
+// static uint16_t gfx_master_dimmer = 65535;
+// static uint16_t gfx_sub_dimmer = 65535;
+// static uint16_t pix_count;
+// static uint16_t pix_size_x;
+// static uint16_t pix_size_y;
+// static bool gfx_interleave_x;
+// static bool gfx_transpose;
+// static uint16_t gfx_frame_rate = 100;
+// static uint8_t gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 
-static uint16_t gfx_virtual_array_start;
-static uint16_t gfx_virtual_array_length;
+// static uint16_t gfx_virtual_array_start;
+// static uint16_t gfx_virtual_array_length;
 
-static bool pixel_transfer_enable = TRUE;
+// static bool pixel_transfer_enable = TRUE;
 
-static volatile uint8_t run_flags;
-#define FLAG_RUN_PARAMS         0x01
-#define FLAG_RUN_VM_LOOP        0x02
-#define FLAG_RUN_FADER          0x04
+// static volatile uint8_t run_flags;
+// #define FLAG_RUN_PARAMS         0x01
+// #define FLAG_RUN_VM_LOOP        0x02
+// #define FLAG_RUN_FADER          0x04
 
-static uint16_t vm_timer_rate; 
+// static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
 static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
-static uint8_t init_vm;
+// static uint8_t init_vm;
 
-#define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
-#define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 
-static uint16_t calc_vm_timer( uint32_t ms ){
+// static uint16_t calc_vm_timer( uint32_t ms ){
 
-    return ( ms * 31250 ) / 1000;
-}
+//     return ( ms * 31250 ) / 1000;
+// }
 
-static void update_vm_timer( void ){
+// static void update_vm_timer( void ){
 
-    uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
+//     uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
 
-    if( new_timer != vm_timer_rate ){
+//     if( new_timer != vm_timer_rate ){
 
-        ATOMIC;
-        vm_timer_rate = new_timer;
+//         ATOMIC;
+//         vm_timer_rate = new_timer;
 
-        // immediately update timer so we don't have to wait for 
-        // current frame to complete.  this speeds up the response if
-        // we're going from a really slow to a really fast rate.
-        // GFX_TIMER.CCB = GFX_TIMER.CNT + vm_timer_rate;
+//         // immediately update timer so we don't have to wait for 
+//         // current frame to complete.  this speeds up the response if
+//         // we're going from a really slow to a really fast rate.
+//         // GFX_TIMER.CCB = GFX_TIMER.CNT + vm_timer_rate;
 
-        END_ATOMIC;
-    }
-}
+//         END_ATOMIC;
+//     }
+// }
 
-static void param_error_check( void ){
+// static void param_error_check( void ){
 
-    // error check
-    if( pix_count > MAX_PIXELS ){
+//     // error check
+//     if( pix_count > MAX_PIXELS ){
 
-        pix_count = MAX_PIXELS;
-    }
-    else if( pix_count == 0 ){
+//         pix_count = MAX_PIXELS;
+//     }
+//     else if( pix_count == 0 ){
 
-        // this is necessary to prevent divide by 0 errors.
-        // also, 0 pixels doesn't really make sense in a
-        // pixel graphics library, does it?
-        pix_count = 1;
-    }
+//         // this is necessary to prevent divide by 0 errors.
+//         // also, 0 pixels doesn't really make sense in a
+//         // pixel graphics library, does it?
+//         pix_count = 1;
+//     }
 
-    if( ( (uint32_t)pix_size_x * (uint32_t)pix_size_y ) > pix_count ){
+//     if( ( (uint32_t)pix_size_x * (uint32_t)pix_size_y ) > pix_count ){
 
-        pix_size_x = pix_count;
-        pix_size_y = 1;
-    }
+//         pix_size_x = pix_count;
+//         pix_size_y = 1;
+//     }
 
-    if( pix_size_x > pix_count ){
+//     if( pix_size_x > pix_count ){
 
-        pix_size_x = 1;
-    }
+//         pix_size_x = 1;
+//     }
 
-    if( pix_size_y > pix_count ){
+//     if( pix_size_y > pix_count ){
 
-        pix_size_y = 1;
-    }
+//         pix_size_y = 1;
+//     }
 
-    if( pix_count > 0 ){
+//     if( pix_count > 0 ){
 
-        if( pix_size_x == 0 ){
+//         if( pix_size_x == 0 ){
 
-            pix_size_x = 1;
-        }
+//             pix_size_x = 1;
+//         }
 
-        if( pix_size_y == 0 ){
+//         if( pix_size_y == 0 ){
 
-            pix_size_y = 1;
-        }
-    }
+//             pix_size_y = 1;
+//         }
+//     }
 
-    if( gfx_frame_rate < 10 ){
+//     if( gfx_frame_rate < 10 ){
 
-        gfx_frame_rate = 10;
-    }
+//         gfx_frame_rate = 10;
+//     }
 
-    if( gfx_dimmer_curve < 8 ){
+//     if( gfx_dimmer_curve < 8 ){
 
-        gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
-    }
-}
+//         gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
+//     }
+// }
 
 
 int8_t gfx_i8_kv_handler(
@@ -161,33 +159,27 @@ int8_t gfx_i8_kv_handler(
 
     if( op == KV_OP_SET ){
 
-        param_error_check();
-
-        ATOMIC;
-        run_flags |= FLAG_RUN_PARAMS;
-        END_ATOMIC;
-
-        update_vm_timer();
+        // send to gfx lib
     }
 
     return 0;
 }
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_count,                   gfx_i8_kv_handler,   "pix_count" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_sub_dimmer,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_master_dimmer,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  gfx_i8_kv_handler,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  gfx_i8_kv_handler,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            gfx_i8_kv_handler,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               gfx_i8_kv_handler,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                   gfx_i8_kv_handler,   "pix_count" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                  gfx_i8_kv_handler,   "pix_size_x" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                  gfx_i8_kv_handler,   "pix_size_y" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0,            gfx_i8_kv_handler,   "gfx_interleave_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0,               gfx_i8_kv_handler,   "gfx_transpose" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                     gfx_i8_kv_handler,   "gfx_hsfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                      gfx_i8_kv_handler,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, 0,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,     gfx_i8_kv_handler,   "gfx_varray_start" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,    gfx_i8_kv_handler,   "gfx_varray_length" },
 };
 
 void gfx_v_init( void ){
@@ -195,12 +187,12 @@ void gfx_v_init( void ){
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
         // override size settings
-        pix_count = 1;
-        pix_size_x = 1;
-        pix_size_y = 1;
+        // pix_count = 1;
+        // pix_size_x = 1;
+        // pix_size_y = 1;
     }
 
-    param_error_check();
+    // param_error_check();
 
     gfxlib_v_init();
 
@@ -215,7 +207,8 @@ void gfx_v_init( void ){
 
 bool gfx_b_running( void ){
 
-    return pixel_transfer_enable;
+    // return pixel_transfer_enable;
+    return TRUE;
 }
 
 uint16_t gfx_u16_get_frame_number( void ){
@@ -238,7 +231,7 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
     int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
 
-    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_u16_get_vm_frame_rate() );
 
     // we are ahead
     if( corrected_time_offset > 10 ){
@@ -255,7 +248,7 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
     log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
 
-    update_vm_timer();
+    // update_vm_timer();
 }
 
 gfx_pixel_array_t master_array;
@@ -285,7 +278,7 @@ PT_END( pt );
 
 void gfx_v_init_vm( uint8_t vm_id ){
 
-    init_vm |= ( 1 << vm_id );
+    // init_vm |= ( 1 << vm_id );
 
     if( vm_id == 0 ){
 
