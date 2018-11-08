@@ -336,6 +336,9 @@ void cpu_reboot( void ){
     HAL_NVIC_SystemReset();    
 }
 
+int *__errno( void ){
+  return &_REENT->_errno;
+}
 
 
 void _Error_Handler( char *file, int line ){
