@@ -239,6 +239,24 @@ void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
 
 }
 
+
+void DMA2_Stream3_IRQHandler(void){
+    
+    HAL_DMA_IRQHandler( &pix0_dma );
+
+
+}
+
+void SPI1_IRQHandler(void){
+
+  HAL_SPI_IRQHandler( &pix_spi0 );
+}
+
+void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
+
+    trace_printf("TX complete\r\n");
+}
+
 void pixel_v_init( void ){
 
     pix_mode = PIX_MODE_SK6812_RGBW;
@@ -320,6 +338,13 @@ void pixel_v_init( void ){
     pix0_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
     HAL_DMA_Init( &pix0_dma );
+
+    HAL_NVIC_SetPriority( DMA2_Stream3_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( DMA2_Stream3_IRQn );
+
+    HAL_NVIC_SetPriority( SPI1_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( SPI1_IRQn );
+
 
     __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
 
