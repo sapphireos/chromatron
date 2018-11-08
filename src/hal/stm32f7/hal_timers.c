@@ -42,7 +42,7 @@ void hal_timer_v_init( void ){
     // Timer 2 is on APB1 (108 MHz nominally)
 	system_timer.Instance = HAL_SYS_TIMER;
 
-	system_timer.Init.Prescaler 		 = 108;
+	system_timer.Init.Prescaler 		 = ( HAL_RCC_GetPCLK1Freq() * 2 ) / 1000000;
     system_timer.Init.Period             = 65535;
 	system_timer.Init.CounterMode 		 = TIM_COUNTERMODE_UP;
 	system_timer.Init.AutoReloadPreload  = TIM_AUTORELOAD_PRELOAD_ENABLE;
