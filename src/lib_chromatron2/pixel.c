@@ -37,6 +37,11 @@
 
 #include <math.h>
 
+static SPI_HandleTypeDef pix_spi0;
+static SPI_HandleTypeDef pix_spi1;
+static DMA_HandleTypeDef pix0_dma;
+
+
 #define MAX_BYTES_PER_PIXEL 16
 
 static bool pix_dither;
@@ -232,9 +237,6 @@ void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
 
 }
 
-static SPI_HandleTypeDef pix_spi0;
-static SPI_HandleTypeDef pix_spi1;
-
 void pixel_v_init( void ){
 
     pix_mode = PIX_MODE_SK6812_RGBW;
@@ -298,6 +300,23 @@ void pixel_v_init( void ){
     pix_spi1.Init = spi_init;
     HAL_SPI_Init( &pix_spi1 );    
 
+    // set up DMA
+    pix0_dma.Instance                  = DMA2_Stream3;
+    pix0_dma.Init.Channel              = DMA_CHANNEL_3;
+    pix0_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
+    pix0_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    pix0_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    pix0_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    pix0_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    pix0_dma.Init.Mode                 = DMA_NORMAL;
+    pix0_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    pix0_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    pix0_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    pix0_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    pix0_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
+
     // uint8_t data = 0x43;
 
     // HAL_SPI_Transmit( &pix_spi0, &data, sizeof(data), 100 );
@@ -317,7 +336,9 @@ void pixel_v_init( void ){
 
     HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
     // HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
-    HAL_SPI_Transmit( &pix_spi0, output0, 12 * 8, 100 );
+    // HAL_SPI_Transmit( &pix_spi0, output0, 12 * 8, 100 );
+    HAL_SPI_Transmit_DMA( &pix_spi0, output0, 12 * 8 );
+
     // HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
     HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
 
