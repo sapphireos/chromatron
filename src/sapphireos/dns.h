@@ -47,7 +47,7 @@ typedef struct{
 #define DNS_ENTRY_STATUS_RESOLVING      3
 
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t id;
     uint16_t flags;
     uint16_t questions;
@@ -89,7 +89,7 @@ typedef struct{
 #define DNS_TYPE_TXT                16
 
 // resource record header data
-typedef struct{
+typedef struct __attribute__((packed)){
     // name (variable length)
     uint16_t type;
     uint16_t class;
@@ -97,17 +97,17 @@ typedef struct{
     uint16_t rdlength;
 } dns_rr_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     dns_rr_t rr;
     uint32_t addr;
 } dns_a_record_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     dns_rr_t rr;
     // name (variable length)
 } dns_ptr_record_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     dns_rr_t rr;
     uint16_t priority;
     uint16_t weight;
@@ -115,12 +115,12 @@ typedef struct{
     // target name (variable length)
 } dns_srv_record_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     dns_rr_t rr;
     // text (variable length)
 } dns_txt_record_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t id;
     uint32_t ttl;
     ip_addr_t ip;
