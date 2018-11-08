@@ -157,7 +157,7 @@ void gfx_v_set_v_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj );
 
 uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj );
-uint16_t gfx_u16_get_is_h_fading( uint16_t x, uint16_t y, uint8_t obj );
+uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj );
 
 #ifndef USE_HSV_BRIDGE
 uint16_t gfx_u16_get_pix0_red( void );
