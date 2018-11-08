@@ -166,20 +166,20 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                   gfx_i8_kv_handler,   "pix_count" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                  gfx_i8_kv_handler,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                  gfx_i8_kv_handler,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0,            gfx_i8_kv_handler,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0,               gfx_i8_kv_handler,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                     gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,                      gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,              gfx_i8_kv_handler,   "gfx_frame_rate" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, 0,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "pix_count" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_sub_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_master_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "pix_size_x" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "pix_size_y" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_interleave_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_transpose" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_hsfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,     gfx_i8_kv_handler,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0,    gfx_i8_kv_handler,   "gfx_varray_length" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_varray_start" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_varray_length" },
 };
 
 void gfx_v_init( void ){
