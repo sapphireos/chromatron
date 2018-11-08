@@ -66,7 +66,7 @@ KV_SECTION_META kv_meta_t hal_wifi_kv[] = {
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
 
-static uint16_t get_dma_bytes( void ){
+static volatile uint16_t get_dma_bytes( void ){
 
     ATOMIC;
     uint16_t temp = sizeof(rx_dma_buffer) - __HAL_DMA_GET_COUNTER( &wifi_dma );
@@ -175,7 +175,6 @@ void hal_wifi_v_init( void ){
                      0 );
 }
 
-
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -199,26 +198,26 @@ PT_BEGIN( pt );
         }
         else if( rx_dma_buffer[0] == WIFI_COMM_DATA ){
 
-            thread_v_set_alarm( tmr_u32_get_system_time_us() + WIFI_THREAD_TIMEOUT );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_THREAD_TIMEOUT );
             THREAD_WAIT_WHILE( pt, buffer_busy && thread_b_alarm_set() );
 
             // check for timeout
             if( thread_b_alarm() ){
 
-                trace_printf("timeout\r\n");
+                trace_printf("timeout1\r\n");
 
                 timeouts++;
                 continue;
             }
 
-            thread_v_set_alarm( tmr_u32_get_system_time_us() + WIFI_THREAD_TIMEOUT );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_THREAD_TIMEOUT );
             THREAD_WAIT_WHILE( pt, ( get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 ) ) &&
                                    ( thread_b_alarm_set() ) );
 
             // check for timeout
             if( thread_b_alarm() ){
 
-                trace_printf("timeout\r\n");
+                trace_printf("timeout2\r\n");
 
                 timeouts++;
                 continue;
@@ -226,14 +225,14 @@ PT_BEGIN( pt );
 
             header = (wifi_data_header_t *)&rx_dma_buffer[1];
 
-            thread_v_set_alarm( tmr_u32_get_system_time_us() + WIFI_THREAD_TIMEOUT );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_THREAD_TIMEOUT );
             THREAD_WAIT_WHILE( pt, ( get_dma_bytes() < ( sizeof(wifi_data_header_t) + 1 + header->len ) ) &&
                                    ( thread_b_alarm_set() ) );            
             
             // check for timeout
             if( thread_b_alarm() ){
 
-                trace_printf("timeout\r\n");
+                trace_printf("timeout3\r\n");
 
                 timeouts++;
                 continue;

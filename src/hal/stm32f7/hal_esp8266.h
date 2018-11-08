@@ -35,8 +35,12 @@
 #define WIFI_DMA_CHANNEL		DMA_CHANNEL_5
 
 #define WIFI_USART              USART6
-#define WIFI_THREAD_TIMEOUT 	5000
 
+#ifdef DEBUG
+#define WIFI_THREAD_TIMEOUT 	5000 // trace_prints will stall threads
+#else
+#define WIFI_THREAD_TIMEOUT 	50
+#endif
 
 void hal_wifi_v_init( void );
 
