@@ -25,6 +25,9 @@
 
 #include "pix_modes.h"
 
+#define PIX0_SPI SPI1
+#define PIX1_SPI SPI2
+
 void pixel_v_init( void );
 
 void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b );

@@ -33,14 +33,10 @@
 
 #include "pixel.h"
 #include "graphics.h"
-#include "esp8266.h"
 #include "vm.h"
 #include "timesync.h"
 #include "kvdb.h"
 #include "hash.h"
-// #include "vm_wifi_cmd.h"
-// #include "vm_sync.h"
-
 
 
 static uint16_t hs_fade = 1000;
