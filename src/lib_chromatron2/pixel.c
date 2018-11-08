@@ -58,23 +58,23 @@ static uint8_t dither_cycle;
 static uint8_t output0[MAX_PIXELS * MAX_BYTES_PER_PIXEL];
 
 
-static uint8_t bytes_per_pixel( void ){
+// static uint8_t bytes_per_pixel( void ){
 
-    if( pix_mode == PIX_MODE_APA102 ){
+//     if( pix_mode == PIX_MODE_APA102 ){
 
-        return 4; // APA102
-    }
-    else if( pix_mode == PIX_MODE_WS2811 ){
+//         return 4; // APA102
+//     }
+//     else if( pix_mode == PIX_MODE_WS2811 ){
 
-        return 3; // WS2811
-    }
-    else if( pix_mode == PIX_MODE_SK6812_RGBW ){
+//         return 3; // WS2811
+//     }
+//     else if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
-        return 4; // SK6812 RGBW
-    }
+//         return 4; // SK6812 RGBW
+//     }
 
-    return 3; // WS2801 and others
-}
+//     return 3; // WS2801 and others
+// }
 
 
 static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
@@ -262,13 +262,18 @@ void pixel_v_init( void ){
     pix_spi1.Init = spi_init;
     HAL_SPI_Init( &pix_spi1 );    
 
-    uint8_t data = 0x43;
+    // uint8_t data = 0x43;
 
-    HAL_SPI_Transmit( &pix_spi0, &data, sizeof(data), 100 );
+    // HAL_SPI_Transmit( &pix_spi0, &data, sizeof(data), 100 );
 
-    HAL_SPI_Transmit( &pix_spi1, &data, sizeof(data), 100 );
+    // HAL_SPI_Transmit( &pix_spi1, &data, sizeof(data), 100 );
 
+    memset(array_r, 0xff, sizeof(array_r));
 
+    setup_pixel_buffer(output0, sizeof(output0));
+
+    HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
+    HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
 
     pixel_v_enable();
 }

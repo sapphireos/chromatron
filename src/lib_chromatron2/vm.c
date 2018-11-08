@@ -300,7 +300,6 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
 void vm_v_init( void ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){

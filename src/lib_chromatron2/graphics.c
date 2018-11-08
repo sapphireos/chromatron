@@ -202,6 +202,8 @@ void gfx_v_init( void ){
 
     param_error_check();
 
+    gfxlib_v_init();
+
     pixel_v_init();
 
 
