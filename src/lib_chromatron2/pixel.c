@@ -209,25 +209,30 @@ void pixel_v_init( void ){
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;   
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
     GPIO_InitStruct.Pin = PIX_CLK_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_CLK_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_GPIO_Port, PIX_CLK_Pin, GPIO_PIN_SET);
 
     GPIO_InitStruct.Pin = PIX_DAT_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_DAT_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_GPIO_Port, PIX_DAT_Pin, GPIO_PIN_SET);
 
     GPIO_InitStruct.Pin = PIX_CLK2_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_CLK2_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK2_GPIO_Port, PIX_CLK2_Pin, GPIO_PIN_SET);
 
     GPIO_InitStruct.Pin = PIX_DAT2_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_DAT2_GPIO_Port, &GPIO_InitStruct);
-    
+    HAL_GPIO_WritePin(PIX_DAT2_GPIO_Port, PIX_DAT2_Pin, GPIO_PIN_SET);
+
 
     pix_spi0.Instance = PIX0_SPI;
     pix_spi1.Instance = PIX1_SPI;
