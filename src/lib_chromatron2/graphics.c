@@ -263,76 +263,13 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-//     static uint32_t last_param_sync;
-//     static uint8_t flags;
+    while(1){
 
-//     // wait until wifi is attached before starting up pixel driver
-//     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
-//     param_error_check();  
-
-
-//     while(1){
-
-//         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && 
-//                                ( tmr_u32_elapsed_time_ms( last_param_sync ) < PARAMS_TIMER_RATE ) );
-
-//         ATOMIC;
-//         flags = run_flags;
-//         run_flags = 0;
-//         END_ATOMIC;
-
-//         if( flags & FLAG_RUN_VM_LOOP ){
-
-//             // check if vm is running
-//             if( !vm_b_running() ){
-
-//                 goto end;
-//             }
-
-//             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-//             send_run_vm_cmd();
-
-//             if( vm_b_is_vm_running( 0 ) ){
-                
-//                 vm0_frame_number++;
-//                 last_vm0_frame_ts = time_u32_get_network_time();
-//             }
-//         }
-
-// end:
-//         if( flags & FLAG_RUN_FADER ){   
-
-//             if( pixel_u8_get_mode() != PIX_MODE_OFF ){
-                
-//                 THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-//                 send_run_fader_cmd();
-//             }
-//         }
-
-//         if( ( flags & FLAG_RUN_PARAMS ) ||
-//             ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
-
-//             THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-//             send_params( FALSE );
-
-//             // run DB transfer
-//             run_xfer = TRUE;
-//             for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-//                 if( subscribed_keys[i].hash == 0 ){
-
-//                    continue;
-//                 }
-                    
-//                 subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
-//             }   
-
-//             last_param_sync = tmr_u32_get_system_time_ms();
-//         }
-
-//         THREAD_YIELD( pt ); 
-//     }
+        thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
+        THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
+        
+        gfx_v_process_faders();
+    }
 
 PT_END( pt );
 }

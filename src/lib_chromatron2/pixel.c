@@ -249,13 +249,55 @@ void DMA2_Stream3_IRQHandler(void){
 
 void SPI1_IRQHandler(void){
 
-  HAL_SPI_IRQHandler( &pix_spi0 );
+    HAL_SPI_IRQHandler( &pix_spi0 );
 }
+
+
+#define PIX_SIGNAL_0            SIGNAL_SYS_4
 
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
-    trace_printf("TX complete\r\n");
+    thread_v_signal( PIX_SIGNAL_0 );
 }
+
+
+PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+
+        uint16_t *h = gfx_u16p_get_hue();
+        uint16_t *s = gfx_u16p_get_sat();
+        uint16_t *v = gfx_u16p_get_val();
+        uint16_t r, g, b, w;
+
+        for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
+
+            gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
+
+            array_r[i] = r >> 8;
+            array_g[i] = g >> 8;
+            array_b[i] = b >> 8;
+            array_misc.white[i] = w >> 8;
+
+            h++;
+            s++;
+            v++;
+        }
+
+        setup_pixel_buffer(output0, sizeof(output0));
+        HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
+
+
+        THREAD_YIELD( pt ); 
+    }
+
+PT_END( pt );
+}
+
 
 void pixel_v_init( void ){
 
@@ -362,19 +404,27 @@ void pixel_v_init( void ){
     uint8_t zeros[64];
     memset(zeros, 0, sizeof(zeros));
 
-    setup_pixel_buffer(output0, sizeof(output0));
+    // setup_pixel_buffer(output0, sizeof(output0));
 
 
-    HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
+    // HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
     // HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
     // HAL_SPI_Transmit( &pix_spi0, output0, 12 * 8, 100 );
-    HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
+    // HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
     // HAL_DMA_PollForTransfer( &pix0_dma, HAL_DMA_FULL_TRANSFER, 1000 );
 
     // HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
     // HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
 
     pixel_v_enable();
+
+    thread_t_create( pixel_thread,
+                     PSTR("pixel"),
+                     0,
+                     0 );
+
+
+    thread_v_signal( PIX_SIGNAL_0 );
 }
 
 bool pixel_b_enabled( void ){
