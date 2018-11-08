@@ -32,5 +32,12 @@
 #define PIX_MODE_SK6812_RGBW    5
 #define PIX_MODE_ANALOG         128
 
+#define PIX_ORDER_RGB       0
+#define PIX_ORDER_RBG       1
+#define PIX_ORDER_GRB       2
+#define PIX_ORDER_BGR       3
+#define PIX_ORDER_BRG       4
+#define PIX_ORDER_GBR       5
+
 
 #endif

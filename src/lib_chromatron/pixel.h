@@ -27,14 +27,6 @@
 #include "keyvalue.h"
 #include "pix_modes.h"
 
-#define PIX_ORDER_RGB       0
-#define PIX_ORDER_RBG       1
-#define PIX_ORDER_GRB       2
-#define PIX_ORDER_BGR       3
-#define PIX_ORDER_BRG       4
-#define PIX_ORDER_GBR       5
-
-
 
 #define PIX_DMA_BUF_SIZE 192
 
