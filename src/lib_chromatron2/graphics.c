@@ -258,16 +258,25 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     update_vm_timer();
 }
 
+gfx_pixel_array_t master_array;
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+        
+    master_array.count = 8;
+
+    gfx_v_init_pixel_arrays(&master_array, 1);
+    gfx_v_set_master_dimmer( 65535 );
+    gfx_v_array_move( 0, PIX_ATTR_VAL, 12000 );
+
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
         
+        gfx_v_array_add( 0, PIX_ATTR_HUE, 100 );
+
         gfx_v_process_faders();
     }
 
