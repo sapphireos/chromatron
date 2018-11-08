@@ -188,29 +188,29 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
 
             // ws2811 bitstream lookup
 
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][0] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][1] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][2] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][3] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data0][0] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data0][1] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data0][2] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data0][3] );
 
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][0] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][1] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][2] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][3] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data1][0] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data1][1] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data1][2] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data1][3] );
 
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][0] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][1] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][2] );
-            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][3] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data2][0] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data2][1] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data2][2] );
+            buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data2][3] );
 
             if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
                 uint8_t white = array_misc.white[i];
 
-                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][0] );
-                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][1] );
-                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][2] );
-                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][3] );
+                buf[buf_index++] = pgm_read_byte( &ws2811_lookup[white][0] );
+                buf[buf_index++] = pgm_read_byte( &ws2811_lookup[white][1] );
+                buf[buf_index++] = pgm_read_byte( &ws2811_lookup[white][2] );
+                buf[buf_index++] = pgm_read_byte( &ws2811_lookup[white][3] );
             }
         }
         else{
@@ -220,6 +220,8 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
             buf[buf_index++] = data2;
         }
     }
+
+    hal_cpu_v_clean_d_cache();
 
     return buf_index;
 }
@@ -240,6 +242,8 @@ void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
 void pixel_v_init( void ){
 
     pix_mode = PIX_MODE_SK6812_RGBW;
+
+    __HAL_RCC_DMA2_CLK_ENABLE();
 
     __HAL_RCC_SPI1_CLK_ENABLE();
     __HAL_RCC_SPI2_CLK_ENABLE();
@@ -315,6 +319,8 @@ void pixel_v_init( void ){
     pix0_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
     pix0_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
+    HAL_DMA_Init( &pix0_dma );
+
     __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
 
     // uint8_t data = 0x43;
@@ -328,7 +334,7 @@ void pixel_v_init( void ){
     array_g[3] = 0xff;
     array_b[4] = 0xff;
 
-    uint8_t zeros[32];
+    uint8_t zeros[64];
     memset(zeros, 0, sizeof(zeros));
 
     setup_pixel_buffer(output0, sizeof(output0));
@@ -337,10 +343,11 @@ void pixel_v_init( void ){
     HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
     // HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
     // HAL_SPI_Transmit( &pix_spi0, output0, 12 * 8, 100 );
-    HAL_SPI_Transmit_DMA( &pix_spi0, output0, 12 * 8 );
+    HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
+    // HAL_DMA_PollForTransfer( &pix0_dma, HAL_DMA_FULL_TRANSFER, 1000 );
 
     // HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
-    HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
+    // HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
 
     pixel_v_enable();
 }
