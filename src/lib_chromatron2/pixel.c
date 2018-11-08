@@ -37,7 +37,7 @@
 
 #include <math.h>
 
-#define MAX_BYTES_PER_PIXEL 4
+#define MAX_BYTES_PER_PIXEL 16
 
 static bool pix_dither;
 static uint8_t pix_mode;
@@ -57,7 +57,7 @@ static uint8_t dither_cycle;
 
 static uint8_t output0[MAX_PIXELS * MAX_BYTES_PER_PIXEL];
 
-static const uint8_t ws2811_lookup[256][3] = {
+static const uint8_t ws2811_lookup[256][4] = {
     #include "ws2811_lookup.txt"
 };
 
@@ -69,11 +69,11 @@ static uint8_t bytes_per_pixel( void ){
     }
     else if( pix_mode == PIX_MODE_WS2811 ){
 
-        return 9; // WS2811
+        return 12; // WS2811
     }
     else if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
-        return 12; // SK6812 RGBW
+        return 16; // SK6812 RGBW
     }
 
     return 3; // WS2801 and others
@@ -96,7 +96,7 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
         return 0;
     }
 
-    uint8_t buf_index = 0;
+    uint16_t buf_index = 0;
 
     uint8_t r, g, b, dither;
     uint8_t rd, gd, bd;
@@ -186,14 +186,17 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][0] );
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][1] );
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][2] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data0][3] );
 
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][0] );
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][1] );
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][2] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data1][3] );
 
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][0] );
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][1] );
             buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][2] );
+            buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[data2][3] );
 
             if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
@@ -202,6 +205,7 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
                 buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][0] );
                 buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][1] );
                 buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][2] );
+                buf[buf_index++] = ~pgm_read_byte( &ws2811_lookup[white][3] );
             }
         }
         else{
