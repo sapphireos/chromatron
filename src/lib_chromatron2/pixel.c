@@ -203,6 +203,8 @@ void pixel_v_init( void ){
 
     pix_mode = PIX_MODE_APA102;
 
+    __HAL_RCC_SPI1_CLK_ENABLE();
+    __HAL_RCC_SPI2_CLK_ENABLE();
 
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;   
@@ -225,6 +227,10 @@ void pixel_v_init( void ){
     GPIO_InitStruct.Pin = PIX_DAT2_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_DAT2_GPIO_Port, &GPIO_InitStruct);
+    
+
+    pix_spi0.Instance = PIX0_SPI;
+    pix_spi1.Instance = PIX1_SPI;
 
     SPI_InitTypeDef spi_init;
     spi_init.Mode               = SPI_MODE_MASTER;
@@ -251,6 +257,11 @@ void pixel_v_init( void ){
     pix_spi1.Init = spi_init;
     HAL_SPI_Init( &pix_spi1 );    
 
+    uint8_t data = 0x43;
+
+    HAL_SPI_Transmit( &pix_spi0, &data, sizeof(data), 100 );
+
+    HAL_SPI_Transmit( &pix_spi1, &data, sizeof(data), 100 );
 
 
 
