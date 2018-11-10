@@ -479,7 +479,7 @@ typedef struct{
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
-
+    
     if( state->handle > 0 ){
 
         mem2_v_free( state->handle );

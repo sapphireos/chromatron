@@ -2862,7 +2862,7 @@ class Builder(object):
         stream += struct.pack('<L', DATA_MAGIC)
 
         addr = -1
-        for var in self.data_table:
+        for var in sorted(self.data_table, key=lambda a: a.addr):
             if var.addr <= addr:
                 continue
 
@@ -2921,7 +2921,6 @@ class Builder(object):
 
         # add meta data to end of stream
         stream += meta_data
-
         
         # attach hash of entire file
         file_hash = catbus_string_hash(stream)
@@ -2934,9 +2933,6 @@ class Builder(object):
                 f.write(stream)
 
         self.stream = stream
-
-        print prog_len
-        print header
 
         return stream
 
