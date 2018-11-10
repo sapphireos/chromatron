@@ -2935,6 +2935,9 @@ class Builder(object):
 
         self.stream = stream
 
+        print prog_len
+        print header
+
         return stream
 
 
