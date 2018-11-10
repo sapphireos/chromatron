@@ -118,7 +118,6 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &pix_transpose,               0,   "gfx_transpose" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     0,   "gfx_hsfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      0,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              0,   "gfx_frame_rate" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,   "gfx_dimmer_curve" },
     
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,   "gfx_varray_start" },
@@ -258,6 +257,12 @@ static void param_error_check( void ){
     }
 }
 
+void gfx_v_set_vm_frame_rate( uint16_t frame_rate ){
+
+    gfx_frame_rate = frame_rate;
+
+    param_error_check();
+}
 
 uint16_t gfx_u16_get_vm_frame_rate( void ){
 
@@ -1595,7 +1600,7 @@ void gfx_v_process_faders( void ){
 void gfxlib_v_init( void ){
 
     param_error_check();
-pix_count = MAX_PIXELS;
+
     compute_dimmer_lookup();
 
     // initialize pixel arrays to defaults

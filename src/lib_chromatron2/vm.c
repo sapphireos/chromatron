@@ -48,6 +48,8 @@ static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_total_size;
 
+static uint16_t update_frame_rate;
+
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -56,12 +58,22 @@ int8_t vm_i8_kv_handler(
 
     if( op == KV_OP_SET ){
 
+        if( hash == __KV__gfx_frame_rate ){
+
+            gfx_v_set_vm_frame_rate( *(uint16_t *)data );
+
+            update_frame_rate = 0xffff;
+        }
     }
     else if( op == KV_OP_GET ){
 
         if( hash == __KV__vm_isa ){
 
             *(uint8_t *)data = VM_ISA_VERSION;
+        }
+        else if( hash == __KV__gfx_frame_rate ){
+
+            *(uint16_t *)data = gfx_u16_get_vm_frame_rate();
         }
     }
 
@@ -105,6 +117,8 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_total_size,        0,                  "vm_total_size" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
+
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    0,                     vm_i8_kv_handler,   "gfx_frame_rate" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -487,7 +501,15 @@ PT_BEGIN( pt );
     
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
-        TMR_WAIT( pt, 1000 );
+        thread_v_set_alarm( thread_u32_get_alarm() + gfx_u16_get_vm_frame_rate() );
+        THREAD_WAIT_WHILE( pt, ( ( update_frame_rate & ( 1 << state->vm_id ) ) == 0 ) && thread_b_alarm_set() );
+
+        if( update_frame_rate & ( 1 << state->vm_id ) ){
+
+            update_frame_rate &= ~( 1 << state->vm_id );
+        }
+
+        THREAD_YIELD( pt );
     }    
 
 // exit:
