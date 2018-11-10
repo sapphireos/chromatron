@@ -45,6 +45,7 @@
 #define MAX_PIXELS              1024
 #define FADER_RATE              20
 #define USE_GFX_LIB
+#define GFX_LIB_KV_LINKAGE
 
 // VM config
 // #define VM_TARGET_ESP

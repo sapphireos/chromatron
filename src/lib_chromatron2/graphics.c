@@ -39,165 +39,27 @@
 #include "hash.h"
 
 
-// static uint16_t hs_fade = 1000;
-// static uint16_t v_fade = 1000;
-// static uint16_t gfx_master_dimmer = 65535;
-// static uint16_t gfx_sub_dimmer = 65535;
-// static uint16_t pix_count;
-// static uint16_t pix_size_x;
-// static uint16_t pix_size_y;
-// static bool gfx_interleave_x;
-// static bool gfx_transpose;
-// static uint16_t gfx_frame_rate = 100;
-// static uint8_t gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
-
-// static uint16_t gfx_virtual_array_start;
-// static uint16_t gfx_virtual_array_length;
-
-// static bool pixel_transfer_enable = TRUE;
-
-// static volatile uint8_t run_flags;
-// #define FLAG_RUN_PARAMS         0x01
-// #define FLAG_RUN_VM_LOOP        0x02
-// #define FLAG_RUN_FADER          0x04
-
-// static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
 static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
-// static uint8_t init_vm;
 
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
-
-// static uint16_t calc_vm_timer( uint32_t ms ){
-
-//     return ( ms * 31250 ) / 1000;
-// }
-
-// static void update_vm_timer( void ){
-
-//     uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
-
-//     if( new_timer != vm_timer_rate ){
-
-//         ATOMIC;
-//         vm_timer_rate = new_timer;
-
-//         // immediately update timer so we don't have to wait for 
-//         // current frame to complete.  this speeds up the response if
-//         // we're going from a really slow to a really fast rate.
-//         // GFX_TIMER.CCB = GFX_TIMER.CNT + vm_timer_rate;
-
-//         END_ATOMIC;
-//     }
-// }
-
-// static void param_error_check( void ){
-
-//     // error check
-//     if( pix_count > MAX_PIXELS ){
-
-//         pix_count = MAX_PIXELS;
-//     }
-//     else if( pix_count == 0 ){
-
-//         // this is necessary to prevent divide by 0 errors.
-//         // also, 0 pixels doesn't really make sense in a
-//         // pixel graphics library, does it?
-//         pix_count = 1;
-//     }
-
-//     if( ( (uint32_t)pix_size_x * (uint32_t)pix_size_y ) > pix_count ){
-
-//         pix_size_x = pix_count;
-//         pix_size_y = 1;
-//     }
-
-//     if( pix_size_x > pix_count ){
-
-//         pix_size_x = 1;
-//     }
-
-//     if( pix_size_y > pix_count ){
-
-//         pix_size_y = 1;
-//     }
-
-//     if( pix_count > 0 ){
-
-//         if( pix_size_x == 0 ){
-
-//             pix_size_x = 1;
-//         }
-
-//         if( pix_size_y == 0 ){
-
-//             pix_size_y = 1;
-//         }
-//     }
-
-//     if( gfx_frame_rate < 10 ){
-
-//         gfx_frame_rate = 10;
-//     }
-
-//     if( gfx_dimmer_curve < 8 ){
-
-//         gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
-//     }
-// }
-
-
-int8_t gfx_i8_kv_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len )
-{
-
-    if( op == KV_OP_SET ){
-
-        // send to gfx lib
-    }
-
-    return 0;
-}
-
-KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "pix_count" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_frame_rate" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_dimmer_curve" },
-    
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, 0, gfx_i8_kv_handler,   "gfx_varray_length" },
-};
 
 void gfx_v_init( void ){
 
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
         // override size settings
-        // pix_count = 1;
-        // pix_size_x = 1;
-        // pix_size_y = 1;
+        gfx_v_set_pix_count( 1 );
+        gfx_v_set_size_x( 1 );
+        gfx_v_set_size_y( 1 );
     }
-
-    // param_error_check();
 
     gfxlib_v_init();
 
     pixel_v_init();
-
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
@@ -277,8 +139,6 @@ PT_END( pt );
 }
 
 void gfx_v_init_vm( uint8_t vm_id ){
-
-    // init_vm |= ( 1 << vm_id );
 
     if( vm_id == 0 ){
 
