@@ -136,12 +136,3 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-void gfx_v_init_vm( uint8_t vm_id ){
-
-    if( vm_id == 0 ){
-
-        vm0_frame_number = 0;
-    }
-}
-

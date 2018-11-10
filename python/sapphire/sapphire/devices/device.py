@@ -1012,6 +1012,7 @@ class Device(object):
             17: "kv_rx_cache",
             18: "kv_db_entry",
             19: "subscribed_keys",
+            20: "vm_data",
         }
 
         total_size = 0

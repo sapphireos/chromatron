@@ -36,6 +36,4 @@ uint32_t gfx_u32_get_frame_ts( void );
 void gfx_v_set_frame_number( uint16_t frame );
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts );
 
-void gfx_v_init_vm( uint8_t vm_id );
-
 #endif

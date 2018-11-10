@@ -535,11 +535,6 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     return 0;    
 }
 
-void gfx_v_sync_params( void ){
-
-    send_params( TRUE );    
-}
-
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {

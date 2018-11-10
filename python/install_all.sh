@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cd sapphire
 python setup.py install
 

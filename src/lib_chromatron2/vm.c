@@ -200,33 +200,288 @@ static bool is_vm_running( uint8_t vm_id ){
 }
 
 
+static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle ){
+
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+    catbus_hash_t32 link_tag = get_link_tag( vm_id );
+
+    *handle = -1;
+    
+
+    // open file
+    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
+
+    if( f < 0 ){
+
+        log_v_debug_P( PSTR("VM file not found") );
+
+        return -1;
+    }
+
+    log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
+
+    // file found, get program size from file header
+    int32_t vm_size;
+    fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
+
+    // sanity check
+    if( vm_size > VM_MAX_IMAGE_SIZE ){
+
+        goto error;
+    }
+
+    fs_v_seek( f, 0 );    
+    int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
+
+    uint32_t computed_file_hash = hash_u32_start();
+
+    // check file hash
+    while( check_len > 0 ){
+
+        uint8_t chunk[512];
+
+        uint16_t copy_len = sizeof(chunk);
+
+        if( copy_len > check_len ){
+
+            copy_len = check_len;
+        }
+
+        int16_t read = fs_i16_read( f, chunk, copy_len );
+
+        if( read < 0 ){
+
+            // this should not happen. famous last words.
+            goto error;
+        }
+
+        // update hash
+        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
+        
+        check_len -= read;
+    }
+
+    // read file hash
+    uint32_t file_hash = 0;
+    fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
+
+    // check hashes
+    if( file_hash != computed_file_hash ){
+
+        log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
+        goto error;
+    }
+
+    // read header
+    fs_v_seek( f, sizeof(vm_size) );    
+    vm_program_header_t header;
+    fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
+
+    vm_state_t state;
+
+    int8_t status = vm_i8_load_program( VM_LOAD_FLAGS_CHECK_HEADER, (uint8_t *)&header, sizeof(header), &state );
+
+    if( status < 0 ){
+
+        log_v_debug_P( PSTR("VM load error: %d"), status );
+        goto error;
+    }
+
+    // seek back to program start
+    fs_v_seek( f, sizeof(vm_size) );
+
+    // allocate memory
+    *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
+
+    if( *handle < 0 ){
+
+        goto error;
+    }
+
+    // read file
+    int16_t read = fs_i16_read( f, mem2_vp_get_ptr( *handle ), vm_size );
+
+    if( read < 0 ){
+
+        // this should not happen. famous last words.
+        goto error;
+    }
+
+    // read magic number
+    uint32_t meta_magic = 0;
+    fs_i16_read( f, (uint8_t *)&meta_magic, sizeof(meta_magic) );
+
+    if( meta_magic == META_MAGIC ){
+
+        char meta_string[KV_NAME_LEN];
+        memset( meta_string, 0, sizeof(meta_string) );
+
+        // skip first string, it's the script name
+        fs_v_seek( f, fs_i32_tell( f ) + sizeof(meta_string) );
+
+        // load meta names to database lookup
+        while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
+        
+            kvdb_v_set_name( meta_string );
+            
+            memset( meta_string, 0, sizeof(meta_string) );
+        }
+    }
+    else{
+
+        log_v_debug_P( PSTR("Meta read failed") );
+
+        goto error;
+    }
+
+
+    catbus_meta_t meta;
+    
+    // set up additional DB entries
+    fs_v_seek( f, sizeof(vm_size) + state.db_start );
+
+    for( uint8_t i = 0; i < state.db_count; i++ ){
+
+        fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
+
+        kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
+        kvdb_v_set_tag( meta.hash, 1 << vm_id );      
+    }   
+
+
+    // read through database keys
+    uint32_t read_key_hash = 0;
+
+    fs_v_seek( f, sizeof(vm_size) + state.read_keys_start );
+
+    for( uint16_t i = 0; i < state.read_keys_count; i++ ){
+
+        fs_i16_read( f, (uint8_t *)&read_key_hash, sizeof(uint32_t) );
+    }
+    
+
+    // check published keys and add to DB
+    fs_v_seek( f, sizeof(vm_size) + state.publish_start );
+
+    for( uint8_t i = 0; i < state.publish_count; i++ ){
+
+        vm_publish_t publish;
+
+        fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
+
+        kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
+        kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
+    }   
+
+    // check write keys
+    fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
+
+    for( uint8_t i = 0; i < state.write_keys_count; i++ ){
+
+        uint32_t write_hash = 0;
+        fs_i16_read( f, (uint8_t *)&write_hash, sizeof(write_hash) );
+
+        if( write_hash == 0 ){
+
+            continue;
+        }
+
+        // check if writing to restricted key
+        for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
+
+            uint32_t restricted_key = 0;
+            memcpy( (uint8_t *)&restricted_key, &restricted_keys[j], sizeof(restricted_key) );
+
+            if( restricted_key == 0 ){
+
+                continue;
+            }   
+
+            // check for match
+            if( restricted_key == write_hash ){
+
+                vm_status[vm_id] = VM_STATUS_RESTRICTED_KEY;
+
+                log_v_debug_P( PSTR("Restricted key: %lu"), write_hash );
+
+                goto error;
+            }
+        }
+    }
+
+    // set up links
+    fs_v_seek( f, sizeof(vm_size) + state.link_start );
+
+    for( uint8_t i = 0; i < state.link_count; i++ ){
+
+        link_t link;
+
+        fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
+
+        if( link.send ){
+
+            catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag, 0 );
+        }
+        else{
+
+            catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag, 0 );
+        }
+    }
+
+
+    fs_f_close( f );
+
+    vm_status[vm_id]        = VM_STATUS_READY;
+    vm_loop_time[vm_id]     = 0;
+    vm_thread_time[vm_id]   = 0;
+    vm_max_cycles[vm_id]    = 0;
+
+    log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
+
+    return 0;
+
+error:
+    
+    if( *handle > 0 ){
+
+        mem2_v_free( *handle );
+    }
+
+    fs_f_close( f );
+    return -1;
+}
+
+
 typedef struct{
     uint8_t vm_id;
     char program_fname[FFS_FILENAME_LEN];
+    mem_handle_t handle;
 } vm_thread_state_t;
 
 
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+
+    if( state->handle > 0 ){
+
+        mem2_v_free( state->handle );
+    }
     
+    vm_loop_time[state->vm_id]     = 0;
+    vm_thread_time[state->vm_id]   = 0;
+    vm_max_cycles[state->vm_id]    = 0;
+
     get_program_fname( state->vm_id, state->program_fname );
 
     trace_printf( "Starting VM thread: %s\r\n", state->program_fname );
 
-    // open file
-    file_t f = fs_f_open( state->program_fname, FS_MODE_READ_ONLY );
-
-    if( f < 0 ){
-
-        log_v_debug_P( PSTR("VM file not found") );
-        goto exit;
-    }
-
     // reset VM data
     reset_published_data( state->vm_id );
 
-    log_v_debug_P( PSTR("Loading VM: %d"), state->vm_id );
+    load_vm( state->vm_id, state->program_fname, &state->handle );
+
+
 
     vm_status[state->vm_id] = VM_STATUS_OK;
     
@@ -235,8 +490,13 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 );
     }    
 
-exit:
+// exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
+
+    if( state->handle > 0 ){
+
+        mem2_v_free( state->handle );
+    }
 
     // reset VM data
     reset_published_data( state->vm_id );
