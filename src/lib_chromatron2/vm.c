@@ -30,6 +30,7 @@
 #include "graphics.h"
 #include "hash.h"
 #include "kvdb.h"
+#include "config.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -470,6 +471,8 @@ typedef struct{
     uint8_t vm_id;
     char program_fname[FFS_FILENAME_LEN];
     mem_handle_t handle;
+    int8_t vm_return;
+    vm_state_t vm_state;
 } vm_thread_state_t;
 
 
@@ -495,7 +498,35 @@ PT_BEGIN( pt );
 
     load_vm( state->vm_id, state->program_fname, &state->handle );
 
+    state->vm_return = vm_i8_load_program( 0, mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
 
+    if( state->vm_return ){
+
+        log_v_debug_P( PSTR("VM load fail: %d"), state->vm_return );
+    }
+
+    // init RNG seed to device ID
+    uint64_t rng_seed;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &rng_seed );
+
+    // make sure seed is never 0 (otherwise RNG will not work)
+    if( rng_seed == 0 ){
+
+        rng_seed = 1;
+    }
+
+    state->vm_state.rng_seed = rng_seed;
+
+    // init database
+    vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
+
+    // run VM init
+    state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+    if( state->vm_return ){
+
+        log_v_debug_P( PSTR("VM init fail: %d"), state->vm_return );
+    }
 
     vm_status[state->vm_id] = VM_STATUS_OK;
     
@@ -507,12 +538,32 @@ PT_BEGIN( pt );
         if( update_frame_rate & ( 1 << state->vm_id ) ){
 
             update_frame_rate &= ~( 1 << state->vm_id );
+            continue;
         }
+
+        uint32_t start = tmr_u32_get_system_time_us();
+
+        state->vm_return = vm_i8_run_loop( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+        if( state->vm_return == VM_STATUS_HALT ){
+
+            vm_status[state->vm_id] = VM_STATUS_HALT;
+        }
+        else if( state->vm_return < 0 ){
+
+            vm_status[state->vm_id] = state->vm_return;
+
+            trace_printf( "VM error: %d\r\n", state->vm_return );
+            goto exit;
+        }
+
+        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        vm_loop_time[state->vm_id] = elapsed;
 
         THREAD_YIELD( pt );
     }    
 
-// exit:
+exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
 
     if( state->handle > 0 ){
