@@ -69,7 +69,6 @@ void gfx_v_init( void ){
 
 bool gfx_b_running( void ){
 
-    // return pixel_transfer_enable;
     return TRUE;
 }
 
