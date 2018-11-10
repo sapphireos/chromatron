@@ -61,6 +61,7 @@ typedef struct{
     mem_type_t8 type;
     #ifdef ARM
     uint8_t padding_len;
+    uint16_t header_padding;
     #endif
     #ifdef ENABLE_RECORD_CREATOR
     uint16_t creator_address;
