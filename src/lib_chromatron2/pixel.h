@@ -24,9 +24,11 @@
 #define _PIXEL_H_
 
 #include "pix_modes.h"
+#include "threading.h"
 
 #define PIX0_SPI SPI1
 #define PIX1_SPI SPI2
+#define PIX_SIGNAL_0            SIGNAL_SYS_4
 
 void pixel_v_init( void );
 

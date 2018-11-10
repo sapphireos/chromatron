@@ -37,6 +37,12 @@
 
 #include <math.h>
 
+#define FADE_TIMER_VALUE            1 // 1 ms
+#define FADE_TIMER_VALUE_PIXIE      2 // Pixie needs at least 1 ms between frames
+#define FADE_TIMER_VALUE_WS2811     1 // 1 ms
+#define FADE_TIMER_LOW_POWER        20 // 20 ms
+
+
 static SPI_HandleTypeDef pix_spi0;
 static SPI_HandleTypeDef pix_spi1;
 static DMA_HandleTypeDef pix0_dma;
@@ -252,11 +258,16 @@ void SPI1_IRQHandler(void){
     HAL_SPI_IRQHandler( &pix_spi0 );
 }
 
-
-#define PIX_SIGNAL_0            SIGNAL_SYS_4
+static volatile uint16_t channels_complete;
 
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
+    if( hspi == &pix_spi0 ){
+
+        channels_complete |= 1;
+    }
+
+    // transfer complete
     thread_v_signal( PIX_SIGNAL_0 );
 }
 
@@ -265,32 +276,43 @@ PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    // signal transfer thread to start
+    thread_v_signal( PIX_SIGNAL_0 );
+    channels_complete = 0xffff;
+
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
-        uint16_t *h = gfx_u16p_get_hue();
-        uint16_t *s = gfx_u16p_get_sat();
-        uint16_t *v = gfx_u16p_get_val();
-        uint16_t r, g, b, w;
+        ATOMIC;
+        uint16_t temp_channels_complete = channels_complete;
+        channels_complete = 0;
+        END_ATOMIC;
 
-        for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
+        if( temp_channels_complete & 0x01 ){
 
-            gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
+            uint16_t *h = gfx_u16p_get_hue();
+            uint16_t *s = gfx_u16p_get_sat();
+            uint16_t *v = gfx_u16p_get_val();
+            uint16_t r, g, b, w;
 
-            array_r[i] = r >> 8;
-            array_g[i] = g >> 8;
-            array_b[i] = b >> 8;
-            array_misc.white[i] = w >> 8;
+            for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
 
-            h++;
-            s++;
-            v++;
+                gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
+
+                array_r[i] = r >> 8;
+                array_g[i] = g >> 8;
+                array_b[i] = b >> 8;
+                array_misc.white[i] = w >> 8;
+
+                h++;
+                s++;
+                v++;
+            }
+
+            setup_pixel_buffer(output0, sizeof(output0));
+            HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
         }
-
-        setup_pixel_buffer(output0, sizeof(output0));
-        HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
-
 
         THREAD_YIELD( pt ); 
     }
@@ -387,34 +409,7 @@ void pixel_v_init( void ){
     HAL_NVIC_SetPriority( SPI1_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( SPI1_IRQn );
 
-
     __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
-
-    // uint8_t data = 0x43;
-
-    // HAL_SPI_Transmit( &pix_spi0, &data, sizeof(data), 100 );
-
-    // HAL_SPI_Transmit( &pix_spi1, &data, sizeof(data), 100 );
-
-    memset(array_r, 0x11, sizeof(array_r));
-    array_r[2] = 0xff;
-    array_g[3] = 0xff;
-    array_b[4] = 0xff;
-
-    uint8_t zeros[64];
-    memset(zeros, 0, sizeof(zeros));
-
-    // setup_pixel_buffer(output0, sizeof(output0));
-
-
-    // HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
-    // HAL_SPI_Transmit( &pix_spi0, output0, sizeof(output0), 100 );
-    // HAL_SPI_Transmit( &pix_spi0, output0, 12 * 8, 100 );
-    // HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
-    // HAL_DMA_PollForTransfer( &pix0_dma, HAL_DMA_FULL_TRANSFER, 1000 );
-
-    // HAL_SPI_Transmit( &pix_spi1, output0, sizeof(output0), 100 );
-    // HAL_SPI_Transmit( &pix_spi0, zeros, sizeof(zeros), 100 );
 
     pixel_v_enable();
 
@@ -422,9 +417,6 @@ void pixel_v_init( void ){
                      PSTR("pixel"),
                      0,
                      0 );
-
-
-    thread_v_signal( PIX_SIGNAL_0 );
 }
 
 bool pixel_b_enabled( void ){
