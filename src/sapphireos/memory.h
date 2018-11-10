@@ -59,6 +59,9 @@ typedef struct{
 	uint16_t size;
 	mem_handle_t handle;
     mem_type_t8 type;
+    #ifdef ARM
+    uint8_t padding_len;
+    #endif
     #ifdef ENABLE_RECORD_CREATOR
     uint16_t creator_address;
     #endif

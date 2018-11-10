@@ -409,6 +409,12 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
 
     mem_handle_t handle = -1;
 
+    #ifdef ARM
+    uint8_t padding_len = 4 - ( ( sizeof(mem_block_header_t) + size + 1 ) % 4 );
+
+    size += padding_len;
+    #endif
+
     // check if there is free space available
     if( mem_rt_data.free_space < ( size + sizeof(mem_block_header_t) + 1 ) ){
 
@@ -445,6 +451,9 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
     header->size = size;
     header->handle = handle;
     header->type = type;
+    #ifdef ARM
+    header->padding_len = padding_len;
+    #endif
 
     #ifdef ENABLE_RECORD_CREATOR
     // notice we multiply the address by 2 (left shift 1) to get the byte address
@@ -687,7 +696,11 @@ uint16_t mem2_u16_get_size( mem_handle_t handle ){
 	// get pointer to the header
 	mem_block_header_t *header = handles[handle];
 
+    #ifdef ARM
+    uint16_t size = header->size - header->padding_len;
+    #else
     uint16_t size = header->size;
+    #endif
 
     MEM_END_ATOMIC;
 
