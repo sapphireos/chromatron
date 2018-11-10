@@ -314,7 +314,7 @@ PT_BEGIN( pt );
             HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
         }
 
-        THREAD_YIELD( pt ); 
+        TMR_WAIT( pt, 2 ); 
     }
 
 PT_END( pt );
