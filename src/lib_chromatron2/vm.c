@@ -35,6 +35,8 @@
 #include "vm_core.h"
 
 
+static thread_t vm_threads[VM_MAX_VMS];
+
 static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
 
@@ -105,8 +107,12 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
-
-static thread_t vm_thread;
+static const char* vm_names[VM_MAX_VMS] = {
+    "vm_0",
+    "vm_1",
+    "vm_2",
+    "vm_3",
+};
 
 // keys that we really don't want the VM be to be able to write to.
 // generally, these are going to be things that would allow it to 
@@ -123,7 +129,6 @@ static const PROGMEM uint32_t restricted_keys[] = {
     __KV__pix_mode,
     __KV__catbus_data_port,    
 };
-
 
 static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
@@ -160,31 +165,83 @@ static void reset_published_data( uint8_t vm_id ){
     catbus_v_purge_links( get_link_tag( vm_id ) );
 } 
 
-static file_t get_program_handle( catbus_hash_t32 hash ){
+static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
 
-    char program_fname[KV_NAME_LEN];
+    catbus_hash_t32 hash;
 
-    if( kv_i8_get( hash, program_fname, sizeof(program_fname) ) < 0 ){
+    if( vm_id == 0 ){
 
-        return -1;
+        hash = __KV__vm_prog;
     }
+    else if( vm_id == 1 ){
 
-    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
-
-    if( f < 0 ){
-
-        return -1;
+        hash = __KV__vm_prog_1;
     }
+    else if( vm_id == 2 ){
 
-    return f;
+        hash = __KV__vm_prog_2;
+    }
+    else if( vm_id == 3 ){
+
+        hash = __KV__vm_prog_3;
+    }
+    else{
+
+        ASSERT( FALSE );
+    }    
+
+    return kv_i8_get( hash, name, FFS_FILENAME_LEN );
 }
-
-
 
 
 static bool is_vm_running( uint8_t vm_id ){
 
     return ( vm_status[vm_id] >= VM_STATUS_OK ) && ( vm_status[vm_id] != VM_STATUS_HALT );
+}
+
+
+typedef struct{
+    uint8_t vm_id;
+    char program_fname[FFS_FILENAME_LEN];
+} vm_thread_state_t;
+
+
+PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+    
+    get_program_fname( state->vm_id, state->program_fname );
+
+    trace_printf( "Starting VM thread: %s\r\n", state->program_fname );
+
+    // open file
+    file_t f = fs_f_open( state->program_fname, FS_MODE_READ_ONLY );
+
+    if( f < 0 ){
+
+        log_v_debug_P( PSTR("VM file not found") );
+        goto exit;
+    }
+
+    // reset VM data
+    reset_published_data( state->vm_id );
+
+    log_v_debug_P( PSTR("Loading VM: %d"), state->vm_id );
+
+    vm_status[state->vm_id] = VM_STATUS_OK;
+    
+    while( vm_status[state->vm_id] == VM_STATUS_OK ){
+
+        TMR_WAIT( pt, 1000 );
+    }    
+
+exit:
+    trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
+
+    // reset VM data
+    reset_published_data( state->vm_id );
+    
+PT_END( pt );
 }
 
 
@@ -250,22 +307,34 @@ PT_BEGIN( pt );
 
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
-                // send_reset_message( i );
-                reset_published_data( i );
+                // verify thread exists
+                if( vm_threads[i] > 0 ){
+
+                    thread_v_restart( vm_threads[i] );
+                }
             }
 
             // Did VM that was not running just get told to start?
             // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) ){
 
-                // if( load_vm_wifi( i ) < 0 ){
+                vm_thread_state_t thread_state;
+                memset( &thread_state, 0, sizeof(thread_state) );
+                thread_state.vm_id = i;
 
-                //     vm_run[i] = FALSE;
+                vm_threads[i] = thread_t_create( THREAD_CAST(vm_thread),
+                                                 vm_names[i],
+                                                 &thread_state,
+                                                 sizeof(thread_state) );
 
-                //     log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
+                if( vm_threads[i] < 0 ){
 
-                //     goto error; 
-                // }
+                    vm_run[i] = FALSE;
+
+                    log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
+
+                    goto error; 
+                }
 
                 vm_status[i] = VM_STATUS_OK;
             }
@@ -273,8 +342,6 @@ PT_BEGIN( pt );
             else if( !vm_run[i] && is_vm_running( i ) ){
 
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
-                // send_reset_message( i );
-                reset_published_data( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
                 vm_loop_time[i]     = 0;
@@ -290,7 +357,7 @@ PT_BEGIN( pt );
         continue;
 
 
-    // error:
+    error:
 
         // longish delay after error to prevent swamping CPU trying
         // to reload a bad file.
@@ -315,10 +382,10 @@ void vm_v_init( void ){
                  PSTR("vm_loader"),
                  0,
                  0 );
-
-    vm_thread = -1;
 }
 
+
+// these are legacy controls from when we only had 1 VM
 void vm_v_start( void ){
 
     vm_run[0] = TRUE;
@@ -333,6 +400,9 @@ void vm_v_reset( void ){
 
     vm_reset[0] = TRUE;
 }
+
+
+
 
 bool vm_b_running( void ){
 
@@ -353,3 +423,4 @@ bool vm_b_is_vm_running( uint8_t i ){
 
     return is_vm_running( i );   
 }
+
