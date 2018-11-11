@@ -53,6 +53,7 @@ static DMA_HandleTypeDef pix0_dma;
 static bool pix_dither;
 static uint8_t pix_mode;
 
+static uint8_t pix_clock;
 static uint8_t pix_rgb_order;
 static uint8_t pix_apa102_dimmer = 31;
 
@@ -67,6 +68,42 @@ static union{
 static uint8_t dither_cycle;
 
 static uint8_t output0[MAX_PIXELS * MAX_BYTES_PER_PIXEL];
+
+
+int8_t pix_i8_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+
+    if( op == KV_OP_SET ){
+
+        if( hash == __KV__pix_apa102_dimmer ){
+
+            // bounds check the apa102 dimmer
+            if( pix_apa102_dimmer > 31 ){
+
+                pix_apa102_dimmer = 31;
+            }
+        }
+        else{
+
+            // reset pixel drivers
+            // pixel_v_init();
+        }
+    }
+
+    return 0;
+}
+
+KV_SECTION_META kv_meta_t pixel_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_rgb_order,       0,                    "pix_rgb_order" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST,                 &pix_dither,          0,                    "pix_dither" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
+};
 
 static const uint8_t ws2811_lookup[256][4] = {
     #include "ws2811_lookup.txt"
