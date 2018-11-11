@@ -264,6 +264,9 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
         }
     }
 
+    memset( &buf[buf_index], 0, 32 );
+    buf_index += 32;
+
     hal_cpu_v_clean_d_cache();
 
     return buf_index;
@@ -347,8 +350,8 @@ PT_BEGIN( pt );
                 v++;
             }
 
-            setup_pixel_buffer(output0, sizeof(output0));
-            HAL_SPI_Transmit_DMA( &pix_spi0, output0, 16 * gfx_u16_get_pix_count() );
+            uint16_t data_length = setup_pixel_buffer(output0, sizeof(output0));
+            HAL_SPI_Transmit_DMA( &pix_spi0, output0, data_length );
         }
 
         TMR_WAIT( pt, 2 ); 
