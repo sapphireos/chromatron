@@ -3,7 +3,7 @@
 # this script generates a rolling rainbow pattern
 
 # declare a global variable for current hue
-current_hue = Number()
+current_hue = Fixed16()
 
 # init - runs once when script is loaded
 def init():
@@ -22,7 +22,7 @@ def loop():
     current_hue += 0.005
 
     # declare a local variable
-    a = Number()
+    a = Fixed16()
     a = current_hue
 
     # loop over all pixels in array
