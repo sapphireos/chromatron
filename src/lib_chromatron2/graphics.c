@@ -42,7 +42,11 @@
 static uint16_t vm0_frame_number;
 static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
+static uint16_t vm_fader_time;
 
+KV_SECTION_META kv_meta_t gfx_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+};
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
@@ -123,7 +127,13 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
         
+        uint32_t start = tmr_u32_get_system_time_us();
+
         gfx_v_process_faders();
+
+        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+
+        vm_fader_time = elapsed;
     }
 
 PT_END( pt );

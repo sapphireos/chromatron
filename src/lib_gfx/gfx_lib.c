@@ -108,7 +108,7 @@ static uint8_t noise_table[NOISE_TABLE_SIZE];
 #ifdef GFX_LIB_KV_LINKAGE
 #include "keyvalue.h"
 
-KV_SECTION_META kv_meta_t gfx_info_kv[] = {
+KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_count,                   0,   "pix_count" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,   "gfx_sub_dimmer" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,   "gfx_master_dimmer" },
