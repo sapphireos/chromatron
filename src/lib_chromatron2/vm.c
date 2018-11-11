@@ -503,6 +503,8 @@ PT_BEGIN( pt );
     if( state->vm_return ){
 
         log_v_debug_P( PSTR("VM load fail: %d"), state->vm_return );
+
+        goto exit;
     }
 
     // init RNG seed to device ID
@@ -526,6 +528,8 @@ PT_BEGIN( pt );
     if( state->vm_return ){
 
         log_v_debug_P( PSTR("VM init fail: %d"), state->vm_return );
+
+        goto exit;
     }
 
     vm_status[state->vm_id] = VM_STATUS_OK;

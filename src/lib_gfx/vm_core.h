@@ -54,6 +54,7 @@
 #define VM_STATUS_ERR_BAD_CODE_MAGIC    -5
 #define VM_STATUS_ERR_BAD_DATA_MAGIC    -6
 #define VM_STATUS_ERR_BAD_FILE_HASH     -7
+#define VM_STATUS_ERR_BAD_LENGTH        -8
 
 #define VM_STATUS_ERR_MAX_CYCLES        -30
 

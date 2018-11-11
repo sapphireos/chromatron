@@ -2213,6 +2213,12 @@ int8_t vm_i8_load_program(
 
     state->data_start += sizeof(uint32_t);
 
+    // check that data size does not exceed the file size
+    if( ( state->data_start + state->data_len ) > len ){
+
+        return VM_STATUS_ERR_BAD_LENGTH;        
+    }
+
     // init RNG seed
     state->rng_seed = 1;
 
