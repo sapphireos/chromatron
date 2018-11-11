@@ -41,5 +41,6 @@
 // #define VM_ENABLE_CATBUS
 
 #define VM_MAX_IMAGE_SIZE   4096
+#define VM_MAX_CYCLES       32768
 
 #endif

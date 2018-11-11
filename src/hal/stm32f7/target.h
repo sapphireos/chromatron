@@ -53,6 +53,7 @@
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
 #define VM_MAX_IMAGE_SIZE   	8192
+#define VM_MAX_CYCLES       	128000
 
 // list
 // #define ENABLE_LIST_ATOMIC
