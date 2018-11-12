@@ -55,10 +55,7 @@ void gfx_v_init( void ){
 
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
-        // override size settings
-        gfx_v_set_pix_count( 1 );
-        gfx_v_set_size_x( 1 );
-        gfx_v_set_size_y( 1 );
+        log_v_warn_P( PSTR("Analog mode not supported on this hardware") );
     }
 
     gfxlib_v_init();
