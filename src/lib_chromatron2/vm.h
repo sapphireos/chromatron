@@ -25,6 +25,8 @@
 
 #include "vm_core.h"
 
+#define VM_THREAD_RATE 		10
+
 void vm_v_init( void );
 void vm_v_start( void );
 void vm_v_stop( void );
