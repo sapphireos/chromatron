@@ -87,17 +87,26 @@ int8_t pix_i8_kv_handler(
                 pix_apa102_dimmer = 31;
             }
         }
+        else if( hash == __KV__pix_count ){
+
+            gfx_v_set_pix_count( *(uint16_t *)data );
+        }   
         else{
 
             // reset pixel drivers
             pixel_v_init();
         }
     }
+    else if( op == KV_OP_GET ){
+
+        *(uint16_t *)data = gfx_u16_get_pix_count();
+    }
 
     return 0;
 }
 
 KV_SECTION_META kv_meta_t pixel_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,                 0,                    pix_i8_kv_handler,    "pix_count" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_rgb_order,       0,                    "pix_rgb_order" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST,                 &pix_dither,          0,                    "pix_dither" },
