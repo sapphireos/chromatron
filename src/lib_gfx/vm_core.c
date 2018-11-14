@@ -46,6 +46,16 @@ static uint32_t cycles;
 static uint16_t cycles;
 #endif
 
+#define USE_DECODE3
+
+#ifdef USE_DECODE3
+typedef struct __attribute__((packed)){
+    uint16_t dest;
+    uint16_t op1;
+    uint16_t op2;
+} decode3_t;
+#endif
+
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
@@ -374,6 +384,10 @@ static int8_t _vm_i8_run_stream(
     int32_t indexes[8];
     // uint16_t addr;
 
+    #ifdef USE_DECODE3
+    decode3_t *decode3;
+    #endif
+
 
     #if defined(ESP8266) || defined(ARM)
         #define DISPATCH cycles--; \
@@ -552,6 +566,12 @@ opcode_or:
 
 
 opcode_add:
+#ifdef USE_DECODE3
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] + data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -560,7 +580,7 @@ opcode_add:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] + data[op2];
-
+#endif
     DISPATCH;
 
     
