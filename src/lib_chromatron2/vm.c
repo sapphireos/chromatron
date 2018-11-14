@@ -550,6 +550,13 @@ PT_BEGIN( pt );
             state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state );
         }
 
+        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
+            
+            vm_loop_time[state->vm_id] = elapsed;
+        }
+
+
         vm_run_flags[state->vm_id] = 0;        
 
         if( state->vm_return == VM_STATUS_HALT ){
@@ -565,8 +572,6 @@ PT_BEGIN( pt );
             goto exit;
         }
 
-        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
-        vm_loop_time[state->vm_id] = elapsed;
         vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
 
         THREAD_YIELD( pt );
