@@ -102,7 +102,7 @@ KV_SECTION_META kv_meta_t pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,                 &pix_count[0],        pix_i8_kv_handler,    "pix_count" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,                 &pix_count[1],        pix_i8_kv_handler,    "pix_count_1" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST,                 &pix_dither,          0,                    "pix_dither" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST,                   &pix_dither,          0,                    "pix_dither" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
 };
