@@ -1226,14 +1226,14 @@ restart:
 
     bool ok = FALSE;
     // now check buffer, Cesanta will send us a hello message
-    for( uint8_t i = 0; i < 4; i++){
+    for( uint8_t i = 0; i < 4; i++ ){
 
         if( ( ( rx_dma_buf[i + 0] == SLIP_END ) &&
-               ( rx_dma_buf[i + 1] == 'O' ) &&
-               ( rx_dma_buf[i + 2] == 'H' ) &&
-               ( rx_dma_buf[i + 3] == 'A' ) &&
-               ( rx_dma_buf[i + 4] == 'I' ) &&
-               ( rx_dma_buf[i + 5] == SLIP_END ) ) ){
+              ( rx_dma_buf[i + 1] == 'O' ) &&
+              ( rx_dma_buf[i + 2] == 'H' ) &&
+              ( rx_dma_buf[i + 3] == 'A' ) &&
+              ( rx_dma_buf[i + 4] == 'I' ) &&
+              ( rx_dma_buf[i + 5] == SLIP_END ) ) ){
 
             ok = TRUE;
             break;
@@ -1242,7 +1242,13 @@ restart:
 
     if( !ok ){
 
-        log_v_debug_P( PSTR("error") );
+        log_v_debug_P( PSTR("error: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"),
+                rx_dma_buf[0],
+                rx_dma_buf[1],
+                rx_dma_buf[2],
+                rx_dma_buf[3],
+                rx_dma_buf[4],
+                rx_dma_buf[5] );
 
         hal_wifi_v_disable_rx_dma();
 
