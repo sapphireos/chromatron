@@ -182,8 +182,8 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     uint32_t start_time = tmr_u32_get_system_time_us();
 
     uint8_t next_byte = 0;
-    // hal_wifi_v_clear_rx_buffer();
-    // hal_wifi_v_enable_rx_dma( FALSE );
+    hal_wifi_v_clear_rx_buffer();
+    hal_wifi_v_enable_rx_dma( FALSE );
 
     volatile uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
 
