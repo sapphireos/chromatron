@@ -46,7 +46,7 @@ static uint32_t cycles;
 static uint16_t cycles;
 #endif
 
-#define USE_DECODE3
+// #define USE_DECODE3
 
 #ifdef USE_DECODE3
 typedef struct __attribute__((packed)){
