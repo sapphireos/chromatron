@@ -97,10 +97,6 @@ int8_t pix_i8_kv_handler(
             pixel_v_init();
         }
     }
-    else if( op == KV_OP_GET ){
-
-        *(uint16_t *)data = gfx_u16_get_pix_count();
-    }
 
     return 0;
 }
