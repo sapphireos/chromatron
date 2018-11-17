@@ -113,19 +113,19 @@ void hal_wifi_v_init( void ){
     wifi_usart.Instance = WIFI_USART;
 
     // set up DMA
-    wifi_dma.Instance                  = WIFI_DMA;
-    wifi_dma.Init.Channel              = WIFI_DMA_CHANNEL;
-    wifi_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
-    wifi_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
-    wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
-    wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
-    wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
-    wifi_dma.Init.Mode                 = DMA_NORMAL;
-    wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
-    wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
-    wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
-    wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
-    wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+    // wifi_dma.Instance                  = WIFI_DMA;
+    // wifi_dma.Init.Channel              = WIFI_DMA_CHANNEL;
+    // wifi_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
+    // wifi_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    // wifi_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    // wifi_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    // wifi_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    // wifi_dma.Init.Mode                 = DMA_NORMAL;
+    // wifi_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    // wifi_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    // wifi_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    // wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    // wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
     HAL_NVIC_SetPriority( DMA2_Stream2_IRQn, 0, 0 );
     HAL_NVIC_DisableIRQ( DMA2_Stream2_IRQn );
@@ -507,7 +507,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     // GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
@@ -515,7 +515,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
     wifi_usart.Init.BaudRate = 115200;
@@ -615,7 +615,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     // GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
@@ -623,7 +623,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
     wifi_usart.Init.BaudRate = 4000000;

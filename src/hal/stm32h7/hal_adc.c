@@ -31,7 +31,7 @@
 #include "logging.h"
 #include "timers.h"
 
-static ADC_HandleTypeDef hadc1;
+// static ADC_HandleTypeDef hadc1;
 static uint16_t vref = 3300;
 
 static int8_t hal_adc_kv_handler(
@@ -61,41 +61,41 @@ PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 
 void adc_v_init( void ){
 
-	__HAL_RCC_ADC1_CLK_ENABLE();
+	// __HAL_RCC_ADC1_CLK_ENABLE();
   
-    /**ADC1 GPIO Configuration    
-    PC0     ------> ADC1_IN10 
-    */
-    GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.Pin 		= ADC_VSUPPLY_PIN;
-    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
-    HAL_GPIO_Init(ADC_VSUPPLY_PORT, &GPIO_InitStruct);
+ //    /**ADC1 GPIO Configuration    
+ //    PC0     ------> ADC1_IN10 
+ //    */
+ //    GPIO_InitTypeDef GPIO_InitStruct;
+ //    GPIO_InitStruct.Pin 		= ADC_VSUPPLY_PIN;
+ //    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
+ //    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
+ //    HAL_GPIO_Init(ADC_VSUPPLY_PORT, &GPIO_InitStruct);
 
 
-	/**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-	*/
-	hadc1.Instance = ADC1;
-	hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
-	hadc1.Init.Resolution 				= ADC_RESOLUTION_12B;
-	hadc1.Init.ScanConvMode 			= DISABLE;
-	hadc1.Init.ContinuousConvMode 		= DISABLE;
-	hadc1.Init.DiscontinuousConvMode 	= DISABLE;
-	hadc1.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
-	hadc1.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
-	hadc1.Init.DataAlign 				= ADC_DATAALIGN_RIGHT;
-	hadc1.Init.NbrOfConversion 			= 1;
-	hadc1.Init.DMAContinuousRequests 	= DISABLE;
-	hadc1.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
-	if (HAL_ADC_Init(&hadc1) != HAL_OK)
-	{
-		_Error_Handler(__FILE__, __LINE__);
-	}
+	// /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
+	// */
+	// hadc1.Instance = ADC1;
+	// hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
+	// hadc1.Init.Resolution 				= ADC_RESOLUTION_12B;
+	// hadc1.Init.ScanConvMode 			= DISABLE;
+	// hadc1.Init.ContinuousConvMode 		= DISABLE;
+	// hadc1.Init.DiscontinuousConvMode 	= DISABLE;
+	// hadc1.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
+	// hadc1.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
+	// hadc1.Init.DataAlign 				= ADC_DATAALIGN_RIGHT;
+	// hadc1.Init.NbrOfConversion 			= 1;
+	// hadc1.Init.DMAContinuousRequests 	= DISABLE;
+	// hadc1.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
+	// if (HAL_ADC_Init(&hadc1) != HAL_OK)
+	// {
+	// 	_Error_Handler(__FILE__, __LINE__);
+	// }
 
-	thread_t_create( hal_adc_thread,
-                     PSTR("hal_adc"),
-                     0,
-                     0 );
+	// thread_t_create( hal_adc_thread,
+ //                     PSTR("hal_adc"),
+ //                     0,
+ //                     0 );
 }
 
 PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )
@@ -147,29 +147,30 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
             break;
     }
 
-	/**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
-	*/
-	ADC_ChannelConfTypeDef sConfig;
-	sConfig.Channel = internal_channel;
-	sConfig.Rank = ADC_REGULAR_RANK_1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
-	sConfig.Offset = 0;
-	if (HAL_ADC_ConfigChannel( &hadc1, &sConfig ) != HAL_OK)
-	{
-		_Error_Handler( __FILE__, __LINE__ );
-	}
+	// /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
+	// */
+	// ADC_ChannelConfTypeDef sConfig;
+	// sConfig.Channel = internal_channel;
+	// sConfig.Rank = ADC_REGULAR_RANK_1;
+	// sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+	// sConfig.Offset = 0;
+	// if (HAL_ADC_ConfigChannel( &hadc1, &sConfig ) != HAL_OK)
+	// {
+	// 	_Error_Handler( __FILE__, __LINE__ );
+	// }
 
-	HAL_ADC_Start( &hadc1 );        
-    HAL_ADC_PollForConversion( &hadc1, 5 );
+	// HAL_ADC_Start( &hadc1 );        
+ //    HAL_ADC_PollForConversion( &hadc1, 5 );
 
-    uint32_t value = HAL_ADC_GetValue( &hadc1 );
+ //    uint32_t value = HAL_ADC_GetValue( &hadc1 );
  	
-    return (int16_t)value;
+ //    return (int16_t)value;
+    return 0;
 }
 
 void adc_v_shutdown( void ){
 
-	__HAL_RCC_ADC1_CLK_DISABLE();
+	// __HAL_RCC_ADC1_CLK_DISABLE();
 	
 	HAL_GPIO_DeInit(VMON_GPIO_Port, VMON_Pin);
 }
