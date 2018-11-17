@@ -2854,15 +2854,15 @@ void     HAL_RCC_CCSCallback(void);
   * @{
   */
 
-#define HSE_TIMEOUT_VALUE          HSE_STARTUP_TIMEOUT
-#define HSI_TIMEOUT_VALUE          ((uint32_t)2)    /* 2 ms */
-#define HSI48_TIMEOUT_VALUE        ((uint32_t)2)    /* 2 ms */
-#define CSI_TIMEOUT_VALUE          ((uint32_t)2)    /* 2 ms */
-#define LSI_TIMEOUT_VALUE          ((uint32_t)2)    /* 2 ms */
-#define PLL_TIMEOUT_VALUE          ((uint32_t)2)    /* 2 ms */
-#define CLOCKSWITCH_TIMEOUT_VALUE  ((uint32_t)5000) /* 5 s  */
-#define RCC_DBP_TIMEOUT_VALUE      ((uint32_t)100)
-#define RCC_LSE_TIMEOUT_VALUE      LSE_STARTUP_TIMEOUT
+#define HSE_TIMEOUT_VALUE          ((int32_t)HSE_STARTUP_TIMEOUT)
+#define HSI_TIMEOUT_VALUE          ((int32_t)2)    /* 2 ms */
+#define HSI48_TIMEOUT_VALUE        ((int32_t)2)    /* 2 ms */
+#define CSI_TIMEOUT_VALUE          ((int32_t)2)    /* 2 ms */
+#define LSI_TIMEOUT_VALUE          ((int32_t)2)    /* 2 ms */
+#define PLL_TIMEOUT_VALUE          ((int32_t)2)    /* 2 ms */
+#define CLOCKSWITCH_TIMEOUT_VALUE  ((int32_t)5000) /* 5 s  */
+#define RCC_DBP_TIMEOUT_VALUE      ((int32_t)100)
+#define RCC_LSE_TIMEOUT_VALUE      ((int32_t)LSE_STARTUP_TIMEOUT)
 
 /**
   * @}
