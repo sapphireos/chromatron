@@ -35,32 +35,34 @@ static void cpu_normal_clock_config( void ){
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
+    /**Supply configuration update enable 
+    */
+    MODIFY_REG(PWR->CR3, PWR_CR3_SCUEN, 0);
+
     /**Configure the main internal regulator output voltage 
     */
-    __HAL_RCC_PWR_CLK_ENABLE();
-
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
+    while ((PWR->D3CR & (PWR_D3CR_VOSRDY)) != PWR_D3CR_VOSRDY) 
+    {
+
+    }
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLM = 16;
-    // RCC_OscInitStruct.PLL.PLLN = 432; // 216 MHz
-    RCC_OscInitStruct.PLL.PLLN = 412; // 206 MHZ
-    // RCC_OscInitStruct.PLL.PLLN = 308; // 154 MHZ
-    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-    RCC_OscInitStruct.PLL.PLLQ = 9;
+    RCC_OscInitStruct.PLL.PLLM = 1;
+    RCC_OscInitStruct.PLL.PLLN = 100;
+    RCC_OscInitStruct.PLL.PLLP = 2;
+    RCC_OscInitStruct.PLL.PLLQ = 4;
+    RCC_OscInitStruct.PLL.PLLR = 2;
+    RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
+    RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
+    RCC_OscInitStruct.PLL.PLLFRACN = 0;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
-        _Error_Handler(__FILE__, __LINE__);
-    }
-
-    /**Activate the Over-Drive mode 
-    */
-    if (HAL_PWREx_EnableOverDrive() != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -68,22 +70,26 @@ static void cpu_normal_clock_config( void ){
     /**Initializes the CPU, AHB and APB busses clocks 
     */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV4;
+    RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART6
-                              |RCC_PERIPHCLK_CLK48;
-    PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
-    PeriphClkInitStruct.Usart6ClockSelection = RCC_USART6CLKSOURCE_PCLK2;
-    PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_RNG
+                              |RCC_PERIPHCLK_QSPI;
+    PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_D1HCLK;
+    PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
+    PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
@@ -91,7 +97,7 @@ static void cpu_normal_clock_config( void ){
 
     /**Configure the Systick interrupt time 
     */
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+    HAL_SYSTICK_Config(SystemCoreClock/1000);
 
     /**Configure the Systick 
     */
@@ -110,30 +116,34 @@ static void cpu_boot_clock_config( void ){
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
+    /**Supply configuration update enable 
+    */
+    MODIFY_REG(PWR->CR3, PWR_CR3_SCUEN, 0);
+
     /**Configure the main internal regulator output voltage 
     */
-    __HAL_RCC_PWR_CLK_ENABLE();
-
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
+    while ((PWR->D3CR & (PWR_D3CR_VOSRDY)) != PWR_D3CR_VOSRDY) 
+    {
+
+    }
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLM = 16;
-    RCC_OscInitStruct.PLL.PLLN = 432;
-    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-    RCC_OscInitStruct.PLL.PLLQ = 9;
+    RCC_OscInitStruct.PLL.PLLM = 1;
+    RCC_OscInitStruct.PLL.PLLN = 100;
+    RCC_OscInitStruct.PLL.PLLP = 2;
+    RCC_OscInitStruct.PLL.PLLQ = 4;
+    RCC_OscInitStruct.PLL.PLLR = 2;
+    RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
+    RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
+    RCC_OscInitStruct.PLL.PLLFRACN = 0;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
-        _Error_Handler(__FILE__, __LINE__);
-    }
-
-    /**Activate the Over-Drive mode 
-    */
-    if (HAL_PWREx_EnableOverDrive() != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -141,22 +151,26 @@ static void cpu_boot_clock_config( void ){
     /**Initializes the CPU, AHB and APB busses clocks 
     */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV4; // BOOTLOADER div 4
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV4;
+    RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART6
-                              |RCC_PERIPHCLK_CLK48;
-    PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
-    PeriphClkInitStruct.Usart6ClockSelection = RCC_USART6CLKSOURCE_PCLK2;
-    PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_RNG
+                              |RCC_PERIPHCLK_QSPI;
+    PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_D1HCLK;
+    PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
+    PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
@@ -164,7 +178,7 @@ static void cpu_boot_clock_config( void ){
 
     /**Configure the Systick interrupt time 
     */
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+    HAL_SYSTICK_Config(SystemCoreClock/1000);
 
     /**Configure the Systick 
     */
@@ -224,10 +238,6 @@ void cpu_v_init( void ){
     SCB_EnableICache();
     SCB_EnableDCache();
 
-    __HAL_FLASH_ART_ENABLE();
-
-    __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
-
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
@@ -235,7 +245,7 @@ void cpu_v_init( void ){
     HAL_InitTick(TICK_INT_PRIORITY);
 
 
-    __HAL_RCC_PWR_CLK_ENABLE();
+    // __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
     SCB->VTOR = FLASH_START;
@@ -370,10 +380,6 @@ void hal_cpu_v_boot_init( void ){
 
     DISABLE_INTERRUPTS;
 
-    __HAL_FLASH_ART_ENABLE();
-
-    __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
-
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
@@ -381,7 +387,7 @@ void hal_cpu_v_boot_init( void ){
     HAL_InitTick(TICK_INT_PRIORITY);
 
 
-    __HAL_RCC_PWR_CLK_ENABLE();
+    // __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
