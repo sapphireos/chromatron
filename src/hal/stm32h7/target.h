@@ -90,7 +90,7 @@
 
 
 #ifdef DEBUG
-	#define FLASH_START 	( 0x08000000 + 32768 )
+	#define FLASH_START 	( 0x08000000 + 0 )
 #else
 	#define FLASH_START 	( 0x00200000 + 32768 )
 #endif

@@ -248,7 +248,7 @@ void cpu_v_init( void ){
     // __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
-    SCB->VTOR = FLASH_START;
+    // SCB->VTOR = FLASH_START;
 
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
@@ -286,7 +286,7 @@ void cpu_v_init( void ){
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
-    trace_printf( "STM32F7\r\n" );
+    trace_printf( "STM32H7\r\n" );
 
     trace_printf( "CPU Clock: %u\r\n", cpu_u32_get_clock_speed() );
     trace_printf( "HCLK     : %u\r\n", HAL_RCC_GetHCLKFreq() );
