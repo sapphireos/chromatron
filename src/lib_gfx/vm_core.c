@@ -46,9 +46,7 @@ static uint32_t cycles;
 static uint16_t cycles;
 #endif
 
-// #define USE_DECODE3
-
-#ifdef USE_DECODE3
+#ifdef VM_OPTIMIZED_DECODE
 typedef struct __attribute__((packed)){
     uint16_t dest;
     uint16_t op1;
@@ -349,8 +347,6 @@ static int8_t _vm_i8_run_stream(
 
     uint16_t dest;
     uint16_t src;
-    uint16_t op1;
-    uint16_t op2;
     uint16_t call_target;
     uint16_t call_param;
     uint16_t call_arg;
@@ -384,8 +380,11 @@ static int8_t _vm_i8_run_stream(
     int32_t indexes[8];
     // uint16_t addr;
 
-    #ifdef USE_DECODE3
+    #ifdef VM_OPTIMIZED_DECODE
     decode3_t *decode3;
+    #else
+    uint16_t op1;
+    uint16_t op2;
     #endif
 
 
@@ -461,6 +460,12 @@ opcode_not:
 
 
 opcode_compeq:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] == data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -469,11 +474,17 @@ opcode_compeq:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] == data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_compneq:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] != data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -482,11 +493,17 @@ opcode_compneq:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] != data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_compgt:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] > data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -495,11 +512,17 @@ opcode_compgt:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] > data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_compgte:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] >= data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -508,11 +531,17 @@ opcode_compgte:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] >= data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_complt:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] < data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -521,11 +550,17 @@ opcode_complt:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] < data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_complte:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] <= data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -534,12 +569,18 @@ opcode_complte:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] <= data[op2];
-
+#endif
     DISPATCH;
 
 
 
 opcode_and:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] && data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -548,11 +589,17 @@ opcode_and:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] && data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_or:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] || data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -561,12 +608,12 @@ opcode_or:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] || data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_add:
-#ifdef USE_DECODE3
+#ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
 
@@ -585,6 +632,12 @@ opcode_add:
 
     
 opcode_sub:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] - data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -593,11 +646,17 @@ opcode_sub:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] - data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_mul:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] * data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -605,11 +664,24 @@ opcode_mul:
     op2 = *pc++;
     op2 += ( *pc++ ) << 8;
     data[dest] = data[op1] * data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_div:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    if( data[decode3->op2] != 0 ){
+
+        data[decode3->dest] = data[decode3->op1] / data[decode3->op2];
+    }
+    else{
+
+        data[decode3->dest] = 0;   
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -625,11 +697,24 @@ opcode_div:
 
         data[dest] = 0;
     }
-
+#endif
     DISPATCH;
 
 
 opcode_mod:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    if( data[decode3->op2] != 0 ){
+
+        data[decode3->dest] = data[decode3->op1] % data[decode3->op2];
+    }
+    else{
+
+        data[decode3->dest] = 0;   
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -645,11 +730,17 @@ opcode_mod:
 
         data[dest] = 0;
     }
-
+#endif
     DISPATCH;
 
 
 opcode_f16_compeq:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] == data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -658,11 +749,17 @@ opcode_f16_compeq:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] == data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_compneq:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] != data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -671,11 +768,17 @@ opcode_f16_compneq:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] != data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_compgt:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] > data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -684,11 +787,17 @@ opcode_f16_compgt:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] > data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_compgte:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] >= data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -697,11 +806,17 @@ opcode_f16_compgte:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] >= data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_complt:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] < data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -710,11 +825,17 @@ opcode_f16_complt:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] < data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_complte:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] <= data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -723,12 +844,18 @@ opcode_f16_complte:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] <= data[op2];
-
+#endif
     DISPATCH;
 
 
 
 opcode_f16_and:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] && data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -737,11 +864,17 @@ opcode_f16_and:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] && data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_or:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] || data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -750,11 +883,17 @@ opcode_f16_or:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] || data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_add:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] + data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -763,11 +902,17 @@ opcode_f16_add:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] + data[op2];
-
+#endif
     DISPATCH;
 
     
 opcode_f16_sub:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = data[decode3->op1] - data[decode3->op2];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -776,11 +921,17 @@ opcode_f16_sub:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = data[op1] - data[op2];
-
+#endif
     DISPATCH;
 
 
 opcode_f16_mul:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->dest] = ( (int64_t)data[decode3->op1] * (int64_t)data[decode3->op2] ) / 65536;
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -789,11 +940,24 @@ opcode_f16_mul:
     op2 += ( *pc++ ) << 8;
 
     data[dest] = ( (int64_t)data[op1] * (int64_t)data[op2] ) / 65536;
-
+#endif
     DISPATCH;
 
 
 opcode_f16_div:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    if( data[decode3->op2] != 0 ){
+
+        data[decode3->dest] = ( (int64_t)data[decode3->op1] * 65536 ) / data[decode3->op2];
+    }
+    else{
+
+        data[decode3->dest] = 0;
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -809,11 +973,24 @@ opcode_f16_div:
 
         data[dest] = 0;
     }
-
+#endif
     DISPATCH;
 
 
 opcode_f16_mod:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    if( data[decode3->op2] != 0 ){
+
+        data[decode3->dest] = data[decode3->op1] % data[decode3->op2];
+    }
+    else{
+
+        data[decode3->dest] = 0;
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -829,7 +1006,7 @@ opcode_f16_mod:
 
         data[dest] = 0;
     }
-
+#endif
     DISPATCH;
 
 
@@ -873,6 +1050,17 @@ opcode_jmp_if_not_z:
 
 
 opcode_jmp_if_l_pre_inc:
+#ifdef VM_OPTIMIZED_DECODE
+    decode3 = (decode3_t *)pc;
+    pc += sizeof(decode3_t);
+
+    data[decode3->op1]++;
+
+    if( data[decode3->op1] < data[decode3->op2] ){
+
+        pc = code + decode3->dest;
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     op1 = *pc++;
@@ -886,7 +1074,7 @@ opcode_jmp_if_l_pre_inc:
 
         pc = code + dest;
     }
-    
+#endif    
     DISPATCH;
 
 
