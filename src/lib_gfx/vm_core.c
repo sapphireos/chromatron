@@ -372,13 +372,8 @@ static int8_t _vm_i8_run_stream(
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     uint8_t call_depth = 0;
-
-    // uint8_t opcode, dest, src, index_x, index_y, result, op1_addr, op2_addr, obj, attr, param_len, func_id;
-    // int32_t op1, op2, index, base, ary_stride, ary_length, ary_addr;
-    // bool yield;
     int32_t params[8];
     int32_t indexes[8];
-    // uint16_t addr;
 
     #ifdef VM_OPTIMIZED_DECODE
     decode3_t *decode3;
