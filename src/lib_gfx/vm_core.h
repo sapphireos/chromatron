@@ -27,8 +27,6 @@
 #include "catbus_common.h"
 #include "datetime_struct.h"
 
-#define VM_OPTIMIZED_DECODE
-
 #define VM_ISA_VERSION              10
 
 #define RETURN_VAL_ADDR             0
