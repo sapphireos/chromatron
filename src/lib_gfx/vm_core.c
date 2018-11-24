@@ -49,9 +49,27 @@ static uint16_t cycles;
 #ifdef VM_OPTIMIZED_DECODE
 typedef struct __attribute__((packed)){
     uint16_t dest;
+    uint16_t src;
+} decode2_t;
+
+typedef struct __attribute__((packed)){
+    uint16_t dest;
     uint16_t op1;
     uint16_t op2;
 } decode3_t;
+
+typedef struct __attribute__((packed)){
+    uint16_t dest;
+    uint16_t src;
+    uint16_t len;
+    uint8_t type;
+} decodev_t;
+
+typedef struct __attribute__((packed)){
+    uint8_t array;
+    uint8_t attr;
+    uint16_t src;
+} decodep_t;
 #endif
 
 static int8_t _vm_i8_run_stream(
@@ -360,7 +378,6 @@ static int8_t _vm_i8_run_stream(
     uint16_t len;
     uint8_t type;
     uint8_t array;
-    uint8_t attr;
     catbus_hash_t32 hash;
     catbus_hash_t32 db_hash;
     uint16_t index_x;
@@ -377,7 +394,11 @@ static int8_t _vm_i8_run_stream(
 
     #ifdef VM_OPTIMIZED_DECODE
     decode3_t *decode3;
+    decode2_t *decode2;
+    decodev_t *decodev;
+    decodep_t *decodep;
     #else
+    uint8_t attr;
     uint16_t op1;
     uint16_t op2;
     #endif
@@ -417,26 +438,49 @@ static int8_t _vm_i8_run_stream(
 
 
 opcode_mov:
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    data[decode2->dest] = data[decode2->src];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
     src += ( *pc++ ) << 8;
 
     data[dest] = data[src];
-
+#endif
     DISPATCH;
 
 
 opcode_clr:
+#ifdef VM_OPTIMIZED_DECODE
+    dest = *(uint16_t *)pc;
+    pc += sizeof(uint16_t);
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
-    
+#endif    
     data[dest] = 0;
 
     DISPATCH;
 
 
 opcode_not:    
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    if( data[decode2->src] == 0 ){
+
+        data[decode2->dest] = 1;
+    }
+    else{
+        
+        data[decode2->dest] = 0;
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -450,7 +494,7 @@ opcode_not:
         
         data[dest] = 0;
     }
-
+#endif
     DISPATCH;
 
 
@@ -1006,15 +1050,28 @@ opcode_f16_mod:
 
 
 opcode_jmp:
+#ifdef VM_OPTIMIZED_DECODE
+    dest = *(uint16_t *)pc;
+    pc += sizeof(uint16_t);
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
-    
+#endif    
     pc = code + dest;
 
     DISPATCH;
 
 
 opcode_jmp_if_z:
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    if( data[decode2->src] == 0 ){
+
+        pc = code + decode2->dest;
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1024,12 +1081,21 @@ opcode_jmp_if_z:
 
         pc = code + dest;
     }
-    
+#endif
 
     DISPATCH;
 
 
 opcode_jmp_if_not_z:
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    if( data[decode2->src] != 0 ){
+
+        pc = code + decode2->dest;
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1039,7 +1105,7 @@ opcode_jmp_if_not_z:
 
         pc = code + dest;
     }
-    
+#endif    
 
     DISPATCH;
 
@@ -1074,9 +1140,14 @@ opcode_jmp_if_l_pre_inc:
 
 
 opcode_ret:
+#ifdef VM_OPTIMIZED_DECODE
+    dest = *(uint16_t *)pc;
+    pc += sizeof(uint16_t);
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
-    
+#endif
+
     // move return val to return register
     data[RETURN_VAL_ADDR] = data[dest];
 
@@ -1279,6 +1350,20 @@ opcode_index:
 
 
 opcode_load_indirect:
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    temp = data[decode2->src];
+
+    // bounds check
+    if( temp >= state->data_count ){
+
+        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+    }
+
+    data[decode2->dest] = data[temp];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1293,11 +1378,25 @@ opcode_load_indirect:
     }
 
     data[dest] = data[temp];
-    
+#endif    
     DISPATCH;
 
 
 opcode_store_indirect:
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    temp = data[decode2->src];
+
+    // bounds check
+    if( temp >= state->data_count ){
+
+        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+    }
+
+    data[temp] = data[decode2->src];
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1312,7 +1411,7 @@ opcode_store_indirect:
     }
 
     data[temp] = data[src];
-
+#endif
     DISPATCH;
 
 
@@ -1338,6 +1437,18 @@ opcode_halt:
 
 
 opcode_vmov:
+#ifdef VM_OPTIMIZED_DECODE
+    decodev = (decodev_t *)pc;
+    pc += sizeof(decodev_t);
+
+    // deference pointer
+    decodev->dest = data[decodev->dest];
+
+    for( uint16_t i = 0; i < decodev->len; i++ ){
+
+        data[decodev->dest + i] = data[decodev->src];
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1353,11 +1464,23 @@ opcode_vmov:
 
         data[dest + i] = data[src];
     }
-
+#endif
     DISPATCH;
 
 
 opcode_vadd:
+#ifdef VM_OPTIMIZED_DECODE
+    decodev = (decodev_t *)pc;
+    pc += sizeof(decodev_t);
+
+    // deference pointer
+    decodev->dest = data[decodev->dest];
+
+    for( uint16_t i = 0; i < decodev->len; i++ ){
+
+        data[decodev->dest + i] += data[decodev->src];
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1373,11 +1496,23 @@ opcode_vadd:
 
         data[dest + i] += data[src];
     }
-
+#endif
     DISPATCH;
 
 
 opcode_vsub:
+#ifdef VM_OPTIMIZED_DECODE
+    decodev = (decodev_t *)pc;
+    pc += sizeof(decodev_t);
+
+    // deference pointer
+    decodev->dest = data[decodev->dest];
+
+    for( uint16_t i = 0; i < decodev->len; i++ ){
+
+        data[decodev->dest + i] -= data[decodev->src];
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1393,11 +1528,33 @@ opcode_vsub:
 
         data[dest + i] -= data[src];
     }
-
+#endif
     DISPATCH;
 
 
 opcode_vmul:
+#ifdef VM_OPTIMIZED_DECODE
+    decodev = (decodev_t *)pc;
+    pc += sizeof(decodev_t);
+
+    // deference pointer
+    decodev->dest = data[decodev->dest];
+
+    if( type == CATBUS_TYPE_FIXED16 ){
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] = ( (int64_t)data[decodev->dest + i] * data[decodev->src] ) / 65536;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] *= data[decodev->src];
+        }
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1423,11 +1580,41 @@ opcode_vmul:
             data[dest + i] *= data[src];
         }
     }
-
+#endif
     DISPATCH;
 
 
 opcode_vdiv:
+#ifdef VM_OPTIMIZED_DECODE
+    decodev = (decodev_t *)pc;
+    pc += sizeof(decodev_t);
+
+    // deference pointer
+    decodev->dest = data[decodev->dest];
+
+    // check for divide by zero
+    if( data[decodev->src] == 0 ){
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] = 0;
+        }
+    }
+    else if( type == CATBUS_TYPE_FIXED16 ){
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] = ( (int64_t)data[decodev->dest + i] * 65536 ) / data[decodev->src];
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] /= data[decodev->src];
+        }
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1461,11 +1648,34 @@ opcode_vdiv:
             data[dest + i] /= data[src];
         }
     }
-
+#endif
     DISPATCH;
 
 
 opcode_vmod:
+#ifdef VM_OPTIMIZED_DECODE
+    decodev = (decodev_t *)pc;
+    pc += sizeof(decodev_t);
+
+    // deference pointer
+    decodev->dest = data[decodev->dest];
+
+    // check for divide by zero
+    if( data[decodev->src] == 0 ){
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] = 0;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < decodev->len; i++ ){
+
+            data[decodev->dest + i] %= data[decodev->src];
+        }
+    }
+#else
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
@@ -1492,11 +1702,19 @@ opcode_vmod:
             data[dest + i] %= data[src];
         }
     }
-
+#endif
     DISPATCH;
 
 
 opcode_pmov:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep = (decodep_t *)pc;
+    pc += sizeof(decodep_t);
+
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_move( decodep->array, decodep->attr, data[decodep->src] );
+    #endif
+#else
     array = *pc++;
     attr = *pc++;
     
@@ -1506,11 +1724,19 @@ opcode_pmov:
     #ifdef VM_ENABLE_GFX
     gfx_v_array_move( array, attr, data[src] );
     #endif
-
+#endif
     DISPATCH;
 
 
 opcode_padd:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep = (decodep_t *)pc;
+    pc += sizeof(decodep_t);
+
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_add( decodep->array, decodep->attr, data[decodep->src] );
+    #endif
+#else
     array = *pc++;
     attr = *pc++;
     
@@ -1520,11 +1746,19 @@ opcode_padd:
     #ifdef VM_ENABLE_GFX
     gfx_v_array_add( array, attr, data[src] );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_psub:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep = (decodep_t *)pc;
+    pc += sizeof(decodep_t);
+
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_sub( decodep->array, decodep->attr, data[decodep->src] );
+    #endif
+#else
     array = *pc++;
     attr = *pc++;
     
@@ -1534,12 +1768,19 @@ opcode_psub:
     #ifdef VM_ENABLE_GFX
     gfx_v_array_sub( array, attr, data[src] );
     #endif
-
-    
+#endif   
     DISPATCH;
 
 
 opcode_pmul:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep = (decodep_t *)pc;
+    pc += sizeof(decodep_t);
+
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_mul( decodep->array, decodep->attr, data[decodep->src] );
+    #endif
+#else
     array = *pc++;
     attr = *pc++;
     
@@ -1549,11 +1790,19 @@ opcode_pmul:
     #ifdef VM_ENABLE_GFX
     gfx_v_array_mul( array, attr, data[src] );
     #endif
-
+#endif
     DISPATCH;
 
 
 opcode_pdiv:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep = (decodep_t *)pc;
+    pc += sizeof(decodep_t);
+
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_div( decodep->array, decodep->attr, data[decodep->src] );
+    #endif
+#else
     array = *pc++;
     attr = *pc++;
     
@@ -1563,11 +1812,19 @@ opcode_pdiv:
     #ifdef VM_ENABLE_GFX
     gfx_v_array_div( array, attr, data[src] );
     #endif
-
+#endif
     DISPATCH;
 
 
 opcode_pmod:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep = (decodep_t *)pc;
+    pc += sizeof(decodep_t);
+
+    #ifdef VM_ENABLE_GFX
+    gfx_v_array_mod( decodep->array, decodep->attr, data[decodep->src] );
+    #endif
+#else
     array = *pc++;
     attr = *pc++;
     
@@ -1577,7 +1834,7 @@ opcode_pmod:
     #ifdef VM_ENABLE_GFX
     gfx_v_array_mod( array, attr, data[src] );
     #endif
-
+#endif
     DISPATCH;
 
 
