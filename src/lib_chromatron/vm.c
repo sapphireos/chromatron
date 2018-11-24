@@ -312,6 +312,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     // seek back to program start
     fs_v_seek( f, sizeof(vm_size) );
 
+    vm_load_msg.total_size  = vm_size;
+    vm_load_msg.offset      = 0;
+
     while( vm_size > 0 ){
 
         uint16_t copy_len = sizeof(vm_load_msg.chunk);
@@ -330,12 +333,14 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         }
 
         vm_load_msg.vm_id = vm_id;
+        vm_load_msg.total_size = vm_size;
         if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, read + sizeof(vm_load_msg.vm_id) ) < 0 ){
 
             // comm error
             goto error;
         }
         
+        vm_load_msg.offset += read;
         vm_size -= read;
     }
 

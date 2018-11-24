@@ -35,11 +35,14 @@ extern "C"{
     #include "catbus_common.h"
     #include "hash.h"
     #include "datetime_struct.h"
+    #include "memory.h"
 }
 
-static uint8_t vm_data[VM_RUNNER_MAX_SIZE];
-static int16_t vm_start[VM_MAX_VMS];
-static uint16_t vm_size[VM_MAX_VMS];
+// static uint8_t vm_data[VM_RUNNER_MAX_SIZE];
+// static int16_t vm_start[VM_MAX_VMS];
+// static uint16_t vm_size[VM_MAX_VMS];
+
+static mem_handle_t vm_handles[VM_MAX_VMS];
 static vm_state_t vm_state[VM_MAX_VMS];
 
 static uint16_t vm_total_size;
@@ -146,7 +149,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         return 0;
     }
 
-    if( vm_start[vm_index] < 0 ){
+    if( vm_handles[vm_index] <= 0 ){
 
         return -2;
     }
@@ -163,7 +166,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     int8_t return_code = VM_STATUS_ERROR;
 
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
+    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
 
     if( mode == VM_RUN_INIT ){
 
@@ -229,13 +232,10 @@ void vm_v_init( void ){
 
     for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
-        vm_start[i] = -1;
+        vm_handles[i] = -1;
         vm_status[i] = VM_STATUS_NOT_RUNNING;
         vm_v_reset( i );
     }
-
-    // clear VM data
-    memset( vm_data, 0xff, sizeof(vm_data) );
 
     gfxlib_v_init();
     gfx_v_reset();
@@ -339,53 +339,14 @@ void vm_v_reset( uint8_t vm_index ){
     }
 
     // check if this VM has already been reset
-    if( vm_start[vm_index] < 0 ){
+    if( vm_handles[vm_index] < 0 ){
 
         return;
     }
 
     vm_v_clear_db( 1 << vm_index );
 
-
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
-
-    // write 1s to VM data (trap instruction)
-    memset( stream, 0xff, vm_size[vm_index] );
-
- 
-    int32_t dirty_start = vm_start[vm_index];
-    int32_t clean_start = vm_start[vm_index] + vm_size[vm_index];
-
-    // defrag VMs
-    bool moved = false;
-
-    do{
-        moved = false;
-
-        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
-
-            // looking for VM at the start of the clean section
-            if( vm_start[i] == clean_start ){
-
-                // copy this VM into the area we just erased
-
-                // must use memmove here, since dest and src might overlap!
-                memmove( &vm_data[dirty_start], &vm_data[vm_start[i]], vm_size[i] );
-                vm_start[i] = dirty_start;
-
-                clean_start += vm_size[i];
-                dirty_start += vm_size[i];
-
-                moved = true;
-            }
-        }
-    } while( moved );
-
-    
-    vm_total_size -= vm_size[vm_index];
-
-    vm_start[vm_index] = -1;
-    vm_size[vm_index] = 0;
+    vm_total_size -= mem2_u16_get_size( vm_handles[vm_index] );
 
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
@@ -397,52 +358,71 @@ void vm_v_reset( uint8_t vm_index ){
 
     vm_loop_time[vm_index] = 0;
     vm_thread_time[vm_index] = 0;
+
+    mem2_v_free( vm_handles[vm_index] );
+    vm_handles[vm_index] = -1;
 }
 
-int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
+int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t offset, uint8_t vm_index ){
+
+    int8_t status = 0;
+    uint8_t *stream = 0;
 
     if( vm_index >= VM_MAX_VMS ){
 
         return -1;
     }
 
-    // bounds check VM
-    if( ( len + vm_total_size ) >= sizeof(vm_data) ){
-        
-        return -2;
+    // check offset for beginning of file
+    if( offset == 0 ){
+
+        // bounds check VM
+        if( ( total_size + vm_total_size ) >= VM_RUNNER_MAX_SIZE ){
+            
+            return -2;
+        }
+
+        // check if this slot is already loaded
+        if( vm_handles[vm_index] > 0 ){
+
+            mem2_v_free( vm_handles[vm_index] );
+            vm_handles[vm_index] = -1;
+        }
+
+        // allocate memory
+        vm_handles[vm_index] = mem2_h_alloc( total_size );
+    }
+    
+    // verify handle is allocated
+    if( vm_handles[vm_index] <= 0 ){
+
+        return -3;
+    }
+
+    // verify offset and length are within bounds
+    if( ( offset + len ) > mem2_u16_get_size( vm_handles[vm_index] ) ){
+
+        goto end;
     }
 
     // reset status codes
     vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
 
-    int8_t status = 0;
-
-    // check if this is the first page
-    if( vm_start[vm_index] == -1 ){
-
-        // need to get starting offset
-        vm_start[vm_index] = vm_total_size;
-
-        // make sure we start our VM size as 0
-        vm_size[vm_index] = 0;
-    }
-
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
+    stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     
     if( len > 0 ){
     
         // load next page of data
-        memcpy( &stream[vm_size[vm_index]], data, len );
+        memcpy( &stream[offset], data, len );
 
-        vm_size[vm_index] += len;
         vm_total_size += len;
     }
     // length of 0 indicates loading is finished
     else{
 
-        status = vm_i8_load_program( 0, stream, vm_size[vm_index], &vm_state[vm_index] );
+        status = vm_i8_load_program( 0, stream, mem2_u16_get_size( vm_handles[vm_index] ), &vm_state[vm_index] );
 
-        vm_state[vm_index].prog_size = vm_size[vm_index];
+        vm_state[vm_index].prog_size = mem2_u16_get_size( vm_handles[vm_index] );
         vm_state[vm_index].tick_rate = VM_RUNNER_THREAD_RATE;
 
         uint8_t *code_start = (uint8_t *)( stream + vm_state[vm_index].code_start );
@@ -525,50 +505,6 @@ int8_t vm_i8_start( uint32_t vm_index ){
     return status;
 }
 
-int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index ){
-
-    if( vm_index >= VM_MAX_VMS ){
-
-        return 0;
-    }
-
-    if( vm_status[vm_index] < 0 ){
-
-        return 0;
-    }
-
-    if( vm_start[vm_index] < 0 ){
-
-        return 0;
-    }
-
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
-
-    return vm_i32_get_data( stream, &vm_state[vm_index], addr );
-}
-
-void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index ){
-
-    if( vm_index >= VM_MAX_VMS ){
-
-        return;
-    }
-
-    if( vm_status[vm_index] < 0 ){
-
-        return;
-    }
-
-    if( vm_start[vm_index] < 0 ){
-
-        return;
-    }
-
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[vm_index]];
-
-    vm_v_set_data( stream, &vm_state[vm_index], addr, data );
-}
-
 void vm_v_get_info( uint8_t index, vm_info_t *info ){
 
     if( index >= VM_MAX_VMS ){
@@ -649,7 +585,7 @@ void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t
 
     uint8_t *src = (uint8_t *)( msg + 1 );
 
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[index]];
+    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
     uint8_t *data = stream + vm_state[index].data_start;
 
     memcpy( &data[msg->offset], src, data_len );
@@ -665,7 +601,7 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
     intf_v_printf( "done: %lx", msg->hash );
 
     // check hash
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[index]];
+    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
     uint8_t *data = stream + vm_state[index].data_start;
 
     uint32_t hash = hash_u32_data( data, vm_state[index].data_len );
@@ -714,7 +650,7 @@ void vm_v_request_frame_data( uint8_t index ){
 
     uint16_t len = vm_state[index].data_len;
 
-    uint8_t *stream = (uint8_t *)&vm_data[vm_start[index]];
+    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
     uint8_t *src = stream + vm_state[index].data_start;
 
     wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;

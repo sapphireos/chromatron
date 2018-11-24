@@ -39,7 +39,7 @@ void vm_v_run_vm( void );
 void vm_v_process( void );
 void vm_v_send_info( void );
 void vm_v_reset(  uint8_t vm_index );
-int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index );
+int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t offset, uint8_t vm_index );
 int8_t vm_i8_start( uint32_t vm_index );
 void vm_v_request( void );
 void vm_v_get_info( uint8_t index, vm_info_t *info );
@@ -49,9 +49,6 @@ uint16_t vm_u16_get_total_size( void );
 void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len );
 void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
 void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len );
-
-int32_t vm_i32_get_reg( uint8_t addr, uint8_t vm_index );
-void vm_v_set_reg( uint8_t addr, int32_t data, uint8_t vm_index );
 
 void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg );
 
