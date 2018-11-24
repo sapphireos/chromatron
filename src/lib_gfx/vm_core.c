@@ -391,12 +391,9 @@ static int8_t _vm_i8_run_stream(
     uint16_t temp;
     uint16_t len;
     uint8_t type;
-    uint8_t array;
     catbus_hash_t32 hash;
     catbus_hash_t32 db_hash;
-    uint16_t index_x;
-    uint16_t index_y;
-
+    
     #ifdef VM_ENABLE_GFX
     int32_t value_i32;
     #endif
@@ -417,6 +414,9 @@ static int8_t _vm_i8_run_stream(
     uint8_t attr;
     uint16_t op1;
     uint16_t op2;
+    uint16_t index_x;
+    uint16_t index_y;
+    uint8_t array;
     #endif
 
 
@@ -2323,29 +2323,49 @@ opcode_db_load:
     DISPATCH;
 
 
-opcode_conv_i32_to_f16:        
+opcode_conv_i32_to_f16: 
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    data[decode2->dest] = data[decode2->src] * 65536;
+#else       
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
     src += ( *pc++ ) << 8;
 
     data[dest] = data[src] * 65536;
-
+#endif
     DISPATCH;
 
 
 opcode_conv_f16_to_i32:
+#ifdef VM_OPTIMIZED_DECODE
+    decode2 = (decode2_t *)pc;
+    pc += sizeof(decode2_t);
+
+    data[decode2->dest] = data[decode2->src] / 65536;
+#else       
     dest = *pc++;
     dest += ( *pc++ ) << 8;
     src = *pc++;
     src += ( *pc++ ) << 8;
 
     data[dest] = data[src] / 65536;
-    
+#endif    
     DISPATCH;
 
 
 opcode_is_v_fading:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_is_v_fading( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2360,11 +2380,19 @@ opcode_is_v_fading:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_is_v_fading( data[index_x], data[index_y], array );
     #endif
-
+#endif
     DISPATCH;
 
 
 opcode_is_hs_fading:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_is_hs_fading( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2379,7 +2407,7 @@ opcode_is_hs_fading:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_is_hs_fading( data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
