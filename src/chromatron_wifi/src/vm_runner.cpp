@@ -37,8 +37,6 @@ extern "C"{
     #include "datetime_struct.h"
 }
 
-static uint16_t vm_load_len;
-
 static uint8_t vm_data[VM_RUNNER_MAX_SIZE];
 static int16_t vm_start[VM_MAX_VMS];
 static uint16_t vm_size[VM_MAX_VMS];
@@ -399,8 +397,6 @@ void vm_v_reset( uint8_t vm_index ){
 
     vm_loop_time[vm_index] = 0;
     vm_thread_time[vm_index] = 0;
-   
-    vm_load_len = 0; 
 }
 
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint8_t vm_index ){
