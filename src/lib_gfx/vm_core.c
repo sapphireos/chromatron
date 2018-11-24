@@ -70,6 +70,20 @@ typedef struct __attribute__((packed)){
     uint8_t attr;
     uint16_t src;
 } decodep_t;
+
+typedef struct __attribute__((packed)){
+    uint8_t array;
+    uint16_t index_x;
+    uint16_t index_y;
+    uint16_t src;
+} decodep2_t;
+
+typedef struct __attribute__((packed)){
+    uint8_t array;
+    uint16_t index_x;
+    uint16_t index_y;
+    uint16_t dest;
+} decodep3_t;
 #endif
 
 static int8_t _vm_i8_run_stream(
@@ -397,6 +411,8 @@ static int8_t _vm_i8_run_stream(
     decode2_t *decode2;
     decodev_t *decodev;
     decodep_t *decodep;
+    decodep2_t *decodep2;
+    decodep3_t *decodep3;
     #else
     uint8_t attr;
     uint16_t op1;
@@ -1839,6 +1855,19 @@ opcode_pmod:
 
 
 opcode_pstore_hue:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep2 = (decodep2_t *)pc;
+    pc += sizeof(decodep2_t);
+
+    // wraparound to 16 bit range.
+//     // this makes it easy to run a circular rainbow
+//     op1 %= 65536;
+    // ^^^^^^ I don't think we actually need to do this.
+    // gfx will crunch from i32 to u16, which does the mod for free.
+
+    gfx_v_set_hue( data[decodep2->src], data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -1852,7 +1881,7 @@ opcode_pstore_hue:
 
     #ifdef VM_ENABLE_GFX
 
-//     // wraparound to 16 bit range.
+    // wraparound to 16 bit range.
 //     // this makes it easy to run a circular rainbow
 //     op1 %= 65536;
     // ^^^^^^ I don't think we actually need to do this.
@@ -1860,11 +1889,32 @@ opcode_pstore_hue:
 
     gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_pstore_sat:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep2 = (decodep2_t *)pc;
+    pc += sizeof(decodep2_t);
+
+    // load source
+    value_i32 = data[decodep2->src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_sat( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -1894,12 +1944,32 @@ opcode_pstore_sat:
 
     gfx_v_set_sat( value_i32, data[index_x], data[index_y], array );
     #endif
-
-    
+#endif    
     DISPATCH;
 
 
 opcode_pstore_val:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep2 = (decodep2_t *)pc;
+    pc += sizeof(decodep2_t);
+
+    // load source
+    value_i32 = data[decodep2->src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_val( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -1929,11 +1999,32 @@ opcode_pstore_val:
 
     gfx_v_set_val( value_i32, data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_pstore_vfade:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep2 = (decodep2_t *)pc;
+    pc += sizeof(decodep2_t);
+
+    // load source
+    value_i32 = data[decodep2->src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_v_fade( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -1963,11 +2054,32 @@ opcode_pstore_vfade:
 
     gfx_v_set_v_fade( value_i32, data[index_x], data[index_y], array );
     #endif
-
+#endif
     DISPATCH;
 
 
 opcode_pstore_hsfade:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep2 = (decodep2_t *)pc;
+    pc += sizeof(decodep2_t);
+
+    // load source
+    value_i32 = data[decodep2->src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_hs_fade( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -1997,11 +2109,19 @@ opcode_pstore_hsfade:
 
     gfx_v_set_hs_fade( value_i32, data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_pload_hue:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_hue( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2016,11 +2136,19 @@ opcode_pload_hue:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_pload_sat:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_sat( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2035,11 +2163,19 @@ opcode_pload_sat:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], array );
     #endif
-
+#endif
     DISPATCH;
 
 
 opcode_pload_val:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_val( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2054,11 +2190,19 @@ opcode_pload_val:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_val( data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_pload_vfade:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_v_fade( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2073,11 +2217,19 @@ opcode_pload_vfade:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], array );
     #endif
-    
+#endif    
     DISPATCH;
 
 
 opcode_pload_hsfade:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_hs_fade( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
     array = *pc++;
 
     index_x = *pc++;
@@ -2092,7 +2244,7 @@ opcode_pload_hsfade:
     #ifdef VM_ENABLE_GFX
     data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], array );
     #endif
-
+#endif
     DISPATCH;
 
 
