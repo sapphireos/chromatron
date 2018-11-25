@@ -116,8 +116,6 @@ void hal_rtc_v_irq( void ){
 
 void time_v_init( void ){
 
-    catbus_v_set_options( CATBUS_OPTION_LINK_DISABLE );
-
     // January 1, 2018, midnight
     master_time.seconds = 1514786400 + 2208988800 - 21600;
 

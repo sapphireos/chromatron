@@ -1097,7 +1097,7 @@ typedef struct{
 PT_THREAD( link_broadcast_thread( pt_t *pt, link_broadcast_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
-    
+
     state->f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
 
     if( state->f < 0 ){
@@ -1148,7 +1148,6 @@ PT_BEGIN( pt );
         raddr.port      = CATBUS_DISCOVERY_PORT;
 
         // broadcast to network
-
         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
         TMR_WAIT( pt, 10 );
