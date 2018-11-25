@@ -38,10 +38,6 @@ extern "C"{
     #include "memory.h"
 }
 
-// static uint8_t vm_data[VM_RUNNER_MAX_SIZE];
-// static int16_t vm_start[VM_MAX_VMS];
-// static uint16_t vm_size[VM_MAX_VMS];
-
 static mem_handle_t vm_handles[VM_MAX_VMS];
 static vm_state_t vm_state[VM_MAX_VMS];
 
@@ -283,6 +279,17 @@ void vm_v_process( void ){
         vm_fader_time = elapsed;
 
         run_faders = false;
+
+        // recompute VM size
+        vm_total_size = 0;
+
+        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+            if( vm_handles[i] > 0 ){
+
+                vm_total_size += mem2_u16_get_size( vm_handles[i] );
+            }
+        }
     }
 
     if( elapsed_time_millis( thread_tick ) >= VM_RUNNER_THREAD_RATE ){
@@ -414,8 +421,6 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
     
         // load next page of data
         memcpy( &stream[offset], data, len );
-
-        vm_total_size += len;
     }
     // length of 0 indicates loading is finished
     else{
