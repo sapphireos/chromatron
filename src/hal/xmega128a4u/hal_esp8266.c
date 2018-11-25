@@ -49,7 +49,7 @@ static volatile bool buffer_busy;
 static uint8_t rx_buf[WIFI_UART_RX_BUF_SIZE];
 
 static uint32_t current_tx_bytes;
-static uint32_t current_rx_bytes;
+static volatile uint32_t current_rx_bytes;
 
 static volatile bool wifi_rx_ready;
 
@@ -77,6 +77,8 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         TCD1.CNT = 0;
         
         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buf[1];
+
+        current_rx_bytes += header->len + sizeof(wifi_data_header_t) + 1;
 
         // calculate timer length based on packet length
         // at 4 MHz USART, each byte is 2.5 microseconds.
@@ -311,8 +313,6 @@ void hal_wifi_v_clear_rx_buffer( void ){
 
 void hal_wifi_v_release_rx_buffer( void ){
 
-	current_rx_bytes += hal_wifi_i16_rx_data_received();
-
     ATOMIC;
 
     // release buffer
@@ -425,9 +425,11 @@ uint32_t hal_wifi_u32_get_max_ready_wait( void ){
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
 
+    ATOMIC;
 	uint32_t temp = current_rx_bytes;
 
 	current_rx_bytes = 0;
+    END_ATOMIC;
 
 	return temp;
 }
