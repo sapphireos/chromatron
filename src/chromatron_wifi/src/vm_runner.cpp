@@ -353,8 +353,6 @@ void vm_v_reset( uint8_t vm_index ){
 
     vm_v_clear_db( 1 << vm_index );
 
-    vm_total_size -= mem2_u16_get_size( vm_handles[vm_index] );
-
     memset( &vm_state[vm_index], 0, sizeof(vm_state[vm_index]) );
 
     // don't reset status if there is an error
