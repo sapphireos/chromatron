@@ -409,6 +409,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
     // verify offset and length are within bounds
     if( ( offset + len ) > mem2_u16_get_size( vm_handles[vm_index] ) ){
 
+        status = -4;
         goto end;
     }
 
