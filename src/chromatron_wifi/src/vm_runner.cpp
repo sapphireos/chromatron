@@ -164,6 +164,13 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
 
+    if( ( (uint32_t)stream % 4 ) != 0 ){
+
+        intf_v_printf("VM misalign on run");
+
+        return -5;
+    }
+
     if( mode == VM_RUN_INIT ){
 
         return_code = vm_i8_run_init( stream, &vm_state[vm_index] );
@@ -346,7 +353,7 @@ void vm_v_reset( uint8_t vm_index ){
     }
 
     // check if this VM has already been reset
-    if( vm_handles[vm_index] < 0 ){
+    if( vm_handles[vm_index] <= 0 ){
 
         return;
     }
@@ -390,8 +397,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
         // check if this slot is already loaded
         if( vm_handles[vm_index] > 0 ){
 
-            mem2_v_free( vm_handles[vm_index] );
-            vm_handles[vm_index] = -1;
+            vm_v_reset( vm_index );
         }
 
         // allocate memory
@@ -416,6 +422,14 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
 
     stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     
+    if( ( (uint32_t)stream % 4 ) != 0 ){
+
+        intf_v_printf("VM misalign on load");
+
+        status = -5;
+        goto end;
+    }
+
     if( len > 0 ){
     
         // load next page of data

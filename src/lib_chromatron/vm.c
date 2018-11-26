@@ -474,7 +474,6 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         }
     }
 
-
     // send len 0 to indicate load complete.
     uint16_t msg_len = sizeof(vm_load_msg.vm_id) + sizeof(vm_load_msg.total_size) + sizeof(vm_load_msg.offset);
     vm_load_msg.vm_id = vm_id;
