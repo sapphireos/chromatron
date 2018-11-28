@@ -937,6 +937,9 @@ restart:
         if( watchdog == 0 ){
 
             log_v_debug_P( PSTR("Wifi watchdog triggered") );
+
+            // reboot to safe mode
+            sys_v_reboot_delay( SYS_MODE_SAFE );
         
             goto restart;
         }
