@@ -43,8 +43,9 @@ int8_t vm_lib_i8_libcall_built_in(
 
             if( param_len == 0 ){
 
-                temp0 = 65535;
-                temp1 = 0;                
+                *result = rnd_u16_get_int_with_seed( &state->rng_seed );
+
+                break;
             }
             else if( param_len == 1 ){
 

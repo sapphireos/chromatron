@@ -333,31 +333,34 @@ void gfx_v_get_params( gfx_params_t *params ){
 
 uint16_t urand( int32_t *params, uint16_t param_len ){
 
-    uint16_t op1, op2;
+    int32_t temp0, temp1;
 
     if( param_len == 0 ){
 
-        return rnd_u16_get_int();
+       return rnd_u16_get_int();      
     }
     else if( param_len == 1 ){
 
-        op2 = params[0];
-        op1 = 0;
+        temp0 = params[params[0]];
+        temp1 = 0;
     }
-    else if( param_len == 2 ){
+    else{
 
-        op2 = params[1];
-        op1 = params[0];   
-    }
-    else{ 
-        // invalid param len
-
-        return 0;
+        temp0 = params[params[1]] - params[params[0]];
+        temp1 = params[params[0]];
     }
 
-    uint16_t diff = op2 - op1;
+    // check for divide by 0, or negative spread
+    if( temp0 <= 0 ){
 
-    return ( rnd_u16_get_int() % diff ) + op1;
+        // just return the offset
+        return temp1;
+        
+    }
+    else{
+    
+        return temp1 + ( rnd_u16_get_int() % temp0 );
+    }
 }
 
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len ){
