@@ -55,16 +55,19 @@ int8_t vm_lib_i8_libcall_built_in(
 
                 temp0 = data[params[1]] - data[params[0]];
                 temp1 = data[params[0]];
-
-                // check for divide by 0, or negative spread
-                if( temp0 <= 0 ){
-
-                    // no spread, so just return the offset
-                    temp1 = temp1;
-                }
             }
+
+            // check for divide by 0, or negative spread
+            if( temp0 <= 0 ){
+
+                // just return the offset
+                *result = temp1;
+                
+            }
+            else{
             
-            *result = temp1 + ( rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0 );
+                *result = temp1 + ( rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0 );
+            }
 
             break;
 
