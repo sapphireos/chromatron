@@ -1943,8 +1943,10 @@ class Builder(object):
                         params.append(array_len)
 
                 else:
-                    raise SyntaxError("Array functions take one argument", lineno=self.lineno)                    
-                    
+                    raise SyntaxError("Array functions take one argument", lineno=lineno)                    
+            
+            if func_name == 'pix_count':
+                raise SyntaxError("pix_count() is deprecated, use pixels.count", lineno=lineno)        
             
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
