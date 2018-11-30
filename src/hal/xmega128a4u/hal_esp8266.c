@@ -40,6 +40,7 @@
 
 #define WIFI_RESET_DELAY_MS     20
 
+#define TRANSFER_SIZE (sizeof(wifi_data_header_t) + 1)
 
 
 static uint8_t rx_dma_buf[WIFI_UART_RX_BUF_SIZE + 4]; // pad to multiple of DMA transfer block size (7 bytes)
@@ -277,7 +278,7 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
     DMA.WIFI_DMA_CH.REPCNT = 0;
     DMA.WIFI_DMA_CH.ADDRCTRL = DMA_CH_SRCRELOAD_NONE_gc | DMA_CH_SRCDIR_FIXED_gc | DMA_CH_DESTRELOAD_NONE_gc | DMA_CH_DESTDIR_INC_gc;
     DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
-    DMA.WIFI_DMA_CH.TRFCNT = sizeof(wifi_data_header_t) + 1;
+    DMA.WIFI_DMA_CH.TRFCNT = TRANSFER_SIZE;
 
     DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 0 ) & 0xFF;
     DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 8 ) & 0xFF;

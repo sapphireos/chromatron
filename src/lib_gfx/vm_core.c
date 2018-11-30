@@ -2480,7 +2480,7 @@ int8_t vm_i8_run_init(
     vm_state_t *state ){
 
     state->frame_number = 0;
-
+return 0;
     return vm_i8_run( stream, state->init_start, 0, state );
 }
 
@@ -2490,7 +2490,7 @@ int8_t vm_i8_run_loop(
     vm_state_t *state ){
 
     state->frame_number++;
-
+return 0;
     return vm_i8_run( stream, state->loop_start, 0, state );
 }
 
