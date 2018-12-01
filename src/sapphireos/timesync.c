@@ -20,7 +20,7 @@
 // 
 // </license>
 
-// #define NO_LOGGING
+#define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
