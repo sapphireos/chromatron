@@ -42,8 +42,9 @@
 #define FADE_TIMER_VALUE_WS2811     1 // 1 ms
 #define FADE_TIMER_LOW_POWER        20 // 20 ms
 
-
 #define MAX_BYTES_PER_PIXEL 16
+
+#define TRAILER_LENGTH      32
 
 static bool pix_dither;
 static uint16_t pix_count;
@@ -63,7 +64,7 @@ static union{
 
 static uint8_t dither_cycle;
 
-static uint8_t outputs[N_PIXEL_OUTPUTS][MAX_PIXELS * MAX_BYTES_PER_PIXEL];
+static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + TRAILER_LENGTH];
 
 
 int8_t pix_i8_kv_handler(
@@ -124,16 +125,19 @@ static uint8_t bytes_per_pixel( void ){
 }
 
 
-static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
+static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
-    uint16_t pixels_per_buf = len / bytes_per_pixel();
-    uint16_t transfer_pixel_count = pixels_per_buf;
-    uint16_t pixels_remaining = gfx_u16_get_pix_count();
+    uint8_t *buf = outputs;
 
-    if( transfer_pixel_count > pixels_remaining ){
+    // advance buffer for driver
+    for( uint8_t i = 0; i < driver; i++ ){
 
-        transfer_pixel_count = pixels_remaining;
+        buf += hal_pixel_u16_driver_pixels( i ) * bytes_per_pixel();
     }
+
+    *offset = buf;
+
+    uint16_t transfer_pixel_count = hal_pixel_u16_driver_pixels( driver );
 
     if( transfer_pixel_count == 0 ){
 
@@ -260,8 +264,8 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint16_t len ){
         }
     }
 
-    memset( &buf[buf_index], 0, 32 );
-    buf_index += 32;
+    memset( &buf[buf_index], 0, TRAILER_LENGTH );
+    buf_index += TRAILER_LENGTH;
 
     hal_cpu_v_clean_d_cache();
 
@@ -337,9 +341,10 @@ PT_BEGIN( pt );
                     v++;
                 }
 
-                uint16_t data_length = setup_pixel_buffer( outputs[ch], sizeof(outputs[ch]) );
+                uint8_t *offset;
+                uint16_t data_length = setup_pixel_buffer( ch, &offset );
 
-                hal_pixel_v_start_transfer( ch, outputs[ch], data_length );
+                hal_pixel_v_start_transfer( ch, offset, data_length );
             }
         }
 
