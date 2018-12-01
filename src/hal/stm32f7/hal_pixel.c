@@ -27,14 +27,14 @@
 static SPI_HandleTypeDef pix_spi0;
 static SPI_HandleTypeDef pix_spi1;
 static DMA_HandleTypeDef pix0_dma;
+static DMA_HandleTypeDef pix1_dma;
 
 
 void DMA2_Stream3_IRQHandler(void){
     
     HAL_DMA_IRQHandler( &pix0_dma );
-
-
 }
+
 void SPI1_IRQHandler(void){
 
     HAL_SPI_IRQHandler( &pix_spi0 );
@@ -67,8 +67,19 @@ uint16_t hal_pixel_u16_driver_pixels( uint8_t driver ){
 }
 
 void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
-// HAL_SPI_Transmit_DMA( &pix_spi0, output0, data_length );
+    
+    if( driver == 0 ){
+        
+        HAL_SPI_Transmit_DMA( &pix_spi0, data, len );
+    }
+    else if( driver == 0 ){
 
+        HAL_SPI_Transmit_DMA( &pix_spi1, data, len );   
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
 }
 
 void hal_pixel_v_init( void ){
@@ -135,8 +146,8 @@ void hal_pixel_v_init( void ){
     HAL_SPI_Init( &pix_spi1 );    
 
     // set up DMA
-    pix0_dma.Instance                  = DMA2_Stream3;
-    pix0_dma.Init.Channel              = DMA_CHANNEL_3;
+    pix0_dma.Instance                  = PIX0_DMA_INSTANCE;
+    pix0_dma.Init.Channel              = PIX0_DMA_CHANNEL;
     pix0_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
     pix0_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
     pix0_dma.Init.MemInc               = DMA_MINC_ENABLE;
@@ -151,12 +162,14 @@ void hal_pixel_v_init( void ){
 
     HAL_DMA_Init( &pix0_dma );
 
-    HAL_NVIC_SetPriority( DMA2_Stream3_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( DMA2_Stream3_IRQn );
+    HAL_NVIC_SetPriority( PIX0_DMA_IRQ, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX0_DMA_IRQ );
 
-    HAL_NVIC_SetPriority( SPI1_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( SPI1_IRQn );
+    HAL_NVIC_SetPriority( PIX0_SPI_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX0_SPI_IRQn );
 
     __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
+
+    
 }
 

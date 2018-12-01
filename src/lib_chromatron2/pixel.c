@@ -63,7 +63,7 @@ static union{
 
 static uint8_t dither_cycle;
 
-static uint8_t output0[MAX_PIXELS * MAX_BYTES_PER_PIXEL];
+static uint8_t outputs[N_PIXEL_OUTPUTS][MAX_PIXELS * MAX_BYTES_PER_PIXEL];
 
 
 int8_t pix_i8_kv_handler(
@@ -315,30 +315,33 @@ PT_BEGIN( pt );
         channels_complete = 0;
         END_ATOMIC;
 
-        if( temp_channels_complete & 0x01 ){
+        for( uint8_t ch = 0; ch < N_PIXEL_OUTPUTS; ch++ ){
 
-            uint16_t *h = gfx_u16p_get_hue();
-            uint16_t *s = gfx_u16p_get_sat();
-            uint16_t *v = gfx_u16p_get_val();
-            uint16_t r, g, b, w;
+            if( temp_channels_complete & ( 1 << ch ) ){
 
-            for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
+                uint16_t *h = gfx_u16p_get_hue();
+                uint16_t *s = gfx_u16p_get_sat();
+                uint16_t *v = gfx_u16p_get_val();
+                uint16_t r, g, b, w;
 
-                gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
+                for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
 
-                array_r[i] = r >> 8;
-                array_g[i] = g >> 8;
-                array_b[i] = b >> 8;
-                array_misc.white[i] = w >> 8;
+                    gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
 
-                h++;
-                s++;
-                v++;
+                    array_r[i] = r >> 8;
+                    array_g[i] = g >> 8;
+                    array_b[i] = b >> 8;
+                    array_misc.white[i] = w >> 8;
+
+                    h++;
+                    s++;
+                    v++;
+                }
+
+                uint16_t data_length = setup_pixel_buffer( outputs[ch], sizeof(outputs[ch]) );
+
+                hal_pixel_v_start_transfer( ch, outputs[ch], data_length );
             }
-
-            uint16_t data_length = setup_pixel_buffer(output0, sizeof(output0));
-
-            hal_pixel_v_start_transfer( 0, output0, data_length );
         }
 
         TMR_WAIT( pt, 2 ); 

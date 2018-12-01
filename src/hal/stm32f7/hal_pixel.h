@@ -23,8 +23,13 @@
 #ifndef _HAL_PIXEL_H
 #define _HAL_PIXEL_H
 
-#define PIX0_SPI SPI1
-#define PIX1_SPI SPI2
+#define PIX0_SPI 			SPI1
+#define PIX0_SPI_IRQn 		SPI1_IRQn
+#define PIX0_DMA_INSTANCE	DMA2_Stream3
+#define PIX0_DMA_IRQ	 	DMA2_Stream3_IRQn
+#define PIX0_DMA_CHANNEL	DMA_CHANNEL_3
+
+#define PIX1_SPI 			SPI2
 
 
 void hal_pixel_v_init( void );
