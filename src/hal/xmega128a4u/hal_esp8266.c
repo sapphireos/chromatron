@@ -79,6 +79,17 @@ ISR(WIFI_DMA_IRQ_VECTOR){
         
         wifi_data_header_t *header = (wifi_data_header_t *)&rx_dma_buf[1];
 
+        // check header length
+        if( header->len > WIFI_UART_RX_BUF_SIZE ){
+
+            // this is super not good, since we will overflow our buffer.
+            // only thing we can do is shutdown the DMA and wait for the
+            // ESP to ping us.
+
+            hal_wifi_v_disable_rx_dma();
+            return;
+        }
+
         current_rx_bytes += header->len + sizeof(wifi_data_header_t) + 1;
 
         // calculate timer length based on packet length
