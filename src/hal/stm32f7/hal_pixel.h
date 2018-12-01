@@ -23,6 +23,16 @@
 #ifndef _HAL_PIXEL_H
 #define _HAL_PIXEL_H
 
+#define PIX0_SPI SPI1
+#define PIX1_SPI SPI2
+
+
 void hal_pixel_v_init( void );
+
+uint8_t hal_pixel_u8_driver_count( void );
+uint16_t hal_pixel_u16_driver_pixels( uint8_t driver );
+
+void hal_pixel_v_transfer_complete_callback( uint8_t driver ) __attribute__((weak));
+void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len );
 
 #endif

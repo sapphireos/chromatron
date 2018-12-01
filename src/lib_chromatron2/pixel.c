@@ -287,16 +287,12 @@ void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
 
 static volatile uint16_t channels_complete;
 
-void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
+void hal_pixel_v_transfer_complete_callback( uint8_t driver ){
 
-    if( hspi == &pix_spi0 ){
-
-        channels_complete |= 1;
-    }
-
-    // transfer complete
+    channels_complete |= ( 1 << driver );
     thread_v_signal( PIX_SIGNAL_0 );
 }
+
 
 
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
@@ -305,7 +301,10 @@ PT_BEGIN( pt );
     
     // signal transfer thread to start
     thread_v_signal( PIX_SIGNAL_0 );
+
+    ATOMIC;
     channels_complete = 0xffff;
+    END_ATOMIC;
 
     while(1){
 
@@ -338,7 +337,8 @@ PT_BEGIN( pt );
             }
 
             uint16_t data_length = setup_pixel_buffer(output0, sizeof(output0));
-            HAL_SPI_Transmit_DMA( &pix_spi0, output0, data_length );
+
+            hal_pixel_v_start_transfer( 0, output0, data_length );
         }
 
         TMR_WAIT( pt, 2 ); 

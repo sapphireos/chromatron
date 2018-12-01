@@ -21,7 +21,7 @@
 // </license>
 
 #include "cpu.h"
-#include "pixel.h"
+#include "hal_io.h"
 #include "hal_pixel.h"
 
 static SPI_HandleTypeDef pix_spi0;
@@ -38,6 +38,37 @@ void DMA2_Stream3_IRQHandler(void){
 void SPI1_IRQHandler(void){
 
     HAL_SPI_IRQHandler( &pix_spi0 );
+}
+
+
+void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
+
+    uint8_t driver = 0;
+
+    if( hspi == &pix_spi0 ){
+
+        driver = 0;
+    }
+    else if( hspi == &pix_spi1 ){
+
+        driver = 1;
+    }
+
+    hal_pixel_v_transfer_complete_callback( driver );    
+}
+
+
+uint8_t hal_pixel_u8_driver_count( void ){
+
+}
+
+uint16_t hal_pixel_u16_driver_pixels( uint8_t driver ){
+
+}
+
+void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
+// HAL_SPI_Transmit_DMA( &pix_spi0, output0, data_length );
+
 }
 
 void hal_pixel_v_init( void ){
