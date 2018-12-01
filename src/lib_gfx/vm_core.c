@@ -93,7 +93,7 @@ static int8_t _vm_i8_run_stream(
     vm_state_t *state,
     int32_t *data ){
 
-#if defined(ESP8266) || defined(ARM)
+#if defined(ESP8266)
     static void *opcode_table[] = {
 #else
     static void *const opcode_table[] PROGMEM = {
@@ -443,7 +443,7 @@ static int8_t _vm_i8_run_stream(
 
             opcode = *pc++;
 
-        #ifdef ESP8266
+        #if defined(ESP8266) || defined(ARM)
             goto *opcode_table[opcode];
         #else
             void *target = (void*)pgm_read_word( &opcode_table[opcode] );
