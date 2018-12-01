@@ -42,4 +42,13 @@ void gfx_v_hsv_to_rgbw(
     uint16_t *b,
     uint16_t *w );
 
+void gfx_v_hsv_to_rgbw8(
+    uint16_t h,
+    uint16_t s,
+    uint16_t v,
+    uint8_t *r,
+    uint8_t *g,
+    uint8_t *b,
+    uint8_t *w );
+
 #endif

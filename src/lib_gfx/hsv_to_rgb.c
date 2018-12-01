@@ -171,3 +171,30 @@ void gfx_v_hsv_to_rgbw(
     *w = ( (uint32_t)temp_s * v ) / 65536;
 }
 
+
+#include "hue_table.txt"
+
+void gfx_v_hsv_to_rgbw8(
+    uint16_t h,
+    uint16_t s,
+    uint16_t v,
+    uint8_t *r,
+    uint8_t *g,
+    uint8_t *b,
+    uint8_t *w ){
+
+    uint8_t temp_r, temp_g, temp_b, temp_s;
+
+    temp_s = 255 - ( s >> 8 );
+
+    *r = hue_table[h][0];
+    *g = hue_table[h][1];
+    *b = hue_table[h][2];
+        
+    // apply brightness
+    *r = ( (uint32_t)temp_r * v ) / 65536;
+    *g = ( (uint32_t)temp_g * v ) / 65536;
+    *b = ( (uint32_t)temp_b * v ) / 65536;
+    *w = ( (uint32_t)temp_s * v ) / 65536;
+}
+
