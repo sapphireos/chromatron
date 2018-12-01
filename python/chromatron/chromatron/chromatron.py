@@ -2713,30 +2713,26 @@ def link_show(ctx):
 
 @link.command('send')
 @click.pass_context
-@click.argument('link')
-def link_send(ctx, link):
+@click.argument('source')
+@click.argument('dest')
+@click.option('--target', '-t', default=None, multiple=True, help="Target query tags")
+def link_send(ctx, source, dest, target):
     """Add a sender link"""
     group = ctx.obj['GROUP']()
-
-    link = automaton_code_gen.send.parseString('send ' + link, parseAll=True).asDict()['send'][0]
-
-    source = True
-
-    if 'tag' not in link:
-        link['tag'] = ['manual']
 
     for ct in group.itervalues():
         name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
         click.echo(name_s)
 
-        # note dest var is actually query[0]
-        ct.client.add_link(source, link['source_var'], link['query'][0], link['query'][1], link['tag'][0])
+        ct.client.add_link(True, source, dest, target, 'manual')
 
 
 @link.command('receive')
 @click.pass_context
-@click.argument('link')
-def link_receive(ctx, link):
+@click.argument('source')
+@click.argument('dest')
+@click.option('--target', '-t', default=None, multiple=True, help="Target query tags")
+def link_receive(ctx, source, dest, target):
     """Add a receiver link"""
     group = ctx.obj['GROUP']()
 
@@ -2744,16 +2740,12 @@ def link_receive(ctx, link):
 
     source = False
 
-    if 'tag' not in link:
-        link['tag'] = ['manual']
-
     for ct in group.itervalues():
         name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
         click.echo(name_s)
 
-        # note source var is actually query[0]
-        ct.client.add_link(source, link['query'][0], link['dest_var'], link['query'][1], link['tag'][0])
-        
+        ct.client.add_link(False, source, dest, target, 'manual')
+    
 @link.command('delete')
 @click.pass_context
 @click.argument('tag')
