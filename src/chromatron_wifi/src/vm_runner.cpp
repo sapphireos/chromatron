@@ -286,17 +286,6 @@ void vm_v_process( void ){
         vm_fader_time = elapsed;
 
         run_faders = false;
-
-        // recompute VM size
-        vm_total_size = 0;
-
-        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
-
-            if( vm_handles[i] > 0 ){
-
-                vm_total_size += mem2_u16_get_size( vm_handles[i] );
-            }
-        }
     }
 
     if( elapsed_time_millis( thread_tick ) >= VM_RUNNER_THREAD_RATE ){
@@ -373,6 +362,18 @@ void vm_v_reset( uint8_t vm_index ){
 
     mem2_v_free( vm_handles[vm_index] );
     vm_handles[vm_index] = -1;
+
+
+    // recompute VM size
+    vm_total_size = 0;
+
+    for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        if( vm_handles[i] > 0 ){
+
+            vm_total_size += mem2_u16_get_size( vm_handles[i] );
+        }
+    }
 }
 
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t offset, uint8_t vm_index ){
@@ -495,7 +496,20 @@ end:
 
     if( status < 0 ){
 
+        intf_v_printf("VM load fail %d", status);
+
         vm_v_reset( vm_index );
+    }
+
+    // recompute VM size
+    vm_total_size = 0;
+
+    for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        if( vm_handles[i] > 0 ){
+
+            vm_total_size += mem2_u16_get_size( vm_handles[i] );
+        }
     }
 
     return status;
