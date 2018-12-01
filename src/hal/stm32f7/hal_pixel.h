@@ -30,6 +30,10 @@
 #define PIX0_DMA_CHANNEL	DMA_CHANNEL_3
 
 #define PIX1_SPI 			SPI2
+#define PIX1_SPI_IRQn 		SPI2_IRQn
+#define PIX1_DMA_INSTANCE	DMA1_Stream4
+#define PIX1_DMA_IRQ	 	DMA1_Stream4_IRQn
+#define PIX1_DMA_CHANNEL	DMA_CHANNEL_0
 
 
 void hal_pixel_v_init( void );

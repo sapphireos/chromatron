@@ -145,7 +145,7 @@ void hal_pixel_v_init( void ){
     pix_spi1.Init = spi_init;
     HAL_SPI_Init( &pix_spi1 );    
 
-    // set up DMA
+    // set up DMA, output 0
     pix0_dma.Instance                  = PIX0_DMA_INSTANCE;
     pix0_dma.Init.Channel              = PIX0_DMA_CHANNEL;
     pix0_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
@@ -170,6 +170,31 @@ void hal_pixel_v_init( void ){
 
     __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
 
-    
+    // set up DMA, output 1
+    pix1_dma.Instance                  = PIX1_DMA_INSTANCE;
+    pix1_dma.Init.Channel              = PIX1_DMA_CHANNEL;
+    pix1_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
+    pix1_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    pix1_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    pix1_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    pix1_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    pix1_dma.Init.Mode                 = DMA_NORMAL;
+    pix1_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    pix1_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    pix1_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    pix1_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    pix1_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    HAL_DMA_Init( &pix1_dma );
+
+    HAL_NVIC_SetPriority( PIX1_DMA_IRQ, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX1_DMA_IRQ );
+
+    HAL_NVIC_SetPriority( PIX1_SPI_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX1_SPI_IRQn );
+
+    __HAL_LINKDMA( &pix_spi1, hdmatx, pix1_dma );
+
+
 }
 
