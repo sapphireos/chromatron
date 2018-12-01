@@ -21,8 +21,16 @@
 // </license>
 
 #include "cpu.h"
+#include "keyvalue.h"
 #include "hal_io.h"
 #include "hal_pixel.h"
+
+static uint16_t pix_count_1;
+
+KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_1,        0,    "pix_count_1" },
+};
+
 
 static SPI_HandleTypeDef pix_spi0;
 static SPI_HandleTypeDef pix_spi1;
