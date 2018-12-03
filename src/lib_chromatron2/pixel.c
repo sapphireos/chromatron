@@ -354,9 +354,21 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+void __attribute__((naked, noreturn)) Default_Handler( void );
+
+void __attribute__((naked, noreturn)) Default_Handler( void )
+{
+    trace_printf("Default_Handler\n");
+ //If you get stuck here, your code is missing a handler for some interrupt.
+ //Define a 'DEBUG_DEFAULT_INTERRUPT_HANDLERS' macro via VisualGDB Project Properties and rebuild your project.
+ //This will pinpoint a specific missing vector.
+ for (;;) ;
+}
+
+
 
 void pixel_v_init( void ){
-
+return;
     pix_mode = PIX_MODE_SK6812_RGBW;
 
     hal_pixel_v_init();

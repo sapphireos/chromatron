@@ -201,11 +201,14 @@ restart:
     boot_data.loader_command = LDR_CMD_NONE;
 
     // run application
+    trace_printf("Jumping to app\n");
     HAL_FLASH_Lock();
     ldr_run_app();
 
 
 fatal_error:
+
+    trace_printf("FATAL ERROR\n");
 
     ldr_v_clear_yellow_led();
     ldr_v_set_red_led();
