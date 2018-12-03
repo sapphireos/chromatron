@@ -25,14 +25,18 @@
 
 #define PIX0_SPI 			SPI1
 #define PIX0_SPI_IRQn 		SPI1_IRQn
+#define PIX0_SPI_HANDLER 	SPI1_IRQHandler
 #define PIX0_DMA_INSTANCE	DMA2_Stream3
 #define PIX0_DMA_IRQ	 	DMA2_Stream3_IRQn
+#define PIX0_DMA_HANDLER	DMA2_Stream3_IRQHandler
 #define PIX0_DMA_CHANNEL	DMA_CHANNEL_3
 
 #define PIX1_SPI 			SPI2
 #define PIX1_SPI_IRQn 		SPI2_IRQn
+#define PIX1_SPI_HANDLER 	SPI2_IRQHandler
 #define PIX1_DMA_INSTANCE	DMA1_Stream4
 #define PIX1_DMA_IRQ	 	DMA1_Stream4_IRQn
+#define PIX1_DMA_HANDLER	DMA1_Stream4_IRQHandler
 #define PIX1_DMA_CHANNEL	DMA_CHANNEL_0
 
 

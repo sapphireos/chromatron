@@ -38,14 +38,24 @@ static DMA_HandleTypeDef pix0_dma;
 static DMA_HandleTypeDef pix1_dma;
 
 
-void DMA2_Stream3_IRQHandler(void){
+void PIX0_DMA_HANDLER(void){
     
     HAL_DMA_IRQHandler( &pix0_dma );
 }
 
-void SPI1_IRQHandler(void){
+void PIX0_SPI_HANDLER(void){
 
     HAL_SPI_IRQHandler( &pix_spi0 );
+}
+
+void PIX1_DMA_HANDLER(void){
+    
+    HAL_DMA_IRQHandler( &pix1_dma );
+}
+
+void PIX1_SPI_HANDLER(void){
+
+    HAL_SPI_IRQHandler( &pix_spi1 );
 }
 
 
@@ -92,6 +102,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
 
 void hal_pixel_v_init( void ){
 
+    __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
 
     __HAL_RCC_SPI1_CLK_ENABLE();
