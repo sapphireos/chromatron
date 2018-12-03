@@ -58,9 +58,9 @@
 #define VMON_GPIO_Port GPIOC
 #define LED0_Pin GPIO_PIN_1
 #define LED0_GPIO_Port GPIOA
-#define LED1_Pin GPIO_PIN_2
+#define LED1_Pin GPIO_PIN_5
 #define LED1_GPIO_Port GPIOA
-#define LED2_Pin GPIO_PIN_3
+#define LED2_Pin GPIO_PIN_6
 #define LED2_GPIO_Port GPIOA
 #define FSPI_CLK_Pin GPIO_PIN_2
 #define FSPI_CLK_GPIO_Port GPIOB

@@ -32,9 +32,9 @@
 #define LED_RED_PORT    GPIOA
 #define LED_RED_PIN     GPIO_PIN_1
 #define LED_GREEN_PORT  GPIOA
-#define LED_GREEN_PIN   GPIO_PIN_2
+#define LED_GREEN_PIN   GPIO_PIN_5
 #define LED_BLUE_PORT   GPIOA
-#define LED_BLUE_PIN    GPIO_PIN_3
+#define LED_BLUE_PIN    GPIO_PIN_6
 
 
 #endif
