@@ -80,7 +80,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
         
         HAL_SPI_Transmit_DMA( &pix_spi0, data, len );
     }
-    else if( driver == 0 ){
+    else if( driver == 1 ){
 
         HAL_SPI_Transmit_DMA( &pix_spi1, data, len );   
     }
