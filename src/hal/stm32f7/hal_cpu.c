@@ -427,16 +427,3 @@ void hal_cpu_v_boot_init( void ){
     trace_printf( "PCLK1    : %u\n", HAL_RCC_GetPCLK1Freq() );
     trace_printf( "PCLK2    : %u\n", HAL_RCC_GetPCLK2Freq() );
 }
-
-
-// void __attribute__((naked, noreturn)) Default_Handler( void );
-
-// void __attribute__((naked, noreturn)) Default_Handler( void )
-// {
-//     trace_printf("Default_Handler\n");
-    
-//     // If you get stuck here, your code is missing a handler for some interrupt.
- 
-//     for (;;) ;
-// }
-

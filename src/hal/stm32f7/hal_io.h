@@ -98,9 +98,7 @@
 #define WIFI_BOOT_GPIO_Port GPIOB
 #define WIFI_SS_Pin GPIO_PIN_9
 #define WIFI_SS_GPIO_Port GPIOB
-// #define WIFI_RX_Ready_Pin GPIO_PIN_4
-// #define WIFI_RX_Ready_Port GPIOC
-#define WIFI_RX_Ready_Pin IO_PIN5_PIN
-#define WIFI_RX_Ready_Port IO_PIN5_PORT
+#define WIFI_RX_Ready_Pin GPIO_PIN_7
+#define WIFI_RX_Ready_Port GPIOB
 
 #endif
