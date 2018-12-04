@@ -386,7 +386,7 @@ HardFault_Handler_C (ExceptionStackFrame* frame __attribute__((unused)),
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+  fault_printf ("[MemManage_Handler]\r\n");
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
@@ -404,7 +404,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-
+  fault_printf ("[BusFault_Handler]\r\n");
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
@@ -423,7 +423,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+  fault_printf ("[UsageFault_Handler]\r\n");
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
   {
@@ -443,7 +443,7 @@ void UsageFault_Handler(void)
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
-
+  fault_printf ("[SVC_Handler]\r\n");
   /* USER CODE END SVCall_IRQn 0 */
   /* USER CODE BEGIN SVCall_IRQn 1 */
 
@@ -456,7 +456,7 @@ void SVC_Handler(void)
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
-
+  fault_printf ("[DebugMon_Handler]\r\n");
   /* USER CODE END DebugMonitor_IRQn 0 */
   /* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
@@ -469,7 +469,7 @@ void DebugMon_Handler(void)
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
-
+  fault_printf ("[PendSV_Handler]\r\n");
   /* USER CODE END PendSV_IRQn 0 */
   /* USER CODE BEGIN PendSV_IRQn 1 */
 

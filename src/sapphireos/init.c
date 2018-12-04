@@ -84,7 +84,7 @@ int8_t sapphire_i8_init( void ){
 
     // Must be called first!
 	sys_v_init(); // init system controller
-
+sys_v_enable_interrupts();
 	// disable watchdog timer
     sys_v_disable_watchdog();
 
