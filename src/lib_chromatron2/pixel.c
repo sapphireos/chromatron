@@ -356,7 +356,7 @@ PT_END( pt );
 
 
 void pixel_v_init( void ){
-return;
+
     pix_mode = PIX_MODE_SK6812_RGBW;
 
     hal_pixel_v_init();

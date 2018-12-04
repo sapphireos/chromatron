@@ -131,6 +131,32 @@ LoopFillStack:
  * @param  None     
  * @retval None       
 */
+.section  .text.Default_Handler,"ax",%progbits
+Default_Handler:
+  /* Load the address of the interrupt control register into r3. */
+  ldr r3, NVIC_INT_CTRL_CONST
+  /* Load the value of the interrupt control register into r2 from the
+  address held in r3. */
+  ldr r2, [r3, #0]
+  /* The interrupt number is in the least significant byte - clear all
+  other bits. */
+  uxtb r2, r2
+Infinite_Loop:
+  b  Infinite_Loop
+  .size  Default_Handler, .-Default_Handler
+  .align 4
+/* The address of the NVIC interrupt control register. */
+NVIC_INT_CTRL_CONST: .word 0xe000ed04
+
+
+
+/**
+ * @brief  This is the code that gets called when the processor receives an 
+ *         unexpected interrupt.  This simply enters an infinite loop, preserving
+ *         the system state for examination by a debugger.
+ * @param  None     
+ * @retval None       
+*/
 /******************************************************************************
 *
 * The minimal vector table for a Cortex M7. Note that the proper constructs
