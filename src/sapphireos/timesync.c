@@ -20,7 +20,7 @@
 // 
 // </license>
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -207,13 +207,15 @@ void time_v_set_master_clock(
 
     char s[ISO8601_STRING_MIN_LEN_MS];
     ntp_v_to_iso8601( s, sizeof(s), local_ts );
-    log_v_debug_P( PSTR("Local:    %s"), s );
+    // log_v_debug_P( PSTR("Local:    %s"), s );
     ntp_v_to_iso8601( s, sizeof(s), source_ts );
-    log_v_debug_P( PSTR("Remote:   %s"), s );
+    // log_v_debug_P( PSTR("Remote:   %s"), s );
 
     if( abs64( delta_seconds ) > 60 ){
 
         log_v_debug_P( PSTR("HARD SYNC") );
+        log_v_debug_P( PSTR("Local:    %s"), s );
+        log_v_debug_P( PSTR("Remote:   %s"), s );
 
         // hard sync
         master_time         = source_ts;
@@ -230,7 +232,7 @@ void time_v_set_master_clock(
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
+    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
 }
 
 ntp_ts_t time_t_now( void ){
