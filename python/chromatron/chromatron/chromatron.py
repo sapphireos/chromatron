@@ -35,8 +35,9 @@ import pkg_resources
 from filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 import json
+from datetime import datetime, timedelta
 
-from sapphire.devices.device import Device, DeviceUnreachableException
+from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOCH
 from elysianfields import *
 from sapphire.common.util import now
 
@@ -2760,6 +2761,27 @@ def link_delete(ctx, tag):
 
         ct.client.delete_link(tag)
 
+@cli.group()
+@click.pass_context
+def time(ctx):
+    """Time sync controls"""
+    pass
+
+@time.command("get")
+@click.pass_context
+def time_get(ctx):
+    """Get NTP time"""
+    group = ctx.obj['GROUP']()
+
+    for ct in group.itervalues():
+        ntp_seconds = ct.get_key("ntp_seconds")
+        ntp_now = timedelta(seconds=ntp_seconds) + NTP_EPOCH
+
+        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        val_s = '%32s' % (click.style(ntp_now.isoformat(), fg='white'))
+
+        s = '%s %s' % (name_s, val_s)
+        click.echo(s)
 
 
 def main():
