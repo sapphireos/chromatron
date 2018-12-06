@@ -2761,13 +2761,13 @@ def link_delete(ctx, tag):
 
         ct.client.delete_link(tag)
 
-@cli.group()
+@cli.group("time")
 @click.pass_context
-def time(ctx):
+def time_group(ctx):
     """Time sync controls"""
     pass
 
-@time.command("get")
+@time_group.command("get")
 @click.pass_context
 def time_get(ctx):
     """Get NTP time"""
