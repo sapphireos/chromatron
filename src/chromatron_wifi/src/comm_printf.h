@@ -25,6 +25,14 @@
 #ifndef _COMM_PRINTF_H
 #define _COMM_PRINTF_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 void intf_v_printf( const char *format, ... );
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
