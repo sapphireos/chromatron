@@ -111,7 +111,7 @@ static list_t tx_q;
 #define COMM_STATE_RX_DATA       2
 
 
-void intf_v_led_on(){
+void intf_v_led_on( void ){
 
     if( opt_b_get_led_quiet() ){
 
@@ -121,7 +121,7 @@ void intf_v_led_on(){
     digitalWrite( LED_GPIO, LOW );
 }
 
-void intf_v_led_off(){
+void intf_v_led_off( void ){
 
     digitalWrite( LED_GPIO, HIGH );
 }

@@ -50,7 +50,7 @@ void intf_v_printf( const char *format, ... ){
     intf_i8_send_msg( WIFI_DATA_ID_DEBUG_PRINT, (uint8_t *)buf, len );
 }
 
-void intf_v_serial_printf( const char *format, ... ){
+void intf_v_assert_printf( const char *format, ... ){
 
     char buf[256];
     
@@ -66,6 +66,9 @@ void intf_v_serial_printf( const char *format, ... ){
 
     len++; // add null terminator
     buf[len] = 0;
+
+    // reset serial baud rate
+    Serial.begin(115200);
 
     Serial.println(buf);
 }

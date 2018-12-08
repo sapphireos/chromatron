@@ -5,6 +5,7 @@
 #include "memory.h"
 
 #include "comm_printf.h"
+#include "comm_intf.h"
 
 
 static void *handles[MAX_MEM_HANDLES];
@@ -15,9 +16,27 @@ static mem_rt_data_t mem_rt_data;
 static uint32_t mem_allocs;
 static uint32_t mem_alloc_fails;
 
+static void mem_assert( int line, const char *format, ... ){
 
-#define ASSERT(a)
-#define ASSERT_MSG(a, b)
+    intf_v_led_on();
+
+    intf_v_assert_printf( "MEM Assert Line %d", line );
+
+    if( format != 0 ){
+
+        va_list ap;
+        va_start( ap, format );
+        intf_v_assert_printf( format, ap );
+        va_end( ap );
+    }
+
+    // wait for watchdog to kick us
+    while(1){};
+}
+
+
+#define ASSERT(expr) if( !(expr) ){  mem_assert( __LINE__, 0 ); }
+#define ASSERT_MSG(expr, msg, ...) if( !(expr) ){  mem_assert( __LINE__, msg, ##__VA_ARGS__ ); }
 
 #define CANARY_VALUE 0x47
 

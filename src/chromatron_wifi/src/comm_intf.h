@@ -30,10 +30,12 @@
 #define LED_GPIO 2
 #define BUF_READY_GPIO 14
 
+#ifdef __cplusplus
 extern "C"{
     #include "catbus_common.h"
     #include "gfx_lib.h"
 }
+#endif
 
 typedef struct{
     uint16_t intf_run_time;
@@ -52,8 +54,6 @@ typedef struct{
 
 #define PROCESS_STATS_AVG_FILTER ( 0.1 )
 
-void intf_v_led_on( void );
-void intf_v_led_off( void );
 void intf_v_init( void );
 void intf_v_process( void );
 #ifndef USE_HSV_BRIDGE
@@ -66,5 +66,16 @@ void intf_v_request_vm_frame_sync( void );
 void intf_v_get_mac( uint8_t mac[6] );
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 void intf_v_get_proc_stats( process_stats_t **stats );
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+void intf_v_led_on( void );
+void intf_v_led_off( void );
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
