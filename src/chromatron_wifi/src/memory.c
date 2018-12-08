@@ -482,7 +482,6 @@ uint16_t mem2_u16_get_size( mem_handle_t handle ){
 #ifdef ENABLE_EXTENDED_VERIFY
 void *_mem2_vp_get_ptr( mem_handle_t handle, const char* file, int line ){
 
-
     // check validity of handle and assert if there is a failure.
     // this overrides the system based assert so we can insert the file and line
     // from the caller.
@@ -493,7 +492,6 @@ void *_mem2_vp_get_ptr( mem_handle_t handle, const char* file, int line ){
 
 #else
 void *mem2_vp_get_ptr( mem_handle_t handle ){
-
 
 #endif
 
@@ -510,7 +508,6 @@ void *mem2_vp_get_ptr( mem_handle_t handle ){
 
 void *mem2_vp_get_ptr_fast( mem_handle_t handle ){
 
-
     handle = unswizzle(handle);
 
     uint8_t *ptr = (uint8_t*)handles[handle] + sizeof( mem_block_header_t );
@@ -521,7 +518,6 @@ void *mem2_vp_get_ptr_fast( mem_handle_t handle ){
 // check the canaries for all allocated handles.
 // this function will assert on any failures.
 void mem2_v_check_canaries( void ){
-
 
     for( uint16_t i = 0; i < MAX_MEM_HANDLES; i++ ){
 
@@ -535,12 +531,12 @@ void mem2_v_check_canaries( void ){
 
             // check the canary
             ASSERT_MSG( *canary == generate_canary( header ), "Invalid canary!" );
+            ASSERT_MSG( ( (uint32_t)header % 4 ) == 0, "Header misalign" );
         }
     }
 }
 
 uint8_t mem2_u8_get_handles_used( void ){
-
 
     uint8_t temp = mem_rt_data.handles_used;
 
@@ -549,13 +545,11 @@ uint8_t mem2_u8_get_handles_used( void ){
 
 void mem2_v_get_rt_data( mem_rt_data_t *rt_data ){
 
-
     *rt_data = mem_rt_data;
 }
 
 // return amount of free memory available
 uint16_t mem2_u16_get_free( void ){
-
 
     uint16_t temp = mem_rt_data.free_space;
 
@@ -564,7 +558,6 @@ uint16_t mem2_u16_get_free( void ){
 
 // return amount of dirty memory
 uint16_t mem2_u16_get_dirty( void ){
-
 
     uint16_t temp = mem_rt_data.dirty_space;
 
