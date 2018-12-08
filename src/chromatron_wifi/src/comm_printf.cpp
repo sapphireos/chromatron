@@ -40,7 +40,7 @@ void intf_v_printf( const char *format, ... ){
     va_start( ap, format );
 
     // print string
-    uint32_t len = vsnprintf_P( buf, sizeof(buf), format, ap );
+    uint32_t len = vsnprintf( buf, sizeof(buf), format, ap );
 
     va_end( ap );
 
@@ -62,7 +62,7 @@ void intf_v_assert_printf( const char *format, ... ){
     va_start( ap, format );
 
     // print string
-    uint32_t len = vsnprintf_P( buf, sizeof(buf), format, ap );
+    uint32_t len = vsnprintf( buf, sizeof(buf), format, ap );
 
     va_end( ap );
 
