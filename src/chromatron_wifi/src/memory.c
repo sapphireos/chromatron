@@ -200,11 +200,7 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
         goto finish;
     }
 
-    if( ( total_size % 4 ) != 0 ){
-
-        intf_v_printf("Size misalign: %u requested: %u pad: %u", (uint32_t)total_size, (uint32_t)size, (uint32_t)padding_len);
-        goto finish;
-    }
+    ASSERT_MSG( ( total_size % 4 ) == 0, "Size misalign: %u requested: %u pad: %u", (uint32_t)total_size, (uint32_t)size, (uint32_t)padding_len );
 
     // get a handle
     for( handle = 0; handle < MAX_MEM_HANDLES; handle++ ){
@@ -594,7 +590,7 @@ void mem2_v_collect_garbage( void ){
     next_block = ( mem_block_header_t * )heap;
     dirty = ( mem_block_header_t * )heap;
 
-    ASSERT_MSG( ( (uint32_t)dirty % 4 ) != 0, "Header misalign dirty: %x", (uint32_t)dirty );
+    ASSERT_MSG( ( (uint32_t)dirty % 4 ) == 0, "Header misalign dirty: %x", (uint32_t)dirty );
 
     // search for a dirty block (loop while clean blocks)
     while( ( is_dirty( dirty ) == FALSE ) &&
@@ -614,7 +610,7 @@ void mem2_v_collect_garbage( void ){
 
     while( clean < ( mem_block_header_t * )free_space_ptr ){
 
-        ASSERT_MSG( ( (uint32_t)clean % 4 ) != 0, "Header misalign clean: %x prev: %x next_block: %x prev_size: %d", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
+        ASSERT_MSG( ( (uint32_t)clean % 4 ) == 0, "Header misalign clean: %x prev: %x next_block: %x prev_size: %d", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
 
         // search for a clean block (loop while dirty)
         // (couldn't find anymore clean blocks to move, so there should be
@@ -660,7 +656,7 @@ prev_clean = clean;
         clean = next_block;
     }
 
-    ASSERT_MSG( ( (uint32_t)clean % 4 ) != 0, "Header misalign clean: %x prev: %x next_block: %x prev_size: %d", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
+    ASSERT_MSG( ( (uint32_t)clean % 4 ) == 0, "Header misalign clean: %x prev: %x next_block: %x prev_size: %d", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
 
 done_defrag:
     // EVENT( EVENT_ID_MEM_DEFRAG, 1 );
