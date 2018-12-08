@@ -22,6 +22,8 @@
 // </license>
  */
 
+#include <Arduino.h>
+
 #include "list.h"
 #include "memory.h"
 #include "wifi_cmd.h"
@@ -30,8 +32,7 @@
 
 void intf_v_printf( const char *format, ... ){
 
-    char debug_print_buf[128];
-    memset( debug_print_buf, 0, sizeof(debug_print_buf) );
+    char buf[128];
     
     va_list ap;
 
@@ -39,11 +40,35 @@ void intf_v_printf( const char *format, ... ){
     va_start( ap, format );
 
     // print string
-    uint32_t len = vsnprintf_P( debug_print_buf, sizeof(debug_print_buf), format, ap );
+    uint32_t len = vsnprintf_P( buf, sizeof(buf), format, ap );
 
     va_end( ap );
 
     len++; // add null terminator
+    buf[len] = 0;
 
-    intf_i8_send_msg( WIFI_DATA_ID_DEBUG_PRINT, (uint8_t *)debug_print_buf, len );
+    intf_i8_send_msg( WIFI_DATA_ID_DEBUG_PRINT, (uint8_t *)buf, len );
 }
+
+void intf_v_serial_printf( const char *format, ... ){
+
+    char buf[256];
+    
+    va_list ap;
+
+    // parse variable arg list
+    va_start( ap, format );
+
+    // print string
+    uint32_t len = vsnprintf_P( buf, sizeof(buf), format, ap );
+
+    va_end( ap );
+
+    len++; // add null terminator
+    buf[len] = 0;
+
+    Serial.println(buf);
+}
+
+
+
