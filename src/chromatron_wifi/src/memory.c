@@ -601,12 +601,7 @@ void mem2_v_collect_garbage( void ){
     next_block = ( mem_block_header_t * )heap;
     dirty = ( mem_block_header_t * )heap;
 
-    if( ( (uint32_t)dirty % 4 ) != 0 ){
-
-                intf_v_printf("Memory header misalign dirty: %x", 
-                    (uint32_t)dirty);
-                return;
-            }
+    ASSERT_MSG( ( (uint32_t)dirty % 4 ) != 0, "Header misalign dirty: %x", (uint32_t)dirty );
 
     // search for a dirty block (loop while clean blocks)
     while( ( is_dirty( dirty ) == FALSE ) &&
@@ -622,19 +617,11 @@ void mem2_v_collect_garbage( void ){
     }
 
     mem_block_header_t *prev_clean = clean;
-    uint32_t prev_size = 0;
+    int32_t prev_size = -1;
 
     while( clean < ( mem_block_header_t * )free_space_ptr ){
 
-            if( ( (uint32_t)clean % 4 ) != 0 ){
-
-                intf_v_printf("Memory header misalign clean: %x prev: %x next_block: %x prev_size: %u", 
-                    (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, (uint32_t)prev_size);
-                // intf_v_printf("prev header->size: %u prev header->padding: %u", 
-                    // (uint32_t)prev_header.size, (uint32_t)prev_header.padding_len);
-                return;
-            }
-
+        ASSERT_MSG( ( (uint32_t)clean % 4 ) != 0, "Header misalign clean: %x prev: %x next_block: %x prev_size: %d", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
 
         // search for a clean block (loop while dirty)
         // (couldn't find anymore clean blocks to move, so there should be
@@ -680,11 +667,7 @@ prev_clean = clean;
         clean = next_block;
     }
 
-    if( ( (uint32_t)clean % 4 ) != 0 ){
-
-        intf_v_printf("2 Memory header misalign clean: %x prev: %x next_block: %x", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block);
-        return;
-    }
+    ASSERT_MSG( ( (uint32_t)clean % 4 ) != 0, "Header misalign clean: %x prev: %x next_block: %x prev_size: %d", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
 
 done_defrag:
     // EVENT( EVENT_ID_MEM_DEFRAG, 1 );
