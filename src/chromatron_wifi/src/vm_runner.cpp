@@ -404,7 +404,7 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
         }
 
         // allocate memory
-        vm_handles[vm_index] = mem2_h_alloc( total_size );
+        vm_handles[vm_index] = mem2_h_alloc2( total_size, MEM_TYPE_VM );
     }
     
     // verify handle is allocated

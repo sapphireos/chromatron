@@ -372,7 +372,7 @@ void wifi_v_process( void ){
         }
 
         // allocate memory
-        list_node_t ln = list_ln_create_node( 0, sizeof(wifi_msg_udp_header_t) + packet_len );
+        list_node_t ln = list_ln_create_node2( 0, sizeof(wifi_msg_udp_header_t) + packet_len, MEM_TYPE_NET );
 
         if( ln < 0 ){
 
@@ -507,7 +507,7 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
         return;
     }
 
-    list_node_t ln = list_ln_create_node( 0, sizeof(uint32_t) + sizeof(wifi_msg_udp_header_t) + header->len );
+    list_node_t ln = list_ln_create_node2( 0, sizeof(uint32_t) + sizeof(wifi_msg_udp_header_t) + header->len, MEM_TYPE_NET );
 
     if( ln < 0 ){
 

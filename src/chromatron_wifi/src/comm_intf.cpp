@@ -860,7 +860,7 @@ int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
 
     // buffer message
-    list_node_t ln = list_ln_create_node( 0, len + sizeof(wifi_data_header_t) );
+    list_node_t ln = list_ln_create_node2( 0, len + sizeof(wifi_data_header_t), MEM_TYPE_MSG );
 
     if( ln < 0 ){
 

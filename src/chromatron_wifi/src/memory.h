@@ -43,6 +43,9 @@ typedef int16_t mem_handle_t;
 
 typedef uint8_t mem_type_t8;
 #define MEM_TYPE_UNKNOWN            0
+#define MEM_TYPE_VM                 1
+#define MEM_TYPE_NET                2
+#define MEM_TYPE_MSG                3
 
 typedef struct{
     uint16_t size;
