@@ -93,6 +93,8 @@ void setup(){
 
     intf_v_printf( "ESP online" );
     intf_v_printf( "ESP free heap: %d", ESP.getFreeHeap() );
+
+    intf_v_printf("mem header %u", sizeof(mem_block_header_t));
 }
 
 uint32_t elapsed_time( uint32_t start_time ){

@@ -27,7 +27,9 @@
 #define _MEM_H
 
 #include <inttypes.h>
+
 #include "bool.h"
+
 
 #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
 

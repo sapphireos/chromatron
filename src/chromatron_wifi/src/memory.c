@@ -4,6 +4,9 @@
 
 #include "memory.h"
 
+#include "comm_printf.h"
+
+
 static void *handles[MAX_MEM_HANDLES];
 static uint8_t *heap;
 static uint8_t *free_space_ptr;
@@ -82,7 +85,6 @@ static void verify_handle( mem_handle_t handle ){
 
 
 void mem2_v_init( uint8_t *_heap, uint16_t size ){
-
     heap = _heap;
     mem_rt_data.free_space = size;
     free_space_ptr = heap;
@@ -169,14 +171,23 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
 
     mem_handle_t handle = -1;
 
-    uint8_t padding_len = 4 - ( ( sizeof(mem_block_header_t) + size + 1 ) % 4 );
+    uint16_t total_size = sizeof(mem_block_header_t) + size + 1;
+
+    uint8_t padding_len = 4 - ( total_size % 4 );
 
     size += padding_len;
+    total_size += padding_len;
 
     // check if there is free space available
-    if( mem_rt_data.free_space < ( size + sizeof(mem_block_header_t) + 1 ) ){
+    if( mem_rt_data.free_space < total_size ){
 
         // allocation failed
+        goto finish;
+    }
+
+    if( ( total_size % 4 ) != 0 ){
+
+        intf_v_printf("Size misalign: %u requested: %u pad: %u", (uint32_t)total_size, (uint32_t)size, (uint32_t)padding_len);
         goto finish;
     }
 
@@ -575,6 +586,13 @@ void mem2_v_collect_garbage( void ){
     next_block = ( mem_block_header_t * )heap;
     dirty = ( mem_block_header_t * )heap;
 
+    if( ( (uint32_t)dirty % 4 ) != 0 ){
+
+                intf_v_printf("Memory header misalign dirty: %x", 
+                    (uint32_t)dirty);
+                return;
+            }
+
     // search for a dirty block (loop while clean blocks)
     while( ( is_dirty( dirty ) == FALSE ) &&
             ( dirty < ( mem_block_header_t * )free_space_ptr ) ){
@@ -588,7 +606,20 @@ void mem2_v_collect_garbage( void ){
         clean = dirty;
     }
 
+    mem_block_header_t *prev_clean = clean;
+    uint32_t prev_size = 0;
+
     while( clean < ( mem_block_header_t * )free_space_ptr ){
+
+            if( ( (uint32_t)clean % 4 ) != 0 ){
+
+                intf_v_printf("Memory header misalign clean: %x prev: %x next_block: %x prev_size: %u", 
+                    (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, (uint32_t)prev_size);
+                // intf_v_printf("prev header->size: %u prev header->padding: %u", 
+                    // (uint32_t)prev_header.size, (uint32_t)prev_header.padding_len);
+                return;
+            }
+
 
         // search for a clean block (loop while dirty)
         // (couldn't find anymore clean blocks to move, so there should be
@@ -606,7 +637,8 @@ void mem2_v_collect_garbage( void ){
 
         // get next block
         next_block = (mem_block_header_t *)( (uint8_t *)clean + MEM_BLOCK_SIZE( clean ) );
-
+prev_size = MEM_BLOCK_SIZE( clean );
+prev_clean = clean;
         // switch the handle from the old block to the new block
         handles[clean->handle] = dirty;
         // NOTE:
@@ -631,6 +663,12 @@ void mem2_v_collect_garbage( void ){
 
         // assign clean pointer to next block
         clean = next_block;
+    }
+
+    if( ( (uint32_t)clean % 4 ) != 0 ){
+
+        intf_v_printf("2 Memory header misalign clean: %x prev: %x next_block: %x", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block);
+        return;
     }
 
 done_defrag:
