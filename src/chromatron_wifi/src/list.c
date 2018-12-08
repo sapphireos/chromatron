@@ -28,11 +28,6 @@
 
 #include "list.h"
 
-// #include "comm_printf.h"
-
-#define ASSERT(a)
-#define ASSERT_MSG(a, b)
-
 
 
 #ifndef ENABLE_LIST_ATOMIC
@@ -146,14 +141,14 @@ uint16_t list_u16_node_size( list_node_t node ){
 }
 
 #ifdef ENABLE_EXTENDED_VERIFY
-void *_list_vp_get_data( list_node_t node, FLASH_STRING_T file, int line ){
+void *_list_vp_get_data( list_node_t node, const char* file, int line ){
 
     // check validity of handle and assert if there is a failure.
     // this overrides the system based assert so we can insert the file and line
     // from the caller.
     if( mem2_b_verify_handle( node ) == FALSE ){
 
-        assert( 0, file, line );
+        assert( file, line, 0 );
     }
     
 #else

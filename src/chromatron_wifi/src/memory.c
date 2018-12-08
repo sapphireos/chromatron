@@ -16,11 +16,11 @@ static mem_rt_data_t mem_rt_data;
 static uint32_t mem_allocs;
 static uint32_t mem_alloc_fails;
 
-static void mem_assert( int line, const char *format, ... ){
+void assert( const char* file, int line, const char *format, ... ){
 
     intf_v_led_on();
 
-    intf_v_assert_printf( "MEM Assert Line %d", line );
+    intf_v_assert_printf( "Assert File: %s Line: %d", file, line );
 
     if( format != 0 ){
 
@@ -33,10 +33,6 @@ static void mem_assert( int line, const char *format, ... ){
     // wait for watchdog to kick us
     while(1){};
 }
-
-
-#define ASSERT(expr) if( !(expr) ){  mem_assert( __LINE__, 0 ); }
-#define ASSERT_MSG(expr, msg, ...) if( !(expr) ){  mem_assert( __LINE__, msg, ##__VA_ARGS__ ); }
 
 #define CANARY_VALUE 0x47
 
@@ -144,7 +140,7 @@ mem_block_header_t mem2_h_get_header( uint16_t index ){
 // source file instead of within the memory module, where it is difficult
 // to find the source of the problem.
 // returns TRUE if handle is valid
-bool mem_b2_verify_handle( mem_handle_t handle ){
+bool mem2_b_verify_handle( mem_handle_t handle ){
 
     bool status = TRUE;
 
@@ -308,7 +304,7 @@ mem_handle_t mem2_h_alloc2( uint16_t size, mem_type_t8 type ){
 // new memory block will be assigned to the original handle,
 // however, all direct pointers will be invalid!
 #ifdef ENABLE_EXTENDED_VERIFY
-int8_t _mem2_i8_realloc( mem_handle_t handle, uint16_t size, FLASH_STRING_T file, int line ){
+int8_t _mem2_i8_realloc( mem_handle_t handle, uint16_t size, const char* file, int line ){
 
 
     // check validity of handle and assert if there is a failure.
@@ -316,7 +312,7 @@ int8_t _mem2_i8_realloc( mem_handle_t handle, uint16_t size, FLASH_STRING_T file
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        assert( file, line, 0 );
     }
 
 #else
@@ -393,7 +389,7 @@ mem_handle_t mem2_h_get_handle( uint8_t index, mem_type_t8 type ){
 
 // free the memory associated with the given handle
 #ifdef ENABLE_EXTENDED_VERIFY
-void _mem2_v_free( mem_handle_t handle, FLASH_STRING_T file, int line ){
+void _mem2_v_free( mem_handle_t handle, const char* file, int line ){
 
 
     // check validity of handle and assert if there is a failure.
@@ -401,7 +397,7 @@ void _mem2_v_free( mem_handle_t handle, FLASH_STRING_T file, int line ){
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        assert( file, line, 0 );
     }
 
 #else
@@ -444,7 +440,7 @@ static void release_block( mem_handle_t handle ){
 }
 
 #ifdef ENABLE_EXTENDED_VERIFY
-uint16_t _mem2_u16_get_size( mem_handle_t handle, FLASH_STRING_T file, int line ){
+uint16_t _mem2_u16_get_size( mem_handle_t handle, const char* file, int line ){
 
 
     // check validity of handle and assert if there is a failure.
@@ -452,7 +448,7 @@ uint16_t _mem2_u16_get_size( mem_handle_t handle, FLASH_STRING_T file, int line 
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        assert( file, line, 0 );
     }
 
 #else
@@ -484,7 +480,7 @@ uint16_t mem2_u16_get_size( mem_handle_t handle ){
 // pointer.  Otherwise the garbage collector may move the application's memory
 // and the app's old pointer will point to invalid memory.
 #ifdef ENABLE_EXTENDED_VERIFY
-void *_mem2_vp_get_ptr( mem_handle_t handle, FLASH_STRING_T file, int line ){
+void *_mem2_vp_get_ptr( mem_handle_t handle, const char* file, int line ){
 
 
     // check validity of handle and assert if there is a failure.
@@ -492,7 +488,7 @@ void *_mem2_vp_get_ptr( mem_handle_t handle, FLASH_STRING_T file, int line ){
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        assert( file, line, 0 );
     }
 
 #else

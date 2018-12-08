@@ -31,6 +31,8 @@
 #include "bool.h"
 
 
+#define ENABLE_EXTENDED_VERIFY
+
 #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
 
 #define MAX_MEM_HANDLES 128
@@ -67,6 +69,12 @@ typedef struct{
     uint16_t peak_usage;
 } mem_rt_data_t;
 
+
+#define ASSERT(expr) if( !(expr) ){  assert( __FILE__, __LINE__, 0 ); }
+#define ASSERT_MSG(expr, msg, ...) if( !(expr) ){  assert(__FILE__,  __LINE__, msg, ##__VA_ARGS__ ); }
+
+void assert( const char* file, int line, const char *format, ... );
+
 void mem2_v_init( uint8_t *_heap, uint16_t size );
 
 mem_block_header_t mem2_h_get_header( uint16_t index );
@@ -80,15 +88,15 @@ mem_handle_t mem2_h_get_handle( uint8_t index, mem_type_t8 type );
 #define MEM_ERR_END_OF_LIST     -20
 
 #ifdef ENABLE_EXTENDED_VERIFY
-    void _mem2_v_free( mem_handle_t handle, FLASH_STRING_T file, int line );
-    uint16_t _mem2_u16_get_size( mem_handle_t handle, FLASH_STRING_T file, int line );
-    void *_mem2_vp_get_ptr( mem_handle_t handle, FLASH_STRING_T file, int line );
-    int8_t _mem2_i8_realloc( mem_handle_t handle, uint16_t size, FLASH_STRING_T file, int line );
+    void _mem2_v_free( mem_handle_t handle, const char* file, int line );
+    uint16_t _mem2_u16_get_size( mem_handle_t handle, const char* file, int line );
+    void *_mem2_vp_get_ptr( mem_handle_t handle, const char* file, int line );
+    int8_t _mem2_i8_realloc( mem_handle_t handle, uint16_t size, const char* file, int line );
 
-    #define mem2_v_free(handle)         _mem2_v_free(handle, __SOURCE_FILE__, __LINE__ )
-    #define mem2_u16_get_size(handle)   _mem_u16_get_size(handle, __SOURCE_FILE__, __LINE__ )
-    #define mem2_vp_get_ptr(handle)     _mem2_vp_get_ptr(handle, __SOURCE_FILE__, __LINE__ )
-    #define mem2_i8_realloc(handle, size)     _mem_i8_realloc(handle, size, __SOURCE_FILE__, __LINE__ )
+    #define mem2_v_free(handle)         _mem2_v_free(handle, __FILE__, __LINE__ )
+    #define mem2_u16_get_size(handle)   _mem2_u16_get_size(handle, __FILE__, __LINE__ )
+    #define mem2_vp_get_ptr(handle)     _mem2_vp_get_ptr(handle, __FILE__, __LINE__ )
+    #define mem2_i8_realloc(handle, size)     _mem2_i8_realloc(handle, size, __FILE__, __LINE__ )
 
 #else
     void mem2_v_free( mem_handle_t handle );

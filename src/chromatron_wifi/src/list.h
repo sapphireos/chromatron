@@ -53,9 +53,9 @@ uint16_t list_u16_node_size( list_node_t node );
 
 
 #ifdef ENABLE_EXTENDED_VERIFY
-    void *_list_vp_get_data( list_node_t node, FLASH_STRING_T file, int line );
+    void *_list_vp_get_data( list_node_t node, const char* file, int line );
 
-    #define list_vp_get_data(node)         _list_vp_get_data(node, __SOURCE_FILE__, __LINE__ )
+    #define list_vp_get_data(node)         _list_vp_get_data(node, __FILE__, __LINE__ )
 #else
     void *list_vp_get_data( list_node_t node );
 #endif
