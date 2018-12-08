@@ -20,7 +20,7 @@ void assert( const char* file, int line, const char *format, ... ){
 
     intf_v_led_on();
 
-    intf_v_assert_printf( "Assert File: %s Line: %d", file, line );
+    intf_v_serial_printf( "Assert File: %s Line: %d", file, line );
 
     if( format != 0 ){
 
@@ -612,11 +612,8 @@ void mem2_v_collect_garbage( void ){
 
         uint32_t temp = (uint32_t)clean & 3;
         
-        ASSERT_MSG( temp == 0, "Header misalign %lu", temp );
-
-
-        // ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx %lx prev: %lx next_block: %lx prev_size: %ld", 
-            // (uint32_t)clean, temp, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
+        ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx %lx prev: %lx next_block: %lx prev_size: %ld", 
+            (uint32_t)clean, temp, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
 
         // search for a clean block (loop while dirty)
         // (couldn't find anymore clean blocks to move, so there should be

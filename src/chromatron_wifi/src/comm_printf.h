@@ -30,7 +30,8 @@ extern "C"
 {
 #endif
 void intf_v_printf( const char *format, ... );
-void intf_v_assert_printf( const char *format, ... );
+void intf_v_serial_printf( const char *format, ... );
+void intf_v_assert_printf( const char *format, va_list ap );
 #ifdef __cplusplus
 }
 #endif

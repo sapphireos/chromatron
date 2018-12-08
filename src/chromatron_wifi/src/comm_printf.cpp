@@ -50,7 +50,7 @@ void intf_v_printf( const char *format, ... ){
     intf_i8_send_msg( WIFI_DATA_ID_DEBUG_PRINT, (uint8_t *)buf, len );
 }
 
-void intf_v_assert_printf( const char *format, ... ){
+void intf_v_serial_printf( const char *format, ... ){
 
     delay(10);
 
@@ -65,6 +65,24 @@ void intf_v_assert_printf( const char *format, ... ){
     uint32_t len = vsnprintf( buf, sizeof(buf), format, ap );
 
     va_end( ap );
+
+    len++; // add null terminator
+    buf[len] = 0;
+
+    // reset serial baud rate
+    Serial.begin(115200);
+
+    Serial.println(buf);
+}
+
+void intf_v_assert_printf( const char *format, va_list ap ){
+
+    delay(10);
+
+    char buf[256];
+    
+    // print string
+    uint32_t len = vsnprintf( buf, sizeof(buf), format, ap );
 
     len++; // add null terminator
     buf[len] = 0;
