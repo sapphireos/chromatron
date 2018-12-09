@@ -52,7 +52,7 @@ void intf_v_printf( const char *format, ... ){
 
 void intf_v_serial_printf( const char *format, ... ){
 
-    delay(10);
+    delay(20);
 
     char buf[256];
     
@@ -77,7 +77,7 @@ void intf_v_serial_printf( const char *format, ... ){
 
 void intf_v_assert_printf( const char *format, va_list ap ){
 
-    delay(10);
+    delay(20);
 
     char buf[256];
     
