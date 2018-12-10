@@ -227,6 +227,8 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
         vm_thread_time[vm_index] = elapsed;
     }
 
+    mem2_b_verify_handle( vm_handles[vm_index] );
+
     return return_code;
 }
 

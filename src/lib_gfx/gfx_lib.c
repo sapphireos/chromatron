@@ -295,7 +295,7 @@ void gfx_v_set_params( gfx_params_t *params ){
 
     param_error_check();
 
-    setup_master_array();
+    // setup_master_array();
 
     // only run if dimmer curve is changing
     if( old_dimmer_curve != dimmer_curve ){

@@ -2848,6 +2848,8 @@ class Builder(object):
         stream += packed_db
         stream += packed_cron
 
+        print header
+
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)
 
