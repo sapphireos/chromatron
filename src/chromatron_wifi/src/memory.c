@@ -606,13 +606,10 @@ void mem2_v_collect_garbage( void ){
         clean = dirty;
     }
 
-    mem_block_header_t *prev_clean = clean;
-    int32_t prev_size = -1;
-
     while( clean < ( mem_block_header_t * )free_space_ptr ){
 
-        ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx off by: %lx prev: %lx next_block: %lx prev_size: %ld type: %lu", 
-            (uint32_t)clean,  (uint32_t)clean & 3, (uint32_t)prev_clean, (uint32_t)next_block, prev_size, (uint32_t)clean->type );
+        ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx off by: %lx next_block: %lx type: %lu", 
+            (uint32_t)clean,  (uint32_t)clean & 3, (uint32_t)next_block, (uint32_t)clean->type );
 
         // search for a clean block (loop while dirty)
         // (couldn't find anymore clean blocks to move, so there should be
@@ -634,8 +631,7 @@ void mem2_v_collect_garbage( void ){
 
         // get next block
         next_block = (mem_block_header_t *)( (uint8_t *)clean + MEM_BLOCK_SIZE( clean ) );
-prev_size = MEM_BLOCK_SIZE( clean );
-prev_clean = clean;
+
         // switch the handle from the old block to the new block
         handles[clean->handle] = dirty;
         // NOTE:
@@ -669,7 +665,7 @@ prev_clean = clean;
         clean = next_block;
     }
 
-    ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx prev: %lx next_block: %lx prev_size: %ld", (uint32_t)clean, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
+    ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx next_block: %lx", (uint32_t)clean, (uint32_t)next_block );
 
 done_defrag:
     // EVENT( EVENT_ID_MEM_DEFRAG, 1 );
