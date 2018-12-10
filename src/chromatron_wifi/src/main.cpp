@@ -148,6 +148,7 @@ void loop(){
     stats->vm_run_time = elapsed_time( start );
 
     start = micros();
+    mem2_v_check_canaries();
     mem2_v_collect_garbage();
     stats->mem_run_time = elapsed_time( start );
 

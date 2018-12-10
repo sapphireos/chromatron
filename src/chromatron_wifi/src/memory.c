@@ -582,9 +582,7 @@ void mem2_v_collect_garbage( void ){
 
         return;
     }
-
-    mem2_v_check_canaries();
-
+    
     mem_block_header_t *clean;
     mem_block_header_t *next_block;
     mem_block_header_t *dirty;
@@ -630,8 +628,8 @@ void mem2_v_collect_garbage( void ){
             }
 
             ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "clean misalign: %lx %lu", (uint32_t)clean, MEM_BLOCK_SIZE( clean ) );
-            ASSERT_MSG( ( MEM_BLOCK_SIZE( clean ) & 3 ) == 0, "clean bad size: %lx %lu pad: %lu type: %lu", 
-                (uint32_t)clean, MEM_BLOCK_SIZE( clean ), (uint32_t)clean->padding_len, (uint32_t)clean->type );
+            ASSERT_MSG( ( MEM_BLOCK_SIZE( clean ) & 3 ) == 0, "clean bad size: %lx %lu pad: %lu type: %lu handle: %lu hdrsize: %lu canary: %lu", 
+                (uint32_t)clean, MEM_BLOCK_SIZE( clean ), (uint32_t)clean->padding_len, (uint32_t)clean->type, (uint32_t)clean->handle, (uint32_t)clean->size, *CANARY_PTR( clean ) );
         }
 
         // get next block
