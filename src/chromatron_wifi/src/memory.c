@@ -237,7 +237,7 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
     // notice we multiply the address by 2 (left shift 1) to get the byte address
     header->creator_address = (uint16_t)thread_p_get_function( thread_t_get_current_thread() ) << 1;
     #endif
-
+ 
     // set data space
     mem_rt_data.data_space += size;
 
@@ -583,6 +583,8 @@ void mem2_v_collect_garbage( void ){
         return;
     }
 
+    mem2_v_check_canaries();
+
     mem_block_header_t *clean;
     mem_block_header_t *next_block;
     mem_block_header_t *dirty;
@@ -591,11 +593,11 @@ void mem2_v_collect_garbage( void ){
     next_block = ( mem_block_header_t * )heap;
     dirty = ( mem_block_header_t * )heap;
 
-    ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "Header misalign dirty: %lx", (uint32_t)dirty );
-
     // search for a dirty block (loop while clean blocks)
     while( ( is_dirty( dirty ) == FALSE ) &&
             ( dirty < ( mem_block_header_t * )free_space_ptr ) ){
+
+        ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "Header misalign dirty: %lx", (uint32_t)dirty );
 
         dirty = (mem_block_header_t *)( (uint8_t *)dirty + MEM_BLOCK_SIZE( dirty ) );
     }
@@ -611,8 +613,8 @@ void mem2_v_collect_garbage( void ){
 
     while( clean < ( mem_block_header_t * )free_space_ptr ){
 
-        ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx off by: %lx prev: %lx next_block: %lx prev_size: %ld", 
-            (uint32_t)clean,  (uint32_t)clean & 3, (uint32_t)prev_clean, (uint32_t)next_block, prev_size );
+        ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx off by: %lx prev: %lx next_block: %lx prev_size: %ld type: %lu", 
+            (uint32_t)clean,  (uint32_t)clean & 3, (uint32_t)prev_clean, (uint32_t)next_block, prev_size, (uint32_t)clean->type );
 
         // search for a clean block (loop while dirty)
         // (couldn't find anymore clean blocks to move, so there should be
@@ -626,6 +628,10 @@ void mem2_v_collect_garbage( void ){
 
                 goto done_defrag;
             }
+
+            ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "clean misalign: %lx %lu", (uint32_t)clean, MEM_BLOCK_SIZE( clean ) );
+            ASSERT_MSG( ( MEM_BLOCK_SIZE( clean ) & 3 ) == 0, "clean bad size: %lx %lu pad: %lu type: %lu", 
+                (uint32_t)clean, MEM_BLOCK_SIZE( clean ), (uint32_t)clean->padding_len, (uint32_t)clean->type );
         }
 
         // get next block
@@ -647,12 +653,19 @@ prev_clean = clean;
             }
         }
         */
+        if( next_block < ( mem_block_header_t * )free_space_ptr ){
+            ASSERT_MSG( ( (uint32_t)next_block & 3 ) == 0, "next_block misalign: %lx clean: %lx size: %lu", (uint32_t)next_block, (uint32_t)clean, MEM_BLOCK_SIZE( clean ) );
+        }
 
         // copy the clean block to the dirty block pointer
         memcpy( dirty, clean, MEM_BLOCK_SIZE( clean ) );
 
         // increment dirty pointer
         dirty = (mem_block_header_t *)( (uint8_t *)dirty + MEM_BLOCK_SIZE( dirty ) );
+
+        if( dirty < ( mem_block_header_t * )free_space_ptr ){
+            ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "dirty misalign: %lx", (uint32_t)dirty );
+        }
 
         // assign clean pointer to next block
         clean = next_block;

@@ -68,6 +68,9 @@ void setup(){
     Serial.println(info);
     delay(10);
 
+    intf_v_serial_printf( "Heap start: 0x%x", (uint32_t)mem_heap );
+
+    delay(10);
     Serial.end();
 
     system_update_cpu_freq( SYS_CPU_80MHZ );

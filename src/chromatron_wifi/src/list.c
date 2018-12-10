@@ -47,7 +47,7 @@ void list_v_init( list_t *list ){
 
 list_node_t list_ln_create_node( void *data, uint16_t len ){
 
-    return list_ln_create_node2( data, len, MEM_TYPE_UNKNOWN );
+    return list_ln_create_node2( data, len, MEM_TYPE_LIST );
 }
 
 list_node_t list_ln_create_node2( void *data, uint16_t len, mem_type_t8 type ){
