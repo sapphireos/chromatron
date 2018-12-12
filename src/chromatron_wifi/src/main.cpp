@@ -68,9 +68,6 @@ void setup(){
     Serial.println(info);
     delay(10);
 
-    intf_v_serial_printf( "Heap start: 0x%x", (uint32_t)mem_heap );
-
-    delay(10);
     Serial.end();
 
     system_update_cpu_freq( SYS_CPU_80MHZ );
@@ -96,8 +93,6 @@ void setup(){
 
     intf_v_printf( "ESP online" );
     intf_v_printf( "ESP free heap: %d", ESP.getFreeHeap() );
-
-    intf_v_printf("mem header %u", sizeof(mem_block_header_t));
 }
 
 uint32_t elapsed_time( uint32_t start_time ){

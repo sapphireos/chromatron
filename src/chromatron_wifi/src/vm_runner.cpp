@@ -391,8 +391,6 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
     // check offset for beginning of file
     if( offset == 0 ){
 
-        intf_v_printf("total_size %d", total_size);
-
         // bounds check VM
         if( ( total_size + vm_total_size ) >= VM_RUNNER_MAX_SIZE ){
             
