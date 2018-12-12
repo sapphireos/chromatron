@@ -31,7 +31,7 @@
 #include "bool.h"
 
 
-#define ENABLE_EXTENDED_VERIFY
+// #define ENABLE_EXTENDED_VERIFY
 
 #define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
 

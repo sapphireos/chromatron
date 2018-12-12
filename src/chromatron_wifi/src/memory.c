@@ -595,7 +595,7 @@ void mem2_v_collect_garbage( void ){
     while( ( is_dirty( dirty ) == FALSE ) &&
             ( dirty < ( mem_block_header_t * )free_space_ptr ) ){
 
-        ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "Header misalign dirty: %lx", (uint32_t)dirty );
+        // ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "Header misalign dirty: %lx", (uint32_t)dirty );
 
         dirty = (mem_block_header_t *)( (uint8_t *)dirty + MEM_BLOCK_SIZE( dirty ) );
     }
@@ -647,9 +647,9 @@ void mem2_v_collect_garbage( void ){
             }
         }
         */
-        if( next_block < ( mem_block_header_t * )free_space_ptr ){
-            ASSERT_MSG( ( (uint32_t)next_block & 3 ) == 0, "next_block misalign: %lx clean: %lx size: %lu", (uint32_t)next_block, (uint32_t)clean, MEM_BLOCK_SIZE( clean ) );
-        }
+        // if( next_block < ( mem_block_header_t * )free_space_ptr ){
+        //     ASSERT_MSG( ( (uint32_t)next_block & 3 ) == 0, "next_block misalign: %lx clean: %lx size: %lu", (uint32_t)next_block, (uint32_t)clean, MEM_BLOCK_SIZE( clean ) );
+        // }
 
         // copy the clean block to the dirty block pointer
         memcpy( dirty, clean, MEM_BLOCK_SIZE( clean ) );
@@ -657,15 +657,15 @@ void mem2_v_collect_garbage( void ){
         // increment dirty pointer
         dirty = (mem_block_header_t *)( (uint8_t *)dirty + MEM_BLOCK_SIZE( dirty ) );
 
-        if( dirty < ( mem_block_header_t * )free_space_ptr ){
-            ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "dirty misalign: %lx", (uint32_t)dirty );
-        }
+        // if( dirty < ( mem_block_header_t * )free_space_ptr ){
+        //     ASSERT_MSG( ( (uint32_t)dirty & 3 ) == 0, "dirty misalign: %lx", (uint32_t)dirty );
+        // }
 
         // assign clean pointer to next block
         clean = next_block;
     }
 
-    ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx next_block: %lx", (uint32_t)clean, (uint32_t)next_block );
+    // ASSERT_MSG( ( (uint32_t)clean & 3 ) == 0, "Header misalign clean: %lx next_block: %lx", (uint32_t)clean, (uint32_t)next_block );
 
 done_defrag:
     // EVENT( EVENT_ID_MEM_DEFRAG, 1 );
