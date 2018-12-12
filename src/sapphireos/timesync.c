@@ -211,21 +211,19 @@ void time_v_set_master_clock(
 
     char s[ISO8601_STRING_MIN_LEN_MS];
     ntp_v_to_iso8601( s, sizeof(s), local_ts );
-    // log_v_debug_P( PSTR("Local:    %s"), s );
+    log_v_debug_P( PSTR("Local:    %s"), s );
     ntp_v_to_iso8601( s, sizeof(s), source_ts );
-    // log_v_debug_P( PSTR("Remote:   %s"), s );
+    log_v_debug_P( PSTR("Remote:   %s"), s );
 
     if( abs64( delta_seconds ) > 60 ){
 
         log_v_debug_P( PSTR("HARD SYNC") );
-        log_v_debug_P( PSTR("Local:    %s"), s );
-        log_v_debug_P( PSTR("Remote:   %s"), s );
-
+        
         // hard sync
         master_time         = source_ts;
         network_time        = source_ts;
         base_system_time    = local_system_time;
-        last_clock_update   = base_system_time;
+        last_clock_update   = local_system_time;
         sync_difference     = 0;
 
         return;
@@ -236,7 +234,7 @@ void time_v_set_master_clock(
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
+    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -392,7 +390,7 @@ PT_BEGIN( pt );
                 msg.net_time        = net_time;
                 msg.uptime          = master_uptime;
                 msg.flags           = 0;
-                // msg.ntp_time        = sntp_t_now();
+                msg.ntp_time        = time_t_now();
                 msg.source          = master_source;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
@@ -408,6 +406,9 @@ PT_BEGIN( pt );
 
                 master_uptime = msg->uptime;
 
+                uint32_t now = tmr_u32_get_system_time_ms();
+                uint32_t est_net_time = time_u32_get_network_time();
+
                 // check sync
                 if( msg->source > 0 ){
                     
@@ -416,12 +417,9 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    // time_v_set_master_clock( msg->ntp_time, tmr_u32_get_system_time_ms(), msg->source );
+                    time_v_set_master_clock( msg->ntp_time, now, msg->source );
                 }
                 
-                uint32_t now = tmr_u32_get_system_time_ms();
-                uint32_t est_net_time = time_u32_get_network_time();
-
                 int32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
                 if( elapsed_rtt > 500 ){
 
