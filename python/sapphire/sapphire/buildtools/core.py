@@ -972,7 +972,7 @@ class AppBuilder(HexBuilder):
         bindata = ih.tobinstr()
 
         kv_meta_data = []
-
+        
         while True:
             kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
 
