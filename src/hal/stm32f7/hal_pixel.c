@@ -151,7 +151,7 @@ void hal_pixel_v_init( void ){
     spi_init.TIMode             = SPI_TIMODE_DISABLE;
     spi_init.CRCCalculation     = SPI_CRCCALCULATION_DISABLE;
     spi_init.CRCPolynomial      = SPI_CRC_LENGTH_DATASIZE;
-    spi_init.CRCLength          = SPI_RXFIFO_THRESHOLD;
+    spi_init.CRCLength          = 0;
     spi_init.NSSPMode           = SPI_NSS_PULSE_DISABLE;
 
     // output 0

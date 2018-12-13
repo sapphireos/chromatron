@@ -42,8 +42,9 @@
 
 // pixel config
 #define USE_HSV_BRIDGE
-#define MAX_PIXELS              1024
+#define MAX_PIXELS              4096
 #define FADER_RATE              20
+#define N_PIXEL_OUTPUTS         10
 #define USE_GFX_LIB
 #define GFX_LIB_KV_LINKAGE
 
