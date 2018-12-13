@@ -103,6 +103,10 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 
                     capacity = 4194304;
                 }
+                else if( info.dev_id_2 == FLASH_DEV_ID2_WINBOND_64MBIT ){
+
+                    capacity = 8388608;
+                }
             }
 
             break;

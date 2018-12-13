@@ -95,6 +95,7 @@ typedef struct __attribute__((packed)){
 #define FLASH_DEV_ID2_WINBOND_16MBIT    0x15
 #define FLASH_DEV_ID2_CYPRESS_16MBIT    0x15
 #define FLASH_DEV_ID2_WINBOND_32MBIT    0x16
+#define FLASH_DEV_ID2_WINBOND_64MBIT    0x17
 
 
 #define BLOCK0_UNLOCK_CODE  0x1701
