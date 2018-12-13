@@ -56,7 +56,7 @@
         "-lnosys",
         "-Wl,-u,vfprintf",
         "-Wl,--section-start=.bootdata=0x2001FFF8",
-        "-Wl,--section-start=.fwinfo=0x08000200",
+        "-Wl,--section-start=.fwinfo=0x08000800",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
@@ -87,9 +87,7 @@
     "OS_PROJECT": "sapphire",
     "LOADER_PROJECT": "loader_stm32h7",
 
-    "FW_INFO_ADDR_______": "0x00208200",
-
-    "FW_INFO_ADDR": "0x08000200",
+    "FW_INFO_ADDR": "0x08000400",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
