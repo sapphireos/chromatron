@@ -89,10 +89,10 @@ void io_v_init( void ){
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PBPin PBPin */
-    GPIO_InitStruct.Pin = GPIO4_Pin|GPIO5_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    // GPIO_InitStruct.Pin = GPIO4_Pin|GPIO5_Pin;
+    // GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    // GPIO_InitStruct.Pull = GPIO_NOPULL;
+    // HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /*Configure GPIO pin : PtPin */
     GPIO_InitStruct.Pin = WIFI_PD_Pin;
