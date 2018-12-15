@@ -25,6 +25,7 @@ from instructions import *
 from elysianfields import *
 from catbus import *
 from copy import deepcopy, copy
+import pprint
 
 VM_ISA_VERSION  = 10
 
@@ -2636,10 +2637,26 @@ class Builder(object):
     def print_data_table(self, data):
         print "DATA: "
         for i in sorted(data, key=lambda d: d.addr):
-            if i.type == 'f16':
-                print '\t%3d: %s = %f' % (i.addr, i, float(i.default_value / 65536.0))
+            default_value = ''
+
+            if i.length == 1:
+                if i.get_base_type() == 'f16':
+                    default_value += '%f ' % (float(i.default_value / 65536.0))
+
+                else:
+                    default_value += '%d ' % (i.default_value)
+
             else:
-                print '\t%3d: %s = %d' % (i.addr, i, i.default_value)
+                default_value = '['
+                for n in xrange(i.length):
+                    if i.get_base_type() == 'f16':
+                        default_value += '%f, ' % (float(i.default_value[n] / 65536.0))
+
+                    else:
+                        default_value += '%d, ' % (i.default_value[n])
+                default_value += ']'
+
+            print '\t%3d: %s = %s' % (i.addr, i, default_value)
 
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
@@ -2879,7 +2896,10 @@ class Builder(object):
             addr = var.addr
 
             for i in xrange(var.length):
-                default_value = var.default_value
+                try:
+                    default_value = var.default_value[i]
+                except TypeError:
+                    default_value = var.default_value
 
                 if default_value == 'True':
                     default_value = 1
@@ -3011,7 +3031,10 @@ class VM(object):
             addr = var.addr
 
             for i in xrange(var.length):
-                self.memory.append(var.default_value)
+                try:
+                    self.memory.append(var.default_value[i])
+                except TypeError:
+                    self.memory.append(var.default_value)
 
             addr += var.length - 1
 

@@ -644,6 +644,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         data_type = 'i32'
         keywords = {}
+        
         for kw in node.keywords:
             if kw.arg == 'type':
                 try:
@@ -652,14 +653,27 @@ class CodeGenPass1(ast.NodeVisitor):
                 except AttributeError:
                     data_type = kw.value.id
 
-            else:
-                keywords[kw.arg] = kw.value.id
+                break
 
         if data_type == 'Number':
             data_type = 'i32'
 
         elif data_type == 'Fixed16':
             data_type = 'f16'
+        
+        for kw in node.keywords:
+            if kw.arg == 'type':
+                continue
+                
+            if kw.arg == 'init_val':
+                if data_type == 'f16':
+                    keywords[kw.arg] = [int(a.n * 65536) for a in kw.value.elts] # convert to fixed16
+
+                else:
+                    keywords[kw.arg] = [a.n for a in kw.value.elts]
+
+            else:
+                keywords[kw.arg] = kw.value.id
 
         return cg1DeclareArray(type=data_type, dimensions=dims, keywords=keywords, lineno=node.lineno)
 
