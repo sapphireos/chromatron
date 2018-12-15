@@ -78,7 +78,7 @@ class cg1Import(cg1Node):
 
 
 class cg1DeclarationBase(cg1Node):
-    _fields = ["name", "type"]
+    _fields = ["name", "type", "init_val"]
 
     def __init__(self, name="<anon>", type="i32", keywords=None, **kwargs):
         super(cg1DeclarationBase, self).__init__(**kwargs)
@@ -91,6 +91,10 @@ class cg1DeclarationBase(cg1Node):
             keywords = {}
             
         self.keywords = keywords
+            
+        self.init_val = None
+        if 'init_val' in keywords:
+            self.init_val = keywords['init_val']
 
     def build(self, builder):
         return builder.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
@@ -620,12 +624,18 @@ class CodeGenPass1(ast.NodeVisitor):
         for kw in node.keywords:
             keywords[kw.arg] = kw.value.id
 
+        if len(node.args) > 0:
+            keywords['init_val'] = node.args[0].n
+
         return cg1DeclareVar(type="i32", keywords=keywords, lineno=node.lineno)
 
     def _handle_Fixed16(self, node):
         keywords = {}
         for kw in node.keywords:
             keywords[kw.arg] = kw.value.id
+
+        if len(node.args) > 0:
+            keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
 
         return cg1DeclareVar(type="f16", keywords=keywords, lineno=node.lineno)
 

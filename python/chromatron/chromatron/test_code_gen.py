@@ -1641,9 +1641,27 @@ def init():
 """
 
 
+test_var_init = """
+
+a = Number(5, publish=True)
+b = Fixed16(1.23, publish=True)
+
+"""
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_var_init(self):
+        # no value check.
+        # this test passes if the compilation
+        # succeeds without error.
+        self.run_test(test_var_init,
+            expected={
+                'a': 5,
+                'b': 1.2299957275390625
+            })
 
     def test_loop_var_redeclare(self):
         # no value check.

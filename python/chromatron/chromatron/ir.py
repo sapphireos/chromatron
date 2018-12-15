@@ -196,6 +196,9 @@ class irVar(IR):
             if 'persist' in options and options['persist']:
                 self.persist = True
 
+            if 'init_val' in options:
+                self.default_value = options['init_val']
+
     def __str__(self):
         if self.is_global:
             options = ''
@@ -2633,7 +2636,10 @@ class Builder(object):
     def print_data_table(self, data):
         print "DATA: "
         for i in sorted(data, key=lambda d: d.addr):
-            print '\t%3d: %s' % (i.addr, i)
+            if i.type == 'f16':
+                print '\t%3d: %s = %f' % (i.addr, i, float(i.default_value / 65536.0))
+            else:
+                print '\t%3d: %s = %d' % (i.addr, i, i.default_value)
 
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
