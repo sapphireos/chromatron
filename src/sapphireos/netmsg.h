@@ -44,7 +44,7 @@ typedef int8_t netmsg_type_t;
 #define NETMSG_TYPE_UDP                     0x04
 
 #define NETMSG_ROUTE_NOT_AVAILABLE          -1
-#define NETMSG_ROUTE_MATCH                  0
+#define NETMSG_ROUTE_AVAILABLE              0
 #define NETMSG_ROUTE_DEFAULT                1
 
 typedef struct{

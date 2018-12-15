@@ -1449,7 +1449,7 @@ int8_t get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
     // check if interface is up
     if( !wifi_b_connected() ){
 
-        return NETMSG_ROUTE_MATCH;
+        return NETMSG_ROUTE_NOT_AVAILABLE;
     }
 
     cfg_i8_get( CFG_PARAM_IP_ADDRESS, subnet );

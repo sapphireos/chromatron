@@ -68,11 +68,11 @@ int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
     *subnet = ip_a_addr(240,1,2,3);
     *subnet_mask = ip_a_addr(255,255,255,255);
 
-    return 0;
+    return NETMSG_ROUTE_AVAILABLE;
 
     #else
 
-    return -1;
+    return NETMSG_ROUTE_NOT_AVAILABLE;
     #endif
 }
 
@@ -408,6 +408,7 @@ PT_BEGIN( pt );
         }
 
         // receive message
+        log_v_debug_P(PSTR("MSG"));
         netmsg_v_receive( netmsg );
         netmsg = -1;
 
