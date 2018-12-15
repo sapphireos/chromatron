@@ -408,7 +408,6 @@ PT_BEGIN( pt );
         }
 
         // receive message
-        log_v_debug_P(PSTR("MSG"));
         netmsg_v_receive( netmsg );
         netmsg = -1;
 

@@ -1362,11 +1362,21 @@ PT_BEGIN( pt );
     sock_v_set_timeout( sock, 1 );
 
     // wait for device id
-    while( origin_id == 0 ){
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &origin_id );
 
+    if( origin_id == 0 ){
+
+        // delay, but don't wait forever.
+        TMR_WAIT( pt, 2000 );        
+
+        // try again, but if we don't get an origin ID, just keep going.
+        // if the wifi doesn't come up and we don't have an origin, we still want the USB to work.
         cfg_i8_get( CFG_PARAM_DEVICE_ID, &origin_id );
 
-        TMR_WAIT( pt, 100 );
+        if( origin_id == 0 ){
+
+            origin_id = 1;
+        }
     }
 
     // set up tag hashes
