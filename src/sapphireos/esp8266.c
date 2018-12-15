@@ -651,8 +651,6 @@ static int8_t process_rx_data( void ){
         goto end;
     }
 
-    watchdog = WIFI_WATCHDOG_TIMEOUT;
-
     if( header->data_id == WIFI_DATA_ID_STATUS ){
 
         if( header->len != sizeof(wifi_msg_status_t) ){
@@ -870,6 +868,8 @@ static int8_t process_rx_data( void ){
 
         wifi_i8_msg_handler( header->data_id, data, header->len );
     }
+
+    watchdog = WIFI_WATCHDOG_TIMEOUT;
 
     goto end;
 
