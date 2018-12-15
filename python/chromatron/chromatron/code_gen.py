@@ -155,6 +155,13 @@ class cg1Var(cg1Node):
         super(cg1Var, self).__init__(**kwargs)
 
         self.name = name
+        
+        if self.name == 'False':
+            self.name = 0
+
+        elif self.name == 'True':
+            self.name = 1
+
         self.type = None
 
     def build(self, builder, depth=None):

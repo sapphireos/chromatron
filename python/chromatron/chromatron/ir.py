@@ -2644,7 +2644,7 @@ class Builder(object):
                     default_value += '%f ' % (float(i.default_value / 65536.0))
 
                 else:
-                    default_value += '%d ' % (i.default_value)
+                    default_value += '%s ' % (i.default_value)
 
             else:
                 default_value = '['
@@ -2653,7 +2653,7 @@ class Builder(object):
                         default_value += '%f, ' % (float(i.default_value[n] / 65536.0))
 
                     else:
-                        default_value += '%d, ' % (i.default_value[n])
+                        default_value += '%s, ' % (i.default_value[n])
                 default_value += ']'
 
             print '\t%3d: %s = %s' % (i.addr, i, default_value)
@@ -2900,12 +2900,6 @@ class Builder(object):
                     default_value = var.default_value[i]
                 except TypeError:
                     default_value = var.default_value
-
-                if default_value == 'True':
-                    default_value = 1
-
-                elif default_value == 'False':
-                    default_value = 0
 
                 stream += struct.pack('<l', default_value)
 
