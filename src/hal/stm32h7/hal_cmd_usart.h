@@ -30,7 +30,7 @@
 
 #include "udp.h"
 
-#define HAL_CMD_USART USART1
+#define HAL_CMD_USART 				USART3
 #define HAL_CMD_USART_RX_BUF_SIZE 	128
 
 #define CMD_USART_MAX_PACKET_LEN    548

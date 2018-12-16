@@ -99,10 +99,10 @@
 #define PIX_DAT_4_GPIO_Port GPIOF
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
-#define COMM_TX_Pin GPIO_PIN_8
-#define COMM_TX_GPIO_Port GPIOD
-#define COMM_RX_Pin GPIO_PIN_9
-#define COMM_RX_GPIO_Port GPIOD
+#define CMD_USART_TX_Pin GPIO_PIN_8
+#define CMD_USART_TX_GPIO_Port GPIOD
+#define CMD_USART_RX_Pin GPIO_PIN_9
+#define CMD_USART_RX_GPIO_Port GPIOD
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
 #define USB_PowerSwitchOn_GPIO_Port GPIOG
 #define USB_OverCurrent_Pin GPIO_PIN_7

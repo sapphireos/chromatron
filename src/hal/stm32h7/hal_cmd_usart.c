@@ -57,20 +57,20 @@ static int uart_putchar( char c, FILE *stream )
 }
 #endif
 
-static UART_HandleTypeDef huart1;
+static UART_HandleTypeDef huart3;
 
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
 static volatile uint8_t rx_ins;
 static volatile uint8_t rx_ext;
 static volatile uint8_t rx_size;
 
-void USART1_IRQHandler( void ){
+void USART3_IRQHandler( void ){
 
-    while( __HAL_UART_GET_FLAG( &huart1, UART_FLAG_RXNE ) ){
+    while( __HAL_UART_GET_FLAG( &huart3, UART_FLAG_RXNE ) ){
 
-        // HAL_UART_Receive( &huart1, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
+        // HAL_UART_Receive( &huart3, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
 
-        rx_buf[rx_ins] = huart1.Instance->RDR;
+        rx_buf[rx_ins] = huart3.Instance->RDR;
 
         rx_ins++;
 
@@ -82,9 +82,9 @@ void USART1_IRQHandler( void ){
         rx_size++;
     }
 
-    while( __HAL_UART_GET_FLAG( &huart1, UART_FLAG_ORE ) ){
+    while( __HAL_UART_GET_FLAG( &huart3, UART_FLAG_ORE ) ){
 
-        __HAL_UART_CLEAR_IT( &huart1, UART_FLAG_ORE );    
+        __HAL_UART_CLEAR_IT( &huart3, UART_FLAG_ORE );    
     }
 }
 
@@ -134,44 +134,39 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 void cmd_usart_v_init( void ){
 
     // enable clock
-    __HAL_RCC_USART1_CLK_ENABLE();
+    __HAL_RCC_USART3_CLK_ENABLE();
 
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.Pin = COMM_RX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(COMM_RX_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = COMM_TX_Pin;
+    GPIO_InitStruct.Pin = CMD_USART_TX_Pin|CMD_USART_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(COMM_TX_GPIO_Port, &GPIO_InitStruct);
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+    HAL_GPIO_Init(CMD_USART_TX_GPIO_Port, &GPIO_InitStruct);
+
 
     // initialize command usart
-    huart1.Instance = HAL_CMD_USART;
-    huart1.Init.BaudRate = 115200;
-    huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    huart1.Init.StopBits = UART_STOPBITS_1;
-    huart1.Init.Parity = UART_PARITY_NONE;
-    huart1.Init.Mode = UART_MODE_TX_RX;
-    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-    huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&huart1) != HAL_OK)
+    huart3.Instance = HAL_CMD_USART;
+    huart3.Init.BaudRate = 115200;
+    huart3.Init.WordLength = UART_WORDLENGTH_8B;
+    huart3.Init.StopBits = UART_STOPBITS_1;
+    huart3.Init.Parity = UART_PARITY_NONE;
+    huart3.Init.Mode = UART_MODE_TX_RX;
+    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+    huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&huart3) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    __HAL_UART_ENABLE_IT( &huart1, UART_IT_RXNE );
+    __HAL_UART_ENABLE_IT( &huart3, UART_IT_RXNE );
 
-    HAL_NVIC_SetPriority( USART1_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( USART1_IRQn );
+    HAL_NVIC_SetPriority( USART3_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( USART3_IRQn );
     
     // create serial thread
     thread_t_create( serial_cmd_thread,
@@ -192,12 +187,12 @@ bool cmd_usart_b_received_char( void ){
 
 void cmd_usart_v_send_char( uint8_t data ){
 
-    HAL_UART_Transmit( &huart1, &data, sizeof(data), 100 );
+    HAL_UART_Transmit( &huart3, &data, sizeof(data), 100 );
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
-    HAL_UART_Transmit( &huart1, (uint8_t *)data, len, 100 );
+    HAL_UART_Transmit( &huart3, (uint8_t *)data, len, 100 );
 }
 
 
