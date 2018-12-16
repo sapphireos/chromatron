@@ -2348,8 +2348,6 @@ class Builder(object):
 
         return unreachable
 
-
-    # def liveness(self, func, pc=0, inputs=None, outputs=None, prev_inputs=[], prev_outputs=[]):
     def liveness(self, func, pc=None):
         if pc == None:
             pc = 0
@@ -2385,9 +2383,11 @@ class Builder(object):
 
         cfgs = self.control_flow(func)
 
-        # print 'unreachable'
+        self.debug_print('unreachable')
         unreachable = self.unreachable(func, cfgs)
-        # print unreachable
+        for r in unreachable:
+            self.debug_print('\t%s' % (r))
+        self.debug_print('\n')
 
         code = self.funcs[func].body
 
@@ -2460,6 +2460,9 @@ class Builder(object):
 
         return liveness
 
+    def debug_print(self, s):
+        print s
+
     def allocate(self):
         self.remove_unreachable()        
 
@@ -2519,8 +2522,10 @@ class Builder(object):
 
 
         if self.optimizations['optimize_register_usage']:
+            self.debug_print('optimize_register_usage')
             for func in self.funcs:
-                # print 'optimize', func
+                self.debug_print('optimize %s' % func)
+
                 registers = {}
                 address_pool = []
 
@@ -2540,7 +2545,7 @@ class Builder(object):
                         assert var.length < 65535
 
                         if var not in line:
-                            # print 'remove', var, var.addr
+                            self.debug_print('remove %s %s' % (var, var.addr))
 
                             del registers[var.name]
 
@@ -2575,19 +2580,17 @@ class Builder(object):
                                     var_addr = addr
 
                                     addr += var.length
-                                    # print 'alloc', var, var_addr
+                                    self.debug_print('alloc %s %s' % (var, var_addr))
 
-                                # else:
-                                    # print 'pool', var, var_addr                                    
+                                else:
+                                    self.debug_print('pool %s %s' % (var, var_addr))
 
                                 # assign address to var
                                 var.addr = var_addr
 
                                 
-                            
-                    # print line, registers, address_pool
-                    # print ''
-                
+                    self.debug_print('%s %s %s\n' % (line, registers, address_pool))
+                    
 
                 # Trash vars:
                 # Some instructions return a value that doesn't get used by anything.
