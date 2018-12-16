@@ -108,14 +108,14 @@ LoopFillZerobss:
   bcc  FillZerobss
 
 /* Fill stack section */
-#   ldr r1, =_sstack
-#   ldr r2, =_estack - 4
-#   ldr r3, =0x47
+  ldr r1, =_sstack
+  ldr r2, =_estack - 4
+  ldr r3, =0x47
 
-# LoopFillStack:
-#   str r3, [r1], #1
-#   cmp r1, r2
-#   bcc LoopFillStack
+LoopFillStack:
+  str r3, [r1], #1
+  cmp r1, r2
+  bcc LoopFillStack
 
 /* Call the clock system intitialization function.*/
   bl  SystemInit   
