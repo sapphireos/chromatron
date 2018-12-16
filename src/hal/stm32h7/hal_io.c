@@ -132,7 +132,7 @@ uint8_t io_u8_get_board_rev( void ){
 
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
-
+return;
 	GPIO_TypeDef *GPIOx;
     gpio_config[pin].Mode        = GPIO_MODE_INPUT;
     gpio_config[pin].Speed       = GPIO_SPEED_FREQ_LOW;
@@ -274,7 +274,7 @@ io_mode_t8 io_u8_get_mode( uint8_t pin ){
 }
 
 void io_v_digital_write( uint8_t pin, bool state ){
-
+return;
 	GPIO_TypeDef *GPIOx;
 	uint32_t gpio_pin;
 
