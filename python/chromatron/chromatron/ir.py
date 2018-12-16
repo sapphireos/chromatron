@@ -1913,7 +1913,7 @@ class Builder(object):
         return ir
         
     def call(self, func_name, params, lineno=None):
-        result = self.add_temp(lineno=lineno)
+        result = self.add_temp(data_type='gfx16', lineno=lineno)
 
         try:
             args = self.funcs[func_name].params
@@ -1951,7 +1951,7 @@ class Builder(object):
             
             if func_name == 'pix_count':
                 raise SyntaxError("pix_count() is deprecated, use pixels.count", lineno=lineno)        
-            
+                
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
         self.append_node(ir)        
