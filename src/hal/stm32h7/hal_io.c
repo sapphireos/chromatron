@@ -39,80 +39,84 @@ void io_v_init( void ){
     GPIO_InitTypeDef GPIO_InitStruct;
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, LED0_Pin|LED1_Pin|LED2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, WIFI_BOOT_Pin|WIFI_RST_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOF, WIFI_PD_Pin|WIFI_SS_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, WIFI_RST_Pin|WIFI_BOOT_Pin|WIFI_SS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, LED1_Pin|LED0_Pin, GPIO_PIN_RESET);
 
-    /*Configure GPIO pins : PC13 PC14 PC15 PCPin 
-                       PC1 PC2 PC3 PC4 
-                       PC8 PC11 */
-    GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15|VMON_Pin 
-                      |GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4 
-                      |GPIO_PIN_8|GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(GPIOB, LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+
+    /*Configure GPIO pins : WIFI_BOOT_Pin WIFI_RST_Pin */
+    GPIO_InitStruct.Pin = WIFI_BOOT_Pin|WIFI_RST_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : WIFI_RX_Ready_Pin */
+    GPIO_InitStruct.Pin = WIFI_RX_Ready_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(WIFI_RX_Ready_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : USER_Btn_Pin */
+    GPIO_InitStruct.Pin = USER_Btn_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : WIFI_PD_Pin WIFI_SS_Pin */
+    GPIO_InitStruct.Pin = WIFI_PD_Pin|WIFI_SS_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : LED1_Pin LED0_Pin */
+    GPIO_InitStruct.Pin = LED1_Pin|LED0_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : PA0 PA8 PA11 PA12 
-                       PA15 */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_8|GPIO_PIN_11|GPIO_PIN_12 
-                      |GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PAPin PAPin PAPin */
-    GPIO_InitStruct.Pin = LED0_Pin|LED1_Pin|LED2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PA4 PA5 PA6 PA7 */
-    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PB0 PB1 PB12 PB14 
-                       PB7 */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_12|GPIO_PIN_14 
-                        |GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PBPin PBPin */
-    // GPIO_InitStruct.Pin = GPIO4_Pin|GPIO5_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : PtPin */
-    GPIO_InitStruct.Pin = WIFI_PD_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(WIFI_PD_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : PD2 */
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PBPin PBPin PBPin */
-    GPIO_InitStruct.Pin = WIFI_RST_Pin|WIFI_BOOT_Pin|WIFI_SS_Pin;
+    /*Configure GPIO pins : LD3_Pin LD2_Pin */
+    GPIO_InitStruct.Pin = LD3_Pin|LD2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
+    GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : USB_OverCurrent_Pin */
+    GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : LED2_Pin */
+    GPIO_InitStruct.Pin = LED2_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
+
+
 
     // set all other pins to inputs pulled down
     for( uint8_t i = 0; i < IO_PIN_COUNT; i++ ){
