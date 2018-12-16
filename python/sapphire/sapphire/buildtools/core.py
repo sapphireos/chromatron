@@ -1072,6 +1072,9 @@ class AppBuilder(HexBuilder):
         loader_hex = os.path.join(loader_project.target_dir, "main.hex")
         try:
             self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+        
+        except IOError:
+            logging.info("Loader image not found, cannot create loader_image.hex")
 
         except Exception as e:
             logging.exception(e)
