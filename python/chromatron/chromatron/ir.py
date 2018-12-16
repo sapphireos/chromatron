@@ -2442,7 +2442,9 @@ class Builder(object):
         #     print [a.name for a in i]
                 
         # pc = 0
+        
         # for l in liveness:
+        #     temp = 5
         #     print pc, ': ',
             
         #     if l == None:
@@ -2451,8 +2453,9 @@ class Builder(object):
         #     else:
         #         for a in l:
         #             print a.name,
+        #             temp -= 1
 
-        #     print '\t', code[pc]
+        #     print '\t' * temp, code[pc]
 
         #     pc += 1
 
@@ -2461,7 +2464,8 @@ class Builder(object):
         return liveness
 
     def debug_print(self, s):
-        print s
+        # print s
+        pass
 
     def allocate(self):
         self.remove_unreachable()        
@@ -2531,8 +2535,11 @@ class Builder(object):
 
                 liveness = self.liveness(func)
 
+                line_no = 0
+
                 for line in liveness:
-                    # print 'line', line
+                    self.debug_print('line %s %s' % (line_no, [a.name for a in line]))
+                    line_no += 1
 
                     # check if line is marked None, this means
                     # we need to skip it in the analysis (probably unreachable code)
@@ -2555,9 +2562,13 @@ class Builder(object):
                                 var_addr += 1
 
 
-                    for v in line:
-                        var = v
-                        
+                    for var in line:
+                        if (var.addr != None) and (var.addr in address_pool):
+                            self.debug_print('unpool %s %s' % (var, var.addr))
+                            address_pool.remove(var.addr)
+
+
+                    for var in line:
                         if var.addr == None:
                             if var.name not in registers:
                                 registers[var.name] = var
