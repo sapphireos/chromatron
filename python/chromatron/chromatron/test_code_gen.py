@@ -1662,15 +1662,38 @@ def init():
 
 """
 
+test_var_overwrite = """
+
+a = Number(publish=True)
+
+def init():
+    temp = Number()    
+    temp = 90
+
+    if temp < 10:
+        a = 0
+        
+    elif temp >= 95:
+        a = 1
+        
+    else:
+        a = temp + 1
+
+
+"""
+
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
 
+    def test_var_overwrite(self):
+        self.run_test(test_var_overwrite,
+            expected={
+                'a': 91,
+            })
+
     def test_var_init(self):
-        # no value check.
-        # this test passes if the compilation
-        # succeeds without error.
         self.run_test(test_var_init,
             expected={
                 'a': 5,

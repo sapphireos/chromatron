@@ -26,6 +26,7 @@ import threading
 from sapphire.common.ribbon import Ribbon
 from sapphire.common.app import App
 import hashlib
+from pprint import pprint
 
 
 class VMContainer(Ribbon):
@@ -46,12 +47,11 @@ class VMContainer(Ribbon):
     def load_vm(self):
         self.code = code_gen.compile_script(self.fx_file)
         self.vm = code_gen.VM(
-                    self.code["vm_code"],
-                    self.code["vm_data"],
+                    self.code,
                     pix_size_x=self.width,
                     pix_size_y=self.height)
 
-        self.vm.init()
+        self.vm.run('init')
 
     def check_file_hash(self):
         m = hashlib.md5()
@@ -74,7 +74,7 @@ class VMContainer(Ribbon):
             print "Reloading VM"
             self.load_vm()
 
-        self.vm.loop()
+        self.vm.run('loop')
 
         self.wait(next_run - time.time())
 
@@ -89,5 +89,4 @@ if __name__ == '__main__':
 
     # app.run()
 
-    print vm.vm.dump_registers()
-    print vm.vm.kv
+    pprint(vm.vm.dump_registers())
