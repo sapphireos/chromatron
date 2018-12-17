@@ -104,6 +104,7 @@ void EXTI9_5_IRQHandler( void ){
 
 
 void hal_wifi_v_init( void ){
+    return;
 
     // enable clocks
     __HAL_RCC_USART6_CLK_ENABLE();

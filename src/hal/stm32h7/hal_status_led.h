@@ -29,12 +29,12 @@
 
 #include "stm32h7xx.h"
 
-#define LED_RED_PORT    GPIOA
-#define LED_RED_PIN     GPIO_PIN_1
-#define LED_GREEN_PORT  GPIOA
-#define LED_GREEN_PIN   GPIO_PIN_2
-#define LED_BLUE_PORT   GPIOA
-#define LED_BLUE_PIN    GPIO_PIN_3
+#define LED_RED_PORT    LED2_GPIO_Port
+#define LED_RED_PIN     LED2_Pin
+#define LED_GREEN_PORT  LED0_GPIO_Port
+#define LED_GREEN_PIN   LED0_Pin
+#define LED_BLUE_PORT   LED1_GPIO_Port
+#define LED_BLUE_PIN    LED1_Pin
 
 
 #endif
