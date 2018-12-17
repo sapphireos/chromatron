@@ -15,6 +15,8 @@
         "-DARM_MATH_CM7",
         "-DUSE_FULL_LL_DRIVER",
         "-DUSE_HAL_DRIVER",
+        "-DOS_USE_TRACE_SEMIHOSTING_DEBUG",
+        "-DTRACE",
         "-DARM",
         "-DDEBUG",
         "-g",
@@ -53,7 +55,7 @@
         "-lm",
         "-lnosys",
         "-Wl,-u,vfprintf",
-        "-Wl,--section-start=.bootdata=0x2001FFF8",
+        "-Wl,--section-start=.bootdata=0x2407FFF8",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
