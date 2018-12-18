@@ -389,7 +389,7 @@ next:
         return default_route.tx_func( msg );    
     }
 
-    log_v_debug_P( PSTR("no route found") );
+    // log_v_debug_P( PSTR("no route found") );
 
     // no route found
     return NETMSG_TX_ERR_RELEASE;
