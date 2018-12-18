@@ -62,7 +62,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           4096
+#define MEM_MAX_STACK           8192
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
@@ -74,10 +74,10 @@
 // virtual fs
 #define FS_MAX_VIRTUAL_FILES 32
 
-#define FLASH_FS_FIRMWARE_0_SIZE_KB     384
-#define FLASH_FS_FIRMWARE_1_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_0_SIZE_KB     512
+#define FLASH_FS_FIRMWARE_1_SIZE_KB     512
 #define FLASH_FS_FIRMWARE_2_SIZE_KB     512
-#define FLASH_FS_EEPROM_SIZE_KB     	32
+#define FLASH_FS_EEPROM_SIZE_KB     	128
 
 // logging
 #define LOG_MAX_BUFFER_SIZE     2048
