@@ -506,14 +506,14 @@ void hal_wifi_v_enter_boot_mode( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    // GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    // GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
     wifi_usart.Init.BaudRate = 115200;
@@ -611,12 +611,14 @@ void hal_wifi_v_enter_normal_mode( void ){
     GPIO_InitStruct.Pin = WIFI_RXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
