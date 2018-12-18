@@ -30,6 +30,7 @@
 #include "io.h"
 #include "flash_fs.h"
 #include "adc.h"
+#include "esp8266.h"
 
 #include "hal_status_led.h"
 
@@ -84,79 +85,77 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 500 );
         }
-        // else if( wifi_b_connected() ){
+        else if( wifi_b_connected() ){
 
-        //     if( wifi_b_ap_mode() ){
+            if( wifi_b_ap_mode() ){
 
-        //         status_led_v_set( 0, STATUS_LED_PURPLE );
-        //     }
-        //     else{
+                status_led_v_set( 0, STATUS_LED_PURPLE );
+            }
+            else{
 
-        //         status_led_v_set( 0, STATUS_LED_BLUE );
-        //     }
+                status_led_v_set( 0, STATUS_LED_BLUE );
+            }
 
-        //     TMR_WAIT( pt, 500 );
+            TMR_WAIT( pt, 500 );
 
-        //     if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
-        //           ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
+            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
+                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
 
-        //         if( wifi_b_ap_mode() ){
+                if( wifi_b_ap_mode() ){
 
-        //             status_led_v_set( 1, STATUS_LED_PURPLE );
-        //         }
-        //         else{
+                    status_led_v_set( 1, STATUS_LED_PURPLE );
+                }
+                else{
 
-        //             status_led_v_set( 1, STATUS_LED_BLUE );
-        //         }
-        //     }
+                    status_led_v_set( 1, STATUS_LED_BLUE );
+                }
+            }
         
-        //     TMR_WAIT( pt, 500 );
-        // }
+            TMR_WAIT( pt, 500 );
+        }
         else{
 
-        	status_led_v_set( 1, STATUS_LED_RED );
-        	status_led_v_set( 0, STATUS_LED_GREEN );
-        	status_led_v_set( 0, STATUS_LED_BLUE );
+        	// status_led_v_set( 1, STATUS_LED_RED );
+        	// status_led_v_set( 0, STATUS_LED_GREEN );
+        	// status_led_v_set( 0, STATUS_LED_BLUE );
+
+         //    TMR_WAIT( pt, 500 );
+
+        	// status_led_v_set( 0, STATUS_LED_RED );
+        	// status_led_v_set( 1, STATUS_LED_GREEN );
+        	// status_led_v_set( 0, STATUS_LED_BLUE );
+
+         //    TMR_WAIT( pt, 500 );
+
+        	// status_led_v_set( 0, STATUS_LED_RED );
+        	// status_led_v_set( 0, STATUS_LED_GREEN );
+        	// status_led_v_set( 1, STATUS_LED_BLUE );
+
+         //    TMR_WAIT( pt, 500 );
+
+
+            status_led_v_set( 0, STATUS_LED_GREEN );
 
             TMR_WAIT( pt, 500 );
 
-        	status_led_v_set( 0, STATUS_LED_RED );
-        	status_led_v_set( 1, STATUS_LED_GREEN );
-        	status_led_v_set( 0, STATUS_LED_BLUE );
+            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
+                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
+
+                status_led_v_set( 1, STATUS_LED_GREEN );
+            }
 
             TMR_WAIT( pt, 500 );
 
-        	status_led_v_set( 0, STATUS_LED_RED );
-        	status_led_v_set( 0, STATUS_LED_GREEN );
-        	status_led_v_set( 1, STATUS_LED_BLUE );
+            if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
 
-            TMR_WAIT( pt, 500 );
+                status_led_v_set( 0, STATUS_LED_RED );
 
+                TMR_WAIT( pt, 500 );
 
+                status_led_v_set( 1, STATUS_LED_RED );
 
-
-            // status_led_v_set( 0, STATUS_LED_GREEN );
-
-            // TMR_WAIT( pt, 500 );
-
-            // if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
-            //       ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
-
-            //     status_led_v_set( 1, STATUS_LED_GREEN );
-            // }
-
-            // TMR_WAIT( pt, 500 );
-
-            // if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
-
-            //     status_led_v_set( 0, STATUS_LED_RED );
-
-            //     TMR_WAIT( pt, 500 );
-
-            //     status_led_v_set( 1, STATUS_LED_RED );
-
-            //     TMR_WAIT( pt, 500 );
-            // }
+                TMR_WAIT( pt, 500 );
+            }
         }
     }
 
@@ -218,12 +217,12 @@ void status_led_v_disable( void ){
 
 void status_led_v_set( uint8_t state, uint8_t led ){
 
+    reset_all();
+    
     if( state == 0 ){
 
         return;
     }
-
-    reset_all();
 
     switch( led ){
         case STATUS_LED_BLUE:
