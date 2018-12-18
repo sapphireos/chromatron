@@ -524,8 +524,8 @@ void hal_wifi_v_enter_boot_mode( void ){
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
     wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
     {
@@ -630,8 +630,8 @@ void hal_wifi_v_enter_normal_mode( void ){
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
     wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
     {
