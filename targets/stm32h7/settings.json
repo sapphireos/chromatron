@@ -1,0 +1,93 @@
+
+{
+
+    "TOOLCHAIN": "ARM",
+
+    "LOG_FILENAME": "build.log",
+
+    "C_FLAGS": [
+        "-mthumb",
+        "-mcpu=cortex-m7",
+        "-mfloat-abi=hard",
+        "-mfpu=fpv5-sp-d16",
+        "-DSTM32H743xx",
+        "-D__STM32H7__",
+        "-DARM_MATH_CM7",
+        "-DUSE_FULL_LL_DRIVER",
+        "-DUSE_HAL_DRIVER",
+        "-DTRACE",
+        "-DARM",
+        "-g",
+        "-O3",
+        "-mno-unaligned-access",
+        "-fstack-usage",
+        "-funsigned-char",
+        "-funsigned-bitfields",
+        "-ffunction-sections",
+        "-fno-strict-aliasing",
+        "-fdata-sections",
+        "-ffreestanding",
+        "-Wall",
+        "-Wsizeof-pointer-memaccess",
+        "-Wsign-compare",
+        "-Wtype-limits",
+        "-Wstrict-prototypes",
+        "-Wno-uninitialized",
+        "-Wno-unused-but-set-variable",
+        "-Wa,-adhlns=%(OBJ_DIR)/%(SOURCE_FNAME).lst",
+        "-std=gnu11",
+        "-MMD",
+        "-MP",
+        "-MF"
+    ],
+
+    "AR_FLAGS": [
+        "-rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "-specs=nosys.specs",
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-lc",
+        "-lm",
+        "-lnosys",
+        "-Wl,-u,vfprintf",
+        "-Wl,--section-start=.bootdata=0x2407FFF8",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ],
+
+    "LINKER_SCRIPT": "STM32H743ZITx_FLASH.ld",
+
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "OS_PROJECT": "sapphire",
+    "LOADER_PROJECT": "loader_stm32h7",
+
+    "FW_INFO_ADDR": "0x08000400",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": ["hal_stm32h7"]
+}
