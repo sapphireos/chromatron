@@ -33,6 +33,9 @@
 
 #include "esp8266.h"
 
+static const uint8_t wifi_firmware[] = {
+    #include "wifi_firmware.txt"
+};
 
 #define WIFI_RESET_DELAY_MS     20
 
@@ -180,6 +183,11 @@ PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static wifi_data_header_t *header;
+
+
+    // copy firmware to file
+    // ffs_fw_i32_write( 2, 0, wifi_firmware, sizeof(wifi_firmware) );
+
 
     while(1){
 
