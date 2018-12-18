@@ -79,12 +79,12 @@ static volatile uint16_t get_dma_bytes( void ){
 }
 
 // GPIO RX ready IRQ
-void EXTI9_5_IRQHandler( void ){
+void EXTI3_IRQHandler( void ){
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
-    if( __HAL_GPIO_EXTI_GET_FLAG( GPIO_PIN_8 ) ){
+    if( __HAL_GPIO_EXTI_GET_FLAG( GPIO_PIN_3 ) ){
 
-        __HAL_GPIO_EXTI_CLEAR_FLAG( GPIO_PIN_8 );        
+        __HAL_GPIO_EXTI_CLEAR_FLAG( GPIO_PIN_3 );        
 
         wifi_rx_ready = TRUE;
 
@@ -384,12 +384,12 @@ void hal_wifi_v_set_rx_ready( void ){
 
 void hal_wifi_v_disable_irq( void ){
 
-    HAL_NVIC_DisableIRQ( EXTI9_5_IRQn );
+    HAL_NVIC_DisableIRQ( EXTI3_IRQn );
 }
 
 void hal_wifi_v_enable_irq( void ){
 
-    HAL_NVIC_EnableIRQ( EXTI9_5_IRQn );
+    HAL_NVIC_EnableIRQ( EXTI3_IRQn );
 }
 
 
@@ -647,9 +647,9 @@ void hal_wifi_v_enter_normal_mode( void ){
     }
 
 
-    // connect BOOT pin to EXTI IRQ 8
-    HAL_NVIC_SetPriority( EXTI9_5_IRQn, 0, 0 );
-    HAL_NVIC_DisableIRQ( EXTI9_5_IRQn );
+    // connect BOOT pin to EXTI IRQ 3
+    HAL_NVIC_SetPriority( EXTI3_IRQn, 0, 0 );
+    HAL_NVIC_DisableIRQ( EXTI3_IRQn );
 
 
     normal_mode = TRUE;
