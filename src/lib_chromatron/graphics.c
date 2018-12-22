@@ -72,7 +72,8 @@ static int16_t frame_rate_adjust;
 static uint8_t init_vm;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
-#define PARAMS_TIMER_RATE 1000 // 1000 ms (system ms timer)
+
+#define PARAMS_TIMER_RATE 100 // 100 ms (system ms timer)
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
