@@ -273,10 +273,10 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_v_set_ap_mode( msg->ssid, msg->pass );
     }
-    // else if( data_id == WIFI_DATA_ID_WIFI_SCAN ){
+    else if( data_id == WIFI_DATA_ID_WIFI_SCAN ){
 
-    //     wifi_v_scan();
-    // }
+        wifi_v_scan();
+    }
     else if( data_id == WIFI_DATA_ID_PORTS ){
 
         if( len != sizeof(wifi_msg_ports_t) ){
