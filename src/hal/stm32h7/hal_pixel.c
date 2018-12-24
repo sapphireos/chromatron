@@ -20,20 +20,39 @@
 // 
 // </license>
 
+// H7
+
 #include "cpu.h"
 #include "keyvalue.h"
 #include "hal_io.h"
 #include "hal_pixel.h"
 
 static uint16_t pix_count_1;
+static uint16_t pix_count_2;
+static uint16_t pix_count_3;
+static uint16_t pix_count_4;
+static uint16_t pix_count_5;
+static uint16_t pix_count_6;
+static uint16_t pix_count_7;
+static uint16_t pix_count_8;
+static uint16_t pix_count_9;
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_1,        0,    "pix_count_1" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_2,        0,    "pix_count_2" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_3,        0,    "pix_count_3" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_4,        0,    "pix_count_4" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_5,        0,    "pix_count_5" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_6,        0,    "pix_count_6" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_7,        0,    "pix_count_7" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_8,        0,    "pix_count_8" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_9,        0,    "pix_count_9" },
 };
 
 
 static SPI_HandleTypeDef pix_spi0;
 static SPI_HandleTypeDef pix_spi1;
+
 static DMA_HandleTypeDef pix0_dma;
 static DMA_HandleTypeDef pix1_dma;
 
@@ -117,25 +136,96 @@ void hal_pixel_v_init( void ){
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
-    // GPIO_InitStruct.Pin = PIX_CLK_Pin;
+    GPIO_InitStruct.Pin = PIX_CLK_0_Pin;
     // GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-    // HAL_GPIO_Init(PIX_CLK_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_CLK_GPIO_Port, PIX_CLK_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_Init(PIX_CLK_0_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_0_GPIO_Port, PIX_CLK_0_Pin, GPIO_PIN_RESET);
 
-    // GPIO_InitStruct.Pin = PIX_DAT_Pin;
+    GPIO_InitStruct.Pin = PIX_DAT_0_Pin;
     // GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-    // HAL_GPIO_Init(PIX_DAT_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_DAT_GPIO_Port, PIX_DAT_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_Init(PIX_DAT_0_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_0_GPIO_Port, PIX_DAT_0_Pin, GPIO_PIN_RESET);
 
-    // GPIO_InitStruct.Pin = PIX_CLK2_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-    // HAL_GPIO_Init(PIX_CLK2_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_CLK2_GPIO_Port, PIX_CLK2_Pin, GPIO_PIN_RESET);
 
-    // GPIO_InitStruct.Pin = PIX_DAT2_Pin;
+
+    GPIO_InitStruct.Pin = PIX_CLK_2_Pin;
     // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-    // HAL_GPIO_Init(PIX_DAT2_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_DAT2_GPIO_Port, PIX_DAT2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_Init(PIX_CLK_2_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_2_GPIO_Port, PIX_CLK_2_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_2_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_2_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_2_GPIO_Port, PIX_DAT_2_Pin, GPIO_PIN_RESET);
+
+
+    GPIO_InitStruct.Pin = PIX_CLK_3_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_CLK_3_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_3_GPIO_Port, PIX_CLK_3_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_3_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_3_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_3_GPIO_Port, PIX_DAT_3_Pin, GPIO_PIN_RESET);
+
+
+    GPIO_InitStruct.Pin = PIX_CLK_4_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_CLK_4_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_4_GPIO_Port, PIX_CLK_4_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_4_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_4_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_4_GPIO_Port, PIX_DAT_4_Pin, GPIO_PIN_RESET);
+
+
+    GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
+
+
+    GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_CLK_6_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_6_GPIO_Port, PIX_CLK_6_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_6_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_6_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_6_GPIO_Port, PIX_DAT_6_Pin, GPIO_PIN_RESET);
+
+
+    GPIO_InitStruct.Pin = PIX_CLK_7_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_CLK_7_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_7_GPIO_Port, PIX_CLK_7_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_7_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_7_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_7_GPIO_Port, PIX_DAT_7_Pin, GPIO_PIN_RESET);
+
+
+    // NOTE channels 8 and 9 do not have clock pins
+
+    GPIO_InitStruct.Pin = PIX_DAT_8_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_8_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_8_GPIO_Port, PIX_DAT_8_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_9_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(PIX_DAT_9_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_9_GPIO_Port, PIX_DAT_9_Pin, GPIO_PIN_RESET);
+
 
 
     pix_spi0.Instance = PIX0_SPI;
