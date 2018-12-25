@@ -22,10 +22,27 @@
 
 // H7
 
+/*
+
+Channel - Port      - DMA
+0         SPI 1       1
+1         SPI 2       1
+2         SPI 3       1
+3         SPI 4       1
+4         SPI 5       2
+5         SPI 6       2
+6         USART 1
+7         USART 2
+8         UART 4
+9         UART 5
+
+*/
+
 #include "cpu.h"
 #include "keyvalue.h"
 #include "hal_io.h"
 #include "hal_pixel.h"
+
 
 static uint16_t pix_count_1;
 static uint16_t pix_count_2;
@@ -50,11 +67,28 @@ KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
 };
 
 
-static SPI_HandleTypeDef pix_spi0;
-static SPI_HandleTypeDef pix_spi1;
+static SPI_HandleTypeDef    pix_spi0;
+static SPI_HandleTypeDef    pix_spi1;
+static SPI_HandleTypeDef    pix_spi2;
+static SPI_HandleTypeDef    pix_spi3;
+static SPI_HandleTypeDef    pix_spi4;
+// static SPI_HandleTypeDef     pix_spi5;
+static USART_HandleTypeDef  pix_usart6;
+static USART_HandleTypeDef  pix_usart7;
+static UART_HandleTypeDef   pix_uart8;
+static UART_HandleTypeDef   pix_uart9;
 
 static DMA_HandleTypeDef pix0_dma;
 static DMA_HandleTypeDef pix1_dma;
+static DMA_HandleTypeDef pix2_dma;
+static DMA_HandleTypeDef pix3_dma;
+static DMA_HandleTypeDef pix4_dma;
+// static DMA_HandleTypeDef pix5_dma;
+static DMA_HandleTypeDef pix6_dma;
+static DMA_HandleTypeDef pix7_dma;
+static DMA_HandleTypeDef pix8_dma;
+static DMA_HandleTypeDef pix9_dma;
+
 
 
 void PIX0_DMA_HANDLER(void){
@@ -137,89 +171,89 @@ void hal_pixel_v_init( void ){
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
     GPIO_InitStruct.Pin = PIX_CLK_0_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_CLK_0_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_0_GPIO_Port, PIX_CLK_0_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_0_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_DAT_0_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_0_GPIO_Port, PIX_DAT_0_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_1_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_CLK_1_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_1_GPIO_Port, PIX_CLK_1_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_1_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_DAT_1_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_1_GPIO_Port, PIX_DAT_1_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_2_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI3;
     HAL_GPIO_Init(PIX_CLK_2_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_2_GPIO_Port, PIX_CLK_2_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_2_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI3;
     HAL_GPIO_Init(PIX_DAT_2_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_2_GPIO_Port, PIX_DAT_2_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_3_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
     HAL_GPIO_Init(PIX_CLK_3_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_3_GPIO_Port, PIX_CLK_3_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_3_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
     HAL_GPIO_Init(PIX_DAT_3_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_3_GPIO_Port, PIX_DAT_3_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_4_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI5;
     HAL_GPIO_Init(PIX_CLK_4_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_4_GPIO_Port, PIX_CLK_4_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_4_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI5;
     HAL_GPIO_Init(PIX_DAT_4_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_4_GPIO_Port, PIX_DAT_4_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
     HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
     HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
     HAL_GPIO_Init(PIX_CLK_6_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_6_GPIO_Port, PIX_CLK_6_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_6_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
     HAL_GPIO_Init(PIX_DAT_6_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_6_GPIO_Port, PIX_DAT_6_Pin, GPIO_PIN_RESET);
 
 
     GPIO_InitStruct.Pin = PIX_CLK_7_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
     HAL_GPIO_Init(PIX_CLK_7_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_7_GPIO_Port, PIX_CLK_7_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_7_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
     HAL_GPIO_Init(PIX_DAT_7_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_7_GPIO_Port, PIX_DAT_7_Pin, GPIO_PIN_RESET);
 
@@ -227,12 +261,12 @@ void hal_pixel_v_init( void ){
     // NOTE channels 8 and 9 do not have clock pins
 
     GPIO_InitStruct.Pin = PIX_DAT_8_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
     HAL_GPIO_Init(PIX_DAT_8_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_8_GPIO_Port, PIX_DAT_8_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_9_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
     HAL_GPIO_Init(PIX_DAT_9_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_9_GPIO_Port, PIX_DAT_9_Pin, GPIO_PIN_RESET);
 
@@ -240,6 +274,10 @@ void hal_pixel_v_init( void ){
 
     pix_spi0.Instance = PIX0_SPI;
     pix_spi1.Instance = PIX1_SPI;
+    pix_spi2.Instance = PIX2_SPI;
+    pix_spi3.Instance = PIX3_SPI;
+    pix_spi4.Instance = PIX4_SPI;
+    // pix_spi5.Instance = PIX5_SPI;
 
     SPI_InitTypeDef spi_init;
     spi_init.Mode               = SPI_MODE_MASTER;
@@ -266,9 +304,41 @@ void hal_pixel_v_init( void ){
     pix_spi1.Init = spi_init;
     HAL_SPI_Init( &pix_spi1 );    
 
+    // output 2
+    // SPI3
+    pix_spi2.Init = spi_init;
+    HAL_SPI_Init( &pix_spi2 );    
+
+    // output 3
+    // SPI4
+    pix_spi3.Init = spi_init;
+    HAL_SPI_Init( &pix_spi3 );    
+
+    // output 4
+    // SPI5
+    pix_spi4.Init = spi_init;
+    HAL_SPI_Init( &pix_spi4 );    
+
+    // output 5
+    // SPI6
+    // pix_spi5.Init = spi_init;
+    // HAL_SPI_Init( &pix_spi5 );    
+
+
+    // USART_InitTypeDef usart_init;
+    // usart_init.BaudRate = 3200000;
+    // usart_init.WordLength = UART_WORDLENGTH_8B;
+    // usart_init.StopBits = UART_STOPBITS_0;
+    // usart_init.Parity = UART_PARITY_NONE;
+    // usart_init.Mode = UART_MODE_TX;
+    // usart_init.HwFlowCtl = UART_HWCONTROL_NONE;
+    // usart_init.OverSampling = UART_OVERSAMPLING_16;
+    // usart_init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+
+
     // set up DMA, output 0
     pix0_dma.Instance                  = PIX0_DMA_INSTANCE;
-    // pix0_dma.Init.Channel              = PIX0_DMA_CHANNEL;
+    pix0_dma.Init.Request              = PIX0_DMA_REQUEST;
     pix0_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
     pix0_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
     pix0_dma.Init.MemInc               = DMA_MINC_ENABLE;
@@ -293,7 +363,7 @@ void hal_pixel_v_init( void ){
 
     // set up DMA, output 1
     pix1_dma.Instance                  = PIX1_DMA_INSTANCE;
-    // pix1_dma.Init.Channel              = PIX1_DMA_CHANNEL;
+    pix1_dma.Init.Request              = PIX1_DMA_REQUEST;
     pix1_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
     pix1_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
     pix1_dma.Init.MemInc               = DMA_MINC_ENABLE;
@@ -315,6 +385,113 @@ void hal_pixel_v_init( void ){
     HAL_NVIC_EnableIRQ( PIX1_SPI_IRQn );
 
     __HAL_LINKDMA( &pix_spi1, hdmatx, pix1_dma );
+
+
+    // set up DMA, output 2
+    pix2_dma.Instance                  = PIX2_DMA_INSTANCE;
+    pix2_dma.Init.Request              = PIX2_DMA_REQUEST;
+    pix2_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
+    pix2_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    pix2_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    pix2_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    pix2_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    pix2_dma.Init.Mode                 = DMA_NORMAL;
+    pix2_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    pix2_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    pix2_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    pix2_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    pix2_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    HAL_DMA_Init( &pix2_dma );
+
+    HAL_NVIC_SetPriority( PIX2_DMA_IRQ, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX2_DMA_IRQ );
+
+    HAL_NVIC_SetPriority( PIX2_SPI_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX2_SPI_IRQn );
+
+    __HAL_LINKDMA( &pix_spi2, hdmatx, pix2_dma );
+
+
+    // set up DMA, output 3
+    pix3_dma.Instance                  = PIX3_DMA_INSTANCE;
+    pix3_dma.Init.Request              = PIX3_DMA_REQUEST;
+    pix3_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
+    pix3_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    pix3_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    pix3_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    pix3_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    pix3_dma.Init.Mode                 = DMA_NORMAL;
+    pix3_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    pix3_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    pix3_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    pix3_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    pix3_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    HAL_DMA_Init( &pix3_dma );
+
+    HAL_NVIC_SetPriority( PIX3_DMA_IRQ, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX3_DMA_IRQ );
+
+    HAL_NVIC_SetPriority( PIX3_SPI_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX3_SPI_IRQn );
+
+    __HAL_LINKDMA( &pix_spi3, hdmatx, pix3_dma );
+
+
+    // set up DMA, output 4
+    pix4_dma.Instance                  = PIX4_DMA_INSTANCE;
+    pix4_dma.Init.Request              = PIX4_DMA_REQUEST;
+    pix4_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
+    pix4_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    pix4_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    pix4_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    pix4_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    pix4_dma.Init.Mode                 = DMA_NORMAL;
+    pix4_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    pix4_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    pix4_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    pix4_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    pix4_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    HAL_DMA_Init( &pix4_dma );
+
+    HAL_NVIC_SetPriority( PIX4_DMA_IRQ, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX4_DMA_IRQ );
+
+    HAL_NVIC_SetPriority( PIX4_SPI_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( PIX4_SPI_IRQn );
+
+    __HAL_LINKDMA( &pix_spi4, hdmatx, pix4_dma );
+
+
+    // set up DMA, output 5
+    // pix5_dma.Instance                  = PIX5_DMA_INSTANCE;
+    // pix5_dma.Init.Request              = PIX5_DMA_REQUEST;
+    // pix5_dma.Init.Direction            = DMA_MEMORY_TO_PERIPH;
+    // pix5_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
+    // pix5_dma.Init.MemInc               = DMA_MINC_ENABLE;
+    // pix5_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
+    // pix5_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    // pix5_dma.Init.Mode                 = DMA_NORMAL;
+    // pix5_dma.Init.Priority             = DMA_PRIORITY_HIGH;
+    // pix5_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
+    // pix5_dma.Init.FIFOThreshold        = DMA_FIFO_THRESHOLD_1QUARTERFULL; 
+    // pix5_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
+    // pix5_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
+
+    // HAL_DMA_Init( &pix5_dma );
+
+    // HAL_NVIC_SetPriority( PIX5_DMA_IRQ, 0, 0 );
+    // HAL_NVIC_EnableIRQ( PIX5_DMA_IRQ );
+
+    // HAL_NVIC_SetPriority( PIX5_SPI_IRQn, 0, 0 );
+    // HAL_NVIC_EnableIRQ( PIX5_SPI_IRQn );
+
+    // __HAL_LINKDMA( &pix_spi5, hdmatx, pix5_dma );
+
+
+
 
 
 }
