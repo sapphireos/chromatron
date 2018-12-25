@@ -48,22 +48,22 @@ static uint16_t pix_count_1;
 static uint16_t pix_count_2;
 static uint16_t pix_count_3;
 static uint16_t pix_count_4;
-static uint16_t pix_count_5;
-static uint16_t pix_count_6;
-static uint16_t pix_count_7;
-static uint16_t pix_count_8;
-static uint16_t pix_count_9;
+// static uint16_t pix_count_5;
+// static uint16_t pix_count_6;
+// static uint16_t pix_count_7;
+// static uint16_t pix_count_8;
+// static uint16_t pix_count_9;
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_1,        0,    "pix_count_1" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_2,        0,    "pix_count_2" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_3,        0,    "pix_count_3" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_4,        0,    "pix_count_4" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_5,        0,    "pix_count_5" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_6,        0,    "pix_count_6" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_7,        0,    "pix_count_7" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_8,        0,    "pix_count_8" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_9,        0,    "pix_count_9" },
+    // { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_5,        0,    "pix_count_5" },
+    // { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_6,        0,    "pix_count_6" },
+    // { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_7,        0,    "pix_count_7" },
+    // { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_8,        0,    "pix_count_8" },
+    // { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_9,        0,    "pix_count_9" },
 };
 
 
@@ -73,10 +73,10 @@ static SPI_HandleTypeDef    pix_spi2;
 static SPI_HandleTypeDef    pix_spi3;
 static SPI_HandleTypeDef    pix_spi4;
 // static SPI_HandleTypeDef     pix_spi5;
-static USART_HandleTypeDef  pix_usart6;
-static USART_HandleTypeDef  pix_usart7;
-static UART_HandleTypeDef   pix_uart8;
-static UART_HandleTypeDef   pix_uart9;
+// static USART_HandleTypeDef  pix_usart6;
+// static USART_HandleTypeDef  pix_usart7;
+// static UART_HandleTypeDef   pix_uart8;
+// static UART_HandleTypeDef   pix_uart9;
 
 static DMA_HandleTypeDef pix0_dma;
 static DMA_HandleTypeDef pix1_dma;
@@ -84,10 +84,10 @@ static DMA_HandleTypeDef pix2_dma;
 static DMA_HandleTypeDef pix3_dma;
 static DMA_HandleTypeDef pix4_dma;
 // static DMA_HandleTypeDef pix5_dma;
-static DMA_HandleTypeDef pix6_dma;
-static DMA_HandleTypeDef pix7_dma;
-static DMA_HandleTypeDef pix8_dma;
-static DMA_HandleTypeDef pix9_dma;
+// static DMA_HandleTypeDef pix6_dma;
+// static DMA_HandleTypeDef pix7_dma;
+// static DMA_HandleTypeDef pix8_dma;
+// static DMA_HandleTypeDef pix9_dma;
 
 
 
@@ -112,6 +112,39 @@ void PIX1_SPI_HANDLER(void){
 }
 
 
+void PIX2_DMA_HANDLER(void){
+    
+    HAL_DMA_IRQHandler( &pix2_dma );
+}
+
+void PIX2_SPI_HANDLER(void){
+
+    HAL_SPI_IRQHandler( &pix_spi2 );
+}
+
+
+void PIX3_DMA_HANDLER(void){
+    
+    HAL_DMA_IRQHandler( &pix3_dma );
+}
+
+void PIX3_SPI_HANDLER(void){
+
+    HAL_SPI_IRQHandler( &pix_spi3 );
+}
+
+
+void PIX4_DMA_HANDLER(void){
+    
+    HAL_DMA_IRQHandler( &pix4_dma );
+}
+
+void PIX4_SPI_HANDLER(void){
+
+    HAL_SPI_IRQHandler( &pix_spi4 );
+}
+
+
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
     uint8_t driver = 0;
@@ -124,7 +157,19 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
         driver = 1;
     }
+    else if( hspi == &pix_spi2 ){
 
+        driver = 2;
+    }
+    else if( hspi == &pix_spi3 ){
+
+        driver = 3;
+    }
+    else if( hspi == &pix_spi4 ){
+
+        driver = 4;
+    }
+    
     hal_pixel_v_transfer_complete_callback( driver );    
 }
 
@@ -149,6 +194,18 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
 
         HAL_SPI_Transmit_DMA( &pix_spi1, data, len );   
     }
+    else if( driver == 2 ){
+
+        HAL_SPI_Transmit_DMA( &pix_spi2, data, len );   
+    }
+    else if( driver == 3 ){
+
+        HAL_SPI_Transmit_DMA( &pix_spi3, data, len );   
+    }
+    else if( driver == 4 ){
+
+        HAL_SPI_Transmit_DMA( &pix_spi4, data, len );   
+    }
     else{
 
         ASSERT( FALSE );
@@ -162,6 +219,9 @@ void hal_pixel_v_init( void ){
 
     __HAL_RCC_SPI1_CLK_ENABLE();
     __HAL_RCC_SPI2_CLK_ENABLE();
+    __HAL_RCC_SPI3_CLK_ENABLE();
+    __HAL_RCC_SPI4_CLK_ENABLE();
+    __HAL_RCC_SPI5_CLK_ENABLE();
 
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;   
@@ -225,50 +285,50 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_WritePin(PIX_DAT_4_GPIO_Port, PIX_DAT_4_Pin, GPIO_PIN_RESET);
 
 
-    GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
-    HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
+    // HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
 
-    GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
-    HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
-
-
-    GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(PIX_CLK_6_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK_6_GPIO_Port, PIX_CLK_6_Pin, GPIO_PIN_RESET);
-
-    GPIO_InitStruct.Pin = PIX_DAT_6_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(PIX_DAT_6_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_6_GPIO_Port, PIX_DAT_6_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
+    // HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
 
 
-    GPIO_InitStruct.Pin = PIX_CLK_7_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-    HAL_GPIO_Init(PIX_CLK_7_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK_7_GPIO_Port, PIX_CLK_7_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    // HAL_GPIO_Init(PIX_CLK_6_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_CLK_6_GPIO_Port, PIX_CLK_6_Pin, GPIO_PIN_RESET);
 
-    GPIO_InitStruct.Pin = PIX_DAT_7_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-    HAL_GPIO_Init(PIX_DAT_7_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_7_GPIO_Port, PIX_DAT_7_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_DAT_6_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    // HAL_GPIO_Init(PIX_DAT_6_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_DAT_6_GPIO_Port, PIX_DAT_6_Pin, GPIO_PIN_RESET);
 
 
-    // NOTE channels 8 and 9 do not have clock pins
+    // GPIO_InitStruct.Pin = PIX_CLK_7_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+    // HAL_GPIO_Init(PIX_CLK_7_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_CLK_7_GPIO_Port, PIX_CLK_7_Pin, GPIO_PIN_RESET);
 
-    GPIO_InitStruct.Pin = PIX_DAT_8_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
-    HAL_GPIO_Init(PIX_DAT_8_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_8_GPIO_Port, PIX_DAT_8_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_DAT_7_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+    // HAL_GPIO_Init(PIX_DAT_7_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_DAT_7_GPIO_Port, PIX_DAT_7_Pin, GPIO_PIN_RESET);
 
-    GPIO_InitStruct.Pin = PIX_DAT_9_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
-    HAL_GPIO_Init(PIX_DAT_9_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_9_GPIO_Port, PIX_DAT_9_Pin, GPIO_PIN_RESET);
+
+    // // NOTE channels 8 and 9 do not have clock pins
+
+    // GPIO_InitStruct.Pin = PIX_DAT_8_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
+    // HAL_GPIO_Init(PIX_DAT_8_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_DAT_8_GPIO_Port, PIX_DAT_8_Pin, GPIO_PIN_RESET);
+
+    // GPIO_InitStruct.Pin = PIX_DAT_9_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
+    // HAL_GPIO_Init(PIX_DAT_9_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_DAT_9_GPIO_Port, PIX_DAT_9_Pin, GPIO_PIN_RESET);
 
 
 
@@ -323,17 +383,6 @@ void hal_pixel_v_init( void ){
     // SPI6
     // pix_spi5.Init = spi_init;
     // HAL_SPI_Init( &pix_spi5 );    
-
-
-    // USART_InitTypeDef usart_init;
-    // usart_init.BaudRate = 3200000;
-    // usart_init.WordLength = UART_WORDLENGTH_8B;
-    // usart_init.StopBits = UART_STOPBITS_0;
-    // usart_init.Parity = UART_PARITY_NONE;
-    // usart_init.Mode = UART_MODE_TX;
-    // usart_init.HwFlowCtl = UART_HWCONTROL_NONE;
-    // usart_init.OverSampling = UART_OVERSAMPLING_16;
-    // usart_init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 
 
     // set up DMA, output 0

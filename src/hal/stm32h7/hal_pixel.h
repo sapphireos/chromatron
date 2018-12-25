@@ -66,45 +66,47 @@
 // SPI 6 is on BDMA (domain 3)
 // need to fix this so we can use BDMA
 // or just not use PIX5...
-#define PIX5_SPI 			SPI6
-#define PIX5_SPI_IRQn 		SPI6_IRQn
-#define PIX5_SPI_HANDLER 	SPI6_IRQHandler
-#define PIX5_DMA_INSTANCE	DMA2_Stream2
-#define PIX5_DMA_IRQ	 	DMA2_Stream2_IRQn
-#define PIX5_DMA_HANDLER	DMA2_Stream2_IRQHandler
-#define PIX5_DMA_REQUEST	DMA_REQUEST_SPI6_TX
+// #define PIX5_SPI 			SPI6
+// #define PIX5_SPI_IRQn 		SPI6_IRQn
+// #define PIX5_SPI_HANDLER 	SPI6_IRQHandler
+// #define PIX5_DMA_INSTANCE	DMA2_Stream2
+// #define PIX5_DMA_IRQ	 	DMA2_Stream2_IRQn
+// #define PIX5_DMA_HANDLER	DMA2_Stream2_IRQHandler
+// #define PIX5_DMA_REQUEST	DMA_REQUEST_SPI6_TX
 
-#define PIX6_USART 			USART1
-#define PIX6_USART_IRQn 	USART1_IRQn
-#define PIX6_USART_HANDLER 	USART1_IRQHandler
-#define PIX6_DMA_INSTANCE	DMA2_Stream3
-#define PIX6_DMA_IRQ	 	DMA2_Stream3_IRQn
-#define PIX6_DMA_HANDLER	DMA2_Stream3_IRQHandler
-#define PIX6_DMA_REQUEST	DMA_REQUEST_USART1_TX
 
-#define PIX7_USART 			USART2
-#define PIX7_USART_IRQn 	USART2_IRQn
-#define PIX7_USART_HANDLER 	USART2_IRQHandler
-#define PIX7_DMA_INSTANCE	DMA2_Stream4
-#define PIX7_DMA_IRQ	 	DMA2_Stream4_IRQn
-#define PIX7_DMA_HANDLER	DMA2_Stream4_IRQHandler
-#define PIX7_DMA_REQUEST	DMA_REQUEST_USART2_TX
 
-#define PIX8_UART 			UART4
-#define PIX8_UART_IRQn 		UART4_IRQn
-#define PIX8_UART_HANDLER 	UART4_IRQHandler
-#define PIX8_DMA_INSTANCE	DMA2_Stream4
-#define PIX8_DMA_IRQ	 	DMA2_Stream4_IRQn
-#define PIX8_DMA_HANDLER	DMA2_Stream4_IRQHandler
-#define PIX8_DMA_REQUEST	DMA_REQUEST_UART4_TX
+// #define PIX6_USART 			USART1
+// #define PIX6_USART_IRQn 	USART1_IRQn
+// #define PIX6_USART_HANDLER 	USART1_IRQHandler
+// #define PIX6_DMA_INSTANCE	DMA2_Stream3
+// #define PIX6_DMA_IRQ	 	DMA2_Stream3_IRQn
+// #define PIX6_DMA_HANDLER	DMA2_Stream3_IRQHandler
+// #define PIX6_DMA_REQUEST	DMA_REQUEST_USART1_TX
 
-#define PIX9_UART 			UART5
-#define PIX9_UART_IRQn 		UART5_IRQn
-#define PIX9_UART_HANDLER 	UART5_IRQHandler
-#define PIX9_DMA_INSTANCE	DMA2_Stream5
-#define PIX9_DMA_IRQ	 	DMA2_Stream5_IRQn
-#define PIX9_DMA_HANDLER	DMA2_Stream5_IRQHandler
-#define PIX9_DMA_REQUEST	DMA_REQUEST_UART5_TX
+// #define PIX7_USART 			USART2
+// #define PIX7_USART_IRQn 	USART2_IRQn
+// #define PIX7_USART_HANDLER 	USART2_IRQHandler
+// #define PIX7_DMA_INSTANCE	DMA2_Stream4
+// #define PIX7_DMA_IRQ	 	DMA2_Stream4_IRQn
+// #define PIX7_DMA_HANDLER	DMA2_Stream4_IRQHandler
+// #define PIX7_DMA_REQUEST	DMA_REQUEST_USART2_TX
+
+// #define PIX8_UART 			UART4
+// #define PIX8_UART_IRQn 		UART4_IRQn
+// #define PIX8_UART_HANDLER 	UART4_IRQHandler
+// #define PIX8_DMA_INSTANCE	DMA2_Stream4
+// #define PIX8_DMA_IRQ	 	DMA2_Stream4_IRQn
+// #define PIX8_DMA_HANDLER	DMA2_Stream4_IRQHandler
+// #define PIX8_DMA_REQUEST	DMA_REQUEST_UART4_TX
+
+// #define PIX9_UART 			UART5
+// #define PIX9_UART_IRQn 		UART5_IRQn
+// #define PIX9_UART_HANDLER 	UART5_IRQHandler
+// #define PIX9_DMA_INSTANCE	DMA2_Stream5
+// #define PIX9_DMA_IRQ	 	DMA2_Stream5_IRQn
+// #define PIX9_DMA_HANDLER	DMA2_Stream5_IRQHandler
+// #define PIX9_DMA_REQUEST	DMA_REQUEST_UART5_TX
 
 
 
