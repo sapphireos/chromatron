@@ -25,7 +25,6 @@
 
 #include "system.h"
 #include "cmd_usart.h"
-#include "spi.h"
 #include "random.h"
 #include "eeprom.h"
 #include "config.h"
@@ -118,9 +117,6 @@ int8_t sapphire_i8_init( void ){
 
 	// init CRC module
 	crc_v_init();
-
-	// init SPI port
-	spi_v_init();
 
     #ifdef ENABLE_USB
     usb_v_init();

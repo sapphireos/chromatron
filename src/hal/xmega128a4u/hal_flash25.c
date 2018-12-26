@@ -22,12 +22,10 @@
 
 
 #include "system.h"
-#include "spi.h"
+#include "timers.h"
 #include "flash_fs_partitions.h"
 #include "flash25.h"
 #include "hal_flash25.h"
-
-
 
 /*
 
@@ -37,10 +35,111 @@ This module provides a low level SPI driver for 25 series flash memory.
 
 */
 
-
-
-
 #ifdef ENABLE_FFS
+
+// this driver is set up to use the USART in master SPI mode
+
+// these bits in USART.CTRLC seem to be missing from the IO header
+#define UDORD 2
+#define UCPHA 1
+
+static inline void flash_spi_v_init( void );
+static inline uint8_t flash_spi_u8_send( uint8_t data ) __attribute__((always_inline));
+static inline void flash_spi_v_write_block( const uint8_t *data, uint16_t length ) __attribute__((always_inline));
+static inline void flash_spi_v_read_block( uint8_t *data, uint16_t length ) __attribute__((always_inline));
+
+
+static inline void flash_spi_v_init( void ){
+
+    // set TX and XCK pins to output
+    SPI_IO_PORT.DIR |= ( 1 << SPI_SCK_PIN ) | ( 1 << SPI_MOSI_PIN );
+
+    // set RXD to input
+    SPI_IO_PORT.DIR &= ~( 1 << SPI_MISO_PIN );
+
+    // set USART to master SPI mode 0
+    SPI_PORT.CTRLC = USART_CMODE_MSPI_gc | ( 0 << UDORD ) | ( 0 << UCPHA );
+
+    // BAUDCTRLA is low byte of BSEL
+    // SPI clock = Fper / ( 2 * ( BSEL + 1 ) )
+    // Fper will generally be 32 MHz
+
+    // set rate to 16 MHz
+    SPI_PORT.BAUDCTRLA = 0;
+    SPI_PORT.BAUDCTRLB = 0;
+
+    // 4 MHz
+    // SPI_PORT.BAUDCTRLA = 3;
+
+    // enable TX and RX
+    SPI_PORT.CTRLB = USART_RXEN_bm | USART_TXEN_bm;
+}
+
+static inline uint8_t flash_spi_u8_send( uint8_t data ){
+
+    SPI_PORT.DATA = data;
+
+    BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+    SPI_PORT.STATUS = USART_TXCIF_bm;
+
+    return SPI_PORT.DATA;
+}
+
+static inline void flash_spi_v_write_block( const uint8_t *data, uint16_t length ){
+
+    uint8_t dummy;
+
+    while( length > 0 ){
+
+        // send the data
+        SPI_PORT.DATA = *data;
+
+        // while the data is being sent, update the data pointer,
+        // length counter, and then wait for transmission to complete
+        data++;
+        length--;
+
+        BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+        SPI_PORT.STATUS = USART_TXCIF_bm;
+
+
+        // because there is a FIFO in the UART, we need to read data
+        // (and throw away), otherwise the next read will be corrupted.
+        dummy = SPI_PORT.DATA;
+    }
+}
+
+// read a block of data from the SPI port.
+static inline void flash_spi_v_read_block( uint8_t *data, uint16_t length ){
+
+    // start initial transfer
+    SPI_PORT.DATA = 0;
+
+    while( length > 1 ){
+
+        // wait until transfer is complete
+        BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+        SPI_PORT.STATUS = USART_TXCIF_bm;
+
+        // read the data byte
+        *data = SPI_PORT.DATA;
+
+        // start the next transfer
+        SPI_PORT.DATA = 0;
+
+        // decrement length and advance pointer
+        length--;
+        data++;
+    }
+    // loop terminates with one byte left
+
+    // wait until transfer is complete
+    BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
+    SPI_PORT.STATUS = USART_TXCIF_bm;
+
+    // read last data byte
+    *data = SPI_PORT.DATA;
+}
 
 #ifdef __SIM__
     #define FLASH_FS_N_ERASE_BLOCKS			128
@@ -65,6 +164,9 @@ static bool aai_write_enabled;
 static uint32_t max_address;
 
 void hal_flash25_v_init( void ){
+
+    // init SPI port
+    flash_spi_v_init();
 
     // set CS to output
     FLASH_CS_DDR |= ( 1 << FLASH_CS_PIN );
@@ -93,7 +195,7 @@ void hal_flash25_v_init( void ){
 
         // disable busy status output on SO line
         CHIP_ENABLE();
-        spi_u8_send( FLASH_CMD_DBUSY );
+        flash_spi_u8_send( FLASH_CMD_DBUSY );
         CHIP_DISABLE();
     }
 
@@ -119,8 +221,8 @@ uint8_t flash25_u8_read_status( void ){
 
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_READ_STATUS );
-	status = spi_u8_send( 0 );
+	flash_spi_u8_send( FLASH_CMD_READ_STATUS );
+	status = flash_spi_u8_send( 0 );
 
 	CHIP_DISABLE();
 
@@ -133,15 +235,15 @@ void flash25_v_write_status( uint8_t status ){
     #ifndef __SIM__
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_ENABLE_WRITE_STATUS );
+	flash_spi_u8_send( FLASH_CMD_ENABLE_WRITE_STATUS );
 
 	CHIP_DISABLE();
 
 
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_WRITE_STATUS );
-	spi_u8_send( status );
+	flash_spi_u8_send( FLASH_CMD_WRITE_STATUS );
+	flash_spi_u8_send( status );
 
 	CHIP_DISABLE();
     #endif
@@ -167,12 +269,12 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     #else
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_READ );
-	spi_u8_send( address >> 16 );
-	spi_u8_send( address >> 8 );
-	spi_u8_send( address );
+	flash_spi_u8_send( FLASH_CMD_READ );
+	flash_spi_u8_send( address >> 16 );
+	flash_spi_u8_send( address >> 8 );
+	flash_spi_u8_send( address );
 
-    spi_v_read_block( ptr, len );
+    flash_spi_v_read_block( ptr, len );
 
 	CHIP_DISABLE();
     #endif
@@ -198,7 +300,7 @@ void flash25_v_write_enable( void ){
     #ifndef __SIM__
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_WRITE_ENABLE );
+	flash_spi_u8_send( FLASH_CMD_WRITE_ENABLE );
 
 	CHIP_DISABLE();
 
@@ -211,7 +313,7 @@ void flash25_v_write_disable( void ){
     #ifndef __SIM__
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_WRITE_DISABLE );
+	flash_spi_u8_send( FLASH_CMD_WRITE_DISABLE );
 
 	CHIP_DISABLE();
 
@@ -250,12 +352,12 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_WRITE_BYTE );
-	spi_u8_send( address >> 16 );
-	spi_u8_send( address >> 8 );
-	spi_u8_send( address );
+	flash_spi_u8_send( FLASH_CMD_WRITE_BYTE );
+	flash_spi_u8_send( address >> 16 );
+	flash_spi_u8_send( address >> 8 );
+	flash_spi_u8_send( address );
 
-	spi_u8_send( byte );
+	flash_spi_u8_send( byte );
 
 	CHIP_DISABLE();
     #endif
@@ -315,20 +417,20 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
             // enable busy status output on SO line
             CHIP_ENABLE();
-            spi_u8_send( FLASH_CMD_EBUSY );
+            flash_spi_u8_send( FLASH_CMD_EBUSY );
             CHIP_DISABLE();
 
             // use autoincrement write command
             CHIP_ENABLE();
 
-            spi_u8_send( FLASH_CMD_AAI_WRITE );
-            spi_u8_send( address >> 16 );
-            spi_u8_send( address >> 8 );
-            spi_u8_send( address );
+            flash_spi_u8_send( FLASH_CMD_AAI_WRITE );
+            flash_spi_u8_send( address >> 16 );
+            flash_spi_u8_send( address >> 8 );
+            flash_spi_u8_send( address );
 
             // write two bytes
-            spi_u8_send( *(uint8_t *)ptr  );
-            spi_u8_send( *(uint8_t *)(ptr + 1) );
+            flash_spi_u8_send( *(uint8_t *)ptr  );
+            flash_spi_u8_send( *(uint8_t *)(ptr + 1) );
 
             CHIP_DISABLE(); // this will begin the program cycle
 
@@ -347,11 +449,11 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
                 CHIP_ENABLE();
 
                 // send command
-                spi_u8_send( FLASH_CMD_AAI_WRITE );
+                flash_spi_u8_send( FLASH_CMD_AAI_WRITE );
 
                 // write two bytes
-                spi_u8_send( *(uint8_t *)ptr  );
-                spi_u8_send( *(uint8_t *)(ptr + 1) );
+                flash_spi_u8_send( *(uint8_t *)ptr  );
+                flash_spi_u8_send( *(uint8_t *)(ptr + 1) );
 
                 CHIP_DISABLE(); // this will begin the program cycle
 
@@ -371,7 +473,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
             // disable busy status output on SO line
             CHIP_ENABLE();
-            spi_u8_send( FLASH_CMD_DBUSY );
+            flash_spi_u8_send( FLASH_CMD_DBUSY );
             CHIP_DISABLE();
         }
 
@@ -401,13 +503,13 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
             CHIP_ENABLE();
 
             // set up command and address
-            spi_u8_send( FLASH_CMD_WRITE_BYTE );
-        	spi_u8_send( address >> 16 );
-        	spi_u8_send( address >> 8 );
-        	spi_u8_send( address );
+            flash_spi_u8_send( FLASH_CMD_WRITE_BYTE );
+        	flash_spi_u8_send( address >> 16 );
+        	flash_spi_u8_send( address >> 8 );
+        	flash_spi_u8_send( address );
 
             // write page data
-            spi_v_write_block( (uint8_t *)ptr, page_len );
+            flash_spi_v_write_block( (uint8_t *)ptr, page_len );
 
         	CHIP_DISABLE();
 
@@ -456,10 +558,10 @@ void flash25_v_erase_4k( uint32_t address ){
 
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_ERASE_BLOCK_4K );
-	spi_u8_send( address >> 16 );
-	spi_u8_send( address >> 8 );
-	spi_u8_send( address );
+	flash_spi_u8_send( FLASH_CMD_ERASE_BLOCK_4K );
+	flash_spi_u8_send( address >> 16 );
+	flash_spi_u8_send( address >> 8 );
+	flash_spi_u8_send( address );
 
 	CHIP_DISABLE();
 
@@ -493,7 +595,7 @@ void flash25_v_erase_chip( void ){
 
 	// CHIP_ENABLE();
 
-	// spi_u8_send( FLASH_CMD_CHIP_ERASE );
+	// flash_spi_u8_send( FLASH_CMD_CHIP_ERASE );
 
 	// CHIP_DISABLE();
 
@@ -513,11 +615,11 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
     #else
 	CHIP_ENABLE();
 
-	spi_u8_send( FLASH_CMD_READ_ID );
+	flash_spi_u8_send( FLASH_CMD_READ_ID );
 
-	info->mfg_id = spi_u8_send( 0 );
-	info->dev_id_1 = spi_u8_send( 0 );
-	info->dev_id_2 = spi_u8_send( 0 );
+	info->mfg_id = flash_spi_u8_send( 0 );
+	info->dev_id_1 = flash_spi_u8_send( 0 );
+	info->dev_id_2 = flash_spi_u8_send( 0 );
 
 	CHIP_DISABLE();
 	#endif

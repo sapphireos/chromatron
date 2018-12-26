@@ -25,4 +25,9 @@
 
 
 #include "cpu.h"
-#include "system.h"
+#include "hal_spi.h"
+
+#define user_spi_v_init spi_v_init
+#define user_spi_u8_send spi_u8_send
+#define user_spi_v_write_block spi_v_write_block
+#define user_spi_v_read_block spi_v_read_block
