@@ -30,8 +30,6 @@
 
 void pixel_v_init( void );
 
-void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b );
-
 bool pixel_b_enabled( void );
 
 uint8_t pixel_u8_get_mode( void );

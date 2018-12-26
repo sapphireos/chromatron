@@ -78,6 +78,7 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
 uint8_t hal_pixel_u8_driver_count( void ){
 
+    return N_PIXEL_OUTPUTS;
 }
 
 uint16_t hal_pixel_u16_driver_pixels( uint8_t driver ){

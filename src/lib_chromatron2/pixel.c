@@ -131,10 +131,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     uint8_t *buf = outputs;
 
     // advance buffer for driver
-    for( uint8_t i = 0; i < driver; i++ ){
-
-        buf += hal_pixel_u16_driver_pixels( i ) * bytes_per_pixel();
-    }
+    buf += hal_pixel_u16_driver_offset( driver ) * bytes_per_pixel();
 
     *offset = buf;
 
@@ -282,12 +279,6 @@ void pixel_v_disable( void ){
    
 }
 
-void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
-
-}
-
-
-
 
 static volatile uint16_t channels_complete;
 
@@ -296,7 +287,6 @@ void hal_pixel_v_transfer_complete_callback( uint8_t driver ){
     channels_complete |= ( 1 << driver );
     thread_v_signal( PIX_SIGNAL_0 );
 }
-
 
 
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
@@ -319,27 +309,27 @@ PT_BEGIN( pt );
         channels_complete = 0;
         END_ATOMIC;
 
-        for( uint8_t ch = 0; ch < N_PIXEL_OUTPUTS; ch++ ){
+        uint16_t *h = gfx_u16p_get_hue();
+        uint16_t *s = gfx_u16p_get_sat();
+        uint16_t *v = gfx_u16p_get_val();
+        uint16_t r, g, b, w;
+
+        for( uint8_t ch = 0; ch < hal_pixel_u8_driver_count(); ch++ ){
 
             if( temp_channels_complete & ( 1 << ch ) ){
 
-                uint16_t *h = gfx_u16p_get_hue();
-                uint16_t *s = gfx_u16p_get_sat();
-                uint16_t *v = gfx_u16p_get_val();
-                uint16_t r, g, b, w;
+                uint16_t pix_offset = hal_pixel_u16_driver_offset( ch );
+                uint16_t pix_count = hal_pixel_u16_driver_pixels( ch );
 
-                for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
+                // run HSV to RGBW conversion for this channel
+                for( uint32_t i = pix_offset; i < pix_count + pix_offset; i++ ){
 
-                    gfx_v_hsv_to_rgbw( *h, *s, *v, &r, &g, &b, &w );
+                    gfx_v_hsv_to_rgbw( h[i], s[i], v[i], &r, &g, &b, &w );
 
                     array_r[i] = r >> 8;
                     array_g[i] = g >> 8;
                     array_b[i] = b >> 8;
                     array_misc.white[i] = w >> 8;
-
-                    h++;
-                    s++;
-                    v++;
                 }
 
                 uint8_t *offset;

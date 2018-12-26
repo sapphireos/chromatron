@@ -32,6 +32,7 @@
 #include "datetime.h"
 
 #include "pixel.h"
+#include "hal_pixel.h"
 #include "graphics.h"
 #include "vm.h"
 #include "timesync.h"
@@ -123,6 +124,9 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
+
+        // set master gfx pixel count before starting faders
+        gfx_v_set_pix_count( hal_pixel_u16_get_pix_count() );
         
         uint32_t start = tmr_u32_get_system_time_us();
 
