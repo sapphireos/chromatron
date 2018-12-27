@@ -109,7 +109,7 @@ static bool read_bit( void ){
     return b != 0;
 }
 
-uint8_t i2c_v_send_byte( uint8_t b ){
+static uint8_t i2c_v_send_byte( uint8_t b ){
     
     send_bit( b & 0x80 );
     send_bit( b & 0x40 );
@@ -125,7 +125,7 @@ uint8_t i2c_v_send_byte( uint8_t b ){
 }
 
 
-uint8_t i2c_u8_read_byte( bool ack ){
+static uint8_t i2c_u8_read_byte( bool ack ){
 
     uint8_t b = 0;
 
@@ -253,6 +253,18 @@ static void i2c_v_stop( void ){
 
     SDA_HIGH();
     I2C_DELAY();
+}
+
+static void i2c_v_send_address( uint8_t address, bool write ){
+
+    if( write ){
+        
+        i2c_v_send_byte( ( address << 1 ) & ~0x01 );
+    }
+    else{
+
+        i2c_v_send_byte( ( address << 1 ) | 0x01 );   
+    }
 }
 
 void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
