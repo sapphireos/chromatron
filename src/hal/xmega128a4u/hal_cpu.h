@@ -56,6 +56,7 @@
 
 #define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
 
+#define CPU_FREQ_PER 32000000
 
 #define RESET_SOURCE_POWER_ON   RST_PORF_bm
 #define RESET_SOURCE_JTAG       RST_PDIRF_bm

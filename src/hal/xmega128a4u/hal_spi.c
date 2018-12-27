@@ -42,20 +42,30 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
     // SPI clock = Fper / ( 2 * ( BSEL + 1 ) )
     // Fper will generally be 32 MHz
 
+    // calculate BSEL for frequency
+    uint8_t bsel = ( ( CPU_FREQ_PER / freq ) / 2 ) - 1;
+
+    SPI_USER_PORT.BAUDCTRLB = 0;
+    SPI_USER_PORT.BAUDCTRLA = bsel;
+
     // set rate to 16 MHz
     // SPI_USER_PORT.BAUDCTRLA = 0;
-    SPI_USER_PORT.BAUDCTRLB = 0;
-
+    
     // 4 MHz
     // SPI_USER_PORT.BAUDCTRLA = 3;
 
     // 8 MHz
     // SPI_USER_PORT.BAUDCTRLA = 1;
 
-    SPI_USER_PORT.BAUDCTRLA = 8;
-
     // enable TX and RX
     SPI_USER_PORT.CTRLB = USART_RXEN_bm | USART_TXEN_bm;
+}
+
+uint32_t spi_u32_get_freq( uint8_t channel ){
+
+	uint8_t bsel = SPI_USER_PORT.BAUDCTRLA;
+
+	return CPU_FREQ_PER / ( 2 * ( bsel + 1) );
 }
 
 uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
