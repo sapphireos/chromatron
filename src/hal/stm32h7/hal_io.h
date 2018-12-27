@@ -143,5 +143,10 @@
 #define WIFI_RXD_GPIO_Port GPIOE
 #define WIFI_TXD_Pin GPIO_PIN_1
 #define WIFI_TXD_GPIO_Port GPIOE
+#define I2C1_SCL_Pin GPIO_PIN_8
+#define I2C1_SCL_GPIO_Port GPIOB
+#define I2C1_SDA_Pin GPIO_PIN_9
+#define I2C1_SDA_GPIO_Port GPIOB
+
 
 #endif
