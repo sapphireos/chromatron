@@ -28,6 +28,7 @@
 #include "adc.h"
 #include "timers.h"
 #include "hal_adc.h"
+#include "hal_io.h"
 
 /*
 
@@ -82,50 +83,26 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
         switch( channel ){
             case ADC_CHANNEL_0:
+            case IO_PIN_5_ADC1:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc;
                 break;
 
             case ADC_CHANNEL_1:
+            case IO_PIN_4_ADC0:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
                 break;
 
-            case ADC_CHANNEL_2:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN2_gc;
-                break;
-
-            case ADC_CHANNEL_3:
+            case ADC_CHANNEL_VSUPPLY:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc;
                 break;
 
-            case ADC_CHANNEL_4:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc;
-                break;
-
-            case ADC_CHANNEL_5:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN5_gc;
-                break;
-
-            case ADC_CHANNEL_6:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc;
-                break;
-
-            case ADC_CHANNEL_7:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN7_gc;
-                break;
-
-            case ADC_CHANNEL_8:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN8_gc;
-                break;
-
-            case ADC_CHANNEL_9:
-                ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN9_gc;
-                break;
-
             case ADC_CHANNEL_10:
+            case IO_PIN_6_DAC0:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN10_gc;
                 break;
 
             case ADC_CHANNEL_11:
+            case IO_PIN_7_DAC1:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN11_gc;
                 break;
 
