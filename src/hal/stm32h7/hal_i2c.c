@@ -103,7 +103,6 @@ void i2c_v_init( i2c_baud_t8 baud ){
     i2c1.Init = init;
 
     HAL_I2C_Init( &i2c1 );
-
 }
 
 void i2c_v_set_pins( uint8_t clock, uint8_t data ){
@@ -113,15 +112,6 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 uint8_t i2c_u8_status( void ){
 
     return 0;
-}
-
-void i2c_v_start( void ){
-
-}
-
-void i2c_v_stop( void ){
-
-
 }
 
 void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){

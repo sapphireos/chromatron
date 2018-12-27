@@ -228,7 +228,7 @@ uint8_t i2c_u8_status( void ){
     return 0;
 }
 
-void i2c_v_start( void ){
+static void i2c_v_start( void ){
 
     SDA_HIGH();
     SCL_HIGH();
@@ -241,7 +241,7 @@ void i2c_v_start( void ){
     I2C_DELAY();
 }
 
-void i2c_v_stop( void ){
+static void i2c_v_stop( void ){
 
     I2C_DELAY();
 

@@ -36,8 +36,6 @@ typedef uint8_t i2c_baud_t8;
 void i2c_v_init( i2c_baud_t8 baud );
 void i2c_v_set_pins( uint8_t clock, uint8_t data );
 uint8_t i2c_u8_status( void );
-void i2c_v_start( void );
-void i2c_v_stop( void );
 void i2c_v_send_address( uint8_t address, bool write );
 uint8_t i2c_v_send_byte( uint8_t b );
 uint8_t i2c_u8_read_byte( bool ack );
