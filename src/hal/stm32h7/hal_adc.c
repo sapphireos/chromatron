@@ -164,25 +164,27 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
             break;
     }
 
-	// /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
-	// */
-	// ADC_ChannelConfTypeDef sConfig;
-	// sConfig.Channel = internal_channel;
-	// sConfig.Rank = ADC_REGULAR_RANK_1;
-	// sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
-	// sConfig.Offset = 0;
-	// if (HAL_ADC_ConfigChannel( &hadc1, &sConfig ) != HAL_OK)
-	// {
-	// 	_Error_Handler( __FILE__, __LINE__ );
-	// }
+	ADC_ChannelConfTypeDef sConfig;
+	sConfig.Channel 				= internal_channel;
+	sConfig.Rank 					= ADC_REGULAR_RANK_1;
+	sConfig.SamplingTime 			= ADC_SAMPLETIME_64CYCLES_5;
+	sConfig.SingleDiff 				= ADC_SINGLE_ENDED;
+	sConfig.OffsetNumber 			= ADC_OFFSET_NONE;
+	sConfig.Offset 					= 0;
+	sConfig.OffsetRightShift 		= DISABLE;
+	sConfig.OffsetSignedSaturation 	= DISABLE;
 
-	// HAL_ADC_Start( &hadc1 );        
- //    HAL_ADC_PollForConversion( &hadc1, 5 );
+	if (HAL_ADC_ConfigChannel( &hadc1, &sConfig ) != HAL_OK)
+	{
+		_Error_Handler( __FILE__, __LINE__ );
+	}
 
- //    uint32_t value = HAL_ADC_GetValue( &hadc1 );
+	HAL_ADC_Start( &hadc1 );        
+    HAL_ADC_PollForConversion( &hadc1, 5 );
+
+    uint32_t value = HAL_ADC_GetValue( &hadc1 );
  	
- //    return (int16_t)value;
-    return 0;
+    return (int16_t)value;
 }
 
 void adc_v_shutdown( void ){
