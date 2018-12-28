@@ -161,7 +161,7 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 		ports[channel].actual_freq = bus_clock / prescaler;
 
 		spi->Init.Mode 							= SPI_MODE_MASTER;
-		spi->Init.Direction 					= SPI_DIRECTION_1LINE;
+		spi->Init.Direction 					= SPI_DIRECTION_2LINES;
 		spi->Init.DataSize 						= SPI_DATASIZE_8BIT;
 		spi->Init.CLKPolarity 					= SPI_POLARITY_LOW;
 		spi->Init.CLKPhase 						= SPI_PHASE_1EDGE;
