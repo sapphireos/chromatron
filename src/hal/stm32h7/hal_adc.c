@@ -74,24 +74,40 @@ void adc_v_init( void ){
     	GPIO_InitStruct.Pin 		= VMON_Pin;	
     	HAL_GPIO_Init(VMON_GPIO_Port, &GPIO_InitStruct);
 	}
+	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
+    
+    	GPIO_InitStruct.Pin 		= MEAS1_Pin;	
+    	HAL_GPIO_Init(MEAS1_GPIO_Port, &GPIO_InitStruct);
+	}
 
+	hadc1.Instance = ADC1;
+	hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
+	hadc1.Init.Resolution 				= ADC_RESOLUTION_12B;
+	hadc1.Init.ScanConvMode 			= DISABLE;
+	hadc1.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
+	hadc1.Init.LowPowerAutoWait 		= DISABLE;	
+	hadc1.Init.ContinuousConvMode 		= DISABLE;
+	hadc1.Init.NbrOfConversion 			= 1;
+	hadc1.Init.DiscontinuousConvMode 	= DISABLE;
+	hadc1.Init.NbrOfDiscConversion 		= 1;
+	hadc1.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
+	hadc1.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
+	hadc1.Init.ConversionDataManagement	= ADC_CONVERSIONDATA_DR;
+	hadc1.Init.Overrun					= ADC_OVR_DATA_OVERWRITTEN;
+	hadc1.Init.LeftBitShift				= ADC_LEFTBITSHIFT_NONE;
+	hadc1.Init.BoostMode				= DISABLE;
+	hadc1.Init.OversamplingMode			= DISABLE;
+	
+	hadc1.Init.Oversampling.Ratio 					= 0;
+	hadc1.Init.Oversampling.RightBitShift 			= 0;
+	hadc1.Init.Oversampling.TriggeredMode 			= 0;
+	hadc1.Init.Oversampling.OversamplingStopReset	= 0;
 
-	// hadc1.Instance = ADC1;
-	// hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
-	// hadc1.Init.Resolution 				= ADC_RESOLUTION_12B;
-	// hadc1.Init.ScanConvMode 			= DISABLE;
-	// hadc1.Init.ContinuousConvMode 		= DISABLE;
-	// hadc1.Init.DiscontinuousConvMode 	= DISABLE;
-	// hadc1.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
-	// hadc1.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
-	// hadc1.Init.DataAlign 				= ADC_DATAALIGN_RIGHT;
-	// hadc1.Init.NbrOfConversion 			= 1;
-	// hadc1.Init.DMAContinuousRequests 	= DISABLE;
-	// hadc1.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
-	// if (HAL_ADC_Init(&hadc1) != HAL_OK)
-	// {
-	// 	_Error_Handler(__FILE__, __LINE__);
-	// }
+	
+	if (HAL_ADC_Init(&hadc1) != HAL_OK)
+	{
+		_Error_Handler(__FILE__, __LINE__);
+	}
 
 	thread_t_create( hal_adc_thread,
                      PSTR("hal_adc"),
@@ -171,9 +187,7 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
 void adc_v_shutdown( void ){
 
-	// __HAL_RCC_ADC1_CLK_DISABLE();
-	
-	HAL_GPIO_DeInit(VMON_GPIO_Port, VMON_Pin);
+	__HAL_RCC_ADC12_CLK_DISABLE();
 }
 
 void adc_v_set_ref( uint8_t ref ){
