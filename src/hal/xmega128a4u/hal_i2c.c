@@ -255,23 +255,23 @@ static void i2c_v_stop( void ){
     I2C_DELAY();
 }
 
-static void i2c_v_send_address( uint8_t address, bool write ){
+static void i2c_v_send_address( uint8_t dev_addr, bool write ){
 
     if( write ){
         
-        i2c_v_send_byte( ( address << 1 ) & ~0x01 );
+        i2c_v_send_byte( ( dev_addr << 1 ) & ~0x01 );
     }
     else{
 
-        i2c_v_send_byte( ( address << 1 ) | 0x01 );   
+        i2c_v_send_byte( ( dev_addr << 1 ) | 0x01 );   
     }
 }
 
-void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
+void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
     i2c_v_start();
 
-    i2c_v_send_address( address, TRUE );
+    i2c_v_send_address( dev_addr, TRUE );
 
     while( len > 0 ){
 
@@ -284,11 +284,11 @@ void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
     i2c_v_stop();
 }
 
-void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
+void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 
     i2c_v_start();
 
-    i2c_v_send_address( address, FALSE );
+    i2c_v_send_address( dev_addr, FALSE );
 
     while( len > 0 ){
 
@@ -307,3 +307,38 @@ void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
 
     i2c_v_stop();
 }
+
+void i2c_v_mem_write( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len ){
+
+    i2c_v_start();
+
+    i2c_v_send_address( dev_addr, TRUE );
+
+    uint8_t *addr = &mem_addr;
+
+    while( addr_size > 0 ){
+
+        i2c_v_send_byte( *addr );
+        addr++;
+    }
+
+    i2c_v_write( dev_addr, src, len );
+}
+
+void i2c_v_mem_read( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len ){
+    
+    i2c_v_start();
+
+    i2c_v_send_address( dev_addr, TRUE );
+
+    uint8_t *addr = &mem_addr;
+
+    while( addr_size > 0 ){
+
+        i2c_v_send_byte( *addr );
+        addr++;
+    }
+
+    i2c_v_read( dev_addr, dst, len );   
+}
+

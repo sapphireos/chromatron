@@ -123,3 +123,12 @@ void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
 
 
 }
+
+void i2c_v_mem_write( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len ){
+
+}
+
+void i2c_v_mem_read( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len ){
+
+}
+
