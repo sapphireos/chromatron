@@ -286,6 +286,10 @@ void cpu_v_init( void ){
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
+    // un gate clocks for peripheral modules
+    __HAL_RCC_SPI4_CLK_ENABLE();
+    __HAL_RCC_USART6_CLK_ENABLE();
+
     trace_printf( "STM32H7\r\n" );
 
     trace_printf( "CPU Clock: %u\r\n", cpu_u32_get_clock_speed() );
