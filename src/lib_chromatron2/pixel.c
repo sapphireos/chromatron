@@ -47,7 +47,6 @@
 #define TRAILER_LENGTH      32
 
 static bool pix_dither;
-static uint16_t pix_count;
 static uint8_t pix_mode;
 
 static uint8_t pix_clock;
@@ -95,7 +94,6 @@ int8_t pix_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t pixel_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,                 &pix_count,           pix_i8_kv_handler,    "pix_count" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_rgb_order,       0,                    "pix_rgb_order" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST,                 &pix_dither,          0,                    "pix_dither" },
