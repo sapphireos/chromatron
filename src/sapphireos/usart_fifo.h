@@ -22,34 +22,23 @@
 // </license>
  */
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _USART_FIFO_H
+#define _USART_FIFO_H
+
+typedef struct{
+	uint8_t *buf;
+	uint16_t len;
+	
+	uint16_t ins;
+	uint16_t ext;
+	uint16_t count;
+} usart_fifo_t;
 
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
+void usart_fifo_v_init( usart_fifo_t *fifo, uint8_t *buf, uint16_t len );
+uint16_t usart_fifo_u16_get_count( usart_fifo_t *fifo );
+int8_t usart_fifo_i8_insert( usart_fifo_t *fifo, uint8_t data );
+int16_t usart_fifo_i16_extract( usart_fifo_t *fifo );
 
 
 #endif
