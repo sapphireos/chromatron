@@ -37,6 +37,7 @@ static GPIO_InitTypeDef gpio_config[IO_PIN_COUNT];
 void io_v_init( void ){
 
     GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Alternate = 0;
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOE, WIFI_BOOT_Pin|WIFI_RST_Pin, GPIO_PIN_RESET);

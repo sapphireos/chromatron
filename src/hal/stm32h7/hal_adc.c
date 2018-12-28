@@ -52,13 +52,18 @@ typedef struct{
 	uint32_t channel;
 } adc_ch_t;
 
-static const adc_ch_t channels_ctx[] = {
-	{MEAS1_Pin, MEAS1_GPIO_Port, &hadc1, ADC_CHANNEL_8},
+static const adc_ch_t channels_nuclear[] = {
+	{VMON_Pin, 		VMON_GPIO_Port, 	&hadc3, ADC_CHANNEL_5},
+	{0, 			0, 					&hadc3, ADC_CHANNEL_19},
 };
 
-static const adc_ch_t channels_nuclear[] = {
-	{VMON_Pin, VMON_GPIO_Port, &hadc3, ADC_CHANNEL_5},
+static const adc_ch_t channels_ctx[] = {
+	{MEAS1_Pin, 	MEAS1_GPIO_Port, 	&hadc1, ADC_CHANNEL_8},
+	{0, 		0, 				     	&hadc3, ADC_CHANNEL_19},
 };
+
+static const adc_ch_t *adc_channels;
+static uint8_t adc_channel_count;
 
 static uint16_t vref = 3300;
 
@@ -91,21 +96,26 @@ void adc_v_init( void ){
 
 	__HAL_RCC_ADC12_CLK_ENABLE();
 	__HAL_RCC_ADC3_CLK_ENABLE();
-  	
-    GPIO_InitTypeDef GPIO_InitStruct;
-    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
 
-    if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
-    
-    	GPIO_InitStruct.Pin 		= channels_nuclear[0].pin;	
-    	HAL_GPIO_Init(channels_nuclear[0].port, &GPIO_InitStruct);
+	if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
+
+		adc_channels = channels_nuclear;
+		adc_channel_count = cnt_of_array(channels_nuclear);
 	}
 	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
-    
-    	GPIO_InitStruct.Pin 		= channels_ctx[0].pin;	
-    	HAL_GPIO_Init(channels_ctx[0].port, &GPIO_InitStruct);
+
+		adc_channels = channels_ctx;
+		adc_channel_count = cnt_of_array(channels_ctx);
 	}
+
+  	
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Alternate 	= 0;
+    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
+    GPIO_InitStruct.Pin 		= adc_channels[0].pin;
+	HAL_GPIO_Init(adc_channels[0].port, &GPIO_InitStruct);
+	
 
 	hadc1.Instance = ADC1;
 	hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
@@ -201,71 +211,35 @@ PT_BEGIN( pt );
 
 	TMR_WAIT( pt, 1000 );
 
-	// log_v_debug_P( PSTR("VCC: %u Vrefint: %u"), adc_u16_read_vcc(), adc_u16_read_raw( ADC_CHANNEL_REF ) );
+	log_v_debug_P( PSTR("VCC: %u Vrefint: %u"), adc_u16_read_vcc(), adc_u16_read_raw( ADC_CHANNEL_REF ) );
     
- //    while(1){
+    while(1){
 
- //        // vref calibration
+        // vref calibration
 
- //        #define SAMPLES 8
- //        uint32_t accum = 0;
+        #define SAMPLES 8
+        uint32_t accum = 0;
 
- //        for( uint32_t i = 0; i <SAMPLES; i++ ){
+        for( uint32_t i = 0; i <SAMPLES; i++ ){
 
- //            accum += adc_u16_read_vcc();
- //            _delay_us(20);
- //        }
+            accum += adc_u16_read_vcc();
+            _delay_us(20);
+        }
 
- //        vref = accum / SAMPLES;
+        vref = accum / SAMPLES;
 
 
- //        TMR_WAIT( pt, 4000 );
- //    }
+        TMR_WAIT( pt, 4000 );
+    }
 
 PT_END( pt );
 }
 
-static uint32_t get_internal_channel( uint8_t channel ){
-
-	if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
-
-		return channels_nuclear[channel].channel;
-	}
-	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
-
-		return channels_ctx[channel].channel;	
-	}
-
-	ASSERT( FALSE );
-
-	return 0;
-}
-
-static ADC_HandleTypeDef *get_adc( uint8_t channel ){
-
-	if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
-
-		return channels_nuclear[channel].adc;
-	}
-	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
-
-		return channels_ctx[channel].adc;	
-	}
-
-	ASSERT( FALSE );
-
-	return 0;
-}
-
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
-    uint32_t internal_channel = 0;
+	ASSERT( channel < adc_channel_count );
 
-    switch( channel ){
-        default:
-        	internal_channel = get_internal_channel( channel );
-            break;
-    }
+    uint32_t internal_channel = adc_channels[channel].channel;
 
 	ADC_ChannelConfTypeDef sConfig;
 	sConfig.Channel 				= internal_channel;
@@ -277,7 +251,7 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 	sConfig.OffsetRightShift 		= DISABLE;
 	sConfig.OffsetSignedSaturation 	= DISABLE;
 
-	ADC_HandleTypeDef *adc = get_adc( channel );
+	ADC_HandleTypeDef *adc = adc_channels[channel].adc;
 
 	if (HAL_ADC_ConfigChannel( adc, &sConfig ) != HAL_OK)
 	{
@@ -318,11 +292,10 @@ uint16_t adc_u16_read_supply_voltage( void ){
 
 uint16_t adc_u16_read_vcc( void ){
 
-	// uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
+	uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
 	// this is nominally 1.2V
 
-    // return ( 1200 * 4095 ) / vref_int;
-    return 0;
+    return ( 1200 * 4095 ) / vref_int;
 }
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){

@@ -1,3 +1,4 @@
+
 /*
 // <license>
 // 
@@ -26,9 +27,11 @@
 #ifndef _BOARD_TYPES_H
 #define _BOARD_TYPES_H
 
-#define BOARD_TYPE_NONE						0x0000
+#define BOARD_TYPE_DEFAULT					0x0000 
+#define BOARD_TYPE_NUCLEAR					0x0000 
+
 #define BOARD_TYPE_CHROMATRON_X				0x0001
-#define BOARD_TYPE_NUCLEAR					0x0002
+
 
 
 #define BOARD_TYPE_INVALID					0xffff
