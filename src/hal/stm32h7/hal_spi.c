@@ -151,18 +151,45 @@ uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
-	return 0;
+	uint8_t rx_data;
+
+	if( ports[channel].type == TYPE_SPI ){
+
+		HAL_SPI_TransmitReceive( &ports[channel].spi_usart.spi, &data, &rx_data, 1, 250 );
+	}
+	else{
+
+
+	}
+
+	return rx_data;
 }
 
 void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
+	if( ports[channel].type == TYPE_SPI ){
+
+		HAL_SPI_Transmit( &ports[channel].spi_usart.spi, (uint8_t *)data, length, 250 );
+	}
+	else{
+
+
+	}
 }
 
 void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
+	if( ports[channel].type == TYPE_SPI ){
+
+		HAL_SPI_Receive( &ports[channel].spi_usart.spi, data, length, 250 );
+	}
+	else{
+
+		
+	}
 }
 
