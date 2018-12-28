@@ -369,6 +369,15 @@ void hal_pixel_v_init( void ){
     spi_init.CRCPolynomial      = SPI_CRC_LENGTH_DATASIZE;
     spi_init.CRCLength          = 0;
     spi_init.NSSPMode           = SPI_NSS_PULSE_DISABLE;
+    spi_init.NSSPolarity                   = SPI_NSS_POLARITY_LOW;
+    spi_init.FifoThreshold                 = SPI_FIFO_THRESHOLD_01DATA;
+    spi_init.TxCRCInitializationPattern    = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    spi_init.RxCRCInitializationPattern    = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    spi_init.MasterSSIdleness              = SPI_MASTER_SS_IDLENESS_00CYCLE;
+    spi_init.MasterInterDataIdleness       = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+    spi_init.MasterReceiverAutoSusp        = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+    spi_init.MasterKeepIOState             = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+    spi_init.IOSwap                        = SPI_IO_SWAP_DISABLE;
 
     // output 0
     // SPI1
