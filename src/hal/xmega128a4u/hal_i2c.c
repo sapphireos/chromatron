@@ -314,7 +314,7 @@ void i2c_v_mem_write( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, co
 
     i2c_v_send_address( dev_addr, TRUE );
 
-    uint8_t *addr = &mem_addr;
+    uint8_t *addr = (uint8_t *)&mem_addr;
 
     while( addr_size > 0 ){
 
@@ -331,7 +331,7 @@ void i2c_v_mem_read( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, uin
 
     i2c_v_send_address( dev_addr, TRUE );
 
-    uint8_t *addr = &mem_addr;
+    uint8_t *addr = (uint8_t *)&mem_addr;
 
     while( addr_size > 0 ){
 
