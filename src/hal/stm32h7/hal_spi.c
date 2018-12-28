@@ -230,7 +230,7 @@ uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
 	}
 	else{
 
-
+		HAL_USART_TransmitReceive( &ports[channel].spi_usart.usart, &data, &rx_data, 1, 250 );
 	}
 
 	return rx_data;
@@ -246,7 +246,7 @@ void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
 	}
 	else{
 
-
+		HAL_USART_Transmit( &ports[channel].spi_usart.usart, (uint8_t *)data, length, 250 );
 	}
 }
 
@@ -260,7 +260,7 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 	}
 	else{
 
-
+		HAL_USART_Receive( &ports[channel].spi_usart.usart, data, length, 250 );
 	}
 }
 
