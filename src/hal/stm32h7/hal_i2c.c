@@ -114,21 +114,23 @@ uint8_t i2c_u8_status( void ){
     return 0;
 }
 
-void i2c_v_write( uint8_t address, const uint8_t *src, uint8_t len ){
+void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
-
+	HAL_I2C_Master_Transmit( &i2c1, dev_addr, (uint8_t *)src, len, I2C_TIMEOUT );
 }
 
-void i2c_v_read( uint8_t address, uint8_t *dst, uint8_t len ){
+void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 
-
+	HAL_I2C_Master_Receive( &i2c1, dev_addr, dst, len, I2C_TIMEOUT );
 }
 
 void i2c_v_mem_write( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len ){
 
+	HAL_I2C_Mem_Write( &i2c1, dev_addr, mem_addr, addr_size, (uint8_t *)src, len, I2C_TIMEOUT );
 }
 
 void i2c_v_mem_read( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len ){
 
+	HAL_I2C_Mem_Read( &i2c1, dev_addr, mem_addr, addr_size, dst, len, I2C_TIMEOUT );	
 }
 

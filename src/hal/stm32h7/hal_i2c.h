@@ -22,9 +22,10 @@
 // </license>
  */
 
- #ifndef _HAL_I2C_H
- #define _HAL_I2C_H
+#ifndef _HAL_I2C_H
+#define _HAL_I2C_H
 
+#define I2C_TIMEOUT 100
 
- #endif
+#endif
  
