@@ -32,7 +32,33 @@
 #include "timers.h"
 #include "config.h"
 
+/*
+
+STM32H7
+
+Configured for 12 bit conversions!
+
+*/
+
 static ADC_HandleTypeDef hadc1;
+static ADC_HandleTypeDef hadc2;
+static ADC_HandleTypeDef hadc3;
+
+
+typedef struct{
+	uint32_t pin;
+	GPIO_TypeDef *port;
+	ADC_HandleTypeDef *adc;
+	uint32_t channel;
+} adc_ch_t;
+
+static const adc_ch_t channels_ctx[] = {
+	{MEAS1_Pin, MEAS1_GPIO_Port, &hadc1, ADC_CHANNEL_8},
+};
+
+static const adc_ch_t channels_nuclear[] = {
+	{VMON_Pin, VMON_GPIO_Port, &hadc3, ADC_CHANNEL_5},
+};
 
 static uint16_t vref = 3300;
 
@@ -64,6 +90,7 @@ PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 void adc_v_init( void ){
 
 	__HAL_RCC_ADC12_CLK_ENABLE();
+	__HAL_RCC_ADC3_CLK_ENABLE();
   	
     GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
@@ -71,13 +98,13 @@ void adc_v_init( void ){
 
     if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
     
-    	GPIO_InitStruct.Pin 		= VMON_Pin;	
-    	HAL_GPIO_Init(VMON_GPIO_Port, &GPIO_InitStruct);
+    	GPIO_InitStruct.Pin 		= channels_nuclear[0].pin;	
+    	HAL_GPIO_Init(channels_nuclear[0].port, &GPIO_InitStruct);
 	}
 	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
     
-    	GPIO_InitStruct.Pin 		= MEAS1_Pin;	
-    	HAL_GPIO_Init(MEAS1_GPIO_Port, &GPIO_InitStruct);
+    	GPIO_InitStruct.Pin 		= channels_ctx[0].pin;	
+    	HAL_GPIO_Init(channels_ctx[0].port, &GPIO_InitStruct);
 	}
 
 	hadc1.Instance = ADC1;
@@ -97,14 +124,67 @@ void adc_v_init( void ){
 	hadc1.Init.LeftBitShift				= ADC_LEFTBITSHIFT_NONE;
 	hadc1.Init.BoostMode				= DISABLE;
 	hadc1.Init.OversamplingMode			= DISABLE;
-	
 	hadc1.Init.Oversampling.Ratio 					= 0;
 	hadc1.Init.Oversampling.RightBitShift 			= 0;
 	hadc1.Init.Oversampling.TriggeredMode 			= 0;
 	hadc1.Init.Oversampling.OversamplingStopReset	= 0;
-
 	
 	if (HAL_ADC_Init(&hadc1) != HAL_OK)
+	{
+		_Error_Handler(__FILE__, __LINE__);
+	}
+
+
+	hadc2.Instance = ADC2;
+	hadc2.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
+	hadc2.Init.Resolution 				= ADC_RESOLUTION_12B;
+	hadc2.Init.ScanConvMode 			= DISABLE;
+	hadc2.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
+	hadc2.Init.LowPowerAutoWait 		= DISABLE;	
+	hadc2.Init.ContinuousConvMode 		= DISABLE;
+	hadc2.Init.NbrOfConversion 			= 1;
+	hadc2.Init.DiscontinuousConvMode 	= DISABLE;
+	hadc2.Init.NbrOfDiscConversion 		= 1;
+	hadc2.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
+	hadc2.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
+	hadc2.Init.ConversionDataManagement	= ADC_CONVERSIONDATA_DR;
+	hadc2.Init.Overrun					= ADC_OVR_DATA_OVERWRITTEN;
+	hadc2.Init.LeftBitShift				= ADC_LEFTBITSHIFT_NONE;
+	hadc2.Init.BoostMode				= DISABLE;
+	hadc2.Init.OversamplingMode			= DISABLE;
+	hadc2.Init.Oversampling.Ratio 					= 0;
+	hadc2.Init.Oversampling.RightBitShift 			= 0;
+	hadc2.Init.Oversampling.TriggeredMode 			= 0;
+	hadc2.Init.Oversampling.OversamplingStopReset	= 0;
+	
+	if (HAL_ADC_Init(&hadc2) != HAL_OK)
+	{
+		_Error_Handler(__FILE__, __LINE__);
+	}
+
+	hadc3.Instance = ADC3;
+	hadc3.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
+	hadc3.Init.Resolution 				= ADC_RESOLUTION_12B;
+	hadc3.Init.ScanConvMode 			= DISABLE;
+	hadc3.Init.EOCSelection 			= ADC_EOC_SINGLE_CONV;
+	hadc3.Init.LowPowerAutoWait 		= DISABLE;	
+	hadc3.Init.ContinuousConvMode 		= DISABLE;
+	hadc3.Init.NbrOfConversion 			= 1;
+	hadc3.Init.DiscontinuousConvMode 	= DISABLE;
+	hadc3.Init.NbrOfDiscConversion 		= 1;
+	hadc3.Init.ExternalTrigConv 		= ADC_SOFTWARE_START;
+	hadc3.Init.ExternalTrigConvEdge 	= ADC_EXTERNALTRIGCONVEDGE_NONE;
+	hadc3.Init.ConversionDataManagement	= ADC_CONVERSIONDATA_DR;
+	hadc3.Init.Overrun					= ADC_OVR_DATA_OVERWRITTEN;
+	hadc3.Init.LeftBitShift				= ADC_LEFTBITSHIFT_NONE;
+	hadc3.Init.BoostMode				= DISABLE;
+	hadc3.Init.OversamplingMode			= DISABLE;
+	hadc3.Init.Oversampling.Ratio 					= 0;
+	hadc3.Init.Oversampling.RightBitShift 			= 0;
+	hadc3.Init.Oversampling.TriggeredMode 			= 0;
+	hadc3.Init.Oversampling.OversamplingStopReset	= 0;
+	
+	if (HAL_ADC_Init(&hadc3) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}
@@ -121,46 +201,69 @@ PT_BEGIN( pt );
 
 	TMR_WAIT( pt, 1000 );
 
-	log_v_debug_P( PSTR("VCC: %u Vrefint: %u"), adc_u16_read_vcc(), adc_u16_read_raw( ADC_CHANNEL_REF ) );
+	// log_v_debug_P( PSTR("VCC: %u Vrefint: %u"), adc_u16_read_vcc(), adc_u16_read_raw( ADC_CHANNEL_REF ) );
     
-    while(1){
+ //    while(1){
 
-        // vref calibration
+ //        // vref calibration
 
-        #define SAMPLES 8
-        uint32_t accum = 0;
+ //        #define SAMPLES 8
+ //        uint32_t accum = 0;
 
-        for( uint32_t i = 0; i <SAMPLES; i++ ){
+ //        for( uint32_t i = 0; i <SAMPLES; i++ ){
 
-            accum += adc_u16_read_vcc();
-            _delay_us(20);
-        }
+ //            accum += adc_u16_read_vcc();
+ //            _delay_us(20);
+ //        }
 
-        vref = accum / SAMPLES;
+ //        vref = accum / SAMPLES;
 
 
-        TMR_WAIT( pt, 4000 );
-    }
+ //        TMR_WAIT( pt, 4000 );
+ //    }
 
 PT_END( pt );
 }
 
+static uint32_t get_internal_channel( uint8_t channel ){
+
+	if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
+
+		return channels_nuclear[channel].channel;
+	}
+	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
+
+		return channels_ctx[channel].channel;	
+	}
+
+	ASSERT( FALSE );
+
+	return 0;
+}
+
+static ADC_HandleTypeDef *get_adc( uint8_t channel ){
+
+	if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
+
+		return channels_nuclear[channel].adc;
+	}
+	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
+
+		return channels_ctx[channel].adc;	
+	}
+
+	ASSERT( FALSE );
+
+	return 0;
+}
 
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
     uint32_t internal_channel = 0;
 
     switch( channel ){
-        case ADC_CHANNEL_VSUPPLY:
-            internal_channel = ADC_CHANNEL_10;
-            break;
-
-        case ADC_CHANNEL_REF:
-            internal_channel = ADC_CHANNEL_17;
-            break;
-
         default:
-        	return 0;
+        	internal_channel = get_internal_channel( channel );
             break;
     }
 
@@ -174,15 +277,17 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 	sConfig.OffsetRightShift 		= DISABLE;
 	sConfig.OffsetSignedSaturation 	= DISABLE;
 
-	if (HAL_ADC_ConfigChannel( &hadc1, &sConfig ) != HAL_OK)
+	ADC_HandleTypeDef *adc = get_adc( channel );
+
+	if (HAL_ADC_ConfigChannel( adc, &sConfig ) != HAL_OK)
 	{
 		_Error_Handler( __FILE__, __LINE__ );
 	}
 
-	HAL_ADC_Start( &hadc1 );        
-    HAL_ADC_PollForConversion( &hadc1, 5 );
+	HAL_ADC_Start( adc );        
+    HAL_ADC_PollForConversion( adc, 5 );
 
-    uint32_t value = HAL_ADC_GetValue( &hadc1 );
+    uint32_t value = HAL_ADC_GetValue( adc );
  	
     return (int16_t)value;
 }
@@ -190,6 +295,7 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 void adc_v_shutdown( void ){
 
 	__HAL_RCC_ADC12_CLK_DISABLE();
+	__HAL_RCC_ADC3_CLK_DISABLE();
 }
 
 void adc_v_set_ref( uint8_t ref ){
@@ -212,10 +318,11 @@ uint16_t adc_u16_read_supply_voltage( void ){
 
 uint16_t adc_u16_read_vcc( void ){
 
-	uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
+	// uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
 	// this is nominally 1.2V
 
-    return ( 1200 * 4095 ) / vref_int;
+    // return ( 1200 * 4095 ) / vref_int;
+    return 0;
 }
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){

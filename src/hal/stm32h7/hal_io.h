@@ -54,6 +54,7 @@
 
 
 // Chromatron X Analog
+// ADC12_INP8
 #define MEAS1_Pin GPIO_PIN_5
 #define MEAS1_GPIO_Port GPIOC
 
@@ -67,6 +68,7 @@
 #define MEAS4_GPIO_Port GPIOA
 
 // Nuclear Analog
+// ADC3_INP5
 #define VMON_Pin GPIO_PIN_3
 #define VMON_GPIO_Port GPIOF
 
