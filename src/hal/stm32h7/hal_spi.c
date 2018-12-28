@@ -26,16 +26,52 @@
 #include "system.h"
 #include "spi.h"
 #include "hal_spi.h"
+#include "hal_io.h"
 
 typedef struct{
 	SPI_TypeDef *spi;
 	USART_TypeDef *usart;
 	uint8_t apb; // which APB bus the port is on
+	uint32_t pin0;
+	GPIO_TypeDef *port0;
+	uint8_t alt0;
+	uint32_t pin1;
+	GPIO_TypeDef *port1;
+	uint8_t alt1;
+	uint32_t pin2;
+	GPIO_TypeDef *port2;
+	uint8_t alt2;
 } port_def_t;
 
 static const port_def_t port_defs[] = {
-	{SPI4, 0, 2}, 		// SPI4 on Nuclear J4
-	{0, USART6, 2},		// AUX SPI on Chromatron X (not on a connector)
+	{
+		SPI4, 
+		0, 
+		2, 
+		SPI4_MOSI_Pin, 
+		SPI4_MOSI_GPIO_Port, 
+		GPIO_AF5_SPI4,
+		SPI4_MISO_Pin, 
+		SPI4_MISO_GPIO_Port, 
+		GPIO_AF5_SPI4,
+		SPI4_SCK_Pin, 
+		SPI4_SCK_GPIO_Port, 
+		GPIO_AF5_SPI4,
+	}, 		// SPI4 on Nuclear J4
+	{
+		0, 
+		USART6, 
+		2,
+		AUX_SPI_MOSI_Pin,
+		AUX_SPI_MOSI_GPIO_Port,
+		GPIO_AF7_USART6,
+		AUX_SPI_MISO_Pin,
+		AUX_SPI_MISO_GPIO_Port,
+		GPIO_AF7_USART6,
+		AUX_SPI_SCK_Pin,
+		AUX_SPI_SCK_GPIO_Port,
+		GPIO_AF7_USART6,
+	},		// AUX SPI on Chromatron X (not on a connector)
 };
 
 
@@ -79,6 +115,26 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 			bus_clock = HAL_RCC_GetPCLK2Freq();
 			break;
 	}
+
+	GPIO_InitTypeDef GPIO_InitStruct;
+	
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;	
+
+    // init IO
+	GPIO_InitStruct.Pin 		= port_defs[channel].pin0;
+	GPIO_InitStruct.Alternate 	= port_defs[channel].alt0;
+	HAL_GPIO_Init( port_defs[channel].port0, &GPIO_InitStruct );
+	
+	GPIO_InitStruct.Pin 		= port_defs[channel].pin1;
+	GPIO_InitStruct.Alternate 	= port_defs[channel].alt1;
+	HAL_GPIO_Init( port_defs[channel].port1, &GPIO_InitStruct );
+
+	GPIO_InitStruct.Pin 		= port_defs[channel].pin2;
+	GPIO_InitStruct.Alternate 	= port_defs[channel].alt2;
+	HAL_GPIO_Init( port_defs[channel].port2, &GPIO_InitStruct );
+
 
 	if( port_defs[channel].spi != 0 ){
 		// SPI type
@@ -136,7 +192,22 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 		USART_HandleTypeDef *usart = &ports[channel].spi_usart.usart;
 		usart->Instance = port_defs[channel].usart;
 
+		usart->Init.BaudRate 		= freq;
+		usart->Init.WordLength 		= USART_WORDLENGTH_8B;
+		usart->Init.StopBits 		= USART_STOPBITS_1;
+		usart->Init.Parity 			= USART_PARITY_NONE;
+		usart->Init.Mode 			= USART_MODE_TX_RX;
+		usart->Init.CLKPolarity 	= USART_POLARITY_LOW;
+		usart->Init.CLKPhase 		= USART_PHASE_1EDGE;
+		usart->Init.CLKLastBit 		= USART_LASTBIT_DISABLE;
+		usart->Init.Prescaler 		= USART_PRESCALER_DIV2; // might have to change
+		usart->Init.NSS 			= USART_NSS_SW;
+		usart->Init.SlaveMode 		= USART_SLAVEMODE_DISABLE;
+		usart->Init.FIFOMode 		= USART_FIFOMODE_DISABLE;
+		usart->Init.TXFIFOThreshold	= USART_TXFIFO_THRESHOLD_1_4;
+		usart->Init.RXFIFOThreshold = USART_RXFIFO_THRESHOLD_1_4;
 
+		HAL_USART_Init( usart );	
 	}
 }
 
@@ -189,7 +260,7 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 	}
 	else{
 
-		
+
 	}
 }
 
