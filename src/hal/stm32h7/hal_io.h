@@ -53,9 +53,23 @@
 #define IO_PIN5_PIN         GPIO_PIN_11
 
 
-// TODO THIS IS THE WRONG PIN!!!
-#define VMON_Pin GPIO_PIN_0
-#define VMON_GPIO_Port GPIOC
+// Chromatron X Analog
+#define MEAS1_Pin GPIO_PIN_5
+#define MEAS1_GPIO_Port GPIOC
+
+#define MEAS2_Pin GPIO_PIN_1
+#define MEAS2_GPIO_Port GPIOC
+
+#define MEAS3_Pin GPIO_PIN_0
+#define MEAS3_GPIO_Port GPIOC
+
+#define MEAS4_Pin GPIO_PIN_1
+#define MEAS4_GPIO_Port GPIOA
+
+// Nuclear Analog
+#define VMON_Pin GPIO_PIN_3
+#define VMON_GPIO_Port GPIOF
+
 
 #define PIX_CLK_3_Pin GPIO_PIN_2
 #define PIX_CLK_3_GPIO_Port GPIOE

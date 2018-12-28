@@ -23,15 +23,14 @@
  */
 
 
-#ifndef _HAL_ADC_H
-#define _HAL_ADC_H
+#ifndef _BOARD_TYPES_H
+#define _BOARD_TYPES_H
 
-#include "hal_io.h"
+#define BOARD_TYPE_NONE						0x0000
+#define BOARD_TYPE_CHROMATRON_X				0x0001
+#define BOARD_TYPE_NUCLEAR					0x0002
 
-#define ADC_CHANNEL_VSUPPLY     0 // divided VIN measurement
-#define ADC_CHANNEL_REF         1 // ADC reference
-#define ADC_CHANNEL_VCC         2 // VCC
-#define ADC_CHANNEL_TEMP        3 // internal temperature sensor
 
+#define BOARD_TYPE_INVALID					0xffff
 
 #endif

@@ -30,6 +30,8 @@
 
 #include "Trace.h"
 
+#include "../board_types.h"
+
 #define hal_cpu_v_invalidate_d_cache 						SCB_InvalidateDCache
 #define hal_cpu_v_clean_d_cache 							SCB_CleanDCache
 #define hal_cpu_v_clean_and_invalidate_d_cache 				SCB_CleanInvalidateDCache

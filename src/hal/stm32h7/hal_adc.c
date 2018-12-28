@@ -30,8 +30,10 @@
 #include "keyvalue.h"
 #include "logging.h"
 #include "timers.h"
+#include "config.h"
 
-// static ADC_HandleTypeDef hadc1;
+static ADC_HandleTypeDef hadc1;
+
 static uint16_t vref = 3300;
 
 static int8_t hal_adc_kv_handler(
@@ -61,20 +63,19 @@ PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 
 void adc_v_init( void ){
 
-	// __HAL_RCC_ADC1_CLK_ENABLE();
-  
- //    /**ADC1 GPIO Configuration    
- //    PC0     ------> ADC1_IN10 
- //    */
- //    GPIO_InitTypeDef GPIO_InitStruct;
- //    GPIO_InitStruct.Pin 		= ADC_VSUPPLY_PIN;
- //    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
- //    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
- //    HAL_GPIO_Init(ADC_VSUPPLY_PORT, &GPIO_InitStruct);
+	__HAL_RCC_ADC12_CLK_ENABLE();
+  	
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull 		= GPIO_NOPULL;
+
+    if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
+    
+    	GPIO_InitStruct.Pin 		= VMON_Pin;	
+    	HAL_GPIO_Init(VMON_GPIO_Port, &GPIO_InitStruct);
+	}
 
 
-	// /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-	// */
 	// hadc1.Instance = ADC1;
 	// hadc1.Init.ClockPrescaler 			= ADC_CLOCK_SYNC_PCLK_DIV4;
 	// hadc1.Init.Resolution 				= ADC_RESOLUTION_12B;
@@ -92,10 +93,10 @@ void adc_v_init( void ){
 	// 	_Error_Handler(__FILE__, __LINE__);
 	// }
 
-	// thread_t_create( hal_adc_thread,
- //                     PSTR("hal_adc"),
- //                     0,
- //                     0 );
+	thread_t_create( hal_adc_thread,
+                     PSTR("hal_adc"),
+                     0,
+                     0 );
 }
 
 PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )

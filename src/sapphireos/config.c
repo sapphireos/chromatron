@@ -54,6 +54,7 @@
 static uint16_t slowest_time;
 static uint32_t slowest_id;
 
+static uint16_t board_type;
 
 KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "cfg_version" },
@@ -69,6 +70,7 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     // { SAPPHIRE_TYPE_BOOL,        0,                   0, cfg_i8_kv_handler,  "enable_cpu_sleep" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
+    { SAPPHIRE_TYPE_UINT16,       0, 0,         &board_type, cfg_i8_kv_handler,  "board_type" },
 };
 
 #ifdef CFG_INCLUDE_MANUAL_IP
@@ -608,6 +610,10 @@ int8_t cfg_i8_get( catbus_hash_t32 parameter, void *value ){
 
         memcpy( value, &ip_config.dns_server, sizeof(ip_config.dns_server) );
     }
+    else if( ( parameter == CFG_PARAM_BOARD_TYPE ) && ( value != 0 ) ){
+
+        memcpy( value, &board_type, sizeof(board_type) );   
+    }
     // else if( ( parameter == CFG_PARAM_INTERNET_GATEWAY ) && ( value != 0 ) ){
 
     //     memcpy( value, &ip_config.internet_gateway, sizeof(ip_config.internet_gateway) );
@@ -770,6 +776,11 @@ bool cfg_b_get_boolean( catbus_hash_t32 parameter ){
     return value;
 }
 
+uint16_t cfg_u16_get_board_type( void ){
+
+    return board_type;
+}
+
 void cfg_v_set_boolean( catbus_hash_t32 parameter, bool value ){
 
     cfg_v_set( parameter, &value );
@@ -922,6 +933,7 @@ void cfg_v_init( void ){
 
     // cache oft used values
     // cfg_i8_get( CFG_PARAM_ENABLE_CPU_SLEEP, &enable_cpu_sleep );
+    cfg_i8_get( CFG_PARAM_BOARD_TYPE, &board_type );
 
     log_v_debug_P( PSTR("Cfg size:%d free:%d eeprom:%d"), cfg_u16_total_blocks(), cfg_u16_free_blocks(), CFG_FILE_MAIN_SIZE );
 }
