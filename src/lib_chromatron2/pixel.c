@@ -44,8 +44,9 @@
 
 #define MAX_BYTES_PER_PIXEL 16
 
+#define HEADER_LENGTH      1
 #define TRAILER_LENGTH      32
-#define ZERO_PADDING (N_PIXEL_OUTPUTS * TRAILER_LENGTH)
+#define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
 static bool pix_dither;
 static uint8_t pix_mode;
@@ -144,6 +145,16 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     }
 
     uint16_t buf_index = 0;
+    buf[buf_index++] = 0; // first byte is 0
+    /*
+    Why make the first byte 0?
+
+    Because the STM32 SPI hardware will glitch the data line on the first byte, 
+    because it sets up MOSI to high.  It is assuming we are using the clock, so
+    normally this wouldn't matter.  But on a WS2812 or SK6812, it glitches the first
+    pixel.  So, we send 0 first so the data line doesn't init to 1.
+
+    */
 
     uint8_t r, g, b, dither;
     uint8_t rd, gd, bd;
