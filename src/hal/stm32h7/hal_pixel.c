@@ -249,6 +249,8 @@ void hal_pixel_v_init( void ){
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
+    // NOTE the alternate port functions are NOT all the same!
+
     GPIO_InitStruct.Pin = PIX_CLK_0_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
     HAL_GPIO_Init(PIX_CLK_0_GPIO_Port, &GPIO_InitStruct);
@@ -272,12 +274,12 @@ void hal_pixel_v_init( void ){
 
 
     GPIO_InitStruct.Pin = PIX_CLK_2_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI3;
+    GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
     HAL_GPIO_Init(PIX_CLK_2_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_CLK_2_GPIO_Port, PIX_CLK_2_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin = PIX_DAT_2_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI3;
+    GPIO_InitStruct.Alternate = GPIO_AF7_SPI3;
     HAL_GPIO_Init(PIX_DAT_2_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_2_GPIO_Port, PIX_DAT_2_Pin, GPIO_PIN_RESET);
 
