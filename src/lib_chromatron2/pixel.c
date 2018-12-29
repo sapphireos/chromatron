@@ -325,6 +325,7 @@ PT_BEGIN( pt );
         uint16_t *s = gfx_u16p_get_sat();
         uint16_t *v = gfx_u16p_get_val();
         uint16_t r, g, b, w;
+        // uint8_t r, g, b, w;
 
         gfx_params_t params;
         gfx_v_get_params( &params );
@@ -348,6 +349,12 @@ PT_BEGIN( pt );
                     array_g[i] = g >> 8;
                     array_b[i] = b >> 8;
                     array_misc.white[i] = w >> 8;
+
+                    // gfx_v_hsv_to_rgbw8( h[i], s[i], dimmed_val, &r, &g, &b, &w );
+                    // array_r[i] = r;
+                    // array_g[i] = g;
+                    // array_b[i] = b;
+                    // array_misc.white[i] = w;
                 }
 
                 uint8_t *offset;

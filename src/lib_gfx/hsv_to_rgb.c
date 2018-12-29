@@ -187,9 +187,9 @@ void gfx_v_hsv_to_rgbw(
 
 //     temp_s = 255 - ( s >> 8 );
 
-//     *r = hue_table[h][0];
-//     *g = hue_table[h][1];
-//     *b = hue_table[h][2];
+//     temp_r = hue_table[h][0];
+//     temp_g = hue_table[h][1];
+//     temp_b = hue_table[h][2];
         
 //     // apply brightness
 //     *r = ( (uint32_t)temp_r * v ) / 65536;
