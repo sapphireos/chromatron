@@ -216,8 +216,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     }
     else if( driver == 3 ){
 
-        // HAL_SPI_Transmit_DMA( &pix_spi3, data, len );   
-        HAL_SPI_Transmit( &pix_spi3, data, len, 500 );   
+        HAL_SPI_Transmit_DMA( &pix_spi3, data, len );    
     }
     else if( driver == 4 ){
 
