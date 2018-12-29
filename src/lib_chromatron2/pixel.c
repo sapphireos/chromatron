@@ -315,6 +315,10 @@ PT_BEGIN( pt );
         uint16_t *v = gfx_u16p_get_val();
         uint16_t r, g, b, w;
 
+        gfx_params_t params;
+        gfx_v_get_params( &params );
+        gfx_v_set_params( &params );
+
         for( uint8_t ch = 0; ch < hal_pixel_u8_driver_count(); ch++ ){
 
             if( temp_channels_complete & ( 1 << ch ) ){
@@ -325,7 +329,9 @@ PT_BEGIN( pt );
                 // run HSV to RGBW conversion for this channel
                 for( uint32_t i = pix_offset; i < pix_count + pix_offset; i++ ){
 
-                    gfx_v_hsv_to_rgbw( h[i], s[i], v[i], &r, &g, &b, &w );
+                    uint16_t dimmed_val = gfx_u16_get_dimmed_val( v[i] );
+
+                    gfx_v_hsv_to_rgbw( h[i], s[i], dimmed_val, &r, &g, &b, &w );
 
                     array_r[i] = r >> 8;
                     array_g[i] = g >> 8;
