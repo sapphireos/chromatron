@@ -63,6 +63,9 @@ void gfx_v_init( void ){
 
     pixel_v_init();
 
+    // init pixel count
+    gfx_v_set_pix_count( hal_pixel_u16_get_pix_count() );
+
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
                 0,
