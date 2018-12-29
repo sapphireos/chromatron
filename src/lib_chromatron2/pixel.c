@@ -44,7 +44,8 @@
 
 #define MAX_BYTES_PER_PIXEL 16
 
-#define TRAILER_LENGTH      0
+#define TRAILER_LENGTH      32
+#define ZERO_PADDING (N_PIXEL_OUTPUTS * TRAILER_LENGTH)
 
 static bool pix_dither;
 static uint8_t pix_mode;
@@ -63,7 +64,7 @@ static union{
 
 static uint8_t dither_cycle;
 
-static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + TRAILER_LENGTH];
+static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING];
 
 
 int8_t pix_i8_kv_handler(
@@ -131,6 +132,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     // advance buffer for driver
     uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
     buf += driver_offset * bytes_per_pixel();
+    buf += driver * TRAILER_LENGTH;
 
     *offset = buf;
 
