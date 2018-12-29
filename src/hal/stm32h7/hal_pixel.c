@@ -360,7 +360,7 @@ void hal_pixel_v_init( void ){
 
     SPI_InitTypeDef spi_init;
     spi_init.Mode               = SPI_MODE_MASTER;
-    spi_init.Direction          = SPI_DIRECTION_2LINES;
+    spi_init.Direction          = SPI_DIRECTION_2LINES_TXONLY;
     spi_init.DataSize           = SPI_DATASIZE_8BIT;
     spi_init.CLKPolarity        = SPI_POLARITY_LOW;
     spi_init.CLKPhase           = SPI_PHASE_1EDGE;
