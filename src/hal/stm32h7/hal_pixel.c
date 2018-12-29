@@ -239,6 +239,9 @@ void hal_pixel_v_init( void ){
     __HAL_RCC_SPI4_CLK_ENABLE();
     __HAL_RCC_SPI5_CLK_ENABLE();
 
+    // NOTE! SPI clocks are set to use PLL2!
+    // See hal_cpu.c for details.  This should be 104 MHz.
+
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;   
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
