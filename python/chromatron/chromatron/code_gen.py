@@ -574,6 +574,7 @@ class cg1Str(cg1CodeNode):
         self.s = s
 
     def build(self, builder):
+        print "build STRING", self, self.s, irStr(self.s, lineno=self.lineno)
         return irStr(self.s, lineno=self.lineno)
 
 class CodeGenPass1(ast.NodeVisitor):
