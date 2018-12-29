@@ -44,7 +44,7 @@
 
 #define MAX_BYTES_PER_PIXEL 16
 
-#define TRAILER_LENGTH      32
+#define TRAILER_LENGTH      0
 
 static bool pix_dither;
 static uint8_t pix_mode;
@@ -129,7 +129,8 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     uint8_t *buf = outputs;
 
     // advance buffer for driver
-    buf += hal_pixel_u16_driver_offset( driver ) * bytes_per_pixel();
+    uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
+    buf += driver_offset * bytes_per_pixel();
 
     *offset = buf;
 
@@ -147,9 +148,9 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
     for( uint16_t i = 0; i < transfer_pixel_count; i++ ){
 
-        r = array_r[i];
-        g = array_g[i];
-        b = array_b[i];
+        r = array_r[i + driver_offset];
+        g = array_g[i + driver_offset];
+        b = array_b[i + driver_offset];
 
         if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
