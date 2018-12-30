@@ -327,10 +327,6 @@ PT_BEGIN( pt );
         uint16_t r, g, b, w;
         // uint8_t r, g, b, w;
 
-        gfx_params_t params;
-        gfx_v_get_params( &params );
-        gfx_v_set_params( &params );
-
         for( uint8_t ch = 0; ch < hal_pixel_u8_driver_count(); ch++ ){
 
             if( temp_channels_complete & ( 1 << ch ) ){
