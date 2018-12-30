@@ -20,7 +20,7 @@
         "-DARM",
         "-DDEBUG",
         "-g",
-        "-O2",
+        "-Og",
         "-mno-unaligned-access",
         "-fstack-usage",
         "-funsigned-char",
