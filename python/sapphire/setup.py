@@ -47,7 +47,7 @@ setup(
     install_requires=[
         "catbus",
         "appdirs==1.4.3",
-        "requests==2.18.4",
+        "requests==2.20.0",
         "setuptools == 34.2.0",
         "pyserial == 3.2.1",
         "bitstring == 3.1.5",
