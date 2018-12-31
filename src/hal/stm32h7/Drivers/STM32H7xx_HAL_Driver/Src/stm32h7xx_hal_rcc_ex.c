@@ -56,9 +56,9 @@
 /** @defgroup RCCEx_Private_defines Private Defines
  * @{
  */
-#define PLL2_TIMEOUT_VALUE         ((uint32_t)2)    /* 2 ms */
-#define PLL3_TIMEOUT_VALUE         ((uint32_t)2)    /* 2 ms */
-#define PLL_TIMEOUT_VALUE          ((uint32_t)2)    /* 2 ms */
+#define PLL2_TIMEOUT_VALUE         ((int32_t)2)    /* 2 ms */
+#define PLL3_TIMEOUT_VALUE         ((int32_t)2)    /* 2 ms */
+#define PLL_TIMEOUT_VALUE          ((int32_t)2)    /* 2 ms */
 
 #define DIVIDER_P_UPDATE          0U
 #define DIVIDER_Q_UPDATE          1U
