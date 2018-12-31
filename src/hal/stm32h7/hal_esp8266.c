@@ -33,9 +33,9 @@
 
 #include "esp8266.h"
 
-static const uint8_t wifi_firmware[] = {
-    #include "wifi_firmware.txt"
-};
+// static const uint8_t wifi_firmware[] = {
+//     #include "wifi_firmware.txt"
+// };
 
 #define WIFI_RESET_DELAY_MS     20
 
