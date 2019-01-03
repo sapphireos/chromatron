@@ -24,7 +24,7 @@
     "DEFINES": [],
     
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": [],
+    "LIBRARIES": ["hal_arm"],
 
     "_comment": "The following options are only used for libraries:",
     "_comment": "Init function for library",

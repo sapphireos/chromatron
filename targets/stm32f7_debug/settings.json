@@ -91,5 +91,5 @@
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["hal_stm32f7"]
+    "LIBRARIES": ["hal_stm32f7", "hal_arm"]
 }
