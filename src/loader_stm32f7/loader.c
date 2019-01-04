@@ -83,13 +83,15 @@ void ldr_v_copy_partition_to_internal( void ){
 	memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 }
 
-void (*app_ptr)( void ) = (void *)FLASH_START;
+void (*app_ptr)( void ) = (void *)(FLASH_START + 4);
 
 void ldr_run_app( void ){
 
 	DISABLE_INTERRUPTS;
 	HAL_FLASH_Lock();
 	wdg_v_disable();
+
+	__set_MSP( *(uint32_t *)FLASH_START )
 
     app_ptr(); // Jump to Reset vector 0x0000 in Application Section.
 }
