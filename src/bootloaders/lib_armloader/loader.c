@@ -41,8 +41,6 @@
 
 #include <string.h>
 
-volatile uint8_t test_buf[1024];
-
 void ldr_v_erase_app( void ){
 
 	nvm_v_erase_app_flash();
@@ -51,8 +49,6 @@ void ldr_v_erase_app( void ){
 void ldr_v_copy_partition_to_internal( void ){
 
     ldr_v_erase_app();
-    memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
-
 	// page data buffer
 	uint8_t buf[PAGE_SIZE];
 
@@ -73,14 +69,10 @@ void ldr_v_copy_partition_to_internal( void ){
 
 		// write page data to app page
 		boot_v_write_page( i, buf );
-		// memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 
 		// reset watchdog timer
 		wdg_v_reset();
 	}
-
-
-	memcpy( (void *)test_buf, (void *)FLASH_START, sizeof(test_buf) );
 }
 
 void (*app_ptr)( void ) = (void *)(FLASH_START + 4);
@@ -91,7 +83,7 @@ void ldr_run_app( void ){
 	HAL_FLASH_Lock();
 	wdg_v_disable();
 
-	__set_MSP( *(uint32_t *)FLASH_START )
+	__set_MSP( *(uint32_t *)FLASH_START );
 
     app_ptr(); // Jump to Reset vector 0x0000 in Application Section.
 }
@@ -109,8 +101,7 @@ uint32_t ldr_u32_read_partition_length( void ){
 	uint32_t start_address = FLASH_FS_FIRMWARE_0_PARTITION_START;
 
 	flash25_v_read( FW_LENGTH_ADDRESS + start_address, &partition_length, sizeof(partition_length) );
-	flash25_v_read( start_address, test_buf, sizeof(test_buf) );
-
+	
     partition_length += sizeof(uint16_t);
 
 	if( partition_length > ( (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE ) ){

@@ -21,7 +21,7 @@
  	"BUILD_TYPE": "arm_loader",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": [],
+    "LIBRARIES": ["lib_armloader"],
 
     "DEFINES": ["BOOTLOADER"],
 

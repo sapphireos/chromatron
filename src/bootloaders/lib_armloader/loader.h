@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -21,21 +21,36 @@
 // 
 // </license>
  */
- 
-#include "cpu.h"
-#include "hal_io.h"
+
+
+#ifndef __LOADER_H
+#define __LOADER_H
+
+#include "target.h"
 #include "system.h"
 
+#define LDR_VERSION_MAJOR   '1'
+#define LDR_VERSION_MINOR   '0'
 
-bool button_b_is_pressed( void ){
-    
+void loader_main( void );
 
-}
+void ldr_run_app( void );
 
-void button_v_init( void ){
+void ldr_v_set_green_led( void );
+void ldr_v_clear_green_led( void );
+void ldr_v_set_yellow_led( void );
+void ldr_v_clear_yellow_led( void );
+void ldr_v_set_red_led( void );
+void ldr_v_clear_red_led( void );
 
+void ldr_v_erase_app( void );
+void ldr_v_copy_partition_to_internal( void );
+void ldr_v_read_partition_data( uint32_t offset, uint8_t *dest, uint16_t length );
 
-}   
+uint32_t ldr_u32_read_partition_length( void );
+uint32_t ldr_u32_read_internal_length( void );
 
+uint16_t ldr_u16_get_internal_crc( void );
+uint16_t ldr_u16_get_partition_crc( void );
 
-
+#endif
