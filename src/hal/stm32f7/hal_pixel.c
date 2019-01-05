@@ -25,12 +25,12 @@
 #include "hal_io.h"
 #include "hal_pixel.h"
 
-static uint16_t pix_count_1;
+static uint16_t pix_counts[N_PIXEL_OUTPUTS];
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_count_1,        0,    "pix_count_1" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        0,    "pix_count" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        0,    "pix_count_1" },
 };
-
 
 static SPI_HandleTypeDef pix_spi0;
 static SPI_HandleTypeDef pix_spi1;
@@ -83,6 +83,36 @@ uint8_t hal_pixel_u8_driver_count( void ){
 
 uint16_t hal_pixel_u16_driver_pixels( uint8_t driver ){
 
+    ASSERT( driver < N_PIXEL_OUTPUTS );
+    
+    return pix_counts[driver];
+}
+
+
+uint16_t hal_pixel_u16_driver_offset( uint8_t driver ){
+
+    ASSERT( driver < N_PIXEL_OUTPUTS );
+
+    uint16_t offset = 0;
+
+    for( uint8_t i = 0; i < driver; i++ ){
+
+        offset += pix_counts[i];
+    }
+    
+    return offset;
+}
+
+uint16_t hal_pixel_u16_get_pix_count( void ){
+
+    uint16_t count = 0;
+
+    for( uint8_t i = 0; i < N_PIXEL_OUTPUTS; i++ ){
+
+        count += pix_counts[i];
+    }
+
+    return count;
 }
 
 void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
