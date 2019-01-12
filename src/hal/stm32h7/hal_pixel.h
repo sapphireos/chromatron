@@ -63,6 +63,18 @@
 #define PIX4_DMA_HANDLER	DMA2_Stream1_IRQHandler
 #define PIX4_DMA_REQUEST	DMA_REQUEST_SPI5_TX
 
+#define PIX6_USART 			USART1
+#define PIX6_USART_IRQn 	USART1_IRQn
+#define PIX6_USART_HANDLER 	USART1_IRQHandler
+#define PIX6_DMA_INSTANCE	DMA2_Stream3
+#define PIX6_DMA_IRQ	 	DMA2_Stream3_IRQn
+#define PIX6_DMA_HANDLER	DMA2_Stream3_IRQHandler
+#define PIX6_DMA_REQUEST	DMA_REQUEST_USART1_TX
+
+
+
+
+
 // SPI 6 is on BDMA (domain 3)
 // need to fix this so we can use BDMA
 // or just not use PIX5...
@@ -74,15 +86,6 @@
 // #define PIX5_DMA_HANDLER	DMA2_Stream2_IRQHandler
 // #define PIX5_DMA_REQUEST	DMA_REQUEST_SPI6_TX
 
-
-
-// #define PIX6_USART 			USART1
-// #define PIX6_USART_IRQn 	USART1_IRQn
-// #define PIX6_USART_HANDLER 	USART1_IRQHandler
-// #define PIX6_DMA_INSTANCE	DMA2_Stream3
-// #define PIX6_DMA_IRQ	 	DMA2_Stream3_IRQn
-// #define PIX6_DMA_HANDLER	DMA2_Stream3_IRQHandler
-// #define PIX6_DMA_REQUEST	DMA_REQUEST_USART1_TX
 
 // #define PIX7_USART 			USART2
 // #define PIX7_USART_IRQn 	USART2_IRQn

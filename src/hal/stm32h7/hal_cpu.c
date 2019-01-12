@@ -152,9 +152,9 @@ static void cpu_normal_clock_config( void ){
 
 static void cpu_boot_clock_config( void ){
 
-    RCC_OscInitTypeDef RCC_OscInitStruct;
-    RCC_ClkInitTypeDef RCC_ClkInitStruct;
-    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
     /**Supply configuration update enable 
     */
@@ -170,13 +170,15 @@ static void cpu_boot_clock_config( void ){
     }
     /**Initializes the CPU, AHB and APB busses clocks 
     */
+    // PLLs sourced to HSE (external xtal) - requires 8 MHz xtal
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    // set PLL1 to 400 MHz
     RCC_OscInitStruct.PLL.PLLM = 1;
-    RCC_OscInitStruct.PLL.PLLN = 19; // 76 MHz cpu
+    RCC_OscInitStruct.PLL.PLLN = 100;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 4;
     RCC_OscInitStruct.PLL.PLLR = 2;
@@ -201,19 +203,57 @@ static void cpu_boot_clock_config( void ){
     RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV4;
     RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
+    // set flash latency
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_RNG
-                              |RCC_PERIPHCLK_QSPI;
+    // set up peripheral clocks
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_USART2
+                              |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_UART7
+                              |RCC_PERIPHCLK_USART6|RCC_PERIPHCLK_USART1
+                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_UART5
+                              |RCC_PERIPHCLK_RNG|RCC_PERIPHCLK_SPI5
+                              |RCC_PERIPHCLK_SPI4|RCC_PERIPHCLK_SPI3
+                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_SPI2
+                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
+                              |RCC_PERIPHCLK_SPI6|RCC_PERIPHCLK_QSPI;
+
+    // set PLL 2 to 104 MHz
+    PeriphClkInitStruct.PLL2.PLL2M = 1;
+    PeriphClkInitStruct.PLL2.PLL2N = 26;
+    PeriphClkInitStruct.PLL2.PLL2P = 2;
+    PeriphClkInitStruct.PLL2.PLL2Q = 2;
+    PeriphClkInitStruct.PLL2.PLL2R = 2;
+    PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
+    PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+    PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+
+    // set PLL 3 to 64 MHz
+    PeriphClkInitStruct.PLL3.PLL3M = 8;
+    PeriphClkInitStruct.PLL3.PLL3N = 256;
+    PeriphClkInitStruct.PLL3.PLL3P = 4;
+    PeriphClkInitStruct.PLL3.PLL3Q = 4;
+    PeriphClkInitStruct.PLL3.PLL3R = 4;
+    PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_0;
+    PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
+    PeriphClkInitStruct.PLL3.PLL3FRACN = 0;    
+
+    // connect peripheral clocks
     PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_D1HCLK;
-    PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
+    PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
+    PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL2;
+    PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_PLL3;
+    PeriphClkInitStruct.Usart16ClockSelection = RCC_USART16CLKSOURCE_PLL3;
     PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
+    PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_PLL3;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL3;
+    PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_D3PCLK1;
+  
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
-        _Error_Handler(__FILE__, __LINE__);
+        Error_Handler();
     }
 
     /**Configure the Systick interrupt time 
@@ -490,10 +530,29 @@ void hal_cpu_v_boot_init( void ){
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
-    trace_printf( "STM32F7 Bootloader\n" );
+    PLL1_ClocksTypeDef pll1_clk;
+    PLL2_ClocksTypeDef pll2_clk;
+    PLL3_ClocksTypeDef pll3_clk;
+    HAL_RCCEx_GetPLL1ClockFreq( &pll1_clk );
+    HAL_RCCEx_GetPLL2ClockFreq( &pll2_clk );
+    HAL_RCCEx_GetPLL3ClockFreq( &pll3_clk );
 
-    trace_printf( "CPU Clock: %u\n", cpu_u32_get_clock_speed() );
-    trace_printf( "HCLK     : %u\n", HAL_RCC_GetHCLKFreq() );
-    trace_printf( "PCLK1    : %u\n", HAL_RCC_GetPCLK1Freq() );
-    trace_printf( "PCLK2    : %u\n", HAL_RCC_GetPCLK2Freq() );
+    trace_printf( "STM32H7\r\n" );
+
+    trace_printf( "CPU Clock: %u\r\n", cpu_u32_get_clock_speed() );
+    trace_printf( "HCLK     : %u\r\n", HAL_RCC_GetHCLKFreq() );
+    trace_printf( "PCLK1    : %u\r\n", HAL_RCC_GetPCLK1Freq() );
+    trace_printf( "PCLK2    : %u\r\n", HAL_RCC_GetPCLK2Freq() );
+
+    trace_printf( "D1Sys    : %u\r\n", HAL_RCCEx_GetD1SysClockFreq() );
+
+    trace_printf( "PLL1 P   : %u\r\n", pll1_clk.PLL1_P_Frequency );
+    trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
+    trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
+    trace_printf( "PLL2 P   : %u\r\n", pll2_clk.PLL2_P_Frequency );
+    trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
+    trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
+    trace_printf( "PLL3 P   : %u\r\n", pll3_clk.PLL3_P_Frequency );
+    trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
+    trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
 }

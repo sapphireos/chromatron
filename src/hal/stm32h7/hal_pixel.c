@@ -317,15 +317,15 @@ void hal_pixel_v_init( void ){
     // HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
 
 
-    // GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    // HAL_GPIO_Init(PIX_CLK_6_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_CLK_6_GPIO_Port, PIX_CLK_6_Pin, GPIO_PIN_RESET);
+    GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(PIX_CLK_6_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_6_GPIO_Port, PIX_CLK_6_Pin, GPIO_PIN_RESET);
 
-    // GPIO_InitStruct.Pin = PIX_DAT_6_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    // HAL_GPIO_Init(PIX_DAT_6_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_DAT_6_GPIO_Port, PIX_DAT_6_Pin, GPIO_PIN_RESET);
+    GPIO_InitStruct.Pin = PIX_DAT_6_Pin;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(PIX_DAT_6_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_6_GPIO_Port, PIX_DAT_6_Pin, GPIO_PIN_RESET);
 
 
     // GPIO_InitStruct.Pin = PIX_CLK_7_Pin;
