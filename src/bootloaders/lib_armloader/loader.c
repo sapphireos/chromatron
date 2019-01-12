@@ -75,8 +75,9 @@ void ldr_v_copy_partition_to_internal( void ){
 	}
 }
 
-typedef void (*app_function_t)( void );
-app_function_t app_func = (app_function_t)( FLASH_START + 4 );
+typedef void (*app_func_t)(void);
+app_func_t app_func;
+static uint32_t app_address;
 
 void ldr_run_app( void ){
 
@@ -84,12 +85,13 @@ void ldr_run_app( void ){
 	HAL_FLASH_Lock();
 	wdg_v_disable();
 
-	// SCB->VTOR = FLASH_START;
-	
-	__set_CONTROL(0); 
 	__set_MSP( *(__IO uint32_t *)FLASH_START );
 
-    app_func(); // Jump to Reset vector 0x0000 in Application Section.
+	app_address = *(__IO uint32_t*)( FLASH_START + 4 );
+ 
+	app_func = (app_func_t) app_address;
+
+	app_func();
 }
 
 // read data from an external partition
