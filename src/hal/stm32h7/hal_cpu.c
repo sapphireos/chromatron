@@ -484,12 +484,14 @@ void hal_cpu_v_boot_init( void ){
 
     DISABLE_INTERRUPTS;
 
+    SCB_DisableICache();
+    SCB_DisableDCache();
+
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
     /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
     HAL_InitTick(TICK_INT_PRIORITY);
-
 
     // __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_RCC_SYSCFG_CLK_ENABLE();

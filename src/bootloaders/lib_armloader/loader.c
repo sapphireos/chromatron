@@ -85,7 +85,8 @@ void ldr_run_app( void ){
 	wdg_v_disable();
 
 	// SCB->VTOR = FLASH_START;
-
+	
+	__set_CONTROL(0); 
 	__set_MSP( *(__IO uint32_t *)FLASH_START );
 
     app_func(); // Jump to Reset vector 0x0000 in Application Section.
