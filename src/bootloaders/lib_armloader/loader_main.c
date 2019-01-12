@@ -205,7 +205,6 @@ restart:
     HAL_FLASH_Lock();
 
     ldr_v_clear_yellow_led();
-    // ldr_v_set_green_led();
     ldr_run_app();
 
 
@@ -216,8 +215,7 @@ fatal_error:
     ldr_v_clear_yellow_led();
     ldr_v_set_red_led();
 
-    // if the serial processor exits, we restart the loader
-    goto restart;    
+    while(1);
 }
 
 // dummy sbrk for newlib nano
