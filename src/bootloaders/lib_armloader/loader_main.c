@@ -86,7 +86,7 @@ void loader_main( void ){
 
     trace_printf("Welcome to Sapphire\n");
 
-restart:
+// restart:
     // init CRC
     crc_v_init();
 

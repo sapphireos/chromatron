@@ -75,9 +75,6 @@ void ldr_v_copy_partition_to_internal( void ){
 	}
 }
 
-// typedef void (*app_function_t)( void );
-// app_function_t app_func = (app_function_t)( FLASH_START + 4 );
-
 typedef void (*pFunction)(void);
 pFunction JumpToApplication;
 uint32_t jumpAddress;
@@ -88,9 +85,6 @@ void ldr_run_app( void ){
 	HAL_FLASH_Lock();
 	wdg_v_disable();
 
-	// SCB->VTOR = FLASH_START;
-	// __set_CONTROL(0); 
-
 	__set_MSP( *(__IO uint32_t *)FLASH_START );
 
 	jumpAddress = *(__IO uint32_t*) (FLASH_START + 4);
@@ -98,8 +92,6 @@ void ldr_run_app( void ){
 	JumpToApplication = (pFunction) jumpAddress;
 
 	JumpToApplication();
-
-    // app_func();
 }
 
 // read data from an external partition
