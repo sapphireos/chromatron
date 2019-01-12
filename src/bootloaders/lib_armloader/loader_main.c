@@ -67,7 +67,7 @@ Generic mode:
 #include "boot_data.h"
 #include "loader.h"
 #include "flash25.h"
-#include "button.h"
+// #include "button.h"
 #include "hal_cpu.h"
 #include "crc.h"
 #include "hal_status_led.h"
@@ -94,7 +94,7 @@ restart:
     boot_v_init();
 
     // init button (if present)
-    button_v_init();
+    // button_v_init();
 
     ldr_v_set_yellow_led();
 
@@ -113,18 +113,18 @@ restart:
     boot_data.loader_status = LDR_STATUS_NORMAL;
 
     // check if button is held down
-    if( button_b_is_pressed() ){
+    // if( button_b_is_pressed() ){
 
-        _delay_ms( 2000 );
+    //     _delay_ms( 2000 );
 
-        ldr_v_clear_yellow_led();
-        ldr_v_set_green_led();
+    //     ldr_v_clear_yellow_led();
+    //     ldr_v_set_green_led();
 
-        _delay_ms( 2000 );
+    //     _delay_ms( 2000 );
 
-        ldr_v_clear_green_led();
-        ldr_v_set_yellow_led();
-    }
+    //     ldr_v_clear_green_led();
+    //     ldr_v_set_yellow_led();
+    // }
 
     // initialize external flash
     flash25_v_init();
@@ -203,6 +203,9 @@ restart:
     // run application
     trace_printf("Jumping to app\n");
     HAL_FLASH_Lock();
+
+    ldr_v_clear_yellow_led();
+    // ldr_v_set_green_led();
     ldr_run_app();
 
 
