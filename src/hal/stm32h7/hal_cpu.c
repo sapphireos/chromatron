@@ -176,9 +176,9 @@ static void cpu_boot_clock_config( void ){
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    // set PLL1 to 400 MHz
+    // set PLL1 to 76 MHz
     RCC_OscInitStruct.PLL.PLLM = 1;
-    RCC_OscInitStruct.PLL.PLLN = 100;
+    RCC_OscInitStruct.PLL.PLLN = 19;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 4;
     RCC_OscInitStruct.PLL.PLLR = 2;
@@ -220,9 +220,9 @@ static void cpu_boot_clock_config( void ){
                               |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
                               |RCC_PERIPHCLK_SPI6|RCC_PERIPHCLK_QSPI;
 
-    // set PLL 2 to 104 MHz
+    // set PLL 2 to 76 MHz
     PeriphClkInitStruct.PLL2.PLL2M = 1;
-    PeriphClkInitStruct.PLL2.PLL2N = 26;
+    PeriphClkInitStruct.PLL2.PLL2N = 19;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
     PeriphClkInitStruct.PLL2.PLL2Q = 2;
     PeriphClkInitStruct.PLL2.PLL2R = 2;
@@ -486,6 +486,8 @@ void hal_cpu_v_boot_init( void ){
 
     SCB_DisableICache();
     SCB_DisableDCache();
+
+    SCB->VTOR = 0x08000000;
 
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
