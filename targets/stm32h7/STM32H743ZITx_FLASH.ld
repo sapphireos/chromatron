@@ -50,7 +50,7 @@ RAM_NO_CACHE (xrw)  : ORIGIN = 0x2407F000, LENGTH = 4K
 RAM_D2 (xrw)        : ORIGIN = 0x30000000, LENGTH = 284K
 RAM_D3 (xrw)        : ORIGIN = 0x38000000, LENGTH = 64K
 ITCMRAM (xrw)       : ORIGIN = 0x00000000, LENGTH = 64K
-FLASH (rx)          : ORIGIN = 0x08008000, LENGTH = 2016K
+FLASH (rx)          : ORIGIN = 0x08020000, LENGTH = 1920K
 }
 
 /* Define output sections */
@@ -65,7 +65,7 @@ SECTIONS
   } >FLASH
 
   /* The program code and other data goes into FLASH */
-  .text 0x08008400:
+  .text 0x08020400:
   {
     . = ALIGN(4);
 

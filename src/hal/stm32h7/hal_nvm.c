@@ -24,7 +24,7 @@
 #include "hal_cpu.h"
 #include "hal_nvm.h"
 
-
+#define WRITE_CHUNK_SIZE 32 // 256 bit writes to flash
 
 
 void nvm_v_init( void ){
@@ -41,12 +41,10 @@ void nvm_v_write_flash_page( uint32_t addr, uint8_t *data ){
 
 	HAL_FLASH_Unlock();
 	
-	for(uint16_t i = 0; i < PAGE_SIZE; i++){
-
-        // TODO update to write 256 bit chunks
+	for(uint16_t i = 0; i < PAGE_SIZE; i += WRITE_CHUNK_SIZE){
 
 		HAL_FLASH_Program( FLASH_TYPEPROGRAM_FLASHWORD, FLASH_START + addr + i, *data );
-		data++;
+		data += WRITE_CHUNK_SIZE;
 	}    
 
     HAL_FLASH_Lock();
@@ -57,7 +55,8 @@ void nvm_v_erase_app_flash( void ){
 	uint32_t error;
     FLASH_EraseInitTypeDef erase;
     erase.TypeErase 		= FLASH_TYPEERASE_SECTORS; 
-    erase.Sector 			= 2; 
+    erase.Banks             = FLASH_BANK_1; 
+    erase.Sector 			= 1; 
     erase.NbSectors 		= 6; 
     erase.VoltageRange 		= FLASH_VOLTAGE_RANGE_3; 
 
