@@ -41,9 +41,9 @@ void nvm_v_write_flash_page( uint32_t addr, uint8_t *data ){
 
 	HAL_FLASH_Unlock();
 	
-	for(uint16_t i = 0; i < PAGE_SIZE; i += WRITE_CHUNK_SIZE){
+	for( uint16_t i = 0; i < PAGE_SIZE; i += WRITE_CHUNK_SIZE ){
 
-		HAL_FLASH_Program( FLASH_TYPEPROGRAM_FLASHWORD, FLASH_START + addr + i, *data );
+		HAL_FLASH_Program( FLASH_TYPEPROGRAM_FLASHWORD, FLASH_START + addr + i, (uint64_t)(uint32_t)data );
 		data += WRITE_CHUNK_SIZE;
 	}    
 
