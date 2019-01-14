@@ -225,7 +225,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-        HAL_SPI_Transmit( &pix_spi5, data, len );   
+        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );   
     }
     else{
 
