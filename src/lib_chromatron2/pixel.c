@@ -50,6 +50,7 @@
 
 static bool pix_dither;
 static uint8_t pix_mode;
+static uint8_t pix_mode5;
 
 static uint8_t pix_clock;
 static uint8_t pix_rgb_order;
@@ -100,6 +101,7 @@ KV_SECTION_META kv_meta_t pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST,                 &pix_dither,          0,                    "pix_dither" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_mode5,           pix_i8_kv_handler,    "pix_mode5" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,                 &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
 };
 
@@ -156,6 +158,12 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
     */
 
+    uint8_t driver_pix_mode = pix_mode;
+    if( driver == 5 ){
+
+        driver_pix_mode = pix_mode5;
+    }
+
     uint8_t r, g, b, dither;
     uint8_t rd, gd, bd;
 
@@ -165,7 +173,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
         g = array_g[i + driver_offset];
         b = array_b[i + driver_offset];
 
-        if( pix_mode == PIX_MODE_SK6812_RGBW ){
+        if( driver_pix_mode == PIX_MODE_SK6812_RGBW ){
 
         }
         else if( pix_dither ){
@@ -192,7 +200,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
             }
         }
 
-        if( pix_mode == PIX_MODE_APA102 ){
+        if( driver_pix_mode == PIX_MODE_APA102 ){
 
             buf[buf_index++] = 0xe0 | pix_apa102_dimmer; // APA102 global brightness control
         }
@@ -256,7 +264,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
             buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data2][2] );
             buf[buf_index++] = pgm_read_byte( &ws2811_lookup[data2][3] );
 
-            if( pix_mode == PIX_MODE_SK6812_RGBW ){
+            if( driver_pix_mode == PIX_MODE_SK6812_RGBW ){
 
                 uint8_t white = array_misc.white[i];
 
@@ -368,8 +376,6 @@ PT_END( pt );
 
 
 void pixel_v_init( void ){
-
-    pix_mode = PIX_MODE_SK6812_RGBW;
 
     hal_pixel_v_init();
 
