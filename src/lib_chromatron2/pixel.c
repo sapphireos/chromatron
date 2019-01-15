@@ -304,7 +304,10 @@ static volatile uint16_t channels_complete;
 
 void hal_pixel_v_transfer_complete_callback( uint8_t driver ){
 
+    ATOMIC;
     channels_complete |= ( 1 << driver );
+    END_ATOMIC;
+
     thread_v_signal( PIX_SIGNAL_0 );
 }
 
@@ -371,6 +374,8 @@ PT_BEGIN( pt );
                         array_g[i] = g >> 8;
                         array_b[i] = b >> 8;
                         array_misc.dither[i] = 0;
+
+                        array_r[i] = 0xff;
                     }
 
                     // gfx_v_hsv_to_rgbw8( h[i], s[i], dimmed_val, &r, &g, &b, &w );

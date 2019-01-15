@@ -43,6 +43,7 @@ Channel - Port      - DMA
 #include "hal_io.h"
 #include "hal_pixel.h"
 
+#include "logging.h"
 
 static uint16_t pix_counts[N_PIXEL_OUTPUTS];
 
@@ -234,8 +235,11 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
+        ATOMIC;
         HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        hal_pixel_v_transfer_complete_callback( 5 );   
+        END_ATOMIC;
+        
+        hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     else{
 
