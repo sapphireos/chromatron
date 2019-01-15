@@ -142,9 +142,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
     // advance buffer for driver
     uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
-    // buf += driver_offset * bytes_per_pixel( driver_pix_mode );
-    // buf += driver * ( TRAILER_LENGTH + HEADER_LENGTH );
-
+    
     buf += offsets[driver];
 
     *offset = buf;
