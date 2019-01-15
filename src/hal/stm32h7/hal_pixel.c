@@ -135,7 +135,7 @@ void PIX4_SPI_HANDLER(void){
 
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
-    uint8_t driver = 0;
+    uint8_t driver = 255;
 
     if( hspi == &pix_spi0 ){
 
@@ -157,8 +157,11 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
         driver = 4;
     }
-    
-    hal_pixel_v_transfer_complete_callback( driver );    
+        
+    if( driver < N_PIXEL_OUTPUTS ){
+
+        hal_pixel_v_transfer_complete_callback( driver );        
+    }
 }
 
 
@@ -225,7 +228,8 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );   
+        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
+        hal_pixel_v_transfer_complete_callback( 5 );   
     }
     else{
 
