@@ -109,17 +109,17 @@ static const uint8_t ws2811_lookup[256][4] = {
     #include "ws2811_lookup.txt"
 };
 
-static uint8_t bytes_per_pixel( void ){
+static uint8_t bytes_per_pixel( uint8_t mode ){
 
-    if( pix_mode == PIX_MODE_APA102 ){
+    if( mode == PIX_MODE_APA102 ){
 
         return 4; // APA102
     }
-    else if( pix_mode == PIX_MODE_WS2811 ){
+    else if( mode == PIX_MODE_WS2811 ){
 
         return 12; // WS2811
     }
-    else if( pix_mode == PIX_MODE_SK6812_RGBW ){
+    else if( mode == PIX_MODE_SK6812_RGBW ){
 
         return 16; // SK6812 RGBW
     }
@@ -132,9 +132,15 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
     uint8_t *buf = outputs;
 
+    uint8_t driver_pix_mode = pix_mode;
+    if( driver == 5 ){
+
+        driver_pix_mode = pix_mode5;
+    }
+
     // advance buffer for driver
     uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
-    buf += driver_offset * bytes_per_pixel();
+    buf += driver_offset * bytes_per_pixel( driver_pix_mode );
     buf += driver * TRAILER_LENGTH;
 
     *offset = buf;
@@ -157,12 +163,6 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     pixel.  So, we send 0 first so the data line doesn't init to 1.
 
     */
-
-    uint8_t driver_pix_mode = pix_mode;
-    if( driver == 5 ){
-
-        driver_pix_mode = pix_mode5;
-    }
 
     uint8_t r, g, b, dither;
     uint8_t rd, gd, bd;
@@ -342,17 +342,36 @@ PT_BEGIN( pt );
                 uint16_t pix_offset = hal_pixel_u16_driver_offset( ch );
                 uint16_t pix_count = hal_pixel_u16_driver_pixels( ch );
 
+                uint8_t driver_pix_mode = pix_mode;
+                if( ch == 5 ){
+
+                    driver_pix_mode = pix_mode5;
+                }
+
                 // run HSV to RGBW conversion for this channel
                 for( uint32_t i = pix_offset; i < pix_count + pix_offset; i++ ){
 
                     uint16_t dimmed_val = gfx_u16_get_dimmed_val( v[i] );
 
-                    gfx_v_hsv_to_rgbw( h[i], s[i], dimmed_val, &r, &g, &b, &w );
 
-                    array_r[i] = r >> 8;
-                    array_g[i] = g >> 8;
-                    array_b[i] = b >> 8;
-                    array_misc.white[i] = w >> 8;
+                    if( driver_pix_mode == PIX_MODE_SK6812_RGBW ){
+
+                        gfx_v_hsv_to_rgbw( h[i], s[i], dimmed_val, &r, &g, &b, &w );
+
+                        array_r[i] = r >> 8;
+                        array_g[i] = g >> 8;
+                        array_b[i] = b >> 8;
+                        array_misc.white[i] = w >> 8;
+                    }
+                    else{
+
+                        gfx_v_hsv_to_rgb( h[i], s[i], dimmed_val, &r, &g, &b );
+
+                        array_r[i] = r >> 8;
+                        array_g[i] = g >> 8;
+                        array_b[i] = b >> 8;
+                        array_misc.dither[i] = 0;
+                    }
 
                     // gfx_v_hsv_to_rgbw8( h[i], s[i], dimmed_val, &r, &g, &b, &w );
                     // array_r[i] = r;
