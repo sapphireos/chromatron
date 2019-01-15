@@ -244,8 +244,8 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
             data2 = r;
         }
         
-        if( ( pix_mode == PIX_MODE_WS2811 ) ||
-            ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+        if( ( driver_pix_mode == PIX_MODE_WS2811 ) ||
+            ( driver_pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
             // ws2811 bitstream lookup
 
