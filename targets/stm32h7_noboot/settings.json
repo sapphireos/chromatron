@@ -16,6 +16,7 @@
         "-DUSE_FULL_LL_DRIVER",
         "-DUSE_HAL_DRIVER",
         "-DARM",
+        "-DNO_BOOT",
         "-g",
         "-Og",
         "-mno-unaligned-access",

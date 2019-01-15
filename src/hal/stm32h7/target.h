@@ -91,7 +91,7 @@
 #define TOTAL_PAGES ( N_APP_PAGES + 32 )
 
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(NO_BOOT)
 	#define FLASH_START 	( 0x08000000 + 0 )
 #else
 	#define FLASH_START 	( 0x08000000 + 0x20000 )
