@@ -132,6 +132,11 @@ void PIX4_SPI_HANDLER(void){
     HAL_SPI_IRQHandler( &pix_spi4 );
 }
 
+void PIX5_SPI_HANDLER(void){
+
+    HAL_SPI_IRQHandler( &pix_spi5 );
+}
+
 
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
