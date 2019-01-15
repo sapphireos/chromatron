@@ -146,6 +146,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     // buf += driver * ( TRAILER_LENGTH + HEADER_LENGTH );
 
     uint16_t driver_offset = offsets[driver];
+    buf += driver_offset;
 
     *offset = buf;
 
