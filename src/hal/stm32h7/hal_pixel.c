@@ -238,7 +238,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
         ATOMIC;
         HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
         END_ATOMIC;
-        
+
         hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     else{

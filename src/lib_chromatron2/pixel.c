@@ -68,6 +68,8 @@ static uint8_t dither_cycle;
 
 static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING];
 
+static uint16_t offsets[N_PIXEL_OUTPUTS];
+
 
 int8_t pix_i8_kv_handler(
     kv_op_t8 op,
@@ -139,9 +141,11 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     }
 
     // advance buffer for driver
-    uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
-    buf += driver_offset * bytes_per_pixel( driver_pix_mode );
-    buf += driver * TRAILER_LENGTH;
+    // uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
+    // buf += driver_offset * bytes_per_pixel( driver_pix_mode );
+    // buf += driver * ( TRAILER_LENGTH + HEADER_LENGTH );
+
+    uint16_t driver_offset = offsets[driver];
 
     *offset = buf;
 
@@ -327,6 +331,21 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
+        offsets[0] = 0;
+
+        for( uint8_t ch = 1; ch < hal_pixel_u8_driver_count(); ch++ ){
+
+            uint8_t driver_pix_mode = pix_mode;
+            // if( ch == 5 ){
+
+            //     driver_pix_mode = pix_mode5;
+            // }
+
+            offsets[ch] = offsets[ch - 1] + 
+                                hal_pixel_u16_driver_pixels( ch - 1 ) * bytes_per_pixel( driver_pix_mode ) + 
+                                TRAILER_LENGTH + HEADER_LENGTH;
+        }
+
         ATOMIC;
         uint16_t temp_channels_complete = channels_complete;
         channels_complete = 0;
@@ -375,7 +394,7 @@ PT_BEGIN( pt );
                         array_b[i] = b >> 8;
                         array_misc.dither[i] = 0;
 
-                        array_r[i] = 0xff;
+                        // array_r[i] = 0xff;
                     }
 
                     // gfx_v_hsv_to_rgbw8( h[i], s[i], dimmed_val, &r, &g, &b, &w );
