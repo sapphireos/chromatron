@@ -44,7 +44,7 @@
 
 #define MAX_BYTES_PER_PIXEL 16
 
-#define HEADER_LENGTH      1
+#define HEADER_LENGTH       2
 #define TRAILER_LENGTH      32
 #define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
@@ -141,12 +141,11 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     }
 
     // advance buffer for driver
-    // uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
+    uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
     // buf += driver_offset * bytes_per_pixel( driver_pix_mode );
     // buf += driver * ( TRAILER_LENGTH + HEADER_LENGTH );
 
-    uint16_t driver_offset = offsets[driver];
-    buf += driver_offset;
+    buf += offsets[driver];
 
     *offset = buf;
 
@@ -159,6 +158,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
     uint16_t buf_index = 0;
     buf[buf_index++] = 0; // first byte is 0
+    buf[buf_index++] = 0; // second byte is 0
     /*
     Why make the first byte 0?
 
