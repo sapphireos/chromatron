@@ -52,6 +52,7 @@ KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        0,    "pix_count_2" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        0,    "pix_count_3" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        0,    "pix_count_4" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        0,    "pix_count_5" },
 };
 
 
