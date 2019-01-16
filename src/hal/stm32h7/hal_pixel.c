@@ -235,11 +235,11 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-        // ATOMIC;
-        // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        // END_ATOMIC;
+        ATOMIC;
+        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
+        END_ATOMIC;
 
-        // hal_pixel_v_transfer_complete_callback( 5 ); 
+        hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     else{
 
@@ -400,7 +400,7 @@ void hal_pixel_v_init( void ){
     spi_init.MasterSSIdleness              = SPI_MASTER_SS_IDLENESS_00CYCLE;
     spi_init.MasterInterDataIdleness       = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
     spi_init.MasterReceiverAutoSusp        = SPI_MASTER_RX_AUTOSUSP_DISABLE;
-    spi_init.MasterKeepIOState             = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+    spi_init.MasterKeepIOState             = SPI_MASTER_KEEP_IO_STATE_ENABLE;
     spi_init.IOSwap                        = SPI_IO_SWAP_DISABLE;
 
     // output 0
