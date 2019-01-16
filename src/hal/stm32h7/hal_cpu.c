@@ -26,8 +26,6 @@
 
 #include "system.h"
 
-void SystemClock_Config(void);
-
 
 static void cpu_normal_clock_config( void ){
 

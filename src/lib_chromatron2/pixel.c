@@ -140,7 +140,7 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
         driver_pix_mode = pix_mode5;
 
-        return 0;
+        // return 0;
     }
 
     // advance buffer for driver

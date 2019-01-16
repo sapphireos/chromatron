@@ -80,6 +80,8 @@ static DMA_HandleTypeDef pix4_dma;
 // static DMA_HandleTypeDef pix9_dma;
 
 
+static uint8_t p5_buf[128];
+static uint8_t p5_count;
 
 void PIX0_DMA_HANDLER(void){
     
@@ -163,6 +165,11 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
     else if( hspi == &pix_spi4 ){
 
         driver = 4;
+
+        // uint8_t buf[46];
+        // memset( buf, 0, sizeof(buf) );
+        HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
+        hal_pixel_v_transfer_complete_callback( 5 ); 
     }
         
     if( driver < N_PIXEL_OUTPUTS ){
@@ -236,15 +243,17 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
 
         // note driver 5 does not use DMA!
             
-        uint8_t buf[46];
-        memset( buf, 0, sizeof(buf) );
+        // uint8_t buf[46];
+        // memset( buf, 0, sizeof(buf) );
+        memcpy(p5_buf, data, len);
+        p5_count = len;
 
-        // ATOMIC;
-        // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        HAL_SPI_Transmit( &pix_spi5, buf, 46, 50 );
-        // END_ATOMIC;
+        // // ATOMIC;
+        // // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
+        // HAL_SPI_Transmit( &pix_spi5, buf, 46, 50 );
+        // // END_ATOMIC;
 
-        hal_pixel_v_transfer_complete_callback( 5 ); 
+        // hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     else{
 
@@ -272,8 +281,8 @@ void hal_pixel_v_init( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
     // NOTE the alternate port functions are NOT all the same!
 
@@ -340,6 +349,8 @@ void hal_pixel_v_init( void ){
     GPIO_InitStruct.Alternate = GPIO_AF8_SPI6;
     HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
+
+
 
     GPIO_InitStruct.Pin = GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
