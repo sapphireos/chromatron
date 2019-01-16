@@ -107,8 +107,10 @@
 #define PIX_CLK_7_GPIO_Port GPIOA
 #define PIX_CLK_0_Pin GPIO_PIN_5
 #define PIX_CLK_0_GPIO_Port GPIOA
-#define PIX_DAT_5_Pin GPIO_PIN_7
-#define PIX_DAT_5_GPIO_Port GPIOA
+// #define PIX_DAT_5_Pin GPIO_PIN_7
+// #define PIX_DAT_5_GPIO_Port GPIOA
+#define PIX_DAT_5_Pin GPIO_PIN_5
+#define PIX_DAT_5_GPIO_Port GPIOB
 #define PIX_DAT_2_Pin GPIO_PIN_2
 #define PIX_DAT_2_GPIO_Port GPIOB
 #define PIX_DAT_4_Pin GPIO_PIN_11

@@ -235,14 +235,10 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-        uint8_t buf[2];
-        buf[0] = 0x55;
-        buf[1] = 0x55;
-
-        // ATOMIC;
-        // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        HAL_SPI_Transmit( &pix_spi5, buf, 2, 50 );
-        // END_ATOMIC;
+        
+        ATOMIC;
+        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
+        END_ATOMIC;
 
         hal_pixel_v_transfer_complete_callback( 5 ); 
     }
@@ -340,6 +336,12 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
 
+
+
+    GPIO_InitStruct.Pin = GPIO_PIN_7;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
 
     // GPIO_InitStruct.Pin = PIX_CLK_6_Pin;
     // GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
