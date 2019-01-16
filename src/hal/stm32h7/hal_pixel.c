@@ -406,6 +406,8 @@ void hal_pixel_v_init( void ){
     spi_init.MasterInterDataIdleness       = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
     spi_init.MasterReceiverAutoSusp        = SPI_MASTER_RX_AUTOSUSP_DISABLE;
     spi_init.MasterKeepIOState             = SPI_MASTER_KEEP_IO_STATE_ENABLE;
+    // NOTE! if MasterKeepIOState is disabled, the SPI will TRISTATE the IO lines
+    // when not in use!!!
     spi_init.IOSwap                        = SPI_IO_SWAP_DISABLE;
 
     // output 0
