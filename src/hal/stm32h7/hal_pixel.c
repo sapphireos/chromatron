@@ -226,24 +226,20 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     }
     else if( driver == 3 ){
 
-        HAL_SPI_Transmit_DMA( &pix_spi3, data, len );    
-        // HAL_SPI_Transmit( &pix_spi3, data, len, 50 );
-        // hal_pixel_v_transfer_complete_callback( 3 ); 
+        HAL_SPI_Transmit_DMA( &pix_spi3, data, len ); 
     }
     else if( driver == 4 ){
 
         HAL_SPI_Transmit_DMA( &pix_spi4, data, len );   
-        // HAL_SPI_Transmit( &pix_spi4, data, len, 50 );
-        // hal_pixel_v_transfer_complete_callback( 4 ); 
     }
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
         // ATOMIC;
-        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
+        // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
         // END_ATOMIC;
 
-        hal_pixel_v_transfer_complete_callback( 5 ); 
+        // hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     else{
 
@@ -329,15 +325,15 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_WritePin(PIX_DAT_4_GPIO_Port, PIX_DAT_4_Pin, GPIO_PIN_RESET);
 
 
-    // GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
-    // HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
+    GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
+    HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
 
-    // GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
-    // GPIO_InitStruct.Alternate = GPIO_AF8_SPI6;
-    // HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
-    // HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
+    GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
+    GPIO_InitStruct.Alternate = GPIO_AF8_SPI6;
+    HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
 
 
     // GPIO_InitStruct.Pin = PIX_CLK_6_Pin;

@@ -93,7 +93,7 @@ KV_SECTION_META kv_meta_t hal_adc_kv[] = {
 PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 
 void adc_v_init( void ){
-
+return;
 	__HAL_RCC_ADC12_CLK_ENABLE();
 	__HAL_RCC_ADC3_CLK_ENABLE();
 
@@ -236,7 +236,7 @@ PT_END( pt );
 }
 
 static int16_t _adc_i16_internal_read( uint8_t channel ){
-
+return 0;
 	ASSERT( channel < adc_channel_count );
 
     uint32_t internal_channel = adc_channels[channel].channel;
