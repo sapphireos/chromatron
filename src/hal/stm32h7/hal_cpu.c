@@ -99,9 +99,9 @@ static void cpu_normal_clock_config( void ){
                               |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
                               |RCC_PERIPHCLK_SPI6|RCC_PERIPHCLK_QSPI;
 
-    // set PLL 2 to 104 MHz
+    // set PLL 2 to 100 MHz
     PeriphClkInitStruct.PLL2.PLL2M = 1;
-    PeriphClkInitStruct.PLL2.PLL2N = 26;
+    PeriphClkInitStruct.PLL2.PLL2N = 25;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
     PeriphClkInitStruct.PLL2.PLL2Q = 2;
     PeriphClkInitStruct.PLL2.PLL2R = 2;
