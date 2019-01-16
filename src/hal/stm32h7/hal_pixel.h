@@ -58,9 +58,9 @@
 #define PIX4_SPI 			SPI5
 #define PIX4_SPI_IRQn 		SPI5_IRQn
 #define PIX4_SPI_HANDLER 	SPI5_IRQHandler
-#define PIX4_DMA_INSTANCE	DMA2_Stream1
-#define PIX4_DMA_IRQ	 	DMA2_Stream1_IRQn
-#define PIX4_DMA_HANDLER	DMA2_Stream1_IRQHandler
+#define PIX4_DMA_INSTANCE	DMA1_Stream6
+#define PIX4_DMA_IRQ	 	DMA1_Stream6_IRQn
+#define PIX4_DMA_HANDLER	DMA1_Stream6_IRQHandler
 #define PIX4_DMA_REQUEST	DMA_REQUEST_SPI5_TX
 
 // SPI 6 is on BDMA (domain 3)

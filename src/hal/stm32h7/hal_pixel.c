@@ -227,17 +227,21 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 3 ){
 
         HAL_SPI_Transmit_DMA( &pix_spi3, data, len );    
+        // HAL_SPI_Transmit( &pix_spi3, data, len, 50 );
+        // hal_pixel_v_transfer_complete_callback( 3 ); 
     }
     else if( driver == 4 ){
 
         HAL_SPI_Transmit_DMA( &pix_spi4, data, len );   
+        // HAL_SPI_Transmit( &pix_spi4, data, len, 50 );
+        // hal_pixel_v_transfer_complete_callback( 4 ); 
     }
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-        ATOMIC;
+        // ATOMIC;
         HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        END_ATOMIC;
+        // END_ATOMIC;
 
         hal_pixel_v_transfer_complete_callback( 5 ); 
     }
@@ -267,7 +271,7 @@ void hal_pixel_v_init( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
     // NOTE the alternate port functions are NOT all the same!
 
@@ -314,7 +318,6 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_Init(PIX_DAT_3_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_3_GPIO_Port, PIX_DAT_3_Pin, GPIO_PIN_RESET);
 
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
     GPIO_InitStruct.Pin = PIX_CLK_4_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI5;
     HAL_GPIO_Init(PIX_CLK_4_GPIO_Port, &GPIO_InitStruct);
@@ -326,16 +329,15 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_WritePin(PIX_DAT_4_GPIO_Port, PIX_DAT_4_Pin, GPIO_PIN_RESET);
 
 
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
-    HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_CLK_5_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF5_SPI6;
+    // HAL_GPIO_Init(PIX_CLK_5_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_CLK_5_GPIO_Port, PIX_CLK_5_Pin, GPIO_PIN_RESET);
 
-    GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF8_SPI6;
-    HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
+    // GPIO_InitStruct.Pin = PIX_DAT_5_Pin;
+    // GPIO_InitStruct.Alternate = GPIO_AF8_SPI6;
+    // HAL_GPIO_Init(PIX_DAT_5_GPIO_Port, &GPIO_InitStruct);
+    // HAL_GPIO_WritePin(PIX_DAT_5_GPIO_Port, PIX_DAT_5_Pin, GPIO_PIN_RESET);
 
 
     // GPIO_InitStruct.Pin = PIX_CLK_6_Pin;

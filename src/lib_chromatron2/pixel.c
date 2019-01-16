@@ -132,6 +132,12 @@ static uint8_t bytes_per_pixel( uint8_t mode ){
 
 static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
+    memset(outputs, 0x55, sizeof(outputs));
+    *offset = outputs;
+        hal_cpu_v_clean_d_cache();
+
+    return 2;
+
     uint8_t *buf = outputs;
 
     uint8_t driver_pix_mode = pix_mode;
