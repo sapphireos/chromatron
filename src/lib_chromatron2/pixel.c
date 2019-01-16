@@ -337,21 +337,6 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
-        offsets[0] = 0;
-
-        for( uint8_t ch = 1; ch < hal_pixel_u8_driver_count(); ch++ ){
-
-            uint8_t driver_pix_mode = pix_mode;
-            // if( ch == 5 ){
-
-            //     driver_pix_mode = pix_mode5;
-            // }
-
-            offsets[ch] = offsets[ch - 1] + 
-                                hal_pixel_u16_driver_pixels( ch - 1 ) * bytes_per_pixel( driver_pix_mode ) + 
-                                TRAILER_LENGTH + HEADER_LENGTH;
-        }
-
         ATOMIC;
         uint16_t temp_channels_complete = channels_complete;
         channels_complete = 0;
@@ -429,6 +414,21 @@ void pixel_v_init( void ){
     hal_pixel_v_init();
 
     pixel_v_enable();
+
+    offsets[0] = 0;
+
+    for( uint8_t ch = 1; ch < hal_pixel_u8_driver_count(); ch++ ){
+
+        uint8_t driver_pix_mode = pix_mode;
+        // if( ch == 5 ){
+
+        //     driver_pix_mode = pix_mode5;
+        // }
+
+        offsets[ch] = offsets[ch - 1] + 
+                            hal_pixel_u16_driver_pixels( ch - 1 ) * bytes_per_pixel( driver_pix_mode ) + 
+                            TRAILER_LENGTH + HEADER_LENGTH;
+    }
 
     thread_t_create( pixel_thread,
                      PSTR("pixel"),
