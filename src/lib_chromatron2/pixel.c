@@ -54,6 +54,7 @@ static uint8_t pix_mode5;
 
 static uint8_t pix_clock;
 static uint8_t pix_rgb_order;
+static uint8_t pix_rgb_order5 = PIX_ORDER_GBR;
 static uint8_t pix_apa102_dimmer = 31;
 
 static uint8_t array_r[MAX_PIXELS];
@@ -210,37 +211,43 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 
         uint8_t data0, data1, data2;
 
-        if( pix_rgb_order == PIX_ORDER_RGB ){
+        uint8_t rgb_order = pix_rgb_order;
+        if( driver == 5 ){
+
+            rgb_order = pix_rgb_order5;
+        }
+
+        if( rgb_order == PIX_ORDER_RGB ){
 
             data0 = r;
             data1 = g;
             data2 = b;
         }
-        else if( pix_rgb_order == PIX_ORDER_RBG ){
+        else if( rgb_order == PIX_ORDER_RBG ){
 
             data0 = r;
             data1 = b;
             data2 = g;
         }
-        else if( pix_rgb_order == PIX_ORDER_GRB ){
+        else if( rgb_order == PIX_ORDER_GRB ){
 
             data0 = g;
             data1 = r;
             data2 = b;
         }
-        else if( pix_rgb_order == PIX_ORDER_BGR ){
+        else if( rgb_order == PIX_ORDER_BGR ){
 
             data0 = b;
             data1 = g;
             data2 = r;
         }
-        else if( pix_rgb_order == PIX_ORDER_BRG ){
+        else if( rgb_order == PIX_ORDER_BRG ){
 
             data0 = b;
             data1 = r;
             data2 = g;
         }
-        else if( pix_rgb_order == PIX_ORDER_GBR ){
+        else if( rgb_order == PIX_ORDER_GBR ){
 
             data0 = g;
             data1 = b;
