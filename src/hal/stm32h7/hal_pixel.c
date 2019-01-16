@@ -235,9 +235,14 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-        ATOMIC;
-        HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        END_ATOMIC;
+        uint8_t buf[2];
+        buf[0] = 0x55;
+        buf[1] = 0x55;
+
+        // ATOMIC;
+        // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
+        HAL_SPI_Transmit( &pix_spi5, buf, 2, 50 );
+        // END_ATOMIC;
 
         hal_pixel_v_transfer_complete_callback( 5 ); 
     }
