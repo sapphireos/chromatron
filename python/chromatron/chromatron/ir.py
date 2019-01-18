@@ -679,9 +679,12 @@ class irConvertType(IR):
         self.value = value
 
         # assert self.result.type != self.value.type
-    
+
     def __str__(self):
-        s = '%s = %s(%s)' % (self.result, self.result.type, self.value)
+        if self.skip_conversion():
+            s = '%s = %s' % (self.result, self.value)
+        else:
+            s = '%s = %s(%s)' % (self.result, self.result.type, self.value)
 
         return s
 
@@ -691,12 +694,19 @@ class irConvertType(IR):
     def get_output_vars(self):
         return [self.result]
 
+    def skip_conversion(self):
+        return isinstance(self.value, irVar_gfx16)
+
     def generate(self):
         try:
+            if self.skip_conversion():
+                raise KeyError
+
             return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
 
         except KeyError:
-            return insConvMov(self.result.generate(), self.value.generate())
+            ins = insConvMov(self.result.generate(), self.value.generate())
+            return ins
 
 class irConvertTypeInPlace(IR):
     def __init__(self, target, src_type, **kwargs):
@@ -1774,6 +1784,7 @@ class Builder(object):
             self.append_node(ir)
 
     def augassign(self, op, target, value, lineno=None):
+        # print op, target, value
         # check types
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(target, irPixelIndex) and \

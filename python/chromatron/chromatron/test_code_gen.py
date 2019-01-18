@@ -3261,7 +3261,10 @@ class CGTestsLocal(CGTestsBase):
                     self.assertEqual(vm.db[reg], value)
 
             except AssertionError:
+                print '\n*******************************'
+                print program
                 print reg, regs[reg], value
+                print '-------------------------------\n'
                 raise
 
 
