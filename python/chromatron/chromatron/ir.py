@@ -227,18 +227,21 @@ class irVar(IR):
 
 class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
+        kwargs['type'] = 'i32'
         super(irVar_i32, self).__init__(*args, **kwargs)
-        self.type = 'i32'
+        # self.type = 'i32'
 
 class irVar_f16(irVar):
     def __init__(self, *args, **kwargs):
+        kwargs['type'] = 'f16'
         super(irVar_f16, self).__init__(*args, **kwargs)
-        self.type = 'f16'
+        # self.type = 'f16'
 
 class irVar_gfx16(irVar):
     def __init__(self, *args, **kwargs):
+        kwargs['type'] = 'f16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
-        self.type = 'f16'
+        # self.type = 'f16'
         self.type_str = 'gfx16'
 
 class irAddress(irVar):
@@ -642,7 +645,7 @@ class irBinop(IR):
         data_type = self.left.type
 
         # gfx16 type can just default to i32
-        if data_type == 'gfx16':
+        if isinstance(self.left, irVar_gfx16):
             data_type = 'i32'
         
         return ops[data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
@@ -1643,8 +1646,14 @@ class Builder(object):
             raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
         # if either type is fixed16, we do the whole thing as fixed16.
-        data_type = left.type
-        if right.type == 'f16':
+
+        # if left is gfx16, use right type
+        if isinstance(left, irVar_gfx16):
+            data_type = right.type
+        else:
+            data_type = left.type
+
+        if isinstance(right, irVar_f16):
             data_type = right.type
 
         left_result = left
@@ -1653,13 +1662,13 @@ class Builder(object):
         # perform any conversions as needed
         # since we are prioritizing fixed16, we only need to convert i32 to f16
         if data_type == 'f16':
-            if left.type != 'f16':
+            if not isinstance(left, irVar_f16):
                 left_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(left_result, left, lineno=lineno)
                 self.append_node(ir)
 
-            if right.type != 'f16':
+            if not isinstance(right, irVar_f16):
                 right_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(right_result, right, lineno=lineno)
