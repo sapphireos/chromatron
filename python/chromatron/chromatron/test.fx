@@ -1,15 +1,16 @@
+# a = Number(publish=True)
+# b = Number(publish=True)
+c = Number(publish=True)
+# d = Number(publish=True)
+# e = Number(publish=True)
 
-a = Number(publish=True)
+def test(_a, _b):
+    return _a + _b
 
 def init():
-    temp = Number()    
-    temp = 90
+    # a += 1 + 1
+    # b -= a - 4
 
-    if temp < 10:
-        a = 0
-        
-    elif temp >= 95:
-        a = 1
-        
-    else:
-        a = temp + 1
+    c += test(1, 2)
+    # d += test(1, 2) + 5
+    # e += test(1, 2) + test(3, 4)
