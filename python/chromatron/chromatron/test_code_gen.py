@@ -3263,7 +3263,7 @@ class CGTestsLocal(CGTestsBase):
             except AssertionError:
                 print '\n*******************************'
                 print program
-                print reg, regs[reg], value
+                print 'Var: %s Expected: %s Actual: %s' % (reg, regs[reg], value)
                 print '-------------------------------\n'
                 raise
 
