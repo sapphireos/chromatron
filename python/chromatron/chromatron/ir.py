@@ -1645,16 +1645,20 @@ class Builder(object):
         if right.length != 1:
             raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
-        # if either type is fixed16, we do the whole thing as fixed16.
+        # if both types are gfx16, use i32
+        if isinstance(left, irVar_gfx16) and isinstance(right, irVar_gfx16):
+            # if either type is fixed16, we do the whole thing as fixed16.
+            data_type = 'i32'
 
-        # if left is gfx16, use right type
-        if isinstance(left, irVar_gfx16):
-            data_type = right.type
         else:
-            data_type = left.type
+            # if left is gfx16, use right type
+            if isinstance(left, irVar_gfx16):
+                data_type = right.type
+            else:
+                data_type = left.type
 
-        if isinstance(right, irVar_f16):
-            data_type = right.type
+            if isinstance(right, irVar_f16):
+                data_type = right.type
 
         left_result = left
         right_result = right
