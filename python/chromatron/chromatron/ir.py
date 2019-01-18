@@ -181,6 +181,7 @@ class irVar(IR):
         super(irVar, self).__init__(**kwargs)
         self.name = name
         self.type = type
+        self.type_str = type
         self.length = 1
         self.addr = None
         self.is_global = False
@@ -209,9 +210,9 @@ class irVar(IR):
             if self.persist:
                 options += 'persist '
 
-            return "Global (%s, %s %s)" % (self.name, self.type, options)
+            return "Global (%s, %s %s)" % (self.name, self.type_str, options)
         else:
-            return "Var (%s, %s)" % (self.name, self.type)
+            return "Var (%s, %s)" % (self.name, self.type_str)
 
     def generate(self):
         assert self.addr != None
@@ -238,6 +239,7 @@ class irVar_gfx16(irVar):
     def __init__(self, *args, **kwargs):
         super(irVar_gfx16, self).__init__(*args, **kwargs)
         self.type = 'f16'
+        self.type_str = 'gfx16'
 
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
