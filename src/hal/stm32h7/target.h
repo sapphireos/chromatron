@@ -54,7 +54,7 @@
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
 #define VM_MAX_IMAGE_SIZE   	16384
-#define VM_MAX_CYCLES       	256000
+#define VM_MAX_CYCLES       	16000
 #define VM_OPTIMIZED_DECODE
 
 // list
