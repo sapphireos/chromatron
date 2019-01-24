@@ -1327,6 +1327,8 @@ class Builder(object):
         self.function_addrs = {}
         self.label_addrs = {}
         self.stream = ''
+        self.header = None
+        self.published_var_count = 0
 
         self.pixel_array_indexes = ['pixels']
         self.read_keys = []
@@ -2834,6 +2836,7 @@ class Builder(object):
             packed_write_keys += struct.pack('<L', catbus_string_hash(key))
 
         # set up published registers
+        self.published_var_count = 0
         packed_publish = ''
         for var in self.data_table:
             if var.publish:
@@ -2843,6 +2846,7 @@ class Builder(object):
                                     type=get_type_id(var.type)).pack()
 
                 meta_names.append(var.name)
+                self.published_var_count += 1
 
         # set up links
         packed_links = ''
@@ -2997,6 +3001,7 @@ class Builder(object):
                 f.write(stream)
 
         self.stream = stream
+        self.header = header
 
         return stream
 

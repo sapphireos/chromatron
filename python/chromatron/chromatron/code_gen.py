@@ -933,6 +933,21 @@ def compile_text(source, debug_print=False, script_name=''):
     builder.assemble()
     builder.generate_binary()
 
+    if debug_print:
+        print "VM ISA:  %d" % (VM_ISA_VERSION)
+        print "Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash)
+        print "Stream length:   %d bytes"   % (len(builder.stream))
+        print "Code length:     %d bytes"   % (builder.header.code_len)
+        print "Data length:     %d bytes"   % (builder.header.data_len)
+        print "Functions:       %d"         % (len(builder.funcs))
+        print "Read keys:       %d"         % (len(builder.read_keys))
+        print "Write keys:      %d"         % (len(builder.write_keys))
+        print "Published vars:  %d"         % (builder.published_var_count)
+        print "Pixel arrays:    %d"         % (len(builder.pixel_arrays))
+        print "Links:           %d"         % (len(builder.links))
+        print "DB entries:      %d"         % (len(builder.db_entries))
+        print "Cron entries:    %d"         % (len(builder.cron_tab))
+
     return builder
 
 
