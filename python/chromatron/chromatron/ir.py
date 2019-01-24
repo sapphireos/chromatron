@@ -27,6 +27,8 @@ from catbus import *
 from copy import deepcopy, copy
 import pprint
 
+source_code = []
+
 VM_ISA_VERSION  = 10
 
 FILE_MAGIC      = 0x20205846 # 'FX  '
@@ -535,12 +537,19 @@ class irFunc(IR):
         self.body.insert(index, node)
 
     def __str__(self):
+        global source_code
         params = params_to_string(self.params)
 
         s = "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
 
+        current_line = -1
         for node in self.body:
-            s += '%d\t\t%s\n' % (node.lineno, node)
+            # interleave source code
+            if node.lineno > current_line:
+                current_line = node.lineno
+                s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
+
+            s += '\t\t%s\n' % (node)
 
         return s
 
@@ -1311,7 +1320,17 @@ CONST65535 = irConst(65535, lineno=0)
 
 class Builder(object):
     def __init__(self, script_name='fx_script'):
+        global source_code
         self.script_name = script_name
+
+        # load source code for debug
+        source_code = []
+        try:
+            with open(script_name, 'r') as f:
+                source_code = f.readlines()
+
+        except IOError: # cannot read file
+            pass
 
         self.funcs = {}
         self.locals = {}
