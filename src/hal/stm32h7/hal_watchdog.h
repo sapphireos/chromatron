@@ -27,5 +27,7 @@
 
 #include "system.h"
 
+void hal_wdg_v_kick( void );
+
 #endif
 

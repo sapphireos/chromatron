@@ -27,6 +27,7 @@
 #include "timers.h"
 #include "power.h"
 #include "hal_timers.h"
+#include "hal_watchdog.h"
 
 #define OVERFLOW_MICROSECONDS ( 65536 * 1 )
 
@@ -174,7 +175,6 @@ void TIM2_IRQHandler( void ){
     // clear flag
     __HAL_TIM_CLEAR_FLAG( &system_timer, TIM_IT_UPDATE );
 
-    // trace_printf("meow\n");
 	microseconds += OVERFLOW_MICROSECONDS;
 
     // // check if we need to arm the alarm
@@ -200,6 +200,8 @@ void TIM2_IRQHandler( void ){
     //     }
 
     // }
+
+    hal_wdg_v_kick();
 }
  
 

@@ -27,18 +27,61 @@
 #include "hal_watchdog.h"
 #include "watchdog.h"
 
+#include "stm32h7xx_hal_iwdg.h"
+
+
+static IWDG_HandleTypeDef wdg;
+
+// system timer kicks the iwdg at 65.536 millisecond intervals
+#define WDG_TIMEOUT 64 // approx 4.2 second timeout
+
+static volatile bool wdg_enabled;
+static volatile uint8_t wdg_timer;
 
 
 void wdg_v_reset( void ){
 
+	ATOMIC;
+	if( wdg_enabled ){
 
+		wdg_timer = WDG_TIMEOUT;
+	}
+	END_ATOMIC;
 }
 
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
+	// once the IWDG has been started, it cannot be stopped
+	wdg.Instance = IWDG1;
 
+	wdg.Init.Prescaler 	= IWDG_PRESCALER_256;
+	wdg.Init.Reload 	= 0x0FFF;
+	wdg.Init.Window     = 0x0FFF; // disables window function
+
+	HAL_IWDG_Init( &wdg );
+
+	ATOMIC;
+	wdg_enabled = TRUE;
+	wdg_timer = WDG_TIMEOUT;
+	END_ATOMIC;
 }
 
 void wdg_v_disable( void ){
 
+	ATOMIC;
+	wdg_enabled = FALSE;
+	END_ATOMIC;
 }
+
+void hal_wdg_v_kick( void ){
+
+	__HAL_IWDG_RELOAD_COUNTER( &wdg );
+
+	if( wdg_enabled ){
+
+		wdg_timer--;
+
+		ASSERT( wdg_timer != 0 );
+	}
+}
+
