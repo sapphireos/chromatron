@@ -269,17 +269,21 @@ class irConst(irVar):
     def __init__(self, *args, **kwargs):
         super(irConst, self).__init__(*args, **kwargs)
 
-        self.default_value = self.name
+        if self.name == 'True':
+            self.value = 1
+        elif self.name == 'False':
+            self.value = 0
+        elif self.type == 'f16':
+            self.value = int(float(self.name) * 65536)
+        else:
+            self.value = int(self.name)
+
+        self.default_value = self.value
 
         self.is_const = True
 
     def __str__(self):
-        value = self.name
-        if self.type == 'f16':
-            # convert internal to float for printing
-            value = (self.name >> 16) + (self.name & 0xffff) / 65536.0
-
-        return "Const(%s, %s)" % (value, self.type)
+        return "Const(%s, %s)" % (self.name, self.type)
 
 class irArray(irVar):
     def __init__(self, name, type, dimensions=[], **kwargs):
@@ -403,14 +407,14 @@ class irPixelArray(irObject):
         super(irPixelArray, self).__init__(name, "PixelArray", args, kw, **kwargs)
 
         try:
-            index = args[0].name
+            index = args[0].value
         except AttributeError:
             index = args[0]
         except IndexError:
             index = 0 
 
         try:
-            count = args[1].name
+            count = args[1].value
         except AttributeError:
             count = args[1]
         except IndexError:
@@ -1417,7 +1421,7 @@ class Builder(object):
 
         # make sure we always have 0 and 65535 const
         self.add_const(0, lineno=0)
-        self.globals[65535] = CONST65535
+        self.globals['65535'] = CONST65535
 
         pixarray = irPixelArray('temp', lineno=0)
         pixfields = {}
@@ -1499,7 +1503,7 @@ class Builder(object):
         for field_name, field in fields.items():
             field_type = field['type']
             field_dims = field['dimensions']
-    
+            
             new_fields[field_name] = self.build_var(field_name, field_type, field_dims, lineno=lineno)
 
             offsets[field_name] = self.add_const(offset, lineno=lineno)
@@ -1593,12 +1597,14 @@ class Builder(object):
         return ir
 
     def get_var(self, name, lineno=None):
+        name = str(name)
+
         # map true and false to 1/0 respectively
         if name == 'True':
-            return self.globals[1]
+            return self.globals['1']
 
         if name == 'False':
-            return self.globals[0]
+            return self.globals['0']
 
         if name in self.pixel_arrays:
             return self.pixel_arrays[name]
@@ -1642,6 +1648,8 @@ class Builder(object):
             raise VariableNotDeclared(obj_name, "Object '%s' not declared" % (obj_name), lineno=lineno)            
 
     def add_const(self, name, data_type='i32', lineno=None):
+        name = str(name)
+
         if name in self.globals:
             return self.globals[name]
 
@@ -1799,7 +1807,7 @@ class Builder(object):
             
             # check if value is const 0
             # if so, we don't need to convert
-            if isinstance(value, irConst) and value.name == 0:
+            if isinstance(value, irConst) and value.value == 0:
                 pass
 
             else:
@@ -1885,7 +1893,7 @@ class Builder(object):
 
             # check if value is const 0
             # if so, we don't need to convert
-            if isinstance(value, irConst) and value.name == 0:
+            if isinstance(value, irConst) and value.value == 0:
                 pass
 
             else:
@@ -2245,57 +2253,57 @@ class Builder(object):
         val = None
 
         if op == 'eq':
-            val = left.name == right.name
+            val = left.value == right.value
 
         elif op == 'neq':
-            val = left.name != right.name
+            val = left.value != right.value
 
         elif op == 'gt':
-            val = left.name > right.name
+            val = left.value > right.value
 
         elif op == 'gte':
-            val = left.name >= right.name
+            val = left.value >= right.value
 
         elif op == 'lt':
-            val = left.name < right.name
+            val = left.value < right.value
 
         elif op == 'lte':
-            val = left.name <= right.name
+            val = left.value <= right.value
 
         elif op == 'logical_and':
-            val = left.name and right.name
+            val = left.value and right.value
 
         elif op == 'logical_or':
-            val = left.name or right.name
+            val = left.value or right.value
 
         elif op == 'add':
-            val = left.name + right.name
+            val = left.value + right.value
 
         elif op == 'sub':
-            val = left.name - right.name
+            val = left.value - right.value
 
         elif op == 'mul':
-            val = left.name * right.name
+            val = left.value * right.value
 
             if left.get_base_type() == 'f16':
                 val /= 65536
 
         elif op == 'div':
             if left.get_base_type() == 'f16':
-                val = (left.name * 65536) / right.name
+                val = (left.value * 65536) / right.value
 
             else:
-                val = left.name / right.name
+                val = left.value / right.value
 
         elif op == 'mod':
-            val = left.name % right.name
+            val = left.value % right.value
 
 
         if left.get_base_type() == 'f16':
-            return self.add_const(int(val), data_type='f16', lineno=lineno)
+            return self.add_const(float(val) / 65536.0, data_type='f16', lineno=lineno)
 
         else:
-            return self.add_const(int(val), lineno=lineno)
+            return self.add_const(val, lineno=lineno)
 
 
     def schedule(self, func, params, lineno=None):
