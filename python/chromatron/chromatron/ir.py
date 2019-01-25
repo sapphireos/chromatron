@@ -1460,6 +1460,15 @@ class Builder(object):
         for func in self.funcs.values():
             func.remove_dead_labels()
 
+        for func in self.funcs.values():
+            prev_line = 0
+            for ir in func.body:
+                if isinstance(ir, irLabel):
+                    ir.lineno = prev_line
+
+                else:
+                    if ir.lineno > prev_line:
+                        prev_line = ir.lineno
         return self
 
     def link(self, send, source, dest, query, lineno=None):
@@ -2072,13 +2081,14 @@ class Builder(object):
         return body_label, else_label, end_label
 
     def position_label(self, label):
-        try:
-            lineno = self.funcs[self.current_func].body[-1].lineno
-        except IndexError:
-            lineno = 1
-            
-        label.lineno = lineno
-        self.funcs[self.current_func].append(label)
+        self.append_node(label)
+        # try:
+        #     lineno = self.funcs[self.current_func].body[-1].lineno
+        # except IndexError:
+        #     lineno = 1
+
+        # label.lineno = lineno
+        # self.funcs[self.current_func].append(label)
 
     def begin_while(self, lineno=None):
         top_label = self.label('while.top', lineno=lineno)
