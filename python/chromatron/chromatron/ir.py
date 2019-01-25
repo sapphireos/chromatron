@@ -540,14 +540,27 @@ class irFunc(IR):
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
         s += "--------------------------------\n"
 
+        labels = self.labels()
+
         current_line = -1
         for node in self.body:
+            
             # interleave source code
             if node.lineno > current_line:
                 current_line = node.lineno
                 s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
 
-            s += '\t\t%s\n' % (node)
+            if isinstance(node, irLabel):
+                s += '%s\n' % (node)
+
+            else:    
+                try:
+                    label = node.get_jump_target()
+
+                    s += '\t\t%s (Line %d)\n' % (node, label.lineno)
+
+                except AttributeError:
+                    s += '\t\t%s\n' % (node)
 
         return s
 
