@@ -1682,9 +1682,36 @@ def init():
 """
 
 
+test_improper_const_data_type_reuse = """
+
+# note:
+# this test checks for improper data type conversions when consts
+# are incorrectly reused across data types.
+# the constants used are specifically chosen.
+# Fixed16 0.0001 maps to integer 6.
+# if the bug this test covers occurs, the statement "a = 6"
+# will take the Const(0.0001), which is a Fixed16, which will
+# trigger an f16 to i32 conversion. In this case, that would
+# set a to 0.
+
+a = Number(publish=True)
+
+def init():
+    pixels.hue = 0.0001
+
+    a = 6
+    
+"""
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_improper_const_data_type_reuse(self):
+        self.run_test(test_improper_const_data_type_reuse,
+            expected={
+                'a': 6,
+            })
 
     def test_var_overwrite(self):
         self.run_test(test_var_overwrite,

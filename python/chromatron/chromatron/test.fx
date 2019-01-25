@@ -134,13 +134,13 @@ def loop():
         if frame % 1200 == 0:
             increment += 1
 
-            if increment > 6:
-                increment = 0
+            # if increment > 6:
+            #     increment = 0
 
-                pixels.sat = 0.0
+            #     pixels.sat = 0.0
 
-                frame = 0
-                state = 1
+            #     frame = 0
+            #     state = 1
 
 
     elif state == 1:
