@@ -536,7 +536,9 @@ class irFunc(IR):
         global source_code
         params = params_to_string(self.params)
 
-        s = "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
+        s = "\n######## Line %4d       ########\n" % (self.lineno)
+        s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
+        s += "--------------------------------\n"
 
         current_line = -1
         for node in self.body:
@@ -1415,7 +1417,7 @@ class Builder(object):
 
         s += 'Functions:\n'
         for func in self.funcs.values():
-            s += '%d\t%s\n' % (func.lineno, func)
+            s += '%s\n' % (func)
 
         return s
 
