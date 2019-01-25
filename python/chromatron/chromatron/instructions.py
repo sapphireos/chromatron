@@ -1599,7 +1599,7 @@ class insDBStore(BaseInstruction):
                 raise TypeError
 
             try:
-                index = self.indexes[0].var.name % len(vm.db[self.db_item])
+                index = self.indexes[0].var.value % len(vm.db[self.db_item])
                 vm.db[self.db_item][index] = vm.memory[self.value.addr]
 
             except IndexError:
@@ -1647,7 +1647,7 @@ class insDBLoad(BaseInstruction):
                 raise TypeError
 
             try:
-                index = self.indexes[0].var.name % len(vm.db[self.db_item])
+                index = self.indexes[0].var.value % len(vm.db[self.db_item])
 
             except IndexError:
                 index = 0 
