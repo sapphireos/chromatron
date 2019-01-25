@@ -2072,7 +2072,9 @@ class Builder(object):
         return body_label, else_label, end_label
 
     def position_label(self, label):
-        self.append_node(label)
+        lineno = self.funcs[self.current_func].body[-1].lineno
+        label.lineno = lineno
+        self.funcs[self.current_func].append(label)
 
     def begin_while(self, lineno=None):
         top_label = self.label('while.top', lineno=lineno)
