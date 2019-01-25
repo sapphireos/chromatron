@@ -577,10 +577,10 @@ class irFunc(IR):
                 label = node.get_jump_target()
 
                 if label != None:
-                    s += '\t\t%s (Line %d)\n' % (node, label.lineno)
+                    s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
 
                 else:
-                    s += '\t\t%s\n' % (node)
+                    s += '\t\t\t%s\n' % (node)
 
         return s
 
