@@ -532,6 +532,26 @@ class irFunc(IR):
     def insert(self, index, node):
         self.body.insert(index, node)
 
+    def remove_dead_labels(self):
+        labels = self.labels()
+
+        keep = []
+
+        # get list of labels that are used
+        for label in labels:
+            for node in self.body:
+                target = node.get_jump_target()
+
+                if target != None:
+                    if target.name == label:
+                        keep.append(label)
+                        break
+
+        # remove unused labels from instruction list
+        self.body = [a for a in self.body \
+                        if not isinstance(a, irLabel) or 
+                        (a.name in keep)]
+
     def __str__(self):
         global source_code
         params = params_to_string(self.params)
@@ -554,12 +574,12 @@ class irFunc(IR):
                 s += '%s\n' % (node)
 
             else:    
-                try:
-                    label = node.get_jump_target()
+                label = node.get_jump_target()
 
+                if label != None:
                     s += '\t\t%s (Line %d)\n' % (node, label.lineno)
 
-                except AttributeError:
+                else:
                     s += '\t\t%s\n' % (node)
 
         return s
@@ -1433,6 +1453,14 @@ class Builder(object):
             s += '%s\n' % (func)
 
         return s
+
+    def finish_module(self):
+        # clean up stuff after first pass is done
+
+        for func in self.funcs.values():
+            func.remove_dead_labels()
+
+        return self
 
     def link(self, send, source, dest, query, lineno=None):
         new_link = {'send': send,

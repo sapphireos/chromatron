@@ -266,7 +266,7 @@ class cg1Module(cg1Node):
         for code in funcs:
             code.build(builder)
 
-        return builder
+        return builder.finish_module()
 
 class cg1NoOp(cg1CodeNode):
     def build(self, builder):
