@@ -67,7 +67,6 @@ Generic mode:
 #include "boot_data.h"
 #include "loader.h"
 #include "flash25.h"
-// #include "button.h"
 #include "hal_cpu.h"
 #include "crc.h"
 #include "hal_status_led.h"
@@ -77,8 +76,6 @@ Generic mode:
 extern boot_data_t BOOTDATA boot_data;
 
 void loader_main( void ){
-    // disable watchdog timer
-    wdg_v_disable();
 
     hal_cpu_v_boot_init();
 
@@ -86,15 +83,11 @@ void loader_main( void ){
 
     trace_printf("Welcome to Sapphire\n");
 
-// restart:
     // init CRC
     crc_v_init();
 
     // init boot module
     boot_v_init();
-
-    // init button (if present)
-    // button_v_init();
 
     ldr_v_set_yellow_led();
 
@@ -111,20 +104,6 @@ void loader_main( void ){
     boot_data.loader_version_minor = LDR_VERSION_MINOR;
 
     boot_data.loader_status = LDR_STATUS_NORMAL;
-
-    // check if button is held down
-    // if( button_b_is_pressed() ){
-
-    //     _delay_ms( 2000 );
-
-    //     ldr_v_clear_yellow_led();
-    //     ldr_v_set_green_led();
-
-    //     _delay_ms( 2000 );
-
-    //     ldr_v_clear_green_led();
-    //     ldr_v_set_yellow_led();
-    // }
 
     // initialize external flash
     flash25_v_init();
