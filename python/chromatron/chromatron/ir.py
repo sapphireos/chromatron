@@ -239,9 +239,8 @@ class irVar_f16(irVar):
         
 class irVar_gfx16(irVar):
     def __init__(self, *args, **kwargs):
-        kwargs['type'] = 'f16'
+        kwargs['type'] = 'gfx16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
-        self.type_str = 'gfx16'
 
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
