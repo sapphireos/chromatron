@@ -2072,7 +2072,11 @@ class Builder(object):
         return body_label, else_label, end_label
 
     def position_label(self, label):
-        lineno = self.funcs[self.current_func].body[-1].lineno
+        try:
+            lineno = self.funcs[self.current_func].body[-1].lineno
+        except IndexError:
+            lineno = 1
+            
         label.lineno = lineno
         self.funcs[self.current_func].append(label)
 
