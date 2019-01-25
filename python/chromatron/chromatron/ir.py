@@ -231,19 +231,16 @@ class irVar_i32(irVar):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'i32'
         super(irVar_i32, self).__init__(*args, **kwargs)
-        # self.type = 'i32'
-
+        
 class irVar_f16(irVar):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'f16'
         super(irVar_f16, self).__init__(*args, **kwargs)
-        # self.type = 'f16'
-
+        
 class irVar_gfx16(irVar):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'f16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
-        # self.type = 'f16'
         self.type_str = 'gfx16'
 
 class irAddress(irVar):
