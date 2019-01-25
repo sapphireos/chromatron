@@ -212,9 +212,9 @@ class irVar(IR):
             if self.persist:
                 options += 'persist '
 
-            return "Global (%s, %s %s)" % (self.name, self.type_str, options)
+            return "Global(%s, %s %s)" % (self.name, self.type_str, options)
         else:
-            return "Var (%s, %s)" % (self.name, self.type_str)
+            return "Var(%s, %s)" % (self.name, self.type_str)
 
     def generate(self):
         assert self.addr != None
@@ -279,7 +279,7 @@ class irConst(irVar):
             # convert internal to float for printing
             value = (self.name >> 16) + (self.name & 0xffff) / 65536.0
 
-        return "Const (%s, %s)" % (value, self.type)
+        return "Const(%s, %s)" % (value, self.type)
 
 class irArray(irVar):
     def __init__(self, name, type, dimensions=[], **kwargs):
@@ -334,7 +334,7 @@ class irRecord(irVar):
         return irRecord(name, self.type, deepcopy(self.fields), self.offsets, options=options, lineno=lineno)
 
     def __str__(self):
-        return "Record (%s, %s, %d)" % (self.name, self.type, self.length)
+        return "Record(%s, %s, %d)" % (self.name, self.type, self.length)
 
     def get_field_from_offset(self, offset): 
         for field_name, addr in self.offsets.items():
@@ -379,7 +379,7 @@ class irField(IR):
         self.obj = obj
         
     def __str__(self):
-        return "Field (%s.%s)" % (self.obj.name, self.name)
+        return "Field(%s.%s)" % (self.obj.name, self.name)
 
     def generate(self):
         return insAddr(self.obj.offsets[self.name].addr)
@@ -393,7 +393,7 @@ class irObject(IR):
         self.kw = kw
 
     def __str__(self):
-        return "Object %s(%s)" % (self.name, self.type)
+        return "Object{%s(%s)}" % (self.name, self.type)
 
     def get_base_type(self):
         return self.type
@@ -437,7 +437,7 @@ class irPixelArray(irObject):
         self.length = len(self.fields) * DATA_LEN
         
     def __str__(self):
-        return "PixelArray %s" % (self.name)
+        return "PixelArray(%s)" % (self.name)
 
     def lookup(self, indexes):
         return self
@@ -451,7 +451,7 @@ class irObjectAttr(irAddress):
         self.type = obj.type
 
     def __str__(self):
-        return "ObjAttr (%s.%s)" % (self.name, self.attr)
+        return "ObjAttr(%s.%s)" % (self.name, self.attr)
 
 
 
@@ -491,7 +491,7 @@ class irPixelAttr(irObjectAttr):
         self.indexes = []
 
     def __str__(self):
-        return "PixelAttr (%s.%s)" % (self.name, self.attr)
+        return "PixelAttr(%s.%s)" % (self.name, self.attr)
 
     def generate(self):
         return self
@@ -504,7 +504,7 @@ class irDBAttr(irVar):
         self.attr = attr
 
     def __str__(self):
-        return "DBAttr (%s)" % (self.name)
+        return "DBAttr(%s)" % (self.name)
 
     def generate(self):
         return self.attr
