@@ -35,6 +35,7 @@
 
 #include "vm.h"
 #include "vm_core.h"
+#include "vm_cron.h"
 
 
 static bool vm_reset[VM_MAX_VMS];
@@ -474,6 +475,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         }
     }
 
+    // load cron jobs
+    vm_cron_v_load( vm_id, &state, f );
+
     // send len 0 to indicate load complete.
     uint16_t msg_len = sizeof(vm_load_msg.vm_id) + sizeof(vm_load_msg.total_size) + sizeof(vm_load_msg.offset);
     vm_load_msg.vm_id = vm_id;
@@ -607,6 +611,7 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
                 send_reset_message( i );
                 reset_published_data( i );
+                vm_cron_v_unload( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
                 vm_loop_time[i]     = 0;
@@ -662,6 +667,8 @@ void vm_v_init( void ){
     #ifndef VM_TARGET_ESP
     vm_thread = -1;
     #endif
+
+    vm_cron_v_init();
 }
 
 void vm_v_start( void ){
