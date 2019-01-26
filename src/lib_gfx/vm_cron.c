@@ -27,6 +27,7 @@
 #include "list.h"
 #include "keyvalue.h"
 #include "fs.h"
+#include "timesync.h"
 
 #include "vm_core.h"
 #include "vm_cron.h"
@@ -34,9 +35,31 @@
 
 static list_t cron_list;
 
+
+PT_THREAD( cron_thread( pt_t *pt, void *state ) );
+
+
+static void next_cron( void ){
+
+	
+	datetime_t datetime;
+	ntp_ts_t ntp_time = time_t_local_now();
+
+    datetime_v_seconds_to_datetime( ntp_time.seconds, &datetime );
+
+
+
+}
+
+
 void vm_cron_v_init( void ){
 
 	list_v_init( &cron_list );
+
+    thread_t_create( cron_thread,
+             PSTR("cron"),
+             0,
+             0 );
 }
 
 void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
@@ -85,6 +108,22 @@ void vm_cron_v_unload( uint8_t vm_id ){
     }   
 }
 
+
+
+PT_THREAD( cron_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+    	// wait for sync
+    	THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
+
+    	TMR_WAIT( pt, 1000 );
+    }
+
+PT_END( pt );
+}
 
 
 

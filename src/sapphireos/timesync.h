@@ -96,7 +96,7 @@ void time_v_set_master_clock(
     uint32_t local_system_time,
     uint8_t source );
 ntp_ts_t time_t_now( void );
-
+ntp_ts_t time_t_local_now( void );
 
 #endif
 #endif

@@ -242,6 +242,18 @@ ntp_ts_t time_t_now( void ){
     return time_t_from_system_time( tmr_u32_get_system_time_ms() );
 }
 
+// get NTP time with timezone correction
+ntp_ts_t time_t_local_now( void ){
+
+    // adjust seconds by timezone offset
+    // tz_offset is in minutse
+    int32_t tz_milliseconds = tz_offset * 60000;
+    uint32_t sys_time = tmr_u32_get_system_time_ms();
+    sys_time += tz_milliseconds;
+
+    return time_t_from_system_time( sys_time );  
+}
+
 // return TRUE if 1 is better than 2
 static bool is_master_better( uint64_t uptime1, uint8_t source1, uint64_t uptime2, uint8_t source2 ){
 
