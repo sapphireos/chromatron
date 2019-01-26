@@ -46,13 +46,21 @@ void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
 
 	fs_v_seek( f, sizeof(uint32_t) + state->cron_start );
 
-	cron_t cron;
+	cron_job_t cron_job;
+	cron_job.vm_id = vm_id;
 
 	for( uint8_t i = 0; i < state->cron_count; i++ ){
 
-		fs_i16_read( f, (uint8_t *)&cron, sizeof(cron) );
+		fs_i16_read( f, (uint8_t *)&cron_job.cron, sizeof(cron_job.cron) );
 
-		
+		list_node_t ln = list_ln_create_node2( &cron_job, sizeof(cron_job), MEM_TYPE_CRON_JOB );
+
+		if( ln < 0 ){
+
+			return;
+		}
+
+		list_v_insert_tail( &cron_list, ln );
 	}
 }
 

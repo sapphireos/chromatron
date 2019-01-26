@@ -44,5 +44,6 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_KVDB_ENTRY         18
 #define MEM_TYPE_SUBSCRIBED_KEYS    19
 #define MEM_TYPE_VM_DATA            20
+#define MEM_TYPE_CRON_JOB           21
 
 #endif

@@ -1013,6 +1013,7 @@ class Device(object):
             18: "kv_db_entry",
             19: "subscribed_keys",
             20: "vm_data",
+            21: "cron_job",
         }
 
         total_size = 0
