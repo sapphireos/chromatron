@@ -39,14 +39,50 @@ static list_t cron_list;
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
 
-static void next_cron( void ){
+static void calc_deadline( cron_job_t *cron ){
 
 	
-	datetime_t datetime;
-	ntp_ts_t ntp_time = time_t_local_now();
+	datetime_t datetime_now;
+	ntp_ts_t ntp_local_now = time_t_local_now();
 
-    datetime_v_seconds_to_datetime( ntp_time.seconds, &datetime );
+    datetime_v_seconds_to_datetime( ntp_local_now.seconds, &datetime_now );
 
+    datetime_t datetime_cron;
+    // memset( &datetime_cron, 0, sizeof(datetime_cron) );
+    datetime_cron = datetime_now;
+	
+	if( cron->seconds >= 0 ){
+
+        datetime_cron.seconds = cron->seconds;
+    }
+
+    if( cron->minutes >= 0 ){
+
+     	datetime_cron.minutes = cron->minutes;   
+    }
+
+    if( cron->hours >= 0 ){
+
+        datetime_cron.hours = cron->hours;
+    }
+
+    // if( cron->day_of_month >= 0 ){
+
+    //     datetime_cron.seconds = cron->seconds;
+    // }
+
+    // if( cron->day_of_week >= 0 ){
+
+    //     datetime_cron.seconds = cron->seconds;
+    // }
+
+    if( cron->month >= 0 ){
+
+        datetime_cron.month = cron->month;
+    }    
+
+
+    uint32_t deadline = 
 
 
 }
