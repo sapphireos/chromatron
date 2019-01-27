@@ -47,7 +47,6 @@
 
 static bool pix_dither;
 static uint8_t pix_mode;
-static bool low_power;
 
 static uint8_t pix_clock;
 static uint8_t pix_rgb_order;
@@ -405,7 +404,7 @@ static void pixel_v_start_frame( void ){
 
 static void setup_pixel_timer( void ){
     
-    if( low_power && !pix_dither ){
+    if( !pix_dither ){
 
         PIXEL_TIMER.PIXEL_TIMER_CC = PIXEL_TIMER.CNT + PWM_FADE_TIMER_LOW_POWER;
     }
@@ -631,9 +630,6 @@ void pixel_v_init( void ){
     // reset IO to input
     PIX_CLK_PORT.DIRCLR = ( 1 << PIX_CLK_PIN );
     PIX_DATA_PORT.DIRCLR = ( 1 << PIX_DATA_PIN );
-
-    // get low power mode state
-    low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
 
     // bounds check
     if( pix_apa102_dimmer > 31 ){
