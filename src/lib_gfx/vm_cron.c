@@ -42,47 +42,47 @@ PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 static void calc_deadline( cron_job_t *cron ){
 
 	
-	datetime_t datetime_now;
-	ntp_ts_t ntp_local_now = time_t_local_now();
+	// datetime_t datetime_now;
+	// ntp_ts_t ntp_local_now = time_t_local_now();
 
-    datetime_v_seconds_to_datetime( ntp_local_now.seconds, &datetime_now );
+ //    datetime_v_seconds_to_datetime( ntp_local_now.seconds, &datetime_now );
 
-    datetime_t datetime_cron;
-    // memset( &datetime_cron, 0, sizeof(datetime_cron) );
-    datetime_cron = datetime_now;
+ //    datetime_t datetime_cron;
+ //    // memset( &datetime_cron, 0, sizeof(datetime_cron) );
+ //    datetime_cron = datetime_now;
 	
-	if( cron->seconds >= 0 ){
+	// if( cron->seconds >= 0 ){
 
-        datetime_cron.seconds = cron->seconds;
-    }
+ //        datetime_cron.seconds = cron->seconds;
+ //    }
 
-    if( cron->minutes >= 0 ){
+ //    if( cron->minutes >= 0 ){
 
-     	datetime_cron.minutes = cron->minutes;   
-    }
+ //     	datetime_cron.minutes = cron->minutes;   
+ //    }
 
-    if( cron->hours >= 0 ){
+ //    if( cron->hours >= 0 ){
 
-        datetime_cron.hours = cron->hours;
-    }
+ //        datetime_cron.hours = cron->hours;
+ //    }
 
-    // if( cron->day_of_month >= 0 ){
+ //    // if( cron->day_of_month >= 0 ){
 
-    //     datetime_cron.seconds = cron->seconds;
-    // }
+ //    //     datetime_cron.seconds = cron->seconds;
+ //    // }
 
-    // if( cron->day_of_week >= 0 ){
+ //    // if( cron->day_of_week >= 0 ){
 
-    //     datetime_cron.seconds = cron->seconds;
-    // }
+ //    //     datetime_cron.seconds = cron->seconds;
+ //    // }
 
-    if( cron->month >= 0 ){
+ //    if( cron->month >= 0 ){
 
-        datetime_cron.month = cron->month;
-    }    
+ //        datetime_cron.month = cron->month;
+ //    }    
 
 
-    uint32_t deadline = 
+ //    uint32_t deadline = 
 
 
 }

@@ -99,16 +99,17 @@ void adc_v_init( void ){
 	__HAL_RCC_ADC12_CLK_ENABLE();
 	__HAL_RCC_ADC3_CLK_ENABLE();
 
-	if( cfg_u16_get_board_type() == BOARD_TYPE_NUCLEAR ){
+	#ifdef BOARD_CHROMATRON
 
-		adc_channels = channels_nuclear;
-		adc_channel_count = cnt_of_array(channels_nuclear);
-	}
-	else if( cfg_u16_get_board_type() == BOARD_TYPE_CHROMATRON_X ){
+	adc_channels = channels_ctx;
+	adc_channel_count = cnt_of_array(channels_ctx);
+	
+	#else
 
-		adc_channels = channels_ctx;
-		adc_channel_count = cnt_of_array(channels_ctx);
-	}
+	adc_channels = channels_nuclear;
+	adc_channel_count = cnt_of_array(channels_nuclear);
+
+	#endif
 
   	
     GPIO_InitTypeDef GPIO_InitStruct;
