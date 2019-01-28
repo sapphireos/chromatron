@@ -57,10 +57,12 @@ static const adc_ch_t channels_nuclear[] = {
 	{0, 			0, 					&hadc3, ADC_CHANNEL_19},
 };
 
+#ifdef BOARD_CHROMATRONX
 static const adc_ch_t channels_ctx[] = {
 	{MEAS1_Pin, 	MEAS1_GPIO_Port, 	&hadc1, ADC_CHANNEL_8},
 	{0, 		0, 				     	&hadc3, ADC_CHANNEL_19},
 };
+#endif
 
 static const adc_ch_t *adc_channels;
 static uint8_t adc_channel_count;

@@ -170,6 +170,11 @@
 #define VMON_GPIO_Port 			GPIOF
 
 
+#define CMD_USART_TX_Pin 		GPIO_PIN_8
+#define CMD_USART_TX_GPIO_Port 	GPIOD
+#define CMD_USART_RX_Pin 		GPIO_PIN_9
+#define CMD_USART_RX_GPIO_Port 	GPIOD
+
 #define SCK_Pin GPIO_PIN_2
 #define SCK_GPIO_Port GPIOE
 #define GP9_Pin GPIO_PIN_3
@@ -206,10 +211,10 @@
 #define LED1_GPIO_Port GPIOF
 #define NC_Pin GPIO_PIN_1
 #define NC_GPIO_Port GPIOG
-#define WIFI_RX_Pin GPIO_PIN_7
-#define WIFI_RX_GPIO_Port GPIOE
-#define WIFI_TX_Pin GPIO_PIN_8
-#define WIFI_TX_GPIO_Port GPIOE
+#define WIFI_RXD_Pin GPIO_PIN_7
+#define WIFI_RXD_GPIO_Port GPIOE
+#define WIFI_TXD_Pin GPIO_PIN_8
+#define WIFI_TXD_GPIO_Port GPIOE
 #define GP5_Pin GPIO_PIN_9
 #define GP5_GPIO_Port GPIOE
 #define WIFI_RST_Pin GPIO_PIN_10
@@ -220,10 +225,10 @@
 #define WIFI_PD_GPIO_Port GPIOE
 #define GP6_Pin GPIO_PIN_13
 #define GP6_GPIO_Port GPIOE
-#define WIFI_READY_Pin GPIO_PIN_14
-#define WIFI_READY_GPIO_Port GPIOE
-#define WIFI_BOOT_R_Pin GPIO_PIN_15
-#define WIFI_BOOT_R_GPIO_Port GPIOE
+#define WIFI_RX_Ready_Pin GPIO_PIN_14
+#define WIFI_RX_Ready_Port GPIOE
+#define WIFI_BOOT_Pin GPIO_PIN_15
+#define WIFI_BOOT_GPIO_Port GPIOE
 #define WIFI_SS_Pin GPIO_PIN_11
 #define WIFI_SS_GPIO_Port GPIOB
 #define T0_Pin GPIO_PIN_14

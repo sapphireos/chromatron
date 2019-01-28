@@ -44,20 +44,22 @@ typedef struct{
 } port_def_t;
 
 static const port_def_t port_defs[] = {
+	
 	{
 		SPI4, 
 		0, 
 		2, 
-		SPI4_MOSI_Pin, 
-		SPI4_MOSI_GPIO_Port, 
+		MOSI_Pin, 
+		MOSI_GPIO_Port, 
 		GPIO_AF5_SPI4,
-		SPI4_MISO_Pin, 
-		SPI4_MISO_GPIO_Port, 
+		MISO_Pin, 
+		MISO_GPIO_Port, 
 		GPIO_AF5_SPI4,
-		SPI4_SCK_Pin, 
-		SPI4_SCK_GPIO_Port, 
+		SCK_Pin, 
+		SCK_GPIO_Port, 
 		GPIO_AF5_SPI4,
 	}, 		// SPI4 on Nuclear J4
+	#ifdef BOARD_CHROMATRONX
 	{
 		0, 
 		USART6, 
@@ -72,6 +74,7 @@ static const port_def_t port_defs[] = {
 		AUX_SPI_SCK_GPIO_Port,
 		GPIO_AF7_USART6,
 	},		// AUX SPI on Chromatron X (not on a connector)
+	#endif
 };
 
 
