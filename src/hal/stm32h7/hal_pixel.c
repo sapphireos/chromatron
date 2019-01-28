@@ -49,15 +49,19 @@ static uint16_t pix_counts[N_PIXEL_OUTPUTS];
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        0,    "pix_count" },
+    #ifdef BOARD_CHROMATRONX
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        0,    "pix_count_1" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        0,    "pix_count_2" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        0,    "pix_count_3" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        0,    "pix_count_4" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        0,    "pix_count_5" },
+    #endif
 };
 
 
 static SPI_HandleTypeDef    pix_spi0;
+
+#ifdef BOARD_CHROMATRONX
 static SPI_HandleTypeDef    pix_spi1;
 static SPI_HandleTypeDef    pix_spi2;
 static SPI_HandleTypeDef    pix_spi3;
@@ -67,8 +71,11 @@ static SPI_HandleTypeDef    pix_spi5;
 // static USART_HandleTypeDef  pix_usart7;
 // static UART_HandleTypeDef   pix_uart8;
 // static UART_HandleTypeDef   pix_uart9;
+#endif
 
 static DMA_HandleTypeDef pix0_dma;
+
+#ifdef BOARD_CHROMATRONX
 static DMA_HandleTypeDef pix1_dma;
 static DMA_HandleTypeDef pix2_dma;
 static DMA_HandleTypeDef pix3_dma;
@@ -79,9 +86,9 @@ static DMA_HandleTypeDef pix4_dma;
 // static DMA_HandleTypeDef pix8_dma;
 // static DMA_HandleTypeDef pix9_dma;
 
-
 static uint8_t p5_buf[128];
 static uint8_t p5_count;
+#endif
 
 void PIX0_DMA_HANDLER(void){
     
@@ -93,6 +100,7 @@ void PIX0_SPI_HANDLER(void){
     HAL_SPI_IRQHandler( &pix_spi0 );
 }
 
+#ifdef BOARD_CHROMATRONX
 void PIX1_DMA_HANDLER(void){
     
     HAL_DMA_IRQHandler( &pix1_dma );
@@ -141,6 +149,7 @@ void PIX5_SPI_HANDLER(void){
     HAL_SPI_IRQHandler( &pix_spi5 );
 }
 
+#endif
 
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
@@ -150,6 +159,7 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
         driver = 0;
     }
+    #ifdef BOARD_CHROMATRONX
     else if( hspi == &pix_spi1 ){
 
         driver = 1;
@@ -169,6 +179,7 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
         HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
         hal_pixel_v_transfer_complete_callback( 5 ); 
     }
+    #endif
         
     if( driver < N_PIXEL_OUTPUTS ){
 
@@ -221,6 +232,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
         
         HAL_SPI_Transmit_DMA( &pix_spi0, data, len );
     }
+    #ifdef BOARD_CHROMATRONX
     else if( driver == 1 ){
 
         HAL_SPI_Transmit_DMA( &pix_spi1, data, len );   
@@ -253,6 +265,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
 
         // hal_pixel_v_transfer_complete_callback( 5 ); 
     }
+    #endif
     else{
 
         ASSERT( FALSE );
@@ -265,11 +278,14 @@ void hal_pixel_v_init( void ){
     __HAL_RCC_DMA2_CLK_ENABLE();
 
     __HAL_RCC_SPI1_CLK_ENABLE();
+
+    #ifdef BOARD_CHROMATRONX
     __HAL_RCC_SPI2_CLK_ENABLE();
     __HAL_RCC_SPI3_CLK_ENABLE();
     __HAL_RCC_SPI4_CLK_ENABLE();
     __HAL_RCC_SPI5_CLK_ENABLE();
     __HAL_RCC_SPI6_CLK_ENABLE();
+    #endif
 
     // NOTE! SPI clocks are set to use PLL2!
     // See hal_cpu.c for details.  This should be 104 MHz.
@@ -294,7 +310,7 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_Init(PIX_DAT_0_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(PIX_DAT_0_GPIO_Port, PIX_DAT_0_Pin, GPIO_PIN_RESET);
 
-
+    #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Pin = PIX_CLK_1_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_CLK_1_GPIO_Port, &GPIO_InitStruct);
@@ -388,15 +404,17 @@ void hal_pixel_v_init( void ){
     // GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
     // HAL_GPIO_Init(PIX_DAT_9_GPIO_Port, &GPIO_InitStruct);
     // HAL_GPIO_WritePin(PIX_DAT_9_GPIO_Port, PIX_DAT_9_Pin, GPIO_PIN_RESET);
-
+    #endif
 
 
     pix_spi0.Instance = PIX0_SPI;
+    #ifdef BOARD_CHROMATRONX
     pix_spi1.Instance = PIX1_SPI;
     pix_spi2.Instance = PIX2_SPI;
     pix_spi3.Instance = PIX3_SPI;
     pix_spi4.Instance = PIX4_SPI;
     pix_spi5.Instance = PIX5_SPI;
+    #endif
 
     SPI_InitTypeDef spi_init;
     spi_init.Mode               = SPI_MODE_MASTER;
@@ -429,6 +447,7 @@ void hal_pixel_v_init( void ){
     pix_spi0.Init = spi_init;
     HAL_SPI_Init( &pix_spi0 );    
 
+    #ifdef BOARD_CHROMATRONX
     // output 1
     // SPI2
     pix_spi1.Init = spi_init;
@@ -453,7 +472,7 @@ void hal_pixel_v_init( void ){
     // SPI6
     pix_spi5.Init = spi_init;
     HAL_SPI_Init( &pix_spi5 );    
-
+    #endif
 
     // set up DMA, output 0
     pix0_dma.Instance                  = PIX0_DMA_INSTANCE;
@@ -480,6 +499,7 @@ void hal_pixel_v_init( void ){
 
     __HAL_LINKDMA( &pix_spi0, hdmatx, pix0_dma );
 
+    #ifdef BOARD_CHROMATRONX
     // set up DMA, output 1
     pix1_dma.Instance                  = PIX1_DMA_INSTANCE;
     pix1_dma.Init.Request              = PIX1_DMA_REQUEST;
@@ -582,5 +602,6 @@ void hal_pixel_v_init( void ){
     HAL_NVIC_EnableIRQ( PIX4_SPI_IRQn );
 
     __HAL_LINKDMA( &pix_spi4, hdmatx, pix4_dma );
+    #endif
 }
 

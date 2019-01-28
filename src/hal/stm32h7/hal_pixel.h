@@ -31,6 +31,7 @@
 #define PIX0_DMA_HANDLER	DMA1_Stream2_IRQHandler
 #define PIX0_DMA_REQUEST	DMA_REQUEST_SPI1_TX
 
+#ifdef BOARD_CHROMATRONX
 #define PIX1_SPI 			SPI2
 #define PIX1_SPI_IRQn 		SPI2_IRQn
 #define PIX1_SPI_HANDLER 	SPI2_IRQHandler
@@ -99,6 +100,7 @@
 // #define PIX9_DMA_HANDLER	DMA2_Stream5_IRQHandler
 // #define PIX9_DMA_REQUEST	DMA_REQUEST_UART5_TX
 
+#endif
 
 
 void hal_pixel_v_init( void );

@@ -44,7 +44,13 @@
 #define USE_HSV_BRIDGE
 #define MAX_PIXELS              4096
 #define FADER_RATE              20
+
+#ifdef BOARD_CHROMATRONX
 #define N_PIXEL_OUTPUTS         6
+#else
+#define N_PIXEL_OUTPUTS         1
+#endif
+
 #define USE_GFX_LIB
 #define GFX_LIB_KV_LINKAGE
 
