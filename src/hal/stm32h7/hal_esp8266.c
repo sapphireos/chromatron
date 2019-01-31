@@ -130,8 +130,8 @@ void hal_wifi_v_init( void ){
     wifi_dma.Init.MemBurst             = DMA_MBURST_SINGLE;
     wifi_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
-    HAL_NVIC_SetPriority( DMA1_Stream1_IRQn, 0, 0 );
-    HAL_NVIC_DisableIRQ( DMA1_Stream1_IRQn );
+    HAL_NVIC_SetPriority( WIFI_DMA_IRQ, 0, 0 );
+    HAL_NVIC_DisableIRQ( WIFI_DMA_IRQ );
         
     // set up IO
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -514,14 +514,22 @@ void hal_wifi_v_enter_boot_mode( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
+    #else
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #endif
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
+    #else
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #endif
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
     wifi_usart.Init.BaudRate = 115200;
@@ -619,14 +627,22 @@ void hal_wifi_v_enter_normal_mode( void ){
     GPIO_InitStruct.Pin = WIFI_RXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
+    #else
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WIFI_TXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
+    #else
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
@@ -646,10 +662,15 @@ void hal_wifi_v_enter_normal_mode( void ){
         _Error_Handler(__FILE__, __LINE__);
     }
 
-
+    #ifdef BOARD_CHROMATRONX
     // connect BOOT pin to EXTI IRQ 3
     HAL_NVIC_SetPriority( EXTI3_IRQn, 0, 0 );
     HAL_NVIC_DisableIRQ( EXTI3_IRQn );
+
+    #else
+
+
+    #endif
 
 
     normal_mode = TRUE;

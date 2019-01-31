@@ -32,9 +32,14 @@
 #define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
 
 #define WIFI_DMA 				DMA1_Stream1
+#define WIFI_DMA_IRQ 			DMA1_Stream1_IRQn
+#ifdef BOARD_CHROMATRONX
 #define WIFI_DMA_REQUEST		DMA_REQUEST_UART8_RX
-
 #define WIFI_USART              UART8
+#else
+#define WIFI_DMA_REQUEST		DMA_REQUEST_UART7_RX
+#define WIFI_USART              UART7
+#endif
 
 #ifdef DEBUG
 #define WIFI_THREAD_TIMEOUT 	5000 // trace_prints will stall threads
