@@ -57,20 +57,21 @@ static int uart_putchar( char c, FILE *stream )
 }
 #endif
 
-static UART_HandleTypeDef huart3;
+static UART_HandleTypeDef cmd_usart;
 
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
 static volatile uint8_t rx_ins;
 static volatile uint8_t rx_ext;
 static volatile uint8_t rx_size;
 
-void USART3_IRQHandler( void ){
+// void USART3_IRQHandler( void ){
+void UART4_IRQHandler( void ){
 
-    while( __HAL_UART_GET_FLAG( &huart3, UART_FLAG_RXNE ) ){
+    while( __HAL_UART_GET_FLAG( &cmd_usart, UART_FLAG_RXNE ) ){
 
-        // HAL_UART_Receive( &huart3, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
+        // HAL_UART_Receive( &cmd_usart, (uint8_t *)&rx_buf[rx_ins], 1, 5 );
 
-        rx_buf[rx_ins] = huart3.Instance->RDR;
+        rx_buf[rx_ins] = cmd_usart.Instance->RDR;
 
         rx_ins++;
 
@@ -82,9 +83,9 @@ void USART3_IRQHandler( void ){
         rx_size++;
     }
 
-    while( __HAL_UART_GET_FLAG( &huart3, UART_FLAG_ORE ) ){
+    while( __HAL_UART_GET_FLAG( &cmd_usart, UART_FLAG_ORE ) ){
 
-        __HAL_UART_CLEAR_IT( &huart3, UART_FLAG_ORE );    
+        __HAL_UART_CLEAR_IT( &cmd_usart, UART_FLAG_ORE );    
     }
 }
 
@@ -134,7 +135,8 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 void cmd_usart_v_init( void ){
 
     // enable clock
-    __HAL_RCC_USART3_CLK_ENABLE();
+    // __HAL_RCC_USART3_CLK_ENABLE();
+    __HAL_RCC_UART4_CLK_ENABLE();
 
     // init IO pins
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -143,36 +145,40 @@ void cmd_usart_v_init( void ){
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+    // GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
     HAL_GPIO_Init(CMD_USART_RX_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = CMD_USART_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+    // GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
     HAL_GPIO_Init(CMD_USART_TX_GPIO_Port, &GPIO_InitStruct);
 
     // initialize command usart
-    huart3.Instance = HAL_CMD_USART;
-    huart3.Init.BaudRate = 115200;
-    huart3.Init.WordLength = UART_WORDLENGTH_8B;
-    huart3.Init.StopBits = UART_STOPBITS_1;
-    huart3.Init.Parity = UART_PARITY_NONE;
-    huart3.Init.Mode = UART_MODE_TX_RX;
-    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-    huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&huart3) != HAL_OK)
+    cmd_usart.Instance = HAL_CMD_USART;
+    cmd_usart.Init.BaudRate = 115200;
+    cmd_usart.Init.WordLength = UART_WORDLENGTH_8B;
+    cmd_usart.Init.StopBits = UART_STOPBITS_1;
+    cmd_usart.Init.Parity = UART_PARITY_NONE;
+    cmd_usart.Init.Mode = UART_MODE_TX_RX;
+    cmd_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    cmd_usart.Init.OverSampling = UART_OVERSAMPLING_16;
+    cmd_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    cmd_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&cmd_usart) != HAL_OK)
     {
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    __HAL_UART_ENABLE_IT( &huart3, UART_IT_RXNE );
+    __HAL_UART_ENABLE_IT( &cmd_usart, UART_IT_RXNE );
 
-    HAL_NVIC_SetPriority( USART3_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( USART3_IRQn );
+    // HAL_NVIC_SetPriority( USART3_IRQn, 0, 0 );
+    // HAL_NVIC_EnableIRQ( USART3_IRQn );
+    HAL_NVIC_SetPriority( UART4_IRQn, 0, 0 );
+    HAL_NVIC_EnableIRQ( UART4_IRQn );
     
     // create serial thread
     thread_t_create( serial_cmd_thread,
@@ -193,12 +199,12 @@ bool cmd_usart_b_received_char( void ){
 
 void cmd_usart_v_send_char( uint8_t data ){
 
-    HAL_UART_Transmit( &huart3, &data, sizeof(data), 100 );
+    HAL_UART_Transmit( &cmd_usart, &data, sizeof(data), 100 );
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
-    HAL_UART_Transmit( &huart3, (uint8_t *)data, len, 100 );
+    HAL_UART_Transmit( &cmd_usart, (uint8_t *)data, len, 100 );
 }
 
 
@@ -348,13 +354,12 @@ PT_BEGIN( pt );
             goto cleanup;
         }
 
-        // log_v_debug_P(PSTR("RECV: %d"), header.data_len);
-
         // check for empty message
         if( header.data_len == 0 ){
             // useful for comms check
 
             cmd_usart_v_send_char( CMD_USART_UDP_ACK ); 
+            log_v_debug_P( PSTR("empty") );
             continue;
         }
 
@@ -388,7 +393,7 @@ PT_BEGIN( pt );
         count = header.data_len;
 
 
-        while( idx < count ){
+        while( count > 0 ){
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + CMD_USART_TIMEOUT_MS );
             THREAD_WAIT_WHILE( pt, ( cmd_usart_u8_rx_size() == 0 ) &&
@@ -406,8 +411,21 @@ PT_BEGIN( pt );
             netmsg_state_t *nm_state = netmsg_vp_get_state( netmsg );
             uint8_t *buf = mem2_vp_get_ptr( nm_state->data_handle ) + idx;
 
-            *buf = cmd_usart_i16_get_char();
-            idx++;
+            uint8_t rx_data = cmd_usart_u8_rx_size();
+
+            if( rx_data > count ){
+
+                rx_data = count;
+            }
+
+            while( rx_data > 0 ){
+                
+                *buf = cmd_usart_i16_get_char();
+                buf++;
+                idx++;
+                count--;
+                rx_data--;
+            }
         }
 
         // wait for CRC

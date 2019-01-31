@@ -170,10 +170,14 @@
 #define VMON_GPIO_Port 			GPIOF
 
 
-#define CMD_USART_TX_Pin 		GPIO_PIN_8
-#define CMD_USART_TX_GPIO_Port 	GPIOD
-#define CMD_USART_RX_Pin 		GPIO_PIN_9
-#define CMD_USART_RX_GPIO_Port 	GPIOD
+// #define CMD_USART_TX_Pin 		GPIO_PIN_8
+// #define CMD_USART_TX_GPIO_Port 	GPIOD
+// #define CMD_USART_RX_Pin 		GPIO_PIN_9
+// #define CMD_USART_RX_GPIO_Port 	GPIOD
+#define CMD_USART_TX_Pin 		GPIO_PIN_9
+#define CMD_USART_TX_GPIO_Port 	GPIOB
+#define CMD_USART_RX_Pin 		GPIO_PIN_8
+#define CMD_USART_RX_GPIO_Port 	GPIOB
 
 #define SCK_Pin GPIO_PIN_2
 #define SCK_GPIO_Port GPIOE
