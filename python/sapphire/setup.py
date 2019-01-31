@@ -49,7 +49,7 @@ setup(
         "appdirs==1.4.3",
         "requests==2.20.0",
         "setuptools == 34.2.0",
-        "pyserial == 3.2.1",
+        "pyserial == 3.4.0",
         "bitstring == 3.1.5",
         "cmd2 == 0.6.9",
         "click >= 6.6",
