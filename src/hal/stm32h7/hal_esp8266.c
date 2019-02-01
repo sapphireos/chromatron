@@ -79,13 +79,15 @@ static volatile uint16_t get_dma_bytes( void ){
 }
 
 // GPIO RX ready IRQ
-// void EXTI3_IRQHandler( void ){
+#ifdef BOARD_CHROMATRONX
+void EXTI3_IRQHandler( void ){
+#else
 void EXTI15_10_IRQHandler( void ){
+#endif
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
-    if( __HAL_GPIO_EXTI_GET_FLAG( GPIO_PIN_3 ) ){
-
-        __HAL_GPIO_EXTI_CLEAR_FLAG( GPIO_PIN_3 );        
+    if( __HAL_GPIO_EXTI_GET_FLAG( WIFI_BOOT_Pin ) ){
+        __HAL_GPIO_EXTI_CLEAR_FLAG( WIFI_BOOT_Pin );        
 
         wifi_rx_ready = TRUE;
 
@@ -167,7 +169,6 @@ void hal_wifi_v_init( void ){
     GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
     HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
 
-    // USART_XCK PIN MISSING
     GPIO_InitStruct.Pin         = WIFI_RX_Ready_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
@@ -390,12 +391,20 @@ void hal_wifi_v_set_rx_ready( void ){
 
 void hal_wifi_v_disable_irq( void ){
 
+    #ifdef BOARD_CHROMATRONX
     HAL_NVIC_DisableIRQ( EXTI3_IRQn );
+    #else
+    HAL_NVIC_DisableIRQ( EXTI15_10_IRQn );
+    #endif
 }
 
 void hal_wifi_v_enable_irq( void ){
 
+    #ifdef BOARD_CHROMATRONX
     HAL_NVIC_EnableIRQ( EXTI3_IRQn );
+    #else
+    HAL_NVIC_EnableIRQ( EXTI15_10_IRQn );
+    #endif
 }
 
 
@@ -546,8 +555,11 @@ void hal_wifi_v_enter_boot_mode( void ){
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // #ifdef BOARD_CHROMATRONX
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    // #else
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // #endif
     wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
     {
@@ -561,7 +573,6 @@ void hal_wifi_v_enter_boot_mode( void ){
     _delay_ms(WIFI_RESET_DELAY_MS);
 
     // release reset
-    // WIFI_PD_PORT.OUTSET = ( 1 << WIFI_PD_PIN );
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_SET);
 
     _delay_ms(WIFI_RESET_DELAY_MS);
@@ -660,8 +671,11 @@ void hal_wifi_v_enter_normal_mode( void ){
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // #ifdef BOARD_CHROMATRONX
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    // #else
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    // #endif
     wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
     {
