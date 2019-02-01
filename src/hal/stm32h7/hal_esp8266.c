@@ -79,7 +79,8 @@ static volatile uint16_t get_dma_bytes( void ){
 }
 
 // GPIO RX ready IRQ
-void EXTI3_IRQHandler( void ){
+// void EXTI3_IRQHandler( void ){
+void EXTI15_10_IRQHandler( void ){
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
     if( __HAL_GPIO_EXTI_GET_FLAG( GPIO_PIN_3 ) ){
@@ -109,7 +110,12 @@ void EXTI3_IRQHandler( void ){
 void hal_wifi_v_init( void ){
 
     // enable clocks
+    #ifdef BOARD_CHROMATRONX
     __HAL_RCC_UART8_CLK_ENABLE();
+    #else
+    __HAL_RCC_UART7_CLK_ENABLE();
+    #endif
+    
     __HAL_RCC_DMA1_CLK_ENABLE();
     
 
@@ -669,6 +675,8 @@ void hal_wifi_v_enter_normal_mode( void ){
 
     #else
 
+    HAL_NVIC_SetPriority( EXTI15_10_IRQn, 0, 0 );
+    HAL_NVIC_DisableIRQ( EXTI15_10_IRQn );
 
     #endif
 
