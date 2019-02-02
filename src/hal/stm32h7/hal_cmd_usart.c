@@ -64,8 +64,8 @@ static volatile uint8_t rx_ins;
 static volatile uint8_t rx_ext;
 static volatile uint8_t rx_size;
 
-// void USART3_IRQHandler( void ){
-void UART4_IRQHandler( void ){
+// ISR(USART3_IRQHandler){
+ISR(UART4_IRQHandler){
 
     while( __HAL_UART_GET_FLAG( &cmd_usart, UART_FLAG_RXNE ) ){
 

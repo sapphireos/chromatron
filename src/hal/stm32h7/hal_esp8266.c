@@ -80,9 +80,9 @@ static volatile uint16_t get_dma_bytes( void ){
 
 // GPIO RX ready IRQ
 #ifdef BOARD_CHROMATRONX
-void EXTI3_IRQHandler( void ){
+ISR(EXTI3_IRQHandler){
 #else
-void EXTI15_10_IRQHandler( void ){
+ISR(EXTI15_10_IRQHandler){
 #endif
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 

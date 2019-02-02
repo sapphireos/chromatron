@@ -165,7 +165,7 @@ bool tmr_b_alarm_armed( void ){
 }
 
 
-void TIM2_IRQHandler( void ){
+ISR(TIM2_IRQHandler){
     	
     if( !__HAL_TIM_GET_FLAG( &system_timer, TIM_IT_UPDATE ) ){
 
@@ -203,5 +203,4 @@ void TIM2_IRQHandler( void ){
 
     hal_wdg_v_kick();
 }
- 
 

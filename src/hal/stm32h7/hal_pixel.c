@@ -90,61 +90,59 @@ static uint8_t p5_buf[128];
 static uint8_t p5_count;
 #endif
 
-void PIX0_DMA_HANDLER(void){
+ISR(PIX0_DMA_HANDLER){
     
     HAL_DMA_IRQHandler( &pix0_dma );
 }
 
-void PIX0_SPI_HANDLER(void){
+ISR(PIX0_SPI_HANDLER){
 
     HAL_SPI_IRQHandler( &pix_spi0 );
 }
 
 #ifdef BOARD_CHROMATRONX
-void PIX1_DMA_HANDLER(void){
+ISR(PIX1_DMA_HANDLER){
     
     HAL_DMA_IRQHandler( &pix1_dma );
 }
 
-void PIX1_SPI_HANDLER(void){
+ISR(PIX1_SPI_HANDLER){
 
     HAL_SPI_IRQHandler( &pix_spi1 );
 }
 
 
-void PIX2_DMA_HANDLER(void){
+ISR(PIX2_DMA_HANDLER){
     
     HAL_DMA_IRQHandler( &pix2_dma );
 }
 
-void PIX2_SPI_HANDLER(void){
+ISR(PIX2_SPI_HANDLER){
 
     HAL_SPI_IRQHandler( &pix_spi2 );
 }
 
-
-void PIX3_DMA_HANDLER(void){
+ISR(PIX3_DMA_HANDLER){
     
     HAL_DMA_IRQHandler( &pix3_dma );
 }
 
-void PIX3_SPI_HANDLER(void){
+ISR(PIX3_SPI_HANDLER){
 
     HAL_SPI_IRQHandler( &pix_spi3 );
 }
 
-
-void PIX4_DMA_HANDLER(void){
+ISR(PIX4_DMA_HANDLER){
     
     HAL_DMA_IRQHandler( &pix4_dma );
 }
 
-void PIX4_SPI_HANDLER(void){
+ISR(PIX4_SPI_HANDLER){
 
     HAL_SPI_IRQHandler( &pix_spi4 );
 }
 
-void PIX5_SPI_HANDLER(void){
+ISR(PIX5_SPI_HANDLER){
 
     HAL_SPI_IRQHandler( &pix_spi5 );
 }

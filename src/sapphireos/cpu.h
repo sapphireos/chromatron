@@ -34,6 +34,8 @@
 #include "bool.h"
 #include "hal_cpu.h"
 
+#define _TOKENPASTE(x, y) x ## y
+#define TOKENPASTE(x, y) _TOKENPASTE(x, y)
 
 #if defined(__SIM__)
     
@@ -69,6 +71,14 @@
     char *itoa(long i, char* s, int dummy_radix);
 
 #elif defined(ARM)
+    #ifdef BOOTLOADER
+        // #define _FILE #__FILE__
+        // #define _FNAME TOKENPASTE( unique, _FILE )
+
+        #define ISR(handler) void TOKENPASTE( handler, __COUNTER__ )( void )
+    #else
+        #define ISR(handler) void handler( void )
+    #endif
     
     #define PGM_P const char*
     #define PROGMEM

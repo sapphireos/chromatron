@@ -60,7 +60,6 @@ Generic mode:
 */
 
 
-#include "cpu.h"
 
 #include "loader.h"
 

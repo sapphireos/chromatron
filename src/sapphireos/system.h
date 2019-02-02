@@ -119,6 +119,10 @@ typedef uint32_t sys_warnings_t;
 // This setting will allow the system to disable assertion traps at runtime.  Do not enable this option unless there is an extremely good reason for it.
 //#define ALLOW_ASSERT_DISABLE
 
+#ifdef BOOTLOADER
+    #undef INCLUDE_ASSERTS
+#endif
+
 // define compile assert macro
 // if the expression evaluates to false
 #ifdef INCLUDE_COMPILER_ASSERTS
@@ -142,9 +146,8 @@ typedef uint32_t sys_warnings_t;
 #else
 	#define ASSERT(expr)
 	#define ASSERT_MSG(expr, str)
+    #define assert(str_expr, file, line)
 #endif
-
-
 
 void sys_v_init( void );
 void sys_v_check_io_for_safe_mode( void );
