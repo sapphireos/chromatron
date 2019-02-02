@@ -79,6 +79,10 @@ typedef void (*pFunction)(void);
 pFunction JumpToApplication;
 uint32_t jumpAddress;
 
+// need to prevent this from optimizing,
+// otherwise GCC generates a stack instruction that breaks.
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 void ldr_run_app( void ){
 
 	DISABLE_INTERRUPTS;
@@ -87,13 +91,13 @@ void ldr_run_app( void ){
 	HAL_SuspendTick();
 
 	__set_MSP( *(__IO uint32_t *)FLASH_START );
-
-	jumpAddress = *(__IO uint32_t*) (FLASH_START + 4);
+	jumpAddress = *(__IO uint32_t *)( FLASH_START + 4 );
  
-	JumpToApplication = (pFunction) jumpAddress;
+	JumpToApplication = (pFunction)jumpAddress;
 
 	JumpToApplication();
 }
+#pragma GCC pop_options
 
 // read data from an external partition
 void ldr_v_read_partition_data( uint32_t offset, uint8_t *dest, uint16_t length ){
