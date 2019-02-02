@@ -76,11 +76,6 @@
 
 int8_t sapphire_i8_init( void ){
 
-    // reset watchdog timer
-	wdg_v_reset();
-
-    cli();
-
     // Must be called first!
 	sys_v_init(); // init system controller
 

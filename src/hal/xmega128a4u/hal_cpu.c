@@ -28,6 +28,8 @@
 
 void cpu_v_init( void ){
 
+    cli();
+
     // startup default:
     // 2 MHz oscillator enabled
     // System clock on 2 MHz osc.

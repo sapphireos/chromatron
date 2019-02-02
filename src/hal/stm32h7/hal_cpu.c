@@ -316,17 +316,16 @@ void cpu_v_init( void ){
     SCB_EnableICache();
     SCB_EnableDCache();
 
+    SCB->VTOR = FLASH_START;
+
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
     /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
     HAL_InitTick(TICK_INT_PRIORITY);
 
-
-    // __HAL_RCC_PWR_CLK_ENABLE();
+    // enable SYSCFG controller clock
     __HAL_RCC_SYSCFG_CLK_ENABLE();
-
-    SCB->VTOR = FLASH_START;
 
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
@@ -349,26 +348,18 @@ void cpu_v_init( void ){
     // update clock
     cpu_normal_clock_config();
 
-    // enable SYSCFG controller clock
-    __HAL_RCC_SYSCFG_CLK_ENABLE();
-
     cpu_init_noncacheable();
 
     // enable gpio clocks
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOH_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
-
-    // un gate clocks for peripheral modules
-    __HAL_RCC_SPI4_CLK_ENABLE();
-    __HAL_RCC_USART6_CLK_ENABLE();
-
-
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOH_CLK_ENABLE();
+    
     PLL1_ClocksTypeDef pll1_clk;
     PLL2_ClocksTypeDef pll2_clk;
     PLL3_ClocksTypeDef pll3_clk;
@@ -485,7 +476,7 @@ void hal_cpu_v_boot_init( void ){
     SCB_DisableICache();
     SCB_DisableDCache();
 
-    SCB->VTOR = 0x08000000;
+    SCB->VTOR = BOOTLOADER_FLASH_START;
 
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
@@ -493,7 +484,7 @@ void hal_cpu_v_boot_init( void ){
     /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
     HAL_InitTick(TICK_INT_PRIORITY);
 
-    // __HAL_RCC_PWR_CLK_ENABLE();
+    // enable SYSCFG controller clock
     __HAL_RCC_SYSCFG_CLK_ENABLE();
 
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
@@ -516,9 +507,6 @@ void hal_cpu_v_boot_init( void ){
 
     // update clock
     cpu_boot_clock_config();
-
-    // enable SYSCFG controller clock
-    __HAL_RCC_SYSCFG_CLK_ENABLE();
 
     cpu_init_noncacheable();
 
