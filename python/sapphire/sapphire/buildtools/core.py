@@ -172,8 +172,8 @@ def runcmd(cmd, tofile=False, tolog=True):
     return output
 
 
-def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True):
-    builder = Builder(target_dir, target_type, fnv_hash=fnv_hash)
+def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True, **kwargs):
+    builder = Builder(target_dir, target_type, fnv_hash=fnv_hash, **kwargs)
 
     modes = {"os": OSBuilder, 
              "loader": LoaderBuilder, 
@@ -185,7 +185,7 @@ def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True):
     return modes[builder.settings["BUILD_TYPE"]](target_dir, target_type, build_loader=build_loader, fnv_hash=fnv_hash)
 
 class Builder(object):
-    def __init__(self, target_dir, target_type=None, build_loader=False, fnv_hash=True):
+    def __init__(self, target_dir, target_type=None, build_loader=False, fnv_hash=True, defines=[]):
         self.target_dir = target_dir
         self.target_type = target_type
 
@@ -229,6 +229,8 @@ class Builder(object):
             self.defines = self.settings["DEFINES"]
         except KeyError:
             self.defines = list()
+
+        self.defines.extend(defines)
 
         if self.build_loader:
             self.defines.append("BOOTLOADER")
@@ -1394,12 +1396,12 @@ def remove_project_info(project_name):
 
     logging.info("Removed %s from listing" % (project_name))
 
-def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=False):
+def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=False, **kwargs):
     projects = get_project_list()
 
     try:
         if proj_name:
-            return get_builder(projects[proj_name], target, build_loader=build_loader)
+            return get_builder(projects[proj_name], target, build_loader=build_loader, **kwargs)
             # return Builder(projects[proj_name], target_type=target)
 
         elif fwid:
@@ -1422,7 +1424,7 @@ def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=Fal
                 raise ProjectNotFoundException(proj_name)
 
             # build from config
-            return ConfigBuilder(build_config=configs[proj_name], target_type=target)
+            return ConfigBuilder(build_config=configs[proj_name], target_type=target, **kwargs)
 
         else:
             raise ProjectNotFoundException(fwid)
@@ -1488,6 +1490,7 @@ def main():
     parser.add_argument("--project", "-p", action="append", help="projects to build")
     parser.add_argument("--build_all", action="store_true", help="build all config projects")
     parser.add_argument("--target", "-t", action="store", help="set build target")
+    parser.add_argument("--def", "-D", action="append", help="pass define to compiler")
     parser.add_argument("--dir", "-d", action="append", help="directories to build")
     parser.add_argument("--loader",action="store_true", help="build bootloader")
     parser.add_argument("--list", "-l", action="store_true", help="list projects")
@@ -1642,6 +1645,10 @@ def main():
         
         args["project"] = configs.keys()
 
+    if args['def']:
+        defines = args['def']
+
+
     # check if project is given
     if args["project"]:
         for p in args["project"]:
@@ -1649,7 +1656,7 @@ def main():
 
             # check if project is in the projects list
             try:
-                builder = get_project_builder(p, target=target_type)
+                builder = get_project_builder(p, target=target_type, defines=defines)
             except Exception:
                 raise
 
@@ -1668,7 +1675,7 @@ def main():
         for d in args["dir"]:
             target_dir = os.path.abspath(d)
 
-            builder = get_builder(target_dir, target_type, build_loader=build_loader)
+            builder = get_builder(target_dir, target_type, build_loader=build_loader, defines=defines)
 
             # init logging
             builder.init_logging()
@@ -1681,7 +1688,7 @@ def main():
 
     # build in current directory
     else:
-        builder = get_builder(target_dir, target_type, build_loader=build_loader)
+        builder = get_builder(target_dir, target_type, build_loader=build_loader, defines=defines)
 
         # init logging
         builder.init_logging()
