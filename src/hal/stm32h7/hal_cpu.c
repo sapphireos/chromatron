@@ -475,6 +475,9 @@ void hal_cpu_v_boot_init( void ){
 
     DISABLE_INTERRUPTS;
 
+    // note caches must be enabled, or the cpu will fail to start up unless you
+    // hit reset several times.  no idea why this is happening, but
+    // we don't have a good reason to turn off the caches anyway.
     SCB_EnableICache();
     SCB_EnableDCache();
 

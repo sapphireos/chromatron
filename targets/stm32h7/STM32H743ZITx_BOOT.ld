@@ -37,7 +37,7 @@ _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x4000; /* required amount of stack */
 
 /* Highest address of the user mode stack */
-_estack = 0x2001F000 - 4;     /* end of DCTMRAM */
+_estack = 0x20020000 - 4;     /* end of DCTMRAM */
 /* set start of stack */
 _sstack = _estack - _Min_Stack_Size;
 
