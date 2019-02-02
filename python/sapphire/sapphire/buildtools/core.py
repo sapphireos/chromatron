@@ -658,6 +658,7 @@ class Builder(object):
                 cmd += '-I%s ' % (source_dir)
 
             for define in self.defines:
+
                 cmd += '-D%s ' % (define)
 
             for flag in self.settings["C_FLAGS"]:
@@ -1647,7 +1648,8 @@ def main():
 
     if args['def']:
         defines = args['def']
-
+    else:
+        defines = []
 
     # check if project is given
     if args["project"]:
@@ -1656,7 +1658,7 @@ def main():
 
             # check if project is in the projects list
             try:
-                builder = get_project_builder(p, target=target_type, defines=defines)
+                builder = get_project_builder(p, build_loader=build_loader, target=target_type, defines=defines)
             except Exception:
                 raise
 
