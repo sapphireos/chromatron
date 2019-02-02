@@ -84,6 +84,7 @@ void ldr_run_app( void ){
 	DISABLE_INTERRUPTS;
 	HAL_FLASH_Lock();
 	wdg_v_disable();
+	HAL_SuspendTick();
 
 	__set_MSP( *(__IO uint32_t *)FLASH_START );
 

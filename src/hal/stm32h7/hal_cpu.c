@@ -316,6 +316,8 @@ void cpu_v_init( void ){
     SCB_EnableICache();
     SCB_EnableDCache();
 
+    HAL_MPU_Disable();
+
     SCB->VTOR = FLASH_START;
 
     /* Set Interrupt Group Priority */
@@ -473,8 +475,11 @@ void hal_cpu_v_boot_init( void ){
 
     DISABLE_INTERRUPTS;
 
-    SCB_DisableICache();
-    SCB_DisableDCache();
+    SCB_EnableICache();
+    SCB_EnableDCache();
+
+    HAL_MPU_Disable();
+
 
     SCB->VTOR = BOOTLOADER_FLASH_START;
 
@@ -507,18 +512,16 @@ void hal_cpu_v_boot_init( void ){
 
     // update clock
     cpu_boot_clock_config();
-
-    cpu_init_noncacheable();
-
+    
     // enable gpio clocks
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOH_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOH_CLK_ENABLE();
 
     PLL1_ClocksTypeDef pll1_clk;
     PLL2_ClocksTypeDef pll2_clk;
@@ -527,7 +530,7 @@ void hal_cpu_v_boot_init( void ){
     HAL_RCCEx_GetPLL2ClockFreq( &pll2_clk );
     HAL_RCCEx_GetPLL3ClockFreq( &pll3_clk );
 
-    trace_printf( "STM32H7\r\n" );
+    trace_printf( "STM32H7 Bootloader\r\n" );
 
     trace_printf( "CPU Clock: %u\r\n", cpu_u32_get_clock_speed() );
     trace_printf( "HCLK     : %u\r\n", HAL_RCC_GetHCLKFreq() );

@@ -78,7 +78,7 @@ extern boot_data_t BOOTDATA boot_data;
 void loader_main( void ){
 
     hal_cpu_v_boot_init();
-
+  
     HAL_FLASH_Lock();
 
     trace_printf("Welcome to Sapphire\n");
