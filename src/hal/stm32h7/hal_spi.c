@@ -119,6 +119,8 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 			break;
 	}
 
+	__HAL_RCC_SPI4_CLK_ENABLE();
+
 	GPIO_InitTypeDef GPIO_InitStruct;
 	
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;

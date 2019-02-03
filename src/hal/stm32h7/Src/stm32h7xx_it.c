@@ -371,9 +371,9 @@ HardFault_Handler_C (ExceptionStackFrame* frame __attribute__((unused)),
   dumpExceptionStack (frame, cfsr, mmfar, bfar, lr);
 // #endif // defined(TRACE)
 
-#if defined(DEBUG)
-  __DEBUG_BKPT();
-#endif
+// #if defined(DEBUG)
+//   __DEBUG_BKPT();
+// #endif
 
 
 

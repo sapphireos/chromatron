@@ -53,72 +53,72 @@ void get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){
     switch( pin ){
         case IO_PIN_0:
             *port = IO_PIN0_PORT;
-            gpio_config[pin].Pin = IO_PIN0_PIN;
+            *pin_number = IO_PIN0_PIN;
             break;
 
         case IO_PIN_1:
             *port = IO_PIN1_PORT;
-            gpio_config[pin].Pin = IO_PIN1_PIN;
+            *pin_number = IO_PIN1_PIN;
             break;
 
         case IO_PIN_2:
             *port = IO_PIN2_PORT;
-            gpio_config[pin].Pin = IO_PIN2_PIN;
+            *pin_number = IO_PIN2_PIN;
             break;
 
         case IO_PIN_3:
             *port = IO_PIN3_PORT;
-            gpio_config[pin].Pin = IO_PIN3_PIN;
+            *pin_number = IO_PIN3_PIN;
             break;
 
         case IO_PIN_4:
             *port = IO_PIN4_PORT;
-            gpio_config[pin].Pin = IO_PIN4_PIN;
+            *pin_number = IO_PIN4_PIN;
             break;
 
         case IO_PIN_5:
             *port = IO_PIN5_PORT;
-            gpio_config[pin].Pin = IO_PIN5_PIN;
+            *pin_number = IO_PIN5_PIN;
             break;
 
         case IO_PIN_6:
             *port = IO_PIN6_PORT;
-            gpio_config[pin].Pin = IO_PIN6_PIN;
+            *pin_number = IO_PIN6_PIN;
             break;
 
         case IO_PIN_7:
             *port = IO_PIN7_PORT;
-            gpio_config[pin].Pin = IO_PIN7_PIN;
+            *pin_number = IO_PIN7_PIN;
             break;
 
         case IO_PIN_8:
             *port = IO_PIN8_PORT;
-            gpio_config[pin].Pin = IO_PIN8_PIN;
+            *pin_number = IO_PIN8_PIN;
             break;
 
         case IO_PIN_9:
             *port = IO_PIN9_PORT;
-            gpio_config[pin].Pin = IO_PIN9_PIN;
+            *pin_number = IO_PIN9_PIN;
             break;
 
         case IO_PIN_10:
             *port = IO_PIN10_PORT;
-            gpio_config[pin].Pin = IO_PIN10_PIN;
+            *pin_number = IO_PIN10_PIN;
             break;
 
         case IO_PIN_CS:
             *port = IO_PINCS_PORT;
-            gpio_config[pin].Pin = IO_PINCS_PIN;
+            *pin_number = IO_PINCS_PIN;
             break;
 
         case IO_PIN_T0:
             *port = IO_PINT0_PORT;
-            gpio_config[pin].Pin = IO_PINT0_PIN;
+            *pin_number = IO_PINT0_PIN;
             break;
 
         case IO_PIN_T1:
             *port = IO_PINT1_PORT;
-            gpio_config[pin].Pin = IO_PINT1_PIN;
+            *pin_number = IO_PINT1_PIN;
             break;
 
         default:
