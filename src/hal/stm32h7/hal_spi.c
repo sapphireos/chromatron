@@ -182,7 +182,7 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 		spi->Init.FifoThreshold 				= SPI_FIFO_THRESHOLD_01DATA;
 		spi->Init.TxCRCInitializationPattern 	= SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 		spi->Init.RxCRCInitializationPattern 	= SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-		spi->Init.MasterSSIdleness 				= SPI_MASTER_SS_IDLENESS_00CYCLE;
+		spi->Init.MasterSSIdleness 				= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 		spi->Init.MasterInterDataIdleness 		= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 		spi->Init.MasterReceiverAutoSusp 		= SPI_MASTER_RX_AUTOSUSP_DISABLE;
 		spi->Init.MasterKeepIOState 			= SPI_MASTER_KEEP_IO_STATE_ENABLE;
@@ -247,11 +247,11 @@ void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
 
 	if( ports[channel].type == TYPE_SPI ){
 
-		HAL_SPI_Transmit( &ports[channel].spi_usart.spi, (uint8_t *)data, length, 250 );
+		HAL_SPI_Transmit( &ports[channel].spi_usart.spi, (uint8_t *)data, length, 1000 );
 	}
 	else{
 
-		HAL_USART_Transmit( &ports[channel].spi_usart.usart, (uint8_t *)data, length, 250 );
+		HAL_USART_Transmit( &ports[channel].spi_usart.usart, (uint8_t *)data, length, 1000 );
 	}
 }
 
@@ -261,11 +261,11 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 
 	if( ports[channel].type == TYPE_SPI ){
 
-		HAL_SPI_Receive( &ports[channel].spi_usart.spi, data, length, 250 );
+		HAL_SPI_Receive( &ports[channel].spi_usart.spi, data, length, 1000 );
 	}
 	else{
 
-		HAL_USART_Receive( &ports[channel].spi_usart.usart, data, length, 250 );
+		HAL_USART_Receive( &ports[channel].spi_usart.usart, data, length, 1000 );
 	}
 }
 
