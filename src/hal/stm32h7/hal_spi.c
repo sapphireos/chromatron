@@ -152,7 +152,7 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 		uint32_t baud = 0;
 
 		// search for closest prescaler
-		for( ; prescaler <= 256; prescaler *= 2 ){
+		for( ; prescaler <= 255; prescaler *= 2 ){
 
 			// closest match at or below target frequency
 			if( ( bus_clock / prescaler ) <= freq ){
@@ -185,7 +185,7 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 		spi->Init.MasterSSIdleness 				= SPI_MASTER_SS_IDLENESS_00CYCLE;
 		spi->Init.MasterInterDataIdleness 		= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 		spi->Init.MasterReceiverAutoSusp 		= SPI_MASTER_RX_AUTOSUSP_DISABLE;
-		spi->Init.MasterKeepIOState 			= SPI_MASTER_KEEP_IO_STATE_DISABLE;
+		spi->Init.MasterKeepIOState 			= SPI_MASTER_KEEP_IO_STATE_ENABLE;
 		spi->Init.IOSwap 						= SPI_IO_SWAP_DISABLE;
 
 		HAL_SPI_Init( spi );
