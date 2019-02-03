@@ -53,8 +53,22 @@ typedef struct{
 } adc_ch_t;
 
 static const adc_ch_t channels_nuclear[] = {
-	{VMON_Pin, 		VMON_GPIO_Port, 	&hadc3, ADC_CHANNEL_5},
-	{0, 			0, 					&hadc3, ADC_CHANNEL_19},
+	{IO_PIN0_PIN, 	IO_PIN0_PORT, &hadc1, ADC_CHANNEL_10},
+	{IO_PIN1_PIN, 	IO_PIN1_PORT, &hadc1, ADC_CHANNEL_13},
+	{IO_PIN2_PIN, 	IO_PIN2_PORT, &hadc1, ADC_CHANNEL_6},
+	{IO_PIN3_PIN, 	IO_PIN3_PORT, &hadc2, ADC_CHANNEL_2},
+	{IO_PIN4_PIN, 	IO_PIN4_PORT, &hadc2, ADC_CHANNEL_6},
+	{IO_PIN5_PIN, 	0, 0, 0},
+	{IO_PIN6_PIN, 	0, 0, 0},
+	{IO_PIN7_PIN, 	0, 0, 0},
+	{IO_PIN8_PIN, 	0, 0, 0},
+	{IO_PIN9_PIN, 	0, 0, 0},
+	{IO_PIN10_PIN, 	0, 0, 0},
+	{IO_PINCS_PIN, 	0, 0, 0},
+	{IO_PINT0_PIN, 	0, 0, 0},
+	{IO_PINT1_PIN, 	0, 0, 0},
+	{VMON_Pin, 		VMON_GPIO_Port, &hadc3, ADC_CHANNEL_5},	 // vmon
+	{0, 			0, 				&hadc3, ADC_CHANNEL_VREFINT},	 // vref (internal)
 };
 
 #ifdef BOARD_CHROMATRONX
@@ -117,7 +131,7 @@ void adc_v_init( void ){
     GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull 		= GPIO_NOPULL;
     GPIO_InitStruct.Pin 		= adc_channels[0].pin;
-	HAL_GPIO_Init(adc_channels[0].port, &GPIO_InitStruct);
+	HAL_GPIO_Init(adc_channels[4].port, &GPIO_InitStruct);
 	
 
 	hadc1.Instance = ADC1;
@@ -242,6 +256,13 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
 	ASSERT( channel < adc_channel_count );
 
+	// check if there is actually a connection on this channel
+	if( adc_channels[channel].adc == 0 ){
+
+		// no connection, return 0
+		return 0;
+	}
+
     uint32_t internal_channel = adc_channels[channel].channel;
 
 	ADC_ChannelConfTypeDef sConfig;
@@ -256,6 +277,11 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
 	ADC_HandleTypeDef *adc = adc_channels[channel].adc;
 
+	if( channel == ADC_CHANNEL_REF ){
+
+		sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;
+	}
+
 	if (HAL_ADC_ConfigChannel( adc, &sConfig ) != HAL_OK)
 	{
 		_Error_Handler( __FILE__, __LINE__ );
@@ -265,7 +291,9 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
     HAL_ADC_PollForConversion( adc, 5 );
 
     uint32_t value = HAL_ADC_GetValue( adc );
- 	
+
+    HAL_ADC_Stop( adc );
+
     return (int16_t)value;
 }
 

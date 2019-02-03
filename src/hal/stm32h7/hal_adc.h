@@ -28,11 +28,8 @@
 
 #include "hal_io.h"
 
-#define ADC_CHANNEL_VSUPPLY     0 // divided VIN measurement
-#define ADC_CHANNEL_REF         1 // ADC reference
-
-// #define ADC_CHANNEL_VCC         2 // VCC
-// #define ADC_CHANNEL_TEMP        3 // internal temperature sensor
+#define ADC_CHANNEL_VSUPPLY     (IO_PIN_COUNT) 	   // divided VIN measurement
+#define ADC_CHANNEL_REF         (IO_PIN_COUNT + 1) // ADC reference
 
 
 #endif

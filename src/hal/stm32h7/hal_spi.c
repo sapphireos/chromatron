@@ -125,7 +125,7 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 	
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;	
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;	
 
     // init IO
 	GPIO_InitStruct.Pin 		= port_defs[channel].pin0;
