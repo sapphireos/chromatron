@@ -68,7 +68,7 @@ Memory overhead is 6 bytes per handle used
 static void *handles[MAX_MEM_HANDLES];
 
 #if defined(__SIM__) || defined(ARM)
-    static uint8_t _heap[MEM_HEAP_SIZE];
+    static uint8_t _heap[MEM_HEAP_SIZE] MEMORY_HEAP;
     static uint8_t *heap = _heap;
 #else
     static uint8_t *heap;

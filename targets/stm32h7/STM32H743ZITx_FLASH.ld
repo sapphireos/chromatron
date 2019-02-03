@@ -213,6 +213,18 @@ SECTIONS
     _ebootdata = .;        /* define a global symbol at bootdata end */
   } >RAM_NO_CACHE
 
+  /* Heap */
+  .memory_heap (NOLOAD):
+  {
+    . = ALIGN(8);
+    _smemory_heap = .;        /* create a global symbol at memory_heap start */
+    *(.memory_heap)           /* .memory_heap sections */
+    *(.memory_heap*)          /* .memory_heap* sections */
+
+    . = ALIGN(4);
+    _ememory_heap = .;        /* define a global symbol at memory_heap end */
+  } >DTCMRAM
+
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {
