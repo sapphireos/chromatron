@@ -36,89 +36,6 @@ static GPIO_InitTypeDef gpio_config[IO_PIN_COUNT];
 
 void io_v_init( void ){
 
-    // GPIO_InitTypeDef GPIO_InitStruct;
-    // GPIO_InitStruct.Alternate = 0;
-
-    // /*Configure GPIO pin Output Level */
-    // HAL_GPIO_WritePin(GPIOE, WIFI_BOOT_Pin|WIFI_RST_Pin, GPIO_PIN_RESET);
-
-    // /*Configure GPIO pin Output Level */
-    // HAL_GPIO_WritePin(GPIOF, WIFI_PD_Pin|WIFI_SS_Pin, GPIO_PIN_RESET);
-
-    // /*Configure GPIO pin Output Level */
-    // HAL_GPIO_WritePin(GPIOC, LED1_Pin|LED0_Pin, GPIO_PIN_RESET);
-
-    // /*Configure GPIO pin Output Level */
-    // HAL_GPIO_WritePin(GPIOB, LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
-
-    // /*Configure GPIO pin Output Level */
-    // HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
-
-    // /*Configure GPIO pin Output Level */
-    // HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-
-    // /*Configure GPIO pins : WIFI_BOOT_Pin WIFI_RST_Pin */
-    // GPIO_InitStruct.Pin = WIFI_BOOT_Pin|WIFI_RST_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-    // /*Configure GPIO pin : WIFI_RX_Ready_Pin */
-    // GPIO_InitStruct.Pin = WIFI_RX_Ready_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // HAL_GPIO_Init(WIFI_RX_Ready_Port, &GPIO_InitStruct);
-
-    // /*Configure GPIO pin : USER_Btn_Pin */
-    // GPIO_InitStruct.Pin = USER_Btn_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
-
-    // /*Configure GPIO pins : WIFI_PD_Pin WIFI_SS_Pin */
-    // GPIO_InitStruct.Pin = WIFI_PD_Pin|WIFI_SS_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
-
-    // /*Configure GPIO pins : LED1_Pin LED0_Pin */
-    // GPIO_InitStruct.Pin = LED1_Pin|LED0_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    // /*Configure GPIO pins : LD3_Pin LD2_Pin */
-    // GPIO_InitStruct.Pin = LD3_Pin|LD2_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    // /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
-    // GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
-
-    // /*Configure GPIO pin : USB_OverCurrent_Pin */
-    // GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
-
-    // /*Configure GPIO pin : LED2_Pin */
-    // GPIO_InitStruct.Pin = LED2_Pin;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_InitStruct.Pull = GPIO_NOPULL;
-    // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
-
-
-
     // set all other pins to inputs pulled down
     for( uint8_t i = 0; i < IO_PIN_COUNT; i++ ){
 
@@ -131,50 +48,94 @@ uint8_t io_u8_get_board_rev( void ){
     return 0;
 }
 
+void get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){
+
+    switch( pin ){
+        case IO_PIN_0:
+            *port = IO_PIN0_PORT;
+            gpio_config[pin].Pin = IO_PIN0_PIN;
+            break;
+
+        case IO_PIN_1:
+            *port = IO_PIN1_PORT;
+            gpio_config[pin].Pin = IO_PIN1_PIN;
+            break;
+
+        case IO_PIN_2:
+            *port = IO_PIN2_PORT;
+            gpio_config[pin].Pin = IO_PIN2_PIN;
+            break;
+
+        case IO_PIN_3:
+            *port = IO_PIN3_PORT;
+            gpio_config[pin].Pin = IO_PIN3_PIN;
+            break;
+
+        case IO_PIN_4:
+            *port = IO_PIN4_PORT;
+            gpio_config[pin].Pin = IO_PIN4_PIN;
+            break;
+
+        case IO_PIN_5:
+            *port = IO_PIN5_PORT;
+            gpio_config[pin].Pin = IO_PIN5_PIN;
+            break;
+
+        case IO_PIN_6:
+            *port = IO_PIN6_PORT;
+            gpio_config[pin].Pin = IO_PIN6_PIN;
+            break;
+
+        case IO_PIN_7:
+            *port = IO_PIN7_PORT;
+            gpio_config[pin].Pin = IO_PIN7_PIN;
+            break;
+
+        case IO_PIN_8:
+            *port = IO_PIN8_PORT;
+            gpio_config[pin].Pin = IO_PIN8_PIN;
+            break;
+
+        case IO_PIN_9:
+            *port = IO_PIN9_PORT;
+            gpio_config[pin].Pin = IO_PIN9_PIN;
+            break;
+
+        case IO_PIN_10:
+            *port = IO_PIN10_PORT;
+            gpio_config[pin].Pin = IO_PIN10_PIN;
+            break;
+
+        case IO_PIN_CS:
+            *port = IO_PINCS_PORT;
+            gpio_config[pin].Pin = IO_PINCS_PIN;
+            break;
+
+        case IO_PIN_T0:
+            *port = IO_PINT0_PORT;
+            gpio_config[pin].Pin = IO_PINT0_PIN;
+            break;
+
+        case IO_PIN_T1:
+            *port = IO_PINT1_PORT;
+            gpio_config[pin].Pin = IO_PINT1_PIN;
+            break;
+
+        default:
+            ASSERT( FALSE );
+            return;
+            break;
+    }
+}
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
-return;
+
 	GPIO_TypeDef *GPIOx;
     gpio_config[pin].Mode        = GPIO_MODE_INPUT;
     gpio_config[pin].Speed       = GPIO_SPEED_FREQ_LOW;
     gpio_config[pin].Pull        = GPIO_NOPULL;
 
-	switch( pin ){
-        case IO_PIN_0:
-        	GPIOx = IO_PIN0_PORT;
-        	gpio_config[pin].Pin = IO_PIN0_PIN;
-            break;
-
-        case IO_PIN_1:
-        	GPIOx = IO_PIN1_PORT;
-        	gpio_config[pin].Pin = IO_PIN1_PIN;
-            break;
-
-        case IO_PIN_2:
-        	GPIOx = IO_PIN2_PORT;
-        	gpio_config[pin].Pin = IO_PIN2_PIN;
-            break;
-
-        case IO_PIN_3:
-        	GPIOx = IO_PIN3_PORT;
-        	gpio_config[pin].Pin = IO_PIN3_PIN;
-            break;
-
-        case IO_PIN_4:
-        	GPIOx = IO_PIN4_PORT;
-        	gpio_config[pin].Pin = IO_PIN4_PIN;
-            break;
-
-        case IO_PIN_5:
-        	GPIOx = IO_PIN5_PORT;
-        	gpio_config[pin].Pin = IO_PIN5_PIN;
-            break;
-
-        default:
-            return;
-            break;
-    }
-
+    get_port( pin, &GPIOx, &gpio_config[pin].Pin );
 
     if( mode >= IO_MODE_OUTPUT ){
 
@@ -207,61 +168,21 @@ return;
 
 io_mode_t8 io_u8_get_mode( uint8_t pin ){
 
-	GPIO_TypeDef *GPIOx;
-	uint32_t gpio_pin;
-
-	switch( pin ){
-        case IO_PIN_0:
-        	GPIOx = IO_PIN0_PORT;
-        	gpio_pin = IO_PIN0_PIN;
-            break;
-
-        case IO_PIN_1:
-        	GPIOx = IO_PIN1_PORT;
-        	gpio_pin = IO_PIN1_PIN;
-            break;
-
-        case IO_PIN_2:
-        	GPIOx = IO_PIN2_PORT;
-        	gpio_pin = IO_PIN2_PIN;
-            break;
-
-        case IO_PIN_3:
-        	GPIOx = IO_PIN3_PORT;
-        	gpio_pin = IO_PIN3_PIN;
-            break;
-
-        case IO_PIN_4:
-        	GPIOx = IO_PIN4_PORT;
-        	gpio_pin = IO_PIN4_PIN;
-            break;
-
-        case IO_PIN_5:
-        	GPIOx = IO_PIN5_PORT;
-        	gpio_pin = IO_PIN5_PIN;
-            break;
-
-        default:
-            return IO_MODE_INPUT;
-            break;
-    }
-
-
-    if( gpio_config[gpio_pin].Mode == GPIO_MODE_OUTPUT_PP ){
+    if( gpio_config[pin].Mode == GPIO_MODE_OUTPUT_PP ){
 
         return IO_MODE_OUTPUT;
     }
-    else if( gpio_config[gpio_pin].Mode == GPIO_MODE_OUTPUT_OD ){
+    else if( gpio_config[pin].Mode == GPIO_MODE_OUTPUT_OD ){
 
         return IO_MODE_OUTPUT_OPEN_DRAIN;
     }
     else{   
 
-        if( gpio_config[gpio_pin].Pull == GPIO_PULLUP ){
+        if( gpio_config[pin].Pull == GPIO_PULLUP ){
 
     		return IO_MODE_INPUT_PULLUP;
     	}
-        else if( gpio_config[gpio_pin].Pull == GPIO_PULLDOWN ){
+        else if( gpio_config[pin].Pull == GPIO_PULLDOWN ){
 
     		return IO_MODE_INPUT_PULLDOWN;
     	}
@@ -275,45 +196,10 @@ io_mode_t8 io_u8_get_mode( uint8_t pin ){
 }
 
 void io_v_digital_write( uint8_t pin, bool state ){
-return;
+
 	GPIO_TypeDef *GPIOx;
 	uint32_t gpio_pin;
-
-	switch( pin ){
-        case IO_PIN_0:
-        	GPIOx = IO_PIN0_PORT;
-        	gpio_pin = IO_PIN0_PIN;
-            break;
-
-        case IO_PIN_1:
-        	GPIOx = IO_PIN1_PORT;
-        	gpio_pin = IO_PIN1_PIN;
-            break;
-
-        case IO_PIN_2:
-        	GPIOx = IO_PIN2_PORT;
-        	gpio_pin = IO_PIN2_PIN;
-            break;
-
-        case IO_PIN_3:
-        	GPIOx = IO_PIN3_PORT;
-        	gpio_pin = IO_PIN3_PIN;
-            break;
-
-        case IO_PIN_4:
-        	GPIOx = IO_PIN4_PORT;
-        	gpio_pin = IO_PIN4_PIN;
-            break;
-
-        case IO_PIN_5:
-        	GPIOx = IO_PIN5_PORT;
-        	gpio_pin = IO_PIN5_PIN;
-            break;
-
-        default:
-            return;
-            break;
-    }
+    get_port( pin, &GPIOx, &gpio_pin );
 
     if( state ){
 
@@ -329,42 +215,7 @@ bool io_b_digital_read( uint8_t pin ){
 
 	GPIO_TypeDef *GPIOx;
 	uint32_t gpio_pin;
-
-	switch( pin ){
-        case IO_PIN_0:
-        	GPIOx = IO_PIN0_PORT;
-        	gpio_pin = IO_PIN0_PIN;
-            break;
-
-        case IO_PIN_1:
-        	GPIOx = IO_PIN1_PORT;
-        	gpio_pin = IO_PIN1_PIN;
-            break;
-
-        case IO_PIN_2:
-        	GPIOx = IO_PIN2_PORT;
-        	gpio_pin = IO_PIN2_PIN;
-            break;
-
-        case IO_PIN_3:
-        	GPIOx = IO_PIN3_PORT;
-        	gpio_pin = IO_PIN3_PIN;
-            break;
-
-        case IO_PIN_4:
-        	GPIOx = IO_PIN4_PORT;
-        	gpio_pin = IO_PIN4_PIN;
-            break;
-
-        case IO_PIN_5:
-        	GPIOx = IO_PIN5_PORT;
-        	gpio_pin = IO_PIN5_PIN;
-            break;
-
-        default:
-            return FALSE;
-            break;
-    }
+    get_port( pin, &GPIOx, &gpio_pin );
 
     return HAL_GPIO_ReadPin( GPIOx, gpio_pin ) == GPIO_PIN_SET;
 }

@@ -31,28 +31,6 @@
 
 #include "stm32h7xx_hal.h"
 
-#define IO_PIN_0       		0 // PA4
-#define IO_PIN_1      		1 // PA5
-#define IO_PIN_2       		2 // PA6
-#define IO_PIN_3       		3 // PA7
-#define IO_PIN_4       		4 // PB10
-#define IO_PIN_5       		5 // PB11
-#define IO_PIN_COUNT        6
-
-#define IO_PIN0_PORT        GPIOA
-#define IO_PIN0_PIN         GPIO_PIN_4
-#define IO_PIN1_PORT        GPIOA
-#define IO_PIN1_PIN         GPIO_PIN_5
-#define IO_PIN2_PORT        GPIOA
-#define IO_PIN2_PIN         GPIO_PIN_6
-#define IO_PIN3_PORT        GPIOA
-#define IO_PIN3_PIN         GPIO_PIN_7
-#define IO_PIN4_PORT        GPIOB
-#define IO_PIN4_PIN         GPIO_PIN_10
-#define IO_PIN5_PORT        GPIOB
-#define IO_PIN5_PIN         GPIO_PIN_11
-
-
 #ifdef BOARD_CHROMATRONX
 // Chromatron X Analog
 // ADC12_INP8
@@ -163,6 +141,53 @@
 
 #else
 // "Nuclear" board
+
+#define IO_PIN_0       		0 // PC0
+#define IO_PIN_1      		1 // PC3
+#define IO_PIN_2       		2 // PF12
+#define IO_PIN_3       		3 // PF13
+#define IO_PIN_4       		4 // PF14
+#define IO_PIN_5       		5 // PE9
+#define IO_PIN_6       		6 // PE13
+#define IO_PIN_7       		7 // PA3
+#define IO_PIN_8       		8 // PF5
+#define IO_PIN_9       		9 // PE3
+#define IO_PIN_10      		10 // PF7
+#define IO_PIN_CS      		11 // PE4
+#define IO_PIN_T0      		12 // PD14
+#define IO_PIN_T1      		13 // PD15
+#define IO_PIN_COUNT        14
+
+#define IO_PIN0_PORT        GPIOC
+#define IO_PIN0_PIN         GPIO_PIN_0
+#define IO_PIN1_PORT        GPIOC
+#define IO_PIN1_PIN         GPIO_PIN_3
+#define IO_PIN2_PORT        GPIOF
+#define IO_PIN2_PIN         GPIO_PIN_12
+#define IO_PIN3_PORT        GPIOF
+#define IO_PIN3_PIN         GPIO_PIN_13
+#define IO_PIN4_PORT        GPIOF
+#define IO_PIN4_PIN         GPIO_PIN_14
+#define IO_PIN5_PORT        GPIOE
+#define IO_PIN5_PIN         GPIO_PIN_9
+#define IO_PIN6_PORT        GPIOE
+#define IO_PIN6_PIN         GPIO_PIN_13
+#define IO_PIN7_PORT        GPIOA
+#define IO_PIN7_PIN         GPIO_PIN_3
+#define IO_PIN8_PORT        GPIOF
+#define IO_PIN8_PIN         GPIO_PIN_5
+#define IO_PIN9_PORT        GPIOE
+#define IO_PIN9_PIN         GPIO_PIN_3
+#define IO_PIN10_PORT       GPIOF
+#define IO_PIN10_PIN        GPIO_PIN_7
+#define IO_PINCS_PORT       GPIOE
+#define IO_PINCS_PIN        GPIO_PIN_4
+#define IO_PINT0_PORT       GPIOD
+#define IO_PINT0_PIN        GPIO_PIN_14
+#define IO_PINT1_PORT       GPIOD
+#define IO_PINT1_PIN        GPIO_PIN_15
+
+
 
 // Nuclear Analog
 // ADC3_INP5
