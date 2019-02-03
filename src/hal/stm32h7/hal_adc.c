@@ -216,6 +216,11 @@ void adc_v_init( void ){
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
+
+	HAL_ADCEx_Calibration_Start( &hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
+	HAL_ADCEx_Calibration_Start( &hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
+	HAL_ADCEx_Calibration_Start( &hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
+
 	thread_t_create( hal_adc_thread,
                      PSTR("hal_adc"),
                      0,
