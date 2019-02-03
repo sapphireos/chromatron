@@ -316,7 +316,7 @@ void HardFault_Handler(void)
 #endif
 
 
-void __attribute__ ((section(".after_vectors"),weak,naked))
+void __attribute__ ((section(".after_vectors"),naked))
 HardFault_Handler (void)
 {
   asm volatile(
@@ -338,11 +338,11 @@ void __attribute__ ((section(".after_vectors"),weak,used))
 HardFault_Handler_C (ExceptionStackFrame* frame __attribute__((unused)),
                      uint32_t lr __attribute__((unused)))
 {
-#if defined(TRACE)
+// #if defined(TRACE)
   uint32_t mmfar = SCB->MMFAR; // MemManage Fault Address
   uint32_t bfar = SCB->BFAR; // Bus Fault Address
   uint32_t cfsr = SCB->CFSR; // Configurable Fault Status Registers
-#endif
+// #endif
 
 #if defined(OS_USE_SEMIHOSTING) || defined(OS_USE_TRACE_SEMIHOSTING_STDOUT) || defined(OS_USE_TRACE_SEMIHOSTING_DEBUG)
 
@@ -366,14 +366,17 @@ HardFault_Handler_C (ExceptionStackFrame* frame __attribute__((unused)),
 
 #endif
 
-#if defined(TRACE)
+// #if defined(TRACE)
   fault_printf ("[HardFault]\r\n");
   dumpExceptionStack (frame, cfsr, mmfar, bfar, lr);
-#endif // defined(TRACE)
+// #endif // defined(TRACE)
 
-// #if defined(DEBUG)
-//   __DEBUG_BKPT();
-// #endif
+#if defined(DEBUG)
+  __DEBUG_BKPT();
+#endif
+
+
+
   while (1)
     {
     }
