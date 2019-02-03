@@ -95,6 +95,9 @@ void ldr_run_app( void ){
  
 	JumpToApplication = (pFunction)jumpAddress;
 
+	SCB_DisableICache();
+    SCB_DisableDCache();
+
 	JumpToApplication();
 }
 #pragma GCC pop_options
