@@ -42,12 +42,13 @@
 
 // pixel config
 #define USE_HSV_BRIDGE
-#define MAX_PIXELS              4096
 #define FADER_RATE              20
 
 #ifdef BOARD_CHROMATRONX
+#define MAX_PIXELS              4096
 #define N_PIXEL_OUTPUTS         6
 #else
+#define MAX_PIXELS              1024
 #define N_PIXEL_OUTPUTS         1
 #endif
 
