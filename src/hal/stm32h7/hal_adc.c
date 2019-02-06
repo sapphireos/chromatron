@@ -268,6 +268,20 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 		return 0;
 	}
 
+	GPIO_InitTypeDef gpio_init;
+
+	// init IO port
+	if( adc_channels[channel].port != 0 ){
+
+	    gpio_init.Mode        = GPIO_MODE_ANALOG;
+	    gpio_init.Speed       = GPIO_SPEED_FREQ_HIGH;
+	    gpio_init.Pull        = GPIO_NOPULL;
+	    gpio_init.Alternate   = 0;
+	    gpio_init.Pin 		  = adc_channels[channel].pin;
+
+	    HAL_GPIO_Init( adc_channels[channel].port, &gpio_init );
+	}
+
     uint32_t internal_channel = adc_channels[channel].channel;
 
 	ADC_ChannelConfTypeDef sConfig;
@@ -298,6 +312,14 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
     uint32_t value = HAL_ADC_GetValue( adc );
 
     HAL_ADC_Stop( adc );
+
+    // reset pin to input
+	if( adc_channels[channel].port != 0 ){
+
+	    gpio_init.Mode        = GPIO_MODE_INPUT;
+
+	    HAL_GPIO_Init( adc_channels[channel].port, &gpio_init );
+	}
 
     return (int16_t)value;
 }

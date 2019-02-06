@@ -132,7 +132,7 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 
 	GPIO_TypeDef *GPIOx;
     gpio_config[pin].Mode        = GPIO_MODE_INPUT;
-    gpio_config[pin].Speed       = GPIO_SPEED_FREQ_LOW;
+    gpio_config[pin].Speed       = GPIO_SPEED_FREQ_HIGH;
     gpio_config[pin].Pull        = GPIO_NOPULL;
 
     get_port( pin, &GPIOx, &gpio_config[pin].Pin );
