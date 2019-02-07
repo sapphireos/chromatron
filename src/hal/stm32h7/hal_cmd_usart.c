@@ -34,6 +34,13 @@
 #include "logging.h"
 #include "hal_io.h"
 
+#include "usb_device.h"
+#include "usbd_core.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h"
+#include "usbd_cdc_if.h"
+
+
 #ifdef PRINTF_SUPPORT
 #include <stdio.h>
 #endif
@@ -131,6 +138,9 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
     0,
     0
 };
+
+
+static USBD_HandleTypeDef hUsbDeviceFS;;
 
 void cmd_usart_v_init( void ){
 
@@ -274,12 +284,39 @@ static uint16_t idx;
 static uint16_t count;
 
 
+
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+
+void OTG_FS_IRQHandler(void)
+{
+  /* USER CODE BEGIN OTG_FS_IRQn 0 */
+
+  /* USER CODE END OTG_FS_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
+  /* USER CODE BEGIN OTG_FS_IRQn 1 */
+
+  /* USER CODE END OTG_FS_IRQn 1 */
+}
+
+
 PT_THREAD( serial_cmd_thread( pt_t *pt, void *state ) )
 {
 
     netmsg_state_t *nm_state = 0;
 
 PT_BEGIN( pt );
+
+    /* Init Device Library, add supported class and start the library. */
+    USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
+
+    USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC);
+
+    USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
+
+    USBD_Start(&hUsbDeviceFS);
+
+    HAL_PWREx_EnableUSBVoltageDetector();
+
 
     while(1){
 
