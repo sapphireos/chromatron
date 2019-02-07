@@ -143,7 +143,7 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 static USBD_HandleTypeDef hUsbDeviceFS;;
 
 void cmd_usart_v_init( void ){
-
+#if 0
     // enable clock
     // __HAL_RCC_USART3_CLK_ENABLE();
     __HAL_RCC_UART4_CLK_ENABLE();
@@ -189,7 +189,7 @@ void cmd_usart_v_init( void ){
     // HAL_NVIC_EnableIRQ( USART3_IRQn );
     HAL_NVIC_SetPriority( UART4_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( UART4_IRQn );
-    
+    #endif
     // create serial thread
     thread_t_create( serial_cmd_thread,
                      PSTR("serial_cmd"),

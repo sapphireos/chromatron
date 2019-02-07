@@ -457,6 +457,8 @@ __ALIGN_BEGIN uint8_t USBD_CDC_OtherSpeedCfgDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIG
   0x00                              /* bInterval */
 };
 
+static USBD_CDC_HandleTypeDef USBD_CDC_Handle;
+
 /**
   * @}
   */ 
@@ -514,7 +516,8 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
                  CDC_CMD_PACKET_SIZE);
   
     
-  pdev->pClassData = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
+  // pdev->pClassData = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
+  pdev->pClassData = &USBD_CDC_Handle;
   
   if(pdev->pClassData == NULL)
   {
@@ -582,7 +585,7 @@ static uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev,
   if(pdev->pClassData != NULL)
   {
     ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->DeInit();
-    USBD_free(pdev->pClassData);
+    // USBD_free(pdev->pClassData);
     pdev->pClassData = NULL;
   }
   
