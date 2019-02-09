@@ -85,6 +85,7 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 500 );
         }
+        #ifdef ENABLE_WIFI
         else if( wifi_b_connected() ){
 
             if( wifi_b_ap_mode() ){
@@ -113,6 +114,7 @@ PT_BEGIN( pt );
         
             TMR_WAIT( pt, 500 );
         }
+        #endif
         else{
 
         	// status_led_v_set( 1, STATUS_LED_RED );
@@ -146,6 +148,7 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 500 );
 
+            #ifdef ENABLE_WIFI
             if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
 
                 status_led_v_set( 0, STATUS_LED_RED );
@@ -156,6 +159,7 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 500 );
             }
+            #endif
         }
     }
 

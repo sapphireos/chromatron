@@ -189,6 +189,7 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
+    sntp_v_init();
     #endif
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -203,8 +204,6 @@ int8_t sapphire_i8_init( void ){
 
 
     dns_v_init();
-
-    sntp_v_init();
 
     trace_printf( "SapphireOS ready\r\n" );
 

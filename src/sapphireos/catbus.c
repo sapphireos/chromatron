@@ -1024,10 +1024,12 @@ PT_BEGIN( pt );
 
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
+            #ifdef ENABLE_TIME_SYNC
             if(time_b_is_sync() ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }
+            #endif
 
             _catbus_v_get_query( &msg->source_query );
             msg->source_hash    = send_state->source_hash;
@@ -1184,8 +1186,12 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
         kv_v_notify_hash_set( hash );
     }
 
-
+    #ifdef ENABLE_TIME_SYNC
     ntp_ts_t ntp_timestamp = time_t_now();
+    #else
+    ntp_ts_t ntp_timestamp;
+    memset( &ntp_timestamp, 0, sizeof(ntp_timestamp) );
+    #endif
 
     list_node_t sender_ln = send_list.head;    
 

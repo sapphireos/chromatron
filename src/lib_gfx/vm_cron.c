@@ -32,6 +32,7 @@
 #include "vm_core.h"
 #include "vm_cron.h"
 
+#ifdef ENABLE_TIME_SYNC
 
 static list_t cron_list;
 
@@ -161,9 +162,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
-
-
-
-
-
+#endif

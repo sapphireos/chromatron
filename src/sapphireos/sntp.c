@@ -56,6 +56,7 @@
 // #define NO_LOGGING
 #include "logging.h"
 
+#ifdef ENABLE_TIME_SYNC
 
 // offset and delay in ms from last sync
 static int16_t last_offset;
@@ -440,3 +441,5 @@ clean_up:
 
 PT_END( pt );
 }
+
+#endif
