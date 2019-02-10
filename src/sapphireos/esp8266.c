@@ -66,7 +66,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "esp8266_loader.h"
 
 #ifdef ENABLE_USB
-#include "hal_usb.h"
+#include "usb_intf.h"
 #endif
 
 // #define NO_LOGGING
