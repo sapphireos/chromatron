@@ -34,6 +34,10 @@
 #include "logging.h"
 #include "hal_io.h"
 
+#ifdef ENABLE_USB
+#include "usb_intf.h"
+#endif
+
 #ifdef PRINTF_SUPPORT
 #include <stdio.h>
 #endif
@@ -57,6 +61,7 @@ static int uart_putchar( char c, FILE *stream )
 }
 #endif
 
+#ifndef ENABLE_USB
 static UART_HandleTypeDef cmd_usart;
 
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
@@ -88,6 +93,7 @@ ISR(UART4_IRQHandler){
         __HAL_UART_CLEAR_IT( &cmd_usart, UART_FLAG_ORE );    
     }
 }
+#endif
 
 int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
 
@@ -135,6 +141,7 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 
 void cmd_usart_v_init( void ){
 
+    #ifndef ENABLE_USB
     // enable clock
     // __HAL_RCC_USART3_CLK_ENABLE();
     __HAL_RCC_UART4_CLK_ENABLE();
@@ -180,6 +187,7 @@ void cmd_usart_v_init( void ){
     // HAL_NVIC_EnableIRQ( USART3_IRQn );
     HAL_NVIC_SetPriority( UART4_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( UART4_IRQn );
+    #endif
     
     // create serial thread
     thread_t_create( serial_cmd_thread,
@@ -200,12 +208,20 @@ bool cmd_usart_b_received_char( void ){
 
 void cmd_usart_v_send_char( uint8_t data ){
 
+    #ifdef ENABLE_USB
+    usb_v_send_char( data );
+    #else
     HAL_UART_Transmit( &cmd_usart, &data, sizeof(data), 100 );
+    #endif
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
+    #ifdef ENABLE_USB
+    usb_v_send_data( data, len );
+    #else
     HAL_UART_Transmit( &cmd_usart, (uint8_t *)data, len, 100 );
+    #endif
 }
 
 
@@ -216,6 +232,11 @@ int16_t cmd_usart_i16_get_char( void ){
         return -1;
     }
 
+    #ifdef ENABLE_USB
+
+    return usb_i16_get_char();
+
+    #else
     uint8_t temp = rx_buf[rx_ext];
     rx_ext++;
 
@@ -229,6 +250,7 @@ int16_t cmd_usart_i16_get_char( void ){
     END_ATOMIC;
 
     return temp;
+    #endif
 }
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
@@ -255,19 +277,31 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 
 uint8_t cmd_usart_u8_rx_size( void ){
 
+    #ifdef ENABLE_USB
+
+    return usb_u8_rx_size();
+
+    #else
     ATOMIC;
     uint8_t temp = rx_size;
     END_ATOMIC;
 
     return temp;
+    #endif
 }
 
 void cmd_usart_v_flush( void ){
 
+    #ifdef ENABLE_USB
+
+    usb_v_flush();
+
+    #else
     ATOMIC;
     rx_ins = rx_ext;
     rx_size = 0;
     END_ATOMIC;
+    #endif
 }
 
 static netmsg_t netmsg;

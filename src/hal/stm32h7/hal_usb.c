@@ -27,9 +27,8 @@
 #ifdef ENABLE_USB
 
 #include "hal_usb.h"
-
+#include "hal_cmd_usart.h"
 #include "sapphire.h"
-
 
 #include "usb_device.h"
 #include "usbd_core.h"
@@ -37,13 +36,140 @@
 #include "usbd_cdc.h"
 #include "usbd_cdc_if.h"
 
+static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
+static volatile uint8_t rx_ins;
+static volatile uint8_t rx_ext;
+static volatile uint8_t rx_size;
+
 
 static USBD_HandleTypeDef hUsbDeviceFS;
 
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
+
+static uint8_t rx_buffer[USB_RX_DATA_SIZE];
+static uint8_t tx_buffer[USB_TX_DATA_SIZE];
+
+
 PT_THREAD( usb_thread( pt_t *pt, void *state ) );
 
+static int8_t CDC_Init_FS(void);
+static int8_t CDC_DeInit_FS(void);
+static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
+static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
+
+
+USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
+{
+  CDC_Init_FS,
+  CDC_DeInit_FS,
+  CDC_Control_FS,
+  CDC_Receive_FS
+};
+
+static int8_t CDC_Init_FS(void)
+{
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, tx_buffer, 0);
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rx_buffer);
+  return (USBD_OK);
+}
+
+static int8_t CDC_DeInit_FS(void)
+{
+  return (USBD_OK);
+}
+static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
+{
+
+  switch(cmd)
+  {
+    case CDC_SEND_ENCAPSULATED_COMMAND:
+
+    break;
+
+    case CDC_GET_ENCAPSULATED_RESPONSE:
+
+    break;
+
+    case CDC_SET_COMM_FEATURE:
+
+    break;
+
+    case CDC_GET_COMM_FEATURE:
+
+    break;
+
+    case CDC_CLEAR_COMM_FEATURE:
+
+    break;
+
+  /*******************************************************************************/
+  /* Line Coding Structure                                                       */
+  /*-----------------------------------------------------------------------------*/
+  /* Offset | Field       | Size | Value  | Description                          */
+  /* 0      | dwDTERate   |   4  | Number |Data terminal rate, in bits per second*/
+  /* 4      | bCharFormat |   1  | Number | Stop bits                            */
+  /*                                        0 - 1 Stop bit                       */
+  /*                                        1 - 1.5 Stop bits                    */
+  /*                                        2 - 2 Stop bits                      */
+  /* 5      | bParityType |  1   | Number | Parity                               */
+  /*                                        0 - None                             */
+  /*                                        1 - Odd                              */
+  /*                                        2 - Even                             */
+  /*                                        3 - Mark                             */
+  /*                                        4 - Space                            */
+  /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
+  /*******************************************************************************/
+    case CDC_SET_LINE_CODING:
+
+    break;
+
+    case CDC_GET_LINE_CODING:
+
+    break;
+
+    case CDC_SET_CONTROL_LINE_STATE:
+
+    break;
+
+    case CDC_SEND_BREAK:
+
+    break;
+
+  default:
+    break;
+  }
+
+  return (USBD_OK);
+}
+
+static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
+{
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
+  rx_ins = 0;
+  rx_ext = 0;
+  rx_size = *Len;
+
+  memcpy( (uint8_t *)rx_buf, rx_buffer, rx_size );
+
+  return (USBD_OK);
+}
+
+uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
+{
+  uint8_t result = USBD_OK;
+  
+  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  if (hcdc->TxState != 0){
+    return USBD_BUSY;
+  }
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
+  result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+  
+  return result;
+}
 
 void OTG_FS_IRQHandler(void)
 {
@@ -53,15 +179,6 @@ void OTG_FS_IRQHandler(void)
 
 
 void usb_v_poll( void ){
-
-}
-
-bool _usb_b_callback_cdc_enable( void ){
-
-    return TRUE;
-}
-
-void _usb_v_callback_cdc_disable( void ){
 
 }
 
@@ -80,35 +197,51 @@ void usb_v_shutdown( void ){
 
 void usb_v_attach( void ){
 
+    USBD_Start( &hUsbDeviceFS );
 }
 
 void usb_v_detach( void ){
 
-}
+	USBD_Stop( &hUsbDeviceFS );
+}	
 
 
 int16_t usb_i16_get_char( void ){
 
+	if( rx_size == 0 ){
+
+		return -1;
+	}
+
+	ATOMIC;
+	rx_size--;
+	uint8_t temp = rx_buf[rx_ext];
+
+	rx_ext++;
+
+	if( rx_ext >= sizeof(rx_buf) ){
+
+		rx_ext = 0;
+	}
+
+	END_ATOMIC;
+
+	return temp;
 }
 
 void usb_v_send_char( uint8_t data ){
 
-    
+	CDC_Transmit_FS( &data, sizeof(data) );    
 }
 
 void usb_v_send_data( const uint8_t *data, uint16_t len ){
 
-    while( len > 0 ){
-
-        usb_v_send_char( *data );
-        data++;
-        len--;
-    }
+	CDC_Transmit_FS( (uint8_t *)data, len );
 }
 
 uint8_t usb_u8_rx_size( void ){
 
-    return 0;
+    return rx_size;
 }
 
 void usb_v_flush( void ){
@@ -119,20 +252,17 @@ void usb_v_flush( void ){
 PT_THREAD( usb_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+    	
     USBD_Init( &hUsbDeviceFS, &FS_Desc, DEVICE_FS );
-
     USBD_RegisterClass( &hUsbDeviceFS, &USBD_CDC );
-
     USBD_CDC_RegisterInterface( &hUsbDeviceFS, &USBD_Interface_fops_FS );
-
-    USBD_Start( &hUsbDeviceFS );
-
     HAL_PWREx_EnableUSBVoltageDetector();
+
+    usb_v_attach();
 
     // while(1){
 
-    	
+
     // }
 
 PT_END( pt );
