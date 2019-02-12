@@ -24,9 +24,6 @@
 #include "timers.h"
 
 
-static UART_HandleTypeDef user_uart;
-
-
 #include "hal_usart.h"
 
 
