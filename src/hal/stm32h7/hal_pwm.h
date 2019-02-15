@@ -25,5 +25,6 @@
 #ifndef _HAL_PWM_H
 #define _HAL_PWM_H
 
+#define N_PWM_CHANNELS      2
 
 #endif

@@ -31,26 +31,101 @@
 #include "sapphire.h"
 
 
+// typedef struct{
+// 	uint32_t pin;
+// 	GPIO_TypeDef *port;
+// 	TIM_HandleTypeDef *timer;
+// 	uint32_t channel;
+// } pwm_ch_t;
+
+static TIM_HandleTypeDef pwm_timer;
+
+// static const pwm_ch_t channels[] = {
+// 	{IO_PIN0_PIN, 	0, 0, 0},
+// 	{IO_PIN1_PIN, 	0, 0, 0},
+// 	{IO_PIN2_PIN, 	0, 0, 0},
+// 	{IO_PIN3_PIN, 	0, 0, 0},
+// 	{IO_PIN4_PIN, 	0, 0, 0},
+// 	{IO_PIN5_PIN, 	0, 0, 0},
+// 	{IO_PIN6_PIN, 	0, 0, 0},
+// 	{IO_PIN7_PIN, 	0, 0, 0},
+// 	{IO_PIN8_PIN, 	0, 0, 0},
+// 	{IO_PIN9_PIN, 	0, 0, 0},
+// 	{IO_PIN10_PIN, 	0, 0, 0},
+// 	{IO_PINCS_PIN, 	0, 0, 0},
+// 	{IO_PINT0_PIN, 	0, 0, 0},
+// 	{IO_PINT1_PIN, 	0, 0, 0},
+// };
+
+
+static uint32_t get_channel( uint8_t channel ){
+
+	if( channel == IO_PIN_T0 ){
+
+		return 3;
+	}
+	else if( channel == IO_PIN_T1 ){
+
+		return 4;
+	}
+
+	ASSERT( 0 );
+}
+
+
 void pwm_v_init( void ){
 
+	pwm_timer.Instance = TIM4;
+
+	HAL_TIM_PWM_Init( &pwm_timer );
 }
 
 void pwm_v_enable( uint8_t channel ){
 
+	ASSERT( channel < N_PWM_CHANNELS );
+		
+	uint32_t timer_channel = get_channel( channel );
 
+	HAL_TIM_PWM_Start( &pwm_timer, channel );
 }
 
 void pwm_v_disable( uint8_t channel ){
 
+	ASSERT( channel < N_PWM_CHANNELS );
 
+	uint32_t timer_channel = get_channel( channel );
+
+	HAL_TIM_PWM_Stop( &pwm_timer, channel );
 }
 
 void pwm_v_write( uint8_t channel, uint16_t value ){
 
+	ASSERT( channel < N_PWM_CHANNELS );
    
+   	uint32_t timer_channel = get_channel( channel );
+	
 }
 
-void pwm_v_set_frequency( uint16_t freq ){
+void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 
+	ASSERT( channel < N_PWM_CHANNELS );
 
+	uint32_t timer_channel = get_channel( channel );
+
+	TIM_OC_InitTypeDef config;
+	config.OCMode 		= TIM_OCMODE_PWM1;
+	config.Pulse 		= 0;
+	config.OCPolarity 	= TIM_OCPOLARITY_LOW;
+	config.OCNPolarity 	= TIM_OCNPOLARITY_LOW;
+	config.OCIdleState 	= TIM_OCIDLESTATE_SET;
+	config.OCNIdleState = TIM_OCNIDLESTATE_SET;
+	
+	HAL_TIM_PWM_ConfigChannel( &pwm_timer, &config, timer_channel );
 }
+
+
+
+
+
+
+
