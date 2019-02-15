@@ -31,32 +31,7 @@
 #include "sapphire.h"
 
 
-// typedef struct{
-// 	uint32_t pin;
-// 	GPIO_TypeDef *port;
-// 	TIM_HandleTypeDef *timer;
-// 	uint32_t channel;
-// } pwm_ch_t;
-
 static TIM_HandleTypeDef pwm_timer;
-
-// static const pwm_ch_t channels[] = {
-// 	{IO_PIN0_PIN, 	0, 0, 0},
-// 	{IO_PIN1_PIN, 	0, 0, 0},
-// 	{IO_PIN2_PIN, 	0, 0, 0},
-// 	{IO_PIN3_PIN, 	0, 0, 0},
-// 	{IO_PIN4_PIN, 	0, 0, 0},
-// 	{IO_PIN5_PIN, 	0, 0, 0},
-// 	{IO_PIN6_PIN, 	0, 0, 0},
-// 	{IO_PIN7_PIN, 	0, 0, 0},
-// 	{IO_PIN8_PIN, 	0, 0, 0},
-// 	{IO_PIN9_PIN, 	0, 0, 0},
-// 	{IO_PIN10_PIN, 	0, 0, 0},
-// 	{IO_PINCS_PIN, 	0, 0, 0},
-// 	{IO_PINT0_PIN, 	0, 0, 0},
-// 	{IO_PINT1_PIN, 	0, 0, 0},
-// };
-
 
 static uint32_t get_channel( uint8_t channel ){
 
