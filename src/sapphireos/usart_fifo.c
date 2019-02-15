@@ -25,7 +25,7 @@
 #include "sapphire.h"
 
 
-void usart_fifo_v_init( usart_fifo_t *fifo, uint8_t *buf, uint16_t len ){
+void usart_fifo_v_init( volatile usart_fifo_t *fifo, volatile uint8_t *buf, uint16_t len ){
 
 	fifo->buf = buf;
 	fifo->len = len;
@@ -36,7 +36,7 @@ void usart_fifo_v_init( usart_fifo_t *fifo, uint8_t *buf, uint16_t len ){
 }
 
 
-uint16_t usart_fifo_u16_get_count( usart_fifo_t *fifo ){
+uint16_t usart_fifo_u16_get_count( volatile usart_fifo_t *fifo ){
 
 	ATOMIC;
     uint16_t temp = fifo->count;
@@ -45,7 +45,7 @@ uint16_t usart_fifo_u16_get_count( usart_fifo_t *fifo ){
     return temp;
 }
 
-int8_t usart_fifo_i8_insert( usart_fifo_t *fifo, uint8_t data ){
+int8_t usart_fifo_i8_insert( volatile usart_fifo_t *fifo, uint8_t data ){
 
 	int8_t status = 0;
 
@@ -71,7 +71,7 @@ end:
     return status;
 }
 
-int16_t usart_fifo_i16_extract( usart_fifo_t *fifo ){
+int16_t usart_fifo_i16_extract( volatile usart_fifo_t *fifo ){
 
 	uint8_t temp = fifo->buf[fifo->ext];
 

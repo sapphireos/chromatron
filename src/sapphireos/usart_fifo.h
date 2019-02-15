@@ -35,10 +35,10 @@ typedef struct{
 } usart_fifo_t;
 
 
-void usart_fifo_v_init( usart_fifo_t *fifo, uint8_t *buf, uint16_t len );
-uint16_t usart_fifo_u16_get_count( usart_fifo_t *fifo );
-int8_t usart_fifo_i8_insert( usart_fifo_t *fifo, uint8_t data );
-int16_t usart_fifo_i16_extract( usart_fifo_t *fifo );
+void usart_fifo_v_init( volatile usart_fifo_t *fifo, volatile uint8_t *buf, uint16_t len );
+uint16_t usart_fifo_u16_get_count( volatile usart_fifo_t *fifo );
+int8_t usart_fifo_i8_insert( volatile usart_fifo_t *fifo, uint8_t data );
+int16_t usart_fifo_i16_extract( volatile usart_fifo_t *fifo );
 
 
 #endif
