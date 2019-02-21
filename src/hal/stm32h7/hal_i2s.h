@@ -25,13 +25,13 @@
 #ifndef _HAL_I2S_H_
 #define _HAL_I2S_H_
 
-#define I2S 				SPI4
-#define I2S_SPI_IRQn 		SPI4_IRQn
-#define I2S_SPI_HANDLER 	SPI4_IRQHandler
+#define I2S 				SPI1
+#define I2S_SPI_IRQn 		SPI1_IRQn
+#define I2S_SPI_HANDLER 	SPI1_IRQHandler
 #define I2S_DMA_INSTANCE	DMA1_Stream7
 #define I2S_DMA_IRQ	 		DMA1_Stream7_IRQn
 #define I2S_DMA_HANDLER		DMA1_Stream7_IRQHandler
-#define I2S_DMA_REQUEST		DMA_REQUEST_SPI4_RX
+#define I2S_DMA_REQUEST		DMA_REQUEST_SPI1_RX
 
 
 void hal_i2s_v_init( void );

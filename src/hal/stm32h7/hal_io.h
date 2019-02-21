@@ -230,6 +230,10 @@
 #define PIX_CLK_0_GPIO_Port GPIOA
 #define PIX_DAT_0_Pin GPIO_PIN_7
 #define PIX_DAT_0_GPIO_Port GPIOA
+#define SPI1_MISO_Pin GPIO_PIN_6
+#define SPI1_MISO_GPIO_Port GPIOA
+#define SPI1_CS_Pin GPIO_PIN_4
+#define SPI1_CS_GPIO_Port GPIOA
 #define GP2_Pin GPIO_PIN_12
 #define GP2_GPIO_Port GPIOF
 #define GP3_Pin GPIO_PIN_13

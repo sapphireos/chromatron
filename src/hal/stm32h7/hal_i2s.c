@@ -42,16 +42,16 @@ typedef struct{
 } i2s_port_def_t;
 
 static const i2s_port_def_t i2s_port_def = {
-	SPI4, 
-	CS_Pin, 
-	CS_GPIO_Port, 
-	GPIO_AF5_SPI4,
-	MISO_Pin, 
-	MISO_GPIO_Port, 
-	GPIO_AF5_SPI4,
-	SCK_Pin, 
-	SCK_GPIO_Port, 
-	GPIO_AF5_SPI4,
+	I2S, 
+	SPI1_CS_Pin, 
+	SPI1_CS_GPIO_Port, 
+	GPIO_AF5_SPI1,
+	SPI1_MISO_Pin, 
+	SPI1_MISO_GPIO_Port, 
+	GPIO_AF5_SPI1,
+	PIX_CLK_0_Pin, 
+	PIX_CLK_0_GPIO_Port, 
+	GPIO_AF5_SPI1,
 };
 
 static uint16_t i2s_buffer[1024];
@@ -73,12 +73,13 @@ void hal_i2s_v_init( void ){
 
 	i2s_handle.Instance = I2S;
 
-	__HAL_RCC_SPI4_CLK_ENABLE();
+	__HAL_RCC_SPI1_CLK_ENABLE();
 	__HAL_RCC_DMA1_CLK_ENABLE();
 
 	GPIO_InitTypeDef GPIO_InitStruct;
 	
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;	
 
@@ -94,6 +95,7 @@ void hal_i2s_v_init( void ){
 	GPIO_InitStruct.Pin 		= i2s_port_def.pin2;
 	GPIO_InitStruct.Alternate 	= i2s_port_def.alt2;
 	HAL_GPIO_Init( i2s_port_def.port2, &GPIO_InitStruct );
+	// HAL_GPIO_WritePin(i2s_port_def.port2, i2s_port_def.pin2, GPIO_PIN_SET);
 
 
 }
@@ -138,7 +140,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
     HAL_NVIC_SetPriority( I2S_SPI_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( I2S_SPI_IRQn );
 
-    __HAL_LINKDMA( &i2s_handle, hdmatx, i2s_dma );
+    __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
     HAL_I2S_Receive_DMA( &i2s_handle, i2s_buffer, sizeof(i2s_buffer) );
     HAL_I2S_Transmit( &i2s_handle, i2s_buffer, sizeof(i2s_buffer), 1000 );
