@@ -30,6 +30,7 @@
 #include "vm.h"
 // #include "vm_sync.h"
 
+#include "hal_i2s.h"
 
 SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
 
@@ -44,5 +45,8 @@ void app_v_init( void ){
     // #ifdef ENABLE_TIME_SYNC
     // vm_sync_v_init();
     // #endif
+
+    hal_i2s_v_init();
+    hal_i2s_v_start( 22050, 24, TRUE );
 }
 
