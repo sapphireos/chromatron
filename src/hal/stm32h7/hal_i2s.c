@@ -73,9 +73,6 @@ void hal_i2s_v_init( void ){
 
 	i2s_handle.Instance = I2S;
 
-	__HAL_RCC_SPI1_CLK_ENABLE();
-	__HAL_RCC_DMA1_CLK_ENABLE();
-
 	GPIO_InitTypeDef GPIO_InitStruct;
 	
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -102,7 +99,10 @@ void hal_i2s_v_init( void ){
 
 void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
 
-	i2s_handle.Init.Mode 				= I2S_MODE_MASTER_TX;
+	__HAL_RCC_SPI1_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
+
+	i2s_handle.Init.Mode 				= I2S_MODE_MASTER_RX;
 	i2s_handle.Init.Standard 			= I2S_STANDARD_MSB;
 	i2s_handle.Init.DataFormat 			= I2S_DATAFORMAT_24B;
 	i2s_handle.Init.MCLKOutput 			= I2S_MCLKOUTPUT_ENABLE;
