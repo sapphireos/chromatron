@@ -142,8 +142,8 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
 
     __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
-    HAL_I2S_Receive_DMA( &i2s_handle, i2s_buffer, sizeof(i2s_buffer) );
-    HAL_I2S_Transmit( &i2s_handle, i2s_buffer, sizeof(i2s_buffer), 1000 );
+    // HAL_I2S_Receive_DMA( &i2s_handle, i2s_buffer, sizeof(i2s_buffer) );
+    HAL_I2S_Receive( &i2s_handle, i2s_buffer, sizeof(i2s_buffer), 1000 );
 }
 
 
