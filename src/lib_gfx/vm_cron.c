@@ -223,7 +223,6 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-
         datetime_t datetime_now;
         ntp_ts_t ntp_local_now = time_t_local_now();
 

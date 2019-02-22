@@ -245,13 +245,15 @@ ntp_ts_t time_t_now( void ){
 // get NTP time with timezone correction
 ntp_ts_t time_t_local_now( void ){
 
-    // adjust seconds by timezone offset
-    // tz_offset is in minutse
-    int32_t tz_milliseconds = tz_offset * 60000;
-    uint32_t sys_time = tmr_u32_get_system_time_ms();
-    sys_time += tz_milliseconds;
+    // get NTP time
+    ntp_ts_t ntp = time_t_now();  
 
-    return time_t_from_system_time( sys_time );  
+    // adjust seconds by timezone offset
+    // tz_offset is in minutes, so also convert to seconds
+    int32_t tz_seconds = tz_offset * 60;
+    ntp.seconds += tz_seconds;
+
+    return ntp;
 }
 
 // return TRUE if 1 is better than 2
