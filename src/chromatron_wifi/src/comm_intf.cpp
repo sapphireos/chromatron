@@ -399,6 +399,12 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         vm_v_set_time_of_day( msg );        
     }
+    else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
+
+        wifi_msg_vm_run_func_t *msg = (wifi_msg_vm_run_func_t *)data;
+
+        vm_v_run_func( msg->vm_id, msg->func_addr );
+    }
     else if( data_id == WIFI_DATA_ID_SET_OPTIONS ){
 
         wifi_msg_set_options_t *msg = (wifi_msg_set_options_t *)data;

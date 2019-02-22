@@ -60,6 +60,7 @@ static uint32_t thread_tick;
 #define VM_RUN_LOOP     1
 #define VM_RUN_THREADS  2
 #define VM_RUN_CRON     3
+#define VM_RUN_FUNC     4
 
 static catbus_hash_t32 kv_hashes[32];
 static uint8_t kv_index;
@@ -125,7 +126,7 @@ void vm_v_send_info( void ){
     intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
 }
 
-static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
+static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr ){
 
     if( vm_index >= VM_MAX_VMS ){
 
@@ -195,6 +196,10 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index ){
 
         return_code = vm_i8_run_cron( stream, &vm_state[vm_index], cron_seconds ); 
     }
+    else if( mode == VM_RUN_FUNC ){
+
+        return_code = vm_i8_run( stream, func_addr, 0, &vm_state[vm_index] );
+    }
     else{
 
         // not running anything.
@@ -262,7 +267,7 @@ void vm_v_process( void ){
 
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
-            _vm_i8_run_vm( VM_RUN_LOOP, i ); 
+            _vm_i8_run_vm( VM_RUN_LOOP, i, 0 ); 
         }
 
         run_vm = false;
@@ -296,7 +301,7 @@ void vm_v_process( void ){
 
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
-            _vm_i8_run_vm( VM_RUN_THREADS, i );
+            _vm_i8_run_vm( VM_RUN_THREADS, i, 0 );
         }
     }
 
@@ -305,7 +310,7 @@ void vm_v_process( void ){
 
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
-            _vm_i8_run_vm( VM_RUN_CRON, i );
+            _vm_i8_run_vm( VM_RUN_CRON, i, 0 );
         }
 
         run_cron = false;
@@ -529,7 +534,7 @@ int8_t vm_i8_start( uint32_t vm_index ){
 
     vm_status[vm_index] = VM_STATUS_OK;
 
-    int8_t status = _vm_i8_run_vm( VM_RUN_INIT, vm_index );
+    int8_t status = _vm_i8_run_vm( VM_RUN_INIT, vm_index, 0 );
 
     if( status < 0 ){
 
@@ -655,6 +660,9 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
     }
 }
 
+void vm_v_run_func( uint8_t index, uint16_t func_addr ){
+
+}
 
 void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg ){
 
