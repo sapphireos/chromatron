@@ -46,7 +46,7 @@ void app_v_init( void ){
     // vm_sync_v_init();
     // #endif
 
-    hal_i2s_v_init();
-    hal_i2s_v_start( 22050, 24, TRUE );
+    // hal_i2s_v_init();
+    // hal_i2s_v_start( 22050, 24, TRUE );
 }
 
