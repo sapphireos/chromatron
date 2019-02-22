@@ -44,6 +44,7 @@ static uint32_t net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
+static bool is_sync;
 
 // master clock
 static ntp_ts_t master_time;
@@ -155,7 +156,7 @@ void time_v_init( void ){
 
 bool time_b_is_sync( void ){
 
-    return master_source != 0;
+    return is_sync;
 }
 
 uint32_t time_u32_get_network_time( void ){
@@ -201,6 +202,7 @@ void time_v_set_master_clock(
     uint32_t local_system_time,
     uint8_t source ){
 
+    is_sync = TRUE;
     master_source = source;
 
     ntp_ts_t local_ts = time_t_from_system_time( local_system_time );
