@@ -28,6 +28,9 @@
 #include <stdint.h>
 #include "datetime_struct.h"
 
+// Friday, January 1, 2010, 00:00:00 (midnight)
+#define SAPPHIRE_NTP_EPOCH 		3471292800
+
 // minimum string length for iso 8601 date/time string.
 // multiple formats are possible, but the format used by
 // this implementation is 19 bytes long

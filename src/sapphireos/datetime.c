@@ -172,6 +172,7 @@ void datetime_v_get_epoch( datetime_t *datetime ){
 
 // calculates datetime from seconds starting at Midnight January 1, 1900 (NTP epoch)
 void datetime_v_seconds_to_datetime( uint32_t seconds, datetime_t *datetime ){
+
     // get number of days
     uint16_t days = seconds / SECONDS_PER_DAY;
 
