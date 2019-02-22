@@ -34,6 +34,7 @@
 
 #include "vm.h"
 #include "vm_core.h"
+#include "vm_cron.h"
 
 
 static thread_t vm_threads[VM_MAX_VMS];
@@ -443,6 +444,8 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
         }
     }
 
+    // load cron jobs
+    vm_cron_v_load( vm_id, &state, f );
 
     fs_f_close( f );
 
@@ -781,6 +784,8 @@ void vm_v_init( void ){
                      PSTR("vm_thread_timing"),
                      0,
                      0 );
+
+    vm_cron_v_init();
 }
 
 

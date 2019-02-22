@@ -28,6 +28,7 @@
 #include "keyvalue.h"
 #include "fs.h"
 #include "timesync.h"
+#include "datetime.h"
 
 #include "vm_core.h"
 #include "vm_cron.h"
@@ -40,54 +41,118 @@ static list_t cron_list;
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
 
-static void calc_deadline( cron_job_t *cron ){
+static void calc_deadline( datetime_t *now, cron_job_t *job ){
 
+    datetime_t datetime_cron = *now;
     
-    // datetime_t datetime_now;
-    // ntp_ts_t ntp_local_now = time_t_local_now();
+    if( job->cron.month >= 0 ){
 
- //    datetime_v_seconds_to_datetime( ntp_local_now.seconds, &datetime_now );
+        datetime_cron.month = job->cron.month;
+    }
 
- //    datetime_t datetime_cron;
- //    // memset( &datetime_cron, 0, sizeof(datetime_cron) );
- //    datetime_cron = datetime_now;
+    if( job->cron.day_of_week >= 0 ){
+
+        datetime_cron.weekday = job->cron.day_of_week;
+    }
+
+    if( job->cron.day_of_month >= 0 ){
+
+        datetime_cron.day = job->cron.day_of_month;
+    }
+
+    if( job->cron.hours >= 0 ){
+
+        datetime_cron.hours = job->cron.hours;
+    }
+
+    if( job->cron.minutes >= 0 ){
+
+        datetime_cron.minutes = job->cron.minutes;
+    }
+
+    if( job->cron.seconds >= 0 ){
+
+        datetime_cron.seconds = job->cron.seconds;
+    }
+
+    uint32_t seconds = datetime_u32_datetime_to_seconds( &datetime_cron );
+
+    log_v_debug_P( PSTR("Next event: %lu"), seconds );
+
+
+    // datetime_t datetime_cron;
+    // // memset( &datetime_cron, 0, sizeof(datetime_cron) );
+    // datetime_cron = datetime_now;
     
     // if( cron->seconds >= 0 ){
 
- //        datetime_cron.seconds = cron->seconds;
- //    }
+    //     datetime_cron.seconds = cron->seconds;
+    // }
 
- //    if( cron->minutes >= 0 ){
+    // if( cron->minutes >= 0 ){
 
- //         datetime_cron.minutes = cron->minutes;   
- //    }
+    //      datetime_cron.minutes = cron->minutes;   
+    // }
 
- //    if( cron->hours >= 0 ){
+    // if( cron->hours >= 0 ){
 
- //        datetime_cron.hours = cron->hours;
- //    }
+    //     datetime_cron.hours = cron->hours;
+    // }
 
- //    // if( cron->day_of_month >= 0 ){
+    // // if( cron->day_of_month >= 0 ){
 
- //    //     datetime_cron.seconds = cron->seconds;
- //    // }
+    // //     datetime_cron.seconds = cron->seconds;
+    // // }
 
- //    // if( cron->day_of_week >= 0 ){
+    // // if( cron->day_of_week >= 0 ){
 
- //    //     datetime_cron.seconds = cron->seconds;
- //    // }
+    // //     datetime_cron.seconds = cron->seconds;
+    // // }
 
- //    if( cron->month >= 0 ){
+    // if( cron->month >= 0 ){
 
- //        datetime_cron.month = cron->month;
- //    }    
+    //     datetime_cron.month = cron->month;
+    // }    
 
 
- //    uint32_t deadline = 
-
+    // uint32_t deadline = 
 
 }
 
+// static bool job_ready( datetime_t *now, cron_job_t *job ){
+
+//     bool match = TRUE;
+
+//     if( ( job->cron.seconds >= 0 ) && ( job->cron.seconds != now->seconds ) ){
+
+//         match = FALSE;
+//     }
+
+//     if( ( job->cron.minutes >= 0 ) && ( job->cron.minutes != now->minutes ) ){
+
+//         match = FALSE;
+//     }
+
+//     if( ( job->cron.hours >= 0 ) && ( job->cron.hours != now->hours ) ){
+
+//         match = FALSE;
+//     }
+
+//     if( ( job->cron.day_of_month >= 0 ) && ( job->cron.day_of_month != now->day ) ){
+
+//         match = FALSE;
+//     }
+
+//     if( ( job->cron.day_of_week >= 0 ) && ( job->cron.day_of_week != now->weekday ) ){
+
+//         match = FALSE;
+//     }
+
+//     if( ( job->cron.month >= 0 ) && ( job->cron.month != now->month ) ){
+
+//         match = FALSE;
+//     }
+// }
 
 void vm_cron_v_init( void ){
 
@@ -157,6 +222,28 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
         TMR_WAIT( pt, 1000 );
+
+
+        datetime_t datetime_now;
+        ntp_ts_t ntp_local_now = time_t_local_now();
+
+        datetime_v_seconds_to_datetime( ntp_local_now.seconds, &datetime_now );
+
+        log_v_debug_P( PSTR("Now: %lu"), ntp_local_now.seconds );
+
+        list_node_t ln = cron_list.head;
+        list_node_t next_ln;
+
+        while( ln > 0 ){
+
+            next_ln = list_ln_next( ln );
+
+            cron_job_t *entry = list_vp_get_data( ln );
+
+            calc_deadline( &datetime_now, entry );
+
+            ln = next_ln;
+        }   
     }
 
 PT_END( pt );
