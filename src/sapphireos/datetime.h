@@ -63,13 +63,13 @@
 #define DECEMBER	12
 
 // day names
+#define SUNDAY 		0
 #define MONDAY 		1
 #define TUESDAY 	2
 #define WEDNESDAY 	3
 #define THURSDAY 	4
 #define FRIDAY 		5
 #define SATURDAY 	6
-#define SUNDAY 		7
 
 void datetime_v_init( void );
     
