@@ -41,7 +41,7 @@ static list_t cron_list;
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
 
-static void calc_deadline( datetime_t *now, cron_job_t *job ){
+static void calc_deadline( uint32_t local_seconds, datetime_t *now, cron_job_t *job ){
 
     datetime_t datetime_cron = *now;
     
@@ -77,7 +77,9 @@ static void calc_deadline( datetime_t *now, cron_job_t *job ){
 
     uint32_t seconds = datetime_u32_datetime_to_seconds( &datetime_cron );
 
-    log_v_debug_P( PSTR("Next event: %lu"), seconds );
+    int32_t delta = (int64_t)seconds - (int64_t)local_seconds;
+    log_v_debug_P( PSTR("Next event: %lu delta: %ld"), seconds, delta );
+
 
 
     // datetime_t datetime_cron;
@@ -239,7 +241,7 @@ PT_BEGIN( pt );
 
             cron_job_t *entry = list_vp_get_data( ln );
 
-            calc_deadline( &datetime_now, entry );
+            calc_deadline( ntp_local_now.seconds, &datetime_now, entry );
 
             ln = next_ln;
         }   
