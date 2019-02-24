@@ -73,12 +73,6 @@ typedef struct __attribute__((packed)){
 
 #define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x28
 
-typedef struct __attribute__((packed)){
-    uint32_t vm_id;
-    uint16_t func_addr;
-} wifi_msg_vm_run_func_t;
-#define WIFI_DATA_ID_VM_RUN_FUNC        0x51
-
 #endif
 
 

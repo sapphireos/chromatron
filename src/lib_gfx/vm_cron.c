@@ -30,6 +30,7 @@
 #include "timesync.h"
 #include "datetime.h"
 #include "util.h"
+#include "esp8266.h"
 
 #include "vm_core.h"
 #include "vm_cron.h"
@@ -195,6 +196,13 @@ PT_BEGIN( pt );
                     if( job_ready( &cron_now, entry ) ){
 
                         log_v_debug_P( PSTR("Running cron job: %u for vm: %d"), entry->cron.func_addr, entry->vm_id );
+
+                        // THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+
+                        wifi_msg_vm_run_func_t msg;
+                        msg.vm_id = entry->vm_id;
+                        msg.func_addr = entry->cron.func_addr;
+                        wifi_i8_send_msg( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&msg, sizeof(msg) );
                     }
 
                     ln = next_ln;

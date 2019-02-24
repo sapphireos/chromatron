@@ -783,19 +783,19 @@ PT_BEGIN( pt );
         // ntp_v_to_iso8601( s, sizeof(s), master_time );
         // log_v_debug_P( PSTR("time: %s diff: %ld adjust: %d"), s, sync_difference, clock_adjust );
 
-        if( time_b_is_sync() ){
+        // if( time_b_is_sync() ){
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+        //     THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
-            // adjust seconds by timezone offset
-            // tz_offset is in minutse
-            int32_t tz_seconds = tz_offset * 60;
+        //     // adjust seconds by timezone offset
+        //     // tz_offset is in minutse
+        //     int32_t tz_seconds = tz_offset * 60;
 
-            wifi_msg_vm_time_of_day_t msg;
-            msg.seconds = master_time.seconds + tz_seconds;
+        //     wifi_msg_vm_time_of_day_t msg;
+        //     msg.seconds = master_time.seconds + tz_seconds;
             
-            wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
-        }
+        //     wifi_i8_send_msg( WIFI_DATA_ID_VM_TIME_OF_DAY, (uint8_t *)&msg, sizeof(msg) );
+        // }
     }
 
 PT_END( pt );
