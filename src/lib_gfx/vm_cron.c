@@ -29,132 +29,57 @@
 #include "fs.h"
 #include "timesync.h"
 #include "datetime.h"
+#include "util.h"
 
 #include "vm_core.h"
 #include "vm_cron.h"
 
 #ifdef ENABLE_TIME_SYNC
 
+static datetime_t cron_now;
+static uint32_t cron_seconds;
 static list_t cron_list;
 
 
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
 
-static void calc_deadline( uint32_t local_seconds, datetime_t *now, cron_job_t *job ){
+static bool job_ready( datetime_t *now, cron_job_t *job ){
 
-    datetime_t datetime_cron = *now;
-    
-    if( job->cron.month >= 0 ){
+    bool match = TRUE;
 
-        datetime_cron.month = job->cron.month;
+    if( ( job->cron.seconds >= 0 ) && ( job->cron.seconds != now->seconds ) ){
+
+        match = FALSE;
     }
 
-    if( job->cron.day_of_week >= 0 ){
+    if( ( job->cron.minutes >= 0 ) && ( job->cron.minutes != now->minutes ) ){
 
-        datetime_cron.weekday = job->cron.day_of_week;
+        match = FALSE;
     }
 
-    if( job->cron.day_of_month >= 0 ){
+    if( ( job->cron.hours >= 0 ) && ( job->cron.hours != now->hours ) ){
 
-        datetime_cron.day = job->cron.day_of_month;
+        match = FALSE;
     }
 
-    if( job->cron.hours >= 0 ){
+    if( ( job->cron.day_of_month >= 0 ) && ( job->cron.day_of_month != now->day ) ){
 
-        datetime_cron.hours = job->cron.hours;
+        match = FALSE;
     }
 
-    if( job->cron.minutes >= 0 ){
+    if( ( job->cron.day_of_week >= 0 ) && ( job->cron.day_of_week != now->weekday ) ){
 
-        datetime_cron.minutes = job->cron.minutes;
+        match = FALSE;
     }
 
-    if( job->cron.seconds >= 0 ){
+    if( ( job->cron.month >= 0 ) && ( job->cron.month != now->month ) ){
 
-        datetime_cron.seconds = job->cron.seconds;
+        match = FALSE;
     }
 
-    uint32_t seconds = datetime_u32_datetime_to_seconds( &datetime_cron );
-
-    int32_t delta = (int64_t)seconds - (int64_t)local_seconds;
-    log_v_debug_P( PSTR("Next event: %lu delta: %ld"), seconds, delta );
-
-
-
-    // datetime_t datetime_cron;
-    // // memset( &datetime_cron, 0, sizeof(datetime_cron) );
-    // datetime_cron = datetime_now;
-    
-    // if( cron->seconds >= 0 ){
-
-    //     datetime_cron.seconds = cron->seconds;
-    // }
-
-    // if( cron->minutes >= 0 ){
-
-    //      datetime_cron.minutes = cron->minutes;   
-    // }
-
-    // if( cron->hours >= 0 ){
-
-    //     datetime_cron.hours = cron->hours;
-    // }
-
-    // // if( cron->day_of_month >= 0 ){
-
-    // //     datetime_cron.seconds = cron->seconds;
-    // // }
-
-    // // if( cron->day_of_week >= 0 ){
-
-    // //     datetime_cron.seconds = cron->seconds;
-    // // }
-
-    // if( cron->month >= 0 ){
-
-    //     datetime_cron.month = cron->month;
-    // }    
-
-
-    // uint32_t deadline = 
-
+    return match;
 }
-
-// static bool job_ready( datetime_t *now, cron_job_t *job ){
-
-//     bool match = TRUE;
-
-//     if( ( job->cron.seconds >= 0 ) && ( job->cron.seconds != now->seconds ) ){
-
-//         match = FALSE;
-//     }
-
-//     if( ( job->cron.minutes >= 0 ) && ( job->cron.minutes != now->minutes ) ){
-
-//         match = FALSE;
-//     }
-
-//     if( ( job->cron.hours >= 0 ) && ( job->cron.hours != now->hours ) ){
-
-//         match = FALSE;
-//     }
-
-//     if( ( job->cron.day_of_month >= 0 ) && ( job->cron.day_of_month != now->day ) ){
-
-//         match = FALSE;
-//     }
-
-//     if( ( job->cron.day_of_week >= 0 ) && ( job->cron.day_of_week != now->weekday ) ){
-
-//         match = FALSE;
-//     }
-
-//     if( ( job->cron.month >= 0 ) && ( job->cron.month != now->month ) ){
-
-//         match = FALSE;
-//     }
-// }
 
 void vm_cron_v_init( void ){
 
@@ -220,34 +145,110 @@ PT_BEGIN( pt );
     
     while(1){
 
-        // wait for sync
-        THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
+        // wait for sync and for cron jobs to be loaded
+        THREAD_WAIT_WHILE( pt, !time_b_is_sync() && list_b_is_empty( &cron_list ) );
 
-        TMR_WAIT( pt, 1000 );
-
-        datetime_t datetime_now;
+        // initialize cron clock
         ntp_ts_t ntp_local_now = time_t_local_now();
+        datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
+        cron_seconds = ntp_local_now.seconds;
 
-        datetime_v_seconds_to_datetime( ntp_local_now.seconds, &datetime_now );
+        while( time_b_is_sync() && !list_b_is_empty( &cron_list ) ){
 
-        log_v_debug_P( PSTR("Now: %lu"), ntp_local_now.seconds );
+            TMR_WAIT( pt, 1000 );
 
-        list_node_t ln = cron_list.head;
-        list_node_t next_ln;
+            // update clock
+            ntp_ts_t ntp_local_now = time_t_local_now();
 
-        while( ln > 0 ){
+            int32_t delta = (int64_t)ntp_local_now.seconds - (int64_t)cron_seconds;
 
-            next_ln = list_ln_next( ln );
+            log_v_debug_P( PSTR("Cron delta: %d"), delta );
 
-            cron_job_t *entry = list_vp_get_data( ln );
+            if( abs32( delta ) > 10 ){
 
-            calc_deadline( ntp_local_now.seconds, &datetime_now, entry );
+                // our clock is pretty far off for some reason.
+                // restart cron.
 
-            ln = next_ln;
-        }   
+                log_v_debug_P( PSTR("Cron resynchronizing clock") );
+
+                THREAD_RESTART( pt );
+            }
+
+            // step through seconds while local clock is ahead of cron's clock
+            while( delta > 0 ){
+
+                datetime_v_increment_seconds( &cron_now );
+
+                // run through job list
+                list_node_t ln = cron_list.head;
+                list_node_t next_ln;
+
+                while( ln > 0 ){
+
+                    next_ln = list_ln_next( ln );
+
+                    cron_job_t *entry = list_vp_get_data( ln );
+
+                    if( job_ready( &cron_now, entry ) ){
+
+                        log_v_debug_P( PSTR("Running cron job: %u for vm: %d"), entry->cron.func_addr, entry->vm_id );
+                    }
+
+                    ln = next_ln;
+                }   
+
+                delta--;
+            }
+
+            // update cron clock
+            cron_seconds = ntp_local_now.seconds;
+        }
     }
 
 PT_END( pt );
 }
 
 #endif
+
+
+
+// this code is unfinished
+// static void calc_deadline( uint32_t local_seconds, datetime_t *now, cron_job_t *job ){
+
+//     datetime_t datetime_cron = *now;
+    
+//     if( job->cron.month >= 0 ){
+
+//         datetime_cron.month = job->cron.month;
+//     }
+
+//     if( job->cron.day_of_week >= 0 ){
+
+//         datetime_cron.weekday = job->cron.day_of_week;
+//     }
+
+//     if( job->cron.day_of_month >= 0 ){
+
+//         datetime_cron.day = job->cron.day_of_month;
+//     }
+
+//     if( job->cron.hours >= 0 ){
+
+//         datetime_cron.hours = job->cron.hours;
+//     }
+
+//     if( job->cron.minutes >= 0 ){
+
+//         datetime_cron.minutes = job->cron.minutes;
+//     }
+
+//     if( job->cron.seconds >= 0 ){
+
+//         datetime_cron.seconds = job->cron.seconds;
+//     }
+
+//     uint32_t seconds = datetime_u32_datetime_to_seconds( &datetime_cron );
+
+//     int32_t delta = (int64_t)seconds - (int64_t)local_seconds;
+//     log_v_debug_P( PSTR("Next event: %lu delta: %ld"), seconds, delta );
+// }
