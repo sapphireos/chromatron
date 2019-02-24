@@ -145,8 +145,11 @@ PT_BEGIN( pt );
     
     while(1){
 
+        // prevent runaway thread
+        THREAD_YIELD( pt );
+
         // wait for sync and for cron jobs to be loaded
-        THREAD_WAIT_WHILE( pt, !time_b_is_sync() && list_b_is_empty( &cron_list ) );
+        THREAD_WAIT_WHILE( pt, !time_b_is_sync() || list_b_is_empty( &cron_list ) );
 
         // initialize cron clock
         ntp_ts_t ntp_local_now = time_t_local_now();
@@ -162,7 +165,7 @@ PT_BEGIN( pt );
 
             int32_t delta = (int64_t)ntp_local_now.seconds - (int64_t)cron_seconds;
 
-            log_v_debug_P( PSTR("Cron delta: %d"), delta );
+            // log_v_debug_P( PSTR("Cron delta: %d"), delta );
 
             if( abs32( delta ) > 10 ){
 
