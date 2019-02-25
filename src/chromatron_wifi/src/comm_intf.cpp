@@ -388,17 +388,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         udp_busy = false;
     }
-    else if( data_id == WIFI_DATA_ID_VM_TIME_OF_DAY ){
-
-        wifi_msg_vm_time_of_day_t *msg = (wifi_msg_vm_time_of_day_t *)data;
-
-        if( sizeof(wifi_msg_vm_time_of_day_t) != len ){
-
-            return;
-        }
-
-        vm_v_set_time_of_day( msg );        
-    }
     else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
 
         wifi_msg_vm_run_func_t *msg = (wifi_msg_vm_run_func_t *)data;

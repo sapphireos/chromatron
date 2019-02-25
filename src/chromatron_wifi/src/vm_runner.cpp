@@ -50,17 +50,13 @@ static uint16_t vm_thread_time[VM_MAX_VMS];
 
 static bool run_vm;
 static bool run_faders;
-static bool run_cron;
-
-static uint32_t cron_seconds;
 
 static uint32_t thread_tick;
 
 #define VM_RUN_INIT     0
 #define VM_RUN_LOOP     1
 #define VM_RUN_THREADS  2
-#define VM_RUN_CRON     3
-#define VM_RUN_FUNC     4
+#define VM_RUN_FUNC     3
 
 static catbus_hash_t32 kv_hashes[32];
 static uint8_t kv_index;
@@ -192,10 +188,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
             return VM_STATUS_OK;
         }
     }
-    else if( mode == VM_RUN_CRON ){
-
-        return_code = vm_i8_run_cron( stream, &vm_state[vm_index], cron_seconds ); 
-    }
     else if( mode == VM_RUN_FUNC ){
 
         return_code = vm_i8_run( stream, func_addr, 0, &vm_state[vm_index] );
@@ -305,17 +297,7 @@ void vm_v_process( void ){
         }
     }
 
-    // check cron jobs
-    if( run_cron ){
-
-        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
-
-            _vm_i8_run_vm( VM_RUN_CRON, i, 0 );
-        }
-
-        run_cron = false;
-    }
-
+    
     // get all updated KVDB items and transmit them
 
     uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
@@ -663,13 +645,6 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
 void vm_v_run_func( uint8_t index, uint16_t func_addr ){
 
     _vm_i8_run_vm( VM_RUN_FUNC, index, func_addr );
-}
-
-void vm_v_set_time_of_day( wifi_msg_vm_time_of_day_t *msg ){
-
-    cron_seconds = msg->seconds;
-    
-    run_cron = true;
 }
 
 void vm_v_request_frame_data( uint8_t index ){

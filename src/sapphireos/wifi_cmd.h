@@ -182,11 +182,6 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40
 
 typedef struct __attribute__((packed)){
-    uint32_t seconds;
-} wifi_msg_vm_time_of_day_t;
-#define WIFI_DATA_ID_VM_TIME_OF_DAY     0x50
-
-typedef struct __attribute__((packed)){
     bool low_power;
     bool led_quiet;
     uint8_t padding[2];
