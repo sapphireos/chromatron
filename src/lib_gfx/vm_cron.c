@@ -211,7 +211,7 @@ PT_BEGIN( pt );
                         wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&msg, sizeof(msg) );
                         #else
 
-                        vm_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
+                        vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
 
                         #endif
                     }

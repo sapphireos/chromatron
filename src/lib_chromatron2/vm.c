@@ -826,7 +826,7 @@ bool vm_b_is_vm_running( uint8_t i ){
     return is_vm_running( i );   
 }
 
-int8_t vm_i8_run_func( uint8_t i, uint16_t func_addr ){
+int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){
 
     if( vm_threads[i] <= 0 ){
         

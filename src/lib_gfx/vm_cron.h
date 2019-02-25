@@ -34,4 +34,7 @@ void vm_cron_v_init( void );
 void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f );
 void vm_cron_v_unload( uint8_t vm_id );
 
+// function must be defined by vm.c
+int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr );
+
 #endif
