@@ -164,6 +164,10 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 1000 );
 
+            #ifdef VM_TARGET_ESP
+            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
+            #endif
+
             // update clock
             ntp_ts_t ntp_local_now = time_t_local_now();
 
@@ -180,10 +184,6 @@ PT_BEGIN( pt );
 
                 THREAD_RESTART( pt );
             }   
-
-            #ifdef VM_TARGET_ESP
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            #endif
 
             // step through seconds while local clock is ahead of cron's clock
             while( delta > 0 ){
