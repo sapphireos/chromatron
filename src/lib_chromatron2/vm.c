@@ -806,8 +806,6 @@ void vm_v_reset( void ){
 }
 
 
-
-
 bool vm_b_running( void ){
 
     for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
@@ -826,5 +824,17 @@ bool vm_b_is_vm_running( uint8_t i ){
     ASSERT( i < VM_MAX_VMS );
 
     return is_vm_running( i );   
+}
+
+int8_t vm_i8_run_func( uint8_t i, uint16_t func_addr ){
+
+    if( vm_threads[i] <= 0 ){
+        
+        return VM_STATUS_ERROR;        
+    }
+
+    vm_thread_state_t *thread_state = thread_vp_get_data( vm_threads[i] );
+
+    return vm_i8_run( mem2_vp_get_ptr( thread_state->handle ), func_addr, 0, &thread_state->vm_state );
 }
 
