@@ -70,13 +70,13 @@ class Client(object):
 
             try:
                 self.__sock.sendto(msg.pack(), host)
-                # print msg
+                # print 'send', msg
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
-                    # print reply_msg
+                    # print 'recv', reply_msg
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
                         # bad transaction IDs coming in, this doesn't count
@@ -589,7 +589,7 @@ class Client(object):
         session_id = response.session_id
         offset = 0        
         page_size = response.page_size
-        ack_offset = 1
+        ack_offset = 0
 
         self.__sock.settimeout(0.5)
 
@@ -616,6 +616,7 @@ class Client(object):
 
                 msg = FileDataMsg(session_id=session_id, offset=offset, len=len(data), data=data)
                 
+                # print 'fsend', msg
                 self.__sock.sendto(msg.pack(), host)  
 
                 offset += write_len
@@ -625,6 +626,7 @@ class Client(object):
             try:
                 data, sender = self.__sock.recvfrom(4096)
                 reply_msg = deserialize(data)
+                # print 'freply', reply_msg
 
                 if isinstance(reply_msg, ErrorMsg):
                     self.flush()
