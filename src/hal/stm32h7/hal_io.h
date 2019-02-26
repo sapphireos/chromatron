@@ -142,6 +142,57 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define SPI4_SCK_GPIO_Port 		GPIOE
 
 #else
+
+// NG
+
+#define IO_PIN_GPIOA0       0 	// PC5
+#define IO_PIN_GPIOA1       1	// PC4
+#define IO_PIN_GPIOA2       2   // PA6 - I2S1_SDI
+#define IO_PIN_GPIOA3       3   // PA5 - I2S1_CK
+#define IO_PIN_GPIOA4       4   // PA4 - I2S1_WS
+#define IO_PIN_GPIOA5       5   // PA7
+#define IO_PIN_GPIOSCK      6   // PE2
+#define IO_PIN_GPIOMOSI     7   // PE6
+#define IO_PIN_GPIOMISO     8   // PE5
+#define IO_PIN_GPIORX       9   // PB5
+#define IO_PIN_GPIOTX       10  // PB6
+#define IO_PIN_PIX_CLK      11  // PB13
+#define IO_PIN_PIX_DAT      12  // PB14
+#define IO_PIN_GPIOSDA      13  // PB9
+#define IO_PIN_GPIOSCL      14  // PB8
+#define IO_PIN_GPIO5        15  // PE7
+#define IO_PIN_GPIO6        16  // PE8
+#define IO_PIN_GPIO9        17  // PE9
+#define IO_PIN_GPIO10       18  // PE10
+#define IO_PIN_GPIO11       19  // PE11
+#define IO_PIN_GPIO12       20  // PE12
+#define IO_PIN_GPIO13       21  // PE15
+
+#define IO_PIN_PIX_CLK2     22  //
+#define IO_PIN_PIX_DAT2     23  //
+
+// WIFI_RX 		- PA0
+// WIFI_TX 		- PA1
+// WIFI_RST 	- PA2
+// WIFI_READY 	- PA3
+// WIFI_SS 		- PC1
+// WIFI_BOOT 	- PC2
+// WIFI_PD 		- PC3
+// LED0 		- PC6
+// LED2 		- PC7
+// LED1 		- PC8
+// USB_DM 		- PA11
+// USB_DP 		- PA12
+// SWDIO 		- PA13
+// SWCLK 		- PA14
+// VMON 		- PB1
+// FSPI_SCK 	- PB2
+// FSPI_CS 		- PB10
+// FSPI_MOSI	- PD11
+// FSPI_MISO	- PD12
+
+
+
 // "Nuclear" board
 
 #define IO_PIN_0       		0 // PC0
