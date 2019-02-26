@@ -37,11 +37,11 @@ static uint32_t get_channel( uint8_t channel ){
 
 	if( channel == IO_PIN_T0 ){
 
-		return 3;
+		return TIM_CHANNEL_3;
 	}
 	else if( channel == IO_PIN_T1 ){
 
-		return 4;
+		return TIM_CHANNEL_4;
 	}
 
 	ASSERT( 0 );
@@ -51,6 +51,8 @@ static uint32_t get_channel( uint8_t channel ){
 
 
 void pwm_v_init( void ){
+
+	__HAL_RCC_TIM4_CLK_ENABLE();
 
 	pwm_timer.Instance = TIM4;
 	pwm_timer.Init.Prescaler 			= 0;
@@ -62,7 +64,16 @@ void pwm_v_init( void ){
 
 	HAL_TIM_Base_Init( &pwm_timer );
 
+	TIM_ClockConfigTypeDef clock_config;
+	clock_config.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	HAL_TIM_ConfigClockSource( &pwm_timer, &clock_config );
+
 	HAL_TIM_PWM_Init( &pwm_timer );
+
+	TIM_MasterConfigTypeDef master_config;
+	master_config.MasterOutputTrigger 	= TIM_TRGO_RESET;
+  	master_config.MasterSlaveMode 		= TIM_MASTERSLAVEMODE_DISABLE;
+  	HAL_TIMEx_MasterConfigSynchronization( &pwm_timer, &master_config );
 }
 
 void pwm_v_enable( uint8_t channel ){
@@ -114,6 +125,7 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 	config.OCNPolarity 	= TIM_OCNPOLARITY_HIGH;
 	config.OCIdleState 	= TIM_OCIDLESTATE_RESET;
 	config.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+	config.OCFastMode 	= TIM_OCFAST_DISABLE;
 	
 	HAL_TIM_PWM_ConfigChannel( &pwm_timer, &config, timer_channel );
 }
