@@ -589,77 +589,37 @@ class Client(object):
         session_id = response.session_id
         offset = 0        
         page_size = response.page_size
-        ack_offset = 0
+        
+        while offset < len(file_data):
+            write_len = page_size
 
-        self.__sock.settimeout(0.5)
+            # check for end of file
+            data_remaining = len(file_data) - offset
+            if write_len > data_remaining:
+                write_len = data_remaining
 
-        max_window = self.write_window_size
-        current_window = max_window
+            assert write_len > 0
 
+            data = file_data[offset:offset + write_len]
+            assert len(data) == write_len
 
-        while True:
-            while current_window > 0:
-                write_len = len(file_data) - offset 
-                # check for end of file
-                data_remaining = len(file_data) - offset
-                if write_len > data_remaining:
-                    write_len = data_remaining
+            msg = FileDataMsg(session_id=session_id, offset=offset, len=len(data), data=data)
 
-                if write_len <= 0:
-                    break
+            reply_msg, host = self._exchange(msg, timeout=1.0)
 
-                if write_len > page_size:
-                    write_len = page_size
+            offset += write_len
 
-                data = file_data[offset:offset + write_len]
-                assert len(data) == write_len
+            if not isinstance(reply_msg, FileGetMsg):
+                raise ProtocolErrorException(CATBUS_ERROR_UNKNOWN_MSG, "invalid message: %s" % (str(reply_msg)))
 
-                msg = FileDataMsg(session_id=session_id, offset=offset, len=len(data), data=data)
-                
-                # print 'fsend', msg
-                self.__sock.sendto(msg.pack(), host)  
+            if reply_msg.session_id != session_id:
+                raise InvalidMessageException("Invalid session ID")
 
-                offset += write_len
+            if reply_msg.offset != offset:
+                raise InvalidMessageException("Invalid file offset")                
 
-                current_window -= 1
-
-            try:
-                data, sender = self.__sock.recvfrom(4096)
-                reply_msg = deserialize(data)
-                # print 'freply', reply_msg
-
-                if isinstance(reply_msg, ErrorMsg):
-                    self.flush()
-                    raise ProtocolErrorException(reply_msg.error_code, lookup_error_msg(reply_msg.error_code))
-
-                elif not isinstance(reply_msg, FileGetMsg):
-                    self.flush()
-                    # raise ProtocolErrorException(CATBUS_ERROR_UNKNOWN_MSG, "invalid message: %s" % (str(reply_msg)))
-                    continue
-
-                if reply_msg.session_id != session_id:
-                    continue
-
-                if reply_msg.offset >= ack_offset:
-                    ack_offset = reply_msg.offset
-
-                    if progress:
-                        progress(ack_offset)
-
-                    # check for end of file
-                    if ack_offset >= len(file_data):
-                        break
-
-                    if max_window < self.write_window_size:
-                        max_window += 1
-
-                    if current_window < max_window:
-                        current_window += 1
-
-            except socket.error:
-                offset = ack_offset
-                current_window = 1
-                max_window = 1
+            if progress:
+                progress(offset)
 
         # close session
         msg = FileCloseMsg(session_id=session_id)
