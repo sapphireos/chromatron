@@ -48,7 +48,7 @@ uint8_t io_u8_get_board_rev( void ){
     return 0;
 }
 
-void get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){
+void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){
 
     switch( pin ){
         case IO_PIN_0:
@@ -135,7 +135,7 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
     gpio_config[pin].Speed       = GPIO_SPEED_FREQ_HIGH;
     gpio_config[pin].Pull        = GPIO_NOPULL;
 
-    get_port( pin, &GPIOx, &gpio_config[pin].Pin );
+    hal_io_v_get_port( pin, &GPIOx, &gpio_config[pin].Pin );
 
     if( mode >= IO_MODE_OUTPUT ){
 
@@ -199,7 +199,7 @@ void io_v_digital_write( uint8_t pin, bool state ){
 
 	GPIO_TypeDef *GPIOx;
 	uint32_t gpio_pin;
-    get_port( pin, &GPIOx, &gpio_pin );
+    hal_io_v_get_port( pin, &GPIOx, &gpio_pin );
 
     if( state ){
 
@@ -215,7 +215,7 @@ bool io_b_digital_read( uint8_t pin ){
 
 	GPIO_TypeDef *GPIOx;
 	uint32_t gpio_pin;
-    get_port( pin, &GPIOx, &gpio_pin );
+    hal_io_v_get_port( pin, &GPIOx, &gpio_pin );
 
     return HAL_GPIO_ReadPin( GPIOx, gpio_pin ) == GPIO_PIN_SET;
 }

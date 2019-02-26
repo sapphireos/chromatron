@@ -31,6 +31,8 @@
 
 #include "stm32h7xx_hal.h"
 
+void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number );
+
 #ifdef BOARD_CHROMATRONX
 // Chromatron X Analog
 // ADC12_INP8

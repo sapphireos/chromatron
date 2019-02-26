@@ -50,6 +50,7 @@
 #include "catbus.h"
 #include "kvdb.h"
 #include "usart_fifo.h"
+#include "pwm.h"
 
 
 #endif
