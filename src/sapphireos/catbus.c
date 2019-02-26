@@ -2146,20 +2146,25 @@ PT_BEGIN( pt );
             // reset session timeout
             session_state->timeout = FILE_SESSION_TIMEOUT;
 
+            catbus_msg_file_get_t get;
+            _catbus_v_msg_init( &get.header, CATBUS_MSG_TYPE_FILE_GET, header->transaction_id );    
+
+            get.session_id  = session_state->session_id;
+            get.offset      = msg->offset + msg->len;
+            get.flags       = session_state->flags;
+                
             if( msg->offset == fs_i32_tell( session_state->file ) ){
 
-                catbus_msg_file_get_t get;
-                _catbus_v_msg_init( &get.header, CATBUS_MSG_TYPE_FILE_GET, header->transaction_id );
-            
                 // send msg sooner rather than later
-                get.session_id  = session_state->session_id;
-                get.offset      = msg->offset + msg->len;
-                get.flags       = session_state->flags;
-                
                 sock_i16_sendto( sock, (uint8_t *)&get, sizeof(get), 0 );
 
                 // write to file
                 fs_i16_write( session_state->file, &msg->data, msg->len );
+            }
+            else{
+
+                // send reply, even though we've already received this chunk
+                sock_i16_sendto( sock, (uint8_t *)&get, sizeof(get), 0 );
             }
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_FILE_CLOSE ){
