@@ -48,6 +48,8 @@ void app_v_init( void ){
 	
 	pwm_v_enable( IO_PIN_T1 );
 
+	pwm_v_write( 32768 );
+
     // #ifdef ENABLE_TIME_SYNC
     // vm_sync_v_init();
     // #endif

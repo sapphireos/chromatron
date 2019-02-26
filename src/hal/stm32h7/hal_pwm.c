@@ -92,8 +92,9 @@ void pwm_v_disable( uint8_t channel ){
 
 void pwm_v_write( uint8_t channel, uint16_t value ){
    
-   	// uint32_t timer_channel = get_channel( channel );
-	
+   	uint32_t timer_channel = get_channel( channel );
+
+	__HAL_TIM_SET_COMPARE( &pwm_timer, timer_channel, value );
 }
 
 void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
@@ -101,7 +102,6 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 	GPIO_InitTypeDef GPIO_InitStruct;
 	
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;	
 
@@ -112,15 +112,13 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
     // init IO
 	GPIO_InitStruct.Pin 		= pin;
 	GPIO_InitStruct.Alternate 	= GPIO_AF2_TIM4;
-	HAL_GPIO_Init( port, &GPIO_InitStruct );
-	// HAL_GPIO_WritePin( port, pin, GPIO_PIN_SET );
-	
+	HAL_GPIO_Init( port, &GPIO_InitStruct );	
 
 	uint32_t timer_channel = get_channel( channel );
 
 	TIM_OC_InitTypeDef config;
 	config.OCMode 		= TIM_OCMODE_PWM1;
-	config.Pulse 		= 500;
+	config.Pulse 		= 0;
 	config.OCPolarity 	= TIM_OCPOLARITY_HIGH;
 	config.OCNPolarity 	= TIM_OCNPOLARITY_HIGH;
 	config.OCIdleState 	= TIM_OCIDLESTATE_RESET;
