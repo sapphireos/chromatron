@@ -44,6 +44,8 @@
 
 void wifi_v_init( void );
 bool wifi_b_connected( void );
+int8_t wifi_i8_rssi( void );
+void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] );
 bool wifi_b_ap_mode( void );
 bool wifi_b_ap_mode_enabled( void );
 bool wifi_b_attached( void );

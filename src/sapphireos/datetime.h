@@ -48,6 +48,8 @@
 
 #define SECONDS_PER_DAY         ( (uint32_t)SECONDS_PER_MINUTE * (uint32_t)MINUTES_PER_HOUR * (uint32_t)HOURS_PER_DAY )
 
+#define DATE_TIME_DELIMITER		10
+
 // don't change this until we switch to something other than the Gregorian calendar
 #define FEBRUARY_LEAP_YEAR_DAYS 29
 

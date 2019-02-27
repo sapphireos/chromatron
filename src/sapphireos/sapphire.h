@@ -51,6 +51,8 @@
 #include "kvdb.h"
 #include "usart_fifo.h"
 #include "pwm.h"
+#include "timesync.h"
+#include "esp8266.h"
 
 
 #endif

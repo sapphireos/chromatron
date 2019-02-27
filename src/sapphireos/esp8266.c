@@ -1498,6 +1498,31 @@ bool wifi_b_connected( void ){
     return ( wifi_status_reg & WIFI_STATUS_CONNECTED ) != 0;
 }
 
+int8_t wifi_i8_rssi( void ){
+
+    return wifi_rssi;
+}
+
+void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
+
+    if( router == 1 ){
+
+        kv_i8_get( __KV__wifi_ssid2, ssid, WIFI_SSID_LEN );
+    }
+    else if( router == 2 ){
+
+        kv_i8_get( __KV__wifi_ssid3, ssid, WIFI_SSID_LEN ); 
+    }
+    else if( router == 3 ){
+
+        kv_i8_get( __KV__wifi_ssid4, ssid, WIFI_SSID_LEN );
+    }
+    else{
+
+        cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+    }
+}
+
 bool wifi_b_ap_mode( void ){
 
     return ( wifi_status_reg & WIFI_STATUS_AP_MODE ) != 0;
