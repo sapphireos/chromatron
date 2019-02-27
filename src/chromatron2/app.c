@@ -42,20 +42,6 @@ void app_v_init( void ){
 
     vm_v_init();
 
-    pwm_v_init();
-	
-	pwm_v_init_channel( IO_PIN_T0, 10000 );   
-	
-	pwm_v_enable( IO_PIN_T0 );
-
-	pwm_v_write( IO_PIN_T0, 16384 );
-
-	pwm_v_write( IO_PIN_T0, 32768 );
-
-	pwm_v_write( IO_PIN_T0, 43000 );
-
-	pwm_v_write( IO_PIN_T0, 65535 );
-
     // #ifdef ENABLE_TIME_SYNC
     // vm_sync_v_init();
     // #endif
