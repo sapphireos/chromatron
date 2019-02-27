@@ -344,24 +344,34 @@ class Builder(object):
 
         return app_settings
 
+    # wrap os.listdir so we can handle errors.
+    # sometimes if we do a clean right before a build, we get directories in the source_dirs
+    # list that have just been deleted.
+    def listdir(self, d):
+        try:
+            return os.listdir(d)
+
+        except OSError:
+            return []
+
     def list_source(self):
         source_files = []
 
         for d in self.source_dirs:
-            for f in os.listdir(d):
+            for f in self.listdir(d):
                 if f.endswith('.c') or f.endswith('.cpp') or f.endswith('.s') or f.endswith('.S'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
                     if fpath not in source_files:
                         source_files.append(fpath)
-
+            
         return source_files
 
     def list_headers(self):
         source_files = []
 
         for d in self.source_dirs:
-            for f in os.listdir(d):
+            for f in self.listdir(d):
                 if f.endswith('.h'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
