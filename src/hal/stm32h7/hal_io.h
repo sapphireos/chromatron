@@ -167,6 +167,7 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define IO_PIN_GPIO11       19  // PE11
 #define IO_PIN_GPIO12       20  // PE12
 #define IO_PIN_GPIO13       21  // PE15
+// #define IO_PIN_COUNT		22
 
 #define IO_PIN_PIX_CLK2     22  //
 #define IO_PIN_PIX_DAT2     23  //
@@ -190,6 +191,97 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 // FSPI_CS 		- PB10
 // FSPI_MOSI	- PD11
 // FSPI_MISO	- PD12
+
+#define FSPI_SCK_PIN			GPIO_PIN_2
+#define FSPI_SCK_PORT			GPIOB
+#define FSPI_IO0_PIN			GPIO_PIN_11
+#define FSPI_IO0_PORT			GPIOD
+#define FSPI_IO1_PIN			GPIO_PIN_12
+#define FSPI_IO1_PORT			GPIOD
+#define FSPI_CS_PIN			 	GPIO_PIN_10
+#define FSPI_CS_PORT			GPIOB
+
+
+
+// #define VMON_Pin 				GPIO_PIN_3
+// #define VMON_GPIO_Port 			GPIOF
+
+
+// #define SCK_Pin 				GPIO_PIN_2
+// #define SCK_GPIO_Port 			GPIOE
+// #define GP9_Pin 				GPIO_PIN_3
+// #define GP9_GPIO_Port 			GPIOE
+// #define CS_Pin 					GPIO_PIN_4
+// #define CS_GPIO_Port 			GPIOE
+// #define MISO_Pin 				GPIO_PIN_5
+// #define MISO_GPIO_Port 			GPIOE
+// #define MOSI_Pin 				GPIO_PIN_6
+// #define MOSI_GPIO_Port 			GPIOE
+// #define VMON_Pin 				GPIO_PIN_3
+// #define VMON_GPIO_Port 			GPIOF
+// #define GP8_Pin 				GPIO_PIN_5
+// #define GP8_GPIO_Port 			GPIOF
+// #define GP10_Pin 				GPIO_PIN_7
+// #define GP10_GPIO_Port 			GPIOF
+// #define GP0_Pin 				GPIO_PIN_0
+// #define GP0_GPIO_Port 			GPIOC
+// #define GP1_Pin 				GPIO_PIN_3
+// #define GP1_GPIO_Port 			GPIOC
+// #define GP7_Pin 				GPIO_PIN_3
+// #define GP7_GPIO_Port 			GPIOA
+// #define PIX_CLK_0_Pin 			GPIO_PIN_5
+// #define PIX_CLK_0_GPIO_Port 	GPIOA
+// #define PIX_DAT_0_Pin 			GPIO_PIN_7
+// #define PIX_DAT_0_GPIO_Port 	GPIOA
+// #define SPI1_MISO_Pin 			GPIO_PIN_6
+// #define SPI1_MISO_GPIO_Port 	GPIOA
+// #define SPI1_CS_Pin 			GPIO_PIN_4
+// #define SPI1_CS_GPIO_Port 		GPIOA
+// #define GP2_Pin 				GPIO_PIN_12
+// #define GP2_GPIO_Port 			GPIOF
+// #define GP3_Pin 				GPIO_PIN_13
+// #define GP3_GPIO_Port 			GPIOF
+// #define GP4_Pin 				GPIO_PIN_14
+// #define GP4_GPIO_Port 			GPIOF
+// #define LED1_Pin 				GPIO_PIN_15
+// #define LED1_GPIO_Port 			GPIOF
+// #define NC_Pin 					GPIO_PIN_1
+// #define NC_GPIO_Port 			GPIOG
+// #define WIFI_RXD_Pin 			GPIO_PIN_7
+// #define WIFI_RXD_GPIO_Port 		GPIOE
+// #define WIFI_TXD_Pin 			GPIO_PIN_8
+// #define WIFI_TXD_GPIO_Port 		GPIOE
+// #define GP5_Pin 				GPIO_PIN_9
+// #define GP5_GPIO_Port 			GPIOE
+// #define WIFI_RST_Pin 			GPIO_PIN_10
+// #define WIFI_RST_GPIO_Port 		GPIOE
+// #define NC2_Pin 				GPIO_PIN_11
+// #define NC2_GPIO_Port 			GPIOE
+// #define WIFI_PD_Pin 			GPIO_PIN_12
+// #define WIFI_PD_GPIO_Port 		GPIOE
+// #define GP6_Pin 				GPIO_PIN_13
+// #define GP6_GPIO_Port 			GPIOE
+// #define WIFI_RX_Ready_Pin 		GPIO_PIN_14
+// #define WIFI_RX_Ready_Port 		GPIOE
+// #define WIFI_BOOT_Pin 			GPIO_PIN_15
+// #define WIFI_BOOT_GPIO_Port 	GPIOE
+// #define WIFI_SS_Pin 			GPIO_PIN_11
+// #define WIFI_SS_GPIO_Port 		GPIOB
+// #define T0_Pin 					GPIO_PIN_14
+// #define T0_GPIO_Port 			GPIOD
+// #define T1_Pin 					GPIO_PIN_15
+// #define T1_GPIO_Port 			GPIOD
+// #define LED2_Pin 				GPIO_PIN_9
+// #define LED2_GPIO_Port 			GPIOG
+// #define LED0_Pin 				GPIO_PIN_14
+// #define LED0_GPIO_Port 			GPIOG
+// #define I2C1_SCL_UART4_RX_Pin 	GPIO_PIN_6
+// #define I2C1_SCL_UART4_RX_GPIO_Port GPIOB
+// #define I2C1_SDA_UART4_TX_Pin 		GPIO_PIN_7
+// #define I2C1_SDA_UART4_TX_GPIO_Port GPIOB
+
+
+
 
 
 
