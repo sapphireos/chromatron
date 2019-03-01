@@ -55,6 +55,7 @@
 
 // instruction set
 #define FLASH_CMD_READ					0x03 // this is the "low speed" read command
+#define FLASH_CMD_FAST_READ				0x0B
 #define FLASH_CMD_ERASE_BLOCK_4K		0x20
 #define FLASH_CMD_ERASE_BLOCK_32K		0x52
 #define FLASH_CMD_ERASE_BLOCK_64K		0xD8

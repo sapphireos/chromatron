@@ -161,12 +161,12 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
     
     QSPI_CommandTypeDef cmd;
-    cmd.Instruction         = FLASH_CMD_READ;
+    cmd.Instruction         = FLASH_CMD_FAST_READ;
     cmd.Address             = address;
     cmd.AlternateBytes      = 0;
     cmd.AddressSize         = QSPI_ADDRESS_24_BITS;
     cmd.AlternateBytesSize  = 0;
-    cmd.DummyCycles         = 0;
+    cmd.DummyCycles         = 8;
     cmd.InstructionMode     = QSPI_INSTRUCTION_1_LINE;
     cmd.AddressMode         = QSPI_ADDRESS_1_LINE;
     cmd.AlternateByteMode   = QSPI_ALTERNATE_BYTES_NONE;
