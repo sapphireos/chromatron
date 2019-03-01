@@ -69,7 +69,8 @@ void hal_flash25_v_init( void ){
     
     // init qspi module
     hqspi.Instance                  = QUADSPI;
-    hqspi.Init.ClockPrescaler       = 3; // 50.0 MHz (at AHB 200 MHz) 
+    // hqspi.Init.ClockPrescaler       = 3; // 50.0 MHz (at AHB 200 MHz) 
+    hqspi.Init.ClockPrescaler       = 1; // 100.0 MHz (at AHB 200 MHz) 
     hqspi.Init.FifoThreshold        = 1;
     hqspi.Init.SampleShifting       = QSPI_SAMPLE_SHIFTING_NONE;
     hqspi.Init.FlashSize            = 24;
