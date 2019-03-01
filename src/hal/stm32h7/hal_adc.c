@@ -53,21 +53,21 @@ typedef struct{
 } adc_ch_t;
 
 static const adc_ch_t channels_nuclear[] = {
-	{IO_PIN0_PIN, 	IO_PIN0_PORT, &hadc1, ADC_CHANNEL_10},
-	{IO_PIN1_PIN, 	IO_PIN1_PORT, &hadc1, ADC_CHANNEL_13},
-	{IO_PIN2_PIN, 	IO_PIN2_PORT, &hadc1, ADC_CHANNEL_6},
-	{IO_PIN3_PIN, 	IO_PIN3_PORT, &hadc2, ADC_CHANNEL_2},
-	{IO_PIN4_PIN, 	IO_PIN4_PORT, &hadc2, ADC_CHANNEL_6},
-	{IO_PIN5_PIN, 	0, 0, 0},
-	{IO_PIN6_PIN, 	0, 0, 0},
-	{IO_PIN7_PIN, 	0, 0, 0},
-	{IO_PIN8_PIN, 	0, 0, 0},
-	{IO_PIN9_PIN, 	0, 0, 0},
-	{IO_PIN10_PIN, 	0, 0, 0},
-	{IO_PINCS_PIN, 	0, 0, 0},
-	{IO_PINT0_PIN, 	0, 0, 0},
-	{IO_PINT1_PIN, 	0, 0, 0},
-	{VMON_Pin, 		VMON_GPIO_Port, &hadc3, ADC_CHANNEL_5},	 // vmon
+	// {IO_PIN0_PIN, 	IO_PIN0_PORT, &hadc1, ADC_CHANNEL_10},
+	// {IO_PIN1_PIN, 	IO_PIN1_PORT, &hadc1, ADC_CHANNEL_13},
+	// {IO_PIN2_PIN, 	IO_PIN2_PORT, &hadc1, ADC_CHANNEL_6},
+	// {IO_PIN3_PIN, 	IO_PIN3_PORT, &hadc2, ADC_CHANNEL_2},
+	// {IO_PIN4_PIN, 	IO_PIN4_PORT, &hadc2, ADC_CHANNEL_6},
+	// {IO_PIN5_PIN, 	0, 0, 0},
+	// {IO_PIN6_PIN, 	0, 0, 0},
+	// {IO_PIN7_PIN, 	0, 0, 0},
+	// {IO_PIN8_PIN, 	0, 0, 0},
+	// {IO_PIN9_PIN, 	0, 0, 0},
+	// {IO_PIN10_PIN, 	0, 0, 0},
+	// {IO_PINCS_PIN, 	0, 0, 0},
+	// {IO_PINT0_PIN, 	0, 0, 0},
+	// {IO_PINT1_PIN, 	0, 0, 0},
+	{VMON_Pin, 		VMON_GPIO_Port, &hadc1, ADC_CHANNEL_5},	 		 // vmon
 	{0, 			0, 				&hadc3, ADC_CHANNEL_VREFINT},	 // vref (internal)
 };
 

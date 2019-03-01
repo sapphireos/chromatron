@@ -51,74 +51,109 @@ uint8_t io_u8_get_board_rev( void ){
 void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){
 
     switch( pin ){
-        case IO_PIN_0:
-            *port = IO_PIN0_PORT;
-            *pin_number = IO_PIN0_PIN;
+        case IO_PIN_GPIOA0:
+            *port = GPIOC;
+            *pin_number = GPIO_PIN_5;
             break;
 
-        case IO_PIN_1:
-            *port = IO_PIN1_PORT;
-            *pin_number = IO_PIN1_PIN;
+        case IO_PIN_GPIOA1:
+            *port = GPIOC;
+            *pin_number = GPIO_PIN_4;
             break;
 
-        case IO_PIN_2:
-            *port = IO_PIN2_PORT;
-            *pin_number = IO_PIN2_PIN;
+        case IO_PIN_GPIOA2:
+            *port = GPIOA;
+            *pin_number = GPIO_PIN_6;
             break;
 
-        case IO_PIN_3:
-            *port = IO_PIN3_PORT;
-            *pin_number = IO_PIN3_PIN;
+        case IO_PIN_GPIOA3:
+            *port = GPIOA;
+            *pin_number = GPIO_PIN_5;
             break;
 
-        case IO_PIN_4:
-            *port = IO_PIN4_PORT;
-            *pin_number = IO_PIN4_PIN;
+        case IO_PIN_GPIOA4:
+            *port = GPIOA;
+            *pin_number = GPIO_PIN_4;
             break;
 
-        case IO_PIN_5:
-            *port = IO_PIN5_PORT;
-            *pin_number = IO_PIN5_PIN;
+        case IO_PIN_GPIOA5:
+            *port = GPIOA;
+            *pin_number = GPIO_PIN_7;
             break;
 
-        case IO_PIN_6:
-            *port = IO_PIN6_PORT;
-            *pin_number = IO_PIN6_PIN;
+        case IO_PIN_GPIOSCK:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_2;
             break;
 
-        case IO_PIN_7:
-            *port = IO_PIN7_PORT;
-            *pin_number = IO_PIN7_PIN;
+        case IO_PIN_GPIOMOSI:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_6;
             break;
 
-        case IO_PIN_8:
-            *port = IO_PIN8_PORT;
-            *pin_number = IO_PIN8_PIN;
+        case IO_PIN_GPIORX:
+            *port = GPIOB;
+            *pin_number = GPIO_PIN_5;
             break;
 
-        case IO_PIN_9:
-            *port = IO_PIN9_PORT;
-            *pin_number = IO_PIN9_PIN;
+        case IO_PIN_GPIOTX:
+            *port = GPIOB;
+            *pin_number = GPIO_PIN_6;
             break;
 
-        case IO_PIN_10:
-            *port = IO_PIN10_PORT;
-            *pin_number = IO_PIN10_PIN;
+        case IO_PIN_PIX_CLK:
+            *port = GPIOB;
+            *pin_number = GPIO_PIN_13;
             break;
 
-        case IO_PIN_CS:
-            *port = IO_PINCS_PORT;
-            *pin_number = IO_PINCS_PIN;
+        case IO_PIN_PIX_DAT:
+            *port = GPIOB;
+            *pin_number = GPIO_PIN_14;
             break;
 
-        case IO_PIN_T0:
-            *port = IO_PINT0_PORT;
-            *pin_number = IO_PINT0_PIN;
+        case IO_PIN_GPIOSDA:
+            *port = GPIOB;
+            *pin_number = GPIO_PIN_9;
             break;
 
-        case IO_PIN_T1:
-            *port = IO_PINT1_PORT;
-            *pin_number = IO_PINT1_PIN;
+        case IO_PIN_GPIOSCL:
+            *port = GPIOB;
+            *pin_number = GPIO_PIN_8;
+            break;
+
+        case IO_PIN_GPIO5:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_7;
+            break;
+
+        case IO_PIN_GPIO6:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_8;
+            break;
+
+        case IO_PIN_GPIO9:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_9;
+            break;
+
+        case IO_PIN_GPIO10:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_10;
+            break;
+
+        case IO_PIN_GPIO11:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_11;
+            break;
+
+        case IO_PIN_GPIO12:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_12;
+            break;
+
+        case IO_PIN_GPIO13:
+            *port = GPIOE;
+            *pin_number = GPIO_PIN_15;
             break;
 
         default:
