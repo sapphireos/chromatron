@@ -53,6 +53,7 @@
 #include "pwm.h"
 #include "timesync.h"
 #include "esp8266.h"
+#include "i2s.h"
 
 
 #endif

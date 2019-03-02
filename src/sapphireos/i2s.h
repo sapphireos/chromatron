@@ -22,30 +22,12 @@
 // </license>
  */
 
-#ifndef _HAL_I2S_H_
-#define _HAL_I2S_H_
+#ifndef _I2S_H_
+#define _I2S_H_
 
-#include "i2s.h"
-
-#define I2S_BUF_SIZE		4096
-
-#define I2S 				SPI1
-#define I2S_SPI_IRQn 		SPI1_IRQn
-#define I2S_SPI_HANDLER 	SPI1_IRQHandler
-#define I2S_DMA_INSTANCE	DMA1_Stream7
-#define I2S_DMA_IRQ	 		DMA1_Stream7_IRQn
-#define I2S_DMA_HANDLER		DMA1_Stream7_IRQHandler
-#define I2S_DMA_REQUEST		DMA_REQUEST_SPI1_RX
-
-#define hal_i2s_v_init i2s_v_init
-#define hal_i2s_v_start i2s_v_start
-#define hal_i2s_u32_get_count i2s_u32_get_count
-#define hal_i2s_u32_get_samples i2s_u32_get_samples
-
-void hal_i2s_v_init( void );
-void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
-uint32_t hal_i2s_u32_get_count( void );
-uint32_t hal_i2s_u32_get_samples( uint32_t *samples, uint16_t max );
+void i2s_v_init( void );
+void i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
+uint32_t i2s_u32_get_count( void );
+uint32_t i2s_u32_get_samples( uint32_t *samples, uint16_t max );
 
 #endif
-

@@ -39,7 +39,8 @@ static const hal_i2s_ch_t i2s_io[] = {
 };
 
 
-static uint16_t i2s_buffer[128];
+static uint16_t i2s_buffer[I2S_BUF_SIZE];
+static uint16_t extract_idx;
 
 static I2S_HandleTypeDef i2s_handle;
 static DMA_HandleTypeDef i2s_dma;
@@ -140,7 +141,36 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
     }
 }
 
+uint32_t hal_i2s_u32_get_count( void ){
 
+    uint32_t counter = __HAL_DMA_GET_COUNTER( &i2s_dma );
 
+    if( counter > extract_idx ){
+
+        return counter - extract_idx;
+    }
+
+    return ( ( I2S_BUF_SIZE - 1 ) - extract_idx ) + counter;;
+}
+
+uint32_t hal_i2s_u32_get_samples( uint32_t *samples, uint16_t max ){
+
+    uint32_t count = hal_i2s_u32_get_count();
+
+    if( count > max ){
+
+        count = max;
+    }
+
+    for( uint32_t i = 0; i < count; i++ ){
+
+        *samples++ = i2s_buffer[extract_idx];
+
+        extract_idx++;
+        extract_idx %= I2S_BUF_SIZE;
+    }
+    
+    return count;    
+}
 
 
