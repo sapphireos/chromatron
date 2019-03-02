@@ -27,32 +27,17 @@
 #include "hal_io.h"
 #include "hal_i2s.h"
 
-
 typedef struct{
-	SPI_TypeDef *spi;
-	uint32_t pin0;
-	GPIO_TypeDef *port0;
-	uint8_t alt0;
-	uint32_t pin1;
-	GPIO_TypeDef *port1;
-	uint8_t alt1;
-	uint32_t pin2;
-	GPIO_TypeDef *port2;
-	uint8_t alt2;
-} i2s_port_def_t;
+    uint32_t pin;
+    uint32_t alt;
+} hal_i2s_ch_t;
 
-static const i2s_port_def_t i2s_port_def = {
-	I2S, 
-	SPI1_CS_Pin, 
-	SPI1_CS_GPIO_Port, 
-	GPIO_AF5_SPI1,
-	SPI1_MISO_Pin, 
-	SPI1_MISO_GPIO_Port, 
-	GPIO_AF5_SPI1,
-	PIX_CLK_0_Pin, 
-	PIX_CLK_0_GPIO_Port, 
-	GPIO_AF5_SPI1,
+static const hal_i2s_ch_t i2s_io[] = {
+    { IO_PIN_GPIOA2, GPIO_AF5_SPI1 }, // SDI
+    { IO_PIN_GPIOA3, GPIO_AF5_SPI1 }, // CK
+    { IO_PIN_GPIOA4, GPIO_AF5_SPI1 }, // WS
 };
+
 
 static uint16_t i2s_buffer[128];
 
@@ -73,28 +58,24 @@ void hal_i2s_v_init( void ){
 
 	i2s_handle.Instance = I2S;
 
+	GPIO_TypeDef *port;
 	GPIO_InitTypeDef GPIO_InitStruct;
-	
+
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;	
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
-    // init IO
-	GPIO_InitStruct.Pin 		= i2s_port_def.pin0;
-	GPIO_InitStruct.Alternate 	= i2s_port_def.alt0;
-	HAL_GPIO_Init( i2s_port_def.port0, &GPIO_InitStruct );
-	
-	GPIO_InitStruct.Pin 		= i2s_port_def.pin1;
-	GPIO_InitStruct.Alternate 	= i2s_port_def.alt1;
-	HAL_GPIO_Init( i2s_port_def.port1, &GPIO_InitStruct );
+    hal_io_v_get_port( i2s_io[0].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = i2s_io[0].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
 
-	GPIO_InitStruct.Pin 		= i2s_port_def.pin2;
-	GPIO_InitStruct.Alternate 	= i2s_port_def.alt2;
-	HAL_GPIO_Init( i2s_port_def.port2, &GPIO_InitStruct );
-	// HAL_GPIO_WritePin(i2s_port_def.port2, i2s_port_def.pin2, GPIO_PIN_SET);
+    hal_io_v_get_port( i2s_io[1].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = i2s_io[1].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
 
-
+    hal_io_v_get_port( i2s_io[2].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = i2s_io[2].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
 }
 
 void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
