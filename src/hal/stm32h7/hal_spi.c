@@ -28,6 +28,141 @@
 #include "hal_spi.h"
 #include "hal_io.h"
 
+
+typedef struct{
+    uint32_t pin;
+    uint32_t alt;
+    uint8_t apb; // which APB bus the port is on
+} hal_spi_ch_t;
+
+static const hal_spi_ch_t spi_io[] = {
+    { IO_PIN_GPIOSCK, GPIO_AF5_SPI4, 2},
+    { IO_PIN_GPIOMOSI, GPIO_AF5_SPI4, 2 },
+    { IO_PIN_GPIOMISO, GPIO_AF5_SPI4, 2 },
+};
+
+static SPI_HandleTypeDef spi;
+static uint32_t actual_freq;
+
+void spi_v_init( uint8_t channel, uint32_t freq ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+	// get the bus clock for this port
+	uint32_t bus_clock = 0;
+
+	switch( spi_io[channel].apb ){
+
+		case 1:
+		case 3:
+		case 4:
+			bus_clock = HAL_RCC_GetPCLK1Freq();
+			break;
+
+		case 2:
+			bus_clock = HAL_RCC_GetPCLK2Freq();
+			break;
+	}
+
+	spi.Instance = SPI4;
+	__HAL_RCC_SPI4_CLK_ENABLE();
+
+	GPIO_TypeDef *port;
+	GPIO_InitTypeDef GPIO_InitStruct;
+	
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;	
+
+	hal_io_v_get_port( spi_io[0].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = spi_io[0].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
+
+	hal_io_v_get_port( spi_io[1].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = spi_io[1].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
+
+	hal_io_v_get_port( spi_io[2].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = spi_io[2].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
+
+	uint32_t prescaler = 2;
+	uint32_t baud = 0;
+
+	// search for closest prescaler
+	for( ; prescaler <= 255; prescaler *= 2 ){
+
+		// closest match at or below target frequency
+		if( ( bus_clock / prescaler ) <= freq ){
+
+			break;
+		}
+
+		baud++;
+	}
+
+	actual_freq = bus_clock / prescaler;
+
+	spi.Init.Mode 							= SPI_MODE_MASTER;
+	spi.Init.Direction 						= SPI_DIRECTION_2LINES;
+	spi.Init.DataSize 						= SPI_DATASIZE_8BIT;
+	spi.Init.CLKPolarity 					= SPI_POLARITY_LOW;
+	spi.Init.CLKPhase 						= SPI_PHASE_1EDGE;
+	spi.Init.NSS 							= SPI_NSS_SOFT;
+	spi.Init.BaudRatePrescaler 				= baud << 28;
+	spi.Init.FirstBit 						= SPI_FIRSTBIT_MSB;
+	spi.Init.TIMode 						= SPI_TIMODE_DISABLE;
+	spi.Init.CRCCalculation 				= SPI_CRCCALCULATION_DISABLE;
+	spi.Init.CRCPolynomial 					= 0;
+	spi.Init.CRCLength 						= 0;
+	spi.Init.NSSPMode 						= SPI_NSS_PULSE_DISABLE;
+	spi.Init.NSSPolarity 					= SPI_NSS_POLARITY_LOW;
+	spi.Init.FifoThreshold 					= SPI_FIFO_THRESHOLD_01DATA;
+	spi.Init.TxCRCInitializationPattern 	= SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	spi.Init.RxCRCInitializationPattern 	= SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	spi.Init.MasterSSIdleness 				= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+	spi.Init.MasterInterDataIdleness 		= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+	spi.Init.MasterReceiverAutoSusp 		= SPI_MASTER_RX_AUTOSUSP_DISABLE;
+	spi.Init.MasterKeepIOState 				= SPI_MASTER_KEEP_IO_STATE_ENABLE;
+	spi.Init.IOSwap 						= SPI_IO_SWAP_DISABLE;
+
+	HAL_SPI_Init( &spi );
+}
+
+uint32_t spi_u32_get_freq( uint8_t channel ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+	return actual_freq;
+}
+
+uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+	uint8_t rx_data;
+	
+	HAL_SPI_TransmitReceive( &spi, &data, &rx_data, 1, 250 );
+
+	return rx_data;
+}
+
+void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+	HAL_SPI_Transmit( &spi, (uint8_t *)data, length, 1000 );
+}
+
+void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
+
+	ASSERT( channel < N_SPI_PORTS );
+	
+	HAL_SPI_Receive( &spi, data, length, 1000 );
+}
+
+
+/*
 typedef struct{
 	SPI_TypeDef *spi;
 	USART_TypeDef *usart;
@@ -268,4 +403,4 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 		HAL_USART_Receive( &ports[channel].spi_usart.usart, data, length, 1000 );
 	}
 }
-
+*/

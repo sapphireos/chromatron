@@ -52,8 +52,8 @@ typedef struct{
 // };
 // #else
 static const hal_i2c_ch_t i2c_io[] = {
-    { IO_PIN_GPIOSCL, GPIO_AF4_I2C1 }, // SCL
-    { IO_PIN_GPIOSDA, GPIO_AF4_I2C1 }, // SDA
+    { IO_PIN_GPIOSCL, GPIO_AF4_I2C1 },
+    { IO_PIN_GPIOSDA, GPIO_AF4_I2C1 },
 };
 // #endif
 
