@@ -33,9 +33,9 @@
 typedef struct{
     GPIO_TypeDef *port;
     uint32_t pin;
-} io_ch_t;
+} hal_io_ch_t;
 
-static const io_ch_t board_io[IO_PIN_COUNT] = {
+static const hal_io_ch_t board_io[IO_PIN_COUNT] = {
     { GPIOC, GPIO_PIN_5 }, // IO_PIN_GPIOA0
     { GPIOC, GPIO_PIN_4 }, // IO_PIN_GPIOA1
     { GPIOA, GPIO_PIN_6 }, // IO_PIN_GPIOA2

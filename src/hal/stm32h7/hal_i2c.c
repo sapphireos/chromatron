@@ -39,6 +39,24 @@ SCL - PB8
 SDA - PB9
 
 */
+typedef struct{
+    GPIO_TypeDef *port;
+    uint32_t pin;
+    uint32_t alt;
+} hal_i2c_ch_t;
+
+
+#ifdef BOARD_CHROMATRONX
+static const hal_i2c_ch_t i2c_io[] = {
+    { I2C1_SCL_GPIO_Port, I2C1_SCL_Pin, GPIO_AF4_I2C1 }, // SCL
+    { I2C1_SDA_GPIO_Port, I2C1_SDA_Pin, GPIO_AF4_I2C1 }, // SDA
+};
+#else
+static const hal_i2c_ch_t i2c_io[] = {
+    { GPIOB, GPIO_PIN_8, GPIO_AF4_I2C1 }, // SCL
+    { GPIOB, GPIO_PIN_9, GPIO_AF4_I2C1 }, // SDA
+};
+#endif
 
 static I2C_HandleTypeDef i2c1;
 
@@ -48,35 +66,17 @@ void i2c_v_init( i2c_baud_t8 baud ){
 
 	GPIO_InitTypeDef GPIO_InitStruct;
 
-    #ifdef BOARD_CHROMATRONX
-	GPIO_InitStruct.Pin = I2C1_SCL_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-    HAL_GPIO_Init(I2C1_SCL_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = I2C1_SDA_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-    HAL_GPIO_Init(I2C1_SDA_GPIO_Port, &GPIO_InitStruct);
-    #else
-    GPIO_InitStruct.Pin = I2C1_SCL_UART4_RX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-    HAL_GPIO_Init(I2C1_SCL_UART4_RX_GPIO_Port, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin = i2c_io[0].pin;
+    GPIO_InitStruct.Alternate = i2c_io[0].alt;
+    HAL_GPIO_Init(i2c_io[0].port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = I2C1_SDA_UART4_TX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-    HAL_GPIO_Init(I2C1_SDA_UART4_TX_GPIO_Port, &GPIO_InitStruct);
-    #endif
+    GPIO_InitStruct.Pin = i2c_io[1].pin;
+    GPIO_InitStruct.Alternate = i2c_io[1].alt;
+    HAL_GPIO_Init(i2c_io[1].port, &GPIO_InitStruct);
 
     uint32_t timing = 0;
     switch( baud ){
