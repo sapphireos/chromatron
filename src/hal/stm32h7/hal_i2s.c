@@ -39,7 +39,7 @@ static const hal_i2s_ch_t i2s_io[] = {
 };
 
 
-static uint16_t i2s_buffer[I2S_BUF_SIZE];
+static uint32_t i2s_buffer[I2S_BUF_SIZE];
 static uint16_t extract_idx;
 
 static I2S_HandleTypeDef i2s_handle;
@@ -85,7 +85,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
 	__HAL_RCC_DMA1_CLK_ENABLE();
 
 	i2s_handle.Init.Mode 				= I2S_MODE_MASTER_RX;
-	i2s_handle.Init.Standard 			= I2S_STANDARD_MSB;
+	i2s_handle.Init.Standard 			= I2S_STANDARD_PHILIPS;
 	i2s_handle.Init.DataFormat 			= I2S_DATAFORMAT_24B;
 	i2s_handle.Init.MCLKOutput 			= I2S_MCLKOUTPUT_ENABLE;
 	i2s_handle.Init.AudioFreq 			= I2S_AUDIOFREQ_22K;
@@ -125,7 +125,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
     __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
     // HAL_I2S_Receive( &i2s_handle, i2s_buffer, cnt_of_array(i2s_buffer), 1000 );
-    HAL_I2S_Receive_DMA( &i2s_handle, i2s_buffer, cnt_of_array(i2s_buffer) / 2 );
+    HAL_I2S_Receive_DMA( &i2s_handle, (uint16_t *)i2s_buffer, I2S_BUF_SIZE * 2 );
 
     if((i2s_handle.Instance->I2SCFGR & SPI_I2SCFGR_I2SCFG) == I2S_MODE_MASTER_RX)
     {
@@ -143,7 +143,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
 
 uint32_t hal_i2s_u32_get_count( void ){
 
-    uint32_t counter = __HAL_DMA_GET_COUNTER( &i2s_dma );
+    uint32_t counter = I2S_BUF_SIZE - __HAL_DMA_GET_COUNTER( &i2s_dma );
 
     if( counter > extract_idx ){
 
