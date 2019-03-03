@@ -42,6 +42,12 @@ static volatile uint8_t rx_ext;
 static volatile uint8_t rx_size;
 
 
+static volatile uint8_t tx_buf[HAL_CMD_USART_TX_BUF_SIZE];
+static volatile uint16_t tx_ins;
+static volatile uint16_t tx_ext;
+static volatile uint16_t tx_size;
+
+
 static USBD_HandleTypeDef hUsbDeviceFS;
 
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
@@ -170,6 +176,17 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
     return (USBD_OK);
 }
 
+static bool cdc_tx_busy( void ){
+
+    USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+    if (hcdc->TxState != 0){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
   uint8_t result = USBD_OK;
@@ -244,12 +261,28 @@ int16_t usb_i16_get_char( void ){
 
 void usb_v_send_char( uint8_t data ){
 
-	CDC_Transmit_FS( &data, sizeof(data) );    
+	// CDC_Transmit_FS( &data, sizeof(data) );    
+
+    if( tx_size >= HAL_CMD_USART_TX_BUF_SIZE ){
+
+        return;
+    }
+
+    tx_buf[tx_ins] = data;
+    tx_ins++;
+    tx_ins %= HAL_CMD_USART_TX_BUF_SIZE;
+    tx_size++;
 }
 
 void usb_v_send_data( const uint8_t *data, uint16_t len ){
 
-	CDC_Transmit_FS( (uint8_t *)data, len );
+	// CDC_Transmit_FS( (uint8_t *)data, len );
+
+    while( len > 0 ){
+
+        usb_v_send_char( *data++ );
+        len--;        
+    }
 }
 
 uint8_t usb_u8_rx_size( void ){
@@ -273,10 +306,31 @@ PT_BEGIN( pt );
 
     usb_v_attach();
 
-    // while(1){
+    while(1){
 
+        THREAD_WAIT_WHILE( pt, tx_size == 0 );
 
-    // }
+        uint8_t buf[64];
+        
+        uint32_t count = tx_size;
+
+        if( count > cnt_of_array(buf) ){
+
+            count = cnt_of_array(buf);
+        }
+
+        for( uint32_t i = 0; i < count; i++ ){
+
+            buf[i] = tx_buf[tx_ext];
+            tx_ext++;
+            tx_ext %= HAL_CMD_USART_TX_BUF_SIZE;
+            tx_size--;
+        } 
+    
+        CDC_Transmit_FS( (uint8_t *)buf, count );  
+
+        THREAD_WAIT_WHILE( pt, cdc_tx_busy() );
+    }
 
 PT_END( pt );
 }
