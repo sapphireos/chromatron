@@ -36,6 +36,7 @@ uint8_t rnd_u8_get_int_with_seed( uint64_t *seed );
 uint16_t rnd_u16_get_int_with_seed( uint64_t *seed );
 uint8_t rnd_u8_get_int( void );
 uint16_t rnd_u16_get_int( void );
+uint32_t rnd_u32_get_int( void );
 uint16_t rnd_u16_get_int_hw( void );
 void rnd_v_fill( uint8_t *data, uint16_t len );
 
