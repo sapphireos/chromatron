@@ -145,16 +145,29 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+    uint32_t count = *Len;
 
-  rx_ins = 0;
-  rx_ext = 0;
-  rx_size = *Len;
+    while( count > 0 ){
 
-  memcpy( (uint8_t *)rx_buf, rx_buffer, rx_size );
+        rx_buf[rx_ins] = *Buf;
+        Buf++;
 
-  return (USBD_OK);
+        rx_ins++;
+        rx_ins %= sizeof(rx_buf);
+
+        rx_size++;
+
+        count--;
+
+        if( rx_size >= sizeof(rx_buf) ){
+
+            break;
+        }
+    }
+
+    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
+    return (USBD_OK);
 }
 
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
