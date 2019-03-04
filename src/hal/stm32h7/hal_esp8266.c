@@ -82,7 +82,7 @@ static volatile uint16_t get_dma_bytes( void ){
 #ifdef BOARD_CHROMATRONX
 ISR(EXTI3_IRQHandler){
 #else
-ISR(EXTI15_10_IRQHandler){
+ISR(EXTI2_IRQHandler){
 #endif
 // OS_IRQ_BEGIN(WIFI_IRQ_VECTOR);
 
@@ -394,7 +394,7 @@ void hal_wifi_v_disable_irq( void ){
     #ifdef BOARD_CHROMATRONX
     HAL_NVIC_DisableIRQ( EXTI3_IRQn );
     #else
-    HAL_NVIC_DisableIRQ( EXTI15_10_IRQn );
+    HAL_NVIC_DisableIRQ( EXTI2_IRQn );
     #endif
 }
 
@@ -403,7 +403,7 @@ void hal_wifi_v_enable_irq( void ){
     #ifdef BOARD_CHROMATRONX
     HAL_NVIC_EnableIRQ( EXTI3_IRQn );
     #else
-    HAL_NVIC_EnableIRQ( EXTI15_10_IRQn );
+    HAL_NVIC_EnableIRQ( EXTI2_IRQn );
     #endif
 }
 
@@ -689,8 +689,8 @@ void hal_wifi_v_enter_normal_mode( void ){
 
     #else
 
-    HAL_NVIC_SetPriority( EXTI15_10_IRQn, 0, 0 );
-    HAL_NVIC_DisableIRQ( EXTI15_10_IRQn );
+    HAL_NVIC_SetPriority( EXTI2_IRQn, 0, 0 );
+    HAL_NVIC_DisableIRQ( EXTI2_IRQn );
 
     #endif
 
