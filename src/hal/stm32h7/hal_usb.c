@@ -37,9 +37,9 @@
 #include "usbd_cdc_if.h"
 
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
-static volatile uint8_t rx_ins;
-static volatile uint8_t rx_ext;
-static volatile uint8_t rx_size;
+static volatile uint16_t rx_ins;
+static volatile uint16_t rx_ext;
+static volatile uint16_t rx_size;
 
 
 static volatile uint8_t tx_buf[HAL_CMD_USART_TX_BUF_SIZE];
@@ -285,7 +285,7 @@ void usb_v_send_data( const uint8_t *data, uint16_t len ){
     }
 }
 
-uint8_t usb_u8_rx_size( void ){
+uint16_t usb_u16_rx_size( void ){
 
     return rx_size;
 }

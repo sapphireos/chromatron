@@ -203,7 +203,7 @@ void cmd_usart_v_set_baud( baud_t baud ){
 
 bool cmd_usart_b_received_char( void ){
 
-    return cmd_usart_u8_rx_size() > 0;
+    return cmd_usart_u16_rx_size() > 0;
 }
 
 void cmd_usart_v_send_char( uint8_t data ){
@@ -227,7 +227,7 @@ void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
 int16_t cmd_usart_i16_get_char( void ){
 
-    if( cmd_usart_u8_rx_size() == 0 ){
+    if( cmd_usart_u16_rx_size() == 0 ){
 
         return -1;
     }
@@ -255,7 +255,7 @@ int16_t cmd_usart_i16_get_char( void ){
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 
-    uint8_t rx_size = cmd_usart_u8_rx_size();
+    uint8_t rx_size = cmd_usart_u16_rx_size();
 
     if( len > rx_size ){
 
@@ -275,15 +275,15 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
     return rx_size;
 }
 
-uint8_t cmd_usart_u8_rx_size( void ){
+uint16_t cmd_usart_u16_rx_size( void ){
 
     #ifdef ENABLE_USB
 
-    return usb_u8_rx_size();
+    return usb_u16_rx_size();
 
     #else
     ATOMIC;
-    uint8_t temp = rx_size;
+    uint16_t temp = rx_size;
     END_ATOMIC;
 
     return temp;
@@ -327,7 +327,7 @@ PT_BEGIN( pt );
 
         // wait for version
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + CMD_USART_TIMEOUT_MS );
-        THREAD_WAIT_WHILE( pt, ( cmd_usart_u8_rx_size() < sizeof(uint8_t) ) &&
+        THREAD_WAIT_WHILE( pt, ( cmd_usart_u16_rx_size() < sizeof(uint8_t) ) &&
                                ( thread_b_alarm_set() ) );
 
         // check for timeout
@@ -336,7 +336,7 @@ PT_BEGIN( pt );
             cmd_usart_v_send_char( CMD_USART_UDP_NAK );
             log_v_debug_P( PSTR("timeout") );
 
-            log_v_debug_P( PSTR("%d %d"), cmd_usart_u8_rx_size(), thread_u8_get_run_cause() );
+            log_v_debug_P( PSTR("%d %d"), cmd_usart_u16_rx_size(), thread_u8_get_run_cause() );
             
             goto cleanup;
         }
@@ -351,7 +351,7 @@ PT_BEGIN( pt );
 
         // wait for header
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + CMD_USART_TIMEOUT_MS );
-        THREAD_WAIT_WHILE( pt, ( cmd_usart_u8_rx_size() < sizeof(cmd_usart_udp_header_t) ) &&
+        THREAD_WAIT_WHILE( pt, ( cmd_usart_u16_rx_size() < sizeof(cmd_usart_udp_header_t) ) &&
                                ( thread_b_alarm_set() ) );
 
         // check for timeout
@@ -429,7 +429,7 @@ PT_BEGIN( pt );
         while( count > 0 ){
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + CMD_USART_TIMEOUT_MS );
-            THREAD_WAIT_WHILE( pt, ( cmd_usart_u8_rx_size() == 0 ) &&
+            THREAD_WAIT_WHILE( pt, ( cmd_usart_u16_rx_size() == 0 ) &&
                                    ( thread_b_alarm_set() ) );
 
             // check for timeout
@@ -444,7 +444,7 @@ PT_BEGIN( pt );
             netmsg_state_t *nm_state = netmsg_vp_get_state( netmsg );
             uint8_t *buf = mem2_vp_get_ptr( nm_state->data_handle ) + idx;
 
-            uint8_t rx_data = cmd_usart_u8_rx_size();
+            uint8_t rx_data = cmd_usart_u16_rx_size();
 
             if( rx_data > count ){
 
@@ -463,10 +463,10 @@ PT_BEGIN( pt );
 
         // wait for CRC
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + CMD_USART_TIMEOUT_MS );
-        THREAD_WAIT_WHILE( pt, ( cmd_usart_u8_rx_size() < sizeof(uint16_t) ) &&
+        THREAD_WAIT_WHILE( pt, ( cmd_usart_u16_rx_size() < sizeof(uint16_t) ) &&
                                ( thread_b_alarm_set() ) );
 
-        if( cmd_usart_u8_rx_size() < sizeof(uint16_t) ){
+        if( cmd_usart_u16_rx_size() < sizeof(uint16_t) ){
 
             // send NAK
             cmd_usart_v_send_char( CMD_USART_UDP_NAK );
