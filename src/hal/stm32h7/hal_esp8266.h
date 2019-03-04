@@ -37,8 +37,8 @@
 #define WIFI_DMA_REQUEST		DMA_REQUEST_UART8_RX
 #define WIFI_USART              UART8
 #else
-#define WIFI_DMA_REQUEST		DMA_REQUEST_UART7_RX
-#define WIFI_USART              UART7
+#define WIFI_DMA_REQUEST		DMA_REQUEST_UART4_RX
+#define WIFI_USART              UART4
 #endif
 
 #ifdef DEBUG

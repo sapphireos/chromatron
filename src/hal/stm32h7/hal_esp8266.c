@@ -115,7 +115,7 @@ void hal_wifi_v_init( void ){
     #ifdef BOARD_CHROMATRONX
     __HAL_RCC_UART8_CLK_ENABLE();
     #else
-    __HAL_RCC_UART7_CLK_ENABLE();
+    __HAL_RCC_UART4_CLK_ENABLE();
     #endif
     
     __HAL_RCC_DMA1_CLK_ENABLE();
@@ -532,7 +532,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
-    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    GPIO_InitStruct.Alternate = GPIO_AF6_UART4;
     #endif
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
@@ -543,7 +543,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
-    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    GPIO_InitStruct.Alternate = GPIO_AF6_UART4;
     #endif
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
@@ -647,7 +647,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
-    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    GPIO_InitStruct.Alternate = GPIO_AF6_UART4;
     #endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
@@ -658,7 +658,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
-    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    GPIO_InitStruct.Alternate = GPIO_AF6_UART4;
     #endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);

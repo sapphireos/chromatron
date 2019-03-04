@@ -308,6 +308,7 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_YIELD( pt );
         THREAD_WAIT_WHILE( pt, tx_size == 0 );
 
         uint8_t buf[64];
