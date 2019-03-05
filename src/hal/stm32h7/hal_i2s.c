@@ -39,6 +39,10 @@ static const hal_i2s_ch_t i2s_io[] = {
 };
 
 
+static bool stereo;
+static uint8_t sample_bits;
+static uint8_t sample_bit_shift;
+
 static uint32_t i2s_buffer[I2S_BUF_SIZE];
 static uint16_t extract_idx;
 
@@ -79,7 +83,11 @@ void hal_i2s_v_init( void ){
     HAL_GPIO_Init( port, &GPIO_InitStruct );
 }
 
-void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
+void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo ){
+
+    sample_bits = _sample_bits;
+    stereo = _stereo;
+    sample_bit_shift = 24 - sample_bits;
 
 	__HAL_RCC_SPI1_CLK_ENABLE();
 	__HAL_RCC_DMA1_CLK_ENABLE();
@@ -93,7 +101,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
 	i2s_handle.Init.FirstBit 			= I2S_FIRSTBIT_MSB;
 	i2s_handle.Init.WSInversion 		= I2S_WS_INVERSION_DISABLE;
 	i2s_handle.Init.IOSwap 				= I2S_IO_SWAP_DISABLE;
-	i2s_handle.Init.Data24BitAlignment 	= I2S_DATA_24BIT_ALIGNMENT_RIGHT;
+	i2s_handle.Init.Data24BitAlignment 	= I2S_DATA_24BIT_ALIGNMENT_LEFT;
 	i2s_handle.Init.FifoThreshold 		= I2S_FIFO_THRESHOLD_01DATA;
 	i2s_handle.Init.MasterKeepIOState 	= I2S_MASTER_KEEP_IO_STATE_DISABLE;
 	i2s_handle.Init.SlaveExtendFREDetection = I2S_SLAVE_EXTEND_FRE_DETECTION_DISABLE;
@@ -153,7 +161,9 @@ uint32_t hal_i2s_u32_get_count( void ){
     return ( ( I2S_BUF_SIZE - 1 ) - extract_idx ) + counter;;
 }
 
-uint32_t hal_i2s_u32_get_samples( uint32_t *samples, uint16_t max ){
+// return sum of left and right channels in stereo mode,
+// or just left channel in mono
+uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max ){
 
     uint32_t count = hal_i2s_u32_get_count();
 
@@ -162,14 +172,42 @@ uint32_t hal_i2s_u32_get_samples( uint32_t *samples, uint16_t max ){
         count = max;
     }
 
-    for( uint32_t i = 0; i < count; i++ ){
+    if( stereo ){
 
-        *samples++ = i2s_buffer[extract_idx];
+        // this could definitely be optimized better...
+        for( uint32_t i = 0; i < count; i++ ){
 
-        extract_idx++;
-        extract_idx %= I2S_BUF_SIZE;
+            *samples = i2s_buffer[extract_idx] >> sample_bit_shift;
+            extract_idx++;
+            extract_idx %= I2S_BUF_SIZE;
+
+            *samples += i2s_buffer[extract_idx] >> sample_bit_shift;
+            extract_idx++;
+            extract_idx %= I2S_BUF_SIZE;
+
+            samples++;
+        }
+    }
+    else{
+
+        for( uint32_t i = 0; i < count; i++ ){
+
+            uint32_t temp = i2s_buffer[extract_idx];
+
+            if( temp & ( 1 << 31 ) ){
+
+                temp |= 0xff000000;
+            }
+
+            *samples++ = temp;
+
+            extract_idx += 2;
+            extract_idx %= I2S_BUF_SIZE;
+        }
     }
     
     return count;    
 }
+
+
 
