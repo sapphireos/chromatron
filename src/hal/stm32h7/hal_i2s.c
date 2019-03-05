@@ -105,8 +105,8 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo ){
     i2s_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
     i2s_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
     i2s_dma.Init.MemInc               = DMA_MINC_ENABLE;
-    i2s_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_BYTE;
-    i2s_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
+    i2s_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_HALFWORD;
+    i2s_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_HALFWORD;
     i2s_dma.Init.Mode                 = DMA_CIRCULAR;
     i2s_dma.Init.Priority             = DMA_PRIORITY_HIGH;
     i2s_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
