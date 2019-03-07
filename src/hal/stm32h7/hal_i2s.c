@@ -43,7 +43,7 @@ static bool stereo;
 static uint8_t sample_bits;
 static uint8_t sample_bit_shift;
 
-static int16_t i2s_buffer[I2S_BUF_SIZE];
+static NON_CACHEABLE int16_t i2s_buffer[I2S_BUF_SIZE];
 static uint16_t extract_idx;
 
 static I2S_HandleTypeDef i2s_handle;
