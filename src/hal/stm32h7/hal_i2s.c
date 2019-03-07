@@ -49,6 +49,9 @@ static uint16_t extract_idx;
 static I2S_HandleTypeDef i2s_handle;
 static DMA_HandleTypeDef i2s_dma;
 
+volatile uint8_t buf_number;
+
+
 ISR(I2S_DMA_HANDLER){
     
     HAL_DMA_IRQHandler( &i2s_dma );
@@ -58,6 +61,17 @@ ISR(I2S_HANDLER){
 
     HAL_I2S_IRQHandler( &i2s_handle );
 }
+
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
+
+    buf_number = 1;
+}
+
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
+
+    buf_number = 0;
+}
+
 
 void hal_i2s_v_init( void ){
 
@@ -125,6 +139,8 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
     i2s_dma.Init.PeriphBurst          = DMA_PBURST_SINGLE;
 
     HAL_DMA_Init( &i2s_dma );
+
+    // i2s_dma.Instance->CR |= DMA_SxCR_DBM;
 
     HAL_NVIC_SetPriority( I2S_DMA_IRQ, 0, 0 );
     HAL_NVIC_EnableIRQ( I2S_DMA_IRQ );
@@ -198,7 +214,7 @@ uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max ){
 
         for( uint32_t i = 0; i < count; i++ ){
 
-            *samples++ = i2s_buffer[extract_idx];
+            *samples++ = (i2s_buffer[extract_idx] << 8) & 0xffffc000;
 
             extract_idx += 2;
             extract_idx %= I2S_BUF_SIZE;
