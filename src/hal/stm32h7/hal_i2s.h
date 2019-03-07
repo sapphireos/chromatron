@@ -40,12 +40,12 @@
 #define hal_i2s_v_init i2s_v_init
 #define hal_i2s_v_start i2s_v_start
 #define hal_i2s_u32_get_count i2s_u32_get_count
-#define hal_i2s_u32_get_samples i2s_u32_get_samples
+#define hal_i2s_u32_get_summed_samples i2s_u32_get_samples
 
 void hal_i2s_v_init( void );
 void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
 uint32_t hal_i2s_u32_get_count( void );
-uint32_t hal_i2s_u32_get_samples( int16_t *samples, uint16_t max );
+uint32_t hal_i2s_u32_get_summed_samples( int16_t *samples, uint16_t max );
 
 #endif
 

@@ -43,7 +43,7 @@ static bool stereo;
 static uint8_t sample_bits;
 static uint8_t sample_bit_shift;
 
-static uint16_t i2s_buffer[I2S_BUF_SIZE];
+static int16_t i2s_buffer[I2S_BUF_SIZE];
 static uint16_t extract_idx;
 
 static I2S_HandleTypeDef i2s_handle;
@@ -135,7 +135,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
     __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
     // HAL_I2S_Receive( &i2s_handle, i2s_buffer, cnt_of_array(i2s_buffer), 1000 );    
-    HAL_I2S_Receive_DMA( &i2s_handle, i2s_buffer, I2S_BUF_SIZE );
+    HAL_I2S_Receive_DMA( &i2s_handle, (uint16_t *)i2s_buffer, I2S_BUF_SIZE );
     
     if((i2s_handle.Instance->I2SCFGR & SPI_I2SCFGR_I2SCFG) == I2S_MODE_MASTER_RX)
     {
@@ -196,9 +196,7 @@ uint32_t hal_i2s_u32_get_summed_samples( int16_t *samples, uint16_t max ){
 
         for( uint32_t i = 0; i < count; i++ ){
 
-            uint16_t temp = i2s_buffer[extract_idx];
-
-            *samples++ = temp;
+            *samples++ = i2s_buffer[extract_idx];
 
             extract_idx += 2;
             extract_idx %= I2S_BUF_SIZE;
