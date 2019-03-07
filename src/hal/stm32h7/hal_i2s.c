@@ -43,7 +43,7 @@ static bool stereo;
 static uint8_t sample_bits;
 static uint8_t sample_bit_shift;
 
-static uint32_t i2s_buffer[I2S_BUF_SIZE];
+static uint16_t i2s_buffer[I2S_BUF_SIZE];
 static uint16_t extract_idx;
 
 static I2S_HandleTypeDef i2s_handle;
@@ -60,6 +60,8 @@ ISR(I2S_HANDLER){
 }
 
 void hal_i2s_v_init( void ){
+
+    extract_idx = 1;
 
 	i2s_handle.Instance = I2S;
 
@@ -94,7 +96,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
 
 	i2s_handle.Init.Mode 				= I2S_MODE_MASTER_RX;
 	i2s_handle.Init.Standard 			= I2S_STANDARD_PHILIPS;
-	i2s_handle.Init.DataFormat 			= I2S_DATAFORMAT_24B;
+	i2s_handle.Init.DataFormat 			= I2S_DATAFORMAT_16B_EXTENDED;
 	i2s_handle.Init.MCLKOutput 			= I2S_MCLKOUTPUT_DISABLE;
 	i2s_handle.Init.AudioFreq 			= I2S_AUDIOFREQ_22K;
 	i2s_handle.Init.CPOL 				= I2S_CPOL_HIGH;
@@ -113,8 +115,8 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
     i2s_dma.Init.Direction            = DMA_PERIPH_TO_MEMORY;
     i2s_dma.Init.PeriphInc            = DMA_PINC_DISABLE;
     i2s_dma.Init.MemInc               = DMA_MINC_ENABLE;
-    i2s_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_WORD;
-    i2s_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_WORD;
+    i2s_dma.Init.PeriphDataAlignment  = DMA_PDATAALIGN_HALFWORD;
+    i2s_dma.Init.MemDataAlignment     = DMA_MDATAALIGN_HALFWORD;
     i2s_dma.Init.Mode                 = DMA_CIRCULAR;
     i2s_dma.Init.Priority             = DMA_PRIORITY_HIGH;
     i2s_dma.Init.FIFOMode             = DMA_FIFOMODE_DISABLE;
@@ -133,7 +135,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
     __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
     // HAL_I2S_Receive( &i2s_handle, i2s_buffer, cnt_of_array(i2s_buffer), 1000 );    
-    HAL_I2S_Receive_DMA( &i2s_handle, (uint16_t *)i2s_buffer, I2S_BUF_SIZE / 2 );
+    HAL_I2S_Receive_DMA( &i2s_handle, i2s_buffer, I2S_BUF_SIZE );
     
     if((i2s_handle.Instance->I2SCFGR & SPI_I2SCFGR_I2SCFG) == I2S_MODE_MASTER_RX)
     {
@@ -163,7 +165,7 @@ uint32_t hal_i2s_u32_get_count( void ){
 
 // return sum of left and right channels in stereo mode,
 // or just left channel in mono
-uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max ){
+uint32_t hal_i2s_u32_get_summed_samples( int16_t *samples, uint16_t max ){
 
     uint32_t count = hal_i2s_u32_get_count();
 
@@ -173,6 +175,8 @@ uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max ){
     }
 
     if( stereo ){
+
+        ASSERT( FALSE ); // this is not ready yet
 
         // this could definitely be optimized better...
         for( uint32_t i = 0; i < count; i++ ){
@@ -192,13 +196,9 @@ uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max ){
 
         for( uint32_t i = 0; i < count; i++ ){
 
-            uint32_t temp = i2s_buffer[extract_idx];
+            uint16_t temp = i2s_buffer[extract_idx];
 
-            if( temp & ( 1 << 31 ) ){
-
-                temp |= 0xff000000;
-            }
-
+            // *samples++ = __builtin_bswap16( temp );
             *samples++ = temp;
 
             extract_idx += 2;

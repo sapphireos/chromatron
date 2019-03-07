@@ -114,7 +114,7 @@ int8_t sapphire_i8_init( void ){
 	crc_v_init();
 
     #ifdef ENABLE_USB
-    usb_v_init();
+    // usb_v_init();
     #endif
 
     // init serial port
