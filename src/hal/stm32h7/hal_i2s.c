@@ -98,7 +98,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
 	i2s_handle.Init.Standard 			= I2S_STANDARD_PHILIPS;
 	i2s_handle.Init.DataFormat 			= I2S_DATAFORMAT_16B_EXTENDED;
 	i2s_handle.Init.MCLKOutput 			= I2S_MCLKOUTPUT_DISABLE;
-	i2s_handle.Init.AudioFreq 			= I2S_AUDIOFREQ_22K;
+	i2s_handle.Init.AudioFreq 			= sample_rate;
 	i2s_handle.Init.CPOL 				= I2S_CPOL_HIGH;
 	i2s_handle.Init.FirstBit 			= I2S_FIRSTBIT_MSB;
 	i2s_handle.Init.WSInversion 		= I2S_WS_INVERSION_DISABLE;
@@ -198,7 +198,6 @@ uint32_t hal_i2s_u32_get_summed_samples( int16_t *samples, uint16_t max ){
 
             uint16_t temp = i2s_buffer[extract_idx];
 
-            // *samples++ = __builtin_bswap16( temp );
             *samples++ = temp;
 
             extract_idx += 2;
