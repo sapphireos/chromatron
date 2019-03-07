@@ -43,7 +43,7 @@ static bool stereo;
 static uint8_t sample_bits;
 static uint8_t sample_bit_shift;
 
-static NON_CACHEABLE int16_t i2s_buffer[I2S_BUF_SIZE];
+static int16_t i2s_buffer[I2S_BUF_SIZE];
 static uint16_t extract_idx;
 
 static I2S_HandleTypeDef i2s_handle;
@@ -173,6 +173,8 @@ uint32_t hal_i2s_u32_get_summed_samples( int16_t *samples, uint16_t max ){
 
         count = max;
     }
+
+    hal_cpu_v_clean_and_invalidate_d_cache();
 
     if( stereo ){
 
