@@ -27,7 +27,9 @@
 
 #include "i2s.h"
 
-#define I2S_BUF_SIZE		2048
+#define I2S_SIGNAL 			SIGNAL_SYS_7
+
+#define I2S_BUF_SIZE		1024
  
 #define I2S 				SPI1
 #define I2S_SPI_IRQn 		SPI1_IRQn
@@ -39,13 +41,9 @@
 
 #define hal_i2s_v_init i2s_v_init
 #define hal_i2s_v_start i2s_v_start
-#define hal_i2s_u32_get_count i2s_u32_get_count
-#define hal_i2s_u32_get_summed_samples i2s_u32_get_samples
 
 void hal_i2s_v_init( void );
 void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
-uint32_t hal_i2s_u32_get_count( void );
-uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max );
 
 #endif
 

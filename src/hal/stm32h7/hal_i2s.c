@@ -23,6 +23,7 @@
  */
 
 #include "system.h"
+#include "threading.h"
 
 #include "hal_io.h"
 #include "hal_i2s.h"
@@ -43,13 +44,17 @@ static bool stereo;
 static uint8_t sample_bits;
 static uint8_t sample_bit_shift;
 
+#define I2S_DMA_BUF_SIZE ( I2S_BUF_SIZE * 2 )
+
+static int32_t i2s_dma_buffer[I2S_DMA_BUF_SIZE];
+
 static int32_t i2s_buffer[I2S_BUF_SIZE];
-static uint16_t extract_idx;
+static volatile bool i2s_buffer_ready;
+static volatile bool i2s_buffer_overrun;
 
 static I2S_HandleTypeDef i2s_handle;
 static DMA_HandleTypeDef i2s_dma;
 
-volatile uint8_t buf_number;
 
 
 ISR(I2S_DMA_HANDLER){
@@ -64,18 +69,62 @@ ISR(I2S_HANDLER){
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 
-    buf_number = 1;
+    if( i2s_buffer_ready ){
+
+        // overrun
+        i2s_buffer_overrun = TRUE;
+        return;
+    }
+
+    i2s_buffer_ready = TRUE;
+
+    hal_cpu_v_clean_and_invalidate_d_cache();
+    memcpy( i2s_buffer, &i2s_dma_buffer[I2S_BUF_SIZE], I2S_BUF_SIZE );
+    thread_v_signal( I2S_SIGNAL );
 }
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 
-    buf_number = 0;
+    if( i2s_buffer_ready ){
+
+        // overrun
+        i2s_buffer_overrun = TRUE;
+        return;
+    }
+
+    i2s_buffer_ready = TRUE;
+
+    hal_cpu_v_clean_and_invalidate_d_cache();
+    memcpy( i2s_buffer, i2s_dma_buffer, I2S_BUF_SIZE );
+    thread_v_signal( I2S_SIGNAL );
+}
+
+
+PT_THREAD( i2s_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        THREAD_WAIT_SIGNAL( pt, I2S_SIGNAL );
+
+        if( i2s_v_callback ){
+
+            i2s_v_callback( i2s_buffer, I2S_BUF_SIZE );
+        }
+
+        // clear buffer
+        ATOMIC;
+        i2s_buffer_ready = FALSE;
+        END_ATOMIC;
+    }   
+    
+    
+PT_END( pt );
 }
 
 
 void hal_i2s_v_init( void ){
-
-    extract_idx = 1;
 
 	i2s_handle.Instance = I2S;
 
@@ -151,7 +200,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
     __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
     // HAL_I2S_Receive( &i2s_handle, i2s_buffer, cnt_of_array(i2s_buffer), 1000 );    
-    HAL_I2S_Receive_DMA( &i2s_handle, (uint16_t *)i2s_buffer, I2S_BUF_SIZE / 2 );
+    HAL_I2S_Receive_DMA( &i2s_handle, (uint16_t *)i2s_dma_buffer, I2S_DMA_BUF_SIZE / 2 );
     
     if((i2s_handle.Instance->I2SCFGR & SPI_I2SCFGR_I2SCFG) == I2S_MODE_MASTER_RX)
     {
@@ -165,64 +214,10 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
     {
       	i2s_handle.Instance->CR1 |= SPI_CR1_CSTART;
     }
+
+    thread_t_create( i2s_thread,
+                 PSTR("i2s"),
+                 0,
+                 0 );
 }
-
-uint32_t hal_i2s_u32_get_count( void ){
-
-    uint32_t counter = I2S_BUF_SIZE - __HAL_DMA_GET_COUNTER( &i2s_dma );
-
-    if( counter > extract_idx ){
-
-        return counter - extract_idx;
-    }
-
-    return ( ( I2S_BUF_SIZE - 1 ) - extract_idx ) + counter;;
-}
-
-// return sum of left and right channels in stereo mode,
-// or just left channel in mono
-uint32_t hal_i2s_u32_get_summed_samples( int32_t *samples, uint16_t max ){
-
-    uint32_t count = hal_i2s_u32_get_count();
-
-    if( count > max ){
-
-        count = max;
-    }
-
-    hal_cpu_v_clean_and_invalidate_d_cache();
-
-    if( stereo ){
-
-        ASSERT( FALSE ); // this is not ready yet
-
-        // this could definitely be optimized better...
-        for( uint32_t i = 0; i < count; i++ ){
-
-            *samples = i2s_buffer[extract_idx] >> sample_bit_shift;
-            extract_idx++;
-            extract_idx %= I2S_BUF_SIZE;
-
-            *samples += i2s_buffer[extract_idx] >> sample_bit_shift;
-            extract_idx++;
-            extract_idx %= I2S_BUF_SIZE;
-
-            samples++;
-        }
-    }
-    else{
-
-        for( uint32_t i = 0; i < count; i++ ){
-
-            *samples++ = (i2s_buffer[extract_idx] << 8) & 0xffffc000;
-
-            extract_idx += 2;
-            extract_idx %= I2S_BUF_SIZE;
-        }
-    }
-    
-    return count;    
-}
-
-
 

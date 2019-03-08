@@ -27,7 +27,6 @@
 
 void i2s_v_init( void );
 void i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
-uint32_t i2s_u32_get_count( void );
-uint32_t i2s_u32_get_samples( int32_t *samples, uint16_t max );
+void i2s_v_callback( int32_t *buffer, uint32_t count ) __attribute__((weak));
 
 #endif
