@@ -108,6 +108,11 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, I2S_SIGNAL );
 
+        for( uint32_t i = 0; i < I2S_BUF_SIZE; i++ ){
+
+            i2s_buffer[i] = ( i2s_buffer[i] & 0xffffc0 ) << 8;
+        }
+
         if( i2s_v_callback ){
 
             i2s_v_callback( i2s_buffer, I2S_BUF_SIZE );
@@ -162,7 +167,7 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
 	i2s_handle.Init.DataFormat 			= I2S_DATAFORMAT_24B;
 	i2s_handle.Init.MCLKOutput 			= I2S_MCLKOUTPUT_DISABLE;
 	i2s_handle.Init.AudioFreq 			= sample_rate;
-	i2s_handle.Init.CPOL 				= I2S_CPOL_LOW;
+	i2s_handle.Init.CPOL 				= I2S_CPOL_HIGH; // clock in on falling edge
 	i2s_handle.Init.FirstBit 			= I2S_FIRSTBIT_MSB;
 	i2s_handle.Init.WSInversion 		= I2S_WS_INVERSION_DISABLE;
 	i2s_handle.Init.IOSwap 				= I2S_IO_SWAP_DISABLE;
