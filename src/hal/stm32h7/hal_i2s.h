@@ -29,7 +29,7 @@
 
 #define I2S_SIGNAL 			SIGNAL_SYS_7
 
-#define I2S_BUF_SIZE		2048
+#define I2S_BUF_SIZE		512
  
 #define I2S 				SPI1
 #define I2S_SPI_IRQn 		SPI1_IRQn
