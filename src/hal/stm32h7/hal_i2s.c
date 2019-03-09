@@ -40,17 +40,20 @@ static const hal_i2s_ch_t i2s_io[] = {
 };
 
 
-static bool stereo;
 static uint8_t sample_bits;
 static uint8_t sample_bit_shift;
 
 #define I2S_DMA_BUF_SIZE ( I2S_BUF_SIZE * 2 )
 
 static NON_CACHEABLE int32_t i2s_dma_buffer[I2S_DMA_BUF_SIZE];
-
-static int32_t i2s_buffer[I2S_BUF_SIZE];
 static volatile bool i2s_buffer_ready;
 static volatile bool i2s_buffer_overrun;
+
+
+static int32_t i2s_buffer[I2S_BUF_SIZE];
+
+static int32_t left_buffer[I2S_BUF_SIZE / 2];
+static int32_t right_buffer[I2S_BUF_SIZE / 2];
 
 static I2S_HandleTypeDef i2s_handle;
 static DMA_HandleTypeDef i2s_dma;
@@ -105,15 +108,18 @@ PT_BEGIN( pt );
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, I2S_SIGNAL );
+        
+        int32_t *ptr = i2s_buffer;
 
-        for( uint32_t i = 0; i < I2S_BUF_SIZE; i++ ){
+        for( uint32_t i = 0; i < I2S_BUF_SIZE / 2; i++ ){
 
-            i2s_buffer[i] = ( i2s_buffer[i] & 0xffffc0 ) << 8;
+            right_buffer[i] = ( *ptr++ & 0xffffc0 ) << 8;
+            left_buffer[i] = ( *ptr++ & 0xffffc0 ) << 8;
         }
 
         if( i2s_v_callback ){
 
-            i2s_v_callback( i2s_buffer, I2S_BUF_SIZE );
+            i2s_v_callback( left_buffer, right_buffer, I2S_BUF_SIZE / 2 );
         }
 
         // clear buffer
@@ -151,10 +157,9 @@ void hal_i2s_v_init( void ){
     HAL_GPIO_Init( port, &GPIO_InitStruct );
 }
 
-void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo ){
+void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits ){
 
     sample_bits = _sample_bits;
-    stereo = _stereo;
     sample_bit_shift = 24 - sample_bits;
 
 	__HAL_RCC_SPI1_CLK_ENABLE();

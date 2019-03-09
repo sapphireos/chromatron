@@ -43,7 +43,7 @@
 #define hal_i2s_v_start i2s_v_start
 
 void hal_i2s_v_init( void );
-void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
+void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits );
 
 #endif
 

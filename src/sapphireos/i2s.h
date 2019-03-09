@@ -26,7 +26,7 @@
 #define _I2S_H_
 
 void i2s_v_init( void );
-void i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
-void i2s_v_callback( int32_t *buffer, uint32_t count ) __attribute__((weak));
+void i2s_v_start( uint16_t sample_rate, uint8_t sample_bits );
+void i2s_v_callback( int32_t *left, int32_t *right, uint32_t count ) __attribute__((weak));
 
 #endif
