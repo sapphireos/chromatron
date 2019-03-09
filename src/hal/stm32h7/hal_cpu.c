@@ -298,7 +298,7 @@ static void cpu_init_noncacheable( void ){
     MPU_Region_InitTypeDef mpu_init;
     mpu_init.Enable             = MPU_REGION_ENABLE;
     mpu_init.BaseAddress        = (uint32_t)&_snon_cacheable;
-    mpu_init.Size               = MPU_REGION_SIZE_8KB;
+    mpu_init.Size               = MPU_REGION_SIZE_32KB;
     mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
     mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
     mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;

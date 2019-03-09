@@ -46,7 +46,7 @@ static uint8_t sample_bit_shift;
 
 #define I2S_DMA_BUF_SIZE ( I2S_BUF_SIZE * 2 )
 
-static int32_t i2s_dma_buffer[I2S_DMA_BUF_SIZE];
+static NON_CACHEABLE int32_t i2s_dma_buffer[I2S_DMA_BUF_SIZE];
 
 static int32_t i2s_buffer[I2S_BUF_SIZE];
 static volatile bool i2s_buffer_ready;
@@ -78,8 +78,8 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 
     i2s_buffer_ready = TRUE;
 
-    hal_cpu_v_clean_and_invalidate_d_cache();
-    memcpy( i2s_buffer, &i2s_dma_buffer[I2S_BUF_SIZE], I2S_BUF_SIZE );
+    // hal_cpu_v_clean_and_invalidate_d_cache();
+    memcpy( i2s_buffer, &i2s_dma_buffer[I2S_BUF_SIZE], sizeof(i2s_buffer) );
     thread_v_signal( I2S_SIGNAL );
 }
 
@@ -94,8 +94,8 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 
     i2s_buffer_ready = TRUE;
 
-    hal_cpu_v_clean_and_invalidate_d_cache();
-    memcpy( i2s_buffer, i2s_dma_buffer, I2S_BUF_SIZE );
+    // hal_cpu_v_clean_and_invalidate_d_cache();
+    memcpy( i2s_buffer, i2s_dma_buffer, sizeof(i2s_buffer) );
     thread_v_signal( I2S_SIGNAL );
 }
 
