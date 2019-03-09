@@ -928,7 +928,8 @@ restart:
     while(1){
 
         thread_v_set_signal_flag();
-        THREAD_WAIT_WHILE( pt, ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
+        THREAD_WAIT_WHILE( pt, ( list_u8_count( &netmsg_list ) == 0 ) && 
+                               ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
                                ( hal_wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) &&
                                ( !is_udp_rx_released() ) );
         thread_v_clear_signal( WIFI_SIGNAL );
