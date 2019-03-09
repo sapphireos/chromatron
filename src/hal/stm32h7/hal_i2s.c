@@ -78,7 +78,6 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 
     i2s_buffer_ready = TRUE;
 
-    // hal_cpu_v_clean_and_invalidate_d_cache();
     memcpy( i2s_buffer, &i2s_dma_buffer[I2S_BUF_SIZE], sizeof(i2s_buffer) );
     thread_v_signal( I2S_SIGNAL );
 }
@@ -94,7 +93,6 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 
     i2s_buffer_ready = TRUE;
 
-    // hal_cpu_v_clean_and_invalidate_d_cache();
     memcpy( i2s_buffer, i2s_dma_buffer, sizeof(i2s_buffer) );
     thread_v_signal( I2S_SIGNAL );
 }
@@ -194,8 +192,6 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
 
     HAL_DMA_Init( &i2s_dma );
 
-    // i2s_dma.Instance->CR |= DMA_SxCR_DBM;
-
     HAL_NVIC_SetPriority( I2S_DMA_IRQ, 0, 0 );
     HAL_NVIC_EnableIRQ( I2S_DMA_IRQ );
 
@@ -204,7 +200,6 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits, bool _stereo )
 
     __HAL_LINKDMA( &i2s_handle, hdmarx, i2s_dma );
 
-    // HAL_I2S_Receive( &i2s_handle, i2s_buffer, cnt_of_array(i2s_buffer), 1000 );    
     HAL_I2S_Receive_DMA( &i2s_handle, (uint16_t *)i2s_dma_buffer, I2S_DMA_BUF_SIZE / 2 );
     
     if((i2s_handle.Instance->I2SCFGR & SPI_I2SCFGR_I2SCFG) == I2S_MODE_MASTER_RX)
