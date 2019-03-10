@@ -232,8 +232,7 @@ class cg1Module(cg1Node):
                     builder.generic_object(node.target.name, node.value.name, args, node.value.kw, lineno=node.lineno)
 
                 else:
-                    print node.value
-                    raise SyntaxError("Unknown declaration in module body", lineno=node.lineno)
+                    raise SyntaxError("Unknown declaration in module body: %s" % (node.target.name), lineno=node.lineno)
 
             elif isinstance(node, cg1Call):
                 if node.target == 'send':
