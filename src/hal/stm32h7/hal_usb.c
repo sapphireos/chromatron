@@ -231,8 +231,8 @@ void usb_v_attach( void ){
 }
 
 void usb_v_detach( void ){
-
-	USBD_Stop( &hUsbDeviceFS );
+    
+    USBD_Stop( &hUsbDeviceFS );
 }	
 
 
