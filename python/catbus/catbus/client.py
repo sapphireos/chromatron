@@ -70,13 +70,13 @@ class Client(object):
 
             try:
                 self.__sock.sendto(msg.pack(), host)
-                # print 'send', msg
+                print time.time(), 'send', i, msg
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
-                    # print 'recv', reply_msg
+                    print time.time(), 'recv', reply_msg
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
                         # bad transaction IDs coming in, this doesn't count
