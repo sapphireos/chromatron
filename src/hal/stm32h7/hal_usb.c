@@ -311,6 +311,8 @@ PT_BEGIN( pt );
         THREAD_YIELD( pt );
         THREAD_WAIT_WHILE( pt, tx_size == 0 );
 
+        log_v_debug_P( PSTR("usb tx") );
+
         uint8_t buf[64];
         
         uint32_t count = tx_size;

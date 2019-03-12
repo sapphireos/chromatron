@@ -33,7 +33,7 @@
 #include "diag/Trace.h"
 #include "string.h"
 #include "hal_io.h"
-#include "hal_cmd_usart.h"
+#include "hal_usart.h"
 
 
 
@@ -43,42 +43,19 @@
 
 // ----------------------------------------------------------------------------
 
+#define serial_printf trace_printf
+
 int
 serial_printf(const char* format, ...)
 {
-  #ifndef DEBUG
+  // #ifndef DEBUG
   int ret;
   va_list ap;
-  UART_HandleTypeDef huart;
-
-    // enable clock
-  __HAL_RCC_UART4_CLK_ENABLE();
-
-
-  // init IO pins
-  GPIO_InitTypeDef GPIO_InitStruct;
   
-  GPIO_InitStruct.Pin = CMD_USART_TX_Pin|CMD_USART_RX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
-  HAL_GPIO_Init(CMD_USART_TX_GPIO_Port, &GPIO_InitStruct);
 
+  usart_v_init( 0 );
+  usart_v_set_baud( 0, 115200 );
 
-  // initialize command usart
-  huart.Instance = HAL_CMD_USART;
-  huart.Init.BaudRate = 115200;
-  huart.Init.WordLength = UART_WORDLENGTH_8B;
-  huart.Init.StopBits = UART_STOPBITS_1;
-  huart.Init.Parity = UART_PARITY_NONE;
-  huart.Init.Mode = UART_MODE_TX_RX;
-  huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  HAL_UART_Init(&huart);
-  
   va_start (ap, format);
 
   // TODO: rewrite it to no longer use newlib, it is way too heavy
@@ -90,39 +67,40 @@ serial_printf(const char* format, ...)
   if (ret > 0)
     {
       // Transfer the buffer to the device
-      HAL_UART_Transmit( &huart, (uint8_t *)buf, ret, 100 );
+      // HAL_UART_Transmit( &huart, (uint8_t *)buf, ret, 100 );
+      usart_v_send_data( 0, (uint8_t *)buf, ret );
     }
 
   va_end (ap);
   return ret;
-  #endif
+  // #endif
   return 0;
 }
 
 #if defined(TRACE)
-int
-trace_printf(const char* format, ...)
-{
-  int ret;
-  va_list ap;
+// int
+// trace_printf(const char* format, ...)
+// {
+//   int ret;
+//   va_list ap;
 
-  va_start (ap, format);
+//   va_start (ap, format);
 
-  // TODO: rewrite it to no longer use newlib, it is way too heavy
+//   // TODO: rewrite it to no longer use newlib, it is way too heavy
 
-  static char buf[OS_INTEGER_TRACE_PRINTF_TMP_ARRAY_SIZE];
+//   static char buf[OS_INTEGER_TRACE_PRINTF_TMP_ARRAY_SIZE];
 
-  // Print to the local buffer
-  ret = vsnprintf (buf, sizeof(buf), format, ap);
-  if (ret > 0)
-    {
-      // Transfer the buffer to the device
-      ret = trace_write (buf, (size_t)ret);
-    }
+//   // Print to the local buffer
+//   ret = vsnprintf (buf, sizeof(buf), format, ap);
+//   if (ret > 0)
+//     {
+//       // Transfer the buffer to the device
+//       ret = trace_write (buf, (size_t)ret);
+//     }
 
-  va_end (ap);
-  return ret;
-}
+//   va_end (ap);
+//   return ret;
+// }
 
 int
 trace_puts(const char *s)

@@ -52,7 +52,7 @@ void log_v_init( void ){
 static void append_log( char *buf ){
 
     trace_printf("%s", buf); // log prints already have newlines
-
+return;
     // check if file is not open
     if( f < 0 ){
         
