@@ -910,6 +910,7 @@ class UDPSerialBridge(threading.Thread):
 
                 except Exception as e:
                     # flush
+                    print e
                     while True:
                         try:
                             self.sock.settimeout(0.1)
@@ -923,6 +924,7 @@ class UDPSerialBridge(threading.Thread):
                 pass
 
             except Exception as e:
+                print e
                 pass
             
 
