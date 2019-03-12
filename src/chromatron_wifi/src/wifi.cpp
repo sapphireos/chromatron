@@ -461,7 +461,7 @@ void wifi_v_process( void ){
                 // on the wifi interface.
                 if( raddr == limited_broadcast ){
 
-                    raddr = ~WiFi.subnetMask() | WiFi.gatewayIP();
+                    raddr = ~(uint32_t)WiFi.subnetMask() | (uint32_t)WiFi.gatewayIP();
                 }
 
 

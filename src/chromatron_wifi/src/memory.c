@@ -16,7 +16,7 @@ static mem_rt_data_t mem_rt_data;
 static uint32_t mem_allocs;
 static uint32_t mem_alloc_fails;
 
-void assert( const char* file, int line, const char *format, ... ){
+void mem_assert( const char* file, int line, const char *format, ... ){
 
     intf_v_led_on();
 
