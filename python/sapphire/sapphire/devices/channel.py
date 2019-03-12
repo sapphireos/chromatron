@@ -630,7 +630,7 @@ class SerialUDPChannel(Channel):
 
     def open(self, host):
         self.port = serial.Serial(host, baudrate=115200)
-        self.settimeout(timeout=2.0)
+        self.settimeout(timeout=0.5)
         self.host = self.port.port
 
     def close(self):
@@ -719,7 +719,7 @@ class SerialUDPChannel(Channel):
         
     def write(self, data, port=None, tries=None):
         if tries == None:
-            tries = 4
+            tries = 1
 
         if port:
             rport = port

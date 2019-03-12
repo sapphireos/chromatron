@@ -69,8 +69,8 @@ class Client(object):
             i += 1
 
             try:
-                self.__sock.sendto(msg.pack(), host)
                 print time.time(), 'send', i, msg
+                self.__sock.sendto(msg.pack(), host)
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
