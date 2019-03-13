@@ -191,6 +191,8 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
     else if( mode == VM_RUN_FUNC ){
 
         return_code = vm_i8_run( stream, func_addr, 0, &vm_state[vm_index] );
+
+        intf_v_printf( "ran: %d on %d status: %d", func_addr, vm_index, return_code );
     }
     else{
 
