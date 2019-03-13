@@ -121,7 +121,22 @@ void hal_wifi_v_init( void ){
     __HAL_RCC_DMA1_CLK_ENABLE();
     
 
-    wifi_usart.Instance = WIFI_USART;
+    wifi_usart.Instance                 = WIFI_USART;
+    wifi_usart.Init.BaudRate            = 115200;
+    wifi_usart.Init.WordLength          = UART_WORDLENGTH_8B;
+    wifi_usart.Init.StopBits            = UART_STOPBITS_1;
+    wifi_usart.Init.Parity              = UART_PARITY_NONE;
+    wifi_usart.Init.Mode                = UART_MODE_TX_RX;
+    wifi_usart.Init.HwFlowCtl           = UART_HWCONTROL_NONE;
+    wifi_usart.Init.OverSampling        = UART_OVERSAMPLING_16;
+    wifi_usart.Init.OneBitSampling      = UART_ONE_BIT_SAMPLE_DISABLE;
+    // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+
+    if (HAL_UART_Init( &wifi_usart ) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 
     // set up DMA
     wifi_dma.Instance                  = WIFI_DMA;
@@ -286,21 +301,26 @@ uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void ){
 
 void hal_wifi_v_usart_send_char( uint8_t b ){
 
-	usart_v_send_byte( &wifi_usart, b );
+    HAL_UART_Transmit( &wifi_usart, &b, sizeof(b), 100 );
 
     current_tx_bytes += 1;
 }
 
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
 
-	usart_v_send_data( &wifi_usart, data, len );
+    HAL_UART_Transmit( &wifi_usart, (uint8_t *)data, len, 100 );
 
     current_tx_bytes += len;
 }
 
 int16_t hal_wifi_i16_usart_get_char( void ){
 
-	return usart_i16_get_byte( &wifi_usart );
+	if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
+
+        return wifi_usart.Instance->RDR;
+    }
+
+    return -1;
 }
 
 void hal_wifi_v_usart_flush( void ){
@@ -346,7 +366,12 @@ void hal_wifi_v_enable_rx_dma( bool irq ){
 
 void hal_wifi_v_usart_set_baud( baud_t baud ){
 
-    usart_v_set_baud( &wifi_usart, baud );    
+    wifi_usart.Init.BaudRate = baud;
+    
+    if (HAL_UART_Init(&wifi_usart) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 }
 
 void hal_wifi_v_reset_rx_buffer( void ){
