@@ -132,7 +132,7 @@ void cmd_usart_v_set_baud( baud_t baud ){
 bool cmd_usart_b_received_char( void ){
 
     #ifdef ENABLE_USB
-    if( usb_u8_rx_size() > 0 ){
+    if( usb_u16_rx_size() > 0 ){
 
         return TRUE;
     }
