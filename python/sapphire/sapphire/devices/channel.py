@@ -893,24 +893,24 @@ class UDPSerialBridge(threading.Thread):
                 self.sock.settimeout(1.0)
                 data, host = self.sock.recvfrom(4096)
 
-                print time.time(), "SOCK RECV", len(data)
+                # print time.time(), "SOCK RECV", len(data)
 
                 self.channel.write(data, port=self.rport)
 
-                print time.time(), "SERIAL WRITE", len(data)
+                # print time.time(), "SERIAL WRITE", len(data)
 
                 try:
                     response = self.channel.read()
 
-                    print time.time(), "SERIAL READ", len(response)
+                    # print time.time(), "SERIAL READ", len(response)
 
                     self.sock.sendto(response, host)
 
-                    print time.time(), "SOCK SEND", len(response)
+                    # print time.time(), "SOCK SEND", len(response)
 
                 except Exception as e:
                     # flush
-                    print e
+                    # print e
                     while True:
                         try:
                             self.sock.settimeout(0.1)
@@ -924,7 +924,7 @@ class UDPSerialBridge(threading.Thread):
                 pass
 
             except Exception as e:
-                print e
+                # print e
                 pass
             
 

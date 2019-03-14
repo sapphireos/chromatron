@@ -206,13 +206,13 @@ void wifi_v_process( void ){
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
             wifi_v_send_status();
 
-            if( !MDNS.begin( hostname ) ){
+            // if( !MDNS.begin( hostname ) ){
 
-                intf_v_printf("MDNS fail");
-            }
+            //     intf_v_printf("MDNS fail");
+            // }
 
-            MDNS.addService( "chromatron", "catbus", 44632 );
-            MDNS.addService( "chromatron", "streaming", 8004 );
+            // MDNS.addService( "chromatron", "catbus", 44632 );
+            // MDNS.addService( "chromatron", "streaming", 8004 );
             
             intf_v_printf("Connected!");
         }

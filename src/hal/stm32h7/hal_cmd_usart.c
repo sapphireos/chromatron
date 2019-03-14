@@ -444,7 +444,7 @@ PT_BEGIN( pt );
             netmsg_state_t *nm_state = netmsg_vp_get_state( netmsg );
             uint8_t *buf = mem2_vp_get_ptr( nm_state->data_handle ) + idx;
 
-            uint8_t rx_data = cmd_usart_u16_rx_size();
+            uint16_t rx_data = cmd_usart_u16_rx_size();
 
             if( rx_data > count ){
 
