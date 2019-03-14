@@ -2159,7 +2159,7 @@ PT_BEGIN( pt );
                 sock_i16_sendto( sock, (uint8_t *)&get, sizeof(get), 0 );
 
                 // write to file
-                if( fs_i16_write( session_state->file, &msg->data, msg->len ) != msg->len ){
+                if( fs_i16_write( session_state->file, &msg->data, msg->len ) != (int16_t)msg->len ){
 
                     log_v_debug_P( PSTR("file write error") );    
                 }
