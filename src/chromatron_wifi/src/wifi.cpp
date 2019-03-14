@@ -212,7 +212,6 @@ void wifi_v_process( void ){
             }
 
             MDNS.addService( "catbus", "udp", 44632 );
-            MDNS.addService( "chromatron_streaming", "udp", 8004 );
             MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");
 
             intf_v_printf("Connected!");
