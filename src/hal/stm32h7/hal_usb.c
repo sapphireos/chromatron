@@ -299,6 +299,8 @@ PT_THREAD( usb_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     	
+    // TMR_WAIT( pt, 10000 );
+
     USBD_Init( &hUsbDeviceFS, &FS_Desc, DEVICE_FS );
     USBD_RegisterClass( &hUsbDeviceFS, &USBD_CDC );
     USBD_CDC_RegisterInterface( &hUsbDeviceFS, &USBD_Interface_fops_FS );

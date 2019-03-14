@@ -115,6 +115,8 @@ void mem2_v_init( uint8_t *_heap, uint16_t size ){
     }
 
     mem_rt_data.handles_used = 0;
+
+    ASSERT_MSG( ( (uint32_t)free_space_ptr & 3 ) == 0, "free_space_ptr misalign addr: 0x%0x", (uint32_t)free_space_ptr );
 }
 
 // for debug only, returns a copy of the header at given index
@@ -527,7 +529,7 @@ void mem2_v_check_canaries( void ){
 
             // check the canary
             ASSERT_MSG( *canary == generate_canary( header ), "Invalid canary!" );
-            ASSERT_MSG( ( (uint32_t)header & 3 ) == 0, "Header misalign" );
+            ASSERT_MSG( ( (uint32_t)header & 3 ) == 0, "Header misalign, type: %d addr: 0x%0x", header->type, (uint32_t)header );
             ASSERT_MSG( ( MEM_BLOCK_SIZE( header ) & 3 ) == 0, "Block size invalid" );
         }
     }
