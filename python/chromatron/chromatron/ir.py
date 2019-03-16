@@ -2815,8 +2815,6 @@ class Builder(object):
 
                     self.data_table.append(i)
 
-        self.data_count = addr
-
         # scan instructions for referenced string literals
         used_strings = []
         for func in self.funcs:
@@ -2835,6 +2833,8 @@ class Builder(object):
         for s in self.strings:
             s.addr = addr
             addr += s.size
+
+        self.data_count = addr
 
         return self.data_table
 
