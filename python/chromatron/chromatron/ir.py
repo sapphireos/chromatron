@@ -1594,7 +1594,7 @@ class Builder(object):
         ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
         if isinstance(ir, irVar_str):
-            self.assign(ir, ir, lineno=lineno)
+            self.assign(ir, ir.default_value, lineno=lineno)
 
         else:
             # add init to 0
@@ -1923,11 +1923,6 @@ class Builder(object):
             # if target.get_base_type() != value.get_base_type():
             #     ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
             #     self.append_node(ir)       
-
-        elif isinstance(value, irVar_str):
-            value = value.default_value
-            ir = irAssign(target, value, lineno=lineno)
-            self.append_node(ir)
 
         else:
             ir = irAssign(target, value, lineno=lineno)
@@ -3139,6 +3134,14 @@ class Builder(object):
                     default_value = var.default_value[i]
                 except TypeError:
                     default_value = var.default_value
+
+                # if default is pointing to a string literal,
+                # just set to 0.  globals already have their default
+                # addresses mapped, so this is a local, and they require
+                # an assignment anyway, so the default doesn't matter.
+                if isinstance(default_value, irStrLiteral):
+                    default_value = 0
+                    assert not var.is_global
 
                 stream += struct.pack('<l', default_value)
 
