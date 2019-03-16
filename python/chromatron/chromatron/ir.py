@@ -2823,6 +2823,12 @@ class Builder(object):
                     if isinstance(var, irStrLiteral) and var not in used_strings:
                         used_strings.append(var)
 
+        # do the same thing for global vars
+        for g in self.globals.values():
+            if isinstance(g, irVar_str):
+                if g.default_value not in used_strings:
+                    used_strings.append(g.default_value)
+
         # only allocating storage for strings referenced by instructions
         # mainly this will filter out string literals coming in from record
         # subscripts.  we aren't using those computationally, so they don't

@@ -2,7 +2,7 @@
 
 # a = Number()
 
-# s = String("stuff")
+s = String("stuff")
 # s2 = String(32)
 
 def init():
