@@ -2817,22 +2817,24 @@ class Builder(object):
 
         self.data_count = addr
 
+        # scan instructions for referenced string literals
+        used_strings = []
+        for func in self.funcs:
+            for ins in self.funcs[func].body:
+                for var in ins.get_input_vars():
+                    if isinstance(var, irStrLiteral) and var not in used_strings:
+                        used_strings.append(var)
+
+        # only allocating storage for strings referenced by instructions
+        # mainly this will filter out string literals coming in from record
+        # subscripts.  we aren't using those computationally, so they don't
+        # need to be here.
+        self.strings = used_strings
+
+        # allocate storage for strings
         for s in self.strings:
             s.addr = addr
             addr += s.size
-
-
-        # self.str_length = self.data_count
-
-        # for i in self.data_table:
-        #     if isinstance(i, irVar_str):
-        #         i.straddr = addr
-        #         i.default_value = addr
-
-        #         addr += i.strwords
-        #         self.str_length += i.strwords
-
-        #         self.strings.append(i)
 
         return self.data_table
 
@@ -2868,8 +2870,12 @@ class Builder(object):
             print '\t%3d: %s = %s' % (i.addr, i, default_value)
 
         print "STRINGS: "
-        for s in self.strings:
-            print '\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name)
+        if len(self.strings) == 0:
+            print "\t None"
+
+        else:
+            for s in self.strings:
+                print '\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name)
 
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
