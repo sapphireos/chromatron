@@ -12,4 +12,6 @@ def init():
 
 	local_s = String("woof")
 
+	local_s = s
+
 	return

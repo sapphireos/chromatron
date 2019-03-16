@@ -248,6 +248,12 @@ class irVar_str(irVar):
         
         self.strlen = kwargs['options']['length']
 
+        if self.strlen == 0:
+            raise SyntaxError("String %s has 0 characters" % (args[0]))
+
+        self.strwords = ((self.strlen - 1) / 4) + 2
+        self.straddr = None
+    
         super(irVar_str, self).__init__(*args, **kwargs)
 
     def __str__(self):
@@ -2604,6 +2610,7 @@ class Builder(object):
 
         self.data_table = []
         self.data_count = 0
+        self.strings = []
 
         addr = 0
 
@@ -2630,6 +2637,7 @@ class Builder(object):
             
             self.data_table.append(field)
 
+        # look for additional pixel arrays
         for i in self.globals.values():
             if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
                 self.pixel_array_indexes.append(i.name)
@@ -2777,6 +2785,17 @@ class Builder(object):
                     self.data_table.append(i)
 
         self.data_count = addr
+        self.str_length = self.data_count
+
+        for i in self.data_table:
+            if isinstance(i, irVar_str):
+                i.straddr = addr
+                i.default_value = addr
+
+                addr += i.strwords
+                self.str_length += i.strwords
+
+                self.strings.append(i)
 
         return self.data_table
 
@@ -2803,6 +2822,14 @@ class Builder(object):
                 default_value += ']'
 
             print '\t%3d: %s = %s' % (i.addr, i, default_value)
+
+        print "STRINGS: "
+        for s in self.strings:
+            val = s.default_value
+            if len(val) == 0:
+                val = '**Empty**'
+
+            print '\t%3d: [%3d] %s' % (s.straddr, s.strlen, val)
 
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
