@@ -2936,7 +2936,12 @@ class Builder(object):
                         if ins.db_item not in self.read_keys:
                             self.read_keys.append(ins.db_item)
 
-                    self.bytecode.extend(ins.assemble())
+                    try:
+                        self.bytecode.extend(ins.assemble())
+
+                    except Exception:
+                        print "Assembly failed for %s" % (ins)
+                        raise
 
         # go through byte code and replace labels with addresses
         i = 0
