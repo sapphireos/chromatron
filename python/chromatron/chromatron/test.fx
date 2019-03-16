@@ -2,15 +2,15 @@
 
 # a = Number()
 
-s = String("stuff")
-s2 = String(32)
+# s = String("stuff")
+# s2 = String(32)
 
 def init():
 
 	s3 = String(8)
 	# s3 = "meow"
 
-	s2 = s3
+	# s2 = s3
 
 	# s2 = "meow"
 
