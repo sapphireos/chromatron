@@ -96,14 +96,24 @@ class cg1DeclarationBase(cg1Node):
         if 'init_val' in keywords:
             self.init_val = keywords['init_val']
 
-    def build(self, builder):
-        return builder.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
-
+    def build(self, builder, is_global=False):
+        if is_global:
+            return builder.add_global(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
+        else:
+            return builder.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
 
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
+class cg1DeclareStr(cg1DeclarationBase):
+    def __init__(self, **kwargs):
+        super(cg1DeclareStr, self).__init__(**kwargs)
+
+    def build(self, builder, **kwargs):
+        self.keywords['s'] = self.keywords['s'].build(builder)
+
+        super(cg1DeclareStr, self).build(builder, **kwargs)
 
 class cg1DeclareArray(cg1DeclarationBase):
     def __init__(self, dimensions=[1], **kwargs):
@@ -220,7 +230,7 @@ class cg1Module(cg1Node):
 
             # assign global vars to table
             elif isinstance(node, cg1DeclarationBase):
-                builder.add_global(node.name, node.type, node.dimensions, keywords=node.keywords, lineno=node.lineno)
+                node.build(builder, is_global=True)
 
             elif isinstance(node, cg1RecordType):
                 node.build(builder)
@@ -569,9 +579,8 @@ class cg1StrLiteral(cg1CodeNode):
         self.s = s
 
     def build(self, builder):
-        val = irStrLiteral(self.s, lineno=self.lineno)
-        # print "build STRING LITERAL", self, self.s, val
-        return val
+        return builder.add_string(self.s, lineno=self.lineno)
+
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
@@ -649,13 +658,13 @@ class CodeGenPass1(ast.NodeVisitor):
 
         if isinstance(node.args[0], ast.Str):
             keywords['length'] = len(node.args[0].s)
-            keywords['s'] = node.args[0].s
+            keywords['s'] = self.visit(node.args[0])
 
         else:
             keywords['length'] = node.args[0].n
-            keywords['s'] = ""
+            keywords['s'] = cg1StrLiteral('\0' * keywords['length'], lineno=node.lineno)
 
-        return cg1DeclareVar(type="str", keywords=keywords, lineno=node.lineno)
+        return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
 
     def _handle_Array(self, node):
         dims = [a.n for a in node.args]

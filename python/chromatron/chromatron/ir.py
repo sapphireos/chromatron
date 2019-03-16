@@ -246,15 +246,7 @@ class irVar_str(irVar):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'str'
         
-        self.strlen = kwargs['options']['length']
-
-        if self.strlen == 0:
-            raise SyntaxError("String %s has 0 characters" % (args[0]))
-
-        self.strwords = ((self.strlen - 1) / 4) + 2
-        self.straddr = None
-
-        self.s = kwargs['options']['s']
+        self.default_value = kwargs['options']['s']
 
         super(irVar_str, self).__init__(*args, **kwargs)
 
@@ -267,16 +259,9 @@ class irVar_str(irVar):
             if self.persist:
                 options += 'persist '
 
-            return "Str(%s, %s %s)[%d]" % (self.name, self.type_str, options, self.strlen)
+            return "Str(%s, %s %s)" % (self.name, self.type_str, options)
         else:
-            return "Str(%s, %s)[%d]" % (self.name, self.type_str, self.strlen)
-
-class irStr(irVar):
-    def __init__(self, *args, **kwargs):
-        kwargs['type'] = 'str_storage'
-
-        super(irStr, self).__init__(*args, **kwargs)
-
+            return "Str(%s, %s)" % (self.name, self.type_str)
 
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
@@ -405,9 +390,13 @@ class irStrLiteral(IR):
     def __init__(self, name, **kwargs):
         super(irStrLiteral, self).__init__(**kwargs)
         self.name = name
+        self.strlen = len(self.name)
+
+        if self.strlen == 0:
+            raise SyntaxError("String %s has 0 characters" % (args[0]))
         
     def __str__(self):
-        return "StrLiteral(%s)" % (self.name)
+        return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
 
     def generate(self):
         return self.name
@@ -1420,6 +1409,8 @@ class Builder(object):
         self.header = None
         self.published_var_count = 0
 
+        self.strings = []
+
         self.pixel_array_indexes = ['pixels']
         self.read_keys = []
         self.write_keys = []
@@ -1706,6 +1697,14 @@ class Builder(object):
 
         ir = self.build_var(name, data_type, [], lineno=lineno)
         self.locals[self.current_func][name] = ir
+
+        return ir
+
+    def add_string(self, string, lineno=None):
+        if string not in self.strings:
+            ir = irStrLiteral(string, lineno=lineno)
+
+            self.strings.append(ir)
 
         return ir
 
@@ -2626,7 +2625,7 @@ class Builder(object):
 
         self.data_table = []
         self.data_count = 0
-        self.strings = []
+        # self.strings = []
 
         addr = 0
 
@@ -2801,17 +2800,17 @@ class Builder(object):
                     self.data_table.append(i)
 
         self.data_count = addr
-        self.str_length = self.data_count
+        # self.str_length = self.data_count
 
-        for i in self.data_table:
-            if isinstance(i, irVar_str):
-                i.straddr = addr
-                i.default_value = addr
+        # for i in self.data_table:
+        #     if isinstance(i, irVar_str):
+        #         i.straddr = addr
+        #         i.default_value = addr
 
-                addr += i.strwords
-                self.str_length += i.strwords
+        #         addr += i.strwords
+        #         self.str_length += i.strwords
 
-                self.strings.append(i)
+        #         self.strings.append(i)
 
         return self.data_table
 
@@ -2841,14 +2840,15 @@ class Builder(object):
 
         print "STRINGS: "
         for s in self.strings:
-            val = s.s
-            if len(val) == 0:
-                val = '**empty %d characters**' % (s.strlen)
+            print s
+            # val = s.s
+            # if len(val) == 0:
+            #     val = '**empty %d characters**' % (s.strlen)
 
-            else:
-                val = '"%s"' % (val)
+            # else:
+            #     val = '"%s"' % (val)
 
-            print '\t%3d: [%3d] %s' % (s.straddr, s.strlen, val)
+            # print '\t%3d: [%3d] %s' % (s.straddr, s.strlen, val)
 
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
