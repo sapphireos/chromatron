@@ -409,7 +409,7 @@ class irStrLiteral(IR):
         return self
 
     def generate(self):
-        return self.name
+        return insAddr(self.addr)
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
