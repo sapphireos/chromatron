@@ -397,6 +397,10 @@ class irStrLiteral(IR):
         # we will want a more descriptive name
         if self.name[0] == '\0':
             self.name = '**empty %d chars**' % (self.strlen)
+
+        self.addr = None
+
+        self.size = ((self.strlen - 1) / 4) + 2 # space for characters + 32 bit length
         
     def __str__(self):
         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
@@ -2638,7 +2642,6 @@ class Builder(object):
 
         self.data_table = []
         self.data_count = 0
-        # self.strings = []
 
         addr = 0
 
@@ -2813,6 +2816,12 @@ class Builder(object):
                     self.data_table.append(i)
 
         self.data_count = addr
+
+        for s in self.strings:
+            s.addr = addr
+            addr += s.size
+            
+
         # self.str_length = self.data_count
 
         # for i in self.data_table:
@@ -2853,15 +2862,7 @@ class Builder(object):
 
         print "STRINGS: "
         for s in self.strings:
-            print s
-            # val = s.s
-            # if len(val) == 0:
-            #     val = '**empty %d characters**' % (s.strlen)
-
-            # else:
-            #     val = '"%s"' % (val)
-
-            # print '\t%3d: [%3d] %s' % (s.straddr, s.strlen, val)
+            print '\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name)
 
     def print_instructions(self, instructions):
         print "INSTRUCTIONS: "
