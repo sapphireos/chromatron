@@ -3,12 +3,16 @@
 # a = Number()
 
 # s = String("stuff")
-
 # s2 = String(32)
 
 def init():
 
-	s2 = "meow"
+	s3 = String(8)
+	s3 = "meow"
+
+	# s2 = s3
+
+	# s2 = "meow"
 
 	# local_s = String("woof")
 

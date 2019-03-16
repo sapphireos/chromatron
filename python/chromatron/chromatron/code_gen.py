@@ -111,7 +111,7 @@ class cg1DeclareStr(cg1DeclarationBase):
         super(cg1DeclareStr, self).__init__(**kwargs)
 
     def build(self, builder, **kwargs):
-        self.keywords['s'] = self.keywords['s'].build(builder)
+        self.keywords['init_val'] = self.keywords['init_val'].build(builder)
 
         super(cg1DeclareStr, self).build(builder, **kwargs)
 
@@ -658,11 +658,11 @@ class CodeGenPass1(ast.NodeVisitor):
 
         if isinstance(node.args[0], ast.Str):
             keywords['length'] = len(node.args[0].s)
-            keywords['s'] = self.visit(node.args[0])
+            keywords['init_val'] = self.visit(node.args[0])
 
         else:
             keywords['length'] = node.args[0].n
-            keywords['s'] = cg1StrLiteral('\0' * keywords['length'], lineno=node.lineno)
+            keywords['init_val'] = cg1StrLiteral('\0' * keywords['length'], lineno=node.lineno)
 
         return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
 

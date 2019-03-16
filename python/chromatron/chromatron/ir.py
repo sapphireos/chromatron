@@ -246,8 +246,6 @@ class irVar_str(irVar):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'str'
         
-        self.default_value = kwargs['options']['s']
-
         super(irVar_str, self).__init__(*args, **kwargs)
 
     def __str__(self):
@@ -389,14 +387,22 @@ class irRecord(irVar):
 class irStrLiteral(IR):
     def __init__(self, name, **kwargs):
         super(irStrLiteral, self).__init__(**kwargs)
-        self.name = name
+        self.name = name        
         self.strlen = len(self.name)
 
         if self.strlen == 0:
             raise SyntaxError("String %s has 0 characters" % (args[0]))
+
+        # check for empty string (reserving storage padded with nulls)
+        # we will want a more descriptive name
+        if self.name[0] == '\0':
+            self.name = '**empty %d chars**' % (self.strlen)
         
     def __str__(self):
         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
+
+    def get_base_type(self):
+        return self
 
     def generate(self):
         return self.name
@@ -1840,7 +1846,9 @@ class Builder(object):
             not isinstance(target, irDBAttr) and \
             not isinstance(value, irDBAttr) and \
             not isinstance(target, irDBIndex) and \
-            not isinstance(value, irDBIndex):
+            not isinstance(value, irDBIndex) and \
+            not isinstance(value, irVar_str) and \
+            not isinstance(value, irStrLiteral):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
@@ -1910,7 +1918,12 @@ class Builder(object):
             # # check if we need to convert
             # if target.get_base_type() != value.get_base_type():
             #     ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-            #     self.append_node(ir)                
+            #     self.append_node(ir)       
+
+        elif isinstance(value, irVar_str):
+            value = value.default_value
+            ir = irAssign(target, value, lineno=lineno)
+            self.append_node(ir)
 
         else:
             ir = irAssign(target, value, lineno=lineno)
