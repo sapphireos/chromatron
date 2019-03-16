@@ -2820,7 +2820,7 @@ class Builder(object):
         for s in self.strings:
             s.addr = addr
             addr += s.size
-            
+
 
         # self.str_length = self.data_count
 
@@ -2851,11 +2851,18 @@ class Builder(object):
             else:
                 default_value = '['
                 for n in xrange(i.length):
+                    try:
+                        val = i.default_value[n]    
+                    except TypeError: # no default value given, so this will be all 0s
+                        val = 0
+                    
                     if i.get_base_type() == 'f16':
-                        default_value += '%f, ' % (float(i.default_value[n] / 65536.0))
+                        default_value += '%f, ' % (float(val / 65536.0))
 
                     else:
-                        default_value += '%s, ' % (i.default_value[n])
+                        default_value += '%s, ' % (val)
+
+
                 default_value += ']'
             
             print '\t%3d: %s = %s' % (i.addr, i, default_value)
