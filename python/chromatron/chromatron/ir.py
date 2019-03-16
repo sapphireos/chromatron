@@ -2823,9 +2823,11 @@ class Builder(object):
                     if isinstance(var, irStrLiteral) and var not in used_strings:
                         used_strings.append(var)
 
+        global_strings = []
         # do the same thing for global vars
         for g in self.globals.values():
             if isinstance(g, irVar_str):
+                global_strings.append(g)
                 if g.default_value not in used_strings:
                     used_strings.append(g.default_value)
 
@@ -2839,6 +2841,11 @@ class Builder(object):
         for s in self.strings:
             s.addr = addr
             addr += s.size
+
+        # now update global strings to map to their default values to point
+        # to their string literal's address
+        for g in global_strings:
+            g.default_value = g.default_value.addr
 
         self.data_count = addr
 
