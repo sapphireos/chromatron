@@ -253,7 +253,9 @@ class irVar_str(irVar):
 
         self.strwords = ((self.strlen - 1) / 4) + 2
         self.straddr = None
-    
+
+        self.s = kwargs['options']['s']
+
         super(irVar_str, self).__init__(*args, **kwargs)
 
     def __str__(self):
@@ -2825,10 +2827,13 @@ class Builder(object):
 
         print "STRINGS: "
         for s in self.strings:
-            val = s.default_value
+            val = s.s
             if len(val) == 0:
-                val = '**Empty**'
+                val = '**empty %d characters**' % (s.strlen)
 
+            else:
+                val = '"%s"' % (val)
+                
             print '\t%3d: [%3d] %s' % (s.straddr, s.strlen, val)
 
     def print_instructions(self, instructions):

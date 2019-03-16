@@ -649,11 +649,11 @@ class CodeGenPass1(ast.NodeVisitor):
 
         if isinstance(node.args[0], ast.Str):
             keywords['length'] = len(node.args[0].s)
-            keywords['init_val'] = node.args[0].s
+            keywords['s'] = node.args[0].s
 
         else:
             keywords['length'] = node.args[0].n
-            keywords['init_val'] = ""
+            keywords['s'] = ""
 
         return cg1DeclareVar(type="str", keywords=keywords, lineno=node.lineno)
 
