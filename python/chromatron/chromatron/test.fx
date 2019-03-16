@@ -14,4 +14,4 @@ def init():
 
 	local_s = s
 
-	return
+	# return

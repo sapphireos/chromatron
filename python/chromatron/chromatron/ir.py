@@ -271,6 +271,13 @@ class irVar_str(irVar):
         else:
             return "Str(%s, %s)[%d]" % (self.name, self.type_str, self.strlen)
 
+class irStr(irVar):
+    def __init__(self, *args, **kwargs):
+        kwargs['type'] = 'str_storage'
+
+        super(irStr, self).__init__(*args, **kwargs)
+
+
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
         super(irAddress, self).__init__(name, **kwargs)
@@ -1585,8 +1592,12 @@ class Builder(object):
     def add_local(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
         ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
-        # add init to 0
-        self.clear(ir, lineno=lineno)
+        if isinstance(ir, irVar_str):
+            self.assign(ir, ir, lineno=lineno)
+
+        else:
+            # add init to 0
+            self.clear(ir, lineno=lineno)
 
         return ir
 
@@ -1809,6 +1820,9 @@ class Builder(object):
         return result
 
     def clear(self, target, lineno=None):   
+        # check that we aren't clearing a string, which makes no sense
+        assert not isinstance(target, irVar_str)
+        
         if target.length == 1:
             ir = irClear(target, lineno=lineno)
             self.append_node(ir)
@@ -2822,7 +2836,7 @@ class Builder(object):
                     else:
                         default_value += '%s, ' % (i.default_value[n])
                 default_value += ']'
-
+            
             print '\t%3d: %s = %s' % (i.addr, i, default_value)
 
         print "STRINGS: "
@@ -2833,7 +2847,7 @@ class Builder(object):
 
             else:
                 val = '"%s"' % (val)
-                
+
             print '\t%3d: [%3d] %s' % (s.straddr, s.strlen, val)
 
     def print_instructions(self, instructions):
