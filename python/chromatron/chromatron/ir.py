@@ -242,6 +242,27 @@ class irVar_gfx16(irVar):
         kwargs['type'] = 'gfx16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
 
+class irVar_str(irVar):
+    def __init__(self, *args, **kwargs):
+        kwargs['type'] = 'str'
+        
+        self.strlen = kwargs['options']['length']
+
+        super(irVar_str, self).__init__(*args, **kwargs)
+
+    def __str__(self):
+        if self.is_global:
+            options = ''
+            if self.publish:
+                options += 'publish '
+
+            if self.persist:
+                options += 'persist '
+
+            return "Str(%s, %s %s)[%d]" % (self.name, self.type_str, options, self.strlen)
+        else:
+            return "Str(%s, %s)[%d]" % (self.name, self.type_str, self.strlen)
+
 class irAddress(irVar):
     def __init__(self, name, target=None, **kwargs):
         super(irAddress, self).__init__(name, **kwargs)
@@ -365,13 +386,13 @@ class irRecord(irVar):
 
             raise
 
-class irStr(IR):
+class irStrLiteral(IR):
     def __init__(self, name, **kwargs):
-        super(irStr, self).__init__(**kwargs)
+        super(irStrLiteral, self).__init__(**kwargs)
         self.name = name
         
     def __str__(self):
-        return "Str(%s)" % (self.name)
+        return "StrLiteral(%s)" % (self.name)
 
     def generate(self):
         return self.name
@@ -1408,6 +1429,7 @@ class Builder(object):
             'gfx16': irVar_gfx16,
             'addr': irAddress,
             'db': irVar,
+            'str': irVar_str,
         }
 
         self.record_types = {}
@@ -2171,7 +2193,7 @@ class Builder(object):
         if len(self.compound_lookup) == 0:
             self.compound_lookup.append(target)
 
-        if isinstance(index, irStr):
+        if isinstance(index, irStrLiteral):
             resolved_target = target.lookup(self.compound_lookup[1:])
 
             if isinstance(resolved_target, irPixelArray):

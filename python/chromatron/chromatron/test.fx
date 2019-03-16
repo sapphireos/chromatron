@@ -1,10 +1,15 @@
 
 
-a = Number()
+# a = Number()
 
 s = String("stuff")
 
+s2 = String(32)
+
 def init():
 
-	# db.meow = 'stuff'
-	db.meow = 'stuff %d' % (a)
+	# s2 = "meow"
+
+	local_s = String("woof")
+
+	return

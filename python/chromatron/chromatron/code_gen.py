@@ -561,22 +561,24 @@ class cg1Subscript(cg1CodeNode):
             return target
 
 
-class cg1Str(cg1CodeNode):
+class cg1StrLiteral(cg1CodeNode):
     _fields = ["s"]
 
     def __init__(self, s, **kwargs):
-        super(cg1Str, self).__init__(**kwargs)
+        super(cg1StrLiteral, self).__init__(**kwargs)
         self.s = s
 
     def build(self, builder):
-        # print "build STRING", self, self.s, irStr(self.s, lineno=self.lineno)
-        return irStr(self.s, lineno=self.lineno)
+        val = irStrLiteral(self.s, lineno=self.lineno)
+        # print "build STRING LITERAL", self, self.s, val
+        return val
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
         self._declarations = {
             'Number': self._handle_Number,
             'Fixed16': self._handle_Fixed16,
+            'String': self._handle_String,
             'Array': self._handle_Array,
             'Record': self._handle_Record,
             'PixelArray': self.create_GenericObject,
@@ -641,6 +643,19 @@ class CodeGenPass1(ast.NodeVisitor):
             keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
 
         return cg1DeclareVar(type="f16", keywords=keywords, lineno=node.lineno)
+
+    def _handle_String(self, node):
+        keywords = {}
+
+        if isinstance(node.args[0], ast.Str):
+            keywords['length'] = len(node.args[0].s)
+            keywords['init_val'] = node.args[0].s
+
+        else:
+            keywords['length'] = node.args[0].n
+            keywords['init_val'] = ""
+
+        return cg1DeclareVar(type="str", keywords=keywords, lineno=node.lineno)
 
     def _handle_Array(self, node):
         dims = [a.n for a in node.args]
@@ -898,7 +913,7 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Import([a.name for a in node.names], lineno=node.lineno)
 
     def visit_Str(self, node):
-        return cg1Str(node.s, lineno=node.lineno)
+        return cg1StrLiteral(node.s, lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)
