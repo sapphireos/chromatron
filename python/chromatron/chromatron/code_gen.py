@@ -96,6 +96,13 @@ class cg1DeclarationBase(cg1Node):
         if 'init_val' in keywords:
             self.init_val = keywords['init_val']
 
+        for key in self.keywords:
+            if self.keywords[key] == 'True':
+                self.keywords[key] = True
+
+            elif self.keywords[key] == 'False':
+                self.keywords[key] = False
+
     def build(self, builder, is_global=False):
         if is_global:
             return builder.add_global(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
@@ -647,6 +654,8 @@ class CodeGenPass1(ast.NodeVisitor):
         keywords = {}
         for kw in node.keywords:
             keywords[kw.arg] = kw.value.id
+
+            print kw.value.id
 
         if len(node.args) > 0:
             keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16

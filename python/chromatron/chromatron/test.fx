@@ -5,6 +5,8 @@
 # s = String("stuff")
 # s2 = String(32)
 
+hue0 = Fixed16(publish=False)
+
 def init():
 
 	s3 = String(8)
