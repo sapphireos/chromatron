@@ -148,6 +148,9 @@ class VMRuntimeError(Exception):
 def params_to_string(params):
     s = ''
 
+    if len(params) == 0:
+        return s
+
     for p in params:
         try:
             s += '%s %s,' % (p.type, p.name)
@@ -156,7 +159,8 @@ def params_to_string(params):
             s += '%s' % (p.name)            
 
     # strip last comma
-    s = s[:len(s) - 1]
+    if s[-1] == ',':
+        s = s[:-1]
 
     return s
 
@@ -969,7 +973,7 @@ class irLibCall(IR):
     def __str__(self):
         params = params_to_string(self.params)
         s = 'LCALL %s(%s) -> %s' % (self.target, params, self.result)
-
+        
         return s
 
     def get_input_vars(self):
