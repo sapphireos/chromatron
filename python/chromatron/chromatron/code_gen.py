@@ -655,8 +655,6 @@ class CodeGenPass1(ast.NodeVisitor):
         for kw in node.keywords:
             keywords[kw.arg] = kw.value.id
 
-            print kw.value.id
-
         if len(node.args) > 0:
             keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
 
