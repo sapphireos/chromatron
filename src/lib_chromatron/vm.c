@@ -195,6 +195,20 @@ static int8_t send_reset_message( uint8_t vm_id ){
     return wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
 }
 
+static void reset_vm( uint8_t vm_id ){
+
+    vm_run[vm_id] = FALSE;
+
+    send_reset_message( vm_id );
+    reset_published_data( vm_id );
+    vm_cron_v_unload( vm_id );
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+
+    vm_loop_time[vm_id]     = 0;
+    vm_thread_time[vm_id]   = 0;
+    vm_max_cycles[vm_id]    = 0;      
+}
+
 static int8_t load_vm_wifi( uint8_t vm_id ){
 
     uint32_t start_time = tmr_u32_get_system_time_ms();
@@ -238,7 +252,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         goto error;
     }
 
-    reset_published_data( vm_id );
+    reset_vm( vm_id );
 
     // sync graphics parameters, because script init function will run as soon as loading is complete.
     gfx_v_sync_params();
@@ -584,10 +598,7 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-
-                send_reset_message( i );
-                reset_published_data( i );
+                reset_vm( i );
             }
 
             // Did VM that was not running just get told to start?
@@ -609,14 +620,7 @@ PT_BEGIN( pt );
             else if( !vm_run[i] && is_vm_running( i ) ){
 
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
-                send_reset_message( i );
-                reset_published_data( i );
-                vm_cron_v_unload( i );
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-
-                vm_loop_time[i]     = 0;
-                vm_thread_time[i]   = 0;
-                vm_max_cycles[i]    = 0;
+                reset_vm( i );
             }
             
             // always reset the reset
