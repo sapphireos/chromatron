@@ -269,6 +269,15 @@ int8_t kvdb_i8_add(
 
     list_v_insert_tail( &db_list, ln );
 
+    // notify on adding data
+    if( kvdb_v_notify_set != 0 ){
+
+        catbus_meta_t meta;
+        kvdb_i8_get_meta( hash, &meta );
+
+        kvdb_v_notify_set( hash, &meta, data_ptr );
+    }
+
     return KVDB_STATUS_OK;
 }
 
