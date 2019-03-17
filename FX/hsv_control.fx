@@ -1,15 +1,15 @@
 # hsv_control.fx
 
 # declare variables and publish to network
-hue = Number(publish=True)
-sat = Number(publish=True)
-val = Number(publish=True)
+hue = Fixed16(publish=True)
+sat = Fixed16(publish=True)
+val = Fixed16(publish=True)
 
 # init - runs once when script is loaded
 def init():
     # set startup defaults
     hue = 0.0
-    sat = 0.0
+    sat = 1.0
     val = 1.0
 
 # runs periodically, frame rate is configurable
