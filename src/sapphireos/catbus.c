@@ -688,7 +688,7 @@ static catbus_link_t _catbus_l_create_link(
 
             // this isn't an error, this hash may get added dynamically later.
             // however, make a note of it in the log.
-            log_v_debug_P( PSTR("Source hash: 0x%0x not found") );
+            log_v_debug_P( PSTR("Source hash: 0x%0x not found"), source_hash );
         }
     }
     else{
@@ -698,7 +698,7 @@ static catbus_link_t _catbus_l_create_link(
 
             // this isn't an error, this hash may get added dynamically later.
             // however, make a note of it in the log.
-            log_v_debug_P( PSTR("Dest hash: 0x%0x not found") );
+            log_v_debug_P( PSTR("Dest hash: 0x%0x not found"), dest_hash );
         }
     }
 
