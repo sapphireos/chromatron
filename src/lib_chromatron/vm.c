@@ -197,8 +197,6 @@ static int8_t send_reset_message( uint8_t vm_id ){
 
 static void reset_vm( uint8_t vm_id ){
 
-    vm_run[vm_id] = FALSE;
-
     send_reset_message( vm_id );
     reset_published_data( vm_id );
     vm_cron_v_unload( vm_id );
