@@ -682,6 +682,24 @@ static catbus_link_t _catbus_l_create_link(
     if( source ){
 
         state.flags |= CATBUS_LINK_FLAGS_SOURCE;
+
+        // check if we have this item
+        if( kv_i16_search_hash( source_hash ) < 0 ){
+
+            // this isn't an error, this hash may get added dynamically later.
+            // however, make a note of it in the log.
+            log_v_debug_P( PSTR("Source hash: 0x%0x not found") );
+        }
+    }
+    else{
+
+        // check if we have this item
+        if( kv_i16_search_hash( dest_hash ) < 0 ){
+
+            // this isn't an error, this hash may get added dynamically later.
+            // however, make a note of it in the log.
+            log_v_debug_P( PSTR("Dest hash: 0x%0x not found") );
+        }
     }
 
     state.source_hash       = source_hash;
