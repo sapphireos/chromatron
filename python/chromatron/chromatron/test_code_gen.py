@@ -1846,9 +1846,9 @@ class CGTestsBase(unittest.TestCase):
         self.run_test(test_type_conversions2,
             expected={
                 'a': 3,
-                # 'b': 3.12298583984375,
-                # 'c': 3.0,
-                # 'd': 6
+                'b': 3.12298583984375,
+                'c': 3.0,
+                'd': 6
             })
 
     def test_type_conversions(self):
@@ -3354,8 +3354,8 @@ class CGTestsOnDevice(CGTestsBase):
                             self.assertEqual(expected_value, actual)
 
                         except AssertionError:
-                            print "Expected: %s Actual: %s Reg: %s" % (expected_value, actual, reg)
-                            print "Resetting VM..."
+                            # print "Expected: %s Actual: %s Reg: %s" % (expected_value, actual, reg)
+                            # print "Resetting VM..."
                             if tries == 0:
                                 raise
 
