@@ -577,6 +577,9 @@ class irFunc(IR):
     def insert(self, index, node):
         self.body.insert(index, node)
 
+    def get(self, index):
+        return self.body[index]
+
     def remove_dead_labels(self):
         labels = self.labels()
 
@@ -1735,6 +1738,9 @@ class Builder(object):
 
         return ir
 
+    def remove_local_var(self, var):
+        del self.locals[self.current_func][var.name]
+
     def func(self, *args, **kwargs):
         func = irFunc(*args, **kwargs)
         self.funcs[func.name] = func
@@ -1746,6 +1752,9 @@ class Builder(object):
 
     def append_node(self, node):
         self.funcs[self.current_func].append(node)
+
+    def get_current_node(self):
+        return self.funcs[self.current_func].get(-1)
 
     def ret(self, value, lineno=None):
         ir = irReturn(value, lineno=lineno)
@@ -1855,7 +1864,37 @@ class Builder(object):
         else:
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
-    def assign(self, target, value, lineno=None):   
+    def assign(self, target, value, lineno=None):     
+        try:
+            # check if previous instruction has a result
+            previous_ir = self.get_current_node()
+
+            result = previous_ir.result
+
+            previous_ir = self.get_current_node()
+            
+            # check if previous result is the same as the
+            # value in this assignment.
+            if result == value:
+                # match!
+                # replace previous result with the assignment
+                # target
+                previous_ir.result = target
+
+                # we can get rid of the temp result as it is
+                # now unused
+                self.remove_local_var(result)
+
+                return
+
+        except IndexError:
+            # no previous instruction, don't do anything
+            pass
+
+        except AttributeError:
+            # no result, don't do anything
+            pass
+
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \

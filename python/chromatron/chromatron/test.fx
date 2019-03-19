@@ -1,10 +1,11 @@
 
 
-# a = Number()
+a = Number()
+b = Number()
 
 # s = String("stuff")
-s2 = String(32)
-s3 = String(8)
+# s2 = String(32)
+# s3 = String(8)
 
 def init():
     
@@ -17,11 +18,12 @@ def init():
     # if s3 in 'meow':
     #     s2 = 'stuff'
 
+    a = b + 1
 
     # s2 = s2 + 'meow' # concatenate
     # s2 += 'meow'
 
-    s2 = "meow %d" % (123) # formatted output
+    # s2 = "meow %d" % (123) # formatted output
 
 #   # s2 = s3
 
