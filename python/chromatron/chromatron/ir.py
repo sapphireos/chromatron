@@ -393,6 +393,7 @@ class irStrLiteral(IR):
         super(irStrLiteral, self).__init__(**kwargs)
         self.name = name        
         self.strlen = len(self.name)
+        self.type = 'str'
 
         if self.strlen == 0:
             raise SyntaxError("String %s has 0 characters" % (args[0]))
@@ -403,6 +404,7 @@ class irStrLiteral(IR):
             self.name = '**empty %d chars**' % (self.strlen)
 
         self.addr = None
+        self.length = 1 # this is a reference to a string, so the length is 1
 
         self.size = ((self.strlen - 1) / 4) + 2 # space for characters + 32 bit length
         
@@ -723,6 +725,11 @@ class irBinop(IR):
                 'mul': insF16Mul,
                 'div': insF16Div,
                 'mod': insF16Mod},
+            'str':
+                # placeholders for now
+                # need actual string instructions
+                {'eq': insCompareEq,
+                'neq': insCompareNeq}
         }
 
         data_type = self.left.type
