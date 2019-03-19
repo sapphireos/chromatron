@@ -589,6 +589,19 @@ class cg1StrLiteral(cg1CodeNode):
         return builder.add_string(self.s, lineno=self.lineno)
 
 
+
+class cg1Tuple(cg1CodeNode):
+    _fields = ["items"]
+
+    def __init__(self, items, **kwargs):
+        super(cg1Tuple, self).__init__(**kwargs)
+        self.items = items
+
+    def build(self, builder):
+        pass
+
+
+
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
         self._declarations = {
@@ -934,11 +947,18 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Str(self, node):
         return cg1StrLiteral(node.s, lineno=node.lineno)
 
+    def visit_Tuple(self, node):
+        items = [self.visit(a) for a in node.elts]
+        return cg1Tuple(items, lineno=node.lineno)        
+
     def generic_visit(self, node):
         raise NotImplementedError(node)
 
 
 def compile_text(source, debug_print=False, script_name=''):
+    tree = ast.parse(source)
+    print pformat_ast(tree)
+
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
