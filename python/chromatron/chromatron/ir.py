@@ -728,8 +728,9 @@ class irBinop(IR):
             'str':
                 # placeholders for now
                 # need actual string instructions
-                {'eq': insCompareEq,
-                'neq': insCompareNeq}
+                {'eq': insBinop,
+                'neq': insBinop,
+                'in': insBinop}
         }
 
         data_type = self.left.type

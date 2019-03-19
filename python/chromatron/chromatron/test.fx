@@ -13,8 +13,8 @@ def init():
     if s3 == 'meow':
         s2 = 'stuff'
     
-    # if s3 in 'meow':
-        # s2 = 'stuff'
+    if s3 in 'meow':
+        s2 = 'stuff'
 
 #   # s2 = s3
 

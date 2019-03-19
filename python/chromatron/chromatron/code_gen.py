@@ -875,6 +875,9 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Or(self, node):
         return "logical_or"
 
+    def visit_In(self, node):
+        return "in"
+
     def visit_Expr(self, node):
         return self.visit(node.value)
 

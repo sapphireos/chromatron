@@ -314,6 +314,9 @@ class insNot(BaseInstruction):
         return bc
 
 class insBinop(BaseInstruction):
+    mnemonic = 'BINOP'
+    symbol = "??"
+
     def __init__(self, result, op1, op2):
         super(insBinop, self).__init__()
         self.result = result
