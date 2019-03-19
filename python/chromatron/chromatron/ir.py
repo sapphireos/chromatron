@@ -1865,36 +1865,6 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):     
-        try:
-            # check if previous instruction has a result
-            previous_ir = self.get_current_node()
-
-            result = previous_ir.result
-
-            previous_ir = self.get_current_node()
-            
-            # check if previous result is the same as the
-            # value in this assignment.
-            if result == value:
-                # match!
-                # replace previous result with the assignment
-                # target
-                previous_ir.result = target
-
-                # we can get rid of the temp result as it is
-                # now unused
-                self.remove_local_var(result)
-
-                return
-
-        except IndexError:
-            # no previous instruction, don't do anything
-            pass
-
-        except AttributeError:
-            # no result, don't do anything
-            pass
-
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
@@ -1976,6 +1946,34 @@ class Builder(object):
             self.append_node(ir) 
 
         else:
+            try:
+                # check if previous instruction has a result
+                previous_ir = self.get_current_node()
+
+                result = previous_ir.result
+                
+                # check if previous result is the same as the
+                # value in this assignment.
+                if result == value:
+                    # match!
+                    # replace previous result with the assignment
+                    # target
+                    previous_ir.result = target
+
+                    # we can get rid of the temp result as it is
+                    # now unused
+                    self.remove_local_var(result)
+
+                    return
+
+            except IndexError:
+                # no previous instruction, don't do anything
+                pass
+
+            except AttributeError:
+                # no result, don't do anything
+                pass
+                
             ir = irAssign(target, value, lineno=lineno)
             self.append_node(ir)
 
