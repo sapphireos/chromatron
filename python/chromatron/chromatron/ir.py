@@ -1777,18 +1777,18 @@ class Builder(object):
             raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
         # if both types are gfx16, use i32
-        if isinstance(left, irVar_gfx16) and isinstance(right, irVar_gfx16):
+        if left.type == 'gfx16' and right.type == 'gfx16':
             # if either type is fixed16, we do the whole thing as fixed16.
             data_type = 'i32'
 
         else:
             # if left is gfx16, use right type
-            if isinstance(left, irVar_gfx16):
+            if left.type == 'gfx16':
                 data_type = right.type
             else:
                 data_type = left.type
 
-            if isinstance(right, irVar_f16):
+            if right.type == 'f16':
                 data_type = right.type
 
         left_result = left
@@ -1797,13 +1797,13 @@ class Builder(object):
         # perform any conversions as needed
         # since we are prioritizing fixed16, we only need to convert i32 to f16
         if data_type == 'f16':
-            if not isinstance(left, irVar_f16):
+            if left.type != 'f16':
                 left_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(left_result, left, lineno=lineno)
                 self.append_node(ir)
 
-            if not isinstance(right, irVar_f16):
+            if right.type != 'f16':
                 right_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(right_result, right, lineno=lineno)

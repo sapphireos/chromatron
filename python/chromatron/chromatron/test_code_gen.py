@@ -1349,8 +1349,16 @@ def init():
 """
 
 
+test_type_conversions3 = """
 
+a = Number(publish=True)
+b = Fixed16(publish=True)
 
+def init():
+    a = 123
+    b = a * 0.333
+
+"""
 
 
 test_array_assign_fixed16 = """
@@ -1840,6 +1848,13 @@ class CGTestsBase(unittest.TestCase):
                 'c': 123.12298583984375,
                 'd': 123.12298583984375,
                 'e': 123.12298583984375,
+            })
+
+    def test_type_conversions3(self):
+        self.run_test(test_type_conversions3,
+            expected={
+                'a': 123,
+                'b': 40.95808410644531,
             })
 
     def test_type_conversions2(self):
