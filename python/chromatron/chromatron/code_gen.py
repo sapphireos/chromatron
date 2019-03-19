@@ -598,8 +598,7 @@ class cg1Tuple(cg1CodeNode):
         self.items = items
 
     def build(self, builder):
-        pass
-
+        return builder.add_tuple(self.items, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):

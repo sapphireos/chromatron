@@ -1655,6 +1655,9 @@ class Builder(object):
 
         return ir
 
+    def add_tuple(self, items, lineno=None):
+        print items
+
     def get_var(self, name, lineno=None):
         name = str(name)
 

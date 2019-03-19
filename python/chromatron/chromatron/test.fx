@@ -1,5 +1,5 @@
 
-# a = Number()
+a = Number()
 # b = Number()
 
 s = String("stuff")
