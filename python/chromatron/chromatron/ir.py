@@ -1430,7 +1430,7 @@ class Builder(object):
         self.header = None
         self.published_var_count = 0
 
-        self.strings = []
+        self.strings = {}
 
         self.pixel_array_indexes = ['pixels']
         self.read_keys = []
@@ -1722,10 +1722,13 @@ class Builder(object):
         return ir
 
     def add_string(self, string, lineno=None):
-        if string not in self.strings:
+        try:
+            ir = self.strings[string]
+
+        except KeyError:
             ir = irStrLiteral(string, lineno=lineno)
 
-            self.strings.append(ir)
+            self.strings[string] = ir
 
         return ir
 
@@ -2824,6 +2827,7 @@ class Builder(object):
                 global_strings.append(g)
                 if g.default_value not in used_strings:
                     used_strings.append(g.default_value)
+
 
         # only allocating storage for strings referenced by instructions
         # mainly this will filter out string literals coming in from record
