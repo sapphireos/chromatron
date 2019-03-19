@@ -1921,12 +1921,7 @@ class Builder(object):
 
         elif isinstance(value, irPixelIndex):
             ir = irPixelLoad(target, value, lineno=lineno)
-            self.append_node(ir)
-
-            # # check if we need to convert
-            # if target.get_base_type() != value.get_base_type():
-            #     ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-            #     self.append_node(ir)       
+            self.append_node(ir) 
 
         else:
             ir = irAssign(target, value, lineno=lineno)
@@ -2149,14 +2144,7 @@ class Builder(object):
 
     def position_label(self, label):
         self.append_node(label)
-        # try:
-        #     lineno = self.funcs[self.current_func].body[-1].lineno
-        # except IndexError:
-        #     lineno = 1
-
-        # label.lineno = lineno
-        # self.funcs[self.current_func].append(label)
-
+        
     def begin_while(self, lineno=None):
         top_label = self.label('while.top', lineno=lineno)
         end_label = self.label('while.end', lineno=lineno)
