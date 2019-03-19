@@ -728,9 +728,11 @@ class irBinop(IR):
             'str':
                 # placeholders for now
                 # need actual string instructions
-                {'eq': insBinop,
-                'neq': insBinop,
-                'in': insBinop}
+                {'eq': insBinop, # compare
+                'neq': insBinop, # compare not equal
+                'in': insBinop,  # search
+                'add': insBinop, # concatenate
+                'mod': insBinop} # formatted output
         }
 
         data_type = self.left.type

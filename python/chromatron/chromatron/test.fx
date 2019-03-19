@@ -4,17 +4,24 @@
 
 # s = String("stuff")
 s2 = String(32)
+s3 = String(8)
 
 def init():
-    s3 = String(8)
-    s3 = "meow"
-
-
-    if s3 == 'meow':
-        s2 = 'stuff'
     
-    if s3 in 'meow':
-        s2 = 'stuff'
+    # s3 = "meow"
+
+
+    # if s3 == 'meow':
+    #     s2 = 'stuff'
+    
+    # if s3 in 'meow':
+    #     s2 = 'stuff'
+
+
+    # s2 = s2 + 'meow' # concatenate
+    # s2 += 'meow'
+
+    s2 = "meow %d" % (123) # formatted output
 
 #   # s2 = s3
 
