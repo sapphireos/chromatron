@@ -974,6 +974,7 @@ def compile_text(source, debug_print=False, script_name=''):
     if debug_print:
         builder.print_instructions(code)
         builder.print_data_table(data)
+        builder.print_control_flow()
 
     builder.assemble()
     builder.generate_binary()

@@ -2942,6 +2942,15 @@ class Builder(object):
                 print s
                 i += 1
 
+    def print_control_flow(self):
+        print "CONTROL FLOW: "
+        
+        for func in self.funcs:
+            cfg = self.control_flow(func)
+
+            print func
+            print cfg
+
     def remove_unreachable(self):
         if self.optimizations['remove_unreachable_code']:
             for func in self.funcs.values():
