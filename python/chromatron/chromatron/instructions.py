@@ -1515,7 +1515,7 @@ class insPixelLoad(BaseInstruction):
     def __str__(self):
         indexes = ''
         for index in self.indexes:
-            indexes += '[%s]' % (index.var.name)
+            indexes += '[%s]' % (index)
 
         return "%s %s = %s.%s%s" % (self.mnemonic, self.target, self.pixel_array, self.attr, indexes)
 
