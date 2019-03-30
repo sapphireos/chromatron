@@ -1,22 +1,13 @@
 
-ary = Array(4, 4)
-ary2 = Array(4, 4, type=Fixed16)
+ir_frame = PixelArray(0, 256, size_x=16, size_y=16, reverse=True)
+outer_frame = PixelArray(256, 64, size_x=16, size_y=4)
 
 
 def init():
-    # ary[0][1] = 1
+    pass
 
-    ary2[2][5] = ary[0][1]
-
-# ir_frame = PixelArray(0, 256, size_x=16, size_y=16, reverse=True)
-# outer_frame = PixelArray(256, 64, size_x=16, size_y=4)
-
-
-# def init():
-    # pass
-
-# def loop():
-	# outer_frame[1][2].hue = ir_frame[3][4].hue
+def loop():
+	outer_frame[1][2].hue = ir_frame[3][4].hue
 
 
 

@@ -1869,7 +1869,7 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):     
-        # print target, value, lineno
+        print target, value, lineno
 
         # check types
         # don't do conversion if value is an address, or a pixel/db index
@@ -1964,6 +1964,15 @@ class Builder(object):
             self.append_node(ir)
 
         elif isinstance(target, irPixelIndex):
+            # check if value is also a pixel index, if so, we need to do a load first
+            if isinstance(value, irPixelIndex):
+                temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
+
+                ir = irPixelLoad(temp, value, lineno=lineno)
+                self.append_node(ir) 
+
+                value = temp    
+
             ir = irPixelStore(target, value, lineno=lineno)
             self.append_node(ir)
 
