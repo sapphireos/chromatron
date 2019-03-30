@@ -1711,9 +1711,53 @@ def init():
     
 """
 
+
+
+test_array_assign_direct = """
+
+ary = Array(4, 4)
+ary2 = Array(4, 4)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+def init():
+    ary[0][1] = 1
+    ary[1][1] = 2
+    ary[2][3] = 3
+    ary[5][3] = 4
+
+    ary2[2][5] = ary[0][1]
+    ary2[0][2] = ary[1][1]
+    ary2[5][3] = ary[2][3]
+    ary2[1][1] = ary[5][3]
+
+    a = ary2[2][5]
+    b = ary2[0][2]
+    c = ary2[5][3]
+    d = ary2[1][1]
+
+    # a = ary[0][1]
+    # b = ary[1][1]
+    # c = ary[2][3]
+    # d = ary[5][3]
+
+"""
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_array_assign_direct(self):
+        self.run_test(test_array_assign_direct,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
+            })
 
     def test_improper_const_data_type_reuse(self):
         self.run_test(test_improper_const_data_type_reuse,

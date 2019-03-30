@@ -1869,6 +1869,8 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):     
+        # print target, value, lineno
+
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
@@ -1906,7 +1908,18 @@ class Builder(object):
             if value.target.length > 1:
                 raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
 
-            self.load_indirect(value, target, lineno=lineno)
+            # check if target is also an address.
+            # if so, this is an indirect to indirect assignment.
+            # we don't have an instruction for that, so we will have to
+            # load_indirect to a temp var and then store_direct.
+            if isinstance(target, irAddress):
+                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+
+                self.load_indirect(value, temp, lineno=lineno)
+                self.store_indirect(target, temp, lineno=lineno)
+
+            else:
+                self.load_indirect(value, target, lineno=lineno)
 
             # check types
             if target.get_base_type() != value.get_base_type():
