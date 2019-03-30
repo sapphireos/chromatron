@@ -954,7 +954,7 @@ class CodeGenPass1(ast.NodeVisitor):
         raise NotImplementedError(node)
 
 
-def compile_text(source, debug_print=False, script_name=''):
+def compile_text(source, debug_print=False, summarize=False, script_name=''):
     tree = ast.parse(source)
 
     cg1 = CodeGenPass1()
@@ -979,7 +979,7 @@ def compile_text(source, debug_print=False, script_name=''):
     builder.assemble()
     builder.generate_binary()
 
-    if debug_print:
+    if debug_print or summarize:
         print "VM ISA:  %d" % (VM_ISA_VERSION)
         print "Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash)
         print "Stream length:   %d bytes"   % (len(builder.stream))
@@ -1008,19 +1008,40 @@ if __name__ == '__main__':
     path = sys.argv[1]
     script_name = os.path.split(path)[1]
 
-    with open(path) as f:
-        text = f.read()
-
-    stream = compile_text(text, debug_print=True, script_name=script_name).stream
-
     try:
-        output_path = sys.argv[2]
-        with open(output_path, 'w+') as f:
-            f.write(stream)
+        with open(path) as f:
+            text = f.read()
 
-    except IndexError:
-        pass
+        stream = compile_text(text, debug_print=True, script_name=script_name).stream
 
+        try:
+            output_path = sys.argv[2]
+            with open(output_path, 'w+') as f:
+                f.write(stream)
+
+        except IndexError:
+            pass
+
+    except IOError:
+        raise
+        # path was a directory
+
+        # compile and summarize all files
+        for fpath in os.listdir(path):
+            fname, ext = os.path.splitext(fpath)
+
+            if ext != '.fx':
+                continue
+
+            with open(os.path.join(path, fpath)) as f:
+                print '*********************************'
+                print fpath
+                text = f.read()
+                try:
+                    compile_text(text, summarize=True)
+
+                except SyntaxError as e:
+                    print e
 
 
     # with open('cg2_test.fx') as f:
