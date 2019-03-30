@@ -1023,7 +1023,6 @@ if __name__ == '__main__':
             pass
 
     except IOError:
-        raise
         # path was a directory
 
         # compile and summarize all files

@@ -1472,6 +1472,7 @@ class Builder(object):
             'fold_constants': True,
             'optimize_register_usage': True,
             'remove_unreachable_code': True,
+            'optimize_assign_targets': True,
         }
 
         # make sure we always have 0 and 65535 const
@@ -1949,34 +1950,35 @@ class Builder(object):
             self.append_node(ir) 
 
         else:
-            try:
-                # check if previous instruction has a result
-                previous_ir = self.get_current_node()
+            if self.optimizations['optimize_assign_targets']:
+                try:
+                    # check if previous instruction has a result
+                    previous_ir = self.get_current_node()
 
-                result = previous_ir.result
-                
-                # check if previous result is the same as the
-                # value in this assignment.
-                if result == value:
-                    # match!
-                    # replace previous result with the assignment
-                    # target
-                    previous_ir.result = target
+                    result = previous_ir.result
+                    
+                    # check if previous result is the same as the
+                    # value in this assignment.
+                    if result == value:
+                        # match!
+                        # replace previous result with the assignment
+                        # target
+                        previous_ir.result = target
 
-                    # we can get rid of the temp result as it is
-                    # now unused
-                    self.remove_local_var(result)
+                        # we can get rid of the temp result as it is
+                        # now unused
+                        self.remove_local_var(result)
 
-                    return
+                        return
 
-            except IndexError:
-                # no previous instruction, don't do anything
-                pass
+                except IndexError:
+                    # no previous instruction, don't do anything
+                    pass
 
-            except AttributeError:
-                # no result, don't do anything
-                pass
-                
+                except AttributeError:
+                    # no result, don't do anything
+                    pass
+                    
             ir = irAssign(target, value, lineno=lineno)
             self.append_node(ir)
 
