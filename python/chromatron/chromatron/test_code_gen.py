@@ -2930,7 +2930,30 @@ def loop():
     pass
 
 """
+
+
+test_pix_mov_from_array = """
+
+ary = Array(4)
+
+def init():
+    ary[2] = 1
+
+    pixels.hue = ary[2]
+
+"""
+
 class CGHSVArrayTests(unittest.TestCase):
+    def test_pix_mov_from_array(self):
+        builder = code_gen.compile_text(test_pix_mov_from_array, debug_print=False)
+        vm = code_gen.VM(builder)
+
+        vm.run_once()
+
+        hsv = vm.dump_hsv()
+
+        self.assertEqual(hsv['hue'][0], 1)
+
     def test_hue_array_1(self):
         builder = code_gen.compile_text(hue_array_1, debug_print=False)
         vm = code_gen.VM(builder)

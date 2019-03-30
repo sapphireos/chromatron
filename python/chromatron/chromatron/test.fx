@@ -1,14 +1,13 @@
 
 
+ary = Array(4)
+# ary2 = Array(4)
 
 def init():
-	if 1 == 2:
-		temp = Number()
+	# ary = ary2[0]
 
-	else:
-		temp = Number()
-
-
+	# pixels.hue = pixels[0].hue
+	pixels.hue = ary[0]
 
 # a = Number()
 # # b = Number()

@@ -825,6 +825,10 @@ class irConvertTypeInPlace(IR):
         return [self.target]
 
     def generate(self):
+        # check if either type is gfx16
+        if self.target.type == 'gfx16' or self.src_type == 'gfx16':
+            return insNop()
+
         return type_conversions[(self.target.type, self.src_type)](self.target.generate(), self.target.generate())
 
 
@@ -1942,6 +1946,12 @@ class Builder(object):
                 self.store_indirect(target, value, lineno=lineno)
 
             else:
+                print 'AWREGSHTDYJ'
+                print target, value, lineno
+
+                print type(value)
+
+
                 ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
 
@@ -2148,6 +2158,11 @@ class Builder(object):
         return result  
 
     def store_indirect(self, address, value, lineno=None):
+        # check if target (address) is an object, if so,
+        # delegate to assign to handle this, as this is not actually an indirect store.
+        if isinstance(address, irObjectAttr):
+            return self.assign(address, value, lineno=lineno)
+
         ir = irIndexStore(address, value, lineno=lineno)
     
         self.append_node(ir)
