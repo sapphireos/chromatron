@@ -1,13 +1,13 @@
 
 
-ary = Array(4)
-ary2 = Array(4)
+# ary = Array(4)
+# ary2 = Array(4)
 
 def init():
 	# ary = ary2[0]
 
-	# pixels.hue = pixels[0].hue
-	pixels[1].hue = ary[0]
+	pixels.hue = pixels[0].hue
+	# pixels[1].hue = ary[0]
 
 # a = Number()
 # # b = Number()

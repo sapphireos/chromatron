@@ -1948,11 +1948,11 @@ class Builder(object):
                 self.store_indirect(target, value, lineno=lineno)
 
             else:
-                print 'AWREGSHTDYJ'
-                print target, value, lineno
-
-                print type(value)
-
+                if isinstance(value, irPixelIndex):
+                    temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
+                    ir = irPixelLoad(temp, value, lineno=lineno)
+                    self.append_node(ir) 
+                    value = temp
 
                 ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
