@@ -1770,9 +1770,26 @@ def init():
 
 """
 
+test_temp_variable_redeclare_outside_scope = """
+
+# no numeric checks, this test passes if it compiles without error
+def init():
+    if 1 == 2:
+        temp = Number()
+
+    else:
+        temp = Number()
+    
+"""
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+    
+    def test_temp_variable_redeclare_outside_scope(self):
+        self.run_test(test_temp_variable_redeclare_outside_scope,
+            expected={
+            })
 
     def test_array_assign_direct_mixed_types(self):
         self.run_test(test_array_assign_direct_mixed_types,

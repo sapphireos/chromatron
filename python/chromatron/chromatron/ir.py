@@ -1631,12 +1631,11 @@ class Builder(object):
     def _add_local_var(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
         # check if this is already in the globals
         if name in self.globals:
-            # return self.globals[name]
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        if name in self.locals[self.current_func]:
-            # return self.locals[self.current_func][name]
-            raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+        # allowing local var redeclaration for now...
+        # if name in self.locals[self.current_func]:
+            # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
 
         if keywords != None:
             if 'publish' in keywords:
@@ -1869,7 +1868,7 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
         
     def assign(self, target, value, lineno=None):     
-        print target, value, lineno
+        # print target, value, lineno
 
         # check types
         # don't do conversion if value is an address, or a pixel/db index

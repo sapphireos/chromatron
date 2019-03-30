@@ -1033,14 +1033,18 @@ if __name__ == '__main__':
                 continue
 
             with open(os.path.join(path, fpath)) as f:
-                print '*********************************'
+                print '\n*********************************'
                 print fpath
+                print '---------------------------------'
                 text = f.read()
                 try:
                     compile_text(text, summarize=True)
 
                 except SyntaxError as e:
-                    print e
+                    print "SyntaxError:", e
+
+                except Exception as e:
+                    print "Exception:", e
 
 
     # with open('cg2_test.fx') as f:

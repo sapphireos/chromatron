@@ -1,13 +1,12 @@
 
-ir_frame = PixelArray(0, 256, size_x=16, size_y=16, reverse=True)
-outer_frame = PixelArray(256, 64, size_x=16, size_y=4)
 
 
 def init():
-    pass
+	if 1 == 2:
+		temp = Number()
 
-def loop():
-	outer_frame[1][2].hue = ir_frame[3][4].hue
+	else:
+		temp = Number()
 
 
 
