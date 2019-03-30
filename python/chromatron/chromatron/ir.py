@@ -1934,11 +1934,13 @@ class Builder(object):
                 self.load_indirect(value, target, lineno=lineno)
 
                 # check types
-                if target.get_base_type() != value.get_base_type():
+                # note we can't do a convert into a pixel index
+                if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
                     # mismatch.
                     # in this case, we've already done the indirect load into the target, but 
                     # it has the wrong type. we're going to do the conversion on top of itself.
                     ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+                    
                     self.append_node(ir)
 
         elif isinstance(target, irAddress):
@@ -2143,12 +2145,19 @@ class Builder(object):
         if result is None:
             result = self.add_temp(data_type=data_type, lineno=lineno)
 
-
         if isinstance(address, irPixelIndex) or isinstance(address, irPixelAttr):
             ir = irPixelLoad(result, address, lineno=lineno)            
         
         elif isinstance(address, irDBAttr) or isinstance(address, irDBIndex):
             ir = irDBLoad(result, address, lineno=lineno)            
+
+        # loading to pixel index, we need an intermediate value
+        elif isinstance(result, irPixelIndex):
+            temp = self.add_temp(data_type=result.get_base_type(), lineno=lineno)
+            ir = irIndexLoad(temp, address, lineno=lineno)
+            self.append_node(ir)
+
+            return self.assign(result, temp, lineno=lineno)
 
         else:
             ir = irIndexLoad(result, address, lineno=lineno)
