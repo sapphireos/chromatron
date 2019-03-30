@@ -1,19 +1,12 @@
-ary = Array(4, 4)
-ary2 = Array(4, 4)
 
-# a = Number(publish=True)
+ary = Array(4, 4)
+ary2 = Array(4, 4, type=Fixed16)
+
 
 def init():
     # ary[0][1] = 1
-    
+
     ary2[2][5] = ary[0][1]
-    
-    # a = ary2[2][5]
-    
-    # a = ary[0][1]
-    # b = ary[1][1]
-    # c = ary[2][3]
-    # d = ary[5][3]
 
 # ir_frame = PixelArray(0, 256, size_x=16, size_y=16, reverse=True)
 # outer_frame = PixelArray(256, 64, size_x=16, size_y=4)

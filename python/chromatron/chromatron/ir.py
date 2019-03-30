@@ -1916,18 +1916,27 @@ class Builder(object):
                 temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
 
                 self.load_indirect(value, temp, lineno=lineno)
+
+                # check types
+                if target.get_base_type() != value.get_base_type():
+                    # mismatch.
+                    # in this case, we've already done the indirect load into the target, but 
+                    # it has the wrong type. we're going to do the conversion on top of itself.
+                    ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
+                    self.append_node(ir)
+
                 self.store_indirect(target, temp, lineno=lineno)
 
             else:
                 self.load_indirect(value, target, lineno=lineno)
 
-            # check types
-            if target.get_base_type() != value.get_base_type():
-                # mismatch.
-                # in this case, we've already done the indirect load into the target, but 
-                # it has the wrong type. we're going to do the conversion on top of itself.
-                ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-                self.append_node(ir)
+                # check types
+                if target.get_base_type() != value.get_base_type():
+                    # mismatch.
+                    # in this case, we've already done the indirect load into the target, but 
+                    # it has the wrong type. we're going to do the conversion on top of itself.
+                    ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+                    self.append_node(ir)
 
         elif isinstance(target, irAddress):
             if target.target.length == 1:
