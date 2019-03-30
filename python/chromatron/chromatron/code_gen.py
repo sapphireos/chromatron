@@ -1026,6 +1026,8 @@ if __name__ == '__main__':
         # path was a directory
 
         # compile and summarize all files
+        stats = {}
+
         for fpath in os.listdir(path):
             fname, ext = os.path.splitext(fpath)
 
@@ -1038,13 +1040,36 @@ if __name__ == '__main__':
                 print '---------------------------------'
                 text = f.read()
                 try:
-                    compile_text(text, summarize=True)
+                    builder = compile_text(text, summarize=True)
+
+                    stats[fpath] = {'code': builder.header.code_len,
+                                    'data': builder.header.data_len,
+                                    'stream': len(builder.stream)}
+
 
                 except SyntaxError as e:
                     print "SyntaxError:", e
 
                 except Exception as e:
                     print "Exception:", e
+
+        print ''
+        for param in ['code', 'data', 'stream']:
+            highest = 0
+            name = ''
+            for script in stats:
+                if stats[script][param] > highest:
+                    highest = stats[script][param]
+                    name = script
+
+            print "Largest %8s size: %32s %5d bytes" % (param, name, highest)
+
+
+
+        # pprint.pprint(stats)
+
+
+
 
 
     # with open('cg2_test.fx') as f:
