@@ -396,10 +396,12 @@ class irStrLiteral(irVar_str):
         if self.strlen == 0:
             raise SyntaxError("String %s has 0 characters" % (args[0]))
 
+        self.strdata = self.name
         # check for empty string (reserving storage padded with nulls)
         # we will want a more descriptive name
         if self.name[0] == '\0':
             self.name = '**empty %d chars**' % (self.strlen)
+            self.strdata = '\0' * self.strlen
 
         self.addr = None
         self.length = 1 # this is a reference to a string, so the length is 1
@@ -1244,8 +1246,6 @@ class irDBStore(IR):
 
     def generate(self):
         indexes = [a.generate() for a in self.indexes]
-
-        print self.target, self.value
 
         return insDBStore(self.target.attr, indexes, self.value.generate())
 
@@ -3228,34 +3228,52 @@ class Builder(object):
         # add data table
         stream += struct.pack('<L', DATA_MAGIC)
 
-        addr = -1
-        for var in sorted(self.data_table, key=lambda a: a.addr):
-            if var.addr <= addr:
+        addr = 0
+        data_table = sorted(self.data_table, key=lambda a: a.addr)
+
+        data_table.extend(self.strings)
+
+        for var in data_table:
+            if var.addr < addr:
                 continue
 
-            addr = var.addr
+            assert addr == var.addr
 
-            for i in xrange(var.length):
-                try:
-                    default_value = var.default_value[i]
-                except TypeError:
-                    default_value = var.default_value
+            if isinstance(var, irStrLiteral):
+                # pack string meta data
+                # u16 addr in data table : u16 max length in characters
+                stream += struct.pack('<HH', addr, var.strlen)
+                stream +=  var.strdata
 
-                # if default is pointing to a string literal,
-                # just set to 0.  globals already have their default
-                # addresses mapped, so this is a local, and they require
-                # an assignment anyway, so the default doesn't matter.
-                if isinstance(default_value, irStrLiteral):
-                    default_value = 0
-                    assert not var.is_global
+                padding_len = (4 - (var.strlen % 4)) % 4
+                # add padding if necessary to make sure data is 32 bit aligned
+                stream += '\0' * padding_len
 
-                stream += struct.pack('<l', default_value)
+                addr += var.size
 
-            addr += var.length - 1
+            else:
+                for i in xrange(var.length):
+                    try:
+                        default_value = var.default_value[i]
+                    except TypeError:
+                        default_value = var.default_value
+
+                    stream += struct.pack('<l', default_value)
+
+                addr += var.length
+
+        # ensure our address counter lines up with the data length
+        try:
+            assert addr * 4 == data_len
+
+        except AssertionError:
+            print addr * 4, data_len
+            raise
 
         # create hash of stream
         stream_hash = catbus_string_hash(stream)
         stream += struct.pack('<L', stream_hash)
+        self.stream_hash = stream_hash
 
         # but wait, that's not all!
         # now we're going attach meta data.

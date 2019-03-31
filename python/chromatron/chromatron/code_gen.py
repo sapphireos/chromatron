@@ -993,6 +993,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print "Links:           %d"         % (len(builder.links))
         print "DB entries:      %d"         % (len(builder.db_entries))
         print "Cron entries:    %d"         % (len(builder.cron_tab))
+        print "Stream hash:     0x%08x"     % (builder.stream_hash)
 
     return builder
 
