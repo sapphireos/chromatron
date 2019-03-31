@@ -388,12 +388,10 @@ class irRecord(irVar):
 
             raise
 
-class irStrLiteral(IR):
+class irStrLiteral(irVar_str):
     def __init__(self, name, **kwargs):
-        super(irStrLiteral, self).__init__(**kwargs)
-        self.name = name        
+        super(irStrLiteral, self).__init__(name, **kwargs)
         self.strlen = len(self.name)
-        self.type = 'str'
 
         if self.strlen == 0:
             raise SyntaxError("String %s has 0 characters" % (args[0]))
@@ -410,12 +408,6 @@ class irStrLiteral(IR):
         
     def __str__(self):
         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
-
-    def get_base_type(self):
-        return self
-
-    def generate(self):
-        return insAddr(self.addr)
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
@@ -1252,6 +1244,9 @@ class irDBStore(IR):
 
     def generate(self):
         indexes = [a.generate() for a in self.indexes]
+
+        print self.target, self.value
+
         return insDBStore(self.target.attr, indexes, self.value.generate())
 
 

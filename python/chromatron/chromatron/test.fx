@@ -1,45 +1,43 @@
 
 
-# ary = Array(4)
-# ary2 = Array(4)
-
-def init():
-	# ary = ary2[0]
-
-	pixels.hue = pixels[0].hue
-	# pixels[1].hue = ary[0]
 
 # a = Number()
-# # b = Number()
+# b = Number()
 
-# s = String("stuff")
-# s2 = String(32)
-# # s3 = String(8)
+s = String("stuff")
+s2 = String(32)
+s3 = String(8)
 
-# def init():
+def init():
+  
+
+  	db.meow = "meow"
+  	db.meow = s
+
+  	start_thread("woof")
+
+    # s3 = "meow"
+
+
+    # if s3 == 'meow':
+    #     s2 = 'stuff'
     
-#     # s3 = "meow"
+    # if s3 in 'meow':
+    #     s2 = 'stuff'
 
+    # a = b + 1
 
-#     # if s3 == 'meow':
-#     #     s2 = 'stuff'
-    
-#     # if s3 in 'meow':
-#     #     s2 = 'stuff'
+    # s2 = s + 'meow' # concatenate
+    # s2 += 'meow'
 
-#     # a = b + 1
+    # s2 = "meow %d" % (123, 456, a) # formatted output
 
-#     s2 = s + 'meow' # concatenate
-#     # s2 += 'meow'
+#   # s2 = s3
 
-#     s2 = "meow %d" % (123, 456, a) # formatted output
+#   # s2 = "meow"
 
-# #   # s2 = s3
+#   # local_s = String("woof")
 
-# #   # s2 = "meow"
+#   # local_s = s
 
-# #   # local_s = String("woof")
-
-# #   # local_s = s
-
-# #   # return
+#   # return
