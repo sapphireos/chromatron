@@ -1,0 +1,21 @@
+https://gnu-mcu-eclipse.github.io/openocd/install/
+
+copied contrib/60-openocd.rules to /etc/udev/rules.d
+
+run "sudo udevadm control --reload-rules" to reload
+
+
+basic command to test:
+openocd -f st_nucleo_h7.cfg
+
+make sure using openocd from chromatron/tools.
+apt version of openocd is old.
+
+if we get: libusb_open failed: LIBUSB_ERROR_ACCESS
+try running with sudo
+
+if sudo works, 
+try:
+sudo usermod -aG plugdev $USER
+then reboot.
+
