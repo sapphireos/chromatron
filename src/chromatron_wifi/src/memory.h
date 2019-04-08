@@ -76,10 +76,10 @@ typedef struct{
 } mem_rt_data_t;
 
 
-#define ASSERT(expr) if( !(expr) ){  assert( __FILE__, __LINE__, 0 ); }
-#define ASSERT_MSG(expr, msg, ...) if( !(expr) ){  assert(__FILE__,  __LINE__, msg, ##__VA_ARGS__ ); }
+#define ASSERT(expr) if( !(expr) ){  mem_assert( __FILE__, __LINE__, 0 ); }
+#define ASSERT_MSG(expr, msg, ...) if( !(expr) ){  mem_assert(__FILE__,  __LINE__, msg, ##__VA_ARGS__ ); }
 
-void assert( const char* file, int line, const char *format, ... );
+void mem_assert( const char* file, int line, const char *format, ... );
 
 void mem2_v_init( uint8_t *_heap, uint16_t size );
 

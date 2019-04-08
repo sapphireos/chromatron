@@ -127,7 +127,7 @@ void usb_v_send_data( const uint8_t *data, uint16_t len ){
     }
 }
 
-uint8_t usb_u8_rx_size( void ){
+uint16_t usb_u16_rx_size( void ){
 
     return udi_cdc_get_nb_received_data();
 }

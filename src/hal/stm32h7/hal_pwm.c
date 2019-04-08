@@ -35,13 +35,13 @@ static TIM_HandleTypeDef pwm_timer;
 
 static uint32_t get_channel( uint8_t channel ){
 
-	if( channel == IO_PIN_T0 ){
+	if( channel == IO_PIN_GPIO9 ){
 
-		return TIM_CHANNEL_3;
+		return TIM_CHANNEL_1;
 	}
-	else if( channel == IO_PIN_T1 ){
+	else if( channel == IO_PIN_GPIO11 ){
 
-		return TIM_CHANNEL_4;
+		return TIM_CHANNEL_2;
 	}
 
 	ASSERT( 0 );
@@ -54,7 +54,7 @@ void pwm_v_init( void ){
 
 	__HAL_RCC_TIM4_CLK_ENABLE();
 
-	pwm_timer.Instance = TIM4;
+	pwm_timer.Instance = TIM1;
 	pwm_timer.Init.Prescaler 			= 16;
 	pwm_timer.Init.CounterMode 			= TIM_COUNTERMODE_UP;
 	pwm_timer.Init.Period 				= 65535; // 16 bits
@@ -111,7 +111,7 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 
     // init IO
 	GPIO_InitStruct.Pin 		= pin;
-	GPIO_InitStruct.Alternate 	= GPIO_AF2_TIM4;
+	GPIO_InitStruct.Alternate 	= GPIO_AF1_TIM1;
 	HAL_GPIO_Init( port, &GPIO_InitStruct );	
 
 	uint32_t timer_channel = get_channel( channel );

@@ -127,6 +127,13 @@ uint16_t rnd_u16_get_int( void ){
     return val;
 }
 
+uint32_t rnd_u32_get_int( void ){
+
+    uint32_t val = ( (uint32_t)rnd_u16_get_int() << 16 ) | rnd_u16_get_int();
+
+    return val;
+}
+
 uint16_t rnd_u16_get_int_hw( void ){
 
     #ifdef __SIM__

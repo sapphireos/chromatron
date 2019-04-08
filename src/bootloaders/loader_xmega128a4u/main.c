@@ -79,8 +79,8 @@ Generic mode:
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
-void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
-}
+//void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
+//}
 
 void main( void ){
 
@@ -98,9 +98,6 @@ void main( void ){
     button_v_init();
 
     ldr_v_set_yellow_led();
-
-    // initialize spi
-    spi_v_init();
 
     // initialize external flash
     flash25_v_init();

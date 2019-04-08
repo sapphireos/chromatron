@@ -29,7 +29,7 @@ void usb_v_poll( void );
 int16_t usb_i16_get_char( void );
 void usb_v_send_char( uint8_t data );
 void usb_v_send_data( const uint8_t *data, uint16_t len );
-uint8_t usb_u8_rx_size( void );
+uint16_t usb_u16_rx_size( void );
 void usb_v_flush( void );
 void usb_v_shutdown( void );
 void usb_v_attach( void );

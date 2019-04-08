@@ -45,13 +45,13 @@ DATA_LEN = 4
 
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
 
-DAY_OF_WEEK = {'monday':    1,
+DAY_OF_WEEK = {'sunday':    0,
+               'monday':    1,
                'tuesday':   2,
                'wednesday': 3,
                'thursday':  4,
                'friday':    5,
-               'saturday':  6,
-               'sunday':    7}
+               'saturday':  6}
 
 
 MONTHS =      {'january':   1,

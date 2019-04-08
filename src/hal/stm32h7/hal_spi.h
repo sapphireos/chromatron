@@ -26,5 +26,6 @@
 #ifndef _HAL_SPI_H
 #define _HAL_SPI_H
 
+#define N_SPI_PORTS 1
 
 #endif

@@ -30,6 +30,35 @@
 
 #include "hal_io.h"
 
+typedef struct{
+    GPIO_TypeDef *port;
+    uint32_t pin;
+} hal_io_ch_t;
+
+static const hal_io_ch_t board_io[IO_PIN_COUNT] = {
+    { GPIOC, GPIO_PIN_5 }, // IO_PIN_GPIOA0
+    { GPIOC, GPIO_PIN_4 }, // IO_PIN_GPIOA1
+    { GPIOA, GPIO_PIN_6 }, // IO_PIN_GPIOA2
+    { GPIOA, GPIO_PIN_5 }, // IO_PIN_GPIOA3
+    { GPIOA, GPIO_PIN_4 }, // IO_PIN_GPIOA4
+    { GPIOA, GPIO_PIN_7 }, // IO_PIN_GPIOA5
+    { GPIOE, GPIO_PIN_2 }, // IO_PIN_GPIOSCK
+    { GPIOE, GPIO_PIN_6 }, // IO_PIN_GPIOMOSI
+    { GPIOE, GPIO_PIN_5 }, // IO_PIN_GPIOMISO
+    { GPIOB, GPIO_PIN_5 }, // IO_PIN_GPIORX
+    { GPIOB, GPIO_PIN_6 }, // IO_PIN_GPIOTX
+    { GPIOB, GPIO_PIN_13 }, // IO_PIN_PIX_CLK
+    { GPIOB, GPIO_PIN_14 }, // IO_PIN_PIX_DAT
+    { GPIOB, GPIO_PIN_9 }, // IO_PIN_GPIOSDA
+    { GPIOB, GPIO_PIN_8 }, // IO_PIN_GPIOSCL
+    { GPIOE, GPIO_PIN_7 }, // IO_PIN_GPIO5
+    { GPIOE, GPIO_PIN_8 }, // IO_PIN_GPIO6
+    { GPIOE, GPIO_PIN_9 }, // IO_PIN_GPIO9
+    { GPIOE, GPIO_PIN_10 }, // IO_PIN_GPIO10
+    { GPIOE, GPIO_PIN_11 }, // IO_PIN_GPIO11
+    { GPIOE, GPIO_PIN_12 }, // IO_PIN_GPIO12
+    { GPIOE, GPIO_PIN_15 }, // IO_PIN_GPIO13
+};
 
 static GPIO_InitTypeDef gpio_config[IO_PIN_COUNT];
 
@@ -50,82 +79,10 @@ uint8_t io_u8_get_board_rev( void ){
 
 void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){
 
-    switch( pin ){
-        case IO_PIN_0:
-            *port = IO_PIN0_PORT;
-            *pin_number = IO_PIN0_PIN;
-            break;
+    ASSERT( pin < IO_PIN_COUNT );
 
-        case IO_PIN_1:
-            *port = IO_PIN1_PORT;
-            *pin_number = IO_PIN1_PIN;
-            break;
-
-        case IO_PIN_2:
-            *port = IO_PIN2_PORT;
-            *pin_number = IO_PIN2_PIN;
-            break;
-
-        case IO_PIN_3:
-            *port = IO_PIN3_PORT;
-            *pin_number = IO_PIN3_PIN;
-            break;
-
-        case IO_PIN_4:
-            *port = IO_PIN4_PORT;
-            *pin_number = IO_PIN4_PIN;
-            break;
-
-        case IO_PIN_5:
-            *port = IO_PIN5_PORT;
-            *pin_number = IO_PIN5_PIN;
-            break;
-
-        case IO_PIN_6:
-            *port = IO_PIN6_PORT;
-            *pin_number = IO_PIN6_PIN;
-            break;
-
-        case IO_PIN_7:
-            *port = IO_PIN7_PORT;
-            *pin_number = IO_PIN7_PIN;
-            break;
-
-        case IO_PIN_8:
-            *port = IO_PIN8_PORT;
-            *pin_number = IO_PIN8_PIN;
-            break;
-
-        case IO_PIN_9:
-            *port = IO_PIN9_PORT;
-            *pin_number = IO_PIN9_PIN;
-            break;
-
-        case IO_PIN_10:
-            *port = IO_PIN10_PORT;
-            *pin_number = IO_PIN10_PIN;
-            break;
-
-        case IO_PIN_CS:
-            *port = IO_PINCS_PORT;
-            *pin_number = IO_PINCS_PIN;
-            break;
-
-        case IO_PIN_T0:
-            *port = IO_PINT0_PORT;
-            *pin_number = IO_PINT0_PIN;
-            break;
-
-        case IO_PIN_T1:
-            *port = IO_PINT1_PORT;
-            *pin_number = IO_PINT1_PIN;
-            break;
-
-        default:
-            ASSERT( FALSE );
-            return;
-            break;
-    }
+    *port = board_io[pin].port;
+    *pin_number = board_io[pin].pin;
 }
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){

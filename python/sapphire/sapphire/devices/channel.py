@@ -630,7 +630,7 @@ class SerialUDPChannel(Channel):
 
     def open(self, host):
         self.port = serial.Serial(host, baudrate=115200)
-        self.settimeout(timeout=2.0)
+        self.settimeout(timeout=0.5)
         self.host = self.port.port
 
     def close(self):
@@ -719,7 +719,7 @@ class SerialUDPChannel(Channel):
         
     def write(self, data, port=None, tries=None):
         if tries == None:
-            tries = 4
+            tries = 1
 
         if port:
             rport = port
@@ -893,23 +893,24 @@ class UDPSerialBridge(threading.Thread):
                 self.sock.settimeout(1.0)
                 data, host = self.sock.recvfrom(4096)
 
-                # print "SOCK RECV", len(data)
+                # print time.time(), "SOCK RECV", len(data)
 
                 self.channel.write(data, port=self.rport)
 
-                # print "SERIAL WRITE", len(data)
+                # print time.time(), "SERIAL WRITE", len(data)
 
                 try:
                     response = self.channel.read()
 
-                    # print "SERIAL READ", len(response)
+                    # print time.time(), "SERIAL READ", len(response)
 
                     self.sock.sendto(response, host)
 
-                    # print "SOCK SEND", len(response)
+                    # print time.time(), "SOCK SEND", len(response)
 
                 except Exception as e:
                     # flush
+                    # print e
                     while True:
                         try:
                             self.sock.settimeout(0.1)
@@ -923,6 +924,7 @@ class UDPSerialBridge(threading.Thread):
                 pass
 
             except Exception as e:
+                # print e
                 pass
             
 

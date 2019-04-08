@@ -43,7 +43,7 @@ extern "C"{
 
 #define MEM_HEAP_SIZE 16384
 
-static uint8_t mem_heap[MEM_HEAP_SIZE];
+static uint8_t __attribute__ ((aligned (4))) mem_heap[MEM_HEAP_SIZE];
 
 
 void setup(){
@@ -89,7 +89,6 @@ void setup(){
     opt_v_set_high_speed( true );        
 
     wifi_set_sleep_type( MODEM_SLEEP_T );
-
 
     intf_v_printf( "ESP online" );
     intf_v_printf( "ESP free heap: %d", ESP.getFreeHeap() );

@@ -25,8 +25,8 @@
 #ifndef _HAL_USB_H_
 #define _HAL_USB_H_
 
-#define USB_RX_DATA_SIZE  512
-#define USB_TX_DATA_SIZE  512
+#define USB_RX_DATA_SIZE  600
+#define USB_TX_DATA_SIZE  600
 
 #endif
 

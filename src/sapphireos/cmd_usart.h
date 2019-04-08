@@ -36,7 +36,7 @@ void cmd_usart_v_send_char( uint8_t data );
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len );
 
 int16_t cmd_usart_i16_get_char( void );
-uint8_t cmd_usart_u8_rx_size( void );
+uint16_t cmd_usart_u16_rx_size( void );
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len );
 
 void cmd_usart_v_flush( void );

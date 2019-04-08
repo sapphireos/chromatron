@@ -23,6 +23,7 @@
 #ifndef _ESP8266_H
 #define _ESP8266_H
 
+#include "target.h"
 #include "netmsg.h"
 #include "threading.h"
 #include "wifi_cmd.h"
@@ -31,8 +32,6 @@
 #define WIFI_STATE_BOOT         -1
 #define WIFI_STATE_UNKNOWN      0
 #define WIFI_STATE_ALIVE        1
-
-#define WIFI_MAX_NETMSGS		4
 
 #define WIFI_SIGNAL 			SIGNAL_SYS_3
 

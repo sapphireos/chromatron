@@ -37,9 +37,15 @@
 #include "usbd_cdc_if.h"
 
 static volatile uint8_t rx_buf[HAL_CMD_USART_RX_BUF_SIZE];
-static volatile uint8_t rx_ins;
-static volatile uint8_t rx_ext;
-static volatile uint8_t rx_size;
+static volatile uint16_t rx_ins;
+static volatile uint16_t rx_ext;
+static volatile uint16_t rx_size;
+
+
+static volatile uint8_t tx_buf[HAL_CMD_USART_TX_BUF_SIZE];
+static volatile uint16_t tx_ins;
+static volatile uint16_t tx_ext;
+static volatile uint16_t tx_size;
 
 
 static USBD_HandleTypeDef hUsbDeviceFS;
@@ -145,16 +151,40 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+    uint32_t count = *Len;
 
-  rx_ins = 0;
-  rx_ext = 0;
-  rx_size = *Len;
+    while( count > 0 ){
 
-  memcpy( (uint8_t *)rx_buf, rx_buffer, rx_size );
+        rx_buf[rx_ins] = *Buf;
+        Buf++;
 
-  return (USBD_OK);
+        rx_ins++;
+        rx_ins %= sizeof(rx_buf);
+
+        rx_size++;
+
+        count--;
+
+        if( rx_size >= sizeof(rx_buf) ){
+
+            break;
+        }
+    }
+
+    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
+    return (USBD_OK);
+}
+
+static bool cdc_tx_busy( void ){
+
+    USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+    if (hcdc->TxState != 0){
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
@@ -201,8 +231,8 @@ void usb_v_attach( void ){
 }
 
 void usb_v_detach( void ){
-
-	USBD_Stop( &hUsbDeviceFS );
+    
+    USBD_Stop( &hUsbDeviceFS );
 }	
 
 
@@ -231,15 +261,31 @@ int16_t usb_i16_get_char( void ){
 
 void usb_v_send_char( uint8_t data ){
 
-	CDC_Transmit_FS( &data, sizeof(data) );    
+	// CDC_Transmit_FS( &data, sizeof(data) );    
+
+    if( tx_size >= HAL_CMD_USART_TX_BUF_SIZE ){
+
+        return;
+    }
+
+    tx_buf[tx_ins] = data;
+    tx_ins++;
+    tx_ins %= HAL_CMD_USART_TX_BUF_SIZE;
+    tx_size++;
 }
 
 void usb_v_send_data( const uint8_t *data, uint16_t len ){
 
-	CDC_Transmit_FS( (uint8_t *)data, len );
+	// CDC_Transmit_FS( (uint8_t *)data, len );
+
+    while( len > 0 ){
+
+        usb_v_send_char( *data++ );
+        len--;        
+    }
 }
 
-uint8_t usb_u8_rx_size( void ){
+uint16_t usb_u16_rx_size( void ){
 
     return rx_size;
 }
@@ -253,6 +299,8 @@ PT_THREAD( usb_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     	
+    // TMR_WAIT( pt, 10000 );
+
     USBD_Init( &hUsbDeviceFS, &FS_Desc, DEVICE_FS );
     USBD_RegisterClass( &hUsbDeviceFS, &USBD_CDC );
     USBD_CDC_RegisterInterface( &hUsbDeviceFS, &USBD_Interface_fops_FS );
@@ -260,10 +308,32 @@ PT_BEGIN( pt );
 
     usb_v_attach();
 
-    // while(1){
+    while(1){
 
+        THREAD_YIELD( pt );
+        THREAD_WAIT_WHILE( pt, tx_size == 0 );
 
-    // }
+        uint8_t buf[64];
+        
+        uint32_t count = tx_size;
+
+        if( count > cnt_of_array(buf) ){
+
+            count = cnt_of_array(buf);
+        }
+
+        for( uint32_t i = 0; i < count; i++ ){
+
+            buf[i] = tx_buf[tx_ext];
+            tx_ext++;
+            tx_ext %= HAL_CMD_USART_TX_BUF_SIZE;
+            tx_size--;
+        } 
+    
+        CDC_Transmit_FS( (uint8_t *)buf, count );  
+
+        THREAD_WAIT_WHILE( pt, cdc_tx_busy() );
+    }
 
 PT_END( pt );
 }

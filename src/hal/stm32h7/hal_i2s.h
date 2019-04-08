@@ -25,6 +25,12 @@
 #ifndef _HAL_I2S_H_
 #define _HAL_I2S_H_
 
+#include "i2s.h"
+
+#define I2S_SIGNAL 			SIGNAL_SYS_7
+
+#define I2S_BUF_SIZE		512
+ 
 #define I2S 				SPI1
 #define I2S_SPI_IRQn 		SPI1_IRQn
 #define I2S_SPI_HANDLER 	SPI1_IRQHandler
@@ -33,9 +39,11 @@
 #define I2S_DMA_HANDLER		DMA1_Stream7_IRQHandler
 #define I2S_DMA_REQUEST		DMA_REQUEST_SPI1_RX
 
+#define hal_i2s_v_init i2s_v_init
+#define hal_i2s_v_start i2s_v_start
 
 void hal_i2s_v_init( void );
-void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits, bool stereo );
+void hal_i2s_v_start( uint16_t sample_rate, uint8_t sample_bits );
 
 #endif
 

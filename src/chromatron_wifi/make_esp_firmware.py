@@ -16,6 +16,7 @@ def build():
 
     with open('__kv_hashes.h', 'w+') as f:
         f.write("/* AUTO GENERATED FILE! DO NOT EDIT! */\n")
+        f.write("#ifndef __ASSEMBLER__\n")
         f.write("#ifndef __KV_HASHES_H__\n")
         f.write("#define __KV_HASHES_H__\n")
 
@@ -24,6 +25,7 @@ def build():
         for k, v in hashes.iteritems():
             f.write("#define %s (uint32_t)%s\n" % (k, v))
 
+        f.write("#endif\n")
         f.write("#endif\n")
 
     # this doesn't work, because we need to cast the hashes to uint32_t.

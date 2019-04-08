@@ -46,29 +46,20 @@ static ADC_HandleTypeDef hadc3;
 
 
 typedef struct{
-	uint32_t pin;
-	GPIO_TypeDef *port;
 	ADC_HandleTypeDef *adc;
 	uint32_t channel;
 } adc_ch_t;
 
-static const adc_ch_t channels_nuclear[] = {
-	{IO_PIN0_PIN, 	IO_PIN0_PORT, &hadc1, ADC_CHANNEL_10},
-	{IO_PIN1_PIN, 	IO_PIN1_PORT, &hadc1, ADC_CHANNEL_13},
-	{IO_PIN2_PIN, 	IO_PIN2_PORT, &hadc1, ADC_CHANNEL_6},
-	{IO_PIN3_PIN, 	IO_PIN3_PORT, &hadc2, ADC_CHANNEL_2},
-	{IO_PIN4_PIN, 	IO_PIN4_PORT, &hadc2, ADC_CHANNEL_6},
-	{IO_PIN5_PIN, 	0, 0, 0},
-	{IO_PIN6_PIN, 	0, 0, 0},
-	{IO_PIN7_PIN, 	0, 0, 0},
-	{IO_PIN8_PIN, 	0, 0, 0},
-	{IO_PIN9_PIN, 	0, 0, 0},
-	{IO_PIN10_PIN, 	0, 0, 0},
-	{IO_PINCS_PIN, 	0, 0, 0},
-	{IO_PINT0_PIN, 	0, 0, 0},
-	{IO_PINT1_PIN, 	0, 0, 0},
-	{VMON_Pin, 		VMON_GPIO_Port, &hadc3, ADC_CHANNEL_5},	 // vmon
-	{0, 			0, 				&hadc3, ADC_CHANNEL_VREFINT},	 // vref (internal)
+static const adc_ch_t board_channels[] = {
+	{&hadc1, ADC_CHANNEL_8},		 // IO_PIN_GPIOA0
+	{&hadc1, ADC_CHANNEL_4},		 // IO_PIN_GPIOA1
+	{&hadc1, ADC_CHANNEL_8},		 // IO_PIN_GPIOA2
+	{&hadc1, ADC_CHANNEL_3},		 // IO_PIN_GPIOA3
+	{&hadc1, ADC_CHANNEL_19},		 // IO_PIN_GPIOA4
+	{&hadc1, ADC_CHANNEL_18},		 // IO_PIN_GPIOA5
+
+	{&hadc1, ADC_CHANNEL_5},	 		// vmon
+	{&hadc3, ADC_CHANNEL_VREFINT},	 // vref (internal)
 };
 
 #ifdef BOARD_CHROMATRONX
@@ -120,18 +111,18 @@ void adc_v_init( void ){
 	
 	#else
 
-	adc_channels = channels_nuclear;
-	adc_channel_count = cnt_of_array(channels_nuclear);
+	adc_channels = board_channels;
+	adc_channel_count = cnt_of_array(board_channels);
 
 	#endif
 
-  	
+  	// init VMON
     GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Alternate 	= 0;
     GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull 		= GPIO_NOPULL;
-    GPIO_InitStruct.Pin 		= adc_channels[0].pin;
-	HAL_GPIO_Init(adc_channels[4].port, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin 		= VMON_Pin;
+	HAL_GPIO_Init(VMON_GPIO_Port, &GPIO_InitStruct);
 	
 
 	hadc1.Instance = ADC1;
@@ -261,26 +252,22 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
 	ASSERT( channel < adc_channel_count );
 
-	// check if there is actually a connection on this channel
-	if( adc_channels[channel].adc == 0 ){
-
-		// no connection, return 0
-		return 0;
-	}
-
 	GPIO_InitTypeDef gpio_init;
+	GPIO_TypeDef *port;
+	
+	if( channel < IO_PIN_ANALOG_COUNT ){
 
-	// init IO port
-	if( adc_channels[channel].port != 0 ){
-
+		// init IO port
 	    gpio_init.Mode        = GPIO_MODE_ANALOG;
 	    gpio_init.Speed       = GPIO_SPEED_FREQ_HIGH;
 	    gpio_init.Pull        = GPIO_NOPULL;
 	    gpio_init.Alternate   = 0;
-	    gpio_init.Pin 		  = adc_channels[channel].pin;
 
-	    HAL_GPIO_Init( adc_channels[channel].port, &gpio_init );
+	    hal_io_v_get_port( channel, &port, &gpio_init.Pin );
+
+	    HAL_GPIO_Init( port, &gpio_init );
 	}
+
 
     uint32_t internal_channel = adc_channels[channel].channel;
 
@@ -314,11 +301,11 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
     HAL_ADC_Stop( adc );
 
     // reset pin to input
-	if( adc_channels[channel].port != 0 ){
+	if( channel < IO_PIN_ANALOG_COUNT ){
 
 	    gpio_init.Mode        = GPIO_MODE_INPUT;
 
-	    HAL_GPIO_Init( adc_channels[channel].port, &gpio_init );
+	    HAL_GPIO_Init( port, &gpio_init );
 	}
 
     return (int16_t)value;

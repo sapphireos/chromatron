@@ -47,14 +47,16 @@ static void cpu_normal_clock_config( void ){
     }
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-    // PLLs sourced to HSE (external xtal) - requires 8 MHz xtal
+    // PLLs sourced to HSE (external xtal) - requires 16 MHz xtal
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    // RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     // set PLL1 to 400 MHz
-    RCC_OscInitStruct.PLL.PLLM = 1;
+    // RCC_OscInitStruct.PLL.PLLM = 1;
+    RCC_OscInitStruct.PLL.PLLM = 2;
     RCC_OscInitStruct.PLL.PLLN = 100;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 4;
@@ -296,7 +298,7 @@ static void cpu_init_noncacheable( void ){
     MPU_Region_InitTypeDef mpu_init;
     mpu_init.Enable             = MPU_REGION_ENABLE;
     mpu_init.BaseAddress        = (uint32_t)&_snon_cacheable;
-    mpu_init.Size               = MPU_REGION_SIZE_4KB;
+    mpu_init.Size               = MPU_REGION_SIZE_32KB;
     mpu_init.AccessPermission   = MPU_REGION_FULL_ACCESS;
     mpu_init.IsBufferable       = MPU_ACCESS_NOT_BUFFERABLE;
     mpu_init.IsCacheable        = MPU_ACCESS_NOT_CACHEABLE;

@@ -23,6 +23,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include <ESP8266mDNS.h>
 #include "wifi.h"
 #include "irq_line.h"
 
@@ -38,6 +39,7 @@ extern "C"{
     #include "hash.h"
 }
 
+static char hostname[32];
 
 static char ssid[WIFI_SSID_LEN];
 static char pass[WIFI_PASS_LEN];
@@ -81,12 +83,12 @@ static int32_t elapsed_millis( uint32_t start ){
 
 static void led_on( void ){
 
-    intf_v_led_on();
+    // intf_v_led_on();
 }
 
 static void led_off( void ){
 
-    intf_v_led_off();
+    // intf_v_led_off();
 }
 
 
@@ -171,13 +173,12 @@ void wifi_v_init( void ){
     snprintf( &mac_str[2], 3, "%02x", mac[4] ); 
     snprintf( &mac_str[4], 3, "%02x", mac[5] );
 
-    char host_str[32];
-    memset( host_str, 0, sizeof(host_str) );
-    strlcpy( host_str, "Chromatron_", sizeof(host_str) );
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
 
-    strncat( host_str, mac_str, sizeof(host_str) );
+    strncat( hostname, mac_str, sizeof(hostname) );
 
-    WiFi.hostname(host_str);
+    WiFi.hostname(hostname);
 }
 
 void wifi_v_send_status( void ){
@@ -205,9 +206,18 @@ void wifi_v_process( void ){
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
             wifi_v_send_status();
 
-            
+            if( !MDNS.begin( hostname ) ){
+
+                intf_v_printf("MDNS fail");
+            }
+
+            MDNS.addService( "catbus", "udp", 44632 );
+            MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");
+
             intf_v_printf("Connected!");
         }
+
+        MDNS.update();
     }
     else{
 
@@ -453,7 +463,7 @@ void wifi_v_process( void ){
                 // on the wifi interface.
                 if( raddr == limited_broadcast ){
 
-                    raddr = ~WiFi.subnetMask() | WiFi.gatewayIP();
+                    raddr = ~(uint32_t)WiFi.subnetMask() | (uint32_t)WiFi.gatewayIP();
                 }
 
 

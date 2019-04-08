@@ -36,6 +36,9 @@ int8_t vm_lib_i8_libcall_built_in(
 	int32_t *params, 
 	uint16_t param_len ){
 
+    // result is assumed to have been initialized to a default value
+    // by the caller.
+
 	int32_t temp0, temp1, array_len;
 
 	switch( func_hash ){
@@ -75,7 +78,7 @@ int8_t vm_lib_i8_libcall_built_in(
 		case __KV__test_lib_call:
             if( param_len != 2 ){
 
-                return 0;
+                break;
             }
 
             *result = data[params[0]] + data[params[1]];
@@ -84,7 +87,7 @@ int8_t vm_lib_i8_libcall_built_in(
       	case __KV__min:
             if( param_len != 2 ){
 
-                return 0;
+                break;
             }
 
             array_len = data[params[1]];
@@ -108,7 +111,7 @@ int8_t vm_lib_i8_libcall_built_in(
         case __KV__max:
             if( param_len != 2 ){
 
-                return 0;
+                break;
             }
 
             array_len = data[params[1]];
@@ -132,7 +135,7 @@ int8_t vm_lib_i8_libcall_built_in(
         case __KV__sum:
             if( param_len != 2 ){
 
-                return 0;
+                break;
             }
 
             array_len = data[params[1]];
@@ -148,13 +151,13 @@ int8_t vm_lib_i8_libcall_built_in(
         case __KV__avg:
             if( param_len != 2 ){
 
-                return 0;
+                break;
             }
 
             // check for divide by zero
             if( params[0] == 0 ){
 
-                return 0;
+                break;
             }
 
             array_len = data[params[1]];
@@ -195,7 +198,7 @@ int8_t vm_lib_i8_libcall_built_in(
         case __KV__start_thread:
             if( param_len != 1 ){
 
-                return 0;
+                break;
             }
 
             // params[0] - thread addr
@@ -218,7 +221,7 @@ int8_t vm_lib_i8_libcall_built_in(
         case __KV__stop_thread:
             if( param_len != 1 ){
 
-                return 0;
+                break;
             }
 
             // params[0] - thread addr
@@ -239,17 +242,17 @@ int8_t vm_lib_i8_libcall_built_in(
         case __KV__thread_running:
             if( param_len != 1 ){
 
-                return 0;
+                break;
             }
-
-            // params[0] - thread addr
 
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
                 if( state->threads[i].func_addr == params[0] ){
 
-                    return TRUE;
+                    *result = TRUE;
+
+                    break;
                 }
             }
 

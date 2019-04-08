@@ -2786,13 +2786,15 @@ void vm_v_init_db(
     vm_state_t *state,
     uint8_t tag ){
 
+    int32_t *data = (int32_t *)( stream + state->data_start );
+
     // add published vars to DB
     uint32_t count = state->publish_count;
     vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
 
     while( count > 0 ){        
 
-        kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, 0, 0 );
+        kvdb_i8_add( publish->hash, CATBUS_TYPE_INT32, 1, &data[publish->addr], type_u16_size(publish->type) );
         kvdb_v_set_tag( publish->hash, tag );
 
         publish++;

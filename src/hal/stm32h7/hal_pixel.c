@@ -270,6 +270,16 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     }
 }
 
+typedef struct{
+    uint32_t pin;
+    uint32_t alt;
+} hal_pix_ch_t;
+
+static const hal_pix_ch_t pix_io[] = {
+    { IO_PIN_PIX_CLK, GPIO_AF5_SPI1 },
+    { IO_PIN_PIX_DAT, GPIO_AF5_SPI1 },
+};
+
 void hal_pixel_v_init( void ){
 
     __HAL_RCC_DMA1_CLK_ENABLE();
@@ -289,6 +299,7 @@ void hal_pixel_v_init( void ){
     // See hal_cpu.c for details.  This should be 104 MHz.
 
     // init IO pins
+    GPIO_TypeDef *port;
     GPIO_InitTypeDef GPIO_InitStruct;   
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -298,15 +309,16 @@ void hal_pixel_v_init( void ){
 
     // NOTE the alternate port functions are NOT all the same!
 
-    GPIO_InitStruct.Pin = PIX_CLK_0_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-    HAL_GPIO_Init(PIX_CLK_0_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_CLK_0_GPIO_Port, PIX_CLK_0_Pin, GPIO_PIN_RESET);
-
-    GPIO_InitStruct.Pin = PIX_DAT_0_Pin;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-    HAL_GPIO_Init(PIX_DAT_0_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(PIX_DAT_0_GPIO_Port, PIX_DAT_0_Pin, GPIO_PIN_RESET);
+    hal_io_v_get_port( pix_io[0].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = pix_io[0].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
+    HAL_GPIO_WritePin(port, GPIO_InitStruct.Pin, GPIO_PIN_RESET);
+    
+    hal_io_v_get_port( pix_io[1].pin, &port, &GPIO_InitStruct.Pin );
+    GPIO_InitStruct.Alternate = pix_io[1].alt;
+    HAL_GPIO_Init( port, &GPIO_InitStruct );
+    HAL_GPIO_WritePin(port, GPIO_InitStruct.Pin, GPIO_PIN_RESET);
+    
 
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Pin = PIX_CLK_1_Pin;
