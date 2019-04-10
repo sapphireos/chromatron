@@ -195,17 +195,17 @@ static int8_t send_reset_message( uint8_t vm_id ){
     return wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
 }
 
-static void reset_vm( uint8_t vm_id ){
+// static void reset_vm( uint8_t vm_id ){
 
-    send_reset_message( vm_id );
-    reset_published_data( vm_id );
-    vm_cron_v_unload( vm_id );
-    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+//     send_reset_message( vm_id );
+//     reset_published_data( vm_id );
+//     vm_cron_v_unload( vm_id );
+//     vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
 
-    vm_loop_time[vm_id]     = 0;
-    vm_thread_time[vm_id]   = 0;
-    vm_max_cycles[vm_id]    = 0;      
-}
+//     vm_loop_time[vm_id]     = 0;
+//     vm_thread_time[vm_id]   = 0;
+//     vm_max_cycles[vm_id]    = 0;      
+// }
 
 static int8_t load_vm_wifi( uint8_t vm_id ){
 
