@@ -395,6 +395,7 @@ static int8_t _vm_i8_run_stream(
     catbus_hash_t32 db_hash;
     vm_string_t *string;
     void *ptr;
+    uint16_t ptr_len;
     
     #ifdef VM_ENABLE_GFX
     int32_t value_i32;
@@ -2279,17 +2280,19 @@ opcode_db_store:
         string = (vm_string_t *)&data[src];
 
         ptr = &data[string->addr + 1]; // actual string starts 1 word after header
+        ptr_len = string->length;
     }
     else{
 
         ptr = &data[src];
+        ptr_len = sizeof(data[src]);
     }
 
     #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    catbus_i8_array_set( hash, type, indexes[0], 1, ptr );
+    catbus_i8_array_set( hash, type, indexes[0], 1, ptr, ptr_len );
     #else
-    kvdb_i8_array_set( hash, type, indexes[0], ptr, sizeof(data[src]) );
+    kvdb_i8_array_set( hash, type, indexes[0], ptr, ptr_len );
     #endif
     #endif
     

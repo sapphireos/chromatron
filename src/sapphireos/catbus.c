@@ -754,7 +754,8 @@ int8_t _catbus_i8_internal_set(
     catbus_type_t8 type,
     uint16_t index,
     uint16_t count,
-    void *data ){
+    void *data,
+    uint16_t data_len ){
 
     // look up parameter
     kv_meta_t meta;
@@ -816,10 +817,11 @@ int8_t _catbus_i8_internal_set(
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
-    void *data )
+    void *data,
+    uint16_t data_len )
 {
 
-    return catbus_i8_array_set( hash, type, 0, 1, data );
+    return catbus_i8_array_set( hash, type, 0, 1, data, data_len );
 }
 
 int8_t catbus_i8_array_set(
@@ -827,9 +829,10 @@ int8_t catbus_i8_array_set(
     catbus_type_t8 type,
     uint16_t index,
     uint16_t count,
-    void *data )
+    void *data,
+    uint16_t data_len )
 {
-    return _catbus_i8_internal_set( hash, type, index, count, data );
+    return _catbus_i8_internal_set( hash, type, index, count, data, data_len );
 }
 
 int8_t catbus_i8_get(
@@ -1884,10 +1887,12 @@ PT_BEGIN( pt );
             if( update ){
 
                 int8_t status = _catbus_i8_internal_set( 
-                    msg->dest_hash, msg->data.meta.type, 
-                    0, 
-                    msg->data.meta.count + 1, 
-                    (void *)&msg->data.data );
+                                    msg->dest_hash, 
+                                    msg->data.meta.type, 
+                                    0, 
+                                    msg->data.meta.count + 1, 
+                                    (void *)&msg->data.data,
+                                    0 );
                     
                 if( status == CATBUS_STATUS_CHANGED ){
 

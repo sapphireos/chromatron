@@ -340,14 +340,16 @@ void catbus_v_purge_links( catbus_hash_t32 tag );
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
-    void *data );
+    void *data,
+    uint16_t data_len );
 
 int8_t catbus_i8_array_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
     uint16_t index,
     uint16_t count,
-    void *data );
+    void *data,
+    uint16_t data_len );
 
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
