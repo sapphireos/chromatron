@@ -2272,11 +2272,10 @@ opcode_db_store:
     src += ( *pc++ ) << 8;
 
     #ifdef VM_ENABLE_KV
-    #ifndef VM_ENABLE_CATBUS
-    kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
-    #else
+    #ifdef VM_ENABLE_CATBUS
     catbus_i8_array_set( hash, type, indexes[0], 1, &data[src] );
-    catbus_i8_publish( hash );
+    #else
+    kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
     #endif
     #endif
     
@@ -2307,13 +2306,13 @@ opcode_db_load:
     dest += ( *pc++ ) << 8;
 
     #ifdef VM_ENABLE_KV
-    #ifndef VM_ENABLE_CATBUS
-    if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
+    #ifdef VM_ENABLE_CATBUS
+    if( catbus_i8_array_get( hash, type, indexes[0], 1, &data[dest] ) < 0 ){
 
         data[dest] = 0;        
     }
     #else
-    if( catbus_i8_array_get( hash, type, indexes[0], 1, &data[dest] ) < 0 ){
+    if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
 
         data[dest] = 0;        
     }
