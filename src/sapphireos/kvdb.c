@@ -755,8 +755,6 @@ int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash ){
         if( entry->hash == hash ){
 
             return i;
-
-            return entry->hash;
         }
 
         ln = list_ln_next( ln );
