@@ -393,6 +393,8 @@ static int8_t _vm_i8_run_stream(
     uint8_t type;
     catbus_hash_t32 hash;
     catbus_hash_t32 db_hash;
+    vm_string_t *string;
+    void *ptr;
     
     #ifdef VM_ENABLE_GFX
     int32_t value_i32;
@@ -2271,11 +2273,23 @@ opcode_db_store:
     src = *pc++;
     src += ( *pc++ ) << 8;
 
+    if( type_b_is_string( type ) ){
+
+        // special handling for string types
+        string = (vm_string_t *)&data[src];
+
+        ptr = &data[string->addr + 1]; // actual string starts 1 word after header
+    }
+    else{
+
+        ptr = &data[src];
+    }
+
     #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    catbus_i8_array_set( hash, type, indexes[0], 1, &data[src] );
+    catbus_i8_array_set( hash, type, indexes[0], 1, ptr );
     #else
-    kvdb_i8_array_set( hash, type, indexes[0], &data[src], sizeof(data[src]) );
+    kvdb_i8_array_set( hash, type, indexes[0], ptr, sizeof(data[src]) );
     #endif
     #endif
     

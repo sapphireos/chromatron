@@ -177,6 +177,11 @@ typedef struct{
     uint32_t delay_ticks;
 } vm_thread_t;
 
+typedef struct{
+    uint16_t addr;
+    uint16_t length;
+} vm_string_t;
+
 typedef struct __attribute__((packed)){ // MUST be 32 bit aligned!
     uint16_t code_start;
     uint16_t data_start;
