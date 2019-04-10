@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include "catbus_common.h"
 #include "datetime_struct.h"
+#include "target.h"
 
 #define VM_ISA_VERSION              10
 
@@ -38,12 +39,7 @@
 #define DATA_MAGIC      0x41544144  // 'DATA'
 #define META_MAGIC      0x4154454d  // 'META'
 
-#define VM_MAX_VMS                  4
-#define VM_MAX_CALL_DEPTH           8
-
 #define DATA_LEN                    4
-
-#define VM_MAX_THREADS              4
 
 #define VM_STATUS_OK                    0
 #define VM_STATUS_ERR_BAD_HASH          -1

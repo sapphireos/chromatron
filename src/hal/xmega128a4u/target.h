@@ -51,8 +51,14 @@
 // #define VM_ENABLE_GFX
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
+
+// this needs to match what is in the wifi target.h!!
+#define VM_MAX_VMS                  4
+#define VM_MAX_CALL_DEPTH           8
+#define VM_MAX_THREADS              4
 #define VM_MAX_IMAGE_SIZE   4096
 #define VM_MAX_CYCLES 		8192
+
 
 // wifi
 #define WIFI_MAX_NETMSGS		4

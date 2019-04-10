@@ -43,6 +43,26 @@ static int8_t hal_info_kv_handler(
 
     		*(uint32_t *)data = cpu_u32_get_clock_speed();
     	}
+        else if( hash == __KV__vm_max_image_size ){
+
+            *(uint32_t *)data = VM_MAX_IMAGE_SIZE;
+        }
+        else if( hash == __KV__vm_max_cycle_limit ){
+
+            *(uint32_t *)data = VM_MAX_CYCLES;
+        }
+        else if( hash == __KV__vm_max_call_depth ){
+
+            *(uint32_t *)data = VM_MAX_CALL_DEPTH;
+        }
+        else if( hash == __KV__vm_max_threads ){
+
+            *(uint32_t *)data = VM_MAX_THREADS;
+        }
+        else if( hash == __KV__vm_max_vms ){
+
+            *(uint32_t *)data = VM_MAX_VMS;
+        }
 
         return 0;
     }
@@ -54,6 +74,11 @@ static int8_t hal_info_kv_handler(
 KV_SECTION_META kv_meta_t hal_info_kv[] = {
     { SAPPHIRE_TYPE_STRING32,     0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "hw_type" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_clock" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_image_size" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_cycle_limit" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_call_depth" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_threads" },
+    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_vms" },
 };
 
 

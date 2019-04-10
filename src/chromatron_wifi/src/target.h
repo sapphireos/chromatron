@@ -40,6 +40,9 @@
 #define VM_ENABLE_KV
 // #define VM_ENABLE_CATBUS
 
+#define VM_MAX_VMS                  4
+#define VM_MAX_CALL_DEPTH           8
+#define VM_MAX_THREADS              4
 #define VM_MAX_IMAGE_SIZE   4096
 #define VM_MAX_CYCLES       32768
 
