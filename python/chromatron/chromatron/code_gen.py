@@ -674,6 +674,8 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def _handle_String(self, node):
         keywords = {}
+        for kw in node.keywords:
+            keywords[kw.arg] = kw.value.id
 
         if isinstance(node.args[0], ast.Str):
             keywords['length'] = len(node.args[0].s)
