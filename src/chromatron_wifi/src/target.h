@@ -27,7 +27,7 @@
 
 #ifndef PROGMEM
 	#define PROGMEM
-	#define pgm_read_word(a) *a
+	// #define pgm_read_word(a) *a
 #endif
 
 #define USE_HSV_BRIDGE
