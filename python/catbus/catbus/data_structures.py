@@ -133,7 +133,12 @@ class CatbusData(StructField):
             valuefield = get_field_for_type(self.meta.type, _name='value')
 
             if self.meta.array_len == 0:
-                valuefield.unpack(buffer)
+                try:
+                    valuefield.unpack(buffer)
+
+                except UnicodeDecodeError as e:
+                    valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
+                
                 self._fields['value'] = valuefield
 
             else:
