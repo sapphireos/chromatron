@@ -1,14 +1,15 @@
 
-a = Number(publish=True)
+# a = Number(publish=True)
 #b = Number()
 
 #s = String("stuff", publish=True)
-s2 = String(32, publish=True)
+test_str = String(32, publish=True)
 #s3 = String(8)
 
 def init():
     
-    pass      
+    # test_str = "meow!"      
+    db.test_str = "meow!"
 
     # db.meow = "meow"
     # db.meow = s
