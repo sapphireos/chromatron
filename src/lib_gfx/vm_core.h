@@ -177,7 +177,7 @@ typedef struct{
     uint32_t delay_ticks;
 } vm_thread_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t addr;
     uint16_t length;
 } vm_string_t;
