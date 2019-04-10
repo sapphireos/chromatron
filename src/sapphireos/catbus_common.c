@@ -204,6 +204,17 @@ int8_t type_i8_convert(
     uint16_t src_size = type_u16_size( src_type );
     uint16_t dst_size = type_u16_size( dest_type );
 
+    // bounds check against maximum conversion size
+    if( src_size > CATBUS_CONVERT_BUF_LEN ){
+
+        src_size = CATBUS_CONVERT_BUF_LEN;
+    }
+
+    if( dst_size > CATBUS_CONVERT_BUF_LEN ){
+
+        dst_size = CATBUS_CONVERT_BUF_LEN;
+    }
+
     // numeric to numeric
     if( !dst_string && !src_string ){
     

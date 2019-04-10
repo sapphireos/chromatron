@@ -776,7 +776,7 @@ int8_t _catbus_i8_internal_set(
 
     bool changed = FALSE;
 
-    uint8_t buf[CATBUS_STRING_LEN];
+    uint8_t buf[CATBUS_CONVERT_BUF_LEN];
 
     for( uint16_t i = 0; i < count; i++ ){
 
@@ -871,7 +871,7 @@ int8_t catbus_i8_array_get(
     // check if conversion is necessary
     if( type != meta.type ){
             
-        uint8_t buf[CATBUS_STRING_LEN];
+        uint8_t buf[CATBUS_CONVERT_BUF_LEN];
 
         for( uint16_t i = 0; i < count; i++ ){
        

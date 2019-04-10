@@ -42,6 +42,13 @@ typedef uint8_t catbus_flags_t8;
 #define CATBUS_STRING_LEN                   32
 #define CATBUS_QUERY_LEN                    8
 
+#ifdef AVR
+#define CATBUS_CONVERT_BUF_LEN              64
+#else
+#define CATBUS_CONVERT_BUF_LEN              512
+#endif
+
+
 typedef struct __attribute__((packed)){
     char str[CATBUS_STRING_LEN];
 } catbus_string_t;
