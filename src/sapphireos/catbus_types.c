@@ -71,7 +71,13 @@ uint16_t type_u16_size( catbus_type_t8 type ){
             break;
 
         case CATBUS_TYPE_STRING512:
-            size = 512;
+            //size = 512;
+            size = 488; 
+            // NOTE!!! 
+            // Currently catbus only supports 512 bytes of data *total* per message.
+            // It is not a trivial matter to change this.
+            // Since it is not terribly likely to actually need a full 512 byte string,
+            // we will artificially constrain it to a number that fits the catbus limitations.
             break;
 
         case CATBUS_TYPE_MAC48:

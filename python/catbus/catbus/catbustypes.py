@@ -69,7 +69,7 @@ type_registry = {
     CATBUS_TYPE_STRING128: String128Field,
     CATBUS_TYPE_STRING32: String32Field,
     CATBUS_TYPE_STRING64: String64Field,
-    CATBUS_TYPE_STRING512: String512Field,
+    CATBUS_TYPE_STRING512: String488Field, # see note in catbus_types.c for why this is
     CATBUS_TYPE_MAC48: Mac48Field,
     CATBUS_TYPE_MAC64: Mac64Field,
     CATBUS_TYPE_KEY128: Key128Field,
