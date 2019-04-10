@@ -3136,11 +3136,12 @@ class Builder(object):
         packed_publish = ''
         for var in self.data_table:
             if var.publish:
-                packed_publish += VMPublishVar(
+                published_var = VMPublishVar(
                                     hash=catbus_string_hash(var.name), 
                                     addr=var.addr,
-                                    type=get_type_id(var.type)).pack()
-
+                                    type=get_type_id(var.type))
+                packed_publish += published_var.pack()
+                
                 meta_names.append(var.name)
                 self.published_var_count += 1
 
