@@ -1,29 +1,30 @@
 
-a = Number()
-b = Number()
+a = Number(publish=True)
+#b = Number()
 
-s = String("stuff")
-s2 = String(32)
-s3 = String(8)
+#s = String("stuff", publish=True)
+s2 = String(32, publish=True)
+#s3 = String(8)
 
 def init():
-  
-
-    db.meow = "meow"
-    db.meow = s
-
-    start_thread("woof")
-
-    s3 = "meow"
-
-
-    # if s3 == 'meow':
-    #     s2 = 'stuff'
     
-    # if s3 in 'meow':
-    #     s2 = 'stuff'
+    pass      
 
-    a = b + 1
+    # db.meow = "meow"
+    # db.meow = s
+
+    # start_thread("woof")
+
+    # s3 = "meow"
+
+
+    # # if s3 == 'meow':
+    # #     s2 = 'stuff'
+    
+    # # if s3 in 'meow':
+    # #     s2 = 'stuff'
+
+    # a = b + 1
 
     # s2 = s + 'meow' # concatenate
     # s2 += 'meow'
