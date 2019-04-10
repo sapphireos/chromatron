@@ -524,7 +524,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
         wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
         uint8_t *kv_data = (uint8_t *)( msg + 1 );
 
-        catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data );
+        catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data, 0 );
     }
     else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
              ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
