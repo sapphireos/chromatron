@@ -3,13 +3,13 @@
 #b = Number()
 
 #s = String("stuff", publish=True)
-test_str = String(32, publish=True)
+# test_str = String(32, publish=True)
 #s3 = String(8)
 
 def init():
     
     # test_str = "meow!"      
-    db.test_str = "meow!"
+    # db.test_str = "meow!"
 
     # db.meow = "meow"
     # db.meow = s
@@ -17,6 +17,9 @@ def init():
     # start_thread("woof")
 
     # s3 = "meow"
+
+    db.vm_prog_1 = "rainbow.fxb"
+    db.vm_run_1 = True
 
 
     # # if s3 == 'meow':
