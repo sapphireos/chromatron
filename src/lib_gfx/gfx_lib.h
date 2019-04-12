@@ -49,6 +49,7 @@ typedef struct  __attribute__((packed)){
     uint16_t virtual_array_start;
     uint16_t virtual_array_length;
     uint32_t sync_group_hash;
+    uint16_t sat_curve;
 } gfx_params_t;
 
 typedef struct  __attribute__((packed)){
@@ -58,6 +59,7 @@ typedef struct  __attribute__((packed)){
 } gfx_pixel_t;
 
 #define GFX_DIMMER_CURVE_DEFAULT    128
+#define GFX_SAT_CURVE_DEFAULT       128
 
 #define ARRAY_OBJ_TYPE      0
 #define PIX_OBJ_TYPE        1

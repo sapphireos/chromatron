@@ -54,6 +54,7 @@ static bool gfx_interleave_x;
 static bool gfx_transpose;
 static uint16_t gfx_frame_rate = 100;
 static uint8_t gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
+static uint8_t gfx_sat_curve = GFX_SAT_CURVE_DEFAULT;
 
 static uint16_t gfx_virtual_array_start;
 static uint16_t gfx_virtual_array_length;
@@ -165,6 +166,11 @@ static void param_error_check( void ){
 
         gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
     }
+
+    if( gfx_sat_curve < 8 ){
+
+        gfx_sat_curve = GFX_SAT_CURVE_DEFAULT;
+    }
 }
 
 
@@ -201,6 +207,7 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_sat_curve,               gfx_i8_kv_handler,   "gfx_sat_curve" },
     
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
@@ -250,6 +257,7 @@ void gfx_v_get_params( gfx_params_t *params ){
     params->sub_dimmer          = gfx_sub_dimmer;
     params->frame_rate          = gfx_frame_rate;   
     params->dimmer_curve        = gfx_dimmer_curve;
+    params->sat_curve           = gfx_sat_curve;
     params->pix_mode            = pixel_u8_get_mode();
 
     params->virtual_array_start   = gfx_virtual_array_start;

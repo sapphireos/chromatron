@@ -89,10 +89,12 @@ static uint32_t scaled_virtual_array_length;
 static uint16_t gfx_frame_rate = 100;
 
 static uint8_t dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
+static uint8_t sat_curve = GFX_SAT_CURVE_DEFAULT;
 
 
 #define DIMMER_LOOKUP_SIZE 256
 static uint16_t dimmer_lookup[DIMMER_LOOKUP_SIZE];
+static uint16_t sat_lookup[DIMMER_LOOKUP_SIZE];
 
 
 // smootherstep is an 8 bit lookup table for the function:
@@ -118,6 +120,7 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     0,   "gfx_hsfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      0,   "gfx_vfade" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   0,   "gfx_sat_curve" },
     
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,   "gfx_varray_start" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,   "gfx_varray_length" },
@@ -134,6 +137,18 @@ static void compute_dimmer_lookup( void ){
         float input = ( (float)( i << 8 ) ) / 65535.0;
 
         dimmer_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
+    }
+}
+
+static void compute_sat_lookup( void ){
+
+    float curve_exp = (float)sat_curve / 64.0;
+
+    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
+
+        float input = ( (float)( i << 8 ) ) / 65535.0;
+
+        sat_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
     }
 }
 
@@ -254,6 +269,16 @@ static void param_error_check( void ){
 
         gfx_frame_rate = 10;
     }
+
+    if( dimmer_curve < 8 ){
+
+        dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
+    }
+
+    if( sat_curve < 8 ){
+
+        sat_curve = GFX_SAT_CURVE_DEFAULT;
+    }
 }
 
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate ){
@@ -277,8 +302,10 @@ void gfx_v_set_params( gfx_params_t *params ){
     }
 
     uint8_t old_dimmer_curve = dimmer_curve;
+    uint8_t old_sat_curve = sat_curve;
 
     dimmer_curve            = params->dimmer_curve;
+    sat_curve               = params->sat_curve;
     pix_count               = params->pix_count;
     pix_size_x              = params->pix_size_x;
     pix_size_y              = params->pix_size_y;
@@ -299,6 +326,12 @@ void gfx_v_set_params( gfx_params_t *params ){
     if( old_dimmer_curve != dimmer_curve ){
         
         compute_dimmer_lookup();
+    }
+
+    // only run if sat curve is changing
+    if( old_sat_curve != sat_curve ){
+        
+        compute_sat_lookup();
     }
 
     update_master_fader();
@@ -325,6 +358,7 @@ void gfx_v_get_params( gfx_params_t *params ){
     params->sub_dimmer              = pix_sub_dimmer;
     params->frame_rate              = gfx_frame_rate;
     params->dimmer_curve            = dimmer_curve;
+    params->sat_curve               = sat_curve;
     params->virtual_array_start     = virtual_array_start;
     params->virtual_array_length    = virtual_array_length;
 }
@@ -1389,6 +1423,11 @@ uint16_t gfx_u16_get_dimmed_val( uint16_t _val ){
     return linterp_table_lookup( x, dimmer_lookup );
 }
 
+uint16_t gfx_u16_get_curved_sat( uint16_t _sat ){
+
+    return linterp_table_lookup( _sat, sat_lookup );
+}
+
 void gfx_v_process_faders( void ){
 
     // update master dimmer
@@ -1602,6 +1641,7 @@ void gfxlib_v_init( void ){
     param_error_check();
 
     compute_dimmer_lookup();
+    compute_sat_lookup();
 
     // initialize pixel arrays to defaults
     gfx_v_reset();
@@ -1619,6 +1659,7 @@ void gfx_v_sync_array( void ){
     uint16_t r, g, b, w;
     uint8_t dither;
     uint16_t dimmed_val;
+    uint16_t curved_sat;
 
     // PWM modes will use pixel 0 and need 16 bits.
     // for simplicity's sake, and to avoid a compare-branch in the
@@ -1626,6 +1667,7 @@ void gfx_v_sync_array( void ){
     // here, and then go on with the 8 bit arrays.
 
     dimmed_val = gfx_u16_get_dimmed_val( val[0] );
+    curved_sat = gfx_u16_get_curved_sat( sat[0] );
 
     gfx_v_hsv_to_rgb(
         hue[0],
@@ -1642,10 +1684,11 @@ void gfx_v_sync_array( void ){
 
             // process master dimmer
             dimmed_val = gfx_u16_get_dimmed_val( val[i] );
+            curved_sat = gfx_u16_get_curved_sat( sat[i] );
 
             gfx_v_hsv_to_rgbw(
                 hue[i],
-                sat[i],
+                curved_sat,
                 dimmed_val,
                 &r,
                 &g,
@@ -1670,10 +1713,11 @@ void gfx_v_sync_array( void ){
 
             // process master dimmer
             dimmed_val = gfx_u16_get_dimmed_val( val[i] );
+            curved_sat = gfx_u16_get_curved_sat( sat[i] );
 
             gfx_v_hsv_to_rgb(
                 hue[i],
-                sat[i],
+                curved_sat,
                 dimmed_val,
                 &r,
                 &g,
