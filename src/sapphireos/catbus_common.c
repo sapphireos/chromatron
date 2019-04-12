@@ -194,7 +194,8 @@ int8_t type_i8_convert(
     catbus_type_t8 dest_type,
     void *dest_data,
     catbus_type_t8 src_type,
-    const void *src_data ){
+    const void *src_data,
+    uint16_t src_data_len ){
 
     // check for strings
     bool dst_string = type_b_is_string( dest_type );
@@ -213,6 +214,11 @@ int8_t type_i8_convert(
     if( dst_size > CATBUS_CONVERT_BUF_LEN ){
 
         dst_size = CATBUS_CONVERT_BUF_LEN;
+    }
+
+    if( ( src_data_len > 0 ) && ( src_size > src_data_len ) ){
+
+        src_size = src_data_len;
     }
 
     // numeric to numeric

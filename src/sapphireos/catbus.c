@@ -783,7 +783,7 @@ int8_t _catbus_i8_internal_set(
 
         kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );
 
-        if( type_i8_convert( meta.type, buf, type, data ) != 0 ){
+        if( type_i8_convert( meta.type, buf, type, data, data_len ) != 0 ){
 
             changed = TRUE;
         }
@@ -879,7 +879,7 @@ int8_t catbus_i8_array_get(
         for( uint16_t i = 0; i < count; i++ ){
        
             status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );         
-            type_i8_convert( type, data, meta.type, buf );
+            type_i8_convert( type, data, meta.type, buf, 0 );
             
             index++;
 
