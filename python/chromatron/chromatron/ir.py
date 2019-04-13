@@ -462,6 +462,7 @@ class irPixelArray(irObject):
                 'index': index,
                 'count': count,
                 'reverse': 0,
+                'mirror': -1,
             }
 
         except IndexError:
@@ -503,6 +504,7 @@ PIX_ATTR_TYPES = {
     'count': 'i32',
     'size_x': 'i32',
     'size_y': 'i32',
+    'mirror': 'i32',
     'index': 'i32',
     'is_hs_fading': 'i32',
     'is_v_fading': 'i32',
@@ -519,7 +521,7 @@ class irPixelAttr(irObjectAttr):
         elif attr in ['hs_fade', 'v_fade']:
             attr = irArray(attr, irVar_i32(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
 
-        elif attr in ['count', 'size_x', 'size_y', 'index', 'is_hs_fading', 'is_v_fading']:
+        elif attr in ['count', 'size_x', 'size_y', 'index', 'mirror', 'is_hs_fading', 'is_v_fading']:
             attr = irVar_i32(attr, lineno=lineno)
 
         else:
