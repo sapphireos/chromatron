@@ -1390,6 +1390,18 @@ void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
 
     // first array is always the global array, we override with our data
     setup_master_array();  
+
+    for( uint8_t p = 1; p < pix_array_count; p++ ){
+
+        // check if arrays have a 2D grid specified.
+        // if not, apply the 1D count to the size_x.
+
+        if( pix_arrays[p].size_y == 0 ){
+
+            pix_arrays[p].size_x = pix_arrays[p].count;
+            pix_arrays[p].size_y = 1;
+        }
+    }
 }
 
 static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){
@@ -1632,6 +1644,48 @@ void gfx_v_process_faders( void ){
             else{
 
                 val[i] += step_v;
+            }
+        }
+    }
+
+
+    for( uint8_t p = 0; p < pix_array_count; p++ ){
+
+        // check if mirror is set
+        if( pix_arrays[p].mirror < 0 ){
+
+            continue;
+        }
+
+        uint8_t mirror = pix_arrays[p].mirror;
+
+        // array "p" is mirroring the array specified by mirror
+
+        for( uint16_t x = 0; x < pix_arrays[p].size_x; x++ ){
+            for( uint16_t y = 0; y < pix_arrays[p].size_y; y++ ){
+                
+                uint16_t index_src = calc_index( mirror, x, y );
+                uint16_t index_dst = calc_index( p, x, y );
+
+                if( ( index_src > pix_count ) || ( index_dst > pix_count ) ){
+
+                    continue;
+                }
+                
+                #ifdef USE_HSV_BRIDGE                
+
+                hue[index_dst] = hue[index_src];
+                sat[index_dst] = sat[index_src];
+                val[index_dst] = val[index_src];
+
+                #else
+
+                array_red[index_dst]    = array_red[index_src];
+                array_green[index_dst]  = array_green[index_src];
+                array_blue[index_dst]   = array_rebluendex_src];
+                array_misc[index_dst]   = array_redmiscdex_src];
+
+                #endif
             }
         }
     }
