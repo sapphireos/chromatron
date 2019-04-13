@@ -1667,7 +1667,7 @@ void gfx_v_process_faders( void ){
                 uint16_t index_src = calc_index( mirror, x, y );
                 uint16_t index_dst = calc_index( p, x, y );
 
-                if( ( index_src > pix_count ) || ( index_dst > pix_count ) ){
+                if( ( index_src >= pix_count ) || ( index_dst >= pix_count ) ){
 
                     continue;
                 }
