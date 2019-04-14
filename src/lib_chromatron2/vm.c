@@ -499,7 +499,11 @@ PT_BEGIN( pt );
     // reset VM data
     reset_published_data( state->vm_id );
 
-    load_vm( state->vm_id, state->program_fname, &state->handle );
+    if( load_vm( state->vm_id, state->program_fname, &state->handle ) < 0 ){
+
+        // error loading VM
+        goto exit;        
+    }
 
     state->vm_return = vm_i8_load_program( 0, mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
 
