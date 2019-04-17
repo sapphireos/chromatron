@@ -39,7 +39,14 @@ static void cpu_normal_clock_config( void ){
 
     /**Configure the main internal regulator output voltage 
     */
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+    /*
+    Voltage scaling max frequencies from data sheet:
+    1 - 400 MHz
+    2 - 300 MHz
+    3 - 200 MHz (startup default)
+    */
 
     while ((PWR->D3CR & (PWR_D3CR_VOSRDY)) != PWR_D3CR_VOSRDY) 
     {
@@ -353,9 +360,8 @@ void cpu_v_init( void ){
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
     // update clock
-    // cpu_normal_clock_config();
-    cpu_boot_clock_config();
-    
+    cpu_normal_clock_config();
+
 
     cpu_init_noncacheable();
 
