@@ -51,18 +51,23 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 	// get the bus clock for this port
 	uint32_t bus_clock = 0;
 
-	switch( spi_io[channel].apb ){
+	// switch( spi_io[channel].apb ){
 
-		case 1:
-		case 3:
-		case 4:
-			bus_clock = HAL_RCC_GetPCLK1Freq();
-			break;
+	// 	case 1:
+	// 	case 3:
+	// 	case 4:
+	// 		bus_clock = HAL_RCC_GetPCLK1Freq();
+	// 		break;
 
-		case 2:
-			bus_clock = HAL_RCC_GetPCLK2Freq();
-			break;
-	}
+	// 	case 2:
+	// 		bus_clock = HAL_RCC_GetPCLK2Freq();
+	// 		break;
+	// }
+
+	// SPI4 is on PLL2
+	PLL2_ClocksTypeDef pll2_clk;
+	HAL_RCCEx_GetPLL2ClockFreq( &pll2_clk );
+	bus_clock = pll2_clk.PLL2_P_Frequency;
 
 	spi.Instance = SPI4;
 	__HAL_RCC_SPI4_CLK_ENABLE();
