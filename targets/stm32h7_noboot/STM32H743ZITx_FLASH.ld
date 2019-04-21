@@ -37,7 +37,7 @@ _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x4000; /* required amount of stack */
 
 /* Highest address of the user mode stack */
-_estack = 0x2001F000 - 4;     /* end of DCTMRAM */
+_estack = 0x20020000 - 4;     /* end of DCTMRAM */
 /* set start of stack */
 _sstack = _estack - _Min_Stack_Size;
 
@@ -45,12 +45,12 @@ _sstack = _estack - _Min_Stack_Size;
 MEMORY
 {
 DTCMRAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 128K
-RAM_D1 (xrw)        : ORIGIN = 0x24000000, LENGTH = 508K
-RAM_NO_CACHE (xrw)  : ORIGIN = 0x2407F000, LENGTH = 4K
+RAM_D1 (xrw)        : ORIGIN = 0x24000000, LENGTH = 480K
+RAM_NO_CACHE (xrw)  : ORIGIN = 0x24078000, LENGTH = 32K
 RAM_D2 (xrw)        : ORIGIN = 0x30000000, LENGTH = 284K
 RAM_D3 (xrw)        : ORIGIN = 0x38000000, LENGTH = 64K
 ITCMRAM (xrw)       : ORIGIN = 0x00000000, LENGTH = 64K
-FLASH (rx)          : ORIGIN = 0x08000000, LENGTH = 1920K
+FLASH (rx)          : ORIGIN = 0x08000000, LENGTH = 2048K
 }
 
 /* Define output sections */
@@ -212,6 +212,18 @@ SECTIONS
     . = ALIGN(4);
     _ebootdata = .;        /* define a global symbol at bootdata end */
   } >RAM_NO_CACHE
+
+  /* Heap */
+  .memory_heap (NOLOAD):
+  {
+    . = ALIGN(8);
+    _smemory_heap = .;        /* create a global symbol at memory_heap start */
+    *(.memory_heap)           /* .memory_heap sections */
+    *(.memory_heap*)          /* .memory_heap* sections */
+
+    . = ALIGN(4);
+    _ememory_heap = .;        /* define a global symbol at memory_heap end */
+  } >DTCMRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
