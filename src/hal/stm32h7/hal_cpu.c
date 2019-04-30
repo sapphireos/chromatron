@@ -39,7 +39,14 @@ static void cpu_normal_clock_config( void ){
 
     /**Configure the main internal regulator output voltage 
     */
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+    /*
+    Voltage scaling max frequencies from data sheet:
+    1 - 400 MHz
+    2 - 300 MHz
+    3 - 200 MHz (startup default)
+    */
 
     while ((PWR->D3CR & (PWR_D3CR_VOSRDY)) != PWR_D3CR_VOSRDY) 
     {
@@ -172,9 +179,10 @@ static void cpu_boot_clock_config( void ){
     }
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-    // PLLs sourced to HSE (external xtal) - requires 8 MHz xtal
+    // PLLs sourced to HSE (external xtal) - requires 16 MHz xtal
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    // RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -354,6 +362,7 @@ void cpu_v_init( void ){
     // update clock
     cpu_normal_clock_config();
 
+
     cpu_init_noncacheable();
 
     // enable gpio clocks
@@ -383,14 +392,14 @@ void cpu_v_init( void ){
     trace_printf( "D1Sys    : %u\r\n", HAL_RCCEx_GetD1SysClockFreq() );
 
     trace_printf( "PLL1 P   : %u\r\n", pll1_clk.PLL1_P_Frequency );
-    trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
-    trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
+    // trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
+    // trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
     trace_printf( "PLL2 P   : %u\r\n", pll2_clk.PLL2_P_Frequency );
-    trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
-    trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
+    // trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
+    // trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
     trace_printf( "PLL3 P   : %u\r\n", pll3_clk.PLL3_P_Frequency );
-    trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
-    trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
+    // trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
+    // trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
@@ -547,12 +556,12 @@ void hal_cpu_v_boot_init( void ){
     trace_printf( "D1Sys    : %u\r\n", HAL_RCCEx_GetD1SysClockFreq() );
 
     trace_printf( "PLL1 P   : %u\r\n", pll1_clk.PLL1_P_Frequency );
-    trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
-    trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
+    // trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
+    // trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
     trace_printf( "PLL2 P   : %u\r\n", pll2_clk.PLL2_P_Frequency );
-    trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
-    trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
+    // trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
+    // trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
     trace_printf( "PLL3 P   : %u\r\n", pll3_clk.PLL3_P_Frequency );
-    trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
-    trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
+    // trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
+    // trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
 }

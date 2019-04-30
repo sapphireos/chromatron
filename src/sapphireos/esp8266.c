@@ -128,7 +128,7 @@ static bool udp_busy;
 
 static uint8_t watchdog;
 
-// static mem_handle_t wifi_networks_handle = -1;
+static mem_handle_t wifi_networks_handle = -1;
 
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -373,85 +373,85 @@ PT_BEGIN( pt );
         // station mode
         if( !ap_mode ){
     
-            // log_v_debug_P( PSTR("Start scan") );
+            log_v_debug_P( PSTR("Start scan") );
 
-            // // run a scan
-            // wifi_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN, 0, 0 );
+            // run a scan
+            wifi_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN, 0, 0 );
 
-            // thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-            // THREAD_WAIT_WHILE( pt, ( wifi_networks_handle < 0 ) &&
-            //                        ( thread_b_alarm_set() ) );
-
-
-            // uint32_t network_hashes[4];
-            // memset( network_hashes, 0, sizeof(network_hashes) );
-            // int8_t selected_network = -1;
-
-            // if( wifi_networks_handle > 0 ){
-
-            //     // gather available networks
-            //     char ssid[WIFI_SSID_LEN];
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-            //     network_hashes[0] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
-            //     network_hashes[1] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
-            //     network_hashes[2] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
-            //     network_hashes[3] = hash_u32_string( ssid );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
+            THREAD_WAIT_WHILE( pt, ( wifi_networks_handle < 0 ) &&
+                                   ( thread_b_alarm_set() ) );
 
 
-            //     wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)mem2_vp_get_ptr( wifi_networks_handle );
+            uint32_t network_hashes[4];
+            memset( network_hashes, 0, sizeof(network_hashes) );
+            int8_t selected_network = -1;
 
-            //     // search for matching networks and track best signal
-            //     int8_t best_rssi = -120;
-            //     int8_t best_index = -1;
+            if( wifi_networks_handle > 0 ){
 
-            //     for( uint8_t i = 0; i < msg->count; i++ ){
+                // gather available networks
+                char ssid[WIFI_SSID_LEN];
 
-            //         // log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
+                memset( ssid, 0, sizeof(ssid) );
+                cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+                network_hashes[0] = hash_u32_string( ssid );
 
-            //         // is this RSSI any good?
+                memset( ssid, 0, sizeof(ssid) );
+                kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+                network_hashes[1] = hash_u32_string( ssid );
 
-            //         if( msg->networks[i].rssi <= best_rssi ){
+                memset( ssid, 0, sizeof(ssid) );
+                kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+                network_hashes[2] = hash_u32_string( ssid );
 
-            //             continue;
-            //         }
+                memset( ssid, 0, sizeof(ssid) );
+                kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+                network_hashes[3] = hash_u32_string( ssid );
 
-            //         // do we have this SSID?
-            //         for( uint8_t j = 0; j < cnt_of_array(network_hashes); j++ ){
 
-            //             if( network_hashes[j] == msg->networks[i].ssid_hash ){
+                wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)mem2_vp_get_ptr( wifi_networks_handle );
 
-            //                 // match!
+                // search for matching networks and track best signal
+                // int8_t best_rssi = -120;
+                int8_t best_index = -1;
 
-            //                 // record RSSI and index
-            //                 best_index = j;
-            //                 best_rssi = msg->networks[i].rssi;
+                for( uint8_t i = 0; i < msg->count; i++ ){
 
-            //                 break;
-            //             }
-            //         }
-            //     }
+                    // log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
 
-            //     if( best_index >= 0 ){
+                    // is this RSSI any good?
 
-            //         // log_v_debug_P( PSTR("Best: %d %lu"), best_rssi, network_hashes[best_index] );
+                    // if( msg->networks[i].rssi <= best_rssi ){
 
-            //         selected_network = best_index;
-            //     }
+                    //     continue;
+                    // }
 
-            //     mem2_v_free( wifi_networks_handle );
-            //     wifi_networks_handle = -1;     
-            // }
+                    // do we have this SSID?
+                    for( uint8_t j = 0; j < cnt_of_array(network_hashes); j++ ){
+
+                        if( network_hashes[j] == msg->networks[i].ssid_hash ){
+
+                            // match!
+
+                            // record RSSI and index
+                            best_index = j;
+                            // best_rssi = msg->networks[i].rssi;
+
+                            break;
+                        }
+                    }
+                }
+
+                if( best_index >= 0 ){
+
+                    // log_v_debug_P( PSTR("Best: %d %lu"), best_rssi, network_hashes[best_index] );
+
+                    selected_network = best_index;
+                }
+
+                mem2_v_free( wifi_networks_handle );
+                wifi_networks_handle = -1;     
+            }
             
                 
             wifi_msg_connect_t msg;
@@ -840,25 +840,25 @@ static int8_t process_rx_data( void ){
             status = 1;
         }   
     }
-    // else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
+    else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
     
-    //     if( wifi_networks_handle < 0 ){        
+        if( wifi_networks_handle < 0 ){        
 
-    //         wifi_networks_handle = mem2_h_alloc( sizeof(wifi_msg_scan_results_t) );
+            wifi_networks_handle = mem2_h_alloc( sizeof(wifi_msg_scan_results_t) );
 
-    //         if( wifi_networks_handle > 0 ){
+            if( wifi_networks_handle > 0 ){
 
-    //             memcpy( mem2_vp_get_ptr( wifi_networks_handle ), data, sizeof(wifi_msg_scan_results_t) );
-    //         }
-    //     }
+                memcpy( mem2_vp_get_ptr( wifi_networks_handle ), data, sizeof(wifi_msg_scan_results_t) );
+            }
+        }
 
-    //     // wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)data;
+        // wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)data;
 
-    //     // for( uint8_t i = 0; i < msg->count; i++ ){
+        // for( uint8_t i = 0; i < msg->count; i++ ){
 
-    //     //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
-    //     // }
-    // }
+        //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
+        // }
+    }
     else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
         log_v_debug_P( PSTR("ESP: %s"), data );

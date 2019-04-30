@@ -940,7 +940,7 @@ class Device(object):
         else:
             info = self.get_thread_info()
 
-        s = "\nAddr  Line  Flags  Data         Time     Runs  Avg      Alarm     Name\n"
+        s = "\nAddr      Line  Flags  Data         Time     Runs  Avg      Alarm     Name\n"
 
         for n in info:
 
@@ -977,7 +977,7 @@ class Device(object):
             except ZeroDivisionError:
                 avg_time = 0
 
-            s += "%5x  %4d   %5s %4d %12d %8d %5d %12d %s\n" % \
+            s += "%8x  %4d   %5s %4d %12d %8d %5d %12d %s\n" % \
                 (n.addr,
                  n.line,
                  flags,
