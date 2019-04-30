@@ -2602,7 +2602,7 @@ class Builder(object):
             cfg = self.control_flow(func)
 
 
-        unreachable = range(len(self.funcs[func].body))
+        unreachable = list(range(len(self.funcs[func].body)))
 
         for sequence in cfg:
             for line in sequence:
