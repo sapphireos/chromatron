@@ -1649,7 +1649,7 @@ void gfx_v_process_faders( void ){
     }
 
 
-    for( uint8_t p = 0; p < pix_array_count; p++ ){
+    for( uint8_t p = 1; p < pix_array_count; p++ ){
 
         // check if mirror is set
         if( pix_arrays[p].mirror < 0 ){
