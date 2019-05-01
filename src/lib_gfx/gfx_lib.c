@@ -1406,6 +1406,39 @@ void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
 
 void gfx_v_delete_pixel_arrays( void ){
 
+    for( uint8_t p = 1; p < pix_array_count; p++ ){
+
+        // check if mirror is set
+        if( pix_arrays[p].mirror < 0 ){
+
+            continue;
+        }
+
+        uint8_t mirror = pix_arrays[p].mirror;
+
+        // array "p" is mirroring the array specified by mirror
+
+        for( uint16_t x = 0; x < pix_arrays[p].size_x; x++ ){
+            for( uint16_t y = 0; y < pix_arrays[p].size_y; y++ ){
+                
+                uint16_t index_src = calc_index( mirror, x, y );
+                uint16_t index_dst = calc_index( p, x, y );
+
+                if( ( index_src >= pix_count ) || ( index_dst >= pix_count ) ){
+
+                    continue;
+                }
+
+                _gfx_v_set_hue_1d( target_hue[index_src], index_dst );
+                _gfx_v_set_sat_1d( target_sat[index_src], index_dst );
+                _gfx_v_set_val_1d( target_val[index_src], index_dst );
+
+                _gfx_v_set_hs_fade_1d( hs_fade[index_src], index_dst );
+                _gfx_v_set_v_fade_1d( v_fade[index_src], index_dst );
+            }
+        }
+    }
+
     pix_arrays = 0;
     pix_array_count = 0;
 }
@@ -1650,48 +1683,6 @@ void gfx_v_process_faders( void ){
             else{
 
                 val[i] += step_v;
-            }
-        }
-    }
-
-
-    for( uint8_t p = 1; p < pix_array_count; p++ ){
-
-        // check if mirror is set
-        if( pix_arrays[p].mirror < 0 ){
-
-            continue;
-        }
-
-        uint8_t mirror = pix_arrays[p].mirror;
-
-        // array "p" is mirroring the array specified by mirror
-
-        for( uint16_t x = 0; x < pix_arrays[p].size_x; x++ ){
-            for( uint16_t y = 0; y < pix_arrays[p].size_y; y++ ){
-                
-                uint16_t index_src = calc_index( mirror, x, y );
-                uint16_t index_dst = calc_index( p, x, y );
-
-                if( ( index_src >= pix_count ) || ( index_dst >= pix_count ) ){
-
-                    continue;
-                }
-                
-                #ifdef USE_HSV_BRIDGE                
-
-                hue[index_dst] = hue[index_src];
-                sat[index_dst] = sat[index_src];
-                val[index_dst] = val[index_src];
-
-                #else
-
-                array_red[index_dst]    = array_red[index_src];
-                array_green[index_dst]  = array_green[index_src];
-                array_blue[index_dst]   = array_rebluendex_src];
-                array_misc[index_dst]   = array_redmiscdex_src];
-
-                #endif
             }
         }
     }
