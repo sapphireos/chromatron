@@ -517,7 +517,7 @@ uint16_t gfx_u16_get_vfade( void ){
 
 
 
-void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
+static inline void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
     // bounds check
     // optimization note:
@@ -534,7 +534,7 @@ void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
     hue_step[index] = 0;
 }
 
-void _gfx_v_set_sat_1d( uint16_t s, uint16_t index ){
+static inline void _gfx_v_set_sat_1d( uint16_t s, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -548,7 +548,7 @@ void _gfx_v_set_sat_1d( uint16_t s, uint16_t index ){
     sat_step[index] = 0;
 }
 
-void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
+static inline void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -562,7 +562,7 @@ void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
     val_step[index] = 0;
 }
 
-void _gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
+static inline void _gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -577,7 +577,7 @@ void _gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
     sat_step[index] = 0;
 }
 
-void _gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
+static inline void _gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
