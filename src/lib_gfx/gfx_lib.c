@@ -1406,6 +1406,7 @@ void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
 
 void gfx_v_delete_pixel_arrays( void ){
 
+    // process mirrors
     for( uint8_t p = 1; p < pix_array_count; p++ ){
 
         // check if mirror is set
@@ -1439,6 +1440,7 @@ void gfx_v_delete_pixel_arrays( void ){
         }
     }
 
+    // clear arrays
     pix_arrays = 0;
     pix_array_count = 0;
 }
