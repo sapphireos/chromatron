@@ -2487,6 +2487,12 @@ int8_t vm_i8_run(
         count--;
     }
 
+    #ifdef VM_ENABLE_GFX
+
+    gfx_v_delete_pixel_arrays();
+
+    #endif
+
     return status;
 }
 

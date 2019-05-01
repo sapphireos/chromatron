@@ -1404,6 +1404,12 @@ void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
     }
 }
 
+void gfx_v_delete_pixel_arrays( void ){
+
+    pix_arrays = 0;
+    pix_array_count = 0;
+}
+
 static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){
 
     uint8_t index = x >> 8;
