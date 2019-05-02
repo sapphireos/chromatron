@@ -2005,20 +2005,22 @@ class Builder(object):
                     previous_ir = self.get_current_node()
 
                     result = previous_ir.result
-                    
-                    # check if previous result is the same as the
-                    # value in this assignment.
-                    if result == value:
-                        # match!
-                        # replace previous result with the assignment
-                        # target
-                        previous_ir.result = target
 
-                        # we can get rid of the temp result as it is
-                        # now unused
-                        self.remove_local_var(result)
+                    if not result.is_global:
+                        
+                        # check if previous result is the same as the
+                        # value in this assignment.
+                        if result == value:
+                            # match!
+                            # replace previous result with the assignment
+                            # target
+                            previous_ir.result = target
 
-                        return
+                            # we can get rid of the temp result as it is
+                            # now unused
+                            self.remove_local_var(result)
+
+                            return
 
                 except IndexError:
                     # no previous instruction, don't do anything
