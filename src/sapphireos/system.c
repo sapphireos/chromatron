@@ -241,8 +241,6 @@ void sys_v_init( void ){
     sys_mode = SYS_MODE_NORMAL;
     #endif
 
-sys_mode = SYS_MODE_NORMAL;
-
     trace_printf( "Reset source: %d sys_mode: %d boot_mode: %d\r\n", reset_source, sys_mode, boot_data.boot_mode );
 
     // set boot mode to normal
