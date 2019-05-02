@@ -1417,12 +1417,21 @@ void gfx_v_delete_pixel_arrays( void ){
 
         uint8_t mirror = pix_arrays[p].mirror;
 
+
+        int32_t offset = pix_arrays[p].offset;
+
+        // adjust offset if negative
+        if( offset < 0 ){
+
+            offset = pix_arrays[mirror].size_x + offset;
+        }
+
         // array "p" is mirroring the array specified by mirror
 
         for( uint16_t x = 0; x < pix_arrays[p].size_x; x++ ){
             for( uint16_t y = 0; y < pix_arrays[p].size_y; y++ ){
                 
-                uint16_t index_src = calc_index( mirror, x, y );
+                uint16_t index_src = calc_index( mirror, x + offset, y );
                 uint16_t index_dst = calc_index( p, x, y );
 
                 if( ( index_src >= pix_count ) || ( index_dst >= pix_count ) ){

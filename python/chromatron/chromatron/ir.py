@@ -478,6 +478,9 @@ class irPixelArray(irObject):
             else:
                 self.fields[k] = int(v.name)
 
+        if 'offset' in kw and 'mirror' not in kw:
+            raise SyntaxError("Cannot specify 'offset' without 'mirror'", lineno=self.lineno)
+
         self.length = len(self.fields) * DATA_LEN
 
         self.array_list_index = None
