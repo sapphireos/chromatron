@@ -463,6 +463,7 @@ class irPixelArray(irObject):
                 'count': count,
                 'reverse': 0,
                 'mirror': -1,
+                'offset': 0,
             }
 
         except IndexError:
