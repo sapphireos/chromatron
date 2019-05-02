@@ -472,9 +472,14 @@ class irPixelArray(irObject):
             if k not in self.fields:
                 raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
 
-            self.fields[k] = int(v.name)
+            if k == 'mirror':
+                self.fields[k] = v.name
+            else:
+                self.fields[k] = int(v.name)
 
         self.length = len(self.fields) * DATA_LEN
+
+        self.array_list_index = None
         
     def __str__(self):
         return "PixelArray(%s)" % (self.name)
@@ -2750,10 +2755,12 @@ class Builder(object):
         self.data_table.append(ret_var)
 
         self.pixel_array_indexes = ['pixels']
+        self.pixel_arrays['pixels'].array_list_index = 0
 
         # allocate pixel array data
         # start with master array
         global_pixels = self.globals['pixels']
+        pix_array_records = {'pixels': global_pixels}
         for field_name in sorted(global_pixels.fields.keys()):
             field = global_pixels.fields[field_name]
 
@@ -2767,9 +2774,13 @@ class Builder(object):
             self.data_table.append(field)
 
         # look for additional pixel arrays
+        index = 1
         for i in self.globals.values():
             if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
                 self.pixel_array_indexes.append(i.name)
+                self.pixel_arrays[i.name].array_list_index = index
+                index += 1
+                pix_array_records[i.name] = i
 
                 for field_name in sorted(i.fields.keys()):
                     field = i.fields[field_name]
@@ -2782,6 +2793,25 @@ class Builder(object):
                     field.default_value = self.pixel_arrays[i.name].fields[field_name]
 
                     self.data_table.append(field)
+        
+        # update mirror fields in pixel arrays
+        for name, pix_array in self.pixel_arrays.items():
+            mirror = pix_array.fields['mirror']
+
+            # negative mirrors are undefined, no further processing
+            if mirror < 0:
+                continue
+
+            # check for common errors
+            if mirror == name:
+                raise SyntaxError("Pixel array: '%s' cannot mirror itself" % (name), lineno=pix_array.lineno)
+
+            if mirror not in self.pixel_arrays:
+                raise SyntaxError("Pixel array: '%s' not found for mirror in: '%s'" % (mirror, name), lineno=pix_array.lineno)
+
+            # change mirror to array index position
+            pix_array.fields['mirror'] = self.pixel_arrays[mirror].array_list_index
+            pix_array_records[name].fields['mirror'].default_value = int(pix_array.fields['mirror'])
 
         # allocate all other globals
         for i in self.globals.values():

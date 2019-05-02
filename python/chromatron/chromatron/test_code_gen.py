@@ -1782,10 +1782,25 @@ def init():
     
 """
 
+
+test_pixel_mirror_compile = """
+
+# no numeric checks, this test passes if it compiles without error
+
+meow1 = PixelArray(0, 1, mirror='pixels')
+meow2 = PixelArray(1, 2, mirror='meow1')
+    
+"""
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
-    
+
+    def test_pixel_mirror_compile(self):
+        self.run_test(test_pixel_mirror_compile,
+            expected={
+            })
+
     def test_temp_variable_redeclare_outside_scope(self):
         self.run_test(test_temp_variable_redeclare_outside_scope,
             expected={
