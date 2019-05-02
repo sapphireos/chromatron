@@ -1789,6 +1789,8 @@ test_pixel_mirror_compile = """
 
 meow1 = PixelArray(0, 1, mirror='pixels')
 meow2 = PixelArray(1, 2, mirror='meow1')
+meow3 = PixelArray(0, 1, mirror=pixels)
+meow4 = PixelArray(1, 2, mirror=meow1)
     
 """
 
