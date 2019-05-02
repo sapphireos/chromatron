@@ -162,7 +162,9 @@ class cg1GenericObject(cg1Node):
         self.kw = kw
 
     def build(self, builder):
-        builder.generic_object(self.name, args, self.kw, lineno=self.lineno)
+        # should not get here
+        assert False
+        # builder.generic_object(self.name, args, self.kw, lineno=self.lineno)
 
 
 class cg1Var(cg1Node):
@@ -173,12 +175,6 @@ class cg1Var(cg1Node):
 
         self.name = name
         
-        if self.name == 'False':
-            self.name = 0
-
-        elif self.name == 'True':
-            self.name = 1
-
         self.type = None
 
     def build(self, builder, depth=None):
@@ -245,8 +241,9 @@ class cg1Module(cg1Node):
             elif isinstance(node, cg1Assign):
                 if isinstance(node.value, cg1GenericObject):
                     args = [a.build(builder) for a in node.value.args]
+                    kw = {k: v.build(builder) for k, v in node.value.kw.items()}
 
-                    builder.generic_object(node.target.name, node.value.name, args, node.value.kw, lineno=node.lineno)
+                    builder.generic_object(node.target.name, node.value.name, args, kw, lineno=node.lineno)
 
                 else:
                     raise SyntaxError("Unknown declaration in module body: %s" % (node.target.name), lineno=node.lineno)

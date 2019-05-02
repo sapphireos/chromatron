@@ -472,7 +472,7 @@ class irPixelArray(irObject):
             if k not in self.fields:
                 raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
 
-            self.fields[k] = v.name
+            self.fields[k] = int(v.name)
 
         self.length = len(self.fields) * DATA_LEN
         
@@ -1476,8 +1476,13 @@ class Builder(object):
             'optimize_assign_targets': True,
         }
 
-        # make sure we always have 0 and 65535 const
+        # make sure we always have 0 and 65535 const, and a few others
         self.add_const(0, lineno=0)
+        self.add_const(1, lineno=0)
+        self.add_const(2, lineno=0)
+        self.add_const(3, lineno=0)
+        self.add_const(4, lineno=0)
+        self.add_const(5, lineno=0)
         self.globals['65535'] = CONST65535
 
         pixarray = irPixelArray('temp', lineno=0)
@@ -3261,7 +3266,14 @@ class Builder(object):
                     except TypeError:
                         default_value = var.default_value
 
-                    stream += struct.pack('<l', default_value)
+                    try:
+                        stream += struct.pack('<l', default_value)
+
+                    except struct.error:
+                        print "*********************************"
+                        print "packing error: var: %s type: %s default: %s type: %s" % (var, type(var), default_value, type(default_value))
+
+                        raise
 
                 addr += var.length
 
