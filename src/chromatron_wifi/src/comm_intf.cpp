@@ -92,7 +92,7 @@ static volatile bool is_rx_ready;
 static uint32_t last_status_ts;
 
 static wifi_data_header_t intf_data_header;
-static uint8_t intf_comm_buf[WIFI_BUF_LEN];
+static uint8_t  __attribute__ ((aligned (4))) intf_comm_buf[WIFI_BUF_LEN];
 static uint8_t intf_comm_state;
 
 static wifi_msg_udp_header_t udp_header;
@@ -802,6 +802,11 @@ void intf_v_init( void ){
     _intf_v_flush();
 
     list_v_init( &tx_q );
+
+    if( ( (uint32_t)intf_comm_buf & 0x03 ) != 0 ){
+
+        intf_v_printf("intf_comm_buf misalign");
+    }
 }
 
 
