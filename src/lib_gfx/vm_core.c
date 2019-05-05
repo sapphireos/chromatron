@@ -394,8 +394,8 @@ static int8_t _vm_i8_run_stream(
     catbus_hash_t32 hash;
     catbus_hash_t32 db_hash;
     vm_string_t *string;
-    void *ptr;
-    uint16_t ptr_len;
+    int32_t *db_ptr;
+    uint16_t db_ptr_len;
     
     #ifdef VM_ENABLE_GFX
     int32_t value_i32;
@@ -2252,6 +2252,7 @@ opcode_pload_hsfade:
 
 
 opcode_db_store:
+
     hash =  (catbus_hash_t32)(*pc++) << 24;
     hash |= (catbus_hash_t32)(*pc++) << 16;
     hash |= (catbus_hash_t32)(*pc++) << 8;
@@ -2279,20 +2280,20 @@ opcode_db_store:
         // special handling for string types
         string = (vm_string_t *)&data[src];
 
-        ptr = &data[string->addr + 1]; // actual string starts 1 word after header
-        ptr_len = string->length;
+        db_ptr = &data[string->addr + 1]; // actual string starts 1 word after header
+        db_ptr_len = string->length;
     }
     else{
 
-        ptr = &data[src];
-        ptr_len = sizeof(data[src]);
+        db_ptr = &data[src];
+        db_ptr_len = sizeof(data[src]);
     }
 
     #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    catbus_i8_array_set( hash, type, indexes[0], 1, ptr, ptr_len );
+    catbus_i8_array_set( hash, type, indexes[0], 1, db_ptr, db_ptr_len );
     #else
-    kvdb_i8_array_set( hash, type, indexes[0], ptr, ptr_len );
+    kvdb_i8_array_set( hash, type, indexes[0], db_ptr, db_ptr_len );
     #endif
     #endif
     
@@ -2486,6 +2487,12 @@ int8_t vm_i8_run(
         publish++;
         count--;
     }
+
+    #ifdef VM_ENABLE_GFX
+
+    gfx_v_delete_pixel_arrays();
+
+    #endif
 
     return status;
 }

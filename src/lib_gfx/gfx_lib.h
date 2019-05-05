@@ -74,6 +74,8 @@ typedef struct  __attribute__((packed)){
 typedef struct  __attribute__((packed)){
     int32_t count;
     int32_t index;
+    int32_t mirror;
+    int32_t offset;
     int32_t reverse;
     int32_t size_x;
     int32_t size_y;
@@ -174,6 +176,7 @@ void gfx_v_sync_array( void );
 
 void gfx_v_reset( void );
 void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count );
+void gfx_v_delete_pixel_arrays( void );
 
 void gfx_v_init_noise( void );
 uint16_t gfx_u16_noise( uint16_t x );

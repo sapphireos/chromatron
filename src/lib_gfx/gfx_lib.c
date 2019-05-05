@@ -162,6 +162,7 @@ static void setup_master_array( void ){
 
     pix_arrays[0].reverse = FALSE;
     pix_arrays[0].index = 0;
+    pix_arrays[0].mirror = -1;
     pix_arrays[0].count = pix_count;
     pix_arrays[0].size_x = pix_size_x;
     pix_arrays[0].size_y = pix_size_y;    
@@ -516,7 +517,7 @@ uint16_t gfx_u16_get_vfade( void ){
 
 
 
-void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
+static inline void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
     // bounds check
     // optimization note:
@@ -533,7 +534,7 @@ void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
     hue_step[index] = 0;
 }
 
-void _gfx_v_set_sat_1d( uint16_t s, uint16_t index ){
+static inline void _gfx_v_set_sat_1d( uint16_t s, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -547,7 +548,7 @@ void _gfx_v_set_sat_1d( uint16_t s, uint16_t index ){
     sat_step[index] = 0;
 }
 
-void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
+static inline void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -561,7 +562,7 @@ void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
     val_step[index] = 0;
 }
 
-void _gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
+static inline void _gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -576,7 +577,7 @@ void _gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
     sat_step[index] = 0;
 }
 
-void _gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
+static inline void _gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
 
     // bounds check
     if( index >= MAX_PIXELS ){
@@ -1389,6 +1390,68 @@ void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
 
     // first array is always the global array, we override with our data
     setup_master_array();  
+
+    for( uint8_t p = 1; p < pix_array_count; p++ ){
+
+        // check if arrays have a 2D grid specified.
+        // if not, apply the 1D count to the size_x.
+
+        if( pix_arrays[p].size_y == 0 ){
+
+            pix_arrays[p].size_x = pix_arrays[p].count;
+            pix_arrays[p].size_y = 1;
+        }
+    }
+}
+
+void gfx_v_delete_pixel_arrays( void ){
+
+    // process mirrors
+    for( uint8_t p = 1; p < pix_array_count; p++ ){
+
+        // check if mirror is set
+        if( pix_arrays[p].mirror < 0 ){
+
+            continue;
+        }
+
+        uint8_t mirror = pix_arrays[p].mirror;
+
+
+        int32_t offset = pix_arrays[p].offset;
+
+        // adjust offset if negative
+        if( offset < 0 ){
+
+            offset = pix_arrays[mirror].size_x + offset;
+        }
+
+        // array "p" is mirroring the array specified by mirror
+
+        for( uint16_t x = 0; x < pix_arrays[p].size_x; x++ ){
+            for( uint16_t y = 0; y < pix_arrays[p].size_y; y++ ){
+                
+                uint16_t index_src = calc_index( mirror, x + offset, y );
+                uint16_t index_dst = calc_index( p, x, y );
+
+                if( ( index_src >= pix_count ) || ( index_dst >= pix_count ) ){
+
+                    continue;
+                }
+
+                _gfx_v_set_hue_1d( target_hue[index_src], index_dst );
+                _gfx_v_set_sat_1d( target_sat[index_src], index_dst );
+                _gfx_v_set_val_1d( target_val[index_src], index_dst );
+
+                _gfx_v_set_hs_fade_1d( hs_fade[index_src], index_dst );
+                _gfx_v_set_v_fade_1d( v_fade[index_src], index_dst );
+            }
+        }
+    }
+
+    // clear arrays
+    pix_arrays = 0;
+    pix_array_count = 0;
 }
 
 static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){

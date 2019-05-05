@@ -29,7 +29,7 @@ import pprint
 
 source_code = []
 
-VM_ISA_VERSION  = 10
+VM_ISA_VERSION  = 11
 
 FILE_MAGIC      = 0x20205846 # 'FX  '
 PROGRAM_MAGIC   = 0x474f5250 # 'PROG'
@@ -462,6 +462,8 @@ class irPixelArray(irObject):
                 'index': index,
                 'count': count,
                 'reverse': 0,
+                'mirror': -1,
+                'offset': 0,
             }
 
         except IndexError:
@@ -471,9 +473,17 @@ class irPixelArray(irObject):
             if k not in self.fields:
                 raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
 
-            self.fields[k] = v.name
+            if k == 'mirror':
+                self.fields[k] = v.name
+            else:
+                self.fields[k] = int(v.name)
+
+        if 'offset' in kw and 'mirror' not in kw:
+            raise SyntaxError("Cannot specify 'offset' without 'mirror'", lineno=self.lineno)
 
         self.length = len(self.fields) * DATA_LEN
+
+        self.array_list_index = None
         
     def __str__(self):
         return "PixelArray(%s)" % (self.name)
@@ -503,6 +513,7 @@ PIX_ATTR_TYPES = {
     'count': 'i32',
     'size_x': 'i32',
     'size_y': 'i32',
+    'mirror': 'i32',
     'index': 'i32',
     'is_hs_fading': 'i32',
     'is_v_fading': 'i32',
@@ -519,7 +530,7 @@ class irPixelAttr(irObjectAttr):
         elif attr in ['hs_fade', 'v_fade']:
             attr = irArray(attr, irVar_i32(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
 
-        elif attr in ['count', 'size_x', 'size_y', 'index', 'is_hs_fading', 'is_v_fading']:
+        elif attr in ['count', 'size_x', 'size_y', 'index', 'mirror', 'is_hs_fading', 'is_v_fading']:
             attr = irVar_i32(attr, lineno=lineno)
 
         else:
@@ -1474,8 +1485,13 @@ class Builder(object):
             'optimize_assign_targets': True,
         }
 
-        # make sure we always have 0 and 65535 const
+        # make sure we always have 0 and 65535 const, and a few others
         self.add_const(0, lineno=0)
+        self.add_const(1, lineno=0)
+        self.add_const(2, lineno=0)
+        self.add_const(3, lineno=0)
+        self.add_const(4, lineno=0)
+        self.add_const(5, lineno=0)
         self.globals['65535'] = CONST65535
 
         pixarray = irPixelArray('temp', lineno=0)
@@ -1993,20 +2009,22 @@ class Builder(object):
                     previous_ir = self.get_current_node()
 
                     result = previous_ir.result
-                    
-                    # check if previous result is the same as the
-                    # value in this assignment.
-                    if result == value:
-                        # match!
-                        # replace previous result with the assignment
-                        # target
-                        previous_ir.result = target
 
-                        # we can get rid of the temp result as it is
-                        # now unused
-                        self.remove_local_var(result)
+                    if not result.is_global:
+                        
+                        # check if previous result is the same as the
+                        # value in this assignment.
+                        if result == value:
+                            # match!
+                            # replace previous result with the assignment
+                            # target
+                            previous_ir.result = target
 
-                        return
+                            # we can get rid of the temp result as it is
+                            # now unused
+                            self.remove_local_var(result)
+
+                            return
 
                 except IndexError:
                     # no previous instruction, don't do anything
@@ -2743,10 +2761,12 @@ class Builder(object):
         self.data_table.append(ret_var)
 
         self.pixel_array_indexes = ['pixels']
+        self.pixel_arrays['pixels'].array_list_index = 0
 
         # allocate pixel array data
         # start with master array
         global_pixels = self.globals['pixels']
+        pix_array_records = {'pixels': global_pixels}
         for field_name in sorted(global_pixels.fields.keys()):
             field = global_pixels.fields[field_name]
 
@@ -2760,9 +2780,13 @@ class Builder(object):
             self.data_table.append(field)
 
         # look for additional pixel arrays
+        index = 1
         for i in self.globals.values():
             if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
                 self.pixel_array_indexes.append(i.name)
+                self.pixel_arrays[i.name].array_list_index = index
+                index += 1
+                pix_array_records[i.name] = i
 
                 for field_name in sorted(i.fields.keys()):
                     field = i.fields[field_name]
@@ -2775,6 +2799,25 @@ class Builder(object):
                     field.default_value = self.pixel_arrays[i.name].fields[field_name]
 
                     self.data_table.append(field)
+        
+        # update mirror fields in pixel arrays
+        for name, pix_array in self.pixel_arrays.items():
+            mirror = pix_array.fields['mirror']
+
+            # negative mirrors are undefined, no further processing
+            if mirror < 0:
+                continue
+
+            # check for common errors
+            if mirror == name:
+                raise SyntaxError("Pixel array: '%s' cannot mirror itself" % (name), lineno=pix_array.lineno)
+
+            if mirror not in self.pixel_arrays:
+                raise SyntaxError("Pixel array: '%s' not found for mirror in: '%s'" % (mirror, name), lineno=pix_array.lineno)
+
+            # change mirror to array index position
+            pix_array.fields['mirror'] = self.pixel_arrays[mirror].array_list_index
+            pix_array_records[name].fields['mirror'].default_value = int(pix_array.fields['mirror'])
 
         # allocate all other globals
         for i in self.globals.values():
@@ -3259,7 +3302,14 @@ class Builder(object):
                     except TypeError:
                         default_value = var.default_value
 
-                    stream += struct.pack('<l', default_value)
+                    try:
+                        stream += struct.pack('<l', default_value)
+
+                    except struct.error:
+                        print "*********************************"
+                        print "packing error: var: %s type: %s default: %s type: %s" % (var, type(var), default_value, type(default_value))
+
+                        raise
 
                 addr += var.length
 
