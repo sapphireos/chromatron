@@ -30,7 +30,7 @@
 
 #include "sapphire.h"
 
-
+#ifndef BOARD_CHROMATRONX
 static TIM_HandleTypeDef pwm_timer;
 
 static uint32_t get_channel( uint8_t channel ){
@@ -128,9 +128,4 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 	HAL_TIM_PWM_ConfigChannel( &pwm_timer, &config, timer_channel );
 }
 
-
-
-
-
-
-
+#endif

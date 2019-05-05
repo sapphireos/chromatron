@@ -67,10 +67,6 @@ static SPI_HandleTypeDef    pix_spi2;
 static SPI_HandleTypeDef    pix_spi3;
 static SPI_HandleTypeDef    pix_spi4;
 static SPI_HandleTypeDef    pix_spi5;
-// static USART_HandleTypeDef  pix_usart6;
-// static USART_HandleTypeDef  pix_usart7;
-// static UART_HandleTypeDef   pix_uart8;
-// static UART_HandleTypeDef   pix_uart9;
 #endif
 
 static DMA_HandleTypeDef pix0_dma;
@@ -81,14 +77,11 @@ static DMA_HandleTypeDef pix2_dma;
 static DMA_HandleTypeDef pix3_dma;
 static DMA_HandleTypeDef pix4_dma;
 // static DMA_HandleTypeDef pix5_dma;
-// static DMA_HandleTypeDef pix6_dma;
-// static DMA_HandleTypeDef pix7_dma;
-// static DMA_HandleTypeDef pix8_dma;
-// static DMA_HandleTypeDef pix9_dma;
 
 static uint8_t p5_buf[128];
 static uint8_t p5_count;
 #endif
+
 
 ISR(PIX0_DMA_HANDLER){
     
@@ -270,6 +263,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     }
 }
 
+#ifndef BOARD_CHROMATRONX
 typedef struct{
     uint32_t pin;
     uint32_t alt;
@@ -279,6 +273,8 @@ static const hal_pix_ch_t pix_io[] = {
     { IO_PIN_PIX_CLK, GPIO_AF5_SPI1 },
     { IO_PIN_PIX_DAT, GPIO_AF5_SPI1 },
 };
+#endif
+
 
 void hal_pixel_v_init( void ){
 
@@ -299,7 +295,7 @@ void hal_pixel_v_init( void ){
     // See hal_cpu.c for details.  This should be 104 MHz.
 
     // init IO pins
-    GPIO_TypeDef *port;
+    
     GPIO_InitTypeDef GPIO_InitStruct;   
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     // GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -309,6 +305,9 @@ void hal_pixel_v_init( void ){
 
     // NOTE the alternate port functions are NOT all the same!
 
+    #ifndef BOARD_CHROMATRONX
+    GPIO_TypeDef *port;
+    
     hal_io_v_get_port( pix_io[0].pin, &port, &GPIO_InitStruct.Pin );
     GPIO_InitStruct.Alternate = pix_io[0].alt;
     HAL_GPIO_Init( port, &GPIO_InitStruct );
@@ -319,8 +318,7 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_Init( port, &GPIO_InitStruct );
     HAL_GPIO_WritePin(port, GPIO_InitStruct.Pin, GPIO_PIN_RESET);
     
-
-    #ifdef BOARD_CHROMATRONX
+    #else
     GPIO_InitStruct.Pin = PIX_CLK_1_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_CLK_1_GPIO_Port, &GPIO_InitStruct);

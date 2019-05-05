@@ -28,6 +28,8 @@
 #include "hal_io.h"
 #include "hal_i2s.h"
 
+#ifndef BOARD_CHROMATRONX
+
 typedef struct{
     uint32_t pin;
     uint32_t alt;
@@ -226,3 +228,4 @@ void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits ){
                  0 );
 }
 
+#endif

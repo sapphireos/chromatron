@@ -36,9 +36,15 @@ typedef struct{
 } hal_spi_ch_t;
 
 static const hal_spi_ch_t spi_io[] = {
+#ifdef BOARD_CHROMATRONX
+	{ IO_PIN_GPIOSCK, GPIO_AF5_SPI4, 2},
+    { IO_PIN_GPIOMOSI, GPIO_AF5_SPI4, 2 },
+    { IO_PIN_GPIOMISO, GPIO_AF5_SPI4, 2 },
+#else
     { IO_PIN_GPIOSCK, GPIO_AF5_SPI4, 2},
     { IO_PIN_GPIOMOSI, GPIO_AF5_SPI4, 2 },
     { IO_PIN_GPIOMISO, GPIO_AF5_SPI4, 2 },
+#endif
 };
 
 static SPI_HandleTypeDef spi;
