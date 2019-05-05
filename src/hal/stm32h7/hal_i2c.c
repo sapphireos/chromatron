@@ -45,17 +45,17 @@ typedef struct{
 } hal_i2c_ch_t;
 
 
-// #ifdef BOARD_CHROMATRONX
-// static const hal_i2c_ch_t i2c_io[] = {
-//     { I2C1_SCL_GPIO_Port, I2C1_SCL_Pin, GPIO_AF4_I2C1 }, // SCL
-//     { I2C1_SDA_GPIO_Port, I2C1_SDA_Pin, GPIO_AF4_I2C1 }, // SDA
-// };
-// #else
+#ifdef BOARD_CHROMATRONX
 static const hal_i2c_ch_t i2c_io[] = {
     { IO_PIN_GPIOSCL, GPIO_AF4_I2C1 },
     { IO_PIN_GPIOSDA, GPIO_AF4_I2C1 },
 };
-// #endif
+#else
+static const hal_i2c_ch_t i2c_io[] = {
+    { IO_PIN_GPIOSCL, GPIO_AF4_I2C1 },
+    { IO_PIN_GPIOSDA, GPIO_AF4_I2C1 },
+};
+#endif
 
 static I2C_HandleTypeDef i2c1;
 

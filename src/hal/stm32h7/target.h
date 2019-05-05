@@ -27,6 +27,7 @@
 
 #define HW_NAME "STM32H7"
 
+#define BOARD_CHROMATRONX
 
 // modules
 #define ENABLE_CATBUS_LINK
