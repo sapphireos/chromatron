@@ -26,6 +26,10 @@
 
 #include "system.h"
 
+#ifdef BOARD_CHROMATRONX
+#pragma message "BOARD_CHROMATRONX"
+#endif
+
 
 static void cpu_normal_clock_config( void ){
 
