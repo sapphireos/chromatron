@@ -106,7 +106,7 @@
 #define TOTAL_PAGES ( N_APP_PAGES + 32 )
 
 
-#if defined(DEBUG) || defined(NO_BOOT)
+#if (defined(DEBUG) || defined(NO_BOOT)) && !defined(BOOTLOADER)
 	#define FLASH_START 	( 0x08000000 + 0 )
 #else
 	#define FLASH_START 	( 0x08000000 + 0x20000 )
