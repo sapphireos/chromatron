@@ -18,7 +18,6 @@
         "-DUSE_HAL_DRIVER",
         "-DARM",
         "-DNO_BOOT",
-        "-flto",
         "-g",
         "-O2",
         "-mno-unaligned-access",
