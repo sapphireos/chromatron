@@ -183,16 +183,15 @@ static void cpu_boot_clock_config( void ){
     }
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-    // PLLs sourced to HSE (external xtal) - requires 16 MHz xtal
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
-    // RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    // PLLs sourced to HSI (64 MHz)
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    // set PLL1 to 76 MHz
-    RCC_OscInitStruct.PLL.PLLM = 1;
-    RCC_OscInitStruct.PLL.PLLN = 19;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+    // set PLL1 to 80 MHz
+    RCC_OscInitStruct.PLL.PLLM = 4;
+    RCC_OscInitStruct.PLL.PLLN = 10;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 4;
     RCC_OscInitStruct.PLL.PLLR = 2;
@@ -234,9 +233,9 @@ static void cpu_boot_clock_config( void ){
                               |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
                               |RCC_PERIPHCLK_SPI6|RCC_PERIPHCLK_QSPI;
 
-    // set PLL 2 to 76 MHz
-    PeriphClkInitStruct.PLL2.PLL2M = 1;
-    PeriphClkInitStruct.PLL2.PLL2N = 19;
+    // set PLL 2 to 32 MHz
+    PeriphClkInitStruct.PLL2.PLL2M = 8;
+    PeriphClkInitStruct.PLL2.PLL2N = 8;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
     PeriphClkInitStruct.PLL2.PLL2Q = 2;
     PeriphClkInitStruct.PLL2.PLL2R = 2;
@@ -244,9 +243,9 @@ static void cpu_boot_clock_config( void ){
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
 
-    // set PLL 3 to 64 MHz
+    // set PLL 3 to 32 MHz
     PeriphClkInitStruct.PLL3.PLL3M = 8;
-    PeriphClkInitStruct.PLL3.PLL3N = 256;
+    PeriphClkInitStruct.PLL3.PLL3N = 8;
     PeriphClkInitStruct.PLL3.PLL3P = 4;
     PeriphClkInitStruct.PLL3.PLL3Q = 4;
     PeriphClkInitStruct.PLL3.PLL3R = 4;
@@ -507,7 +506,7 @@ void hal_cpu_v_boot_init( void ){
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
     /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
-    HAL_InitTick(TICK_INT_PRIORITY);
+    // HAL_InitTick(TICK_INT_PRIORITY);
 
     // enable SYSCFG controller clock
     __HAL_RCC_SYSCFG_CLK_ENABLE();
@@ -560,12 +559,12 @@ void hal_cpu_v_boot_init( void ){
     trace_printf( "D1Sys    : %u\r\n", HAL_RCCEx_GetD1SysClockFreq() );
 
     trace_printf( "PLL1 P   : %u\r\n", pll1_clk.PLL1_P_Frequency );
-    // trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
-    // trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
+    trace_printf( "PLL1 Q   : %u\r\n", pll1_clk.PLL1_Q_Frequency );
+    trace_printf( "PLL1 R   : %u\r\n", pll1_clk.PLL1_R_Frequency );
     trace_printf( "PLL2 P   : %u\r\n", pll2_clk.PLL2_P_Frequency );
-    // trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
-    // trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
+    trace_printf( "PLL2 Q   : %u\r\n", pll2_clk.PLL2_Q_Frequency );
+    trace_printf( "PLL2 R   : %u\r\n", pll2_clk.PLL2_R_Frequency );
     trace_printf( "PLL3 P   : %u\r\n", pll3_clk.PLL3_P_Frequency );
-    // trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
-    // trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
+    trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
+    trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
 }
