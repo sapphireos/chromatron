@@ -269,17 +269,6 @@ static void cpu_boot_clock_config( void ){
         Error_Handler();
     }
 
-    /**Configure the Systick interrupt time 
-    */
-    HAL_SYSTICK_Config(SystemCoreClock/1000);
-
-    /**Configure the Systick 
-    */
-    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-
-    /* SysTick_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-
     // update clock frequency info
     SystemCoreClockUpdate();
 }
@@ -505,8 +494,6 @@ void hal_cpu_v_boot_init( void ){
     /* Set Interrupt Group Priority */
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
-    /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
-    // HAL_InitTick(TICK_INT_PRIORITY);
 
     // enable SYSCFG controller clock
     __HAL_RCC_SYSCFG_CLK_ENABLE();
@@ -526,11 +513,13 @@ void hal_cpu_v_boot_init( void ){
     HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
     /* PendSV_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(PendSV_IRQn, 0, 0);
-    /* SysTick_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-
+    
     // update clock
     cpu_boot_clock_config();
+
+    /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
+    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    HAL_InitTick(TICK_INT_PRIORITY);
     
     // enable gpio clocks
     __HAL_RCC_GPIOA_CLK_ENABLE();
