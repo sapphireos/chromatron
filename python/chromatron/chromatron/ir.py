@@ -1504,6 +1504,17 @@ class Builder(object):
         # create main pixels object
         self.pixelarray_object('pixels', args=[0, 65535], lineno=0)
 
+        # create Palette type
+        fields = {
+                    'i': {'type': 'f16', 'dimensions': []},
+                    'h': {'type': 'f16', 'dimensions': []},
+                    's': {'type': 'f16', 'dimensions': []},
+                    'v': {'type': 'f16', 'dimensions': []},
+                 }
+
+        self.create_record('Palette', fields, lineno=0)
+        
+
     def __str__(self):
         s = "FX IR:\n"
 
@@ -2405,6 +2416,11 @@ class Builder(object):
     def palette_object(self, name, args=[], kw={}, lineno=None):    
         print "PALETTE"
         print name, args, kw
+
+        palette_array = self.add_global(name, 'Palette', dimensions=[len(args)], lineno=lineno)
+
+        print palette_array
+        return palette_array
 
 
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
