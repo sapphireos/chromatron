@@ -1670,9 +1670,6 @@ class Builder(object):
 
         return ir
 
-    def add_tuple(self, items, lineno=None):
-        print items
-
     def get_var(self, name, lineno=None):
         name = str(name)
 
@@ -2405,16 +2402,23 @@ class Builder(object):
 
         self.add_global(name, 'PixelArray', lineno=lineno)
 
+    def palette_object(self, name, args=[], kw={}, lineno=None):    
+        print "PALETTE"
+        print name, args, kw
+
+
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
-        if data_type == 'PixelArray':
-            self.pixelarray_object(name, args, kw, lineno=lineno)
-
-            return
-
         if name in self.objects:
             raise SyntaxError("Object '%s' already defined" % (name), lineno=lineno)
 
-        self.objects[name] = irObject(name, data_type, args, kw, lineno=lineno)
+        if data_type == 'PixelArray':
+            self.pixelarray_object(name, args, kw, lineno=lineno)
+
+        elif data_type == 'Palette':
+            self.palette_object(name, args, kw, lineno=lineno)
+
+        else:
+            self.objects[name] = irObject(name, data_type, args, kw, lineno=lineno)
 
     def _fold_constants(self, op, left, right, lineno):
         assert left.get_base_type() == right.get_base_type()

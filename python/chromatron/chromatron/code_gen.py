@@ -404,15 +404,25 @@ class cg1UnaryNot(cg1CodeNode):
 
         return builder.unary_not(value, lineno=self.lineno)
 
-class cg1List(cg1CodeNode):
-    _fields = ["value"]
+class cg1Tuple(cg1CodeNode):
+    _fields = ["items"]
 
-    def __init__(self, value, **kwargs):
-        super(cg1List, self).__init__(**kwargs)
-        self.value = value
+    def __init__(self, items, **kwargs):
+        super(cg1Tuple, self).__init__(**kwargs)
+        self.items = items
 
     def build(self, builder):
-        pass
+        return [item.name for item in self.items]
+
+class cg1List(cg1CodeNode):
+    _fields = ["items"]
+
+    def __init__(self, items, **kwargs):
+        super(cg1List, self).__init__(**kwargs)
+        self.items = items
+
+    def build(self, builder):
+        return [item.name for item in self.items]
         
 
 class cg1For(cg1CodeNode): 
@@ -586,18 +596,6 @@ class cg1StrLiteral(cg1CodeNode):
         return builder.add_string(self.s, lineno=self.lineno)
 
 
-
-class cg1Tuple(cg1CodeNode):
-    _fields = ["items"]
-
-    def __init__(self, items, **kwargs):
-        super(cg1Tuple, self).__init__(**kwargs)
-        self.items = items
-
-    def build(self, builder):
-        return builder.add_tuple(self.items, lineno=self.lineno)
-
-
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):
         self._declarations = {
@@ -607,6 +605,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Array': self._handle_Array,
             'Record': self._handle_Record,
             'PixelArray': self.create_GenericObject,
+            'Palette': self.create_GenericObject,
         }
 
         self._record_types = {}
