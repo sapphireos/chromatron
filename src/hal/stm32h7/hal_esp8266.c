@@ -210,6 +210,7 @@ PT_BEGIN( pt );
     // copy firmware to file
     // ffs_fw_i32_write( 2, 0, wifi_firmware, sizeof(wifi_firmware) );
 
+    rx_dma_buffer[0] = WIFI_COMM_IDLE;
 
     while(1){
 
@@ -237,7 +238,7 @@ PT_BEGIN( pt );
                 trace_printf("timeout1\r\n");
 
                 timeouts++;
-                continue;
+                THREAD_RESTART( pt );
             }
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_THREAD_TIMEOUT );
@@ -250,7 +251,7 @@ PT_BEGIN( pt );
                 trace_printf("timeout2\r\n");
 
                 timeouts++;
-                continue;
+                THREAD_RESTART( pt );
             }
 
             header = (wifi_data_header_t *)&rx_dma_buffer[1];
@@ -265,7 +266,7 @@ PT_BEGIN( pt );
                 trace_printf("timeout3\r\n");
 
                 timeouts++;
-                continue;
+                THREAD_RESTART( pt );
             }
 
             current_rx_bytes += sizeof(wifi_data_header_t) + 1 + header->len;
