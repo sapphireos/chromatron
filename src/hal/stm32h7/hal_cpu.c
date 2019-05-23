@@ -112,7 +112,7 @@ static void cpu_normal_clock_config( void ){
                               RCC_PERIPHCLK_USB;
 
     // set PLL 2 to 100 MHz
-    PeriphClkInitStruct.PLL2.PLL2M = 1;
+    PeriphClkInitStruct.PLL2.PLL2M = 2;
     PeriphClkInitStruct.PLL2.PLL2N = 25;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
     PeriphClkInitStruct.PLL2.PLL2Q = 2;
@@ -122,7 +122,7 @@ static void cpu_normal_clock_config( void ){
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
 
     // set PLL 3 to 64 MHz
-    PeriphClkInitStruct.PLL3.PLL3M = 8;
+    PeriphClkInitStruct.PLL3.PLL3M = 16;
     PeriphClkInitStruct.PLL3.PLL3N = 256;
     PeriphClkInitStruct.PLL3.PLL3P = 4;
     PeriphClkInitStruct.PLL3.PLL3Q = 4;
