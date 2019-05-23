@@ -23,6 +23,7 @@
 
 #include "hal_cpu.h"
 #include "cpu.h"
+#include "hal_timers.h"
 
 #include "system.h"
 
@@ -405,6 +406,8 @@ void cpu_v_init( void ){
     trace_printf( "PLL3 P   : %u\r\n", pll3_clk.PLL3_P_Frequency );
     // trace_printf( "PLL3 Q   : %u\r\n", pll3_clk.PLL3_Q_Frequency );
     // trace_printf( "PLL3 R   : %u\r\n", pll3_clk.PLL3_R_Frequency );
+
+    hal_timer_v_preinit();
 }
 
 uint8_t cpu_u8_get_reset_source( void ){

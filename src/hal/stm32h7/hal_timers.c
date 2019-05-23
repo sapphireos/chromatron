@@ -35,7 +35,7 @@ static volatile uint64_t microseconds;
 
 static TIM_HandleTypeDef system_timer;
 
-void hal_timer_v_init( void ){
+void hal_timer_v_preinit( void ){
 
 	// enable clock
 	__HAL_RCC_TIM2_CLK_ENABLE();
@@ -51,7 +51,10 @@ void hal_timer_v_init( void ){
 	system_timer.Init.RepetitionCounter  = 0;
 
 	HAL_TIM_Base_Init( &system_timer );
+}
 
+void hal_timer_v_init( void ){
+    
     HAL_NVIC_SetPriority( TIM2_IRQn, 0, 0 );
     HAL_NVIC_EnableIRQ( TIM2_IRQn );
 

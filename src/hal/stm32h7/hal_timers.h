@@ -30,6 +30,7 @@
 #define TIMER_TICKS_TO_MICROSECONDS(a) ( a )
 #define MICROSECONDS_TO_TIMER_TICKS(a) ( a )
 
+void hal_timer_v_preinit( void );
 
 void hal_timer_v_init( void );
 
