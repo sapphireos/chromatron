@@ -625,6 +625,8 @@ void sys_v_init_watchdog( void ){
 
     #ifdef AVR
     wdg_v_enable( WATCHDOG_TIMEOUT_2048MS, WATCHDOG_FLAGS_INTERRUPT );
+    #else
+    wdg_v_enable( 0, 0 );
     #endif
 }
 
