@@ -98,6 +98,11 @@ PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 
 void adc_v_init( void ){
 
+	#if IO_PIN_ANALOG_COUNT == 0
+	return;
+	#endif
+
+
 	__HAL_RCC_ADC12_CLK_ENABLE();
 	__HAL_RCC_ADC3_CLK_ENABLE();
 
