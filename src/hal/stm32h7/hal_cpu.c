@@ -59,6 +59,7 @@ static void cpu_normal_clock_config( void ){
     /**Initializes the CPU, AHB and APB busses clocks 
     */
     // PLLs sourced to HSE (external xtal) - requires 16 MHz xtal
+    // note that chromatron X has an 8 MHz crystal (from the nucleo boards)
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -66,8 +67,11 @@ static void cpu_normal_clock_config( void ){
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     // set PLL1 to 400 MHz
-    // RCC_OscInitStruct.PLL.PLLM = 1;
+    #ifdef BOARD_CHROMATRONX
+    RCC_OscInitStruct.PLL.PLLM = 1;
+    #else
     RCC_OscInitStruct.PLL.PLLM = 2;
+    #endif
     RCC_OscInitStruct.PLL.PLLN = 100;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 4;
@@ -112,7 +116,11 @@ static void cpu_normal_clock_config( void ){
                               RCC_PERIPHCLK_USB;
 
     // set PLL 2 to 100 MHz
+    #ifdef BOARD_CHROMATRONX
+    PeriphClkInitStruct.PLL2.PLL2M = 1;
+    #else
     PeriphClkInitStruct.PLL2.PLL2M = 2;
+    #endif
     PeriphClkInitStruct.PLL2.PLL2N = 25;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
     PeriphClkInitStruct.PLL2.PLL2Q = 2;
@@ -122,7 +130,11 @@ static void cpu_normal_clock_config( void ){
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
 
     // set PLL 3 to 64 MHz
+    #ifdef BOARD_CHROMATRONX
+    PeriphClkInitStruct.PLL3.PLL3M = 8;
+    #else
     PeriphClkInitStruct.PLL3.PLL3M = 16;
+    #endif
     PeriphClkInitStruct.PLL3.PLL3N = 256;
     PeriphClkInitStruct.PLL3.PLL3P = 4;
     PeriphClkInitStruct.PLL3.PLL3Q = 4;

@@ -29,6 +29,13 @@
 
 #define BOARD_CHROMATRONX
 
+// set crystal speed
+#ifdef BOARD_CHROMATRONX
+#define HSE_VALUE    ((int32_t)8000000)
+#else
+#define HSE_VALUE    ((int32_t)16000000)
+#endif
+
 // modules
 #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
