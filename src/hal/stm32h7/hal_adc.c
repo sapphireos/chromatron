@@ -336,6 +336,10 @@ uint16_t adc_u16_read_supply_voltage( void ){
 
 uint16_t adc_u16_read_vcc( void ){
 
+	#if IO_PIN_ANALOG_COUNT == 0
+	return 0;
+	#endif
+
 	uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
 	// this is nominally 1.2V
 
