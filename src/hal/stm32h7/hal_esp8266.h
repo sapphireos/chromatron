@@ -44,7 +44,7 @@
 #ifdef DEBUG
 #define WIFI_THREAD_TIMEOUT 	5000 // trace_prints will stall threads
 #else
-#define WIFI_THREAD_TIMEOUT 	50
+#define WIFI_THREAD_TIMEOUT 	500
 #endif
 
 void hal_wifi_v_init( void );
