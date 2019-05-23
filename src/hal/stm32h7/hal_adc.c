@@ -245,6 +245,10 @@ PT_END( pt );
 
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
+	#if IO_PIN_ANALOG_COUNT == 0
+	return 0;
+	#endif
+
 	ASSERT( channel < adc_channel_count );
 
 	GPIO_InitTypeDef gpio_init;
