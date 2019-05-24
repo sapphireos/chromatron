@@ -319,6 +319,19 @@ void hal_pixel_v_init( void ){
     HAL_GPIO_WritePin(port, GPIO_InitStruct.Pin, GPIO_PIN_RESET);
     
     #else
+
+    GPIO_InitStruct.Pin = PIX_CLK_0_Pin;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(PIX_CLK_0_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_CLK_0_GPIO_Port, PIX_CLK_0_Pin, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = PIX_DAT_0_Pin;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(PIX_DAT_0_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_WritePin(PIX_DAT_0_GPIO_Port, PIX_DAT_0_Pin, GPIO_PIN_RESET);
+    
+
+
     GPIO_InitStruct.Pin = PIX_CLK_1_Pin;
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(PIX_CLK_1_GPIO_Port, &GPIO_InitStruct);
