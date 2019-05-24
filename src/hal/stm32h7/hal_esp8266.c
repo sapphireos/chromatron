@@ -534,7 +534,6 @@ void hal_wifi_v_enter_boot_mode( void ){
     _delay_ms(WIFI_RESET_DELAY_MS);
 
 
-// pin connection missing
     GPIO_InitStruct.Pin         = WIFI_RX_Ready_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
@@ -546,8 +545,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_NOPULL;
     HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
-
-    HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(WIFI_BOOT_GPIO_Port, WIFI_BOOT_Pin, GPIO_PIN_RESET);
 
     GPIO_InitStruct.Pin         = WIFI_SS_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
