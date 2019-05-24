@@ -271,13 +271,21 @@ PT_BEGIN( pt );
 
             current_rx_bytes += sizeof(wifi_data_header_t) + 1 + header->len;
 
+            // copy to process buffer
             memcpy( rx_buf, rx_dma_buffer, sizeof(rx_buf) );
 
+            // clear control byte
+            rx_dma_buffer[0] = WIFI_COMM_IDLE;
+
+            // signal ESP our receive buffer is ready
             hal_wifi_v_set_rx_ready();
 
             buffer_busy = TRUE;;
 
+            // set control byte for wifi process
             control_byte = WIFI_COMM_DATA;
+
+            // signal thread
             thread_v_signal( WIFI_SIGNAL );
         }   
     }
