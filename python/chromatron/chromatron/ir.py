@@ -2869,9 +2869,14 @@ class Builder(object):
             if palette == 0:
                 continue
 
+            if palette not in self.palettes:
+                raise SyntaxError("Palette `%s` not defined" % (palette), lineno=pix_array.lineno)
+
             # look up palette addr and assign to palette field
             pix_array.fields['palette'] = self.palettes[palette]
             pix_array_records[name].fields['palette'].default_value = self.palettes[palette]
+
+
 
 
         if self.optimizations['optimize_register_usage']:
