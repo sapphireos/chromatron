@@ -1240,7 +1240,31 @@ void gfx_v_set_pval( uint16_t v, uint16_t x, uint16_t y, uint8_t obj, gfx_palett
 
     pval[index] = v;
 
+    // skip to first entry to interpolate
+    while( palette->pval < v ){
 
+        palette++;
+    }
+
+    gfx_palette_t *palette2 = palette + 1;
+
+    if( palette->hue >= 0 ){
+
+        uint16_t hue = util_u16_linear_interp( v, palette->pval, palette->hue, palette2->pval, palette2->hue );
+        _gfx_v_set_hue_1d( hue, index );
+    }
+
+    if( palette->sat >= 0 ){
+
+        uint16_t sat = util_u16_linear_interp( v, palette->pval, palette->sat, palette2->pval, palette2->sat );
+        _gfx_v_set_hue_1d( sat, index );
+    }
+
+    if( palette->val >= 0 ){
+
+        uint16_t val = util_u16_linear_interp( v, palette->pval, palette->val, palette2->pval, palette2->val );
+        _gfx_v_set_hue_1d( val, index );
+    }
 }
 
 uint16_t gfx_u16_get_pval( uint16_t x, uint16_t y, uint8_t obj ){
