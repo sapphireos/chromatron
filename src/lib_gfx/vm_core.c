@@ -400,6 +400,8 @@ static int8_t _vm_i8_run_stream(
     
     #ifdef VM_ENABLE_GFX
     int32_t value_i32;
+    gfx_palette_t *palette;
+    gfx_pixel_array_t *pix_array;
     #endif
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -2026,7 +2028,13 @@ opcode_pstore_pval:
         value_i32 = 0;
     }
 
-    gfx_v_set_pval( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+    // get reference to target pixel array
+    pix_array = (gfx_pixel_array_t *)&data[decodep2->array * sizeof(gfx_pixel_array_t) + PIX_ARRAY_ADDR];
+
+    // get reference to palette
+    palette = (gfx_palette_t *)&data[pix_array->palette];
+
+    gfx_v_set_pval( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array, palette );
 #else
     array = *pc++;
 
@@ -2055,7 +2063,13 @@ opcode_pstore_pval:
         value_i32 = 0;
     }
 
-    gfx_v_set_pval( value_i32, data[index_x], data[index_y], array );
+    // get reference to target pixel array
+    pix_array = (gfx_pixel_array_t *)&data[array * sizeof(gfx_pixel_array_t) + PIX_ARRAY_ADDR];
+
+    // get reference to palette
+    palette = (gfx_palette_t *)&data[pix_array->palette];
+
+    gfx_v_set_pval( value_i32, data[index_x], data[index_y], array, palette );
     #endif
 #endif    
     DISPATCH;
