@@ -36,6 +36,7 @@ PIX_ATTR_CODES = {
     'val':      2,
     'hs_fade':  3,
     'v_fade':   4,
+    'pval':     5,
 }
 
 THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running']
@@ -128,6 +129,9 @@ opcodes = {
 
     'IS_V_FADING':          0x45,
     'IS_HS_FADING':         0x46,
+
+    'PSTORE_PVAL':          0x47,
+    'PLOAD_PVAL':           0x48,
 }
 
 
@@ -1493,6 +1497,9 @@ class insPixelStoreSat(insPixelStore):
 class insPixelStoreVal(insPixelStore):
     mnemonic = 'PSTORE_VAL'
 
+class insPixelStorePVal(insPixelStore):
+    mnemonic = 'PSTORE_PVAL'
+
 class insPixelStoreHSFade(insPixelStore):
     mnemonic = 'PSTORE_HSFADE'
 
@@ -1556,6 +1563,9 @@ class insPixelLoadSat(insPixelLoad):
 
 class insPixelLoadVal(insPixelLoad):
     mnemonic = 'PLOAD_VAL'
+
+class insPixelLoadPVal(insPixelLoad):
+    mnemonic = 'PLOAD_PVAL'
 
 class insPixelLoadHSFade(insPixelLoad):
     mnemonic = 'PLOAD_HSFADE'

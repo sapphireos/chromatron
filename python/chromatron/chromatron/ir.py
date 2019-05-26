@@ -509,6 +509,7 @@ PIX_ATTR_TYPES = {
     'hue': 'gfx16',
     'sat': 'gfx16',
     'val': 'gfx16',
+    'pval': 'gfx16',
     'hs_fade': 'i32',
     'v_fade': 'i32',
     'count': 'i32',
@@ -525,7 +526,7 @@ class irPixelAttr(irObjectAttr):
     def __init__(self, obj, attr, **kwargs):
         lineno = kwargs['lineno']
 
-        if attr in ['hue', 'val', 'sat']:
+        if attr in ['hue', 'val', 'sat', 'pval']:
             attr = irArray(attr, irVar_gfx16(attr, lineno=lineno), dimensions=[65535, 65535], lineno=lineno)
 
         elif attr in ['hs_fade', 'v_fade']:
@@ -1317,6 +1318,7 @@ class irPixelStore(IR):
             'hue': insPixelStoreHue,
             'sat': insPixelStoreSat,
             'val': insPixelStoreVal,
+            'pval': insPixelStorePVal,
             'hs_fade': insPixelStoreHSFade,
             'v_fade': insPixelStoreVFade,
         }
@@ -1352,6 +1354,7 @@ class irPixelLoad(IR):
             'hue': insPixelLoadHue,
             'sat': insPixelLoadSat,
             'val': insPixelLoadVal,
+            'pval': insPixelLoadPVal,
             'hs_fade': insPixelLoadHSFade,
             'v_fade': insPixelLoadVFade,
             'is_hs_fading': insPixelIsHSFade,
