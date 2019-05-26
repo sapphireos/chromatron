@@ -2414,13 +2414,15 @@ class Builder(object):
         self.add_global(name, 'PixelArray', lineno=lineno)
 
     def palette_object(self, name, args=[], kw={}, lineno=None):    
-        print "PALETTE"
-        print name, args, kw
+        # check types
+        for arg in args:
+            for val in arg:
+                if not isinstance(val, float) and not isinstance(val, int):
+                    raise SyntaxError("Invalid type for palette `%s`: %s" % (name, val), lineno=lineno)
 
         keywords = {'init_val': args}
         palette_array = self.add_global(name, 'Palette', dimensions=[len(args)], keywords=keywords, lineno=lineno)
 
-        print palette_array
         return palette_array
 
 
