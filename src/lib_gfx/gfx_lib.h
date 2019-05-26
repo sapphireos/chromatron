@@ -153,6 +153,9 @@ uint16_t gfx_u16_get_sat( uint16_t x, uint16_t y, uint8_t obj );
 void gfx_v_set_val( uint16_t v, uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_val( uint16_t x, uint16_t y, uint8_t obj );
 
+void gfx_v_set_pval( uint16_t v, uint16_t x, uint16_t y, uint8_t obj );
+uint16_t gfx_u16_get_pval( uint16_t x, uint16_t y, uint8_t obj );
+
 void gfx_v_set_hs_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_hs_fade( uint16_t x, uint16_t y, uint8_t obj );
 

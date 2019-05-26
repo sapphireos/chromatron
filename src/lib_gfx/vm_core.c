@@ -186,8 +186,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_is_v_fading,	    // 69
         &&opcode_is_hs_fading,	    // 70
 
-        &&opcode_trap,	            // 71
-        &&opcode_trap,	            // 72
+        &&opcode_pstore_pval,	    // 71
+        &&opcode_pload_pval,	    // 72
+
         &&opcode_trap,	            // 73
         &&opcode_trap,	            // 74
         &&opcode_trap,	            // 75
@@ -2005,6 +2006,60 @@ opcode_pstore_val:
 #endif    
     DISPATCH;
 
+opcode_pstore_pval:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep2 = (decodep2_t *)pc;
+    pc += sizeof(decodep2_t);
+
+    // load source
+    value_i32 = data[decodep2->src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_pval( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+#else
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    src = *pc++;
+    src += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    // load source
+    value_i32 = data[src];    
+
+    // clamp to our 16 bit range.
+    // we will essentially saturate at 0 or 65535,
+    // but will not wraparound
+    if( value_i32 > 65535 ){
+
+        value_i32 = 65535;
+    }
+    else if( value_i32 < 0 ){
+
+        value_i32 = 0;
+    }
+
+    gfx_v_set_pval( value_i32, data[index_x], data[index_y], array );
+    #endif
+#endif    
+    DISPATCH;
+
 
 opcode_pstore_vfade:
 #ifdef VM_OPTIMIZED_DECODE
@@ -2196,6 +2251,31 @@ opcode_pload_val:
 #endif    
     DISPATCH;
 
+opcode_pload_pval:
+#ifdef VM_OPTIMIZED_DECODE
+    decodep3 = (decodep3_t *)pc;
+    pc += sizeof(decodep3_t);
+
+    #ifdef VM_ENABLE_GFX
+    data[decodep3->dest] = gfx_u16_get_pval( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+    #endif
+#else
+    array = *pc++;
+
+    index_x = *pc++;
+    index_x += ( *pc++ ) << 8;
+    
+    index_y = *pc++;
+    index_y += ( *pc++ ) << 8;
+
+    dest = *pc++;
+    dest += ( *pc++ ) << 8;
+
+    #ifdef VM_ENABLE_GFX
+    data[dest] = gfx_u16_get_pval( data[index_x], data[index_y], array );
+    #endif
+#endif    
+    DISPATCH;
 
 opcode_pload_vfade:
 #ifdef VM_OPTIMIZED_DECODE

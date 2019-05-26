@@ -50,10 +50,12 @@ static uint16_t pix0_16bit_blue;
 static uint16_t hue[MAX_PIXELS];
 static uint16_t sat[MAX_PIXELS];
 static uint16_t val[MAX_PIXELS];
+static uint16_t pval[MAX_PIXELS];
 
 static uint16_t target_hue[MAX_PIXELS];
 static uint16_t target_sat[MAX_PIXELS];
 static uint16_t target_val[MAX_PIXELS];
+static uint16_t target_pval[MAX_PIXELS];
 
 static uint16_t global_hs_fade = 1000;
 static uint16_t global_v_fade = 1000;
@@ -557,6 +559,20 @@ static inline void _gfx_v_set_val_1d( uint16_t v, uint16_t index ){
     }
 
     target_val[index] = v;
+
+    // reset fader, this will trigger the fader process to recalculate the fader steps.
+    val_step[index] = 0;
+}
+
+static inline void _gfx_v_set_pval_1d( uint16_t v, uint16_t index ){
+
+    // bounds check
+    if( index >= MAX_PIXELS ){
+
+        return;
+    }
+
+    target_pval[index] = v;
 
     // reset fader, this will trigger the fader process to recalculate the fader steps.
     val_step[index] = 0;
@@ -1226,6 +1242,27 @@ uint16_t gfx_u16_get_val( uint16_t x, uint16_t y, uint8_t obj ){
     index %= MAX_PIXELS;
 
     return target_val[index];
+}
+
+
+void gfx_v_set_pval( uint16_t v, uint16_t x, uint16_t y, uint8_t obj ){
+
+    uint16_t index = calc_index( obj, x, y );
+    
+    if( index >= MAX_PIXELS ){
+        return;
+    }
+
+    _gfx_v_set_pval_1d( v, index );
+}
+
+uint16_t gfx_u16_get_pval( uint16_t x, uint16_t y, uint8_t obj ){
+
+    uint16_t index = calc_index( obj, x, y );
+    
+    index %= MAX_PIXELS;
+
+    return target_pval[index];
 }
 
 void gfx_v_set_hs_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj ){
