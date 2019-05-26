@@ -56,6 +56,16 @@ static io_port_t *sda_port = &IO_PIN1_PORT;
 static uint8_t sda_pin = ( 1 << IO_PIN1_PIN );
 
 
+static void wait_while_clock_stretch( void ){
+
+    volatile uint8_t c;
+
+    do{
+        c = scl_port->IN & scl_pin;
+    } while( c  == 0 );
+}
+
+
 #define SDA_HIGH() ( sda_port->OUTSET = sda_pin )
 #define SDA_LOW() ( sda_port->OUTCLR = sda_pin )
 
@@ -83,6 +93,7 @@ static void send_bit( uint8_t b ){
     I2C_DELAY_1();
 
     SCL_HIGH();
+    wait_while_clock_stretch();
 
     I2C_DELAY_2();
     
@@ -98,6 +109,7 @@ static bool read_bit( void ){
     I2C_DELAY_1();
 
     SCL_HIGH();
+    wait_while_clock_stretch();
 
     I2C_DELAY_2();
     
@@ -232,6 +244,7 @@ static void i2c_v_start( void ){
 
     SDA_HIGH();
     SCL_HIGH();
+    wait_while_clock_stretch();
     I2C_DELAY();
 
     SDA_LOW();
@@ -249,6 +262,7 @@ static void i2c_v_stop( void ){
     I2C_DELAY();
 
     SCL_HIGH();
+    wait_while_clock_stretch();
     I2C_DELAY();
 
     SDA_HIGH();
