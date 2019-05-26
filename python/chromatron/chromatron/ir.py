@@ -464,6 +464,7 @@ class irPixelArray(irObject):
                 'reverse': 0,
                 'mirror': -1,
                 'offset': 0,
+                'palette': 0,
             }
 
         except IndexError:
@@ -473,7 +474,7 @@ class irPixelArray(irObject):
             if k not in self.fields:
                 raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
 
-            if k == 'mirror':
+            if k == 'mirror' or k == 'palette':
                 self.fields[k] = v.name
             else:
                 self.fields[k] = int(v.name)
@@ -1434,6 +1435,7 @@ class Builder(object):
         self.globals = {}
         self.objects = {}
         self.pixel_arrays = {}
+        self.palettes = {}
         self.labels = {}
 
         self.data_table = []
@@ -2423,6 +2425,8 @@ class Builder(object):
         keywords = {'init_val': args}
         palette_array = self.add_global(name, 'Palette', dimensions=[len(args)], keywords=keywords, lineno=lineno)
 
+        self.palettes[name] = None
+
         return palette_array
 
 
@@ -2848,9 +2852,26 @@ class Builder(object):
                 continue
 
             i.addr = addr
+
+            # check for palette
+            if i.name in self.palettes:
+                self.palettes[i.name] = addr
+
             addr += i.length
 
             self.data_table.append(i)
+
+        # assign palettes to pixel arrays
+        for name, pix_array in self.pixel_arrays.items():
+            palette = pix_array.fields['palette']
+
+            # check if no palette assigned
+            if palette == 0:
+                continue
+
+            # look up palette addr and assign to palette field
+            pix_array.fields['palette'] = self.palettes[palette]
+            pix_array_records[name].fields['palette'].default_value = self.palettes[palette]
 
 
         if self.optimizations['optimize_register_usage']:

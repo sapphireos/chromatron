@@ -76,6 +76,7 @@ typedef struct  __attribute__((packed)){
     int32_t index;
     int32_t mirror;
     int32_t offset;
+    int32_t palette;
     int32_t reverse;
     int32_t size_x;
     int32_t size_y;
