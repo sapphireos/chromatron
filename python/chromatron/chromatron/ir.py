@@ -2417,7 +2417,8 @@ class Builder(object):
         print "PALETTE"
         print name, args, kw
 
-        palette_array = self.add_global(name, 'Palette', dimensions=[len(args)], lineno=lineno)
+        keywords = {'init_val': args}
+        palette_array = self.add_global(name, 'Palette', dimensions=[len(args)], keywords=keywords, lineno=lineno)
 
         print palette_array
         return palette_array
@@ -3020,9 +3021,9 @@ class Builder(object):
 
             else:
                 default_value = '['
-                for n in xrange(i.length):
+                for n in xrange(i.count):
                     try:
-                        val = i.default_value[n]    
+                        val = i.default_value[n]
                     except TypeError: # no default value given, so this will be all 0s
                         val = 0
                     
@@ -3315,21 +3316,35 @@ class Builder(object):
 
                 addr += var.size
 
+            elif var.length == 1:
+                default_value = var.default_value
+                stream += struct.pack('<l', default_value)
+                addr += var.length
+
             else:
-                for i in xrange(var.length):
-                    try:
-                        default_value = var.default_value[i]
-                    except TypeError:
-                        default_value = var.default_value
+                try:
+                    for i in xrange(var.count):
+                        try:
+                            default_value = var.default_value[i]
 
-                    try:
-                        stream += struct.pack('<l', default_value)
+                        except TypeError:
+                            default_value = var.default_value
 
-                    except struct.error:
-                        print "*********************************"
-                        print "packing error: var: %s type: %s default: %s type: %s" % (var, type(var), default_value, type(default_value))
+                        try:
+                            stream += struct.pack('<l', default_value)
 
-                        raise
+                        except struct.error:
+                            for val in default_value:
+                                if isinstance(val, float):
+                                    stream += struct.pack('<l', int(val * 65536))
+                                else:
+                                    stream += struct.pack('<l', val)
+
+                except struct.error:
+                    print "*********************************"
+                    print "packing error: var: %s type: %s default: %s type: %s index: %d" % (var, var.type, default_value, type(default_value), i)
+
+                    raise
 
                 addr += var.length
 
