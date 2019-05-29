@@ -623,7 +623,12 @@ class irFunc(IR):
             # interleave source code
             if node.lineno > current_line:
                 current_line = node.lineno
-                s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
+                try:
+                    s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
+
+                except IndexError:
+                    print "Source interleave from imported files not yet supported"
+                    pass
 
             if isinstance(node, irLabel):
                 s += '%s\n' % (node)
