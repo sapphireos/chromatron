@@ -29,7 +29,7 @@ import pprint
 
 source_code = []
 
-VM_ISA_VERSION  = 11
+VM_ISA_VERSION  = 12
 
 FILE_MAGIC      = 0x20205846 # 'FX  '
 PROGRAM_MAGIC   = 0x474f5250 # 'PROG'

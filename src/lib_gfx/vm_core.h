@@ -28,7 +28,7 @@
 #include "datetime_struct.h"
 #include "target.h"
 
-#define VM_ISA_VERSION              11
+#define VM_ISA_VERSION              12
 
 #define RETURN_VAL_ADDR             0
 #define PIX_ARRAY_ADDR              1
