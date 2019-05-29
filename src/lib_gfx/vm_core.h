@@ -178,7 +178,7 @@ typedef struct __attribute__((packed)){
     uint16_t length;
 } vm_string_t;
 
-typedef struct __attribute__((packed)){ // MUST be 32 bit aligned!
+typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t code_start;
     uint16_t data_start;
     uint16_t prog_size;
