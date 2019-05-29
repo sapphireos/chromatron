@@ -253,7 +253,7 @@ class cg1Module(cg1Node):
                     send = True
                     src = node.params[0].s
                     dest = node.params[1].s
-                    query = [a.s for a in node.params[2].value]
+                    query = [a.s for a in node.params[2].items]
 
                     builder.link(send, src, dest, query, lineno=node.lineno)
 
@@ -261,7 +261,7 @@ class cg1Module(cg1Node):
                     send = False
                     src = node.params[1].s
                     dest = node.params[0].s
-                    query = [a.s for a in node.params[2].value]
+                    query = [a.s for a in node.params[2].items]
 
                     builder.link(send, src, dest, query, lineno=node.lineno)
 
