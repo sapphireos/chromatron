@@ -44,6 +44,7 @@ DATA_LEN = 4
 
 
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running']
 
 DAY_OF_WEEK = {'sunday':    0,
                'monday':    1,
@@ -1019,6 +1020,12 @@ class irLibCall(IR):
             call_ins = insDBCall(self.target, db_item, self.result.generate(), params)
 
         else:
+            # if calling a thread function, remap the first parameter to a Python string,
+            # and not our IR string literal type.  This way the assembler will see a parameter
+            # it can't assemble, and will try to map to the address of a named function instead.
+            if self.target in THREAD_FUNCS:
+                params[0] = self.params[0].name
+
             call_ins = insLibCall(self.target, self.result.generate(), params)
 
         return call_ins
