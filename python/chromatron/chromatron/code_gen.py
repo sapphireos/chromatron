@@ -704,6 +704,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
         elif data_type == 'Fixed16':
             data_type = 'f16'
+
+        elif data_type == 'String':
+            data_type = 'str'
         
         for kw in node.keywords:
             if kw.arg == 'type':
