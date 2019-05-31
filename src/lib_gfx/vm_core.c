@@ -1464,11 +1464,11 @@ opcode_vmov:
     pc += sizeof(decodev_t);
 
     // deference pointer
-    decodev->dest = data[decodev->dest];
+    dest = data[decodev->dest];
 
     for( uint16_t i = 0; i < decodev->len; i++ ){
 
-        data[decodev->dest + i] = data[decodev->src];
+        data[dest + i] = data[decodev->src];
     }
 #else
     dest = *pc++;
@@ -1496,11 +1496,11 @@ opcode_vadd:
     pc += sizeof(decodev_t);
 
     // deference pointer
-    decodev->dest = data[decodev->dest];
+    dest = data[decodev->dest];
 
     for( uint16_t i = 0; i < decodev->len; i++ ){
 
-        data[decodev->dest + i] += data[decodev->src];
+        data[dest + i] += data[decodev->src];
     }
 #else
     dest = *pc++;
@@ -1528,11 +1528,11 @@ opcode_vsub:
     pc += sizeof(decodev_t);
 
     // deference pointer
-    decodev->dest = data[decodev->dest];
+    dest = data[decodev->dest];
 
     for( uint16_t i = 0; i < decodev->len; i++ ){
 
-        data[decodev->dest + i] -= data[decodev->src];
+        data[dest + i] -= data[decodev->src];
     }
 #else
     dest = *pc++;
@@ -1560,20 +1560,20 @@ opcode_vmul:
     pc += sizeof(decodev_t);
 
     // deference pointer
-    decodev->dest = data[decodev->dest];
+    dest = data[decodev->dest];
 
-    if( type == CATBUS_TYPE_FIXED16 ){
+    if( decodev->type == CATBUS_TYPE_FIXED16 ){
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] = ( (int64_t)data[decodev->dest + i] * data[decodev->src] ) / 65536;
+            data[dest + i] = ( (int64_t)data[dest + i] * data[decodev->src] ) / 65536;
         }
     }
     else{
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] *= data[decodev->src];
+            data[dest + i] *= data[decodev->src];
         }
     }
 #else
@@ -1612,28 +1612,28 @@ opcode_vdiv:
     pc += sizeof(decodev_t);
 
     // deference pointer
-    decodev->dest = data[decodev->dest];
+    dest = data[decodev->dest];
 
     // check for divide by zero
     if( data[decodev->src] == 0 ){
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] = 0;
+            data[dest + i] = 0;
         }
     }
-    else if( type == CATBUS_TYPE_FIXED16 ){
+    else if( decodev->type == CATBUS_TYPE_FIXED16 ){
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] = ( (int64_t)data[decodev->dest + i] * 65536 ) / data[decodev->src];
+            data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[decodev->src];
         }
     }
     else{
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] /= data[decodev->src];
+            data[dest + i] /= data[decodev->src];
         }
     }
 #else
@@ -1680,21 +1680,21 @@ opcode_vmod:
     pc += sizeof(decodev_t);
 
     // deference pointer
-    decodev->dest = data[decodev->dest];
+    dest = data[decodev->dest];
 
     // check for divide by zero
     if( data[decodev->src] == 0 ){
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] = 0;
+            data[dest + i] = 0;
         }
     }
     else{
 
         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[decodev->dest + i] %= data[decodev->src];
+            data[dest + i] %= data[decodev->src];
         }
     }
 #else
