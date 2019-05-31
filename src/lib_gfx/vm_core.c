@@ -1409,7 +1409,7 @@ opcode_store_indirect:
     decode2 = (decode2_t *)pc;
     pc += sizeof(decode2_t);
 
-    temp = data[decode2->src];
+    temp = data[decode2->dest];
 
     // bounds check
     if( temp >= state->data_count ){
