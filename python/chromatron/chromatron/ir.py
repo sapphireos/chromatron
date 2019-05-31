@@ -3366,7 +3366,7 @@ class Builder(object):
 
             else:
                 try:
-                    for i in xrange(var.count):
+                    for i in xrange(var.length):
                         try:
                             default_value = var.default_value[i]
 
