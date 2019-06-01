@@ -633,7 +633,16 @@ static int8_t process_rx_data( void ){
 
     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
-    memcpy( buf, &rx_buf[1], sizeof(wifi_data_header_t) + header->len );
+    uint16_t msg_len = sizeof(wifi_data_header_t) + header->len ;
+
+    // validate msg size
+    if( msg_len > WIFI_UART_RX_BUF_SIZE ){
+
+        log_v_debug_P( PSTR("Wifi msg len error. ID:0x%02x len:%d"), header->data_id, header->len );
+        goto len_error;
+    }   
+
+    memcpy( buf, &rx_buf[1], msg_len );
 
     hal_wifi_v_release_rx_buffer();
 
@@ -643,10 +652,10 @@ static int8_t process_rx_data( void ){
     uint16_t msg_crc = header->crc;
     header->crc = 0;
 
+    uint16_t computed_crc = crc_u16_block( (uint8_t *)header, msg_len );
+    if( computed_crc != msg_crc ){
 
-    if( crc_u16_block( (uint8_t *)header, header->len + sizeof(wifi_data_header_t) ) != msg_crc ){
-
-        log_v_debug_P( PSTR("Wifi crc error: %d"), header->data_id );
+        log_v_debug_P( PSTR("Wifi crc error. ID:0x%02x len:%d crc: 0x%04x != 0x%04x"), header->data_id, header->len, computed_crc, msg_crc );
         status = -2;
         goto end;
     }
