@@ -1810,9 +1810,31 @@ def init():
 """
 
 
+test_indirect_load_func_arg = """
+
+ary = Array(4)
+
+a = Number(publish=True)
+
+def test(_a):
+    return _a + 1
+
+def init():
+    ary[2] = 123
+    a = test(ary[2])
+    
+"""
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_indirect_load_func_arg(self):
+        self.run_test(test_indirect_load_func_arg,
+            expected={
+                'a': 123,
+            })
 
     def test_global_avoids_optimize_assign_targets(self):
         self.run_test(test_global_avoids_optimize_assign_targets,
