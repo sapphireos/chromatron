@@ -173,6 +173,7 @@ int8_t sys_kv_fw_info_handler(
     return 0;
 }
 
+PT_THREAD( sys_reset_recovery_thread( pt_t *pt, void *state ) );
 PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 
 
@@ -257,6 +258,27 @@ void sys_v_check_io_for_safe_mode( void ){
 
         sys_mode = SYS_MODE_SAFE;
     }
+}
+
+bool sys_b_is_recovery_mode( void ){
+
+    uint8_t count = 0;
+    cfg_i8_get( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
+
+    return count >= SYS_RECOVERY_BOOT_COUNT;
+}
+
+void sys_v_check_recovery_mode( void ){
+
+    if( sys_b_is_recovery_mode() ){
+
+        sys_mode = SYS_MODE_SAFE;    
+    }   
+
+    thread_t_create( THREAD_CAST(sys_reset_recovery_thread),
+                         PSTR("recovery_reset"),
+                         0,
+                         0 );
 }
 
 bool sys_b_brownout( void ){
@@ -634,6 +656,19 @@ void sys_v_disable_watchdog( void ){
 
     wdg_v_reset();
     wdg_v_disable();
+}
+
+
+PT_THREAD( sys_reset_recovery_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    TMR_WAIT( pt, 120000 );
+
+    uint8_t count = 0;
+    cfg_v_set( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );    
+
+PT_END( pt );
 }
 
 

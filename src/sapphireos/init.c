@@ -153,6 +153,17 @@ int8_t sapphire_i8_init( void ){
 	// init config manager
 	cfg_v_init();
 
+    // check if we need to go into recovery mode
+    sys_v_check_recovery_mode();    
+
+    // if safe mode, turn on red led during init
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        status_led_v_set( 0, STATUS_LED_YELLOW );
+        status_led_v_set( 1, STATUS_LED_RED );
+    }
+
+
     #ifdef ENABLE_IP
     // init IP module
     ip_v_init();

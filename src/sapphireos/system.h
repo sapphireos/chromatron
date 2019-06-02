@@ -93,6 +93,7 @@ typedef uint32_t sys_warnings_t;
 #define SYS_WARN_MISSING_KV_INDEX       0x0080
 #define SYS_WARN_SYSTEM_ERROR           0x8000
 
+#define SYS_RECOVERY_BOOT_COUNT         5
 
 #ifndef ATOMIC
     #define ATOMIC
@@ -151,6 +152,8 @@ typedef uint32_t sys_warnings_t;
 
 void sys_v_init( void );
 void sys_v_check_io_for_safe_mode( void );
+bool sys_b_is_recovery_mode( void );
+void sys_v_check_recovery_mode( void );
 bool sys_b_brownout( void );
 
 sys_mode_t8 sys_u8_get_mode( void );

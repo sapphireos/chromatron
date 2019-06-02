@@ -70,7 +70,8 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     // { SAPPHIRE_TYPE_BOOL,        0,                   0, cfg_i8_kv_handler,  "enable_cpu_sleep" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
-    { SAPPHIRE_TYPE_UINT16,       0, 0,         &board_type, cfg_i8_kv_handler,  "board_type" },
+    { SAPPHIRE_TYPE_UINT16,      0, 0,         &board_type, cfg_i8_kv_handler,  "board_type" },
+    { SAPPHIRE_TYPE_UINT8,       0, 0,                   0, cfg_i8_kv_handler,  "cfg_recovery_boot_count" },
 };
 
 #ifdef CFG_INCLUDE_MANUAL_IP
@@ -934,6 +935,12 @@ void cfg_v_init( void ){
     // cache oft used values
     // cfg_i8_get( CFG_PARAM_ENABLE_CPU_SLEEP, &enable_cpu_sleep );
     cfg_i8_get( CFG_PARAM_BOARD_TYPE, &board_type );
+
+    // increment recovery counter
+    uint8_t count;
+    cfg_i8_get( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
+    count++;
+    cfg_v_set( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
 
     log_v_debug_P( PSTR("Cfg size:%d free:%d eeprom:%d"), cfg_u16_total_blocks(), cfg_u16_free_blocks(), CFG_FILE_MAIN_SIZE );
 }

@@ -513,6 +513,13 @@ PT_BEGIN( pt );
                 if( router >= 4 ){
 
                     router = 0;
+
+                    // if we are in recovery mode and we've cycled through all
+                    // of the routers, start up the AP
+                    if( sys_b_is_recovery_mode() ){
+
+                        default_ap_mode = TRUE;
+                    }
                 }
             }
         }
@@ -531,7 +538,7 @@ PT_BEGIN( pt );
             cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_msg.pass );
 
             // check if AP mode SSID is set:
-            if( ap_msg.ssid[0] == 0 ){
+            if( ( ap_msg.ssid[0] == 0 ) || ( default_ap_mode ) ){
 
                 // set up default AP
                 memset( ap_msg.ssid, 0, sizeof(ap_msg.ssid) );
