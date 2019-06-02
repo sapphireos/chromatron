@@ -348,7 +348,6 @@ PT_BEGIN( pt );
         uint16_t *s = gfx_u16p_get_sat();
         uint16_t *v = gfx_u16p_get_val();
         uint16_t r, g, b, w;
-        // uint8_t r, g, b, w;
 
         for( uint8_t ch = 0; ch < hal_pixel_u8_driver_count(); ch++ ){
 
@@ -369,16 +368,16 @@ PT_BEGIN( pt );
                     uint16_t dimmed_val = gfx_u16_get_dimmed_val( v[i] );
 
 
-                    if( driver_pix_mode == PIX_MODE_SK6812_RGBW ){
+                    // if( driver_pix_mode == PIX_MODE_SK6812_RGBW ){
 
-                        gfx_v_hsv_to_rgbw( h[i], s[i], dimmed_val, &r, &g, &b, &w );
-
-                        array_r[i] = r >> 8;
-                        array_g[i] = g >> 8;
-                        array_b[i] = b >> 8;
-                        array_misc.white[i] = w >> 8;
-                    }
-                    else{
+                    //     gfx_v_hsv_to_rgbw( h[i], s[i], dimmed_val, &r, &g, &b, &w );
+                        
+                    //     array_r[i] = r >> 8;
+                    //     array_g[i] = g >> 8;
+                    //     array_b[i] = b >> 8;
+                    //     array_misc.white[i] = w >> 8;
+                    // }
+                    // else{
 
                         gfx_v_hsv_to_rgb( h[i], s[i], dimmed_val, &r, &g, &b );
 
@@ -386,15 +385,7 @@ PT_BEGIN( pt );
                         array_g[i] = g >> 8;
                         array_b[i] = b >> 8;
                         array_misc.dither[i] = 0;
-
-                        // array_r[i] = 0xff;
-                    }
-
-                    // gfx_v_hsv_to_rgbw8( h[i], s[i], dimmed_val, &r, &g, &b, &w );
-                    // array_r[i] = r;
-                    // array_g[i] = g;
-                    // array_b[i] = b;
-                    // array_misc.white[i] = w;
+                    // }
                 }
 
                 uint8_t *offset;

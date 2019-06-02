@@ -1826,9 +1826,31 @@ def init():
 """
 
 
+# this test just needs to compile
+test_bad_data_count = """
+
+i = Number()
+
+def init():
+    while i < 0:
+        for x in pixels.size_x:
+                pass
+
+    for x in pixels.size_x:
+        pass
+    
+    
+"""
+
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_bad_data_count(self):
+        self.run_test(test_bad_data_count,
+            expected={
+            })
 
     def test_indirect_load_func_arg(self):
         self.run_test(test_indirect_load_func_arg,
