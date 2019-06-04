@@ -1857,7 +1857,7 @@ PT_BEGIN( pt );
                     ( entry->dest_hash == msg->dest_hash ) ){
 
                     // reset ttl
-                    entry->ttl = 20;
+                    entry->ttl = 32;
 
                     update = TRUE;
 
