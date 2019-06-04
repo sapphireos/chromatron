@@ -585,6 +585,8 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
         return;
     }
 
+    log_v_debug_P( PSTR("Adding %d.%d.%d.%d to send list"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+
     list_v_insert_tail( &send_list, ln );
 }
 
@@ -600,6 +602,8 @@ static void _catbus_v_delete_send_entry( sock_addr_t *raddr ){
 
         // check if entry matches
         if( ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
+
+            log_v_debug_P( PSTR("Remove %d.%d.%d.%d from send list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
 
             // delete entry
             list_v_remove( &send_list, ln );
@@ -622,6 +626,8 @@ static void _catbus_v_delete_rx_entry( sock_addr_t *raddr ){
 
         // check if entry matches
         if( ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
+
+            log_v_debug_P( PSTR("Remove %d.%d.%d.%d from RX list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
 
             // delete entry
             list_v_remove( &receive_cache, ln );
@@ -1873,6 +1879,8 @@ PT_BEGIN( pt );
                 new_entry.ttl           = 20;
 
                 entry = &new_entry;
+
+                log_v_debug_P( PSTR("Add %d.%d.%d.%d to RX list"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
                 ln = list_ln_create_node2( &new_entry, sizeof(new_entry), MEM_TYPE_CATBUS_RX_CACHE );     
                 
