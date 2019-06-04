@@ -1894,6 +1894,11 @@ PT_BEGIN( pt );
 
             if( update ){
 
+                if( msg->dest_hash == __KV__gfx_master_dimmer ){
+
+                    log_v_debug_P( PSTR("dimmer set from: %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+                }
+
                 int8_t status = _catbus_i8_internal_set( 
                                     msg->dest_hash, 
                                     msg->data.meta.type, 
@@ -2469,6 +2474,8 @@ PT_BEGIN( pt );
             entry->ttl -= CATBUS_ANNOUNCE_INTERVAL;
 
             if( entry->ttl < 0 ){
+
+                log_v_debug_P( PSTR("Timed out %d.%d.%d.%d from RX list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
 
                 list_v_remove( &receive_cache, ln );
                 list_v_release_node( ln );
