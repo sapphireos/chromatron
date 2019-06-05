@@ -993,6 +993,8 @@ PT_BEGIN( pt );
             // check if expired
             if( send_state->ttl < 0 ){
 
+                log_v_debug_P( PSTR("Timed out %d.%d.%d.%d from send list"), send_state->raddr.ipaddr.ip3, send_state->raddr.ipaddr.ip2, send_state->raddr.ipaddr.ip1, send_state->raddr.ipaddr.ip0 );
+
                 // get next
                 list_node_t remove_ln = sender_ln;
                 sender_ln = list_ln_next( sender_ln );
@@ -1795,6 +1797,11 @@ PT_BEGIN( pt );
                 if( kv_i16_search_hash( msg->dest_hash ) < 0 ){
 
                     goto end;
+                }
+
+                if( msg->dest_hash == __KV__gfx_master_dimmer ){
+
+                    log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d"), msg->flags, _catbus_b_query_self( &msg->query ) );
                 }
 
                 // change link flags and echo message back to sender
