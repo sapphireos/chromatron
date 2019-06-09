@@ -969,12 +969,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if debug_print:
         print builder
 
-    data = builder.allocate()
-    code = builder.generate_instructions()
+    builder.allocate()
+    builder.generate_instructions()
 
     if debug_print:
-        builder.print_instructions(code)
-        builder.print_data_table(data)
+        builder.print_instructions()
+        builder.print_data_table()
         builder.print_control_flow()
 
     builder.assemble()

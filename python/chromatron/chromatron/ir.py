@@ -3050,9 +3050,9 @@ class Builder(object):
 
         return self.data_table
 
-    def print_data_table(self, data):
+    def print_data_table(self):
         print "DATA: "
-        for i in sorted(data, key=lambda d: d.addr):
+        for i in sorted(self.data_table, key=lambda d: d.addr):
             default_value = ''
 
             if i.length == 1:
@@ -3089,13 +3089,13 @@ class Builder(object):
             for s in self.strings:
                 print '\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name)
 
-    def print_instructions(self, instructions):
+    def print_instructions(self):
         print "INSTRUCTIONS: "
         i = 0
-        for func in instructions:
+        for func in self.code:
             print '\t%s:' % (func)
 
-            for ins in instructions[func]:
+            for ins in self.code[func]:
                 s = '\t\t%3d: %s' % (i, str(ins))
                 print s
                 i += 1
@@ -3396,7 +3396,7 @@ class Builder(object):
             assert addr * 4 == data_len
 
         except AssertionError:
-            print addr * 4, data_len
+            print "Bad data length. Last addr: %d data len: %d" % (addr * 4, data_len)
             raise
 
         # create hash of stream
