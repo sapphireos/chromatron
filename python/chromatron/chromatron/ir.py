@@ -1427,6 +1427,26 @@ class irIndexStore(IR):
     def generate(self):
         return insIndirectStore(self.value.generate(), self.address.generate())
 
+class irBlock(IR):
+    def __init__(self, **kwargs):
+        super(irBlock, self).__init__(**kwargs)
+        self.code = []
+        self.data = []
+        self.blocks = []
+
+    # def __str__(self):
+        # s = '----------------'
+        # return s    
+
+    def append_code(self, code):
+        self.code.append(code)
+
+    def append_data(self, data):
+        self.data.append(data)
+
+    def append_block(self, block):
+        self.blocks.append(block)
+
 
 CONST65535 = irConst(65535, lineno=0)
 
@@ -1452,6 +1472,10 @@ class Builder(object):
         self.pixel_arrays = {}
         self.palettes = {}
         self.labels = {}
+
+        # self.blocks = None
+        self.current_block = None
+        self.block_stack = []
 
         self.data_table = []
         self.data_count = 0
@@ -1556,6 +1580,21 @@ class Builder(object):
             s += '%s\n' % (func)
 
         return s
+
+    def open_block(self, lineno=None):
+        self.current_block = irBlock(lineno=lineno)
+        self.block_stack.append(self.current_block)
+
+        print "open", self.current_block
+
+    def close_block(self):
+        print "close", self.current_block
+        self.block_stack.pop(-1)
+        try:
+            self.current_block = self.block_stack[-1]
+
+        except IndexError:
+            self.current_block = None
 
     def finish_module(self):
         # clean up stuff after first pass is done
@@ -1791,6 +1830,14 @@ class Builder(object):
         self.current_func = func.name
         self.next_temp = 0 
 
+        if len(self.block_stack) > 0:
+            self.close_block()
+
+        self.open_block(lineno=kwargs['lineno'])
+        # self.blocks = irBlock(lineno=0)
+        # self.current_block = self.blocks
+        # self.block_stack = [self.current_block]
+
         return func
 
     def append_node(self, node):
@@ -1803,6 +1850,8 @@ class Builder(object):
         ir = irReturn(value, lineno=lineno)
 
         self.append_node(ir)
+
+        self.close_block()
 
         return ir
 
@@ -2301,6 +2350,8 @@ class Builder(object):
         self.append_node(label)
         
     def begin_while(self, lineno=None):
+        self.open_block(lineno=lineno)
+
         top_label = self.label('while.top', lineno=lineno)
         end_label = self.label('while.end', lineno=lineno)
         self.position_label(top_label)
@@ -2321,7 +2372,11 @@ class Builder(object):
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
 
+        self.close_block()
+
     def begin_for(self, iterator, lineno=None):
+        self.open_block(lineno=lineno)
+
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
         self.position_label(begin_label)
         top_label = self.label('for.top', lineno=lineno)
@@ -2350,6 +2405,8 @@ class Builder(object):
 
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
+
+        self.close_block()
 
     def jump(self, target, lineno=None):
         ir = irJump(target, lineno=lineno)
