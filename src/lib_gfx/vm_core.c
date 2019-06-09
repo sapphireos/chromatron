@@ -2654,6 +2654,10 @@ int8_t vm_i8_run_threads(
 
             return status;
         }
+        else{
+
+            return status;
+        }
     }
 
     if( !threads_running ){
