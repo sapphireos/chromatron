@@ -1815,6 +1815,7 @@ test_indirect_load_func_arg = """
 ary = Array(4)
 
 a = Number(publish=True)
+b = Number(publish=True)
 
 def test(_a):
     return _a + 1
@@ -1822,6 +1823,7 @@ def test(_a):
 def init():
     ary[2] = 123
     a = test(ary[2])
+    b = ary[2]
     
 """
 
@@ -1855,7 +1857,8 @@ class CGTestsBase(unittest.TestCase):
     def test_indirect_load_func_arg(self):
         self.run_test(test_indirect_load_func_arg,
             expected={
-                'a': 123,
+                'a': 124,
+                'b': 123,
             })
 
     def test_global_avoids_optimize_assign_targets(self):

@@ -2221,6 +2221,14 @@ class Builder(object):
 
         try:
             args = self.funcs[func_name].params
+
+            for i in xrange(len(params)):
+                param = params[i]
+                if isinstance(param, irAddress):
+                    # load to temp var
+                    temp = self.load_indirect(param, lineno=lineno)
+                    params[i] = temp # replace parameter
+
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
         except KeyError:
