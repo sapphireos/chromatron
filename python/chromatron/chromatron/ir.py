@@ -2850,7 +2850,7 @@ class Builder(object):
         return liveness
 
     def debug_print(self, s):
-        # print s
+        print s
         pass
 
     def allocate(self):
@@ -3407,6 +3407,7 @@ class Builder(object):
         data_table.extend(self.strings)
 
         for var in data_table:
+            print var, addr
             if var.addr < addr:
                 continue
 
