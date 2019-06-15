@@ -1585,10 +1585,10 @@ class Builder(object):
         self.current_block = irBlock(lineno=lineno)
         self.block_stack.append(self.current_block)
 
-        print "open", self.current_block
+        # print "open", self.current_block
 
     def close_block(self):
-        print "close", self.current_block
+        # print "close", self.current_block
         self.block_stack.pop(-1)
         try:
             self.current_block = self.block_stack[-1]
