@@ -1799,10 +1799,10 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
-                if( msg->dest_hash == __KV__gfx_master_dimmer ){
+                // if( msg->dest_hash == __KV__gfx_master_dimmer ){
 
-                    log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d"), msg->flags, _catbus_b_query_self( &msg->query ) );
-                }
+                    log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d hash: 0x%0x"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
+                // }
 
                 // change link flags and echo message back to sender
                 msg->flags = CATBUS_LINK_FLAGS_DEST;
@@ -1883,11 +1883,11 @@ PT_BEGIN( pt );
                 new_entry.raddr         = raddr;
                 new_entry.dest_hash     = msg->dest_hash;
                 new_entry.sequence      = 0;
-                new_entry.ttl           = 20;
+                new_entry.ttl           = 32;
 
                 entry = &new_entry;
 
-                log_v_debug_P( PSTR("Add %d.%d.%d.%d to RX list"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+                log_v_debug_P( PSTR("Add %d.%d.%d.%d to RX list. Hash: 0x%0x"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0, msg->dest_hash );
 
                 ln = list_ln_create_node2( &new_entry, sizeof(new_entry), MEM_TYPE_CATBUS_RX_CACHE );     
                 
