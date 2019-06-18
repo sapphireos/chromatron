@@ -1841,6 +1841,11 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("receiver link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
                     log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
                     log_v_debug_P( PSTR("from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
+                    sock_addr_t raddr2;
+                    raddr2.port = 9999;
+                    raddr2.ipaddr = ip_a_addr(10,0,0,127);
+                    sock_i16_sendto( sock, 0, 0, &raddr2 );   
                 }
 
                 
