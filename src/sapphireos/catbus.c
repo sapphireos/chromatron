@@ -1791,6 +1791,12 @@ PT_BEGIN( pt );
             // source link 
             if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
 
+                // check if we match query
+                if( !_catbus_b_query_self( &msg->query ) ){
+
+                    goto end;
+                }
+
                 // check if we have the destination key
                 if( kv_i16_search_hash( msg->dest_hash ) < 0 ){
 
@@ -1822,12 +1828,6 @@ PT_BEGIN( pt );
             }
             // receiver link
             else if( msg->flags & CATBUS_LINK_FLAGS_DEST ){
-
-                // check if we match query
-                if( !_catbus_b_query_self( &msg->query ) ){
-
-                    goto end;
-                }
 
                 // check if we have the source key:
                 if( kv_i16_search_hash( msg->source_hash ) < 0 ){
