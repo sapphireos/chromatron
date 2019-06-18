@@ -1834,6 +1834,15 @@ PT_BEGIN( pt );
                 sock_addr_t raddr;
                 sock_v_get_raddr( sock, &raddr );
 
+                // if( msg->query.tags[0] != __KV__shelf ){
+                if( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,103) ) ){
+
+                    log_v_debug_P( PSTR("receiver link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
+                    log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
+                }
+
+                
+
                 raddr.port = msg->data_port;
 
                 _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
