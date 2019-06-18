@@ -323,6 +323,8 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
     if( list_u8_count( &netmsg_list ) >= WIFI_MAX_NETMSGS ){
 
+        log_v_debug_P( PSTR("tx udp overflow") );
+
         return NETMSG_TX_ERR_RELEASE;   
     }
 
