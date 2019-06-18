@@ -1790,6 +1790,12 @@ PT_BEGIN( pt );
 
             // check link type
 
+            if( msg->flags & ( CATBUS_LINK_FLAGS_SOURCE | CATBUS_LINK_FLAGS_DEST ) ){
+
+                // invalid flag combination
+                goto end;
+            }
+
             // source link 
             if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
 
@@ -1799,7 +1805,8 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
-                if( msg->dest_hash == __KV__gfx_master_dimmer ){
+                // if( msg->dest_hash == __KV__gfx_master_dimmer ){
+                if( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,114) ) ){
 
                     log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
                     log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
@@ -1823,7 +1830,7 @@ PT_BEGIN( pt );
                 sock_i16_sendto( sock, (uint8_t *)msg, sizeof(catbus_msg_link_t), &raddr );   
             }
             // receiver link
-            else{
+            else if( msg->flags & CATBUS_LINK_FLAGS_DEST ){{
 
                 // check if we have the source key:
                 if( kv_i16_search_hash( msg->source_hash ) < 0 ){
