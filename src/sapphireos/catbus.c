@@ -1442,6 +1442,9 @@ PT_BEGIN( pt );
             goto end;
         }
 
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
         // DISCOVERY MESSAGES
@@ -1462,9 +1465,6 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
-
             _catbus_v_send_announce( &raddr, msg->header.transaction_id );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_SHUTDOWN ){
@@ -1472,9 +1472,6 @@ PT_BEGIN( pt );
             // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
 
             #ifdef ENABLE_CATBUS_LINK
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
-
             // delete cache entries for link system
             _catbus_v_delete_send_entry( &raddr );
             _catbus_v_delete_rx_entry( &raddr );
@@ -1779,22 +1776,17 @@ PT_BEGIN( pt );
 
             catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
 
-            if( ( msg->flags & CATBUS_LINK_FLAGS_DEST ) == 0 ){
+            if( ( msg->flags & CATBUS_LINK_FLAGS_SOURCE ) &&
+                ( msg->flags & CATBUS_LINK_FLAGS_DEST ) ){
 
-                // check if we match query
-                if( !_catbus_b_query_self( &msg->query ) ){
-
-                    goto end;
-                }
-            }
-
-            // check link type
-
-            if( msg->flags & ( CATBUS_LINK_FLAGS_SOURCE | CATBUS_LINK_FLAGS_DEST ) ){
+                log_v_debug_P( PSTR("bad flags") );
 
                 // invalid flag combination
                 goto end;
             }
+
+
+            // check link type
 
             // source link 
             if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
@@ -1811,14 +1803,13 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
                     log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
                     log_v_debug_P( PSTR("self:   0x%0lx  0x%0lx  0x%0lx  0x%0lx"), meta_tag_hashes[0], meta_tag_hashes[1], meta_tag_hashes[2], meta_tag_hashes[3] );
+                    log_v_debug_P( PSTR("from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
                 }
 
                 // change link flags and echo message back to sender
                 msg->flags = CATBUS_LINK_FLAGS_DEST;
 
-                sock_addr_t raddr;
-                sock_v_get_raddr( sock, &raddr );
-
+                // set up destination
                 raddr.port = msg->data_port;
 
                 msg->data_port = sock_u16_get_lport( sock );
@@ -1830,7 +1821,13 @@ PT_BEGIN( pt );
                 sock_i16_sendto( sock, (uint8_t *)msg, sizeof(catbus_msg_link_t), &raddr );   
             }
             // receiver link
-            else if( msg->flags & CATBUS_LINK_FLAGS_DEST ){{
+            else if( msg->flags & CATBUS_LINK_FLAGS_DEST ){
+
+                // check if we match query
+                if( !_catbus_b_query_self( &msg->query ) ){
+
+                    goto end;
+                }
 
                 // check if we have the source key:
                 if( kv_i16_search_hash( msg->source_hash ) < 0 ){
@@ -1838,18 +1835,16 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
-                sock_addr_t raddr;
-                sock_v_get_raddr( sock, &raddr );
-
                 // if( msg->query.tags[0] != __KV__shelf ){
                 if( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,103) ) ){
 
                     log_v_debug_P( PSTR("receiver link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
                     log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
+                    log_v_debug_P( PSTR("from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
                 }
 
                 
-
+                // set up destination
                 raddr.port = msg->data_port;
 
                 _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
@@ -1863,9 +1858,6 @@ PT_BEGIN( pt );
             }
 
             catbus_msg_link_data_t *msg = (catbus_msg_link_data_t *)header;
-
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
 
             // look for cache entry
             list_node_t ln = receive_cache.head;
