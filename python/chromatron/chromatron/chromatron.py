@@ -1614,7 +1614,11 @@ def reload(ctx):
         echo_name(ct, nl=False)
 
         try:
-            prog = ct.get_key('vm_prog')
+            if n == 0:
+                prog = ct.get_key('vm_prog')
+
+            else:
+                prog = ct.get_key('vm_prog_%d' % (n))
 
             filename, ext = os.path.splitext(prog)
             filename += '.fx'        
