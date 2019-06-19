@@ -195,6 +195,8 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_VM_RUN_FUNC        0x51
 
 
+#define WIFI_DATA_ID_SHUTDOWN           0x98
+
 #endif
 
 

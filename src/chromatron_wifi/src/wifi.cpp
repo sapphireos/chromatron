@@ -63,6 +63,7 @@ static bool request_ap_mode;
 static bool request_connect;
 static bool request_disconnect;
 static bool request_ports;
+static bool request_shutdown;
 static bool ap_mode;
 static bool scanning;
 
@@ -298,6 +299,8 @@ void wifi_v_process( void ){
     }
     else if( request_disconnect ){
 
+        MDNS.close();
+
         WiFi.disconnect();
 
         request_connect = false;
@@ -305,7 +308,15 @@ void wifi_v_process( void ){
 
         wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
     }
+    else if( request_shutdown ){
 
+        MDNS.close();
+
+        delay(100);
+
+        request_shutdown = false;
+        request_disconnect = true;
+    }
 
     if( request_ports ){
 
@@ -583,6 +594,11 @@ void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
 
         request_ap_mode = true;
     }
+}
+
+void wifi_v_shutdown( void ){
+
+    request_shutdown = true;
 }
 
 void wifi_v_scan( void ){

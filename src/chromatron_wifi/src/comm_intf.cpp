@@ -401,6 +401,15 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         opt_v_set_low_power( msg->low_power );
         opt_v_set_led_quiet( msg->led_quiet );
     }
+    else if( data_id == WIFI_DATA_ID_SHUTDOWN ){
+        
+        for( uint32_t i = 0; i < 32; i++ ){
+
+            vm_v_reset( i );
+        }
+
+        wifi_v_shutdown();
+    }
 }
 
 static void set_rx_ready( void ){

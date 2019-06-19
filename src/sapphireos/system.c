@@ -41,6 +41,7 @@
 #include "usb_intf.h"
 #include "catbus.h"
 #include "keyvalue.h"
+#include "esp8266.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -689,6 +690,8 @@ PT_BEGIN( pt );
 
        reboot_delay--;
     }
+
+    wifi_v_shutdown();
 
     #ifdef ENABLE_USB
     usb_v_shutdown();
