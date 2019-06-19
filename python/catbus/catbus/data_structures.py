@@ -40,12 +40,16 @@ class InvalidMessageException(Exception):
     pass
 
 class NoResponseFromHost(Exception):
-    def __init__(self, msg=None, *args):
+    def __init__(self, msg=None, host=None, *args):
         super(NoResponseFromHost, self).__init__(*args)
-        self.msg = msg
+
+        from messages import lookup_msg
+        
+        self.msg = lookup_msg(msg)
+        self.host = host
 
     def __str__(self):
-        return "NoResponseFromHost: %d" % (self.msg)
+        return "NoResponseFromHost: %s Msg: %s" % (self.host, self.msg)
 
 class GenericProtocolException(Exception):
     pass
