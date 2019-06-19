@@ -451,7 +451,7 @@ messages = {
 
 def lookup_msg(msg):
     try:
-        return messages[error]
+        return messages[msg]
 
     except KeyError:
         return "Unknown msg"
