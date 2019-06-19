@@ -1804,7 +1804,10 @@ PT_BEGIN( pt );
                 }
 
                 // if( msg->dest_hash == __KV__gfx_master_dimmer ){
-                if( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,114) ) ){
+                if( ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,123) ) ) &&
+                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,112) ) ) &&
+                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,108) ) ) &&
+                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,120) ) ) ){
 
                     log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
                     log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
@@ -1836,7 +1839,10 @@ PT_BEGIN( pt );
                 }
 
                 // if( msg->query.tags[0] != __KV__shelf ){
-                if( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,103) ) ){
+                if( ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,123) ) ) &&
+                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,112) ) ) &&
+                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,108) ) ) &&
+                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,120) ) ) ){
 
                     log_v_debug_P( PSTR("receiver link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
                     log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
