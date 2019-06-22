@@ -394,7 +394,7 @@ next:
     return NETMSG_TX_ERR_RELEASE;
 }
 
-void netmsg_v_send( netmsg_t netmsg ){
+int8_t netmsg_i8_send( netmsg_t netmsg ){
 
     netmsg_state_t *state = netmsg_vp_get_state( netmsg );
 
@@ -486,11 +486,19 @@ void netmsg_v_send( netmsg_t netmsg ){
     }
 
     // attempt to transmit
-    if( netmsg_i8_transmit_msg( netmsg ) < 0 ){
+    int8_t status = netmsg_i8_transmit_msg( netmsg );
+
+    if( status < 0 ){
 
         // codes less than 0 mean do not release netmsg.
 
-        return;
+        // return 0 if OK, -1 if error
+        if( status == NETMSG_TX_ERR_NORELEASE ){
+
+            return -1;
+        }
+
+        return 0;
     }
 
 #ifdef ENABLE_IP
@@ -499,6 +507,14 @@ clean_up:
 
     // release message
     netmsg_v_release( netmsg );
+
+    // return 0 if OK, -1 if error
+    if( status == NETMSG_TX_ERR_RELEASE ){
+
+        return -1;
+    }
+
+    return 0;
 }
 
 

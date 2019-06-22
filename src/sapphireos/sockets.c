@@ -749,7 +749,10 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
         // set flags
         netmsg_v_set_flags( netmsg, nm_flags );
 
-        netmsg_v_send( netmsg );
+        if( netmsg_i8_send( netmsg ) < 0 ){
+
+            return -2;
+        }
     }
     else{
 

@@ -115,6 +115,6 @@ netmsg_flags_t netmsg_u8_get_flags( netmsg_t netmsg );
 
 void netmsg_v_receive( netmsg_t netmsg );
 
-void netmsg_v_send( netmsg_t netmsg );
+int8_t netmsg_i8_send( netmsg_t netmsg );
 
 #endif
