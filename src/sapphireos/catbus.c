@@ -1803,18 +1803,6 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
-                // if( msg->dest_hash == __KV__gfx_master_dimmer ){
-                if( ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,123) ) ) &&
-                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,112) ) ) &&
-                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,108) ) ) &&
-                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,120) ) ) ){
-
-                    log_v_debug_P( PSTR("answering link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
-                    log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
-                    log_v_debug_P( PSTR("self:   0x%0lx  0x%0lx  0x%0lx  0x%0lx"), meta_tag_hashes[0], meta_tag_hashes[1], meta_tag_hashes[2], meta_tag_hashes[3] );
-                    log_v_debug_P( PSTR("from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-                }
-
                 // change link flags and echo message back to sender
                 msg->flags = CATBUS_LINK_FLAGS_DEST;
 
@@ -1837,23 +1825,6 @@ PT_BEGIN( pt );
 
                     goto end;
                 }
-
-                // if( msg->query.tags[0] != __KV__shelf ){
-                if( ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,123) ) ) &&
-                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,112) ) ) &&
-                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,108) ) ) &&
-                    ( !ip_b_addr_compare( raddr.ipaddr, ip_a_addr(10,0,0,120) ) ) ){
-
-                    log_v_debug_P( PSTR("receiver link.  flags: 0x%02x query status: %d hash: 0x%0lx"), msg->flags, _catbus_b_query_self( &msg->query ), msg->dest_hash );
-                    log_v_debug_P( PSTR("query:  0x%0lx  0x%0lx  0x%0lx  0x%0lx"), msg->query.tags[0], msg->query.tags[1], msg->query.tags[2], msg->query.tags[3] );
-                    log_v_debug_P( PSTR("from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-
-                    sock_addr_t raddr2;
-                    raddr2.port = 9999;
-                    raddr2.ipaddr = ip_a_addr(10,0,0,127);
-                    sock_i16_sendto( sock, 0, 0, &raddr2 );   
-                }
-
                 
                 // set up destination
                 raddr.port = msg->data_port;
@@ -1921,11 +1892,6 @@ PT_BEGIN( pt );
             }   
 
             if( update ){
-
-                if( msg->dest_hash == __KV__gfx_master_dimmer ){
-
-                    log_v_debug_P( PSTR("dimmer set from: %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-                }
 
                 int8_t status = _catbus_i8_internal_set( 
                                     msg->dest_hash, 
