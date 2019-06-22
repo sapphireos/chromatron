@@ -1068,10 +1068,23 @@ PT_BEGIN( pt );
                 msg->data.meta.count + 1, 
                 &msg->data.data );
 
-            sock_i16_sendto_m( sock, h, &send_state->raddr );      
+            // send message
+            if( sock_i16_sendto_m( sock, h, &send_state->raddr ) < 0 ){
+
+                // send failed!
+
+                // set flag so we try again
+                send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
+
+                // delay, hopefully the tx queue will be less busy
+                TMR_WAIT( pt, 50 );                
+
+                // send us back to top of loop, so we try this again
+                continue;
+            }
 
 
-            TMR_WAIT( pt, 5 );
+            TMR_WAIT( pt, 10 );
 
     next:
             sender_ln = list_ln_next( sender_ln );
