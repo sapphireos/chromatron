@@ -557,7 +557,7 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
             ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
 
             // reset TTL
-            entry->ttl = 32;
+            entry->ttl = CATBUS_LINK_TIMEOUT;
 
             return;
         }
@@ -576,7 +576,7 @@ static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash
     entry.source_hash   = source_hash;
     entry.dest_hash     = dest_hash;
     entry.raddr         = *raddr;
-    entry.ttl           = 32;
+    entry.ttl           = CATBUS_LINK_TIMEOUT;
 
     ln = list_ln_create_node2( &entry, sizeof(entry), MEM_TYPE_CATBUS_SEND );
 
@@ -1049,7 +1049,7 @@ PT_BEGIN( pt );
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
             #ifdef ENABLE_TIME_SYNC
-            if(time_b_is_sync() ){
+            if( time_b_is_sync() ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }
@@ -1075,6 +1075,8 @@ PT_BEGIN( pt );
 
                 // set flag so we try again
                 send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
+
+                log_v_debug_P( PSTR("publish failed") );
 
                 // delay, hopefully the tx queue will be less busy
                 TMR_WAIT( pt, 50 );                
@@ -1869,7 +1871,7 @@ PT_BEGIN( pt );
                     ( entry->dest_hash == msg->dest_hash ) ){
 
                     // reset ttl
-                    entry->ttl = 32;
+                    entry->ttl = CATBUS_LINK_TIMEOUT;
 
                     update = TRUE;
 
@@ -1888,7 +1890,7 @@ PT_BEGIN( pt );
                 new_entry.raddr         = raddr;
                 new_entry.dest_hash     = msg->dest_hash;
                 new_entry.sequence      = 0;
-                new_entry.ttl           = 32;
+                new_entry.ttl           = CATBUS_LINK_TIMEOUT;
 
                 entry = &new_entry;
 

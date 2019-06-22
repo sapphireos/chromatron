@@ -38,6 +38,7 @@
 #define CATBUS_MAX_RECEIVE_LINKS            16
 #define CATBUS_MAX_SEND_LINKS               16
 #define CATBUS_MAX_FILE_SESSIONS            4
+#define CATBUS_LINK_TIMEOUT                 64            
 
 
 typedef struct __attribute__((packed)){
