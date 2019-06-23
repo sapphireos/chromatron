@@ -59,6 +59,7 @@ static uint32_t udp_received;
 static uint32_t udp_sent;
 static uint16_t connects;
 
+static bool mdns_connected;
 static bool request_ap_mode;
 static bool request_connect;
 static bool request_disconnect;
@@ -207,18 +208,32 @@ void wifi_v_process( void ){
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
             wifi_v_send_status();
 
-            if( !MDNS.begin( hostname ) ){
-
-                intf_v_printf("MDNS fail");
-            }
-
-            MDNS.addService( "catbus", "udp", 44632 );
-            MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");
-
             intf_v_printf("Connected!");
         }
 
-        MDNS.update();
+
+        // check if MDNS is up
+        if( mdns_connected ){
+
+            MDNS.update();
+        }
+        else{
+            // enable MDNS
+            if( MDNS.begin( hostname ) ){
+
+                MDNS.addService( "catbus", "udp", 44632 );
+                MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");            
+
+                mdns_connected = true;
+
+                intf_v_printf("MDNS connected");
+            }
+            else{
+
+                // MDNS fail - probably failed the IGMP join
+                // intf_v_printf("MDNS fail");
+            }
+        }        
     }
     else{
 
@@ -300,6 +315,7 @@ void wifi_v_process( void ){
     else if( request_disconnect ){
 
         MDNS.close();
+        mdns_connected = false;
 
         WiFi.disconnect();
 
@@ -311,6 +327,7 @@ void wifi_v_process( void ){
     else if( request_shutdown ){
 
         MDNS.close();
+        mdns_connected = false;
 
         delay(100);
 
