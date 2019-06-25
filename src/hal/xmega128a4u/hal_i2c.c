@@ -326,7 +326,7 @@ void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
     i2c_v_stop();
 }
 
-void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len ){
+void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
 
     i2c_v_start();
 
@@ -346,10 +346,12 @@ void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, co
         ASSERT( FALSE );
     }
 
+    _delay_ms( delay_ms );
+
     i2c_v_write( dev_addr, src, len );
 }
 
-void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len ){
+void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
     
     i2c_v_start();
 
@@ -368,6 +370,8 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
 
         ASSERT( FALSE );
     }
+
+    _delay_ms( delay_ms );
 
     i2c_v_read( dev_addr, dst, len );   
 }

@@ -141,12 +141,16 @@ void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 	HAL_I2C_Master_Receive( &i2c1, dev_addr, dst, len, I2C_TIMEOUT );
 }
 
-void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len ){
+void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
+
+    // delay_ms is ignored in this driver.  some I2C devices that rely on it may fail!
 
 	HAL_I2C_Mem_Write( &i2c1, dev_addr, mem_addr, addr_size, (uint8_t *)src, len, I2C_TIMEOUT );
 }
 
-void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len ){
+void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
+
+    // delay_ms is ignored in this driver.  some I2C devices that rely on it may fail!
 
 	HAL_I2C_Mem_Read( &i2c1, dev_addr, mem_addr, addr_size, dst, len, I2C_TIMEOUT );	
 }
