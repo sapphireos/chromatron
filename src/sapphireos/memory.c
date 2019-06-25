@@ -1,4 +1,4 @@
-\/*
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
