@@ -38,8 +38,8 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data );
 uint8_t i2c_u8_status( void );
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len );
 void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len );
-void i2c_v_mem_write( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len );
-void i2c_v_mem_read( uint8_t dev_addr, uint32_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len );
+void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len );
+void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len );
 
 void i2c_v_write_reg8( uint8_t dev_addr, uint8_t reg_addr, uint8_t data );
 uint8_t i2c_u8_read_reg8( uint8_t dev_addr, uint8_t reg_addr );
