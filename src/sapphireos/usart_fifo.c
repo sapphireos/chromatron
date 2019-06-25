@@ -27,13 +27,12 @@
 
 void usart_fifo_v_init( volatile usart_fifo_t *fifo, volatile uint8_t *buf, uint16_t len ){
 
-    ASSERT( FALSE );
-	// fifo->buf = buf;
-	// fifo->len = len;
+	fifo->buf = buf;
+	fifo->len = len;
 
-	// fifo->ins = 0;
-	// fifo->ext = 0;
-	// fifo->count = 0;
+	fifo->ins = 0;
+	fifo->ext = 0;
+	fifo->count = 0;
 }
 
 

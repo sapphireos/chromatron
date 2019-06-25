@@ -26,7 +26,7 @@
 #define _USART_FIFO_H
 
 typedef struct{
-	uint8_t *buf;
+	volatile uint8_t *buf;
 	uint16_t len;
 	
 	uint16_t ins;
