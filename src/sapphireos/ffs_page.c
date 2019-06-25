@@ -178,6 +178,7 @@ scan_start:
 
                 // read meta from prev block
                 ffs_block_meta_t prev_meta;
+                prev_meta.sequence = 0;
 
                 // same notes as above
                 ASSERT( ffs_block_i8_read_meta( block, &prev_meta ) == 0 );

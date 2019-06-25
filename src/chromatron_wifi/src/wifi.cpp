@@ -178,7 +178,7 @@ void wifi_v_init( void ){
     memset( hostname, 0, sizeof(hostname) );
     strlcpy( hostname, "Chromatron_", sizeof(hostname) );
 
-    strncat( hostname, mac_str, sizeof(hostname) );
+    strlcat( hostname, mac_str, sizeof(hostname) );
 
     WiFi.hostname(hostname);
 }

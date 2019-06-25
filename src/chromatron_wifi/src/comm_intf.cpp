@@ -317,7 +317,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         uint32_t *vm_id = (uint32_t *)data;
 
-        for( uint32_t i = 0; i < 32; i++ ){
+        for( uint32_t i = 0; i < 31; i++ ){
 
             if( ( *vm_id & ( 1 << i ) ) != 0 ){
 
