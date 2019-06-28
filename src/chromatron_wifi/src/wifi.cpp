@@ -68,6 +68,10 @@ static bool request_shutdown;
 static bool ap_mode;
 static bool scanning;
 
+static IPAddress soft_AP_IP(192,168,4,1);
+static IPAddress soft_AP_gateway(192,168,4,1);
+static IPAddress soft_AP_subnet(255,255,255,0);
+
 static int32_t elapsed_millis( uint32_t start ){
 
     uint32_t now = millis();
@@ -119,7 +123,7 @@ IPAddress wifi_ip_get_ip( void ){
 
     if( ap_mode ){
 
-        return WiFi.softAPIP();
+        return soft_AP_IP;
     }
     
     return WiFi.localIP();
@@ -298,6 +302,9 @@ void wifi_v_process( void ){
 
         WiFi.mode( WIFI_AP );
         ap_mode = true;
+
+        // configure IP
+        WiFi.softAPConfig(soft_AP_IP, soft_AP_gateway, soft_AP_subnet);
 
         // NOTE!
         // password must be at least 8 characters.
