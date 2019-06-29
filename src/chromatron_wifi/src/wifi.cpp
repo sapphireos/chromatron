@@ -123,7 +123,7 @@ IPAddress wifi_ip_get_ip( void ){
 
     if( ap_mode ){
 
-        return soft_AP_IP;
+        return WiFi.softAPIP();
     }
     
     return WiFi.localIP();
@@ -215,29 +215,35 @@ void wifi_v_process( void ){
             intf_v_printf("Connected!");
         }
 
+        // if in station mode:
+        // NOTE:
+        // MDNS will CRASH in AP mode!!!
 
-        // check if MDNS is up
-        if( mdns_connected ){
+        if( WiFi.getMode() == WIFI_STA ){
 
-            MDNS.update();
-        }
-        else{
-            // enable MDNS
-            if( MDNS.begin( hostname ) ){
+            // check if MDNS is up
+            if( mdns_connected ){
 
-                MDNS.addService( "catbus", "udp", 44632 );
-                MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");            
-
-                mdns_connected = true;
-
-                intf_v_printf("MDNS connected");
+                MDNS.update();
             }
             else{
+                // enable MDNS
+                if( MDNS.begin( hostname ) ){
 
-                // MDNS fail - probably failed the IGMP join
-                // intf_v_printf("MDNS fail");
-            }
-        }        
+                    MDNS.addService( "catbus", "udp", 44632 );
+                    MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");            
+
+                    mdns_connected = true;
+
+                    intf_v_printf("MDNS connected");
+                }
+                else{
+
+                    // MDNS fail - probably failed the IGMP join
+                    // intf_v_printf("MDNS fail");
+                }
+            }        
+        }
     }
     else{
 
