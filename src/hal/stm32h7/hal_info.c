@@ -37,7 +37,12 @@ static int8_t hal_info_kv_handler(
     	if( hash == __KV__hw_type ){
             
             memset( data, 0, len );
+
+            #ifdef BOARD_CHROMATRONX
     		strlcpy_P( data, PSTR("ChromatronX"), len );
+            #else
+            strlcpy_P( data, PSTR("ChromatronNG"), len );
+            #endif
     	}
     	else if( hash == __KV__cpu_clock ){
 
