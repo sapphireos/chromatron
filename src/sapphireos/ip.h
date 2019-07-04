@@ -49,6 +49,11 @@
 // convert between network byte order and host
 #define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
 #define HTONL(n) (uint32_t)(((((uint32_t) (n)) << 24) & 0xff000000) | ((((uint32_t) (n)) >> 24) & 0x000000ff) | ((((uint32_t) (n)) << 8) & 0x00ff0000) | ((((uint32_t) (n)) >> 8) & 0x0000ff00))
+#define HTONQ(n) (uint64_t) \
+(((((uint64_t) (n)) << 56) & 0xff00000000000000) | ((((uint64_t) (n)) >> 56) & 0x00000000000000ff) | \
+ ((((uint64_t) (n)) << 40) & 0x00ff000000000000) | ((((uint64_t) (n)) >> 40) & 0x000000000000ff00) | \
+ ((((uint64_t) (n)) << 24) & 0x0000ff0000000000) | ((((uint64_t) (n)) >> 24) & 0x0000000000ff0000) | \
+ ((((uint64_t) (n)) <<  8) & 0x000000ff00000000) | ((((uint64_t) (n)) >>  8) & 0x00000000ff000000))
 
 
 typedef struct{
