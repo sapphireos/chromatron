@@ -1582,12 +1582,14 @@ class Builder(object):
         return s
 
     def open_block(self, lineno=None):
+        return
         self.current_block = irBlock(lineno=lineno)
         self.block_stack.append(self.current_block)
 
         # print "open", self.current_block
 
     def close_block(self):
+        return
         # print "close", self.current_block
         self.block_stack.pop(-1)
         try:
