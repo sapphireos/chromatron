@@ -27,17 +27,11 @@
 #include "wifi_cmd.h"
 #include "hal_usart.h"
 
+#define WIFI_RESET_DELAY_MS 	20
 
-
-#define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
-
-#define WIFI_DMA 				DMA1_Stream1
-#define WIFI_DMA_IRQ 			DMA1_Stream1_IRQn
 #ifdef BOARD_CHROMATRONX
-#define WIFI_DMA_REQUEST		DMA_REQUEST_UART8_RX
 #define WIFI_USART              UART8
 #else
-#define WIFI_DMA_REQUEST		DMA_REQUEST_UART4_RX
 #define WIFI_USART              UART4
 #endif
 
@@ -51,37 +45,21 @@ void hal_wifi_v_init( void );
 
 void hal_wifi_v_reset( void );
 
-uint8_t *hal_wifi_u8p_get_rx_dma_buf_ptr( void );
-uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void );
-
 void hal_wifi_v_usart_send_char( uint8_t b );
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len );
 int16_t hal_wifi_i16_usart_get_char( void );
-void hal_wifi_v_usart_flush( void );
+int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout );
+bool hal_wifi_b_usart_rx_available( void );
+int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout );
 
-uint16_t hal_wifi_u16_dma_rx_bytes( void );
-void hal_wifi_v_disable_rx_dma( void );
-void hal_wifi_v_enable_rx_dma( bool irq );
+void hal_wifi_v_usart_flush( void );
 
 void hal_wifi_v_usart_set_baud( baud_t baud );
 
-void hal_wifi_v_reset_rx_buffer( void );
-void hal_wifi_v_clear_rx_buffer( void );
-void hal_wifi_v_release_rx_buffer( void );
-
-void hal_wifi_v_reset_control_byte( void );
-void hal_wifi_v_reset_comm( void );
-void hal_wifi_v_set_rx_ready( void );
-void hal_wifi_v_disable_irq( void );
-void hal_wifi_v_enable_irq( void );
-
-uint8_t hal_wifi_u8_get_control_byte( void );
 int16_t hal_wifi_i16_rx_data_received( void );
 
-void hal_wifi_v_clear_rx_ready( void );
 bool hal_wifi_b_comm_ready( void );
 
-uint32_t hal_wifi_u32_get_max_ready_wait( void );
 uint32_t hal_wifi_u32_get_rx_bytes( void );
 uint32_t hal_wifi_u32_get_tx_bytes( void );
 

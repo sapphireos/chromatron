@@ -182,13 +182,9 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     uint32_t start_time = tmr_u32_get_system_time_us();
 
     uint8_t next_byte = 0;
-    hal_wifi_v_clear_rx_buffer();
-    hal_wifi_v_enable_rx_dma( FALSE );
-
-    volatile uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
-
+    
     // waiting for frame start
-    while( rx_dma_buf[next_byte] != SLIP_END ){
+    while( hal_wifi_i16_usart_get_char() != SLIP_END ){
 
         if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
 
@@ -208,16 +204,14 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
         }
 
         // wait for byte
-        while( hal_wifi_u16_dma_rx_bytes() == next_byte ){
+        int16_t byte = hal_wifi_i16_usart_get_char_timeout( timeout );
+        while( byte < 0 ){
 
-            if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
-
-                status = -4;
-                goto end;
-            }
+            status = -4;
+            goto end;
         }
 
-        uint8_t b = rx_dma_buf[next_byte];
+        uint8_t b = byte;
         next_byte++;
 
         if( b == SLIP_END ){
@@ -228,16 +222,14 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
         else if( b == SLIP_ESC ){
 
             // wait for byte
-            while( hal_wifi_u16_dma_rx_bytes() == next_byte ){
+            byte = hal_wifi_i16_usart_get_char_timeout( timeout );
+            if( byte < 0 ){
 
-                if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
-
-                    status = -5;
-                    goto end;
-                }
+                status = -5;
+                goto end;
             }
 
-            b = rx_dma_buf[next_byte];
+            b = byte;
             next_byte++;
 
             if( b == SLIP_ESC_END ){
@@ -271,10 +263,7 @@ end:
     if( status != 0 ){
 
         log_v_debug_P( PSTR("loader error: %d"), status );
-        log_v_debug_P( PSTR("%2x %2x %2x %2x %2x %2x %2x %2x"), rx_dma_buf[0], rx_dma_buf[1], rx_dma_buf[2], rx_dma_buf[3], rx_dma_buf[4], rx_dma_buf[5], rx_dma_buf[6], rx_dma_buf[7] );
     }
-
-    hal_wifi_v_disable_rx_dma();
 
     return status;
 }
@@ -449,14 +438,10 @@ int8_t esp_i8_load_flash( file_t file ){
         return -1;
     }
 
-    hal_wifi_v_clear_rx_buffer();
-    hal_wifi_v_enable_rx_dma( FALSE );
+    uint8_t buf[6];
+    memset( buf, 0, sizeof(buf) );
 
-    // cast rx_dma_buf to a volatile pointer.
-    // otherwise, GCC will attempt to be clever and cache
-    // the first byte of rx_dma_buf, which will cause
-    // the check for SLIP_END to fail.
-    volatile uint8_t *buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
+    hal_wifi_v_usart_flush();
 
     esp_write_flash_t cmd;
     cmd.addr = 0;
@@ -471,15 +456,8 @@ int8_t esp_i8_load_flash( file_t file ){
     slip_v_send_data( (uint8_t *)&cmd, sizeof(cmd) );
     hal_wifi_v_usart_send_char( SLIP_END );
 
-    for( uint8_t i = 0; i < 100; i++ ){
-
-        _delay_us( 50 );
-
-        if( buf[5] == SLIP_END ){
-
-            break;
-        }
-    }
+    // wait for buffer
+    hal_wifi_i8_usart_receive( buf, sizeof(buf), 5000 );    
 
     if( !( ( buf[0] == SLIP_END ) &&
            ( buf[1] == 0 ) &&
@@ -490,7 +468,6 @@ int8_t esp_i8_load_flash( file_t file ){
 
         log_v_debug_P( PSTR("error") );
 
-        hal_wifi_v_disable_rx_dma();
         return -1;
     }
 
@@ -510,7 +487,6 @@ int8_t esp_i8_load_flash( file_t file ){
 
         if( read < 0 ){
 
-            hal_wifi_v_disable_rx_dma();
             return -2;
         }
 
@@ -520,32 +496,27 @@ int8_t esp_i8_load_flash( file_t file ){
             file_buf[3] = 0;
         }
 
+        hal_wifi_v_usart_flush();
+
         hal_wifi_v_usart_send_data( file_buf, sizeof(file_buf) );
 
         len += sizeof(file_buf);
 
         if( ( len % 1024 ) == 0 ){
 
-            hal_wifi_v_clear_rx_buffer();
-            hal_wifi_v_enable_rx_dma( FALSE );
+            // checking that last response packet got sent,
+            // but not actually checking value
 
-            for( uint8_t i = 0; i < 250; i++ ){
+            if( hal_wifi_i16_usart_get_char_timeout( 250000 ) == SLIP_END ){
 
                 _delay_ms( 1 );
+            }
+            else{
 
-                // checking that last response packet got sent,
-                // but not actually checking value
-                if( buf[0] == SLIP_END ){
-
-                    _delay_ms( 1 );
-
-                    break;
-                }
+                return -3;
             }
         }
     }
-
-    hal_wifi_v_disable_rx_dma();
 
     return 0;
 }
@@ -553,14 +524,12 @@ int8_t esp_i8_load_flash( file_t file ){
 // Cesanta protocol
 int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
 
-    hal_wifi_v_clear_rx_buffer();
-    hal_wifi_v_enable_rx_dma( FALSE );
-
     esp_digest_t cmd;
     cmd.addr = 0;
     cmd.len = len;
     cmd.block_size = 0;
 
+    hal_wifi_v_usart_flush();
 
     hal_wifi_v_usart_send_char( SLIP_END );
     slip_v_send_byte( ESP_CESANTA_CMD_FLASH_DIGEST );
@@ -570,58 +539,42 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     slip_v_send_data( (uint8_t *)&cmd, sizeof(cmd) );
     hal_wifi_v_usart_send_char( SLIP_END );
 
-    // cast rx_dma_buf to a volatile pointer.
-    // otherwise, GCC will attempt to be clever and cache
-    // the first byte of rx_dma_buf, which will cause
-    // the check for SLIP_END to fail.
-    volatile uint8_t *buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
+    // checking that response packet got sent
+    if( hal_wifi_i16_usart_get_char_timeout( 500000 ) != SLIP_END ){
 
-    for( uint8_t i = 0; i < 250; i++ ){
-
-        _delay_ms( 2 );
-
-        // checking that last response packet got sent,
-
-        if( buf[0] == SLIP_END ){
-
-            _delay_ms( 5 ); // wait for rest of response
-
-            break;
-        }
-    }
-
-    if( buf[0] != SLIP_END ){
-
-        hal_wifi_v_disable_rx_dma();
         return -2;
     }
-
 
     memset( digest, 0xff, MD5_LEN );
     uint8_t md5_idx = 0;
 
     // parse response
-    for( uint8_t i = 1; i < WIFI_UART_RX_BUF_SIZE; i++ ){
+    while( md5_idx < MD5_LEN ){
 
-        if( md5_idx >= MD5_LEN ){
+        int16_t byte = hal_wifi_i16_usart_get_char_timeout( 10000 );
+
+        if( byte < 0 ){
+
+            return -3;
+        }
+        else if( byte == SLIP_END ){
 
             break;
         }
+        else if( byte == SLIP_ESC ){
 
-        if( buf[i] == SLIP_END ){
+            byte = hal_wifi_i16_usart_get_char_timeout( 10000 );
 
-            break;
-        }
-        else if( buf[i] == SLIP_ESC ){
+            if( byte < 0 ){
 
-            i++;
-
-            if( buf[i] == SLIP_ESC_END ){
+               return -4;
+            }
+            else if( byte == SLIP_ESC_END ){
 
                 digest[md5_idx] = SLIP_END;
                 md5_idx++;
             }
-            else if( buf[i] == SLIP_ESC_ESC ){
+            else if( byte == SLIP_ESC_ESC ){
 
                 digest[md5_idx] = SLIP_ESC;
                 md5_idx++;
@@ -629,12 +582,11 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
         }
         else{
 
-            digest[md5_idx] = buf[i];
+            digest[md5_idx] = byte;
             md5_idx++;
         }
     }
 
-    hal_wifi_v_disable_rx_dma();
     return 0;
 }
 
