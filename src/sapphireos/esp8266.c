@@ -244,8 +244,6 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     header.crc = crc_u16_finish( crc );
 
 
-    hal_wifi_v_clear_rx_ready();
-
     hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
     hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
     hal_wifi_v_usart_send_data( data, len );
@@ -363,8 +361,6 @@ static void transmit_udp( netmsg_t tx_netmsg ){
     crc = crc_u16_partial_block( crc, h2, h2_len );
     crc = crc_u16_partial_block( crc, data, data_len );
     header.crc = crc_u16_finish( crc );
-
-    hal_wifi_v_clear_rx_ready();
 
     hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
     hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
@@ -694,290 +690,293 @@ PT_END( pt );
 }
 
 
-static int8_t process_rx_data( void ){
+//static 
+int8_t process_rx_data( void ){
 
-    int8_t status = 0;
+    return -1;
 
-    int16_t rx_bytes = hal_wifi_i16_rx_data_received();
+//     int8_t status = 0;
 
-    if( rx_bytes < 0 ){
+//     int16_t rx_bytes = hal_wifi_i16_rx_data_received();
 
-        return -1;
-    }
+//     if( rx_bytes < 0 ){
 
-    // reset buffer control byte
-    hal_wifi_v_reset_control_byte();
+//         return -1;
+//     }
 
-    uint8_t buf[WIFI_UART_RX_BUF_SIZE];
+//     // reset buffer control byte
+//     hal_wifi_v_reset_control_byte();
 
-    uint8_t *rx_buf = hal_wifi_u8p_get_rx_buf_ptr();
+//     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
 
-    wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
+//     uint8_t *rx_buf = hal_wifi_u8p_get_rx_buf_ptr();
 
-    uint16_t msg_len = sizeof(wifi_data_header_t) + header->len ;
+//     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
 
-    // validate msg size
-    if( msg_len > WIFI_UART_RX_BUF_SIZE ){
+//     uint16_t msg_len = sizeof(wifi_data_header_t) + header->len ;
 
-        log_v_debug_P( PSTR("Wifi msg len error. ID:0x%02x len:%d"), header->data_id, header->len );
-        goto len_error;
-    }   
+//     // validate msg size
+//     if( msg_len > WIFI_UART_RX_BUF_SIZE ){
 
-    memcpy( buf, &rx_buf[1], msg_len );
+//         log_v_debug_P( PSTR("Wifi msg len error. ID:0x%02x len:%d"), header->data_id, header->len );
+//         goto len_error;
+//     }   
 
-    hal_wifi_v_release_rx_buffer();
+//     memcpy( buf, &rx_buf[1], msg_len );
 
-    header = (wifi_data_header_t *)buf;
-    uint8_t *data = (uint8_t *)( header + 1 );
+//     hal_wifi_v_release_rx_buffer();
 
-    uint16_t msg_crc = header->crc;
-    header->crc = 0;
+//     header = (wifi_data_header_t *)buf;
+//     uint8_t *data = (uint8_t *)( header + 1 );
 
-    uint16_t computed_crc = crc_u16_block( (uint8_t *)header, msg_len );
-    if( computed_crc != msg_crc ){
+//     uint16_t msg_crc = header->crc;
+//     header->crc = 0;
 
-        log_v_debug_P( PSTR("Wifi crc error. ID:0x%02x len:%d crc: 0x%04x != 0x%04x"), header->data_id, header->len, computed_crc, msg_crc );
-        status = -2;
-        goto end;
-    }
+//     uint16_t computed_crc = crc_u16_block( (uint8_t *)header, msg_len );
+//     if( computed_crc != msg_crc ){
 
-    if( header->data_id == WIFI_DATA_ID_STATUS ){
+//         log_v_debug_P( PSTR("Wifi crc error. ID:0x%02x len:%d crc: 0x%04x != 0x%04x"), header->data_id, header->len, computed_crc, msg_crc );
+//         status = -2;
+//         goto end;
+//     }
 
-        if( header->len != sizeof(wifi_msg_status_t) ){
+//     if( header->data_id == WIFI_DATA_ID_STATUS ){
 
-            goto len_error;
-        }
+//         if( header->len != sizeof(wifi_msg_status_t) ){
 
-        wifi_msg_status_t *msg = (wifi_msg_status_t *)data;
+//             goto len_error;
+//         }
 
-        wifi_status_reg = msg->flags;
-    }  
-    else if( header->data_id == WIFI_DATA_ID_INFO ){
+//         wifi_msg_status_t *msg = (wifi_msg_status_t *)data;
 
-        if( header->len != sizeof(wifi_msg_info_t) ){
+//         wifi_status_reg = msg->flags;
+//     }  
+//     else if( header->data_id == WIFI_DATA_ID_INFO ){
 
-            goto len_error;
-        }
+//         if( header->len != sizeof(wifi_msg_info_t) ){
 
-        wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
+//             goto len_error;
+//         }
 
-        wifi_version            = msg->version;
+//         wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
+
+//         wifi_version            = msg->version;
         
-        if( wifi_b_connected() ){
+//         if( wifi_b_connected() ){
             
-            wifi_rssi               = msg->rssi;
-        }
+//             wifi_rssi               = msg->rssi;
+//         }
         
-        memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
+//         memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
 
-        uint64_t current_device_id = 0;
-        cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
-        uint64_t device_id = 0;
-        memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
+//         uint64_t current_device_id = 0;
+//         cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
+//         uint64_t device_id = 0;
+//         memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
 
-        if( current_device_id != device_id ){
+//         if( current_device_id != device_id ){
 
-            cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
-        }
+//             cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
+//         }
 
-        cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg->ip );
-        cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
-        cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
+//         cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg->ip );
+//         cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
+//         cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
 
-        wifi_rx_udp_overruns        = msg->rx_udp_overruns;
-        wifi_udp_received           = msg->udp_received;
-        wifi_udp_sent               = msg->udp_sent;
-        wifi_comm_errors            = msg->comm_errors;
-        mem_heap_peak               = msg->mem_heap_peak;
-        mem_used                    = msg->mem_used;
+//         wifi_rx_udp_overruns        = msg->rx_udp_overruns;
+//         wifi_udp_received           = msg->udp_received;
+//         wifi_udp_sent               = msg->udp_sent;
+//         wifi_comm_errors            = msg->comm_errors;
+//         mem_heap_peak               = msg->mem_heap_peak;
+//         mem_used                    = msg->mem_used;
 
-        intf_max_time               = msg->intf_max_time;
-        vm_max_time                 = msg->vm_max_time;
-        wifi_max_time               = msg->wifi_max_time;
-        mem_max_time                = msg->mem_max_time;
+//         intf_max_time               = msg->intf_max_time;
+//         vm_max_time                 = msg->vm_max_time;
+//         wifi_max_time               = msg->wifi_max_time;
+//         mem_max_time                = msg->mem_max_time;
 
-        intf_avg_time               = msg->intf_avg_time;
-        vm_avg_time                 = msg->vm_avg_time;
-        wifi_avg_time               = msg->wifi_avg_time;
-        mem_avg_time                = msg->mem_avg_time;
-    }
-    else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
+//         intf_avg_time               = msg->intf_avg_time;
+//         vm_avg_time                 = msg->vm_avg_time;
+//         wifi_avg_time               = msg->wifi_avg_time;
+//         mem_avg_time                = msg->mem_avg_time;
+//     }
+//     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
 
-        if( header->len < sizeof(wifi_msg_udp_header_t) ){
+//         if( header->len < sizeof(wifi_msg_udp_header_t) ){
 
-            goto len_error;
-        }
+//             goto len_error;
+//         }
 
-        wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+//         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
 
-        // check if sockets module is busy
-        if( sock_b_rx_pending() ){
+//         // check if sockets module is busy
+//         if( sock_b_rx_pending() ){
 
-            log_v_debug_P( PSTR("sock rx pending: %u"), msg->rport );
-            goto error;
-        }
+//             log_v_debug_P( PSTR("sock rx pending: %u"), msg->rport );
+//             goto error;
+//         }
         
-        #ifndef SOCK_SINGLE_BUF
-        // check if port is busy
-        if( sock_b_port_busy( msg->rport ) ){
+//         #ifndef SOCK_SINGLE_BUF
+//         // check if port is busy
+//         if( sock_b_port_busy( msg->rport ) ){
 
-            log_v_debug_P( PSTR("port busy: %u"), msg->rport );
-            goto error;
-        }
-        #endif
+//             log_v_debug_P( PSTR("port busy: %u"), msg->rport );
+//             goto error;
+//         }
+//         #endif
 
-        // check if we have a netmsg that didn't get freed for some reason
-        if( rx_netmsg > 0 ){
+//         // check if we have a netmsg that didn't get freed for some reason
+//         if( rx_netmsg > 0 ){
 
-            log_v_debug_P( PSTR("freeing loose netmsg") );     
+//             log_v_debug_P( PSTR("freeing loose netmsg") );     
 
-            netmsg_v_release( rx_netmsg );
-            rx_netmsg = -1;
-        }
+//             netmsg_v_release( rx_netmsg );
+//             rx_netmsg = -1;
+//         }
 
-        // allocate netmsg
-        rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
+//         // allocate netmsg
+//         rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
 
-        if( rx_netmsg < 0 ){
+//         if( rx_netmsg < 0 ){
 
-            log_v_debug_P( PSTR("rx udp alloc fail") );     
+//             log_v_debug_P( PSTR("rx udp alloc fail") );     
 
-            goto error;
-        }
+//             goto error;
+//         }
 
-        netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
+//         netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
 
-        // allocate data buffer
-        state->data_handle = mem2_h_alloc2( msg->len, MEM_TYPE_SOCKET_BUFFER );
+//         // allocate data buffer
+//         state->data_handle = mem2_h_alloc2( msg->len, MEM_TYPE_SOCKET_BUFFER );
 
-        if( state->data_handle < 0 ){
+//         if( state->data_handle < 0 ){
 
-            log_v_debug_P( PSTR("rx udp no handle") );     
+//             log_v_debug_P( PSTR("rx udp no handle") );     
 
-            netmsg_v_release( rx_netmsg );
-            rx_netmsg = 0;
+//             netmsg_v_release( rx_netmsg );
+//             rx_netmsg = 0;
 
-            goto error;
-        }      
+//             goto error;
+//         }      
 
 
-        udp_busy = TRUE;
+//         udp_busy = TRUE;
 
-        // set up address info
-        state->laddr.port   = msg->lport;
-        state->raddr.port   = msg->rport;
-        state->raddr.ipaddr = msg->addr;
+//         // set up address info
+//         state->laddr.port   = msg->lport;
+//         state->raddr.port   = msg->rport;
+//         state->raddr.ipaddr = msg->addr;
 
-        rx_netmsg_crc       = msg->crc;
+//         rx_netmsg_crc       = msg->crc;
 
-        // copy data
-        data += sizeof(wifi_msg_udp_header_t);
+//         // copy data
+//         data += sizeof(wifi_msg_udp_header_t);
 
-        uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
+//         uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
 
-        // we can get a fast ptr because we've already verified the handle
-        memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
+//         // we can get a fast ptr because we've already verified the handle
+//         memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
 
-        rx_netmsg_index = data_len;
-    }
-    else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
+//         rx_netmsg_index = data_len;
+//     }
+//     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
 
-        if( rx_netmsg <= 0 ){
+//         if( rx_netmsg <= 0 ){
 
-            // log_v_debug_P( PSTR("rx udp no netmsg") );     
+//             // log_v_debug_P( PSTR("rx udp no netmsg") );     
 
-            goto error;
-        }
+//             goto error;
+//         }
 
-        netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
-        uint8_t *ptr = mem2_vp_get_ptr( state->data_handle );        
-        uint16_t total_len = mem2_u16_get_size( state->data_handle );
+//         netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
+//         uint8_t *ptr = mem2_vp_get_ptr( state->data_handle );        
+//         uint16_t total_len = mem2_u16_get_size( state->data_handle );
 
-        // bounds check
-        if( ( header->len + rx_netmsg_index ) > total_len ){
+//         // bounds check
+//         if( ( header->len + rx_netmsg_index ) > total_len ){
 
-            log_v_debug_P( PSTR("rx udp len error") );     
+//             log_v_debug_P( PSTR("rx udp len error") );     
 
-            // bad length, throwaway
-            netmsg_v_release( rx_netmsg );
-            rx_netmsg = 0;
+//             // bad length, throwaway
+//             netmsg_v_release( rx_netmsg );
+//             rx_netmsg = 0;
 
-            goto error;
-        }
+//             goto error;
+//         }
 
-        memcpy( &ptr[rx_netmsg_index], data, header->len );
+//         memcpy( &ptr[rx_netmsg_index], data, header->len );
 
-        rx_netmsg_index += header->len;
+//         rx_netmsg_index += header->len;
 
-        // message is complete
-        if( rx_netmsg_index == total_len ){
+//         // message is complete
+//         if( rx_netmsg_index == total_len ){
 
-            // check crc
-            if( crc_u16_block( ptr, total_len ) != rx_netmsg_crc ){
+//             // check crc
+//             if( crc_u16_block( ptr, total_len ) != rx_netmsg_crc ){
 
-                netmsg_v_release( rx_netmsg );
-                rx_netmsg = 0;
+//                 netmsg_v_release( rx_netmsg );
+//                 rx_netmsg = 0;
 
-                log_v_debug_P( PSTR("rx udp crc error") );     
+//                 log_v_debug_P( PSTR("rx udp crc error") );     
 
-                goto error;
-            }
+//                 goto error;
+//             }
 
-            netmsg_v_receive( rx_netmsg );
-            rx_netmsg = 0;
+//             netmsg_v_receive( rx_netmsg );
+//             rx_netmsg = 0;
 
-            // signals receiver that a UDP msg was received
-            status = 1;
-        }   
-    }
-    else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
+//             // signals receiver that a UDP msg was received
+//             status = 1;
+//         }   
+//     }
+//     else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
     
-        if( wifi_networks_handle < 0 ){        
+//         if( wifi_networks_handle < 0 ){        
 
-            wifi_networks_handle = mem2_h_alloc( sizeof(wifi_msg_scan_results_t) );
+//             wifi_networks_handle = mem2_h_alloc( sizeof(wifi_msg_scan_results_t) );
 
-            if( wifi_networks_handle > 0 ){
+//             if( wifi_networks_handle > 0 ){
 
-                memcpy( mem2_vp_get_ptr( wifi_networks_handle ), data, sizeof(wifi_msg_scan_results_t) );
-            }
-        }
+//                 memcpy( mem2_vp_get_ptr( wifi_networks_handle ), data, sizeof(wifi_msg_scan_results_t) );
+//             }
+//         }
 
-        // wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)data;
+//         // wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)data;
 
-        // for( uint8_t i = 0; i < msg->count; i++ ){
+//         // for( uint8_t i = 0; i < msg->count; i++ ){
 
-        //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
-        // }
-    }
-    else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
+//         //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
+//         // }
+//     }
+//     else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
-        log_v_debug_P( PSTR("ESP: %s"), data );
-    }
-    // check if msg handler is installed
-    else if( wifi_i8_msg_handler ){
+//         log_v_debug_P( PSTR("ESP: %s"), data );
+//     }
+//     // check if msg handler is installed
+//     else if( wifi_i8_msg_handler ){
 
-        wifi_i8_msg_handler( header->data_id, data, header->len );
-    }
+//         wifi_i8_msg_handler( header->data_id, data, header->len );
+//     }
 
-    watchdog = WIFI_WATCHDOG_TIMEOUT;
+//     watchdog = WIFI_WATCHDOG_TIMEOUT;
 
-    goto end;
+//     goto end;
 
-len_error:
+// len_error:
 
-    wifi_comm_errors2++;
+//     wifi_comm_errors2++;
 
-    log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
-    status = -3;    
-    goto end;
+//     log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
+//     status = -3;    
+//     goto end;
 
-error:
-    wifi_comm_errors2++;
-    status = -4;
-    goto end;    
+// error:
+//     wifi_comm_errors2++;
+//     status = -4;
+//     goto end;    
 
-end:
-    return status;
+// end:
+//     return status;
 }
 
 
@@ -992,34 +991,24 @@ restart:
     hal_wifi_v_enter_normal_mode();
     wifi_status_reg = 0;
 
-    hal_wifi_v_clear_rx_ready();
-
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
 
-    hal_wifi_v_enable_irq();
-    
-    hal_wifi_v_reset_control_byte();
-    hal_wifi_v_reset_comm();
 
-    TMR_WAIT( pt, 100 );
 
-    if( !hal_wifi_b_comm_ready() ){
+    // wait for connection from wifi module
 
-        goto restart;
-    }
+
+
 
     wifi_status = WIFI_STATE_ALIVE;
     
-    // set ready and wait for message
-    hal_wifi_v_set_rx_ready();
-
     while(1){
 
         thread_v_set_signal_flag();
         THREAD_WAIT_WHILE( pt, ( list_u8_count( &netmsg_list ) == 0 ) && 
                                ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
-                               ( hal_wifi_u8_get_control_byte() == WIFI_COMM_IDLE ) &&
+                               ( !hal_wifi_b_usart_rx_available() ) &&
                                ( !is_udp_rx_released() ) );
         thread_v_clear_signal( WIFI_SIGNAL );
         thread_v_clear_signal_flag();
@@ -1034,62 +1023,60 @@ restart:
             goto restart;
         }
 
-        // check if UDP buffer is clear (and transmit interface is available)
-        if( is_udp_rx_released() && hal_wifi_b_comm_ready() ){
+//         // check if UDP buffer is clear (and transmit interface is available)
+//         if( is_udp_rx_released() && hal_wifi_b_comm_ready() ){
             
-            wifi_i8_send_msg( WIFI_DATA_ID_UDP_BUF_READY, 0, 0 );
+//             wifi_i8_send_msg( WIFI_DATA_ID_UDP_BUF_READY, 0, 0 );
 
-            udp_busy = FALSE;        
-        }
+//             udp_busy = FALSE;        
+//         }
 
-        // check control byte for a ready query
-        if( hal_wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){
+//         // check control byte for a ready query
+//         if( hal_wifi_u8_get_control_byte() == WIFI_COMM_QUERY_READY ){
 
-            log_v_debug_P( PSTR("query ready") );
-            hal_wifi_v_reset_control_byte();
+//             log_v_debug_P( PSTR("query ready") );
+//             hal_wifi_v_reset_control_byte();
 
-            // send ready signal
-            // this will also reset the DMA engine.
-            hal_wifi_v_set_rx_ready();
+//             // send ready signal
+//             // this will also reset the DMA engine.
+//             hal_wifi_v_set_rx_ready();
 
-            if( comm_stalls < 255 ){
+//             if( comm_stalls < 255 ){
 
-                comm_stalls++;
-            }
+//                 comm_stalls++;
+//             }
 
-            continue;
-        }
+//             continue;
+//         }
 
-        uint8_t msgs_received = 0;
+//         uint8_t msgs_received = 0;
 
-        // check for udp transmission
-        if( list_u8_count( &netmsg_list ) > 0 ){
+//         // check for udp transmission
+//         if( list_u8_count( &netmsg_list ) > 0 ){
 
-            // check if transmission is available
-            if( !hal_wifi_b_comm_ready() ){
+//             // check if transmission is available
+//             if( !hal_wifi_b_comm_ready() ){
 
-                // comm is not ready.
+//                 // comm is not ready.
 
-                // re-signal thread, then bail out to receive handler
-                thread_v_signal( WIFI_SIGNAL );
+//                 // re-signal thread, then bail out to receive handler
+//                 thread_v_signal( WIFI_SIGNAL );
 
-                goto receive;
-            }
+//                 goto receive;
+//             }
 
             
-            netmsg_t tx_netmsg = list_ln_remove_tail( &netmsg_list );
+//             netmsg_t tx_netmsg = list_ln_remove_tail( &netmsg_list );
 
-            transmit_udp( tx_netmsg );
-        }
+//             transmit_udp( tx_netmsg );
+//         }
 
-receive:
-        while( ( process_rx_data() == 0 ) &&
-               ( msgs_received < 8 ) ){
+// receive:
+//         while( ( process_rx_data() == 0 ) &&
+//                ( msgs_received < 8 ) ){
 
-            msgs_received++;
-        }
-
-        max_ready_wait = hal_wifi_u32_get_max_ready_wait();
+//             msgs_received++;
+//         }
 
         THREAD_YIELD( pt );
         THREAD_YIELD( pt );
@@ -1202,9 +1189,6 @@ restart:
         memset( buf, 0xff, sizeof(buf) );
 
 
-        hal_wifi_v_clear_rx_buffer();
-        hal_wifi_v_enable_rx_dma( FALSE );
-
         // ESP seems to miss the first sync for some reason,
         // so we'll just send twice.
         // it's not really a big deal from a timing standpoint since
@@ -1216,8 +1200,6 @@ restart:
 
         // blocking wait!
         int8_t status = esp_i8_wait_response( buf, sizeof(buf), ESP_SYNC_TIMEOUT );
-
-        
 
         if( status == 0 ){
 
@@ -1249,43 +1231,20 @@ restart:
     hal_wifi_v_usart_set_baud( ESP_CESANTA_BAUD_USART_SETTING );
     hal_wifi_v_usart_flush();    
 
-    // clear buffer
-    hal_wifi_v_clear_rx_buffer();
-    // re-enable rx buffer
-    hal_wifi_v_enable_rx_dma( FALSE );
 
-    // cesanta stub has a delay, so make sure we wait plenty long enough
-    _delay_ms( 50 );
+    uint8_t buf[4];
+    esp_i8_wait_response( buf, sizeof(buf), 100000 );    
 
-    uint8_t *rx_dma_buf = hal_wifi_u8p_get_rx_dma_buf_ptr();
+    if( ( buf[0] != 'O' ) ||
+        ( buf[1] != 'H' ) ||
+        ( buf[2] != 'A' ) ||
+        ( buf[3] != 'I' ) ){
 
-    bool ok = FALSE;
-    // now check buffer, Cesanta will send us a hello message
-    for( uint8_t i = 0; i < 4; i++ ){
-
-        if( ( ( rx_dma_buf[i + 0] == SLIP_END ) &&
-              ( rx_dma_buf[i + 1] == 'O' ) &&
-              ( rx_dma_buf[i + 2] == 'H' ) &&
-              ( rx_dma_buf[i + 3] == 'A' ) &&
-              ( rx_dma_buf[i + 4] == 'I' ) &&
-              ( rx_dma_buf[i + 5] == SLIP_END ) ) ){
-
-            ok = TRUE;
-            break;
-        }
-    }
-
-    if( !ok ){
-
-        log_v_debug_P( PSTR("error: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"),
-                rx_dma_buf[0],
-                rx_dma_buf[1],
-                rx_dma_buf[2],
-                rx_dma_buf[3],
-                rx_dma_buf[4],
-                rx_dma_buf[5] );
-
-        hal_wifi_v_disable_rx_dma();
+     log_v_debug_P( PSTR("error: 0x%02x 0x%02x 0x%02x 0x%02x"),
+                buf[0],
+                buf[1],
+                buf[2],
+                buf[3] );
 
         TMR_WAIT( pt, 500 );
         goto restart;

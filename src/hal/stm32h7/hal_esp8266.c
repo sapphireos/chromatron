@@ -283,6 +283,8 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
         buf++;
         len--;
     }
+
+    return 0;
 }
 
 void hal_wifi_v_usart_flush( void ){
@@ -304,6 +306,12 @@ int16_t hal_wifi_i16_rx_data_received( void ){
 
     return -1;
 }	
+
+
+bool hal_wifi_b_comm_ready( void ){
+
+    return FALSE;
+}
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
 
