@@ -698,8 +698,10 @@ void intf_v_process( void ){
 
 void intf_v_init( void ){
 
-    pinMode( BUF_READY_GPIO, INPUT );
-    // attachInterrupt( digitalPinToInterrupt( BUF_READY_GPIO ), buf_ready_irq, FALLING );
+    pinMode( RTS_GPIO, OUTPUT );
+    pinMode( CTS_GPIO, INPUT );
+
+    digitalWrite( RTS_GPIO, HIGH );
 
     pinMode( LED_GPIO, OUTPUT );
     intf_v_led_off();
@@ -751,7 +753,60 @@ void intf_v_get_mac( uint8_t mac[6] ){
 }
 
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
-    return 0;
+
+    // assert RTS
+    digitalWrite( RTS_GPIO, LOW );
+
+    // build header and compute CRC while we wait for CTS
+    wifi_data_header_t header;
+    header.data_id  = data_id;
+    header.len      = len;
+    header.flags    = 0;
+    header.reserved = 0;
+    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) );
+
+    uint16_t data_crc = crc_u16_block( data, len );
+
+    // wait for CTS
+    while( digitalRead( CTS_GPIO ) != 0 );
+
+
+    // we can deassert RTS now
+    digitalWrite( RTS_GPIO, HIGH );
+
+    uint8_t tries = WIFI_COMM_TRIES;
+
+    while( tries > 0 ){
+
+        tries--;
+
+        Serial.write( WIFI_COMM_DATA );
+        Serial.write( (uint8_t *)&header, sizeof(wifi_data_header_t) );
+        Serial.write( data, len );
+        Serial.write( (uint8_t *)&data_crc, sizeof(data_crc) );
+
+        uint32_t timeout = start_timeout();
+
+        while( elapsed( timeout ) < WIFI_COMM_TIMEOUT ){
+
+            if( Serial.available() > 0 ){
+
+                char c = Serial.read();
+
+                if( c == WIFI_COMM_ACK ){
+
+                    return 0;
+                }
+                else if( c == WIFI_COMM_NAK ){
+
+                    break;
+                }
+            }
+        }
+    }
+
+    return -1;
+
     // // check if rx is ready
     // if( rx_ready() ){
 

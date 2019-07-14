@@ -28,7 +28,8 @@
 
 
 #define LED_GPIO 2
-#define BUF_READY_GPIO 14
+#define RTS_GPIO 14
+#define CTS_GPIO 15
 
 #ifdef __cplusplus
 extern "C"{
