@@ -75,9 +75,9 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #define NO_EVENT_LOGGING
 #include "event_log.h"
 
-
-#define WIFI_COMM_TIMEOUT 20000
-#define WIFI_CONNECT_TIMEOUT 10000
+#define WIFI_COMM_TRIES         3
+#define WIFI_COMM_TIMEOUT       20000
+#define WIFI_CONNECT_TIMEOUT    10000
 
 static uint16_t ports[WIFI_MAX_PORTS];
 static bool run_manager;
@@ -219,34 +219,114 @@ bool wifi_b_wait_comm_ready( void ){
 }
 
 
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+static uint32_t running_data_hash;
+static int16_t tx_data_remaining;
 
-    ASSERT( len <= WIFI_MAX_DATA_LEN );
-    
-    if( !hal_wifi_b_comm_ready() ){
+int8_t wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
-        log_v_debug_P( PSTR("rx not ready! %x"), data_id ); 
+    uint8_t tries = WIFI_COMM_TRIES;
 
-        return -1;  
-    }
-
-    uint16_t crc = crc_u16_start();
+    // start data check and data length
+    running_data_hash   = hash_u32_start();
+    tx_data_remaining   = data_len;
 
     wifi_data_header_t header;
-    header.len      = len;
-    header.reserved = 0;
     header.data_id  = data_id;
-    header.crc      = 0;
-    crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );    
+    header.len      = data_len;
+    header.flags    = 0;
+    header.reserved = 0;
+        
+    header.header_hash  = hash_u32_data( (uint8_t *)&header, sizeof(header) );
 
-    crc = crc_u16_partial_block( crc, data, len );
+    while( tries > 0 ){
 
-    header.crc = crc_u16_finish( crc );
+        tries--;
+
+        // transmit header
+        hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
+
+        // if data length is more than the single shot limit,
+        // wait for ACK/NAK
+        if( data_len > WIFI_MAX_SINGLE_SHOT_LEN ){
+
+            int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
+
+            if( byte == WIFI_COMM_ACK ){
+
+                return 0;
+            }
+        }
+        else{
+
+            // no need to wait for ack, so we're good
+            return 0;
+        }
+    }
+
+    log_v_debug_P( PSTR("header failed") );
+
+    return -1;
+}
+
+int8_t wifi_i8_send_chunk( uint8_t *data, uint16_t len ){
+ 
+    while( ( len > 0 ) && ( tx_data_remaining > 0 ) ){
+
+        // send byte
+        hal_wifi_v_usart_send_char( *data );
+
+        // NOTE TO SELF
+        // we will need to switch from the hardware crc module to
+        // the software version if we want to stream from a file 
+        // over the wifi bus.  otherwise the file system will 
+
+        // update hash
+        running_data_hash = hash_u32_single( running_data_hash, *data );
+
+        data++;
+        len--;
+        tx_data_remaining--;
+    }
+
+    // check if this is the last chunk
+    if( tx_data_remaining == 0 ){
+
+        // send 32 bit hash
+        hal_wifi_v_usart_send_data( (uint8_t *)&running_data_hash, sizeof(running_data_hash) );
+
+        return 1; // indicate we have completed sending the data chunk
+    }
+
+    return 0;
+}
 
 
-    hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
-    hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
-    hal_wifi_v_usart_send_data( data, len );
+int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+
+    // if( !hal_wifi_b_comm_ready() ){
+
+    //     log_v_debug_P( PSTR("rx not ready! %x"), data_id ); 
+
+    //     return -1;  
+    // }
+
+    // uint16_t crc = crc_u16_start();
+
+    // wifi_data_header_t header;
+    // header.len      = len;
+    // header.reserved = 0;
+    // header.data_id  = data_id;
+    // header.crc      = 0;
+    // crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );    
+
+    // crc = crc_u16_partial_block( crc, data, len );
+
+    // header.crc = crc_u16_finish( crc );
+
+
+    // hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
+    // hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
+    // hal_wifi_v_usart_send_data( data, len );
 
     return 0;
 }
@@ -314,63 +394,63 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
 static void transmit_udp( netmsg_t tx_netmsg ){
 
-    netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
+    // netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
 
-    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
+    // ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
 
-    uint16_t data_len = 0;
+    // uint16_t data_len = 0;
 
-    uint16_t crc = crc_u16_start();
+    // uint16_t crc = crc_u16_start();
 
-    uint8_t *data = 0;
-    uint8_t *h2 = 0;
-    uint16_t h2_len = 0;
+    // uint8_t *data = 0;
+    // uint8_t *h2 = 0;
+    // uint16_t h2_len = 0;
 
-    if( netmsg_state->data_handle > 0 ){
+    // if( netmsg_state->data_handle > 0 ){
 
-        data = mem2_vp_get_ptr( netmsg_state->data_handle );
-        data_len = mem2_u16_get_size( netmsg_state->data_handle );
-    }
+    //     data = mem2_vp_get_ptr( netmsg_state->data_handle );
+    //     data_len = mem2_u16_get_size( netmsg_state->data_handle );
+    // }
 
-    // header 2, if present
-    if( netmsg_state->header_2_handle > 0 ){
+    // // header 2, if present
+    // if( netmsg_state->header_2_handle > 0 ){
 
-        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
-    }
+    //     h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+    //     h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+    // }
 
-    // setup header
-    wifi_msg_udp_header_t udp_header;
-    udp_header.addr = netmsg_state->raddr.ipaddr;
-    udp_header.lport = netmsg_state->laddr.port;
-    udp_header.rport = netmsg_state->raddr.port;
-    udp_header.len = data_len + h2_len;
-    udp_header.crc = 0;
+    // // setup header
+    // wifi_msg_udp_header_t udp_header;
+    // udp_header.addr = netmsg_state->raddr.ipaddr;
+    // udp_header.lport = netmsg_state->laddr.port;
+    // udp_header.rport = netmsg_state->raddr.port;
+    // udp_header.len = data_len + h2_len;
+    // udp_header.crc = 0;
     
 
-    uint16_t len = data_len + h2_len + sizeof(udp_header);
+    // uint16_t len = data_len + h2_len + sizeof(udp_header);
 
-    wifi_data_header_t header;
-    header.len      = len;
-    header.reserved = 0;
-    header.data_id  = WIFI_DATA_ID_UDP_EXT;
-    header.crc      = 0;                
+    // wifi_data_header_t header;
+    // header.len      = len;
+    // header.reserved = 0;
+    // header.data_id  = WIFI_DATA_ID_UDP_EXT;
+    // header.crc      = 0;                
 
-    crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
-    crc = crc_u16_partial_block( crc, (uint8_t *)&udp_header, sizeof(udp_header) );
-    crc = crc_u16_partial_block( crc, h2, h2_len );
-    crc = crc_u16_partial_block( crc, data, data_len );
-    header.crc = crc_u16_finish( crc );
+    // crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
+    // crc = crc_u16_partial_block( crc, (uint8_t *)&udp_header, sizeof(udp_header) );
+    // crc = crc_u16_partial_block( crc, h2, h2_len );
+    // crc = crc_u16_partial_block( crc, data, data_len );
+    // header.crc = crc_u16_finish( crc );
 
-    hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
-    hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
-    hal_wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
-    hal_wifi_v_usart_send_data( h2, h2_len );
-    hal_wifi_v_usart_send_data( data, data_len );   
+    // hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
+    // hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
+    // hal_wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
+    // hal_wifi_v_usart_send_data( h2, h2_len );
+    // hal_wifi_v_usart_send_data( data, data_len );   
 
 
-    // release netmsg
-    netmsg_v_release( tx_netmsg );
+    // // release netmsg
+    // netmsg_v_release( tx_netmsg );
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){

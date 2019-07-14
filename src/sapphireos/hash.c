@@ -83,5 +83,11 @@ uint32_t hash_u32_partial( uint32_t hash, uint8_t *data, uint16_t len ){
     return fnv1a( hash, data, len );
 }
 
+uint32_t hash_u32_single( uint32_t hash, uint8_t data ){
 
+    hash ^= data;
+    hash *= FNV_32BIT_PRIME;
+
+    return hash;
+}   
 

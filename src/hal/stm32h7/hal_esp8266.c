@@ -40,11 +40,11 @@ static uint32_t current_rx_bytes;
 static USART_t wifi_usart;
 
 static bool normal_mode;
-static uint16_t timeouts;
+// static uint16_t timeouts;
 
-KV_SECTION_META kv_meta_t hal_wifi_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, &timeouts, 0,   "wifi_hal_timeouts" },
-};
+// KV_SECTION_META kv_meta_t hal_wifi_kv[] = {
+//     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, &timeouts, 0,   "wifi_hal_timeouts" },
+// };
 
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
