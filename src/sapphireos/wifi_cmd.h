@@ -57,7 +57,7 @@ typedef struct __attribute__((packed)){
     uint16_t len;
     uint8_t flags;
     uint16_t reserved;
-    uint32_t header_hash;
+    uint16_t header_crc;
 } wifi_data_header_t;
 
 #define WIFI_ESP_BUF_SIZE               128        

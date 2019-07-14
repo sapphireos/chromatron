@@ -219,16 +219,9 @@ bool wifi_b_wait_comm_ready( void ){
 }
 
 
-static uint32_t running_data_hash;
-static int16_t tx_data_remaining;
-
-int8_t wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
+static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
-
-    // start data check and data length
-    running_data_hash   = hash_u32_start();
-    tx_data_remaining   = data_len;
 
     wifi_data_header_t header;
     header.data_id  = data_id;
@@ -236,11 +229,13 @@ int8_t wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
     header.flags    = 0;
     header.reserved = 0;
         
-    header.header_hash  = hash_u32_data( (uint8_t *)&header, sizeof(header) );
+    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) );
 
     while( tries > 0 ){
 
         tries--;
+
+        hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
 
         // transmit header
         hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
@@ -268,67 +263,46 @@ int8_t wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
     return -1;
 }
 
-int8_t wifi_i8_send_chunk( uint8_t *data, uint16_t len ){
- 
-    while( ( len > 0 ) && ( tx_data_remaining > 0 ) ){
-
-        // send byte
-        hal_wifi_v_usart_send_char( *data );
-
-        // NOTE TO SELF
-        // we will need to switch from the hardware crc module to
-        // the software version if we want to stream from a file 
-        // over the wifi bus.  otherwise the file system will 
-
-        // update hash
-        running_data_hash = hash_u32_single( running_data_hash, *data );
-
-        data++;
-        len--;
-        tx_data_remaining--;
-    }
-
-    // check if this is the last chunk
-    if( tx_data_remaining == 0 ){
-
-        // send 32 bit hash
-        hal_wifi_v_usart_send_data( (uint8_t *)&running_data_hash, sizeof(running_data_hash) );
-
-        return 1; // indicate we have completed sending the data chunk
-    }
-
-    return 0;
-}
-
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    // if( !hal_wifi_b_comm_ready() ){
+    uint8_t tries = WIFI_COMM_TRIES;
 
-    //     log_v_debug_P( PSTR("rx not ready! %x"), data_id ); 
+    while( tries > 0 ){
 
-    //     return -1;  
-    // }
+        tries--;
 
-    // uint16_t crc = crc_u16_start();
+        // bail out of header fails, it is already tried multiple times
+        if( _wifi_i8_send_header( data_id, len ) < 0 ){
 
-    // wifi_data_header_t header;
-    // header.len      = len;
-    // header.reserved = 0;
-    // header.data_id  = data_id;
-    // header.crc      = 0;
-    // crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );    
+            return -1;
+        }
 
-    // crc = crc_u16_partial_block( crc, data, len );
+        uint16_t crc = crc_u16_start();
 
-    // header.crc = crc_u16_finish( crc );
+        while( len > 0 ){
 
+            hal_wifi_v_usart_send_char( *data );
+            crc = crc_u16_byte( crc, *data );
 
-    // hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
-    // hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
-    // hal_wifi_v_usart_send_data( data, len );
+            data++;
+            len--;
+        }
 
-    return 0;
+        crc = crc_u16_finish( crc );
+        hal_wifi_v_usart_send_data( (uint8_t *)&crc, sizeof(crc) );
+
+        int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
+
+        if( byte == WIFI_COMM_ACK ){
+
+            return 0;
+        }
+    }
+
+    log_v_debug_P( PSTR("msg failed") );
+
+    return -1;
 }
 
 int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len ){
