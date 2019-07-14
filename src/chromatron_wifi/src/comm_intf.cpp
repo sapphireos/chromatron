@@ -29,6 +29,7 @@
 #include "irq_line.h"
 #include "version.h"
 #include "options.h"
+#include "uart.h"
 #include <ESP8266WiFi.h>
 
 extern "C"{
@@ -44,6 +45,10 @@ extern "C"{
     #include "catbus_packer.h"
     #include "comm_printf.h"
 }
+
+#define WIFI_COMM_TRIES         3
+#define WIFI_COMM_TIMEOUT       20000
+
 
 static uint32_t start_timeout( void ){
 
@@ -66,43 +71,12 @@ static int32_t elapsed( uint32_t start ){
 
 
 
-static bool connected;
-static uint32_t comm_timeout;
-// static bool request_vm_frame_sync;
-// static uint8_t vm_frame_sync_index;
-// static bool request_vm_frame_sync_status;
-// static uint8_t vm_frame_sync_status;
 static volatile bool request_reset_ready_timeout;
 
-#ifdef USE_HSV_BRIDGE
-static uint16_t hsv_index;
-static bool request_hsv_array;
-#else
-static uint16_t rgb_index;
-static bool request_rgb_pix0;
-static bool request_rgb_array;
-#endif
 
 static uint16_t comm_errors;
 
 static process_stats_t process_stats;
-
-static volatile uint32_t last_rx_ready_ts;
-static volatile bool is_rx_ready;
-static uint32_t last_status_ts;
-
-static wifi_data_header_t intf_data_header;
-static uint8_t  __attribute__ ((aligned (4))) intf_comm_buf[WIFI_BUF_LEN];
-static uint8_t intf_comm_state;
-
-static wifi_msg_udp_header_t udp_header;
-
-static wifi_msg_udp_header_t rx_udp_header;
-static uint16_t rx_udp_index;
-static bool udp_busy;
-static uint32_t udp_timeout;
-
-static list_t tx_q;
 
 
 
@@ -132,59 +106,39 @@ static void _intf_v_flush(){
     while( Serial.read() >= 0 );
 }
 
-static bool rx_ready( void ){
-
-    noInterrupts();
-    bool temp = is_rx_ready;
-    interrupts();
-
-    return temp;
-}
-
-static void clear_ready_flag( void ){
-
-    // clear ready flag
-    noInterrupts();
-    is_rx_ready = false;
-
-    // make sure to reset the ready timeout!
-    request_reset_ready_timeout = true;
-    interrupts();
-}
-
 static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    if( len > WIFI_MAIN_MAX_DATA_LEN ){
+    // if( len > WIFI_MAIN_MAX_DATA_LEN ){
 
-        comm_errors++;
+    //     comm_errors++;
 
-        return -1;
-    }
-    else if( !rx_ready() ){
+    //     return -1;
+    // }
+    // else if( !rx_ready() ){
 
-        comm_errors++;
+    //     comm_errors++;
 
-        return -2;  
-    }
+    //     return -2;  
+    // }
 
-    wifi_data_header_t header;
-    header.len      = len;
-    header.data_id  = data_id;
-    header.reserved = 0;
-    header.crc      = 0;
+    // wifi_data_header_t header;
+    // header.len      = len;
+    // header.data_id  = data_id;
+    // header.reserved = 0;
+    // header.crc      = 0;
 
-    uint16_t crc = crc_u16_start();
-    crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
+    // uint16_t crc = crc_u16_start();
+    // crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
 
-    crc = crc_u16_partial_block( crc, data, len );
+    // crc = crc_u16_partial_block( crc, data, len );
 
-    header.crc = crc_u16_finish( crc );
+    // header.crc = crc_u16_finish( crc );
 
-    clear_ready_flag();    
+    // clear_ready_flag();    
 
-    Serial.write( WIFI_COMM_DATA );
-    Serial.write( (uint8_t *)&header, sizeof(header) );
-    Serial.write( data, len );
+    // Serial.write( WIFI_COMM_DATA );
+    // Serial.write( (uint8_t *)&header, sizeof(header) );
+    // Serial.write( data, len );
 
     return 0;
 }
@@ -372,21 +326,21 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_UDP_EXT ){
 
-        wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
-        uint8_t *data_ptr = (uint8_t *)( msg + 1 );
+        // wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
+        // uint8_t *data_ptr = (uint8_t *)( msg + 1 );
         
-        memcpy( &udp_header, msg, sizeof(udp_header) );
+        // memcpy( &udp_header, msg, sizeof(udp_header) );
 
-        uint16_t udp_len = len - sizeof(udp_header);
+        // uint16_t udp_len = len - sizeof(udp_header);
 
-        if( udp_len == udp_header.len ){
+        // if( udp_len == udp_header.len ){
 
-            wifi_v_send_udp( &udp_header, data_ptr );
-        }
+        //     wifi_v_send_udp( &udp_header, data_ptr );
+        // }
     }
     else if( data_id == WIFI_DATA_ID_UDP_BUF_READY ){
 
-        udp_busy = false;
+        // udp_busy = false;
     }
     else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
 
@@ -412,249 +366,212 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
 }
 
-static void set_rx_ready( void ){
-
-    // flush serial buffers
-    _intf_v_flush();
-
-    irqline_v_strobe_irq();
-}
-
 void intf_v_process( void ){
 
-    noInterrupts();
-    if( request_reset_ready_timeout ){
+    // check for data
+    if( Serial.available() == 0 ){
 
-        request_reset_ready_timeout = false;
-
-        last_rx_ready_ts = start_timeout();
-    }   
-    interrupts();
-
-
-    // check if udp busy timeout 
-    if( elapsed( udp_timeout ) > 100000 ){
-
-        if( udp_busy ){
-
-            intf_v_printf( "UDP busy timeout" );
-
-            udp_timeout = start_timeout();
-            udp_busy = false;
-        }   
+        return;
     }
 
+    if( Serial.read() != WIFI_COMM_DATA ){
 
-    if( ( intf_comm_state != COMM_STATE_IDLE ) &&
-        ( elapsed( comm_timeout ) > 20000 ) ){
-
-
-        comm_errors++;
-
-        // reset comm state
-        intf_comm_state = COMM_STATE_IDLE;
-
-        set_rx_ready();
+        return;
     }
 
-    if( intf_comm_state == COMM_STATE_IDLE ){    
+    // starting a data frame
+    uint32_t comm_timeout = start_timeout();
+    while( Serial.available() < (int32_t)sizeof(wifi_data_header_t) ){
+
+        if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
+
+            Serial.write( WIFI_COMM_NAK );
+            Serial.write( 1 );
+            return;
+        }
+    }
+
+    // read header
+    wifi_data_header_t header;
+    Serial.readBytes( (uint8_t *)&header, sizeof(header) );
+
+    // check CRC
+    if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
+
+        Serial.write( WIFI_COMM_NAK );
+        Serial.write( 2 );
+        return;
+    }
+
+    // check if we're sending a large block
+    if( header.len > WIFI_MAX_SINGLE_SHOT_LEN ){
+
+        Serial.write( WIFI_COMM_ACK );
+    }
+
+    // receive data
+    uint8_t __attribute__ ((aligned (4))) buf[1024];
+    uint16_t count = 0;
+    comm_timeout = start_timeout();
+    while( count < header.len ){
+
+        if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
+
+            Serial.write( WIFI_COMM_NAK );
+            Serial.write( 3 );
+            return;
+        }
+
+        uint16_t available = Serial.available();
+
+        if( available > ( header.len - count ) ){
+
+            available = ( header.len - count );
+        }
+
+        Serial.readBytes( &buf[count], available );
+        count += available;
+    }
+
+    // get CRC
+    uint16_t crc;
+    comm_timeout = start_timeout();
+    while( Serial.available() < (int32_t)sizeof(crc) ){
+
+        if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
+
+            Serial.write( WIFI_COMM_NAK );
+            Serial.write( 4 );
+            return;
+        }
+    }
+
+    Serial.readBytes( (uint8_t *)&crc, sizeof(crc) );
+
+    if( crc_u16_block( buf, header.len ) != crc ){
+
+        Serial.write( WIFI_COMM_NAK );
+        Serial.write( 5 );
+        return;
+    }
+
+    Serial.write( WIFI_COMM_ACK );
+
+    // data is ready
+    process_data( header.data_id, buf, header.len );
+
+
+    // #ifndef USE_HSV_BRIDGE
+    // if( request_rgb_pix0 ){
+
+    //     request_rgb_pix0 = false;
+
+    //     wifi_msg_rgb_pix0_t msg;
+    //     msg.r = gfx_u16_get_pix0_red();
+    //     msg.g = gfx_u16_get_pix0_green();
+    //     msg.b = gfx_u16_get_pix0_blue();
+
+    //     _intf_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
+    // }
+    // else if( request_rgb_array ){
+
+    //     // get pointers to the arrays
+    //     uint8_t *r = gfx_u8p_get_red();
+    //     uint8_t *g = gfx_u8p_get_green();
+    //     uint8_t *b = gfx_u8p_get_blue();
+    //     uint8_t *d = gfx_u8p_get_dither();
+
+    //     uint16_t pix_count = gfx_u16_get_pix_count();
+
+    //     wifi_msg_rgb_array_t msg;
+
+    //     uint16_t remaining = pix_count - rgb_index;
+    //     uint8_t count = WIFI_RGB_DATA_N_PIXELS;
+
+    //     if( count > remaining ){
+
+    //         count = remaining;
+    //     }
+
+    //     msg.index = rgb_index;
+    //     msg.count = count;
+    //     uint8_t *ptr = msg.rgbd_array;
+    //     memcpy( ptr, r + rgb_index, count );
+    //     ptr += count;
+    //     memcpy( ptr, g + rgb_index, count );
+    //     ptr += count;
+    //     memcpy( ptr, b + rgb_index, count );
+    //     ptr += count;
+    //     memcpy( ptr, d + rgb_index, count );
+
+    //     _intf_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, 
+    //                        (uint8_t *)&msg, 
+    //                        sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
+
+    //     rgb_index += count;
+
+    //     if( rgb_index >= pix_count ){
+
+    //         rgb_index = 0;
+    //         request_rgb_array = false;
+    //     }
+    // }
+    // #else
+    // if( request_hsv_array ){
+
+    //     // // get pointers to the arrays
+    //     uint16_t *h = gfx_u16p_get_hue();
+    //     uint16_t *s = gfx_u16p_get_sat();
+    //     uint16_t *v = gfx_u16p_get_val();
+
+    //     uint16_t pix_count = gfx_u16_get_pix_count();
+
+    //     wifi_msg_hsv_array_t msg;
+
+    //     uint16_t remaining = pix_count - hsv_index;
+    //     uint8_t count = WIFI_HSV_DATA_N_PIXELS;
+
+    //     if( count > remaining ){
+
+    //         count = remaining;
+    //     }
+
+    //     msg.index = hsv_index;
+    //     msg.count = count;
         
-        char c = Serial.read();
+    //     uint8_t transfer_bytes = count * 2;
 
-        if( c == WIFI_COMM_RESET ){
+    //     uint8_t *ptr = msg.hsv_array;
+    //     memcpy( ptr, h + hsv_index, transfer_bytes );
+    //     ptr += transfer_bytes;
+    //     memcpy( ptr, s + hsv_index, transfer_bytes );
+    //     ptr += transfer_bytes;
 
-            if( connected == false ){
-                
-                connected = true;
+    //     uint16_t *val = (uint16_t *)ptr;
+    //     v += hsv_index;
+    //     for( uint32_t i = 0; i < count; i++ ){
 
-                irqline_v_enable();
-            }
+    //         *val = gfx_u16_get_dimmed_val( *v );
+    //         v++;
+    //         val++;
+    //     }
 
-            set_rx_ready();
-        }
-        else if( c == WIFI_COMM_DATA ){
+    //     _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
+    //                        (uint8_t *)&msg, 
+    //                        sizeof(msg.index) + 
+    //                        sizeof(msg.count) + 
+    //                        sizeof(msg.padding) + 
+    //                        ( count * 6 ) );
 
-            intf_comm_state = COMM_STATE_RX_HEADER;
+    //     hsv_index += count;
 
-            comm_timeout = start_timeout();
-        }
-    }
-    else if( intf_comm_state == COMM_STATE_RX_HEADER ){    
-        
-        if( Serial.available() >= (int32_t)(sizeof(wifi_data_header_t) ) ){
+    //     if( hsv_index >= pix_count ){
 
-            Serial.readBytes( (uint8_t *)&intf_data_header, sizeof(intf_data_header) );
-
-            intf_comm_state = COMM_STATE_RX_DATA;
-        }   
-    }    
-    else if( intf_comm_state == COMM_STATE_RX_DATA ){    
-
-        if( Serial.available() >= intf_data_header.len ){
-
-            Serial.readBytes( intf_comm_buf, intf_data_header.len );
-
-            // we've copied the data out of the FIFO, so we can go ahead and send RX ready
-            // before we process the data.
-            set_rx_ready();
-
-            // check crc
-
-            uint16_t msg_crc = intf_data_header.crc;
-            intf_data_header.crc = 0;
-            uint16_t crc = crc_u16_start();
-            crc = crc_u16_partial_block( crc, (uint8_t *)&intf_data_header, sizeof(intf_data_header) );
-            crc = crc_u16_partial_block( crc, intf_comm_buf, intf_data_header.len );
-            crc = crc_u16_finish( crc );
-
-            if( crc == msg_crc ){
-
-                process_data( intf_data_header.data_id, intf_comm_buf, intf_data_header.len );
-            }
-            else{
-
-                comm_errors++;
-            }
-
-            intf_comm_state = COMM_STATE_IDLE;
-        }
-    }
-
-
-
-    if( !rx_ready() ){
-
-        // check timeout
-        noInterrupts();
-        uint32_t temp_last_rx_ready_ts = last_rx_ready_ts;
-        interrupts();
-
-        uint32_t elapsed_time = elapsed( temp_last_rx_ready_ts );
-
-        if( elapsed_time > 50000 ){
-
-            // query for ready status
-            Serial.write( WIFI_COMM_QUERY_READY );
-
-            noInterrupts();
-            request_reset_ready_timeout = true;
-            interrupts();
-        }
-
-        goto done;
-    }
-
-    #ifndef USE_HSV_BRIDGE
-    if( request_rgb_pix0 ){
-
-        request_rgb_pix0 = false;
-
-        wifi_msg_rgb_pix0_t msg;
-        msg.r = gfx_u16_get_pix0_red();
-        msg.g = gfx_u16_get_pix0_green();
-        msg.b = gfx_u16_get_pix0_blue();
-
-        _intf_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
-    }
-    else if( request_rgb_array ){
-
-        // get pointers to the arrays
-        uint8_t *r = gfx_u8p_get_red();
-        uint8_t *g = gfx_u8p_get_green();
-        uint8_t *b = gfx_u8p_get_blue();
-        uint8_t *d = gfx_u8p_get_dither();
-
-        uint16_t pix_count = gfx_u16_get_pix_count();
-
-        wifi_msg_rgb_array_t msg;
-
-        uint16_t remaining = pix_count - rgb_index;
-        uint8_t count = WIFI_RGB_DATA_N_PIXELS;
-
-        if( count > remaining ){
-
-            count = remaining;
-        }
-
-        msg.index = rgb_index;
-        msg.count = count;
-        uint8_t *ptr = msg.rgbd_array;
-        memcpy( ptr, r + rgb_index, count );
-        ptr += count;
-        memcpy( ptr, g + rgb_index, count );
-        ptr += count;
-        memcpy( ptr, b + rgb_index, count );
-        ptr += count;
-        memcpy( ptr, d + rgb_index, count );
-
-        _intf_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, 
-                           (uint8_t *)&msg, 
-                           sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
-
-        rgb_index += count;
-
-        if( rgb_index >= pix_count ){
-
-            rgb_index = 0;
-            request_rgb_array = false;
-        }
-    }
-    #else
-    if( request_hsv_array ){
-
-        // // get pointers to the arrays
-        uint16_t *h = gfx_u16p_get_hue();
-        uint16_t *s = gfx_u16p_get_sat();
-        uint16_t *v = gfx_u16p_get_val();
-
-        uint16_t pix_count = gfx_u16_get_pix_count();
-
-        wifi_msg_hsv_array_t msg;
-
-        uint16_t remaining = pix_count - hsv_index;
-        uint8_t count = WIFI_HSV_DATA_N_PIXELS;
-
-        if( count > remaining ){
-
-            count = remaining;
-        }
-
-        msg.index = hsv_index;
-        msg.count = count;
-        
-        uint8_t transfer_bytes = count * 2;
-
-        uint8_t *ptr = msg.hsv_array;
-        memcpy( ptr, h + hsv_index, transfer_bytes );
-        ptr += transfer_bytes;
-        memcpy( ptr, s + hsv_index, transfer_bytes );
-        ptr += transfer_bytes;
-
-        uint16_t *val = (uint16_t *)ptr;
-        v += hsv_index;
-        for( uint32_t i = 0; i < count; i++ ){
-
-            *val = gfx_u16_get_dimmed_val( *v );
-            v++;
-            val++;
-        }
-
-        _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
-                           (uint8_t *)&msg, 
-                           sizeof(msg.index) + 
-                           sizeof(msg.count) + 
-                           sizeof(msg.padding) + 
-                           ( count * 6 ) );
-
-        hsv_index += count;
-
-        if( hsv_index >= pix_count ){
-
-            hsv_index = 0;
-            request_hsv_array = false;
-        }
-    }
-    #endif
+    //         hsv_index = 0;
+    //         request_hsv_array = false;
+    //     }
+    // }
+    // #endif
     // else if( request_vm_frame_sync ){
 
     //     wifi_msg_vm_frame_sync_t msg;
@@ -681,141 +598,125 @@ void intf_v_process( void ){
 
     //     _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
     // }
-    else if( wifi_b_rx_udp_pending() ){
+    // else if( wifi_b_rx_udp_pending() ){
 
-        if( rx_udp_header.lport == 0 ){
+    //     if( rx_udp_header.lport == 0 ){
 
-            // check if UDP busy
-            if( udp_busy ){
+    //         // check if UDP busy
+    //         if( udp_busy ){
 
-                goto done;
-            }
+    //             goto done;
+    //         }
 
-            udp_busy = true;
-            udp_timeout = start_timeout();
+    //         udp_busy = true;
+    //         udp_timeout = start_timeout();
 
-            rx_udp_index = 0;
+    //         rx_udp_index = 0;
 
-            // get header
-            wifi_i8_get_rx_udp_header( &rx_udp_header );
+    //         // get header
+    //         wifi_i8_get_rx_udp_header( &rx_udp_header );
 
-            uint16_t data_len = WIFI_MAIN_MAX_DATA_LEN - sizeof(rx_udp_header);
-            if( data_len > rx_udp_header.len ){
+    //         uint16_t data_len = WIFI_MAIN_MAX_DATA_LEN - sizeof(rx_udp_header);
+    //         if( data_len > rx_udp_header.len ){
 
-                data_len = rx_udp_header.len;
-            }
+    //             data_len = rx_udp_header.len;
+    //         }
             
-            wifi_data_header_t header;
-            header.len      = data_len + sizeof(rx_udp_header);
-            header.data_id  = WIFI_DATA_ID_UDP_HEADER;
-            header.reserved = 0;
-            header.crc      = 0;
+    //         wifi_data_header_t header;
+    //         header.len      = data_len + sizeof(rx_udp_header);
+    //         header.data_id  = WIFI_DATA_ID_UDP_HEADER;
+    //         header.reserved = 0;
+    //         header.crc      = 0;
 
-            uint8_t *data = wifi_u8p_get_rx_udp_data();
+    //         uint8_t *data = wifi_u8p_get_rx_udp_data();
 
-            uint16_t crc = crc_u16_start();
-            crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
-            crc = crc_u16_partial_block( crc, (uint8_t *)&rx_udp_header, sizeof(rx_udp_header) );
-            crc = crc_u16_partial_block( crc, &data[rx_udp_index], data_len );
-            header.crc = crc_u16_finish( crc );
+    //         uint16_t crc = crc_u16_start();
+    //         crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
+    //         crc = crc_u16_partial_block( crc, (uint8_t *)&rx_udp_header, sizeof(rx_udp_header) );
+    //         crc = crc_u16_partial_block( crc, &data[rx_udp_index], data_len );
+    //         header.crc = crc_u16_finish( crc );
             
-            clear_ready_flag();
+    //         clear_ready_flag();
 
-            Serial.write( WIFI_COMM_DATA );
-            Serial.write( (uint8_t *)&header, sizeof(header) );
-            Serial.write( (uint8_t *)&rx_udp_header, sizeof(rx_udp_header) );
-            Serial.write( &data[rx_udp_index], data_len );
+    //         Serial.write( WIFI_COMM_DATA );
+    //         Serial.write( (uint8_t *)&header, sizeof(header) );
+    //         Serial.write( (uint8_t *)&rx_udp_header, sizeof(rx_udp_header) );
+    //         Serial.write( &data[rx_udp_index], data_len );
 
-            rx_udp_index += data_len;
-        }
-        else{
+    //         rx_udp_index += data_len;
+    //     }
+    //     else{
 
-            uint16_t data_len = rx_udp_header.len - rx_udp_index;
+    //         uint16_t data_len = rx_udp_header.len - rx_udp_index;
 
-            if( data_len > WIFI_MAIN_MAX_DATA_LEN ){
+    //         if( data_len > WIFI_MAIN_MAX_DATA_LEN ){
 
-                data_len = WIFI_MAIN_MAX_DATA_LEN;
-            }
+    //             data_len = WIFI_MAIN_MAX_DATA_LEN;
+    //         }
 
-            uint8_t *data = wifi_u8p_get_rx_udp_data();
+    //         uint8_t *data = wifi_u8p_get_rx_udp_data();
 
-            _intf_i8_send_msg( WIFI_DATA_ID_UDP_DATA, &data[rx_udp_index], data_len );
+    //         _intf_i8_send_msg( WIFI_DATA_ID_UDP_DATA, &data[rx_udp_index], data_len );
 
-            rx_udp_index += data_len;
+    //         rx_udp_index += data_len;
 
-            // check if we've sent all data
-            if( rx_udp_index >= rx_udp_header.len ){
+    //         // check if we've sent all data
+    //         if( rx_udp_index >= rx_udp_header.len ){
 
-                rx_udp_index = 0;
-                rx_udp_header.lport = 0;
-                wifi_v_rx_udp_clear_last();
-            }
-        }
-    }
-    else if( list_u8_count( &tx_q ) > 0 ){
+    //             rx_udp_index = 0;
+    //             rx_udp_header.lport = 0;
+    //             wifi_v_rx_udp_clear_last();
+    //         }
+    //     }
+    // }
+    // else if( list_u8_count( &tx_q ) > 0 ){
 
-        list_node_t ln = list_ln_remove_tail( &tx_q );
+    //     list_node_t ln = list_ln_remove_tail( &tx_q );
 
-        wifi_data_header_t *header = (wifi_data_header_t *)list_vp_get_data( ln );
-        uint8_t *data = (uint8_t *)( header + 1 );
+    //     wifi_data_header_t *header = (wifi_data_header_t *)list_vp_get_data( ln );
+    //     uint8_t *data = (uint8_t *)( header + 1 );
 
-        clear_ready_flag();    
+    //     clear_ready_flag();    
 
-        Serial.write( WIFI_COMM_DATA );
-        Serial.write( (uint8_t *)header, sizeof(wifi_data_header_t) );
-        Serial.write( data, header->len );
+    //     Serial.write( WIFI_COMM_DATA );
+    //     Serial.write( (uint8_t *)header, sizeof(wifi_data_header_t) );
+    //     Serial.write( data, header->len );
 
-        list_v_release_node( ln );
-    }
-
-
-    if( elapsed( last_status_ts ) > 1000000 ){
-
-        last_status_ts = start_timeout();
-
-        wifi_v_send_status();
-        _send_info_msg();
-        vm_v_send_info();
-    }
+    //     list_v_release_node( ln );
+    // }
 
 
-done:
-    return;
+    // if( elapsed( last_status_ts ) > 1000000 ){
+
+    //     last_status_ts = start_timeout();
+
+    //     wifi_v_send_status();
+    //     _send_info_msg();
+    //     vm_v_send_info();
+    // }
 }
-
-void ICACHE_RAM_ATTR buf_ready_irq( void ){
-
-    is_rx_ready = true;
-    request_reset_ready_timeout = true;
-}
-
-#include "uart.h"
 
 void intf_v_init( void ){
 
-    noInterrupts();
-    is_rx_ready = false;
-    interrupts();
-
     pinMode( BUF_READY_GPIO, INPUT );
-    attachInterrupt( digitalPinToInterrupt( BUF_READY_GPIO ), buf_ready_irq, FALLING );
+    // attachInterrupt( digitalPinToInterrupt( BUF_READY_GPIO ), buf_ready_irq, FALLING );
 
     pinMode( LED_GPIO, OUTPUT );
     intf_v_led_off();
 
     Serial.begin( 4000000 );
 
-    Serial.setRxBufferSize( WIFI_BUF_LEN );
+    Serial.setRxBufferSize( WIFI_ESP_BUF_SIZE );
 
     // flush serial buffers
     _intf_v_flush();
 
-    list_v_init( &tx_q );
+    // list_v_init( &tx_q );
 
-    if( ( (uint32_t)intf_comm_buf & 0x03 ) != 0 ){
+    // if( ( (uint32_t)intf_comm_buf & 0x03 ) != 0 ){
 
-        intf_v_printf("intf_comm_buf misalign");
-    }
+    //     intf_v_printf("intf_comm_buf misalign");
+    // }
 }
 
 
@@ -823,18 +724,18 @@ void intf_v_init( void ){
 #ifndef USE_HSV_BRIDGE
 void intf_v_request_rgb_pix0( void ){
 
-    request_rgb_pix0 = true;
+    // request_rgb_pix0 = true;
 }
 
 void intf_v_request_rgb_array( void ){
 
-    request_rgb_array = true;
+    // request_rgb_array = true;
 }
 
 #else
 void intf_v_request_hsv_array( void ){
 
-    request_hsv_array = true;
+    // request_hsv_array = true;
 }
 #endif
 
@@ -850,50 +751,50 @@ void intf_v_get_mac( uint8_t mac[6] ){
 }
 
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
-
-    // check if rx is ready
-    if( rx_ready() ){
-
-        return _intf_i8_send_msg( data_id, data, len );
-    }   
-
-    // check if tx q is full
-    if( list_u8_count( &tx_q) >= MAX_TX_Q_SIZE ){
-
-        return -1;
-    }
-
-    if( len > WIFI_MAIN_MAX_DATA_LEN ){
-
-        return -2;
-    }
-
-    // buffer message
-    list_node_t ln = list_ln_create_node2( 0, len + sizeof(wifi_data_header_t), MEM_TYPE_MSG );
-
-    if( ln < 0 ){
-
-        return -3;
-    }    
-
-    wifi_data_header_t *header = (wifi_data_header_t *)list_vp_get_data( ln );
-
-    header->len      = len;
-    header->data_id  = data_id;
-    header->reserved = 0;
-    header->crc      = 0;
-
-    uint16_t crc = crc_u16_start();
-    crc = crc_u16_partial_block( crc, (uint8_t *)header, sizeof(wifi_data_header_t) );
-    crc = crc_u16_partial_block( crc, data, len );
-
-    header->crc = crc_u16_finish( crc );
-
-    memcpy( ( header + 1 ), data, len );
-
-    list_v_insert_head( &tx_q, ln );
-
     return 0;
+    // // check if rx is ready
+    // if( rx_ready() ){
+
+    //     return _intf_i8_send_msg( data_id, data, len );
+    // }   
+
+    // // check if tx q is full
+    // if( list_u8_count( &tx_q) >= MAX_TX_Q_SIZE ){
+
+    //     return -1;
+    // }
+
+    // if( len > WIFI_MAIN_MAX_DATA_LEN ){
+
+    //     return -2;
+    // }
+
+    // // buffer message
+    // list_node_t ln = list_ln_create_node2( 0, len + sizeof(wifi_data_header_t), MEM_TYPE_MSG );
+
+    // if( ln < 0 ){
+
+    //     return -3;
+    // }    
+
+    // wifi_data_header_t *header = (wifi_data_header_t *)list_vp_get_data( ln );
+
+    // header->len      = len;
+    // header->data_id  = data_id;
+    // header->reserved = 0;
+    // header->crc      = 0;
+
+    // uint16_t crc = crc_u16_start();
+    // crc = crc_u16_partial_block( crc, (uint8_t *)header, sizeof(wifi_data_header_t) );
+    // crc = crc_u16_partial_block( crc, data, len );
+
+    // header->crc = crc_u16_finish( crc );
+
+    // memcpy( ( header + 1 ), data, len );
+
+    // list_v_insert_head( &tx_q, ln );
+
+    // return 0;
 }
 
 void intf_v_get_proc_stats( process_stats_t **stats ){

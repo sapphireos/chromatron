@@ -228,8 +228,8 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
     header.len      = data_len;
     header.flags    = 0;
     header.reserved = 0;
-        
-    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) );
+    
+    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.crc) );
 
     while( tries > 0 ){
 
@@ -305,19 +305,10 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     return -1;
 }
 
+// deprecated
 int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    if( !wifi_b_wait_comm_ready() ){
-
-        return -1;
-    }
-
-    if( wifi_i8_send_msg( data_id, data, len ) < 0 ){
-
-        return -2;
-    }
-
-    return 0;
+    return wifi_i8_send_msg( data_id, data, len );
 }
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
