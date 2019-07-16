@@ -175,6 +175,40 @@ void esp_v_send_sync( void ){
     esp_v_command( ESP_SYNC, buf, sizeof(buf), 0 );
 }
 
+int8_t esp_i8_sync( void ){
+
+    uint8_t buf[32];
+    memset( buf, 0xff, sizeof(buf) );
+
+    hal_wifi_v_usart_flush();
+
+    // ESP seems to miss the first sync for some reason,
+    // so we'll just send twice.
+    // it's not really a big deal from a timing standpoint since
+    // we'd try again in a few milliseconds, but if the wait response
+    // function is doing error logging, it saves us a pointless error
+    // message on every start up.
+    esp_v_send_sync();
+    esp_v_send_sync();
+
+    // blocking wait!
+    int8_t status = esp_i8_wait_response( buf, sizeof(buf), ESP_SYNC_TIMEOUT );
+
+    if( status < 0 ){
+
+        return status;
+    }
+
+    esp_response_t *resp = (esp_response_t *)buf;
+
+    if( resp->opcode != ESP_SYNC ){
+
+        return -10;
+    }
+
+    return 0;
+}
+
 
 int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
 
@@ -196,12 +230,6 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     next_byte++;
 
     while(1){
-
-        if( len == 0 ){
-
-            status = -3;
-            goto end;
-        }
 
         // wait for byte
         int16_t byte = hal_wifi_i16_usart_get_char_timeout( timeout );
@@ -251,6 +279,12 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
             }
         }
         else{
+
+            if( len == 0 ){
+
+                status = -3;
+                goto end;
+            }
 
             *buf = b;
             buf++;

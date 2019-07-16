@@ -1255,8 +1255,6 @@ restart:
     state->timeout = 10;
     while( state->timeout > 0 ){
 
-        hal_wifi_v_usart_flush();
-
         state->timeout--;
 
         if( state->timeout == 0 ){
@@ -1266,30 +1264,10 @@ restart:
             goto restart;
         }
 
-        uint8_t buf[32];
-        memset( buf, 0xff, sizeof(buf) );
-
-
-        // ESP seems to miss the first sync for some reason,
-        // so we'll just send twice.
-        // it's not really a big deal from a timing standpoint since
-        // we'd try again in a few milliseconds, but if the wait response
-        // function is doing error logging, it saves us a pointless error
-        // message on every start up.
-        esp_v_send_sync();
-        esp_v_send_sync();
-
         // blocking wait!
-        int8_t status = esp_i8_wait_response( buf, sizeof(buf), ESP_SYNC_TIMEOUT );
+        if( esp_i8_sync() == 0 ){
 
-        if( status == 0 ){
-
-            esp_response_t *resp = (esp_response_t *)buf;
-
-            if( resp->opcode == ESP_SYNC ){
-
-                break;
-            }
+            break;
         }
 
         TMR_WAIT( pt, 5 );
