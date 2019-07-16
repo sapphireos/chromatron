@@ -289,6 +289,8 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
 void hal_wifi_v_usart_flush( void ){
 
+    __HAL_UART_CLEAR_FLAG( &wifi_usart, 0xffffffff );
+
 	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
 }
 
