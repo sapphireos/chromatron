@@ -113,9 +113,9 @@ static uint32_t comm_tx_rate;
 
 static uint16_t wifi_version;
 
-static netmsg_t rx_netmsg;
-static uint16_t rx_netmsg_index;
-static uint16_t rx_netmsg_crc;
+// static netmsg_t rx_netmsg;
+// static uint16_t rx_netmsg_index;
+// static uint16_t rx_netmsg_crc;
 
 static uint8_t router;
 
@@ -128,7 +128,7 @@ static bool udp_busy;
 
 static uint8_t watchdog;
 
-static mem_handle_t wifi_networks_handle = -1;
+// static mem_handle_t wifi_networks_handle = -1;
 
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -770,113 +770,80 @@ PT_END( pt );
 //static 
 int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
-    return -1;
+    int8_t status = 0;
 
-//     int8_t status = 0;
+    if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
 
-//     int16_t rx_bytes = hal_wifi_i16_rx_data_received();
+        return -1;
+    }
 
-//     if( rx_bytes < 0 ){
+    if( crc_u16_block( buf, header->len + sizeof(uint16_t) ) != 0 ){        
 
-//         return -1;
-//     }
+        return -2;
+    }
 
-//     // reset buffer control byte
-//     hal_wifi_v_reset_control_byte();
+    uint8_t *data = buf;
 
-//     uint8_t buf[WIFI_UART_RX_BUF_SIZE];
+    if( header->data_id == WIFI_DATA_ID_STATUS ){
 
-//     uint8_t *rx_buf = hal_wifi_u8p_get_rx_buf_ptr();
+        if( header->len != sizeof(wifi_msg_status_t) ){
 
-//     wifi_data_header_t *header = (wifi_data_header_t *)&rx_buf[1];
+            goto len_error;
+        }
 
-//     uint16_t msg_len = sizeof(wifi_data_header_t) + header->len ;
+        wifi_msg_status_t *msg = (wifi_msg_status_t *)data;
 
-//     // validate msg size
-//     if( msg_len > WIFI_UART_RX_BUF_SIZE ){
+        wifi_status_reg = msg->flags;
+    }  
+    else if( header->data_id == WIFI_DATA_ID_INFO ){
 
-//         log_v_debug_P( PSTR("Wifi msg len error. ID:0x%02x len:%d"), header->data_id, header->len );
-//         goto len_error;
-//     }   
+        if( header->len != sizeof(wifi_msg_info_t) ){
 
-//     memcpy( buf, &rx_buf[1], msg_len );
+            goto len_error;
+        }
 
-//     hal_wifi_v_release_rx_buffer();
+        wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
 
-//     header = (wifi_data_header_t *)buf;
-//     uint8_t *data = (uint8_t *)( header + 1 );
-
-//     uint16_t msg_crc = header->crc;
-//     header->crc = 0;
-
-//     uint16_t computed_crc = crc_u16_block( (uint8_t *)header, msg_len );
-//     if( computed_crc != msg_crc ){
-
-//         log_v_debug_P( PSTR("Wifi crc error. ID:0x%02x len:%d crc: 0x%04x != 0x%04x"), header->data_id, header->len, computed_crc, msg_crc );
-//         status = -2;
-//         goto end;
-//     }
-
-//     if( header->data_id == WIFI_DATA_ID_STATUS ){
-
-//         if( header->len != sizeof(wifi_msg_status_t) ){
-
-//             goto len_error;
-//         }
-
-//         wifi_msg_status_t *msg = (wifi_msg_status_t *)data;
-
-//         wifi_status_reg = msg->flags;
-//     }  
-//     else if( header->data_id == WIFI_DATA_ID_INFO ){
-
-//         if( header->len != sizeof(wifi_msg_info_t) ){
-
-//             goto len_error;
-//         }
-
-//         wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
-
-//         wifi_version            = msg->version;
+        wifi_version            = msg->version;
         
-//         if( wifi_b_connected() ){
+        if( wifi_b_connected() ){
             
-//             wifi_rssi               = msg->rssi;
-//         }
+            wifi_rssi               = msg->rssi;
+        }
         
-//         memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
+        memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
 
-//         uint64_t current_device_id = 0;
-//         cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
-//         uint64_t device_id = 0;
-//         memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
+        uint64_t current_device_id = 0;
+        cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
+        uint64_t device_id = 0;
+        memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
 
-//         if( current_device_id != device_id ){
+        if( current_device_id != device_id ){
 
-//             cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
-//         }
+            cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
+        }
 
-//         cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg->ip );
-//         cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
-//         cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
+        cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg->ip );
+        cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
+        cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
 
-//         wifi_rx_udp_overruns        = msg->rx_udp_overruns;
-//         wifi_udp_received           = msg->udp_received;
-//         wifi_udp_sent               = msg->udp_sent;
-//         wifi_comm_errors            = msg->comm_errors;
-//         mem_heap_peak               = msg->mem_heap_peak;
-//         mem_used                    = msg->mem_used;
+        wifi_rx_udp_overruns        = msg->rx_udp_overruns;
+        wifi_udp_received           = msg->udp_received;
+        wifi_udp_sent               = msg->udp_sent;
+        wifi_comm_errors            = msg->comm_errors;
+        mem_heap_peak               = msg->mem_heap_peak;
+        mem_used                    = msg->mem_used;
 
-//         intf_max_time               = msg->intf_max_time;
-//         vm_max_time                 = msg->vm_max_time;
-//         wifi_max_time               = msg->wifi_max_time;
-//         mem_max_time                = msg->mem_max_time;
+        intf_max_time               = msg->intf_max_time;
+        vm_max_time                 = msg->vm_max_time;
+        wifi_max_time               = msg->wifi_max_time;
+        mem_max_time                = msg->mem_max_time;
 
-//         intf_avg_time               = msg->intf_avg_time;
-//         vm_avg_time                 = msg->vm_avg_time;
-//         wifi_avg_time               = msg->wifi_avg_time;
-//         mem_avg_time                = msg->mem_avg_time;
-//     }
+        intf_avg_time               = msg->intf_avg_time;
+        vm_avg_time                 = msg->vm_avg_time;
+        wifi_avg_time               = msg->wifi_avg_time;
+        mem_avg_time                = msg->mem_avg_time;
+    }
 //     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
 
 //         if( header->len < sizeof(wifi_msg_udp_header_t) ){
@@ -1039,21 +1006,21 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
 //     goto end;
 
-// len_error:
+len_error:
 
 //     wifi_comm_errors2++;
 
-//     log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
-//     status = -3;    
-//     goto end;
+    log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
+    status = -3;    
+    goto end;
 
 // error:
 //     wifi_comm_errors2++;
 //     status = -4;
 //     goto end;    
 
-// end:
-//     return status;
+end:
+    return status;
 }
 
 
@@ -1116,13 +1083,13 @@ restart:
                 
                 uint8_t buf[640];
 
-                if( header.len > sizeof(buf) ){
+                if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
 
                     log_v_debug_P( PSTR("rx fail 2") );
                     continue;
                 }
 
-                if( hal_wifi_i8_usart_receive( buf, header.len, WIFI_COMM_TIMEOUT ) < 0 ){
+                if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
 
                     log_v_debug_P( PSTR("rx fail 3") );
                     continue;
