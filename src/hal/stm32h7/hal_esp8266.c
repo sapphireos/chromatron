@@ -494,7 +494,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_NOPULL;
     HAL_GPIO_Init(WIFI_CTS_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET); // idle high
+    HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET); // pull to ground while we boot up
 
     GPIO_InitStruct.Pin         = WIFI_RTS_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
