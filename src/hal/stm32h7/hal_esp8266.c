@@ -331,27 +331,27 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 	return temp;
 }
 
-bool hal_wifi_b_read_rts( void ){
+// bool hal_wifi_b_read_rts( void ){
 
-    if( HAL_GPIO_ReadPin( WIFI_RTS_GPIO_Port, WIFI_RTS_Pin ) == GPIO_PIN_RESET ){
+//     if( HAL_GPIO_ReadPin( WIFI_RTS_GPIO_Port, WIFI_RTS_Pin ) == GPIO_PIN_RESET ){
 
-        return false;
-    }
+//         return false;
+//     }
 
-    return true;
-}
+//     return true;
+// }
 
-void hal_wifi_v_set_cts( bool value ){
+// void hal_wifi_v_set_cts( bool value ){
 
-    if( value ){
+//     if( value ){
 
-        HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET);        
-    }
-    else{
+//         HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET);        
+//     }
+//     else{
 
-        HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET);
-    }
-}
+//         HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET);
+//     }
+// }
 
 // reset:
 // PD transition low to high
