@@ -374,7 +374,16 @@ void intf_v_process( void ){
         return;
     }
 
-    if( Serial.read() != WIFI_COMM_DATA ){
+    char c = Serial.read();
+
+    if( c == WIFI_COMM_QUERY_READY ){
+
+        // signal serial is ready
+        Serial.write( WIFI_COMM_READY );
+
+        return;
+    }
+    else if( c != WIFI_COMM_DATA ){
 
         return;
     }
@@ -712,9 +721,6 @@ void intf_v_init( void ){
 
     // flush serial buffers
     _intf_v_flush();
-
-    // signal serial is ready
-    Serial.write( WIFI_COMM_READY );
 
     // list_v_init( &tx_q );
 

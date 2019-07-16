@@ -53,6 +53,7 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_COMM_RTS                   0x73
 #define WIFI_COMM_CTS                   0x61
 #define WIFI_COMM_READY                 0xD5
+#define WIFI_COMM_QUERY_READY           0x68
 
 
 typedef struct __attribute__((packed)){

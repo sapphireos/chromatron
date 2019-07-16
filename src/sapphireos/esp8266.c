@@ -1035,14 +1035,16 @@ restart:
     hal_wifi_v_enter_normal_mode();
     wifi_status_reg = 0;
 
-    hal_wifi_v_usart_flush();
-
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
 
-
+    hal_wifi_v_usart_flush();
     // wait for connection from wifi module
-    if( hal_wifi_i16_usart_get_char_timeout( 100000 ) != WIFI_COMM_READY ){
+    hal_wifi_v_usart_send_char( WIFI_COMM_QUERY_READY );
+
+    if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_READY ){
+
+        log_v_debug_P( PSTR("Wifi failed to start") );
 
         goto restart;
     }
