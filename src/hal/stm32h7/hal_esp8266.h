@@ -63,6 +63,9 @@ bool hal_wifi_b_comm_ready( void );
 uint32_t hal_wifi_u32_get_rx_bytes( void );
 uint32_t hal_wifi_u32_get_tx_bytes( void );
 
+bool hal_wifi_b_read_rts( void );
+void hal_wifi_v_set_cts( bool value );
+
 void hal_wifi_v_enter_boot_mode( void );
 void hal_wifi_v_enter_normal_mode( void );
 

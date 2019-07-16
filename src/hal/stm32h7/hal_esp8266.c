@@ -331,6 +331,27 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 	return temp;
 }
 
+bool hal_wifi_b_read_rts( void ){
+
+    if( HAL_GPIO_ReadPin( WIFI_RTS_GPIO_Port, WIFI_RTS_Pin ) == GPIO_PIN_RESET ){
+
+        return false;
+    }
+
+    return true;
+}
+
+void hal_wifi_v_set_cts( bool value ){
+
+    if( value ){
+
+        HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET);        
+    }
+    else{
+
+        HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET);
+    }
+}
 
 // reset:
 // PD transition low to high
@@ -471,15 +492,13 @@ void hal_wifi_v_enter_normal_mode( void ){
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_NOPULL;
     HAL_GPIO_Init(WIFI_CTS_GPIO_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET); // idle high
 
-    // set RX ready pin to output
     GPIO_InitStruct.Pin         = WIFI_RTS_Pin;
-    GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
     HAL_GPIO_Init(WIFI_RTS_Port, &GPIO_InitStruct);
-    HAL_GPIO_WritePin(WIFI_RTS_Port, WIFI_RTS_Pin, GPIO_PIN_SET);
 
     _delay_ms(WIFI_RESET_DELAY_MS);
 

@@ -50,6 +50,9 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_COMM_DATA                  0x36
 #define WIFI_COMM_ACK                   0xC9
 #define WIFI_COMM_NAK                   0x56
+#define WIFI_COMM_RTS                   0x73
+#define WIFI_COMM_CTS                   0x61
+#define WIFI_COMM_READY                 0xD5
 
 
 typedef struct __attribute__((packed)){

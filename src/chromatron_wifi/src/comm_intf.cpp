@@ -106,7 +106,7 @@ static void _intf_v_flush(){
     while( Serial.read() >= 0 );
 }
 
-static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+// static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     // if( len > WIFI_MAIN_MAX_DATA_LEN ){
 
@@ -140,8 +140,8 @@ static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     // Serial.write( (uint8_t *)&header, sizeof(header) );
     // Serial.write( data, len );
 
-    return 0;
-}
+    // return 0;
+// }
 
 static void _send_info_msg( void ){
 
@@ -713,6 +713,9 @@ void intf_v_init( void ){
     // flush serial buffers
     _intf_v_flush();
 
+    // signal serial is ready
+    Serial.write( WIFI_COMM_READY );
+
     // list_v_init( &tx_q );
 
     // if( ( (uint32_t)intf_comm_buf & 0x03 ) != 0 ){
@@ -752,10 +755,32 @@ void intf_v_get_mac( uint8_t mac[6] ){
     WiFi.macAddress( mac );
 }
 
+int8_t intf_i8_rts( void ){
+    
+    // assert RTS
+    Serial.write( WIFI_COMM_RTS );
+
+    uint32_t timeout = start_timeout();
+
+    while( elapsed( timeout ) < WIFI_COMM_TIMEOUT ){
+
+        if( Serial.available() > 0 ){
+
+            char c = Serial.read();
+
+            if( c == WIFI_COMM_CTS ){
+
+                return 0;
+            }
+        }
+    }
+
+    return -1;
+}
+
 int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    // assert RTS
-    digitalWrite( RTS_GPIO, LOW );
+    uint8_t tries = WIFI_COMM_TRIES;
 
     // build header and compute CRC while we wait for CTS
     wifi_data_header_t header;
@@ -767,18 +792,15 @@ int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     uint16_t data_crc = crc_u16_block( data, len );
 
-    // wait for CTS
-    while( digitalRead( CTS_GPIO ) != 0 );
-
-
-    // we can deassert RTS now
-    digitalWrite( RTS_GPIO, HIGH );
-
-    uint8_t tries = WIFI_COMM_TRIES;
 
     while( tries > 0 ){
 
         tries--;
+
+        if( intf_i8_rts() < 0 ){
+
+            continue;
+        }
 
         Serial.write( WIFI_COMM_DATA );
         Serial.write( (uint8_t *)&header, sizeof(wifi_data_header_t) );

@@ -229,7 +229,7 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
     header.flags    = 0;
     header.reserved = 0;
     
-    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.crc) );
+    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) );
 
     while( tries > 0 ){
 
@@ -303,6 +303,38 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     log_v_debug_P( PSTR("msg failed") );
 
     return -1;
+}
+
+int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
+
+    *bytes_read = 0;
+    uint8_t tries = WIFI_COMM_TRIES;
+    int8_t status = -1;
+
+    while( tries > 0 ){
+
+        tries--;
+
+        // wait for RTS
+        uint32_t start_time = tmr_u32_get_system_time_us();
+
+        while( hal_wifi_i16_usart_get_char() != WIFI_COMM_RTS ){
+
+            if( tmr_u32_elapsed_time_us( start_time ) > WIFI_COMM_TIMEOUT ){
+
+                status = -2;
+                goto done;
+            }
+        }
+
+        // RTS asserted
+        // set CTS and receive
+        hal_wifi_v_usart_send_char( WIFI_COMM_CTS );
+    }
+
+
+done:
+    return status;
 }
 
 // deprecated
@@ -736,7 +768,7 @@ PT_END( pt );
 
 
 //static 
-int8_t process_rx_data( void ){
+int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
     return -1;
 
@@ -1036,15 +1068,17 @@ restart:
     hal_wifi_v_enter_normal_mode();
     wifi_status_reg = 0;
 
+    hal_wifi_v_usart_flush();
+
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
 
 
-
     // wait for connection from wifi module
+    if( hal_wifi_i16_usart_get_char_timeout( 100000 ) != WIFI_COMM_READY ){
 
-
-
+        goto restart;
+    }
 
     wifi_status = WIFI_STATE_ALIVE;
     
@@ -1067,6 +1101,41 @@ restart:
         
             goto restart;
         }
+
+        if( hal_wifi_b_usart_rx_available() ){
+
+            if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
+
+                wifi_data_header_t header;
+
+                if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+
+                    log_v_debug_P( PSTR("rx fail 1") );
+                    continue;
+                }
+                
+                uint8_t buf[640];
+
+                if( header.len > sizeof(buf) ){
+
+                    log_v_debug_P( PSTR("rx fail 2") );
+                    continue;
+                }
+
+                if( hal_wifi_i8_usart_receive( buf, header.len, WIFI_COMM_TIMEOUT ) < 0 ){
+
+                    log_v_debug_P( PSTR("rx fail 3") );
+                    continue;
+                }
+
+                if( process_rx_data( &header, buf ) < 0 ){
+
+                    log_v_debug_P( PSTR("rx fail 4") );
+                    continue;   
+                }
+            }
+        }
+
 
 //         // check if UDP buffer is clear (and transmit interface is available)
 //         if( is_udp_rx_released() && hal_wifi_b_comm_ready() ){
