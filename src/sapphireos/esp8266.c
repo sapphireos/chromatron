@@ -266,6 +266,7 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
+    hal_wifi_v_usart_flush();
     uint8_t tries = WIFI_COMM_TRIES;
 
     while( tries > 0 ){
@@ -317,20 +318,22 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
         tries--;
 
         // wait for RTS
-        uint32_t start_time = tmr_u32_get_system_time_us();
+        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_RTS ){
 
-        while( hal_wifi_i16_usart_get_char() != WIFI_COMM_RTS ){
-
-            if( tmr_u32_elapsed_time_us( start_time ) > WIFI_COMM_TIMEOUT ){
-
-                status = -2;
-                goto error;
-            }
+            status = -2;
+            goto error;
         }
 
         // RTS asserted
-        // set CTS and receive
+        // set CTS
         hal_wifi_v_usart_send_char( WIFI_COMM_CTS );
+
+        // wait for data start
+        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_DATA ){
+
+            status = -3;
+            goto error;
+        }
 
         wifi_data_header_t header;
         if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
@@ -359,6 +362,7 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
         }
 
         // check CRCs
+        header.header_crc = HTONS( header.header_crc );
         if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
 
             log_v_debug_P( PSTR("header crc fail") );
@@ -369,8 +373,8 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
         // header CRC good, check for data ID
         if( header.data_id != data_id ){
 
-            log_v_debug_P( PSTR("wrong data it") );
-            status = -3;
+            log_v_debug_P( PSTR("wrong data id") );
+            status = -4;
             goto error;
         }
 

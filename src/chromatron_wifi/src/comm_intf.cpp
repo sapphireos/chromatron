@@ -798,7 +798,7 @@ int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     header.len      = len;
     header.flags    = 0;
     header.reserved = 0;
-    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) );
+    header.header_crc = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) );
 
     uint16_t data_crc = crc_u16_block( data, len );
 
