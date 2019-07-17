@@ -1486,10 +1486,10 @@ load_image:
 
     log_v_debug_P( PSTR("Loading wifi image...") );
 
+    int8_t load_status = esp_i8_load_flash( state->fw_file );
+    if( load_status < 0 ){
 
-    if( esp_i8_load_flash( state->fw_file ) < 0 ){
-
-        log_v_debug_P( PSTR("error") );
+        log_v_debug_P( PSTR("error: %d"), load_status );
         goto error;
     }
 

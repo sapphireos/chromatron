@@ -469,7 +469,7 @@ int8_t esp_i8_load_flash( file_t file ){
     // check for config and file length mismatch
     if( cfg_file_len != (uint32_t)file_len ){
 
-        return -1;
+        return -2;
     }
 
     uint8_t buf[6];
@@ -500,14 +500,9 @@ int8_t esp_i8_load_flash( file_t file ){
            ( buf[4] == 0 ) &&
            ( buf[5] == SLIP_END ) ) ){
 
-        log_v_debug_P( PSTR("error") );
-
-        return -1;
+        return -3;
     }
 
-    // This buffer eats a lot of stack.
-    // At some point we could rework this to use the rx_dma_buf,
-    // or load the data in smaller chunks.
     uint8_t file_buf[256];
     int32_t len = 0;
 
@@ -521,7 +516,7 @@ int8_t esp_i8_load_flash( file_t file ){
 
         if( read < 0 ){
 
-            return -2;
+            return -4;
         }
 
         if( ( file_buf[0] == ESP_IMAGE_MAGIC ) && ( len == 0 ) ){
@@ -541,13 +536,15 @@ int8_t esp_i8_load_flash( file_t file ){
             // checking that last response packet got sent,
             // but not actually checking value
 
-            if( hal_wifi_i16_usart_get_char_timeout( 250000 ) == SLIP_END ){
+            // note the long delay, some load commands have been observed
+            // to take at least 1/3 of a second to run
+            if( hal_wifi_i16_usart_get_char_timeout( 1000000 ) == SLIP_END ){
 
                 _delay_ms( 1 );
             }
             else{
 
-                return -3;
+                return -5;
             }
         }
     }
