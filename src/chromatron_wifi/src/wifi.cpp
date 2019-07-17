@@ -221,6 +221,12 @@ void wifi_v_process( void ){
             wifi_v_send_status();
 
             intf_v_printf("Connected!");
+
+            Serial.write(0x00);
+
+            Serial.write(0x00);
+            Serial.write(0x00);
+            
         }
 
         // if in station mode:
