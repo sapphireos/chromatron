@@ -301,7 +301,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
     }
 
-    log_v_debug_P( PSTR("msg failed") );
+    log_v_debug_P( PSTR("msg failed: 0x%0x"), data_id );
 
     return -1;
 }
@@ -580,10 +580,10 @@ PT_BEGIN( pt );
     // check if we are connected
     while( !wifi_b_connected() ){
 
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
         wifi_rssi = -127;
         
-        THREAD_WAIT_WHILE( pt, !hal_wifi_b_comm_ready() );
-
         bool ap_mode = wifi_b_ap_mode_enabled();
 
 
@@ -1246,6 +1246,11 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        if( !wifi_b_attached() ){
+
+            continue;
+        }
 
         wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 );
         wifi_msg_info_t info;
