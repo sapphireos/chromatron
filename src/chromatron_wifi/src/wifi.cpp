@@ -325,18 +325,18 @@ void wifi_v_process( void ){
 
         wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
     }
-    else if( request_disconnect ){
+    // else if( request_disconnect ){
 
-        MDNS.close();
-        mdns_connected = false;
+    //     MDNS.close();
+    //     mdns_connected = false;
 
-        WiFi.disconnect();
+    //     WiFi.disconnect();
 
-        request_connect = false;
-        request_disconnect = false;
+    //     request_connect = false;
+    //     request_disconnect = false;
 
-        wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
-    }
+    //     wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
+    // }
     else if( request_shutdown ){
 
         MDNS.close();
@@ -581,27 +581,31 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
     memcpy( tx_data, data, header->len );
 }
 
+void wifi_v_disconnect( void ){
 
-void wifi_v_set_ap( char *_ssid, char *_pass ){
+    MDNS.close();
+    mdns_connected = false;
+
+    WiFi.disconnect();
+
+    ap_mode = false;
+
+    wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE | WIFI_STATUS_CONNECTED ); 
+}
+
+void wifi_v_connect( char *_ssid, char *_pass ){
     
-    request_ap_mode = false;
-
     memset( ssid, 0, sizeof(ssid) );
     memset( pass, 0, sizeof(pass) );
 
     strncpy( ssid, _ssid, sizeof(ssid) );
     strncpy( pass, _pass, sizeof(pass) );
 
-    // check if new SSID is empty string, if so,
-    // this is a disconnect command
-    if( ssid[0] == 0 ){
+    wifi_v_disconnect();
 
-        request_disconnect = true;
-    }
-    else{
+    WiFi.mode( WIFI_STA );
 
-        request_connect = true;        
-    }
+    WiFi.begin( ssid, pass );    
 }
 
 void wifi_v_set_ap_mode( char *_ssid, char *_pass ){

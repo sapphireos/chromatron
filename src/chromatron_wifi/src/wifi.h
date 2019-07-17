@@ -47,7 +47,8 @@ void wifi_v_init( void );
 void wifi_v_process( void );
 
 void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data );
-void wifi_v_set_ap( char *ssid, char *pass );
+void wifi_v_disconnect( void );
+void wifi_v_connect( char *ssid, char *pass );
 void wifi_v_set_ap_mode( char *_ssid, char *_pass );
 void wifi_v_shutdown( void );
 

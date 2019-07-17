@@ -218,7 +218,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_msg_connect_t *msg = (wifi_msg_connect_t *)data;
 
-        wifi_v_set_ap( msg->ssid, msg->pass );
+        wifi_v_connect( msg->ssid, msg->pass );
     }
     else if( data_id == WIFI_DATA_ID_AP_MODE ){
 
