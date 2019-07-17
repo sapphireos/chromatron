@@ -509,7 +509,9 @@ void hal_wifi_v_enter_normal_mode( void ){
 
     _delay_ms(WIFI_RESET_DELAY_MS);
 
-    // HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET); // set CTS high to idle
+    // NOTE! leave CTS pulled down, device is not finished booting up.
+    // CTS should be active HIGH, not low, to handle this.
+    // HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET);
 
     // re-init uart
     GPIO_InitStruct.Pin = WIFI_RXD_Pin;
