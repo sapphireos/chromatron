@@ -308,10 +308,14 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
 int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
 
-    *bytes_read = 0;
+    if( bytes_read != 0 ){
+        
+        *bytes_read = 0;
+    }   
+
     uint8_t tries = WIFI_COMM_TRIES;
     int8_t status = -1;
-    *bytes_read = 0;
+    
 
     while( tries > 0 ){
 
@@ -387,6 +391,22 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
 
         // everything is good!
         hal_wifi_v_usart_send_char( WIFI_COMM_ACK );
+
+        // if bytes read is set, return data length
+        if( bytes_read != 0 ){
+
+            *bytes_read = header.len;
+        }
+        else{
+
+            // bytes read is null, received data is expected to be fixed size
+            if( header.len != max_len ){
+
+                log_v_debug_P( PSTR("wrong data len") );
+                status = -5;
+                goto error;
+            }
+        }
 
         return 0;
     }
@@ -827,26 +847,13 @@ PT_END( pt );
 }
 
 
-//static 
-int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
+static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     int8_t status = 0;
 
-    if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
+    if( data_id == WIFI_DATA_ID_STATUS ){
 
-        return -1;
-    }
-
-    if( crc_u16_block( buf, header->len + sizeof(uint16_t) ) != 0 ){        
-
-        return -2;
-    }
-
-    uint8_t *data = buf;
-
-    if( header->data_id == WIFI_DATA_ID_STATUS ){
-
-        if( header->len != sizeof(wifi_msg_status_t) ){
+        if( len != sizeof(wifi_msg_status_t) ){
 
             goto len_error;
         }
@@ -855,9 +862,9 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
         wifi_status_reg = msg->flags;
     }  
-    else if( header->data_id == WIFI_DATA_ID_INFO ){
+    else if( data_id == WIFI_DATA_ID_INFO ){
 
-        if( header->len != sizeof(wifi_msg_info_t) ){
+        if( len != sizeof(wifi_msg_info_t) ){
 
             goto len_error;
         }
@@ -904,9 +911,9 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
         wifi_avg_time               = msg->wifi_avg_time;
         mem_avg_time                = msg->mem_avg_time;
     }
-//     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
+//     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
 
-//         if( header->len < sizeof(wifi_msg_udp_header_t) ){
+//         if( len < sizeof(wifi_msg_udp_header_t) ){
 
 //             goto len_error;
 //         }
@@ -976,14 +983,14 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //         // copy data
 //         data += sizeof(wifi_msg_udp_header_t);
 
-//         uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
+//         uint16_t data_len = len - sizeof(wifi_msg_udp_header_t);
 
 //         // we can get a fast ptr because we've already verified the handle
 //         memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
 
 //         rx_netmsg_index = data_len;
 //     }
-//     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
+//     else if( data_id == WIFI_DATA_ID_UDP_DATA ){
 
 //         if( rx_netmsg <= 0 ){
 
@@ -997,7 +1004,7 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //         uint16_t total_len = mem2_u16_get_size( state->data_handle );
 
 //         // bounds check
-//         if( ( header->len + rx_netmsg_index ) > total_len ){
+//         if( ( len + rx_netmsg_index ) > total_len ){
 
 //             log_v_debug_P( PSTR("rx udp len error") );     
 
@@ -1008,9 +1015,9 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //             goto error;
 //         }
 
-//         memcpy( &ptr[rx_netmsg_index], data, header->len );
+//         memcpy( &ptr[rx_netmsg_index], data, len );
 
-//         rx_netmsg_index += header->len;
+//         rx_netmsg_index += len;
 
 //         // message is complete
 //         if( rx_netmsg_index == total_len ){
@@ -1033,7 +1040,7 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //             status = 1;
 //         }   
 //     }
-//     else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
+//     else if( data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
     
 //         if( wifi_networks_handle < 0 ){        
 
@@ -1052,25 +1059,26 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //         //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
 //         // }
 //     }
-//     else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
+//     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
 //         log_v_debug_P( PSTR("ESP: %s"), data );
 //     }
 //     // check if msg handler is installed
 //     else if( wifi_i8_msg_handler ){
 
-//         wifi_i8_msg_handler( header->data_id, data, header->len );
+//         wifi_i8_msg_handler( data_id, data, len );
 //     }
 
-//     watchdog = WIFI_WATCHDOG_TIMEOUT;
 
-//     goto end;
+    watchdog = WIFI_WATCHDOG_TIMEOUT;
+
+    goto end;
 
 len_error:
 
 //     wifi_comm_errors2++;
 
-    log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
+    log_v_debug_P( PSTR("Wifi len error: %d"), data_id );
     status = -3;    
     goto end;
 
@@ -1131,39 +1139,40 @@ restart:
             goto restart;
         }
 
-        if( hal_wifi_b_usart_rx_available() ){
+        // if( hal_wifi_b_usart_rx_available() ){
 
-            if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
+        //     if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
 
-                wifi_data_header_t header;
+        //         wifi_data_header_t header;
 
-                if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+        //         if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
 
-                    log_v_debug_P( PSTR("rx fail 1") );
-                    continue;
-                }
+        //             log_v_debug_P( PSTR("rx fail 1") );
+        //             continue;
+        //         }
                 
-                uint8_t buf[640];
+        //         uint8_t buf[640];
 
-                if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
+        //         if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
 
-                    log_v_debug_P( PSTR("rx fail 2") );
-                    continue;
-                }
+        //             log_v_debug_P( PSTR("rx fail 2") );
+        //             continue;
+        //         }
 
-                if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
+        //         if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
 
-                    log_v_debug_P( PSTR("rx fail 3") );
-                    continue;
-                }
+        //             log_v_debug_P( PSTR("rx fail 3") );
+        //             continue;
+        //         }
 
-                if( process_rx_data( &header, buf ) < 0 ){
+        //         if( process_rx_data( &header, buf ) < 0 ){
 
-                    log_v_debug_P( PSTR("rx fail 4") );
-                    continue;   
-                }
-            }
-        }
+        //             log_v_debug_P( PSTR("rx fail 4") );
+        //             continue;   
+        //         }
+        //     }
+        // }
+
 
 
 //         // check if UDP buffer is clear (and transmit interface is available)
@@ -1240,10 +1249,9 @@ PT_BEGIN( pt );
 
         wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 );
         wifi_msg_info_t info;
-        uint16_t bytes_read;
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info), &bytes_read ) == 0 ){
+        if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info), 0 ) == 0 ){
 
-            log_v_debug_P( PSTR("info OK") );
+            process_rx_data( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info) );
         }
 
         if( watchdog > 0 ){
