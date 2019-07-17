@@ -205,7 +205,11 @@ static void _send_info_msg( void ){
 
 static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    if( data_id == WIFI_DATA_ID_CONNECT ){
+    if( data_id == WIFI_DATA_ID_INFO ){
+
+        _send_info_msg();        
+    }
+    else if( data_id == WIFI_DATA_ID_CONNECT ){
 
         if( len != sizeof(wifi_msg_connect_t) ){
 
