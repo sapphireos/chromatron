@@ -59,6 +59,7 @@ static uint32_t udp_received;
 static uint32_t udp_sent;
 static uint16_t connects;
 
+static bool connecting;
 static bool mdns_connected;
 static bool request_ap_mode;
 static bool request_connect;
@@ -197,12 +198,19 @@ void wifi_v_send_status( void ){
         status_msg.flags |= WIFI_STATUS_160MHz;
     }
 
-    intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
+    // intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
 }
 
 void wifi_v_process( void ){
+
+    if( connecting ){
+
+        Serial.write(0x99);
+    }
     
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
+
+        connecting = false;
 
         // check if status is changing
         if( ( last_status & WIFI_STATUS_CONNECTED ) == 0 ){
@@ -602,6 +610,8 @@ void wifi_v_connect( char *_ssid, char *_pass ){
     strncpy( pass, _pass, sizeof(pass) );
 
     wifi_v_disconnect();
+
+    connecting = true;
 
     WiFi.mode( WIFI_STA );
 

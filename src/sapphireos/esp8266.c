@@ -1529,6 +1529,11 @@ error:
 
     log_v_debug_P( PSTR("wifi load fail") );
 
+    // reconnect USB
+    #ifdef ENABLE_USB
+    usb_v_attach();
+    #endif
+
     THREAD_EXIT( pt );
 
 run_wifi:
