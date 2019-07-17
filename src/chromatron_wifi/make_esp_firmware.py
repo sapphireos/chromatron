@@ -46,8 +46,13 @@ def build():
     os.system('platformio run')
 
 def create_firmware_image():
-    with open('.pioenvs/esp12e/firmware.bin', 'rb') as f:
-        data = f.read()
+    try:
+        with open('.pioenvs/esp12e/firmware.bin', 'rb') as f:
+            data = f.read()
+
+    except IOError:
+        with open('.pio/build/esp12e/firmware.bin', 'rb') as f:
+            data = f.read()
 
     data_bytes = [ord(c) for c in data]
 
