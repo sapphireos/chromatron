@@ -59,7 +59,6 @@ static uint32_t udp_received;
 static uint32_t udp_sent;
 static uint16_t connects;
 
-static bool connecting;
 static bool mdns_connected;
 static bool request_ap_mode;
 static bool request_connect;
@@ -147,33 +146,7 @@ IPAddress wifi_ip_get_subnet( void ){
 }
 
 
-// #include <Ticker.h>
-// Ticker blinker;
-// void changeState()
-// {
-//   Serial.write(0x55);
-// }
-
-void ICACHE_RAM_ATTR servoISR(void){
-
-  timer1_write(16000000);
-  if( connecting ){
-    Serial.write(0x55);
-    }
-  
-}
-
 void wifi_v_init( void ){
-
-    // blinker.attach(0.1, changeState);
-
-    noInterrupts();
-  timer1_isr_init();
-  timer1_attachInterrupt(servoISR);
-  timer1_enable(TIM_DIV1, TIM_EDGE, TIM_SINGLE);
-  timer1_write(16000000);
-  interrupts();
-
 
     list_v_init( &tx_q );
     list_v_init( &rx_q );
@@ -194,7 +167,6 @@ void wifi_v_init( void ){
     // for some reason the default is station + AP mode.
     ap_mode = false;
     WiFi.mode( WIFI_STA );
-
 
     // set host name
     uint8_t mac[6];
@@ -229,14 +201,7 @@ void wifi_v_send_status( void ){
 
 void wifi_v_process( void ){
 
-    if( connecting ){
-
-        // Serial.write(0x99);
-    }
-    
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
-
-        connecting = false;
 
         // check if status is changing
         if( ( last_status & WIFI_STATUS_CONNECTED ) == 0 ){
@@ -637,11 +602,11 @@ void wifi_v_connect( char *_ssid, char *_pass ){
 
     wifi_v_disconnect();
 
-    connecting = true;
-
     WiFi.mode( WIFI_STA );
 
-    WiFi.begin( ssid, pass ); 
+    uint8_t bssid[6] = {0xb4, 0xfb, 0xe4, 0xe1, 0x40, 0xe2};
+
+    WiFi.begin( ssid, pass, 1, bssid );  
 }
 
 void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
