@@ -1252,12 +1252,14 @@ PT_BEGIN( pt );
             continue;
         }
 
-        wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 );
-        wifi_msg_info_t info;
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info), 0 ) == 0 ){
+        continue;
 
-            process_rx_data( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info) );
-        }
+        // wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 );
+        // wifi_msg_info_t info;
+        // if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info), 0 ) == 0 ){
+
+        //     process_rx_data( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info) );
+        // }
 
         if( watchdog > 0 ){
 
@@ -1278,17 +1280,17 @@ PT_BEGIN( pt );
         comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
         
-        if( hal_wifi_b_comm_ready() ){
+        // if( hal_wifi_b_comm_ready() ){
 
-            // send options message
+        //     // send options message
 
-            wifi_msg_set_options_t options_msg;
-            memset( options_msg.padding, 0, sizeof(options_msg.padding) );
-            options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
-            options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
+        //     wifi_msg_set_options_t options_msg;
+        //     memset( options_msg.padding, 0, sizeof(options_msg.padding) );
+        //     options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
+        //     options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
 
-            wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
-        }
+        //     wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
+        // }
     }
 
 PT_END( pt );

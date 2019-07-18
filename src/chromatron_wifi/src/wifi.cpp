@@ -147,7 +147,36 @@ IPAddress wifi_ip_get_subnet( void ){
 }
 
 
+// #include <Ticker.h>
+// Ticker blinker;
+// void changeState()
+// {
+//   Serial.write(0x55);
+// }
+
+uint32_t next;
+void ICACHE_RAM_ATTR servoISR(void){
+
+    next += 16000000;
+
+  timer0_write(next);
+  if( connecting ){
+    Serial.write(0x55);
+    }
+  
+}
+
 void wifi_v_init( void ){
+
+    // blinker.attach(0.1, changeState);
+
+    noInterrupts();
+  timer0_isr_init();
+  timer0_attachInterrupt(servoISR);
+  next=ESP.getCycleCount()+16000000;
+  timer0_write(next);
+  interrupts();
+
 
     list_v_init( &tx_q );
     list_v_init( &rx_q );
@@ -205,7 +234,7 @@ void wifi_v_process( void ){
 
     if( connecting ){
 
-        Serial.write(0x99);
+        // Serial.write(0x99);
     }
     
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
@@ -221,12 +250,6 @@ void wifi_v_process( void ){
             wifi_v_send_status();
 
             intf_v_printf("Connected!");
-
-            Serial.write(0x00);
-
-            Serial.write(0x00);
-            Serial.write(0x00);
-            
         }
 
         // if in station mode:
@@ -621,7 +644,7 @@ void wifi_v_connect( char *_ssid, char *_pass ){
 
     WiFi.mode( WIFI_STA );
 
-    WiFi.begin( ssid, pass );    
+    WiFi.begin( ssid, pass ); 
 }
 
 void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
