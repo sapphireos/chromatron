@@ -154,12 +154,9 @@ IPAddress wifi_ip_get_subnet( void ){
 //   Serial.write(0x55);
 // }
 
-uint32_t next;
 void ICACHE_RAM_ATTR servoISR(void){
 
-    next += 16000000;
-
-  timer0_write(next);
+  timer1_write(16000000);
   if( connecting ){
     Serial.write(0x55);
     }
@@ -171,10 +168,10 @@ void wifi_v_init( void ){
     // blinker.attach(0.1, changeState);
 
     noInterrupts();
-  timer0_isr_init();
-  timer0_attachInterrupt(servoISR);
-  next=ESP.getCycleCount()+16000000;
-  timer0_write(next);
+  timer1_isr_init();
+  timer1_attachInterrupt(servoISR);
+  timer1_enable(TIM_DIV1, TIM_EDGE, TIM_SINGLE);
+  timer1_write(16000000);
   interrupts();
 
 
