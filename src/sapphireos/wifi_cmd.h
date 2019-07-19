@@ -33,6 +33,7 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_UDP_BUF_LEN            548
 
 #define WIFI_MAX_PORTS              16
+#define WIFI_MAX_APS                4
 
 #define WIFI_SSID_LEN               32
 #define WIFI_PASS_LEN               32
@@ -81,8 +82,8 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_STATUS             0x01
 
 typedef struct __attribute__((packed)){
-    char ssid[WIFI_SSID_LEN];
-    char pass[WIFI_SSID_LEN];
+    char ssid[WIFI_MAX_APS][WIFI_SSID_LEN];
+    char pass[WIFI_MAX_APS][WIFI_SSID_LEN];
 } wifi_msg_connect_t;
 #define WIFI_DATA_ID_CONNECT            0x02
 

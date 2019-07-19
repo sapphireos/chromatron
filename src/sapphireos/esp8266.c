@@ -117,8 +117,6 @@ static uint16_t wifi_version;
 // static uint16_t rx_netmsg_index;
 // static uint16_t rx_netmsg_crc;
 
-static uint8_t router;
-
 static uint16_t max_ready_wait;
 
 static uint8_t comm_stalls;
@@ -140,7 +138,6 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password3" },
     { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid4" },
     { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password4" },
-    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &router,            0,                   "wifi_router" },
     { SAPPHIRE_TYPE_BOOL,          0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_enable_ap" },    
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_ssid" },
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
@@ -229,7 +226,7 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
     header.flags    = 0;
     header.reserved = 0;
     
-    header.header_crc = HTONS( crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) ) );
+    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) );
 
     while( tries > 0 ){
 
@@ -266,7 +263,6 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
-    hal_wifi_v_usart_flush();
     uint8_t tries = WIFI_COMM_TRIES;
 
     while( tries > 0 ){
@@ -301,119 +297,40 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
     }
 
-    log_v_debug_P( PSTR("msg failed: 0x%0x"), data_id );
+    log_v_debug_P( PSTR("msg failed") );
 
     return -1;
 }
 
 int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
 
-    if( bytes_read != 0 ){
-        
-        *bytes_read = 0;
-    }   
-
+    *bytes_read = 0;
     uint8_t tries = WIFI_COMM_TRIES;
     int8_t status = -1;
-    
 
     while( tries > 0 ){
 
         tries--;
 
         // wait for RTS
-        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_RTS ){
+        uint32_t start_time = tmr_u32_get_system_time_us();
 
-            status = -2;
-            goto error;
-        }
+        while( hal_wifi_i16_usart_get_char() != WIFI_COMM_RTS ){
 
-        // RTS asserted
-        // set CTS
-        hal_wifi_v_usart_send_char( WIFI_COMM_CTS );
+            if( tmr_u32_elapsed_time_us( start_time ) > WIFI_COMM_TIMEOUT ){
 
-        // wait for data start
-        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_DATA ){
-
-            status = -3;
-            goto error;
-        }
-
-        wifi_data_header_t header;
-        if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
-
-            log_v_debug_P( PSTR("header timeout") );
-            continue;
-        }
-
-        if( header.len > max_len ){
-
-            log_v_debug_P( PSTR("invalid len") );
-            continue;
-        }
-
-        if( hal_wifi_i8_usart_receive( data, header.len, WIFI_COMM_TIMEOUT ) < 0 ){
-
-            log_v_debug_P( PSTR("data timeout") );
-            continue;
-        }
-
-        uint16_t crc;
-        if( hal_wifi_i8_usart_receive( (uint8_t *)&crc, sizeof(crc), WIFI_COMM_TIMEOUT ) < 0 ){
-
-            log_v_debug_P( PSTR("crc timeout") );
-            continue;
-        }
-
-        // check CRCs
-        header.header_crc = HTONS( header.header_crc );
-        if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
-
-            log_v_debug_P( PSTR("header crc fail") );
-            hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
-            continue;
-        }
-
-        // header CRC good, check for data ID
-        if( header.data_id != data_id ){
-
-            log_v_debug_P( PSTR("wrong data id") );
-            status = -4;
-            goto error;
-        }
-
-        if( crc_u16_block( data, header.len ) != crc ){
-
-            log_v_debug_P( PSTR("data crc fail") );
-            hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
-            continue;
-        }
-
-        // everything is good!
-        hal_wifi_v_usart_send_char( WIFI_COMM_ACK );
-
-        // if bytes read is set, return data length
-        if( bytes_read != 0 ){
-
-            *bytes_read = header.len;
-        }
-        else{
-
-            // bytes read is null, received data is expected to be fixed size
-            if( header.len != max_len ){
-
-                log_v_debug_P( PSTR("wrong data len") );
-                status = -5;
-                goto error;
+                status = -2;
+                goto done;
             }
         }
 
-        return 0;
+        // RTS asserted
+        // set CTS and receive
+        hal_wifi_v_usart_send_char( WIFI_COMM_CTS );
     }
 
 
-error:
-    log_v_debug_P( PSTR("rx fail") );
+done:
     return status;
 }
 
@@ -580,23 +497,12 @@ PT_BEGIN( pt );
     // check if we are connected
     while( !wifi_b_connected() ){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
         wifi_rssi = -127;
         
+        THREAD_WAIT_WHILE( pt, !hal_wifi_b_comm_ready() );
+
         bool ap_mode = wifi_b_ap_mode_enabled();
-
-
-        char ssid[WIFI_SSID_LEN];
-        cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-        
-        // check if wifi settings were present
-        if( ssid[0] == 0 ){        
-
-            // switch to AP mode
-            ap_mode = TRUE;
-        }
-
+ 
         // station mode
         if( !ap_mode ){
     
@@ -684,40 +590,27 @@ PT_BEGIN( pt );
             wifi_msg_connect_t msg;
             memset( &msg, 0, sizeof(msg) );
 
-            if( router == 1 ){
+            cfg_i8_get( CFG_PARAM_WIFI_SSID, msg.ssid[0] );
+            cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, msg.pass[0] );
+            
+            kv_i8_get( __KV__wifi_ssid2, msg.ssid[1], sizeof(msg.ssid) );
+            kv_i8_get( __KV__wifi_password2, msg.pass[1], sizeof(msg.pass) );  
+    
+            kv_i8_get( __KV__wifi_ssid3, msg.ssid[2], sizeof(msg.ssid) );
+            kv_i8_get( __KV__wifi_password3, msg.pass[2], sizeof(msg.pass) );  
 
-                kv_i8_get( __KV__wifi_ssid2, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get( __KV__wifi_password2, msg.pass, sizeof(msg.pass) );  
-            }
-            else if( router == 2 ){
+            kv_i8_get( __KV__wifi_ssid4, msg.ssid[3], sizeof(msg.ssid) );
+            kv_i8_get( __KV__wifi_password4, msg.pass[3], sizeof(msg.pass) );  
 
-                kv_i8_get( __KV__wifi_ssid3, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get( __KV__wifi_password3, msg.pass, sizeof(msg.pass) );  
-            }
-            else if( router == 3 ){
+            // check if no APs are configured
+            if( ( msg.ssid[0][0] == 0 ) &&
+                ( msg.ssid[1][0] == 0 ) &&
+                ( msg.ssid[2][0] == 0 ) &&
+                ( msg.ssid[3][0] == 0 ) ){
 
-                kv_i8_get( __KV__wifi_ssid4, msg.ssid, sizeof(msg.ssid) );
-                kv_i8_get( __KV__wifi_password4, msg.pass, sizeof(msg.pass) );  
-            }
-            else{
-
-                cfg_i8_get( CFG_PARAM_WIFI_SSID, msg.ssid );
-                cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, msg.pass );
-            }
-
-            // check if a router was configured
-            if( msg.ssid[0] == 0 ){
-
-                router++;
-
-                if( router >= 4 ){
-
-                    router = 0;
-                }
-
-                THREAD_YIELD( pt );
-
-                continue;
+                // switch to AP mode
+                ap_mode = TRUE;
+                goto ap_mode;
             }
 
             log_v_debug_P( PSTR("Connecting to: %s"), msg.ssid );
@@ -726,33 +619,10 @@ PT_BEGIN( pt );
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
             THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
                                    ( thread_b_alarm_set() ) );
-
-            // check if connected
-            if( wifi_b_connected() ){
-
-                kv_i8_persist( __KV__wifi_router );
-            }
-            else{
-                // not connected, try next router
-
-                router++;
-
-                if( router >= 4 ){
-
-                    router = 0;
-
-                    // if we are in recovery mode and we've cycled through all
-                    // of the routers, start up the AP
-                    if( sys_b_is_recovery_mode() ){
-
-                        default_ap_mode = TRUE;
-                    }
-                }
-            }
         }
         // AP mode
         else{
-
+ap_mode:
             // wait until we have a MAC address
             THREAD_WAIT_WHILE( pt, wifi_mac[0] == 0 );
 
@@ -847,13 +717,26 @@ PT_END( pt );
 }
 
 
-static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
+//static 
+int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
     int8_t status = 0;
 
-    if( data_id == WIFI_DATA_ID_STATUS ){
+    if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
 
-        if( len != sizeof(wifi_msg_status_t) ){
+        return -1;
+    }
+
+    if( crc_u16_block( buf, header->len + sizeof(uint16_t) ) != 0 ){        
+
+        return -2;
+    }
+
+    uint8_t *data = buf;
+
+    if( header->data_id == WIFI_DATA_ID_STATUS ){
+
+        if( header->len != sizeof(wifi_msg_status_t) ){
 
             goto len_error;
         }
@@ -862,9 +745,9 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_status_reg = msg->flags;
     }  
-    else if( data_id == WIFI_DATA_ID_INFO ){
+    else if( header->data_id == WIFI_DATA_ID_INFO ){
 
-        if( len != sizeof(wifi_msg_info_t) ){
+        if( header->len != sizeof(wifi_msg_info_t) ){
 
             goto len_error;
         }
@@ -911,9 +794,9 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         wifi_avg_time               = msg->wifi_avg_time;
         mem_avg_time                = msg->mem_avg_time;
     }
-//     else if( data_id == WIFI_DATA_ID_UDP_HEADER ){
+//     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
 
-//         if( len < sizeof(wifi_msg_udp_header_t) ){
+//         if( header->len < sizeof(wifi_msg_udp_header_t) ){
 
 //             goto len_error;
 //         }
@@ -983,14 +866,14 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 //         // copy data
 //         data += sizeof(wifi_msg_udp_header_t);
 
-//         uint16_t data_len = len - sizeof(wifi_msg_udp_header_t);
+//         uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
 
 //         // we can get a fast ptr because we've already verified the handle
 //         memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
 
 //         rx_netmsg_index = data_len;
 //     }
-//     else if( data_id == WIFI_DATA_ID_UDP_DATA ){
+//     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
 
 //         if( rx_netmsg <= 0 ){
 
@@ -1004,7 +887,7 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 //         uint16_t total_len = mem2_u16_get_size( state->data_handle );
 
 //         // bounds check
-//         if( ( len + rx_netmsg_index ) > total_len ){
+//         if( ( header->len + rx_netmsg_index ) > total_len ){
 
 //             log_v_debug_P( PSTR("rx udp len error") );     
 
@@ -1015,9 +898,9 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 //             goto error;
 //         }
 
-//         memcpy( &ptr[rx_netmsg_index], data, len );
+//         memcpy( &ptr[rx_netmsg_index], data, header->len );
 
-//         rx_netmsg_index += len;
+//         rx_netmsg_index += header->len;
 
 //         // message is complete
 //         if( rx_netmsg_index == total_len ){
@@ -1040,7 +923,7 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 //             status = 1;
 //         }   
 //     }
-//     else if( data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
+//     else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
     
 //         if( wifi_networks_handle < 0 ){        
 
@@ -1059,26 +942,25 @@ static int8_t process_rx_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 //         //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
 //         // }
 //     }
-//     else if( data_id == WIFI_DATA_ID_DEBUG_PRINT ){
+//     else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
 //         log_v_debug_P( PSTR("ESP: %s"), data );
 //     }
 //     // check if msg handler is installed
 //     else if( wifi_i8_msg_handler ){
 
-//         wifi_i8_msg_handler( data_id, data, len );
+//         wifi_i8_msg_handler( header->data_id, data, header->len );
 //     }
 
+//     watchdog = WIFI_WATCHDOG_TIMEOUT;
 
-    watchdog = WIFI_WATCHDOG_TIMEOUT;
-
-    goto end;
+//     goto end;
 
 len_error:
 
 //     wifi_comm_errors2++;
 
-    log_v_debug_P( PSTR("Wifi len error: %d"), data_id );
+    log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
     status = -3;    
     goto end;
 
@@ -1103,16 +985,14 @@ restart:
     hal_wifi_v_enter_normal_mode();
     wifi_status_reg = 0;
 
+    hal_wifi_v_usart_flush();
+
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
 
-    hal_wifi_v_usart_flush();
+
     // wait for connection from wifi module
-    hal_wifi_v_usart_send_char( WIFI_COMM_QUERY_READY );
-
-    if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_READY ){
-
-        log_v_debug_P( PSTR("Wifi failed to start") );
+    if( hal_wifi_i16_usart_get_char_timeout( 100000 ) != WIFI_COMM_READY ){
 
         goto restart;
     }
@@ -1139,40 +1019,39 @@ restart:
             goto restart;
         }
 
-        // if( hal_wifi_b_usart_rx_available() ){
+        if( hal_wifi_b_usart_rx_available() ){
 
-        //     if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
+            if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
 
-        //         wifi_data_header_t header;
+                wifi_data_header_t header;
 
-        //         if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+                if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
 
-        //             log_v_debug_P( PSTR("rx fail 1") );
-        //             continue;
-        //         }
+                    log_v_debug_P( PSTR("rx fail 1") );
+                    continue;
+                }
                 
-        //         uint8_t buf[640];
+                uint8_t buf[640];
 
-        //         if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
+                if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
 
-        //             log_v_debug_P( PSTR("rx fail 2") );
-        //             continue;
-        //         }
+                    log_v_debug_P( PSTR("rx fail 2") );
+                    continue;
+                }
 
-        //         if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
+                if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
 
-        //             log_v_debug_P( PSTR("rx fail 3") );
-        //             continue;
-        //         }
+                    log_v_debug_P( PSTR("rx fail 3") );
+                    continue;
+                }
 
-        //         if( process_rx_data( &header, buf ) < 0 ){
+                if( process_rx_data( &header, buf ) < 0 ){
 
-        //             log_v_debug_P( PSTR("rx fail 4") );
-        //             continue;   
-        //         }
-        //     }
-        // }
-
+                    log_v_debug_P( PSTR("rx fail 4") );
+                    continue;   
+                }
+            }
+        }
 
 
 //         // check if UDP buffer is clear (and transmit interface is available)
@@ -1247,20 +1126,6 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        if( !wifi_b_attached() ){
-
-            continue;
-        }
-
-        continue;
-
-        // wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 );
-        // wifi_msg_info_t info;
-        // if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info), 0 ) == 0 ){
-
-        //     process_rx_data( WIFI_DATA_ID_INFO, (uint8_t *)&info, sizeof(info) );
-        // }
-
         if( watchdog > 0 ){
 
             watchdog--;
@@ -1280,17 +1145,17 @@ PT_BEGIN( pt );
         comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
         
-        // if( hal_wifi_b_comm_ready() ){
+        if( hal_wifi_b_comm_ready() ){
 
-        //     // send options message
+            // send options message
 
-        //     wifi_msg_set_options_t options_msg;
-        //     memset( options_msg.padding, 0, sizeof(options_msg.padding) );
-        //     options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
-        //     options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
+            wifi_msg_set_options_t options_msg;
+            memset( options_msg.padding, 0, sizeof(options_msg.padding) );
+            options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
+            options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
 
-        //     wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
-        // }
+            wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
+        }
     }
 
 PT_END( pt );
@@ -1340,6 +1205,8 @@ restart:
     state->timeout = 10;
     while( state->timeout > 0 ){
 
+        hal_wifi_v_usart_flush();
+
         state->timeout--;
 
         if( state->timeout == 0 ){
@@ -1349,10 +1216,30 @@ restart:
             goto restart;
         }
 
-        // blocking wait!
-        if( esp_i8_sync() == 0 ){
+        uint8_t buf[32];
+        memset( buf, 0xff, sizeof(buf) );
 
-            break;
+
+        // ESP seems to miss the first sync for some reason,
+        // so we'll just send twice.
+        // it's not really a big deal from a timing standpoint since
+        // we'd try again in a few milliseconds, but if the wait response
+        // function is doing error logging, it saves us a pointless error
+        // message on every start up.
+        esp_v_send_sync();
+        esp_v_send_sync();
+
+        // blocking wait!
+        int8_t status = esp_i8_wait_response( buf, sizeof(buf), ESP_SYNC_TIMEOUT );
+
+        if( status == 0 ){
+
+            esp_response_t *resp = (esp_response_t *)buf;
+
+            if( resp->opcode == ESP_SYNC ){
+
+                break;
+            }
         }
 
         TMR_WAIT( pt, 5 );
@@ -1488,10 +1375,10 @@ load_image:
 
     log_v_debug_P( PSTR("Loading wifi image...") );
 
-    int8_t load_status = esp_i8_load_flash( state->fw_file );
-    if( load_status < 0 ){
 
-        log_v_debug_P( PSTR("error: %d"), load_status );
+    if( esp_i8_load_flash( state->fw_file ) < 0 ){
+
+        log_v_debug_P( PSTR("error") );
         goto error;
     }
 
@@ -1530,11 +1417,6 @@ error:
 
 
     log_v_debug_P( PSTR("wifi load fail") );
-
-    // reconnect USB
-    #ifdef ENABLE_USB
-    usb_v_attach();
-    #endif
 
     THREAD_EXIT( pt );
 
@@ -1650,22 +1532,22 @@ int8_t wifi_i8_rssi( void ){
 
 void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
 
-    if( router == 1 ){
+    // if( router == 1 ){
 
-        kv_i8_get( __KV__wifi_ssid2, ssid, WIFI_SSID_LEN );
-    }
-    else if( router == 2 ){
+    //     kv_i8_get( __KV__wifi_ssid2, ssid, WIFI_SSID_LEN );
+    // }
+    // else if( router == 2 ){
 
-        kv_i8_get( __KV__wifi_ssid3, ssid, WIFI_SSID_LEN ); 
-    }
-    else if( router == 3 ){
+    //     kv_i8_get( __KV__wifi_ssid3, ssid, WIFI_SSID_LEN ); 
+    // }
+    // else if( router == 3 ){
 
-        kv_i8_get( __KV__wifi_ssid4, ssid, WIFI_SSID_LEN );
-    }
-    else{
+    //     kv_i8_get( __KV__wifi_ssid4, ssid, WIFI_SSID_LEN );
+    // }
+    // else{
 
-        cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-    }
+    //     cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+    // }
 }
 
 bool wifi_b_ap_mode( void ){
