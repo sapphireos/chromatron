@@ -25,7 +25,6 @@
 #include <WiFiUdp.h>
 #include <ESP8266mDNS.h>
 #include "wifi.h"
-#include "irq_line.h"
 
 #include "comm_intf.h"
 #include "comm_printf.h"
@@ -198,7 +197,7 @@ void wifi_v_send_status( void ){
         status_msg.flags |= WIFI_STATUS_160MHz;
     }
 
-    // intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
+    intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
 }
 
 void wifi_v_process( void ){

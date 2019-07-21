@@ -28,7 +28,7 @@
 
 
 #define LED_GPIO 2
-#define RTS_GPIO 14
+#define IRQ_GPIO 14
 #define CTS_GPIO 15
 
 #ifdef __cplusplus

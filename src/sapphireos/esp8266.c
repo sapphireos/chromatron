@@ -1016,7 +1016,7 @@ PT_BEGIN( pt );
         THREAD_YIELD( pt );
         THREAD_YIELD( pt );
 
-        THREAD_WAIT_WHILE( pt, !hal_wifi_b_read_rts() );
+        THREAD_WAIT_WHILE( pt, !hal_wifi_b_read_irq() );
 
 
 

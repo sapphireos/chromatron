@@ -104,11 +104,11 @@ void hal_wifi_v_init( void ){
     GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
     HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin         = WIFI_RTS_Pin;
+    GPIO_InitStruct.Pin         = WIFI_IRQ_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
-    HAL_GPIO_Init(WIFI_RTS_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(WIFI_IRQ_Port, &GPIO_InitStruct);
 
     // hold module in reset
     HAL_GPIO_WritePin(WIFI_PD_GPIO_Port, WIFI_PD_Pin, GPIO_PIN_RESET);
@@ -333,9 +333,9 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 	return temp;
 }
 
-bool hal_wifi_b_read_rts( void ){
+bool hal_wifi_b_read_irq( void ){
 
-    if( HAL_GPIO_ReadPin( WIFI_RTS_Port, WIFI_RTS_Pin ) == GPIO_PIN_RESET ){
+    if( HAL_GPIO_ReadPin( WIFI_IRQ_Port, WIFI_IRQ_Pin ) == GPIO_PIN_RESET ){
 
         return false;
     }
@@ -381,11 +381,11 @@ void hal_wifi_v_enter_boot_mode( void ){
     _delay_ms(WIFI_RESET_DELAY_MS);
 
 
-    GPIO_InitStruct.Pin         = WIFI_RTS_Pin;
+    GPIO_InitStruct.Pin         = WIFI_IRQ_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
-    HAL_GPIO_Init(WIFI_RTS_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(WIFI_IRQ_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin         = WIFI_BOOT_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_OUTPUT_PP;
@@ -496,11 +496,11 @@ void hal_wifi_v_enter_normal_mode( void ){
     HAL_GPIO_Init(WIFI_CTS_GPIO_Port, &GPIO_InitStruct);
     HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET); // pull to ground while we boot up
 
-    GPIO_InitStruct.Pin         = WIFI_RTS_Pin;
+    GPIO_InitStruct.Pin         = WIFI_IRQ_Pin;
     GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_PULLDOWN;
-    HAL_GPIO_Init(WIFI_RTS_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(WIFI_IRQ_Port, &GPIO_InitStruct);
 
     _delay_ms(WIFI_RESET_DELAY_MS);
 

@@ -63,7 +63,7 @@ int16_t hal_wifi_i16_rx_data_received( void );
 uint32_t hal_wifi_u32_get_rx_bytes( void );
 uint32_t hal_wifi_u32_get_tx_bytes( void );
 
-bool hal_wifi_b_read_rts( void );
+bool hal_wifi_b_read_irq( void );
 void hal_wifi_v_set_cts( bool value );
 
 void hal_wifi_v_enter_boot_mode( void );

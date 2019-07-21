@@ -26,7 +26,6 @@
 #include <FS.h>
 #include "comm_intf.h"
 #include "wifi.h"
-#include "irq_line.h"
 #include "version.h"
 #include "comm_printf.h"
 #include "options.h"
@@ -73,8 +72,6 @@ void setup(){
     system_update_cpu_freq( SYS_CPU_80MHZ );
 
     rnd_v_init();
-
-    irqline_v_init();
 
     mem2_v_init( mem_heap, sizeof(mem_heap) );
 
@@ -126,8 +123,6 @@ void loop(){
 
     process_stats_t *stats;
     intf_v_get_proc_stats( &stats );
-
-    irqline_v_process();
 
     start = micros();
     intf_v_process();

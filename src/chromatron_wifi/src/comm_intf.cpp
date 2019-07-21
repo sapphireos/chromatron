@@ -26,7 +26,6 @@
 #include "comm_intf.h"
 #include "comm_printf.h"
 #include "wifi.h"
-#include "irq_line.h"
 #include "version.h"
 #include "options.h"
 #include "uart.h"
@@ -105,43 +104,6 @@ static void _intf_v_flush(){
     Serial.flush();
     while( Serial.read() >= 0 );
 }
-
-// static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
-
-    // if( len > WIFI_MAIN_MAX_DATA_LEN ){
-
-    //     comm_errors++;
-
-    //     return -1;
-    // }
-    // else if( !rx_ready() ){
-
-    //     comm_errors++;
-
-    //     return -2;  
-    // }
-
-    // wifi_data_header_t header;
-    // header.len      = len;
-    // header.data_id  = data_id;
-    // header.reserved = 0;
-    // header.crc      = 0;
-
-    // uint16_t crc = crc_u16_start();
-    // crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
-
-    // crc = crc_u16_partial_block( crc, data, len );
-
-    // header.crc = crc_u16_finish( crc );
-
-    // clear_ready_flag();    
-
-    // Serial.write( WIFI_COMM_DATA );
-    // Serial.write( (uint8_t *)&header, sizeof(header) );
-    // Serial.write( data, len );
-
-    // return 0;
-// }
 
 static void _send_info_msg( void ){
 
@@ -712,10 +674,10 @@ void intf_v_process( void ){
 
 void intf_v_init( void ){
 
-    pinMode( RTS_GPIO, OUTPUT );
+    pinMode( IRQ_GPIO, OUTPUT );
     pinMode( CTS_GPIO, INPUT );
 
-    digitalWrite( RTS_GPIO, LOW );
+    digitalWrite( IRQ_GPIO, LOW );
 
     pinMode( LED_GPIO, OUTPUT );
     intf_v_led_off();
@@ -789,7 +751,7 @@ int8_t intf_i8_rts( void ){
     return -1;
 }
 
-int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
 
