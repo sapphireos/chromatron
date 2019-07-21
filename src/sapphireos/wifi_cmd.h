@@ -162,20 +162,20 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_UDP_DATA          0x11
 #define WIFI_DATA_ID_UDP_EXT           0x12
 
-#define WIFI_DATA_ID_WIFI_SCAN         0x13
+// #define WIFI_DATA_ID_WIFI_SCAN         0x13
 
-typedef struct __attribute__((packed)){
-    uint32_t ssid_hash;
-    int32_t rssi;
-} wifi_network_t;
+// typedef struct __attribute__((packed)){
+//     uint32_t ssid_hash;
+//     int32_t rssi;
+// } wifi_network_t;
 
-#define WIFI_SCAN_RESULTS_LEN            14
-typedef struct __attribute__((packed)){
-    uint8_t count;
-    uint8_t padding[3];
-    wifi_network_t networks[WIFI_SCAN_RESULTS_LEN];
-} wifi_msg_scan_results_t;
-#define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x14
+// #define WIFI_SCAN_RESULTS_LEN            14
+// typedef struct __attribute__((packed)){
+//     uint8_t count;
+//     uint8_t padding[3];
+//     wifi_network_t networks[WIFI_SCAN_RESULTS_LEN];
+// } wifi_msg_scan_results_t;
+// #define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x14
 
 #define WIFI_DATA_ID_RUN_FADER          0x27
 

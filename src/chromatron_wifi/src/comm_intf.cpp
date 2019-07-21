@@ -218,7 +218,12 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_msg_connect_t *msg = (wifi_msg_connect_t *)data;
 
-        wifi_v_connect( msg->ssid, msg->pass );
+        for( uint32_t i = 0; i < WIFI_MAX_APS; i++ ){
+
+            wifi_v_set_ap_info( msg->ssid[i], msg->pass[i], i );    
+        }
+
+        wifi_v_connect();
     }
     else if( data_id == WIFI_DATA_ID_AP_MODE ){
 
@@ -230,10 +235,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         wifi_msg_ap_connect_t *msg = (wifi_msg_ap_connect_t *)data;
 
         wifi_v_set_ap_mode( msg->ssid, msg->pass );
-    }
-    else if( data_id == WIFI_DATA_ID_WIFI_SCAN ){
-
-        wifi_v_scan();
     }
     else if( data_id == WIFI_DATA_ID_PORTS ){
 

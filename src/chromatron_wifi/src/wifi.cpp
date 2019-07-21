@@ -41,8 +41,8 @@ extern "C"{
 
 static char hostname[32];
 
-static char ssid[WIFI_SSID_LEN];
-static char pass[WIFI_PASS_LEN];
+static char ssid_list[WIFI_MAX_APS][WIFI_SSID_LEN];
+static char pass_list[WIFI_MAX_APS][WIFI_PASS_LEN];
 
 static uint16_t ports[WIFI_MAX_PORTS];
 static WiFiUDP udp[WIFI_MAX_PORTS];
@@ -62,7 +62,6 @@ static uint16_t connects;
 static bool mdns_connected;
 static bool request_ap_mode;
 static bool request_connect;
-static bool request_disconnect;
 static bool request_ports;
 static bool request_shutdown;
 static bool ap_mode;
@@ -258,84 +257,65 @@ void wifi_v_process( void ){
 
         int32_t networks_found = WiFi.scanComplete();
 
-        if( networks_found >= 0 ){
+        String target_ssid;
+        String target_pass;
+        int32_t target_rssi     = -1;
+        int32_t target_channel  = -1;
+        uint8_t *target_bssid   = 0;
 
-            wifi_msg_scan_results_t msg;
-            memset( &msg, 0, sizeof(msg) );
+        if( networks_found >= 0 ){
 
             String network_ssid;
             int32_t network_rssi;
-            // int32_t channel;
+            int32_t channel;
+            uint8_t *bssid;
 
             for( int32_t i = 0; i < networks_found; i++ ){
 
                 network_ssid = WiFi.SSID( i );
                 network_rssi = WiFi.RSSI( i );
-                // channel = WiFi.channel( i );
+                channel = WiFi.channel( i );
+                bssid = WiFi.BSSID( i );
 
-                // intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
-
-                msg.count++;
-                msg.networks[i].ssid_hash = hash_u32_string( (char *)network_ssid.c_str() );
-                msg.networks[i].rssi = network_rssi;
-
-                if( msg.count >= WIFI_SCAN_RESULTS_LEN ){
-
-                    break;
-                }
+                intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
             }
         
-            if( intf_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN_RESULTS, (uint8_t *)&msg, sizeof(msg) ) >= 0 ){
-
-                scanning = false;
-            }
+            scanning = false;
         }
-    }
-    else if( request_connect ){
 
-        WiFi.mode( WIFI_STA );
-        ap_mode = false;
+        if( request_connect ){
 
-        WiFi.begin( ssid, pass );    
-        
-        request_connect = false;
-        request_disconnect = false;
+            WiFi.mode( WIFI_STA );
 
-        wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
+            WiFi.begin( target_ssid, target_pass, target_channel, target_bssid );  
+            
+            request_connect = false;
+        }
+
+        // done with scan results
+        WiFi.scanDelete();
     }
     else if( request_ap_mode ){
 
-        WiFi.mode( WIFI_AP );
-        ap_mode = true;
+        // WiFi.mode( WIFI_AP );
+        // ap_mode = true;
 
-        // configure IP
-        WiFi.softAPConfig(soft_AP_IP, soft_AP_gateway, soft_AP_subnet);
+        // // configure IP
+        // WiFi.softAPConfig(soft_AP_IP, soft_AP_gateway, soft_AP_subnet);
 
-        // NOTE!
-        // password must be at least 8 characters.
-        // if it is less, the ESP will use a default SSID
-        // with no password.
+        // // NOTE!
+        // // password must be at least 8 characters.
+        // // if it is less, the ESP will use a default SSID
+        // // with no password.
 
-        WiFi.softAP( ssid, pass );
+        // WiFi.softAP( ssid, pass );
 
-        request_ap_mode = false;
-        request_connect = false;
-        request_disconnect = false;
+        // request_ap_mode = false;
+        // request_connect = false;
+        // request_disconnect = false;
 
-        wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
+        // wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
     }
-    // else if( request_disconnect ){
-
-    //     MDNS.close();
-    //     mdns_connected = false;
-
-    //     WiFi.disconnect();
-
-    //     request_connect = false;
-    //     request_disconnect = false;
-
-    //     wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE );
-    // }
     else if( request_shutdown ){
 
         MDNS.close();
@@ -344,7 +324,6 @@ void wifi_v_process( void ){
         delay(100);
 
         request_shutdown = false;
-        request_disconnect = true;
     }
 
     if( request_ports ){
@@ -584,6 +563,7 @@ void wifi_v_disconnect( void ){
 
     MDNS.close();
     mdns_connected = false;
+    request_connect = false;
 
     WiFi.disconnect();
 
@@ -592,43 +572,47 @@ void wifi_v_disconnect( void ){
     wifi_v_clr_status_bits( WIFI_STATUS_AP_MODE | WIFI_STATUS_CONNECTED ); 
 }
 
-void wifi_v_connect( char *_ssid, char *_pass ){
+void wifi_v_set_ap_info( char *ssid, char *pass, uint8_t index ){
+
+    if( index >= WIFI_MAX_APS ){
+
+        return;
+    }
+
+    strncpy( ssid_list[index], ssid, WIFI_SSID_LEN );
+    strncpy( pass_list[index], pass, WIFI_SSID_LEN );
+}
+
+void wifi_v_connect( void ){
     
-    memset( ssid, 0, sizeof(ssid) );
-    memset( pass, 0, sizeof(pass) );
-
-    strncpy( ssid, _ssid, sizeof(ssid) );
-    strncpy( pass, _pass, sizeof(pass) );
-
     wifi_v_disconnect();
 
-    WiFi.mode( WIFI_STA );
+    request_connect = true;
 
-    uint8_t bssid[6] = {0xb4, 0xfb, 0xe4, 0xe1, 0x40, 0xe2};
-
-    WiFi.begin( ssid, pass, 1, bssid );  
+    // initiate scan
+    wifi_v_scan();
 }
 
 void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
     
-    request_connect = false;
+    // request_connect = false;
 
-    memset( ssid, 0, sizeof(ssid) );
-    memset( pass, 0, sizeof(pass) );
+    // memset( ssid, 0, sizeof(ssid) );
+    // memset( pass, 0, sizeof(pass) );
 
-    strncpy( ssid, _ssid, sizeof(ssid) );
-    strncpy( pass, _pass, sizeof(pass) );
+    // strncpy( ssid, _ssid, sizeof(ssid) );
+    // strncpy( pass, _pass, sizeof(pass) );
 
-    // check if new SSID is empty string, if so,
-    // this is a disconnect command
-    if( ssid[0] == 0 ){
+    // // check if new SSID is empty string, if so,
+    // // this is a disconnect command
+    // if( ssid[0] == 0 ){
 
-        request_disconnect = true;
-    }
-    else{
+    //     request_disconnect = true;
+    // }
+    // else{
 
-        request_ap_mode = true;
-    }
+    //     request_ap_mode = true;
+    // }
 }
 
 void wifi_v_shutdown( void ){
