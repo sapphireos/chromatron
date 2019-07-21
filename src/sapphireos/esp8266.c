@@ -915,7 +915,7 @@ PT_BEGIN( pt );
 
     watchdog = WIFI_WATCHDOG_TIMEOUT;
     wifi_status = WIFI_STATE_ALIVE;
-    
+
     while(1){
 
         THREAD_YIELD( pt );
@@ -1348,15 +1348,18 @@ run_wifi:
 
     trace_printf( "Starting wifi!\r\n" );
 
-    thread_t_create( wifi_comm_thread,
+    thread_t_create_critical( 
+                     wifi_comm_thread,
                      PSTR("wifi_comm"),
                      0,
                      0 );
 
-    thread_t_create( wifi_connection_manager_thread,
-                     PSTR("wifi_connection_manager"),
-                     0,
-                     0 );
+    thread_t_create_critical( 
+                 wifi_connection_manager_thread,
+                 PSTR("wifi_connection_manager"),
+                 0,
+                 0 );
+
 
     if( state->fw_file > 0 ){
 
@@ -1422,21 +1425,20 @@ void wifi_v_init( void ){
     wifi_status = WIFI_STATE_BOOT;
 
 
-    thread_t_create( THREAD_CAST(wifi_loader_thread),
-                        PSTR("wifi_loader"),
-                        0,
-                        sizeof(loader_thread_state_t) );
+    thread_t_create_critical( THREAD_CAST(wifi_loader_thread),
+                              PSTR("wifi_loader"),
+                              0,
+                              sizeof(loader_thread_state_t) );
 
+    thread_t_create_critical( wifi_status_thread,
+                              PSTR("wifi_status"),
+                              0,
+                              0 );
 
-    thread_t_create( wifi_status_thread,
-                        PSTR("wifi_status"),
-                        0,
-                        0 );
-
-    thread_t_create( wifi_echo_thread,
-                        PSTR("wifi_echo"),
-                        0,
-                        0 );
+    thread_t_create_critical( wifi_echo_thread,
+                              PSTR("wifi_echo"),
+                              0, 
+                              0 );
 }
 
 void wifi_v_shutdown( void ){

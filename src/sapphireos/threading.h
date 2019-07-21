@@ -122,6 +122,11 @@ thread_t thread_t_create( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
                           void *initial_data,
                           uint16_t size );
 
+thread_t thread_t_create_critical( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
+                                   PGM_P name,
+                                   void *initial_data,
+                                   uint16_t size );
+
 PT_THREAD( ( *thread_p_get_function( thread_t thread_id ) ) )( pt_t *pt, void *state );
 uint32_t thread_u32_get_current_addr( void );
 void *thread_vp_get_data( thread_t thread_id );

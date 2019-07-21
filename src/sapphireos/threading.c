@@ -320,6 +320,20 @@ thread_t thread_t_create( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
     return make_thread( thread, name, initial_data, size, THREAD_FLAGS_YIELDED );
 }
 
+// creates a thread and asserts if the thread could not be
+// created.  this should only be used for critical system threads.
+thread_t thread_t_create_critical( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
+                                   PGM_P name,
+                                   void *initial_data,
+                                   uint16_t size ){
+
+    thread_t t = thread_t_create( thread, name, initial_data, size );
+
+    ASSERT( t > 0);
+
+    return t;
+}
+
 PT_THREAD( ( *thread_p_get_function( thread_t thread_id ) ) )( pt_t *pt, void *state ){
 
     thread_state_t *state = list_vp_get_data( thread_id );
