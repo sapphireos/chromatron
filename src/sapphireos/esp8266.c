@@ -394,6 +394,9 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
             }
         }
 
+        // message received ok - reset watchdog
+        watchdog = WIFI_WATCHDOG_TIMEOUT;
+
         return 0;
     }
 
