@@ -53,7 +53,7 @@ typedef struct{
 #define WIFI_COMM_TRIES         3
 #define WIFI_COMM_TIMEOUT       20000
 
-static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
+static int8_t _intf_i8_transmit_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 
 static void assert_irq( void ){
 
@@ -176,7 +176,7 @@ static void _send_info_msg( void ){
     info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
     info_msg.mem_avg_time           = process_stats.mem_avg_time;
 
-    _intf_i8_send_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );    
+    _intf_i8_transmit_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );    
 }
 
 static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
@@ -355,7 +355,7 @@ void intf_v_process( void ){
         release_irq();
     }
     else{
-        
+
         assert_irq();   
     }
 
@@ -373,6 +373,23 @@ void intf_v_process( void ){
         Serial.write( WIFI_COMM_READY );
 
         return;
+    }
+    else if( c == WIFI_COMM_GET_MSG ){
+
+        if( list_b_is_empty( &tx_q ) ){
+
+            // huh.  not supposed to happen!
+            return;
+        }
+
+        list_node_t ln = list_ln_remove_tail( &tx_q );
+
+        buffered_msg_t *msg = (buffered_msg_t *)list_vp_get_data( ln );
+        uint8_t *data = (uint8_t *)( msg + 1 );
+
+        _intf_i8_transmit_msg( msg->data_id, data, msg->len );
+
+        list_v_release_node( ln );
     }
     else if( c != WIFI_COMM_DATA ){
 
@@ -471,7 +488,7 @@ void intf_v_process( void ){
     //     msg.g = gfx_u16_get_pix0_green();
     //     msg.b = gfx_u16_get_pix0_blue();
 
-    //     _intf_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
+    //     _intf_i8_transmit_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
     // }
     // else if( request_rgb_array ){
 
@@ -504,7 +521,7 @@ void intf_v_process( void ){
     //     ptr += count;
     //     memcpy( ptr, d + rgb_index, count );
 
-    //     _intf_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, 
+    //     _intf_i8_transmit_msg( WIFI_DATA_ID_RGB_ARRAY, 
     //                        (uint8_t *)&msg, 
     //                        sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
 
@@ -556,7 +573,7 @@ void intf_v_process( void ){
     //         val++;
     //     }
 
-    //     _intf_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, 
+    //     _intf_i8_transmit_msg( WIFI_DATA_ID_HSV_ARRAY, 
     //                        (uint8_t *)&msg, 
     //                        sizeof(msg.index) + 
     //                        sizeof(msg.count) + 
@@ -579,7 +596,7 @@ void intf_v_process( void ){
 
     //     if( vm_i8_get_frame_sync( vm_frame_sync_index, &msg ) == 0 ){
 
-    //         _intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
+    //         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
 
     //         vm_frame_sync_index++;
     //     }
@@ -596,7 +613,7 @@ void intf_v_process( void ){
     //     msg.status = vm_frame_sync_status;
     //     msg.frame_number = vm_u16_get_frame_number();
 
-    //     _intf_i8_send_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
+    //     _intf_i8_transmit_msg( WIFI_DATA_ID_FRAME_SYNC_STATUS, (uint8_t *)&msg, sizeof(msg) );        
     // }
     // else if( wifi_b_rx_udp_pending() ){
 
@@ -656,7 +673,7 @@ void intf_v_process( void ){
 
     //         uint8_t *data = wifi_u8p_get_rx_udp_data();
 
-    //         _intf_i8_send_msg( WIFI_DATA_ID_UDP_DATA, &data[rx_udp_index], data_len );
+    //         _intf_i8_transmit_msg( WIFI_DATA_ID_UDP_DATA, &data[rx_udp_index], data_len );
 
     //         rx_udp_index += data_len;
 
@@ -778,12 +795,17 @@ int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         return -1;
     }
 
+    if( len > WIFI_MAX_MCU_BUF ){
+
+        return -2;
+    }
+
     // buffer message
     list_node_t ln = list_ln_create_node2( 0, len + sizeof(buffered_msg_t), MEM_TYPE_MSG );
 
     if( ln < 0 ){
 
-        return -2;
+        return -3;
     }    
 
     buffered_msg_t *msg = (buffered_msg_t *)list_vp_get_data( ln );
@@ -800,7 +822,7 @@ int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     return 0;
 }
 
-static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+static int8_t _intf_i8_transmit_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
 

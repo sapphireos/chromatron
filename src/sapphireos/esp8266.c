@@ -294,7 +294,8 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     return -1;
 }
-int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
+
+int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
 
     if( bytes_read != 0 ){
         
@@ -362,14 +363,6 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
             continue;
         }
 
-        // header CRC good, check for data ID
-        if( header.data_id != data_id ){
-
-            log_v_debug_P( PSTR("wrong data id") );
-            status = -4;
-            goto error;
-        }
-
         if( crc_u16_block( data, header.len ) != crc ){
 
             log_v_debug_P( PSTR("data crc fail") );
@@ -406,6 +399,27 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
 error:
     log_v_debug_P( PSTR("rx fail") );
     return status;
+}
+
+int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
+
+    wifi_data_header_t header;
+
+    int8_t status = _wifi_i8_internal_receive( &header, data, max_len, bytes_read );
+
+    if( status < 0 ){
+
+        return status;
+    }
+
+    // header CRC good, check for data ID
+    if( ( data_id != 0 ) && ( header.data_id != data_id ) ){
+
+        log_v_debug_P( PSTR("wrong data id") );
+        return -4;
+    }
+
+    return 0;
 }
 
 
@@ -712,16 +726,6 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
     int8_t status = 0;
 
-    if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
-
-        return -1;
-    }
-
-    if( crc_u16_block( buf, header->len + sizeof(uint16_t) ) != 0 ){        
-
-        return -2;
-    }
-
     uint8_t *data = buf;
 
     if( header->data_id == WIFI_DATA_ID_STATUS ){
@@ -883,17 +887,15 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //         //     log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
 //         // }
 //     }
-//     else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
+    else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
 
-//         log_v_debug_P( PSTR("ESP: %s"), data );
-//     }
+        log_v_debug_P( PSTR("ESP: %s"), data );
+    }
 //     // check if msg handler is installed
 //     else if( wifi_i8_msg_handler ){
 
 //         wifi_i8_msg_handler( header->data_id, data, header->len );
 //     }
-
-//     watchdog = WIFI_WATCHDOG_TIMEOUT;
 
 //     goto end;
 
@@ -1018,6 +1020,21 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_read_irq() );
 
+        // retrieve message
+        hal_wifi_v_usart_send_char( WIFI_COMM_GET_MSG );
+
+        uint8_t buf[WIFI_MAX_MCU_BUF];
+        wifi_data_header_t header;
+        uint16_t bytes_read;
+
+        if( _wifi_i8_internal_receive( &header, buf, sizeof(buf), &bytes_read ) < 0 ){
+
+            // message failed
+            continue;
+        }
+
+        // process message
+        process_rx_data( &header, buf );
 
 
 

@@ -56,6 +56,7 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_COMM_CTS                   0x61
 #define WIFI_COMM_READY                 0xD5
 #define WIFI_COMM_QUERY_READY           0x68
+#define WIFI_COMM_GET_MSG               0x45
 
 
 typedef struct __attribute__((packed)){
@@ -68,6 +69,8 @@ typedef struct __attribute__((packed)){
 
 #define WIFI_ESP_BUF_SIZE               128        
 #define WIFI_MAX_SINGLE_SHOT_LEN        ( WIFI_ESP_BUF_SIZE - sizeof(wifi_data_header_t) )
+
+#define WIFI_MAX_MCU_BUF                128
 
 // #define WIFI_BUF_SLACK_SPACE            1
 // #define WIFI_BUF_LEN                    640
