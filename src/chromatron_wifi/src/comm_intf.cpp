@@ -45,9 +45,15 @@ extern "C"{
     #include "comm_printf.h"
 }
 
+typedef struct{
+    uint8_t data_id;
+    uint16_t len;
+} buffered_msg_t;
+
 #define WIFI_COMM_TRIES         3
 #define WIFI_COMM_TIMEOUT       20000
 
+static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 
 static uint32_t start_timeout( void ){
 
@@ -70,9 +76,7 @@ static int32_t elapsed( uint32_t start ){
 
 
 
-static volatile bool request_reset_ready_timeout;
-
-
+static list_t tx_q;
 static uint16_t comm_errors;
 
 static process_stats_t process_stats;
@@ -162,7 +166,7 @@ static void _send_info_msg( void ){
     info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
     info_msg.mem_avg_time           = process_stats.mem_avg_time;
 
-    intf_i8_send_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );    
+    _intf_i8_send_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );    
 }
 
 static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
@@ -689,12 +693,7 @@ void intf_v_init( void ){
     // flush serial buffers
     _intf_v_flush();
 
-    // list_v_init( &tx_q );
-
-    // if( ( (uint32_t)intf_comm_buf & 0x03 ) != 0 ){
-
-    //     intf_v_printf("intf_comm_buf misalign");
-    // }
+    list_v_init( &tx_q );
 }
 
 
@@ -751,7 +750,35 @@ int8_t intf_i8_rts( void ){
     return -1;
 }
 
-int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
+
+    // check if tx q is full
+    if( list_u8_count( &tx_q ) >= MAX_TX_Q_SIZE ){
+
+        return -1;
+    }
+
+    // buffer message
+    list_node_t ln = list_ln_create_node2( 0, len + sizeof(buffered_msg_t), MEM_TYPE_MSG );
+
+    if( ln < 0 ){
+
+        return -2;
+    }    
+
+    buffered_msg_t *msg = (buffered_msg_t *)list_vp_get_data( ln );
+    msg->data_id    = data_id;
+    msg->len        = len;
+    uint8_t *buf    = (uint8_t *)( msg + 1 );
+
+    memcpy( buf, data, len );
+
+    list_v_insert_head( &tx_q, ln );
+
+    return 0;
+}
+
+static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
 
@@ -801,50 +828,6 @@ int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
 
     return -1;
-
-    // // check if rx is ready
-    // if( rx_ready() ){
-
-    //     return _intf_i8_send_msg( data_id, data, len );
-    // }   
-
-    // // check if tx q is full
-    // if( list_u8_count( &tx_q) >= MAX_TX_Q_SIZE ){
-
-    //     return -1;
-    // }
-
-    // if( len > WIFI_MAIN_MAX_DATA_LEN ){
-
-    //     return -2;
-    // }
-
-    // // buffer message
-    // list_node_t ln = list_ln_create_node2( 0, len + sizeof(wifi_data_header_t), MEM_TYPE_MSG );
-
-    // if( ln < 0 ){
-
-    //     return -3;
-    // }    
-
-    // wifi_data_header_t *header = (wifi_data_header_t *)list_vp_get_data( ln );
-
-    // header->len      = len;
-    // header->data_id  = data_id;
-    // header->reserved = 0;
-    // header->crc      = 0;
-
-    // uint16_t crc = crc_u16_start();
-    // crc = crc_u16_partial_block( crc, (uint8_t *)header, sizeof(wifi_data_header_t) );
-    // crc = crc_u16_partial_block( crc, data, len );
-
-    // header->crc = crc_u16_finish( crc );
-
-    // memcpy( ( header + 1 ), data, len );
-
-    // list_v_insert_head( &tx_q, ln );
-
-    // return 0;
 }
 
 void intf_v_get_proc_stats( process_stats_t **stats ){
