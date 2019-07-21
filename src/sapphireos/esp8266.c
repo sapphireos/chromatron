@@ -726,135 +726,6 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
         wifi_status_reg = msg->flags;
     }  
-//     else if( header->data_id == WIFI_DATA_ID_UDP_HEADER ){
-
-//         if( header->len < sizeof(wifi_msg_udp_header_t) ){
-
-//             goto len_error;
-//         }
-
-//         wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
-
-//         // check if sockets module is busy
-//         if( sock_b_rx_pending() ){
-
-//             log_v_debug_P( PSTR("sock rx pending: %u"), msg->rport );
-//             goto error;
-//         }
-        
-//         #ifndef SOCK_SINGLE_BUF
-//         // check if port is busy
-//         if( sock_b_port_busy( msg->rport ) ){
-
-//             log_v_debug_P( PSTR("port busy: %u"), msg->rport );
-//             goto error;
-//         }
-//         #endif
-
-//         // check if we have a netmsg that didn't get freed for some reason
-//         if( rx_netmsg > 0 ){
-
-//             log_v_debug_P( PSTR("freeing loose netmsg") );     
-
-//             netmsg_v_release( rx_netmsg );
-//             rx_netmsg = -1;
-//         }
-
-//         // allocate netmsg
-//         rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
-
-//         if( rx_netmsg < 0 ){
-
-//             log_v_debug_P( PSTR("rx udp alloc fail") );     
-
-//             goto error;
-//         }
-
-//         netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
-
-//         // allocate data buffer
-//         state->data_handle = mem2_h_alloc2( msg->len, MEM_TYPE_SOCKET_BUFFER );
-
-//         if( state->data_handle < 0 ){
-
-//             log_v_debug_P( PSTR("rx udp no handle") );     
-
-//             netmsg_v_release( rx_netmsg );
-//             rx_netmsg = 0;
-
-//             goto error;
-//         }      
-
-
-//         udp_busy = TRUE;
-
-//         // set up address info
-//         state->laddr.port   = msg->lport;
-//         state->raddr.port   = msg->rport;
-//         state->raddr.ipaddr = msg->addr;
-
-//         rx_netmsg_crc       = msg->crc;
-
-//         // copy data
-//         data += sizeof(wifi_msg_udp_header_t);
-
-//         uint16_t data_len = header->len - sizeof(wifi_msg_udp_header_t);
-
-//         // we can get a fast ptr because we've already verified the handle
-//         memcpy( mem2_vp_get_ptr_fast( state->data_handle ), data, data_len );
-
-//         rx_netmsg_index = data_len;
-//     }
-//     else if( header->data_id == WIFI_DATA_ID_UDP_DATA ){
-
-//         if( rx_netmsg <= 0 ){
-
-//             // log_v_debug_P( PSTR("rx udp no netmsg") );     
-
-//             goto error;
-//         }
-
-//         netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
-//         uint8_t *ptr = mem2_vp_get_ptr( state->data_handle );        
-//         uint16_t total_len = mem2_u16_get_size( state->data_handle );
-
-//         // bounds check
-//         if( ( header->len + rx_netmsg_index ) > total_len ){
-
-//             log_v_debug_P( PSTR("rx udp len error") );     
-
-//             // bad length, throwaway
-//             netmsg_v_release( rx_netmsg );
-//             rx_netmsg = 0;
-
-//             goto error;
-//         }
-
-//         memcpy( &ptr[rx_netmsg_index], data, header->len );
-
-//         rx_netmsg_index += header->len;
-
-//         // message is complete
-//         if( rx_netmsg_index == total_len ){
-
-//             // check crc
-//             if( crc_u16_block( ptr, total_len ) != rx_netmsg_crc ){
-
-//                 netmsg_v_release( rx_netmsg );
-//                 rx_netmsg = 0;
-
-//                 log_v_debug_P( PSTR("rx udp crc error") );     
-
-//                 goto error;
-//             }
-
-//             netmsg_v_receive( rx_netmsg );
-//             rx_netmsg = 0;
-
-//             // signals receiver that a UDP msg was received
-//             status = 1;
-//         }   
-//     }
 //     else if( header->data_id == WIFI_DATA_ID_WIFI_SCAN_RESULTS ){
     
 //         if( wifi_networks_handle < 0 ){        
@@ -878,26 +749,20 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 
         log_v_debug_P( PSTR("ESP: %s"), data );
     }
-//     // check if msg handler is installed
-//     else if( wifi_i8_msg_handler ){
+    // check if msg handler is installed
+    else if( wifi_i8_msg_handler ){
 
-//         wifi_i8_msg_handler( header->data_id, data, header->len );
-//     }
+        wifi_i8_msg_handler( header->data_id, data, header->len );
+    }
 
-//     goto end;
+    goto end;
 
 len_error:
 
-//     wifi_comm_errors2++;
+    wifi_comm_errors2++;
 
     log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
-    status = -3;    
-    goto end;
-
-// error:
-//     wifi_comm_errors2++;
-//     status = -4;
-//     goto end;    
+    status = -3;
 
 end:
     return status;
