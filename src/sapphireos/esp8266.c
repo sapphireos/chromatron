@@ -887,9 +887,7 @@ end:
 PT_THREAD( wifi_comm_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-restart:
-    
+        
     hal_wifi_v_enter_normal_mode();
 
     // delay while wifi boots up
@@ -934,8 +932,11 @@ restart:
 
             // reboot to safe mode
             sys_v_reboot_delay( SYS_MODE_SAFE );
-        
-            goto restart;
+            
+            // delay on this thread until reboot
+            TMR_WAIT( pt, 100000 );
+
+            ASSERT( FALSE );
         }
 
         if( hal_wifi_b_usart_rx_available() ){
@@ -1129,7 +1130,7 @@ restart:
 
             log_v_debug_P( PSTR("wifi loader timeout") );
 
-            goto restart;
+            THREAD_RESTART( pt );
         }
 
         uint8_t buf[32];
@@ -1171,7 +1172,7 @@ restart:
         log_v_debug_P( PSTR("error %d"), status );
 
         TMR_WAIT( pt, 500 );
-        goto restart;
+        THREAD_RESTART( pt );
     }
 
     // change baud rate
@@ -1194,7 +1195,7 @@ restart:
                 buf[3] );
 
         TMR_WAIT( pt, 500 );
-        goto restart;
+        THREAD_RESTART( pt );
     }
 
     status_led_v_set( 1, STATUS_LED_BLUE );
@@ -1213,7 +1214,7 @@ restart:
         log_v_debug_P( PSTR("error %d"), md5_status );
 
         TMR_WAIT( pt, 1000 );
-        goto restart;
+        THREAD_RESTART( pt );
     }
 
     fs_v_seek( state->fw_file, file_len );
