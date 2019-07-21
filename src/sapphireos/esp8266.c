@@ -182,7 +182,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 };
 
 
-static bool is_udp_rx_released( void ){
+bool is_udp_rx_released( void ){
 
     if( udp_busy ){
 
@@ -918,60 +918,57 @@ PT_BEGIN( pt );
     
     while(1){
 
-        thread_v_set_signal_flag();
-        THREAD_WAIT_WHILE( pt, ( list_u8_count( &netmsg_list ) == 0 ) && 
-                               ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
-                               ( !hal_wifi_b_usart_rx_available() ) &&
-                               ( !is_udp_rx_released() ) );
-        thread_v_clear_signal( WIFI_SIGNAL );
-        thread_v_clear_signal_flag();
+        THREAD_YIELD( pt );
+        THREAD_YIELD( pt );
 
-        if( watchdog == 0 ){
+        THREAD_WAIT_WHILE( pt, !hal_wifi_b_read_rts() );
 
-            log_v_debug_P( PSTR("Wifi watchdog triggered") );
 
-            // reboot to safe mode
-            sys_v_reboot_delay( SYS_MODE_SAFE );
-            
-            // delay on this thread until reboot
-            TMR_WAIT( pt, 100000 );
 
-            ASSERT( FALSE );
-        }
 
-        if( hal_wifi_b_usart_rx_available() ){
+        // thread_v_set_signal_flag();
+        // THREAD_WAIT_WHILE( pt, ( list_u8_count( &netmsg_list ) == 0 ) && 
+        //                        ( !thread_b_signalled( WIFI_SIGNAL ) ) && 
+        //                        ( !hal_wifi_b_usart_rx_available() ) &&
+        //                        ( !is_udp_rx_released() ) );
+        // thread_v_clear_signal( WIFI_SIGNAL );
+        // thread_v_clear_signal_flag();
 
-            if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
+        // check if module wants to send data
+    
+        // if( hal_wifi_b_usart_rx_available() ){
 
-                wifi_data_header_t header;
+        //     if( hal_wifi_i16_usart_get_char() == WIFI_COMM_RTS ){
 
-                if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+        //         wifi_data_header_t header;
 
-                    log_v_debug_P( PSTR("rx fail 1") );
-                    continue;
-                }
+        //         if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+
+        //             log_v_debug_P( PSTR("rx fail 1") );
+        //             continue;
+        //         }
                 
-                uint8_t buf[640];
+        //         uint8_t buf[640];
 
-                if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
+        //         if( header.len > ( sizeof(buf) - sizeof(uint16_t) ) ){
 
-                    log_v_debug_P( PSTR("rx fail 2") );
-                    continue;
-                }
+        //             log_v_debug_P( PSTR("rx fail 2") );
+        //             continue;
+        //         }
 
-                if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
+        //         if( hal_wifi_i8_usart_receive( buf, header.len + sizeof(uint16_t), WIFI_COMM_TIMEOUT ) < 0 ){
 
-                    log_v_debug_P( PSTR("rx fail 3") );
-                    continue;
-                }
+        //             log_v_debug_P( PSTR("rx fail 3") );
+        //             continue;
+        //         }
 
-                if( process_rx_data( &header, buf ) < 0 ){
+        //         if( process_rx_data( &header, buf ) < 0 ){
 
-                    log_v_debug_P( PSTR("rx fail 4") );
-                    continue;   
-                }
-            }
-        }
+        //             log_v_debug_P( PSTR("rx fail 4") );
+        //             continue;   
+        //         }
+        //     }
+        // }
 
 
 //         // check if UDP buffer is clear (and transmit interface is available)
@@ -1028,9 +1025,6 @@ PT_BEGIN( pt );
 
 //             msgs_received++;
 //         }
-
-        THREAD_YIELD( pt );
-        THREAD_YIELD( pt );
     }
 
 PT_END( pt );
@@ -1049,6 +1043,19 @@ PT_BEGIN( pt );
         if( watchdog > 0 ){
 
             watchdog--;
+        }
+
+        if( watchdog == 0 ){
+
+            log_v_debug_P( PSTR("Wifi watchdog triggered") );
+
+            // reboot to safe mode
+            sys_v_reboot_delay( SYS_MODE_SAFE );
+            
+            // delay on this thread until reboot
+            TMR_WAIT( pt, 100000 );
+
+            ASSERT( FALSE );
         }
 
         if( wifi_b_connected() ){

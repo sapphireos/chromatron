@@ -333,15 +333,15 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 	return temp;
 }
 
-// bool hal_wifi_b_read_rts( void ){
+bool hal_wifi_b_read_rts( void ){
 
-//     if( HAL_GPIO_ReadPin( WIFI_RTS_GPIO_Port, WIFI_RTS_Pin ) == GPIO_PIN_RESET ){
+    if( HAL_GPIO_ReadPin( WIFI_RTS_Port, WIFI_RTS_Pin ) == GPIO_PIN_RESET ){
 
-//         return false;
-//     }
+        return false;
+    }
 
-//     return true;
-// }
+    return true;
+}
 
 // void hal_wifi_v_set_cts( bool value ){
 
