@@ -1366,7 +1366,7 @@ void wifi_v_init( void ){
 
 void wifi_v_shutdown( void ){
 
-    wifi_i8_send_msg_blocking( WIFI_DATA_ID_SHUTDOWN, 0, 0 );
+    wifi_i8_send_msg( WIFI_DATA_ID_SHUTDOWN, 0, 0 );
 }
 
 bool wifi_b_connected( void ){
