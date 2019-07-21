@@ -714,7 +714,7 @@ void intf_v_init( void ){
     pinMode( RTS_GPIO, OUTPUT );
     pinMode( CTS_GPIO, INPUT );
 
-    digitalWrite( RTS_GPIO, HIGH );
+    digitalWrite( RTS_GPIO, LOW );
 
     pinMode( LED_GPIO, OUTPUT );
     intf_v_led_off();
