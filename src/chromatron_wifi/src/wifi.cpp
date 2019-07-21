@@ -51,7 +51,6 @@ static int32_t scan_rssi[WIFI_MAX_APS];
 static int32_t scan_channel[WIFI_MAX_APS];
 static uint8_t scan_bssid[6][WIFI_MAX_APS];
 
-static uint16_t ports[WIFI_MAX_PORTS];
 static WiFiUDP udp[WIFI_MAX_PORTS];
 static uint8_t port_rx_depth[WIFI_MAX_PORTS];
 
@@ -69,8 +68,6 @@ static uint16_t connects;
 static bool mdns_connected;
 static bool request_ap_mode;
 static bool request_connect;
-static bool request_ports;
-static bool request_shutdown;
 static bool ap_mode;
 static bool scanning;
 
@@ -215,6 +212,7 @@ void wifi_v_process( void ){
             connects++;
 
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
+            wifi_v_clr_status_bits( WIFI_STATUS_CONNECTING );
             wifi_v_send_status();
 
             intf_v_printf("Connected!");
@@ -356,40 +354,7 @@ void wifi_v_process( void ){
 
         // wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
     }
-    else if( request_shutdown ){
-
-        MDNS.close();
-        mdns_connected = false;
-
-        delay(100);
-
-        request_shutdown = false;
-    }
-
-    if( request_ports ){
-
-        request_ports = false;
-
-        for( uint32_t i = 0; i < WIFI_MAX_PORTS; i++ ){
-
-            // check for port mismatch
-            if( ports[i] != udp[i].localPort() ){
-
-                port_rx_depth[i] = 0;
-
-                if( ports[i] == 0 ){
-
-                    udp[i].stop();
-                }
-                else{
-
-                    udp[i].begin( ports[i] );
-                }
-            }
-        }
-    }
-
-
+    
     // check UDP
     for( uint32_t i = 0; i < WIFI_MAX_PORTS; i++ ){
 
@@ -660,7 +625,7 @@ void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
 
 void wifi_v_shutdown( void ){
 
-    request_shutdown = true;
+    wifi_v_disconnect();
 }
 
 void wifi_v_scan( void ){
@@ -683,10 +648,25 @@ void wifi_v_scan( void ){
     WiFi.scanNetworks(true, false);
 }
 
-void wifi_v_set_ports( uint16_t _ports[WIFI_MAX_PORTS] ){
+void wifi_v_set_ports( uint16_t ports[WIFI_MAX_PORTS] ){
 
-    memcpy( ports, _ports, sizeof(ports) );
-    request_ports = true;
+    for( uint32_t i = 0; i < WIFI_MAX_PORTS; i++ ){
+
+        // check for port mismatch
+        if( ports[i] != udp[i].localPort() ){
+
+            port_rx_depth[i] = 0;
+
+            if( ports[i] == 0 ){
+
+                udp[i].stop();
+            }
+            else{
+
+                udp[i].begin( ports[i] );
+            }
+        }
+    }
 }
 
 bool wifi_b_rx_udp_pending( void ){
