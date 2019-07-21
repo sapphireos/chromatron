@@ -58,8 +58,7 @@ void wifi_v_scan( void );
 void wifi_v_set_ports( uint16_t _ports[WIFI_MAX_PORTS] );
 
 bool wifi_b_rx_udp_pending( void );
-int8_t wifi_i8_get_rx_udp_header( wifi_msg_udp_header_t *header );
-uint8_t* wifi_u8p_get_rx_udp_data( void );
+wifi_msg_udp_header_t* wifi_h_get_rx_udp_header( void );
 void wifi_v_rx_udp_clear_last( void );
 
 uint32_t wifi_u32_get_rx_udp_overruns( void );

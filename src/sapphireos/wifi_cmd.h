@@ -46,7 +46,7 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_STATUS_CONNECTED           0x40
 #define WIFI_STATUS_CONNECTING          0x20
 #define WIFI_STATUS_AP_MODE             0x10
-#define WIFI_STATUS_IRQ_FLAG            0x08
+#define WIFI_STATUS_NET_RX              0x08
 #define WIFI_STATUS_160MHz              0x02
 
 #define WIFI_COMM_DATA                  0x36
@@ -163,10 +163,8 @@ typedef struct __attribute__((packed)){
     uint16_t len;
     uint16_t crc;
 } wifi_msg_udp_header_t;
-#define WIFI_DATA_ID_UDP_BUF_READY     0x0B
-#define WIFI_DATA_ID_UDP_HEADER        0x10
-#define WIFI_DATA_ID_UDP_DATA          0x11
-#define WIFI_DATA_ID_UDP_EXT           0x12
+#define WIFI_DATA_ID_GET_UDP           0x0B
+#define WIFI_DATA_ID_SEND_UDP          0x0C
 
 // #define WIFI_DATA_ID_WIFI_SCAN         0x13
 

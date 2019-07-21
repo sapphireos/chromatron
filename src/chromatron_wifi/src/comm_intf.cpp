@@ -305,23 +305,37 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         kvdb_v_set_tag( msg->meta.hash, msg->tag );
     }
-    else if( data_id == WIFI_DATA_ID_UDP_EXT ){
+    else if( data_id == WIFI_DATA_ID_GET_UDP ){
 
-        // wifi_msg_udp_header_t *msg = (wifi_msg_udp_header_t *)data;
-        // uint8_t *data_ptr = (uint8_t *)( msg + 1 );
-        
-        // memcpy( &udp_header, msg, sizeof(udp_header) );
+        wifi_msg_udp_header_t *header = wifi_h_get_rx_udp_header();
 
-        // uint16_t udp_len = len - sizeof(udp_header);
+        if( header == 0 ){
 
-        // if( udp_len == udp_header.len ){
+            return;
+        }
 
-        //     wifi_v_send_udp( &udp_header, data_ptr );
-        // }
+        if( intf_i8_send_msg( WIFI_DATA_ID_GET_UDP, (uint8_t *)header, sizeof(wifi_msg_udp_header_t) + header->len ) == 0 ){
+
+            // message sent
+
+            // clear last UDP
+            wifi_v_rx_udp_clear_last();
+        }
+
+        // send status
+        wifi_v_send_status();
     }
-    else if( data_id == WIFI_DATA_ID_UDP_BUF_READY ){
+    else if( data_id == WIFI_DATA_ID_SEND_UDP ){
 
-        // udp_busy = false;
+        wifi_msg_udp_header_t *udp_header = (wifi_msg_udp_header_t *)data;
+        uint8_t *data_ptr = (uint8_t *)( udp_header + 1 );
+    
+        uint16_t udp_len = len - sizeof(wifi_msg_udp_header_t);
+
+        if( udp_len == udp_header->len ){
+
+            wifi_v_send_udp( udp_header, data_ptr );
+        }
     }
     else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
 

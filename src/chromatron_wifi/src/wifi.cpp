@@ -492,6 +492,10 @@ void wifi_v_process( void ){
 
 
     // update stats
+    if( wifi_b_rx_udp_pending() ){
+
+        wifi_v_set_status_bits( WIFI_STATUS_NET_RX );
+    }
 
     uint8_t wifi_status = wifi_u8_get_status();
 
@@ -649,22 +653,7 @@ bool wifi_b_rx_udp_pending( void ){
     return list_u8_count( &rx_q ) > 0;
 }
 
-int8_t wifi_i8_get_rx_udp_header( wifi_msg_udp_header_t *header ){
-
-    if( list_u8_count( &rx_q ) == 0 ){
-
-        return -1;
-    }
-
-    list_node_t ln = rx_q.tail;
-    wifi_msg_udp_header_t *rx_header = (wifi_msg_udp_header_t *)list_vp_get_data( ln );
-
-    *header = *rx_header;
-
-    return 0;
-}
-
-uint8_t* wifi_u8p_get_rx_udp_data( void ){
+wifi_msg_udp_header_t* wifi_h_get_rx_udp_header( void ){
 
     if( list_u8_count( &rx_q ) == 0 ){
 
@@ -672,8 +661,7 @@ uint8_t* wifi_u8p_get_rx_udp_data( void ){
     }
 
     list_node_t ln = rx_q.tail;
-    wifi_msg_udp_header_t *rx_header = (wifi_msg_udp_header_t *)list_vp_get_data( ln );
-    return (uint8_t *)( rx_header + 1 );
+    return (wifi_msg_udp_header_t *)list_vp_get_data( ln );
 }
 
 void wifi_v_rx_udp_clear_last( void ){
@@ -697,6 +685,12 @@ void wifi_v_rx_udp_clear_last( void ){
     }
 
     list_v_release_node( ln );
+
+    if( list_u8_count( &rx_q ) == 0 ){
+
+        // clear status
+        wifi_v_clr_status_bits( WIFI_STATUS_NET_RX );
+    }
 }
 
 
