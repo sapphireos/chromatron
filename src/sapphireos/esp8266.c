@@ -113,20 +113,8 @@ static uint8_t wifi_version_major;
 static uint8_t wifi_version_minor;
 static uint8_t wifi_version_patch;
 
-// static netmsg_t rx_netmsg;
-// static uint16_t rx_netmsg_index;
-// static uint16_t rx_netmsg_crc;
-
-static uint16_t max_ready_wait;
-
 static uint8_t comm_stalls;
-
-static list_t netmsg_list;
-static bool udp_busy;
-
 static uint8_t watchdog;
-
-// static mem_handle_t wifi_networks_handle = -1;
 
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -175,27 +163,12 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_avg_time,                    0,   "wifi_proc_wifi_avg_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_avg_time,                     0,   "wifi_proc_mem_avg_time" },
 
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &max_ready_wait,                   0,   "wifi_max_ready_wait" },
-
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_rate_tx" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rate_rx" },
 
     { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
-
-bool is_udp_rx_released( void ){
-
-    if( udp_busy ){
-
-        if( !sock_b_rx_pending() ){
-
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
 
 
 bool wifi_b_comm_ready( void ){
@@ -1592,8 +1565,6 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 
 void wifi_v_init( void ){
-
-    list_v_init( &netmsg_list );
 
     hal_wifi_v_init();
 
