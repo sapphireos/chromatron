@@ -969,23 +969,26 @@ static void get_info( void ){
         return;
     }
 
-    
+    wifi_msg_info_t msg;
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&msg, sizeof(msg), 0 ) < 0 ){
 
-    if( header->len != sizeof(wifi_msg_info_t) ){
-
-        goto len_error;
+        return;
     }
 
-    wifi_msg_info_t *msg = (wifi_msg_info_t *)data;
+    // process message data
 
-    wifi_version            = msg->version;
+    wifi_version            = msg.version;
     
     if( wifi_b_connected() ){
         
-        wifi_rssi               = msg->rssi;
+        wifi_rssi               = msg.rssi;
+    }
+    else{
+
+        wifi_rssi               =  - 127;
     }
     
-    memcpy( wifi_mac, msg->mac, sizeof(wifi_mac) );
+    memcpy( wifi_mac, msg.mac, sizeof(wifi_mac) );
 
     uint64_t current_device_id = 0;
     cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
@@ -997,27 +1000,26 @@ static void get_info( void ){
         cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
     }
 
-    cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg->ip );
-    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg->subnet );
-    cfg_v_set( CFG_PARAM_DNS_SERVER, &msg->dns );
+    cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg.ip );
+    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg.subnet );
+    cfg_v_set( CFG_PARAM_DNS_SERVER, &msg.dns );
 
-    wifi_rx_udp_overruns        = msg->rx_udp_overruns;
-    wifi_udp_received           = msg->udp_received;
-    wifi_udp_sent               = msg->udp_sent;
-    wifi_comm_errors            = msg->comm_errors;
-    mem_heap_peak               = msg->mem_heap_peak;
-    mem_used                    = msg->mem_used;
+    wifi_rx_udp_overruns        = msg.rx_udp_overruns;
+    wifi_udp_received           = msg.udp_received;
+    wifi_udp_sent               = msg.udp_sent;
+    wifi_comm_errors            = msg.comm_errors;
+    mem_heap_peak               = msg.mem_heap_peak;
+    mem_used                    = msg.mem_used;
 
-    intf_max_time               = msg->intf_max_time;
-    vm_max_time                 = msg->vm_max_time;
-    wifi_max_time               = msg->wifi_max_time;
-    mem_max_time                = msg->mem_max_time;
+    intf_max_time               = msg.intf_max_time;
+    vm_max_time                 = msg.vm_max_time;
+    wifi_max_time               = msg.wifi_max_time;
+    mem_max_time                = msg.mem_max_time;
 
-    intf_avg_time               = msg->intf_avg_time;
-    vm_avg_time                 = msg->vm_avg_time;
-    wifi_avg_time               = msg->wifi_avg_time;
-    mem_avg_time                = msg->mem_avg_time;
-
+    intf_avg_time               = msg.intf_avg_time;
+    vm_avg_time                 = msg.vm_avg_time;
+    wifi_avg_time               = msg.wifi_avg_time;
+    mem_avg_time                = msg.mem_avg_time;
 }
 
 PT_THREAD( wifi_comm_thread( pt_t *pt, void *state ) )
@@ -1051,6 +1053,8 @@ PT_BEGIN( pt );
 
     watchdog = WIFI_WATCHDOG_TIMEOUT;
     wifi_status = WIFI_STATE_ALIVE;
+
+    get_info();
 
     while(1){
 
@@ -1203,13 +1207,15 @@ PT_BEGIN( pt );
             wifi_uptime = 0;
         }
 
+        get_info();
+
+
         // update comm traffic counters
         comm_rx_rate = hal_wifi_u32_get_rx_bytes();
         comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
             
         // send options message
-
         wifi_msg_set_options_t options_msg;
         memset( options_msg.padding, 0, sizeof(options_msg.padding) );
         options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
