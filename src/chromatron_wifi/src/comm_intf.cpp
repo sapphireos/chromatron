@@ -55,6 +55,16 @@ typedef struct{
 
 static int8_t _intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 
+static void assert_irq( void ){
+
+    digitalWrite( IRQ_GPIO, HIGH );    
+}
+
+static void release_irq( void ){
+
+    digitalWrite( IRQ_GPIO, LOW );    
+}
+
 static uint32_t start_timeout( void ){
 
     return micros();
@@ -338,6 +348,16 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 }
 
 void intf_v_process( void ){
+
+    // check if TX Q is empty
+    if( list_b_is_empty( &tx_q ) ){
+
+        release_irq();
+    }
+    else{
+        
+        assert_irq();   
+    }
 
     // check for data
     if( Serial.available() == 0 ){
@@ -681,7 +701,7 @@ void intf_v_init( void ){
     pinMode( IRQ_GPIO, OUTPUT );
     pinMode( CTS_GPIO, INPUT );
 
-    digitalWrite( IRQ_GPIO, LOW );
+    release_irq();
 
     pinMode( LED_GPIO, OUTPUT );
     intf_v_led_off();
@@ -774,6 +794,8 @@ int8_t intf_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     memcpy( buf, data, len );
 
     list_v_insert_head( &tx_q, ln );
+
+    assert_irq();
 
     return 0;
 }
