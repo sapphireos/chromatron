@@ -66,7 +66,6 @@ static uint32_t udp_sent;
 static uint16_t connects;
 
 static bool mdns_connected;
-static bool request_ap_mode;
 static bool request_connect;
 static bool ap_mode;
 static bool scanning;
@@ -333,27 +332,6 @@ void wifi_v_process( void ){
             }
         }
     }
-    else if( request_ap_mode ){
-
-        // WiFi.mode( WIFI_AP );
-        // ap_mode = true;
-
-        // // configure IP
-        // WiFi.softAPConfig(soft_AP_IP, soft_AP_gateway, soft_AP_subnet);
-
-        // // NOTE!
-        // // password must be at least 8 characters.
-        // // if it is less, the ESP will use a default SSID
-        // // with no password.
-
-        // WiFi.softAP( ssid, pass );
-
-        // request_ap_mode = false;
-        // request_connect = false;
-        // request_disconnect = false;
-
-        // wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
-    }
     
     // check UDP
     for( uint32_t i = 0; i < WIFI_MAX_PORTS; i++ ){
@@ -601,26 +579,24 @@ void wifi_v_connect( void ){
     wifi_v_scan();
 }
 
-void wifi_v_set_ap_mode( char *_ssid, char *_pass ){
+void wifi_v_set_ap_mode( char *ssid, char *pass ){
     
-    // request_connect = false;
+    wifi_v_disconnect();
 
-    // memset( ssid, 0, sizeof(ssid) );
-    // memset( pass, 0, sizeof(pass) );
+    ap_mode = true;
+    WiFi.mode( WIFI_AP );
 
-    // strncpy( ssid, _ssid, sizeof(ssid) );
-    // strncpy( pass, _pass, sizeof(pass) );
+    // configure IP
+    WiFi.softAPConfig(soft_AP_IP, soft_AP_gateway, soft_AP_subnet);
 
-    // // check if new SSID is empty string, if so,
-    // // this is a disconnect command
-    // if( ssid[0] == 0 ){
+    // NOTE!
+    // password must be at least 8 characters.
+    // if it is less, the ESP will use a default SSID
+    // with no password.
 
-    //     request_disconnect = true;
-    // }
-    // else{
+    WiFi.softAP( ssid, pass );
 
-    //     request_ap_mode = true;
-    // }
+    wifi_v_set_status_bits( WIFI_STATUS_AP_MODE );
 }
 
 void wifi_v_shutdown( void ){

@@ -572,6 +572,8 @@ PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
     
     // check if we are connected
     while( !wifi_b_connected() ){
@@ -622,8 +624,8 @@ PT_BEGIN( pt );
         }
         // AP mode
         else{
-            // wait until we have a MAC address
-            THREAD_WAIT_WHILE( pt, wifi_mac[0] == 0 );
+            // should have gotten the MAC by now
+            ASSERT( wifi_mac[0] != 0 );
 
             log_v_debug_P( PSTR("starting AP") );
 
