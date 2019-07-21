@@ -292,38 +292,117 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     return -1;
 }
-
 int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
 
-    *bytes_read = 0;
+    if( bytes_read != 0 ){
+        
+        *bytes_read = 0;
+    }   
+
     uint8_t tries = WIFI_COMM_TRIES;
     int8_t status = -1;
+    
 
     while( tries > 0 ){
 
         tries--;
 
         // wait for RTS
-        uint32_t start_time = tmr_u32_get_system_time_us();
+        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_RTS ){
 
-        while( hal_wifi_i16_usart_get_char() != WIFI_COMM_RTS ){
-
-            if( tmr_u32_elapsed_time_us( start_time ) > WIFI_COMM_TIMEOUT ){
-
-                status = -2;
-                goto done;
-            }
+            status = -2;
+            goto error;
         }
 
         // RTS asserted
-        // set CTS and receive
+        // set CTS
         hal_wifi_v_usart_send_char( WIFI_COMM_CTS );
+
+        // wait for data start
+        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_DATA ){
+
+            status = -3;
+            goto error;
+        }
+
+        wifi_data_header_t header;
+        if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+
+            log_v_debug_P( PSTR("header timeout") );
+            continue;
+        }
+
+        if( header.len > max_len ){
+
+            log_v_debug_P( PSTR("invalid len") );
+            continue;
+        }
+
+        if( hal_wifi_i8_usart_receive( data, header.len, WIFI_COMM_TIMEOUT ) < 0 ){
+
+            log_v_debug_P( PSTR("data timeout") );
+            continue;
+        }
+
+        uint16_t crc;
+        if( hal_wifi_i8_usart_receive( (uint8_t *)&crc, sizeof(crc), WIFI_COMM_TIMEOUT ) < 0 ){
+
+            log_v_debug_P( PSTR("crc timeout") );
+            continue;
+        }
+
+        // check CRCs
+        header.header_crc = HTONS( header.header_crc );
+        if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
+
+            log_v_debug_P( PSTR("header crc fail") );
+            hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
+            continue;
+        }
+
+        // header CRC good, check for data ID
+        if( header.data_id != data_id ){
+
+            log_v_debug_P( PSTR("wrong data id") );
+            status = -4;
+            goto error;
+        }
+
+        if( crc_u16_block( data, header.len ) != crc ){
+
+            log_v_debug_P( PSTR("data crc fail") );
+            hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
+            continue;
+        }
+
+        // everything is good!
+        hal_wifi_v_usart_send_char( WIFI_COMM_ACK );
+
+        // if bytes read is set, return data length
+        if( bytes_read != 0 ){
+
+            *bytes_read = header.len;
+        }
+        else{
+
+            // bytes read is null, received data is expected to be fixed size
+            if( header.len != max_len ){
+
+                log_v_debug_P( PSTR("wrong data len") );
+                status = -5;
+                goto error;
+            }
+        }
+
+        return 0;
     }
 
 
-done:
+error:
+    log_v_debug_P( PSTR("rx fail") );
     return status;
 }
+
 
 // deprecated
 int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len ){
