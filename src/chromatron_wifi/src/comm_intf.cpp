@@ -146,9 +146,9 @@ static void _intf_v_flush(){
 static void _send_info_msg( void ){
 
     wifi_msg_info_t info_msg;
-    info_msg.version =  ( ( VERSION_MAJOR & 0x0f ) << 12 ) |
-                        ( ( VERSION_MINOR & 0x1f ) << 7 ) |
-                        ( ( VERSION_PATCH & 0x7f ) << 0 );
+    info_msg.version_major = VERSION_MAJOR;
+    info_msg.version_minor = VERSION_MINOR;
+    info_msg.version_patch = VERSION_PATCH;
 
     WiFi.macAddress( info_msg.mac );
     

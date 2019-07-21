@@ -109,7 +109,9 @@ static uint16_t mem_avg_time;
 static uint32_t comm_rx_rate;
 static uint32_t comm_tx_rate;
 
-static uint16_t wifi_version;
+static uint8_t wifi_version_major;
+static uint8_t wifi_version_minor;
+static uint8_t wifi_version_patch;
 
 // static netmsg_t rx_netmsg;
 // static uint16_t rx_netmsg_index;
@@ -150,7 +152,9 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_connects,                    0,   "wifi_connects" },
 
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version,                     0,   "wifi_version" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version_major,               0,   "wifi_version_major" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version_minor,               0,   "wifi_versi_minoron" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version_patch,               0,   "wifi_versi_patchon" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors,                 0,   "wifi_comm_errors" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors2,                0,   "wifi_comm_errors2" },
@@ -972,7 +976,9 @@ static void get_info( void ){
 
     // process message data
 
-    wifi_version            = msg.version;
+    wifi_version_major          = msg.version_major;
+    wifi_version_minor          = msg.version_minor;
+    wifi_version_patch          = msg.version_patch;
     
     if( wifi_b_connected() ){
         

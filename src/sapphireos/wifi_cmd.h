@@ -89,7 +89,9 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_CONNECT            0x02
 
 typedef struct __attribute__((packed)){
-    uint16_t version;
+    uint8_t version_major;
+    uint8_t version_minor;
+    uint8_t version_patch;
     uint8_t mac[6];
     sos_ip_addr_t ip;
     sos_ip_addr_t subnet;
