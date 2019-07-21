@@ -388,7 +388,29 @@ void cpu_v_init( void ){
     HAL_RCCEx_GetPLL2ClockFreq( &pll2_clk );
     HAL_RCCEx_GetPLL3ClockFreq( &pll3_clk );
 
-    trace_printf( "STM32H7\r\n" );
+    uint16_t revision = HAL_GetREVID();
+
+    switch( revision ){
+        case STM32H7_REV_Z:
+            trace_printf( "STM32H7 rev Z\r\n" );
+            break;
+
+        case STM32H7_REV_Y:
+            trace_printf( "STM32H7 rev Y\r\n" );
+            break;
+
+        case STM32H7_REV_X:
+            trace_printf( "STM32H7 rev X\r\n" );
+            break;
+
+        case STM32H7_REV_V:
+            trace_printf( "STM32H7 rev V\r\n" );
+            break;
+
+        default:
+            trace_printf( "STM32H7 rev UNKNOWN\r\n" );
+            break;
+    }
 
     trace_printf( "CPU Clock: %u\r\n", cpu_u32_get_clock_speed() );
     trace_printf( "HCLK     : %u\r\n", HAL_RCC_GetHCLKFreq() );
