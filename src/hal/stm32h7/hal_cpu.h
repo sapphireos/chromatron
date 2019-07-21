@@ -32,6 +32,11 @@
 
 #include "../board_types.h"
 
+#define STM32H7_REV_Z		0x1001
+#define STM32H7_REV_Y		0x1003
+#define STM32H7_REV_X		0x2001
+#define STM32H7_REV_V		0x2003
+
 #define hal_cpu_v_invalidate_d_cache 						SCB_InvalidateDCache
 #define hal_cpu_v_clean_d_cache 							SCB_CleanDCache
 #define hal_cpu_v_clean_and_invalidate_d_cache 				SCB_CleanInvalidateDCache
