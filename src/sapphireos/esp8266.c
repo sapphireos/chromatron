@@ -14,7 +14,7 @@
 //     but WITHOUT ANY WARRANTY; without even the implied warranty of
 //     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //     GNU General Public License for more details.
-// 
+// r
 //     You should have received a copy of the GNU General Public License
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
@@ -198,21 +198,12 @@ static bool is_udp_rx_released( void ){
 
 bool wifi_b_comm_ready( void ){
 
-    return hal_wifi_b_comm_ready();
+    return TRUE;
 }
 
-// waits up to WIFI_COMM_TIMEOUT microseconds for comm to be ready
 bool wifi_b_wait_comm_ready( void ){
 
-    if( watchdog == 0 ){
-
-        return FALSE;
-    }
-
-    
-    BUSY_WAIT_TIMEOUT( !hal_wifi_b_comm_ready(), WIFI_COMM_TIMEOUT );
-
-    return hal_wifi_b_comm_ready();
+    return TRUE;
 }
 
 
@@ -386,7 +377,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
     }
 }
 
-static void transmit_udp( netmsg_t tx_netmsg ){
+void transmit_udp( netmsg_t tx_netmsg ){
 
     // netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
 
@@ -448,35 +439,35 @@ static void transmit_udp( netmsg_t tx_netmsg ){
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
+    return -1;
+    // if( !wifi_b_connected() ){
 
-    if( !wifi_b_connected() ){
+    //     return NETMSG_TX_ERR_RELEASE;
+    // }
 
-        return NETMSG_TX_ERR_RELEASE;
-    }
+    // // check if wifi comm is ready.
+    // // if so, we can just send now instead of queuing.
+    // if( hal_wifi_b_comm_ready() ){
 
-    // check if wifi comm is ready.
-    // if so, we can just send now instead of queuing.
-    if( hal_wifi_b_comm_ready() ){
+    //     transmit_udp( netmsg );
 
-        transmit_udp( netmsg );
+    //     return NETMSG_TX_OK_NORELEASE;
+    // }
 
-        return NETMSG_TX_OK_NORELEASE;
-    }
+    // if( list_u8_count( &netmsg_list ) >= WIFI_MAX_NETMSGS ){
 
-    if( list_u8_count( &netmsg_list ) >= WIFI_MAX_NETMSGS ){
+    //     log_v_debug_P( PSTR("tx udp overflow") );
 
-        log_v_debug_P( PSTR("tx udp overflow") );
+    //     return NETMSG_TX_ERR_RELEASE;   
+    // }
 
-        return NETMSG_TX_ERR_RELEASE;   
-    }
+    // // add to list
+    // list_v_insert_head( &netmsg_list, netmsg );
 
-    // add to list
-    list_v_insert_head( &netmsg_list, netmsg );
+    // // signal comm thread
+    // thread_v_signal( WIFI_SIGNAL );
 
-    // signal comm thread
-    thread_v_signal( WIFI_SIGNAL );
-
-    return NETMSG_TX_OK_NORELEASE;
+    // return NETMSG_TX_OK_NORELEASE;
 }
 
 
@@ -499,121 +490,42 @@ PT_BEGIN( pt );
 
         wifi_rssi = -127;
         
-        THREAD_WAIT_WHILE( pt, !hal_wifi_b_comm_ready() );
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
         bool ap_mode = wifi_b_ap_mode_enabled();
+
+        // get SSIDs from database
+        wifi_msg_connect_t msg;
+        memset( &msg, 0, sizeof(msg) );
+
+        cfg_i8_get( CFG_PARAM_WIFI_SSID, msg.ssid[0] );
+        cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, msg.pass[0] );
+        
+        kv_i8_get( __KV__wifi_ssid2, msg.ssid[1], sizeof(msg.ssid) );
+        kv_i8_get( __KV__wifi_password2, msg.pass[1], sizeof(msg.pass) );  
+
+        kv_i8_get( __KV__wifi_ssid3, msg.ssid[2], sizeof(msg.ssid) );
+        kv_i8_get( __KV__wifi_password3, msg.pass[2], sizeof(msg.pass) );  
+
+        kv_i8_get( __KV__wifi_ssid4, msg.ssid[3], sizeof(msg.ssid) );
+        kv_i8_get( __KV__wifi_password4, msg.pass[3], sizeof(msg.pass) );  
+
+        // check if no APs are configured
+        if( ( msg.ssid[0][0] == 0 ) &&
+            ( msg.ssid[1][0] == 0 ) &&
+            ( msg.ssid[2][0] == 0 ) &&
+            ( msg.ssid[3][0] == 0 ) ){
+
+            // no SSIDs are configured
+
+            // switch to AP mode
+            ap_mode = TRUE;
+        }
  
         // station mode
         if( !ap_mode ){
-    
-            // log_v_debug_P( PSTR("Start scan") );
-
-            // // run a scan
-            // wifi_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN, 0, 0 );
-
-            // thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-            // THREAD_WAIT_WHILE( pt, ( wifi_networks_handle < 0 ) &&
-            //                        ( thread_b_alarm_set() ) );
-
-
-            // uint32_t network_hashes[4];
-            // memset( network_hashes, 0, sizeof(network_hashes) );
-            // int8_t selected_network = -1;
-
-            // if( wifi_networks_handle > 0 ){
-
-            //     // gather available networks
-            //     char ssid[WIFI_SSID_LEN];
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-            //     network_hashes[0] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
-            //     network_hashes[1] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
-            //     network_hashes[2] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
-            //     network_hashes[3] = hash_u32_string( ssid );
-
-
-            //     wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)mem2_vp_get_ptr( wifi_networks_handle );
-
-            //     // search for matching networks and track best signal
-            //     // int8_t best_rssi = -120;
-            //     int8_t best_index = -1;
-
-            //     for( uint8_t i = 0; i < msg->count; i++ ){
-
-            //         // log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
-
-            //         // is this RSSI any good?
-
-            //         // if( msg->networks[i].rssi <= best_rssi ){
-
-            //         //     continue;
-            //         // }
-
-            //         // do we have this SSID?
-            //         for( uint8_t j = 0; j < cnt_of_array(network_hashes); j++ ){
-
-            //             if( network_hashes[j] == msg->networks[i].ssid_hash ){
-
-            //                 // match!
-
-            //                 // record RSSI and index
-            //                 best_index = j;
-            //                 // best_rssi = msg->networks[i].rssi;
-
-            //                 break;
-            //             }
-            //         }
-            //     }
-
-            //     if( best_index >= 0 ){
-
-            //         // log_v_debug_P( PSTR("Best: %d %lu"), best_rssi, network_hashes[best_index] );
-
-            //         selected_network = best_index;
-            //     }
-
-            //     mem2_v_free( wifi_networks_handle );
-            //     wifi_networks_handle = -1;     
-            // }
             
-                
-            wifi_msg_connect_t msg;
-            memset( &msg, 0, sizeof(msg) );
-
-            cfg_i8_get( CFG_PARAM_WIFI_SSID, msg.ssid[0] );
-            cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, msg.pass[0] );
-            
-            kv_i8_get( __KV__wifi_ssid2, msg.ssid[1], sizeof(msg.ssid) );
-            kv_i8_get( __KV__wifi_password2, msg.pass[1], sizeof(msg.pass) );  
-    
-            kv_i8_get( __KV__wifi_ssid3, msg.ssid[2], sizeof(msg.ssid) );
-            kv_i8_get( __KV__wifi_password3, msg.pass[2], sizeof(msg.pass) );  
-
-            kv_i8_get( __KV__wifi_ssid4, msg.ssid[3], sizeof(msg.ssid) );
-            kv_i8_get( __KV__wifi_password4, msg.pass[3], sizeof(msg.pass) );  
-
-            // check if no APs are configured
-            if( ( msg.ssid[0][0] == 0 ) &&
-                ( msg.ssid[1][0] == 0 ) &&
-                ( msg.ssid[2][0] == 0 ) &&
-                ( msg.ssid[3][0] == 0 ) ){
-
-                // switch to AP mode
-                ap_mode = TRUE;
-                goto ap_mode;
-            }
-
-            log_v_debug_P( PSTR("Connecting to: %s"), msg.ssid );
+            log_v_debug_P( PSTR("Connecting...") );
             wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, (uint8_t *)&msg, sizeof(msg) );
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
@@ -622,7 +534,6 @@ PT_BEGIN( pt );
         }
         // AP mode
         else{
-ap_mode:
             // wait until we have a MAC address
             THREAD_WAIT_WHILE( pt, wifi_mac[0] == 0 );
 
@@ -702,7 +613,6 @@ end:
         THREAD_WAIT_WHILE( pt, ( run_manager == FALSE ) &&
                                ( thread_b_alarm_set() ) );
 
-        THREAD_WAIT_WHILE( pt, !hal_wifi_b_comm_ready() );
         wifi_i8_send_msg( WIFI_DATA_ID_PORTS, (uint8_t *)&ports, sizeof(ports) );
 
         run_manager = FALSE;
@@ -980,23 +890,32 @@ PT_BEGIN( pt );
     
 restart:
     
-    watchdog = WIFI_WATCHDOG_TIMEOUT;
-
     hal_wifi_v_enter_normal_mode();
-    wifi_status_reg = 0;
-
-    hal_wifi_v_usart_flush();
 
     // delay while wifi boots up
     TMR_WAIT( pt, 300 );
 
+    wifi_status_reg = 0;
 
-    // wait for connection from wifi module
-    if( hal_wifi_i16_usart_get_char_timeout( 100000 ) != WIFI_COMM_READY ){
+    watchdog = WIFI_WATCHDOG_TIMEOUT;
 
-        goto restart;
+    while( watchdog > 0 ){
+
+        watchdog--;
+
+        hal_wifi_v_usart_flush();
+
+        // poll for connection
+        hal_wifi_v_usart_send_char( WIFI_COMM_QUERY_READY );
+
+        // wait for connection from wifi module
+        if( hal_wifi_i16_usart_get_char_timeout( 100000 ) == WIFI_COMM_READY ){
+
+            break;
+        }
     }
 
+    watchdog = WIFI_WATCHDOG_TIMEOUT;
     wifi_status = WIFI_STATE_ALIVE;
     
     while(1){
@@ -1144,18 +1063,15 @@ PT_BEGIN( pt );
         comm_rx_rate = hal_wifi_u32_get_rx_bytes();
         comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
-        
-        if( hal_wifi_b_comm_ready() ){
+            
+        // send options message
 
-            // send options message
+        wifi_msg_set_options_t options_msg;
+        memset( options_msg.padding, 0, sizeof(options_msg.padding) );
+        options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
+        options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
 
-            wifi_msg_set_options_t options_msg;
-            memset( options_msg.padding, 0, sizeof(options_msg.padding) );
-            options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
-            options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
-
-            wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
-        }
+        wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
     }
 
 PT_END( pt );
@@ -1589,3 +1505,95 @@ bool wifi_b_running( void ){
 }
 
 #endif
+
+
+
+
+
+
+
+
+
+// Old scan code:
+
+// log_v_debug_P( PSTR("Start scan") );
+
+            // // run a scan
+            // wifi_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN, 0, 0 );
+
+            // thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
+            // THREAD_WAIT_WHILE( pt, ( wifi_networks_handle < 0 ) &&
+            //                        ( thread_b_alarm_set() ) );
+
+
+            // uint32_t network_hashes[4];
+            // memset( network_hashes, 0, sizeof(network_hashes) );
+            // int8_t selected_network = -1;
+
+            // if( wifi_networks_handle > 0 ){
+
+            //     // gather available networks
+            //     char ssid[WIFI_SSID_LEN];
+
+            //     memset( ssid, 0, sizeof(ssid) );
+            //     cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+            //     network_hashes[0] = hash_u32_string( ssid );
+
+            //     memset( ssid, 0, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+            //     network_hashes[1] = hash_u32_string( ssid );
+
+            //     memset( ssid, 0, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+            //     network_hashes[2] = hash_u32_string( ssid );
+
+            //     memset( ssid, 0, sizeof(ssid) );
+            //     kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+            //     network_hashes[3] = hash_u32_string( ssid );
+
+
+            //     wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)mem2_vp_get_ptr( wifi_networks_handle );
+
+            //     // search for matching networks and track best signal
+            //     // int8_t best_rssi = -120;
+            //     int8_t best_index = -1;
+
+            //     for( uint8_t i = 0; i < msg->count; i++ ){
+
+            //         // log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
+
+            //         // is this RSSI any good?
+
+            //         // if( msg->networks[i].rssi <= best_rssi ){
+
+            //         //     continue;
+            //         // }
+
+            //         // do we have this SSID?
+            //         for( uint8_t j = 0; j < cnt_of_array(network_hashes); j++ ){
+
+            //             if( network_hashes[j] == msg->networks[i].ssid_hash ){
+
+            //                 // match!
+
+            //                 // record RSSI and index
+            //                 best_index = j;
+            //                 // best_rssi = msg->networks[i].rssi;
+
+            //                 break;
+            //             }
+            //         }
+            //     }
+
+            //     if( best_index >= 0 ){
+
+            //         // log_v_debug_P( PSTR("Best: %d %lu"), best_rssi, network_hashes[best_index] );
+
+            //         selected_network = best_index;
+            //     }
+
+            //     mem2_v_free( wifi_networks_handle );
+            //     wifi_networks_handle = -1;     
+            // }
+
+

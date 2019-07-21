@@ -310,10 +310,10 @@ int16_t hal_wifi_i16_rx_data_received( void ){
 }	
 
 
-bool hal_wifi_b_comm_ready( void ){
+// bool hal_wifi_b_comm_ready( void ){
 
-    return FALSE;
-}
+//     return FALSE;
+// }
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
 
