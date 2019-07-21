@@ -452,97 +452,111 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
     send_ports();
 }
 
-void transmit_udp( netmsg_t tx_netmsg ){
-
-    // netmsg_state_t *netmsg_state = netmsg_vp_get_state( tx_netmsg );
-
-    // ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
-
-    // uint16_t data_len = 0;
-
-    // uint16_t crc = crc_u16_start();
-
-    // uint8_t *data = 0;
-    // uint8_t *h2 = 0;
-    // uint16_t h2_len = 0;
-
-    // if( netmsg_state->data_handle > 0 ){
-
-    //     data = mem2_vp_get_ptr( netmsg_state->data_handle );
-    //     data_len = mem2_u16_get_size( netmsg_state->data_handle );
-    // }
-
-    // // header 2, if present
-    // if( netmsg_state->header_2_handle > 0 ){
-
-    //     h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-    //     h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
-    // }
-
-    // // setup header
-    // wifi_msg_udp_header_t udp_header;
-    // udp_header.addr = netmsg_state->raddr.ipaddr;
-    // udp_header.lport = netmsg_state->laddr.port;
-    // udp_header.rport = netmsg_state->raddr.port;
-    // udp_header.len = data_len + h2_len;
-    // udp_header.crc = 0;
-    
-
-    // uint16_t len = data_len + h2_len + sizeof(udp_header);
-
-    // wifi_data_header_t header;
-    // header.len      = len;
-    // header.reserved = 0;
-    // header.data_id  = WIFI_DATA_ID_UDP_EXT;
-    // header.crc      = 0;                
-
-    // crc = crc_u16_partial_block( crc, (uint8_t *)&header, sizeof(header) );
-    // crc = crc_u16_partial_block( crc, (uint8_t *)&udp_header, sizeof(udp_header) );
-    // crc = crc_u16_partial_block( crc, h2, h2_len );
-    // crc = crc_u16_partial_block( crc, data, data_len );
-    // header.crc = crc_u16_finish( crc );
-
-    // hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
-    // hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
-    // hal_wifi_v_usart_send_data( (uint8_t *)&udp_header, sizeof(udp_header) );
-    // hal_wifi_v_usart_send_data( h2, h2_len );
-    // hal_wifi_v_usart_send_data( data, data_len );   
-
-
-    // // release netmsg
-    // netmsg_v_release( tx_netmsg );
-}
-
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
-    return -1;
-    // if( !wifi_b_connected() ){
 
-    //     return NETMSG_TX_ERR_RELEASE;
-    // }
+    int8_t status = 0;
 
-    // // check if wifi comm is ready.
-    // // if so, we can just send now instead of queuing.
-    // if( hal_wifi_b_comm_ready() ){
+    if( !wifi_b_connected() ){
 
-    //     transmit_udp( netmsg );
+        return NETMSG_TX_ERR_RELEASE;
+    }
 
-    //     return NETMSG_TX_OK_NORELEASE;
-    // }
+    netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
 
-    // if( list_u8_count( &netmsg_list ) >= WIFI_MAX_NETMSGS ){
+    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
 
-    //     log_v_debug_P( PSTR("tx udp overflow") );
+    uint16_t data_len = 0;
 
-    //     return NETMSG_TX_ERR_RELEASE;   
-    // }
+    uint8_t *data = 0;
+    uint8_t *h2 = 0;
+    uint16_t h2_len = 0;
 
-    // // add to list
-    // list_v_insert_head( &netmsg_list, netmsg );
+    if( netmsg_state->data_handle > 0 ){
 
-    // // signal comm thread
-    // thread_v_signal( WIFI_SIGNAL );
+        data = mem2_vp_get_ptr( netmsg_state->data_handle );
+        data_len = mem2_u16_get_size( netmsg_state->data_handle );
+    }
 
-    // return NETMSG_TX_OK_NORELEASE;
+    // header 2, if present
+    if( netmsg_state->header_2_handle > 0 ){
+
+        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+    }
+
+    // setup header
+    wifi_msg_udp_header_t udp_header;
+    udp_header.addr = netmsg_state->raddr.ipaddr;
+    udp_header.lport = netmsg_state->laddr.port;
+    udp_header.rport = netmsg_state->raddr.port;
+    udp_header.len = data_len + h2_len;
+    
+    uint8_t tries = WIFI_COMM_TRIES;
+
+    while( tries > 0 ){
+
+        tries--;
+
+        // bail out of header fails, it is already tried multiple times
+        if( _wifi_i8_send_header( WIFI_DATA_ID_SEND_UDP, sizeof(wifi_msg_udp_header_t) + data_len + h2_len ) < 0 ){
+
+            break;
+        }
+
+        uint16_t crc = crc_u16_start();
+
+        uint16_t len = sizeof(wifi_msg_udp_header_t);
+        uint8_t *send_data = (uint8_t *)&udp_header;
+        while( len > 0 ){
+
+            hal_wifi_v_usart_send_char( *send_data );
+            crc = crc_u16_byte( crc, *send_data );
+
+            send_data++;
+            len--;
+        }
+
+        len = h2_len;
+        send_data = h2;
+        while( len > 0 ){
+
+            hal_wifi_v_usart_send_char( *send_data );
+            crc = crc_u16_byte( crc, *send_data );
+
+            send_data++;
+            len--;
+        }
+
+        len = data_len;
+        send_data = data;
+        while( len > 0 ){
+
+            hal_wifi_v_usart_send_char( *send_data );
+            crc = crc_u16_byte( crc, *send_data );
+
+            send_data++;
+            len--;
+        }
+
+        crc = crc_u16_finish( crc );
+        hal_wifi_v_usart_send_data( (uint8_t *)&crc, sizeof(crc) );
+
+        int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
+
+        if( byte == WIFI_COMM_ACK ){
+
+            break;
+        }
+    }
+
+    if( status < 0 ){
+     
+        log_v_debug_P( PSTR("msg failed") );
+
+        return NETMSG_TX_ERR_RELEASE;   
+    }
+    
+    return NETMSG_TX_OK_RELEASE;
 }
 
 
