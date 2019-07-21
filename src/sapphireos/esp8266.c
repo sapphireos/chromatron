@@ -80,12 +80,10 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #define WIFI_CONNECT_TIMEOUT    10000
 
 static uint16_t ports[WIFI_MAX_PORTS];
-static bool run_manager;
 
 static int8_t wifi_status;
 static uint8_t wifi_mac[6];
 static uint8_t wifi_status_reg;
-static bool connected;
 static int8_t wifi_rssi;
 static uint32_t wifi_uptime;
 static bool default_ap_mode;
@@ -413,6 +411,11 @@ int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len )
     return wifi_i8_send_msg( data_id, data, len );
 }
 
+void send_ports( void ){
+
+    wifi_i8_send_msg( WIFI_DATA_ID_PORTS, (uint8_t *)&ports, sizeof(ports) );
+}
+
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
     if( protocol == IP_PROTO_UDP ){
@@ -435,8 +438,6 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
                     ports[i] = port;
 
-                    run_manager = TRUE;
-
                     break;
                 }
             }
@@ -450,13 +451,14 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
                     ports[i] = 0;
 
-                    run_manager = TRUE;
-
                     break;
                 }
             }
         }
     }
+
+    // send ports message
+    send_ports();
 }
 
 void transmit_udp( netmsg_t tx_netmsg ){
@@ -677,30 +679,20 @@ end:
 
             TMR_WAIT( pt, 500 );
         }
-    }     
-
-    while( wifi_b_connected() ){
-
-        if( !connected ){
-
-            if( !wifi_b_ap_mode_enabled() ){
-
-                wifi_connects++;
-                connected = TRUE;
-                log_v_debug_P( PSTR("Wifi connected") );
-            }
-        }
-
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );    
-        THREAD_WAIT_WHILE( pt, ( run_manager == FALSE ) &&
-                               ( thread_b_alarm_set() ) );
-
-        wifi_i8_send_msg( WIFI_DATA_ID_PORTS, (uint8_t *)&ports, sizeof(ports) );
-
-        run_manager = FALSE;
     }
 
-    connected = FALSE;
+    if( wifi_b_connected() ){
+
+        if( !wifi_b_ap_mode_enabled() ){
+
+            wifi_connects++;
+        }
+
+        log_v_debug_P( PSTR("Wifi connected") );
+    }
+
+    THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+    
     log_v_debug_P( PSTR("Wifi disconnected") );
 
     THREAD_RESTART( pt );
@@ -1058,6 +1050,7 @@ PT_BEGIN( pt );
     wifi_status = WIFI_STATE_ALIVE;
 
     get_info();
+    send_ports();
 
     while(1){
 
