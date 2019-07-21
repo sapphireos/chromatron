@@ -305,7 +305,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         kvdb_v_set_tag( msg->meta.hash, msg->tag );
     }
-    else if( data_id == WIFI_DATA_ID_GET_UDP ){
+    else if( data_id == WIFI_DATA_ID_PEEK_UDP ){
 
         wifi_msg_udp_header_t *header = wifi_h_get_rx_udp_header();
 
@@ -314,16 +314,20 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             return;
         }
 
-        if( intf_i8_send_msg( WIFI_DATA_ID_GET_UDP, (uint8_t *)header, sizeof(wifi_msg_udp_header_t) + header->len ) == 0 ){
+        intf_i8_send_msg( WIFI_DATA_ID_PEEK_UDP, (uint8_t *)header, sizeof(wifi_msg_udp_header_t) );
+    }
+    else if( data_id == WIFI_DATA_ID_GET_UDP ){
+        
+        wifi_msg_udp_header_t *header = wifi_h_get_rx_udp_header();
 
-            // message sent
+        if( header == 0 ){
 
-            // clear last UDP
-            wifi_v_rx_udp_clear_last();
+            return;
         }
 
-        // send status
-        wifi_v_send_status();
+        uint8_t *data = (uint8_t *)( header + 1 );
+
+        intf_i8_send_msg( WIFI_DATA_ID_GET_UDP, data, header->len );
     }
     else if( data_id == WIFI_DATA_ID_SEND_UDP ){
 

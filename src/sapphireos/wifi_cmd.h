@@ -161,10 +161,10 @@ typedef struct __attribute__((packed)){
     uint16_t lport;
     uint16_t rport;
     uint16_t len;
-    uint16_t crc;
 } wifi_msg_udp_header_t;
-#define WIFI_DATA_ID_GET_UDP           0x0B
-#define WIFI_DATA_ID_SEND_UDP          0x0C
+#define WIFI_DATA_ID_PEEK_UDP          0x0B
+#define WIFI_DATA_ID_GET_UDP           0x0C
+#define WIFI_DATA_ID_SEND_UDP          0x0D
 
 // #define WIFI_DATA_ID_WIFI_SCAN         0x13
 

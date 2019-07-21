@@ -1036,7 +1036,68 @@ PT_BEGIN( pt );
         // process message
         process_rx_data( &header, buf );
 
+        if( wifi_status_reg & WIFI_STATUS_NET_RX ){
 
+            THREAD_WAIT_WHILE( pt, sock_b_rx_pending() );
+
+            if( wifi_i8_send_msg( WIFI_DATA_ID_PEEK_UDP, 0, 0 ) < 0 ){
+
+                continue;
+            }   
+
+            wifi_msg_udp_header_t udp_header;
+
+            if( wifi_i8_receive_msg( WIFI_DATA_ID_PEEK_UDP, (uint8_t *)&udp_header, sizeof(udp_header), 0 ) < 0 ){
+
+                continue;
+            }
+
+            // allocate netmsg
+            netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
+
+            if( rx_netmsg < 0 ){
+
+                log_v_debug_P( PSTR("rx udp alloc fail") );     
+
+                continue;
+            }
+
+            netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
+
+            // allocate data buffer
+            state->data_handle = mem2_h_alloc2( udp_header.len, MEM_TYPE_SOCKET_BUFFER );
+
+            if( state->data_handle < 0 ){
+
+                log_v_debug_P( PSTR("rx udp no handle") );     
+
+                netmsg_v_release( rx_netmsg );
+
+                continue;
+            }      
+
+            if( wifi_i8_send_msg( WIFI_DATA_ID_GET_UDP, 0, 0 ) < 0 ){
+
+                netmsg_v_release( rx_netmsg );
+
+                continue;
+            }
+
+            // we can get a fast ptr because we've already verified the handle
+            uint8_t *data = mem2_vp_get_ptr_fast( state->data_handle );
+
+            if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_UDP, data, udp_header.len, 0 ) < 0 ){
+
+                continue;
+            }
+
+            // receive message
+            netmsg_v_receive( rx_netmsg );
+
+            wifi_status_reg &= ~WIFI_STATUS_NET_RX;
+        }
+
+        
 
         // thread_v_set_signal_flag();
         // THREAD_WAIT_WHILE( pt, ( list_u8_count( &netmsg_list ) == 0 ) && 

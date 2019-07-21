@@ -411,7 +411,6 @@ void wifi_v_process( void ){
         rx_header->rport = udp[i].remotePort();
         rx_header->len = (uint16_t)packet_len;
         udp[i].read( rx_data, packet_len );
-        rx_header->crc = crc_u16_block( rx_data, packet_len );
     
         udp_received++;
 
