@@ -78,6 +78,7 @@ static uint8_t init_vm;
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
+PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
 
 typedef struct{
     catbus_hash_t32 hash;
@@ -383,6 +384,11 @@ void gfx_v_init( void ){
                 PSTR("gfx_db_xfer"),
                 0,
                 0 );
+
+    thread_t_create( gfx_fader_thread,
+                PSTR("gfx_fader"),
+                0,
+                0 );
 }
 
 bool gfx_b_running( void ){
@@ -454,10 +460,10 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-static int8_t send_run_fader_cmd( void ){
+// static int8_t send_run_fader_cmd( void ){
 
-    return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
-}
+//     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
+// }
 
 
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
@@ -578,13 +584,13 @@ PT_BEGIN( pt );
         }
 
 end:
-        if( flags & FLAG_RUN_FADER ){   
+        // if( flags & FLAG_RUN_FADER ){   
 
-            if( pixel_u8_get_mode() != PIX_MODE_OFF ){
+        //     if( pixel_u8_get_mode() != PIX_MODE_OFF ){
                 
-                send_run_fader_cmd();
-            }
-        }
+        //         send_run_fader_cmd();
+        //     }
+        // }
 
         if( ( flags & FLAG_RUN_PARAMS ) ||
             ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
@@ -778,4 +784,27 @@ end:
         
 PT_END( pt );
 }
+
+
+
+PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        THREAD_WAIT_WHILE( pt, pixel_u8_get_mode() == PIX_MODE_OFF );
+
+        wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );
+        
+
+    }
+    
+            
+PT_END( pt );
+}
+
 
