@@ -309,12 +309,6 @@ int16_t hal_wifi_i16_rx_data_received( void ){
     return -1;
 }	
 
-
-// bool hal_wifi_b_comm_ready( void ){
-
-//     return FALSE;
-// }
-
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
 
 	uint32_t temp = current_rx_bytes;
