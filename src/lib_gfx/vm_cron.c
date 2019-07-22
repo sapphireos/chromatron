@@ -163,11 +163,7 @@ PT_BEGIN( pt );
         while( time_b_is_sync() && !list_b_is_empty( &cron_list ) ){
 
             TMR_WAIT( pt, 1000 );
-
-            #ifdef VM_TARGET_ESP
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            #endif
-
+            
             // update clock
             ntp_ts_t ntp_local_now = time_t_local_now();
 
@@ -208,7 +204,7 @@ PT_BEGIN( pt );
                         wifi_msg_vm_run_func_t msg;
                         msg.vm_id = entry->vm_id;
                         msg.func_addr = entry->cron.func_addr;
-                        wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&msg, sizeof(msg) );
+                        wifi_i8_send_msg( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&msg, sizeof(msg) );
                         #else
 
                         vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   

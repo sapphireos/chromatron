@@ -170,18 +170,6 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 };
 
 
-
-bool wifi_b_comm_ready( void ){
-
-    return TRUE;
-}
-
-bool wifi_b_wait_comm_ready( void ){
-
-    return TRUE;
-}
-
-
 static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
@@ -395,12 +383,6 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
     return 0;
 }
 
-
-// deprecated
-int8_t wifi_i8_send_msg_blocking( uint8_t data_id, uint8_t *data, uint16_t len ){
-
-    return wifi_i8_send_msg( data_id, data, len );
-}
 
 void send_ports( void ){
 
@@ -1430,11 +1412,6 @@ int8_t wifi_i8_get_status( void ){
 uint32_t wifi_u32_get_received( void ){
 
     return wifi_udp_received;
-}
-
-bool wifi_b_running( void ){
-
-    return TRUE;
 }
 
 #endif

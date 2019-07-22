@@ -189,7 +189,7 @@ void load_frame_data( void ){
 	fs_i16_read( f, &sync, sizeof(sync) );
 
 	// send sync
-	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
+	wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&sync, sizeof(sync) );
 
 	uint16_t data_len = sync.data_len;
 	uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
@@ -206,7 +206,7 @@ void load_frame_data( void ){
 			goto done;
 		}
 
-		wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DATA, buf, read_len + sizeof(wifi_msg_vm_sync_data_t) );
+		wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, read_len + sizeof(wifi_msg_vm_sync_data_t) );
 
 		msg->offset += read_len;
 		data_len 	-= read_len;
@@ -217,7 +217,7 @@ void load_frame_data( void ){
 	done.hash = get_file_hash();
 
 	// send done
-	wifi_i8_send_msg_blocking( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
+	wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
 
 	gfx_v_set_frame_number( sync.frame_number );
 
@@ -610,11 +610,8 @@ PT_BEGIN( pt );
 		THREAD_EXIT( pt );
 	}
 
-	THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
 	// important! must ensure wifi comm is ready!
 	vm_sync_i8_request_frame_sync();
-
 
 	THREAD_WAIT_WHILE( pt, esp_sync_state == ESP_SYNC_DOWNLOADING );
 

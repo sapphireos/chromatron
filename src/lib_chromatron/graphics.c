@@ -440,20 +440,13 @@ void gfx_v_pixel_bridge_disable( void ){
     pixel_transfer_enable = FALSE;
 }
 
-static int8_t send_params( bool blocking ){
+void gfx_v_sync_params( void ){
 
     gfx_params_t params;
 
     gfx_v_get_params( &params );
 
-    if( blocking ){
-
-        return wifi_i8_send_msg_blocking( WIFI_DATA_ID_GFX_PARAMS, (uint8_t *)&params, sizeof(params) );
-    }
-    else{
-     
-        return wifi_i8_send_msg( WIFI_DATA_ID_GFX_PARAMS, (uint8_t *)&params, sizeof(params) );
-    }
+    wifi_i8_send_msg( WIFI_DATA_ID_GFX_PARAMS, (uint8_t *)&params, sizeof(params) );
 }
 
 static int8_t send_run_vm_cmd( void ){
@@ -544,11 +537,6 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     return 0;    
 }
 
-void gfx_v_sync_params( void ){
-    
-    send_params( TRUE );    
-}
-
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -580,7 +568,6 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
             send_run_vm_cmd();
 
             if( vm_b_is_vm_running( 0 ) ){
@@ -595,7 +582,6 @@ end:
 
             if( pixel_u8_get_mode() != PIX_MODE_OFF ){
                 
-                THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
                 send_run_fader_cmd();
             }
         }
@@ -603,8 +589,7 @@ end:
         if( ( flags & FLAG_RUN_PARAMS ) ||
             ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-            send_params( FALSE );
+            gfx_v_sync_params();
 
             // run DB transfer
             run_xfer = TRUE;
@@ -729,8 +714,6 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
-
             subscribed_keys[index].flags = 0;
 
             kv_meta_t meta;
@@ -769,8 +752,6 @@ end:
         run_xfer = FALSE;
 
         if( init_vm != 0 ){
-
-            THREAD_WAIT_WHILE( pt, !wifi_b_comm_ready() );
 
             uint32_t vm_id = init_vm;
 
