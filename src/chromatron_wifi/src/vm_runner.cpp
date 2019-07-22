@@ -49,7 +49,6 @@ static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
 
 static bool run_vm;
-static bool run_faders;
 
 static uint32_t thread_tick;
 
@@ -246,8 +245,16 @@ void vm_v_init( void ){
 }
 
 void vm_v_run_faders( void ){
+    
+    uint32_t start = micros();
 
-    run_faders = true;
+    gfx_v_process_faders();
+    gfx_v_sync_array();
+
+    // TODO this will have rollover issues
+    uint32_t elapsed = micros() - start;
+
+    vm_fader_time = elapsed;
 }
 
 void vm_v_run_vm( void ){
@@ -265,28 +272,6 @@ void vm_v_process( void ){
         }
 
         run_vm = false;
-    }
-
-    if( run_faders ){
-
-        uint32_t start = micros();
-
-        gfx_v_process_faders();
-        gfx_v_sync_array();
-
-        #ifdef USE_HSV_BRIDGE
-        intf_v_request_hsv_array();
-        #else
-        intf_v_request_rgb_pix0();
-        intf_v_request_rgb_array();
-        #endif
-
-        // TODO this will have rollover issues
-        uint32_t elapsed = micros() - start;
-
-        vm_fader_time = elapsed;
-
-        run_faders = false;
     }
 
     if( elapsed_time_millis( thread_tick ) >= VM_RUNNER_THREAD_RATE ){

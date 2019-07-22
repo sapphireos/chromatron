@@ -485,35 +485,7 @@ int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
     }
     #else
-    if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
-
-        if( pixel_transfer_enable ){
-            
-            if( len != sizeof(wifi_msg_rgb_pix0_t) ){
-
-                return -1;
-            }
-
-            wifi_msg_rgb_pix0_t *msg = (wifi_msg_rgb_pix0_t *)data;
-
-            pixel_v_set_analog_rgb( msg->r, msg->g, msg->b );
-        }
-    }  
-    else if( data_id == WIFI_DATA_ID_RGB_ARRAY ){
-
-        if( pixel_transfer_enable ){
-
-            wifi_msg_rgb_array_t *msg = (wifi_msg_rgb_array_t *)data;
-
-            // unpack RGBD pointers
-            uint8_t *r = msg->rgbd_array;
-            uint8_t *g = r + msg->count;
-            uint8_t *b = g + msg->count;
-            uint8_t *d = b + msg->count;
-
-            pixel_v_load_rgb( msg->index, msg->count, r, g, b, d );   
-        }
-    }
+    
     #endif
     else if( data_id == WIFI_DATA_ID_VM_INFO ){
 
@@ -796,10 +768,70 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        THREAD_WAIT_WHILE( pt, pixel_u8_get_mode() == PIX_MODE_OFF );
+        THREAD_WAIT_WHILE( pt, ( pixel_u8_get_mode() == PIX_MODE_OFF ) ||
+                               ( gfx_u16_get_pix_count() == 0 ) );
 
-        wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );
-        
+        if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
+
+            continue;
+        }
+
+        // get pixel data
+        #ifdef USE_HSV_BRIDGE
+
+        uint8_t pages = ( ( gfx_u16_get_pix_count() - 1 ) / WIFI_HSV_DATA_N_PIXELS ) + 1;
+
+        for( uint8_t page = 0; page < pages; page++ ){
+
+            wifi_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, &page, sizeof(page) );
+
+            wifi_msg_hsv_array_t msg;
+
+            if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, (uint8_t *)&msg, sizeof(msg), 0 ) < 0 ){
+
+                continue;
+            }
+
+            // unpack HSV pointers
+            uint16_t *h = (uint16_t *)msg.hsv_array;
+            uint16_t *s = h + msg.count;
+            uint16_t *v = s + msg.count;
+
+            pixel_v_load_hsv( msg.index, msg.count, h, s, v );
+        }
+
+        #else
+        #pragma error "RGB bridge not finished!"
+        // if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
+
+        //     if( pixel_transfer_enable ){
+                
+        //         if( len != sizeof(wifi_msg_rgb_pix0_t) ){
+
+        //             return -1;
+        //         }
+
+        //         wifi_msg_rgb_pix0_t *msg = (wifi_msg_rgb_pix0_t *)data;
+
+        //         pixel_v_set_analog_rgb( msg->r, msg->g, msg->b );
+        //     }
+        // }  
+        // else if( data_id == WIFI_DATA_ID_RGB_ARRAY ){
+
+        //     if( pixel_transfer_enable ){
+
+        //         wifi_msg_rgb_array_t *msg = (wifi_msg_rgb_array_t *)data;
+
+        //         // unpack RGBD pointers
+        //         uint8_t *r = msg->rgbd_array;
+        //         uint8_t *g = r + msg->count;
+        //         uint8_t *b = g + msg->count;
+        //         uint8_t *d = b + msg->count;
+
+        //         pixel_v_load_rgb( msg->index, msg->count, r, g, b, d );   
+        //     }
+        // }
+        #endif
 
     }
     
