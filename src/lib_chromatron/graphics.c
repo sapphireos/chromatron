@@ -64,7 +64,6 @@ static bool pixel_transfer_enable = TRUE;
 static volatile uint8_t run_flags;
 #define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
-#define FLAG_RUN_FADER          0x04
 
 static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
@@ -321,9 +320,6 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
 
 ISR(GFX_TIMER_CCA_vect){
 
-    GFX_TIMER.CCA += FADER_TIMER_RATE;
-
-    run_flags |= FLAG_RUN_FADER;
 }
 
 ISR(GFX_TIMER_CCB_vect){
@@ -356,9 +352,6 @@ void gfx_v_init( void ){
     // PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
     // PIX_DATA_PORT.DIRSET = ( 1 << PIX_DATA_PIN );
     // PIX_DATA_PORT.OUTCLR = ( 1 << PIX_DATA_PIN );
-
-    // fader
-    GFX_TIMER.CCA = FADER_TIMER_RATE;
 
     // VM
     update_vm_timer();
@@ -460,34 +453,9 @@ static int8_t send_run_vm_cmd( void ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
 }
 
-// static int8_t send_run_fader_cmd( void ){
-
-//     return wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );   
-// }
-
-
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     
-    
-    #ifdef USE_HSV_BRIDGE
-    if( data_id == WIFI_DATA_ID_HSV_ARRAY ){
-
-        if( pixel_transfer_enable ){
-
-            wifi_msg_hsv_array_t *msg = (wifi_msg_hsv_array_t *)data;
-
-            // // unpack HSV pointers
-            uint16_t *h = (uint16_t *)msg->hsv_array;
-            uint16_t *s = h + msg->count;
-            uint16_t *v = s + msg->count;
-
-            pixel_v_load_hsv( msg->index, msg->count, h, s, v );   
-        }
-    }
-    #else
-    
-    #endif
-    else if( data_id == WIFI_DATA_ID_VM_INFO ){
+    if( data_id == WIFI_DATA_ID_VM_INFO ){
 
         if( len != sizeof(wifi_msg_vm_info_t) ){
 
