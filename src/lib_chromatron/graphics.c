@@ -62,7 +62,6 @@ static uint16_t gfx_virtual_array_length;
 static bool pixel_transfer_enable = TRUE;
 
 static volatile uint8_t run_flags;
-#define FLAG_RUN_PARAMS         0x01
 #define FLAG_RUN_VM_LOOP        0x02
 
 static uint16_t vm_timer_rate; 
@@ -73,11 +72,10 @@ static uint8_t init_vm;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
-#define PARAMS_TIMER_RATE 100 // 100 ms (system ms timer)
-
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
+PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) );
 
 typedef struct{
     catbus_hash_t32 hash;
@@ -185,9 +183,7 @@ int8_t gfx_i8_kv_handler(
 
         param_error_check();
 
-        ATOMIC;
-        run_flags |= FLAG_RUN_PARAMS;
-        END_ATOMIC;
+        gfx_v_sync_params();
 
         update_vm_timer();
     }
@@ -292,9 +288,7 @@ void gfx_v_set_master_dimmer( uint16_t setting ){
 
     param_error_check();
 
-    ATOMIC;
-    run_flags |= FLAG_RUN_PARAMS;
-    END_ATOMIC;
+    gfx_v_sync_params();
 }
 
 uint16_t gfx_u16_get_master_dimmer( void ){
@@ -308,9 +302,7 @@ void gfx_v_set_submaster_dimmer( uint16_t setting ){
 
     param_error_check();
 
-    ATOMIC;
-    run_flags |= FLAG_RUN_PARAMS;
-    END_ATOMIC;
+    gfx_v_sync_params();
 }
 
 uint16_t gfx_u16_get_submaster_dimmer( void ){
@@ -382,6 +374,11 @@ void gfx_v_init( void ){
                 PSTR("gfx_fader"),
                 0,
                 0 );
+
+    thread_t_create( gfx_vm_loop_thread,
+                PSTR("gfx_vm_loop"),
+                0,
+                0 );
 }
 
 bool gfx_b_running( void ){
@@ -448,11 +445,6 @@ void gfx_v_sync_params( void ){
     wifi_i8_send_msg( WIFI_DATA_ID_GFX_PARAMS, (uint8_t *)&params, sizeof(params) );
 }
 
-static int8_t send_run_vm_cmd( void ){
-
-    return wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );   
-}
-
 int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     
     if( data_id == WIFI_DATA_ID_VM_INFO ){
@@ -487,73 +479,62 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    static uint32_t last_param_sync;
-    static uint8_t flags;
+//     static uint8_t flags;
 
-    // wait until wifi is attached before starting up pixel driver
-    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+//     // wait until wifi is attached before starting up pixel driver
+//     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
-    param_error_check();  
+//     param_error_check();  
 
 
-    while(1){
+//     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && 
-                               ( tmr_u32_elapsed_time_ms( last_param_sync ) < PARAMS_TIMER_RATE ) );
+//         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) );
 
-        ATOMIC;
-        flags = run_flags;
-        run_flags = 0;
-        END_ATOMIC;
+//         ATOMIC;
+//         flags = run_flags;
+//         run_flags = 0;
+//         END_ATOMIC;
 
-        if( flags & FLAG_RUN_VM_LOOP ){
+//         if( flags & FLAG_RUN_VM_LOOP ){
 
-            // check if vm is running
-            if( !vm_b_running() ){
+//             // check if vm is running
+//             if( !vm_b_running() ){
 
-                goto end;
-            }
+//                 goto end;
+//             }
 
-            send_run_vm_cmd();
+//             // send_run_vm_cmd();
 
-            if( vm_b_is_vm_running( 0 ) ){
+//             if( vm_b_is_vm_running( 0 ) ){
                 
-                vm0_frame_number++;
-                last_vm0_frame_ts = time_u32_get_network_time();
-            }
-        }
+//                 vm0_frame_number++;
+//                 last_vm0_frame_ts = time_u32_get_network_time();
+//             }
+//         }
 
-end:
-        // if( flags & FLAG_RUN_FADER ){   
+// end:
+       
+        // if( ( flags & FLAG_RUN_PARAMS ) ||
+        //     ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
 
-        //     if( pixel_u8_get_mode() != PIX_MODE_OFF ){
-                
-        //         send_run_fader_cmd();
-        //     }
+        //     // run DB transfer
+        //     run_xfer = TRUE;
+        //     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
+
+        //         if( subscribed_keys[i].hash == 0 ){
+
+        //            continue;
+        //         }
+                    
+        //         subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
+        //     }   
+
+        //     last_param_sync = tmr_u32_get_system_time_ms();
         // }
 
-        if( ( flags & FLAG_RUN_PARAMS ) ||
-            ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
-
-            gfx_v_sync_params();
-
-            // run DB transfer
-            run_xfer = TRUE;
-            for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-                if( subscribed_keys[i].hash == 0 ){
-
-                   continue;
-                }
-                    
-                subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
-            }   
-
-            last_param_sync = tmr_u32_get_system_time_ms();
-        }
-
-        THREAD_YIELD( pt ); 
-    }
+        // THREAD_YIELD( pt ); 
+    // }
 
 PT_END( pt );
 }
@@ -813,3 +794,24 @@ PT_END( pt );
 }
 
 
+PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && !vm_b_running() );
+
+        ATOMIC;
+        uint8_t flags = run_flags;
+        run_flags = 0;
+        END_ATOMIC;
+
+        if( flags & FLAG_RUN_VM_LOOP ){
+
+            wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );
+        }
+    }
+            
+PT_END( pt );
+}
