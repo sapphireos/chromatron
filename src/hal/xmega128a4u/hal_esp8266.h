@@ -28,27 +28,16 @@
 #include "wifi_cmd.h"
 #include "hal_usart.h"
 
-#define WIFI_TIMER 				TCD1
-#define WIFI_TIMER_ISR  		TCD1_OVF_vect
-
-#define WIFI_UART_RX_BUF_SIZE   WIFI_MAIN_BUF_LEN
-
 #define WIFI_USART              USARTE0
-#define WIFI_USART_DMA_TRIG     DMA_CH_TRIGSRC_USARTE0_RXC_gc
-#define WIFI_DMA_CH             CH2
-#define WIFI_DMA_CHTRNIF        DMA_CH2TRNIF_bm
-#define WIFI_DMA_CHERRIF        DMA_CH2ERRIF_bm
-#define WIFI_DMA_IRQ_VECTOR     DMA_CH2_vect
 
 #define WIFI_USART_TXD_PORT     PORTE
 #define WIFI_USART_TXD_PIN      3
 #define WIFI_USART_RXD_PORT     PORTE
 #define WIFI_USART_RXD_PIN      2
 #define WIFI_USART_XCK_PORT     PORTE
-#define WIFI_USART_XCK_PIN      1
-#define WIFI_USART_XCK_PINCTRL  PIN1CTRL
-
-#define WIFI_IRQ_VECTOR         PORTA_INT0_vect
+#define WIFI_IRQ_PIN      		1
+#define WIFI_IRQ_PORT      		PORTE
+#define WIFI_IRQ_PINCTRL  		PIN1CTRL
 
 #define WIFI_PD_PORT            PORTE
 #define WIFI_PD_PIN             0
@@ -57,55 +46,35 @@
 #define WIFI_BOOT_PIN           5
 #define WIFI_BOOT_PINCTRL       PIN5CTRL
 
-#define WIFI_SS_PORT            PORTA
-#define WIFI_SS_PIN             6
-#define WIFI_SS_PINCTRL         PIN6CTRL
-
-
+#define WIFI_CTS_PORT            PORTA
+#define WIFI_CTS_PIN             6
+#define WIFI_CTS_PINCTRL         PIN6CTRL
 
 void hal_wifi_v_init( void );
 
 void hal_wifi_v_reset( void );
 
-uint8_t *hal_wifi_u8p_get_rx_dma_buf_ptr( void );
-uint8_t *hal_wifi_u8p_get_rx_buf_ptr( void );
-
 void hal_wifi_v_usart_send_char( uint8_t b );
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len );
-void hal_wifi_v_usart_set_baud( baud_t baud );
 int16_t hal_wifi_i16_usart_get_char( void );
+int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout );
+bool hal_wifi_b_usart_rx_available( void );
+int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout );
+
 void hal_wifi_v_usart_flush( void );
 
-uint16_t hal_wifi_u16_dma_rx_bytes( void );
-void hal_wifi_v_disable_rx_dma( void );
-void hal_wifi_v_enable_rx_dma( bool irq );
+void hal_wifi_v_usart_set_baud( baud_t baud );
 
-void hal_wifi_v_reset_rx_buffer( void );
-void hal_wifi_v_clear_rx_buffer( void );
-void hal_wifi_v_release_rx_buffer( void );
-
-void hal_wifi_v_reset_control_byte( void );
-void hal_wifi_v_reset_comm( void );
-void hal_wifi_v_set_rx_ready( void );
-void hal_wifi_v_disable_irq( void );
-void hal_wifi_v_enable_irq( void );
-
-// void hal_wifi_v_set_io_mode( uint8_t pin, io_mode_t8 mode );
-// void hal_wifi_v_write_io( uint8_t pin, bool state );
-
-uint8_t hal_wifi_u8_get_control_byte( void );
 int16_t hal_wifi_i16_rx_data_received( void );
 
-void hal_wifi_v_clear_rx_ready( void );
-bool hal_wifi_b_comm_ready( void );
-
-uint32_t hal_wifi_u32_get_max_ready_wait( void );
 uint32_t hal_wifi_u32_get_rx_bytes( void );
 uint32_t hal_wifi_u32_get_tx_bytes( void );
 
+bool hal_wifi_b_read_irq( void );
+void hal_wifi_v_set_cts( bool value );
+
 void hal_wifi_v_enter_boot_mode( void );
 void hal_wifi_v_enter_normal_mode( void );
-
 #endif
 
 

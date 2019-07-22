@@ -58,8 +58,6 @@ void hal_wifi_v_usart_set_baud( baud_t baud );
 
 int16_t hal_wifi_i16_rx_data_received( void );
 
-// bool hal_wifi_b_comm_ready( void );
-
 uint32_t hal_wifi_u32_get_rx_bytes( void );
 uint32_t hal_wifi_u32_get_tx_bytes( void );
 
