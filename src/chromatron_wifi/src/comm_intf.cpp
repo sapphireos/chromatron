@@ -260,30 +260,30 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             }
         }
     }
-    // else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
+    else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 
-    //     wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
 
-    //     vm_v_start_frame_sync( 0, msg, len );
-    // }
-    // else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
+        vm_v_start_frame_sync( 0, msg, len );
+    }
+    else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
 
-    //     wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
+        wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
 
-    //     vm_v_frame_sync_data( 0, msg, len );
-    // }
-    // else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
+        vm_v_frame_sync_data( 0, msg, len );
+    }
+    else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
 
-    //     wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
+        wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
 
-    //     vm_v_frame_sync_done( 0, msg, len );
-    // }
-    // else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
+        vm_v_frame_sync_done( 0, msg, len );
+    }
+    else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
         
-    //     uint32_t *vm_id = (uint32_t *)data;
+        uint32_t *vm_id = (uint32_t *)data;
 
-    //     vm_v_request_frame_data( *vm_id );
-    // }
+        vm_v_request_frame_data( *vm_id );
+    }
     else if( data_id == WIFI_DATA_ID_RUN_VM ){
 
         vm_v_run_vm();

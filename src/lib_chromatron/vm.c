@@ -192,7 +192,7 @@ static int8_t send_reset_message( uint8_t vm_id ){
     wifi_msg_reset_vm_t reset_msg;
     reset_msg.vm_id = vm_id;
 
-    return wifi_i8_send_msg_blocking( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
+    return wifi_i8_send_msg( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
 }
 
 // static void reset_vm( uint8_t vm_id ){
@@ -348,7 +348,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         vm_load_msg.vm_id = vm_id;
         vm_load_msg.total_size = vm_size;
         uint16_t msg_len = read + sizeof(vm_load_msg.vm_id) + sizeof(vm_load_msg.total_size) + sizeof(vm_load_msg.offset);
-        if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, msg_len ) < 0 ){
+        if( wifi_i8_send_msg( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, msg_len ) < 0 ){
 
             // comm error
             goto error;
@@ -493,7 +493,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     // send len 0 to indicate load complete.
     uint16_t msg_len = sizeof(vm_load_msg.vm_id) + sizeof(vm_load_msg.total_size) + sizeof(vm_load_msg.offset);
     vm_load_msg.vm_id = vm_id;
-    if( wifi_i8_send_msg_blocking( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, msg_len ) < 0 ){
+    if( wifi_i8_send_msg( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, msg_len ) < 0 ){
 
         // comm error
         goto error;
