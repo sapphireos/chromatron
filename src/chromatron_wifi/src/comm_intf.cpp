@@ -291,6 +291,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     else if( data_id == WIFI_DATA_ID_RUN_FADER ){
 
         vm_v_run_faders();
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );
     }
     else if( data_id == WIFI_DATA_ID_HSV_ARRAY ){
 

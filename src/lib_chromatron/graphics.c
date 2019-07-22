@@ -776,6 +776,11 @@ PT_BEGIN( pt );
             continue;
         }
 
+        if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, 0, 0, 0 ) < 0 ){
+
+            continue;
+        }
+
         // get pixel data
         #ifdef USE_HSV_BRIDGE
 
