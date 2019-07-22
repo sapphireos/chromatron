@@ -86,6 +86,20 @@ int16_t hal_wifi_i16_usart_get_char( void ){
 	return usart_i16_get_byte( &WIFI_USART );
 }
 
+int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
+
+
+}
+
+bool hal_wifi_b_usart_rx_available( void ){
+
+}
+
+int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout ){
+
+}
+
+
 void hal_wifi_v_usart_flush( void ){
 
 	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
@@ -109,6 +123,15 @@ uint32_t hal_wifi_u32_get_tx_bytes( void ){
 	current_tx_bytes = 0;
 
 	return temp;
+}
+
+bool hal_wifi_b_read_irq( void ){
+
+}
+
+void hal_wifi_v_set_cts( bool value ){
+
+    
 }
 
 
