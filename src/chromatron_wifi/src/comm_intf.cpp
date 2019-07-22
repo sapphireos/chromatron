@@ -539,13 +539,11 @@ void intf_v_process( void ){
         return;
     }
 
-    // data is ready
-    process_data( header.data_id, buf, header.len );
-
-    // ack after processing message!
     Serial.write( WIFI_COMM_ACK );
 
-
+    // data is ready
+    process_data( header.data_id, buf, header.len );
+    
     // #ifndef USE_HSV_BRIDGE
     // if( request_rgb_pix0 ){
 
