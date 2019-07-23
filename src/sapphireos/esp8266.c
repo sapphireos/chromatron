@@ -180,7 +180,7 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
     header.flags    = 0;
     header.reserved = 0;
     
-    header.header_crc  = crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) );
+    header.header_crc  = HTONS( crc_u16_block( (uint8_t *)&header, sizeof(header) - sizeof(header.header_crc) ) );
 
     while( tries > 0 ){
 
