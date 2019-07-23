@@ -574,14 +574,14 @@ PT_BEGIN( pt );
         cfg_i8_get( CFG_PARAM_WIFI_SSID, msg.ssid[0] );
         cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, msg.pass[0] );
         
-        kv_i8_get( __KV__wifi_ssid2, msg.ssid[1], sizeof(msg.ssid) );
-        kv_i8_get( __KV__wifi_password2, msg.pass[1], sizeof(msg.pass) );  
+        kv_i8_get( __KV__wifi_ssid2, msg.ssid[1], sizeof(msg.ssid[1]) );
+        kv_i8_get( __KV__wifi_password2, msg.pass[1], sizeof(msg.pass[1]) );  
 
-        kv_i8_get( __KV__wifi_ssid3, msg.ssid[2], sizeof(msg.ssid) );
-        kv_i8_get( __KV__wifi_password3, msg.pass[2], sizeof(msg.pass) );  
+        kv_i8_get( __KV__wifi_ssid3, msg.ssid[2], sizeof(msg.ssid[2]) );
+        kv_i8_get( __KV__wifi_password3, msg.pass[2], sizeof(msg.pass[2]) );  
 
-        kv_i8_get( __KV__wifi_ssid4, msg.ssid[3], sizeof(msg.ssid) );
-        kv_i8_get( __KV__wifi_password4, msg.pass[3], sizeof(msg.pass) );  
+        kv_i8_get( __KV__wifi_ssid4, msg.ssid[3], sizeof(msg.ssid[3]) );
+        kv_i8_get( __KV__wifi_password4, msg.pass[3], sizeof(msg.pass[3]) );  
 
         // check if no APs are configured
         if( ( msg.ssid[0][0] == 0 ) &&
