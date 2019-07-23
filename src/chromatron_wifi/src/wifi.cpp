@@ -565,6 +565,9 @@ void wifi_v_set_ap_info( char *ssid, char *pass, uint8_t index ){
         return;
     }
 
+    memset( ssid_list[index], 0, WIFI_SSID_LEN );
+    memset( pass_list[index], 0, WIFI_PASS_LEN );
+
     strncpy( ssid_list[index], ssid, WIFI_SSID_LEN );
     strncpy( pass_list[index], pass, WIFI_PASS_LEN );
 }
