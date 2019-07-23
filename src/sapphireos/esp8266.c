@@ -296,20 +296,19 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
             goto error;
         }
 
-        wifi_data_header_t header;
-        if( hal_wifi_i8_usart_receive( (uint8_t *)&header, sizeof(header), WIFI_COMM_TIMEOUT ) < 0 ){
+        if( hal_wifi_i8_usart_receive( (uint8_t *)header, sizeof(wifi_data_header_t), WIFI_COMM_TIMEOUT ) < 0 ){
 
             log_v_debug_P( PSTR("header timeout") );
             continue;
         }
 
-        if( header.len > max_len ){
+        if( header->len > max_len ){
 
             log_v_debug_P( PSTR("invalid len") );
             continue;
         }
 
-        if( hal_wifi_i8_usart_receive( data, header.len, WIFI_COMM_TIMEOUT ) < 0 ){
+        if( hal_wifi_i8_usart_receive( data, header->len, WIFI_COMM_TIMEOUT ) < 0 ){
 
             log_v_debug_P( PSTR("data timeout") );
             continue;
@@ -323,15 +322,15 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         }
 
         // check CRCs
-        header.header_crc = HTONS( header.header_crc );
-        if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
+        header->header_crc = HTONS( header->header_crc );
+        if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
 
             log_v_debug_P( PSTR("header crc fail") );
             hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
             continue;
         }
 
-        if( crc_u16_block( data, header.len ) != crc ){
+        if( crc_u16_block( data, header->len ) != crc ){
 
             log_v_debug_P( PSTR("data crc fail") );
             hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
@@ -344,12 +343,12 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         // if bytes read is set, return data length
         if( bytes_read != 0 ){
 
-            *bytes_read = header.len;
+            *bytes_read = header->len;
         }
         else{
 
             // bytes read is null, received data is expected to be fixed size
-            if( header.len != max_len ){
+            if( header->len != max_len ){
 
                 log_v_debug_P( PSTR("wrong data len") );
                 status = -5;
