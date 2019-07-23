@@ -945,6 +945,8 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
         if( watchdog > 0 ){
 
             watchdog--;
