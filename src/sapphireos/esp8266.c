@@ -186,6 +186,8 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
         tries--;
 
+        hal_wifi_v_usart_flush();
+
         hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
 
         // transmit header
@@ -217,6 +219,11 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
+    if( !wifi_b_attached() ){
+
+        return -1;
+    }
+
     uint8_t tries = WIFI_COMM_TRIES;
 
     while( tries > 0 ){
@@ -226,7 +233,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         // bail out of header fails, it is already tried multiple times
         if( _wifi_i8_send_header( data_id, len ) < 0 ){
 
-            return -1;
+            return -2;
         }
 
         uint16_t crc = crc_u16_start();
@@ -253,7 +260,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
     log_v_debug_P( PSTR("msg failed") );
 
-    return -1;
+    return -3;
 }
 
 int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
