@@ -865,6 +865,11 @@ PT_BEGIN( pt );
         // retrieve message
         hal_wifi_v_usart_send_char( WIFI_COMM_GET_MSG );
 
+        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_ACK ){
+
+            continue;
+        }
+
         uint8_t buf[WIFI_MAX_MCU_BUF];
         wifi_data_header_t header;
         uint16_t bytes_read;

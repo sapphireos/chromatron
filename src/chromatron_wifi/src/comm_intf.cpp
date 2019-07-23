@@ -447,9 +447,11 @@ void intf_v_process( void ){
 
         if( list_b_is_empty( &tx_q ) ){
 
-            // huh.  not supposed to happen!
+            Serial.write( WIFI_COMM_NAK );
             return;
         }
+
+        Serial.write( WIFI_COMM_ACK );
 
         list_node_t ln = list_ln_remove_tail( &tx_q );
 
@@ -459,6 +461,8 @@ void intf_v_process( void ){
         _intf_i8_transmit_msg( msg->data_id, data, msg->len );
 
         list_v_release_node( ln );
+
+        return;
     }
     else if( c != WIFI_COMM_DATA ){
 
