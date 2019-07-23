@@ -281,8 +281,8 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         // wait for RTS
         if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_RTS ){
 
-            status = -2;
-            goto error;
+            log_v_debug_P( PSTR("rts timeout") );
+            continue;
         }
 
         // RTS asserted
@@ -292,8 +292,8 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         // wait for data start
         if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_DATA ){
 
-            status = -3;
-            goto error;
+            log_v_debug_P( PSTR("data start timeout") );
+            continue;
         }
 
         if( hal_wifi_i8_usart_receive( (uint8_t *)header, sizeof(wifi_data_header_t), WIFI_COMM_TIMEOUT ) < 0 ){
@@ -859,6 +859,8 @@ PT_BEGIN( pt );
         THREAD_YIELD( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_read_irq() );
+
+        hal_wifi_v_usart_flush();
 
         // retrieve message
         hal_wifi_v_usart_send_char( WIFI_COMM_GET_MSG );
