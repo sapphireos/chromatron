@@ -48,7 +48,7 @@ static int32_t connected_router = -1;
 // scan results
 static int32_t scan_rssi[WIFI_MAX_APS];
 static int32_t scan_channel[WIFI_MAX_APS];
-static uint8_t scan_bssid[6][WIFI_MAX_APS];
+static uint8_t scan_bssid[WIFI_MAX_APS][6];
 
 static WiFiUDP udp[WIFI_MAX_PORTS];
 static uint8_t port_rx_depth[WIFI_MAX_PORTS];
