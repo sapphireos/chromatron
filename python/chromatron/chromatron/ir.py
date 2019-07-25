@@ -3428,9 +3428,16 @@ class Builder(object):
                 addr += var.size
 
             elif var.length == 1:
-                default_value = var.default_value
-                stream += struct.pack('<l', default_value)
-                addr += var.length
+                try:
+                    default_value = var.default_value
+                    stream += struct.pack('<l', default_value)
+                    addr += var.length
+
+                except struct.error:
+                    print "*********************************"
+                    print "packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value))
+
+                    raise
 
             else:
                 try:
