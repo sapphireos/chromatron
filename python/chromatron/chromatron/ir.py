@@ -298,7 +298,11 @@ class irConst(irVar):
         elif self.name == 'False':
             self.value = 0
         elif self.type == 'f16':
-            self.value = int(float(self.name) * 65536)
+            val = float(self.name)
+            if val > 32767.0 or val < -32767.0:
+                raise SyntaxError("Fixed16 out of range, must be tween -32767.0 and 32767.0", lineno=kwargs['lineno'])
+
+            self.value = int(val * 65536)
         else:
             self.value = int(self.name)
 
