@@ -231,7 +231,14 @@ void wifi_v_process( void ){
                 if( MDNS.begin( hostname ) ){
 
                     MDNS.addService( "catbus", "udp", 44632 );
-                    MDNS.addServiceTxt("catbus", "udp", "service", "chromatron");            
+                    MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );            
+
+                    int8_t midi_channel = opt_i8_get_midi_channel();
+
+                    if( midi_channel >= 0 ){
+
+                        MDNS.addService( "_apple_midi", "_udp", 5004 );
+                    }
 
                     mdns_connected = true;
 

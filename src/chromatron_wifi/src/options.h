@@ -31,5 +31,7 @@ void opt_v_set_led_quiet( bool mode );
 bool opt_b_get_led_quiet( void );
 void opt_v_set_high_speed( bool mode );
 bool opt_b_get_high_speed( void );
+void opt_v_set_midi_channel( int8_t channel );
+int8_t opt_i8_get_midi_channel( void );
 
 #endif
