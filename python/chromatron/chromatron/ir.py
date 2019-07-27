@@ -2048,7 +2048,7 @@ class Builder(object):
                 # type conversion for pixel array loads
                 elif (target.get_base_type() != value.get_base_type()) and (target.get_base_type() != 'gfx16'):
                     temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                    ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
+                    ir = irConvertType(temp, value, lineno=lineno)
                     self.append_node(ir)
                     value = temp
 
