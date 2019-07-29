@@ -1965,6 +1965,15 @@ class Builder(object):
     def assign(self, target, value, lineno=None):     
         # print target, value, lineno
 
+        assert target.get_base_type()
+        assert value.get_base_type()
+        assert target.type
+        assert value.type
+
+        if target.type != value.type:
+            print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+                (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+
         # check types
         # don't do conversion if value is an address, or a pixel/db index
         if target.get_base_type() != value.get_base_type() and \
