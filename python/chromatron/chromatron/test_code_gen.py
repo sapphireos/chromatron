@@ -23,6 +23,8 @@
 import unittest
 import code_gen
 
+# nose2 --with-coverage --coverage-report=html
+
 empty_program = """
 def init():
     pass
