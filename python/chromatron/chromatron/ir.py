@@ -1985,13 +1985,18 @@ class Builder(object):
         # Handle loading from value types
         ##################################################
 
+        temp = None
+
         # if source value is an address.
         # this is always an indirect load, either to a temp register or direct to the target
         if isinstance(value, irAddress):      
             if value.target.length > 1:
                 raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
-  
+    
+            # this will set up a temp register and return it
             value = self.load_indirect(value, lineno=lineno)
+
+            temp = True # signal we made a temp register
 
         # if source value is an indexed pixel array, we need to do a pixel load to
         # a temp register
@@ -2003,6 +2008,7 @@ class Builder(object):
 
             value = temp
 
+        # same as above, but for DB accesses
         elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
             temp = self.add_temp(lineno=lineno) # don't specify data type, because we don't know for DB loads
 
@@ -2034,11 +2040,20 @@ class Builder(object):
         # check if base types don't match, if not, then do a conversion
         elif target.get_base_type() != value.get_base_type():
             # convert value to target type and replace value with result
-            temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-            ir = irConvertType(temp, value, lineno=lineno)
-            self.append_node(ir)
-            value = temp
-            
+
+            # first, check if we created a temp reg.  if we did, just
+            # do the conversion in place to avoid creating another, unnecessary
+            # temp reg.
+            if temp != None:
+                ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
+                self.append_node(ir)
+
+            else:
+                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                ir = irConvertType(temp, value, lineno=lineno)
+                self.append_node(ir)
+                value = temp
+
 
         ##################################################
         # Handle storing to target
