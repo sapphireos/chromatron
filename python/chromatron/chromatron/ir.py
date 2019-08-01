@@ -1996,27 +1996,47 @@ class Builder(object):
 
             value = temp
 
-        
-        # if the source value is a simple type:
-        if isinstance(value, irVar_simple): # this should go away when we're done
-        
-            # in normal expressions, f16 will take precedence over i32.
-            # however, for the assign, the assignment target will 
-            # have priority.
+        elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
+            temp = self.add_temp(lineno=lineno) # don't specify data type, because we don't know for DB loads
 
-            # check if value is const 0
-            # if so, we don't need to convert, 0 has the same binary representation
-            # in all data types
-            if isinstance(value, irConst) and value.value == 0:
-                pass
+            ir = irDBLoad(temp, value, lineno=lineno)
+            self.append_node(ir)
 
-            # check if base types don't match, if not, then do a conversion
-            elif target.get_base_type() != value.get_base_type():
-                # convert value to target type and replace value with result
-                conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                ir = irConvertType(conv_result, value, lineno=lineno)
-                self.append_node(ir)
-                value = conv_result
+            value = temp
+
+        # debug
+        try:
+            assert isinstance(value, irVar_simple)
+
+        except AssertionError:
+            print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+                (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+
+            raise
+        
+        # by now, we should have converted all values to simple types
+
+        assert isinstance(value, irVar_simple)
+
+        # check if we need to convert the value to the target type
+        
+        # in normal expressions, f16 will take precedence over i32.
+        # however, for the assign, the assignment target will 
+        # have priority.
+
+        # check if value is const 0
+        # if so, we don't need to convert, 0 has the same binary representation
+        # in all data types
+        if isinstance(value, irConst) and value.value == 0:
+            pass
+
+        # check if base types don't match, if not, then do a conversion
+        elif target.get_base_type() != value.get_base_type():
+            # convert value to target type and replace value with result
+            conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+            ir = irConvertType(conv_result, value, lineno=lineno)
+            self.append_node(ir)
+            value = conv_result
 
         
 
@@ -2075,10 +2095,6 @@ class Builder(object):
 
         elif isinstance(target, irDBIndex) or isinstance(target, irDBAttr):
             ir = irDBStore(target, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
-            ir = irDBLoad(target, value, lineno=lineno)
             self.append_node(ir)
 
         elif isinstance(target, irPixelIndex):
