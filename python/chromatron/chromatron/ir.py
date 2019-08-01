@@ -2229,19 +2229,9 @@ class Builder(object):
             self.append_node(ir)
 
     def load_indirect(self, address, result=None, lineno=None):
-        if isinstance(address, irPixelIndex) or \
-            isinstance(address, irDBAttr) or \
-            isinstance(address, irDBIndex):
+        # print address, type(address), lineno
 
-            try:
-                data_type = address.type
-
-            except KeyError:
-                raise SyntaxError("Attribute %s not recognized" % (address.attr), lineno=lineno)
-
-        else:
-            data_type = address.target.type
-
+        data_type = address.get_base_type()
 
         if result is None:
             result = self.add_temp(data_type=data_type, lineno=lineno)
