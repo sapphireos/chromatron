@@ -145,6 +145,10 @@ class VMRuntimeError(Exception):
     def __init__(self, message=''):
         super(VMRuntimeError, self).__init__(message)
 
+class CompilerFatal(Exception):
+    def __init__(self, message=''):
+        super(CompilerFatal, self).__init__(message)
+
 
 def params_to_string(params):
     s = ''
@@ -2076,32 +2080,7 @@ class Builder(object):
                     
         #             self.append_node(ir)
 
-        if isinstance(target, irAddress):
-            if target.target.length == 1:
-                self.store_indirect(target, value, lineno=lineno)
-
-            else:
-                ir = irVectorAssign(target, value, lineno=lineno)
-                self.append_node(ir)
-
-        elif isinstance(target, irArray):
-            result = self.add_temp(lineno=lineno, data_type='addr')
-            ir = irIndex(result, target, lineno=lineno)
-            self.append_node(ir)
-            result.target = target
-
-            ir = irVectorAssign(result, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(target, irDBIndex) or isinstance(target, irDBAttr):
-            ir = irDBStore(target, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(target, irPixelIndex):
-            ir = irPixelStore(target, value, lineno=lineno)
-            self.append_node(ir)
-
-        else:
+        if isinstance(target, irVar_simple):
             if self.optimizations['optimize_assign_targets']:
                 try:
                     # check if previous instruction has a result
@@ -2135,6 +2114,34 @@ class Builder(object):
                     
             ir = irAssign(target, value, lineno=lineno)
             self.append_node(ir)
+
+        elif isinstance(target, irAddress):
+            if target.target.length == 1:
+                self.store_indirect(target, value, lineno=lineno)
+
+            else:
+                ir = irVectorAssign(target, value, lineno=lineno)
+                self.append_node(ir)
+
+        elif isinstance(target, irArray):
+            result = self.add_temp(lineno=lineno, data_type='addr')
+            ir = irIndex(result, target, lineno=lineno)
+            self.append_node(ir)
+            result.target = target
+
+            ir = irVectorAssign(result, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(target, irDBIndex) or isinstance(target, irDBAttr):
+            ir = irDBStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(target, irPixelIndex):
+            ir = irPixelStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
+        else:
+            raise CompilerFatal("Invalid assignment")
 
     def augassign(self, op, target, value, lineno=None):
         # print op, target, value
