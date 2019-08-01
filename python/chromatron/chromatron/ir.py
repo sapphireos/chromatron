@@ -2057,13 +2057,6 @@ class Builder(object):
                     self.append_node(ir) 
                     value = temp
 
-                # type conversion for pixel array loads
-                elif (target.get_base_type() != value.get_base_type()) and (target.get_base_type() != 'gfx16'):
-                    temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                    ir = irConvertType(temp, value, lineno=lineno)
-                    self.append_node(ir)
-                    value = temp
-
                 ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
 
