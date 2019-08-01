@@ -1977,9 +1977,21 @@ class Builder(object):
         #     print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
         #         (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
+
+        # if source value is an address.
+        # this is always an indirect load, either to a temp register or direct to the target
+        if isinstance(value, irAddress):      
+            if value.target.length > 1:
+                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+  
+            # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+                # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+
+            value = self.load_indirect(value, lineno=lineno)
+
         
         # if the source value is a simple type:
-        if isinstance(value, irVar_simple):
+        if isinstance(value, irVar_simple): # this should go away when we're done
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
@@ -1998,44 +2010,45 @@ class Builder(object):
                 self.append_node(ir)
                 value = conv_result
 
+        
 
-        if isinstance(value, irAddress):
-            if value.target.length > 1:
-                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+        # if isinstance(value, irAddress):
+        #     if value.target.length > 1:
+        #         raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
 
-            # check if target is also an address.
-            # if so, this is an indirect to indirect assignment.
-            # we don't have an instruction for that, so we will have to
-            # load_indirect to a temp var and then store_direct.
-            if isinstance(target, irAddress):
-                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+        #     # check if target is also an address.
+        #     # if so, this is an indirect to indirect assignment.
+        #     # we don't have an instruction for that, so we will have to
+        #     # load_indirect to a temp var and then store_direct.
+        #     if isinstance(target, irAddress):
+        #         temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
 
-                self.load_indirect(value, temp, lineno=lineno)
+        #         self.load_indirect(value, temp, lineno=lineno)
 
-                # check types
-                if target.get_base_type() != value.get_base_type():
-                    # mismatch.
-                    # in this case, we've already done the indirect load into the target, but 
-                    # it has the wrong type. we're going to do the conversion on top of itself.
-                    ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
-                    self.append_node(ir)
+        #         # check types
+        #         if target.get_base_type() != value.get_base_type():
+        #             # mismatch.
+        #             # in this case, we've already done the indirect load into the target, but 
+        #             # it has the wrong type. we're going to do the conversion on top of itself.
+        #             ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
+        #             self.append_node(ir)
 
-                self.store_indirect(target, temp, lineno=lineno)
+        #         self.store_indirect(target, temp, lineno=lineno)
 
-            else:
-                self.load_indirect(value, target, lineno=lineno)
+        #     else:
+        #         self.load_indirect(value, target, lineno=lineno)
 
-                # check types
-                # note we can't do a convert into a pixel index
-                if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
-                    # mismatch.
-                    # in this case, we've already done the indirect load into the target, but 
-                    # it has the wrong type. we're going to do the conversion on top of itself.
-                    ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+        #         # check types
+        #         # note we can't do a convert into a pixel index
+        #         if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
+        #             # mismatch.
+        #             # in this case, we've already done the indirect load into the target, but 
+        #             # it has the wrong type. we're going to do the conversion on top of itself.
+        #             ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
                     
-                    self.append_node(ir)
+        #             self.append_node(ir)
 
-        elif isinstance(target, irAddress):
+        if isinstance(target, irAddress):
             if target.target.length == 1:
                 self.store_indirect(target, value, lineno=lineno)
 
@@ -2231,14 +2244,14 @@ class Builder(object):
     def load_indirect(self, address, result=None, lineno=None):
         # print address, type(address), lineno
 
-        data_type = address.get_base_type()
-
         if result is None:
-            result = self.add_temp(data_type=data_type, lineno=lineno)
+            result = self.add_temp(data_type=address.get_base_type(), lineno=lineno)
 
+        # if loading from a pixel array:
         if isinstance(address, irPixelIndex) or isinstance(address, irPixelAttr):
             ir = irPixelLoad(result, address, lineno=lineno)            
         
+        # if loading from a database object:
         elif isinstance(address, irDBAttr) or isinstance(address, irDBIndex):
             ir = irDBLoad(result, address, lineno=lineno)            
 
