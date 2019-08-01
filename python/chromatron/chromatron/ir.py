@@ -1978,25 +1978,26 @@ class Builder(object):
         #         (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
         
-        if isinstance(value, irVar_simple) and \
-            (target.get_base_type() != value.get_base_type()):
-
+        # if the source value is a simple type:
+        if isinstance(value, irVar_simple):
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
 
             # check if value is const 0
-            # if so, we don't need to convert
+            # if so, we don't need to convert, 0 has the same binary representation
+            # in all data types
             if isinstance(value, irConst) and value.value == 0:
                 pass
 
-            else:
+            # check if base types don't match, if not, then do a conversion
+            elif target.get_base_type() != value.get_base_type():
                 # convert value to target type and replace value with result
                 conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
                 ir = irConvertType(conv_result, value, lineno=lineno)
                 self.append_node(ir)
                 value = conv_result
-                
+
 
         if isinstance(value, irAddress):
             if value.target.length > 1:
