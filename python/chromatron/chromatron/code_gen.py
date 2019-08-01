@@ -1042,7 +1042,7 @@ if __name__ == '__main__':
                 print '---------------------------------'
                 text = f.read()
                 try:
-                    builder = compile_text(text, summarize=True)
+                    builder = compile_text(text, summarize=False)
 
                     stats[fpath] = {'code': builder.header.code_len,
                                     'data': builder.header.data_len,
