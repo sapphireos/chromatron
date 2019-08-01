@@ -3054,8 +3054,29 @@ def init():
 
 """
 
+test_pix_load_from_pix_2 = """
+
+def init():
+    pixels[1].hue = 1
+    pixels[2].hue = pixels[1].hue
+    pixels[1].hue = 0
+
+"""
+
 
 class CGHSVArrayTests(unittest.TestCase):
+    def test_pix_load_from_pix_2(self):
+        builder = code_gen.compile_text(test_pix_load_from_pix_2, debug_print=False)
+        vm = code_gen.VM(builder)
+
+        vm.run_once()
+
+        hsv = vm.dump_hsv()
+
+        self.assertEqual(hsv['hue'][0], 0)
+        self.assertEqual(hsv['hue'][1], 0)
+        self.assertEqual(hsv['hue'][2], 1)
+
     def test_pix_load_from_pix(self):
         builder = code_gen.compile_text(test_pix_load_from_pix, debug_print=False)
         vm = code_gen.VM(builder)

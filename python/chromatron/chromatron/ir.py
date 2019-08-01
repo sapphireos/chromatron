@@ -1974,8 +1974,8 @@ class Builder(object):
         assert value.type
 
         # if target.type != value.type:
-        #     print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-        #         (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
 
         # if source value is an address.

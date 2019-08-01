@@ -1,4 +1,3 @@
 
 def init():
-    pixels.hue = 0.5
-    pixels.hue /= 2.0
+    pixels[1].hue = pixels[2].hue
