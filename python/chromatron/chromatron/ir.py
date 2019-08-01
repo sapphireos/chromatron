@@ -1984,14 +1984,12 @@ class Builder(object):
             if value.target.length > 1:
                 raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
   
-            # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-                # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
-
             value = self.load_indirect(value, lineno=lineno)
 
         
         # if the source value is a simple type:
         if isinstance(value, irVar_simple): # this should go away when we're done
+        
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
