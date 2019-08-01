@@ -1986,6 +1986,16 @@ class Builder(object):
   
             value = self.load_indirect(value, lineno=lineno)
 
+        # if source value is an indexed pixel array, we need to do a pixel load to
+        # a temp register
+        elif isinstance(value, irPixelIndex):
+            temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
+
+            ir = irPixelLoad(temp, value, lineno=lineno)
+            self.append_node(ir) 
+
+            value = temp
+
         
         # if the source value is a simple type:
         if isinstance(value, irVar_simple): # this should go away when we're done
@@ -2051,12 +2061,6 @@ class Builder(object):
                 self.store_indirect(target, value, lineno=lineno)
 
             else:
-                if isinstance(value, irPixelIndex):
-                    temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
-                    ir = irPixelLoad(temp, value, lineno=lineno)
-                    self.append_node(ir) 
-                    value = temp
-
                 ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
 
@@ -2078,21 +2082,8 @@ class Builder(object):
             self.append_node(ir)
 
         elif isinstance(target, irPixelIndex):
-            # check if value is also a pixel index, if so, we need to do a load first
-            if isinstance(value, irPixelIndex):
-                temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
-
-                ir = irPixelLoad(temp, value, lineno=lineno)
-                self.append_node(ir) 
-
-                value = temp    
-
             ir = irPixelStore(target, value, lineno=lineno)
             self.append_node(ir)
-
-        elif isinstance(value, irPixelIndex):
-            ir = irPixelLoad(target, value, lineno=lineno)
-            self.append_node(ir) 
 
         else:
             if self.optimizations['optimize_assign_targets']:
