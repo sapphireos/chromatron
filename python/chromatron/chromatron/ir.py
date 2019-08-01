@@ -232,17 +232,20 @@ class irVar(IR):
     def get_base_type(self):
         return self.type
 
-class irVar_i32(irVar):
+class irVar_simple(irVar):
+    pass
+
+class irVar_i32(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'i32'
         super(irVar_i32, self).__init__(*args, **kwargs)
         
-class irVar_f16(irVar):
+class irVar_f16(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'f16'
         super(irVar_f16, self).__init__(*args, **kwargs)
         
-class irVar_gfx16(irVar):
+class irVar_gfx16(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'gfx16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
@@ -289,7 +292,7 @@ class irAddress(irVar):
     def get_base_type(self):
         return self.target.get_base_type()
 
-class irConst(irVar):
+class irConst(irVar_simple):
     def __init__(self, *args, **kwargs):
         super(irConst, self).__init__(*args, **kwargs)
 
@@ -1970,31 +1973,18 @@ class Builder(object):
         assert target.type
         assert value.type
 
-        if target.type != value.type:
-            print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-                (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+        # if target.type != value.type:
+        #     print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+        #         (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
-        # check types
-        # don't do conversion if value is an address, or a pixel/db index
-        if target.get_base_type() != value.get_base_type() and \
-            not isinstance(value, irAddress) and \
-            not isinstance(target, irAddress) and \
-            not isinstance(target, irPixelIndex) and \
-            not isinstance(value, irPixelIndex) and \
-            not isinstance(target, irPixelAttr) and \
-            not isinstance(target, irDBAttr) and \
-            not isinstance(value, irDBAttr) and \
-            not isinstance(target, irDBIndex) and \
-            not isinstance(value, irDBIndex) and \
-            not isinstance(value, irVar_str) and \
-            not isinstance(value, irStrLiteral):
+        
+        if isinstance(value, irVar_simple) and \
+            (target.get_base_type() != value.get_base_type()):
+
             # in normal expressions, f16 will take precedence over i32.
             # however, for the assign, the assignment target will 
             # have priority.
 
-            # also note we skip this conversion for pixel array accesses,
-            # as the gfx16 type works seamlessly as i32 and f16 without conversions.
-            
             # check if value is const 0
             # if so, we don't need to convert
             if isinstance(value, irConst) and value.value == 0:
@@ -2006,6 +1996,7 @@ class Builder(object):
                 ir = irConvertType(conv_result, value, lineno=lineno)
                 self.append_node(ir)
                 value = conv_result
+                
 
         if isinstance(value, irAddress):
             if value.target.length > 1:

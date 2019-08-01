@@ -3359,7 +3359,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['hs_fade'][1], 8060)
+        self.assertEqual(hsv['hs_fade'][1], 0)
         self.assertEqual(hsv['hs_fade'][9], 500)
 
     def test_hs_fade_array_2(self):
