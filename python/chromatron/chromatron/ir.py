@@ -1981,6 +1981,9 @@ class Builder(object):
         # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
             # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
+        ##################################################
+        # Handle loading from value types
+        ##################################################
 
         # if source value is an address.
         # this is always an indirect load, either to a temp register or direct to the target
@@ -2009,20 +2012,14 @@ class Builder(object):
             value = temp
 
         # debug
-        try:
-            assert isinstance(value, irVar_simple)
-
-        except AssertionError:
-            print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-                (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
-
-            raise
         
         # by now, we should have converted all values to simple types
 
         assert isinstance(value, irVar_simple)
 
-        # check if we need to convert the value to the target type
+        ##################################################
+        # Handle conversion of value to target type
+        ##################################################
         
         # in normal expressions, f16 will take precedence over i32.
         # however, for the assign, the assignment target will 
@@ -2037,49 +2034,16 @@ class Builder(object):
         # check if base types don't match, if not, then do a conversion
         elif target.get_base_type() != value.get_base_type():
             # convert value to target type and replace value with result
-            conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-            ir = irConvertType(conv_result, value, lineno=lineno)
+            temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+            ir = irConvertType(temp, value, lineno=lineno)
             self.append_node(ir)
-            value = conv_result
+            value = temp
+            
 
+        ##################################################
+        # Handle storing to target
+        ##################################################
         
-
-        # if isinstance(value, irAddress):
-        #     if value.target.length > 1:
-        #         raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
-
-        #     # check if target is also an address.
-        #     # if so, this is an indirect to indirect assignment.
-        #     # we don't have an instruction for that, so we will have to
-        #     # load_indirect to a temp var and then store_direct.
-        #     if isinstance(target, irAddress):
-        #         temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-
-        #         self.load_indirect(value, temp, lineno=lineno)
-
-        #         # check types
-        #         if target.get_base_type() != value.get_base_type():
-        #             # mismatch.
-        #             # in this case, we've already done the indirect load into the target, but 
-        #             # it has the wrong type. we're going to do the conversion on top of itself.
-        #             ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
-        #             self.append_node(ir)
-
-        #         self.store_indirect(target, temp, lineno=lineno)
-
-        #     else:
-        #         self.load_indirect(value, target, lineno=lineno)
-
-        #         # check types
-        #         # note we can't do a convert into a pixel index
-        #         if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
-        #             # mismatch.
-        #             # in this case, we've already done the indirect load into the target, but 
-        #             # it has the wrong type. we're going to do the conversion on top of itself.
-        #             ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-                    
-        #             self.append_node(ir)
-
         if isinstance(target, irVar_simple):
             if self.optimizations['optimize_assign_targets']:
                 try:
@@ -2142,6 +2106,46 @@ class Builder(object):
 
         else:
             raise CompilerFatal("Invalid assignment")
+
+
+
+
+        # if isinstance(value, irAddress):
+        #     if value.target.length > 1:
+        #         raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+
+        #     # check if target is also an address.
+        #     # if so, this is an indirect to indirect assignment.
+        #     # we don't have an instruction for that, so we will have to
+        #     # load_indirect to a temp var and then store_direct.
+        #     if isinstance(target, irAddress):
+        #         temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+
+        #         self.load_indirect(value, temp, lineno=lineno)
+
+        #         # check types
+        #         if target.get_base_type() != value.get_base_type():
+        #             # mismatch.
+        #             # in this case, we've already done the indirect load into the target, but 
+        #             # it has the wrong type. we're going to do the conversion on top of itself.
+        #             ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
+        #             self.append_node(ir)
+
+        #         self.store_indirect(target, temp, lineno=lineno)
+
+        #     else:
+        #         self.load_indirect(value, target, lineno=lineno)
+
+        #         # check types
+        #         # note we can't do a convert into a pixel index
+        #         if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
+        #             # mismatch.
+        #             # in this case, we've already done the indirect load into the target, but 
+        #             # it has the wrong type. we're going to do the conversion on top of itself.
+        #             ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
+                    
+        #             self.append_node(ir)
+
 
     def augassign(self, op, target, value, lineno=None):
         # print op, target, value
