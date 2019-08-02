@@ -1885,19 +1885,22 @@ class Builder(object):
 
             return self._fold_constants(op, left, right, lineno)
 
-        # resolve indirect accesses, if any
-        if isinstance(left, irAddress) or \
-            isinstance(left, irPixelIndex) or\
-            isinstance(left, irDBAttr)  or \
-            isinstance(left, irDBIndex):
+        left = self.load_value(left, lineno=lineno)
+        right = self.load_value(right, lineno=lineno)
 
-            left = self.load_indirect(left, lineno=lineno)
+        # # resolve indirect accesses, if any
+        # if isinstance(left, irAddress) or \
+        #     isinstance(left, irPixelIndex) or\
+        #     isinstance(left, irDBAttr)  or \
+        #     isinstance(left, irDBIndex):
 
-        if isinstance(right, irAddress) or \
-            isinstance(right, irPixelIndex) or\
-            isinstance(right, irDBAttr)  or \
-            isinstance(right, irDBIndex):
-            right = self.load_indirect(right, lineno=lineno)
+        #     left = self.load_indirect(left, lineno=lineno)
+
+        # if isinstance(right, irAddress) or \
+        #     isinstance(right, irPixelIndex) or\
+        #     isinstance(right, irDBAttr)  or \
+        #     isinstance(right, irDBIndex):
+        #     right = self.load_indirect(right, lineno=lineno)
 
 
         if left.length != 1:
