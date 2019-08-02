@@ -1,8 +1,15 @@
 
+# a = Number(publish=True)
+# b = Fixed16(publish=True)
+# c = Fixed16(publish=True)
 d = Number(publish=True)
 
-ary2 = Array(4)
-
 def init():
-    ary2 += 3.123
-    d = ary2[1]
+    # a = 123.456
+    # b = 32
+
+    # c = 123
+    # c += 123
+
+    d = 123.123
+    d += 123.123

@@ -2133,6 +2133,12 @@ class Builder(object):
     def augassign(self, op, target, value, lineno=None):
         value = self.load_value(value, lineno=lineno)
 
+        # do a type conversion here, if needed.
+        # while binop will automatically convert types, 
+        # it gives precedence to f16.  however, in the case
+        # of augassign, we want to convert to the target type.
+        value = self.convert_type(target, value, lineno=lineno)
+
         if isinstance(target, irVar_simple):
             result = self.binop(op, target, value, lineno=lineno)
 
@@ -2144,8 +2150,6 @@ class Builder(object):
             ir = irIndex(index, target, lineno=lineno)
             self.append_node(ir)
             index.target = target
-
-            value = self.convert_type(target, value, lineno=lineno)            
 
             ir = irVectorOp(op, index, value, lineno=lineno)        
             self.append_node(ir)
