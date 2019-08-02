@@ -2133,7 +2133,7 @@ class Builder(object):
         
 
     def augassign(self, op, target, value, lineno=None):
-        print op, target, value
+        # print op, target, value
         value = self.load_value(value, lineno=lineno)
 
         # do a type conversion here, if needed.
@@ -2142,8 +2142,8 @@ class Builder(object):
         # of augassign, we want to convert to the target type.
         value = self.convert_type(target, value, lineno=lineno)
 
-        print value
-        print 'target', target, type(target), target.length
+        # print value
+        # print 'target', target, type(target), target.length
 
         if isinstance(target, irVar_simple):
             result = self.binop(op, target, value, lineno=lineno)
@@ -2154,7 +2154,7 @@ class Builder(object):
             ir = irVectorOp(op, target, value, lineno=lineno)        
             self.append_node(ir)
 
-        elif isinstance(target, irAddress):
+        elif isinstance(target, irAddress) or isinstance(target, irPixelIndex):
             target_reg = self.load_value(target, lineno=lineno)
 
             result = self.binop(op, target_reg, value, lineno=lineno)
