@@ -2122,46 +2122,6 @@ class Builder(object):
         else:
             raise CompilerFatal("Invalid assignment")
 
-
-
-
-        # if isinstance(value, irAddress):
-        #     if value.target.length > 1:
-        #         raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
-
-        #     # check if target is also an address.
-        #     # if so, this is an indirect to indirect assignment.
-        #     # we don't have an instruction for that, so we will have to
-        #     # load_indirect to a temp var and then store_direct.
-        #     if isinstance(target, irAddress):
-        #         temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-
-        #         self.load_indirect(value, temp, lineno=lineno)
-
-        #         # check types
-        #         if target.get_base_type() != value.get_base_type():
-        #             # mismatch.
-        #             # in this case, we've already done the indirect load into the target, but 
-        #             # it has the wrong type. we're going to do the conversion on top of itself.
-        #             ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
-        #             self.append_node(ir)
-
-        #         self.store_indirect(target, temp, lineno=lineno)
-
-        #     else:
-        #         self.load_indirect(value, target, lineno=lineno)
-
-        #         # check types
-        #         # note we can't do a convert into a pixel index
-        #         if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
-        #             # mismatch.
-        #             # in this case, we've already done the indirect load into the target, but 
-        #             # it has the wrong type. we're going to do the conversion on top of itself.
-        #             ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-                    
-        #             self.append_node(ir)
-
-
     def augassign(self, op, target, value, lineno=None):
         # print op, target, value
         # check types
