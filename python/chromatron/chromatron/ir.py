@@ -1967,7 +1967,7 @@ class Builder(object):
         # this is always an indirect load, either to a temp register or direct to the target
         if isinstance(value, irAddress):      
             if value.target.length > 1:
-                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
+                raise SyntaxError("Cannot load from compound type '%s'" % (value.target.name), lineno=lineno)
     
             # this will set up a temp register and return it
             value = self.load_indirect(value, lineno=lineno)
@@ -2150,8 +2150,11 @@ class Builder(object):
 
             self.store_value(target, result, lineno=lineno)
 
-        # check if target is scalar
-        elif target.length == 1:
+        elif isinstance(target, irPixelAttr):
+            ir = irVectorOp(op, target, value, lineno=lineno)        
+            self.append_node(ir)
+
+        elif isinstance(target, irAddress):
             target_reg = self.load_value(target, lineno=lineno)
 
             result = self.binop(op, target_reg, value, lineno=lineno)
