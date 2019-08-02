@@ -1562,6 +1562,18 @@ def init():
 
 """
 
+test_db_augassign = """
+
+a = Number(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    db.kv_test_key += 1
+    
+    a = db.kv_test_key
+
+"""
+
 
 test_array_expr_db = """
 
@@ -1956,6 +1968,12 @@ class CGTestsBase(unittest.TestCase):
             expected={
                 'a': 124,
                 'b': 246,
+            })
+
+    def test_db_augassign(self):
+        self.run_test(test_db_augassign,
+            expected={
+                'a': 124,
             })
 
     def test_array_expr_db(self):
