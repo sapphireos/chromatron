@@ -1888,21 +1888,6 @@ class Builder(object):
         left = self.load_value(left, lineno=lineno)
         right = self.load_value(right, lineno=lineno)
 
-        # # resolve indirect accesses, if any
-        # if isinstance(left, irAddress) or \
-        #     isinstance(left, irPixelIndex) or\
-        #     isinstance(left, irDBAttr)  or \
-        #     isinstance(left, irDBIndex):
-
-        #     left = self.load_indirect(left, lineno=lineno)
-
-        # if isinstance(right, irAddress) or \
-        #     isinstance(right, irPixelIndex) or\
-        #     isinstance(right, irDBAttr)  or \
-        #     isinstance(right, irDBIndex):
-        #     right = self.load_indirect(right, lineno=lineno)
-
-
         if left.length != 1:
             raise SyntaxError("Binary operand must be scalar: %s" % (left.name), lineno=lineno)
 
@@ -2003,6 +1988,16 @@ class Builder(object):
             self.append_node(ir)
 
             value = temp
+
+        elif isinstance(value, irArray):
+            # index address of target
+            index = self.add_temp(lineno=lineno, data_type='addr')
+            ir = irIndex(index, value, lineno=lineno)
+            self.append_node(ir)
+            index.target = value
+
+            # this will set up a temp register and return it
+            value = self.load_indirect(value, lineno=lineno)
 
         # by now, we should have converted all values to simple types
 
@@ -2133,6 +2128,21 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         # print op, target, value
+        right = self.load_value(value, lineno=lineno)
+        left = self.load_value(target, lineno=lineno)
+
+        result = self.binop(op, left, right, lineno=lineno)
+
+        # print op, target, value, left, right, result
+
+        self.store_value(target, result, lineno=lineno)
+
+        return 
+
+
+
+
+        
         # check types
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(target, irPixelIndex) and \
