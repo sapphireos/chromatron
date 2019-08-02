@@ -1989,16 +1989,6 @@ class Builder(object):
 
             value = temp
 
-        elif isinstance(value, irArray):
-            # index address of target
-            index = self.add_temp(lineno=lineno, data_type='addr')
-            ir = irIndex(index, value, lineno=lineno)
-            self.append_node(ir)
-            index.target = value
-
-            # this will set up a temp register and return it
-            value = self.load_indirect(value, lineno=lineno)
-
         # by now, we should have converted all values to simple types
 
         assert isinstance(value, irVar_simple)
