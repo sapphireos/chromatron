@@ -1934,8 +1934,6 @@ class Builder(object):
         # generate result register with target data type
         result = self.add_temp(data_type=data_type, lineno=lineno)
 
-        print op, result, left_result, right_result
-
         ir = irBinop(result, op, left_result, right_result, lineno=lineno)
 
         self.append_node(ir)
@@ -2133,7 +2131,7 @@ class Builder(object):
         
 
     def augassign(self, op, target, value, lineno=None):
-        # print op, target, value
+        print op, target, value
         value = self.load_value(value, lineno=lineno)
 
         # do a type conversion here, if needed.
@@ -2154,7 +2152,9 @@ class Builder(object):
             ir = irVectorOp(op, target, value, lineno=lineno)        
             self.append_node(ir)
 
-        elif isinstance(target, irAddress) or isinstance(target, irPixelIndex):
+        elif isinstance(target, irAddress) or \
+             isinstance(target, irPixelIndex) or \
+             isinstance(target, irDBAttr):
             target_reg = self.load_value(target, lineno=lineno)
 
             result = self.binop(op, target_reg, value, lineno=lineno)
