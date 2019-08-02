@@ -1,8 +1,8 @@
 a = Number(publish=True)
-
-ary = Array(4, type=Fixed16)
+b = Number(publish=True)
 
 def init():
-    ary = 3.123
-
-    a = ary[1]
+    db.kv_test_key = 123
+    
+    a = db.kv_test_key + 1
+    b = db.kv_test_key + db.kv_test_key

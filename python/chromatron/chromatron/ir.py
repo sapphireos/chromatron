@@ -1524,7 +1524,7 @@ class Builder(object):
             'f16': irVar_f16,
             'gfx16': irVar_gfx16,
             'addr': irAddress,
-            'db': irVar,
+            'db': irVar_simple,
             'str': irVar_str,
         }
 
@@ -1972,25 +1972,7 @@ class Builder(object):
         else:
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
     
-    # def load_value(self, value, lineno=None):
-
-
-    def assign(self, target, value, lineno=None):     
-        # print target, value, lineno
-
-        assert target.get_base_type()
-        assert value.get_base_type()
-        assert target.type
-        assert value.type
-
-        # if target.type != value.type:
-        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
-
-        ##################################################
-        # Handle loading from value types
-        ##################################################
-
+    def load_value(self, value, lineno=None):
         # if source value is an address.
         # this is always an indirect load, either to a temp register or direct to the target
         if isinstance(value, irAddress):      
@@ -2019,48 +2001,15 @@ class Builder(object):
 
             value = temp
 
-        # debug
-        
         # by now, we should have converted all values to simple types
 
         assert isinstance(value, irVar_simple)
 
-        ##################################################
-        # Handle conversion of value to target type
-        ##################################################
-        
-        # in normal expressions, f16 will take precedence over i32.
-        # however, for the assign, the assignment target will 
-        # have priority.
+        return value
 
-        # check if value is const 0
-        # if so, we don't need to convert, 0 has the same binary representation
-        # in all data types
-        if isinstance(value, irConst) and value.value == 0:
-            pass
+    def store_value(self, target, value, lineno=None):
+        assert isinstance(value, irVar_simple)
 
-        # check if base types don't match, if not, then do a conversion
-        elif target.get_base_type() != value.get_base_type():
-            # convert value to target type and replace value with result
-
-            # first, check if we created a temp reg.  if we did, just
-            # do the conversion in place to avoid creating another, unnecessary
-            # temp reg.
-            if value.temp:
-                ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
-                self.append_node(ir)
-
-            else:
-                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                ir = irConvertType(temp, value, lineno=lineno)
-                self.append_node(ir)
-                value = temp
-
-
-        ##################################################
-        # Handle storing to target
-        ##################################################
-        
         if isinstance(target, irVar_simple):
             if self.optimizations['optimize_assign_targets']:
                 try:
@@ -2124,8 +2073,63 @@ class Builder(object):
         else:
             raise CompilerFatal("Invalid assignment")
 
+    def assign(self, target, value, lineno=None):     
+        # print target, value, lineno
+
+        assert target.get_base_type()
+        assert value.get_base_type()
+        assert target.type
+        assert value.type
+
+        # if target.type != value.type:
+        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+
+        ##################################################
+        # Handle loading from value types
+        ##################################################
+        value = self.load_value(value, lineno=lineno)
+
+        ##################################################
+        # Handle conversion of value to target type
+        ##################################################
+        
+        # in normal expressions, f16 will take precedence over i32.
+        # however, for the assign, the assignment target will 
+        # have priority.
+
+        # check if value is const 0
+        # if so, we don't need to convert, 0 has the same binary representation
+        # in all data types
+        if isinstance(value, irConst) and value.value == 0:
+            pass
+
+        # check if base types don't match, if not, then do a conversion
+        elif target.get_base_type() != value.get_base_type():
+            # convert value to target type and replace value with result
+
+            # first, check if we created a temp reg.  if we did, just
+            # do the conversion in place to avoid creating another, unnecessary
+            # temp reg.
+            if value.temp:
+                ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
+                self.append_node(ir)
+
+            else:
+                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                ir = irConvertType(temp, value, lineno=lineno)
+                self.append_node(ir)
+                value = temp
+
+
+        ##################################################
+        # Handle storing to target
+        ##################################################
+        self.store_value(target, value, lineno=lineno)
+        
+
     def augassign(self, op, target, value, lineno=None):
-        print op, target, value
+        # print op, target, value
         # check types
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(target, irPixelIndex) and \
