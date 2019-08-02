@@ -2071,27 +2071,8 @@ class Builder(object):
         else:
             raise CompilerFatal("Invalid assignment")
 
-    def assign(self, target, value, lineno=None):     
-        # print target, value, lineno
 
-        assert target.get_base_type()
-        assert value.get_base_type()
-        assert target.type
-        assert value.type
-
-        # if target.type != value.type:
-        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
-
-        ##################################################
-        # Handle loading from value types
-        ##################################################
-        value = self.load_value(value, lineno=lineno)
-
-        ##################################################
-        # Handle conversion of value to target type
-        ##################################################
-        
+    def convert_type(self, target, value, lineno=None):
         # in normal expressions, f16 will take precedence over i32.
         # however, for the assign, the assignment target will 
         # have priority.
@@ -2119,7 +2100,30 @@ class Builder(object):
                 self.append_node(ir)
                 value = temp
 
+        return value
 
+    def assign(self, target, value, lineno=None):     
+        # print target, value, lineno
+
+        assert target.get_base_type()
+        assert value.get_base_type()
+        assert target.type
+        assert value.type
+
+        # if target.type != value.type:
+        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+
+        ##################################################
+        # Handle loading from value types
+        ##################################################
+        value = self.load_value(value, lineno=lineno)
+
+        ##################################################
+        # Handle conversion of value to target type
+        ##################################################
+        value = self.convert_type(target, value, lineno=lineno)
+        
         ##################################################
         # Handle storing to target
         ##################################################
@@ -2127,20 +2131,26 @@ class Builder(object):
         
 
     def augassign(self, op, target, value, lineno=None):
-        # print op, target, value
-        right = self.load_value(value, lineno=lineno)
-        left = self.load_value(target, lineno=lineno)
+        value = self.load_value(value, lineno=lineno)
 
-        result = self.binop(op, left, right, lineno=lineno)
+        if isinstance(target, irVar_simple):
+            result = self.binop(op, target, value, lineno=lineno)
 
-        # print op, target, value, left, right, result
+            self.store_value(target, result, lineno=lineno)
 
-        self.store_value(target, result, lineno=lineno)
+        else:
+            # index address of target
+            index = self.add_temp(lineno=lineno, data_type='addr')
+            ir = irIndex(index, target, lineno=lineno)
+            self.append_node(ir)
+            index.target = target
+
+            value = self.convert_type(target, value, lineno=lineno)            
+
+            ir = irVectorOp(op, index, value, lineno=lineno)        
+            self.append_node(ir)
 
         return 
-
-
-
 
         
         # check types
