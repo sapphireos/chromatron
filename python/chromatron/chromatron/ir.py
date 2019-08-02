@@ -198,6 +198,7 @@ class irVar(IR):
         self.is_global = False
         self.is_const = False
         self.default_value = 0
+        self.temp = False
 
         self.publish = False
         self.persist = False
@@ -1820,6 +1821,8 @@ class Builder(object):
         ir = self.build_var(name, data_type, [], lineno=lineno)
         self.locals[self.current_func][name] = ir
 
+        ir.temp = True
+
         return ir
 
     def add_string(self, string, lineno=None):
@@ -1968,7 +1971,10 @@ class Builder(object):
             self.append_node(ir)
         else:
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
-        
+    
+    # def load_value(self, value, lineno=None):
+
+
     def assign(self, target, value, lineno=None):     
         # print target, value, lineno
 
@@ -1985,8 +1991,6 @@ class Builder(object):
         # Handle loading from value types
         ##################################################
 
-        temp = None
-
         # if source value is an address.
         # this is always an indirect load, either to a temp register or direct to the target
         if isinstance(value, irAddress):      
@@ -1995,8 +1999,6 @@ class Builder(object):
     
             # this will set up a temp register and return it
             value = self.load_indirect(value, lineno=lineno)
-
-            temp = True # signal we made a temp register
 
         # if source value is an indexed pixel array, we need to do a pixel load to
         # a temp register
@@ -2044,7 +2046,7 @@ class Builder(object):
             # first, check if we created a temp reg.  if we did, just
             # do the conversion in place to avoid creating another, unnecessary
             # temp reg.
-            if temp != None:    
+            if value.temp:
                 ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
                 self.append_node(ir)
 
@@ -2123,7 +2125,7 @@ class Builder(object):
             raise CompilerFatal("Invalid assignment")
 
     def augassign(self, op, target, value, lineno=None):
-        # print op, target, value
+        print op, target, value
         # check types
         if target.get_base_type() != value.get_base_type() and \
             not isinstance(target, irPixelIndex) and \
