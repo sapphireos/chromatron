@@ -832,10 +832,10 @@ class irConvertType(IR):
             return ins
 
 class irConvertTypeInPlace(IR):
-    def __init__(self, target, src_type, **kwargs):
+    def __init__(self, target, dest_type, **kwargs):
         super(irConvertTypeInPlace, self).__init__(**kwargs)
         self.target = target
-        self.src_type = src_type
+        self.dest_type = dest_type
     
     def __str__(self):
         s = '%s = %s(%s)' % (self.target, self.target.type, self.target)
@@ -850,10 +850,10 @@ class irConvertTypeInPlace(IR):
 
     def generate(self):
         # check if either type is gfx16
-        if self.target.type == 'gfx16' or self.src_type == 'gfx16':
+        if self.target.type == 'gfx16' or self.dest_type == 'gfx16':
             return insNop()
 
-        return type_conversions[(self.target.type, self.src_type)](self.target.generate(), self.target.generate())
+        return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
 
 
 class irVectorOp(IR):
@@ -2044,7 +2044,7 @@ class Builder(object):
             # first, check if we created a temp reg.  if we did, just
             # do the conversion in place to avoid creating another, unnecessary
             # temp reg.
-            if temp != None:
+            if temp != None:    
                 ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
                 self.append_node(ir)
 
