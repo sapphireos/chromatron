@@ -1934,6 +1934,8 @@ class Builder(object):
         # generate result register with target data type
         result = self.add_temp(data_type=data_type, lineno=lineno)
 
+        print op, result, left_result, right_result
+
         ir = irBinop(result, op, left_result, right_result, lineno=lineno)
 
         self.append_node(ir)
@@ -2131,6 +2133,7 @@ class Builder(object):
         
 
     def augassign(self, op, target, value, lineno=None):
+        print op, target, value
         value = self.load_value(value, lineno=lineno)
 
         # do a type conversion here, if needed.
@@ -2139,8 +2142,19 @@ class Builder(object):
         # of augassign, we want to convert to the target type.
         value = self.convert_type(target, value, lineno=lineno)
 
+        print value
+        print 'target', target, type(target), target.length
+
         if isinstance(target, irVar_simple):
             result = self.binop(op, target, value, lineno=lineno)
+
+            self.store_value(target, result, lineno=lineno)
+
+        # check if target is scalar
+        elif target.length == 1:
+            target_reg = self.load_value(target, lineno=lineno)
+
+            result = self.binop(op, target_reg, value, lineno=lineno)
 
             self.store_value(target, result, lineno=lineno)
 
