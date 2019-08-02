@@ -2131,7 +2131,7 @@ class Builder(object):
         
 
     def augassign(self, op, target, value, lineno=None):
-        print op, target, value
+        # print op, target, value
         value = self.load_value(value, lineno=lineno)
 
         # do a type conversion here, if needed.
@@ -2169,110 +2169,6 @@ class Builder(object):
             index.target = target
 
             ir = irVectorOp(op, index, value, lineno=lineno)        
-            self.append_node(ir)
-
-        return 
-
-        
-        # check types
-        if target.get_base_type() != value.get_base_type() and \
-            not isinstance(target, irPixelIndex) and \
-            not isinstance(value, irPixelIndex) and \
-            not isinstance(target, irPixelAttr) and \
-            not isinstance(target, irDBAttr) and \
-            not isinstance(value, irDBAttr) and \
-            not isinstance(target, irDBIndex) and \
-            not isinstance(value, irDBIndex):
-            # in normal expressions, f16 will take precedence over i32.
-            # however, for the augassign, the assignment target will 
-            # have priority.
-
-            # also note we skip this conversion for pixel array accesses,
-            # as the gfx16 type works seamlessly as i32 and f16 without conversions.
-
-            # check if value is const 0
-            # if so, we don't need to convert
-            if isinstance(value, irConst) and value.value == 0:
-                pass
-
-            else:
-                # convert value to target type and replace value with result
-                conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                ir = irConvertType(conv_result, value, lineno=lineno)
-                self.append_node(ir)
-                value = conv_result
-
-        if isinstance(target, irAddress):
-            if target.target.length == 1:
-                # not a vector op, but we have a target address and not a value
-    
-                # need to load indirect first
-                result = self.load_indirect(target, lineno=lineno)
-                result = self.binop(op, result, value, lineno=lineno)
-
-                self.assign(target, result, lineno=lineno)
-
-            else:
-                result = target
-                ir = irVectorOp(op, result, value, lineno=lineno)        
-                self.append_node(ir)
-
-        elif isinstance(target, irDBAttr) or isinstance(target, irDBIndex):
-            result = self.add_temp(lineno=lineno, data_type=value.type)
-            ir = irDBLoad(result, target, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, value, lineno=lineno)
-
-            ir = irDBStore(target, result, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irDBAttr) or isinstance(value, irDBIndex):
-            result = self.add_temp(lineno=lineno, data_type=target.type)
-            ir = irDBLoad(result, value, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, target, lineno=lineno)
-
-            self.assign(target, result, lineno=lineno)
-
-        elif isinstance(target, irPixelIndex):
-            result = self.add_temp(lineno=lineno, data_type=target.type)
-            ir = irPixelLoad(result, target, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, value, lineno=lineno)
-
-            ir = irPixelStore(target, result, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irPixelIndex):
-            result = self.add_temp(lineno=lineno, data_type=target.type)
-            ir = irPixelLoad(result, value, lineno=lineno)
-            self.append_node(ir)
-
-            # check if we need to convert
-            if result.get_base_type() != value.get_base_type():
-                ir = irConvertTypeInPlace(result, value.get_base_type(), lineno=lineno)
-                self.append_node(ir)                
-
-            result = self.binop(op, result, target, lineno=lineno)
-
-            self.assign(target, result, lineno=lineno)
-            
-        elif target.length == 1:
-            # if so, we can replace with a binop and assign
-            result = self.binop(op, target, value, lineno=lineno)
-            self.assign(target, result, lineno=lineno)
-
-        else:
-            # index address of target
-            result = self.add_temp(lineno=lineno, data_type='addr')
-            ir = irIndex(result, target, lineno=lineno)
-            self.append_node(ir)
-            result.target = target
-
-            ir = irVectorOp(op, result, value, lineno=lineno)        
             self.append_node(ir)
 
     def load_indirect(self, address, result=None, lineno=None):
