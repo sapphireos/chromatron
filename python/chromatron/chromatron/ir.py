@@ -2172,40 +2172,16 @@ class Builder(object):
             self.append_node(ir)
 
     def load_indirect(self, address, result=None, lineno=None):
-        # print address, type(address), lineno
-
         if result is None:
             result = self.add_temp(data_type=address.get_base_type(), lineno=lineno)
-
-        # if loading from a pixel array:
-        if isinstance(address, irPixelIndex) or isinstance(address, irPixelAttr):
-            ir = irPixelLoad(result, address, lineno=lineno)            
-        
-        # if loading from a database object:
-        elif isinstance(address, irDBAttr) or isinstance(address, irDBIndex):
-            ir = irDBLoad(result, address, lineno=lineno)            
-
-        # loading to pixel index, we need an intermediate value
-        elif isinstance(result, irPixelIndex):
-            temp = self.add_temp(data_type=result.get_base_type(), lineno=lineno)
-            ir = irIndexLoad(temp, address, lineno=lineno)
-            self.append_node(ir)
-
-            return self.assign(result, temp, lineno=lineno)
-
-        else:
-            ir = irIndexLoad(result, address, lineno=lineno)
+    
+        ir = irIndexLoad(result, address, lineno=lineno)
     
         self.append_node(ir)
 
         return result  
 
     def store_indirect(self, address, value, lineno=None):
-        # check if target (address) is an object, if so,
-        # delegate to assign to handle this, as this is not actually an indirect store.
-        if isinstance(address, irObjectAttr):
-            return self.assign(address, value, lineno=lineno)
-
         ir = irIndexStore(address, value, lineno=lineno)
     
         self.append_node(ir)
@@ -2219,11 +2195,7 @@ class Builder(object):
             args = self.funcs[func_name].params
 
             for i in xrange(len(params)):
-                param = params[i]
-                if isinstance(param, irAddress):
-                    # load to temp var
-                    temp = self.load_indirect(param, lineno=lineno)
-                    params[i] = temp # replace parameter
+                params[i] = self.load_value(params[i], lineno=lineno)
 
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
