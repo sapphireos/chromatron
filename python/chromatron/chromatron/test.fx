@@ -22,9 +22,9 @@ def init():
     # ary[0] = db.kv_test_key
     # c = ary[0]
 
-    ary[1] = 456
-    db.kv_test_key = ary[1]
-    d = db.kv_test_key
+    # ary[1] = 456
+    # db.kv_test_key = ary[1]
+    # d = db.kv_test_key
 
     # ary1[1] = pixels[0].val
     # e = ary1[1]
@@ -36,9 +36,9 @@ def init():
     # pixels[1].val = pixels[0].val
     # g = pixels[1].val
 
-    # pixels[0].val = 0.333
-    # db.kv_test_array[0] = pixels[0].val
-    # h = db.kv_test_array[0]
+    pixels[0].val = 0.333
+    db.kv_test_array[0] = pixels[0].val
+    h = db.kv_test_array[0]
 
     # db.kv_test_array[0] = 456
     # pixels[0].val = db.kv_test_array[0]
