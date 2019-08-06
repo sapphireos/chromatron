@@ -1,8 +1,33 @@
+a = Number(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+f = Fixed16(publish=True)
 
-# a = Number(publish=True)
+ary = Array(4)
+ary1 = Array(4, type=Fixed16)
 
 def init():
-    # db.kv_test_key = 123
-    db.kv_test_key += 1
+    pixels.hue = 123
+    db.kv_test_key = pixels[0].hue
+    a = db.kv_test_key
+
+    pixels[0].val = db.kv_test_key
+    b = pixels[0].val
+
+    ary[0] = db.kv_test_key
+    c = ary[0]
+
+    ary[1] = 456
+    db.kv_test_key = ary[1]
+    d = db.kv_test_key
+
+    ary1[1] = pixels[0].val
+    e = ary1[1]
+
+    ary1[2] = 0.123
+    pixels[0].val = ary1[2]
+    f = pixels[0].val
+
     
-    # a = db.kv_test_key

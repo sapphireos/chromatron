@@ -854,7 +854,11 @@ class irConvertTypeInPlace(IR):
         if self.target.type == 'gfx16' or self.dest_type == 'gfx16':
             return insNop()
 
-        return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
+        try:
+            return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
+
+        except KeyError:
+            raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.type, self.dest_type, self.lineno))
 
 
 class irVectorOp(IR):

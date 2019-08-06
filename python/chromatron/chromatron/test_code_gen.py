@@ -1858,6 +1858,13 @@ def init():
     
 """
 
+test_complex_assignments = """
+
+
+
+
+
+"""
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
