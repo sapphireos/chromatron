@@ -765,9 +765,9 @@ class irBinop(IR):
 
         data_type = self.left.type
 
-        # gfx16 type can just default to i32
+        # gfx16 type can just default to f16
         if isinstance(self.left, irVar_gfx16):
-            data_type = 'i32'
+            data_type = 'f16'
         
         return ops[data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
@@ -802,7 +802,9 @@ class irConvertType(IR):
         self.result = result
         self.value = value
 
-        # assert self.result.type != self.value.type
+        # check if either type is gfx16
+        if self.result.type == 'gfx16' or self.value.type == 'gfx16':
+            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.value, self.result, self.lineno))
 
     def __str__(self):
         if self.skip_conversion():
@@ -837,6 +839,10 @@ class irConvertTypeInPlace(IR):
         super(irConvertTypeInPlace, self).__init__(**kwargs)
         self.target = target
         self.dest_type = dest_type
+
+        # check if either type is gfx16
+        if self.target.type == 'gfx16' or self.dest_type == 'gfx16':
+            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.target, self.dest_type, self.lineno))
     
     def __str__(self):
         s = '%s = %s(%s)' % (self.target, self.target.type, self.target)
@@ -850,10 +856,6 @@ class irConvertTypeInPlace(IR):
         return [self.target]
 
     def generate(self):
-        # check if either type is gfx16
-        if self.target.type == 'gfx16' or self.dest_type == 'gfx16':
-            return insNopGfx16Convert()
-
         try:
             return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
 
@@ -1919,13 +1921,13 @@ class Builder(object):
         # perform any conversions as needed
         # since we are prioritizing fixed16, we only need to convert i32 to f16
         if data_type == 'f16':
-            if left.type != 'f16':
+            if left.type != 'f16' and left.type != 'gfx16':
                 left_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(left_result, left, lineno=lineno)
                 self.append_node(ir)
 
-            if right.type != 'f16':
+            if right.type != 'f16' and right.type != 'gfx16':
                 right_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(right_result, right, lineno=lineno)
@@ -2088,20 +2090,33 @@ class Builder(object):
 
         # check if base types don't match, if not, then do a conversion.
         elif target.get_base_type() != value.get_base_type():
-             
             # convert value to target type and replace value with result
             # first, check if we created a temp reg.  if we did, just
             # do the conversion in place to avoid creating another, unnecessary
             # temp reg.
             if value.temp:
-                ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
-                self.append_node(ir)
+                # check if one of the types is gfx16.  if it is,
+                # then we don't do a conversion
+                if (target.get_base_type() == 'gfx16') or \
+                   (value.get_base_type() == 'gfx16'):
+                   pass
+
+                else:
+                    ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
+                    self.append_node(ir)
 
             else:
-                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                ir = irConvertType(temp, value, lineno=lineno)
-                self.append_node(ir)
-                value = temp
+                # check if one of the types is gfx16.  if it is,
+                # then we don't do a conversion
+                if (target.get_base_type() == 'gfx16') or \
+                   (value.get_base_type() == 'gfx16'):
+                   pass
+                   
+                else:
+                    temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                    ir = irConvertType(temp, value, lineno=lineno)
+                    self.append_node(ir)
+                    value = temp
 
         return value
 
