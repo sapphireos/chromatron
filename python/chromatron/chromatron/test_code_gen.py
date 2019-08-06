@@ -1867,6 +1867,8 @@ d = Fixed16(publish=True)
 e = Fixed16(publish=True)
 f = Fixed16(publish=True)
 g = Fixed16(publish=True)
+h = Fixed16(publish=True)
+i = Fixed16(publish=True)
 
 ary = Array(4)
 ary1 = Array(4, type=Fixed16)
@@ -1897,6 +1899,13 @@ def init():
     g = pixels[1].val
 
 
+    pixels[0].val = 0.333
+    db.kv_test_array[0] = pixels[0].val
+    h = db.kv_test_array[0]
+
+    db.kv_test_array[0] = 456
+    pixels[0].val = db.kv_test_array[0]
+    i = pixels[0].val
 """
 
 class CGTestsBase(unittest.TestCase):
@@ -1913,8 +1922,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 0.0018768310546875,
                 'f': 0.12298583984375,
                 'g': 0.12298583984375,
+                'h': 0.333,
+                'i': 0.0069580078125,
             })
-
 
     # def test_bad_data_count(self):
     #     self.run_test(test_bad_data_count,
