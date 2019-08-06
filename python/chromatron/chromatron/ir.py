@@ -1966,7 +1966,7 @@ class Builder(object):
         else:
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
     
-    def load_value(self, value, lineno=None):
+    def load_value(self, value, dest_hint='gfx16', lineno=None):
         # if source value is an address.
         # this is always an indirect load, either to a temp register or direct to the target
         if isinstance(value, irAddress):      
@@ -1988,7 +1988,7 @@ class Builder(object):
 
         # same as above, but for DB accesses
         elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
-            temp = self.add_temp(data_type='gfx16', lineno=lineno) # use gfx16 datatype, since we don't actually know the type.
+            temp = self.add_temp(data_type=dest_hint, lineno=lineno) # use destination hint so DB Load knows what type to convert to
 
             ir = irDBLoad(temp, value, lineno=lineno)
             self.append_node(ir)
@@ -2073,8 +2073,8 @@ class Builder(object):
         # however, for the assign, the assignment target will 
         # have priority.
 
-        print target, value
-        print target.get_base_type(), value.get_base_type()
+        # print target, value
+        # print target.get_base_type(), value.get_base_type()
 
         # check if value is const 0
         # if so, we don't need to convert, 0 has the same binary representation
@@ -2129,13 +2129,13 @@ class Builder(object):
         assert value.type
 
         # if target.type != value.type:
-        print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-            (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
         ##################################################
         # Handle loading from value types
         ##################################################
-        value = self.load_value(value, lineno=lineno)
+        value = self.load_value(value, dest_hint=target.type, lineno=lineno)
 
         ##################################################
         # Handle conversion of value to target type
@@ -2150,7 +2150,7 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         # print op, target, value
-        value = self.load_value(value, lineno=lineno)
+        value = self.load_value(value, dest_hint=target.type, lineno=lineno)
 
         # do a type conversion here, if needed.
         # while binop will automatically convert types, 
