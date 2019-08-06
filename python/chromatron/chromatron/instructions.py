@@ -172,6 +172,10 @@ class insNop(BaseInstruction):
     def assemble(self):
         return []
 
+# this is just a nop marker so we understand where this nop came from.
+class insNopGfx16Convert(insNop):
+    mnemonic = 'NOP: GFX16'
+    
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
     def __init__(self, addr=None, var=None):

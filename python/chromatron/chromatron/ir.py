@@ -852,7 +852,7 @@ class irConvertTypeInPlace(IR):
     def generate(self):
         # check if either type is gfx16
         if self.target.type == 'gfx16' or self.dest_type == 'gfx16':
-            return insNop()
+            return insNopGfx16Convert()
 
         try:
             return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
