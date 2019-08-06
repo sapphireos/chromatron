@@ -10,7 +10,7 @@ ary1 = Array(4, type=Fixed16)
 
 def init():
     # pixels.hue = 123
-    # db.kv_test_key = pixels[0].hue
+    db.kv_test_key = pixels[0].hue
     # a = db.kv_test_key
 
     # pixels[0].val = db.kv_test_key
@@ -20,7 +20,7 @@ def init():
     # c = ary[0]
 
     # ary[1] = 456
-    db.kv_test_key = ary[1]
+    # db.kv_test_key = ary[1]
     # d = db.kv_test_key
 
     # ary1[1] = pixels[0].val
@@ -29,5 +29,3 @@ def init():
     # ary1[2] = 0.123
     # pixels[0].val = ary1[2]
     # f = pixels[0].val
-
-    # 

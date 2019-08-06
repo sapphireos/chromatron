@@ -1630,7 +1630,14 @@ class insDBStore(BaseInstruction):
         for index in self.indexes:
             bc.extend(index.assemble())
 
-        value_type = get_type_id(self.value.var.type)
+        try:
+            value_type = get_type_id(self.value.var.type)
+
+        except KeyError:
+            # if value is a gfx16, treat that as f16
+            if self.value.var.type == 'gfx16':
+                value_type = get_type_id('f16')
+
         bc.append(value_type)
 
         bc.extend(self.value.assemble())

@@ -2080,11 +2080,15 @@ class Builder(object):
         if isinstance(value, irConst) and value.value == 0:
             pass
 
+        # check for special case of a database target.
+        # we don't know the type of the database target, the 
+        # database itself will do the conversion.
+        elif target.get_base_type() == 'db':
+            pass
+
         # check if base types don't match, if not, then do a conversion.
-        # the exception is if the target is a DB entry, which will be 
-        # converted by the database itself.
-        elif (target.get_base_type() != value.get_base_type()) and \
-             (target.get_base_type() != 'db'):
+        elif target.get_base_type() != value.get_base_type():
+             
             # convert value to target type and replace value with result
             # first, check if we created a temp reg.  if we did, just
             # do the conversion in place to avoid creating another, unnecessary
