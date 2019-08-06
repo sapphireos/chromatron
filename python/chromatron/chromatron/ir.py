@@ -2071,16 +2071,21 @@ class Builder(object):
         # however, for the assign, the assignment target will 
         # have priority.
 
+        # print target, value
+        # print target.get_base_type(), value.get_base_type()
+
         # check if value is const 0
         # if so, we don't need to convert, 0 has the same binary representation
         # in all data types
         if isinstance(value, irConst) and value.value == 0:
             pass
 
-        # check if base types don't match, if not, then do a conversion
-        elif target.get_base_type() != value.get_base_type():
+        # check if base types don't match, if not, then do a conversion.
+        # the exception is if the target is a DB entry, which will be 
+        # converted by the database itself.
+        elif (target.get_base_type() != value.get_base_type()) and \
+             (target.get_base_type() != 'db'):
             # convert value to target type and replace value with result
-
             # first, check if we created a temp reg.  if we did, just
             # do the conversion in place to avoid creating another, unnecessary
             # temp reg.
