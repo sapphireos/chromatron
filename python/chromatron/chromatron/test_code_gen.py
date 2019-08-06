@@ -1898,7 +1898,6 @@ def init():
     pixels[1].val = pixels[0].val
     g = pixels[1].val
 
-
     pixels[0].val = 0.333
     db.kv_test_array[0] = pixels[0].val
     h = db.kv_test_array[0]
@@ -1922,7 +1921,7 @@ class CGTestsBase(unittest.TestCase):
                 'e': 0.0018768310546875,
                 'f': 0.12298583984375,
                 'g': 0.12298583984375,
-                'h': 0.333,
+                'h': 0.3329925537109375,
                 'i': 0.0069580078125,
             })
 
