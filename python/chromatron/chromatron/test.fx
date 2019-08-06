@@ -4,6 +4,7 @@ c = Fixed16(publish=True)
 d = Fixed16(publish=True)
 e = Fixed16(publish=True)
 f = Fixed16(publish=True)
+g = Fixed16(publish=True)
 
 ary = Array(4)
 ary1 = Array(4, type=Fixed16)
@@ -29,3 +30,6 @@ def init():
     ary1[2] = 0.123
     pixels[0].val = ary1[2]
     f = pixels[0].val
+
+    pixels[1].val = pixels[0].val
+    g = pixels[1].val

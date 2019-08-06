@@ -1860,8 +1860,41 @@ def init():
 
 test_complex_assignments = """
 
+a = Number(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+f = Fixed16(publish=True)
+g = Fixed16(publish=True)
 
+ary = Array(4)
+ary1 = Array(4, type=Fixed16)
 
+def init():
+    pixels.hue = 123
+    db.kv_test_key = pixels[0].hue
+    a = db.kv_test_key
+
+    pixels[0].val = db.kv_test_key
+    b = pixels[0].val
+
+    ary[0] = db.kv_test_key
+    c = ary[0]
+
+    ary[1] = 456
+    db.kv_test_key = ary[1]
+    d = db.kv_test_key
+
+    ary1[1] = pixels[0].val
+    e = ary1[1]
+
+    ary1[2] = 0.123
+    pixels[0].val = ary1[2]
+    f = pixels[0].val
+
+    pixels[1].val = pixels[0].val
+    g = pixels[1].val
 
 
 """
@@ -1869,6 +1902,19 @@ test_complex_assignments = """
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_complex_assignments(self):
+        self.run_test(test_complex_assignments,
+            expected={
+                'a': 123,
+                'b': 0.0018768310546875,
+                'c': 123.0,
+                'd': 456.0,
+                'e': 0.0018768310546875,
+                'f': 0.12298583984375,
+                'g': 0.12298583984375,
+            })
+
 
     # def test_bad_data_count(self):
     #     self.run_test(test_bad_data_count,
