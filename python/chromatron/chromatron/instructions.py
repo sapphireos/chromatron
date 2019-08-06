@@ -143,6 +143,11 @@ def hash_to_bc(s):
     
     return [(h >> 24) & 0xff, (h >> 16) & 0xff, (h >> 8) & 0xff, (h >> 0) & 0xff]
 
+def convert_to_f16(value):
+    return (value << 16) & 0xffffffff
+
+def convert_to_i32(value):
+    return int(value / 65536.0)
 
 class BaseInstruction(object):
     mnemonic = 'NOP'
@@ -1626,6 +1631,9 @@ class insDBStore(BaseInstruction):
         except TypeError:
             vm.db[self.db_item] = vm.memory[self.value.addr]
 
+        if self.value.var.type == 'f16':
+            vm.db[self.db_item] = convert_to_i32(vm.db[self.db_item])
+
     def assemble(self):
         bc = [self.opcode]
         bc.extend(hash_to_bc(self.db_item))
@@ -1678,8 +1686,11 @@ class insDBLoad(BaseInstruction):
 
             vm.memory[self.target.addr] = vm.db[self.db_item][index]
 
-        except TypeError:
+        except TypeError:    
             vm.memory[self.target.addr] = vm.db[self.db_item]
+
+        if self.target.var.type == 'f16':
+            vm.memory[self.target.addr] = convert_to_f16(vm.memory[self.target.addr])
 
     def assemble(self):
         bc = [self.opcode]
@@ -1696,7 +1707,7 @@ class insDBLoad(BaseInstruction):
             # if value is a gfx16, treat that as f16
             if self.target.var.type == 'gfx16':
                 target_type = get_type_id('f16')
-                
+
         bc.append(target_type)
         bc.extend(self.target.assemble())
 
@@ -1704,7 +1715,6 @@ class insDBLoad(BaseInstruction):
 
 class insConvMov(insMov):
     mnemonic = 'MOV'
-
 
 class insConvI32toF16(BaseInstruction):
     mnemonic = 'CONV_I32_TO_F16'
@@ -1717,7 +1727,7 @@ class insConvI32toF16(BaseInstruction):
         return "%s %s = F16(%s)" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest.addr] = (vm.memory[self.src.addr] << 16) & 0xffffffff
+        vm.memory[self.dest.addr] = convert_to_f16(vm.memory[self.src.addr])
 
     def assemble(self):
         bc = [self.opcode]
@@ -1737,7 +1747,7 @@ class insConvF16toI32(BaseInstruction):
         return "%s %s = I32(%s)" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest.addr] = int(vm.memory[self.src.addr] / 65536.0)
+        vm.memory[self.dest.addr] = convert_to_i32(vm.memory[self.src.addr])
 
     def assemble(self):
         bc = [self.opcode]
