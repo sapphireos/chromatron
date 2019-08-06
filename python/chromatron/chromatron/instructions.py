@@ -1689,7 +1689,14 @@ class insDBLoad(BaseInstruction):
         for index in self.indexes:
             bc.extend(index.assemble())
 
-        target_type = get_type_id(self.target.var.type)
+        try:
+            target_type = get_type_id(self.target.var.type)
+
+        except KeyError:
+            # if value is a gfx16, treat that as f16
+            if self.target.var.type == 'gfx16':
+                target_type = get_type_id('f16')
+                
         bc.append(target_type)
         bc.extend(self.target.assemble())
 

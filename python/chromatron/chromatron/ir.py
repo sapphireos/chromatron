@@ -1986,7 +1986,7 @@ class Builder(object):
 
         # same as above, but for DB accesses
         elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
-            temp = self.add_temp(lineno=lineno) # don't specify data type, because we don't know for DB loads
+            temp = self.add_temp(data_type='gfx16', lineno=lineno) # use gfx16 datatype, since we don't actually know the type.
 
             ir = irDBLoad(temp, value, lineno=lineno)
             self.append_node(ir)
@@ -2071,8 +2071,8 @@ class Builder(object):
         # however, for the assign, the assignment target will 
         # have priority.
 
-        # print target, value
-        # print target.get_base_type(), value.get_base_type()
+        print target, value
+        print target.get_base_type(), value.get_base_type()
 
         # check if value is const 0
         # if so, we don't need to convert, 0 has the same binary representation
@@ -2114,8 +2114,8 @@ class Builder(object):
         assert value.type
 
         # if target.type != value.type:
-        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
-            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+        print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+            (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
 
         ##################################################
         # Handle loading from value types
