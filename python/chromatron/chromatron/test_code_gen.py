@@ -1909,9 +1909,14 @@ def init():
 
 test_basic_string = """
 a = String(publish=True)
+b = String(publish=True)
+c = String(publish=True)
 
 def init():
-    a = "meow"
+    a = "test"
+    s = String('test2')
+    b = s
+    c = a
 """
 
 class CGTestsBase(unittest.TestCase):
@@ -1921,7 +1926,9 @@ class CGTestsBase(unittest.TestCase):
     def test_basic_string(self):
         self.run_test(test_basic_string,
             expected={
-                'a': 'meow',
+                'a': 'test',
+                'b': 'test2',
+                'c': 'test',
             })
 
     def test_complex_assignments(self):
