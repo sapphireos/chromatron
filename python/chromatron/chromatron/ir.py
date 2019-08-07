@@ -3558,7 +3558,6 @@ class VM(object):
 
                 addr += var.length - 1
 
-        print self.memory
 
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
@@ -3607,9 +3606,20 @@ class VM(object):
                 # lookup reference
                 ref = self.memory[var.addr]
 
+                # get string length in characters
                 strlen = self.memory[ref]
+                ref += 1
 
-                print var, ref, strlen
+                # convert string length to memory cells
+                memlen = ((strlen - 1) / 4) + 1
+
+                # unpack string
+                s = []
+                for i in xrange(memlen):
+                    s.extend(self.memory[ref])
+                    ref += 1
+
+                value = ''.join(s)
 
             else:
                 value = self.memory[var.addr]
