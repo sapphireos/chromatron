@@ -1918,6 +1918,12 @@ class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
 
+    def test_basic_string(self):
+        self.run_test(test_basic_string,
+            expected={
+                'a': 'meow',
+            })
+
     def test_complex_assignments(self):
         self.run_test(test_complex_assignments,
             expected={
