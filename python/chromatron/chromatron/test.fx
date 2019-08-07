@@ -1,12 +1,12 @@
-a = String(publish=True)
+# a = String(publish=True)
 b = String(publish=True)
-c = String(publish=True)
+# c = String(publish=True)
 
 def init():
-    a = "test"
+    # a = "test"
     s = String('test2')
     b = s
-    c = a
+    # c = a
 
 
 # my_str = String("rainbow.fxb")

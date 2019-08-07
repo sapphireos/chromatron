@@ -3390,6 +3390,10 @@ class Builder(object):
             elif var.length == 1:
                 try:
                     default_value = var.default_value
+
+                    if isinstance(default_value, irStrLiteral):
+                        default_value = 0
+
                     stream += struct.pack('<l', default_value)
                     addr += var.length
 
