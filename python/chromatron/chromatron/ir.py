@@ -3626,29 +3626,25 @@ class VM(object):
             elif isinstance(var, irStrLiteral):
                 value = var.strdata
 
-            # elif isinstance(var, irVar_str):
-            #     print var
-            #     # lookup reference
-            #     ref = self.memory[var.addr]
-            #     print ref
-            #     # get string length in characters
-            #     strlen = self.memory[ref]
-            #     ref += 1
-            #     print strlen
+            elif isinstance(var, irVar_str):
+                # lookup reference
+                ref = self.memory[var.addr]
+                
+                # get string length in characters
+                strlen = self.memory[ref]
+                ref += 1
+                
+                # convert string length to memory cells
+                memlen = ((strlen - 1) / 4) + 1
 
-            #     # convert string length to memory cells
-            #     memlen = ((strlen - 1) / 4) + 1
+                # unpack string
+                s = []
+                for i in xrange(memlen):
+                    s.extend(self.memory[ref])
+                    ref += 1
 
-            #     # unpack string
-            #     s = []
-            #     for i in xrange(memlen):
-            #         s.extend(self.memory[ref])
-            #         ref += 1
-
-            #     value = ''.join(s)
-            #     # print var, var.addr, self.memory[var.addr], strlen, memlen
-            #     # print value
-
+                value = ''.join(s)
+                
             else:
                 value = self.memory[var.addr]
 
