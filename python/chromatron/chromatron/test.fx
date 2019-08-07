@@ -1,11 +1,16 @@
 
-s0 = String("rainbow.fxb")
+my_str = String("rainbow.fxb")
 s2 = String(publish=True)
+s3 = String(publish=True)
 
 def init():
     # s = String()
     # s2 = String('meow')
 
-    # s = s0
-    s2 = s0
-    pass
+    # s = my_str
+    # s2 = my_str
+    # pass
+
+    # s2 = "meow"
+    s2 = my_str
+    s3 = "meow"

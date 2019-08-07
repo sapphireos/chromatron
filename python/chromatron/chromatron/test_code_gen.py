@@ -1907,6 +1907,13 @@ def init():
     i = pixels[0].val
 """
 
+test_basic_string = """
+a = String(publish=True)
+
+def init():
+    a = "meow"
+"""
+
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass

@@ -424,6 +424,11 @@ class irStrLiteral(irVar_str):
     def __str__(self):
         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
 
+    def generate(self):
+        assert self.addr != None
+        print "MEOW", self.addr
+        return insAddr(self.addr, self)
+
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
         super(irField, self).__init__(**kwargs)
@@ -3039,10 +3044,25 @@ class Builder(object):
         # need to be here.
         self.strings = used_strings
 
+        # record addresses of the constants used to reference
+        # the strings addresses
+        string_addrs = []
+        for s in self.strings:
+            string_addrs.append(addr)
+            addr += 1
+                    
         # allocate storage for strings
+        i = 0
         for s in self.strings:
             s.addr = addr
+
+            # add constant for string address to data table
+            ir = irConst(s.addr, lineno=s.lineno)
+            ir.addr = string_addrs[i]
+            self.data_table.append(ir)
+
             addr += s.size
+            i += 1
 
         # now update global strings to map to their default values to point
         # to their string literal's address
@@ -3349,7 +3369,8 @@ class Builder(object):
             if var.addr < addr:
                 continue
 
-            assert addr == var.addr
+            if addr != var.addr:
+                raise CompilerFatal("Data address error: %d != %d" % (addr, var.addr))
 
             if isinstance(var, irStrLiteral):
                 # pack string meta data
@@ -3602,24 +3623,28 @@ class VM(object):
             elif isinstance(var, irStrLiteral):
                 value = var.strdata
 
-            elif isinstance(var, irVar_str):
-                # lookup reference
-                ref = self.memory[var.addr]
+            # elif isinstance(var, irVar_str):
+            #     print var
+            #     # lookup reference
+            #     ref = self.memory[var.addr]
+            #     print ref
+            #     # get string length in characters
+            #     strlen = self.memory[ref]
+            #     ref += 1
+            #     print strlen
 
-                # get string length in characters
-                strlen = self.memory[ref]
-                ref += 1
+            #     # convert string length to memory cells
+            #     memlen = ((strlen - 1) / 4) + 1
 
-                # convert string length to memory cells
-                memlen = ((strlen - 1) / 4) + 1
+            #     # unpack string
+            #     s = []
+            #     for i in xrange(memlen):
+            #         s.extend(self.memory[ref])
+            #         ref += 1
 
-                # unpack string
-                s = []
-                for i in xrange(memlen):
-                    s.extend(self.memory[ref])
-                    ref += 1
-
-                value = ''.join(s)
+            #     value = ''.join(s)
+            #     # print var, var.addr, self.memory[var.addr], strlen, memlen
+            #     # print value
 
             else:
                 value = self.memory[var.addr]
