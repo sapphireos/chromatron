@@ -255,7 +255,7 @@ class irVar_gfx16(irVar_simple):
         kwargs['type'] = 'gfx16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
 
-class irVar_str(irVar):
+class irVar_str(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'str'
         
