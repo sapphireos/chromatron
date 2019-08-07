@@ -1878,11 +1878,12 @@ class Builder(object):
         return ir
 
     def nop(self, lineno=None):
-        ir = irNop(lineno=lineno)
+        # ir = irNop(lineno=lineno)
 
-        self.append_node(ir)
+        # self.append_node(ir)
 
-        return ir
+        # return ir
+        pass
 
     def binop(self, op, left, right, lineno=None):
         if self.optimizations['fold_constants'] and \
