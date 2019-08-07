@@ -5,7 +5,7 @@ s3 = String(publish=True)
 
 def init():
     # s = String()
-    # s2 = String('meow')
+    s_meow = String('meow')
 
     # s = my_str
     # s2 = my_str

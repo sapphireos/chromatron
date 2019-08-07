@@ -418,6 +418,7 @@ class irStrLiteral(irVar_str):
 
         self.addr = None
         self.length = 1 # this is a reference to a string, so the length is 1
+        self.ref = None
 
         self.size = ((self.strlen - 1) / 4) + 2 # space for characters + 32 bit length
         
@@ -426,8 +427,7 @@ class irStrLiteral(irVar_str):
 
     def generate(self):
         assert self.addr != None
-        print "MEOW", self.addr
-        return insAddr(self.addr, self)
+        return insAddr(self.ref, self)
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
@@ -2043,6 +2043,7 @@ class Builder(object):
                     pass
                     
             ir = irAssign(target, value, lineno=lineno)
+            
             self.append_node(ir)
 
         elif isinstance(target, irAddress):
@@ -3060,6 +3061,8 @@ class Builder(object):
             ir = irConst(s.addr, lineno=s.lineno)
             ir.addr = string_addrs[i]
             self.data_table.append(ir)
+
+            s.ref = ir.addr
 
             addr += s.size
             i += 1
