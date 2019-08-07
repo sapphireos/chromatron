@@ -3469,16 +3469,18 @@ class Builder(object):
 
 
 class VM(object):
-    def __init__(self, builder=None, code=None, data=None, pix_size_x=4, pix_size_y=4):
+    def __init__(self, builder=None, code=None, data=None, strings=None, pix_size_x=4, pix_size_y=4):
         self.pixel_arrays = {}
 
         if builder == None:
             self.code = code
             self.data = data
+            self.data.extend(strings)
 
         else:
             self.code = builder.code
             self.data = builder.data_table
+            self.data.extend(builder.strings)
 
             for k, v in builder.pixel_arrays.items():
                 self.pixel_arrays[k] = v.fields
@@ -3531,13 +3533,32 @@ class VM(object):
 
             addr = var.addr
 
-            for i in xrange(var.length):
-                try:
-                    self.memory.append(var.default_value[i])
-                except TypeError:
-                    self.memory.append(var.default_value)
+            if isinstance(var, irStrLiteral):
+                self.memory.append(var.strlen)
 
-            addr += var.length - 1
+                s = []
+                for i in xrange(var.strlen):
+                    s.append(var.strdata[i])
+
+                    if len(s) == 4:
+                        self.memory.append(s)
+                        addr += 1
+                        s = []
+
+                if len(s) > 0:
+                    self.memory.append(s)
+                    addr += 1
+                
+            else:
+                for i in xrange(var.length):
+                    try:
+                        self.memory.append(var.default_value[i])
+                    except TypeError:
+                        self.memory.append(var.default_value)
+
+                addr += var.length - 1
+
+        print self.memory
 
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
@@ -3578,6 +3599,17 @@ class VM(object):
                 for f in var.fields:
                     index = self.memory[var.offsets[f].addr]
                     value[f] = self.memory[index + var.addr]
+
+            elif isinstance(var, irStrLiteral):
+                value = var.strdata
+
+            elif isinstance(var, irVar_str):
+                # lookup reference
+                ref = self.memory[var.addr]
+
+                strlen = self.memory[ref]
+
+                print var, ref, strlen
 
             else:
                 value = self.memory[var.addr]
