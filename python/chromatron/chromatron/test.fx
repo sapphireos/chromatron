@@ -1,12 +1,13 @@
 # a = String(publish=True)
 b = String(publish=True)
-# c = String(publish=True)
+c = String(32, publish=True)
 
 def init():
     # a = "test"
     s = String('test2')
     b = s
     # c = a
+    b = c
 
 
 # my_str = String("rainbow.fxb")

@@ -1911,12 +1911,15 @@ test_basic_string = """
 a = String(publish=True)
 b = String(publish=True)
 c = String(publish=True)
+d = String("test3", publish=True)
+e = String(publish=True)
 
 def init():
     a = "test"
     s = String('test2')
     b = s
     c = a
+    e = d
 """
 
 class CGTestsBase(unittest.TestCase):
@@ -1929,6 +1932,8 @@ class CGTestsBase(unittest.TestCase):
                 'a': 'test',
                 'b': 'test2',
                 'c': 'test',
+                'd': 'test3',
+                'e': 'test3',
             })
 
     def test_complex_assignments(self):
