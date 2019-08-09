@@ -1950,10 +1950,10 @@ class CGTestsBase(unittest.TestCase):
                 'i': 0.0069580078125,
             })
 
-    # def test_bad_data_count(self):
-    #     self.run_test(test_bad_data_count,
-    #         expected={
-    #         })
+    def test_bad_data_count(self):
+        self.run_test(test_bad_data_count,
+            expected={
+            })
 
     def test_indirect_load_func_arg(self):
         self.run_test(test_indirect_load_func_arg,

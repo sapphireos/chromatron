@@ -1,13 +1,26 @@
-# a = String(publish=True)
-b = String(publish=True)
-c = String(32, publish=True)
+
+i = Number()
 
 def init():
-    # a = "test"
-    s = String('test2')
-    b = s
-    # c = a
-    b = c
+    while i < 0:
+        for x in pixels.size_x:
+            pass
+        
+    for x in pixels.size_x:
+        pass
+
+
+
+# # a = String(publish=True)
+# b = String(publish=True)
+# c = String(32, publish=True)
+
+# def init():
+#     # a = "test"
+#     s = String('test2')
+#     b = s
+#     # c = a
+#     b = c
 
 
 # my_str = String("rainbow.fxb")

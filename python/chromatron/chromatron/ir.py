@@ -227,7 +227,9 @@ class irVar(IR):
             return "Var(%s, %s)" % (self.name, self.type_str)
 
     def generate(self):
-        assert self.addr != None
+        if self.addr == None:
+            raise CompilerFatal("%s does not have an address. Line: %d" % (self, self.lineno))
+
         return insAddr(self.addr, self)
 
     def lookup(self, indexes):
@@ -1741,8 +1743,8 @@ class Builder(object):
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
         # allowing local var redeclaration for now...
-        # if name in self.locals[self.current_func]:
-            # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+        if name in self.locals[self.current_func]:
+            raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
 
         if keywords != None:
             if 'publish' in keywords:
@@ -3011,6 +3013,7 @@ class Builder(object):
 
                     self.data_table.append(i)
 
+        # NOT optimizing registers
         else:
             for func_name, local in self.locals.items():
                 for i in local.values():
