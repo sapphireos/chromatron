@@ -435,12 +435,8 @@ class cg1For(cg1CodeNode):
         self.body = body
 
     def build(self, builder):
-        i_declare = cg1DeclareVar(name=self.iterator.name, lineno=self.lineno)
-        try:
-            i_declare.build(builder)
-
-        except VariableAlreadyDeclared:
-            pass
+        i_declare = cg1DeclareVar(name=self.iterator.name, lineno=self.lineno)    
+        i_declare.build(builder)
 
         i = self.iterator.build(builder)
         stop = self.stop.build(builder)

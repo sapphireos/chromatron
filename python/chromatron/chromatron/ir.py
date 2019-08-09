@@ -1742,9 +1742,9 @@ class Builder(object):
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        # allowing local var redeclaration for now...
+        # local var redeclaration is allowed
         if name in self.locals[self.current_func]:
-            raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+            return self.locals[self.current_func][name]
 
         if keywords != None:
             if 'publish' in keywords:
