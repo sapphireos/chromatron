@@ -1614,12 +1614,6 @@ class Builder(object):
 
         self.db_entries[name] = db_entry
 
-    def add_type(self, name, data_type, lineno=None):
-        if name in self.data_types:
-            raise SyntaxError("Type '%s' already defined" % (name), lineno=lineno)
-
-        self.data_types[name] = data_type
-
     def create_record(self, name, fields, lineno=None):
         new_fields = {}
         offsets = {}
@@ -1714,12 +1708,7 @@ class Builder(object):
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
-        try:
-            for v in ir:
-                self.locals[self.current_func][v.name] = v
-
-        except TypeError:
-            self.locals[self.current_func][name] = ir
+        self.locals[self.current_func][name] = ir
 
         return ir
 
