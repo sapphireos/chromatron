@@ -681,12 +681,16 @@ class Builder(object):
             for flag in self.settings["C_FLAGS"]:
                 cmd += flag + ' '
 
-            cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+            if self.settings["TOOLCHAIN"] != "XTENSA":
+                cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+
             cmd += '-o ' + '%(OBJ_DIR)/%(SOURCE_FNAME).o' + ' '
 
             cmd = cmd.replace('%(OBJ_DIR)', self.settings["OBJ_DIR"])
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
-            cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
+
+            if self.settings["TOOLCHAIN"] != "XTENSA":
+                cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
 
             # replace windows path separators with unix
             cmd = cmd.replace('\\', '/')
