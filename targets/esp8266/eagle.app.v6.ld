@@ -155,6 +155,34 @@ SECTIONS
   {
     _irom0_text_start = ABSOLUTE(.);
 
+    /* Sapphire firmware info section */
+    *(.fwinfo)
+    KEEP(*(.fwinfo))
+
+    /* Key-value service meta data sections */
+    *(.kv_meta_start)
+    KEEP(*(.kv_meta_start))
+    *(.kv_meta)
+    KEEP(*(.kv_meta))
+    *(.kv_meta_end)
+    KEEP(*(.kv_meta_end))
+
+    /* Presence service meta data sections */
+    *(.service_start)
+    KEEP(*(.service_start))
+    *(.service)
+    KEEP(*(.service))
+    *(.service_end)
+    KEEP(*(.service_end))
+
+    /* Routing table entry sections */
+    *(.routing_start)
+    KEEP(*(.routing_start))
+    *(.routing)
+    KEEP(*(.routing))
+    *(.routing_end)
+    KEEP(*(.routing_end))
+
     *libat.a:(.literal.* .text.*)
     *libcrypto.a:(.literal.* .text.*)
     *libespnow.a:(.literal.* .text.*)

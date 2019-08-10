@@ -110,10 +110,12 @@
         "dep"
     ],
 
-    "FW_INFO_ADDR": "0x08020400",
+    "OS_PROJECT": "sapphire",
+
+    "FW_INFO_ADDR": "0x40210000",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": []
+    "LIBRARIES": ["hal_esp8266"]
 }
