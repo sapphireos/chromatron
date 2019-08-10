@@ -936,11 +936,20 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
 
-        else:
+        elif self.settings["TOOLCHAIN"] == "ARM":
             runcmd(os.path.join(bintools, 'arm-none-eabi-objcopy -O ihex -R .eeprom main.elf main.hex'))
             runcmd(os.path.join(bintools, 'arm-none-eabi-size -B main.elf'))
             runcmd(os.path.join(bintools, 'arm-none-eabi-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
+
+        elif self.settings["TOOLCHAIN"] == "XTENSA":
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objcopy -O ihex -R .eeprom main.elf main.hex'))
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
+            
+        else:
+            raise Exception("Unsupported toolchain")
 
         ih = IntelHex('main.hex')
         ih.tobinfile('main.bin')
