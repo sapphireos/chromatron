@@ -307,6 +307,13 @@ class Builder(object):
             if "BINTOOLS" not in settings:
                 settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'arm', 'bin')
 
+        elif settings["TOOLCHAIN"] == "XTENSA":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa', 'bin', 'xtensa-lx106-elf-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa', 'bin')
+
         else:
             raise SettingsParseException("Unknown toolchain")
 
@@ -976,7 +983,7 @@ class AppBuilder(HexBuilder):
         # get KV meta start
         kv_meta_addr = fw_info_addr + struct.calcsize(fw_info_fmt)
 
-        if self.settings['TOOLCHAIN'] == 'ARM':
+        if self.settings['TOOLCHAIN'] == 'ARM' or self.settings['TOOLCHAIN'] == 'XTENSA':
             kv_meta_len = KVMetaFieldWidePtr().size()
 
         else:
@@ -989,7 +996,7 @@ class AppBuilder(HexBuilder):
         while True:
             kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
 
-            if self.settings['TOOLCHAIN'] == 'ARM':
+            if self.settings['TOOLCHAIN'] == 'ARM' or self.settings['TOOLCHAIN'] == 'XTENSA':
                 kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
 
             else:
