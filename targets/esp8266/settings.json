@@ -1,0 +1,125 @@
+
+{
+
+    "TOOLCHAIN": "XTENSA",
+
+    "LOG_FILENAME": "build.log",
+
+    "C_FLAGS": [
+        "-std=gnu99",
+        "-Wpointer-arith",
+        "-Wno-implicit-function-declaration", 
+        "-Wl,-EL", 
+        "-fno-inline-functions",
+        "-nostdlib",
+        "-O3",
+        "-g3",
+        "-mlongcalls",
+        "-mtext-section-literals",
+        "-falign-functions=4",
+        "-U__STRICT_ANSI__",
+        "-ffunction-sections",
+        "-fdata-sections", 
+        "-fno-exceptions",
+        "-Wall",
+        "-DPLATFORMIO=30605",
+        "-DESP8266",
+        "-DARDUINO_ARCH_ESP8266",
+        "-DARDUINO_ESP8266_ESP12",
+        "-DF_CPU=80000000L",
+        "-D__ets__", 
+        "-DICACHE_FLASH", 
+        "-DFLASHMODE_DIO",
+        "-DLWIP_OPEN_SRC",
+        "-DNONOSDK221=1",
+        "-DTCP_MSS=536",
+        "-DLWIP_FEATURES=1",
+        "-DLWIP_IPV6=0",
+        "-DVTABLES_IN_FLASH",
+        "-I/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/include",
+        "-I/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/libc/xtensa-lx106-elf/include",
+        "-I/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/cores/esp8266",
+        "-I/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/lwip2/include",
+        "-I/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/variants/"
+    ],
+
+    "AR_FLAGS": [
+        "-rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-O3",
+        "-nostdlib",
+        "-Wl,--no-check-sections", 
+        "-Wl,-static -Wl,--gc-sections", 
+        "-u app_entry", 
+        "-u _printf_float",
+        "-u _scanf_float",
+        "-u _DebugExceptionVector",
+        "-u _DoubleExceptionVector",
+        "-u _KernelExceptionVector", 
+        "-u _NMIExceptionVector",
+        "-u _UserExceptionVector", 
+        "-L.pioenvs/esp12e",
+        "-L.pioenvs/esp12e/ld",
+        "-L/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/lib",
+        "-L/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/ld",
+        "-L/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/libc/xtensa-lx106-elf/lib",
+        "-L/Users/jeremy/.platformio/packages/framework-arduinoespressif8266/tools/sdk/lib/NONOSDK221",
+        "-L/Users/jeremy/JEREMY/SAPPHIRE/chromatron/targets/esp8266",
+        "-Wl,--start-group",
+        "-lhal",
+        "-lphy",
+        "-lpp", 
+        "-lnet80211",
+        "-lwpa", 
+        "-lcrypto", 
+        "-lmain", 
+        "-lwps", 
+        "-lbearssl",
+        "-laxtls",
+        "-lespnow",
+        "-lsmartconfig",
+        "-lairkiss",
+        "-lwpa2",
+        "-lm",
+        "-lc",
+        "-lgcc",
+        "-llwip2-536-feat",
+        "-Wl,--end-group",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ],
+
+    "LINKER_SCRIPT": "eagle.flash.4m1m.ld",
+
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "FW_INFO_ADDR": "0x08020400",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": []
+}
