@@ -57,8 +57,6 @@
         "-u call_user_start", 
         "-u _printf_float",
         "-u _scanf_float",
-        "-L.pioenvs/esp12e",
-        "-L.pioenvs/esp12e/ld",
         "-LUsers/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/lib ",
         "-L/Users/jeremy/JEREMY/SAPPHIRE/chromatron/targets/esp8266",
         "-Wl,--start-group",
@@ -90,7 +88,7 @@
         "-Wl,--relax"
     ],
 
-    "LINKER_SCRIPT": "eagle.flash.4m1m.ld",
+    "LINKER_SCRIPT": "eagle.app.v6.ld",
 
     "OBJ_DIR": "obj",
     "DEP_DIR": "dep",
