@@ -1913,9 +1913,18 @@ class Builder(object):
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
     
     def load_value(self, value, dest_hint='gfx16', lineno=None):
+        # check if pixel attr
+        if isinstance(value, irPixelAttr):
+            temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
+
+            ir = irPixelLoad(temp, value, lineno=lineno)
+            self.append_node(ir) 
+
+            value = temp
+
         # if source value is an address.
         # this is always an indirect load, either to a temp register or direct to the target
-        if isinstance(value, irAddress):      
+        elif isinstance(value, irAddress):      
             if value.target.length > 1:
                 raise SyntaxError("Cannot load from compound type '%s'" % (value.target.name), lineno=lineno)
     
@@ -2139,9 +2148,9 @@ class Builder(object):
     def load_indirect(self, address, result=None, lineno=None):
         if result is None:
             result = self.add_temp(data_type=address.get_base_type(), lineno=lineno)
-    
+        
         ir = irIndexLoad(result, address, lineno=lineno)
-    
+
         self.append_node(ir)
 
         return result  
