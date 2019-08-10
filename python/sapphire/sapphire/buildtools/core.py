@@ -871,7 +871,8 @@ class HexBuilder(Builder):
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
 
-        cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+        if self.settings["TOOLCHAIN"] != "XTENSA":
+            cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
         # save working dir
         cwd = os.getcwd()
@@ -911,7 +912,8 @@ class HexBuilder(Builder):
         #     cmd += '%s ' % (lib_dir + '/' + lib + '.a')
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
-        cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
+        if self.settings["TOOLCHAIN"] != "XTENSA":
+            cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
