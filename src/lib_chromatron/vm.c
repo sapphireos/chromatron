@@ -499,13 +499,37 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         goto error;
     }
 
-    // tell graphics controller to init the VM
-    gfx_v_init_vm( vm_id );
+    // ******
+    // NOTE
+    // TODO
+    // Need to sync database before we run the init function
 
+
+    // initialize VM (run init function)
+    wifi_msg_run_vm_t init_vm_msg;
+    init_vm_msg.vm_id = vm_id;
+
+    if( wifi_i8_send_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&init_vm_msg, sizeof(init_vm_msg) ) < 0 ){
+
+        // comm error
+        goto error;
+    }
+
+    wifi_msg_run_vm_status_t status_msg;
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&status_msg, sizeof(status_msg), 0 ) < 0 ){
+
+        // comm error
+        goto error;
+    }
+
+    if( status_msg.status != VM_STATUS_OK ){
+
+        goto error;
+    }
 
     fs_f_close( f );
 
-    vm_status[vm_id]        = VM_STATUS_READY;
+    vm_status[vm_id]        = status_msg.status;
     vm_loop_time[vm_id]     = 0;
     vm_thread_time[vm_id]   = 0;
     vm_max_cycles[vm_id]    = 0;

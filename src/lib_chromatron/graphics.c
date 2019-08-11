@@ -68,7 +68,6 @@ static uint16_t vm_timer_rate;
 static uint16_t vm0_frame_number;
 static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
-static uint8_t init_vm;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
@@ -587,19 +586,6 @@ void gfx_v_reset_subscribed( uint8_t tag ){
     }  
 }
 
-void gfx_v_init_vm( uint8_t vm_id ){
-
-    run_xfer = TRUE;
-
-    init_vm |= ( 1 << vm_id );
-
-    if( vm_id == 0 ){
-
-        vm0_frame_number = 0;
-    }
-}
-
-
 void kv_v_notify_hash_set( catbus_hash_t32 hash ){
 
     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
@@ -677,14 +663,6 @@ end:
 
         index = 0;
         run_xfer = FALSE;
-
-        if( init_vm != 0 ){
-
-            uint32_t vm_id = init_vm;
-
-            wifi_i8_send_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&vm_id, sizeof(vm_id) );
-            init_vm = 0;
-        }
 
         // check if any flags are set
         for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){

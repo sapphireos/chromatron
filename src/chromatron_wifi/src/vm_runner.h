@@ -35,7 +35,7 @@
 
 void vm_v_init( void );
 void vm_v_run_faders( void );
-void vm_v_run_vm( void );
+int8_t vm_i8_run_vm( uint8_t vm_id );
 void vm_v_process( void );
 void vm_v_send_info( void );
 void vm_v_reset(  uint8_t vm_index );
@@ -50,9 +50,8 @@ void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16
 void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
 void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len );
 
-void vm_v_run_func( uint8_t index, uint16_t func_addr );
+int8_t vm_i8_run_func( uint8_t index, uint16_t func_addr );
 
 void vm_v_request_frame_data( uint8_t index );
-void vm_v_run_fader( void );
 
 #endif

@@ -250,43 +250,36 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_INIT_VM ){
 
-        uint32_t *vm_id = (uint32_t *)data;
+        wifi_msg_run_vm_t *msg = (wifi_msg_run_vm_t *)data;
 
-        for( uint32_t i = 0; i < 31; i++ ){
+        wifi_msg_run_vm_status_t status;
+        status.vm_id = msg->vm_id;
 
-            if( ( *vm_id & ( 1 << i ) ) != 0 ){
+        status.status = vm_i8_start( msg->vm_id );
 
-                vm_i8_start( i );
-            }
-        }
-    }
-    else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
-
-        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
-
-        vm_v_start_frame_sync( 0, msg, len );
-    }
-    else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
-
-        wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
-
-        vm_v_frame_sync_data( 0, msg, len );
-    }
-    else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
-
-        wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
-
-        vm_v_frame_sync_done( 0, msg, len );
-    }
-    else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
-        
-        uint32_t *vm_id = (uint32_t *)data;
-
-        vm_v_request_frame_data( *vm_id );
+        _intf_i8_transmit_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&status, sizeof(status) );
     }
     else if( data_id == WIFI_DATA_ID_RUN_VM ){
 
-        vm_v_run_vm();
+        wifi_msg_run_vm_t *msg = (wifi_msg_run_vm_t *)data;
+
+        wifi_msg_run_vm_status_t status;
+        status.vm_id = msg->vm_id;
+
+        status.status = vm_i8_run_vm( msg->vm_id );
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&status, sizeof(status) );
+    }
+    else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
+
+        wifi_msg_vm_run_func_t *msg = (wifi_msg_vm_run_func_t *)data;
+
+        wifi_msg_run_vm_status_t status;
+        status.vm_id = msg->vm_id;
+
+        status.status = vm_i8_run_func( msg->vm_id, msg->func_addr );
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&status, sizeof(status) );
     }
     else if( data_id == WIFI_DATA_ID_RUN_FADER ){
 
@@ -392,12 +385,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             wifi_v_send_udp( udp_header, data_ptr );
         }
     }
-    else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
-
-        wifi_msg_vm_run_func_t *msg = (wifi_msg_vm_run_func_t *)data;
-
-        vm_v_run_func( msg->vm_id, msg->func_addr );
-    }
     else if( data_id == WIFI_DATA_ID_SET_OPTIONS ){
 
         wifi_msg_set_options_t *msg = (wifi_msg_set_options_t *)data;
@@ -415,6 +402,30 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_v_shutdown();
     }
+    // else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
+
+    //     wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+
+    //     vm_v_start_frame_sync( 0, msg, len );
+    // }
+    // else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
+
+    //     wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
+
+    //     vm_v_frame_sync_data( 0, msg, len );
+    // }
+    // else if( data_id == WIFI_DATA_ID_VM_SYNC_DONE ){
+
+    //     wifi_msg_vm_sync_done_t *msg = (wifi_msg_vm_sync_done_t *)data;
+
+    //     vm_v_frame_sync_done( 0, msg, len );
+    // }
+    // else if( data_id == WIFI_DATA_ID_REQUEST_FRAME_SYNC ){
+        
+    //     uint32_t *vm_id = (uint32_t *)data;
+
+    //     vm_v_request_frame_data( *vm_id );
+    // }
 }
 
 void intf_v_process( void ){

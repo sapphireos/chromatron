@@ -257,9 +257,16 @@ void vm_v_run_faders( void ){
     vm_fader_time = elapsed;
 }
 
-void vm_v_run_vm( void ){
+int8_t vm_i8_run_vm( uint8_t vm_id ){
 
-    run_vm = true;
+    int8_t status = _vm_i8_run_vm( VM_RUN_INIT, vm_id, 0 );
+
+    if( status < 0 ){
+
+        vm_v_reset( vm_id );
+    }
+
+    return status;
 }
 
 void vm_v_process( void ){
@@ -629,9 +636,9 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
     }
 }
 
-void vm_v_run_func( uint8_t index, uint16_t func_addr ){
+int8_t vm_i8_run_func( uint8_t index, uint16_t func_addr ){
 
-    _vm_i8_run_vm( VM_RUN_FUNC, index, func_addr );
+    return _vm_i8_run_vm( VM_RUN_FUNC, index, func_addr );
 }
 
 void vm_v_request_frame_data( uint8_t index ){

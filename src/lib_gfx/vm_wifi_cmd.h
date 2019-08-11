@@ -47,11 +47,17 @@ typedef struct __attribute__((packed)){
     vm_info_t vm_info[VM_MAX_VMS];
 } wifi_msg_vm_info_t;
 #define WIFI_DATA_ID_VM_INFO           0x22
-#define WIFI_DATA_ID_INIT_VM           0x23
 
+// VM run commands
 typedef struct __attribute__((packed)){
     uint32_t vm_id;
 } wifi_msg_run_vm_t;
+
+typedef struct __attribute__((packed)){
+    uint32_t vm_id;
+    int8_t status;
+} wifi_msg_run_vm_status_t;
+#define WIFI_DATA_ID_INIT_VM           0x23
 #define WIFI_DATA_ID_RUN_VM            0x26
 
 typedef struct __attribute__((packed)){
