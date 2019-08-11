@@ -725,7 +725,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, 0, 0, 0 ) < 0 ){
+        if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, 0, 0, 0 ) < 0 ){
 
             continue;
         }

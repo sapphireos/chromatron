@@ -181,8 +181,6 @@ typedef struct __attribute__((packed)){
 // } wifi_msg_scan_results_t;
 // #define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x14
 
-#define WIFI_DATA_ID_RUN_FADER          0x27
-
 typedef struct __attribute__((packed)){
     uint8_t tag;
     uint8_t padding[3];
@@ -198,12 +196,6 @@ typedef struct __attribute__((packed)){
     uint8_t padding[2];
 } wifi_msg_set_options_t;
 #define WIFI_DATA_ID_SET_OPTIONS        0x60
-
-typedef struct __attribute__((packed)){
-    uint32_t vm_id;
-    uint16_t func_addr;
-} wifi_msg_vm_run_func_t;
-#define WIFI_DATA_ID_VM_RUN_FUNC        0x51
 
 
 #define WIFI_DATA_ID_SHUTDOWN           0x98

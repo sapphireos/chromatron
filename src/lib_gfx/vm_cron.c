@@ -37,6 +37,7 @@
 
 #include "vm_core.h"
 #include "vm_cron.h"
+#include "vm_wifi_cmd.h"
 
 #ifdef ENABLE_TIME_SYNC
 
