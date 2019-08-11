@@ -1,1 +1,1 @@
-../../lib_chromatron/vm_wifi_cmd.h
+../../lib_gfx/vm_wifi_cmd.h
