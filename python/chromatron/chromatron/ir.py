@@ -298,7 +298,11 @@ class irConst(irVar):
         elif self.name == 'False':
             self.value = 0
         elif self.type == 'f16':
-            self.value = int(float(self.name) * 65536)
+            val = float(self.name)
+            if val > 32767.0 or val < -32767.0:
+                raise SyntaxError("Fixed16 out of range, must be tween -32767.0 and 32767.0", lineno=kwargs['lineno'])
+
+            self.value = int(val * 65536)
         else:
             self.value = int(self.name)
 
@@ -2041,6 +2045,13 @@ class Builder(object):
                     self.append_node(ir) 
                     value = temp
 
+                # type conversion for pixel array loads
+                elif (target.get_base_type() != value.get_base_type()) and (target.get_base_type() != 'gfx16'):
+                    temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                    ir = irConvertType(temp, value, lineno=lineno)
+                    self.append_node(ir)
+                    value = temp
+
                 ir = irVectorAssign(target, value, lineno=lineno)
                 self.append_node(ir)
 
@@ -2852,7 +2863,7 @@ class Builder(object):
         return liveness
 
     def debug_print(self, s):
-        print s
+        # print s
         pass
 
     def allocate(self):
@@ -3409,7 +3420,7 @@ class Builder(object):
         data_table.extend(self.strings)
 
         for var in data_table:
-            print var, addr
+            # print var, addr
             if var.addr < addr:
                 continue
 
@@ -3428,9 +3439,16 @@ class Builder(object):
                 addr += var.size
 
             elif var.length == 1:
-                default_value = var.default_value
-                stream += struct.pack('<l', default_value)
-                addr += var.length
+                try:
+                    default_value = var.default_value
+                    stream += struct.pack('<l', default_value)
+                    addr += var.length
+
+                except struct.error:
+                    print "*********************************"
+                    print "packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value))
+
+                    raise
 
             else:
                 try:

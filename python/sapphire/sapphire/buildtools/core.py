@@ -307,6 +307,13 @@ class Builder(object):
             if "BINTOOLS" not in settings:
                 settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'arm', 'bin')
 
+        elif settings["TOOLCHAIN"] == "XTENSA":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa', 'bin', 'xtensa-lx106-elf-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa', 'bin')
+
         else:
             raise SettingsParseException("Unknown toolchain")
 
@@ -674,12 +681,16 @@ class Builder(object):
             for flag in self.settings["C_FLAGS"]:
                 cmd += flag + ' '
 
-            cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+            if self.settings["TOOLCHAIN"] != "XTENSA":
+                cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+
             cmd += '-o ' + '%(OBJ_DIR)/%(SOURCE_FNAME).o' + ' '
 
             cmd = cmd.replace('%(OBJ_DIR)', self.settings["OBJ_DIR"])
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
-            cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
+
+            if self.settings["TOOLCHAIN"] != "XTENSA":
+                cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
 
             # replace windows path separators with unix
             cmd = cmd.replace('\\', '/')
@@ -860,7 +871,8 @@ class HexBuilder(Builder):
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
 
-        cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+        if self.settings["TOOLCHAIN"] != "XTENSA":
+            cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
         # save working dir
         cwd = os.getcwd()
@@ -900,7 +912,8 @@ class HexBuilder(Builder):
         #     cmd += '%s ' % (lib_dir + '/' + lib + '.a')
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
-        cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
+        if self.settings["TOOLCHAIN"] != "XTENSA":
+            cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
@@ -923,11 +936,20 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
 
-        else:
+        elif self.settings["TOOLCHAIN"] == "ARM":
             runcmd(os.path.join(bintools, 'arm-none-eabi-objcopy -O ihex -R .eeprom main.elf main.hex'))
             runcmd(os.path.join(bintools, 'arm-none-eabi-size -B main.elf'))
             runcmd(os.path.join(bintools, 'arm-none-eabi-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
+
+        elif self.settings["TOOLCHAIN"] == "XTENSA":
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objcopy -O ihex -R .eeprom main.elf main.hex'))
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
+            
+        else:
+            raise Exception("Unsupported toolchain")
 
         ih = IntelHex('main.hex')
         ih.tobinfile('main.bin')
@@ -976,7 +998,7 @@ class AppBuilder(HexBuilder):
         # get KV meta start
         kv_meta_addr = fw_info_addr + struct.calcsize(fw_info_fmt)
 
-        if self.settings['TOOLCHAIN'] == 'ARM':
+        if self.settings['TOOLCHAIN'] == 'ARM' or self.settings['TOOLCHAIN'] == 'XTENSA':
             kv_meta_len = KVMetaFieldWidePtr().size()
 
         else:
@@ -989,7 +1011,7 @@ class AppBuilder(HexBuilder):
         while True:
             kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
 
-            if self.settings['TOOLCHAIN'] == 'ARM':
+            if self.settings['TOOLCHAIN'] == 'ARM' or self.settings['TOOLCHAIN'] == 'XTENSA':
                 kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
 
             else:

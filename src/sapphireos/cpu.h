@@ -70,7 +70,7 @@
 
     char *itoa(long i, char* s, int dummy_radix);
 
-#elif defined(ARM)
+#elif defined(ARM) || defined(ESP8266)
     #ifdef BOOTLOADER
         // #define _FILE #__FILE__
         // #define _FNAME TOKENPASTE( unique, _FILE )

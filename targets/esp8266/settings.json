@@ -1,0 +1,121 @@
+
+{
+
+    "TOOLCHAIN": "XTENSA",
+
+    "LOG_FILENAME": "build.log",
+
+    "C_FLAGS": [
+        "-std=gnu99",
+        "-Wpointer-arith",
+        "-Wno-implicit-function-declaration", 
+        "-Wl,-EL", 
+        "-fno-inline-functions",
+        "-nostdlib",
+        "-O3",
+        "-g3",
+        "-mlongcalls",
+        "-mtext-section-literals",
+        "-falign-functions=4",
+        "-U__STRICT_ANSI__",
+        "-ffunction-sections",
+        "-fdata-sections", 
+        "-fno-exceptions",
+        "-fno-builtin-printf",
+        "-DPLATFORMIO=30605",
+        "-DESP8266",
+        "-DARDUINO_ARCH_ESP8266",
+        "-DARDUINO_ESP8266_ESP12",
+        "-DF_CPU=80000000L",
+        "-D__ets__", 
+        "-DICACHE_FLASH",
+        "-Iinclude",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/extra_include",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/driver_lib/include",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/espressif",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/lwip",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/lwip/ipv4",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/lwip/ipv6",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/nopoll",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/ssl",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/json",
+        "-I/Users/jeremy/.platformio/packages/framework-esp8266-nonos-sdk/include/openssl"
+    ],
+
+    "AR_FLAGS": [
+        "-rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-O3",
+        "-nostdlib",
+        "-Wl,--no-check-sections", 
+        "-Wl,-static -Wl,--gc-sections", 
+        "-u call_user_start", 
+        "-u _printf_float",
+        "-u _scanf_float",
+        "-L/Users/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp8266/framework-esp8266-nonos-sdk/lib",
+        "-L/Users/jeremy/JEREMY/SAPPHIRE/chromatron/targets/esp8266",
+        "-Wl,--start-group",
+        "-lairkiss",
+        "-lat",
+        "-lc",
+        "-lcrypto",
+        "-ldriver",
+        "-lespnow",
+        "-lgcc",
+        "-ljson",
+        "-llwip",
+        "-lmain",
+        "-lmbedtls",
+        "-lmesh",
+        "-lnet80211",
+        "-lphy",
+        "-lpp",
+        "-lpwm",
+        "-lsmartconfig",
+        "-lssl",
+        "-lupgrade",
+        "-lwpa",
+        "-lwpa2",
+        "-lwps",
+        "-Wl,--end-group",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ],
+
+    "LINKER_SCRIPT": "eagle.app.v6.ld",
+
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "OS_PROJECT": "sapphire",
+
+    "FW_INFO_ADDR": "0x40210000",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": ["hal_esp8266"]
+}

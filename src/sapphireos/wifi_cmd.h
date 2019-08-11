@@ -193,7 +193,8 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     bool low_power;
     bool led_quiet;
-    uint8_t padding[2];
+    int8_t midi_channel;
+    uint8_t padding[1];
 } wifi_msg_set_options_t;
 #define WIFI_DATA_ID_SET_OPTIONS        0x60
 

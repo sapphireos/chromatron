@@ -29,6 +29,7 @@ extern "C"{
 static bool low_power;
 static bool led_quiet;
 static bool high_speed;
+static int8_t midi_channel;
 
 void opt_v_set_low_power( bool mode ){
 
@@ -64,5 +65,16 @@ bool opt_b_get_high_speed( void ){
 
 	return high_speed;
 }
+
+void opt_v_set_midi_channel( int8_t channel ){
+
+	midi_channel = channel;
+}
+
+int8_t opt_i8_get_midi_channel( void ){
+
+	return midi_channel;
+}
+
 
 
