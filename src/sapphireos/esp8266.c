@@ -140,9 +140,9 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_connects,                    0,   "wifi_connects" },
 
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version_major,               0,   "wifi_version_major" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version_minor,               0,   "wifi_versi_minoron" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_version_patch,               0,   "wifi_versi_patchon" },
+    { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_version_major,               0,   "wifi_version_major" },
+    { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_version_minor,               0,   "wifi_version_minor" },
+    { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_version_patch,               0,   "wifi_version_patch" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors,                 0,   "wifi_comm_errors" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors2,                0,   "wifi_comm_errors2" },
