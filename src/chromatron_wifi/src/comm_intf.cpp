@@ -358,7 +358,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
             return;
         }
 
-        intf_i8_send_msg( WIFI_DATA_ID_PEEK_UDP, (uint8_t *)header, sizeof(wifi_msg_udp_header_t) );
+        _intf_i8_transmit_msg( WIFI_DATA_ID_PEEK_UDP, (uint8_t *)header, sizeof(wifi_msg_udp_header_t) );
     }
     else if( data_id == WIFI_DATA_ID_GET_UDP ){
         
@@ -371,7 +371,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         uint8_t *data = (uint8_t *)( header + 1 );
 
-        intf_i8_send_msg( WIFI_DATA_ID_GET_UDP, data, header->len );
+        _intf_i8_transmit_msg( WIFI_DATA_ID_GET_UDP, data, header->len );
     }
     else if( data_id == WIFI_DATA_ID_SEND_UDP ){
 
