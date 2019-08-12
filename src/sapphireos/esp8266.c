@@ -911,6 +911,11 @@ PT_BEGIN( pt );
 
             netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
 
+            // set up addressing info
+            state->laddr.port   = udp_header.lport;
+            state->raddr.port   = udp_header.rport;
+            state->raddr.ipaddr = udp_header.addr;
+
             // allocate data buffer
             state->data_handle = mem2_h_alloc2( udp_header.len, MEM_TYPE_SOCKET_BUFFER );
 
