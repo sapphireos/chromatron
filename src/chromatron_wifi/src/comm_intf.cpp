@@ -372,6 +372,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         uint8_t *data = (uint8_t *)( header + 1 );
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_GET_UDP, data, header->len );
+
+        wifi_v_rx_udp_clear_last();
     }
     else if( data_id == WIFI_DATA_ID_SEND_UDP ){
 
@@ -430,8 +432,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
 void intf_v_process( void ){
 
-    // check if TX Q is empty
-    if( list_b_is_empty( &tx_q ) ){
+    // check if TX Q is empty and no network traffic
+    if( list_b_is_empty( &tx_q ) && !wifi_b_rx_udp_pending() ){
 
         release_irq();
     }
@@ -459,8 +461,17 @@ void intf_v_process( void ){
 
         if( list_b_is_empty( &tx_q ) ){
 
-            Serial.write( WIFI_COMM_NAK );
-            return;
+            // no queued messages, but do we have a network packet?
+            if( wifi_b_rx_udp_pending() ){
+
+                // send a status message
+                wifi_v_send_status();
+            }
+            else{
+                
+                Serial.write( WIFI_COMM_NAK );
+                return;
+            }
         }
 
         Serial.write( WIFI_COMM_ACK );
