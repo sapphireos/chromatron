@@ -213,18 +213,15 @@ int8_t esp_i8_sync( void ){
 int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
 
     int8_t status = -100;
-    uint32_t start_time = tmr_u32_get_system_time_us();
-
     uint8_t next_byte = 0;
     
     // waiting for frame start
-    while( hal_wifi_i16_usart_get_char() != SLIP_END ){
+    int16_t byte = hal_wifi_i16_usart_get_char_timeout( timeout );
 
-        if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
-
-            status = -1;
-            goto end;
-        }
+    if( byte != SLIP_END ){
+        
+        status = -1;
+        goto end;        
     }
 
     next_byte++;
