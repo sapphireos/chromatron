@@ -351,6 +351,25 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         kvdb_v_set_tag( msg->meta.hash, msg->tag );
     }
+    else if( data_id == WIFI_DATA_ID_GET_KV_DATA ){
+
+        uint32_t *hash = (uint32_t *)data;
+
+        uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+        uint8_t *data = (uint8_t *)( msg + 1 );
+
+        if( kvdb_i8_get_meta( *hash, &msg->meta ) < 0 ){
+
+            return;
+        }
+
+        uint16_t data_len = type_u16_size( msg->meta.type ) * ( (uint16_t)msg->meta.count + 1 );
+
+        kvdb_i8_get( *hash, msg->meta.type, data, CATBUS_MAX_DATA );        
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_GET_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
+    }
     else if( data_id == WIFI_DATA_ID_PEEK_UDP ){
 
         wifi_msg_udp_header_t *header = wifi_h_get_rx_udp_header();

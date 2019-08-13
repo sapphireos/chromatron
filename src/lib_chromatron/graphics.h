@@ -28,6 +28,8 @@
 #include "wifi_cmd.h"
 #include "keyvalue.h"
 
+#define GFX_MAX_DB_LEN		128
+
 #define GFX_TIMER           TCD0
 #define GFX_TIMER_CCA_vect  TCD0_CCA_vect
 #define GFX_TIMER_CCB_vect  TCD0_CCB_vect
@@ -48,6 +50,7 @@ void gfx_v_pixel_bridge_disable( void );
 
 void gfx_v_sync_params( void );
 void gfx_v_sync_db( bool all );
+void gfx_v_read_db( void );
 
 void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag );
 void gfx_v_reset_subscribed( uint8_t tag );

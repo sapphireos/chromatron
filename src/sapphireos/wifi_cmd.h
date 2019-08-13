@@ -188,6 +188,7 @@ typedef struct __attribute__((packed)){
     catbus_meta_t meta;
 } wifi_msg_kv_data_t;
 #define WIFI_DATA_ID_KV_DATA            0x32
+#define WIFI_DATA_ID_GET_KV_DATA        0x33
 
 #define WIFI_DATA_ID_DEBUG_PRINT        0x40
 

@@ -498,7 +498,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         // comm error
         goto error;
     }
-    
+
     // synchronize database parameters
     gfx_v_sync_db( TRUE );
 
@@ -523,6 +523,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         goto error;
     }
+
+    // read database
+    gfx_v_read_db();
 
     fs_f_close( f );
 
