@@ -186,6 +186,7 @@ void hal_wifi_v_enter_boot_mode( void ){
     _delay_ms(WIFI_RESET_DELAY_MS);
 
     WIFI_IRQ_PORT.DIRCLR                = ( 1 << WIFI_IRQ_PIN );
+    WIFI_IRQ_PORT.WIFI_IRQ_PINCTRL      = PORT_OPC_PULLDOWN_gc;
 
     WIFI_BOOT_PORT.DIRSET               = ( 1 << WIFI_BOOT_PIN );
     WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
@@ -217,33 +218,28 @@ void hal_wifi_v_enter_boot_mode( void ){
 
     // return to inputs
     WIFI_BOOT_PORT.DIRCLR               = ( 1 << WIFI_BOOT_PIN );
+    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = PORT_OPC_PULLDOWN_gc;
     WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
+    WIFI_CTS_PORT.WIFI_CTS_PINCTRL      = PORT_OPC_PULLDOWN_gc;
 }
 
 void hal_wifi_v_enter_normal_mode( void ){
 
     // set up IO
     WIFI_BOOT_PORT.DIRCLR               = ( 1 << WIFI_BOOT_PIN );
+    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = PORT_OPC_PULLUP_gc;
     WIFI_PD_PORT.DIRSET                 = ( 1 << WIFI_PD_PIN );
     WIFI_PD_PORT.OUTCLR                 = ( 1 << WIFI_PD_PIN ); // hold chip in reset
 
     _delay_ms(WIFI_RESET_DELAY_MS);
 
-    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = 0;
-
     WIFI_CTS_PORT.DIRSET                = ( 1 << WIFI_CTS_PIN );
     WIFI_CTS_PORT.WIFI_CTS_PINCTRL      = 0;
     WIFI_CTS_PORT.OUTCLR                = ( 1 << WIFI_CTS_PIN );
 
-    // disable receive interrupt
-    WIFI_USART.CTRLA &= ~USART_RXCINTLVL_HI_gc;
-
-    // set XCK pin to output
-    WIFI_IRQ_PORT.DIRSET                = ( 1 << WIFI_IRQ_PIN );
-    WIFI_IRQ_PORT.OUTSET                = ( 1 << WIFI_IRQ_PIN );
-
-    // set boot pin to high
-    WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = PORT_OPC_PULLUP_gc;
+    WIFI_IRQ_PORT.DIRCLR                = ( 1 << WIFI_IRQ_PIN );
+    WIFI_IRQ_PORT.WIFI_IRQ_PINCTRL      = PORT_OPC_PULLDOWN_gc;
+    WIFI_IRQ_PORT.OUTCLR                = ( 1 << WIFI_IRQ_PIN );
 
     _delay_ms(WIFI_RESET_DELAY_MS);
 
@@ -255,12 +251,20 @@ void hal_wifi_v_enter_normal_mode( void ){
     // NOTE! leave CTS pulled down, device is not finished booting up.
     // CTS should be active HIGH, not low, to handle this.
 
+
+    // disable receive interrupt
+    WIFI_USART.CTRLA &= ~USART_RXCINTLVL_HI_gc;
+
+    // set XCK pin to output
+    WIFI_IRQ_PORT.DIRSET                = ( 1 << WIFI_IRQ_PIN );
+    WIFI_IRQ_PORT.OUTSET                = ( 1 << WIFI_IRQ_PIN );
+
     // re-init uart
     WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     WIFI_USART_RXD_PORT.DIRCLR          = ( 1 << WIFI_USART_RXD_PIN );
     usart_v_init( &WIFI_USART );
     usart_v_set_double_speed( &WIFI_USART, TRUE );
-    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
+    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );    
 }
 
 

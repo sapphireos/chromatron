@@ -469,7 +469,7 @@ void hal_wifi_v_enter_normal_mode( void ){
 
     // set up IO
     GPIO_InitStruct.Pin         = WIFI_BOOT_Pin;
-    GPIO_InitStruct.Mode        = GPIO_MODE_IT_FALLING; // falling edge triggered
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
     GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Pull        = GPIO_PULLUP; // set boot pin to high
     HAL_GPIO_Init(WIFI_BOOT_GPIO_Port, &GPIO_InitStruct);
