@@ -40,9 +40,24 @@
 
 
 static uint32_t current_tx_bytes;
-static volatile uint32_t current_rx_bytes;
+static uint32_t current_rx_bytes;
+static volatile bool timed_out;
+
+ISR(WIFI_TIMER_ISR){
+
+    WIFI_TIMER.CTRLA = 0;
+
+    timed_out = TRUE;
+}
 
 void hal_wifi_v_init( void ){
+
+    // reset timer
+    WIFI_TIMER.CTRLA = 0;
+    WIFI_TIMER.CTRLB = 0;
+    WIFI_TIMER.CNT = 0;
+    WIFI_TIMER.INTCTRLA = TC_OVFINTLVL_HI_gc;
+    WIFI_TIMER.INTCTRLB = 0;
 
     // set up IO
     WIFI_PD_PORT.DIRSET                 = ( 1 << WIFI_PD_PIN );
@@ -86,13 +101,35 @@ int16_t hal_wifi_i16_usart_get_char( void ){
 	return usart_i16_get_byte( &WIFI_USART );
 }
 
+void start_timeout( uint32_t microseconds ){
+
+    WIFI_TIMER.CTRLA = 0;
+
+    timed_out = FALSE;
+
+    // set timeout
+    WIFI_TIMER.PER = microseconds / 16;
+
+    // start timeout
+    WIFI_TIMER.CTRLA = TC_CLKSEL_DIV2_gc;
+}
+
+bool is_timeout( void ){
+
+    ATOMIC;
+    bool temp = timed_out;
+    END_ATOMIC;
+
+    return temp;
+}
+
 int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
 
-    uint32_t start_time = tmr_u32_get_system_time_us();
+    start_timeout( timeout );
 
     while( !hal_wifi_b_usart_rx_available() ){
 
-        if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
+        if( is_timeout() ){
 
             return -1;
         }
@@ -108,13 +145,13 @@ bool hal_wifi_b_usart_rx_available( void ){
 
 int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout ){
 
-    uint32_t start_time = tmr_u32_get_system_time_us();
+    start_timeout( timeout );
 
     while( len > 0 ){
 
         while( !hal_wifi_b_usart_rx_available() ){
 
-            if( tmr_u32_elapsed_time_us( start_time ) > timeout ){
+            if( is_timeout() ){
 
                 return -1;
             }

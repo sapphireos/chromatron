@@ -30,6 +30,9 @@
 
 #define WIFI_USART              USARTE0
 
+#define WIFI_TIMER              TCD1
+#define WIFI_TIMER_ISR          TCD1_OVF_vect
+
 #define WIFI_USART_TXD_PORT     PORTE
 #define WIFI_USART_TXD_PIN      3
 #define WIFI_USART_RXD_PORT     PORTE
