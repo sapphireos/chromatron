@@ -72,7 +72,6 @@ static int16_t frame_rate_adjust;
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
-PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) );
 
@@ -83,7 +82,6 @@ typedef struct{
 } subscribed_key_t;
 #define KEY_FLAG_UPDATED        0x01
 
-static bool run_xfer;
 static subscribed_key_t subscribed_keys[32];
 
 
@@ -364,11 +362,6 @@ void gfx_v_init( void ){
                 0,
                 0 );
 
-    thread_t_create( gfx_db_xfer_thread,
-                PSTR("gfx_db_xfer"),
-                0,
-                0 );
-
     thread_t_create( gfx_fader_thread,
                 PSTR("gfx_fader"),
                 0,
@@ -565,8 +558,6 @@ void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
     subscribed_keys[empty].hash     = hash;
     subscribed_keys[empty].tag      = tag;
     subscribed_keys[empty].flags    = KEY_FLAG_UPDATED;
-
-    run_xfer = TRUE;
 }
 
 
@@ -594,94 +585,58 @@ void kv_v_notify_hash_set( catbus_hash_t32 hash ){
 
             subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
 
-            run_xfer = TRUE;
-
             break;
         }
     }   
 }
 
 
-PT_THREAD( gfx_db_xfer_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+void gfx_v_sync_db( bool all ){
 
-    static uint8_t index;
+    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
 
+        if( subscribed_keys[i].hash == 0 ){
 
-    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, !run_xfer );
-
-        while( index < cnt_of_array(subscribed_keys) ){
-
-            if( subscribed_keys[index].hash == 0 ){
-
-                goto end;
-            }
-
-            if( subscribed_keys[index].flags == 0 ){
-
-                goto end;
-            }
-
-            subscribed_keys[index].flags = 0;
-
-            kv_meta_t meta;
-            if( kv_i8_lookup_hash( subscribed_keys[index].hash, &meta, 0 ) < 0 ){
-
-                goto end;
-            }
-
-            // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
-            uint8_t buf[128 + sizeof(wifi_msg_kv_data_t)];
-            wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
-            uint8_t *data = (uint8_t *)( msg + 1 );
-        
-            if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
-
-                goto end;
-            }  
-
-            uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
-
-            msg->meta.hash        = meta.hash;
-            msg->meta.type        = meta.type;
-            msg->meta.count       = meta.array_len;
-            msg->meta.flags       = meta.flags;
-            msg->meta.reserved    = 0;
-            msg->tag              = subscribed_keys[index].tag;
-
-            wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) );
-
-
-end:
-            index++;
+            continue;
         }
 
-        index = 0;
-        run_xfer = FALSE;
+        if( ( subscribed_keys[i].flags == 0 ) && !all ){
 
-        // check if any flags are set
-        for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-            if( subscribed_keys[i].hash == 0 ){
-
-                continue;
-            }
-
-            if( subscribed_keys[i].flags & KEY_FLAG_UPDATED ){
-
-                run_xfer = TRUE;
-                break;
-            }
+            continue;
         }
 
+        subscribed_keys[i].flags = 0;
+
+        kv_meta_t meta;
+        if( kv_i8_lookup_hash( subscribed_keys[i].hash, &meta, 0 ) < 0 ){
+
+            continue;
+        }
+
+        // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
+        uint8_t buf[128 + sizeof(wifi_msg_kv_data_t)];
+        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
+        uint8_t *data = (uint8_t *)( msg + 1 );
+    
+        if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, CATBUS_MAX_DATA ) < 0 ){
+
+            continue;
+        }  
+
+        uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
+
+        msg->meta.hash        = meta.hash;
+        msg->meta.type        = meta.type;
+        msg->meta.count       = meta.array_len;
+        msg->meta.flags       = meta.flags;
+        msg->meta.reserved    = 0;
+        msg->tag              = subscribed_keys[i].tag;
+
+        if( wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) ) < 0 ){
+
+            continue;
+        }   
     }
-        
-PT_END( pt );
 }
 
 

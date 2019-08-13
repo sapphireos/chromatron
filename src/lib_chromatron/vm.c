@@ -498,12 +498,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         // comm error
         goto error;
     }
-
-    // ******
-    // NOTE
-    // TODO
-    // Need to sync database before we run the init function
-
+    
+    // synchronize database parameters
+    gfx_v_sync_db( TRUE );
 
     // initialize VM (run init function)
     wifi_msg_run_vm_t init_vm_msg;
