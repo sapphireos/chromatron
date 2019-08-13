@@ -682,9 +682,15 @@ end:
         if( !wifi_b_ap_mode_enabled() ){
 
             wifi_connects++;
-        }
 
-        log_v_debug_P( PSTR("Wifi connected") );
+            char ssid[WIFI_SSID_LEN];
+            wifi_v_get_ssid( ssid );
+            log_v_debug_P( PSTR("Wifi connected to: %s"), ssid );
+        }
+        else{
+
+            log_v_debug_P( PSTR("Wifi soft AP up") );    
+        }
     }
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() );
