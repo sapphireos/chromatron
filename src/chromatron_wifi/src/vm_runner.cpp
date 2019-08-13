@@ -48,8 +48,6 @@ static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
 
-static bool run_vm;
-
 static uint32_t thread_tick;
 
 #define VM_RUN_INIT     0
@@ -259,7 +257,7 @@ void vm_v_run_faders( void ){
 
 int8_t vm_i8_run_vm( uint8_t vm_id ){
 
-    int8_t status = _vm_i8_run_vm( VM_RUN_INIT, vm_id, 0 );
+    int8_t status = _vm_i8_run_vm( VM_RUN_LOOP, vm_id, 0 );
 
     if( status < 0 ){
 
@@ -271,15 +269,17 @@ int8_t vm_i8_run_vm( uint8_t vm_id ){
 
 void vm_v_process( void ){
 
-    if( run_vm ){
+    return;
+
+    // if( run_vm ){
 
         for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
 
             _vm_i8_run_vm( VM_RUN_LOOP, i, 0 ); 
         }
 
-        run_vm = false;
-    }
+        // run_vm = false;
+    // }
 
     if( elapsed_time_millis( thread_tick ) >= VM_RUNNER_THREAD_RATE ){
 
