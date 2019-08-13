@@ -374,7 +374,6 @@ int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t of
         status = vm_i8_load_program( 0, stream, mem2_u16_get_size( vm_handles[vm_index] ), &vm_state[vm_index] );
 
         vm_state[vm_index].prog_size = mem2_u16_get_size( vm_handles[vm_index] );
-        vm_state[vm_index].tick_rate = VM_RUNNER_THREAD_RATE;
 
         uint8_t *code_start = (uint8_t *)( stream + vm_state[vm_index].code_start );
         int32_t *data_start = (int32_t *)( stream + vm_state[vm_index].data_start );
