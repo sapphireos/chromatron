@@ -90,19 +90,6 @@
 #define VM_LOAD_FLAGS_CHECK_HEADER      1
 
 
-#define VM_SYS_CALL_TEST                0
-#define VM_SYS_CALL_YIELD               1
-#define VM_SYS_CALL_DELAY               2
-#define VM_SYS_CALL_START_THREAD        10
-#define VM_SYS_CALL_STOP_THREAD         11
-#define VM_SYS_CALL_THREAD_RUNNING      12
-
-#define VM_ARRAY_FUNC_LEN               0
-#define VM_ARRAY_FUNC_MIN               1
-#define VM_ARRAY_FUNC_MAX               2
-#define VM_ARRAY_FUNC_AVG               3
-#define VM_ARRAY_FUNC_SUM               4
-
 
 typedef struct __attribute__((packed)){
     int8_t status;

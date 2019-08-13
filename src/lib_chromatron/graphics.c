@@ -673,7 +673,8 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         THREAD_WAIT_WHILE( pt, ( pixel_u8_get_mode() == PIX_MODE_OFF ) ||
-                               ( gfx_u16_get_pix_count() == 0 ) );
+                               ( gfx_u16_get_pix_count() == 0 ) ||
+                               ( !gfx_b_running() ) );
 
         if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
 
