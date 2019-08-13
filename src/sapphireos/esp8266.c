@@ -1147,7 +1147,7 @@ restart:
     status_led_v_set( 1, STATUS_LED_BLUE );
 
     trace_printf( "Cesanta flasher ready!\r\n" );
-    // log_v_debug_P( PSTR("Cesanta flasher ready!") );
+    log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
     uint32_t file_len;
     cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &file_len );
@@ -1238,18 +1238,19 @@ load_image:
 
     log_v_debug_P( PSTR("Loading wifi image...") );
 
+    status = esp_i8_load_flash( state->fw_file );
+    if( status < 0 ){
 
-    if( esp_i8_load_flash( state->fw_file ) < 0 ){
-
-        log_v_debug_P( PSTR("error") );
+        log_v_debug_P( PSTR("error %d"), status );
         goto error;
     }
 
     memset( wifi_digest, 0xff, MD5_LEN );
 
-    if( esp_i8_md5( file_len, wifi_digest ) < 0 ){
+    status = esp_i8_md5( file_len, wifi_digest );
+    if( status < 0 ){
 
-        log_v_debug_P( PSTR("error") );
+        log_v_debug_P( PSTR("error %d"), status );
         goto restart;
     }
 
@@ -1286,6 +1287,7 @@ error:
 run_wifi:
 
     trace_printf( "Starting wifi!\r\n" );
+    log_v_debug_P( PSTR("Starting wifi!\r\n") );
 
     thread_t_create_critical( 
                      wifi_comm_thread,
