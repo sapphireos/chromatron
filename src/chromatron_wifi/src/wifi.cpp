@@ -68,6 +68,7 @@ static bool mdns_connected;
 static bool request_connect;
 static bool ap_mode;
 static bool scanning;
+static int8_t router;
 
 static IPAddress soft_AP_IP(192,168,4,1);
 static IPAddress soft_AP_gateway(192,168,4,1);
@@ -146,6 +147,15 @@ IPAddress wifi_ip_get_subnet( void ){
     return WiFi.subnetMask();
 }
 
+int8_t wifi_i8_get_router( void ){
+
+    if( ( wifi_u8_get_status() & WIFI_STATUS_CONNECTED ) == 0 ){
+
+        return -1;
+    }
+
+    return router;
+}
 
 void wifi_v_init( void ){
 
@@ -325,6 +335,8 @@ void wifi_v_process( void ){
 
                 // did we select a router?
                 if( ( best_router < WIFI_MAX_APS ) || ( best_router >= 0 ) ){
+
+                    router = best_router;
 
                     WiFi.mode( WIFI_STA );
 

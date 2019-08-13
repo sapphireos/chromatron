@@ -43,6 +43,8 @@ void wifi_v_send_status( void );
 IPAddress wifi_ip_get_ip( void );
 IPAddress wifi_ip_get_subnet( void );
 
+int8_t wifi_i8_get_router( void );
+
 void wifi_v_init( void );
 void wifi_v_process( void );
 

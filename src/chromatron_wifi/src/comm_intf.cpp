@@ -176,6 +176,8 @@ static void _send_info_msg( void ){
     info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
     info_msg.mem_avg_time           = process_stats.mem_avg_time;
 
+    info_msg.wifi_router            = wifi_i8_get_router();
+
     _intf_i8_transmit_msg( WIFI_DATA_ID_INFO, (uint8_t *)&info_msg, sizeof(info_msg) );    
 }
 

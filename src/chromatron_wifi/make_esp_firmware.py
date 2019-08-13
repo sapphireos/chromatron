@@ -43,7 +43,7 @@ def build():
 
     os.environ['PLATFORMIO_BUILD_FLAGS'] = "-include __kv_hashes.h"
 
-    os.system('platformio run -v')
+    os.system('platformio run')
 
 def create_firmware_image():
     try:

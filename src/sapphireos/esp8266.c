@@ -85,6 +85,7 @@ static int8_t wifi_status;
 static uint8_t wifi_mac[6];
 static uint8_t wifi_status_reg;
 static int8_t wifi_rssi;
+static int8_t wifi_router;
 static uint32_t wifi_uptime;
 static bool default_ap_mode;
 
@@ -1388,22 +1389,26 @@ int8_t wifi_i8_rssi( void ){
 
 void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
 
-    // if( router == 1 ){
+    if( wifi_router == 0 ){
 
-    //     kv_i8_get( __KV__wifi_ssid2, ssid, WIFI_SSID_LEN );
-    // }
-    // else if( router == 2 ){
+        cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+    }
+    else if( wifi_router == 1 ){
 
-    //     kv_i8_get( __KV__wifi_ssid3, ssid, WIFI_SSID_LEN ); 
-    // }
-    // else if( router == 3 ){
+        kv_i8_get( __KV__wifi_ssid2, ssid, WIFI_SSID_LEN );
+    }
+    else if( wifi_router == 2 ){
 
-    //     kv_i8_get( __KV__wifi_ssid4, ssid, WIFI_SSID_LEN );
-    // }
-    // else{
+        kv_i8_get( __KV__wifi_ssid3, ssid, WIFI_SSID_LEN ); 
+    }
+    else if( wifi_router == 3 ){
 
-    //     cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-    // }
+        kv_i8_get( __KV__wifi_ssid4, ssid, WIFI_SSID_LEN );
+    }
+    else{
+
+        memset( ssid, 0, sizeof(ssid) );
+    }
 }
 
 bool wifi_b_ap_mode( void ){
