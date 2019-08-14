@@ -365,6 +365,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 
 
 error:
+    hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
     log_v_debug_P( PSTR("rx fail") );
     return status;
 }
@@ -779,8 +780,8 @@ static void get_info( void ){
     // process message data
 
     wifi_version_major          = msg.version_major;
-    wifi_version_minor          = msg.version_minor;
-    wifi_version_patch          = msg.version_patch;
+    wifi_version_minor          = msg.version_minor
+;    wifi_version_patch          = msg.version_patch;
     
     if( wifi_b_connected() ){
         
