@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,33 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
+#ifndef HAL_CMD_USART_H
+#define HAL_CMD_USART_H
 
-#include "system.h"
+#include "usart_bauds.h"
+#include "cmd_usart.h"
 
-void hal_wdg_v_kick( void );
+#include "udp.h"
+
+// #define HAL_CMD_USART 				UART4
+
+// #define HAL_CMD_USART_RX_BUF_SIZE 	600
+// #define HAL_CMD_USART_TX_BUF_SIZE 	600
+
+#define CMD_USART_MAX_PACKET_LEN    548
+
+#define CMD_USART_TIMEOUT_MS        250
+
+#define CMD_USART_VERSION           0x02
+#define CMD_USART_UDP_SOF           0x85
+#define CMD_USART_UDP_ACK           0x97
+#define CMD_USART_UDP_NAK           0x14
+
+typedef struct  __attribute__((packed)){
+    uint16_t lport;
+    uint16_t rport;
+    uint16_t data_len;
+    uint16_t header_crc;
+} cmd_usart_udp_header_t;
 
 #endif
-

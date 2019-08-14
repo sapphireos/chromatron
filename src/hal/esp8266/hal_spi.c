@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,40 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
-
+#include "cpu.h"
 #include "system.h"
+#include "spi.h"
+#include "hal_spi.h"
+#include "hal_io.h"
 
-void hal_wdg_v_kick( void );
 
-#endif
+void spi_v_init( uint8_t channel, uint32_t freq ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+}
+
+uint32_t spi_u32_get_freq( uint8_t channel ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+	return 0;
+}
+
+uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+	return 0;
+}
+
+void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
+
+	
+}
+
+void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
+
+	
+}
 

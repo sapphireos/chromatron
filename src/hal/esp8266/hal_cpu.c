@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,14 +19,55 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
+
+#include "hal_cpu.h"
+#include "cpu.h"
+#include "hal_timers.h"
 
 #include "system.h"
 
-void hal_wdg_v_kick( void );
+void cpu_v_init( void ){
 
-#endif
+    DISABLE_INTERRUPTS;
+
+
+}
+
+uint8_t cpu_u8_get_reset_source( void ){
+
+    return 0;
+}
+
+void cpu_v_clear_reset_source( void ){
+
+}
+
+void cpu_v_remap_isrs( void ){
+
+}
+
+void cpu_v_sleep( void ){
+
+}
+
+bool cpu_b_osc_fail( void ){
+
+    return 0;
+}
+
+uint32_t cpu_u32_get_clock_speed( void ){
+
+    return 0;
+}
+
+void cpu_reboot( void ){
+
+    
+}
+
+void hal_cpu_v_delay_us( uint16_t us ){
+
+
+}
 

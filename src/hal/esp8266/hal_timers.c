@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,14 +19,45 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
-
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
 
 #include "system.h"
 
-void hal_wdg_v_kick( void );
+#include "hal_cpu.h"
+#include "os_irq.h"
+#include "timers.h"
+#include "power.h"
+#include "hal_timers.h"
+#include "hal_watchdog.h"
 
-#endif
 
+void hal_timer_v_init( void ){
+
+}
+
+bool tmr_b_io_timers_running( void ){
+
+    return TRUE;
+}
+
+
+uint64_t tmr_u64_get_system_time_us( void ){
+
+    return 0;    
+}
+
+
+int8_t tmr_i8_set_alarm_microseconds( int64_t alarm ){
+
+    return 0;
+}
+
+void tmr_v_cancel_alarm( void ){
+
+    
+}
+
+// return true if alarm is armed
+bool tmr_b_alarm_armed( void ){
+
+    return 0;
+}

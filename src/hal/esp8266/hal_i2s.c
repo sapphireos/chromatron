@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,17 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
-
 #include "system.h"
+#include "threading.h"
 
-void hal_wdg_v_kick( void );
+#include "hal_io.h"
+#include "hal_i2s.h"
 
-#endif
 
+void hal_i2s_v_init( void ){
+
+}
+
+void hal_i2s_v_start( uint16_t sample_rate, uint8_t _sample_bits ){
+
+}

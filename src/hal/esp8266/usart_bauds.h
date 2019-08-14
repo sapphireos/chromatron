@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,14 +19,30 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
 
-#include "system.h"
 
-void hal_wdg_v_kick( void );
+#ifndef _USART_BAUDS_H
+#define _USART_BAUDS_H
+
+typedef uint32_t baud_t;
+
+#define BAUD_2400       2400
+#define BAUD_4800       4800
+#define BAUD_9600       9600
+#define BAUD_14400      14400
+#define BAUD_19200      19200
+#define BAUD_28800      28800
+#define BAUD_38400      38400
+#define BAUD_57600      57600
+#define BAUD_76800      76800
+#define BAUD_115200     115200
+#define BAUD_230400     230400
+#define BAUD_250000     250000
+#define BAUD_460800     460800
+#define BAUD_500000     500000
+#define BAUD_1000000    1000000
+#define BAUD_2000000    2000000
+#define BAUD_74880      74880
 
 #endif
-

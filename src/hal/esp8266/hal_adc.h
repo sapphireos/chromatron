@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,14 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
 
-#include "system.h"
+#ifndef _HAL_ADC_H
+#define _HAL_ADC_H
 
-void hal_wdg_v_kick( void );
+#include "hal_io.h"
+
+// #define ADC_CHANNEL_VSUPPLY     (IO_PIN_ANALOG_COUNT) 	   // divided VIN measurement
+// #define ADC_CHANNEL_REF         (IO_PIN_ANALOG_COUNT + 1) // ADC reference
+
 
 #endif
-

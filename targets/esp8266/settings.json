@@ -7,7 +7,7 @@
 
     "C_FLAGS": [
         "-std=gnu99",
-        "-Wpointer-arith",
+        "-Wno-pointer-arith",
         "-Wno-implicit-function-declaration", 
         "-Wl,-EL", 
         "-fno-inline-functions",
@@ -24,6 +24,7 @@
         "-fno-builtin-printf",
         "-DPLATFORMIO=30605",
         "-DESP8266",
+        "-DCHROMATRON_ESP8266",
         "-DARDUINO_ARCH_ESP8266",
         "-DARDUINO_ESP8266_ESP12",
         "-DF_CPU=80000000L",

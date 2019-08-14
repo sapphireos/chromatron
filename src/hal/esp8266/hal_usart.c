@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,14 +19,42 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
-
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
 
 #include "system.h"
+#include "timers.h"
 
-void hal_wdg_v_kick( void );
 
-#endif
+#include "hal_usart.h"
 
+void usart_v_init( uint8_t channel ){
+
+
+}
+
+void usart_v_set_baud( uint8_t channel, baud_t baud ){
+
+}
+
+void usart_v_set_double_speed( uint8_t channel, bool clk2x ){
+
+
+}
+
+void usart_v_send_byte( uint8_t channel, uint8_t data ){
+
+}
+
+void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
+
+
+}
+
+int16_t usart_i16_get_byte( uint8_t channel ){
+
+	return -1;
+}
+
+uint8_t usart_u8_bytes_available( uint8_t channel ){
+
+	return 0;
+}

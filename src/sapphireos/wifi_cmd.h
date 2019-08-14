@@ -26,7 +26,7 @@
 #include "ip.h"
 #include "catbus_common.h"
 
-#ifndef ESP8266
+#if !defined(ESP8266) || defined(CHROMATRON_ESP8266)
 typedef ip_addr_t sos_ip_addr_t;
 #endif
 
