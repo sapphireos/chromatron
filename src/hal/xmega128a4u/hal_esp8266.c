@@ -103,7 +103,9 @@ int16_t hal_wifi_i16_usart_get_char( void ){
 
 void start_timeout( uint32_t microseconds ){
 
+    // reset timer including count
     WIFI_TIMER.CTRLA = 0;
+    WIFI_TIMER.CNT = 0;
 
     timed_out = FALSE;
 
