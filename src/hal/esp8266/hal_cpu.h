@@ -26,6 +26,7 @@
 
 #include "bool.h"
 
+#define trace_printf(...)
 
 #define ENABLE_INTERRUPTS 
 #define DISABLE_INTERRUPTS
