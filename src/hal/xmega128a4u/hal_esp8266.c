@@ -108,10 +108,10 @@ void start_timeout( uint32_t microseconds ){
     timed_out = FALSE;
 
     // set timeout
-    WIFI_TIMER.PER = microseconds / 16;
+    WIFI_TIMER.PER = microseconds / 32;
 
     // start timeout
-    WIFI_TIMER.CTRLA = TC_CLKSEL_DIV2_gc;
+    WIFI_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
 }
 
 bool is_timeout( void ){
