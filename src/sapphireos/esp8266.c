@@ -947,6 +947,8 @@ PT_BEGIN( pt );
 
             if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_UDP, data, udp_header.len, 0 ) < 0 ){
 
+                netmsg_v_release( rx_netmsg );
+
                 continue;
             }
 
