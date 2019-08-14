@@ -688,6 +688,7 @@ class Builder(object):
 
             cmd = cmd.replace('%(OBJ_DIR)', self.settings["OBJ_DIR"])
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
+            cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
             if self.settings["TOOLCHAIN"] != "XTENSA":
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
@@ -918,6 +919,7 @@ class HexBuilder(Builder):
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
+        cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
@@ -1286,6 +1288,7 @@ class ExeBuilder(Builder):
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
+        cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
