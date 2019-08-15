@@ -1103,18 +1103,22 @@ class AppBuilder(HexBuilder):
         ih.tobinfile('firmware.bin')
 
         # get loader info
-        loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.target_type)
-
-        # create loader image
-        loader_hex = os.path.join(loader_project.target_dir, "main.hex")
         try:
-            self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
-        
-        except IOError:
-            logging.info("Loader image not found, cannot create loader_image.hex")
+            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.target_type)
 
-        except Exception as e:
-            logging.exception(e)
+            # create loader image
+            loader_hex = os.path.join(loader_project.target_dir, "main.hex")
+            try:
+                self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+            
+            except IOError:
+                logging.info("Loader image not found, cannot create loader_image.hex")
+
+            except Exception as e:
+                logging.exception(e)
+
+        except KeyError:
+            logging.info("Loader project not found, cannot create loader_image.hex")
 
         # create sha256 of binary
         sha256 = hashlib.sha256(ih.tobinstr())
