@@ -242,7 +242,7 @@ SECTIONS
     *(.gnu.version)
     _text_end = ABSOLUTE(.);
     _etext = .;
-  } >iram1_0_seg :iram1_0_phdr
+  } >irom0_0_seg :irom0_0_phdr
 
   .lit4 : ALIGN(4)
   {
