@@ -1079,20 +1079,13 @@ restart:
 
             log_v_debug_P( PSTR("wifi loader timeout") );
 
+            sys_v_reboot_delay(SYS_MODE_SAFE);
             THREAD_RESTART( pt );
         }
 
         uint8_t buf[32];
         memset( buf, 0xff, sizeof(buf) );
 
-
-        // ESP seems to miss the first sync for some reason,
-        // so we'll just send twice.
-        // it's not really a big deal from a timing standpoint since
-        // we'd try again in a few milliseconds, but if the wait response
-        // function is doing error logging, it saves us a pointless error
-        // message on every start up.
-        esp_v_send_sync();
         esp_v_send_sync();
 
         // blocking wait!

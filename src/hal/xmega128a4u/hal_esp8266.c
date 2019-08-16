@@ -120,7 +120,7 @@ void disable_rx_dma( void ){
 
 static uint8_t get_insert_ptr( void ){
 
-    return ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
+    return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
 }
 
 // static bool rx_dma_enabled( void ){

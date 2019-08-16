@@ -26,7 +26,7 @@
 
 #define MD5_LEN 16
 
-#define ESP_SYNC_TIMEOUT 		5000
+#define ESP_SYNC_TIMEOUT 		15000
 #define ESP_CMD_TIMEOUT 		50000
 #define ESP_CESANTA_TIMEOUT 	50000
 #define ESP_ERASE_TIMEOUT 		5000000
@@ -95,7 +95,7 @@ typedef struct __attribute__((packed)){
 void esp_v_send_header( uint8_t op, uint16_t len, uint32_t checksum );
 void esp_v_command( uint8_t op, uint8_t *data, uint16_t len, uint32_t checksum );
 void esp_v_send_sync( void );
-int8_t esp_i8_sync( void );
+// int8_t esp_i8_sync( void );
 int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout );
 int8_t esp_i8_load_cesanta_stub( void );
 int8_t esp_i8_load_flash( file_t file );
