@@ -323,7 +323,7 @@ ISR(GFX_TIMER_CCC_vect){
 }
 
 void gfx_v_init( void ){
-return;
+
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
         // override size settings
@@ -754,6 +754,8 @@ PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    THREAD_EXIT( pt );
+
     while(1){
 
         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && !vm_b_running() );

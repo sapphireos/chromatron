@@ -25,6 +25,32 @@
 
 #include "vm_core.h"
 
+// gfx param data is defined in gfx_lib.h
+#define WIFI_DATA_ID_GFX_PARAMS         0x05
+
+typedef struct __attribute__((packed)){
+    uint16_t r;
+    uint16_t g;
+    uint16_t b;
+} wifi_msg_rgb_pix0_t;
+#define WIFI_DATA_ID_RGB_PIX0           0x06
+
+typedef struct __attribute__((packed)){
+    uint16_t index;
+    uint8_t count;
+    uint8_t rgbd_array[WIFI_RGB_DATA_N_PIXELS * 4];
+} wifi_msg_rgb_array_t;
+#define WIFI_DATA_ID_RGB_ARRAY          0x07
+
+typedef struct __attribute__((packed)){
+    uint16_t index;
+    uint8_t count;
+    uint8_t padding;
+    uint8_t hsv_array[WIFI_HSV_DATA_N_PIXELS * 6];
+} wifi_msg_hsv_array_t;
+#define WIFI_DATA_ID_HSV_ARRAY          0x0A
+
+
 typedef struct __attribute__((packed)){
     uint32_t vm_id;
 } wifi_msg_reset_vm_t;
