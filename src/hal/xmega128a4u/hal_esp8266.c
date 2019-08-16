@@ -251,20 +251,12 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
 void hal_wifi_v_usart_flush( void ){
 
-    bool enabled = rx_dma_enabled();
-
-    if( enabled ){
-
-        disable_rx_dma();
-    }
+    disable_rx_dma();
 
 	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
     extract_ptr = 0;
 
-    if( enabled ){
-        
-        enable_rx_dma();
-    }
+    enable_rx_dma();
 }
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
@@ -358,9 +350,13 @@ void hal_wifi_v_enter_boot_mode( void ){
     WIFI_BOOT_PORT.WIFI_BOOT_PINCTRL    = PORT_OPC_PULLDOWN_gc;
     WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
     WIFI_CTS_PORT.WIFI_CTS_PINCTRL      = PORT_OPC_PULLDOWN_gc;
+
+    enable_rx_dma();
 }
 
 void hal_wifi_v_enter_normal_mode( void ){
+
+    disable_rx_dma();
 
     // set up IO
     WIFI_BOOT_PORT.DIRCLR               = ( 1 << WIFI_BOOT_PIN );
