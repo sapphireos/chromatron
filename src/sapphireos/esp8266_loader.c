@@ -290,12 +290,6 @@ int8_t esp_i8_wait_response( uint8_t *buf, uint8_t len, uint32_t timeout ){
     }
 
 end:
-
-    if( status != 0 ){
-
-        log_v_debug_P( PSTR("loader error: %d"), status );
-    }
-
     return status;
 }
 

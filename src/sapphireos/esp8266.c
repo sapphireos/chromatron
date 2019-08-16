@@ -264,6 +264,8 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
     return -3;
 }
 
+static uint8_t fail;
+
 int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
 
     if( bytes_read != 0 ){
@@ -305,20 +307,20 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 
         if( header->len > max_len ){
 
-            log_v_debug_P( PSTR("invalid len") );
+            log_v_debug_P( PSTR("invalid len 0x%02x"), header->data_id );
             continue;
         }
 
         if( hal_wifi_i8_usart_receive( data, header->len, WIFI_COMM_TIMEOUT ) < 0 ){
 
-            log_v_debug_P( PSTR("data timeout") );
+            log_v_debug_P( PSTR("data timeout 0x%02x"), header->data_id );
             continue;
         }
 
         uint16_t crc;
         if( hal_wifi_i8_usart_receive( (uint8_t *)&crc, sizeof(crc), WIFI_COMM_TIMEOUT ) < 0 ){
 
-            log_v_debug_P( PSTR("crc timeout") );
+            log_v_debug_P( PSTR("crc timeout 0x%02x"), header->data_id );
             continue;
         }
 
@@ -326,14 +328,14 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         header->header_crc = HTONS( header->header_crc );
         if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
 
-            log_v_debug_P( PSTR("header crc fail") );
+            log_v_debug_P( PSTR("header crc fail 0x%02x"), header->data_id );
             hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
             continue;
         }
 
         if( crc_u16_block( data, header->len ) != crc ){
 
-            log_v_debug_P( PSTR("data crc fail") );
+            log_v_debug_P( PSTR("data crc fail 0x%02x"), header->data_id );
             hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
             continue;
         }
@@ -351,7 +353,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
             // bytes read is null, received data is expected to be fixed size
             if( header->len != max_len ){
 
-                log_v_debug_P( PSTR("wrong data len") );
+                log_v_debug_P( PSTR("wrong data len: 0x%02x"), header->data_id );
                 status = -5;
                 goto error;
             }
@@ -367,6 +369,13 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 error:
     hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
     log_v_debug_P( PSTR("rx fail") );
+    fail++;
+
+    if(fail > 4){
+
+        sys_v_reboot_delay(SYS_MODE_SAFE);
+    }
+
     return status;
 }
 
