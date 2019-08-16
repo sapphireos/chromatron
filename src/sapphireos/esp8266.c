@@ -259,12 +259,10 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
     }
 
-    log_v_debug_P( PSTR("msg failed") );
+    log_v_debug_P( PSTR("msg failed: 0x%02x"), data_id );
 
     return -3;
 }
-
-static uint8_t fail;
 
 int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uint16_t max_len, uint16_t *bytes_read ){
 
@@ -353,7 +351,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
             // bytes read is null, received data is expected to be fixed size
             if( header->len != max_len ){
 
-                log_v_debug_P( PSTR("wrong data len: 0x%02x"), header->data_id );
+                log_v_debug_P( PSTR("wrong data len: 0x%02x %d != %d"), header->data_id, header->len, max_len );
                 status = -5;
                 goto error;
             }
@@ -369,12 +367,6 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 error:
     hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
     log_v_debug_P( PSTR("rx fail") );
-    fail++;
-
-    if(fail > 4){
-
-        sys_v_reboot_delay(SYS_MODE_SAFE);
-    }
 
     return status;
 }

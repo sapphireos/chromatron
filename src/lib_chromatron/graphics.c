@@ -695,9 +695,10 @@ PT_BEGIN( pt );
 
             wifi_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, &page, sizeof(page) );
 
-            wifi_msg_hsv_array_t msg;
+            wifi_msg_hsv_array_t msg;   
+            uint16_t bytes_read;
 
-            if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, (uint8_t *)&msg, sizeof(msg), 0 ) < 0 ){
+            if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
 
                 continue;
             }
