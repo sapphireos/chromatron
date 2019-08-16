@@ -1362,6 +1362,11 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 void wifi_v_init( void ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     hal_wifi_v_init();
 
     wifi_status = WIFI_STATE_BOOT;

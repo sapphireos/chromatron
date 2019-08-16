@@ -262,7 +262,7 @@ void sys_v_check_io_for_safe_mode( void ){
 }
 
 bool sys_b_is_recovery_mode( void ){
-
+return FALSE;
     uint8_t count = 0;
     cfg_i8_get( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
 

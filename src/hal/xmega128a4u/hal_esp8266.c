@@ -123,10 +123,10 @@ static uint8_t get_insert_ptr( void ){
     return ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
 }
 
-static bool rx_dma_enabled( void ){
+// static bool rx_dma_enabled( void ){
 
-    return DMA.WIFI_DMA_CH.CTRLA != 0;
-}
+//     return DMA.WIFI_DMA_CH.CTRLA != 0;
+// }
 
 static int16_t extract_byte( void ){
     
@@ -253,7 +253,7 @@ void hal_wifi_v_usart_flush( void ){
 
     disable_rx_dma();
 
-	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
+	BUSY_WAIT( usart_i16_get_byte( &WIFI_USART ) >= 0 );
     extract_ptr = 0;
 
     enable_rx_dma();
