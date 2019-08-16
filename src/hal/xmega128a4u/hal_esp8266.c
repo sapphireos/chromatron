@@ -43,7 +43,9 @@ static uint32_t current_tx_bytes;
 static uint32_t current_rx_bytes;
 static volatile bool timed_out;
 
-static volatile uint8_t rx_dma_buf[64];
+
+// 2.5 us per byte at 4 MHZ
+static volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
 static uint8_t extract_ptr;
 
 ISR(WIFI_TIMER_ISR){
@@ -82,7 +84,7 @@ void hal_wifi_v_init( void ){
     WIFI_IRQ_PORT.OUTCLR                = ( 1 << WIFI_IRQ_PIN );
 }
 
-void enable_rx_dma( void ){
+static void enable_rx_dma( void ){
 
     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | 
                             DMA_CH_REPEAT_bm | 
@@ -109,9 +111,26 @@ void enable_rx_dma( void ){
     DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
 }
 
-int16_t extract_byte( void ){
+void disable_rx_dma( void ){
+
+    DMA.WIFI_DMA_CH.CTRLA = 0;
+
+    extract_ptr = 0;
+}
+
+static uint8_t get_insert_ptr( void ){
+
+    return ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
+}
+
+static bool rx_dma_enabled( void ){
+
+    return DMA.WIFI_DMA_CH.CTRLA != 0;
+}
+
+static int16_t extract_byte( void ){
     
-    uint8_t insert_ptr = ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
+    uint8_t insert_ptr = get_insert_ptr();
 
     if( insert_ptr == extract_ptr ){
 
@@ -129,41 +148,11 @@ int16_t extract_byte( void ){
     return temp;
 }
 
-// uint8_t dma_rx_bytes( void ){
+static bool dma_rx_available( void ){
 
-//     int16_t ptr1 = DMA.WIFI_DMA_CH.TRFCNT;
-//     int16_t ptr2 = extract_ptr;
+    uint8_t insert_ptr = get_insert_ptr();
 
-//     if( ptr1 > ptr2 ){
-
-
-//     }
-
-//     return 0;
-
-//     // uint16_t dest_addr0, dest_addr1;
-
-//     // do{
-
-//     //     volatile uint8_t temp;
-//     //     temp = DMA.WIFI_DMA_CH.DESTADDR0;
-//     //     dest_addr0 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
-
-//     //     temp = DMA.WIFI_DMA_CH.DESTADDR0;
-//     //     dest_addr1 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
-
-//     // } while( dest_addr0 != dest_addr1 );
-
-//     // uint8_t len = dest_addr0 - (uint16_t)rx_dma_buf;
-
-//     // return len;
-// }
-
-void disable_rx_dma( void ){
-
-    DMA.WIFI_DMA_CH.CTRLA = 0;
-
-    extract_ptr = 0;
+    return insert_ptr != extract_ptr;
 }
 
 void hal_wifi_v_reset( void ){
@@ -192,11 +181,10 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
 
 int16_t hal_wifi_i16_usart_get_char( void ){
 
-	// return usart_i16_get_byte( &WIFI_USART );
     return extract_byte();
 }
 
-void start_timeout( uint32_t microseconds ){
+static void start_timeout( uint32_t microseconds ){
 
     // reset timer including count
     WIFI_TIMER.CTRLA = 0;
@@ -211,7 +199,7 @@ void start_timeout( uint32_t microseconds ){
     WIFI_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
 }
 
-bool is_timeout( void ){
+static bool is_timeout( void ){
 
     ATOMIC;
     bool temp = timed_out;
@@ -237,7 +225,7 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
 
 bool hal_wifi_b_usart_rx_available( void ){
 
-    return usart_u8_bytes_available( &WIFI_USART ) > 0;
+    return dma_rx_available();
 }
 
 int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout ){
@@ -263,10 +251,20 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
 void hal_wifi_v_usart_flush( void ){
 
-    uint8_t insert_ptr = ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
+    bool enabled = rx_dma_enabled();
 
-	// BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
-    extract_ptr = insert_ptr;
+    if( enabled ){
+
+        disable_rx_dma();
+    }
+
+	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
+    extract_ptr = 0;
+
+    if( enabled ){
+        
+        enable_rx_dma();
+    }
 }
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
