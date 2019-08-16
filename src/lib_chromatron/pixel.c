@@ -611,6 +611,9 @@ void pixel_v_init( void ){
 
     ATOMIC;
 
+    // enable DMA controller
+    DMA.CTRL |= DMA_ENABLE_bm;
+
     // stop timer
     // PIXEL_TIMER.CTRLA = 0;
     // PIXEL_TIMER.CTRLB = 0;

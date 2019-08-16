@@ -43,6 +43,9 @@ static uint32_t current_tx_bytes;
 static uint32_t current_rx_bytes;
 static volatile bool timed_out;
 
+static volatile uint8_t rx_dma_buf[64];
+static uint8_t extract_ptr;
+
 ISR(WIFI_TIMER_ISR){
 
     WIFI_TIMER.CTRLA = 0;
@@ -52,6 +55,13 @@ ISR(WIFI_TIMER_ISR){
 
 void hal_wifi_v_init( void ){
 
+    // enable DMA controller
+    DMA.CTRL |= DMA_ENABLE_bm;
+
+    // reset DMA channels
+    DMA.WIFI_DMA_CH.CTRLA = 0;
+    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_RESET_bm;
+    
     // reset timer
     WIFI_TIMER.CTRLA = 0;
     WIFI_TIMER.CTRLB = 0;
@@ -70,6 +80,90 @@ void hal_wifi_v_init( void ){
     WIFI_CTS_PORT.WIFI_CTS_PINCTRL      = PORT_OPC_PULLDOWN_gc;
     WIFI_IRQ_PORT.WIFI_IRQ_PINCTRL      = PORT_OPC_PULLDOWN_gc;
     WIFI_IRQ_PORT.OUTCLR                = ( 1 << WIFI_IRQ_PIN );
+}
+
+void enable_rx_dma( void ){
+
+    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | 
+                            DMA_CH_REPEAT_bm | 
+                            DMA_CH_BURSTLEN_1BYTE_gc;
+
+    DMA.WIFI_DMA_CH.CTRLB = 0;
+    DMA.WIFI_DMA_CH.REPCNT = 0; // unlimited repeat
+    DMA.WIFI_DMA_CH.ADDRCTRL =  DMA_CH_SRCRELOAD_NONE_gc | 
+                                DMA_CH_SRCDIR_FIXED_gc | 
+                                DMA_CH_DESTRELOAD_BLOCK_gc | // reset address at end of block
+                                DMA_CH_DESTDIR_INC_gc;
+
+    DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
+    DMA.WIFI_DMA_CH.TRFCNT = sizeof(rx_dma_buf);
+
+    DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 0 ) & 0xFF;
+    DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 8 ) & 0xFF;
+    DMA.WIFI_DMA_CH.SRCADDR2 = 0;
+
+    DMA.WIFI_DMA_CH.DESTADDR0 = ( ( (uint16_t)rx_dma_buf ) >> 0 ) & 0xFF;
+    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_dma_buf ) >> 8 ) & 0xFF;
+    DMA.WIFI_DMA_CH.DESTADDR2 = 0;
+
+    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
+}
+
+int16_t extract_byte( void ){
+    
+    uint8_t insert_ptr = ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
+
+    if( insert_ptr == extract_ptr ){
+
+        return -1;
+    }
+
+    uint8_t temp = rx_dma_buf[extract_ptr];
+
+    extract_ptr++;
+    if( extract_ptr >= sizeof(rx_dma_buf) ){
+
+        extract_ptr = 0;
+    }    
+
+    return temp;
+}
+
+// uint8_t dma_rx_bytes( void ){
+
+//     int16_t ptr1 = DMA.WIFI_DMA_CH.TRFCNT;
+//     int16_t ptr2 = extract_ptr;
+
+//     if( ptr1 > ptr2 ){
+
+
+//     }
+
+//     return 0;
+
+//     // uint16_t dest_addr0, dest_addr1;
+
+//     // do{
+
+//     //     volatile uint8_t temp;
+//     //     temp = DMA.WIFI_DMA_CH.DESTADDR0;
+//     //     dest_addr0 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+//     //     temp = DMA.WIFI_DMA_CH.DESTADDR0;
+//     //     dest_addr1 = temp + ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+//     // } while( dest_addr0 != dest_addr1 );
+
+//     // uint8_t len = dest_addr0 - (uint16_t)rx_dma_buf;
+
+//     // return len;
+// }
+
+void disable_rx_dma( void ){
+
+    DMA.WIFI_DMA_CH.CTRLA = 0;
+
+    extract_ptr = 0;
 }
 
 void hal_wifi_v_reset( void ){
@@ -98,7 +192,8 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
 
 int16_t hal_wifi_i16_usart_get_char( void ){
 
-	return usart_i16_get_byte( &WIFI_USART );
+	// return usart_i16_get_byte( &WIFI_USART );
+    return extract_byte();
 }
 
 void start_timeout( uint32_t microseconds ){
@@ -168,7 +263,10 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
 void hal_wifi_v_usart_flush( void ){
 
-	BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
+    uint8_t insert_ptr = ( sizeof(rx_dma_buf) - 1 ) - DMA.WIFI_DMA_CH.TRFCNT;
+
+	// BUSY_WAIT( hal_wifi_i16_usart_get_char() >= 0 );
+    extract_ptr = insert_ptr;
 }
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
@@ -217,6 +315,8 @@ void hal_wifi_v_set_cts( bool value ){
 // high = normal execution
 
 void hal_wifi_v_enter_boot_mode( void ){
+
+    disable_rx_dma();
 
     // set up IO
     WIFI_PD_PORT.DIRSET                 = ( 1 << WIFI_PD_PIN );
@@ -303,7 +403,9 @@ void hal_wifi_v_enter_normal_mode( void ){
     WIFI_USART_RXD_PORT.DIRCLR          = ( 1 << WIFI_USART_RXD_PIN );
     usart_v_init( &WIFI_USART );
     usart_v_set_double_speed( &WIFI_USART, TRUE );
-    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );    
+    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
+
+    enable_rx_dma();
 }
 
 

@@ -53,6 +53,12 @@
 #define WIFI_CTS_PIN             6
 #define WIFI_CTS_PINCTRL         PIN6CTRL
 
+// DMA
+#define WIFI_DMA_CH              CH2
+#define WIFI_DMA_CH_TRNIF_FLAG   DMA_CH2TRNIF_bm
+#define WIFI_DMA_CH_vect         DMA_CH2_vect
+#define WIFI_USART_DMA_TRIG      DMA_CH_TRIGSRC_USARTE0_RXC_gc
+
 void hal_wifi_v_init( void );
 
 void hal_wifi_v_reset( void );
