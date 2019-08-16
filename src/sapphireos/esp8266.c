@@ -1144,7 +1144,7 @@ restart:
     status_led_v_set( 1, STATUS_LED_BLUE );
 
     trace_printf( "Cesanta flasher ready!\r\n" );
-    log_v_debug_P( PSTR("Cesanta flasher ready!") );
+    // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
     uint32_t file_len;
     cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &file_len );
@@ -1284,7 +1284,7 @@ error:
 run_wifi:
 
     trace_printf( "Starting wifi!\r\n" );
-    log_v_debug_P( PSTR("Starting wifi!\r\n") );
+    // log_v_debug_P( PSTR("Starting wifi!") );
 
     thread_t_create_critical( 
                      wifi_comm_thread,

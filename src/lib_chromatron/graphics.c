@@ -323,7 +323,7 @@ ISR(GFX_TIMER_CCC_vect){
 }
 
 void gfx_v_init( void ){
-
+// return;
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
         // override size settings
@@ -693,14 +693,17 @@ PT_BEGIN( pt );
 
         for( uint8_t page = 0; page < pages; page++ ){
 
-            wifi_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, &page, sizeof(page) );
+            if( wifi_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, &page, sizeof(page) ) < 0 ){
+
+                break;
+            }
 
             wifi_msg_hsv_array_t msg;   
             uint16_t bytes_read;
 
             if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
 
-                continue;
+                break;
             }
 
             // unpack HSV pointers
