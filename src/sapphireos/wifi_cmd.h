@@ -83,13 +83,13 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint8_t flags;
 } wifi_msg_status_t;
-#define WIFI_DATA_ID_STATUS             0x01
+#define WIFI_DATA_ID_STATUS             0x11
 
 typedef struct __attribute__((packed)){
     char ssid[WIFI_MAX_APS][WIFI_SSID_LEN];
     char pass[WIFI_MAX_APS][WIFI_SSID_LEN];
 } wifi_msg_connect_t;
-#define WIFI_DATA_ID_CONNECT            0x02
+#define WIFI_DATA_ID_CONNECT            0x12
 
 typedef struct __attribute__((packed)){
     uint8_t version_major;
@@ -117,12 +117,24 @@ typedef struct __attribute__((packed)){
     uint16_t mem_avg_time;
     int8_t wifi_router;
 } wifi_msg_info_t;
-#define WIFI_DATA_ID_INFO               0x03
+#define WIFI_DATA_ID_INFO               0x13
+
+#define WIFI_DATA_ID_DEBUG_PRINT        0x14
+
+typedef struct __attribute__((packed)){
+    bool low_power;
+    bool led_quiet;
+    int8_t midi_channel;
+    uint8_t padding[1];
+} wifi_msg_set_options_t;
+#define WIFI_DATA_ID_SET_OPTIONS        0x15
+
+#define WIFI_DATA_ID_SHUTDOWN           0x1F
 
 typedef struct __attribute__((packed)){
     uint16_t ports[WIFI_MAX_PORTS];
 } wifi_msg_ports_t;
-#define WIFI_DATA_ID_PORTS              0x04
+#define WIFI_DATA_ID_PORTS              0x21
 
 typedef struct __attribute__((packed)){
     sos_ip_addr_t addr;
@@ -130,19 +142,17 @@ typedef struct __attribute__((packed)){
     uint16_t rport;
     uint16_t len;
 } wifi_msg_udp_header_t;
-#define WIFI_DATA_ID_PEEK_UDP          0x0B
-#define WIFI_DATA_ID_GET_UDP           0x0C
-#define WIFI_DATA_ID_SEND_UDP          0x0D
-
-
+#define WIFI_DATA_ID_PEEK_UDP          0x22
+#define WIFI_DATA_ID_GET_UDP           0x23
+#define WIFI_DATA_ID_SEND_UDP          0x24
 
 typedef struct __attribute__((packed)){
     char ssid[WIFI_SSID_LEN];
     char pass[WIFI_SSID_LEN];
 } wifi_msg_ap_connect_t;
-#define WIFI_DATA_ID_AP_MODE            0x08
+#define WIFI_DATA_ID_AP_MODE            0x25
 
-// #define WIFI_DATA_ID_WIFI_SCAN         0x13
+// #define WIFI_DATA_ID_WIFI_SCAN         0x26
 
 // typedef struct __attribute__((packed)){
 //     uint32_t ssid_hash;
@@ -155,28 +165,15 @@ typedef struct __attribute__((packed)){
 //     uint8_t padding[3];
 //     wifi_network_t networks[WIFI_SCAN_RESULTS_LEN];
 // } wifi_msg_scan_results_t;
-// #define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x14
+// #define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x27
 
 typedef struct __attribute__((packed)){
     uint8_t tag;
     uint8_t padding[3];
     catbus_meta_t meta;
 } wifi_msg_kv_data_t;
-#define WIFI_DATA_ID_KV_DATA            0x32
-#define WIFI_DATA_ID_GET_KV_DATA        0x33
-
-#define WIFI_DATA_ID_DEBUG_PRINT        0x40
-
-typedef struct __attribute__((packed)){
-    bool low_power;
-    bool led_quiet;
-    int8_t midi_channel;
-    uint8_t padding[1];
-} wifi_msg_set_options_t;
-#define WIFI_DATA_ID_SET_OPTIONS        0x60
-
-
-#define WIFI_DATA_ID_SHUTDOWN           0x98
+#define WIFI_DATA_ID_KV_DATA            0x31
+#define WIFI_DATA_ID_GET_KV_DATA        0x32
 
 #endif
 
