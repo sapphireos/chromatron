@@ -2619,18 +2619,21 @@ int8_t vm_i8_run_threads(
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
         // check thread delay
         if( state->threads[i].delay_ticks > 0 ){
 
             // decrement
             state->threads[i].delay_ticks--;
 
-            continue;
-        }
+            if( state->threads[i].delay_ticks > 0 ){            
 
-        if( state->threads[i].func_addr == 0xffff ){
-
-            continue;
+                continue;
+            }
         }
 
         state->current_thread = i;
