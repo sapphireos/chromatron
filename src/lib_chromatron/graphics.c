@@ -437,28 +437,28 @@ void gfx_v_sync_params( void ){
     wifi_i8_send_msg( WIFI_DATA_ID_GFX_PARAMS, (uint8_t *)&params, sizeof(params) );
 }
 
-int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
+// int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
     
-    if( data_id == WIFI_DATA_ID_VM_INFO ){
+//     if( data_id == WIFI_DATA_ID_VM_INFO ){
 
-        if( len != sizeof(wifi_msg_vm_info_t) ){
+//         if( len != sizeof(wifi_msg_vm_info_t) ){
 
-            return -1;
-        }
+//             return -1;
+//         }
 
-        wifi_msg_vm_info_t *msg = (wifi_msg_vm_info_t *)data;
+//         wifi_msg_vm_info_t *msg = (wifi_msg_vm_info_t *)data;
 
-        vm_v_received_info( msg );
-    }
-    else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
-             ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
-             ( data_id == WIFI_DATA_ID_VM_SYNC_DONE ) ){
+//         vm_v_received_info( msg );
+//     }
+//     else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
+//              ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
+//              ( data_id == WIFI_DATA_ID_VM_SYNC_DONE ) ){
 
-        vm_sync_v_process_msg( data_id, data, len );
-    }
+//         vm_sync_v_process_msg( data_id, data, len );
+//     }
 
-    return 0;    
-}
+//     return 0;    
+// }
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
@@ -788,15 +788,7 @@ PT_BEGIN( pt );
 
         if( flags & FLAG_RUN_VM_LOOP ){
 
-            for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
-                    
-                if( vm_b_is_vm_running( i ) ){
-
-                    wifi_msg_run_vm_t msg;
-                    msg.vm_id = i;
-                    wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&msg, sizeof(msg) );
-                }
-            }
+            vm_v_run_loops();
         }
     }
             
