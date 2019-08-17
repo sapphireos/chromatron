@@ -37,7 +37,6 @@ void vm_v_init( void );
 void vm_v_run_faders( void );
 int8_t vm_i8_run_vm( uint8_t vm_id );
 void vm_v_process( void );
-void vm_v_send_info( void );
 void vm_v_reset(  uint8_t vm_index );
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t offset, uint8_t vm_index );
 int8_t vm_i8_start( uint32_t vm_index );

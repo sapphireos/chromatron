@@ -732,20 +732,6 @@ void vm_v_reset( void ){
     vm_reset[0] = TRUE;
 }
 
-void vm_v_received_info( wifi_msg_vm_info_t *msg ){
-
-    for( uint8_t i = 0; i < cnt_of_array(msg->vm_info); i++ ){
-
-        vm_status[i]        = msg->vm_info[i].status;
-        vm_loop_time[i]     = msg->vm_info[i].loop_time;
-        vm_thread_time[i]   = msg->vm_info[i].thread_time;
-        vm_max_cycles[i]    = msg->vm_info[i].max_cycles;
-    }
-
-    vm_fader_time           = msg->fader_time;
-    vm_total_size           = msg->vm_total_size;
-}
-
 bool vm_b_running( void ){
 
     for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){

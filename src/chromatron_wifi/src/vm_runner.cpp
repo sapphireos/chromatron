@@ -101,21 +101,6 @@ uint32_t elapsed_time_micros( uint32_t start_time ){
     return elapsed;
 }
 
-void vm_v_send_info( void ){
-
-    wifi_msg_vm_info_t msg;
-
-    for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
-
-        vm_v_get_info( i, &msg.vm_info[i] );
-    }
-
-    msg.fader_time      = vm_u16_get_fader_time();
-    msg.vm_total_size   = vm_u16_get_total_size();
-
-    intf_i8_send_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&msg, sizeof(msg) );
-}
-
 static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr ){
 
     if( vm_index >= VM_MAX_VMS ){
@@ -279,19 +264,19 @@ static int32_t elapsed_millis( uint32_t now, uint32_t start ){
 
 void vm_v_process( void ){
 
-    uint32_t now = millis();
-    int32_t elapsed = elapsed_millis( now, thread_tick );
-    thread_tick = now;
+    // uint32_t now = millis();
+    // int32_t elapsed = elapsed_millis( now, thread_tick );
+    // thread_tick = now;
 
-    while( elapsed > 0 ){ 
+    // while( elapsed > 0 ){ 
 
-        for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
+    //     for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
             
-            _vm_i8_run_vm( VM_RUN_THREADS, i, 0 );
-        }
+    //         _vm_i8_run_vm( VM_RUN_THREADS, i, 0 );
+    //     }
 
-        elapsed--;
-    }
+    //     elapsed--;
+    // }
 }
 
 void vm_v_reset( uint8_t vm_index ){
