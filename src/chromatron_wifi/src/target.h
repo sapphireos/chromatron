@@ -45,5 +45,6 @@
 #define VM_MAX_THREADS              4
 #define VM_MAX_IMAGE_SIZE   4096
 #define VM_MAX_CYCLES       32768
+#define VM_OPTIMIZED_DECODE
 
 #endif
