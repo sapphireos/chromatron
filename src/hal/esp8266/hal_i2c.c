@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,44 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
+#include "hal_io.h"
 
-#include "system.h"
+#include "hal_i2c.h"
 
-void hal_wdg_v_kick( void );
+#include "i2c.h"
 
-#endif
+
+void i2c_v_init( i2c_baud_t8 baud ){
+
+	
+}
+
+void i2c_v_set_pins( uint8_t clock, uint8_t data ){
+	// no-op on this platform
+}
+
+uint8_t i2c_u8_status( void ){
+
+    return 0;
+}
+
+void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
+
+	
+}
+
+void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
+
+	
+}
+
+void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
+
+    
+}
+
+void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
+
+    
+}
 

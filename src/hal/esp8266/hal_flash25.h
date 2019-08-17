@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,14 +19,12 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
+#ifndef _HAL_FLASH25_H
+#define _HAL_FLASH25_H
 
-#include "system.h"
 
-void hal_wdg_v_kick( void );
+void hal_flash25_v_init( void );
+
 
 #endif
-

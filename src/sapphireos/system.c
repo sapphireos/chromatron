@@ -691,7 +691,9 @@ PT_BEGIN( pt );
        reboot_delay--;
     }
 
+    #ifdef ENABLE_WIFI
     wifi_v_shutdown();
+    #endif
 
     #ifdef ENABLE_USB
     usb_v_shutdown();

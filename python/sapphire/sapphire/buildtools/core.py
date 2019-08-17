@@ -688,6 +688,7 @@ class Builder(object):
 
             cmd = cmd.replace('%(OBJ_DIR)', self.settings["OBJ_DIR"])
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
+            cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
             if self.settings["TOOLCHAIN"] != "XTENSA":
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
@@ -918,6 +919,7 @@ class HexBuilder(Builder):
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
+        cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
@@ -1101,18 +1103,22 @@ class AppBuilder(HexBuilder):
         ih.tobinfile('firmware.bin')
 
         # get loader info
-        loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.target_type)
-
-        # create loader image
-        loader_hex = os.path.join(loader_project.target_dir, "main.hex")
         try:
-            self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
-        
-        except IOError:
-            logging.info("Loader image not found, cannot create loader_image.hex")
+            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.target_type)
 
-        except Exception as e:
-            logging.exception(e)
+            # create loader image
+            loader_hex = os.path.join(loader_project.target_dir, "main.hex")
+            try:
+                self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+            
+            except IOError:
+                logging.info("Loader image not found, cannot create loader_image.hex")
+
+            except Exception as e:
+                logging.exception(e)
+
+        except KeyError:
+            logging.info("Loader project not found, cannot create loader_image.hex")
 
         # create sha256 of binary
         sha256 = hashlib.sha256(ih.tobinstr())
@@ -1286,6 +1292,7 @@ class ExeBuilder(Builder):
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
+        cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')

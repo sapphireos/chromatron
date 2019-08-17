@@ -26,11 +26,18 @@
 
 #include "bool.h"
 
-#define ENABLE_INTERRUPTS __enable_irq()
-#define DISABLE_INTERRUPTS __disable_irq()
+#define trace_printf(...)
 
-#define ATOMIC
-#define END_ATOMIC
+#define ENABLE_INTERRUPTS 
+#define DISABLE_INTERRUPTS
+
+#define RESET_SOURCE_POWER_ON   0x01
+#define RESET_SOURCE_JTAG       0x02
+#define RESET_SOURCE_EXTERNAL   0x04
+#define RESET_SOURCE_BROWNOUT   0x08
+
+#define ATOMIC 
+#define END_ATOMIC 
 
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*
@@ -39,7 +46,7 @@
 #define NON_CACHEABLE __attribute__ ((section (".non_cacheable")))
 #define MEMORY_HEAP __attribute__ ((section (".memory_heap")))
 
-#define hal_cpu_v_delay_us( us )
+void hal_cpu_v_delay_us( uint16_t us );
 
 
 #endif

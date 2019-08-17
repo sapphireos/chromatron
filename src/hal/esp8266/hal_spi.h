@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,10 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
 
-#include "system.h"
+#ifndef _HAL_SPI_H
+#define _HAL_SPI_H
 
-void hal_wdg_v_kick( void );
+#define N_SPI_PORTS 1
 
 #endif
-

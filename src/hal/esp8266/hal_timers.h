@@ -24,4 +24,6 @@
 #define _HAL_TIMERS_H
 
 
+void hal_timer_v_init( void );
+
 #endif

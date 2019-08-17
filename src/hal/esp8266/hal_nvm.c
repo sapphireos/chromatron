@@ -1,4 +1,3 @@
-/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,14 +19,32 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
-
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
 
 #include "system.h"
+#include "hal_cpu.h"
+#include "hal_nvm.h"
 
-void hal_wdg_v_kick( void );
+#define WRITE_CHUNK_SIZE 32 // 256 bit writes to flash
 
-#endif
+
+void nvm_v_init( void ){
+
+}
+
+bool nvm_b_busy( void ){
+
+    return FALSE;
+}
+
+
+void nvm_v_write_flash_page( uint32_t addr, uint8_t *data ){
+
+	
+}
+
+void nvm_v_erase_app_flash( void ){
+
+	
+}
+
 

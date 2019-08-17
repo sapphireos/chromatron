@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,10 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
+#ifndef _HAL_I2C_H
+#define _HAL_I2C_H
 
-#include "system.h"
-
-void hal_wdg_v_kick( void );
+#define I2C_TIMEOUT 100
 
 #endif
-
+ 

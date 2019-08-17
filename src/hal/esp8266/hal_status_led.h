@@ -1,4 +1,4 @@
-/* 
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -22,12 +22,18 @@
 // </license>
  */
 
-#ifndef _HAL_WATCHDOG_H
-#define _HAL_WATCHDOG_H
+#ifndef _HAL_STATUS_LED_H
+#define _HAL_STATUS_LED_H
 
-#include "system.h"
+#include "status_led.h"
 
-void hal_wdg_v_kick( void );
+
+// #define LED_RED_PORT    LED0_GPIO_Port
+// #define LED_RED_PIN     LED0_Pin
+// #define LED_GREEN_PORT  LED2_GPIO_Port
+// #define LED_GREEN_PIN   LED2_Pin
+// #define LED_BLUE_PORT   LED1_GPIO_Port
+// #define LED_BLUE_PIN    LED1_Pin
+
 
 #endif
-

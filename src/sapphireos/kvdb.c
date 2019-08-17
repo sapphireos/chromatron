@@ -39,7 +39,7 @@
 #include "hash.h"
 #endif
 
-#ifdef ESP8266
+#if defined(ESP8266) && !defined(CHROMATRON_ESP8266)
 #include "comm_printf.h"
 #else
 #include "logging.h"
