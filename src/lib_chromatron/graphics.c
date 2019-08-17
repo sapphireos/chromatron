@@ -777,8 +777,6 @@ PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    THREAD_EXIT( pt );
-
     while(1){
 
         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && !vm_b_running() );
@@ -790,7 +788,15 @@ PT_BEGIN( pt );
 
         if( flags & FLAG_RUN_VM_LOOP ){
 
-            wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, 0, 0 );
+            for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+                    
+                if( vm_b_is_vm_running( i ) ){
+
+                    wifi_msg_run_vm_t msg;
+                    msg.vm_id = i;
+                    wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&msg, sizeof(msg) );
+                }
+            }
         }
     }
             
