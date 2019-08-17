@@ -289,6 +289,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );
     }
+    #ifdef USE_HSV_BRIDGE
     else if( data_id == WIFI_DATA_ID_HSV_ARRAY ){
 
         uint8_t page = *data;
@@ -338,6 +339,55 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
                            sizeof(msg.padding) + 
                            ( count * 6 ) );
     }
+    #else
+    else if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
+
+        wifi_msg_rgb_pix0_t msg;
+        msg.r = gfx_u16_get_pix0_red();
+        msg.g = gfx_u16_get_pix0_green();
+        msg.b = gfx_u16_get_pix0_blue();
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
+    }
+    else if( data_id == WIFI_DATA_ID_RGB_ARRAY ){
+
+        uint8_t page = *data;
+        uint16_t rgb_index = page * WIFI_RGB_DATA_N_PIXELS;
+
+        // get pointers to the arrays
+        uint8_t *r = gfx_u8p_get_red();
+        uint8_t *g = gfx_u8p_get_green();
+        uint8_t *b = gfx_u8p_get_blue();
+        uint8_t *d = gfx_u8p_get_dither();
+
+        uint16_t pix_count = gfx_u16_get_pix_count();
+
+        wifi_msg_rgb_array_t msg;
+
+        uint16_t remaining = pix_count - rgb_index;
+        uint8_t count = WIFI_RGB_DATA_N_PIXELS;
+
+        if( count > remaining ){
+
+            count = remaining;
+        }
+
+        msg.index = rgb_index;
+        msg.count = count;
+        uint8_t *ptr = msg.rgbd_array;
+        memcpy( ptr, r + rgb_index, count );
+        ptr += count;
+        memcpy( ptr, g + rgb_index, count );
+        ptr += count;
+        memcpy( ptr, b + rgb_index, count );
+        ptr += count;
+        memcpy( ptr, d + rgb_index, count );
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_RGB_ARRAY, 
+                           (uint8_t *)&msg, 
+                           sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
+    }
+    #endif
     else if( data_id == WIFI_DATA_ID_KV_DATA ){
 
         wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)data;
@@ -598,117 +648,6 @@ void intf_v_process( void ){
     // data is ready
     process_data( header.data_id, data_buf, header.len );
     
-    // #ifndef USE_HSV_BRIDGE
-    // if( request_rgb_pix0 ){
-
-    //     request_rgb_pix0 = false;
-
-    //     wifi_msg_rgb_pix0_t msg;
-    //     msg.r = gfx_u16_get_pix0_red();
-    //     msg.g = gfx_u16_get_pix0_green();
-    //     msg.b = gfx_u16_get_pix0_blue();
-
-    //     _intf_i8_transmit_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg, sizeof(msg) );
-    // }
-    // else if( request_rgb_array ){
-
-    //     // get pointers to the arrays
-    //     uint8_t *r = gfx_u8p_get_red();
-    //     uint8_t *g = gfx_u8p_get_green();
-    //     uint8_t *b = gfx_u8p_get_blue();
-    //     uint8_t *d = gfx_u8p_get_dither();
-
-    //     uint16_t pix_count = gfx_u16_get_pix_count();
-
-    //     wifi_msg_rgb_array_t msg;
-
-    //     uint16_t remaining = pix_count - rgb_index;
-    //     uint8_t count = WIFI_RGB_DATA_N_PIXELS;
-
-    //     if( count > remaining ){
-
-    //         count = remaining;
-    //     }
-
-    //     msg.index = rgb_index;
-    //     msg.count = count;
-    //     uint8_t *ptr = msg.rgbd_array;
-    //     memcpy( ptr, r + rgb_index, count );
-    //     ptr += count;
-    //     memcpy( ptr, g + rgb_index, count );
-    //     ptr += count;
-    //     memcpy( ptr, b + rgb_index, count );
-    //     ptr += count;
-    //     memcpy( ptr, d + rgb_index, count );
-
-    //     _intf_i8_transmit_msg( WIFI_DATA_ID_RGB_ARRAY, 
-    //                        (uint8_t *)&msg, 
-    //                        sizeof(msg.index) + sizeof(msg.count) + ( count * 4 ) );
-
-    //     rgb_index += count;
-
-    //     if( rgb_index >= pix_count ){
-
-    //         rgb_index = 0;
-    //         request_rgb_array = false;
-    //     }
-    // }
-    // #else
-    // if( request_hsv_array ){
-
-    //     // // get pointers to the arrays
-    //     uint16_t *h = gfx_u16p_get_hue();
-    //     uint16_t *s = gfx_u16p_get_sat();
-    //     uint16_t *v = gfx_u16p_get_val();
-
-    //     uint16_t pix_count = gfx_u16_get_pix_count();
-
-    //     wifi_msg_hsv_array_t msg;
-
-    //     uint16_t remaining = pix_count - hsv_index;
-    //     uint8_t count = WIFI_HSV_DATA_N_PIXELS;
-
-    //     if( count > remaining ){
-
-    //         count = remaining;
-    //     }
-
-    //     msg.index = hsv_index;
-    //     msg.count = count;
-        
-    //     uint8_t transfer_bytes = count * 2;
-
-    //     uint8_t *ptr = msg.hsv_array;
-    //     memcpy( ptr, h + hsv_index, transfer_bytes );
-    //     ptr += transfer_bytes;
-    //     memcpy( ptr, s + hsv_index, transfer_bytes );
-    //     ptr += transfer_bytes;
-
-    //     uint16_t *val = (uint16_t *)ptr;
-    //     v += hsv_index;
-    //     for( uint32_t i = 0; i < count; i++ ){
-
-    //         *val = gfx_u16_get_dimmed_val( *v );
-    //         v++;
-    //         val++;
-    //     }
-
-    //     _intf_i8_transmit_msg( WIFI_DATA_ID_HSV_ARRAY, 
-    //                        (uint8_t *)&msg, 
-    //                        sizeof(msg.index) + 
-    //                        sizeof(msg.count) + 
-    //                        sizeof(msg.padding) + 
-    //                        ( count * 6 ) );
-
-    //     hsv_index += count;
-
-    //     if( hsv_index >= pix_count ){
-
-    //         hsv_index = 0;
-    //         request_hsv_array = false;
-    //     }
-    // }
-    // #endif
     // else if( request_vm_frame_sync ){
 
     //     wifi_msg_vm_frame_sync_t msg;
