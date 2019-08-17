@@ -451,6 +451,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     // }
 }
 
+static uint8_t __attribute__ ((aligned (4))) data_buf[1024];
+
 void intf_v_process( void ){
 
     // check if TX Q is empty and no network traffic
@@ -520,7 +522,7 @@ void intf_v_process( void ){
         if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
 
             Serial.write( WIFI_COMM_NAK );
-            Serial.write( 1 );
+            // Serial.write( 1 );
             return;
         }
     }
@@ -533,7 +535,7 @@ void intf_v_process( void ){
     if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
 
         Serial.write( WIFI_COMM_NAK );
-        Serial.write( 2 );
+        // Serial.write( 2 );
         return;
     }
 
@@ -543,56 +545,58 @@ void intf_v_process( void ){
         Serial.write( WIFI_COMM_ACK );
     }
 
-    // receive data
-    uint8_t __attribute__ ((aligned (4))) buf[1024];
-    uint16_t count = 0;
-    comm_timeout = start_timeout();
-    while( count < header.len ){
+    if( header.len > 0 ){
+    
+        // receive data
+        uint16_t count = 0;
+        comm_timeout = start_timeout();
+        while( count < header.len ){
 
-        if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
+            if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
+
+                Serial.write( WIFI_COMM_NAK );
+                // Serial.write( 3 );
+                return;
+            }
+
+            uint16_t available = Serial.available();
+
+            if( available > ( header.len - count ) ){
+
+                available = ( header.len - count );
+            }
+
+            Serial.readBytes( &data_buf[count], available );
+            count += available;
+        }
+
+        // get CRC
+        uint16_t crc;
+        comm_timeout = start_timeout();
+        while( Serial.available() < (int32_t)sizeof(crc) ){
+
+            if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
+
+                Serial.write( WIFI_COMM_NAK );
+                // Serial.write( 4 );
+                return;
+            }
+        }
+
+        Serial.readBytes( (uint8_t *)&crc, sizeof(crc) );
+
+        if( crc_u16_block( data_buf, header.len ) != crc ){
 
             Serial.write( WIFI_COMM_NAK );
-            Serial.write( 3 );
+            // Serial.write( 5 );
             return;
-        }
-
-        uint16_t available = Serial.available();
-
-        if( available > ( header.len - count ) ){
-
-            available = ( header.len - count );
-        }
-
-        Serial.readBytes( &buf[count], available );
-        count += available;
-    }
-
-    // get CRC
-    uint16_t crc;
-    comm_timeout = start_timeout();
-    while( Serial.available() < (int32_t)sizeof(crc) ){
-
-        if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
-
-            Serial.write( WIFI_COMM_NAK );
-            Serial.write( 4 );
-            return;
-        }
-    }
-
-    Serial.readBytes( (uint8_t *)&crc, sizeof(crc) );
-
-    if( crc_u16_block( buf, header.len ) != crc ){
-
-        Serial.write( WIFI_COMM_NAK );
-        Serial.write( 5 );
-        return;
+        }   
     }
 
     Serial.write( WIFI_COMM_ACK );
 
     // data is ready
-    process_data( header.data_id, buf, header.len );
+    process_data( header.data_id, data_buf, header.len );
     
     // #ifndef USE_HSV_BRIDGE
     // if( request_rgb_pix0 ){
@@ -939,8 +943,12 @@ static int8_t _intf_i8_transmit_msg( uint8_t data_id, uint8_t *data, uint16_t le
 
         Serial.write( WIFI_COMM_DATA );
         Serial.write( (uint8_t *)&header, sizeof(wifi_data_header_t) );
-        Serial.write( data, len );
-        Serial.write( (uint8_t *)&data_crc, sizeof(data_crc) );
+
+        if( len > 0 ){
+
+            Serial.write( data, len );
+            Serial.write( (uint8_t *)&data_crc, sizeof(data_crc) );
+        }
 
         uint32_t timeout = start_timeout();
 

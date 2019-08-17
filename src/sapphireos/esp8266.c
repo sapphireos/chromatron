@@ -237,19 +237,22 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
             return -2;
         }
 
-        uint16_t crc = crc_u16_start();
+        if( len > 0 ){
+        
+            uint16_t crc = crc_u16_start();
 
-        while( len > 0 ){
+            while( len > 0 ){
 
-            hal_wifi_v_usart_send_char( *data );
-            crc = crc_u16_byte( crc, *data );
+                hal_wifi_v_usart_send_char( *data );
+                crc = crc_u16_byte( crc, *data );
 
-            data++;
-            len--;
+                data++;
+                len--;
+            }
+
+            crc = crc_u16_finish( crc );
+            hal_wifi_v_usart_send_data( (uint8_t *)&crc, sizeof(crc) );
         }
-
-        crc = crc_u16_finish( crc );
-        hal_wifi_v_usart_send_data( (uint8_t *)&crc, sizeof(crc) );
 
         int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
 
@@ -309,17 +312,23 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
             continue;
         }
 
-        if( hal_wifi_i8_usart_receive( data, header->len, WIFI_COMM_TIMEOUT ) < 0 ){
-
-            log_v_debug_P( PSTR("data timeout 0x%02x"), header->data_id );
-            continue;
-        }
-
         uint16_t crc;
-        if( hal_wifi_i8_usart_receive( (uint8_t *)&crc, sizeof(crc), WIFI_COMM_TIMEOUT ) < 0 ){
+        
+        if( header->len > 0 ){
 
-            log_v_debug_P( PSTR("crc timeout 0x%02x"), header->data_id );
-            continue;
+            ASSERT( data != 0 );
+
+            if( hal_wifi_i8_usart_receive( data, header->len, WIFI_COMM_TIMEOUT ) < 0 ){
+
+                log_v_debug_P( PSTR("data timeout 0x%02x"), header->data_id );
+                continue;
+            }
+        
+            if( hal_wifi_i8_usart_receive( (uint8_t *)&crc, sizeof(crc), WIFI_COMM_TIMEOUT ) < 0 ){
+
+                log_v_debug_P( PSTR("crc timeout 0x%02x"), header->data_id );
+                continue;
+            }
         }
 
         // check CRCs
@@ -331,11 +340,14 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
             continue;
         }
 
-        if( crc_u16_block( data, header->len ) != crc ){
+        if( header->len > 0 ){
+        
+            if( crc_u16_block( data, header->len ) != crc ){
 
-            log_v_debug_P( PSTR("data crc fail 0x%02x"), header->data_id );
-            hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
-            continue;
+                log_v_debug_P( PSTR("data crc fail 0x%02x"), header->data_id );
+                hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
+                continue;
+            }
         }
 
         // everything is good!
