@@ -195,10 +195,10 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
     }
 
     // if return is anything other than OK, send status immediately
-    if( return_code != 0 ){
+    // if( return_code != 0 ){
 
-        vm_v_send_info();
-    }
+    //     vm_v_send_info();
+    // }
 
     if( return_code == VM_STATUS_HALT ){
 
@@ -220,7 +220,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
         vm_thread_time[vm_index] = elapsed;
     }
 
-    mem2_b_verify_handle( vm_handles[vm_index] );
+    // mem2_b_verify_handle( vm_handles[vm_index] );
 
     return return_code;
 }

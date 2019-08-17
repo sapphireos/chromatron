@@ -686,9 +686,9 @@ void vm_v_run_loops( void ){
                     
         if( vm_b_is_vm_running( i ) ){
 
-            // wifi_msg_run_vm_t msg;
-            // msg.vm_id = i;
-            // wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&msg, sizeof(msg) );
+            wifi_msg_run_vm_t msg;
+            msg.vm_id = i;
+            wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&msg, sizeof(msg) );
         }
     }
 }
