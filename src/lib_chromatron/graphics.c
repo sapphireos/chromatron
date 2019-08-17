@@ -688,6 +688,8 @@ PT_BEGIN( pt );
             THREAD_RESTART( pt );
         }
 
+        continue;
+
         // get pixel data
         #ifdef USE_HSV_BRIDGE
 
