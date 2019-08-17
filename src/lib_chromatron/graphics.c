@@ -666,6 +666,8 @@ void gfx_v_read_db( void ){
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
     
     while(1){
 
@@ -678,12 +680,12 @@ PT_BEGIN( pt );
 
         if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
 
-            continue;
+            THREAD_RESTART( pt );
         }
 
         if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, 0, 0, 0 ) < 0 ){
 
-            continue;
+            THREAD_RESTART( pt );
         }
 
         // get pixel data
@@ -695,7 +697,7 @@ PT_BEGIN( pt );
 
             if( wifi_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, &page, sizeof(page) ) < 0 ){
 
-                break;
+                THREAD_RESTART( pt );
             }
 
             wifi_msg_hsv_array_t msg;   
@@ -703,7 +705,7 @@ PT_BEGIN( pt );
 
             if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
 
-                break;
+                THREAD_RESTART( pt );
             }
 
             // unpack HSV pointers

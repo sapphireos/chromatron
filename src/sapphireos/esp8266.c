@@ -610,6 +610,15 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("Connecting...") );
             wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, (uint8_t *)&msg, sizeof(msg) );
 
+            // the wifi module will hang for around 900 ms when doing a scan.
+            // since we can't response to messages while that happens, we're going to do a blocking wait
+            // for 1 second here.
+            // for( uint8_t i = 0; i < 10; i++ ){
+
+            //     _delay_ms( 100 );
+            //     sys_v_wdt_reset();
+            // }
+
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
             THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
                                    ( thread_b_alarm_set() ) );
