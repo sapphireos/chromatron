@@ -719,40 +719,55 @@ PT_BEGIN( pt );
         }
 
         #else
-        #pragma error "RGB bridge not finished!"
-        // if( data_id == WIFI_DATA_ID_RGB_PIX0 ){
 
-        //     if( pixel_transfer_enable ){
-                
-        //         if( len != sizeof(wifi_msg_rgb_pix0_t) ){
+        if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
-        //             return -1;
-        //         }
+            if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, 0, 0 ) < 0 ){
 
-        //         wifi_msg_rgb_pix0_t *msg = (wifi_msg_rgb_pix0_t *)data;
+                THREAD_RESTART( pt );
+            }
 
-        //         pixel_v_set_analog_rgb( msg->r, msg->g, msg->b );
-        //     }
-        // }  
-        // else if( data_id == WIFI_DATA_ID_RGB_ARRAY ){
+            wifi_msg_rgb_pix0_t msg_pix0;
+            uint16_t bytes_read;
 
-        //     if( pixel_transfer_enable ){
+            if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg_pix0, sizeof(msg_pix0), &bytes_read ) < 0 ){
 
-        //         wifi_msg_rgb_array_t *msg = (wifi_msg_rgb_array_t *)data;
+                THREAD_RESTART( pt );
+            }
 
-        //         // unpack RGBD pointers
-        //         uint8_t *r = msg->rgbd_array;
-        //         uint8_t *g = r + msg->count;
-        //         uint8_t *b = g + msg->count;
-        //         uint8_t *d = b + msg->count;
+            pixel_v_set_analog_rgb( msg_pix0.r, msg_pix0.g, msg_pix0.b );
+        }
+        else{
+        
+            uint8_t pages = ( ( gfx_u16_get_pix_count() - 1 ) / WIFI_RGB_DATA_N_PIXELS ) + 1;
 
-        //         pixel_v_load_rgb( msg->index, msg->count, r, g, b, d );   
-        //     }
-        // }
+            for( uint8_t page = 0; page < pages; page++ ){
+
+                if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, &page, sizeof(page) ) < 0 ){
+
+                    THREAD_RESTART( pt );
+                }
+
+                wifi_msg_rgb_array_t msg;   
+                uint16_t bytes_read;
+
+                if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
+
+                    THREAD_RESTART( pt );
+                }
+
+                // unpack RGBD pointers
+                uint8_t *r = msg.rgbd_array;
+                uint8_t *g = r + msg.count;
+                uint8_t *b = g + msg.count;
+                uint8_t *d = b + msg.count;
+
+                pixel_v_load_rgb( msg.index, msg.count, r, g, b, d );   
+            }
+        }
+
         #endif
-
     }
-    
             
 PT_END( pt );
 }
