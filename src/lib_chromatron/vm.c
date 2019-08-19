@@ -209,6 +209,33 @@ static int8_t send_reset_message( uint8_t vm_id ){
     return wifi_i8_send_msg( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
 }
 
+
+static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr ){
+
+    // synchronize database parameters
+    gfx_v_sync_db( FALSE );
+
+    wifi_msg_vm_run_t msg;
+    msg.vm_id = vm_id;
+    msg.func_addr = func_addr;
+    if( wifi_i8_send_msg( data_id, (uint8_t *)&msg, sizeof(msg) ) < 0 ){
+
+        return VM_STATUS_ERROR;
+    }
+
+    wifi_msg_vm_info_t info_msg;   
+
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&info_msg, sizeof(info_msg), 0 ) < 0 ){
+
+        return VM_STATUS_ERROR;
+    }    
+
+    // read database
+    gfx_v_read_db();
+
+    return info_msg.vm_info.status;
+}
+
 // static void reset_vm( uint8_t vm_id ){
 
 //     send_reset_message( vm_id );
@@ -251,6 +278,9 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         ASSERT( FALSE );
     }
 
+    vm_loop_time[vm_id]     = 0;
+    vm_thread_time[vm_id]   = 0;
+    vm_max_cycles[vm_id]    = 0;
 
     file_t f = get_program_handle( hash );
 
@@ -517,36 +547,13 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     gfx_v_sync_db( TRUE );
 
     // initialize VM (run init function)
-    wifi_msg_run_vm_t init_vm_msg;
-    init_vm_msg.vm_id = vm_id;
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&init_vm_msg, sizeof(init_vm_msg) ) < 0 ){
-
-        // comm error
-        goto error;
-    }
-
-    wifi_msg_run_vm_status_t status_msg;
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&status_msg, sizeof(status_msg), 0 ) < 0 ){
-
-        // comm error
-        goto error;
-    }
-
-    if( status_msg.status != VM_STATUS_OK ){
+    vm_status[vm_id] = _vm_i8_run_vm( vm_id, WIFI_DATA_ID_INIT_VM, 0 );
+    if( vm_status[vm_id] < 0 ){
 
         goto error;
     }
-
-    // read database
-    gfx_v_read_db();
 
     fs_f_close( f );
-
-    vm_status[vm_id]        = status_msg.status;
-    vm_loop_time[vm_id]     = 0;
-    vm_thread_time[vm_id]   = 0;
-    vm_max_cycles[vm_id]    = 0;
 
     log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
 
@@ -667,6 +674,7 @@ PT_BEGIN( pt );
                 vm_loop_time[i]     = 0;
                 vm_thread_time[i]   = 0;
                 vm_max_cycles[i]    = 0;
+                vm_size[i]          = 0;
             }
             
             // always reset the reset
@@ -693,16 +701,13 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
 void vm_v_run_loops( void ){
 
      for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
                     
         if( vm_b_is_vm_running( i ) ){
 
-            wifi_msg_run_vm_t msg;
-            msg.vm_id = i;
-            wifi_i8_send_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&msg, sizeof(msg) );
+            _vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0 );
         }
     }
 }

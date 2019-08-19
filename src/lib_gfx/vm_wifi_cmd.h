@@ -70,30 +70,21 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint16_t vm_id;
     uint16_t fader_time;
-    uint16_t vm_total_size;
     vm_info_t vm_info;
-    int32_t thread_delays[VM_MAX_THREADS];
+    uint32_t changed_hashes[8];
+    uint32_t active_threads;
+    int32_t thread_delay;
 } wifi_msg_vm_info_t;
 #define WIFI_DATA_ID_VM_INFO           0x84
 
 // VM run commands
 typedef struct __attribute__((packed)){
     uint32_t vm_id;
-} wifi_msg_run_vm_t;
-
-typedef struct __attribute__((packed)){
-    uint32_t vm_id;
-    int8_t status;
-} wifi_msg_run_vm_status_t;
+    uint16_t func_addr;
+} wifi_msg_vm_run_t;
 #define WIFI_DATA_ID_INIT_VM           0x85
 #define WIFI_DATA_ID_RUN_VM            0x86
-
-typedef struct __attribute__((packed)){
-    uint32_t vm_id;
-    uint16_t func_addr;
-} wifi_msg_vm_run_func_t;
 #define WIFI_DATA_ID_VM_RUN_FUNC       0x87
-
 
 typedef struct __attribute__((packed)){
     uint32_t program_name_hash;
