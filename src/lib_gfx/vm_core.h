@@ -89,15 +89,6 @@
 
 #define VM_LOAD_FLAGS_CHECK_HEADER      1
 
-
-
-typedef struct __attribute__((packed)){
-    int8_t status;
-    uint16_t loop_time;
-    uint16_t thread_time;
-    uint16_t max_cycles;
-} vm_info_t;
-
 // note this needs to pad to 32 bit alignment!
 typedef struct __attribute__((packed)){
     uint32_t hash;

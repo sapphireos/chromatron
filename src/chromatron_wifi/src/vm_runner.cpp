@@ -481,18 +481,18 @@ int8_t vm_i8_start( uint32_t vm_index ){
     return status;
 }
 
-void vm_v_get_info( uint8_t index, vm_info_t *info ){
+// void vm_v_get_info( uint8_t index, vm_info_t *info ){
 
-    if( index >= VM_MAX_VMS ){
+//     if( index >= VM_MAX_VMS ){
 
-        return;
-    }
+//         return;
+//     }
 
-    info->status        = vm_status[index];
-    info->loop_time     = vm_loop_time[index];
-    info->thread_time   = vm_thread_time[index];
-    info->max_cycles    = vm_state[index].max_cycles;
-}
+//     info->status        = vm_status[index];
+//     info->loop_time     = vm_loop_time[index];
+//     info->thread_time   = vm_thread_time[index];
+//     info->max_cycles    = vm_state[index].max_cycles;
+// }
 
 uint16_t vm_u16_get_fader_time( void ){
 

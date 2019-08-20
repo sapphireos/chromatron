@@ -69,8 +69,12 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint16_t vm_id;
+    int8_t status;
+    uint8_t padding;
     uint16_t fader_time;
-    vm_info_t vm_info;
+    uint16_t loop_time;
+    uint16_t thread_time;
+    uint16_t max_cycles;
     uint32_t changed_hashes[8];
     uint32_t active_threads;
     int32_t thread_delay;
