@@ -179,6 +179,8 @@ void wifi_v_init( void ){
     ap_mode = false;
     WiFi.mode( WIFI_STA );
 
+    WiFi.setOutputPower(17.0);
+
     // set host name
     uint8_t mac[6];
     WiFi.macAddress( mac );
@@ -211,7 +213,7 @@ void wifi_v_send_status( void ){
 }
 
 void wifi_v_process( void ){
-
+   
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
 
         // check if status is changing
@@ -238,6 +240,7 @@ void wifi_v_process( void ){
                 MDNS.update();
             }
             else{
+                
                 // enable MDNS
                 if( MDNS.begin( hostname ) ){
 
