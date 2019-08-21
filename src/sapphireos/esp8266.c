@@ -1435,7 +1435,7 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
     }
     else{
 
-        memset( ssid, 0, sizeof(ssid) );
+        memset( ssid, 0, WIFI_SSID_LEN );
     }
 }
 
