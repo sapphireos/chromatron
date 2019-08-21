@@ -23,7 +23,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-// #include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h>
 #include "wifi.h"
 
 #include "comm_intf.h"
@@ -568,7 +568,7 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
 
 void wifi_v_disconnect( void ){
 
-    // MDNS.close();
+    MDNS.close();
     connected_router = -1;
     mdns_connected = false;
     request_connect = false;
