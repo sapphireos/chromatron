@@ -202,7 +202,7 @@ PT_BEGIN( pt );
                         log_v_debug_P( PSTR("Running cron job: %u for vm: %d"), entry->cron.func_addr, entry->vm_id );
 
                         #ifdef VM_TARGET_ESP
-                        wifi_msg_vm_run_func_t msg;
+                        wifi_msg_vm_run_t msg;
                         msg.vm_id = entry->vm_id;
                         msg.func_addr = entry->cron.func_addr;
                         wifi_i8_send_msg( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&msg, sizeof(msg) );

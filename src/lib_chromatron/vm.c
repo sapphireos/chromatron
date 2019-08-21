@@ -233,7 +233,7 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr 
     // read database
     gfx_v_read_db();
 
-    return info_msg.vm_info.status;
+    return info_msg.status;
 }
 
 // static void reset_vm( uint8_t vm_id ){
