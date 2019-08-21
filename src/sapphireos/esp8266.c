@@ -456,7 +456,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
-return;
+
     int8_t status = 0;
 
     if( !wifi_b_connected() ){
@@ -915,12 +915,6 @@ PT_BEGIN( pt );
         // process message
         process_rx_data( &header, buf );
     
-        if( wifi_status_reg & WIFI_STATUS_CONNECTED ){
-
-            wifi_status_reg = 0;
-            TMR_WAIT( pt, 600000 );
-        }        
-
         if( wifi_status_reg & WIFI_STATUS_NET_RX ){
 
             THREAD_WAIT_WHILE( pt, sock_b_rx_pending() );

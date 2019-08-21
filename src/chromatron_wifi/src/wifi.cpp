@@ -23,7 +23,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-#include <ESP8266mDNS.h>
+// #include <ESP8266mDNS.h>
 #include "wifi.h"
 
 #include "comm_intf.h"
@@ -232,38 +232,38 @@ void wifi_v_process( void ){
 
         if( WiFi.getMode() == WIFI_STA ){
 
-            // check if MDNS is up
-            if( mdns_connected ){
+            // // check if MDNS is up
+            // if( mdns_connected ){
 
-                MDNS.update();
-            }
-            else{
-                // enable MDNS
-                if( MDNS.begin( hostname ) ){
+            //     MDNS.update();
+            // }
+            // else{
+            //     // enable MDNS
+            //     if( MDNS.begin( hostname ) ){
 
-                    MDNS.addService( "catbus", "udp", 44632 );
-                    MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );
+            //         MDNS.addService( "catbus", "udp", 44632 );
+            //         MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );
 
-                    int8_t midi_channel = opt_i8_get_midi_channel();
+            //         int8_t midi_channel = opt_i8_get_midi_channel();
 
-                    if( midi_channel >= 0 ){
+            //         if( midi_channel >= 0 ){
 
-                        MDNS.addService( "apple-midi", "udp", 5004 );
-                        char temp[32];
-                        snprintf( temp, sizeof(temp), "%d", midi_channel );
-                        MDNS.addServiceTxt( "apple-midi", "udp", "channel", temp );
-                    }
+            //             MDNS.addService( "apple-midi", "udp", 5004 );
+            //             char temp[32];
+            //             snprintf( temp, sizeof(temp), "%d", midi_channel );
+            //             MDNS.addServiceTxt( "apple-midi", "udp", "channel", temp );
+            //         }
 
-                    mdns_connected = true;
+            //         mdns_connected = true;
 
-                    intf_v_printf("MDNS connected");
-                }
-                else{
+            //         intf_v_printf("MDNS connected");
+            //     }
+            //     else{
 
-                    // MDNS fail - probably failed the IGMP join
-                    // intf_v_printf("MDNS fail");
-                }
-            }        
+            //         // MDNS fail - probably failed the IGMP join
+            //         // intf_v_printf("MDNS fail");
+            //     }
+            // }        
         }
     }
     else{
@@ -321,7 +321,7 @@ void wifi_v_process( void ){
                 scan_channel[index] = WiFi.channel( i );
                 memcpy( scan_bssid[index], WiFi.BSSID( i ), sizeof(scan_bssid[index]) );
 
-                // intf_v_printf("%d %d %s", network_rssi, channel, network_ssid.c_str());
+                intf_v_printf("%d %d %s", scan_rssi[index], scan_channel[index], network_ssid.c_str());
             }
             
             scanning = false;
@@ -334,7 +334,7 @@ void wifi_v_process( void ){
                 request_connect = false;
 
                 // did we select a router?
-                if( ( best_router < WIFI_MAX_APS ) || ( best_router >= 0 ) ){
+                if( ( best_router < WIFI_MAX_APS ) && ( best_router >= 0 ) ){
 
                     router = best_router;
 
@@ -568,7 +568,7 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
 
 void wifi_v_disconnect( void ){
 
-    MDNS.close();
+    // MDNS.close();
     connected_router = -1;
     mdns_connected = false;
     request_connect = false;
