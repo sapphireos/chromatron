@@ -323,7 +323,7 @@ ISR(GFX_TIMER_CCC_vect){
 }
 
 void gfx_v_init( void ){
-// return;
+return;
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
         // override size settings

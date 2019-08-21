@@ -456,7 +456,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
-
+return;
     int8_t status = 0;
 
     if( !wifi_b_connected() ){
@@ -579,6 +579,8 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
     
+    // TMR_WAIT( pt, 600000 );
+
     // check if we are connected
     while( !wifi_b_connected() ){
 
@@ -802,8 +804,8 @@ static void get_info( void ){
     // process message data
 
     wifi_version_major          = msg.version_major;
-    wifi_version_minor          = msg.version_minor
-;    wifi_version_patch          = msg.version_patch;
+    wifi_version_minor          = msg.version_minor;    
+    wifi_version_patch          = msg.version_patch;
     
     if( wifi_b_connected() ){
         
@@ -811,7 +813,7 @@ static void get_info( void ){
     }
     else{
 
-        wifi_rssi               =  - 127;
+        wifi_rssi               =  -127;
     }
     
     memcpy( wifi_mac, msg.mac, sizeof(wifi_mac) );
@@ -912,6 +914,12 @@ PT_BEGIN( pt );
 
         // process message
         process_rx_data( &header, buf );
+    
+        if( wifi_status_reg & WIFI_STATUS_CONNECTED ){
+
+            wifi_status_reg = 0;
+            TMR_WAIT( pt, 600000 );
+        }        
 
         if( wifi_status_reg & WIFI_STATUS_NET_RX ){
 

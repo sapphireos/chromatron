@@ -46,7 +46,7 @@ extern "C"{
 }
 
 typedef struct{
-    uint8_t data_id;
+    uint16_t data_id;
     uint16_t len;
 } buffered_msg_t;
 
