@@ -220,14 +220,14 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr 
     msg.func_addr = func_addr;
     if( wifi_i8_send_msg( data_id, (uint8_t *)&msg, sizeof(msg) ) < 0 ){
 
-        return VM_STATUS_ERROR;
+        return VM_STATUS_COMM_ERROR;
     }
 
     wifi_msg_vm_info_t info_msg;   
 
     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&info_msg, sizeof(info_msg), 0 ) < 0 ){
 
-        return VM_STATUS_ERROR;
+        return VM_STATUS_COMM_ERROR;
     }    
 
     // read database
@@ -710,15 +710,20 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-void vm_v_run_loops( void ){
+int8_t vm_i8_run_loops( void ){
 
      for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
                     
         if( vm_b_is_vm_running( i ) ){
 
-            _vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0 );
+            if( _vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0 ) == VM_STATUS_COMM_ERROR ){
+
+                return VM_STATUS_COMM_ERROR;
+            }
         }
     }
+
+    return 0;
 }
 
 

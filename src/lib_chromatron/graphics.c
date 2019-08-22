@@ -662,22 +662,34 @@ void gfx_v_read_db( void ){
     }
 }
 
+static bool should_halt_fader( void ){
+
+    return 
+        ( pixel_u8_get_mode() == PIX_MODE_OFF ) ||
+        ( gfx_u16_get_pix_count() == 0 ) ||
+        ( !vm_b_running() ) ||
+        ( !gfx_b_running() );
+}
 
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    THREAD_WAIT_WHILE( pt, should_halt_fader() );
+
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
     
     while(1){
 
+        TMR_WAIT( pt, 5 );
+
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        THREAD_WAIT_WHILE( pt, ( pixel_u8_get_mode() == PIX_MODE_OFF ) ||
-                               ( gfx_u16_get_pix_count() == 0 ) ||
-                               ( !vm_b_running() ) ||
-                               ( !gfx_b_running() ) );
+        if( should_halt_fader() ){
+
+            THREAD_RESTART( pt );            
+        }
 
         if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
 
@@ -787,7 +799,13 @@ PT_BEGIN( pt );
 
         if( flags & FLAG_RUN_VM_LOOP ){
 
-            vm_v_run_loops();
+            if( vm_i8_run_loops() < 0 ){
+
+                // comm fail
+
+                // let's delay
+                TMR_WAIT( pt, 100 );
+            }
         }
     }
             

@@ -79,6 +79,7 @@
 #define VM_STATUS_CALL_DEPTH_EXCEEDED   -98
 #define VM_STATUS_ASSERT                -99
 #define VM_STATUS_TRAP                  -100
+#define VM_STATUS_COMM_ERROR            -126
 #define VM_STATUS_NOT_RUNNING           -127
 #define VM_STATUS_HALT                  1
 #define VM_STATUS_YIELDED               2

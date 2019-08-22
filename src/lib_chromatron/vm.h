@@ -31,7 +31,7 @@ void vm_v_start( void );
 void vm_v_stop( void );
 void vm_v_reset( void );
 
-void vm_v_run_loops( void );
+int8_t vm_i8_run_loops( void );
 
 bool vm_b_running( void );
 bool vm_b_is_vm_running( uint8_t i );
