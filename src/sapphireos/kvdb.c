@@ -50,6 +50,10 @@ static list_t db_list;
 static catbus_hash_t32 cache_hash;
 static list_node_t cache_ln;
 
+#ifdef KVDB_ENABLE_NAME_LOOKUP
+static file_t kv_names_f = -1;
+#endif
+
 
 typedef struct{
     catbus_hash_t32 hash;
@@ -135,9 +139,7 @@ static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
         return;
     }
 
-    file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
-
-    if( f < 0 ){
+    if( kv_names_f < 0 ){
 
         return;
     }
@@ -147,9 +149,7 @@ static void _kvdb_v_add_name( char name[CATBUS_STRING_LEN] ){
     memset( entry.name, 0, sizeof(entry.name) );
     strlcpy( entry.name, name, sizeof(entry.name) );
 
-    fs_i16_write( f, (uint8_t *)&entry, sizeof(entry) );
-
-    fs_f_close( f );
+    fs_i16_write( kv_names_f, (uint8_t *)&entry, sizeof(entry) );
 }
 #endif
 
@@ -168,6 +168,8 @@ void kvdb_v_init( void ){
             
     //     fs_f_close( f );
     // }
+    
+    kv_names_f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
 
     #endif
 
@@ -690,16 +692,16 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 
     int8_t status = KVDB_STATUS_NOT_FOUND;
 
-    file_t f = fs_f_open_P( kv_name_fname, FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
-
-    if( f < 0 ){
+    if( kv_names_f < 0 ){
 
         return status;
     }
 
+    fs_v_seek( kv_names_f, 0 );
+
     name_entry_t entry;
 
-    while( fs_i16_read( f, (uint8_t *)&entry, sizeof(entry) ) == sizeof(entry) ){
+    while( fs_i16_read( kv_names_f, (uint8_t *)&entry, sizeof(entry) ) == sizeof(entry) ){
 
         if( entry.hash == hash ){
 
@@ -713,8 +715,6 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
             break;
         }
     }
-
-    fs_f_close( f );
 
     return status;
 }
