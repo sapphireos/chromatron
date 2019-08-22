@@ -145,35 +145,28 @@ PT_BEGIN( pt );
 
                     if( pixel_u8_get_mode() == PIX_MODE_SK6812_RGBW ){
 
-                        uint8_t array_r[CHROMA_SVR_MAX_PIXELS];
-                        uint8_t array_g[CHROMA_SVR_MAX_PIXELS];
-                        uint8_t array_b[CHROMA_SVR_MAX_PIXELS];
-                        uint8_t array_d[CHROMA_SVR_MAX_PIXELS];
-                        
-
                         for( uint8_t i = 0; i < msg->count; i++ ){
 
                             *r /= 256;
                             *g /= 256;
                             *b /= 256;
 
-                            array_r[i] = *r;
-                            array_g[i] = *g;
-                            array_b[i] = *b;
-                            array_d[i] = 0;
+                            uint8_t r2 = *r;
+                            uint8_t g2 = *g;
+                            uint8_t b2 = *b;
 
                             r += 3;
                             g += 3;
                             b += 3;
+                        
+                            pixel_v_load_rgb( 
+                                msg->index + i, 
+                                1, 
+                                &r2, 
+                                &g2, 
+                                &b2, 
+                                0 );
                         }
-
-                        pixel_v_load_rgb( 
-                            msg->index, 
-                            msg->count, 
-                            array_r, 
-                            array_g, 
-                            array_b, 
-                            array_d );
                     }
                     else{
 

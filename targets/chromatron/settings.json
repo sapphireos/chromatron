@@ -20,6 +20,7 @@
         "-fconserve-stack",
         "-mcall-prologues",
         "-ffreestanding",
+        "-fstack-usage",
         "-Wall",
         "-Wsizeof-pointer-memaccess",
         "-Wsign-compare",
