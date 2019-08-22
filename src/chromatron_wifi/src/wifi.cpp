@@ -179,8 +179,6 @@ void wifi_v_init( void ){
     ap_mode = false;
     WiFi.mode( WIFI_STA );
 
-    intf_v_printf("%f", WiFi.getOutputPower());
-
     WiFi.setOutputPower(17.0);
 
     // set host name
