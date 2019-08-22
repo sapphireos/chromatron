@@ -475,9 +475,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_msg_set_options_t *msg = (wifi_msg_set_options_t *)data;
 
-        opt_v_set_low_power( msg->low_power );
-        opt_v_set_led_quiet( msg->led_quiet );
-        opt_v_set_midi_channel( msg->midi_channel );
+        opt_v_set_options( msg );
     }
     else if( data_id == WIFI_DATA_ID_SHUTDOWN ){
         

@@ -850,6 +850,23 @@ static void get_info( void ){
     mem_avg_time                = msg.mem_avg_time;
 }
 
+static void send_options_msg( void ){
+    // send options message
+    wifi_msg_set_options_t options_msg;
+    memset( &options_msg, 0, sizeof(options_msg) );
+    options_msg.high_speed = TRUE;
+    options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
+    options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
+    options_msg.tx_power = 17;
+
+    if( kv_i8_get( __KV__midi_channel, &options_msg.midi_channel, sizeof(options_msg.midi_channel) ) < 0 ){
+
+        options_msg.midi_channel = -1;                
+    }
+
+    wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
+}
+
 PT_THREAD( wifi_comm_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -883,6 +900,7 @@ PT_BEGIN( pt );
     wifi_status = WIFI_STATE_ALIVE;
 
     get_info();
+    send_options_msg();
     send_ports();
 
     while(1){
@@ -1033,19 +1051,7 @@ PT_BEGIN( pt );
         comm_rx_rate = hal_wifi_u32_get_rx_bytes();
         comm_tx_rate = hal_wifi_u32_get_tx_bytes();
 
-            
-        // send options message
-        wifi_msg_set_options_t options_msg;
-        memset( options_msg.padding, 0, sizeof(options_msg.padding) );
-        options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
-        options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
-
-        if( kv_i8_get( __KV__midi_channel, &options_msg.midi_channel, sizeof(options_msg.midi_channel) ) < 0 ){
-
-            options_msg.midi_channel = -1;                
-        }
-
-        wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
+        send_options_msg();
     }
 
 PT_END( pt );

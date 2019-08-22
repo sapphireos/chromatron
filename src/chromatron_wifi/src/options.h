@@ -24,7 +24,10 @@
 #define _OPTIONS_H
 
 #include "bool.h"
+#include "wifi_cmd.h"
 
+void opt_v_set_options( wifi_msg_set_options_t *msg );
+void opt_v_set_tx_power( uint8_t dbm );
 void opt_v_set_low_power( bool mode );
 bool opt_b_get_low_power( void );
 void opt_v_set_led_quiet( bool mode );

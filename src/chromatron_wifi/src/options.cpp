@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#include "wifi.h"
 #include "options.h"
 
 extern "C"{
@@ -30,6 +31,21 @@ static bool low_power;
 static bool led_quiet;
 static bool high_speed;
 static int8_t midi_channel;
+
+void opt_v_set_options( wifi_msg_set_options_t *msg ){
+
+	low_power 		= msg->low_power;
+	led_quiet 		= msg->led_quiet;	
+	midi_channel 	= msg->midi_channel;
+
+	opt_v_set_high_speed( msg->high_speed );
+	opt_v_set_tx_power( msg->tx_power );
+}
+
+void opt_v_set_tx_power( uint8_t dbm ){
+	
+	WiFi.setOutputPower(dbm);
+}
 
 void opt_v_set_low_power( bool mode ){
 
