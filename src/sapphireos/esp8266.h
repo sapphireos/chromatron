@@ -40,6 +40,12 @@
 #define WIFI_LOADER_MAX_TRIES   8
 #define WIFI_WATCHDOG_TIMEOUT   8
 
+// maximum power setting the hardware will support.
+// technically this is 20.5 dbm.
+// however, 20.5 dbm is only spec'd for 802.11b.
+// if we use 802.11n, the radio is only spec'd for 17.5 dbm.
+// since we are using an integer, we will set to 17 for our max.
+#define WIFI_MAX_HW_TX_POWER    17
 
 void wifi_v_init( void );
 void wifi_v_shutdown( void );

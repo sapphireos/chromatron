@@ -117,6 +117,7 @@ static uint8_t wifi_version_patch;
 static uint8_t comm_stalls;
 static uint8_t watchdog;
 
+static uint8_t tx_power;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -132,6 +133,8 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
     { SAPPHIRE_TYPE_KEY128,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_md5" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_fw_len" },
+
+    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &tx_power,          0,                   "wifi_tx_power" },
 };
 
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
@@ -857,7 +860,39 @@ static void send_options_msg( void ){
     options_msg.high_speed = TRUE;
     options_msg.led_quiet = cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE );
     options_msg.low_power = cfg_b_get_boolean( CFG_PARAM_ENABLE_LOW_POWER_MODE );
-    options_msg.tx_power = 17;
+
+    if( tx_power > WIFI_MAX_HW_TX_POWER ){
+
+        tx_power = WIFI_MAX_HW_TX_POWER;
+    }
+
+    #ifdef WIFI_MAX_SW_TX_POWER
+    if( tx_power > WIFI_MAX_SW_TX_POWER ){
+
+        tx_power = WIFI_MAX_SW_TX_POWER;
+    }
+    #endif
+
+    /*
+    Power:
+    dBm mW
+    10  10
+    11  12.6
+    12  15.8
+    13  20
+    14  25.1
+    15  31.6  
+    16  39.8
+    17  50.1
+    18  63.1
+    19  79.4
+    20  100
+    * note, we can't set to 20.5 with this API, but the ESP8266 can technically allow it.
+    20.5 112.2
+    */
+
+
+    options_msg.tx_power = tx_power; // in dbm
 
     if( kv_i8_get( __KV__midi_channel, &options_msg.midi_channel, sizeof(options_msg.midi_channel) ) < 0 ){
 
