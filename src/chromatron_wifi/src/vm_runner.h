@@ -33,9 +33,20 @@
 
 #define VM_RUNNER_THREAD_RATE 	10
 
+uint32_t vm_u32_get_fader_time( void );
+uint32_t vm_u32_get_loop_time( uint8_t vm_index );
+uint32_t vm_u32_get_thread_time( uint8_t vm_index );
+uint32_t vm_u32_get_max_cycles( uint8_t vm_index );
+
 void vm_v_init( void );
 void vm_v_run_faders( void );
-int8_t vm_i8_run_vm( uint8_t vm_id );
+
+#define VM_RUN_INIT     0
+#define VM_RUN_LOOP     1
+#define VM_RUN_THREADS  2
+#define VM_RUN_FUNC     3
+int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t mode );
+
 void vm_v_process( void );
 void vm_v_reset(  uint8_t vm_index );
 int8_t vm_i8_load( uint8_t *data, uint16_t len, uint16_t total_size, uint16_t offset, uint8_t vm_index );

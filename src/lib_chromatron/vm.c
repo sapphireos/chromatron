@@ -45,7 +45,7 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
-static uint16_t vm_size[VM_MAX_VMS];
+static uint16_t vm_sizes[VM_MAX_VMS];
 
 static uint16_t vm_fader_time;
 
@@ -71,7 +71,7 @@ int8_t vm_i8_kv_handler(
 
             for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
-                *total_size += vm_size[i];
+                *total_size += vm_sizes[i];
             }
         }
     }
@@ -88,7 +88,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_size[0],           0,                  "vm_size" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[0],          0,                  "vm_size" },
 
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
@@ -97,7 +97,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_size[1],           0,                  "vm_size_1" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[1],          0,                  "vm_size_1" },
 
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
@@ -106,7 +106,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_size[2],           0,                  "vm_size_2" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[2],          0,                  "vm_size_2" },
 
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
@@ -115,7 +115,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_size[3],           0,                  "vm_size_3" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[3],          0,                  "vm_size_3" },
 
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_total_size" },
@@ -233,6 +233,11 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr 
     // read database
     gfx_v_read_db();
 
+    vm_status[vm_id]        = info_msg.status;
+    vm_loop_time[vm_id]     = info_msg.loop_time;
+    vm_max_cycles[vm_id]    = info_msg.max_cycles;
+    vm_fader_time           = info_msg.fader_time;
+
     return info_msg.status;
 }
 
@@ -310,6 +315,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         goto error;
     }
+
+    int32_t vm_size_copy = vm_size;
 
     fs_v_seek( f, 0 );    
     int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
@@ -555,6 +562,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
     fs_f_close( f );
 
+    vm_sizes[vm_id] = vm_size_copy;
+
     log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
 
     return 0;
@@ -674,7 +683,7 @@ PT_BEGIN( pt );
                 vm_loop_time[i]     = 0;
                 vm_thread_time[i]   = 0;
                 vm_max_cycles[i]    = 0;
-                vm_size[i]          = 0;
+                vm_sizes[i]         = 0;
             }
             
             // always reset the reset

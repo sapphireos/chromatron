@@ -778,7 +778,7 @@ PT_BEGIN( pt );
     
     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) && !vm_b_running() );
+        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) || !vm_b_running() );
 
         ATOMIC;
         uint8_t flags = run_flags;

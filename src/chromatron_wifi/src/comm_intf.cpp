@@ -256,10 +256,35 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_msg_vm_run_t *msg = (wifi_msg_vm_run_t *)data;
 
+        int8_t status = 0;
+
+        if( data_id == WIFI_DATA_ID_INIT_VM ){
+
+            status = vm_i8_start( msg->vm_id );
+        }
+        else if( data_id == WIFI_DATA_ID_RUN_VM ){
+
+            status = vm_i8_run_vm( msg->vm_id, VM_RUN_LOOP );   
+        }
+        // else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
+
+        // }
+        // else if( data_id == WIFI_DATA_ID_INIT_VM ){
+        
+        // }
+        else{
+
+            return;
+        }
 
         wifi_msg_vm_info_t reply;
         reply.vm_id             = msg->vm_id;
+        reply.status            = status;
         reply.padding           = 0;
+        reply.fader_time        = vm_u32_get_fader_time();
+        reply.loop_time         = vm_u32_get_loop_time( msg->vm_id );
+        reply.thread_time       = vm_u32_get_thread_time( msg->vm_id );
+        reply.max_cycles        = vm_u32_get_max_cycles( msg->vm_id );
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&reply, sizeof(reply) );
     }

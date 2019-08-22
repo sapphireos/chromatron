@@ -50,10 +50,6 @@ static uint16_t vm_thread_time[VM_MAX_VMS];
 
 static uint32_t thread_tick;
 
-#define VM_RUN_INIT     0
-#define VM_RUN_LOOP     1
-#define VM_RUN_THREADS  2
-#define VM_RUN_FUNC     3
 
 uint32_t elapsed_time_millis( uint32_t start_time ){
 
@@ -99,6 +95,41 @@ uint32_t elapsed_time_micros( uint32_t start_time ){
     }
 
     return elapsed;
+}
+
+uint32_t vm_u32_get_fader_time( void ){
+
+    return vm_fader_time;
+}
+
+uint32_t vm_u32_get_loop_time( uint8_t vm_index ){
+
+    if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    return vm_loop_time[vm_index];
+}
+
+uint32_t vm_u32_get_thread_time( uint8_t vm_index ){
+
+    if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    return vm_thread_time[vm_index];
+}
+
+uint32_t vm_u32_get_max_cycles( uint8_t vm_index ){
+
+    if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    return vm_state[vm_index].max_cycles;   
 }
 
 static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr ){
@@ -237,9 +268,9 @@ void vm_v_run_faders( void ){
     vm_fader_time = elapsed;
 }
 
-int8_t vm_i8_run_vm( uint8_t vm_id ){
+int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t mode ){
 
-    int8_t status = _vm_i8_run_vm( VM_RUN_LOOP, vm_id, 0 );
+    int8_t status = _vm_i8_run_vm( mode, vm_id, 0 );
 
     if( status < 0 ){
 
