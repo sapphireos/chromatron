@@ -142,7 +142,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
     // check that VM was loaded with no errors
     if( vm_status[vm_index] < 0 ){
 
-        return -20;
+        return vm_status[vm_index];
     }
 
     // check that VM has not halted or waiting for sync
