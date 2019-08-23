@@ -1593,7 +1593,7 @@ PT_BEGIN( pt );
             for( uint8_t i = 0; i < item_count; i++ ){
 
                 kv_meta_t meta;
-                if( kv_i8_lookup_index( index + i, &meta, KV_META_FLAGS_GET_NAME ) < 0 ){
+                if( kv_i8_lookup_index_with_name( index + i, &meta ) < 0 ){
 
                     error = CATBUS_ERROR_KEY_NOT_FOUND;
                     mem2_v_free( h );

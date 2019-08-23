@@ -226,11 +226,8 @@ void kv_v_reset_cache( void ){
     cached_hash = 0;
 }
 
-
-
-int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
+int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 {
-
     if( index < _kv_u16_fixed_count() ){
 
         kv_meta_t *ptr = (kv_meta_t *)( kv_start + 1 ) + index;
@@ -259,11 +256,6 @@ int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
             return KV_ERR_STATUS_NOT_FOUND;             
         }
 
-        if( flags & KV_META_FLAGS_GET_NAME ){
-
-            kvdb_i8_lookup_name( hash, meta->name );
-        }
-
         meta->handler   = 0;
         meta->hash      = catbus_meta.hash;
         meta->type      = catbus_meta.type;
@@ -279,9 +271,25 @@ int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta, uint8_t flags )
     return 0;
 }
 
+int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta ){
+
+    int8_t status = lookup_index( index, meta );
+
+    return status;
+}
+
 int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta ){
 
-    
+    int8_t status = lookup_index( index, meta );
+
+    // static KV already loads the name.
+    // check if dynamic
+    if( index < kv_u16_count() ){
+
+        kvdb_i8_lookup_name( meta->hash, meta->name );    
+    }
+
+    return status;
 }
 
 uint16_t kv_u16_get_size_meta( kv_meta_t *meta ){
@@ -310,16 +318,21 @@ int8_t kv_i8_lookup_hash(
         return KV_ERR_STATUS_NOT_FOUND;
     }
 
-    return kv_i8_lookup_index( index, meta, flags );
+    return kv_i8_lookup_index( index, meta );
 }
 
 int8_t kv_i8_lookup_hash_with_name(
     catbus_hash_t32 hash,
     kv_meta_t *meta )
 {
+    int16_t index = kv_i16_search_hash( hash );
 
+    if( index < 0 ){
 
+        return KV_ERR_STATUS_NOT_FOUND;
+    }
 
+    return kv_i8_lookup_index( index, meta );
 }
 
 int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
