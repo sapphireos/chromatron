@@ -766,7 +766,7 @@ int8_t _catbus_i8_internal_set(
     // look up parameter
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
@@ -860,7 +860,7 @@ int8_t catbus_i8_array_get(
     // look up parameter
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
@@ -1632,7 +1632,7 @@ PT_BEGIN( pt );
 
             for( uint8_t i = 0; i < msg->count; i++ ){
 
-                if( kv_i8_lookup_hash( *hash, &meta, 0 ) == 0 ){
+                if( kv_i8_lookup_hash( *hash, &meta ) == 0 ){
 
                     uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
                     
@@ -1677,7 +1677,7 @@ PT_BEGIN( pt );
 
             for( uint8_t i = 0; i < reply_count; i++ ){
 
-                if( kv_i8_lookup_hash( *hash, &meta, 0 ) == 0 ){
+                if( kv_i8_lookup_hash( *hash, &meta ) == 0 ){
 
                     uint16_t type_len = kv_u16_get_size_meta( &meta );
 
@@ -1726,7 +1726,7 @@ PT_BEGIN( pt );
             for( uint8_t i = 0; i < msg->count; i++ ){
                 kv_meta_t meta;
 
-                if( kv_i8_lookup_hash( data->meta.hash, &meta, 0 ) < 0 ){
+                if( kv_i8_lookup_hash( data->meta.hash, &meta ) < 0 ){
 
                     error = CATBUS_ERROR_KEY_NOT_FOUND;
                     goto end;

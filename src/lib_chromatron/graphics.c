@@ -601,7 +601,7 @@ void gfx_v_sync_db( bool all ){
         subscribed_keys[i].flags = 0;
 
         kv_meta_t meta;
-        if( kv_i8_lookup_hash( subscribed_keys[i].hash, &meta, 0 ) < 0 ){
+        if( kv_i8_lookup_hash( subscribed_keys[i].hash, &meta ) < 0 ){
 
             continue;
         }

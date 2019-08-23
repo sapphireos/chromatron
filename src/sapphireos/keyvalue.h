@@ -161,8 +161,7 @@ int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta );
 int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta );
 int8_t kv_i8_lookup_hash(
     catbus_hash_t32 hash,
-    kv_meta_t *meta,
-    uint8_t flags );
+    kv_meta_t *meta );
 int8_t kv_i8_lookup_hash_with_name(
     catbus_hash_t32 hash,
     kv_meta_t *meta );

@@ -308,8 +308,7 @@ uint16_t kv_u16_get_size_meta( kv_meta_t *meta ){
 
 int8_t kv_i8_lookup_hash(
     catbus_hash_t32 hash,
-    kv_meta_t *meta,
-    uint8_t flags )
+    kv_meta_t *meta )
 {
     int16_t index = kv_i16_search_hash( hash );
 
@@ -332,13 +331,13 @@ int8_t kv_i8_lookup_hash_with_name(
         return KV_ERR_STATUS_NOT_FOUND;
     }
 
-    return kv_i8_lookup_index( index, meta );
+    return kv_i8_lookup_index_with_name( index, meta );
 }
 
 int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 
     kv_meta_t kv_meta;
-    if( kv_i8_lookup_hash( hash, &kv_meta, 0 ) < 0 ){
+    if( kv_i8_lookup_hash( hash, &kv_meta ) < 0 ){
 
         return -1;
     }
@@ -358,16 +357,11 @@ int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[KV_NAME_LEN] ){
 
     memset( name, 0, KV_NAME_LEN );
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, KV_META_FLAGS_GET_NAME );
+    int8_t status = kv_i8_lookup_hash_with_name( hash, &meta );
 
     if( status == 0 ){
 
         strlcpy( name, meta.name, KV_NAME_LEN );
-    }
-    else{
-
-        // try dynamic DB
-        status = kvdb_i8_lookup_name( hash, name );
     }
 
     return status;
@@ -428,7 +422,7 @@ retry:;
         // look up meta data, verify type matches, and check if there is
         // a memory pointer
         // AND not an array.
-        int8_t status = kv_i8_lookup_hash( hdr->hash, &meta, 0 );
+        int8_t status = kv_i8_lookup_hash( hdr->hash, &meta );
 
         if( ( status >= 0 ) &&
             ( meta.type == hdr->type ) &&
@@ -736,7 +730,7 @@ int8_t kv_i8_array_set(
     // look up parameter
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
@@ -910,7 +904,7 @@ int8_t kv_i8_array_get(
     // look up parameter
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
@@ -925,7 +919,7 @@ int16_t kv_i16_len( catbus_hash_t32 hash )
 {
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
@@ -940,7 +934,7 @@ sapphire_type_t8 kv_i8_type( catbus_hash_t32 hash )
 
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
@@ -955,7 +949,7 @@ int8_t kv_i8_persist( catbus_hash_t32 hash )
     // look up parameter
     kv_meta_t meta;
 
-    int8_t status = kv_i8_lookup_hash( hash, &meta, 0 );
+    int8_t status = kv_i8_lookup_hash( hash, &meta );
 
     if( status < 0 ){
 
