@@ -181,26 +181,26 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     int32_t current_thread;
     uint32_t max_cycles;
 
-    uint32_t read_keys_count;
-    uint32_t read_keys_start;
+    uint16_t read_keys_count;
+    uint16_t read_keys_start;
 
-    uint32_t write_keys_count;
-    uint32_t write_keys_start;
+    uint16_t write_keys_count;
+    uint16_t write_keys_start;
 
-    uint32_t publish_count;
-    uint32_t publish_start;
+    uint16_t publish_count;
+    uint16_t publish_start;
 
-    uint32_t pix_obj_count;
+    uint16_t pix_obj_count;
 
-    uint32_t link_count;
-    uint32_t link_start;
+    uint16_t link_count;
+    uint16_t link_start;
 
-    uint32_t db_count;
-    uint32_t db_start;
+    uint16_t db_count;
+    uint16_t db_start;
 
-    uint32_t cron_count;
-    uint32_t cron_start;
-    uint32_t last_cron;
+    uint16_t cron_count;
+    uint16_t cron_start;
+    uint16_t last_cron;
 } vm_state_t;
 
 int8_t vm_i8_run(
