@@ -216,6 +216,7 @@ int8_t sapphire_i8_init( void ){
 
     dns_v_init();
 
+    log_v_info_P( PSTR("Sapphire start") );
     trace_printf( "SapphireOS ready\r\n" );
 
     // return system OK

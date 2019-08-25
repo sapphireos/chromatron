@@ -47,6 +47,11 @@ static uint32_t max_log_size;
 
 void log_v_init( void ){
 
+    if( f > 0 ){
+
+        f = fs_f_close( f );
+    }
+
     f = fs_f_open_P( PSTR("log.txt"), FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
 
     if( cfg_i8_get( CFG_PARAM_MAX_LOG_SIZE, &max_log_size ) < 0 ){
@@ -59,8 +64,6 @@ void log_v_init( void ){
         max_log_size = LOG_MAX_SIZE;
         cfg_v_set( CFG_PARAM_MAX_LOG_SIZE, &max_log_size );
     }
-
-    log_v_info_P( PSTR("Sapphire start") );
 }
 
 static void append_log( char *buf ){

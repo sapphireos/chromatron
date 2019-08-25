@@ -2261,6 +2261,13 @@ PT_BEGIN( pt );
             fs_v_delete( f );            
             f = fs_f_close( f );
 
+            // check if this is log.txt
+            // if so, we want to recreate this file so we can keep logging
+            if( strcmp_P( msg->filename, PSTR("log.txt") ) == 0 ){
+
+                log_v_init(); // re-init the log file
+            }
+
             catbus_msg_file_ack_t reply;
             _catbus_v_msg_init( &reply.header, CATBUS_MSG_TYPE_FILE_ACK, header->transaction_id );
         
