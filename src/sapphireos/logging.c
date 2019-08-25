@@ -43,8 +43,22 @@
 
 static char buf[LOG_STR_BUF_SIZE];
 static file_t f = -1;
+static uint32_t max_log_size;
 
 void log_v_init( void ){
+
+    f = fs_f_open_P( PSTR("log.txt"), FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( cfg_i8_get( CFG_PARAM_MAX_LOG_SIZE, &max_log_size ) < 0 ){
+
+        max_log_size = LOG_MAX_SIZE;
+    }
+
+    if( max_log_size > LOG_MAX_SIZE ){
+
+        max_log_size = LOG_MAX_SIZE;
+        cfg_v_set( CFG_PARAM_MAX_LOG_SIZE, &max_log_size );
+    }
 
     log_v_info_P( PSTR("Sapphire start") );
 }
@@ -55,24 +69,8 @@ static void append_log( char *buf ){
 
     // check if file is not open
     if( f < 0 ){
-        
-        f = fs_f_open_P( PSTR("log.txt"), FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
-    }
-
-    if( f < 0 ){
 
         return;
-    }
-
-    uint32_t max_log_size;
-    if( cfg_i8_get( CFG_PARAM_MAX_LOG_SIZE, &max_log_size ) < 0 ){
-        max_log_size = LOG_MAX_SIZE;
-    }
-
-    if( max_log_size > LOG_MAX_SIZE ){
-
-        max_log_size = LOG_MAX_SIZE;
-        cfg_v_set( CFG_PARAM_MAX_LOG_SIZE, &max_log_size );
     }
 
     // check file size
@@ -144,42 +142,43 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
 
     EVENT( EVENT_ID_LOG_RECORD, 0 );
 
-    char filename[32];
-    strlcpy_P( filename, file, sizeof(filename) );
+    uint8_t len = 0;
 
     // print level
-    char level_str[8];
-
     switch( level ){
         case LOG_LEVEL_INFO:
-            strlcpy_P( level_str, PSTR("info"), sizeof(level_str) );
+            len += strlcpy_P( &buf[len], PSTR("info :"), LOG_STR_BUF_SIZE - len );
             break;
 
         case LOG_LEVEL_WARN:
-            strlcpy_P( level_str, PSTR("warn"), sizeof(level_str) );
+            len += strlcpy_P( &buf[len], PSTR("warn :"), LOG_STR_BUF_SIZE - len );
             break;
 
         case LOG_LEVEL_ERROR:
-            strlcpy_P( level_str, PSTR("error"), sizeof(level_str) );
+            len += strlcpy_P( &buf[len], PSTR("error:"), LOG_STR_BUF_SIZE - len );
             break;
 
         case LOG_LEVEL_CRITICAL:
-            strlcpy_P( level_str, PSTR("crit"), sizeof(level_str) );
+            len += strlcpy_P( &buf[len], PSTR("crit :"), LOG_STR_BUF_SIZE - len );
             break;
 
         default:
-            strlcpy_P( level_str, PSTR("debug"), sizeof(level_str) );
+            len += strlcpy_P( &buf[len], PSTR("debug:"), LOG_STR_BUF_SIZE - len );
             break;
     }
 
-    // print system time, file, and line
-    uint8_t len = snprintf_P( buf,
-                              LOG_STR_BUF_SIZE,
-                              PSTR("%5s:%8lu:%16s:%4d:"),
-                              level_str,
-                              tmr_u32_get_system_time_ms(),
-                              filename,
-                              line );
+    // print timestamp
+    len += snprintf_P( &buf[len], LOG_STR_BUF_SIZE - len, PSTR("%8lu:"), tmr_u32_get_system_time_ms() );
+
+    // print filename
+    #ifdef AVR
+    len += snprintf_P( &buf[len], LOG_STR_BUF_SIZE - len, PSTR("%16S:"), file ); // this version for ROM strings
+    #else
+    len += snprintf_P( &buf[len], LOG_STR_BUF_SIZE - len, PSTR("%16s:"), file );
+    #endif
+
+    // print line
+    len += snprintf_P( &buf[len], LOG_STR_BUF_SIZE - len, PSTR("%4d:"), line );
 
     va_list ap;
 
