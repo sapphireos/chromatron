@@ -54,7 +54,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint32_t vm_id;
 } wifi_msg_reset_vm_t;
-#define WIFI_DATA_ID_RESET_VM          0x81
+#define WIFI_DATA_ID_RESET_VM          0x61
 
 typedef struct __attribute__((packed)){
     uint32_t vm_id;
@@ -62,10 +62,10 @@ typedef struct __attribute__((packed)){
     uint16_t offset;
     uint8_t chunk[64];
 } wifi_msg_load_vm_t;
-#define WIFI_DATA_ID_LOAD_VM           0x82
+#define WIFI_DATA_ID_LOAD_VM           0x62
 
 
-#define WIFI_DATA_ID_RUN_FADER         0x83
+#define WIFI_DATA_ID_RUN_FADER         0x63
 
 typedef struct __attribute__((packed)){
     uint16_t vm_id;
@@ -79,16 +79,16 @@ typedef struct __attribute__((packed)){
     uint32_t active_threads;
     int32_t thread_delay;
 } wifi_msg_vm_info_t;
-#define WIFI_DATA_ID_VM_INFO           0x84
+#define WIFI_DATA_ID_VM_INFO           0x64
 
 // VM run commands
 typedef struct __attribute__((packed)){
     uint32_t vm_id;
     uint16_t func_addr;
 } wifi_msg_vm_run_t;
-#define WIFI_DATA_ID_INIT_VM           0x85
-#define WIFI_DATA_ID_RUN_VM            0x86
-#define WIFI_DATA_ID_VM_RUN_FUNC       0x87
+#define WIFI_DATA_ID_INIT_VM           0x65
+#define WIFI_DATA_ID_RUN_VM            0x66
+#define WIFI_DATA_ID_VM_RUN_FUNC       0x67
 
 typedef struct __attribute__((packed)){
     uint32_t program_name_hash;
@@ -96,21 +96,21 @@ typedef struct __attribute__((packed)){
     uint16_t data_len;
     uint64_t rng_seed;
 } wifi_msg_vm_frame_sync_t;
-#define WIFI_DATA_ID_VM_FRAME_SYNC      0x88
+#define WIFI_DATA_ID_VM_FRAME_SYNC      0x68
 
 typedef struct __attribute__((packed)){
     uint16_t offset;
     uint16_t padding;
 } wifi_msg_vm_sync_data_t;
-#define WIFI_DATA_ID_VM_SYNC_DATA      	0x89
+#define WIFI_DATA_ID_VM_SYNC_DATA      	0x69
 #define WIFI_MAX_SYNC_DATA 	( 244 - sizeof(wifi_msg_vm_frame_sync_t) )
 
 typedef struct __attribute__((packed)){
     uint32_t hash;
 } wifi_msg_vm_sync_done_t;
-#define WIFI_DATA_ID_VM_SYNC_DONE      	0x8A
+#define WIFI_DATA_ID_VM_SYNC_DONE      	0x6A
 
-#define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x8B
+#define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x6B
 
 #endif
 

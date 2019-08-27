@@ -49,14 +49,14 @@ typedef ip_addr_t sos_ip_addr_t;
 #define WIFI_STATUS_NET_RX              0x08
 #define WIFI_STATUS_160MHz              0x02
 
-#define WIFI_COMM_DATA                  0x36
-#define WIFI_COMM_ACK                   0xC9
-#define WIFI_COMM_NAK                   0x56
-#define WIFI_COMM_RTS                   0x73
-#define WIFI_COMM_CTS                   0x61
-#define WIFI_COMM_READY                 0xD5
-#define WIFI_COMM_QUERY_READY           0x68
-#define WIFI_COMM_GET_MSG               0x45
+#define WIFI_COMM_DATA                  0xD1
+#define WIFI_COMM_ACK                   0xA2
+#define WIFI_COMM_NAK                   0xF3
+#define WIFI_COMM_RTS                   0xB4
+#define WIFI_COMM_CTS                   0xC5
+#define WIFI_COMM_READY                 0xD6
+#define WIFI_COMM_QUERY_READY           0xE0
+#define WIFI_COMM_GET_MSG               0xE5
 
 
 typedef struct __attribute__((packed)){
