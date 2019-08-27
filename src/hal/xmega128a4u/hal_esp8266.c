@@ -129,10 +129,8 @@ static uint8_t get_insert_ptr( void ){
 // }
 
 static int16_t extract_byte( void ){
-    
-    uint8_t insert_ptr = get_insert_ptr();
 
-    if( insert_ptr == extract_ptr ){
+    if( !hal_wifi_b_usart_rx_available() ){
 
         return -1;
     }

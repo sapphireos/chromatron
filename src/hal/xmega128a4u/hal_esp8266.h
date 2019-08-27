@@ -28,7 +28,7 @@
 #include "wifi_cmd.h"
 #include "hal_usart.h"
 
-#define WIFI_UART_BUF_SIZE		64
+#define WIFI_UART_BUF_SIZE		128
 
 #define WIFI_USART              USARTE0
 
