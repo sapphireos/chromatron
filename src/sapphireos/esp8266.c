@@ -263,6 +263,10 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             return 0;
         }
+        else if( byte == WIFI_COMM_NAK ){
+
+            log_v_debug_P( PSTR("msg NAK: 0x%02x"), data_id );
+        }
     }
 
     log_v_debug_P( PSTR("msg failed: 0x%02x"), data_id );
@@ -323,7 +327,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 
             if( hal_wifi_i8_usart_receive( data, header->len, WIFI_COMM_TIMEOUT ) < 0 ){
 
-                log_v_debug_P( PSTR("data timeout 0x%02x"), header->data_id );
+                log_v_debug_P( PSTR("data timeout 0x%02x %d"), header->data_id, header->len );
                 continue;
             }
         

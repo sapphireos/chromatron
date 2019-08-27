@@ -664,6 +664,10 @@ void gfx_v_read_db( void ){
 
 static bool should_halt_fader( void ){
 
+    if( !wifi_b_connected() ){
+        return TRUE;
+    }
+
     return 
         ( pixel_u8_get_mode() == PIX_MODE_OFF ) ||
         ( gfx_u16_get_pix_count() == 0 ) ||
