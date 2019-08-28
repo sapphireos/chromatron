@@ -70,6 +70,11 @@ static list_t thread_list;
 
 // currently running thread
 static thread_t current_thread;
+#ifdef AVR
+static uint16_t current_thread_addr;
+#else
+static uint32_t current_thread_addr;
+#endif
 static uint8_t run_cause;
 
 // CPU usage info
@@ -343,25 +348,9 @@ PT_THREAD( ( *thread_p_get_function( thread_t thread_id ) ) )( pt_t *pt, void *s
 
 uint32_t thread_u32_get_current_addr( void ){
 
-    thread_t thread = thread_t_get_current_thread();
-
-    uint32_t thread_addr = 0;
-
-    if( thread != 0 ){
-
-        #ifdef AVR
-        thread_addr = (uint32_t)((uint16_t)thread_p_get_function( thread_t_get_current_thread() ));
-        // the double casts are to prevent a compiler warning from the pointer casting to a larger integer.
-        #else
-        thread_addr = (uint32_t)thread_p_get_function( thread_t_get_current_thread() );
-        #endif
-    }
-
     // multiply the address by 2 to get the byte address.
     // this makes it easy to look up the thread function in the .lss file.
-    thread_addr <<= 1;
-
-    return thread_addr;
+    return current_thread_addr << 1;
 }
 
 void *thread_vp_get_data( thread_t thread_id ){
@@ -543,6 +532,11 @@ void run_thread( thread_t thread, thread_state_t *state ){
 
 	// set current thread
 	current_thread = thread;
+    #ifdef AVR
+    current_thread_addr = (uint16_t)state->thread;
+    #else
+    current_thread_addr = (uint32_t)state->thread;
+    #endif
 
     // clear active flag
     thread_flags &= ~FLAGS_ACTIVE;
@@ -774,6 +768,8 @@ void thread_start( void ){
 				// run the thread
 				run_thread( ln, state );
 			}
+
+            mem2_v_check_canaries();
 
             ln = ln_state->next;
 

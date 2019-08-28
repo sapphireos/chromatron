@@ -14,7 +14,7 @@
 //     but WITHOUT ANY WARRANTY; without even the implied warranty of
 //     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //     GNU General Public License for more details.
-// r
+// 
 //     You should have received a copy of the GNU General Public License
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
@@ -76,7 +76,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "event_log.h"
 
 #define WIFI_COMM_TRIES         3
-#define WIFI_COMM_TIMEOUT       20000
+#define WIFI_COMM_TIMEOUT       200000
 #define WIFI_CONNECT_TIMEOUT    10000
 
 static uint16_t ports[WIFI_MAX_PORTS];
@@ -407,6 +407,8 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
         log_v_debug_P( PSTR("wrong data id") );
         return -4;
     }
+
+    mem2_v_check_canaries();
 
     return 0;
 }
