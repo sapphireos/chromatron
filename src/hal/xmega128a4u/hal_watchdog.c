@@ -70,6 +70,8 @@ void wdg_v_disable( void ){
 
     WDT.CTRL = WDT_CEN_bm;
 
+    TCC1.INTCTRLB &= ~TC_CCBINTLVL_HI_gc;
+
     END_ATOMIC;
 }
 
