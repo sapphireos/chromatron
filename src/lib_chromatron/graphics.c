@@ -685,8 +685,6 @@ PT_BEGIN( pt );
     
     while(1){
 
-        TMR_WAIT( pt, 5 );
-
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
