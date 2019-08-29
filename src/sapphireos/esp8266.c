@@ -408,8 +408,6 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
         return -4;
     }
 
-    mem2_v_check_canaries();
-
     return 0;
 }
 
@@ -738,11 +736,9 @@ PT_END( pt );
 
 
 //static 
-int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
+int8_t process_rx_data( wifi_data_header_t *header, uint8_t *data ){
 
     int8_t status = 0;
-
-    uint8_t *data = buf;
 
     if( header->data_id == WIFI_DATA_ID_STATUS ){
 
@@ -775,6 +771,9 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *buf ){
 //         // }
 //     }
     else if( header->data_id == WIFI_DATA_ID_DEBUG_PRINT ){
+
+        // ensure null termination
+        data[header->len - 1] = 0;
 
         log_v_debug_P( PSTR("ESP: %s"), data );
     }
