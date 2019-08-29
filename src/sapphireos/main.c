@@ -21,20 +21,20 @@
 // </license>
 
 #include "sapphire.h"
-
-#include "app.h"
-
 #include "init.h"
 
-
 void main( void ) __attribute__ ((noreturn));
+void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
 void main( void ){      
         
     if( sapphire_i8_init() == 0 ){
-       
-        app_v_init();
+            
+        if( app_v_init != 0 ){            
+
+            app_v_init();
+        }
 
         if( libs_v_init != 0 ){
 
