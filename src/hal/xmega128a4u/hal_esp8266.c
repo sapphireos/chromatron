@@ -143,6 +143,8 @@ static int16_t extract_byte( void ){
         extract_ptr = 0;
     }    
 
+    current_rx_bytes++;
+
     return temp;
 }
 
@@ -259,11 +261,9 @@ void hal_wifi_v_usart_flush( void ){
 
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
 
-    ATOMIC;
 	uint32_t temp = current_rx_bytes;
 
 	current_rx_bytes = 0;
-    END_ATOMIC;
 
 	return temp;
 }
