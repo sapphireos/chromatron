@@ -769,8 +769,6 @@ void thread_start( void ){
 				run_thread( ln, state );
 			}
 
-            mem2_v_check_canaries();
-
             ln = ln_state->next;
 
             process_signalled_threads();
