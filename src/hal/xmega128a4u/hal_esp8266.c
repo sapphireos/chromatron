@@ -119,37 +119,16 @@ void disable_rx_dma( void ){
     extract_ptr = 0;
 }
 
-static uint8_t get_insert_ptr( void ){
+static inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
+
+static inline uint8_t get_insert_ptr( void ){
 
     return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
 }
 
-// static bool rx_dma_enabled( void ){
+static inline bool dma_rx_available( void )  __attribute__((always_inline));
 
-//     return DMA.WIFI_DMA_CH.CTRLA != 0;
-// }
-
-static int16_t extract_byte( void ){
-
-    if( !hal_wifi_b_usart_rx_available() ){
-
-        return -1;
-    }
-
-    uint8_t temp = rx_dma_buf[extract_ptr];
-
-    extract_ptr++;
-    if( extract_ptr >= sizeof(rx_dma_buf) ){
-
-        extract_ptr = 0;
-    }    
-
-    current_rx_bytes++;
-
-    return temp;
-}
-
-static bool dma_rx_available( void ){
+static inline bool dma_rx_available( void ){
 
     uint8_t insert_ptr = get_insert_ptr();
 
@@ -180,9 +159,32 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
     usart_v_set_baud( &WIFI_USART, baud );
 }
 
+static inline uint8_t get_char( void )  __attribute__((always_inline));
+
+static inline uint8_t get_char( void ){
+
+    uint8_t temp = rx_dma_buf[extract_ptr];
+
+    extract_ptr++;
+    if( extract_ptr >= sizeof(rx_dma_buf) ){
+
+        extract_ptr = 0;
+    }    
+
+    return temp;
+}
+
+
 int16_t hal_wifi_i16_usart_get_char( void ){
 
-    return extract_byte();
+    if( !dma_rx_available() ){
+
+        return -1;
+    }
+
+    current_rx_bytes++;
+
+    return get_char();
 }
 
 static void start_timeout( uint32_t microseconds ){
@@ -200,7 +202,9 @@ static void start_timeout( uint32_t microseconds ){
     WIFI_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
 }
 
-static bool is_timeout( void ){
+static inline bool is_timeout( void ) __attribute__((always_inline));
+
+static inline bool is_timeout( void ){
 
     ATOMIC;
     bool temp = timed_out;
@@ -213,7 +217,7 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
 
     start_timeout( timeout );
 
-    while( !hal_wifi_b_usart_rx_available() ){
+    while( !dma_rx_available() ){
 
         if( is_timeout() ){
 
@@ -221,7 +225,9 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
         }
     }
 
-    return hal_wifi_i16_usart_get_char();
+    current_rx_bytes++;
+
+    return get_char();
 }
 
 bool hal_wifi_b_usart_rx_available( void ){
@@ -235,19 +241,21 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
     while( len > 0 ){
 
-        while( !hal_wifi_b_usart_rx_available() ){
+        while( !dma_rx_available() ){
 
-            if( is_timeout() ){
+            // if( is_timeout() ){
 
-                log_v_debug_P( PSTR("left: %u"), len );
+            //     log_v_debug_P( PSTR("left: %u"), len );
 
-                return -1;
-            }
+            //     return -1;
+            // }
         }
-        *buf = (uint8_t)hal_wifi_i16_usart_get_char();
+        *buf = get_char();
         buf++;
         len--;
     }
+
+    current_rx_bytes += len;
 
     return 0;
 }
