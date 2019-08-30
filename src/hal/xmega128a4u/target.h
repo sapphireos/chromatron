@@ -72,7 +72,7 @@
 // memory
 #define MAX_MEM_HANDLES         80
 // #define MEM_MAX_STACK           1152
-#define MEM_MAX_STACK           2048
+#define MEM_MAX_STACK           1536
 
 // flash fs
 

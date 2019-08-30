@@ -427,6 +427,8 @@ static void setup_pixel_timer( void ){
 ISR(PIXEL_DMA_CH_A_vect){
 OS_IRQ_BEGIN(PIXEL_DMA_CH_A_vect);
 
+    io_v_digital_write( IO_PIN_0_GPIO, TRUE );
+
     uint8_t count;
 
     count = setup_pixel_buffer( pix_buf_A, sizeof(pix_buf_A) );
@@ -463,11 +465,15 @@ OS_IRQ_BEGIN(PIXEL_DMA_CH_A_vect);
         }
     }
 
+    io_v_digital_write( IO_PIN_0_GPIO, FALSE );
+
 OS_IRQ_END();
 }
 
 ISR(PIXEL_DMA_CH_B_vect){
 OS_IRQ_BEGIN(PIXEL_DMA_CH_B_vect);
+
+    io_v_digital_write( IO_PIN_0_GPIO, TRUE );
 
     uint8_t count;
 
@@ -504,6 +510,8 @@ OS_IRQ_BEGIN(PIXEL_DMA_CH_B_vect);
             }
         }
     }
+
+    io_v_digital_write( IO_PIN_0_GPIO, FALSE );
 
 OS_IRQ_END();
 }
@@ -608,6 +616,9 @@ void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
 }
 
 void pixel_v_init( void ){
+
+io_v_set_mode( IO_PIN_0_GPIO, IO_MODE_OUTPUT );
+
 
     ATOMIC;
 
