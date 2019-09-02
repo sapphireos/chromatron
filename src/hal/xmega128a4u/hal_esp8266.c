@@ -243,12 +243,12 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
         while( !dma_rx_available() ){
 
-            // if( is_timeout() ){
+            if( is_timeout() ){
 
-            //     log_v_debug_P( PSTR("left: %u"), len );
+                log_v_debug_P( PSTR("left: %u"), len );
 
-            //     return -1;
-            // }
+                return -1;
+            }
         }
         *buf = get_char();
         buf++;
