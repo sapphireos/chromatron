@@ -267,6 +267,10 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             log_v_debug_P( PSTR("msg NAK: 0x%02x"), data_id );
         }
+        else{
+
+            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x"), data_id, byte );
+        }
     }
 
     log_v_debug_P( PSTR("msg failed: 0x%02x"), data_id );
