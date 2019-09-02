@@ -243,12 +243,12 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
         while( !dma_rx_available() ){
 
-            // if( is_timeout() ){
+            if( is_timeout() ){
 
-            //     log_v_debug_P( PSTR("left: %u"), len );
+                log_v_debug_P( PSTR("left: %u"), len );
 
-            //     return -1;
-            // }
+                return -1;
+            }
         }
         *buf = get_char();
         buf++;
@@ -258,6 +258,38 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
     current_rx_bytes += len;
 
     return 0;
+}
+
+int8_t hal_wifi_i8_usart_receive_into( uint8_t *buf, uint16_t len, uint32_t timeout ){
+
+    hal_wifi_v_usart_flush();
+    disable_rx_dma();
+
+    DMA.WIFI_DMA_CH.DESTADDR0 = ( ( (uint16_t)buf ) >> 0 ) & 0xFF;
+    DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)buf ) >> 8 ) & 0xFF;
+    DMA.WIFI_DMA_CH.DESTADDR2 = 0;
+
+    DMA.WIFI_DMA_CH.REPCNT = 1;
+    DMA.WIFI_DMA_CH.TRFCNT = len;
+
+    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
+
+    return 0;
+}
+
+int8_t hal_wifi_i8_usart_receive_into_complete( void ){
+
+    if( DMA.WIFI_DMA_CH.TRFCNT == 0 ){
+
+        return 0;
+    }
+
+    if( is_timeout() ){
+
+        return -1;
+    }
+
+    return 1;
 }
 
 void hal_wifi_v_usart_flush( void ){

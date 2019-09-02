@@ -906,7 +906,9 @@ static int8_t _intf_i8_transmit_msg( uint8_t data_id, uint8_t *data, uint16_t le
 
     uint16_t data_crc = crc_u16_block( data, len );
 
+    uint32_t timeout = start_timeout();
 
+retry:
     while( tries > 0 ){
 
         tries--;
@@ -916,16 +918,12 @@ static int8_t _intf_i8_transmit_msg( uint8_t data_id, uint8_t *data, uint16_t le
             continue;
         }
 
+        // write header
+
         Serial.write( WIFI_COMM_DATA );
         Serial.write( (uint8_t *)&header, sizeof(wifi_data_header_t) );
 
-        if( len > 0 ){
-
-            Serial.write( data, len );
-            Serial.write( (uint8_t *)&data_crc, sizeof(data_crc) );
-        }
-
-        uint32_t timeout = start_timeout();
+        // wait for ack
 
         while( elapsed( timeout ) < WIFI_COMM_TIMEOUT ){
 
@@ -935,11 +933,38 @@ static int8_t _intf_i8_transmit_msg( uint8_t data_id, uint8_t *data, uint16_t le
 
                 if( c == WIFI_COMM_ACK ){
 
-                    return 0;
+                    break;
                 }
                 else if( c == WIFI_COMM_NAK ){
 
-                    break;
+                    goto retry;
+                }
+            }
+        }
+
+        // write data
+
+        if( len > 0 ){
+
+            Serial.write( data, len );
+            Serial.write( (uint8_t *)&data_crc, sizeof(data_crc) );
+        
+            // wait for ack
+
+            while( elapsed( timeout ) < WIFI_COMM_TIMEOUT ){
+
+                if( Serial.available() > 0 ){
+
+                    char c = Serial.read();
+
+                    if( c == WIFI_COMM_ACK ){
+
+                        return 0;
+                    }
+                    else if( c == WIFI_COMM_NAK ){
+
+                        goto retry;
+                    }
                 }
             }
         }
