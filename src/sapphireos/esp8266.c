@@ -398,6 +398,8 @@ int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, ui
 
     if( status < 0 ){
 
+        log_v_debug_P( PSTR("receive fail: 0x%02x"), data_id );
+
         return status;
     }
 
@@ -979,6 +981,7 @@ PT_BEGIN( pt );
 
             if( wifi_i8_send_msg( WIFI_DATA_ID_PEEK_UDP, 0, 0 ) < 0 ){
 
+                log_v_debug_P( PSTR("peek fail") );     
                 continue;
             }   
 
@@ -986,6 +989,7 @@ PT_BEGIN( pt );
 
             if( wifi_i8_receive_msg( WIFI_DATA_ID_PEEK_UDP, (uint8_t *)&udp_header, sizeof(udp_header), 0 ) < 0 ){
 
+                log_v_debug_P( PSTR("peek fail 2") );
                 continue;
             }
 
@@ -1021,6 +1025,8 @@ PT_BEGIN( pt );
             if( wifi_i8_send_msg( WIFI_DATA_ID_GET_UDP, 0, 0 ) < 0 ){
 
                 netmsg_v_release( rx_netmsg );
+
+                log_v_debug_P( PSTR("get udp fail") );     
 
                 continue;
             }
