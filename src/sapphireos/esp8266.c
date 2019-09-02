@@ -173,6 +173,12 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
+void debug_strobe( void ){
+
+    io_v_digital_write( IO_PIN_1_XCK, TRUE );
+    _delay_us( 10 );
+    io_v_digital_write( IO_PIN_1_XCK, FALSE );
+}
 
 static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
@@ -206,6 +212,24 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
             if( byte == WIFI_COMM_ACK ){
 
                 return 0;
+            }
+            else if( byte == WIFI_COMM_NAK ){
+
+                debug_strobe();
+
+                log_v_debug_P( PSTR("msg NAK: 0x%02x"), data_id );
+            }
+            else if( byte < 0 ){
+
+                debug_strobe();
+
+                log_v_debug_P( PSTR("msg response timeout 0x%02x"), data_id );
+            }
+            else{
+
+                debug_strobe();
+
+                log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x"), data_id, byte );
             }
         }
         else{
@@ -265,13 +289,25 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
         else if( byte == WIFI_COMM_NAK ){
 
+            debug_strobe();
+
             log_v_debug_P( PSTR("msg NAK: 0x%02x"), data_id );
         }
+        else if( byte < 0 ){
+
+            debug_strobe();
+
+            log_v_debug_P( PSTR("msg response timeout 0x%02x"), data_id );
+        }
         else{
+
+            debug_strobe();
 
             log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x"), data_id, byte );
         }
     }
+
+    debug_strobe();
 
     log_v_debug_P( PSTR("msg failed: 0x%02x"), data_id );
 
@@ -296,6 +332,8 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         // wait for RTS
         if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_RTS ){
 
+            debug_strobe();
+
             log_v_debug_P( PSTR("rts timeout") );
             continue;
         }
@@ -306,19 +344,19 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 
         // wait for data start
         if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_DATA ){
-
+            debug_strobe();
             log_v_debug_P( PSTR("data start timeout") );
             continue;
         }
 
         if( hal_wifi_i8_usart_receive( (uint8_t *)header, sizeof(wifi_data_header_t), WIFI_COMM_TIMEOUT ) < 0 ){
-
+            debug_strobe();
             log_v_debug_P( PSTR("header timeout") );
             continue;
         }
 
         if( header->len > max_len ){
-
+            debug_strobe();
             log_v_debug_P( PSTR("invalid len 0x%02x"), header->data_id );
             continue;
         }
@@ -330,13 +368,13 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
             ASSERT( data != 0 );
 
             if( hal_wifi_i8_usart_receive( data, header->len, WIFI_COMM_TIMEOUT ) < 0 ){
-
+                debug_strobe();
                 log_v_debug_P( PSTR("data timeout 0x%02x %d"), header->data_id, header->len );
                 continue;
             }
         
             if( hal_wifi_i8_usart_receive( (uint8_t *)&crc, sizeof(crc), WIFI_COMM_TIMEOUT ) < 0 ){
-
+                debug_strobe();
                 log_v_debug_P( PSTR("crc timeout 0x%02x"), header->data_id );
                 continue;
             }
@@ -345,7 +383,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         // check CRCs
         header->header_crc = HTONS( header->header_crc );
         if( crc_u16_block( (uint8_t *)header, sizeof(wifi_data_header_t) ) != 0 ){
-
+            debug_strobe();
             log_v_debug_P( PSTR("header crc fail 0x%02x"), header->data_id );
             hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
             continue;
@@ -355,6 +393,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
         
             if( crc_u16_block( data, header->len ) != crc ){
 
+                debug_strobe();
                 log_v_debug_P( PSTR("data crc fail 0x%02x"), header->data_id );
                 hal_wifi_v_usart_send_char( WIFI_COMM_NAK );
                 continue;
@@ -373,7 +412,7 @@ int8_t _wifi_i8_internal_receive( wifi_data_header_t *header, uint8_t *data, uin
 
             // bytes read is null, received data is expected to be fixed size
             if( header->len != max_len ){
-
+                debug_strobe();
                 log_v_debug_P( PSTR("wrong data len: 0x%02x %d != %d"), header->data_id, header->len, max_len );
                 status = -5;
                 goto error;
@@ -562,6 +601,14 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         if( byte == WIFI_COMM_ACK ){
 
             break;
+        }
+        else if( byte < 0 ){
+
+            log_v_debug_P( PSTR("msg response timeout") );       
+        }
+        else{
+
+            log_v_debug_P( PSTR("udp invalid response -> 0x%02x"), byte );
         }
     }
 
@@ -963,6 +1010,7 @@ PT_BEGIN( pt );
 
         if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_ACK ){
 
+            log_v_debug_P( PSTR("WIFI_COMM_GET_MSG timeout") );
             continue;
         }
 
@@ -1434,7 +1482,7 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 
 void wifi_v_init( void ){
-
+io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
     hal_wifi_v_init();
 
     wifi_status = WIFI_STATE_BOOT;
