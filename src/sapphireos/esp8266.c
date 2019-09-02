@@ -1011,6 +1011,8 @@ PT_BEGIN( pt );
         int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
         if( byte != WIFI_COMM_ACK ){
 
+            debug_strobe();
+
             if( byte < 0 ){
 
                 log_v_debug_P( PSTR("WIFI_COMM_GET_MSG timeout") );                
