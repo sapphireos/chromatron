@@ -1008,9 +1008,18 @@ PT_BEGIN( pt );
         // retrieve message
         hal_wifi_v_usart_send_char( WIFI_COMM_GET_MSG );
 
-        if( hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT ) != WIFI_COMM_ACK ){
+        int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
+        if( byte != WIFI_COMM_ACK ){
 
-            log_v_debug_P( PSTR("WIFI_COMM_GET_MSG timeout") );
+            if( byte < 0 ){
+
+                log_v_debug_P( PSTR("WIFI_COMM_GET_MSG timeout") );                
+            }
+            else{
+
+                log_v_debug_P( PSTR("WIFI_COMM_GET_MSG error 0x%02x"), byte );    
+            }
+            
             continue;
         }
 
