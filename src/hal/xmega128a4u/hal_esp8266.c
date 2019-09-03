@@ -33,10 +33,6 @@
 #include "logging.h"
 
 
-// these bits in USART.CTRLC seem to be missing from the IO header
-#define UDORD 2
-#define UCPHA 1
-
 #define WIFI_RESET_DELAY_MS     20
 
 
