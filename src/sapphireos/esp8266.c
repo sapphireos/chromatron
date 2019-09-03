@@ -173,8 +173,12 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
-void debug_strobe( void ){
+extern volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
+uint8_t get_insert_ptr( void );
+extern uint8_t extract_ptr;
 
+void debug_strobe( void ){
+// return;
     io_v_digital_write( IO_PIN_1_XCK, TRUE );
     _delay_us( 10 );
     io_v_digital_write( IO_PIN_1_XCK, FALSE );
@@ -229,7 +233,15 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
                 debug_strobe();
 
-                log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x"), data_id, byte );
+                log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %d/%d"), data_id, byte, get_insert_ptr(), extract_ptr );
+
+                for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
+
+                    log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"), 
+                        rx_dma_buf[i + 0], rx_dma_buf[i + 1], rx_dma_buf[i + 2], rx_dma_buf[i + 3], 
+                        rx_dma_buf[i + 4], rx_dma_buf[i + 5], rx_dma_buf[i + 6], rx_dma_buf[i + 7] );
+
+                }
             }
         }
         else{
@@ -303,7 +315,15 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             debug_strobe();
 
-            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x"), data_id, byte );
+            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %d/%d"), data_id, byte, get_insert_ptr(), extract_ptr );
+
+            for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
+
+                log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"), 
+                    rx_dma_buf[i + 0], rx_dma_buf[i + 1], rx_dma_buf[i + 2], rx_dma_buf[i + 3], 
+                    rx_dma_buf[i + 4], rx_dma_buf[i + 5], rx_dma_buf[i + 6], rx_dma_buf[i + 7] );
+
+            }
         }
     }
 
@@ -960,6 +980,9 @@ static void send_options_msg( void ){
     wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
 }
 
+
+
+
 PT_THREAD( wifi_comm_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1018,8 +1041,23 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("WIFI_COMM_GET_MSG timeout") );                
             }
             else{
+                uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
+    ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+                log_v_debug_P( PSTR("WIFI_COMM_GET_MSG error 0x%02x %d/%d|%d"), byte, get_insert_ptr(), ins_ptr, extract_ptr );
 
-                log_v_debug_P( PSTR("WIFI_COMM_GET_MSG error 0x%02x"), byte );    
+
+                for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
+
+                    log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"), 
+                        rx_dma_buf[i + 0], rx_dma_buf[i + 1], rx_dma_buf[i + 2], rx_dma_buf[i + 3], 
+                        rx_dma_buf[i + 4], rx_dma_buf[i + 5], rx_dma_buf[i + 6], rx_dma_buf[i + 7] );
+
+                }
+
+                // log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x"), rx_dma_buf[0], rx_dma_buf[1], rx_dma_buf[2], rx_dma_buf[3] );
+                // log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x"), rx_dma_buf[4], rx_dma_buf[5], rx_dma_buf[6], rx_dma_buf[7] );
+                // log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x"), rx_dma_buf[8], rx_dma_buf[9], rx_dma_buf[10], rx_dma_buf[11] );
+                // log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x"), rx_dma_buf[12], rx_dma_buf[13], rx_dma_buf[14], rx_dma_buf[15] );
             }
             
             continue;

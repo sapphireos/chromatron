@@ -46,8 +46,8 @@ static volatile bool timed_out;
 
 
 // 2.5 us per byte at 4 MHZ
-static volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
-static uint8_t extract_ptr;
+volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
+uint8_t extract_ptr;
 
 ISR(WIFI_TIMER_ISR){
 
@@ -87,6 +87,14 @@ void hal_wifi_v_init( void ){
 
 static void enable_rx_dma( void ){
 
+    // disable channel
+    DMA.WIFI_DMA_CH.CTRLA = 0;
+
+    // reset channel
+    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_RESET_bm;
+    while( DMA.WIFI_DMA_CH.CTRLA != 0 );
+
+
     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | 
                             DMA_CH_REPEAT_bm | 
                             DMA_CH_BURSTLEN_1BYTE_gc;
@@ -114,16 +122,42 @@ static void enable_rx_dma( void ){
 
 void disable_rx_dma( void ){
 
+    // disable channel
     DMA.WIFI_DMA_CH.CTRLA = 0;
 
     extract_ptr = 0;
 }
 
-static inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
+//inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
 
-static inline uint8_t get_insert_ptr( void ){
+//inline
+uint8_t get_insert_ptr( void ){
 
-    return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
+    uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
+    ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+    
+    if( ins_ptr == (uint16_t)rx_dma_buf + sizeof(rx_dma_buf) ){
+
+        log_v_debug_P(PSTR(":-("));
+    }
+
+    return ins_ptr - (uint16_t)rx_dma_buf;
+
+
+    // uint16_t trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
+    // uint8_t ins_ptr;
+        
+    // // special case when dma is wrapping around
+    // if( trf_cnt == 0 ){
+
+    //     ins_ptr = 0;
+    // }
+    // else{
+
+    //     ins_ptr = sizeof(rx_dma_buf) - trf_cnt;
+    // }
+
+    // return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
 }
 
 static inline bool dma_rx_available( void )  __attribute__((always_inline));
@@ -225,6 +259,8 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
 
             return -1;
         }
+
+        _delay_us( 5 );
     }
 
     current_rx_bytes++;
@@ -251,7 +287,10 @@ int8_t hal_wifi_i8_usart_receive( uint8_t *buf, uint16_t len, uint32_t timeout )
 
                 return -1;
             }
+
+            _delay_us( 5 );
         }
+
         *buf = get_char();
         buf++;
         len--;
@@ -268,6 +307,8 @@ void hal_wifi_v_usart_flush( void ){
 
 	BUSY_WAIT( usart_i16_get_byte( &WIFI_USART ) >= 0 );
     extract_ptr = 0;
+
+    memset( (uint8_t *)rx_dma_buf, 0, sizeof(rx_dma_buf) );
 
     enable_rx_dma();
 }
