@@ -2471,10 +2471,13 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
 
     click.echo('\nRelease: %-32s Published :%32s\n' % (name_s, timestamp_s))   
 
-    if not click.confirm(click.style("Is this the release you intend to use?", fg='white')):
-        click.echo("Firmware upgrade cancelled")
-        return
-        
+    if not yes:
+        if not click.confirm(click.style("Is this the release you intend to use?", fg='white')):
+            click.echo("Firmware upgrade cancelled")
+            return
+
+    else:
+        click.echo(click.style("Bypassing confirmation prompts!!!", fg='white'))
 
     firmwares = firmware_package.get_firmware(include_firmware_image=True, sort_fwid=True, release=release)
 
@@ -2486,8 +2489,8 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
         if not click.confirm(click.style("Are you sure you want to do this?\nThere will be no further confirmation prompts.", fg='red')):
             click.echo("Firmware change cancelled")
             return
-
-    click.style("Skip verification enabled!!!", fg='white')
+        
+        click.echo(click.style("Skip verification enabled!!!", fg='white'))
 
     # we're going to manually run though the update sequence,
     # since it is kind of messy to try to get the click progress bar
