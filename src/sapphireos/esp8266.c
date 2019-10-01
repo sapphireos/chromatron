@@ -184,6 +184,31 @@ void debug_strobe( void ){
     io_v_digital_write( IO_PIN_1_XCK, FALSE );
 }
 
+void fast_strobe( void ){
+// return;
+    io_v_digital_write( IO_PIN_1_XCK, TRUE );
+    _delay_us( 1 );
+    io_v_digital_write( IO_PIN_1_XCK, FALSE );
+}
+
+extern void enable_rx_dma( void );
+extern void disable_rx_dma( void );
+
+uint8_t pre1_ctrla;
+uint8_t pre1_ctrlb;
+uint8_t pre1_trig;
+uint8_t pre1_addrctrl;
+uint16_t pre1_trf_cnt0;
+uint16_t pre1_src_addr;
+
+uint8_t pre2_ctrla;
+uint8_t pre2_ctrlb;
+uint8_t pre2_trig;
+uint8_t pre2_addrctrl;
+uint16_t pre2_trf_cnt0;
+uint16_t pre2_src_addr;
+
+
 static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
@@ -200,12 +225,28 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
         tries--;
 
-        hal_wifi_v_usart_flush();
+        // hal_wifi_v_usart_flush();
+        
+        pre1_ctrla = DMA.WIFI_DMA_CH.CTRLA;
+        pre1_ctrlb = DMA.WIFI_DMA_CH.CTRLB;
+        pre1_trig = DMA.WIFI_DMA_CH.TRIGSRC;
+        pre1_addrctrl = DMA.WIFI_DMA_CH.ADDRCTRL;
+        pre1_trf_cnt0 = DMA.WIFI_DMA_CH.TRFCNT;
+        pre1_src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
+
+
 
         hal_wifi_v_usart_send_char( WIFI_COMM_DATA );
 
         // transmit header
         hal_wifi_v_usart_send_data( (uint8_t *)&header, sizeof(header) );
+
+        pre2_ctrla = DMA.WIFI_DMA_CH.CTRLA;
+        pre2_ctrlb = DMA.WIFI_DMA_CH.CTRLB;
+        pre2_trig = DMA.WIFI_DMA_CH.TRIGSRC;
+        pre2_addrctrl = DMA.WIFI_DMA_CH.ADDRCTRL;
+        pre2_trf_cnt0 = DMA.WIFI_DMA_CH.TRFCNT;
+        pre2_src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
 
         // if data length is more than the single shot limit,
         // wait for ACK/NAK
@@ -264,11 +305,21 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
         return -1;
     }
 
-    uint8_t tries = WIFI_COMM_TRIES;
+    // uint8_t tries = WIFI_COMM_TRIES;
+    uint8_t tries = 1;
 
     while( tries > 0 ){
 
         tries--;
+
+        hal_wifi_v_usart_flush();
+
+        uint8_t pre_ctrla = DMA.WIFI_DMA_CH.CTRLA;
+        uint8_t pre_ctrlb = DMA.WIFI_DMA_CH.CTRLB;
+        uint8_t pre_trig = DMA.WIFI_DMA_CH.TRIGSRC;
+        uint8_t pre_addrctrl = DMA.WIFI_DMA_CH.ADDRCTRL;
+        uint16_t pre_trf_cnt0 = DMA.WIFI_DMA_CH.TRFCNT;
+        uint16_t pre_src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
 
         // bail out of header fails, it is already tried multiple times
         if( _wifi_i8_send_header( data_id, len ) < 0 ){
@@ -276,6 +327,14 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
             return -2;
         }
 
+        uint8_t ctrla = DMA.WIFI_DMA_CH.CTRLA;
+        uint8_t ctrlb = DMA.WIFI_DMA_CH.CTRLB;
+        uint8_t trig = DMA.WIFI_DMA_CH.TRIGSRC;
+        uint8_t addrctrl = DMA.WIFI_DMA_CH.ADDRCTRL;
+        uint16_t trf_cnt0 = DMA.WIFI_DMA_CH.TRFCNT;
+        uint16_t src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
+
+           
         uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
         ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
         uint16_t trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
@@ -332,7 +391,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
             ins_ptr4 += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
             uint16_t trf_cnt4 = DMA.WIFI_DMA_CH.TRFCNT;
 
-            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %u/%u @ %x %x %x %x > %x flags %x"), data_id, byte, ins, (uint16_t)extract_ptr, ins_ptr, ins_ptr2, ins_ptr3, ins_ptr4, (uint16_t)rx_dma_buf, DMA.WIFI_DMA_CH.CTRLB );
+            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %u/%u @ %x %x %x %x > %x flags %x usart status %x"), data_id, byte, ins, (uint16_t)extract_ptr, ins_ptr, ins_ptr2, ins_ptr3, ins_ptr4, (uint16_t)rx_dma_buf, DMA.WIFI_DMA_CH.CTRLB, WIFI_USART.STATUS );
             log_v_debug_P( PSTR("%u %u %u %u"), trf_cnt, trf_cnt2, trf_cnt3, trf_cnt4);
             for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
 
@@ -341,6 +400,52 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
                     rx_dma_buf[i + 4], rx_dma_buf[i + 5], rx_dma_buf[i + 6], rx_dma_buf[i + 7] );
 
             }
+
+            log_v_debug_P( PSTR("a 0x%x"), pre_ctrla );
+            log_v_debug_P( PSTR("b 0x%x"), pre_ctrlb );
+            log_v_debug_P( PSTR("trig 0x%x"), pre_trig );
+            log_v_debug_P( PSTR("addrctrl 0x%x"), pre_addrctrl );
+            log_v_debug_P( PSTR("cnt %u"), pre_trf_cnt0 );
+
+            log_v_debug_P( PSTR("src 0x%x ~0~"), pre_src_addr );
+
+            log_v_debug_P( PSTR("a 0x%x"), pre1_ctrla );
+            log_v_debug_P( PSTR("b 0x%x"), pre1_ctrlb );
+            log_v_debug_P( PSTR("trig 0x%x"), pre1_trig );
+            log_v_debug_P( PSTR("addrctrl 0x%x"), pre1_addrctrl );
+            log_v_debug_P( PSTR("cnt %u"), pre1_trf_cnt0 );
+
+            log_v_debug_P( PSTR("src 0x%x ~1~"), pre1_src_addr );
+
+            log_v_debug_P( PSTR("a 0x%x"), pre2_ctrla );
+            log_v_debug_P( PSTR("b 0x%x"), pre2_ctrlb );
+            log_v_debug_P( PSTR("trig 0x%x"), pre2_trig );
+            log_v_debug_P( PSTR("addrctrl 0x%x"), pre2_addrctrl );
+            log_v_debug_P( PSTR("cnt %u"), pre2_trf_cnt0 );
+
+            log_v_debug_P( PSTR("src 0x%x ~2~"), pre2_src_addr );
+
+             log_v_debug_P( PSTR("a 0x%x"), ctrla );
+            log_v_debug_P( PSTR("b 0x%x"), ctrlb );
+            log_v_debug_P( PSTR("trig 0x%x"), trig );
+            log_v_debug_P( PSTR("addrctrl 0x%x"), addrctrl );
+            log_v_debug_P( PSTR("cnt %u"), trf_cnt0 );
+
+            log_v_debug_P( PSTR("src 0x%x ***"), src_addr );
+
+
+            log_v_debug_P( PSTR("a 0x%x"), DMA.WIFI_DMA_CH.CTRLA );
+            log_v_debug_P( PSTR("b 0x%x"), DMA.WIFI_DMA_CH.CTRLB );
+            log_v_debug_P( PSTR("trig 0x%x"), DMA.WIFI_DMA_CH.TRIGSRC );
+            log_v_debug_P( PSTR("cnt %u"), DMA.WIFI_DMA_CH.TRFCNT );
+
+            uint32_t src = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
+            uint32_t dst = DMA.WIFI_DMA_CH.DESTADDR0 | ( DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+            log_v_debug_P( PSTR("src 0x%x"), src );
+            log_v_debug_P( PSTR("dst 0x%x"), dst );
+            
+
         }
     }
 

@@ -81,20 +81,25 @@ void hal_wifi_v_init( void ){
     WIFI_IRQ_PORT.OUTCLR                = ( 1 << WIFI_IRQ_PIN );
 }
 
-static void enable_rx_dma( void ){
+
+void disable_rx_dma( void ){
 
     // disable channel
-    DMA.WIFI_DMA_CH.CTRLA = 0;
+    while( DMA.WIFI_DMA_CH.CTRLA != 0 ){
+        DMA.WIFI_DMA_CH.CTRLA = 0;
+    }
 
     // reset channel
     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_RESET_bm;
     while( DMA.WIFI_DMA_CH.CTRLA != 0 );
+}
 
+void enable_rx_dma( void ){
 
-    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_SINGLE_bm | 
-                            DMA_CH_REPEAT_bm | 
-                            DMA_CH_BURSTLEN_1BYTE_gc;
+    // disable channel
+    disable_rx_dma();
 
+   
     DMA.WIFI_DMA_CH.CTRLB = 0;
     DMA.WIFI_DMA_CH.REPCNT = 0; // unlimited repeat
     DMA.WIFI_DMA_CH.ADDRCTRL =  DMA_CH_SRCRELOAD_NONE_gc | 
@@ -113,15 +118,18 @@ static void enable_rx_dma( void ){
     DMA.WIFI_DMA_CH.DESTADDR1 = ( ( (uint16_t)rx_dma_buf ) >> 8 ) & 0xFF;
     DMA.WIFI_DMA_CH.DESTADDR2 = 0;
 
-    DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
-}
-
-void disable_rx_dma( void ){
-
-    // disable channel
-    DMA.WIFI_DMA_CH.CTRLA = 0;
-
     extract_ptr = 0;
+
+    // DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
+     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_ENABLE_bm| DMA_CH_SINGLE_bm | 
+                            DMA_CH_REPEAT_bm | 
+                            DMA_CH_BURSTLEN_1BYTE_gc;
+
+    uint16_t src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
+    if( src_addr != (uint16_t)&WIFI_USART.DATA ){
+
+        log_v_debug_P( PSTR("WTF") );
+    }
 }
 
 //inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
@@ -147,7 +155,7 @@ uint8_t get_insert_ptr( void ){
 
         trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
         trf_cnt2 = DMA.WIFI_DMA_CH.TRFCNT;
-        
+
     } while( trf_cnt != trf_cnt2 );
     
     uint8_t ins_ptr;
@@ -160,6 +168,11 @@ uint8_t get_insert_ptr( void ){
     else{
 
         ins_ptr = sizeof(rx_dma_buf) - trf_cnt;
+    }
+
+    if( trf_cnt > sizeof(rx_dma_buf) ){
+
+        log_v_debug_P( PSTR("more WTF: %d"), trf_cnt );
     }
 
     return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
@@ -311,7 +324,6 @@ void hal_wifi_v_usart_flush( void ){
     disable_rx_dma();
 
 	BUSY_WAIT( usart_i16_get_byte( &WIFI_USART ) >= 0 );
-    extract_ptr = 0;
 
     memset( (uint8_t *)rx_dma_buf, 0, sizeof(rx_dma_buf) );
 
