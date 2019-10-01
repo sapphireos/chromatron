@@ -278,6 +278,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
         ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+        uint16_t trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
 
         if( len > 0 ){
         
@@ -298,11 +299,13 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         uint16_t ins_ptr2 = DMA.WIFI_DMA_CH.DESTADDR0;
         ins_ptr2 += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+        uint16_t trf_cnt2 = DMA.WIFI_DMA_CH.TRFCNT;
 
         int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
 
         uint16_t ins_ptr3 = DMA.WIFI_DMA_CH.DESTADDR0;
         ins_ptr3 += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+        uint16_t trf_cnt3 = DMA.WIFI_DMA_CH.TRFCNT;
 
         if( byte == WIFI_COMM_ACK ){
 
@@ -327,9 +330,10 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             uint16_t ins_ptr4 = DMA.WIFI_DMA_CH.DESTADDR0;
             ins_ptr4 += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+            uint16_t trf_cnt4 = DMA.WIFI_DMA_CH.TRFCNT;
 
             log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %u/%u @ %x %x %x %x > %x flags %x"), data_id, byte, ins, (uint16_t)extract_ptr, ins_ptr, ins_ptr2, ins_ptr3, ins_ptr4, (uint16_t)rx_dma_buf, DMA.WIFI_DMA_CH.CTRLB );
-
+            log_v_debug_P( PSTR("%u %u %u %u"), trf_cnt, trf_cnt2, trf_cnt3, trf_cnt4);
             for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
 
                 log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"), 
