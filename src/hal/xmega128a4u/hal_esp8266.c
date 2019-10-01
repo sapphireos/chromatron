@@ -120,15 +120,22 @@ void enable_rx_dma( void ){
 
     extract_ptr = 0;
 
+    uint16_t src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
+
+    if( src_addr != (uint16_t)&WIFI_USART.DATA ){
+
+        log_v_debug_P( PSTR("WTF 1 %x"), src_addr );
+    }
+
     // DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
      DMA.WIFI_DMA_CH.CTRLA = DMA_CH_ENABLE_bm| DMA_CH_SINGLE_bm | 
                             DMA_CH_REPEAT_bm | 
                             DMA_CH_BURSTLEN_1BYTE_gc;
 
-    uint16_t src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
+    src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
     if( src_addr != (uint16_t)&WIFI_USART.DATA ){
 
-        log_v_debug_P( PSTR("WTF") );
+        log_v_debug_P( PSTR("WTF 2 %x"), src_addr );
     }
 }
 
