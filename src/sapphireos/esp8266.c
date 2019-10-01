@@ -315,7 +315,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             debug_strobe();
 
-            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %d/%d"), data_id, byte, get_insert_ptr(), extract_ptr );
+            log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %u/%u"), data_id, byte, (uint16_t)get_insert_ptr(), (uint16_t)extract_ptr );
 
             for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
 
