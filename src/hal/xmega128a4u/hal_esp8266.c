@@ -436,10 +436,6 @@ void hal_wifi_v_enter_normal_mode( void ){
     // disable receive interrupt
     WIFI_USART.CTRLA &= ~USART_RXCINTLVL_HI_gc;
 
-    // set XCK pin to output
-    WIFI_IRQ_PORT.DIRSET                = ( 1 << WIFI_IRQ_PIN );
-    WIFI_IRQ_PORT.OUTSET                = ( 1 << WIFI_IRQ_PIN );
-
     // re-init uart
     WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     WIFI_USART_RXD_PORT.DIRCLR          = ( 1 << WIFI_USART_RXD_PIN );
