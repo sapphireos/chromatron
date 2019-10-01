@@ -129,36 +129,40 @@ void disable_rx_dma( void ){
 //inline
 uint8_t get_insert_ptr( void ){
 
-    uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
-    ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+    // uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
+    // ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
     
-    if( ins_ptr == (uint16_t)rx_dma_buf + sizeof(rx_dma_buf) ){
+    // if( ins_ptr >= (uint16_t)rx_dma_buf + sizeof(rx_dma_buf) ){
 
-        log_v_debug_P(PSTR(":-("));
+    //     log_v_debug_P(PSTR(":-("));
+    // }
+
+    // return ins_ptr - (uint16_t)rx_dma_buf;
+
+    uint16_t trf_cnt, trf_cnt2;
+
+    do{
+
+        while( DMA.WIFI_DMA_CH.CTRLB & DMA_CH_CHPEND_bm );
+
+        trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
+        trf_cnt2 = DMA.WIFI_DMA_CH.TRFCNT;
+        
+    } while( trf_cnt != trf_cnt2 );
+    
+    uint8_t ins_ptr;
+        
+    // special case when dma is wrapping around
+    if( trf_cnt == 0 ){
+
+        ins_ptr = 0;
+    }
+    else{
+
+        ins_ptr = sizeof(rx_dma_buf) - trf_cnt;
     }
 
-    // if(ins_ptr != ins_ptr2){
-
-    //     log_v_debug_P( PSTR("sign %x %x"), ins_ptr, ins_ptr2);
-    // }
-
-    return ins_ptr - (uint16_t)rx_dma_buf;
-
-
-    // uint16_t trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
-    // uint8_t ins_ptr;
-        
-    // // special case when dma is wrapping around
-    // if( trf_cnt == 0 ){
-
-    //     ins_ptr = 0;
-    // }
-    // else{
-
-    //     ins_ptr = sizeof(rx_dma_buf) - trf_cnt;
-    // }
-
-    // return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
+    return sizeof(rx_dma_buf) - DMA.WIFI_DMA_CH.TRFCNT;
 }
 
 static inline bool dma_rx_available( void )  __attribute__((always_inline));
