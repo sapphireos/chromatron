@@ -129,13 +129,21 @@ void disable_rx_dma( void ){
 //inline
 uint8_t get_insert_ptr( void ){
 
-    uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
+    uint8_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
     ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
+
+    uint8_t ins_ptr2 = DMA.WIFI_DMA_CH.DESTADDR0;
+    ins_ptr2 += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
     
     if( ins_ptr == (uint16_t)rx_dma_buf + sizeof(rx_dma_buf) ){
 
         log_v_debug_P(PSTR(":-("));
     }
+
+    // if(ins_ptr != ins_ptr2){
+
+    //     log_v_debug_P( PSTR("sign %x %x"), ins_ptr, ins_ptr2);
+    // }
 
     return ins_ptr - (uint16_t)rx_dma_buf;
 

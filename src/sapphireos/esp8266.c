@@ -1043,7 +1043,7 @@ PT_BEGIN( pt );
             else{
                 uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
     ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
-                log_v_debug_P( PSTR("WIFI_COMM_GET_MSG error 0x%02x %d/%d|%d"), byte, get_insert_ptr(), ins_ptr, extract_ptr );
+                log_v_debug_P( PSTR("WIFI_COMM_GET_MSG error 0x%02x %u/%u|%u"), (uint16_t)byte, (uint16_t)get_insert_ptr(), (uint16_t)ins_ptr, (uint16_t)extract_ptr );
 
 
                 for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
