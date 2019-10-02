@@ -620,6 +620,11 @@ PT_BEGIN( pt );
               ( !vm_reset[3] ) )
         );
 
+        if( wifi_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
+
 
         // check what we're doing, and to what VM    
         for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){

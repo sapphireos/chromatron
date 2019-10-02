@@ -71,7 +71,6 @@ static int16_t frame_rate_adjust;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
-PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) );
 
@@ -356,12 +355,6 @@ void gfx_v_init( void ){
 
     pixel_v_init();
 
-
-    // thread_t_create( gfx_control_thread,
-    //             PSTR("gfx_control"),
-    //             0,
-    //             0 );
-
     thread_t_create( gfx_fader_thread,
                 PSTR("gfx_fader"),
                 0,
@@ -459,71 +452,6 @@ void gfx_v_sync_params( void ){
 
 //     return 0;    
 // }
-
-PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-//     static uint8_t flags;
-
-//     // wait until wifi is attached before starting up pixel driver
-//     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
-//     param_error_check();  
-
-
-//     while(1){
-
-//         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) );
-
-//         ATOMIC;
-//         flags = run_flags;
-//         run_flags = 0;
-//         END_ATOMIC;
-
-//         if( flags & FLAG_RUN_VM_LOOP ){
-
-//             // check if vm is running
-//             if( !vm_b_running() ){
-
-//                 goto end;
-//             }
-
-//             // send_run_vm_cmd();
-
-//             if( vm_b_is_vm_running( 0 ) ){
-                
-//                 vm0_frame_number++;
-//                 last_vm0_frame_ts = time_u32_get_network_time();
-//             }
-//         }
-
-// end:
-       
-        // if( ( flags & FLAG_RUN_PARAMS ) ||
-        //     ( tmr_u32_elapsed_time_ms( last_param_sync ) >= PARAMS_TIMER_RATE ) ){
-
-        //     // run DB transfer
-        //     run_xfer = TRUE;
-        //     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        //         if( subscribed_keys[i].hash == 0 ){
-
-        //            continue;
-        //         }
-                    
-        //         subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
-        //     }   
-
-        //     last_param_sync = tmr_u32_get_system_time_ms();
-        // }
-
-        // THREAD_YIELD( pt ); 
-    // }
-
-PT_END( pt );
-}
-    
 
 void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
 
