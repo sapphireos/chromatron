@@ -42,8 +42,8 @@ static volatile bool timed_out;
 
 
 // 2.5 us per byte at 4 MHZ
-volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
-uint8_t extract_ptr;
+static volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
+static uint8_t extract_ptr;
 
 ISR(WIFI_TIMER_ISR){
 
@@ -125,23 +125,10 @@ void enable_rx_dma( void ){
 
     extract_ptr = 0;
 
-    uint16_t src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
-
-    if( src_addr != (uint16_t)&WIFI_USART.DATA ){
-
-        log_v_debug_P( PSTR("WTF 1 %x"), src_addr );
-    }
-
-    // DMA.WIFI_DMA_CH.CTRLA |= DMA_CH_ENABLE_bm;
-     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_ENABLE_bm| DMA_CH_SINGLE_bm | 
+    DMA.WIFI_DMA_CH.CTRLA = DMA_CH_ENABLE_bm | 
+                            DMA_CH_SINGLE_bm | 
                             DMA_CH_REPEAT_bm | 
                             DMA_CH_BURSTLEN_1BYTE_gc;
-
-    src_addr = DMA.WIFI_DMA_CH.SRCADDR0 | ( DMA.WIFI_DMA_CH.SRCADDR1 << 8 );
-    if( src_addr != (uint16_t)&WIFI_USART.DATA ){
-
-        log_v_debug_P( PSTR("WTF 2 %x"), src_addr );
-    }
 
     END_ATOMIC;
 }
@@ -149,48 +136,6 @@ void enable_rx_dma( void ){
 static inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
 
 static inline uint8_t get_insert_ptr( void ){
-
-    // ATOMIC;
-    // uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
-    // ins_ptr += ( (uint16_t)DMA.WIFI_DMA_CH.DESTADDR1 << 8 );
-    // END_ATOMIC;
-    
-    // if( ins_ptr >= (uint16_t)rx_dma_buf + sizeof(rx_dma_buf) ){
-
-    //     log_v_debug_P(PSTR(":-("));
-    // }
-
-    // return ins_ptr - (uint16_t)rx_dma_buf;
-
-    // uint16_t trf_cnt, trf_cnt2;
-
-    // do{
-
-    //     while( DMA.WIFI_DMA_CH.CTRLB & DMA_CH_CHPEND_bm );
-
-    //     trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
-    //     trf_cnt2 = DMA.WIFI_DMA_CH.TRFCNT;
-
-    // } while( trf_cnt != trf_cnt2 );
-    
-    // uint8_t ins_ptr;
-        
-    // // special case when dma is wrapping around
-    // if( trf_cnt == 0 ){
-
-    //     ins_ptr = 0;
-    // }
-    // else{
-
-    //     ins_ptr = sizeof(rx_dma_buf) - trf_cnt;
-    // }
-
-    // if( trf_cnt > sizeof(rx_dma_buf) ){
-
-    //     log_v_debug_P( PSTR("more WTF: %d"), trf_cnt );
-    // }
-
-    // return sizeof(rx_dma_buf) - trf_cnt;
 
     ATOMIC;
     uint16_t trf_cnt = DMA.WIFI_DMA_CH.TRFCNT;
@@ -316,7 +261,7 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
             return -1;
         }
 
-        _delay_us( 5 );
+        _delay_us( 1 );
     }
 
     current_rx_bytes++;
