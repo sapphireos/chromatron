@@ -145,6 +145,10 @@ class VMRuntimeError(Exception):
     def __init__(self, message=''):
         super(VMRuntimeError, self).__init__(message)
 
+class CompilerFatal(Exception):
+    def __init__(self, message=''):
+        super(CompilerFatal, self).__init__(message)
+
 
 def params_to_string(params):
     s = ''
@@ -194,6 +198,7 @@ class irVar(IR):
         self.is_global = False
         self.is_const = False
         self.default_value = 0
+        self.temp = False
 
         self.publish = False
         self.persist = False
@@ -222,7 +227,9 @@ class irVar(IR):
             return "Var(%s, %s)" % (self.name, self.type_str)
 
     def generate(self):
-        assert self.addr != None
+        if self.addr == None:
+            raise CompilerFatal("%s does not have an address. Line: %d" % (self, self.lineno))
+
         return insAddr(self.addr, self)
 
     def lookup(self, indexes):
@@ -232,22 +239,25 @@ class irVar(IR):
     def get_base_type(self):
         return self.type
 
-class irVar_i32(irVar):
+class irVar_simple(irVar):
+    pass
+
+class irVar_i32(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'i32'
         super(irVar_i32, self).__init__(*args, **kwargs)
         
-class irVar_f16(irVar):
+class irVar_f16(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'f16'
         super(irVar_f16, self).__init__(*args, **kwargs)
         
-class irVar_gfx16(irVar):
+class irVar_gfx16(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'gfx16'
         super(irVar_gfx16, self).__init__(*args, **kwargs)
 
-class irVar_str(irVar):
+class irVar_str(irVar_simple):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = 'str'
         
@@ -289,7 +299,7 @@ class irAddress(irVar):
     def get_base_type(self):
         return self.target.get_base_type()
 
-class irConst(irVar):
+class irConst(irVar_simple):
     def __init__(self, *args, **kwargs):
         super(irConst, self).__init__(*args, **kwargs)
 
@@ -300,7 +310,7 @@ class irConst(irVar):
         elif self.type == 'f16':
             val = float(self.name)
             if val > 32767.0 or val < -32767.0:
-                raise SyntaxError("Fixed16 out of range, must be tween -32767.0 and 32767.0", lineno=kwargs['lineno'])
+                raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
 
             self.value = int(val * 65536)
         else:
@@ -410,11 +420,16 @@ class irStrLiteral(irVar_str):
 
         self.addr = None
         self.length = 1 # this is a reference to a string, so the length is 1
+        self.ref = None
 
         self.size = ((self.strlen - 1) / 4) + 2 # space for characters + 32 bit length
         
     def __str__(self):
         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
+
+    def generate(self):
+        assert self.addr != None
+        return insAddr(self.ref, self)
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
@@ -757,9 +772,9 @@ class irBinop(IR):
 
         data_type = self.left.type
 
-        # gfx16 type can just default to i32
+        # gfx16 type can just default to f16
         if isinstance(self.left, irVar_gfx16):
-            data_type = 'i32'
+            data_type = 'f16'
         
         return ops[data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
@@ -794,7 +809,9 @@ class irConvertType(IR):
         self.result = result
         self.value = value
 
-        # assert self.result.type != self.value.type
+        # check if either type is gfx16
+        if self.result.type == 'gfx16' or self.value.type == 'gfx16':
+            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.value, self.result, self.lineno))
 
     def __str__(self):
         if self.skip_conversion():
@@ -825,10 +842,14 @@ class irConvertType(IR):
             return ins
 
 class irConvertTypeInPlace(IR):
-    def __init__(self, target, src_type, **kwargs):
+    def __init__(self, target, dest_type, **kwargs):
         super(irConvertTypeInPlace, self).__init__(**kwargs)
         self.target = target
-        self.src_type = src_type
+        self.dest_type = dest_type
+
+        # check if either type is gfx16
+        if self.target.type == 'gfx16' or self.dest_type == 'gfx16':
+            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.target, self.dest_type, self.lineno))
     
     def __str__(self):
         s = '%s = %s(%s)' % (self.target, self.target.type, self.target)
@@ -842,11 +863,11 @@ class irConvertTypeInPlace(IR):
         return [self.target]
 
     def generate(self):
-        # check if either type is gfx16
-        if self.target.type == 'gfx16' or self.src_type == 'gfx16':
-            return insNop()
+        try:
+            return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
 
-        return type_conversions[(self.target.type, self.src_type)](self.target.generate(), self.target.generate())
+        except KeyError:
+            raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.type, self.dest_type, self.lineno))
 
 
 class irVectorOp(IR):
@@ -1431,26 +1452,6 @@ class irIndexStore(IR):
     def generate(self):
         return insIndirectStore(self.value.generate(), self.address.generate())
 
-class irBlock(IR):
-    def __init__(self, **kwargs):
-        super(irBlock, self).__init__(**kwargs)
-        self.code = []
-        self.data = []
-        self.blocks = []
-
-    # def __str__(self):
-        # s = '----------------'
-        # return s    
-
-    def append_code(self, code):
-        self.code.append(code)
-
-    def append_data(self, data):
-        self.data.append(data)
-
-    def append_block(self, block):
-        self.blocks.append(block)
-
 
 CONST65535 = irConst(65535, lineno=0)
 
@@ -1476,10 +1477,6 @@ class Builder(object):
         self.pixel_arrays = {}
         self.palettes = {}
         self.labels = {}
-
-        # self.blocks = None
-        self.current_block = None
-        self.block_stack = []
 
         self.data_table = []
         self.data_count = 0
@@ -1516,7 +1513,7 @@ class Builder(object):
             'f16': irVar_f16,
             'gfx16': irVar_gfx16,
             'addr': irAddress,
-            'db': irVar,
+            'db': irVar_simple,
             'str': irVar_str,
         }
 
@@ -1585,23 +1582,6 @@ class Builder(object):
 
         return s
 
-    def open_block(self, lineno=None):
-        return
-        self.current_block = irBlock(lineno=lineno)
-        self.block_stack.append(self.current_block)
-
-        # print "open", self.current_block
-
-    def close_block(self):
-        return
-        # print "close", self.current_block
-        self.block_stack.pop(-1)
-        try:
-            self.current_block = self.block_stack[-1]
-
-        except IndexError:
-            self.current_block = None
-
     def finish_module(self):
         # clean up stuff after first pass is done
 
@@ -1633,12 +1613,6 @@ class Builder(object):
                               array_len=count - 1)
 
         self.db_entries[name] = db_entry
-
-    def add_type(self, name, data_type, lineno=None):
-        if name in self.data_types:
-            raise SyntaxError("Type '%s' already defined" % (name), lineno=lineno)
-
-        self.data_types[name] = data_type
 
     def create_record(self, name, fields, lineno=None):
         new_fields = {}
@@ -1721,9 +1695,9 @@ class Builder(object):
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        # allowing local var redeclaration for now...
-        # if name in self.locals[self.current_func]:
-            # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+        # local var redeclaration is allowed
+        if name in self.locals[self.current_func]:
+            return self.locals[self.current_func][name]
 
         if keywords != None:
             if 'publish' in keywords:
@@ -1734,12 +1708,7 @@ class Builder(object):
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
-        try:
-            for v in ir:
-                self.locals[self.current_func][v.name] = v
-
-        except TypeError:
-            self.locals[self.current_func][name] = ir
+        self.locals[self.current_func][name] = ir
 
         return ir
 
@@ -1813,6 +1782,8 @@ class Builder(object):
         ir = self.build_var(name, data_type, [], lineno=lineno)
         self.locals[self.current_func][name] = ir
 
+        ir.temp = True
+
         return ir
 
     def add_string(self, string, lineno=None):
@@ -1836,14 +1807,6 @@ class Builder(object):
         self.current_func = func.name
         self.next_temp = 0 
 
-        if len(self.block_stack) > 0:
-            self.close_block()
-
-        self.open_block(lineno=kwargs['lineno'])
-        # self.blocks = irBlock(lineno=0)
-        # self.current_block = self.blocks
-        # self.block_stack = [self.current_block]
-
         return func
 
     def append_node(self, node):
@@ -1857,16 +1820,15 @@ class Builder(object):
 
         self.append_node(ir)
 
-        self.close_block()
-
         return ir
 
     def nop(self, lineno=None):
-        ir = irNop(lineno=lineno)
+        # ir = irNop(lineno=lineno)
 
-        self.append_node(ir)
+        # self.append_node(ir)
 
-        return ir
+        # return ir
+        pass
 
     def binop(self, op, left, right, lineno=None):
         if self.optimizations['fold_constants'] and \
@@ -1875,20 +1837,8 @@ class Builder(object):
 
             return self._fold_constants(op, left, right, lineno)
 
-        # resolve indirect accesses, if any
-        if isinstance(left, irAddress) or \
-            isinstance(left, irPixelIndex) or\
-            isinstance(left, irDBAttr)  or \
-            isinstance(left, irDBIndex):
-
-            left = self.load_indirect(left, lineno=lineno)
-
-        if isinstance(right, irAddress) or \
-            isinstance(right, irPixelIndex) or\
-            isinstance(right, irDBAttr)  or \
-            isinstance(right, irDBIndex):
-            right = self.load_indirect(right, lineno=lineno)
-
+        left = self.load_value(left, lineno=lineno)
+        right = self.load_value(right, lineno=lineno)
 
         if left.length != 1:
             raise SyntaxError("Binary operand must be scalar: %s" % (left.name), lineno=lineno)
@@ -1917,13 +1867,13 @@ class Builder(object):
         # perform any conversions as needed
         # since we are prioritizing fixed16, we only need to convert i32 to f16
         if data_type == 'f16':
-            if left.type != 'f16':
+            if left.type != 'f16' and left.type != 'gfx16':
                 left_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(left_result, left, lineno=lineno)
                 self.append_node(ir)
 
-            if right.type != 'f16':
+            if right.type != 'f16' and right.type != 'gfx16':
                 right_result = self.add_temp(data_type=data_type, lineno=lineno)
 
                 ir = irConvertType(right_result, right, lineno=lineno)
@@ -1961,135 +1911,55 @@ class Builder(object):
             self.append_node(ir)
         else:
             self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
-        
-    def assign(self, target, value, lineno=None):     
-        # print target, value, lineno
+    
+    def load_value(self, value, dest_hint='gfx16', lineno=None):
+        # check if pixel attr
+        if isinstance(value, irPixelAttr):
+            temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
 
-        # check types
-        # don't do conversion if value is an address, or a pixel/db index
-        if target.get_base_type() != value.get_base_type() and \
-            not isinstance(value, irAddress) and \
-            not isinstance(target, irAddress) and \
-            not isinstance(target, irPixelIndex) and \
-            not isinstance(value, irPixelIndex) and \
-            not isinstance(target, irPixelAttr) and \
-            not isinstance(target, irDBAttr) and \
-            not isinstance(value, irDBAttr) and \
-            not isinstance(target, irDBIndex) and \
-            not isinstance(value, irDBIndex) and \
-            not isinstance(value, irVar_str) and \
-            not isinstance(value, irStrLiteral):
-            # in normal expressions, f16 will take precedence over i32.
-            # however, for the assign, the assignment target will 
-            # have priority.
-
-            # also note we skip this conversion for pixel array accesses,
-            # as the gfx16 type works seamlessly as i32 and f16 without conversions.
-            
-            # check if value is const 0
-            # if so, we don't need to convert
-            if isinstance(value, irConst) and value.value == 0:
-                pass
-
-            else:
-                # convert value to target type and replace value with result
-                conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                ir = irConvertType(conv_result, value, lineno=lineno)
-                self.append_node(ir)
-                value = conv_result
-
-        if isinstance(value, irAddress):
-            if value.target.length > 1:
-                raise SyntaxError("Cannot assign from compound type '%s' to '%s'" % (value.target.name, target.name), lineno=lineno)
-
-            # check if target is also an address.
-            # if so, this is an indirect to indirect assignment.
-            # we don't have an instruction for that, so we will have to
-            # load_indirect to a temp var and then store_direct.
-            if isinstance(target, irAddress):
-                temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-
-                self.load_indirect(value, temp, lineno=lineno)
-
-                # check types
-                if target.get_base_type() != value.get_base_type():
-                    # mismatch.
-                    # in this case, we've already done the indirect load into the target, but 
-                    # it has the wrong type. we're going to do the conversion on top of itself.
-                    ir = irConvertTypeInPlace(temp, value.get_base_type(), lineno=lineno)
-                    self.append_node(ir)
-
-                self.store_indirect(target, temp, lineno=lineno)
-
-            else:
-                self.load_indirect(value, target, lineno=lineno)
-
-                # check types
-                # note we can't do a convert into a pixel index
-                if target.get_base_type() != value.get_base_type() and not isinstance(target, irPixelIndex):
-                    # mismatch.
-                    # in this case, we've already done the indirect load into the target, but 
-                    # it has the wrong type. we're going to do the conversion on top of itself.
-                    ir = irConvertTypeInPlace(target, value.get_base_type(), lineno=lineno)
-                    
-                    self.append_node(ir)
-
-        elif isinstance(target, irAddress):
-            if target.target.length == 1:
-                self.store_indirect(target, value, lineno=lineno)
-
-            else:
-                if isinstance(value, irPixelIndex):
-                    temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
-                    ir = irPixelLoad(temp, value, lineno=lineno)
-                    self.append_node(ir) 
-                    value = temp
-
-                # type conversion for pixel array loads
-                elif (target.get_base_type() != value.get_base_type()) and (target.get_base_type() != 'gfx16'):
-                    temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                    ir = irConvertType(temp, value, lineno=lineno)
-                    self.append_node(ir)
-                    value = temp
-
-                ir = irVectorAssign(target, value, lineno=lineno)
-                self.append_node(ir)
-
-        elif isinstance(target, irArray):
-            result = self.add_temp(lineno=lineno, data_type='addr')
-            ir = irIndex(result, target, lineno=lineno)
-            self.append_node(ir)
-            result.target = target
-
-            ir = irVectorAssign(result, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(target, irDBIndex) or isinstance(target, irDBAttr):
-            ir = irDBStore(target, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
-            ir = irDBLoad(target, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(target, irPixelIndex):
-            # check if value is also a pixel index, if so, we need to do a load first
-            if isinstance(value, irPixelIndex):
-                temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
-
-                ir = irPixelLoad(temp, value, lineno=lineno)
-                self.append_node(ir) 
-
-                value = temp    
-
-            ir = irPixelStore(target, value, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irPixelIndex):
-            ir = irPixelLoad(target, value, lineno=lineno)
+            ir = irPixelLoad(temp, value, lineno=lineno)
             self.append_node(ir) 
 
-        else:
+            value = temp
+
+        # if source value is an address.
+        # this is always an indirect load, either to a temp register or direct to the target
+        elif isinstance(value, irAddress):      
+            if value.target.length > 1:
+                raise SyntaxError("Cannot load from compound type '%s'" % (value.target.name), lineno=lineno)
+    
+            # this will set up a temp register and return it
+            value = self.load_indirect(value, lineno=lineno)
+
+        # if source value is an indexed pixel array, we need to do a pixel load to
+        # a temp register
+        elif isinstance(value, irPixelIndex):
+            temp = self.add_temp(lineno=lineno, data_type=value.get_base_type())
+
+            ir = irPixelLoad(temp, value, lineno=lineno)
+            self.append_node(ir) 
+
+            value = temp
+
+        # same as above, but for DB accesses
+        elif isinstance(value, irDBIndex) or isinstance(value, irDBAttr):
+            temp = self.add_temp(data_type=dest_hint, lineno=lineno) # use destination hint so DB Load knows what type to convert to
+
+            ir = irDBLoad(temp, value, lineno=lineno)
+            self.append_node(ir)
+
+            value = temp
+
+        # by now, we should have converted all values to simple types
+
+        assert isinstance(value, irVar_simple)
+
+        return value
+
+    def store_value(self, target, value, lineno=None):
+        assert isinstance(value, irVar_simple)
+
+        if isinstance(target, irVar_simple):
             if self.optimizations['optimize_assign_targets']:
                 try:
                     # check if previous instruction has a result
@@ -2122,156 +1992,170 @@ class Builder(object):
                     pass
                     
             ir = irAssign(target, value, lineno=lineno)
-            self.append_node(ir)
-
-    def augassign(self, op, target, value, lineno=None):
-        # print op, target, value
-        # check types
-        if target.get_base_type() != value.get_base_type() and \
-            not isinstance(target, irPixelIndex) and \
-            not isinstance(value, irPixelIndex) and \
-            not isinstance(target, irPixelAttr) and \
-            not isinstance(target, irDBAttr) and \
-            not isinstance(value, irDBAttr) and \
-            not isinstance(target, irDBIndex) and \
-            not isinstance(value, irDBIndex):
-            # in normal expressions, f16 will take precedence over i32.
-            # however, for the augassign, the assignment target will 
-            # have priority.
-
-            # also note we skip this conversion for pixel array accesses,
-            # as the gfx16 type works seamlessly as i32 and f16 without conversions.
-
-            # check if value is const 0
-            # if so, we don't need to convert
-            if isinstance(value, irConst) and value.value == 0:
-                pass
-
-            else:
-                # convert value to target type and replace value with result
-                conv_result = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-                ir = irConvertType(conv_result, value, lineno=lineno)
-                self.append_node(ir)
-                value = conv_result
-
-        if isinstance(target, irAddress):
-            if target.target.length == 1:
-                # not a vector op, but we have a target address and not a value
-    
-                # need to load indirect first
-                result = self.load_indirect(target, lineno=lineno)
-                result = self.binop(op, result, value, lineno=lineno)
-
-                self.assign(target, result, lineno=lineno)
-
-            else:
-                result = target
-                ir = irVectorOp(op, result, value, lineno=lineno)        
-                self.append_node(ir)
-
-        elif isinstance(target, irDBAttr) or isinstance(target, irDBIndex):
-            result = self.add_temp(lineno=lineno, data_type=value.type)
-            ir = irDBLoad(result, target, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, value, lineno=lineno)
-
-            ir = irDBStore(target, result, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irDBAttr) or isinstance(value, irDBIndex):
-            result = self.add_temp(lineno=lineno, data_type=target.type)
-            ir = irDBLoad(result, value, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, target, lineno=lineno)
-
-            self.assign(target, result, lineno=lineno)
-
-        elif isinstance(target, irPixelIndex):
-            result = self.add_temp(lineno=lineno, data_type=target.type)
-            ir = irPixelLoad(result, target, lineno=lineno)
-            self.append_node(ir)
-
-            result = self.binop(op, result, value, lineno=lineno)
-
-            ir = irPixelStore(target, result, lineno=lineno)
-            self.append_node(ir)
-
-        elif isinstance(value, irPixelIndex):
-            result = self.add_temp(lineno=lineno, data_type=target.type)
-            ir = irPixelLoad(result, value, lineno=lineno)
-            self.append_node(ir)
-
-            # check if we need to convert
-            if result.get_base_type() != value.get_base_type():
-                ir = irConvertTypeInPlace(result, value.get_base_type(), lineno=lineno)
-                self.append_node(ir)                
-
-            result = self.binop(op, result, target, lineno=lineno)
-
-            self.assign(target, result, lineno=lineno)
             
-        elif target.length == 1:
-            # if so, we can replace with a binop and assign
-            result = self.binop(op, target, value, lineno=lineno)
-            self.assign(target, result, lineno=lineno)
+            self.append_node(ir)
 
-        else:
-            # index address of target
+        elif isinstance(target, irAddress):
+            if target.target.length == 1:
+                self.store_indirect(target, value, lineno=lineno)
+
+            else:
+                ir = irVectorAssign(target, value, lineno=lineno)
+                self.append_node(ir)
+
+        elif isinstance(target, irArray):
             result = self.add_temp(lineno=lineno, data_type='addr')
             ir = irIndex(result, target, lineno=lineno)
             self.append_node(ir)
             result.target = target
 
-            ir = irVectorOp(op, result, value, lineno=lineno)        
+            ir = irVectorAssign(result, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(target, irDBIndex) or isinstance(target, irDBAttr):
+            ir = irDBStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif isinstance(target, irPixelIndex):
+            ir = irPixelStore(target, value, lineno=lineno)
+            self.append_node(ir)
+
+        else:
+            raise CompilerFatal("Invalid assignment")
+
+
+    def convert_type(self, target, value, lineno=None):
+        # in normal expressions, f16 will take precedence over i32.
+        # however, for the assign, the assignment target will 
+        # have priority.
+
+        # print target, value
+        # print target.get_base_type(), value.get_base_type()
+
+        # check if value is const 0
+        # if so, we don't need to convert, 0 has the same binary representation
+        # in all data types
+        if isinstance(value, irConst) and value.value == 0:
+            pass
+
+        # check for special case of a database target.
+        # we don't know the type of the database target, the 
+        # database itself will do the conversion.
+        elif target.get_base_type() == 'db':
+            pass
+
+        # check if base types don't match, if not, then do a conversion.
+        elif target.get_base_type() != value.get_base_type():
+            # convert value to target type and replace value with result
+            # first, check if we created a temp reg.  if we did, just
+            # do the conversion in place to avoid creating another, unnecessary
+            # temp reg.
+            if value.temp:
+                # check if one of the types is gfx16.  if it is,
+                # then we don't do a conversion
+                if (target.get_base_type() == 'gfx16') or \
+                   (value.get_base_type() == 'gfx16'):
+                   pass
+
+                else:
+                    ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
+                    self.append_node(ir)
+
+            else:
+                # check if one of the types is gfx16.  if it is,
+                # then we don't do a conversion
+                if (target.get_base_type() == 'gfx16') or \
+                   (value.get_base_type() == 'gfx16'):
+                   pass
+                   
+                else:
+                    temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+                    ir = irConvertType(temp, value, lineno=lineno)
+                    self.append_node(ir)
+                    value = temp
+
+        return value
+
+    def assign(self, target, value, lineno=None):     
+        # print target, value, lineno
+
+        assert target.get_base_type()
+        assert value.get_base_type()
+        assert target.type
+        assert value.type
+
+        # if target.type != value.type:
+        # print "Target %s type: %s base: %s <- Value %s type: %s base: %s" % \
+            # (target, target.type, target.get_base_type(), value, value.type, value.get_base_type())
+
+        ##################################################
+        # Handle loading from value types
+        ##################################################
+        value = self.load_value(value, dest_hint=target.type, lineno=lineno)
+
+        ##################################################
+        # Handle conversion of value to target type
+        ##################################################
+        value = self.convert_type(target, value, lineno=lineno)
+        
+        ##################################################
+        # Handle storing to target
+        ##################################################
+        self.store_value(target, value, lineno=lineno)
+        
+
+    def augassign(self, op, target, value, lineno=None):
+        # print op, target, value
+        value = self.load_value(value, dest_hint=target.type, lineno=lineno)
+
+        # do a type conversion here, if needed.
+        # while binop will automatically convert types, 
+        # it gives precedence to f16.  however, in the case
+        # of augassign, we want to convert to the target type.
+        value = self.convert_type(target, value, lineno=lineno)
+
+        # print value
+        # print 'target', target, type(target), target.length
+
+        if isinstance(target, irVar_simple):
+            result = self.binop(op, target, value, lineno=lineno)
+
+            self.store_value(target, result, lineno=lineno)
+
+        elif isinstance(target, irPixelAttr):
+            ir = irVectorOp(op, target, value, lineno=lineno)        
+            self.append_node(ir)
+
+        elif isinstance(target, irAddress) or \
+             isinstance(target, irPixelIndex) or \
+             isinstance(target, irDBAttr):
+            target_reg = self.load_value(target, lineno=lineno)
+
+            result = self.binop(op, target_reg, value, lineno=lineno)
+
+            self.store_value(target, result, lineno=lineno)
+
+        else:
+            # index address of target
+            index = self.add_temp(lineno=lineno, data_type='addr')
+            ir = irIndex(index, target, lineno=lineno)
+            self.append_node(ir)
+            index.target = target
+
+            ir = irVectorOp(op, index, value, lineno=lineno)        
             self.append_node(ir)
 
     def load_indirect(self, address, result=None, lineno=None):
-        if isinstance(address, irPixelIndex) or \
-            isinstance(address, irDBAttr) or \
-            isinstance(address, irDBIndex):
-
-            try:
-                data_type = address.type
-
-            except KeyError:
-                raise SyntaxError("Attribute %s not recognized" % (address.attr), lineno=lineno)
-
-        else:
-            data_type = address.target.type
-
-
         if result is None:
-            result = self.add_temp(data_type=data_type, lineno=lineno)
-
-        if isinstance(address, irPixelIndex) or isinstance(address, irPixelAttr):
-            ir = irPixelLoad(result, address, lineno=lineno)            
+            result = self.add_temp(data_type=address.get_base_type(), lineno=lineno)
         
-        elif isinstance(address, irDBAttr) or isinstance(address, irDBIndex):
-            ir = irDBLoad(result, address, lineno=lineno)            
+        ir = irIndexLoad(result, address, lineno=lineno)
 
-        # loading to pixel index, we need an intermediate value
-        elif isinstance(result, irPixelIndex):
-            temp = self.add_temp(data_type=result.get_base_type(), lineno=lineno)
-            ir = irIndexLoad(temp, address, lineno=lineno)
-            self.append_node(ir)
-
-            return self.assign(result, temp, lineno=lineno)
-
-        else:
-            ir = irIndexLoad(result, address, lineno=lineno)
-    
         self.append_node(ir)
 
         return result  
 
     def store_indirect(self, address, value, lineno=None):
-        # check if target (address) is an object, if so,
-        # delegate to assign to handle this, as this is not actually an indirect store.
-        if isinstance(address, irObjectAttr):
-            return self.assign(address, value, lineno=lineno)
-
         ir = irIndexStore(address, value, lineno=lineno)
     
         self.append_node(ir)
@@ -2285,11 +2169,7 @@ class Builder(object):
             args = self.funcs[func_name].params
 
             for i in xrange(len(params)):
-                param = params[i]
-                if isinstance(param, irAddress):
-                    # load to temp var
-                    temp = self.load_indirect(param, lineno=lineno)
-                    params[i] = temp # replace parameter
+                params[i] = self.load_value(params[i], lineno=lineno)
 
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
@@ -2363,8 +2243,6 @@ class Builder(object):
         self.append_node(label)
         
     def begin_while(self, lineno=None):
-        self.open_block(lineno=lineno)
-
         top_label = self.label('while.top', lineno=lineno)
         end_label = self.label('while.end', lineno=lineno)
         self.position_label(top_label)
@@ -2385,11 +2263,7 @@ class Builder(object):
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
 
-        self.close_block()
-
     def begin_for(self, iterator, lineno=None):
-        self.open_block(lineno=lineno)
-
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
         self.position_label(begin_label)
         top_label = self.label('for.top', lineno=lineno)
@@ -2418,8 +2292,6 @@ class Builder(object):
 
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
-
-        self.close_block()
 
     def jump(self, target, lineno=None):
         ir = irJump(target, lineno=lineno)
@@ -3080,6 +2952,7 @@ class Builder(object):
 
                     self.data_table.append(i)
 
+        # NOT optimizing registers
         else:
             for func_name, local in self.locals.items():
                 for i in local.values():
@@ -3114,10 +2987,27 @@ class Builder(object):
         # need to be here.
         self.strings = used_strings
 
+        # record addresses of the constants used to reference
+        # the strings addresses
+        string_addrs = []
+        for s in self.strings:
+            string_addrs.append(addr)
+            addr += 1
+                    
         # allocate storage for strings
+        i = 0
         for s in self.strings:
             s.addr = addr
+
+            # add constant for string address to data table
+            ir = irConst(s.addr, lineno=s.lineno)
+            ir.addr = string_addrs[i]
+            self.data_table.append(ir)
+
+            s.ref = ir.addr
+
             addr += s.size
+            i += 1
 
         # now update global strings to map to their default values to point
         # to their string literal's address
@@ -3424,7 +3314,8 @@ class Builder(object):
             if var.addr < addr:
                 continue
 
-            assert addr == var.addr
+            if addr != var.addr:
+                raise CompilerFatal("Data address error: %d != %d" % (addr, var.addr))
 
             if isinstance(var, irStrLiteral):
                 # pack string meta data
@@ -3441,6 +3332,10 @@ class Builder(object):
             elif var.length == 1:
                 try:
                     default_value = var.default_value
+
+                    if isinstance(default_value, irStrLiteral):
+                        default_value = 0
+
                     stream += struct.pack('<l', default_value)
                     addr += var.length
 
@@ -3544,16 +3439,18 @@ class Builder(object):
 
 
 class VM(object):
-    def __init__(self, builder=None, code=None, data=None, pix_size_x=4, pix_size_y=4):
+    def __init__(self, builder=None, code=None, data=None, strings=None, pix_size_x=4, pix_size_y=4):
         self.pixel_arrays = {}
 
         if builder == None:
             self.code = code
             self.data = data
+            self.data.extend(strings)
 
         else:
             self.code = builder.code
             self.data = builder.data_table
+            self.data.extend(builder.strings)
 
             for k, v in builder.pixel_arrays.items():
                 self.pixel_arrays[k] = v.fields
@@ -3606,13 +3503,31 @@ class VM(object):
 
             addr = var.addr
 
-            for i in xrange(var.length):
-                try:
-                    self.memory.append(var.default_value[i])
-                except TypeError:
-                    self.memory.append(var.default_value)
+            if isinstance(var, irStrLiteral):
+                self.memory.append(var.strlen)
 
-            addr += var.length - 1
+                s = []
+                for i in xrange(var.strlen):
+                    s.append(var.strdata[i])
+
+                    if len(s) == 4:
+                        self.memory.append(s)
+                        addr += 1
+                        s = []
+
+                if len(s) > 0:
+                    self.memory.append(s)
+                    addr += 1
+                
+            else:
+                for i in xrange(var.length):
+                    try:
+                        self.memory.append(var.default_value[i])
+                    except TypeError:
+                        self.memory.append(var.default_value)
+
+                addr += var.length - 1
+
 
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
@@ -3654,6 +3569,28 @@ class VM(object):
                     index = self.memory[var.offsets[f].addr]
                     value[f] = self.memory[index + var.addr]
 
+            elif isinstance(var, irStrLiteral):
+                value = var.strdata
+
+            elif isinstance(var, irVar_str):
+                # lookup reference
+                ref = self.memory[var.addr]
+                
+                # get string length in characters
+                strlen = self.memory[ref]
+                ref += 1
+                
+                # convert string length to memory cells
+                memlen = ((strlen - 1) / 4) + 1
+
+                # unpack string
+                s = []
+                for i in xrange(memlen):
+                    s.extend(self.memory[ref])
+                    ref += 1
+
+                value = ''.join(s)
+                
             else:
                 value = self.memory[var.addr]
 

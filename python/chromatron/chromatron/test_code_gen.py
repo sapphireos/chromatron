@@ -23,6 +23,8 @@
 import unittest
 import code_gen
 
+# nose2 --with-coverage --coverage-report=html
+
 empty_program = """
 def init():
     pass
@@ -1560,6 +1562,18 @@ def init():
 
 """
 
+test_db_augassign = """
+
+a = Number(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    db.kv_test_key += 1
+    
+    a = db.kv_test_key
+
+"""
+
 
 test_array_expr_db = """
 
@@ -1844,10 +1858,97 @@ def init():
     
 """
 
+test_complex_assignments = """
+
+a = Number(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
+f = Fixed16(publish=True)
+g = Fixed16(publish=True)
+h = Fixed16(publish=True)
+i = Fixed16(publish=True)
+
+ary = Array(4)
+ary1 = Array(4, type=Fixed16)
+
+def init():
+    pixels.hue = 123
+    db.kv_test_key = pixels[0].hue
+    a = db.kv_test_key
+
+    pixels[0].val = db.kv_test_key
+    b = pixels[0].val
+
+    ary[0] = db.kv_test_key
+    c = ary[0]
+
+    ary[1] = 456
+    db.kv_test_key = ary[1]
+    d = db.kv_test_key
+
+    ary1[1] = pixels[0].val
+    e = ary1[1]
+
+    ary1[2] = 0.123
+    pixels[0].val = ary1[2]
+    f = pixels[0].val
+
+    pixels[1].val = pixels[0].val
+    g = pixels[1].val
+
+    pixels[0].val = 0.333
+    db.kv_test_array[0] = pixels[0].val
+    h = db.kv_test_array[0]
+
+    db.kv_test_array[0] = 456
+    pixels[0].val = db.kv_test_array[0]
+    i = pixels[0].val
+"""
+
+test_basic_string = """
+a = String(publish=True)
+b = String(publish=True)
+c = String(publish=True)
+d = String("test3", publish=True)
+e = String(publish=True)
+
+def init():
+    a = "test"
+    s = String('test2')
+    b = s
+    c = a
+    e = d
+"""
 
 class CGTestsBase(unittest.TestCase):
     def run_test(self, program, expected={}):
         pass
+
+    def test_basic_string(self):
+        self.run_test(test_basic_string,
+            expected={
+                'a': 'test',
+                'b': 'test2',
+                'c': 'test',
+                'd': 'test3',
+                'e': 'test3',
+            })
+
+    def test_complex_assignments(self):
+        self.run_test(test_complex_assignments,
+            expected={
+                'a': 123,
+                'b': 0.0018768310546875,
+                'c': 123.0,
+                'd': 456.0,
+                'e': 0.0018768310546875,
+                'f': 0.12298583984375,
+                'g': 0.12298583984375,
+                'h': 21823.0,
+                'i': 0.0069580078125,
+            })
 
     def test_bad_data_count(self):
         self.run_test(test_bad_data_count,
@@ -1954,6 +2055,12 @@ class CGTestsBase(unittest.TestCase):
             expected={
                 'a': 124,
                 'b': 246,
+            })
+
+    def test_db_augassign(self):
+        self.run_test(test_db_augassign,
+            expected={
+                'a': 124,
             })
 
     def test_array_expr_db(self):
@@ -3052,8 +3159,29 @@ def init():
 
 """
 
+test_pix_load_from_pix_2 = """
+
+def init():
+    pixels[1].hue = 1
+    pixels[2].hue = pixels[1].hue
+    pixels[1].hue = 0
+
+"""
+
 
 class CGHSVArrayTests(unittest.TestCase):
+    def test_pix_load_from_pix_2(self):
+        builder = code_gen.compile_text(test_pix_load_from_pix_2, debug_print=False)
+        vm = code_gen.VM(builder)
+
+        vm.run_once()
+
+        hsv = vm.dump_hsv()
+
+        self.assertEqual(hsv['hue'][0], 0)
+        self.assertEqual(hsv['hue'][1], 0)
+        self.assertEqual(hsv['hue'][2], 1)
+
     def test_pix_load_from_pix(self):
         builder = code_gen.compile_text(test_pix_load_from_pix, debug_print=False)
         vm = code_gen.VM(builder)
@@ -3357,7 +3485,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
         hsv = vm.dump_hsv()
 
-        self.assertEqual(hsv['hs_fade'][1], 8060)
+        self.assertEqual(hsv['hs_fade'][1], 0)
         self.assertEqual(hsv['hs_fade'][9], 500)
 
     def test_hs_fade_array_2(self):
