@@ -357,10 +357,10 @@ void gfx_v_init( void ){
     pixel_v_init();
 
 
-    thread_t_create( gfx_control_thread,
-                PSTR("gfx_control"),
-                0,
-                0 );
+    // thread_t_create( gfx_control_thread,
+    //             PSTR("gfx_control"),
+    //             0,
+    //             0 );
 
     thread_t_create( gfx_fader_thread,
                 PSTR("gfx_fader"),
@@ -688,6 +688,20 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
+        // check if shutting down
+        if( wifi_b_shutdown() ){
+            
+            pixel_v_clear();
+
+            uint16_t h = 0;
+            uint16_t s = 0;
+            uint16_t v = 4096;
+
+            pixel_v_load_hsv( 0, 1, &h, &s, &v );
+
+            THREAD_EXIT( pt );
+        }
+
         if( should_halt_fader() ){
 
             THREAD_RESTART( pt );            
@@ -793,6 +807,12 @@ PT_BEGIN( pt );
     while(1){
 
         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) || !vm_b_running() );
+
+        // check if shutting down
+        if( wifi_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
 
         ATOMIC;
         uint8_t flags = run_flags;

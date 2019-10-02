@@ -930,3 +930,11 @@ void pixel_v_get_rgb_totals( uint16_t *r, uint16_t *g, uint16_t *b ){
     }
 }
 
+void pixel_v_clear( void ){
+
+    memset( array_r, 0, sizeof(array_r) );
+    memset( array_g, 0, sizeof(array_g) );
+    memset( array_b, 0, sizeof(array_b) );
+    memset( array_misc.white, 0, sizeof(array_misc.white) );
+}
+

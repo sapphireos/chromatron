@@ -1592,6 +1592,11 @@ bool wifi_b_attached( void ){
     return wifi_status >= WIFI_STATE_ALIVE;
 }
 
+bool wifi_b_shutdown( void ){
+
+    return wifi_status == WIFI_STATE_SHUTDOWN;
+}
+
 int8_t wifi_i8_get_status( void ){
 
     return wifi_status;

@@ -93,4 +93,7 @@ void pixel_v_load_hsv(
 
 void pixel_v_get_rgb_totals( uint16_t *r, uint16_t *g, uint16_t *b );
 
+// reset all arrays to 0
+void pixel_v_clear( void );
+
 #endif
