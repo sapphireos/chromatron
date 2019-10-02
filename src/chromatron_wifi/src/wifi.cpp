@@ -217,7 +217,8 @@ void wifi_v_process( void ){
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
 
         // check if status is changing
-        if( ( last_status & WIFI_STATUS_CONNECTED ) == 0 ){
+        if( ( ( last_status & WIFI_STATUS_CONNECTED ) == 0 ) &&
+            ( ( last_status & WIFI_STATUS_CONNECTING ) != 0 ) ){
 
             connects++;
 
