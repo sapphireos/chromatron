@@ -84,6 +84,8 @@ void hal_wifi_v_init( void ){
 
 void disable_rx_dma( void ){
 
+    ATOMIC;
+
     // disable channel
     while( DMA.WIFI_DMA_CH.CTRLA != 0 ){
         DMA.WIFI_DMA_CH.CTRLA = 0;
@@ -92,6 +94,8 @@ void disable_rx_dma( void ){
     // reset channel
     DMA.WIFI_DMA_CH.CTRLA = DMA_CH_RESET_bm;
     while( DMA.WIFI_DMA_CH.CTRLA != 0 );
+
+    END_ATOMIC;
 }
 
 void enable_rx_dma( void ){
@@ -99,6 +103,7 @@ void enable_rx_dma( void ){
     // disable channel
     disable_rx_dma();
 
+    ATOMIC;
    
     DMA.WIFI_DMA_CH.CTRLB = 0;
     DMA.WIFI_DMA_CH.REPCNT = 0; // unlimited repeat
@@ -137,6 +142,8 @@ void enable_rx_dma( void ){
 
         log_v_debug_P( PSTR("WTF 2 %x"), src_addr );
     }
+
+    END_ATOMIC;
 }
 
 //inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
