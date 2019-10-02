@@ -664,7 +664,7 @@ void gfx_v_read_db( void ){
 
 static bool should_halt_fader( void ){
 
-    if( !wifi_b_connected() ){
+    if( !wifi_b_attached() ){
         return TRUE;
     }
 
