@@ -32,6 +32,7 @@
 #define WIFI_STATE_BOOT         -1
 #define WIFI_STATE_UNKNOWN      0
 #define WIFI_STATE_ALIVE        1
+#define WIFI_STATE_SHUTDOWN     2
 
 #define WIFI_SIGNAL 			SIGNAL_SYS_3
 

@@ -645,12 +645,15 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+    THREAD_WAIT_WHILE( pt, wifi_status != WIFI_STATE_ALIVE );
     
-    // TMR_WAIT( pt, 600000 );
-
     // check if we are connected
     while( !wifi_b_connected() ){
+
+        if( wifi_status != WIFI_STATE_ALIVE ){
+
+            THREAD_RESTART( pt );
+        }
 
         wifi_rssi = -127;
         
@@ -1529,6 +1532,7 @@ io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
 void wifi_v_shutdown( void ){
 
     wifi_i8_send_msg( WIFI_DATA_ID_SHUTDOWN, 0, 0 );
+    wifi_status = WIFI_STATE_SHUTDOWN;
 }
 
 bool wifi_b_connected( void ){
