@@ -174,8 +174,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 };
 
 extern volatile uint8_t rx_dma_buf[WIFI_UART_BUF_SIZE];
-uint8_t get_insert_ptr( void );
-extern uint8_t extract_ptr;
+// uint8_t get_insert_ptr( void );
+// extern uint8_t extract_ptr;
 
 void debug_strobe( void ){
 // return;
@@ -274,7 +274,7 @@ static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
                 debug_strobe();
 
-                log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x %d/%d"), data_id, byte, get_insert_ptr(), extract_ptr );
+                log_v_debug_P( PSTR("msg invalid response: 0x%02x -> 0x%02x"), data_id, byte );
 
                 for( uint8_t i = 0; i < WIFI_UART_BUF_SIZE; i += 8 ){
 

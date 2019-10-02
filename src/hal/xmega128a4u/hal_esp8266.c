@@ -146,10 +146,9 @@ void enable_rx_dma( void ){
     END_ATOMIC;
 }
 
-//inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
+static inline uint8_t get_insert_ptr( void ) __attribute__((always_inline));
 
-//inline
-uint8_t get_insert_ptr( void ){
+static inline uint8_t get_insert_ptr( void ){
 
     // ATOMIC;
     // uint16_t ins_ptr = DMA.WIFI_DMA_CH.DESTADDR0;
