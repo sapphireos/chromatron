@@ -579,7 +579,7 @@ void gfx_v_read_db( void ){
 
         uint16_t bytes_read = 0;
 
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
+        if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)buf, sizeof(buf), &bytes_read ) < 0 ){
 
             continue;
         }
