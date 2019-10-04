@@ -69,14 +69,16 @@ class Client(object):
             i += 1
 
             try:
-                # print time.time(), 'send', i, msg
+                start = time.time()
+                print 'send', type(msg), len(msg.pack())
                 self.__sock.sendto(msg.pack(), host)
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
-                    # print time.time(), 'recv', reply_msg
+                    elapsed = time.time() - start
+                    print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
                         # bad transaction IDs coming in, this doesn't count
