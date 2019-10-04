@@ -3758,6 +3758,5 @@ class CGTestsOnDevice(CGTestsBase):
                 print "Protocol error, trying again."
                 tries -= 1
 
-
-
+        ct.stop_vm()
 
