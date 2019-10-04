@@ -1,3 +1,17 @@
+a = String(publish=True)
+b = String(publish=True)
+c = String(publish=True)
+d = String("test3", publish=True)
+e = String(publish=True)
+
+def init():
+    a = "test"
+    s = String('test2')
+    b = s
+    c = a
+    e = d
+
+
 
 # prox_setting = Number()
 # dimmer_setting = Number(publish=True)
@@ -63,14 +77,14 @@
 
 #         delay(20)
 
-p1 = PixelArray()
+# p1 = PixelArray()
 
-def init():
-    a = Number()
-    a = pixels.size_x
+# def init():
+#     a = Number()
+#     a = pixels.size_x
 
-    b = Number()
-    b = p1.is_v_fading
+#     b = Number()
+    # b = p1.is_v_fading
 
 # i = Number()
 

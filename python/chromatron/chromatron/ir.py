@@ -3220,6 +3220,8 @@ class Builder(object):
                 meta_names.append(var.name)
                 self.published_var_count += 1
 
+                print published_var,get_type_id(var.type), var.type, type(var), var
+
         # set up links
         packed_links = ''
         for link in self.links:

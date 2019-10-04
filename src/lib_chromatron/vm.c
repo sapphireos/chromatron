@@ -213,7 +213,7 @@ static int8_t send_reset_message( uint8_t vm_id ){
 static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr ){
 
     // synchronize database parameters
-    gfx_v_sync_db( FALSE );
+    // gfx_v_sync_db( FALSE );
 
     wifi_msg_vm_run_t msg;
     msg.vm_id = vm_id;
@@ -231,7 +231,7 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr 
     }    
 
     // read database
-    gfx_v_read_db();
+    // gfx_v_read_db();
 
     vm_status[vm_id]        = info_msg.status;
     vm_loop_time[vm_id]     = info_msg.loop_time;
@@ -551,7 +551,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     }
 
     // synchronize database parameters
-    gfx_v_sync_db( TRUE );
+    // gfx_v_sync_db( TRUE );
 
     // initialize VM (run init function)
     vm_status[vm_id] = _vm_i8_run_vm( vm_id, WIFI_DATA_ID_INIT_VM, 0 );
