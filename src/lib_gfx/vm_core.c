@@ -2596,6 +2596,13 @@ int8_t vm_i8_run(
             ptr = &data[*ptr]; // dereference string
             len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
             ptr++;
+            len++; // add null terminator
+
+            len = 64;
+            char buf[64];
+            memset( buf, 0, sizeof(buf) );
+            strncpy( buf, (char *)ptr, sizeof(buf) );
+            ptr = buf;
         }
         
         kvdb_i8_set( publish->hash, publish->type, ptr, len );
@@ -2953,8 +2960,9 @@ void vm_v_init_db(
             ptr = &data[*ptr]; // dereference string
             len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
             ptr++;
+            len++; // add null terminator
 
-            intf_v_printf("%u", len);
+            len = 64;
         }
 
         kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
