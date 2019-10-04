@@ -560,6 +560,28 @@ void gfx_v_sync_db( bool all ){
     }
 }
 
+void gfx_v_read_db_key( uint32_t hash ){
+
+    if( wifi_i8_send_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)&hash, sizeof(hash) ) < 0 ){
+
+        return;
+    }
+
+    uint8_t buf[GFX_MAX_DB_LEN + sizeof(wifi_msg_kv_data_t)];
+    wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;   
+
+    uint16_t bytes_read = 0;
+
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)buf, sizeof(buf), &bytes_read ) < 0 ){
+
+        return;
+    }
+
+    uint8_t *kv_data = (uint8_t *)( msg + 1 );
+
+    catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data, 0 );
+}   
+
 void gfx_v_read_db( void ){
 
     for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
@@ -569,24 +591,7 @@ void gfx_v_read_db( void ){
             continue;
         }
 
-        if( wifi_i8_send_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)&subscribed_keys[i].hash, sizeof(subscribed_keys[i].hash) ) < 0 ){
-
-            continue;
-        }
-
-        uint8_t buf[GFX_MAX_DB_LEN + sizeof(wifi_msg_kv_data_t)];
-        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;   
-
-        uint16_t bytes_read = 0;
-
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)buf, sizeof(buf), &bytes_read ) < 0 ){
-
-            continue;
-        }
-
-        uint8_t *kv_data = (uint8_t *)( msg + 1 );
-
-        catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data, 0 );
+        gfx_v_read_db_key( subscribed_keys[i].hash );
     }
 }
 

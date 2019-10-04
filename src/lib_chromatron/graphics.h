@@ -50,6 +50,7 @@ void gfx_v_pixel_bridge_disable( void );
 
 void gfx_v_sync_params( void );
 void gfx_v_sync_db( bool all );
+void gfx_v_read_db_key( uint32_t hash );
 void gfx_v_read_db( void );
 
 void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag );

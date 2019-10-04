@@ -2602,7 +2602,7 @@ int8_t vm_i8_run(
             char buf[64];
             memset( buf, 0, sizeof(buf) );
             strncpy( buf, (char *)ptr, sizeof(buf) );
-            ptr = buf;
+            ptr = (int32_t *)buf;
         }
         
         kvdb_i8_set( publish->hash, publish->type, ptr, len );

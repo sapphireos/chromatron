@@ -564,6 +564,19 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         goto error;
     }
 
+    // synchronize published vars that may have initializers
+    fs_v_seek( f, sizeof(vm_size) + state.publish_start );
+
+    for( uint8_t i = 0; i < state.publish_count; i++ ){
+
+        vm_publish_t publish;
+
+        fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
+
+        gfx_v_read_db_key( publish.hash );
+    }   
+
+
     // synchronize database parameters
     gfx_v_sync_db( TRUE );
 
