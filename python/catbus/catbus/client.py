@@ -26,6 +26,11 @@ from messages import *
 from options import *
 import time
 import netifaces
+import os
+import json
+
+from sapphire.buildtools import firmware_package
+DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
 
 import random
 
@@ -142,6 +147,10 @@ class Client(object):
         return elapsed
 
     def lookup_hash(self, *args):
+        # open cache file
+        with open(DATA_DIR_FILE_PATH, 'r') as f:
+            cache = json.loads(f.read())
+
         resolved_keys = {}
 
         arg_list = []
