@@ -2545,7 +2545,13 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+        if( ( publish->type == CATBUS_TYPE_STRING512 ) ||
+            ( publish->type == CATBUS_TYPE_STRING64 ) ){
+
+        }
+        else{
+            kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+        }
 
         publish++;
         count--;
@@ -2588,7 +2594,7 @@ int8_t vm_i8_run(
             publish->type = CATBUS_TYPE_STRING64;
 
             ptr = &data[*ptr]; // dereference string
-            len = *ptr; // first word of string is length
+            len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
             ptr++;
         }
         
@@ -2934,15 +2940,24 @@ void vm_v_init_db(
 
     while( count > 0 ){
 
+        int32_t *ptr = &data[publish->addr];
+        uint32_t len = type_u16_size(publish->type);
+
         // check if string
         // TODO
         // hack to deal with poor string handling between compiler, VM, and DB
         if( publish->type == CATBUS_TYPE_STRING512 ){
 
             publish->type = CATBUS_TYPE_STRING64;
+
+            ptr = &data[*ptr]; // dereference string
+            len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
+            ptr++;
+
+            intf_v_printf("%u", len);
         }
 
-        kvdb_i8_add( publish->hash, publish->type, 1, &data[publish->addr], type_u16_size(publish->type) );
+        kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
         kvdb_v_set_tag( publish->hash, tag );
 
         publish++;
