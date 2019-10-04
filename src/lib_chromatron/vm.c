@@ -475,6 +475,20 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
 
+        // TODO
+        // this dirty hack brought to you by:
+        // not supporting variable length strings!
+
+        // for now, the compiler defaults to string512 for the type
+        // of all strings.  since we don't normally need strings that large
+        // and more importantly, have no where near enough ram to actually 
+        // use them, we'll constrain them to 64 bytes until (if?) we have
+        // an actual fix for this.
+        if( publish.type == CATBUS_TYPE_STRING512 ){
+
+            publish.type = CATBUS_TYPE_STRING64;
+        }
+
         kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
         kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
 
