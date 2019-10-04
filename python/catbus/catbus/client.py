@@ -74,16 +74,16 @@ class Client(object):
             i += 1
 
             try:
-                start = time.time()
-                print 'send', type(msg), len(msg.pack())
+                # start = time.time()
+                # print 'send', type(msg), len(msg.pack())
                 self.__sock.sendto(msg.pack(), host)
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
-                    elapsed = time.time() - start
-                    print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
+                    # elapsed = time.time() - start
+                    # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
                         # bad transaction IDs coming in, this doesn't count
@@ -148,8 +148,17 @@ class Client(object):
 
     def lookup_hash(self, *args):
         # open cache file
-        with open(DATA_DIR_FILE_PATH, 'r') as f:
-            cache = json.loads(f.read())
+        try:
+            with open(DATA_DIR_FILE_PATH, 'r') as f:
+                temp = json.loads(f.read())
+
+                cache = {}
+                # have to convert keys back to int because json only does string keys
+                for k, v in temp.iteritems():
+                    cache[int(k)] = v
+
+        except IOError:
+            cache = {}
 
         resolved_keys = {}
 
@@ -160,6 +169,13 @@ class Client(object):
 
             except TypeError:
                 arg_list.append(arg)
+
+        # filter out any items in the cache
+        for k, v in cache.iteritems():
+            if k in arg_list:
+                resolved_keys[k] = v
+
+        arg_list = [a for a in arg_list if a not in cache]
 
         chunks = [arg_list[x:x + CATBUS_MAX_HASH_LOOKUPS] for x in xrange(0, len(arg_list), CATBUS_MAX_HASH_LOOKUPS)]
 
@@ -208,6 +224,11 @@ class Client(object):
                 except KeyError:
                     # can't find anything, just return hash itself
                     resolved_keys[k] = k
+
+        cache.update(resolved_keys)
+
+        with open(DATA_DIR_FILE_PATH, 'w') as f:
+            f.write(json.dumps(cache))
 
         return resolved_keys
 
