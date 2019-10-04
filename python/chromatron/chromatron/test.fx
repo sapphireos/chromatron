@@ -1,15 +1,17 @@
-a = String(publish=True)
-b = String(publish=True)
-c = String(publish=True)
-d = String("test3", publish=True)
-e = String(publish=True)
+str_a = String(publish=True)
+str_b = String(publish=True)
+str_c = String(publish=True)
+str_d = String("test3", publish=True)
+str_e = String(publish=True)
 
 def init():
-    a = "test"
+    str_a = "test"
     s = String('test2')
-    b = s
-    c = a
-    e = d
+    str_b = s
+    str_c = str_a
+    str_e = str_d
+
+    halt();
 
 
 

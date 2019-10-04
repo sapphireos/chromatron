@@ -578,7 +578,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
     vm_sizes[vm_id] = vm_size_copy;
 
-    log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
+    log_v_debug_P( PSTR("VM loaded in: %lu ms status: %d"), tmr_u32_elapsed_time_ms( start_time ), vm_status[vm_id] );
 
     return 0;
 
@@ -687,8 +687,6 @@ PT_BEGIN( pt );
 
                     goto error; 
                 }
-
-                vm_status[i] = VM_STATUS_OK;
             }
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){

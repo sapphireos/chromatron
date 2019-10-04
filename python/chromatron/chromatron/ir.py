@@ -1037,7 +1037,10 @@ class irLibCall(IR):
     def get_output_vars(self):
         return [self.result]
 
-    def generate(self):        
+    def generate(self):    
+        if self.target == 'halt':
+            return insHalt()
+
         params = [a.generate() for a in self.params]
 
         if len(self.params) > 0 and isinstance(self.params[0], irDBAttr):
