@@ -2586,9 +2586,10 @@ int8_t vm_i8_run(
             ( publish->type == CATBUS_TYPE_STRING64 ) ){
 
             publish->type = CATBUS_TYPE_STRING64;
-            len = 64;
 
-            ptr = &data[*data] + 1;
+            ptr = &data[*ptr]; // dereference string
+            len = *ptr; // first word of string is length
+            ptr++;
         }
         
         kvdb_i8_set( publish->hash, publish->type, ptr, len );
