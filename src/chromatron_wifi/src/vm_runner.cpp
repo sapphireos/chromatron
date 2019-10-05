@@ -186,17 +186,24 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
     }
     else if( mode == VM_RUN_THREAD ){
 
-        if( func_addr >= VM_MAX_THREADS ){
+        // map thread id (passed as func addr) to thread
+        uint32_t thread_id = func_addr;
+
+        if( thread_id >= VM_MAX_THREADS ){
 
             return VM_STATUS_ERROR;
         }
 
-        // map thread id (passed as func addr) to thread
-        vm_state[vm_index].current_thread = func_addr;
+        if( vm_state[vm_index].threads[thread_id].func_addr == 0xffff ){
+
+            return VM_STATUS_ERROR;
+        }
+        
+        vm_state[vm_index].current_thread = thread_id;
 
         return_code = vm_i8_run( stream, 
-                                 vm_state[vm_index].threads[func_addr].func_addr, 
-                                 vm_state[vm_index].threads[func_addr].pc_offset, 
+                                 vm_state[vm_index].threads[thread_id].func_addr, 
+                                 vm_state[vm_index].threads[thread_id].pc_offset, 
                                  &vm_state[vm_index] );
     }
     else if( mode == VM_RUN_FUNC ){

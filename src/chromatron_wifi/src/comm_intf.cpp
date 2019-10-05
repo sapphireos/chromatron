@@ -250,6 +250,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( ( data_id == WIFI_DATA_ID_INIT_VM ) ||
              ( data_id == WIFI_DATA_ID_RUN_VM ) ||
+             ( data_id == WIFI_DATA_ID_VM_RUN_THREAD ) ||
              ( data_id == WIFI_DATA_ID_VM_RUN_FUNC ) ){
 
         wifi_msg_vm_run_t *msg = (wifi_msg_vm_run_t *)data;

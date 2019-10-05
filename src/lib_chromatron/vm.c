@@ -635,10 +635,6 @@ PT_BEGIN( pt );
     
     while( vm_active_threads[state->vm_id] & ( 1 << state->thread_id ) ){
 
-        TMR_WAIT( pt, 100 );
-
-        continue;
-
         wifi_msg_vm_info_t info;
         if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_THREAD, state->thread_id, &info ) == VM_STATUS_COMM_ERROR ){
 
@@ -647,16 +643,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        if( info.status == VM_STATUS_YIELDED ){
-
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-
-            continue;
-        }
-        else if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
+        if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
 
             vm_status[state->vm_id] = info.status;
 
@@ -674,6 +661,7 @@ PT_BEGIN( pt );
 
             delay = VM_MIN_DELAY;
         }
+
 
         TMR_WAIT( pt, delay );
     }
