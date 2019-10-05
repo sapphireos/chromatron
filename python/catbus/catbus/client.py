@@ -148,6 +148,7 @@ class Client(object):
 
     def lookup_hash(self, *args):
         # open cache file
+        cache = {}
         try:
             with open(DATA_DIR_FILE_PATH, 'r') as f:
                 temp = json.loads(f.read())
@@ -157,8 +158,11 @@ class Client(object):
                 for k, v in temp.iteritems():
                     cache[int(k)] = v
 
+        except ValueError:
+            print "JSON decode error"
+
         except IOError:
-            cache = {}
+            pass
 
         resolved_keys = {}
 
