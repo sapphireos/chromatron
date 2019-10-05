@@ -34,9 +34,8 @@
 #define VM_RUNNER_THREAD_RATE 	10
 
 uint32_t vm_u32_get_fader_time( void );
-uint32_t vm_u32_get_run_time( uint8_t vm_index );
-uint32_t vm_u32_get_thread_time( uint8_t vm_index );
-uint32_t vm_u32_get_max_cycles( uint8_t vm_index );
+uint32_t vm_u32_get_run_time( void );
+uint32_t vm_u32_get_max_cycles( void );
 uint32_t vm_u32_get_active_threads( uint8_t vm_index );
 
 void vm_v_init( void );

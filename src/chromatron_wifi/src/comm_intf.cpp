@@ -283,8 +283,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         reply.vm_id             = msg->vm_id;
         reply.status            = status;
         reply.padding           = 0;
-        reply.run_time          = vm_u32_get_run_time( msg->vm_id );
-        reply.max_cycles        = vm_u32_get_max_cycles( msg->vm_id );
+        reply.run_time          = vm_u32_get_run_time();
+        reply.max_cycles        = vm_u32_get_max_cycles();
         reply.active_threads    = vm_u32_get_active_threads( msg->vm_id );
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&reply, sizeof(reply) );

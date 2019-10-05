@@ -44,9 +44,9 @@ static vm_state_t vm_state[VM_MAX_VMS];
 static uint16_t vm_total_size;
 
 static int8_t vm_status[VM_MAX_VMS];
-static uint16_t vm_run_time[VM_MAX_VMS];
+static uint16_t max_cycles;
+static uint16_t vm_run_time;
 static uint16_t vm_fader_time;
-static uint16_t vm_thread_time[VM_MAX_VMS];
 static int32_t last_vm_delay;
 
 
@@ -101,34 +101,14 @@ uint32_t vm_u32_get_fader_time( void ){
     return vm_fader_time;
 }
 
-uint32_t vm_u32_get_run_time( uint8_t vm_index ){
+uint32_t vm_u32_get_run_time( void ){
 
-    if( vm_index >= VM_MAX_VMS ){
-
-        return 0;
-    }
-
-    return vm_run_time[vm_index];
+    return vm_run_time;
 }
 
-uint32_t vm_u32_get_thread_time( uint8_t vm_index ){
+uint32_t vm_u32_get_max_cycles( void ){
 
-    if( vm_index >= VM_MAX_VMS ){
-
-        return 0;
-    }
-
-    return vm_thread_time[vm_index];
-}
-
-uint32_t vm_u32_get_max_cycles( uint8_t vm_index ){
-
-    if( vm_index >= VM_MAX_VMS ){
-
-        return 0;
-    }
-
-    return vm_state[vm_index].max_cycles;   
+    return max_cycles;   
 }
 
 uint32_t vm_u32_get_active_threads( uint8_t vm_index ){
@@ -207,6 +187,20 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
 
         return_code = vm_i8_run_loop( stream, &vm_state[vm_index] );
     }
+    else if( mode == VM_RUN_THREAD ){
+
+        if( func_addr >= VM_MAX_THREADS ){
+
+            return VM_STATUS_ERROR;
+        }
+
+        // map thread id (passed as func addr) to thread
+
+        return_code = vm_i8_run( stream, 
+                                 vm_state[vm_index].threads[func_addr].func_addr, 
+                                 vm_state[vm_index].threads[func_addr].pc_offset, 
+                                 &vm_state[vm_index] );
+    }
     else if( mode == VM_RUN_FUNC ){
 
         return_code = vm_i8_run( stream, func_addr, 0, &vm_state[vm_index] );
@@ -234,7 +228,8 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
         vm_status[vm_index] = return_code;   
     }
 
-    vm_run_time[vm_index] = elapsed_time_micros( start_time );
+    vm_run_time = elapsed_time_micros( start_time );
+    max_cycles = vm_state[vm_index].max_cycles;
 
 
     // mem2_b_verify_handle( vm_handles[vm_index] );
@@ -333,9 +328,6 @@ void vm_v_reset( uint8_t vm_index ){
         
         vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
     }
-
-    vm_run_time[vm_index] = 0;
-    vm_thread_time[vm_index] = 0;
 
     mem2_v_free( vm_handles[vm_index] );
     vm_handles[vm_index] = -1;
