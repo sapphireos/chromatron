@@ -31,8 +31,6 @@
 
 #define VM_RUNNER_MAX_SIZE 		8192
 
-#define VM_RUNNER_THREAD_RATE 	10
-
 uint32_t vm_u32_get_fader_time( void );
 uint32_t vm_u32_get_run_time( void );
 uint32_t vm_u32_get_max_cycles( void );
