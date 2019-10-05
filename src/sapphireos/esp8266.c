@@ -99,11 +99,9 @@ static uint32_t wifi_udp_sent;
 static uint16_t mem_heap_peak;
 static uint16_t mem_used;
 static uint16_t intf_max_time;
-static uint16_t vm_max_time;
 static uint16_t wifi_max_time;
 static uint16_t mem_max_time;
 static uint16_t intf_avg_time;
-static uint16_t vm_avg_time;
 static uint16_t wifi_avg_time;
 static uint16_t mem_avg_time;
 
@@ -158,12 +156,10 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_used,                         0,   "wifi_mem_used" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &intf_max_time,                    0,   "wifi_proc_intf_max_time" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_max_time,                      0,   "wifi_proc_vm_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_max_time,                    0,   "wifi_proc_wifi_max_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_max_time,                     0,   "wifi_proc_mem_max_time" },
 
     { SAPPHIRE_TYPE_UINT16,        0, 0, &intf_avg_time,                    0,   "wifi_proc_intf_avg_time" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &vm_avg_time,                      0,   "wifi_proc_vm_avg_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_avg_time,                    0,   "wifi_proc_wifi_avg_time" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &mem_avg_time,                     0,   "wifi_proc_mem_avg_time" },
 
@@ -912,12 +908,10 @@ static void get_info( void ){
     mem_used                    = msg.mem_used;
 
     intf_max_time               = msg.intf_max_time;
-    vm_max_time                 = msg.vm_max_time;
     wifi_max_time               = msg.wifi_max_time;
     mem_max_time                = msg.mem_max_time;
 
     intf_avg_time               = msg.intf_avg_time;
-    vm_avg_time                 = msg.vm_avg_time;
     wifi_avg_time               = msg.wifi_avg_time;
     mem_avg_time                = msg.mem_avg_time;
 }

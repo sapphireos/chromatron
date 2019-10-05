@@ -213,12 +213,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
         return VM_STATUS_OK;
     }
 
-    // if return is anything other than OK, send status immediately
-    // if( return_code != 0 ){
-
-    //     vm_v_send_info();
-    // }
-
     if( return_code == VM_STATUS_HALT ){
 
         vm_status[vm_index] = VM_STATUS_HALT;
@@ -230,9 +224,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
 
     vm_run_time = elapsed_time_micros( start_time );
     max_cycles = vm_state[vm_index].max_cycles;
-
-
-    // mem2_b_verify_handle( vm_handles[vm_index] );
 
     return return_code;
 }
@@ -289,22 +280,6 @@ int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t mode ){
 //     return distance;
 // }
 
-void vm_v_process( void ){
-
-    // uint32_t now = millis();
-    // int32_t elapsed = elapsed_millis( now, thread_tick );
-    // thread_tick = now;
-
-    // while( elapsed > 0 ){ 
-
-    //     for( uint32_t i = 0; i < VM_MAX_VMS; i++ ){
-            
-    //         _vm_i8_run_vm( VM_RUN_THREADS, i, 0 );
-    //     }
-
-    //     elapsed--;
-    // }
-}
 
 void vm_v_reset( uint8_t vm_index ){
 

@@ -167,12 +167,10 @@ static void _send_info_msg( void ){
     info_msg.mem_used               = rt_data.used_space;
 
     info_msg.intf_max_time          = process_stats.intf_max_time;
-    info_msg.vm_max_time            = process_stats.vm_max_time;
     info_msg.wifi_max_time          = process_stats.wifi_max_time;
     info_msg.mem_max_time           = process_stats.mem_max_time;
 
     info_msg.intf_avg_time          = process_stats.intf_avg_time;
-    info_msg.vm_avg_time            = process_stats.vm_avg_time;
     info_msg.wifi_avg_time          = process_stats.wifi_avg_time;
     info_msg.mem_avg_time           = process_stats.mem_avg_time;
 

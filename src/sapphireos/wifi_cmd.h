@@ -108,11 +108,9 @@ typedef struct __attribute__((packed)){
     uint16_t mem_heap_peak;
     uint16_t mem_used;
     uint16_t intf_max_time;
-    uint16_t vm_max_time;
     uint16_t wifi_max_time;
     uint16_t mem_max_time;
     uint16_t intf_avg_time;
-    uint16_t vm_avg_time;
     uint16_t wifi_avg_time;
     uint16_t mem_avg_time;
     int8_t wifi_router;

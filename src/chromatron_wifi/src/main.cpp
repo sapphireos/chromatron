@@ -133,10 +133,6 @@ void loop(){
     stats->wifi_run_time = elapsed_time( start );
 
     start = micros();
-    vm_v_process();
-    stats->vm_run_time = elapsed_time( start );
-
-    start = micros();
     mem2_v_check_canaries();
     mem2_v_collect_garbage();
     stats->mem_run_time = elapsed_time( start );
@@ -153,24 +149,10 @@ void loop(){
     }
     stats->wifi_avg_time = ( ( FILTER_CURRENT * stats->wifi_run_time ) + ( FILTER_MEMORY * stats->wifi_avg_time ) ) / 256;
 
-    if( stats->vm_run_time > stats->vm_max_time ){
-
-        stats->vm_max_time = stats->vm_run_time;
-    }
-    stats->vm_avg_time = ( ( FILTER_CURRENT * stats->vm_run_time ) + ( FILTER_MEMORY * stats->vm_avg_time ) ) / 256;
-
     if( stats->mem_run_time > stats->mem_max_time ){
 
         stats->mem_max_time = stats->mem_run_time;
     }
-
-    // if( ( stats->vm_max_time > 2000 ) && !opt_b_get_high_speed() ){
-
-    //     intf_v_printf( "CPU CLK -> 160 MHz" );
-        
-    //     // reset max time so we compute a new one with the new clock frequency
-    //     stats->vm_max_time = 0;
-    // }
 
     if( opt_b_get_low_power() ){
         
