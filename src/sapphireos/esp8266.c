@@ -75,7 +75,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #define NO_EVENT_LOGGING
 #include "event_log.h"
 
-#define WIFI_COMM_TRIES         3
+#define WIFI_COMM_TRIES         20
 #define WIFI_COMM_TIMEOUT       200000
 #define WIFI_CONNECT_TIMEOUT    10000
 
@@ -305,7 +305,7 @@ int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             debug_strobe();
 
-            log_v_debug_P( PSTR("msg response timeout 0x%02x"), data_id );
+            // log_v_debug_P( PSTR("msg response timeout 0x%02x"), data_id );
         }
         else{
 

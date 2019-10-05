@@ -256,7 +256,7 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
 
         if( is_timeout() ){
 
-            log_v_debug_P( PSTR("char timeout") );
+            // log_v_debug_P( PSTR("char timeout") );
 
             return -1;
         }
