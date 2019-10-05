@@ -216,6 +216,11 @@ static int8_t send_reset_message( uint8_t vm_id ){
 
 static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
 
+    if( wifi_b_shutdown() ){
+
+        return 0;
+    }
+
     // synchronize database parameters
     gfx_v_sync_db( FALSE );
 
@@ -250,8 +255,6 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr,
         }
         // check if thread stopped
         else if( ( info->thread_delays[i] < 0 ) && ( ( vm_active_threads[vm_id] & ( 1 << i ) ) != 0 ) ){
-
-            log_v_debug_P( PSTR("stopped thread %d"), i );    
 
             vm_active_threads[vm_id] &= ~( 1 << i );
         }
