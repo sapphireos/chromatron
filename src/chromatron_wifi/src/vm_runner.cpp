@@ -207,18 +207,6 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
 
         return_code = vm_i8_run_loop( stream, &vm_state[vm_index] );
     }
-    // else if( mode == VM_RUN_THREADS ){
-
-    //     // check if there are any threads to run
-    //     return_code = vm_i8_run_threads( stream, &vm_state[vm_index] );   
-
-    //     // if no threads were run, bail out early so we don't 
-    //     // transmit published vars that couldn't have changed.
-    //     if( return_code == VM_STATUS_NO_THREADS ){
-
-    //         return VM_STATUS_OK;
-    //     }
-    // }
     else if( mode == VM_RUN_FUNC ){
 
         return_code = vm_i8_run( stream, func_addr, 0, &vm_state[vm_index] );

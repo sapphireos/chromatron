@@ -174,7 +174,7 @@ int8_t vm_lib_i8_libcall_built_in(
 
         case __KV__yield:
 
-            state->yield = TRUE;
+            state->delay = 0;
             break;
 
         case __KV__delay:
@@ -188,11 +188,15 @@ int8_t vm_lib_i8_libcall_built_in(
                 temp0 = data[params[0]];
             }
 
+            // bounds check
+            if( temp0 < 0 ){
+
+                temp0 = VM_MIN_DELAY;
+            }
+
             // set up delay
             state->threads[state->current_thread].delay = temp0;
 
-            // delay also yields
-            state->yield = TRUE;
             break;
 
         case __KV__start_thread:
