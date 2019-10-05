@@ -283,7 +283,19 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         reply.padding           = 0;
         reply.run_time          = vm_u32_get_run_time();
         reply.max_cycles        = vm_u32_get_max_cycles();
-        reply.active_threads    = vm_u32_get_active_threads( msg->vm_id );
+
+        vm_thread_t *threads    = vm_p_get_threads( msg->vm_id );
+        
+        if( threads != 0 ){
+
+            for( uint32_t i = 0; i < VM_MAX_THREADS; i++ ){
+
+                reply.thread_funcs[i]   = threads->func_addr;
+                reply.thread_delays[i]  = threads->delay;
+
+                threads++;
+            }
+        }
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&reply, sizeof(reply) );
     }

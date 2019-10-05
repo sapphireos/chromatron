@@ -2618,6 +2618,8 @@ int8_t vm_i8_run(
 
     #endif
 
+    state->current_thread = -1;
+
     return status;
 }
 

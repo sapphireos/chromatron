@@ -195,6 +195,7 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
         }
 
         // map thread id (passed as func addr) to thread
+        vm_state[vm_index].current_thread = func_addr;
 
         return_code = vm_i8_run( stream, 
                                  vm_state[vm_index].threads[func_addr].func_addr, 
@@ -501,6 +502,16 @@ uint16_t vm_u16_get_fader_time( void ){
 uint16_t vm_u16_get_total_size( void ){
 
     return vm_total_size;
+}
+
+vm_thread_t* vm_p_get_threads( uint8_t vm_index ){
+
+    if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    return vm_state[vm_index].threads;
 }
 
 void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len ){

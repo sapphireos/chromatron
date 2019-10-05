@@ -75,9 +75,8 @@ typedef struct __attribute__((packed)){
     uint8_t padding;
     uint16_t run_time;
     uint16_t max_cycles;
-    uint32_t active_threads;
-    int32_t thread_delay;
-    // uint32_t changed_hashes[8];
+    uint16_t thread_funcs[VM_MAX_THREADS];
+    int32_t thread_delays[VM_MAX_THREADS];
 } wifi_msg_vm_info_t;
 #define WIFI_DATA_ID_VM_INFO           0x64
 

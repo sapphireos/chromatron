@@ -627,48 +627,48 @@ PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
     
-    while(vm_status[state->vm_id] == VM_STATUS_OK){
+//     while(vm_status[state->vm_id] == VM_STATUS_OK){
 
-        wifi_msg_vm_info_t info;
-        if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_FUNC, state->func_addr, &info ) == VM_STATUS_COMM_ERROR ){
+//         wifi_msg_vm_info_t info;
+//         if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_FUNC, state->func_addr, &info ) == VM_STATUS_COMM_ERROR ){
 
-            TMR_WAIT( pt, 100 );
+//             TMR_WAIT( pt, 100 );
 
-            continue;
-        }
+//             continue;
+//         }
 
-        if( info.status == VM_STATUS_YIELDED ){
+//         if( info.status == VM_STATUS_YIELDED ){
 
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
+//             THREAD_YIELD( pt );
+//             THREAD_YIELD( pt );
+//             THREAD_YIELD( pt );
+//             THREAD_YIELD( pt );
 
-            continue;
-        }
-        else if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
+//             continue;
+//         }
+//         else if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
 
-            vm_status[state->vm_id] = info.status;
+//             vm_status[state->vm_id] = info.status;
 
-            goto exit;
-        }
+//             goto exit;
+//         }
 
-        if( info.thread_delay < 0 ){
+//         if( info.thread_delay < 0 ){
 
-            // terminating thread
-            goto exit;
-        }
+//             // terminating thread
+//             goto exit;
+//         }
 
-        if( info.thread_delay < VM_MIN_DELAY ){
+//         if( info.thread_delay < VM_MIN_DELAY ){
 
-            info.thread_delay = VM_MIN_DELAY;
-        }
+//             info.thread_delay = VM_MIN_DELAY;
+//         }
 
-        TMR_WAIT( pt, info.thread_delay );
-    }
+//         TMR_WAIT( pt, info.thread_delay );
+//     }
 
-exit:
-    vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
+// exit:
+//     vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
 
 PT_END( pt );
 }
@@ -774,6 +774,11 @@ PT_BEGIN( pt );
                     }
 
                     log_v_debug_P( PSTR("VM init %d OK: %d"), i, vm_status[i] );
+
+                    for( uint8_t j = 0; j < VM_MAX_THREADS; j++ ){
+
+                        log_v_debug_P( PSTR("thread %lu delay: %ld"), info.thread_funcs[j], info.thread_delays[j] );
+                    }
                 }
             }
             // Did VM that was running just get told to stop?
