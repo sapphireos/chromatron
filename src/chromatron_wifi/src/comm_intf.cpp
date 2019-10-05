@@ -286,39 +286,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&reply, sizeof(reply) );
     }
-    // else if( data_id == WIFI_DATA_ID_INIT_VM ){
-
-    //     wifi_msg_run_vm_t *msg = (wifi_msg_run_vm_t *)data;
-
-    //     wifi_msg_run_vm_status_t status;
-    //     status.vm_id = msg->vm_id;
-
-    //     status.status = vm_i8_start( msg->vm_id );
-
-    //     _intf_i8_transmit_msg( WIFI_DATA_ID_INIT_VM, (uint8_t *)&status, sizeof(status) );
-    // }
-    // else if( data_id == WIFI_DATA_ID_RUN_VM ){
-
-    //     wifi_msg_run_vm_t *msg = (wifi_msg_run_vm_t *)data;
-
-    //     wifi_msg_run_vm_status_t status;
-    //     status.vm_id = msg->vm_id;
-
-    //     status.status = vm_i8_run_vm( msg->vm_id );
-
-    //     _intf_i8_transmit_msg( WIFI_DATA_ID_RUN_VM, (uint8_t *)&status, sizeof(status) );
-    // }
-    // else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
-
-    //     wifi_msg_vm_run_func_t *msg = (wifi_msg_vm_run_func_t *)data;
-
-    //     wifi_msg_run_vm_status_t status;
-    //     status.vm_id = msg->vm_id;
-
-    //     status.status = vm_i8_run_func( msg->vm_id, msg->func_addr );
-
-    //     _intf_i8_transmit_msg( WIFI_DATA_ID_VM_RUN_FUNC, (uint8_t *)&status, sizeof(status) );
-    // }
     else if( data_id == WIFI_DATA_ID_RUN_FADER ){
 
         vm_v_run_faders();
