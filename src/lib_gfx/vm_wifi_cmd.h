@@ -73,7 +73,7 @@ typedef struct __attribute__((packed)){
     uint16_t vm_id;
     int8_t status;
     uint8_t padding;
-    uint16_t loop_time;
+    uint16_t run_time;
     uint16_t max_cycles;
     uint32_t active_threads;
     int32_t thread_delay;
@@ -89,6 +89,7 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_INIT_VM           0x65
 #define WIFI_DATA_ID_RUN_VM            0x66
 #define WIFI_DATA_ID_VM_RUN_FUNC       0x67
+#define WIFI_DATA_ID_VM_RUN_THREAD     0x68
 
 typedef struct __attribute__((packed)){
     uint32_t program_name_hash;

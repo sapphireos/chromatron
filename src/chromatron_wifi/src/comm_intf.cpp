@@ -266,6 +266,10 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             status = vm_i8_run_vm( msg->vm_id, VM_RUN_LOOP );   
         }
+        else if( data_id == WIFI_DATA_ID_VM_RUN_THREAD ){
+
+            status = vm_i8_run_thread( msg->vm_id, msg->func_addr );
+        }
         else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
 
             status = vm_i8_run_func( msg->vm_id, msg->func_addr );
@@ -279,7 +283,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         reply.vm_id             = msg->vm_id;
         reply.status            = status;
         reply.padding           = 0;
-        reply.loop_time         = vm_u32_get_loop_time( msg->vm_id );
+        reply.run_time          = vm_u32_get_run_time( msg->vm_id );
         reply.max_cycles        = vm_u32_get_max_cycles( msg->vm_id );
         reply.active_threads    = vm_u32_get_active_threads( msg->vm_id );
 

@@ -829,7 +829,7 @@ int8_t vm_i8_run_loops( void ){
             }
 
             vm_status[i]            = info.status;
-            vm_loop_time[i]         = info.loop_time;
+            vm_loop_time[i]         = info.run_time;
             vm_max_cycles[i]        = info.max_cycles;
         }
     }

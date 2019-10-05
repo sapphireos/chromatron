@@ -44,7 +44,7 @@ static vm_state_t vm_state[VM_MAX_VMS];
 static uint16_t vm_total_size;
 
 static int8_t vm_status[VM_MAX_VMS];
-static uint16_t vm_loop_time[VM_MAX_VMS];
+static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static int32_t last_vm_delay;
@@ -101,14 +101,14 @@ uint32_t vm_u32_get_fader_time( void ){
     return vm_fader_time;
 }
 
-uint32_t vm_u32_get_loop_time( uint8_t vm_index ){
+uint32_t vm_u32_get_run_time( uint8_t vm_index ){
 
     if( vm_index >= VM_MAX_VMS ){
 
         return 0;
     }
 
-    return vm_loop_time[vm_index];
+    return vm_run_time[vm_index];
 }
 
 uint32_t vm_u32_get_thread_time( uint8_t vm_index ){
@@ -234,16 +234,8 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
         vm_status[vm_index] = return_code;   
     }
 
-    uint32_t elapsed = elapsed_time_micros( start_time );
+    vm_run_time[vm_index] = elapsed_time_micros( start_time );
 
-    if( mode == VM_RUN_LOOP ){
-    
-        vm_loop_time[vm_index] = elapsed;
-    }
-    else if( mode == VM_RUN_THREADS ){
-    
-        vm_thread_time[vm_index] = elapsed;
-    }
 
     // mem2_b_verify_handle( vm_handles[vm_index] );
 
@@ -342,7 +334,7 @@ void vm_v_reset( uint8_t vm_index ){
         vm_status[vm_index] = VM_STATUS_NOT_RUNNING;
     }
 
-    vm_loop_time[vm_index] = 0;
+    vm_run_time[vm_index] = 0;
     vm_thread_time[vm_index] = 0;
 
     mem2_v_free( vm_handles[vm_index] );
@@ -529,7 +521,7 @@ int8_t vm_i8_start( uint32_t vm_index ){
 //     }
 
 //     info->status        = vm_status[index];
-//     info->loop_time     = vm_loop_time[index];
+//     info->loop_time     = vm_run_time[index];
 //     info->thread_time   = vm_thread_time[index];
 //     info->max_cycles    = vm_state[index].max_cycles;
 // }
@@ -640,6 +632,11 @@ void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t
 int8_t vm_i8_run_func( uint8_t index, uint16_t func_addr ){
 
     return _vm_i8_run_vm( VM_RUN_FUNC, index, func_addr );
+}
+
+int8_t vm_i8_run_thread( uint8_t index, uint16_t thread_id ){
+
+    return _vm_i8_run_vm( VM_RUN_THREAD, index, thread_id );   
 }
 
 void vm_v_request_frame_data( uint8_t index ){
