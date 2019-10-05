@@ -290,7 +290,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             for( uint32_t i = 0; i < VM_MAX_THREADS; i++ ){
 
-                reply.thread_funcs[i]   = threads->func_addr;
                 reply.thread_delays[i]  = threads->delay;
 
                 threads++;

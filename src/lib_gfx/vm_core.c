@@ -1267,8 +1267,8 @@ opcode_lcall:
 
         // internal lib call completed successfully
 
-        // check yield flag (which is actually delay)
-        if( state->delay >= 0 ){
+        // check yield flag
+        if( state->yield > 0 ){
 
             // check call depth, can only yield from top level functions running as a thread
             if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
@@ -2564,8 +2564,8 @@ int8_t vm_i8_run(
 
     #endif
 
-    // reset delay
-    state->delay = -1;
+    // reset yield
+    state->yield = 0;
 
     int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
 
@@ -2773,6 +2773,7 @@ int8_t vm_i8_load_program(
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
         state->threads[i].func_addr = 0xffff;
+        state->threads[i].delay     = -1;
     }
 
     state->current_thread = -1;

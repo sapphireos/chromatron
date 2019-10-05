@@ -777,7 +777,7 @@ PT_BEGIN( pt );
 
                     for( uint8_t j = 0; j < VM_MAX_THREADS; j++ ){
 
-                        log_v_debug_P( PSTR("thread %lu delay: %ld"), info.thread_funcs[j], info.thread_delays[j] );
+                        log_v_debug_P( PSTR("thread %d delay: %ld"), j, info.thread_delays[j] );
                     }
                 }
             }

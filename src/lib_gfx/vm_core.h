@@ -149,7 +149,7 @@ typedef struct __attribute__((packed)){
 typedef struct{
     uint16_t func_addr;
     uint16_t pc_offset;
-    uint32_t delay;
+    int32_t delay;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -174,7 +174,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint64_t rng_seed;
 
     vm_thread_t threads[VM_MAX_THREADS];
-    int32_t delay;
+    uint32_t yield;
 
     int32_t current_thread;
     uint32_t max_cycles;

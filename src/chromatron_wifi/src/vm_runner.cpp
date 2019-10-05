@@ -47,7 +47,6 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t max_cycles;
 static uint16_t vm_run_time;
 static uint16_t vm_fader_time;
-static int32_t last_vm_delay;
 
 
 uint32_t elapsed_time_millis( uint32_t start_time ){
@@ -132,8 +131,6 @@ uint32_t vm_u32_get_active_threads( uint8_t vm_index ){
 }
 
 static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr ){
-
-    last_vm_delay = -1;
 
     if( vm_index >= VM_MAX_VMS ){
 
