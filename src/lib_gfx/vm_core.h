@@ -173,10 +173,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
 
-    // uint32_t tick_rate;
-
     vm_thread_t threads[VM_MAX_THREADS];
-    uint32_t yield;
     int32_t delay;
 
     int32_t current_thread;
