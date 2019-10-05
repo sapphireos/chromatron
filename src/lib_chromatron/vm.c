@@ -47,6 +47,8 @@ static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint16_t vm_sizes[VM_MAX_VMS];
 
+static uint8_t vm_active_threads[VM_MAX_VMS];
+
 static uint16_t vm_fader_time;
 
 int8_t vm_i8_kv_handler(
@@ -124,6 +126,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 
 typedef struct{
     uint8_t vm_id;
+    uint8_t thread_id;
     uint16_t func_addr;
 } vm_thread_state_t;
 
@@ -230,6 +233,27 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr,
 
         return VM_STATUS_COMM_ERROR;
     }    
+
+    if( info->active_threads != vm_active_threads[vm_id] ){
+
+        for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
+
+            if( ( ( info->active_threads     & ( 1 << i ) ) != 0 ) &&
+                ( ( vm_active_threads[vm_id] & ( 1 << i ) ) == 0 ) ){
+
+                vm_active_threads[vm_id] |= ( 1 << state->thread_id );
+
+                vm_thread_state_t state;
+                state.vm_id         = vm_id;
+                state.thread_id     = i;
+                state.func_addr     = 
+
+                thread_t_create( vm_thread,
+                                 PSTR("vm_thread"),
+
+            }
+        }
+    }
 
     // read database
     gfx_v_read_db();
@@ -613,12 +637,7 @@ PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
     
-    while(1){
-
-        if( vm_status[state->vm_id] != VM_STATUS_OK ){
-
-            THREAD_EXIT( pt );
-        }
+    while(vm_status[state->vm_id] == VM_STATUS_OK){
 
         wifi_msg_vm_info_t info;
         if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_FUNC, state->func_addr, &info ) == VM_STATUS_COMM_ERROR ){
@@ -628,10 +647,26 @@ PT_BEGIN( pt );
             continue;
         }
 
+        if( info.status == VM_STATUS_YIELDED ){
+
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+
+            continue;
+        }
+        else if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
+
+            vm_status[state->vm_id] = info.status;
+
+            goto exit;
+        }
+
         if( info.thread_delay < 0 ){
 
             // terminating thread
-            THREAD_EXIT( pt );
+            goto exit;
         }
 
         if( info.thread_delay < VM_MIN_DELAY ){
@@ -641,6 +676,9 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, info.thread_delay );
     }
+
+exit:
+    vm_active_threads[vm_id] &= ~( 1 << state->thread_id );
 
 PT_END( pt );
 }
