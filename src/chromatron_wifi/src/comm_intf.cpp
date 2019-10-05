@@ -434,6 +434,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         if( kvdb_i8_get_meta( *hash, &msg->meta ) < 0 ){
 
+            _intf_i8_transmit_msg( WIFI_DATA_ID_GET_KV_DATA, 0, 0 );
+
             return;
         }
 

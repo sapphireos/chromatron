@@ -581,6 +581,11 @@ void gfx_v_read_db_key( uint32_t hash ){
         return;
     }
 
+    if( bytes_read < sizeof(wifi_msg_kv_data_t) ){
+
+        return;
+    }
+
     uint8_t *kv_data = (uint8_t *)( msg + 1 );
 
     catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data, 0 );
