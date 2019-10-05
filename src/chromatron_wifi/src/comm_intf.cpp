@@ -185,7 +185,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         _send_info_msg();        
     }
-    else if( data_id == WIFI_DATA_ID_CONNECT ){
+    else if( data_id == WIFI_DATA_ID_SCAN ){
 
         if( len != sizeof(wifi_msg_connect_t) ){
 
@@ -198,6 +198,10 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
             wifi_v_set_ap_info( msg->ssid[i], msg->pass[i], i );    
         }
+
+        wifi_v_scan();
+    }
+    else if( data_id == WIFI_DATA_ID_CONNECT ){
 
         wifi_v_connect();
     }

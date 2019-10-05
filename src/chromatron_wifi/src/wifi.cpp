@@ -49,6 +49,7 @@ static int32_t connected_router = -1;
 static int32_t scan_rssi[WIFI_MAX_APS];
 static int32_t scan_channel[WIFI_MAX_APS];
 static uint8_t scan_bssid[WIFI_MAX_APS][6];
+static int32_t best_router;
 
 static WiFiUDP udp[WIFI_MAX_PORTS];
 static uint8_t port_rx_depth[WIFI_MAX_PORTS];
@@ -149,12 +150,7 @@ IPAddress wifi_ip_get_subnet( void ){
 
 int8_t wifi_i8_get_router( void ){
 
-    if( ( wifi_u8_get_status() & WIFI_STATUS_CONNECTED ) == 0 ){
-
-        return -1;
-    }
-
-    return router;
+    return best_router;
 }
 
 void wifi_v_init( void ){
@@ -287,7 +283,7 @@ void wifi_v_process( void ){
         if( networks_found >= 0 ){
 
             String network_ssid;
-            int32_t best_router = 65535;
+            best_router = -1;
 
             for( int32_t i = 0; i < networks_found; i++ ){
 
@@ -306,7 +302,7 @@ void wifi_v_process( void ){
                         // we are selection routers based on priority in the list,
                         // NOT based on best RSSI.
 
-                        if( index < best_router ){
+                        if( ( index < best_router ) || ( best_router < 0 ) ){
 
                             best_router = index;
                         }
@@ -331,30 +327,29 @@ void wifi_v_process( void ){
             scanning = false;
             // done with scan results
             WiFi.scanDelete();
+        }
+    }
+    // are we connecting?
+    else if( request_connect ){
 
-             // are we connecting?
-            if( request_connect ){
+        request_connect = false;
 
-                request_connect = false;
+        // did we select a router?
+        if( ( best_router < WIFI_MAX_APS ) && ( best_router >= 0 ) ){
 
-                // did we select a router?
-                if( ( best_router < WIFI_MAX_APS ) && ( best_router >= 0 ) ){
+            router = best_router;
 
-                    router = best_router;
+            WiFi.mode( WIFI_STA );
 
-                    WiFi.mode( WIFI_STA );
+            WiFi.begin( ssid_list[best_router], 
+                        pass_list[best_router], 
+                        scan_channel[best_router], 
+                        scan_bssid[best_router] );  
+        }
+        else{
 
-                    WiFi.begin( ssid_list[best_router], 
-                                pass_list[best_router], 
-                                scan_channel[best_router], 
-                                scan_bssid[best_router] );  
-                }
-                else{
-
-                    // no router selected
-                    wifi_v_clr_status_bits( WIFI_STATUS_CONNECTING );
-                }
-            }
+            // no router selected
+            wifi_v_clr_status_bits( WIFI_STATUS_CONNECTING );
         }
     }
     
@@ -598,18 +593,6 @@ void wifi_v_set_ap_info( char *ssid, char *pass, uint8_t index ){
     strncpy( pass_list[index], pass, WIFI_PASS_LEN );
 }
 
-void wifi_v_connect( void ){
-    
-    wifi_v_disconnect();
-
-    request_connect = true;
-
-    wifi_v_set_status_bits( WIFI_STATUS_CONNECTING );
-
-    // initiate scan
-    wifi_v_scan();
-}
-
 void wifi_v_set_ap_mode( char *ssid, char *pass ){
     
     wifi_v_disconnect();
@@ -635,15 +618,26 @@ void wifi_v_shutdown( void ){
     wifi_v_disconnect();
 }
 
+void wifi_v_connect( void ){
+    
+    request_connect = true;
+}
+
 void wifi_v_scan( void ){
 
+    // initiate scan
     if( scanning ){
 
         return;
     }
 
+    wifi_v_disconnect();
+
+    wifi_v_set_status_bits( WIFI_STATUS_CONNECTING );
+    
     WiFi.scanDelete();
 
+    best_router = -1;
     for( uint32_t i = 0; i < WIFI_MAX_APS; i++ ){
 
         scan_rssi[i] = -127;

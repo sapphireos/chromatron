@@ -636,6 +636,68 @@ typedef struct{
 PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
 
 
+static void get_info( void ){
+
+    if( wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 ) < 0 ){
+
+        return;
+    }
+
+    wifi_msg_info_t msg;
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&msg, sizeof(msg), 0 ) < 0 ){
+
+        return;
+    }
+
+    // process message data
+
+    wifi_version_major          = msg.version_major;
+    wifi_version_minor          = msg.version_minor;    
+    wifi_version_patch          = msg.version_patch;
+    
+    if( wifi_b_connected() ){
+        
+        wifi_rssi               = msg.rssi;
+    }
+    else{
+
+        wifi_rssi               =  -127;
+    }
+    
+    memcpy( wifi_mac, msg.mac, sizeof(wifi_mac) );
+
+    uint64_t current_device_id = 0;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
+    uint64_t device_id = 0;
+    memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
+
+    if( current_device_id != device_id ){
+
+        cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
+    }
+
+    cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg.ip );
+    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg.subnet );
+    cfg_v_set( CFG_PARAM_DNS_SERVER, &msg.dns );
+
+    wifi_rx_udp_overruns        = msg.rx_udp_overruns;
+    wifi_udp_received           = msg.udp_received;
+    wifi_udp_sent               = msg.udp_sent;
+    wifi_comm_errors            = msg.comm_errors;
+    mem_heap_peak               = msg.mem_heap_peak;
+    mem_used                    = msg.mem_used;
+
+    intf_max_time               = msg.intf_max_time;
+    wifi_max_time               = msg.wifi_max_time;
+    mem_max_time                = msg.mem_max_time;
+
+    intf_avg_time               = msg.intf_avg_time;
+    wifi_avg_time               = msg.wifi_avg_time;
+    mem_avg_time                = msg.mem_avg_time;
+
+    wifi_router                 = msg.wifi_router;
+}
+
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -688,10 +750,28 @@ PT_BEGIN( pt );
         // station mode
         if( !ap_mode ){
             
-            log_v_debug_P( PSTR("Connecting...") );
-            wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, (uint8_t *)&msg, sizeof(msg) );
+            // scan first
+            wifi_router = -1;
+            log_v_debug_P( PSTR("Scanning...") );
+            wifi_i8_send_msg( WIFI_DATA_ID_SCAN, (uint8_t *)&msg, sizeof(msg) );
 
-            // the wifi module will hang for around 900 ms when doing a scan.
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
+            while( ( wifi_router < 0 ) && ( thread_b_alarm_set() ) ){
+
+                TMR_WAIT( pt, 50 );
+                
+                get_info();
+            }
+            
+            if( wifi_router < 0 ){
+
+                goto end;
+            }
+
+            log_v_debug_P( PSTR("Connecting...") );
+            wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, 0, 0 );
+
+            // the wifi module will hang for around 900 ms when doing a connect.
             // since we can't response to messages while that happens, we're going to do a blocking wait
             // for 1 second here.
             // for( uint8_t i = 0; i < 10; i++ ){
@@ -699,6 +779,12 @@ PT_BEGIN( pt );
             //     _delay_ms( 100 );
             //     sys_v_wdt_reset();
             // }
+
+            while(!wifi_b_connected()){
+
+                get_info();
+                TMR_WAIT( pt, 10 );
+            }
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
             THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
@@ -856,65 +942,6 @@ end:
     return status;
 }
 
-static void get_info( void ){
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 ) < 0 ){
-
-        return;
-    }
-
-    wifi_msg_info_t msg;
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_INFO, (uint8_t *)&msg, sizeof(msg), 0 ) < 0 ){
-
-        return;
-    }
-
-    // process message data
-
-    wifi_version_major          = msg.version_major;
-    wifi_version_minor          = msg.version_minor;    
-    wifi_version_patch          = msg.version_patch;
-    
-    if( wifi_b_connected() ){
-        
-        wifi_rssi               = msg.rssi;
-    }
-    else{
-
-        wifi_rssi               =  -127;
-    }
-    
-    memcpy( wifi_mac, msg.mac, sizeof(wifi_mac) );
-
-    uint64_t current_device_id = 0;
-    cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
-    uint64_t device_id = 0;
-    memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
-
-    if( current_device_id != device_id ){
-
-        cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
-    }
-
-    cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg.ip );
-    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg.subnet );
-    cfg_v_set( CFG_PARAM_DNS_SERVER, &msg.dns );
-
-    wifi_rx_udp_overruns        = msg.rx_udp_overruns;
-    wifi_udp_received           = msg.udp_received;
-    wifi_udp_sent               = msg.udp_sent;
-    wifi_comm_errors            = msg.comm_errors;
-    mem_heap_peak               = msg.mem_heap_peak;
-    mem_used                    = msg.mem_used;
-
-    intf_max_time               = msg.intf_max_time;
-    wifi_max_time               = msg.wifi_max_time;
-    mem_max_time                = msg.mem_max_time;
-
-    intf_avg_time               = msg.intf_avg_time;
-    wifi_avg_time               = msg.wifi_avg_time;
-    mem_avg_time                = msg.mem_avg_time;
-}
 
 static void send_options_msg( void ){
     // send options message
