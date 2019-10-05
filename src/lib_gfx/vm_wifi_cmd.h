@@ -60,7 +60,7 @@ typedef struct __attribute__((packed)){
     uint32_t vm_id;
     uint16_t total_size;
     uint16_t offset;
-    uint8_t chunk[64];
+    uint8_t chunk[128];
 } wifi_msg_load_vm_t;
 #define WIFI_DATA_ID_LOAD_VM           0x62
 
