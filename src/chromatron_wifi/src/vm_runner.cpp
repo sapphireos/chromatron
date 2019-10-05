@@ -47,6 +47,7 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
+static int32_t last_vm_delay;
 
 static uint32_t thread_tick;
 
@@ -132,7 +133,29 @@ uint32_t vm_u32_get_max_cycles( uint8_t vm_index ){
     return vm_state[vm_index].max_cycles;   
 }
 
+uint32_t vm_u32_get_active_threads( uint8_t vm_index ){
+
+    if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    uint32_t threads = 0;
+
+    for( uint32_t i = 0; i < VM_MAX_THREADS; i++ ){
+
+        if( vm_state[vm_index].threads[i].func_addr != 0 ){
+
+            threads |= 1 << i;
+        }
+    }
+
+    return threads;   
+}
+
 static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr ){
+
+    last_vm_delay = -1;
 
     if( vm_index >= VM_MAX_VMS ){
 
@@ -186,23 +209,23 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
 
         return_code = vm_i8_run_loop( stream, &vm_state[vm_index] );
     }
-    else if( mode == VM_RUN_THREADS ){
+    // else if( mode == VM_RUN_THREADS ){
 
-        // check if there are any threads to run
-        return_code = vm_i8_run_threads( stream, &vm_state[vm_index] );   
+    //     // check if there are any threads to run
+    //     return_code = vm_i8_run_threads( stream, &vm_state[vm_index] );   
 
-        // if no threads were run, bail out early so we don't 
-        // transmit published vars that couldn't have changed.
-        if( return_code == VM_STATUS_NO_THREADS ){
+    //     // if no threads were run, bail out early so we don't 
+    //     // transmit published vars that couldn't have changed.
+    //     if( return_code == VM_STATUS_NO_THREADS ){
 
-            return VM_STATUS_OK;
-        }
-    }
+    //         return VM_STATUS_OK;
+    //     }
+    // }
     else if( mode == VM_RUN_FUNC ){
 
         return_code = vm_i8_run( stream, func_addr, 0, &vm_state[vm_index] );
 
-        intf_v_printf( "ran: %d on %d status: %d", func_addr, vm_index, return_code );
+        // intf_v_printf( "ran: %d on %d status: %d", func_addr, vm_index, return_code );
     }
     else{
 

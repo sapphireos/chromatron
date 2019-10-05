@@ -189,7 +189,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             // set up delay
-            state->threads[state->current_thread].delay_ticks = temp0 / state->tick_rate;
+            state->threads[state->current_thread].delay = temp0;
 
             // delay also yields
             state->yield = TRUE;

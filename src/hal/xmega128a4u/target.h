@@ -58,7 +58,7 @@
 #define VM_MAX_THREADS              4
 #define VM_MAX_IMAGE_SIZE   4096
 #define VM_MAX_CYCLES 		8192
-
+#define VM_MIN_DELAY				10
 
 // wifi
 #define WIFI_MAX_NETMSGS		4

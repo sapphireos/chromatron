@@ -122,9 +122,12 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
-#ifndef VM_TARGET_ESP
-static thread_t vm_thread;
-#endif
+typedef struct{
+    uint8_t vm_id;
+    uint16_t func_addr;
+} vm_thread_state_t;
+
+PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) );
 
 // keys that we really don't want the VM be to be able to write to.
 // generally, these are going to be things that would allow it to 
@@ -210,7 +213,7 @@ static int8_t send_reset_message( uint8_t vm_id ){
 }
 
 
-static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr ){
+static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
 
     // synchronize database parameters
     gfx_v_sync_db( FALSE );
@@ -223,9 +226,7 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr 
         return VM_STATUS_COMM_ERROR;
     }
 
-    wifi_msg_vm_info_t info_msg;   
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)&info_msg, sizeof(info_msg), 0 ) < 0 ){
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)info, sizeof(wifi_msg_vm_info_t), 0 ) < 0 ){
 
         return VM_STATUS_COMM_ERROR;
     }    
@@ -233,12 +234,7 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr 
     // read database
     gfx_v_read_db();
 
-    vm_status[vm_id]        = info_msg.status;
-    vm_loop_time[vm_id]     = info_msg.loop_time;
-    vm_max_cycles[vm_id]    = info_msg.max_cycles;
-    vm_fader_time           = info_msg.fader_time;
-
-    return info_msg.status;
+    return info->status;
 }
 
 // static void reset_vm( uint8_t vm_id ){
@@ -580,8 +576,10 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     // synchronize database parameters
     gfx_v_sync_db( TRUE );
 
+    wifi_msg_vm_info_t info;
+
     // initialize VM (run init function)
-    vm_status[vm_id] = _vm_i8_run_vm( vm_id, WIFI_DATA_ID_INIT_VM, 0 );
+    vm_status[vm_id] = _vm_i8_run_vm( vm_id, WIFI_DATA_ID_INIT_VM, 0, &info );
     if( vm_status[vm_id] < 0 ){
 
         goto error;
@@ -608,6 +606,43 @@ error:
 static bool is_vm_running( uint8_t vm_id ){
 
     return ( vm_status[vm_id] >= VM_STATUS_OK ) && ( vm_status[vm_id] != VM_STATUS_HALT );
+}
+
+
+PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        if( vm_status[state->vm_id] != VM_STATUS_OK ){
+
+            THREAD_EXIT( pt );
+        }
+
+        wifi_msg_vm_info_t info;
+        if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_FUNC, state->func_addr, &info ) == VM_STATUS_COMM_ERROR ){
+
+            TMR_WAIT( pt, 100 );
+
+            continue;
+        }
+
+        if( info.thread_delay < 0 ){
+
+            // terminating thread
+            THREAD_EXIT( pt );
+        }
+
+        if( info.thread_delay < VM_MIN_DELAY ){
+
+            info.thread_delay = VM_MIN_DELAY;
+        }
+
+        TMR_WAIT( pt, info.thread_delay );
+    }
+
+PT_END( pt );
 }
 
 
@@ -746,10 +781,17 @@ int8_t vm_i8_run_loops( void ){
                     
         if( vm_b_is_vm_running( i ) ){
 
-            if( _vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0 ) == VM_STATUS_COMM_ERROR ){
+            wifi_msg_vm_info_t info;
+
+            if( _vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0, &info ) == VM_STATUS_COMM_ERROR ){
 
                 return VM_STATUS_COMM_ERROR;
             }
+
+            vm_status[i]            = info.status;
+            vm_loop_time[i]         = info.loop_time;
+            vm_max_cycles[i]        = info.max_cycles;
+            vm_fader_time           = info.fader_time;
         }
     }
 
@@ -772,10 +814,6 @@ void vm_v_init( void ){
                  PSTR("vm_loader"),
                  0,
                  0 );
-
-    #ifndef VM_TARGET_ESP
-    vm_thread = -1;
-    #endif
 
     vm_cron_v_init();
 }

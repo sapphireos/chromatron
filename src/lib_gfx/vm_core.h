@@ -149,7 +149,7 @@ typedef struct __attribute__((packed)){
 typedef struct{
     uint16_t func_addr;
     uint16_t pc_offset;
-    uint32_t delay_ticks;
+    uint32_t delay;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -173,7 +173,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     // MUST BE 32 bit aligned on ESP8266!
     uint64_t rng_seed;
 
-    uint32_t tick_rate;
+    // uint32_t tick_rate;
 
     vm_thread_t threads[VM_MAX_THREADS];
     uint32_t yield;
@@ -217,9 +217,9 @@ int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state );
 
-int8_t vm_i8_run_threads(
-    uint8_t *stream,
-    vm_state_t *state );
+// int8_t vm_i8_run_threads(
+//     uint8_t *stream,
+//     vm_state_t *state );
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,
