@@ -170,17 +170,9 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 };
 
 void debug_strobe( void ){
-// return;
-    io_v_digital_write( IO_PIN_1_XCK, TRUE );
-    _delay_us( 10 );
-    io_v_digital_write( IO_PIN_1_XCK, FALSE );
-}
-
-void fast_strobe( void ){
-// return;
-    io_v_digital_write( IO_PIN_1_XCK, TRUE );
-    _delay_us( 1 );
-    io_v_digital_write( IO_PIN_1_XCK, FALSE );
+    // io_v_digital_write( IO_PIN_1_XCK, TRUE );
+    // _delay_us( 10 );
+    // io_v_digital_write( IO_PIN_1_XCK, FALSE );
 }
 
 
@@ -1527,7 +1519,7 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 
 void wifi_v_init( void ){
-io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
+// io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
     hal_wifi_v_init();
 
     wifi_status = WIFI_STATE_BOOT;
