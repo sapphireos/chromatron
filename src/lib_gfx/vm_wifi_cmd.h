@@ -109,6 +109,9 @@ typedef struct __attribute__((packed)){
 } wifi_msg_vm_sync_done_t;
 #define WIFI_DATA_ID_VM_SYNC_DONE      	0x6A
 
+typedef struct __attribute__((packed)){
+    uint32_t offset;
+} wifi_msg_vm_request_frame_t;
 #define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x6B
 
 #endif
