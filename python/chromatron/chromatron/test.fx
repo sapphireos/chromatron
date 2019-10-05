@@ -1,3 +1,4 @@
+
 a = Number(5, publish=True)
 b = Fixed16(1.23, publish=True)
 
@@ -14,6 +15,8 @@ def init():
     ary1_1 = ary[1]
     ary2_0 = ary2[0]
     ary2_1 = ary2[1]
+
+    yield()
 
 # prox_setting = Number()
 # dimmer_setting = Number(publish=True)

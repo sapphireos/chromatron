@@ -769,6 +769,9 @@ class CodeGenPass1(ast.NodeVisitor):
             # function call at module level
             return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
 
+    def visit_Yield(self, node):
+        return cg1Call('yield',[], lineno=node.lineno)
+        
     def visit_keyword(self, node):
         return {node.arg: self.visit(node.value)}
 
