@@ -205,6 +205,13 @@ static int8_t _vm_i8_run_vm( uint8_t mode, uint8_t vm_index, uint16_t func_addr 
                                  vm_state[vm_index].threads[thread_id].func_addr, 
                                  vm_state[vm_index].threads[thread_id].pc_offset, 
                                  &vm_state[vm_index] );
+
+        // check if thread returned, if so, it has completed execution
+        if( return_code == VM_STATUS_OK ){
+
+            vm_state[vm_index].threads[thread_id].func_addr = 0xffff;
+            vm_state[vm_index].threads[thread_id].delay     = -1;
+        }
     }
     else if( mode == VM_RUN_FUNC ){
 
