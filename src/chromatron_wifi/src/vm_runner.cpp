@@ -49,8 +49,6 @@ static uint16_t vm_fader_time;
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static int32_t last_vm_delay;
 
-static uint32_t thread_tick;
-
 
 uint32_t elapsed_time_millis( uint32_t start_time ){
 
@@ -303,18 +301,18 @@ int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t mode ){
     return status;
 }
 
-static int32_t elapsed_millis( uint32_t now, uint32_t start ){
+// static int32_t elapsed_millis( uint32_t now, uint32_t start ){
 
-    int32_t distance = (int32_t)( now - start );
+//     int32_t distance = (int32_t)( now - start );
 
-    // check for rollover
-    if( distance < 0 ){
+//     // check for rollover
+//     if( distance < 0 ){
 
-        distance = ( UINT32_MAX - now ) + abs(distance);
-    }
+//         distance = ( UINT32_MAX - now ) + abs(distance);
+//     }
 
-    return distance;
-}
+//     return distance;
+// }
 
 void vm_v_process( void ){
 

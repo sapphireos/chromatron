@@ -234,26 +234,26 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr,
         return VM_STATUS_COMM_ERROR;
     }    
 
-    if( info->active_threads != vm_active_threads[vm_id] ){
+    // if( info->active_threads != vm_active_threads[vm_id] ){
 
-        for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
+    //     for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
 
-            if( ( ( info->active_threads     & ( 1 << i ) ) != 0 ) &&
-                ( ( vm_active_threads[vm_id] & ( 1 << i ) ) == 0 ) ){
+    //         if( ( ( info->active_threads     & ( 1 << i ) ) != 0 ) &&
+    //             ( ( vm_active_threads[vm_id] & ( 1 << i ) ) == 0 ) ){
 
-                vm_active_threads[vm_id] |= ( 1 << state->thread_id );
+    //             vm_active_threads[vm_id] |= ( 1 << state->thread_id );
 
-                vm_thread_state_t state;
-                state.vm_id         = vm_id;
-                state.thread_id     = i;
-                state.func_addr     = 
+    //             vm_thread_state_t state;
+    //             state.vm_id         = vm_id;
+    //             state.thread_id     = i;
+    //             state.func_addr     = 
 
-                thread_t_create( vm_thread,
-                                 PSTR("vm_thread"),
+    //             thread_t_create( vm_thread,
+    //                              PSTR("vm_thread"),
 
-            }
-        }
-    }
+    //         }
+    //     }
+    // }
 
     // read database
     gfx_v_read_db();
@@ -596,24 +596,16 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         gfx_v_read_db_key( publish.hash );
     }   
 
+    fs_f_close( f );
 
     // synchronize database parameters
     gfx_v_sync_db( TRUE );
 
-    wifi_msg_vm_info_t info;
-
-    // initialize VM (run init function)
-    vm_status[vm_id] = _vm_i8_run_vm( vm_id, WIFI_DATA_ID_INIT_VM, 0, &info );
-    if( vm_status[vm_id] < 0 ){
-
-        goto error;
-    }
-
-    fs_f_close( f );
-
     vm_sizes[vm_id] = vm_size_copy;
 
-    log_v_debug_P( PSTR("VM loaded in: %lu ms status: %d"), tmr_u32_elapsed_time_ms( start_time ), vm_status[vm_id] );
+    log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
+
+    // init function is ready to run
 
     return 0;
 
@@ -678,7 +670,7 @@ PT_BEGIN( pt );
     }
 
 exit:
-    vm_active_threads[vm_id] &= ~( 1 << state->thread_id );
+    vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
 
 PT_END( pt );
 }
@@ -765,13 +757,25 @@ PT_BEGIN( pt );
             // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) ){
 
-                if( load_vm_wifi( i ) < 0 ){
+                int8_t status = load_vm_wifi( i );
 
-                    vm_run[i] = FALSE;
+                if( status == 0 ){
 
-                    log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
+                    wifi_msg_vm_info_t info;
 
-                    goto error; 
+                    // initialize VM (run init function)
+                    vm_status[i] = _vm_i8_run_vm( i, WIFI_DATA_ID_INIT_VM, 0, &info );
+
+                    if( vm_status[i] < 0 ){
+                        
+                        vm_run[i] = FALSE;
+
+                        log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
+
+                        goto error;
+                    }
+
+                    log_v_debug_P( PSTR("VM init %d OK: %d"), i, vm_status[i] );
                 }
             }
             // Did VM that was running just get told to stop?
