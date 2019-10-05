@@ -176,6 +176,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     vm_thread_t threads[VM_MAX_THREADS];
     uint32_t yield;
 
+    uint32_t tick_rate;
     int32_t current_thread;
     uint32_t max_cycles;
 
@@ -215,9 +216,9 @@ int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state );
 
-// int8_t vm_i8_run_threads(
-//     uint8_t *stream,
-//     vm_state_t *state );
+int8_t vm_i8_run_threads(
+    uint8_t *stream,
+    vm_state_t *state );
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,

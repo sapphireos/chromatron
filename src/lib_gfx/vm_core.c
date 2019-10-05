@@ -2643,65 +2643,65 @@ int8_t vm_i8_run_loop(
     return vm_i8_run( stream, state->loop_start, 0, state );
 }
 
-// int8_t vm_i8_run_threads(
-//     uint8_t *stream,
-//     vm_state_t *state ){
+int8_t vm_i8_run_threads(
+    uint8_t *stream,
+    vm_state_t *state ){
 
-//     bool threads_running = FALSE;
+    bool threads_running = FALSE;
 
-//     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-//         if( state->threads[i].func_addr == 0xffff ){
+        if( state->threads[i].func_addr == 0xffff ){
 
-//             continue;
-//         }
+            continue;
+        }
 
-//         // check thread delay
-//         if( state->threads[i].delay_ticks > 0 ){
+        // check thread delay
+        if( state->threads[i].delay > 0 ){
 
-//             // decrement
-//             state->threads[i].delay_ticks--;
+            // decrement
+            state->threads[i].delay--;
 
-//             if( state->threads[i].delay_ticks > 0 ){            
+            if( state->threads[i].delay > 0 ){            
 
-//                 continue;
-//             }
-//         }
+                continue;
+            }
+        }
 
-//         state->current_thread = i;
+        state->current_thread = i;
 
-//         int8_t status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
+        int8_t status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
 
-//         threads_running = TRUE;
+        threads_running = TRUE;
 
-//         state->current_thread = -1;
+        state->current_thread = -1;
 
-//         if( status == VM_STATUS_OK ){
+        if( status == VM_STATUS_OK ){
 
-//             // thread returned, kill it
-//             state->threads[i].func_addr = 0xffff;
-//         }
-//         else if( status == VM_STATUS_YIELDED ){
+            // thread returned, kill it
+            state->threads[i].func_addr = 0xffff;
+        }
+        else if( status == VM_STATUS_YIELDED ){
 
 
-//         }
-//         else if( status == VM_STATUS_HALT ){
+        }
+        else if( status == VM_STATUS_HALT ){
 
-//             return status;
-//         }
-//         else{
+            return status;
+        }
+        else{
 
-//             return status;
-//         }
-//     }
+            return status;
+        }
+    }
 
-//     if( !threads_running ){
+    if( !threads_running ){
 
-//         return VM_STATUS_NO_THREADS;
-//     } 
+        return VM_STATUS_NO_THREADS;
+    } 
 
-//     return VM_STATUS_OK;
-// }
+    return VM_STATUS_OK;
+}
 
 int32_t vm_i32_get_data( 
     uint8_t *stream,

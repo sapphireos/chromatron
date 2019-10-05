@@ -27,7 +27,7 @@
 
 #define HW_NAME "STM32H7"
 
-// #define BOARD_CHROMATRONX
+#define BOARD_CHROMATRONX
 
 // set crystal speed
 #ifdef BOARD_CHROMATRONX
@@ -77,6 +77,7 @@
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              4
+#define VM_MIN_DELAY				10
 
 
 // list
