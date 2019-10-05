@@ -268,7 +268,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         }
         else if( data_id == WIFI_DATA_ID_VM_RUN_FUNC ){
 
-
+            status = vm_i8_run_func( msg->vm_id, msg->func_addr );
         }
         else{
 
@@ -279,7 +279,6 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         reply.vm_id             = msg->vm_id;
         reply.status            = status;
         reply.padding           = 0;
-        reply.fader_time        = vm_u32_get_fader_time();
         reply.loop_time         = vm_u32_get_loop_time( msg->vm_id );
         reply.max_cycles        = vm_u32_get_max_cycles( msg->vm_id );
         reply.active_threads    = vm_u32_get_active_threads( msg->vm_id );
@@ -290,7 +289,10 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         vm_v_run_faders();
 
-        _intf_i8_transmit_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 );
+        wifi_msg_fader_info_t info;
+        info.fader_time = vm_u32_get_fader_time();
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_RUN_FADER, (uint8_t *)&info, sizeof(info) );
     }
     #ifdef USE_HSV_BRIDGE
     else if( data_id == WIFI_DATA_ID_HSV_ARRAY ){

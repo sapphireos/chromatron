@@ -64,14 +64,15 @@ typedef struct __attribute__((packed)){
 } wifi_msg_load_vm_t;
 #define WIFI_DATA_ID_LOAD_VM           0x62
 
-
+typedef struct __attribute__((packed)){
+    uint32_t fader_time;
+} wifi_msg_fader_info_t;
 #define WIFI_DATA_ID_RUN_FADER         0x63
 
 typedef struct __attribute__((packed)){
     uint16_t vm_id;
     int8_t status;
     uint8_t padding;
-    uint16_t fader_time;
     uint16_t loop_time;
     uint16_t max_cycles;
     uint32_t active_threads;

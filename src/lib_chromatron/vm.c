@@ -49,7 +49,6 @@ static uint16_t vm_sizes[VM_MAX_VMS];
 
 static uint8_t vm_active_threads[VM_MAX_VMS];
 
-static uint16_t vm_fader_time;
 
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
@@ -119,7 +118,6 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[3],          0,                  "vm_size_3" },
 
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_total_size" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
@@ -833,7 +831,6 @@ int8_t vm_i8_run_loops( void ){
             vm_status[i]            = info.status;
             vm_loop_time[i]         = info.loop_time;
             vm_max_cycles[i]        = info.max_cycles;
-            vm_fader_time           = info.fader_time;
         }
     }
 

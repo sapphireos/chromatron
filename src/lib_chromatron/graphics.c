@@ -83,6 +83,8 @@ typedef struct{
 
 static subscribed_key_t subscribed_keys[32];
 
+static uint16_t vm_fader_time;
+
 
 static uint16_t calc_vm_timer( uint32_t ms ){
 
@@ -203,6 +205,8 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
+
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY,  &vm_fader_time,            0,                   "vm_fade_time" },
 };
 
 // void gfx_v_set_params( gfx_params_t *params ){
@@ -645,10 +649,14 @@ PT_BEGIN( pt );
             THREAD_RESTART( pt );
         }
 
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, 0, 0, 0 ) < 0 ){
+        wifi_msg_fader_info_t fader_info;
+
+        if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, (uint8_t *)&fader_info, sizeof(fader_info), 0 ) < 0 ){
 
             THREAD_RESTART( pt );
         }
+
+        vm_fader_time = fader_info.fader_time;
 
         // get pixel data
         #ifdef USE_HSV_BRIDGE
