@@ -704,6 +704,7 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, wifi_status != WIFI_STATE_ALIVE );
+    static uint8_t scan_timeout;
     
     // check if we are connected
     while( !wifi_b_connected() ){
@@ -755,14 +756,16 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("Scanning...") );
             wifi_i8_send_msg( WIFI_DATA_ID_SCAN, (uint8_t *)&msg, sizeof(msg) );
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-            while( ( wifi_router < 0 ) && ( thread_b_alarm_set() ) ){
+            scan_timeout = 200;
+            while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
+
+                scan_timeout--;
 
                 TMR_WAIT( pt, 50 );
-                
+
                 get_info();
             }
-            
+
             if( wifi_router < 0 ){
 
                 goto end;
@@ -774,17 +777,13 @@ PT_BEGIN( pt );
             // the wifi module will hang for around 900 ms when doing a connect.
             // since we can't response to messages while that happens, we're going to do a blocking wait
             // for 1 second here.
-            // for( uint8_t i = 0; i < 10; i++ ){
+            for( uint8_t i = 0; i < 10; i++ ){
 
-            //     _delay_ms( 100 );
-            //     sys_v_wdt_reset();
-            // }
-
-            while(!wifi_b_connected()){
-
-                get_info();
-                TMR_WAIT( pt, 10 );
+                _delay_ms( 100 );
+                sys_v_wdt_reset();
             }
+
+            get_info();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
             THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
