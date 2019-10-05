@@ -232,38 +232,38 @@ void wifi_v_process( void ){
         if( WiFi.getMode() == WIFI_STA ){
 
             // check if MDNS is up
-            if( mdns_connected ){
+            // if( mdns_connected ){
 
-                MDNS.update();
-            }
-            else{
+            //     MDNS.update();
+            // }
+            // else{
                 
-                // enable MDNS
-                if( MDNS.begin( hostname ) ){
+            //     // enable MDNS
+            //     if( MDNS.begin( hostname ) ){
 
-                    MDNS.addService( "catbus", "udp", 44632 );
-                    MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );
+            //         MDNS.addService( "catbus", "udp", 44632 );
+            //         MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );
 
-                    int8_t midi_channel = opt_i8_get_midi_channel();
+            //         int8_t midi_channel = opt_i8_get_midi_channel();
 
-                    if( midi_channel >= 0 ){
+            //         if( midi_channel >= 0 ){
 
-                        MDNS.addService( "apple-midi", "udp", 5004 );
-                        char temp[32];
-                        snprintf( temp, sizeof(temp), "%d", midi_channel );
-                        MDNS.addServiceTxt( "apple-midi", "udp", "channel", temp );
-                    }
+            //             MDNS.addService( "apple-midi", "udp", 5004 );
+            //             char temp[32];
+            //             snprintf( temp, sizeof(temp), "%d", midi_channel );
+            //             MDNS.addServiceTxt( "apple-midi", "udp", "channel", temp );
+            //         }
 
-                    mdns_connected = true;
+            //         mdns_connected = true;
 
-                    intf_v_printf("MDNS connected");
-                }
-                else{
+            //         intf_v_printf("MDNS connected");
+            //     }
+            //     else{
 
-                    // MDNS fail - probably failed the IGMP join
-                    // intf_v_printf("MDNS fail");
-                }
-            }        
+            //         // MDNS fail - probably failed the IGMP join
+            //         // intf_v_printf("MDNS fail");
+            //     }
+            // }        
         }
     }
     else{
@@ -567,7 +567,7 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
 
 void wifi_v_disconnect( void ){
 
-    MDNS.close();
+    // MDNS.close();
     connected_router = -1;
     mdns_connected = false;
     request_connect = false;
