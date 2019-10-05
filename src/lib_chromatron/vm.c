@@ -230,28 +230,32 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr,
     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)info, sizeof(wifi_msg_vm_info_t), 0 ) < 0 ){
 
         return VM_STATUS_COMM_ERROR;
-    }    
+    }
 
-    // if( info->active_threads != vm_active_threads[vm_id] ){
+    for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
 
-    //     for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
+        // check if starting a new thread
+        if( ( info->thread_delays[i] >= 0 ) && ( ( vm_active_threads[vm_id] & ( 1 << i ) ) == 0 ) ){
 
-    //         if( ( ( info->active_threads     & ( 1 << i ) ) != 0 ) &&
-    //             ( ( vm_active_threads[vm_id] & ( 1 << i ) ) == 0 ) ){
+            vm_active_threads[vm_id] |= ( 1 << i );
 
-    //             vm_active_threads[vm_id] |= ( 1 << state->thread_id );
+            vm_thread_state_t state;
+            state.vm_id         = vm_id;
+            state.thread_id     = i;
 
-    //             vm_thread_state_t state;
-    //             state.vm_id         = vm_id;
-    //             state.thread_id     = i;
-    //             state.func_addr     = 
+            thread_t_create( THREAD_CAST(vm_thread),
+                             PSTR("vm_thread"),
+                             &state,
+                             sizeof(state) );
+        }
+        // check if thread stopped
+        else if( ( info->thread_delays[i] < 0 ) && ( ( vm_active_threads[vm_id] & ( 1 << i ) ) != 0 ) ){
 
-    //             thread_t_create( vm_thread,
-    //                              PSTR("vm_thread"),
+            log_v_debug_P( PSTR("stopped thread %d"), i );    
 
-    //         }
-    //     }
-    // }
+            vm_active_threads[vm_id] &= ~( 1 << i );
+        }
+    }
 
     // read database
     gfx_v_read_db();
@@ -626,49 +630,58 @@ static bool is_vm_running( uint8_t vm_id ){
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+
+    log_v_debug_P( PSTR("new thread %d on vm %d"), state->thread_id, state->vm_id );
     
-//     while(vm_status[state->vm_id] == VM_STATUS_OK){
+    while( vm_active_threads[state->vm_id] & ( 1 << state->thread_id ) ){
 
-//         wifi_msg_vm_info_t info;
-//         if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_FUNC, state->func_addr, &info ) == VM_STATUS_COMM_ERROR ){
+        TMR_WAIT( pt, 100 );
 
-//             TMR_WAIT( pt, 100 );
+        continue;
 
-//             continue;
-//         }
+        wifi_msg_vm_info_t info;
+        if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_THREAD, state->thread_id, &info ) == VM_STATUS_COMM_ERROR ){
 
-//         if( info.status == VM_STATUS_YIELDED ){
+            TMR_WAIT( pt, 100 );
 
-//             THREAD_YIELD( pt );
-//             THREAD_YIELD( pt );
-//             THREAD_YIELD( pt );
-//             THREAD_YIELD( pt );
+            continue;
+        }
 
-//             continue;
-//         }
-//         else if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
+        if( info.status == VM_STATUS_YIELDED ){
 
-//             vm_status[state->vm_id] = info.status;
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
 
-//             goto exit;
-//         }
+            continue;
+        }
+        else if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
 
-//         if( info.thread_delay < 0 ){
+            vm_status[state->vm_id] = info.status;
 
-//             // terminating thread
-//             goto exit;
-//         }
+            goto exit;
+        }
 
-//         if( info.thread_delay < VM_MIN_DELAY ){
+        if( info.thread_delays[state->thread_id] < 0 ){
 
-//             info.thread_delay = VM_MIN_DELAY;
-//         }
+            // terminating thread
+            goto exit;
+        }
 
-//         TMR_WAIT( pt, info.thread_delay );
-//     }
+        int32_t delay = info.thread_delays[state->thread_id];
+        if( delay < VM_MIN_DELAY ){
 
-// exit:
-//     vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
+            delay = VM_MIN_DELAY;
+        }
+
+        TMR_WAIT( pt, delay );
+    }
+
+exit:
+    vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
+
+    log_v_debug_P( PSTR("stop thread %d on vm %d"), state->thread_id, state->vm_id );
 
 PT_END( pt );
 }
@@ -725,8 +738,9 @@ PT_BEGIN( pt );
                 ( vm_status[i] != VM_STATUS_READY ) &&
                 ( vm_status[i] != 0 ) ){
 
-                vm_run[i] = FALSE;
-                vm_reset[i] = FALSE;
+                vm_run[i]               = FALSE;
+                vm_reset[i]             = FALSE;
+                vm_active_threads[i]    = 0;
 
                 if( vm_status[i] == VM_STATUS_HALT ){
 
@@ -745,7 +759,8 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
+                vm_status[i]            = VM_STATUS_NOT_RUNNING;
+                vm_active_threads[i]    = 0;
 
                 send_reset_message( i );
                 reset_published_data( i );
@@ -774,11 +789,6 @@ PT_BEGIN( pt );
                     }
 
                     log_v_debug_P( PSTR("VM init %d OK: %d"), i, vm_status[i] );
-
-                    for( uint8_t j = 0; j < VM_MAX_THREADS; j++ ){
-
-                        log_v_debug_P( PSTR("thread %d delay: %ld"), j, info.thread_delays[j] );
-                    }
                 }
             }
             // Did VM that was running just get told to stop?
@@ -790,10 +800,11 @@ PT_BEGIN( pt );
                 vm_cron_v_unload( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
-                vm_loop_time[i]     = 0;
-                vm_thread_time[i]   = 0;
-                vm_max_cycles[i]    = 0;
-                vm_sizes[i]         = 0;
+                vm_loop_time[i]         = 0;
+                vm_thread_time[i]       = 0;
+                vm_max_cycles[i]        = 0;
+                vm_sizes[i]             = 0;
+                vm_active_threads[i]    = 0;
             }
             
             // always reset the reset

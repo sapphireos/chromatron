@@ -239,6 +239,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 if( state->threads[i].func_addr == params[0] ){
 
                     state->threads[i].func_addr = 0xffff;
+                    state->threads[i].delay     = -1;
 
                     break;
                 }
