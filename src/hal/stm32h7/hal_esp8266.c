@@ -40,12 +40,6 @@ static uint32_t current_rx_bytes;
 
 static USART_t wifi_usart;
 
-static bool normal_mode;
-// static uint16_t timeouts;
-
-// KV_SECTION_META kv_meta_t hal_wifi_kv[] = {
-//     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, &timeouts, 0,   "wifi_hal_timeouts" },
-// };
 
 PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
@@ -205,11 +199,6 @@ void hal_wifi_v_usart_set_baud( baud_t baud ){
     }
 }
 
-int16_t hal_wifi_i16_rx_data_received( void ){
-
-    return -1;
-}	
-
 uint32_t hal_wifi_u32_get_rx_bytes( void ){
 
 	uint32_t temp = current_rx_bytes;
@@ -238,18 +227,6 @@ bool hal_wifi_b_read_irq( void ){
     return true;
 }
 
-// void hal_wifi_v_set_cts( bool value ){
-
-//     if( value ){
-
-//         HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_SET);        
-//     }
-//     else{
-
-//         HAL_GPIO_WritePin(WIFI_CTS_GPIO_Port, WIFI_CTS_Pin, GPIO_PIN_RESET);
-//     }
-// }
-
 // reset:
 // PD transition low to high
 
@@ -258,8 +235,6 @@ bool hal_wifi_b_read_irq( void ){
 // high = normal execution
 
 void hal_wifi_v_enter_boot_mode( void ){
-
-    normal_mode = FALSE;
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -449,8 +424,6 @@ void hal_wifi_v_enter_normal_mode( void ){
     {
         _Error_Handler(__FILE__, __LINE__);
     }
-
-    normal_mode = TRUE;
 }
 
 
