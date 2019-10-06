@@ -339,6 +339,8 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
+        THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
+
         ATOMIC;
         uint16_t temp_channels_complete = channels_complete;
         channels_complete = 0;
