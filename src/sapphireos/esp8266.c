@@ -117,6 +117,10 @@ static uint8_t watchdog;
 
 static uint8_t tx_power;
 
+#ifdef ARM
+static bool connect_hold;
+#endif
+
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
@@ -764,7 +768,18 @@ PT_BEGIN( pt );
             }
 
             log_v_debug_P( PSTR("Connecting...") );
+            
+            #ifdef ARM
+            connect_hold = TRUE;
+            #endif
+
             wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, 0, 0 );
+
+            #ifdef ARM
+            // since ARM targets don't use the ESP for anything other than wifi, we don't
+            // need to spin lock the entire CPU.
+            TMR_WAIT( pt, 1000 );
+            #else
 
             // the wifi module will hang for around 900 ms when doing a connect.
             // since we can't response to messages while that happens, we're going to do a blocking wait
@@ -774,6 +789,11 @@ PT_BEGIN( pt );
                 _delay_ms( 100 );
                 sys_v_wdt_reset();
             }
+            #endif
+
+            #ifdef ARM
+            connect_hold = FALSE;
+            #endif
 
             get_info();
 
@@ -1151,6 +1171,10 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
+        #ifdef ARM
+        THREAD_WAIT_WHILE( pt, connect_hold );
+        #endif
 
         if( watchdog > 0 ){
 
