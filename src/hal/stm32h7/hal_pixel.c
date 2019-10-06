@@ -200,9 +200,6 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
     else if( hspi == &pix_spi4 ){
 
         driver = 4;
-
-        // HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
-        // hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     #endif
         
@@ -277,18 +274,12 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     else if( driver == 5 ){
 
         // note driver 5 does not use DMA!
-            
-        // uint8_t buf[46];
-        // memset( buf, 0, sizeof(buf) );
+        
         memcpy(p5_buf, data, len);
         p5_count = len;
 
-        // // ATOMIC;
-        // // HAL_SPI_Transmit( &pix_spi5, data, len, 50 );
-        // HAL_SPI_Transmit( &pix_spi5, buf, 46, 50 );
-        // // END_ATOMIC;
-
-        // hal_pixel_v_transfer_complete_callback( 5 ); 
+        HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
+        hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     #endif
     else{
