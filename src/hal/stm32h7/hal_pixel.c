@@ -42,6 +42,7 @@ Channel - Port      - DMA
 #include "keyvalue.h"
 #include "hal_io.h"
 #include "hal_pixel.h"
+#include "os_irq.h"
 
 #include "logging.h"
 
@@ -84,60 +85,93 @@ static uint8_t p5_count;
 
 
 ISR(PIX0_DMA_HANDLER){
-    
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
+
     HAL_DMA_IRQHandler( &pix0_dma );
+
+OS_IRQ_END();
 }
 
 ISR(PIX0_SPI_HANDLER){
+OS_IRQ_BEGIN(PIX0_SPI_HANDLER);
 
     HAL_SPI_IRQHandler( &pix_spi0 );
+
+OS_IRQ_END();   
 }
 
 #ifdef BOARD_CHROMATRONX
 ISR(PIX1_DMA_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
     
     HAL_DMA_IRQHandler( &pix1_dma );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX1_SPI_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
 
     HAL_SPI_IRQHandler( &pix_spi1 );
+
+OS_IRQ_END();   
 }
 
 
 ISR(PIX2_DMA_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
     
     HAL_DMA_IRQHandler( &pix2_dma );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX2_SPI_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
 
     HAL_SPI_IRQHandler( &pix_spi2 );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX3_DMA_HANDLER){
-    
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
+
     HAL_DMA_IRQHandler( &pix3_dma );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX3_SPI_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
 
     HAL_SPI_IRQHandler( &pix_spi3 );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX4_DMA_HANDLER){
-    
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
+
     HAL_DMA_IRQHandler( &pix4_dma );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX4_SPI_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
 
     HAL_SPI_IRQHandler( &pix_spi4 );
+
+OS_IRQ_END();   
 }
 
 ISR(PIX5_SPI_HANDLER){
+OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
 
     HAL_SPI_IRQHandler( &pix_spi5 );
+
+OS_IRQ_END();   
 }
 
 #endif
