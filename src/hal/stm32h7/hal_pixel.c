@@ -201,8 +201,8 @@ void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
 
         driver = 4;
 
-        HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
-        hal_pixel_v_transfer_complete_callback( 5 ); 
+        // HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
+        // hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     #endif
         
