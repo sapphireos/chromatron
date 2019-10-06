@@ -63,6 +63,7 @@ void hal_wifi_v_init( void ){
     wifi_usart.Init.HwFlowCtl           = UART_HWCONTROL_NONE;
     wifi_usart.Init.OverSampling        = UART_OVERSAMPLING_16;
     wifi_usart.Init.OneBitSampling      = UART_ONE_BIT_SAMPLE_DISABLE;
+    wifi_usart.Init.FIFOMode            = UART_FIFOMODE_ENABLE;
     // wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
 
@@ -129,7 +130,7 @@ void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
 
 int16_t hal_wifi_i16_usart_get_char( void ){
 
-	if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
+	if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXFNE ) ){
 
         return wifi_usart.Instance->RDR;
     }
@@ -154,7 +155,7 @@ int16_t hal_wifi_i16_usart_get_char_timeout( uint32_t timeout ){
 
 bool hal_wifi_b_usart_rx_available( void ){
 
-    if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXNE ) ){
+    if( __HAL_UART_GET_FLAG( &wifi_usart, UART_FLAG_RXFNE ) ){
 
         return TRUE;
     }
