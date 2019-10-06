@@ -664,7 +664,7 @@ PT_THREAD( sys_reset_recovery_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    TMR_WAIT( pt, 120000 );
+    TMR_WAIT( pt, 30000 );
 
     uint8_t count = 0;
     cfg_v_set( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );    
