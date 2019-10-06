@@ -23,6 +23,8 @@
 #include "sapphire.h"
 #include "init.h"
 
+#ifndef BOOTLOADER
+
 void main( void ) __attribute__ ((noreturn));
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
@@ -48,3 +50,4 @@ void main( void ){
 	for(;;);
 }   
 
+#endif

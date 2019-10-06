@@ -46,6 +46,8 @@ Channel - Port      - DMA
 
 #include "logging.h"
 
+#ifndef BOOTLOADER
+
 static uint16_t pix_counts[N_PIXEL_OUTPUTS];
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
@@ -651,3 +653,5 @@ void hal_pixel_v_init( void ){
     #endif
 }
 
+
+#endif
