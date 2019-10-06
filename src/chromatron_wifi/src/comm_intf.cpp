@@ -556,6 +556,8 @@ void intf_v_process( void ){
     }
     else if( c == WIFI_COMM_GET_MSG ){
 
+        release_irq();
+
         if( list_b_is_empty( &tx_q ) ){
 
             // no queued messages, but do we have a network packet?
