@@ -393,6 +393,11 @@ PT_BEGIN( pt );
                 uint8_t *offset;
                 uint16_t data_length = setup_pixel_buffer( ch, &offset );
 
+                if( ch == 4 ){
+
+                    hal_pixel_v_transmit_pix5();
+                }
+
                 hal_pixel_v_start_transfer( ch, offset, data_length );
             }
         }

@@ -100,6 +100,8 @@
 // #define PIX9_DMA_HANDLER	DMA2_Stream5_IRQHandler
 // #define PIX9_DMA_REQUEST	DMA_REQUEST_UART5_TX
 
+void hal_pixel_v_transmit_pix5( void );
+
 #endif
 
 

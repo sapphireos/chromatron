@@ -176,6 +176,12 @@ OS_IRQ_BEGIN(PIX0_DMA_HANDLER);
 OS_IRQ_END();   
 }
 
+void hal_pixel_v_transmit_pix5( void ){
+    
+    HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
+    hal_pixel_v_transfer_complete_callback( 5 ); 
+}
+
 #endif
 
 void HAL_SPI_TxCpltCallback( SPI_HandleTypeDef *hspi ){
@@ -279,9 +285,6 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
         
         memcpy(p5_buf, data, len);
         p5_count = len;
-
-        HAL_SPI_Transmit( &pix_spi5, p5_buf, p5_count, 50 );
-        hal_pixel_v_transfer_complete_callback( 5 ); 
     }
     #endif
     else{
