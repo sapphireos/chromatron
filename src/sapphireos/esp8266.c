@@ -746,7 +746,7 @@ PT_BEGIN( pt );
  
         // station mode
         if( !ap_mode ){
-            
+station_mode:            
             // scan first
             wifi_router = -1;
             log_v_debug_P( PSTR("Scanning...") );
@@ -806,8 +806,6 @@ PT_BEGIN( pt );
             // should have gotten the MAC by now
             ASSERT( wifi_mac[0] != 0 );
 
-            log_v_debug_P( PSTR("starting AP") );
-
             // AP mode
             wifi_msg_ap_connect_t ap_msg;
 
@@ -846,7 +844,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            log_v_debug_P( PSTR("ssid: %s"), ap_msg.ssid );
+            log_v_debug_P( PSTR("Starting AP: %s"), ap_msg.ssid );
 
             // check if wifi settings were present
             if( ap_msg.ssid[0] != 0 ){        
@@ -856,6 +854,13 @@ PT_BEGIN( pt );
                 thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
                 THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
                                        ( thread_b_alarm_set() ) );
+
+                if( !wifi_b_connected() ){
+
+                    log_v_warn_P( PSTR("AP mode failed.") );
+
+                    goto station_mode;
+                }
             }
         }
 
