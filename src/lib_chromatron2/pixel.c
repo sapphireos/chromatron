@@ -349,7 +349,8 @@ PT_BEGIN( pt );
         uint16_t *h = gfx_u16p_get_hue();
         uint16_t *s = gfx_u16p_get_sat();
         uint16_t *v = gfx_u16p_get_val();
-        uint16_t r, g, b, w;
+        // uint16_t r, g, b, w;
+        uint16_t r, g, b;
 
         for( uint8_t ch = 0; ch < hal_pixel_u8_driver_count(); ch++ ){
 
@@ -393,10 +394,12 @@ PT_BEGIN( pt );
                 uint8_t *offset;
                 uint16_t data_length = setup_pixel_buffer( ch, &offset );
 
+                #ifdef BOARD_CHROMATRONX
                 if( ch == 4 ){
 
                     hal_pixel_v_transmit_pix5();
                 }
+                #endif
 
                 hal_pixel_v_start_transfer( ch, offset, data_length );
             }
