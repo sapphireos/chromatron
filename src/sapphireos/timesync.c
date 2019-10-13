@@ -395,6 +395,9 @@ PT_BEGIN( pt );
                     sync_state = STATE_WAIT;
 
                     log_v_debug_P( PSTR("lost master, resetting state") );
+
+                    // stop sntp
+                    sntp_v_stop();
                 }
             }
             else if( *type == TIME_MSG_REQUEST_SYNC ){
