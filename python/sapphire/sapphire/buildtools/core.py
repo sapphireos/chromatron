@@ -744,6 +744,11 @@ class ConfigBuilder(Builder):
 
             self.lib_builders.append(builder)
 
+    def clean(self):
+        for builder in self.lib_builders:
+            builder.clean()
+        
+        super(ConfigBuilder, self).clean()
 
     def build(self):
         logging.info("Building configuration %s for target: %s" % (self.proj_name, self.target_type))
@@ -753,8 +758,6 @@ class ConfigBuilder(Builder):
 
         # build libraries
         for builder in self.lib_builders:
-
-            builder.clean()
             builder.build()
             
             includes.extend(builder.settings["LIB_INCLUDES"])
