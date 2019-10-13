@@ -607,7 +607,7 @@ static void request_sync( void ){
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-        
+    
     master_ip = ip_a_addr(0,0,0,0);
 
     THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
@@ -620,6 +620,8 @@ PT_BEGIN( pt );
         // we'll tell everyone else we aren't the master, so someone else will jump in
         // (with the current network time).
 
+        send_not_master();
+        TMR_WAIT( pt, 200 );
         send_not_master();
         TMR_WAIT( pt, 200 );
         send_not_master();
@@ -654,7 +656,7 @@ PT_BEGIN( pt );
         // master does not have drift, by definition.
         filtered_drift = 0;
 
-        
+
         // default sync source to internal clock
         master_source = TIME_SOURCE_INTERNAL;
 
