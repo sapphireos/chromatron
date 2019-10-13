@@ -380,6 +380,9 @@ PT_BEGIN( pt );
                             master_ip.ip2, 
                             master_ip.ip1, 
                             master_ip.ip0 );                    
+
+                        // stop sntp
+                        sntp_v_stop();
                     }
                 } 
             }
@@ -648,17 +651,7 @@ PT_BEGIN( pt );
         // master does not have drift, by definition.
         filtered_drift = 0;
 
-        // check state
-        if( sync_state != STATE_MASTER ){
-
-            // no longer master
-            log_v_debug_P( PSTR("no longer master") );
-
-            sntp_v_stop();
-
-            break;
-        }
-
+        
         // default sync source to internal clock
         master_source = TIME_SOURCE_INTERNAL;
 
