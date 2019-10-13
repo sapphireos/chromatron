@@ -45,6 +45,7 @@ static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
 static bool is_sync;
+static bool ntp_valid;
 
 // master clock
 static ntp_ts_t master_time;
@@ -179,6 +180,11 @@ void time_v_set_gps_sync( bool sync ){
 
 ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
+    if( !ntp_valid ){
+
+        return ntp_ts_from_u64( 0 );    
+    }
+
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
 
     // ASSERT( elapsed_ms < 4000000000 );
@@ -204,6 +210,17 @@ void time_v_set_master_clock(
 
     is_sync = TRUE;
     master_source = source;
+
+    // if source is usable to sync ntp, set ntp valid.
+    if( source > TIME_SOURCE_INTERNAL ){
+
+        if( !ntp_valid ){
+
+            log_v_debug_P( PSTR("NTP valid") );
+        }
+
+        ntp_valid = TRUE;
+    }
 
     ntp_ts_t local_ts = time_t_from_system_time( local_system_time );
 
@@ -288,6 +305,11 @@ static uint8_t get_best_local_source( void ){
     if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
         return TIME_SOURCE_NTP;
+    }
+
+    if( is_sync && ntp_valid ){
+
+        return TIME_SOURCE_INTERNAL_NTP_SYNC;
     }
 
     if( is_sync ){

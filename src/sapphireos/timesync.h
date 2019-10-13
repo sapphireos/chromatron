@@ -40,6 +40,7 @@
 #define TIME_SOURCE_GPS                 64
 #define TIME_SOURCE_NTP                 32
 #define TIME_SOURCE_RTC                 16
+#define TIME_SOURCE_INTERNAL_NTP_SYNC   9
 #define TIME_SOURCE_INTERNAL            8
 #define TIME_SOURCE_NONE                0
 
