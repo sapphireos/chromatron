@@ -479,7 +479,7 @@ class LegacySerialUDPChannel(Channel):
             sof = struct.unpack('<B', self._read_data(1))[0]
 
             if sof != CMD_USART_UDP_SOF:
-                print sof
+                print "sof error", sof
                 raise ChannelErrorException()
 
             # wait for header data
@@ -660,14 +660,14 @@ class SerialUDPChannel(Channel):
             sof = struct.unpack('<B', self._read_data(1))[0]
 
             if sof != CMD_USART_UDP_SOF:
-                print sof
+                print 'sof error', sof
                 raise ChannelErrorException()
 
             # wait for version
             version = struct.unpack('<B', self._read_data(1))[0]
 
             if version != CMD_USART_VERSION:
-                print version
+                print 'version error', version
                 raise ChannelErrorException()
 
             # wait for header data
@@ -893,20 +893,20 @@ class UDPSerialBridge(threading.Thread):
                 self.sock.settimeout(1.0)
                 data, host = self.sock.recvfrom(4096)
 
-                # print time.time(), "SOCK RECV", len(data)
+                print time.time(), "SOCK RECV", len(data)
 
                 self.channel.write(data, port=self.rport)
 
-                # print time.time(), "SERIAL WRITE", len(data)
+                print time.time(), "SERIAL WRITE", len(data)
 
                 try:
                     response = self.channel.read()
 
-                    # print time.time(), "SERIAL READ", len(response)
+                    print time.time(), "SERIAL READ", len(response)
 
                     self.sock.sendto(response, host)
 
-                    # print time.time(), "SOCK SEND", len(response)
+                    print time.time(), "SOCK SEND", len(response)
 
                 except Exception as e:
                     # flush
@@ -917,7 +917,7 @@ class UDPSerialBridge(threading.Thread):
                             data, host = self.sock.recvfrom(4096)
                             
                         except socket.timeout:
-                            break
+                             break
     
         
             except socket.timeout:
