@@ -776,6 +776,8 @@ class SerialUDPChannel(Channel):
                 # if tries == 0:
                     # raise
 
+                print e
+
                 # try to reopen port
                 self.close()
                 self.open(self.host)
@@ -910,7 +912,7 @@ class UDPSerialBridge(threading.Thread):
 
                 except Exception as e:
                     # flush
-                    # print e
+                    print e
                     while True:
                         try:
                             self.sock.settimeout(0.1)
@@ -924,7 +926,7 @@ class UDPSerialBridge(threading.Thread):
                 pass
 
             except Exception as e:
-                # print e
+                print e
                 pass
             
 
