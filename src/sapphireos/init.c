@@ -113,10 +113,6 @@ int8_t sapphire_i8_init( void ){
 	// init CRC module
 	crc_v_init();
 
-    #ifdef ENABLE_USB
-    usb_v_init();
-    #endif
-
     // init serial port
     cmd_usart_v_init();
 
@@ -228,6 +224,10 @@ void sapphire_run( void ){
 
     // enable global interrupts
     sys_v_enable_interrupts();
+
+    #ifdef ENABLE_USB
+    usb_v_init();
+    #endif
 
     // init timers
 	// do this just before starting the scheduler so that we won't miss the
