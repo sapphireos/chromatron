@@ -649,8 +649,8 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 200 );
         send_not_master();
 
-        // TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
-        TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+        TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
     }
 
     if( sync_state == STATE_WAIT ){
