@@ -72,6 +72,8 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
 
+
+    	TMR_WAIT( pt, 8000 );
     }
 
 PT_END( pt );
