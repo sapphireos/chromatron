@@ -96,6 +96,7 @@ void usb_v_attach( void ){
 
 void usb_v_detach( void ){
 
+    udc_detach();
 }
 
 
