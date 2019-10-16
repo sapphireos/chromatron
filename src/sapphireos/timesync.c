@@ -458,17 +458,6 @@ PT_BEGIN( pt );
 
                 uint32_t now = tmr_u32_get_system_time_ms();
                 uint32_t est_net_time = time_u32_get_network_time();
-
-                // check sync
-                if( msg->source != TIME_SOURCE_NONE ){
-                    
-                    // does not compensate for transmission time, so there will be a fraction of a
-                    // second offset in NTP time.
-                    // this is probably OK, we don't usually need better than second precision
-                    // on the NTP clock for most use cases.
-
-                    time_v_set_master_clock( msg->ntp_time, now, msg->source );
-                }
                 
                 int32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
                 if( elapsed_rtt > 500 ){
@@ -495,6 +484,17 @@ PT_BEGIN( pt );
                     }
 
                     continue;
+                }
+
+                // check sync
+                if( msg->source != TIME_SOURCE_NONE ){
+                    
+                    // does not compensate for transmission time, so there will be a fraction of a
+                    // second offset in NTP time.
+                    // this is probably OK, we don't usually need better than second precision
+                    // on the NTP clock for most use cases.
+
+                    time_v_set_master_clock( msg->ntp_time, now, msg->source );
                 }
 
                 int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
@@ -548,15 +548,15 @@ PT_BEGIN( pt );
 
                     filtered_rtt = 0;
                 
-                    // log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
+                    log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
                 }
                 else{
 
                     net_time += elapsed_remote_net;
                 }
 
-                // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                    // elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                    elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
             }
         }
         // socket timeout
