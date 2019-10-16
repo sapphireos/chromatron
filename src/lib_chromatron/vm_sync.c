@@ -33,6 +33,8 @@
 #include "graphics.h"
 
 static uint32_t sync_group_hash;
+static socket_t sock = -1;
+
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
@@ -46,6 +48,10 @@ void vm_sync_v_init( void ){
 
 	sync_group_hash = hash_u32_string( buf );    
 
+	sock = sock_s_create( SOCK_DGRAM );	
+
+	sock_v_bind( sock, SYNC_SERVER_PORT );
+	sock_v_set_timeout( sock, 8 );
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),
