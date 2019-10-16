@@ -45,6 +45,7 @@ static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
 static bool is_sync;
+static bool ntp_valid;
 
 // master clock
 static ntp_ts_t master_time;
@@ -180,6 +181,11 @@ void time_v_set_gps_sync( bool sync ){
 
 ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
+    if( !ntp_valid ){
+
+        return ntp_ts_from_u64( 0 );    
+    }
+
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
 
     // ASSERT( elapsed_ms < 4000000000 );
@@ -205,6 +211,17 @@ void time_v_set_master_clock(
 
     is_sync = TRUE;
     master_source = source;
+
+    // if source is usable to sync ntp, set ntp valid.
+    if( source > TIME_SOURCE_INTERNAL ){
+
+        if( !ntp_valid ){
+
+            log_v_debug_P( PSTR("NTP valid") );
+        }
+
+        ntp_valid = TRUE;
+    }
 
     ntp_ts_t local_ts = time_t_from_system_time( local_system_time );
 
@@ -283,15 +300,25 @@ static uint8_t get_best_local_source( void ){
 
     if( gps_sync ){
 
-        return TIME_FLAGS_SOURCE_GPS;
+        return TIME_SOURCE_GPS;
     }
 
     if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
-        return TIME_FLAGS_SOURCE_NTP;
+        return TIME_SOURCE_NTP;
     }
 
-    return 0;
+    if( is_sync && ntp_valid ){
+
+        return TIME_SOURCE_INTERNAL_NTP_SYNC;
+    }
+
+    if( is_sync ){
+
+        return TIME_SOURCE_INTERNAL;
+    }
+
+    return TIME_SOURCE_NONE;
 }
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
@@ -376,6 +403,9 @@ PT_BEGIN( pt );
                             master_ip.ip2, 
                             master_ip.ip1, 
                             master_ip.ip0 );                    
+
+                        // stop sntp
+                        sntp_v_stop();
                     }
                 } 
             }
@@ -388,6 +418,9 @@ PT_BEGIN( pt );
                     sync_state = STATE_WAIT;
 
                     log_v_debug_P( PSTR("lost master, resetting state") );
+
+                    // stop sntp
+                    sntp_v_stop();
                 }
             }
             else if( *type == TIME_MSG_REQUEST_SYNC ){
@@ -427,7 +460,7 @@ PT_BEGIN( pt );
                 uint32_t est_net_time = time_u32_get_network_time();
 
                 // check sync
-                if( msg->source > 0 ){
+                if( msg->source != TIME_SOURCE_NONE ){
                     
                     // does not compensate for transmission time, so there will be a fraction of a
                     // second offset in NTP time.
@@ -597,7 +630,7 @@ static void request_sync( void ){
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-        
+    
     master_ip = ip_a_addr(0,0,0,0);
 
     THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
@@ -613,6 +646,8 @@ PT_BEGIN( pt );
         send_not_master();
         TMR_WAIT( pt, 200 );
         send_not_master();
+        TMR_WAIT( pt, 200 );
+        send_not_master();
 
         // TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
         TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
@@ -621,7 +656,7 @@ PT_BEGIN( pt );
     if( sync_state == STATE_WAIT ){
 
         // check if we have a clock source
-        if( get_best_local_source() > 0 ){
+        if( get_best_local_source() != TIME_SOURCE_NONE ){
 
             // elect ourselves as master
             sync_state = STATE_MASTER;
@@ -644,22 +679,15 @@ PT_BEGIN( pt );
         // master does not have drift, by definition.
         filtered_drift = 0;
 
-        // check state
-        if( sync_state != STATE_MASTER ){
 
-            // no longer master
-            log_v_debug_P( PSTR("no longer master") );
-
-            sntp_v_stop();
-
-            break;
-        }
+        // default sync source to internal clock
+        master_source = TIME_SOURCE_INTERNAL;
 
         // check sync sources
         if( gps_sync ){
 
             sntp_v_stop();
-            master_source = TIME_FLAGS_SOURCE_GPS;
+            master_source = TIME_SOURCE_GPS;
         }
         else{
 
@@ -669,7 +697,7 @@ PT_BEGIN( pt );
             // check if synchronized
             if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
-                master_source = TIME_FLAGS_SOURCE_NTP;
+                master_source = TIME_SOURCE_NTP;
             }
         }
 
