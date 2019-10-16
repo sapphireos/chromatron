@@ -57,6 +57,8 @@
  * @{
  */
 
+#define UDD_USB_INT_LEVEL USB_INTLVL_HI_gc
+
 //! Device definition (mandatory)
 #ifdef ENABLE_USB_UDP_TRANSPORT
     #define  USB_DEVICE_VENDOR_ID             0xF055
