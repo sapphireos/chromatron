@@ -499,6 +499,11 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
 void reboot( void ){
 
+    #ifdef ENABLE_USB
+    usb_v_detach();
+    #endif
+
+
     // make sure interrupts are disabled
     DISABLE_INTERRUPTS;
 
