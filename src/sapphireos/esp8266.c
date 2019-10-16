@@ -784,11 +784,15 @@ station_mode:
             // the wifi module will hang for around 900 ms when doing a connect.
             // since we can't response to messages while that happens, we're going to do a blocking wait
             // for 1 second here.
+            usb_v_detach();
+
             for( uint8_t i = 0; i < 10; i++ ){
 
                 _delay_ms( 100 );
                 sys_v_wdt_reset();
             }
+
+            usb_v_attach();
             #endif
 
             #ifdef ARM
