@@ -32,6 +32,59 @@
 #include "vm_wifi_cmd.h"
 #include "graphics.h"
 
+static uint32_t sync_group_hash;
+
+PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
+
+
+void vm_sync_v_init( void ){
+
+	// init sync group hash
+	char buf[32];
+	memset( buf, 0, sizeof(buf) );
+	kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
+
+	sync_group_hash = hash_u32_string( buf );    
+
+
+    thread_t_create( vm_sync_thread,
+                    PSTR("vm_sync"),
+                    0,
+                    0 );    
+}
+
+uint32_t vm_sync_u32_get_sync_group_hash( void ){
+
+	return sync_group_hash;
+}
+
+static bool vm_sync_wait( void ){
+
+	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
+}
+
+
+PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( TRUE ){
+
+    	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+
+    }
+
+PT_END( pt );
+}
+
+
+#endif
+
+
+#if 0
+
+
+
 
 static uint8_t sync_state;
 #define STATE_IDLE 			0
