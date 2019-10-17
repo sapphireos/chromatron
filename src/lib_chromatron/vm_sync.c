@@ -35,7 +35,17 @@
 static uint32_t sync_group_hash;
 static socket_t sock = -1;
 
+static uint8_t sync_state;
+#define STATE_IDLE 			0
+#define STATE_MASTER 		1
+#define STATE_SLAVE 		2
+#define STATE_SLAVE_SYNC 	3
 
+static ip_addr_t master_ip;
+static uint64_t master_uptime;
+
+
+PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
 
@@ -51,7 +61,12 @@ void vm_sync_v_init( void ){
 	sock = sock_s_create( SOCK_DGRAM );	
 
 	sock_v_bind( sock, SYNC_SERVER_PORT );
-	sock_v_set_timeout( sock, 8 );
+	// sock_v_set_timeout( sock, 8 );
+
+    thread_t_create( vm_sync_server_thread,
+                    PSTR("vm_sync_server"),
+                    0,
+                    0 );    
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),
@@ -69,6 +84,111 @@ static bool vm_sync_wait( void ){
 	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
 }
 
+PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( TRUE ){
+
+    	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+		// check if data received
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+        	continue;
+        }
+
+        vm_sync_msg_header_t *header = sock_vp_get_data( sock );
+
+        if( header->magic != SYNC_PROTOCOL_MAGIC ){
+
+        	continue;
+        }
+
+        if( header->version != SYNC_PROTOCOL_VERSION ){
+
+        	continue;
+        }
+
+        if( header->sync_group_hash != sync_group_hash ){
+
+        	continue;
+        }
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
+        if( header->type == VM_SYNC_MSG_SYNC_0 ){
+
+        	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)( header + 1 );
+        	
+        	if( sync_state == STATE_IDLE ){
+
+        		master_ip = raddr.ipaddr;
+                master_uptime = msg->uptime;
+
+        		log_v_debug_P( PSTR("assigning vm sync master: %d.%d.%d.%d"), 
+                        master_ip.ip3, 
+                        master_ip.ip2, 
+                        master_ip.ip1, 
+                        master_ip.ip0 );                    
+
+        		sync_state = STATE_SLAVE;
+
+        		// done processing
+        		continue;
+        	}
+
+        	uint64_t temp_master_uptime = master_uptime;
+
+        	// are we a master?
+        	if( sync_state == STATE_MASTER ){
+
+        		// use our current uptime
+        		temp_master_uptime = tmr_u64_get_system_time_us();
+        	}
+
+        	// compare uptimes - longest uptime wins election
+        	if( msg->uptime > temp_master_uptime ){
+
+        		// set new master
+        		master_ip = raddr.ipaddr;
+                master_uptime = msg->uptime;
+
+        		log_v_debug_P( PSTR("assigning NEW vm sync master: %d.%d.%d.%d"), 
+                        master_ip.ip3, 
+                        master_ip.ip2, 
+                        master_ip.ip1, 
+                        master_ip.ip0 );      
+
+        		sync_state = STATE_SLAVE;
+        	}
+        }
+        else if( header->type == VM_SYNC_MSG_SYNC_N ){
+
+        	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)( header + 1 );
+        	
+        	
+        	
+        }
+        else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
+
+        	vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)( header + 1 );
+
+        	if( sync_state != STATE_MASTER ){
+
+        		// this message can only be processed by a master
+        		continue;
+        	}
+        	
+        	
+        	
+        }
+    }
+
+PT_END( pt );
+}
+
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
@@ -77,6 +197,32 @@ PT_BEGIN( pt );
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+
+    	if( sync_state == STATE_IDLE ){
+
+
+    	}
+
+    	while( sync_state == STATE_MASTER ){
+
+    		TMR_WAIT( pt, 8 * 1000 );
+
+
+    	}
+
+    	while( sync_state == STATE_SLAVE ){
+
+    		TMR_WAIT( pt, 8 * 1000 );
+
+    		
+    	}
+
+    	while( sync_state == STATE_SLAVE_SYNC ){
+
+    		TMR_WAIT( pt, 8 * 1000 );
+
+    		
+    	}
 
 
     	TMR_WAIT( pt, 8000 );

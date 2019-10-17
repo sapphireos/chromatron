@@ -47,7 +47,6 @@ typedef struct __attribute__((packed)){
 } vm_sync_msg_header_t;
 
 typedef struct __attribute__((packed)){
-    vm_sync_msg_header_t header;
     uint64_t uptime;
     uint32_t program_name_hash;
     uint16_t frame_number;
@@ -58,11 +57,15 @@ typedef struct __attribute__((packed)){
 #define VM_SYNC_MSG_SYNC_0                      1
 
 typedef struct __attribute__((packed)){
-    vm_sync_msg_header_t header;
     uint16_t frame_number;
     uint16_t offset;
 } vm_sync_msg_sync_n_t;
 #define VM_SYNC_MSG_SYNC_N                      2
+
+typedef struct __attribute__((packed)){
+    
+} vm_sync_msg_sync_req_t;
+#define VM_SYNC_MSG_SYNC_REQ                    3
 
 
 // typedef struct __attribute__((packed)){
