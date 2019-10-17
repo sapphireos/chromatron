@@ -61,7 +61,7 @@ void vm_sync_v_init( void ){
 	sock = sock_s_create( SOCK_DGRAM );	
 
 	sock_v_bind( sock, SYNC_SERVER_PORT );
-	// sock_v_set_timeout( sock, 8 );
+	sock_v_set_timeout( sock, 32 );
 
     thread_t_create( vm_sync_server_thread,
                     PSTR("vm_sync_server"),
@@ -94,6 +94,15 @@ PT_BEGIN( pt );
 
 		// check if data received
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+        	// socket timeout
+
+        	if( sync_state != STATE_MASTER ){
+
+                log_v_debug_P( PSTR("vm sync timed out, resetting state") );
+
+                sync_state = STATE_IDLE;
+            }
 
         	continue;
         }
@@ -139,6 +148,7 @@ PT_BEGIN( pt );
         		continue;
         	}
 
+
         	uint64_t temp_master_uptime = master_uptime;
 
         	// are we a master?
@@ -146,6 +156,12 @@ PT_BEGIN( pt );
 
         		// use our current uptime
         		temp_master_uptime = tmr_u64_get_system_time_us();
+        	}
+        	else if( sync_state == STATE_SLAVE ){
+
+        		// slave, not synced
+
+
         	}
 
         	// compare uptimes - longest uptime wins election
@@ -167,9 +183,9 @@ PT_BEGIN( pt );
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
         	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)( header + 1 );
-        	
-        	
-        	
+
+
+
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
@@ -180,9 +196,9 @@ PT_BEGIN( pt );
         		// this message can only be processed by a master
         		continue;
         	}
-        	
-        	
-        	
+
+
+        	log_v_debug_P( PSTR("sync requested") );
         }
     }
 
@@ -210,7 +226,17 @@ PT_BEGIN( pt );
 
     	}
 
+    	if( sync_state == STATE_SLAVE ){
+
+    		// just switched to slave, let's delay and make sure
+    		// the master election is stable
+    		TMR_WAIT( pt, 8 * 1000 );
+
+    	}
+
     	while( sync_state == STATE_SLAVE ){
+
+    			
 
     		TMR_WAIT( pt, 8 * 1000 );
 
