@@ -199,17 +199,22 @@ PT_BEGIN( pt );
         	// compare uptimes - longest uptime wins election
         	if( msg->uptime > temp_master_uptime ){
 
-        		// set new master
-        		master_ip = raddr.ipaddr;
                 master_uptime = msg->uptime;
 
-        		log_v_debug_P( PSTR("assigning NEW vm sync master: %d.%d.%d.%d"), 
+                if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
+
+        		    // set new master
+                    master_ip = raddr.ipaddr;
+                    
+
+            		log_v_debug_P( PSTR("assigning NEW vm sync master: %d.%d.%d.%d"), 
                         master_ip.ip3, 
                         master_ip.ip2, 
                         master_ip.ip1, 
                         master_ip.ip0 );      
 
-        		sync_state = STATE_SLAVE;
+        		    sync_state = STATE_SLAVE;
+                }
         	}
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
