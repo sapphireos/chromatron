@@ -32,6 +32,8 @@
 #include "vm_wifi_cmd.h"
 #include "graphics.h"
 
+#include "logging.h"
+
 static uint32_t sync_group_hash;
 static socket_t sock = -1;
 
@@ -159,7 +161,7 @@ PT_BEGIN( pt );
 
         if( header->type == VM_SYNC_MSG_SYNC_0 ){
 
-        	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)( header + 1 );
+        	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)header;
         	
         	if( sync_state == STATE_IDLE ){
 
@@ -212,14 +214,14 @@ PT_BEGIN( pt );
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
-        	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)( header + 1 );
+        	// vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
 
 
 
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-        	vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)( header + 1 );
+        	// vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
         	if( sync_state != STATE_MASTER ){
 
@@ -235,6 +237,29 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+static void send_sync_0( void ){
+
+    vm_sync_msg_sync_0_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SYNC_0;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
+
+    msg.uptime              = tmr_u64_get_system_time_us();
+    msg.program_name_hash   = 0;
+    msg.frame_number        = 0;
+    msg.data_len            = 0;
+    msg.rng_seed            = 0;
+    msg.net_time            = time_u32_get_network_time();
+
+    // set up broadcast address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+}
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
@@ -246,14 +271,24 @@ PT_BEGIN( pt );
 
     	if( sync_state == STATE_IDLE ){
 
-
+            // random delay, see if other masters show up
+            TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 3 ) );
     	}
+
+        // no masters, elect ourselves
+        if( sync_state == STATE_IDLE ){
+
+            sync_state = STATE_MASTER;
+            master_uptime = 0;
+
+            log_v_debug_P( PSTR("we are sync master") );
+        }
 
     	while( sync_state == STATE_MASTER ){
 
+            send_sync_0();
+
     		TMR_WAIT( pt, 8 * 1000 );
-
-
     	}
 
     	if( sync_state == STATE_SLAVE ){
