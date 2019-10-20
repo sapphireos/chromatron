@@ -525,98 +525,109 @@ vm_thread_t* vm_p_get_threads( uint8_t vm_index ){
     return vm_state[vm_index].threads;
 }
 
-void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len ){
+vm_state_t* vm_p_get_state( uint8_t vm_index ){
+    
+    if( vm_index >= VM_MAX_VMS ){
 
-    if( index >= VM_MAX_VMS ){
-
-        return;
+        return 0;
     }
 
-    intf_v_printf( "sync: %u", msg->data_len );
-
-    // check that the VM is running normally
-    if( vm_status[index] != VM_STATUS_OK ){
-
-        // can't sync at this time
-
-        return;
-    }
-
-    // verify data length and program hash match
-    if( ( vm_state[index].program_name_hash != msg->program_name_hash ) ||
-        ( vm_state[index].data_len != msg->data_len ) ){
-
-        intf_v_printf( "sync param error" );
-
-        vm_status[index] = VM_STATUS_SYNC_FAIL;
-
-        return;
-    }
-
-    // set state
-    vm_status[index] = VM_STATUS_WAIT_SYNC;
-
-    vm_state[index].rng_seed        = msg->rng_seed;
-    vm_state[index].frame_number    = msg->frame_number;
+    return &vm_state[vm_index];
 }
 
-void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len ){
 
-    if( index >= VM_MAX_VMS ){
+// void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len ){
 
-        return;
-    }
+//     if( index >= VM_MAX_VMS ){
 
-    intf_v_printf( "offset: %u", msg->offset );
+//         return;
+//     }
 
-    uint16_t data_len = len - sizeof(wifi_msg_vm_sync_data_t);
+//     intf_v_printf( "sync: %u", msg->data_len );
 
-    if( ( msg->offset + data_len ) > vm_state[index].data_len ){
+//     // check that the VM is running normally
+//     if( vm_status[index] != VM_STATUS_OK ){
 
-        intf_v_printf( "sync overflow: %u", len );
+//         // can't sync at this time
 
-        vm_status[index] = VM_STATUS_SYNC_FAIL;
+//         return;
+//     }
 
-        return;
-    }
+//     // verify data length and program hash match
+//     if( ( vm_state[index].program_name_hash != msg->program_name_hash ) ||
+//         ( vm_state[index].data_len != msg->data_len ) ){
 
-    uint8_t *src = (uint8_t *)( msg + 1 );
+//         intf_v_printf( "sync param error" );
 
-    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
-    uint8_t *data = stream + vm_state[index].data_start;
+//         vm_status[index] = VM_STATUS_SYNC_FAIL;
 
-    memcpy( &data[msg->offset], src, data_len );
-}
+//         return;
+//     }
 
-void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len ){
+//     // set state
+//     vm_status[index] = VM_STATUS_WAIT_SYNC;
 
-    if( index >= VM_MAX_VMS ){
+//     vm_state[index].rng_seed        = msg->rng_seed;
+//     vm_state[index].frame_number    = msg->frame_number;
+// }
 
-        return;
-    }
+// void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len ){
 
-    intf_v_printf( "done: %lx", msg->hash );
+//     if( index >= VM_MAX_VMS ){
 
-    // check hash
-    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
-    uint8_t *data = stream + vm_state[index].data_start;
+//         return;
+//     }
 
-    uint32_t hash = hash_u32_data( data, vm_state[index].data_len );
+//     intf_v_printf( "offset: %u", msg->offset );
 
-    if( hash == msg->hash ){
+//     uint16_t data_len = len - sizeof(wifi_msg_vm_sync_data_t);
 
-        intf_v_printf( "verified" );
+//     if( ( msg->offset + data_len ) > vm_state[index].data_len ){
 
-        // set state
-        vm_status[index] = VM_STATUS_OK;
-    }
-    else{
+//         intf_v_printf( "sync overflow: %u", len );
 
-        vm_status[index] = VM_STATUS_SYNC_FAIL;
+//         vm_status[index] = VM_STATUS_SYNC_FAIL;
 
-        intf_v_printf( "%lx != %lx", hash, msg->hash );
-    }
-}
+//         return;
+//     }
+
+//     uint8_t *src = (uint8_t *)( msg + 1 );
+
+//     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
+//     uint8_t *data = stream + vm_state[index].data_start;
+
+//     memcpy( &data[msg->offset], src, data_len );
+// }
+
+// void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len ){
+
+//     if( index >= VM_MAX_VMS ){
+
+//         return;
+//     }
+
+//     intf_v_printf( "done: %lx", msg->hash );
+
+//     // check hash
+//     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
+//     uint8_t *data = stream + vm_state[index].data_start;
+
+//     uint32_t hash = hash_u32_data( data, vm_state[index].data_len );
+
+//     if( hash == msg->hash ){
+
+//         intf_v_printf( "verified" );
+
+//         // set state
+//         vm_status[index] = VM_STATUS_OK;
+//     }
+//     else{
+
+//         vm_status[index] = VM_STATUS_SYNC_FAIL;
+
+//         intf_v_printf( "%lx != %lx", hash, msg->hash );
+//     }
+// }
 
 int8_t vm_i8_run_func( uint8_t index, uint16_t func_addr ){
 
@@ -628,72 +639,72 @@ int8_t vm_i8_run_thread( uint8_t index, uint16_t thread_id ){
     return _vm_i8_run_vm( VM_RUN_THREAD, index, thread_id );   
 }
 
-void vm_v_request_frame_data( uint8_t index ){
+// void vm_v_request_frame_data( uint8_t index ){
 
-    if( index >= VM_MAX_VMS ){
+//     if( index >= VM_MAX_VMS ){
 
-        return;
-    }
+//         return;
+//     }
 
-    uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_frame_sync_t)];
+//     uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_frame_sync_t)];
     
-    wifi_msg_vm_frame_sync_t msg;
-    msg.rng_seed            = vm_state[index].rng_seed;
-    msg.frame_number        = vm_state[index].frame_number;
-    msg.data_len            = vm_state[index].data_len;
-    msg.program_name_hash   = vm_state[index].program_name_hash;
+//     wifi_msg_vm_frame_sync_t msg;
+//     msg.rng_seed            = vm_state[index].rng_seed;
+//     msg.frame_number        = vm_state[index].frame_number;
+//     msg.data_len            = vm_state[index].data_len;
+//     msg.program_name_hash   = vm_state[index].program_name_hash;
 
-    intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
+//     intf_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
 
-    uint32_t hash = hash_u32_start();
+//     uint32_t hash = hash_u32_start();
 
-    uint16_t len = vm_state[index].data_len;
+//     uint16_t len = vm_state[index].data_len;
 
-    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
-    uint8_t *src = stream + vm_state[index].data_start;
+//     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[index] );
+//     uint8_t *src = stream + vm_state[index].data_start;
 
-    wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
-    uint8_t *dst = (uint8_t *)( sync + 1 );
+//     wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
+//     uint8_t *dst = (uint8_t *)( sync + 1 );
 
-    if( ( (uint32_t)dst & 0x03 ) != 0 ){
+//     if( ( (uint32_t)dst & 0x03 ) != 0 ){
 
-        intf_v_printf("sync dst alignment error");
-        return;
-    }
+//         intf_v_printf("sync dst alignment error");
+//         return;
+//     }
 
-    if( ( (uint32_t)src & 0x03 ) != 0 ){
+//     if( ( (uint32_t)src & 0x03 ) != 0 ){
 
-        intf_v_printf("sync src alignment error");
-        return;
-    }
+//         intf_v_printf("sync src alignment error");
+//         return;
+//     }
 
-    sync->offset = 0;
-    sync->padding = 0;
+//     sync->offset = 0;
+//     sync->padding = 0;
 
-    while( len > 0 ){
+//     while( len > 0 ){
 
-        uint32_t copy_len = len;
-        if( copy_len > WIFI_MAX_SYNC_DATA){
+//         uint32_t copy_len = len;
+//         if( copy_len > WIFI_MAX_SYNC_DATA){
 
-            copy_len = WIFI_MAX_SYNC_DATA;
-        }
+//             copy_len = WIFI_MAX_SYNC_DATA;
+//         }
 
-        memcpy( dst, src, copy_len );
-        hash = hash_u32_partial( hash, dst, copy_len );
+//         memcpy( dst, src, copy_len );
+//         hash = hash_u32_partial( hash, dst, copy_len );
 
-        intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, sizeof(wifi_msg_vm_sync_data_t) + copy_len );
+//         intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, buf, sizeof(wifi_msg_vm_sync_data_t) + copy_len );
 
-        sync->offset =+ copy_len;
+//         sync->offset =+ copy_len;
 
-        src += copy_len;
-        len -= copy_len;
-    }
+//         src += copy_len;
+//         len -= copy_len;
+//     }
 
-    wifi_msg_vm_sync_done_t done;
-    done.hash = hash;
+//     wifi_msg_vm_sync_done_t done;
+//     done.hash = hash;
 
-    intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
-}
+//     intf_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DONE, (uint8_t *)&done, sizeof(done) );
+// }
 
 
 

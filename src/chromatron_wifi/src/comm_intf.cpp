@@ -498,12 +498,18 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_v_shutdown();
     }
-    // else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
+    else if( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ){
 
-    //     wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+        vm_state_t *state = vm_p_get_state( 0 );
 
-    //     vm_v_start_frame_sync( 0, msg, len );
-    // }
+        wifi_msg_vm_frame_sync_t msg;
+        msg.program_name_hash   = state->program_name_hash;
+        msg.frame_number        = state->frame_number;
+        msg.data_len            = state->data_len;
+        msg.rng_seed            = state->rng_seed;
+
+        _intf_i8_transmit_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
+    }
     // else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
 
     //     wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;

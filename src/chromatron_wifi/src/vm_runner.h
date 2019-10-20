@@ -51,14 +51,14 @@ int8_t vm_i8_start( uint32_t vm_index );
 uint16_t vm_u16_get_fader_time( void );
 uint16_t vm_u16_get_total_size( void );
 vm_thread_t* vm_p_get_threads( uint8_t vm_index );
-
-void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len );
-void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
-void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len );
+vm_state_t* vm_p_get_state( uint8_t vm_index );
+// void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len );
+// void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
+// void vm_v_frame_sync_done( uint8_t index, wifi_msg_vm_sync_done_t *msg, uint16_t len );
 
 int8_t vm_i8_run_thread( uint8_t index, uint16_t thread_id );
 int8_t vm_i8_run_func( uint8_t index, uint16_t func_addr );
 
-void vm_v_request_frame_data( uint8_t index );
+// void vm_v_request_frame_data( uint8_t index );
 
 #endif

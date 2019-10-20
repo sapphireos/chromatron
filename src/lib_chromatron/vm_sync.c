@@ -116,6 +116,23 @@ static bool vm_sync_wait( void ){
 	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
 }
 
+
+static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
+
+	if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
+
+        return -1;
+    }
+
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
+
+        return -2;
+    }
+
+    return 0;
+}
+
+
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -251,11 +268,17 @@ static void send_sync_0( void ){
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
 
+    wifi_msg_vm_frame_sync_t sync;
+    if( get_frame_sync( &sync ) < 0 ){
+
+    	return;
+    }
+
     msg.uptime              = tmr_u64_get_system_time_us();
-    msg.program_name_hash   = 0;
-    msg.frame_number        = 0;
-    msg.data_len            = 0;
-    msg.rng_seed            = 0;
+    msg.program_name_hash   = sync.program_name_hash;
+    msg.frame_number        = sync.frame_number;
+    msg.data_len            = sync.data_len;
+    msg.rng_seed            = sync.rng_seed;
     msg.net_time            = time_u32_get_network_time();
 
     // set up broadcast address
