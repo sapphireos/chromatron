@@ -132,6 +132,23 @@ static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
     return 0;
 }
 
+static void send_shutdown( void ){
+
+    vm_sync_msg_shutdown_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SHUTDOWN;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
+
+    // set up broadcast address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+}
+
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
@@ -139,7 +156,23 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-    	THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+    	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
+
+    	// check if shutting down
+    	if( sys_b_shutdown() ){
+
+    		// if we're a master, signal that we are shutting down
+    		if( sync_state == STATE_MASTER ){
+
+	    		send_shutdown();
+	    		TMR_WAIT( pt, 200 );
+	    		send_shutdown();
+	    		TMR_WAIT( pt, 200 );
+	    		send_shutdown();
+	    	}
+
+    		THREAD_EXIT( pt );
+    	}
 
 		// check if data received
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
@@ -234,6 +267,18 @@ PT_BEGIN( pt );
                 }
         	}
         }
+        else if( header->type == VM_SYNC_MSG_SHUTDOWN ){
+
+        	// check if message is from master
+        	if( ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
+
+        		if( sync_state != STATE_IDLE ){
+
+        			log_v_debug_P( PSTR("sync master shutting down") );
+        			sync_state = STATE_IDLE;
+        		}
+			}
+        }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
         	// vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
@@ -297,11 +342,11 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
 
-    	if( sync_state == STATE_IDLE ){
+    	// if( sync_state == STATE_IDLE ){
 
             // random delay, see if other masters show up
-            TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 3 ) );
-    	}
+            // TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 4 ) );
+    	// }
 
         // no masters, elect ourselves
         if( sync_state == STATE_IDLE ){
@@ -314,6 +359,11 @@ PT_BEGIN( pt );
 
     	while( sync_state == STATE_MASTER ){
 
+    		if( sys_b_shutdown() ){
+
+    			THREAD_EXIT( pt );
+    		}
+
             send_sync_0();
 
     		TMR_WAIT( pt, 8 * 1000 );
@@ -323,24 +373,18 @@ PT_BEGIN( pt );
 
     		// just switched to slave, let's delay and make sure
     		// the master election is stable
-    		TMR_WAIT( pt, 8 * 1000 );
+    		TMR_WAIT( pt, 4 * 1000 );
 
     	}
 
     	while( sync_state == STATE_SLAVE ){
 
-    			
-
-    		TMR_WAIT( pt, 8 * 1000 );
-
-    		
+    		TMR_WAIT( pt, 1 * 1000 );
     	}
 
     	while( sync_state == STATE_SLAVE_SYNC ){
 
-    		TMR_WAIT( pt, 8 * 1000 );
-
-    		
+    		TMR_WAIT( pt, 1 * 1000 );
     	}
 
 

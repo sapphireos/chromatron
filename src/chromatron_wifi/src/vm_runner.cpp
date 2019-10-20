@@ -535,6 +535,19 @@ vm_state_t* vm_p_get_state( uint8_t vm_index ){
     return &vm_state[vm_index];
 }
 
+void vm_v_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_t len ){
+    
+    if( vm_index >= VM_MAX_VMS ){
+
+        return;
+    }    
+
+    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    uint8_t *data_start = (uint8_t *)( stream + vm_state[vm_index].data_start );
+
+    memcpy( data, data_start + offset, len );
+}   
+
 
 // void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len ){
 
