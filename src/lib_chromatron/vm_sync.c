@@ -132,6 +132,54 @@ static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
     return 0;
 }
 
+
+static void send_sync_0( void ){
+
+    vm_sync_msg_sync_0_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SYNC_0;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
+
+    wifi_msg_vm_frame_sync_t sync;
+    if( get_frame_sync( &sync ) < 0 ){
+
+    	return;
+    }
+
+    msg.uptime              = tmr_u64_get_system_time_us();
+    msg.program_name_hash   = sync.program_name_hash;
+    msg.frame_number        = sync.frame_number;
+    msg.data_len            = sync.data_len;
+    msg.rng_seed            = sync.rng_seed;
+    msg.net_time            = time_u32_get_network_time();
+
+    // set up broadcast address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+}
+
+static void send_request( void ){
+
+    vm_sync_msg_sync_req_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
+
+    // set up broadcast address
+    sock_addr_t raddr;
+    raddr.port = SYNC_SERVER_PORT;
+    raddr.ipaddr = master_ip;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+}
+
 static void send_shutdown( void ){
 
     vm_sync_msg_shutdown_t msg;
@@ -288,50 +336,17 @@ PT_BEGIN( pt );
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-        	// vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
-
         	if( sync_state != STATE_MASTER ){
 
         		// this message can only be processed by a master
         		continue;
         	}
 
-
         	log_v_debug_P( PSTR("sync requested") );
         }
     }
 
 PT_END( pt );
-}
-
-static void send_sync_0( void ){
-
-    vm_sync_msg_sync_0_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SYNC_0;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
-
-    wifi_msg_vm_frame_sync_t sync;
-    if( get_frame_sync( &sync ) < 0 ){
-
-    	return;
-    }
-
-    msg.uptime              = tmr_u64_get_system_time_us();
-    msg.program_name_hash   = sync.program_name_hash;
-    msg.frame_number        = sync.frame_number;
-    msg.data_len            = sync.data_len;
-    msg.rng_seed            = sync.rng_seed;
-    msg.net_time            = time_u32_get_network_time();
-
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
@@ -379,7 +394,10 @@ PT_BEGIN( pt );
 
     	while( sync_state == STATE_SLAVE ){
 
-    		TMR_WAIT( pt, 1 * 1000 );
+    		send_request();
+
+    		thread_v_set_alarm( thread_u32_get_alarm() + 4000 );
+    		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_SLAVE ) );
     	}
 
     	while( sync_state == STATE_SLAVE_SYNC ){
