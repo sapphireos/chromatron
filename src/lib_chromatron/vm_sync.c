@@ -163,6 +163,27 @@ static void send_sync_0( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
+static void send_sync_n( uint16_t offset, sock_addr_t *raddr ){
+
+    vm_sync_msg_sync_n_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SYNC_N;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
+
+    // wifi_msg_vm_frame_sync_t sync;
+    // if( get_frame_sync( &sync ) < 0 ){
+
+    // 	return;
+    // }
+
+    msg.frame_number = 0;
+    msg.offset = offset;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
+}
+
 static void send_request( void ){
 
     vm_sync_msg_sync_req_t msg;
@@ -329,10 +350,11 @@ PT_BEGIN( pt );
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
-        	// vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
+        	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
 
+        	log_v_debug_P( PSTR("received sync offset: %u frame: %u"), msg->offset, msg->frame_number );
 
-
+        	sync_state = STATE_SLAVE_SYNC;
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
@@ -342,7 +364,11 @@ PT_BEGIN( pt );
         		continue;
         	}
 
+        	vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
+
         	log_v_debug_P( PSTR("sync requested") );
+
+        	send_sync_n( msg->offset, &raddr );
         }
     }
 
@@ -389,7 +415,6 @@ PT_BEGIN( pt );
     		// just switched to slave, let's delay and make sure
     		// the master election is stable
     		TMR_WAIT( pt, 4 * 1000 );
-
     	}
 
     	while( sync_state == STATE_SLAVE ){
@@ -398,6 +423,11 @@ PT_BEGIN( pt );
 
     		thread_v_set_alarm( thread_u32_get_alarm() + 4000 );
     		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_SLAVE ) );
+    	}
+
+    	if( sync_state == STATE_SLAVE_SYNC ){
+
+    		log_v_debug_P( PSTR("vm sync!") );
     	}
 
     	while( sync_state == STATE_SLAVE_SYNC ){

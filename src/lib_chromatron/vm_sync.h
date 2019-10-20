@@ -66,6 +66,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
+    uint16_t offset;
 } vm_sync_msg_sync_req_t;
 #define VM_SYNC_MSG_SYNC_REQ                    3
 
