@@ -95,24 +95,24 @@ typedef struct __attribute__((packed)){
     uint16_t data_len;
     uint64_t rng_seed;
 } wifi_msg_vm_frame_sync_t;
-#define WIFI_DATA_ID_VM_FRAME_SYNC      0x68
+#define WIFI_DATA_ID_VM_FRAME_SYNC      0x81
 
 typedef struct __attribute__((packed)){
     uint16_t offset;
     uint16_t padding;
 } wifi_msg_vm_sync_data_t;
-#define WIFI_DATA_ID_VM_SYNC_DATA      	0x69
+#define WIFI_DATA_ID_VM_SYNC_DATA      	0x82
 #define WIFI_MAX_SYNC_DATA 	( 244 - sizeof(wifi_msg_vm_frame_sync_t) )
 
 typedef struct __attribute__((packed)){
     uint32_t hash;
 } wifi_msg_vm_sync_done_t;
-#define WIFI_DATA_ID_VM_SYNC_DONE      	0x6A
+#define WIFI_DATA_ID_VM_SYNC_DONE      	0x83
 
 typedef struct __attribute__((packed)){
     uint32_t offset;
 } wifi_msg_vm_request_frame_t;
-#define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x6B
+#define WIFI_DATA_ID_REQUEST_FRAME_SYNC 0x83
 
 #endif
 
