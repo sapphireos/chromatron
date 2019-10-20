@@ -151,15 +151,22 @@ class Client(object):
         cache = {}
         try:
             with open(DATA_DIR_FILE_PATH, 'r') as f:
-                temp = json.loads(f.read())
+                file_data = f.read()
 
-                cache = {}
-                # have to convert keys back to int because json only does string keys
-                for k, v in temp.iteritems():
-                    cache[int(k)] = v
+            temp = json.loads(file_data)
+
+            cache = {}
+            # have to convert keys back to int because json only does string keys
+            for k, v in temp.iteritems():
+                cache[int(k)] = v
 
         except ValueError:
-            print "JSON decode error"
+            # if the cache file has an error, or if it is
+            # being rewritten and has not fully synced to disk,
+            # we get an error here.
+
+            # just bypass and carryon with no cache
+            pass
 
         except IOError:
             pass
@@ -229,10 +236,22 @@ class Client(object):
                     # can't find anything, just return hash itself
                     resolved_keys[k] = k
 
-        cache.update(resolved_keys)
+        changed = False
+        # check if any keys were added
+        for k in resolved_keys:
+            if k not in cache:
+                cache.update(resolved_keys)
 
-        with open(DATA_DIR_FILE_PATH, 'w') as f:
-            f.write(json.dumps(cache))
+                changed = True
+                break
+
+        if changed:
+            # update cache file, if anything changed
+            with open(DATA_DIR_FILE_PATH, 'w') as f:
+                f.write(json.dumps(cache))
+
+                # ensure file is committed to disk
+                f.flush()
 
         return resolved_keys
 
