@@ -107,6 +107,16 @@ void vm_sync_v_init( void ){
                     0 );    
 }
 
+void vm_sync_v_trigger( void ){
+
+    if( sync_state != STATE_MASTER ){
+
+        return;
+    }
+
+    thread_v_signal( SYNC_SIGNAL );
+}
+
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 	return sync_group_hash;
@@ -440,6 +450,8 @@ PT_BEGIN( pt );
     			THREAD_EXIT( pt );
     		}
 
+            THREAD_WAIT_SIGNAL( pt, SYNC_SIGNAL );
+
             wifi_msg_vm_frame_sync_t sync;
             if( get_frame_sync( &sync ) < 0 ){
 
@@ -468,6 +480,7 @@ PT_BEGIN( pt );
 
 master_error:
     		TMR_WAIT( pt, 8 * 1000 );
+            thread_v_clear_signal( SYNC_SIGNAL );
     	}
 
     	if( sync_state == STATE_SLAVE ){

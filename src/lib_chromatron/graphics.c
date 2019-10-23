@@ -774,6 +774,8 @@ PT_BEGIN( pt );
                 // let's delay
                 TMR_WAIT( pt, 100 );
             }
+
+            vm_sync_v_trigger();
         }
     }
             

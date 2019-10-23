@@ -31,6 +31,8 @@
 
 #define SYNC_SERVER_PORT                	32038
 
+#define SYNC_SIGNAL                         SIGNAL_SYS_5
+
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	2
 
@@ -125,6 +127,7 @@ uint32_t vm_sync_u32_get_sync_group_hash( void );
 // void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 
 void vm_sync_v_init( void );
+void vm_sync_v_trigger( void );
 
 #endif
 
