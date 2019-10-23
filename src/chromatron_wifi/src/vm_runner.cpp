@@ -535,17 +535,24 @@ vm_state_t* vm_p_get_state( uint8_t vm_index ){
     return &vm_state[vm_index];
 }
 
-void vm_v_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_t len ){
+uint16_t vm_u16_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_t len ){
     
     if( vm_index >= VM_MAX_VMS ){
 
-        return;
+        return 0;
     }    
 
     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *data_start = (uint8_t *)( stream + vm_state[vm_index].data_start );
 
+    if( offset + len > vm_state[vm_index].data_len ){
+
+        len = vm_state[vm_index].data_len - offset;
+    }
+
     memcpy( data, data_start + offset, len );
+
+    return len;
 }   
 
 

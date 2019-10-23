@@ -52,7 +52,7 @@ uint16_t vm_u16_get_fader_time( void );
 uint16_t vm_u16_get_total_size( void );
 vm_thread_t* vm_p_get_threads( uint8_t vm_index );
 vm_state_t* vm_p_get_state( uint8_t vm_index );
-void vm_v_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_t len );
+uint16_t vm_u16_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_t len );
 
 // void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len );
 // void vm_v_frame_sync_data( uint8_t index, wifi_msg_vm_sync_data_t *msg, uint16_t len );
