@@ -133,7 +133,26 @@ static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 }
 
 
-static void send_sync_0( void ){
+static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
+
+    msg->offset = offset;
+
+    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) ) < 0 ){
+
+        return -1;
+    }
+
+    uint16_t bytes_read;
+
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
+
+        return -2;
+    }
+
+    return bytes_read;
+}
+
+static void send_sync_0( wifi_msg_vm_frame_sync_t *sync ){
 
     vm_sync_msg_sync_0_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
@@ -142,17 +161,11 @@ static void send_sync_0( void ){
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
 
-    wifi_msg_vm_frame_sync_t sync;
-    if( get_frame_sync( &sync ) < 0 ){
-
-    	return;
-    }
-
     msg.uptime              = tmr_u64_get_system_time_us();
-    msg.program_name_hash   = sync.program_name_hash;
-    msg.frame_number        = sync.frame_number;
-    msg.data_len            = sync.data_len;
-    msg.rng_seed            = sync.rng_seed;
+    msg.program_name_hash   = sync->program_name_hash;
+    msg.frame_number        = sync->frame_number;
+    msg.data_len            = sync->data_len;
+    msg.rng_seed            = sync->rng_seed;
     msg.net_time            = time_u32_get_network_time();
 
     // set up broadcast address
@@ -163,43 +176,51 @@ static void send_sync_0( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
-static void send_sync_n( uint16_t offset, sock_addr_t *raddr ){
+static void send_sync_n( uint16_t offset, uint8_t *data, uint16_t len ){
 
-    vm_sync_msg_sync_n_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SYNC_N;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
+    mem_handle_t h = mem2_h_alloc( len + sizeof(vm_sync_msg_sync_n_t) );
 
-    // wifi_msg_vm_frame_sync_t sync;
-    // if( get_frame_sync( &sync ) < 0 ){
+    if( h < 0 ){
 
-    // 	return;
-    // }
+        return;
+    }
 
-    msg.frame_number = 0;
-    msg.offset = offset;
+    vm_sync_msg_sync_n_t *msg = mem2_vp_get_ptr( h );
+    uint8_t *msg_data = (uint8_t *)( msg + 1 );
+    memcpy( msg_data, data, len );
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
-}
+    msg->header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg->header.version          = SYNC_PROTOCOL_VERSION;
+    msg->header.type             = VM_SYNC_MSG_SYNC_N;
+    msg->header.flags            = 0;
+    msg->header.sync_group_hash  = sync_group_hash;
 
-static void send_request( void ){
-
-    vm_sync_msg_sync_req_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
+    msg->offset = offset;
 
     // set up broadcast address
     sock_addr_t raddr;
     raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = master_ip;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+    sock_i16_sendto_m( sock, h, &raddr );   
 }
+
+// static void send_request( void ){
+
+//     vm_sync_msg_sync_req_t msg;
+//     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+//     msg.header.version          = SYNC_PROTOCOL_VERSION;
+//     msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
+//     msg.header.flags            = 0;
+//     msg.header.sync_group_hash  = sync_group_hash;
+
+//     // set up broadcast address
+//     sock_addr_t raddr;
+//     raddr.port = SYNC_SERVER_PORT;
+//     raddr.ipaddr = master_ip;
+
+//     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+// }
 
 static void send_shutdown( void ){
 
@@ -356,20 +377,20 @@ PT_BEGIN( pt );
 
         	sync_state = STATE_SLAVE_SYNC;
         }
-        else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
+        // else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-        	if( sync_state != STATE_MASTER ){
+        // 	if( sync_state != STATE_MASTER ){
 
-        		// this message can only be processed by a master
-        		continue;
-        	}
+        // 		// this message can only be processed by a master
+        // 		continue;
+        // 	}
 
-        	vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
+        // 	vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
-        	log_v_debug_P( PSTR("sync requested") );
+        // 	log_v_debug_P( PSTR("sync requested") );
 
-        	send_sync_n( msg->offset, &raddr );
-        }
+        // 	send_sync_n( msg->offset, &raddr );
+        // }
     }
 
 PT_END( pt );
@@ -405,8 +426,31 @@ PT_BEGIN( pt );
     			THREAD_EXIT( pt );
     		}
 
-            send_sync_0();
+            wifi_msg_vm_frame_sync_t sync;
+            if( get_frame_sync( &sync ) < 0 ){
 
+                goto master_error;
+            }
+
+            send_sync_0( &sync );
+
+            uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+            uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
+
+            for( uint16_t i = 0; i < sync.data_len; ){
+
+                int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
+                if( bytes_read < 0 ){
+
+                    goto master_error;
+                }
+
+                send_sync_n( i, data, bytes_read );
+
+                i += WIFI_MAX_SYNC_DATA;
+            }
+
+master_error:
     		TMR_WAIT( pt, 8 * 1000 );
     	}
 
@@ -419,7 +463,7 @@ PT_BEGIN( pt );
 
     	while( sync_state == STATE_SLAVE ){
 
-    		send_request();
+    		// send_request();
 
     		thread_v_set_alarm( thread_u32_get_alarm() + 4000 );
     		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_SLAVE ) );
