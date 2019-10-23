@@ -775,11 +775,14 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 100 );
             }
 
+            last_vm0_frame_ts = time_u32_get_network_time();
+            vm0_frame_number++;
+
             // if( vm_sync_b_is_slave() ){
 
             //     uint32_t net_time = time_u32_get_network_time();
-                
-                
+
+
             // }
 
             vm_sync_v_trigger();
