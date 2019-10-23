@@ -375,45 +375,45 @@ bool gfx_b_running( void ){
     return pixel_transfer_enable;
 }
 
-uint16_t gfx_u16_get_frame_number( void ){
+// uint16_t gfx_u16_get_frame_number( void ){
 
-    return vm0_frame_number;
-}
+//     return vm0_frame_number;
+// }
 
-uint32_t gfx_u32_get_frame_ts( void ){
+// uint32_t gfx_u32_get_frame_ts( void ){
 
-    return last_vm0_frame_ts;
-}
+//     return last_vm0_frame_ts;
+// }
 
-void gfx_v_set_frame_number( uint16_t frame ){
+// void gfx_v_set_frame_number( uint16_t frame ){
 
-    vm0_frame_number = frame;
-}
+//     vm0_frame_number = frame;
+// }
 
-void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
+// void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
-    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
-    int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
+//     int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+//     int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
 
-    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+//     int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
 
-    // we are ahead
-    if( corrected_time_offset > 10 ){
+//     // we are ahead
+//     if( corrected_time_offset > 10 ){
 
-        // slow down
-        frame_rate_adjust = 10;
-    }
-    // we are behind
-    else if( corrected_time_offset < 10 ){
+//         // slow down
+//         frame_rate_adjust = 10;
+//     }
+//     // we are behind
+//     else if( corrected_time_offset < 10 ){
 
-        // speed up
-        frame_rate_adjust = -10;
-    }
+//         // speed up
+//         frame_rate_adjust = -10;
+//     }
 
-    log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
+//     log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
 
-    update_vm_timer();
-}
+//     update_vm_timer();
+// }
 
 void gfx_v_pixel_bridge_enable( void ){
 

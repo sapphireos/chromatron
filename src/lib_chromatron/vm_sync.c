@@ -47,6 +47,8 @@ static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
 static uint16_t slave_offset;
+static uint16_t slave_frame;
+static uint32_t slave_net_time;
 
 
 int8_t vmsync_i8_kv_handler(
@@ -329,7 +331,9 @@ PT_BEGIN( pt );
         		sync_state = STATE_SLAVE;
 
                 // slave, not synced 
-                slave_offset = 0;
+                slave_offset    = 0;
+                slave_frame     = msg->frame_number;
+                slave_net_time  = msg->net_time;
 
                 log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
 
@@ -384,7 +388,6 @@ PT_BEGIN( pt );
                     if( data_len < (int16_t)WIFI_MAX_SYNC_DATA ){
 
                         sync_state = STATE_SLAVE_SYNC;
-
                     }
                 }
             }
