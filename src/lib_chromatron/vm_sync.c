@@ -119,6 +119,16 @@ void vm_sync_v_trigger( void ){
     thread_v_signal( SYNC_SIGNAL );
 }
 
+bool vm_sync_b_is_master( void ){
+
+    return sync_state == STATE_MASTER;
+}
+
+bool vm_sync_b_is_slave( void ){
+
+    return sync_state == STATE_SLAVE_SYNC;
+}
+
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 	return sync_group_hash;
@@ -261,6 +271,7 @@ PT_BEGIN( pt );
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
+        uint32_t now = time_u32_get_network_time();
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
@@ -370,10 +381,16 @@ PT_BEGIN( pt );
         		    sync_state = STATE_SLAVE;
                 }
         	}
+
+            if( sync_state == STATE_SLAVE_SYNC ){
+
+                log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
+                gfx_v_set_sync0( msg->frame_number, now );
+            }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
-            if( sync_state  == STATE_SLAVE ){
+            if( sync_state == STATE_SLAVE ){
 
             	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
 
@@ -388,6 +405,8 @@ PT_BEGIN( pt );
                     if( data_len < (int16_t)WIFI_MAX_SYNC_DATA ){
 
                         sync_state = STATE_SLAVE_SYNC;
+
+                        gfx_v_set_frame_number( slave_frame );
                     }
                 }
             }
