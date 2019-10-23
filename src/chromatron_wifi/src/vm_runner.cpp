@@ -555,6 +555,23 @@ uint16_t vm_u16_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint
     return len;
 }   
 
+void vm_v_set_vm_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_t len ){
+    
+    if( vm_index >= VM_MAX_VMS ){
+
+        return;
+    }    
+
+    uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
+    uint8_t *data_start = (uint8_t *)( stream + vm_state[vm_index].data_start );
+
+    if( offset + len > vm_state[vm_index].data_len ){
+
+        len = vm_state[vm_index].data_len - offset;
+    }
+
+    memcpy( data_start + offset, data, len );
+}   
 
 // void vm_v_start_frame_sync( uint8_t index, wifi_msg_vm_frame_sync_t *msg, uint16_t len ){
 
