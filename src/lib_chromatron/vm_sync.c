@@ -46,6 +46,7 @@ static uint8_t sync_state;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
+static uint16_t slave_offset;
 
 
 int8_t vmsync_i8_kv_handler(
@@ -176,7 +177,7 @@ static void send_sync_0( wifi_msg_vm_frame_sync_t *sync ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
-static void send_sync_n( uint16_t offset, uint8_t *data, uint16_t len ){
+static void send_sync_n( uint16_t offset, uint16_t frame_number, uint8_t *data, uint16_t len ){
 
     mem_handle_t h = mem2_h_alloc( len + sizeof(vm_sync_msg_sync_n_t) );
 
@@ -195,7 +196,8 @@ static void send_sync_n( uint16_t offset, uint8_t *data, uint16_t len ){
     msg->header.flags            = 0;
     msg->header.sync_group_hash  = sync_group_hash;
 
-    msg->offset = offset;
+    msg->offset         = offset;
+    msg->frame_number   = frame_number;
 
     // set up broadcast address
     sock_addr_t raddr;
@@ -332,8 +334,9 @@ PT_BEGIN( pt );
         	else if( sync_state == STATE_SLAVE ){
 
         		// slave, not synced 
+                slave_offset = 0;
 
-
+                log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
         	}
 
         	// compare uptimes - longest uptime wins election
@@ -357,25 +360,39 @@ PT_BEGIN( pt );
                 }
         	}
         }
-        else if( header->type == VM_SYNC_MSG_SHUTDOWN ){
-
-        	// check if message is from master
-        	if( ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
-
-        		if( sync_state != STATE_IDLE ){
-
-        			log_v_debug_P( PSTR("sync master shutting down") );
-        			sync_state = STATE_IDLE;
-        		}
-			}
-        }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
-        	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
+            if( sync_state  == STATE_SLAVE ){
 
-        	log_v_debug_P( PSTR("received sync offset: %u frame: %u"), msg->offset, msg->frame_number );
+            	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
 
-        	sync_state = STATE_SLAVE_SYNC;
+            	log_v_debug_P( PSTR("received sync offset: %u frame: %u"), msg->offset, msg->frame_number );
+
+                if( msg->offset == slave_offset ){
+
+                    int16_t data_len = sock_i16_get_bytes_read( sock ) - sizeof(vm_sync_msg_sync_n_t);
+
+                    slave_offset += data_len;
+
+                    if( data_len < (int16_t)WIFI_MAX_SYNC_DATA ){
+
+                        sync_state = STATE_SLAVE_SYNC;
+
+                    }
+                }
+            }
+        }
+        else if( header->type == VM_SYNC_MSG_SHUTDOWN ){
+
+            // check if message is from master
+            if( ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
+
+                if( sync_state != STATE_IDLE ){
+
+                    log_v_debug_P( PSTR("sync master shutting down") );
+                    sync_state = STATE_IDLE;
+                }
+            }
         }
         // else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
@@ -434,6 +451,8 @@ PT_BEGIN( pt );
 
             send_sync_0( &sync );
 
+            log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
+
             uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
             uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
 
@@ -445,7 +464,7 @@ PT_BEGIN( pt );
                     goto master_error;
                 }
 
-                send_sync_n( i, data, bytes_read );
+                send_sync_n( i, sync.frame_number, data, bytes_read );
 
                 i += WIFI_MAX_SYNC_DATA;
             }
