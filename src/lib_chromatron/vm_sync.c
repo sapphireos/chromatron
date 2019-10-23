@@ -314,14 +314,18 @@ PT_BEGIN( pt );
                         master_ip.ip3, 
                         master_ip.ip2, 
                         master_ip.ip1, 
-                        master_ip.ip0 );                    
+                        master_ip.ip0 );
 
         		sync_state = STATE_SLAVE;
 
-        		// done processing
-        		continue;
-        	}
+                // slave, not synced 
+                slave_offset = 0;
 
+                log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
+
+                // done processing
+                continue;
+        	}
 
         	uint64_t temp_master_uptime = master_uptime;
 
@@ -330,13 +334,6 @@ PT_BEGIN( pt );
 
         		// use our current uptime
         		temp_master_uptime = tmr_u64_get_system_time_us();
-        	}
-        	else if( sync_state == STATE_SLAVE ){
-
-        		// slave, not synced 
-                slave_offset = 0;
-
-                log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
         	}
 
         	// compare uptimes - longest uptime wins election
