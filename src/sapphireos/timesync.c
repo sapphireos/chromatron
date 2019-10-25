@@ -122,13 +122,13 @@ void time_v_init( void ){
     // January 1, 2018, midnight
     master_time.seconds = 1514786400 + 2208988800 - 21600;
 
-    // check if time sync is enabled
-    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
     }
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    
+    // check if time sync is enabled
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
         return;
     }

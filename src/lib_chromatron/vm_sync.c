@@ -86,6 +86,12 @@ void vm_sync_v_init( void ){
         return;
     }
 
+    // check if time sync is enabled
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+
+        return;
+    }
+
 	// init sync group hash
 	char buf[32];
 	memset( buf, 0, sizeof(buf) );
@@ -394,7 +400,7 @@ PT_BEGIN( pt );
                 sync.data_len           = msg->data_len;
                 sync.rng_seed           = msg->rng_seed;
 
-                set_frame_sync( &sync );                
+                // set_frame_sync( &sync );                
 
                 // done processing
                 continue;
@@ -452,9 +458,15 @@ PT_BEGIN( pt );
 
                 int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
 
+                if( data_len > WIFI_MAX_SYNC_DATA ){
+
+                    log_v_debug_P( PSTR("invalid len") );
+                    continue;
+                }
+
                 memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
 
-                set_frame_data( sync, data_len );
+                // set_frame_data( sync, data_len );
 
                 if( msg->offset == slave_offset ){
 
@@ -570,13 +582,7 @@ master_error:
     		TMR_WAIT( pt, 4 * 1000 );
     	}
 
-    	while( sync_state == STATE_SLAVE ){
-
-    		// send_request();
-
-    		thread_v_set_alarm( thread_u32_get_alarm() + 4000 );
-    		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_SLAVE ) );
-    	}
+    	THREAD_WAIT_WHILE( pt, sync_state == STATE_SLAVE );
 
     	if( sync_state == STATE_SLAVE_SYNC ){
 
