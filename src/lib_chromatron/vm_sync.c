@@ -31,6 +31,7 @@
 #include "esp8266.h"
 #include "vm_wifi_cmd.h"
 #include "graphics.h"
+#include "config.h"
 
 #include "logging.h"
 
@@ -400,7 +401,7 @@ PT_BEGIN( pt );
                 sync.data_len           = msg->data_len;
                 sync.rng_seed           = msg->rng_seed;
 
-                // set_frame_sync( &sync );                
+                set_frame_sync( &sync );                
 
                 // done processing
                 continue;
@@ -448,25 +449,25 @@ PT_BEGIN( pt );
 
             	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
 
-            	log_v_debug_P( PSTR("received sync offset: %u frame: %u"), msg->offset, msg->frame_number );
-
-                uint8_t *msg_data = (uint8_t *)( msg + 1 );
-
-                uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-                wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
-                sync->offset = msg->offset;
-
                 int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
 
-                if( data_len > WIFI_MAX_SYNC_DATA ){
+                if( data_len > (int16_t)WIFI_MAX_SYNC_DATA ){
 
                     log_v_debug_P( PSTR("invalid len") );
                     continue;
                 }
+            	log_v_debug_P( PSTR("received sync offset: %u frame: %u len: %d"), msg->offset, msg->frame_number, data_len );
+
+                uint8_t *msg_data = (uint8_t *)( msg + 1 );
+
+                uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+                wifi_msg_vm_sync_data_t *sync   = (wifi_msg_vm_sync_data_t *)buf;
+                
+                sync->offset = msg->offset;
 
                 memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
 
-                // set_frame_data( sync, data_len );
+                set_frame_data( sync, data_len );
 
                 if( msg->offset == slave_offset ){
 
@@ -573,13 +574,6 @@ PT_BEGIN( pt );
 master_error:
     		TMR_WAIT( pt, 8 * 1000 );
             thread_v_clear_signal( SYNC_SIGNAL );
-    	}
-
-    	if( sync_state == STATE_SLAVE ){
-
-    		// just switched to slave, let's delay and make sure
-    		// the master election is stable
-    		TMR_WAIT( pt, 4 * 1000 );
     	}
 
     	THREAD_WAIT_WHILE( pt, sync_state == STATE_SLAVE );

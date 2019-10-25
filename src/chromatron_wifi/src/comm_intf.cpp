@@ -520,7 +520,7 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
         state->data_len             = msg.data_len;
         state->rng_seed             = msg.rng_seed;
 
-        _intf_i8_transmit_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)&msg, sizeof(msg) );
+        _intf_i8_transmit_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0 );
     }
     else if( data_id == WIFI_DATA_ID_VM_SYNC_DATA ){
 
