@@ -147,12 +147,28 @@ static bool vm_sync_wait( void ){
 
 static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
-	if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
+	if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, 0, 0 ) < 0 ){
 
         return -1;
     }
 
     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
+
+        return -2;
+    }
+
+    return 0;
+}
+
+
+static int8_t set_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
+
+    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
+
+        return -1;
+    }
+
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0, 0 ) < 0 ){
 
         return -2;
     }
@@ -173,6 +189,24 @@ static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
     uint16_t bytes_read;
 
     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
+
+        return -2;
+    }
+
+    return bytes_read;
+}
+
+
+static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
+
+    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
+
+        return -1;
+    }
+
+    uint16_t bytes_read;
+
+    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
 
         return -2;
     }
@@ -295,7 +329,8 @@ PT_BEGIN( pt );
     	}
 
 		// check if data received
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+        int16_t sock_data_len = sock_i16_get_bytes_read( sock );
+        if( sock_data_len <= 0 ){
 
         	// socket timeout
 
@@ -353,6 +388,14 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
 
+                wifi_msg_vm_frame_sync_t sync;
+                sync.program_name_hash  = msg->program_name_hash;
+                sync.frame_number       = msg->frame_number;
+                sync.data_len           = msg->data_len;
+                sync.rng_seed           = msg->rng_seed;
+
+                set_frame_sync( &sync );                
+
                 // done processing
                 continue;
         	}
@@ -401,9 +444,19 @@ PT_BEGIN( pt );
 
             	log_v_debug_P( PSTR("received sync offset: %u frame: %u"), msg->offset, msg->frame_number );
 
-                if( msg->offset == slave_offset ){
+                uint8_t *msg_data = (uint8_t *)( msg + 1 );
 
-                    int16_t data_len = sock_i16_get_bytes_read( sock ) - sizeof(vm_sync_msg_sync_n_t);
+                uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+                wifi_msg_vm_sync_data_t *sync = (wifi_msg_vm_sync_data_t *)buf;
+                sync->offset = msg->offset;
+
+                int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
+
+                memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
+
+                set_frame_data( sync, data_len );
+
+                if( msg->offset == slave_offset ){
 
                     slave_offset += data_len;
 
@@ -1247,3 +1300,4 @@ void vm_sync_v_init( void ){
 
 
 #endif
+
