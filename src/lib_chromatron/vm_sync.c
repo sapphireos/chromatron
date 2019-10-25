@@ -126,6 +126,11 @@ bool vm_sync_b_is_master( void ){
 
 bool vm_sync_b_is_slave( void ){
 
+    return sync_state == STATE_SLAVE;
+}
+
+bool vm_sync_b_is_slave_synced( void ){
+
     return sync_state == STATE_SLAVE_SYNC;
 }
 

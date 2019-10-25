@@ -36,6 +36,7 @@
 #include "vm.h"
 #include "vm_core.h"
 #include "vm_cron.h"
+#include "vm_sync.h"
 
 
 static bool vm_reset[VM_MAX_VMS];
@@ -220,6 +221,18 @@ static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr,
 
         return 0;
     }
+
+    if( ( vm_id == 0 ) && ( data_id != WIFI_DATA_ID_INIT_VM ) ){
+
+        // special handling for vm sync
+
+        // vm is syncing, but not yet synced
+        if( vm_sync_b_is_slave() ){
+
+            return 0;
+        }
+    }
+
 
     // synchronize database parameters
     gfx_v_sync_db( FALSE );

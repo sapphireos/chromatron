@@ -131,6 +131,7 @@ void vm_sync_v_trigger( void );
 
 bool vm_sync_b_is_master( void );
 bool vm_sync_b_is_slave( void );
+bool vm_sync_b_is_slave_synced( void );
 
 #endif
 
