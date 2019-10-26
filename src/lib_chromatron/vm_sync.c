@@ -439,6 +439,9 @@ PT_BEGIN( pt );
 
             if( sync_state == STATE_SLAVE_SYNC ){
 
+                uint32_t rate = slave_frame - msg->frame_number;
+                slave_frame = msg->frame_number;
+
                 log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
                 gfx_v_set_sync0( msg->frame_number, now );
             }
