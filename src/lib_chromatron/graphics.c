@@ -403,11 +403,21 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
         // slow down
         frame_rate_adjust = 10;
     }
+    else if( corrected_time_offset > 2 ){
+
+        // slow down
+        frame_rate_adjust = 1;
+    }
     // we are behind
-    else if( corrected_time_offset < 10 ){
+    else if( corrected_time_offset < -10 ){
 
         // speed up
         frame_rate_adjust = -10;
+    }
+    else if( corrected_time_offset < -2 ){
+
+        // speed up
+        frame_rate_adjust = -1;
     }
 
     log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
