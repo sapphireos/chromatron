@@ -225,7 +225,8 @@ static void send_sync_0( wifi_msg_vm_frame_sync_t *sync ){
     msg.frame_number        = sync->frame_number;
     msg.data_len            = sync->data_len;
     msg.rng_seed            = sync->rng_seed;
-    msg.net_time            = time_u32_get_network_time();
+    // msg.net_time            = time_u32_get_network_time();
+    // msg.timestamp           =tmr_u32_get_system_time_ms();
 
     // set up broadcast address
     sock_addr_t raddr;
@@ -417,7 +418,8 @@ PT_BEGIN( pt );
                 // slave, not synced 
                 slave_offset    = 0;
                 slave_frame     = msg->frame_number;
-                slave_net_time  = msg->net_time;
+                // slave_net_time  = msg->net_time;
+                slave_net_time  = msg->uptime / 1000;
 
                 log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
 
@@ -469,7 +471,7 @@ PT_BEGIN( pt );
                 // slave_frame = msg->frame_number;
 
                 // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
-                // gfx_v_set_sync0( msg->frame_number, now );
+                gfx_v_set_sync0( msg->frame_number, now );
             }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){

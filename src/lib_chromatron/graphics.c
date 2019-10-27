@@ -392,7 +392,7 @@ void gfx_v_set_frame_number( uint16_t frame ){
 
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
-    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    int32_t frame_offset = (int32_t)frame - (int32_t)vm0_frame_number;
     int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
 
     int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
@@ -781,11 +781,14 @@ PT_BEGIN( pt );
             // if( vm_sync_b_is_slave() ){
 
             //     uint32_t net_time = time_u32_get_network_time();
-
-
             // }
 
-            vm_sync_v_trigger();
+            uint16_t rate = SYNC_RATE / gfx_frame_rate;
+
+            if( ( vm0_frame_number % rate ) == 0 ){
+
+                vm_sync_v_trigger();
+            }
         }
     }
             

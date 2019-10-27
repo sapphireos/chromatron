@@ -31,12 +31,13 @@
 
 #define SYNC_SERVER_PORT                	32038
 
-#define SYNC_SIGNAL                         SIGNAL_SYS_5
+// #define SYNC_SIGNAL                         SIGNAL_SYS_5
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	2
 
 #define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
+#define SYNC_RATE                           8000
 
 #define SYNC_DATA_MAX                       512
 
@@ -55,7 +56,8 @@ typedef struct __attribute__((packed)){
     uint16_t frame_number;
     uint16_t data_len;
     uint64_t rng_seed;
-    uint32_t net_time;
+    // uint32_t net_time;
+    // uint32_t timestamp;
 } vm_sync_msg_sync_0_t;
 #define VM_SYNC_MSG_SYNC_0                      1
 
