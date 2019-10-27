@@ -423,6 +423,8 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
 
     update_vm_timer();
+
+    last_vm0_frame_ts = ts;
 }
 
 void gfx_v_pixel_bridge_enable( void ){
@@ -785,7 +787,7 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 100 );
             }
 
-            last_vm0_frame_ts = time_u32_get_network_time();
+            // last_vm0_frame_ts = time_u32_get_network_time();
             vm0_frame_number++;
 
             // if( vm_sync_b_is_slave() ){

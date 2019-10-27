@@ -88,10 +88,10 @@ void vm_sync_v_init( void ){
     }
 
     // check if time sync is enabled
-    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+    // if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
-        return;
-    }
+    //     return;
+    // }
 
 	// init sync group hash
 	char buf[32];
@@ -138,7 +138,8 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 static bool vm_sync_wait( void ){
 
-	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
+	// return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
+    return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) );
 }
 
 
