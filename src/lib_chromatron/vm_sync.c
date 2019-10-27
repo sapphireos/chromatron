@@ -116,16 +116,6 @@ void vm_sync_v_init( void ){
                     0 );    
 }
 
-void vm_sync_v_trigger( void ){
-
-    if( sync_state != STATE_MASTER ){
-
-        return;
-    }
-
-    thread_v_signal( SYNC_SIGNAL );
-}
-
 bool vm_sync_b_is_master( void ){
 
     return sync_state == STATE_MASTER;
@@ -310,6 +300,42 @@ static void send_shutdown( void ){
 }
 
 
+void vm_sync_v_trigger( void ){
+
+    if( sync_state != STATE_MASTER ){
+
+        return;
+    }
+
+    // thread_v_signal( SYNC_SIGNAL );
+
+    wifi_msg_vm_frame_sync_t sync;
+    if( get_frame_sync( &sync ) < 0 ){
+
+        return;
+    }
+
+    send_sync_0( &sync );
+
+    log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
+
+    uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+    uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
+
+    for( uint16_t i = 0; i < sync.data_len; ){
+
+        int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
+        if( bytes_read < 0 ){
+
+            return;
+        }
+
+        send_sync_n( i, sync.frame_number, data, bytes_read );
+
+        i += WIFI_MAX_SYNC_DATA;
+    }
+}
+
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -317,7 +343,7 @@ PT_BEGIN( pt );
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
-        uint32_t now = time_u32_get_network_time();
+        // uint32_t now = time_u32_get_network_time();
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
@@ -439,11 +465,11 @@ PT_BEGIN( pt );
 
             if( sync_state == STATE_SLAVE_SYNC ){
 
-                uint32_t rate = slave_frame - msg->frame_number;
-                slave_frame = msg->frame_number;
+                // uint32_t rate = slave_frame - msg->frame_number;
+                // slave_frame = msg->frame_number;
 
-                log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
-                gfx_v_set_sync0( msg->frame_number, now );
+                // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
+                // gfx_v_set_sync0( msg->frame_number, now );
             }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
@@ -546,37 +572,39 @@ PT_BEGIN( pt );
     			THREAD_EXIT( pt );
     		}
 
-            THREAD_WAIT_SIGNAL( pt, SYNC_SIGNAL );
+            TMR_WAIT( pt, 500 );
 
-            wifi_msg_vm_frame_sync_t sync;
-            if( get_frame_sync( &sync ) < 0 ){
+//             THREAD_WAIT_SIGNAL( pt, SYNC_SIGNAL );
 
-                goto master_error;
-            }
+//             wifi_msg_vm_frame_sync_t sync;
+//             if( get_frame_sync( &sync ) < 0 ){
 
-            send_sync_0( &sync );
+//                 goto master_error;
+//             }
 
-            log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
+//             send_sync_0( &sync );
 
-            uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-            uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
+//             log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
 
-            for( uint16_t i = 0; i < sync.data_len; ){
+//             uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+//             uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
 
-                int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
-                if( bytes_read < 0 ){
+//             for( uint16_t i = 0; i < sync.data_len; ){
 
-                    goto master_error;
-                }
+//                 int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
+//                 if( bytes_read < 0 ){
 
-                send_sync_n( i, sync.frame_number, data, bytes_read );
+//                     goto master_error;
+//                 }
 
-                i += WIFI_MAX_SYNC_DATA;
-            }
+//                 send_sync_n( i, sync.frame_number, data, bytes_read );
 
-master_error:
-    		TMR_WAIT( pt, 8 * 1000 );
-            thread_v_clear_signal( SYNC_SIGNAL );
+//                 i += WIFI_MAX_SYNC_DATA;
+//             }
+
+// master_error:
+//     		TMR_WAIT( pt, 8 * 1000 );
+//             thread_v_clear_signal( SYNC_SIGNAL );
     	}
 
     	THREAD_WAIT_WHILE( pt, sync_state == STATE_SLAVE );
