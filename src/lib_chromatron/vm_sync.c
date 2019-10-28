@@ -319,7 +319,7 @@ void vm_sync_v_trigger( void ){
 
     send_sync_0( &sync );
 
-    log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
+    // log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
 
     uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
     uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
@@ -463,6 +463,12 @@ PT_BEGIN( pt );
                         master_ip.ip0 );      
 
         		    sync_state = STATE_SLAVE;
+
+                    // slave, not synced 
+                    slave_offset    = 0;
+                    slave_frame     = msg->frame_number;
+                    // slave_net_time  = msg->net_time;
+                    slave_net_time  = msg->uptime / 1000;
                 }
         	}
 
@@ -510,6 +516,7 @@ PT_BEGIN( pt );
                         sync_state = STATE_SLAVE_SYNC;
 
                         gfx_v_set_frame_number( slave_frame );
+                        gfx_v_set_sync0( msg->frame_number, now );
                     }
                 }
             }
