@@ -390,18 +390,19 @@ void gfx_v_set_frame_number( uint16_t frame ){
     vm0_frame_number = frame;
 }
 
-void gfx_v_set_sync0( uint16_t frames, uint32_t ts ){
+void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
     // uint16_t rate = SYNC_RATE / gfx_frame_rate;
     // rate *= gfx_frame_rate;
 
-    last_vm0_frame_ts += ( frames * gfx_frame_rate );
+    int16_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    // last_vm0_frame_ts += ( frame_offset * gfx_frame_rate );
 
-    // int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
-    int32_t frame_offset = 0;
+    // int32_t frame_offset = 0;
     int32_t time_offset = tmr_u32_elapsed_times( last_vm0_frame_ts, ts );
 
-    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+    // int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+    int32_t corrected_time_offset = time_offset;
 
     // we are ahead
     if( corrected_time_offset > 10 ){
@@ -426,7 +427,7 @@ void gfx_v_set_sync0( uint16_t frames, uint32_t ts ){
         frame_rate_adjust = -1;
     }
 
-    log_v_debug_P( PSTR("offset net: %ld frames: %u adj: %d"), time_offset, frames, frame_rate_adjust );
+    log_v_debug_P( PSTR("offset net: %ld frames: %d adj: %d"), time_offset, frame_offset, frame_rate_adjust );
 
     update_vm_timer();
 
@@ -795,6 +796,7 @@ PT_BEGIN( pt );
 
             // last_vm0_frame_ts = time_u32_get_network_time();
             vm0_frame_number++;
+            last_vm0_frame_ts += gfx_frame_rate;
 
             // if( vm_sync_b_is_slave() ){
 

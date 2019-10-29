@@ -479,7 +479,8 @@ PT_BEGIN( pt );
                 // slave_frame = msg->frame_number;
 
                 // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
-                gfx_v_set_sync0( msg->frame_number - slave_frame, now );
+                // gfx_v_set_sync0( msg->frame_number - slave_frame, now );
+                gfx_v_set_sync0( msg->frame_number, now );
                 slave_frame = msg->frame_number;
             }
         }
@@ -518,7 +519,7 @@ PT_BEGIN( pt );
                         sync_state = STATE_SLAVE_SYNC;
 
                         gfx_v_set_frame_number( slave_frame );
-                        gfx_v_set_sync0( 0, now );
+                        gfx_v_set_sync0( slave_frame, now );
                     }
                 }
             }
