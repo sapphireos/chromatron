@@ -394,9 +394,11 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
     uint16_t rate = SYNC_RATE / gfx_frame_rate;
     rate *= gfx_frame_rate;
-    
-    int32_t frame_offset = (int32_t)frame - (int32_t)vm0_frame_number;
-    int32_t time_offset = (int32_t)( last_vm0_frame_ts + rate ) - (int32_t)ts;
+
+    last_vm0_frame_ts += rate;
+
+    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    int32_t time_offset = tmr_u32_elapsed_times( last_vm0_frame_ts, ts );
 
     int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
 

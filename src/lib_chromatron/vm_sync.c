@@ -345,7 +345,8 @@ PT_BEGIN( pt );
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
-        uint32_t now = time_u32_get_network_time();
+        // uint32_t now = time_u32_get_network_time();
+        uint32_t now = tmr_u32_get_system_time_ms();
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
