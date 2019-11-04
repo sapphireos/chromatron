@@ -20,7 +20,7 @@
 // 
 // </license>
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -210,6 +210,18 @@ void time_v_set_master_clock(
     uint8_t source ){
 
     is_sync = TRUE;
+
+    if( sync_state == STATE_SLAVE ){
+
+        if( source < master_source ){
+
+            return;
+        }
+
+        // reset state
+        sync_state = STATE_WAIT;
+    }
+
     master_source = source;
 
     // if source is usable to sync ntp, set ntp valid.
@@ -229,11 +241,11 @@ void time_v_set_master_clock(
     int64_t delta_seconds = (int64_t)local_ts.seconds - (int64_t)source_ts.seconds;
     int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ts ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
 
-    char s[ISO8601_STRING_MIN_LEN_MS];
-    ntp_v_to_iso8601( s, sizeof(s), local_ts );
-    log_v_debug_P( PSTR("Local:    %s"), s );
-    ntp_v_to_iso8601( s, sizeof(s), source_ts );
-    log_v_debug_P( PSTR("Remote:   %s"), s );
+    // char s[ISO8601_STRING_MIN_LEN_MS];
+    // ntp_v_to_iso8601( s, sizeof(s), local_ts );
+    // log_v_debug_P( PSTR("Local:    %s"), s );
+    // ntp_v_to_iso8601( s, sizeof(s), source_ts );
+    // log_v_debug_P( PSTR("Remote:   %s"), s );
 
     if( abs64( delta_seconds ) > 60 ){
 
@@ -254,7 +266,7 @@ void time_v_set_master_clock(
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
+    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -566,6 +578,7 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("timed out, resetting state") );
 
+                master_source = 0;
                 sync_state = STATE_WAIT;
             }
         }
@@ -661,6 +674,7 @@ PT_BEGIN( pt );
             // elect ourselves as master
             sync_state = STATE_MASTER;
             master_uptime = 0;
+            master_ip = ip_a_addr(0,0,0,0);
 
             log_v_debug_P( PSTR("we are master") );
         }
@@ -733,6 +747,7 @@ PT_BEGIN( pt );
             master_uptime = 0;
 
             log_v_debug_P( PSTR("we are master (local source)") );
+            master_ip = ip_a_addr(0,0,0,0);
         } 
 
 
