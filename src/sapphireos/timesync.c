@@ -729,7 +729,20 @@ PT_BEGIN( pt );
 
         send_master();
 
-        TMR_WAIT( pt, TIME_MASTER_SYNC_RATE * 1000 );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() +  TIME_MASTER_SYNC_RATE * 1000 );
+
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( !sys_b_shutdown() ) );
+
+        if( sys_b_shutdown() ){
+
+            send_not_master();
+            TMR_WAIT( pt, 200 );
+            send_not_master();
+            TMR_WAIT( pt, 200 );
+            send_not_master();   
+
+            THREAD_EXIT( pt );
+        }
     }
 
     while( sync_state == STATE_SLAVE ){
