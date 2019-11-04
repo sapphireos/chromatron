@@ -209,19 +209,6 @@ void time_v_set_master_clock(
     uint32_t local_system_time,
     uint8_t source ){
 
-    if( sync_state == STATE_SLAVE ){
-
-        // check if source is better than master
-        if( source > master_source ){
-
-            sync_state = STATE_MASTER;
-        }
-        else{
-
-            return;
-        }   
-    }
-
     is_sync = TRUE;
     master_source = source;
 
