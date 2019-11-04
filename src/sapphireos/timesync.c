@@ -20,7 +20,7 @@
 // 
 // </license>
 
-// #define NO_LOGGING
+#define NO_LOGGING
 #include "sapphire.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -203,27 +203,12 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
     return ntp_ts_from_u64( now ); 
 }
 
-
-void time_v_set_master_clock( 
+static void time_v_set_master_clock_internal( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,
     uint8_t source ){
 
     is_sync = TRUE;
-
-    if( sync_state == STATE_SLAVE ){
-
-        // our source isn't as good as the master, don't do anything.
-        if( source <= master_source ){
-
-            return;
-        }
-
-        // our source is better, we are master now
-        sync_state = STATE_MASTER;
-        master_ip = ip_a_addr(0,0,0,0);
-        log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
-    }
 
     master_source = source;
 
@@ -269,7 +254,29 @@ void time_v_set_master_clock(
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
+    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );   
+}
+
+void time_v_set_master_clock( 
+    ntp_ts_t source_ts, 
+    uint32_t local_system_time,
+    uint8_t source ){
+
+    if( sync_state == STATE_SLAVE ){
+
+        // our source isn't as good as the master, don't do anything.
+        if( source <= master_source ){
+
+            return;
+        }
+
+        // our source is better, we are master now
+        sync_state = STATE_MASTER;
+        master_ip = ip_a_addr(0,0,0,0);
+        log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
+    }
+
+    time_v_set_master_clock_internal( source_ts, local_system_time, source );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -509,7 +516,7 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    time_v_set_master_clock( msg->ntp_time, now, msg->source );
+                    time_v_set_master_clock_internal( msg->ntp_time, now, msg->source );
                 }
 
                 int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
