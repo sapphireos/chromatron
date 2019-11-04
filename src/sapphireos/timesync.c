@@ -213,13 +213,16 @@ void time_v_set_master_clock(
 
     if( sync_state == STATE_SLAVE ){
 
-        if( source < master_source ){
+        // our source isn't as good as the master, don't do anything.
+        if( source <= master_source ){
 
             return;
         }
 
-        // reset state
-        sync_state = STATE_WAIT;
+        // our source is better, we are master now
+        sync_state = STATE_MASTER;
+        master_ip = ip_a_addr(0,0,0,0);
+        log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
     }
 
     master_source = source;
@@ -724,7 +727,11 @@ PT_BEGIN( pt );
 
     while( sync_state == STATE_SLAVE ){
 
-        sntp_v_stop();
+        // check if local source is better than or same as NTP.  if so, stop our client.
+        if( master_source >= TIME_SOURCE_NTP ){
+            
+            sntp_v_stop();
+        }
 
         // random delay
         uint16_t delay;
@@ -758,6 +765,12 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("no longer slave") );
 
             break;
+        }
+
+        // check if local source is worse than NTP.  if so, try to start our NTP client
+        if( master_source < TIME_SOURCE_NTP ){
+
+            sntp_v_start();
         }
         
         rtt_start = tmr_u32_get_system_time_ms();
