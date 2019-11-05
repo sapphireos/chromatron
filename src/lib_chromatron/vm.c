@@ -215,7 +215,7 @@ static int8_t send_reset_message( uint8_t vm_id ){
 }
 
 
-static int8_t _vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
+int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
 
     if( wifi_b_shutdown() ){
 
@@ -652,7 +652,7 @@ PT_BEGIN( pt );
     while( vm_active_threads[state->vm_id] & ( 1 << state->thread_id ) ){
 
         wifi_msg_vm_info_t info;
-        if( _vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_THREAD, state->thread_id, &info ) == VM_STATUS_COMM_ERROR ){
+        if( vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_THREAD, state->thread_id, &info ) == VM_STATUS_COMM_ERROR ){
 
             TMR_WAIT( pt, 100 );
 
@@ -781,7 +781,7 @@ PT_BEGIN( pt );
                     wifi_msg_vm_info_t info;
 
                     // initialize VM (run init function)
-                    vm_status[i] = _vm_i8_run_vm( i, WIFI_DATA_ID_INIT_VM, 0, &info );
+                    vm_status[i] = vm_i8_run_vm( i, WIFI_DATA_ID_INIT_VM, 0, &info );
 
                     if( vm_status[i] < 0 ){
                         
@@ -843,7 +843,7 @@ int8_t vm_i8_run_loops( void ){
 
             wifi_msg_vm_info_t info;
 
-            if( _vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0, &info ) == VM_STATUS_COMM_ERROR ){
+            if( vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0, &info ) == VM_STATUS_COMM_ERROR ){
 
                 return VM_STATUS_COMM_ERROR;
             }
