@@ -97,7 +97,9 @@ class Database(DictMixin, object):
     def keys(self):
         """Return list of keys"""
         with self._lock:
-            return self._kv_items.keys().extend(self._hashes.keys())
+            keys = self._kv_items.keys()
+            keys.extend(self._hashes.keys())
+            return keys
 
     def get_query(self):
         query = CatbusQuery()
