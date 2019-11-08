@@ -111,9 +111,11 @@ class Database(DictMixin, object):
         return [self.get_item(a).value for a in META_TAGS]
 
     def get_hashed_tags(self):
-        # return {catbus_string_hash(tag): tag for tag in self.get_tags()}
         return [catbus_string_hash(self.get_item(a).value) for a in META_TAGS]        
 
+    def get_tag_info(self):
+        return {catbus_string_hash(tag): tag for tag in self.get_tags()}
+        
     def query(self, *args):
         tags = self.get_hashed_tags()
 

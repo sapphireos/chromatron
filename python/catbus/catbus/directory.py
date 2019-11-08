@@ -82,12 +82,12 @@ class Directory(Ribbon):
                     c = Client()
                     c.connect(host)
 
-                    key = c.lookup_hash(hashed_key)[hashed_key]
+                    key = c.lookup_hash(hashed_key)
 
                     if len(key) == 0:
                         raise KeyError(hashed_key)
 
-                    self._hash_lookup[hashed_key] = key
+                    self._hash_lookup[hashed_key] = key[hashed_key]
 
                     return key
 
