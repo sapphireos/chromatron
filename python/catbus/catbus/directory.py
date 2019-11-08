@@ -98,6 +98,9 @@ class Directory(Ribbon):
         print msg
 
     def _handle_announce(self, msg, host):
+        # update host port with advertised data port
+        host = (host[0], msg.data_port)
+
         resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
         info = {'host': host,
