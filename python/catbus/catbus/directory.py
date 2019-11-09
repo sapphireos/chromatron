@@ -114,7 +114,11 @@ class Directory(Ribbon):
             self._directory[msg.header.origin_id] = info
 
     def _process_msg(self, msg, host):
-        response = self._msg_handlers[type(msg)](msg, host)
+        try:
+            response = self._msg_handlers[type(msg)](msg, host)
+
+        except KeyError:
+            raise UnknownMessageException
 
         return response
 
