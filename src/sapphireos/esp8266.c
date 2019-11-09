@@ -968,6 +968,7 @@ end:
 
 
 static void send_options_msg( void ){
+
     // send options message
     wifi_msg_set_options_t options_msg;
     memset( &options_msg, 0, sizeof(options_msg) );
@@ -1011,6 +1012,16 @@ static void send_options_msg( void ){
     if( kv_i8_get( __KV__midi_channel, &options_msg.midi_channel, sizeof(options_msg.midi_channel) ) < 0 ){
 
         options_msg.midi_channel = -1;                
+    }
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        // disable mdns in safe mode
+        options_msg.mdns_enable = FALSE;    
+    }
+    else{
+
+        options_msg.mdns_enable = TRUE;       
     }
 
     wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
