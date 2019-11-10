@@ -99,6 +99,7 @@ class Directory(Ribbon):
                     raise
 
     def _handle_shutdown(self, msg, host):
+        print msg
         with self.__lock:
             try:
                 # remove entry
@@ -180,7 +181,7 @@ if __name__ == '__main__':
         while True:
             time.sleep(1.0)
 
-            pprint(d.get_directory())
+            # pprint(d.get_directory())
             print len(d.get_directory())
 
     except KeyboardInterrupt:

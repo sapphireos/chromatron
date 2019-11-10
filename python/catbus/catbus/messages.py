@@ -427,6 +427,7 @@ messages = {
 
     CATBUS_MSG_TYPE_ANNOUNCE:               AnnounceMsg,
     CATBUS_MSG_TYPE_DISCOVER:               DiscoverMsg,
+    CATBUS_MSG_TYPE_SHUTDOWN:               ShutdownMsg,
 
     CATBUS_MSG_TYPE_LOOKUP_HASH:            LookupHashMsg,
     CATBUS_MSG_TYPE_RESOLVED_HASH:          ResolvedHashMsg,
