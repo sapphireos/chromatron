@@ -99,7 +99,6 @@ class Directory(Ribbon):
                     raise
 
     def _handle_shutdown(self, msg, host):
-        print msg
         with self.__lock:
             try:
                 # remove entry
