@@ -44,10 +44,10 @@ static char ssid_list[WIFI_MAX_APS][WIFI_SSID_LEN];
 static char pass_list[WIFI_MAX_APS][WIFI_PASS_LEN];
 
 // scan results
-static int32_t scan_rssi[WIFI_MAX_APS];
-static int32_t scan_channel[WIFI_MAX_APS];
-static uint8_t scan_bssid[WIFI_MAX_APS][6];
-static int32_t best_router;
+static int8_t best_rssi;
+static int8_t best_channel;
+static uint8_t best_bssid[6];
+static int8_t best_router;
 
 static WiFiUDP udp[WIFI_MAX_PORTS];
 static uint8_t port_rx_depth[WIFI_MAX_PORTS];
@@ -208,12 +208,7 @@ void wifi_v_send_status( void ){
 
 int8_t wifi_i8_get_channel( void ){
     
-    if( best_router < 0 ){
-
-        return -1;
-    }
-
-    return scan_channel[best_router];
+    return best_channel;
 }
 
 void wifi_v_process( void ){
@@ -299,30 +294,45 @@ void wifi_v_process( void ){
 
                 bool match = false;
                 int32_t index = 0;
-                // check if this network is in our list
-                for( ; index < networks_found; index++ ){
 
-                    if( strncmp( network_ssid.c_str(), ssid_list[index], WIFI_SSID_LEN ) == 0 ){
+                // check if this router is in our password list
+                // and is better than the previous best we've found, and record it.
+                for( ; index < WIFI_MAX_APS; index++ ){
 
-                        // check if this router's index in our password list
-                        // is lower than the previous best we've found, and record it.
+                    // check ssid match
+                    if( strncmp( network_ssid.c_str(), ssid_list[index], WIFI_SSID_LEN ) != 0 ){
 
-                        // we are selection routers based on priority in the list,
-                        // NOT based on best RSSI, unless the previous best has the same SSID.
+                        // no match
 
-                        if( ( index < best_router ) || ( best_router < 0 ) ){
-
-                            best_router = index;
-                        }
-                        else if( ( strncmp( network_ssid.c_str(), ssid_list[best_router], WIFI_SSID_LEN ) == 0 ) &&
-                                 ( WiFi.RSSI( i ) > scan_rssi[best_router] ) ){
-
-                            best_router = index;   
-                        }
-
-                        match = true;
-                        break;
+                        continue;
                     }
+
+                    intf_v_printf("Found: %d %d %s", WiFi.RSSI( i ), WiFi.channel( i ), network_ssid.c_str());
+
+                    // we are selecting routers based on priority in the list,
+                    // NOT based on best RSSI, unless the previous best has the same SSID.
+
+                    match = true;
+
+                    if( best_router < 0 ){
+
+                        best_router = index;
+                    }
+                    else if( ( strncmp( network_ssid.c_str(), ssid_list[best_router], WIFI_SSID_LEN ) == 0 ) &&
+                             ( WiFi.RSSI( i ) > best_rssi ) ){
+
+                        best_router = index;   
+                    }
+                    else if( index < best_router ){
+
+                        best_router = index;
+                    }
+                    else{
+
+                        match = false;
+                    }
+
+                    break;
                 }                
 
                 if( !match ){
@@ -330,11 +340,9 @@ void wifi_v_process( void ){
                     continue;
                 }
 
-                scan_rssi[index]    = WiFi.RSSI( i );
-                scan_channel[index] = WiFi.channel( i );
-                memcpy( scan_bssid[index], WiFi.BSSID( i ), sizeof(scan_bssid[index]) );
-
-                intf_v_printf("%d %d %s", scan_rssi[index], scan_channel[index], network_ssid.c_str());
+                best_rssi    = WiFi.RSSI( i );
+                best_channel = WiFi.channel( i );
+                memcpy( best_bssid, WiFi.BSSID( i ), sizeof(best_bssid) );
             }
             
             scanning = false;
@@ -356,8 +364,10 @@ void wifi_v_process( void ){
 
             WiFi.begin( ssid_list[best_router], 
                         pass_list[best_router], 
-                        scan_channel[best_router], 
-                        scan_bssid[best_router] );  
+                        best_channel,
+                        best_bssid );  
+
+            intf_v_printf("Connect: %d %d %s", best_rssi, best_channel, ssid_list[best_router]);
         }
         else{
 
@@ -654,12 +664,11 @@ void wifi_v_scan( void ){
     WiFi.scanDelete();
 
     best_router = -1;
-    for( uint32_t i = 0; i < WIFI_MAX_APS; i++ ){
+    
+    best_rssi = -127;
+    best_channel = -1;
+    memset( best_bssid, 0, sizeof(best_bssid) );
 
-        scan_rssi[i] = -127;
-        scan_channel[i] = -1;
-        memset( scan_bssid[i], 0, sizeof(scan_bssid[i]) );
-    }
 
     scanning = true;
     WiFi.scanNetworks(true, false);
