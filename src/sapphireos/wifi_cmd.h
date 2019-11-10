@@ -121,7 +121,6 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     bool low_power;
     bool led_quiet;
-    int8_t midi_channel;
     bool high_speed;
     uint8_t tx_power;
     bool mdns_enable;

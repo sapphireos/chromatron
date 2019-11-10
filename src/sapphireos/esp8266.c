@@ -1012,11 +1012,6 @@ static void send_options_msg( void ){
 
     options_msg.tx_power = tx_power; // in dbm
 
-    if( kv_i8_get( __KV__midi_channel, &options_msg.midi_channel, sizeof(options_msg.midi_channel) ) < 0 ){
-
-        options_msg.midi_channel = -1;                
-    }
-
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         // disable mdns in safe mode
