@@ -153,6 +153,7 @@ static void _send_info_msg( void ){
     info_msg.dns.ip3 = ip_addr[0];
 
     info_msg.rssi           = WiFi.RSSI();
+    info_msg.wifi_channel   = wifi_i8_get_channel();
 
     info_msg.rx_udp_overruns        = wifi_u32_get_rx_udp_overruns();
     info_msg.udp_received           = wifi_u32_get_udp_received();

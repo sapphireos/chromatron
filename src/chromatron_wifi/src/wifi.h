@@ -40,6 +40,8 @@ void wifi_v_set_status_bits( uint8_t bits );
 void wifi_v_clr_status_bits( uint8_t bits );
 void wifi_v_send_status( void );
 
+int8_t wifi_i8_get_channel( void );
+
 IPAddress wifi_ip_get_ip( void );
 IPAddress wifi_ip_get_subnet( void );
 

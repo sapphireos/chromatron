@@ -43,8 +43,6 @@ static char hostname[32];
 static char ssid_list[WIFI_MAX_APS][WIFI_SSID_LEN];
 static char pass_list[WIFI_MAX_APS][WIFI_PASS_LEN];
 
-static int32_t connected_router = -1;
-
 // scan results
 static int32_t scan_rssi[WIFI_MAX_APS];
 static int32_t scan_channel[WIFI_MAX_APS];
@@ -208,6 +206,16 @@ void wifi_v_send_status( void ){
     intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
 }
 
+int8_t wifi_i8_get_channel( void ){
+    
+    if( best_router < 0 ){
+
+        return -1;
+    }
+
+    return scan_channel[best_router];
+}
+
 void wifi_v_process( void ){
    
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
@@ -221,8 +229,6 @@ void wifi_v_process( void ){
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
             wifi_v_clr_status_bits( WIFI_STATUS_CONNECTING );
             wifi_v_send_status();
-
-            intf_v_printf("Connected!");
         }
 
         // if in station mode:
@@ -302,11 +308,16 @@ void wifi_v_process( void ){
                         // is lower than the previous best we've found, and record it.
 
                         // we are selection routers based on priority in the list,
-                        // NOT based on best RSSI.
+                        // NOT based on best RSSI, unless the previous best has the same SSID.
 
                         if( ( index < best_router ) || ( best_router < 0 ) ){
 
                             best_router = index;
+                        }
+                        else if( ( strncmp( network_ssid.c_str(), ssid_list[best_router], WIFI_SSID_LEN ) == 0 ) &&
+                                 ( WiFi.RSSI( i ) > scan_rssi[best_router] ) ){
+
+                            best_router = index;   
                         }
 
                         match = true;
@@ -574,7 +585,6 @@ void wifi_v_disconnect( void ){
         MDNS.close();
     }
 
-    connected_router = -1;
     mdns_connected = false;
     request_connect = false;
 

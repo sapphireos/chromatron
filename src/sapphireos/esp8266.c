@@ -86,6 +86,7 @@ static uint8_t wifi_mac[6];
 static uint8_t wifi_status_reg;
 static int8_t wifi_rssi;
 static int8_t wifi_router;
+static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static bool default_ap_mode;
 
@@ -143,6 +144,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_status,                      0,   "wifi_status" },
     { SAPPHIRE_TYPE_MAC48,         0, 0, &wifi_mac,                         0,   "wifi_mac" },
     { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_rssi,                        0,   "wifi_rssi" },
+    { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_channel,                     0,   "wifi_channel" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_connects,                    0,   "wifi_connects" },
 
@@ -692,6 +694,7 @@ static void get_info( void ){
     mem_avg_time                = msg.mem_avg_time;
 
     wifi_router                 = msg.wifi_router;
+    wifi_channel                = msg.wifi_channel;
 }
 
 
