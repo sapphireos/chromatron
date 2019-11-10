@@ -47,6 +47,7 @@ CATBUS_MSG_TYPE_ERROR                      = CATBUS_MSG_GENERAL_GROUP_OFFSET + 0
 
 CATBUS_MSG_TYPE_ANNOUNCE                   = CATBUS_MSG_DISCOVERY_GROUP_OFFSET + 0
 CATBUS_MSG_TYPE_DISCOVER                   = CATBUS_MSG_DISCOVERY_GROUP_OFFSET + 1
+CATBUS_MSG_TYPE_SHUTDOWN                   = CATBUS_MSG_DISCOVERY_GROUP_OFFSET + 2
 
 CATBUS_MSG_TYPE_LOOKUP_HASH                = CATBUS_MSG_DATABASE_GROUP_OFFSET + 1
 CATBUS_MSG_TYPE_RESOLVED_HASH              = CATBUS_MSG_DATABASE_GROUP_OFFSET + 2
@@ -136,6 +137,15 @@ class DiscoverMsg(StructField):
         super(DiscoverMsg, self).__init__(_name="discover_msg", _fields=fields, **kwargs)
 
         self.header.msg_type = CATBUS_MSG_TYPE_DISCOVER
+
+class ShutdownMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  Uint8Field(_name="flags")]
+
+        super(ShutdownMsg, self).__init__(_name="shutdown_msg", _fields=fields, **kwargs)
+
+        self.header.msg_type = CATBUS_MSG_TYPE_SHUTDOWN
 
 class LookupHashMsg(StructField):
     def __init__(self, **kwargs):
