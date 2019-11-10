@@ -33,7 +33,7 @@ from messages import *
 from sapphire.common import Ribbon, MsgQueueEmptyException
 
 
-TTL = 120
+TTL = 240
 
 
 class Directory(Ribbon):
@@ -97,7 +97,7 @@ class Directory(Ribbon):
 
                 else:
                     raise
-                    
+
     def _handle_shutdown(self, msg, host):
         with self.__lock:
             try:
