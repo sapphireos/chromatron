@@ -33,6 +33,9 @@ from messages import *
 from sapphire.common import Ribbon, MsgQueueEmptyException
 
 
+TTL = 120
+
+
 class Directory(Ribbon):
     def initialize(self):
         self.name = '%s' % ('catbus_directory')
@@ -59,6 +62,7 @@ class Directory(Ribbon):
         self._msg_handlers = {
             ErrorMsg: self._handle_error,
             AnnounceMsg: self._handle_announce,
+            ShutdownMsg: self._handle_shutdown,
         }
 
         self._last_ttl = time.time()
@@ -93,6 +97,15 @@ class Directory(Ribbon):
 
                 else:
                     raise
+                    
+    def _handle_shutdown(self, msg, host):
+        with self.__lock:
+            try:
+                # remove entry
+                del self._directory[msg.header.origin_id]
+
+            except KeyError:
+                pass
 
     def _handle_error(self, msg, host):
         print msg
@@ -108,7 +121,7 @@ class Directory(Ribbon):
                 'data_port': msg.data_port,
                 'version': msg.header.version,
                 'universe': msg.header.universe,
-                'ttl': 30}
+                'ttl': TTL}
 
         with self.__lock:
             self._directory[msg.header.origin_id] = info
