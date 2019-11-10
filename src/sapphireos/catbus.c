@@ -520,6 +520,15 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
     sock_i16_sendto_m( sock, h, raddr );
 }
 
+static void _catbus_v_broadcast_announce( void ){
+
+    sock_addr_t raddr;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+    raddr.port = CATBUS_DISCOVERY_PORT;
+
+    _catbus_v_send_announce( &raddr, 0 );
+}
+
 static void _catbus_v_send_shutdown( void ){
 
     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_shutdown_t) );
@@ -2421,6 +2430,14 @@ PT_THREAD( catbus_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+    _catbus_v_broadcast_announce();
+    TMR_WAIT( pt, 100 );
+    _catbus_v_broadcast_announce();
+    TMR_WAIT( pt, 100 );
+    _catbus_v_broadcast_announce();
+    
     while(1){
 
         TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
@@ -2435,12 +2452,12 @@ PT_BEGIN( pt );
         }
 
         sock_addr_t raddr;
-
         raddr.ipaddr = ip_a_addr(255,255,255,255);
         raddr.port = CATBUS_DISCOVERY_PORT;
 
-        _catbus_v_send_announce( &raddr, 0 );
-
+        _catbus_v_broadcast_announce();
+        TMR_WAIT( pt, 100 );
+        _catbus_v_broadcast_announce();
 
         #ifdef ENABLE_CATBUS_LINK
         TMR_WAIT( pt, 2 );
