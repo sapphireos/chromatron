@@ -32,7 +32,11 @@
 #ifdef BOARD_CHROMATRONX
 #define WIFI_USART              UART8
 #else
+#ifdef BOARD_NUCLEAR
+#define WIFI_USART              UART7
+#else
 #define WIFI_USART              UART4
+#endif
 #endif
 
 #ifdef DEBUG
