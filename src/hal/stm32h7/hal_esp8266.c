@@ -437,7 +437,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     wifi_usart.Init.Parity = UART_PARITY_NONE;
     wifi_usart.Init.Mode = UART_MODE_TX_RX;
     wifi_usart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    wifi_usart.Init.OverSampling = UART_OVERSAMPLING_16;
+    wifi_usart.Init.OverSampling = UART_OVERSAMPLING_8;
     wifi_usart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
     #ifdef BOARD_CHROMATRONX
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;

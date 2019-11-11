@@ -1057,6 +1057,13 @@ PT_BEGIN( pt );
         }
     }
 
+    if( watchdog == 0 ){
+
+        log_v_debug_P( PSTR("wifi failed to boot") );
+
+        THREAD_EXIT( pt );
+    }
+
     watchdog = WIFI_WATCHDOG_TIMEOUT;
     wifi_status = WIFI_STATE_ALIVE;
 
