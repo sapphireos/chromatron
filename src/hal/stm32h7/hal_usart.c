@@ -29,9 +29,9 @@
 void usart_v_init( USART_t *usart ){
 
     // enable clock
-    __HAL_RCC_USART1_CLK_ENABLE();
+    // __HAL_RCC_USART1_CLK_ENABLE();
 
-    usart->Instance = HAL_USART;
+    // usart->Instance = HAL_USART;
 
 	// defaults: 115200, 8N1
     usart->Init.BaudRate = 115200;
@@ -42,9 +42,9 @@ void usart_v_init( USART_t *usart ){
     usart->Init.HwFlowCtl = UART_HWCONTROL_NONE;
     usart->Init.OverSampling = UART_OVERSAMPLING_16;
     usart->Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 
-    usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
 
     if (HAL_UART_Init(usart) != HAL_OK)
     {

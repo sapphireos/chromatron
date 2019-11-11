@@ -179,17 +179,17 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define IO_PIN_T1      		13 // PD15
 #define IO_PIN_PIX_CLK      14 // PA5
 #define IO_PIN_PIX_DAT      15 // PA7
-#define IO_PIN_GPIOSCL      16 // PB6
-#define IO_PIN_GPIOSDA      17 // PB7
+#define IO_PIN_GPIOSCL      16 // PB8
+#define IO_PIN_GPIOSDA      17 // PB9
 #define IO_PIN_GPIOSCK      18 // PE2
 #define IO_PIN_GPIOMOSI     19 // PE6
 #define IO_PIN_GPIOMISO     20 // PE5
 #define IO_PIN_COUNT        21
 
 
-#define I2C1_SCL_UART4_RX_Pin    GPIO_PIN_6
+#define I2C1_SCL_UART4_RX_Pin    GPIO_PIN_8
 #define I2C1_SCL_UART4_RX_GPIO_Port GPIOB
-#define I2C1_SDA_UART4_TX_Pin        GPIO_PIN_7
+#define I2C1_SDA_UART4_TX_Pin        GPIO_PIN_9
 #define I2C1_SDA_UART4_TX_GPIO_Port GPIOB
 
 // #define IO_PIN0_PORT        GPIOC
