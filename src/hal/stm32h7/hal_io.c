@@ -61,6 +61,11 @@ static const hal_io_ch_t board_io[IO_PIN_COUNT] = {
     { GPIOD, GPIO_PIN_15 }, // IO_PIN_T1
     { GPIOA, GPIO_PIN_5 }, // IO_PIN_PIX_CLK
     { GPIOA, GPIO_PIN_7 }, // IO_PIN_PIX_DAT
+    { GPIOB, GPIO_PIN_6 }, // IO_PIN_GPIOSCL
+    { GPIOB, GPIO_PIN_7 }, // IO_PIN_GPIOSDA
+    { GPIOE, GPIO_PIN_2 }, // IO_PIN_GPIOSCK
+    { GPIOE, GPIO_PIN_6 }, // IO_PIN_GPIOMOSI
+    { GPIOE, GPIO_PIN_5 }, // IO_PIN_GPIOMISO
 #else
     { GPIOC, GPIO_PIN_5 }, // IO_PIN_GPIOA0
     { GPIOC, GPIO_PIN_4 }, // IO_PIN_GPIOA1
