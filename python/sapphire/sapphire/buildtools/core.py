@@ -773,6 +773,9 @@ class ConfigBuilder(Builder):
             self.app_builder.libraries.append(builder.proj_name)
 
 
+        # self.app_builder.build_libs()
+        self.app_builder.clean()
+
         lib_init_filename = os.path.join(self.app_builder.target_dir, LIB_INIT_FILENAME)
 
         lib_init = """
@@ -794,13 +797,10 @@ void libs_v_init( void ){
 
         lib_init += '\n}\n'
 
-
         # create lib init file
         with open(lib_init_filename, 'w+') as f:
             f.write(lib_init)
-
-        # self.app_builder.build_libs()
-        self.app_builder.clean()
+        
         try:
             self.app_builder.build()
 
