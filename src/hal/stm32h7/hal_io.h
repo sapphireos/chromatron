@@ -218,9 +218,9 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 
 #define FSPI_SCK_PIN			GPIO_PIN_10
 #define FSPI_SCK_PORT			GPIOF
-#define FSPI_IO0_PIN			GPIO_PIN_9
+#define FSPI_IO0_PIN			GPIO_PIN_8
 #define FSPI_IO0_PORT			GPIOF
-#define FSPI_IO1_PIN			GPIO_PIN_8
+#define FSPI_IO1_PIN			GPIO_PIN_9
 #define FSPI_IO1_PORT			GPIOF
 #define FSPI_CS_PIN			 	GPIO_PIN_10
 #define FSPI_CS_PORT			GPIOB
