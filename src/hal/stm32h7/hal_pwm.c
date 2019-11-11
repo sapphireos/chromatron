@@ -35,6 +35,16 @@ static TIM_HandleTypeDef pwm_timer;
 
 static uint32_t get_channel( uint8_t channel ){
 
+	#ifdef BOARD_NUCLEAR
+	if( channel == IO_PIN_T0 ){
+
+		return TIM_CHANNEL_3;
+	}
+	else if( channel == IO_PIN_T1 ){
+
+		return TIM_CHANNEL_4;
+	}
+	#else
 	if( channel == IO_PIN_T0 ){
 
 		return TIM_CHANNEL_1;
@@ -43,6 +53,7 @@ static uint32_t get_channel( uint8_t channel ){
 
 		return TIM_CHANNEL_2;
 	}
+	#endif
 
 	ASSERT( 0 );
 
@@ -117,7 +128,7 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
     // init IO
 	GPIO_InitStruct.Pin 		= pin;
 	#ifdef BOARD_NUCLEAR
-	GPIO_InitStruct.Alternate 	= GPIO_AF1_TIM4;
+	GPIO_InitStruct.Alternate 	= GPIO_AF2_TIM4;
 	#else
 	GPIO_InitStruct.Alternate 	= GPIO_AF1_TIM1;
 	#endif
