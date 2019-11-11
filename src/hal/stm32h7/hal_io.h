@@ -186,6 +186,12 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define IO_PIN_GPIOMISO     20 // PE5
 #define IO_PIN_COUNT        21
 
+
+#define I2C1_SCL_UART4_RX_Pin    GPIO_PIN_6
+#define I2C1_SCL_UART4_RX_GPIO_Port GPIOB
+#define I2C1_SDA_UART4_TX_Pin        GPIO_PIN_7
+#define I2C1_SDA_UART4_TX_GPIO_Port GPIOB
+
 // #define IO_PIN0_PORT        GPIOC
 // #define IO_PIN0_PIN         GPIO_PIN_0
 // #define IO_PIN1_PORT        GPIOC
@@ -334,10 +340,6 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 // #define LED2_GPIO_Port 			GPIOG
 // #define LED0_Pin 				GPIO_PIN_14
 // #define LED0_GPIO_Port 			GPIOG
-// #define I2C1_SCL_UART4_RX_Pin 	GPIO_PIN_6
-// #define I2C1_SCL_UART4_RX_GPIO_Port GPIOB
-// #define I2C1_SDA_UART4_TX_Pin 		GPIO_PIN_7
-// #define I2C1_SDA_UART4_TX_GPIO_Port GPIOB
 
 #else
 
