@@ -52,9 +52,14 @@ static uint32_t get_channel( uint8_t channel ){
 
 void pwm_v_init( void ){
 
+	#ifdef BOARD_NUCLEAR
+	__HAL_RCC_TIM4_CLK_ENABLE();
+	pwm_timer.Instance = TIM4;
+	#else
 	__HAL_RCC_TIM1_CLK_ENABLE();
-
 	pwm_timer.Instance = TIM1;
+	#endif
+
 	pwm_timer.Init.Prescaler 			= 16;
 	pwm_timer.Init.CounterMode 			= TIM_COUNTERMODE_UP;
 	pwm_timer.Init.Period 				= 65535; // 16 bits
@@ -111,7 +116,11 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 
     // init IO
 	GPIO_InitStruct.Pin 		= pin;
+	#ifdef BOARD_NUCLEAR
+	GPIO_InitStruct.Alternate 	= GPIO_AF1_TIM4;
+	#else
 	GPIO_InitStruct.Alternate 	= GPIO_AF1_TIM1;
+	#endif
 	HAL_GPIO_Init( port, &GPIO_InitStruct );	
 
 	uint32_t timer_channel = get_channel( channel );
