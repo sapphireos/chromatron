@@ -33,13 +33,16 @@
 #ifndef BOARD_CHROMATRONX
 static TIM_HandleTypeDef pwm_timer;
 
+#ifdef BOARD_NUCLEAR
+
+#else
 static uint32_t get_channel( uint8_t channel ){
 
-	if( channel == IO_PIN_GPIO9 ){
+	if( channel == IO_PIN_T0 ){
 
 		return TIM_CHANNEL_1;
 	}
-	else if( channel == IO_PIN_GPIO11 ){
+	else if( channel == IO_PIN_T1 ){
 
 		return TIM_CHANNEL_2;
 	}
@@ -48,7 +51,7 @@ static uint32_t get_channel( uint8_t channel ){
 
 	return 0;
 }
-
+#endif
 
 void pwm_v_init( void ){
 
