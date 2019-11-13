@@ -34,15 +34,16 @@ void usart_v_init( USART_t *usart ){
     // usart->Instance = HAL_USART;
 
 	// defaults: 115200, 8N1
-    usart->Init.BaudRate = 115200;
-    usart->Init.WordLength = UART_WORDLENGTH_8B;
-    usart->Init.StopBits = UART_STOPBITS_1;
-    usart->Init.Parity = UART_PARITY_NONE;
-    usart->Init.Mode = UART_MODE_TX_RX;
-    usart->Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    usart->Init.OverSampling = UART_OVERSAMPLING_16;
-    usart->Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    usart->Init.BaudRate                = 115200;
+    usart->Init.WordLength              = UART_WORDLENGTH_8B;
+    usart->Init.StopBits                = UART_STOPBITS_1;
+    usart->Init.Parity                  = UART_PARITY_NONE;
+    usart->Init.Mode                    = UART_MODE_TX_RX;
+    usart->Init.HwFlowCtl               = UART_HWCONTROL_NONE;
+    usart->Init.OverSampling            = UART_OVERSAMPLING_16;
+    usart->Init.OneBitSampling          = UART_ONE_BIT_SAMPLE_DISABLE;
+    usart->Init.FIFOMode                = UART_FIFOMODE_ENABLE; 
+    usart->AdvancedInit.AdvFeatureInit  = UART_ADVFEATURE_NO_INIT;
 
     // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
 
@@ -95,7 +96,7 @@ void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
 
 int16_t usart_i16_get_byte( USART_t *usart ){
 
-    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXNE ) ){
+    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXFNE ) ){
 
         return usart->Instance->RDR;
     }
@@ -105,7 +106,7 @@ int16_t usart_i16_get_byte( USART_t *usart ){
 
 uint8_t usart_u8_bytes_available( USART_t *usart ){
 
-    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXNE ) ){
+    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXFNE ) ){
 
         return 1;
     }
