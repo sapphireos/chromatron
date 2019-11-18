@@ -42,7 +42,7 @@ void usart_v_init( USART_t *usart ){
     usart->Init.HwFlowCtl               = UART_HWCONTROL_NONE;
     usart->Init.OverSampling            = UART_OVERSAMPLING_16;
     usart->Init.OneBitSampling          = UART_ONE_BIT_SAMPLE_DISABLE;
-    usart->Init.FIFOMode                = UART_FIFOMODE_ENABLE; 
+    usart->Init.FIFOMode                = UART_FIFOMODE_DISABLE; 
     usart->AdvancedInit.AdvFeatureInit  = UART_ADVFEATURE_NO_INIT;
 
     // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
