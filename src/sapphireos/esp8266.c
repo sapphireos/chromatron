@@ -1386,6 +1386,14 @@ restart:
     uint8_t cfg_digest[MD5_LEN];
     cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
 
+    // check if we've never loaded the wifi before
+    if( ( file_len == 0 ) && 
+        ( fs_i32_get_size( state->fw_file ) < 128 ) ){
+
+        goto error;
+    }
+
+
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // file and cfg match, so our file is valid
@@ -1572,6 +1580,7 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 
 void wifi_v_init( void ){
+    // return;
 // io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
     hal_wifi_v_init();
 
