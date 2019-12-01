@@ -27,12 +27,14 @@
 static uint16_t red_boost;
 static uint16_t red_boost_offset_low;
 static uint16_t red_boost_offset_high;
+static uint32_t red_top;
 
 void gfx_v_set_red_boost( uint16_t boost ){
 
     red_boost = boost;
     red_boost_offset_low = 21845 - red_boost;
     red_boost_offset_high = 65535 - red_boost;
+    red_top = ( ( red_boost_offset_high - ( 43690 - red_boost ) ) * 65535 ) / red_boost_offset_low;
 }
 
 void gfx_v_hsv_to_rgb(
@@ -64,7 +66,7 @@ void gfx_v_hsv_to_rgb(
     else{
     
         temp_b = ( 65535 - h ) * 3;  
-        temp_r = ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low;
+        temp_r = red_top - ( ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low );
     }
 
     if( temp_r > 65535 ){
