@@ -66,7 +66,10 @@ static volatile uint8_t run_flags;
 
 static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
-static uint32_t last_vm0_frame_ts;
+static uint32_t vm0_frame_ts;
+static uint16_t vm0_sync_frame_number;
+static uint32_t vm0_sync_frame_ts;
+// static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
@@ -392,6 +395,14 @@ void gfx_v_set_frame_number( uint16_t frame ){
 
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
+    vm0_sync_frame_number = frame;
+    vm0_sync_frame_ts = ts;
+
+    vm0_frame_number = frame;
+    vm0_frame_ts = ts;
+
+/*
+
     // uint16_t rate = SYNC_RATE / gfx_frame_rate;
     // rate *= gfx_frame_rate;
 
@@ -432,7 +443,21 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     update_vm_timer();
 
     last_vm0_frame_ts = ts;
+*/
 }
+
+void gfx_v_set_sync( uint16_t frame, uint32_t ts ){
+
+    int16_t master_frames_elapsed = (int32_t)vm0_sync_frame_number - (int32_t)frame;
+    int32_t master_time_elapsed = tmr_u32_elapsed_times( vm0_sync_frame_ts, ts );
+
+
+        
+
+    vm0_sync_frame_number = frame;
+    vm0_sync_frame_ts = ts;
+}
+
 
 void gfx_v_pixel_bridge_enable( void ){
 
@@ -794,9 +819,9 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 100 );
             }
 
-            // last_vm0_frame_ts = time_u32_get_network_time();
+            vm0_frame_ts = time_u32_get_network_time();
             vm0_frame_number++;
-            last_vm0_frame_ts += gfx_frame_rate;
+            // last_vm0_frame_ts += gfx_frame_rate;
 
             // if( vm_sync_b_is_slave() ){
 

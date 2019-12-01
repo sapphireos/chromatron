@@ -49,13 +49,14 @@ static uint8_t sync_state;
 #define STATE_SLAVE 		2
 #define STATE_SLAVE_SYNC 	3
 
+
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 
 static uint16_t slave_offset;
 static uint16_t slave_frame;
 static ip_addr_t pending_slave;
-// static uint32_t slave_net_time;
+static uint32_t slave_net_time;
 
 
 int8_t vmsync_i8_kv_handler(
@@ -167,7 +168,7 @@ bool vm_sync_b_is_master( void ){
 }
 
 bool vm_sync_b_is_slave( void ){
-
+ 
     return sync_state == STATE_SLAVE;
 }
 
@@ -404,6 +405,11 @@ void vm_sync_v_trigger( void ){
 
 void vm_sync_v_frame_trigger( void ){
 
+    if( sync_state != STATE_MASTER ){
+
+        return;
+    }
+
     if( !ip_b_is_zeroes( pending_slave ) ){
 
         sock_addr_t raddr;
@@ -425,7 +431,7 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
         // uint32_t now = time_u32_get_network_time();
-        uint32_t now = tmr_u32_get_system_time_ms();
+        // uint32_t now = tmr_u32_get_system_time_ms();
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
@@ -551,8 +557,7 @@ PT_BEGIN( pt );
                     // slave, not synced 
                     slave_offset    = 0;
                     slave_frame     = msg->frame_number;
-                    // slave_net_time  = msg->net_time;
-                    // slave_net_time  = msg->uptime / 1000;
+                    slave_net_time  = msg->net_time;
                 }
         	}
 
@@ -562,9 +567,10 @@ PT_BEGIN( pt );
                 // slave_frame = msg->frame_number;
 
                 // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
-                // gfx_v_set_sync0( msg->frame_number - slave_frame, now );
-                gfx_v_set_sync0( msg->frame_number, now );
-                slave_frame = msg->frame_number;
+                                
+                slave_frame     = msg->frame_number;
+                slave_net_time  = msg->net_time;
+                gfx_v_set_sync( slave_frame, slave_net_time );
             }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){
@@ -593,6 +599,7 @@ PT_BEGIN( pt );
 
                 set_frame_data( sync, data_len );
 
+                // check if sync is finished
                 if( msg->offset == slave_offset ){
 
                     slave_offset += data_len;
@@ -601,8 +608,7 @@ PT_BEGIN( pt );
 
                         sync_state = STATE_SLAVE_SYNC;
 
-                        gfx_v_set_frame_number( slave_frame );
-                        gfx_v_set_sync0( slave_frame, now );
+                        gfx_v_set_sync0( slave_frame, slave_net_time );
                     }
                 }
             }
