@@ -731,13 +731,15 @@ PT_BEGIN( pt );
     		log_v_debug_P( PSTR("vm sync!") );
     	}
 
+        if( sync_state != STATE_SLAVE_SYNC ){
+
+            TMR_WAIT( pt, 8000 );
+        }
+
     	while( sync_state == STATE_SLAVE_SYNC ){
 
     		TMR_WAIT( pt, 1 * 1000 );
     	}
-
-
-    	TMR_WAIT( pt, 8000 );
     }
 
 PT_END( pt );
