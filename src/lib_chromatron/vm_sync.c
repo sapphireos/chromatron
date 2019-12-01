@@ -496,6 +496,11 @@ PT_BEGIN( pt );
 
         		sync_state = STATE_SLAVE;
 
+                // done processing
+                continue;
+        	}
+            else if( sync_state == STATE_SLAVE ){
+
                 // slave, not synced 
                 slave_offset    = 0;
                 slave_frame     = msg->frame_number;
@@ -512,9 +517,8 @@ PT_BEGIN( pt );
 
                 set_frame_sync( &sync );                
 
-                // done processing
                 continue;
-        	}
+            }
 
         	uint64_t temp_master_uptime = master_uptime;
 
