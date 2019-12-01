@@ -1758,6 +1758,9 @@ void gfxlib_v_init( void ){
     gfx_v_reset();
 
     update_master_fader();
+
+    // DEBUG
+    gfx_v_set_red_boost( 6553 );
 }
 
 // convert all HSV to RGB
