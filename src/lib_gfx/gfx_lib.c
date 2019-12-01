@@ -417,6 +417,36 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
             return gfx_u16_noise( params[0] % 65536 );
             break;
 
+        case __KV__sine:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            return sine( params[0] );
+
+            break;
+
+        case __KV__cosine:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            return cosine( params[0] );
+
+            break;
+
+        case __KV__triangle:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            return triangle( params[0] );
+
+            break;
+
         default:
             break;
     }    
