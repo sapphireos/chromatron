@@ -446,16 +446,72 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 */
 }
 
-void gfx_v_set_sync( uint16_t frame, uint32_t ts ){
+void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
 
-    int16_t master_frames_elapsed = (int32_t)vm0_sync_frame_number - (int32_t)frame;
-    int32_t master_time_elapsed = tmr_u32_elapsed_times( vm0_sync_frame_ts, ts );
+    uint16_t master_frames_elapsed = (int32_t)master_frame - (int32_t)vm0_sync_frame_number;
+    uint32_t master_time_elapsed = tmr_u32_elapsed_times( master_ts, vm0_sync_frame_ts );
+    uint16_t master_rate = master_time_elapsed / master_frames_elapsed;
 
+    uint16_t our_frames_elapsed = (int32_t)vm0_frame_number - (int32_t)vm0_sync_frame_number;
+    uint32_t our_time_elapsed = tmr_u32_elapsed_times( vm0_frame_ts, vm0_sync_frame_ts );
+    uint16_t our_rate = our_time_elapsed / our_frames_elapsed;
+    
+    // get rate delta
+    int16_t delta = master_rate - our_rate;
 
-        
+    log_v_debug_P( PSTR("master frames: %u elapsed: %lu rate: %u | our frames: %u elapsed: %lu rate %u delta: %d"), 
+        master_frames_elapsed, master_time_elapsed, master_rate, our_frames_elapsed, our_time_elapsed, our_rate, delta );
 
-    vm0_sync_frame_number = frame;
-    vm0_sync_frame_ts = ts;
+    // update parameters for next sync
+    vm0_sync_frame_number = master_frame;
+    vm0_sync_frame_ts = master_ts;
+
+    // now figure out our offset
+    // we need to adjust our local frame counter to match the master's
+    // or rather, we adjust the master to match ours, using the master's timing data.
+
+    // get frame delta
+    int16_t frame_delta = vm0_frame_number - master_frame;
+    
+    // delta is positive if we are ahead of master.  if so, master timestamp needs to increase
+    // by that many frames.
+    // the opposite will occur if we are behind.
+    uint32_t master_ts_adjusted = master_ts + ( (int32_t)frame_delta * master_rate );
+
+    int32_t true_offset = vm0_frame_ts - master_ts_adjusted;
+
+    // we are ahead
+    if( true_offset > 0 ){
+    
+        if( true_offset > 10 ){
+
+            // slow down
+            frame_rate_adjust = 4;
+        }
+        else if( true_offset > 2 ){
+
+            // slow down
+            frame_rate_adjust = 1;
+        }
+    }
+    // we are behind
+    else if( true_offset > 0 ){
+     
+        if( true_offset < -10 ){
+
+            // speed up
+            frame_rate_adjust = -4;
+        }
+        else if( true_offset < -2 ){
+
+            // speed up
+            frame_rate_adjust = -1;
+        }
+    }
+
+    log_v_debug_P( PSTR("frame delta: %d master adjusted: %lu true offset: %ld adj: %d"), frame_delta, master_ts_adjusted, true_offset, frame_rate_adjust );
+
+    update_vm_timer();
 }
 
 
