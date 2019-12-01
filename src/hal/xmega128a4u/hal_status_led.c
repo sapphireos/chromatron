@@ -101,7 +101,7 @@ PT_BEGIN( pt );
 
                 if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) == 0 ){
 
-                    TMR_WAIT( pt, net_time % LED_TIME_SYNC_INTERVAL );
+                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
                 }
             }
             else{
@@ -126,7 +126,7 @@ PT_BEGIN( pt );
 
             if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) != 0 ){
 
-                TMR_WAIT( pt, net_time % LED_TIME_SYNC_INTERVAL );
+                TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
             }
         }
         else{
