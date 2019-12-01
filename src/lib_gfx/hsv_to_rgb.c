@@ -105,7 +105,8 @@ void gfx_v_hsv_to_rgbw(
     uint16_t *b,
     uint16_t *w ){
 
-    uint16_t temp_r, temp_g, temp_b, temp_s;
+    uint16_t temp_g, temp_b, temp_s;
+    uint32_t temp_r;
     temp_r = 0;
     temp_g = 0;
     temp_b = 0;
@@ -114,8 +115,13 @@ void gfx_v_hsv_to_rgbw(
 
     if( h <= 21845 ){
     
-        temp_r = ( 21845 - h ) * 3;
-        temp_g = 65535 - temp_r;
+        temp_r = ( ( red_boost_offset_low - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low;
+        temp_g = 65535 - ( 21845 - h ) * 3;
+
+        if( temp_r > 65535 ){
+
+            temp_r = 65535;
+        }
 
         // apply saturation to RGB
         temp_r = ( (uint32_t)temp_r * s ) / 65536;
@@ -132,8 +138,13 @@ void gfx_v_hsv_to_rgbw(
     }
     else{
     
-        temp_b = ( 65535 - h ) * 3;
-        temp_r = 65535 - temp_b;
+        temp_b = ( 65535 - h ) * 3;  
+        temp_r = red_top - ( ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low );
+
+        if( temp_r > 65535 ){
+
+            temp_r = 65535;
+        }
 
         // apply saturation to RGB
         temp_r = ( (uint32_t)temp_r * s ) / 65536;
