@@ -41,9 +41,6 @@
 void gfx_v_init( void );
 bool gfx_b_running( void );
 
-// uint16_t gfx_u16_get_frame_number( void );
-// uint32_t gfx_u32_get_frame_ts( void );
-void gfx_v_set_frame_number( uint16_t frame );
 void gfx_v_set_sync0( uint16_t frames, uint32_t ts );
 void gfx_v_set_sync( uint16_t frames, uint32_t ts );
 

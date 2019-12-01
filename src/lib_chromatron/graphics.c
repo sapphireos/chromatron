@@ -69,7 +69,6 @@ static uint16_t vm0_frame_number;
 static uint32_t vm0_frame_ts;
 static uint16_t vm0_sync_frame_number;
 static uint32_t vm0_sync_frame_ts;
-// static uint32_t last_vm0_frame_ts;
 static int16_t frame_rate_adjust;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
@@ -376,21 +375,6 @@ void gfx_v_init( void ){
 bool gfx_b_running( void ){
 
     return pixel_transfer_enable;
-}
-
-// uint16_t gfx_u16_get_frame_number( void ){
-
-//     return vm0_frame_number;
-// }
-
-// uint32_t gfx_u32_get_frame_ts( void ){
-
-//     return last_vm0_frame_ts;
-// }
-
-void gfx_v_set_frame_number( uint16_t frame ){
-
-    vm0_frame_number = frame;
 }
 
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
