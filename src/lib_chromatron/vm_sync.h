@@ -56,7 +56,7 @@ typedef struct __attribute__((packed)){
     uint16_t frame_number;
     uint16_t data_len;
     uint64_t rng_seed;
-    // uint32_t net_time;
+    uint32_t net_time;
     // uint32_t timestamp;
 } vm_sync_msg_sync_0_t;
 #define VM_SYNC_MSG_SYNC_0                      1

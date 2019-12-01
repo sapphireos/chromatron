@@ -54,7 +54,7 @@ static uint64_t master_uptime;
 
 static uint16_t slave_offset;
 static uint16_t slave_frame;
-static uint32_t slave_net_time;
+// static uint32_t slave_net_time;
 
 
 int8_t vmsync_i8_kv_handler(
@@ -270,7 +270,7 @@ static void send_sync_0( wifi_msg_vm_frame_sync_t *sync, sock_addr_t *raddr ){
     msg.frame_number        = sync->frame_number;
     msg.data_len            = sync->data_len;
     msg.rng_seed            = sync->rng_seed;
-    // msg.net_time            = time_u32_get_network_time();
+    msg.net_time            = time_u32_get_network_time();
     // msg.timestamp           =tmr_u32_get_system_time_ms();
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
@@ -483,7 +483,7 @@ PT_BEGIN( pt );
                 slave_offset    = 0;
                 slave_frame     = msg->frame_number;
                 // slave_net_time  = msg->net_time;
-                slave_net_time  = msg->uptime / 1000;
+                // slave_net_time  = msg->uptime / 1000;
 
                 log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
 
@@ -531,7 +531,7 @@ PT_BEGIN( pt );
                     slave_offset    = 0;
                     slave_frame     = msg->frame_number;
                     // slave_net_time  = msg->net_time;
-                    slave_net_time  = msg->uptime / 1000;
+                    // slave_net_time  = msg->uptime / 1000;
                 }
         	}
 
