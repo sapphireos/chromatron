@@ -54,6 +54,7 @@ static uint64_t master_uptime;
 
 static uint16_t slave_offset;
 static uint16_t slave_frame;
+static ip_addr_t pending_slave;
 // static uint32_t slave_net_time;
 
 
@@ -400,6 +401,22 @@ void vm_sync_v_trigger( void ){
     // log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
 }
 
+
+void vm_sync_v_frame_trigger( void ){
+
+    if( !ip_b_is_zeroes( pending_slave ) ){
+
+        sock_addr_t raddr;
+        raddr.port = SYNC_SERVER_PORT;
+        raddr.ipaddr = pending_slave;
+
+        send_sync_to_slave( &raddr );
+
+        pending_slave = ip_a_addr(0,0,0,0);
+    }
+
+}
+
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -610,7 +627,10 @@ PT_BEGIN( pt );
 
         	// log_v_debug_P( PSTR("sync requested") );
 
-        	send_sync_to_slave( &raddr );
+            if( ip_b_is_zeroes( pending_slave ) ){
+
+                pending_slave = raddr.ipaddr;
+            }
         }
     }
 

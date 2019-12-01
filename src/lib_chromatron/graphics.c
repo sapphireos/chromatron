@@ -803,6 +803,8 @@ PT_BEGIN( pt );
             //     uint32_t net_time = time_u32_get_network_time();
             // }
 
+            vm_sync_v_frame_trigger();
+
             uint16_t rate = SYNC_RATE / gfx_frame_rate;
 
             if( ( vm0_frame_number % rate ) == 0 ){
