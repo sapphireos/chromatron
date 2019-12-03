@@ -429,8 +429,6 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-        THREAD_WAIT_WHILE( pt, vm_sync_wait() );
-
     	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
         // uint32_t now = time_u32_get_network_time();
         // uint32_t now = tmr_u32_get_system_time_ms();
@@ -465,6 +463,11 @@ PT_BEGIN( pt );
             }
 
         	continue;
+        }
+
+        if( vm_sync_wait() ){
+
+            continue;
         }
 
         vm_sync_msg_header_t *header = sock_vp_get_data( sock );
