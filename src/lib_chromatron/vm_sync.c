@@ -184,8 +184,8 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 static bool vm_sync_wait( void ){
 
-	// return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
-    return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) );
+	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
+    // return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) );
 }
 
 
@@ -429,6 +429,8 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
+        THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+
     	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
         // uint32_t now = time_u32_get_network_time();
         // uint32_t now = tmr_u32_get_system_time_ms();
@@ -608,6 +610,7 @@ PT_BEGIN( pt );
 
                         sync_state = STATE_SLAVE_SYNC;
 
+                        log_v_debug_P( PSTR("finished sync data") );
                         gfx_v_set_sync0( slave_frame, slave_net_time );
                     }
                 }
@@ -717,6 +720,7 @@ PT_BEGIN( pt );
             // random wait a bit so we don't all transmit to master at the same time
             TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
 
+            log_v_debug_P( PSTR("request slave sync") );
             send_request();
 
             // wait some time
