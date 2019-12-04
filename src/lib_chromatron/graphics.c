@@ -53,6 +53,7 @@ static uint16_t pix_size_y;
 static bool gfx_interleave_x;
 static bool gfx_transpose;
 static uint16_t gfx_frame_rate = 100;
+static uint16_t old_frame_rate = 100;
 static uint8_t gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 static uint8_t gfx_sat_curve = GFX_SAT_CURVE_DEFAULT;
 
@@ -188,7 +189,15 @@ int8_t gfx_i8_kv_handler(
 
         gfx_v_sync_params();
 
-        update_vm_timer();
+        if( hash == __KV__gfx_frame_rate ){
+
+            if( gfx_frame_rate != old_frame_rate ){
+
+                old_frame_rate = gfx_frame_rate;
+                update_vm_timer();    
+            }
+        }
+        
     }
 
     return 0;
@@ -721,6 +730,7 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, should_halt_fader() );
 
+    // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
     
     while(1){
@@ -848,9 +858,12 @@ PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    // init alarm
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
     while(1){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate + frame_rate_adjust );
+        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
         THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
 
         // check if shutting down
@@ -862,7 +875,7 @@ PT_BEGIN( pt );
         if( update_frame_rate ){
 
             update_frame_rate = FALSE;
-            continue;
+            THREAD_RESTART( pt );            
         }
 
         if( vm_i8_run_loops() < 0 ){
@@ -872,7 +885,7 @@ PT_BEGIN( pt );
             // let's delay
             TMR_WAIT( pt, 100 );
 
-            continue;
+            THREAD_RESTART( pt );            
         }
 
         vm0_frame_ts = time_u32_get_network_time();
