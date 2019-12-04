@@ -724,6 +724,9 @@ void pixel_v_init( void ){
     PIXEL_TIMER.INTCTRLB |= PIXEL_TIMER_CC_INTLVL;
 
 
+    // start timer
+    GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
+    GFX_TIMER.CTRLB = 0;
 
     pixel_v_enable();
 }

@@ -61,17 +61,18 @@ static uint16_t gfx_virtual_array_length;
 
 static bool pixel_transfer_enable = TRUE;
 
-static volatile uint8_t run_flags;
-#define FLAG_RUN_VM_LOOP        0x02
+// static volatile uint8_t run_flags;
+// #define FLAG_RUN_VM_LOOP        0x02
+static bool update_frame_rate;
 
-static uint16_t vm_timer_rate; 
+// static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
 static uint32_t vm0_frame_ts;
 static uint16_t vm0_sync_frame_number;
 static uint32_t vm0_sync_frame_ts;
 static int16_t frame_rate_adjust;
 
-#define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
+// #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
 
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) );
@@ -88,27 +89,29 @@ static subscribed_key_t subscribed_keys[32];
 static uint16_t vm_fader_time;
 
 
-static uint16_t calc_vm_timer( uint32_t ms ){
+// static uint16_t calc_vm_timer( uint32_t ms ){
 
-    return ( ms * 31250 ) / 1000;
-}
+//     return ( ms * 31250 ) / 1000;
+// }
 
 static void update_vm_timer( void ){
 
-    uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
+    update_frame_rate = TRUE;
 
-    if( new_timer != vm_timer_rate ){
+    // uint16_t new_timer = calc_vm_timer( gfx_frame_rate + frame_rate_adjust );
 
-        ATOMIC;
-        vm_timer_rate = new_timer;
+    // if( new_timer != vm_timer_rate ){
 
-        // immediately update timer so we don't have to wait for 
-        // current frame to complete.  this speeds up the response if
-        // we're going from a really slow to a really fast rate.
-        GFX_TIMER.CCB = GFX_TIMER.CNT + vm_timer_rate;
+    //     ATOMIC;
+    //     vm_timer_rate = new_timer;
 
-        END_ATOMIC;
-    }
+    //     // immediately update timer so we don't have to wait for 
+    //     // current frame to complete.  this speeds up the response if
+    //     // we're going from a really slow to a really fast rate.
+    //     GFX_TIMER.CCB = GFX_TIMER.CNT + vm_timer_rate;
+
+    //     END_ATOMIC;
+    // }
 }
 
 static void param_error_check( void ){
@@ -312,20 +315,20 @@ uint16_t gfx_u16_get_submaster_dimmer( void ){
     return gfx_sub_dimmer;
 }
 
-ISR(GFX_TIMER_CCA_vect){
+// ISR(GFX_TIMER_CCA_vect){
 
-}
+// }
 
-ISR(GFX_TIMER_CCB_vect){
+// ISR(GFX_TIMER_CCB_vect){
 
-    GFX_TIMER.CCB += vm_timer_rate;
+//     GFX_TIMER.CCB += vm_timer_rate;
 
-    run_flags |= FLAG_RUN_VM_LOOP;
-}
+//     run_flags |= FLAG_RUN_VM_LOOP;
+// }
 
-ISR(GFX_TIMER_CCC_vect){
+// ISR(GFX_TIMER_CCC_vect){
 
-}
+// }
 
 void gfx_v_init( void ){
 
@@ -348,16 +351,13 @@ void gfx_v_init( void ){
     // PIX_DATA_PORT.OUTCLR = ( 1 << PIX_DATA_PIN );
 
     // VM
-    update_vm_timer();
-    GFX_TIMER.CCB = vm_timer_rate;
+    // update_vm_timer();
+    // GFX_TIMER.CCB = vm_timer_rate;
 
-    GFX_TIMER.INTCTRLB = 0;
-    GFX_TIMER.INTCTRLB |= TC_CCAINTLVL_HI_gc;
-    GFX_TIMER.INTCTRLB |= TC_CCBINTLVL_HI_gc;
-    // GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
-
-    GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
-    GFX_TIMER.CTRLB = 0;
+    // GFX_TIMER.INTCTRLB = 0;
+    // GFX_TIMER.INTCTRLB |= TC_CCAINTLVL_HI_gc;
+    // GFX_TIMER.INTCTRLB |= TC_CCBINTLVL_HI_gc;
+    // // GFX_TIMER.INTCTRLB |= TC_CCCINTLVL_HI_gc;
 
     pixel_v_init();
 
@@ -847,10 +847,11 @@ PT_END( pt );
 PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) || !vm_b_running() );
+        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
+        THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
 
         // check if shutting down
         if( wifi_b_shutdown() ){
@@ -858,40 +859,73 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        ATOMIC;
-        uint8_t flags = run_flags;
-        run_flags = 0;
-        END_ATOMIC;
+        if( update_frame_rate ){
 
-        if( flags & FLAG_RUN_VM_LOOP ){
+            update_frame_rate = FALSE;
+            continue;
+        }
 
-            if( vm_i8_run_loops() < 0 ){
+        if( vm_i8_run_loops() < 0 ){
 
-                // comm fail
+            // comm fail
 
-                // let's delay
-                TMR_WAIT( pt, 100 );
-            }
-
-            vm0_frame_ts = time_u32_get_network_time();
-            vm0_frame_number++;
-            // last_vm0_frame_ts += gfx_frame_rate;
-
-            // if( vm_sync_b_is_slave() ){
-
-            //     uint32_t net_time = time_u32_get_network_time();
-            // }
-
-            vm_sync_v_frame_trigger();
-
-            uint16_t rate = SYNC_RATE / gfx_frame_rate;
-
-            if( ( vm0_frame_number % rate ) == 0 ){
-
-                vm_sync_v_trigger();
-            }
+            // let's delay
+            TMR_WAIT( pt, 100 );
         }
     }
-            
+
 PT_END( pt );
 }
+
+
+// PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     while(1){
+
+//         THREAD_WAIT_WHILE( pt, ( run_flags == 0 ) || !vm_b_running() );
+
+//         // check if shutting down
+//         if( wifi_b_shutdown() ){
+
+//             THREAD_EXIT( pt );
+//         }
+
+//         ATOMIC;
+//         uint8_t flags = run_flags;
+//         run_flags = 0;
+//         END_ATOMIC;
+
+//         if( flags & FLAG_RUN_VM_LOOP ){
+
+//             if( vm_i8_run_loops() < 0 ){
+
+//                 // comm fail
+
+//                 // let's delay
+//                 TMR_WAIT( pt, 100 );
+//             }
+
+//             vm0_frame_ts = time_u32_get_network_time();
+//             vm0_frame_number++;
+//             // last_vm0_frame_ts += gfx_frame_rate;
+
+//             // if( vm_sync_b_is_slave() ){
+
+//             //     uint32_t net_time = time_u32_get_network_time();
+//             // }
+
+//             vm_sync_v_frame_trigger();
+
+//             uint16_t rate = SYNC_RATE / gfx_frame_rate;
+
+//             if( ( vm0_frame_number % rate ) == 0 ){
+
+//                 vm_sync_v_trigger();
+//             }
+//         }
+//     }
+            
+// PT_END( pt );
+// }
