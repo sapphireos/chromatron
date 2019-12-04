@@ -848,6 +848,11 @@ int8_t vm_i8_run_loops( void ){
                 return VM_STATUS_COMM_ERROR;
             }
 
+            if( info.status < 0 ){
+
+                log_v_debug_P( PSTR("... VM %d error: %d"), i,  info.status );
+            }
+
             vm_status[i]            = info.status;
             vm_loop_time[i]         = info.run_time;
             vm_max_cycles[i]        = info.max_cycles;
