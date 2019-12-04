@@ -563,6 +563,10 @@ PT_BEGIN( pt );
                     slave_offset    = 0;
                     slave_frame     = msg->frame_number;
                     slave_net_time  = msg->net_time;
+
+                    sync_state = STATE_SLAVE;
+
+                    continue;
                 }
         	}
 
