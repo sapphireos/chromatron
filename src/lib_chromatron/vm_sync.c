@@ -676,7 +676,7 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("we are sync master") );
         }
 
-    	while( sync_state == STATE_MASTER ){
+    	while( ( sync_state == STATE_MASTER ) && !vm_sync_wait() ){
 
     		if( sys_b_shutdown() ){
 
@@ -718,7 +718,7 @@ PT_BEGIN( pt );
 //             thread_v_clear_signal( SYNC_SIGNAL );
     	}
 
-        while( sync_state == STATE_SLAVE ){
+        while( ( sync_state == STATE_SLAVE ) && !vm_sync_wait() ){
 
             // random wait a bit so we don't all transmit to master at the same time
             TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
@@ -749,7 +749,7 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, 8000 );
         }
 
-    	while( sync_state == STATE_SLAVE_SYNC ){
+    	while( ( sync_state == STATE_SLAVE_SYNC ) && !vm_sync_wait() ){
 
     		TMR_WAIT( pt, 1 * 1000 );
     	}
