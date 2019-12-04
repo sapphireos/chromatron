@@ -433,17 +433,19 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
 
     uint16_t master_frames_elapsed = (int32_t)master_frame - (int32_t)vm0_sync_frame_number;
-    uint32_t master_time_elapsed = tmr_u32_elapsed_times( master_ts, vm0_sync_frame_ts );
+    uint32_t master_time_elapsed = tmr_u32_elapsed_times( vm0_sync_frame_ts, master_ts );
     uint16_t master_rate = master_time_elapsed / master_frames_elapsed;
 
     uint16_t our_frames_elapsed = (int32_t)vm0_frame_number - (int32_t)vm0_sync_frame_number;
-    uint32_t our_time_elapsed = tmr_u32_elapsed_times( vm0_frame_ts, vm0_sync_frame_ts );
+    uint32_t our_time_elapsed = tmr_u32_elapsed_times( vm0_sync_frame_ts, vm0_frame_ts );
     uint16_t our_rate = our_time_elapsed / our_frames_elapsed;
     
     // get rate delta
     int16_t delta = master_rate - our_rate;
 
-    log_v_debug_P( PSTR("master frames: %u elapsed: %lu rate: %u | our frames: %u elapsed: %lu rate %u delta: %d"), 
+    // log_v_debug_P( PSTR("master ts: %lu vm0: %lu elapsed: %lu"), master_ts, vm0_sync_frame_ts, master_time_elapsed );
+
+    log_v_debug_P( PSTR("master frames: %u elapsed: %lu rate: %u | our frames: %u elapsed: %lu rate %u | delta: %d"), 
         master_frames_elapsed, master_time_elapsed, master_rate, our_frames_elapsed, our_time_elapsed, our_rate, delta );
 
     // update parameters for next sync
