@@ -431,6 +431,7 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 }
 
 void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
+    return;
 
     uint16_t master_frames_elapsed = (int32_t)master_frame - (int32_t)vm0_sync_frame_number;
     uint32_t master_time_elapsed = tmr_u32_elapsed_times( vm0_sync_frame_ts, master_ts );
@@ -871,6 +872,17 @@ PT_BEGIN( pt );
 
             // let's delay
             TMR_WAIT( pt, 100 );
+
+            continue;
+        }
+
+        vm_sync_v_frame_trigger();
+
+        uint16_t rate = SYNC_RATE / gfx_frame_rate;
+
+        if( ( vm0_frame_number % rate ) == 0 ){
+
+            vm_sync_v_trigger();
         }
     }
 

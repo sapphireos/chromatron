@@ -26,7 +26,7 @@
 
 
 
-#define SYNC_DEBUG
+// #define SYNC_DEBUG
 
 
 #include "timesync.h"
