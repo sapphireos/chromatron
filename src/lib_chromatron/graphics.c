@@ -464,12 +464,17 @@ void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
     // the opposite will occur if we are behind.
     uint32_t master_ts_adjusted = master_ts + ( (int32_t)frame_delta * master_rate );
 
-    int32_t true_offset = vm0_frame_ts - master_ts_adjusted;
+    int32_t true_offset = master_ts_adjusted - vm0_frame_ts;
 
     // we are ahead
     if( true_offset > 0 ){
-    
-        if( true_offset > 10 ){
+        
+        if( true_offset > 50 ){
+
+            // slow down
+            frame_rate_adjust = 20;
+        }
+        else if( true_offset > 10 ){
 
             // slow down
             frame_rate_adjust = 4;
@@ -482,8 +487,13 @@ void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
     }
     // we are behind
     else if( true_offset < 0 ){
-     
-        if( true_offset < -10 ){
+        
+        if( true_offset < -15 ){
+
+            // speed up
+            frame_rate_adjust = -20;
+        }
+        else if( true_offset < -10 ){
 
             // speed up
             frame_rate_adjust = -4;
@@ -494,6 +504,8 @@ void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
             frame_rate_adjust = -1;
         }
     }
+
+    frame_rate_adjust = 0;
 
     log_v_debug_P( PSTR("frame delta: %d master adjusted: %lu true offset: %ld adj: %d"), frame_delta, master_ts_adjusted, true_offset, frame_rate_adjust );
 
