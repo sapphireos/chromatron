@@ -481,7 +481,7 @@ void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
         }
     }
     // we are behind
-    else if( true_offset > 0 ){
+    else if( true_offset < 0 ){
      
         if( true_offset < -10 ){
 
