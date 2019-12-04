@@ -217,6 +217,9 @@ static int8_t send_reset_message( uint8_t vm_id ){
 
 int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
 
+    // ensure info will return valid data even if we don't run the VM
+    memset( info, 0, sizeof(wifi_msg_vm_info_t) );
+
     if( wifi_b_shutdown() ){
 
         return 0;
@@ -846,11 +849,6 @@ int8_t vm_i8_run_loops( void ){
             if( vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0, &info ) == VM_STATUS_COMM_ERROR ){
 
                 return VM_STATUS_COMM_ERROR;
-            }
-
-            if( info.status < 0 ){
-
-                log_v_debug_P( PSTR("... VM %d error: %d"), i,  info.status );
             }
 
             vm_status[i]            = info.status;
