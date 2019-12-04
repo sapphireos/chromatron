@@ -431,7 +431,6 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 }
 
 void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
-    return;
 
     uint16_t master_frames_elapsed = (int32_t)master_frame - (int32_t)vm0_sync_frame_number;
     uint32_t master_time_elapsed = tmr_u32_elapsed_times( vm0_sync_frame_ts, master_ts );
@@ -510,7 +509,7 @@ void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
 
     log_v_debug_P( PSTR("frame delta: %d master adjusted: %lu true offset: %ld adj: %d"), frame_delta, master_ts_adjusted, true_offset, frame_rate_adjust );
 
-    update_vm_timer();
+    // update_vm_timer();
 }
 
 
@@ -851,7 +850,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
+        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate + frame_rate_adjust );
         THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
 
         // check if shutting down
@@ -875,6 +874,9 @@ PT_BEGIN( pt );
 
             continue;
         }
+
+        vm0_frame_ts = time_u32_get_network_time();
+        vm0_frame_number++;
 
         vm_sync_v_frame_trigger();
 
