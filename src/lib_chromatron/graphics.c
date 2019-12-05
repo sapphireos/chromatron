@@ -899,7 +899,17 @@ PT_BEGIN( pt );
 
     while(1){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate + frame_rate_adjust );
+        if( time_b_is_sync() ){
+
+            uint32_t net_time = time_u32_get_network_time();
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + gfx_frame_rate - ( net_time % gfx_frame_rate ) );            
+        }
+        else{
+
+            thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
+        }
+
+        
         THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
 
         frame_rate_adjust = 0;
