@@ -899,7 +899,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate - frame_rate_adjust );
+        thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate + frame_rate_adjust );
         THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
 
         frame_rate_adjust = 0;
