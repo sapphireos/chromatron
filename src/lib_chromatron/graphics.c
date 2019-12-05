@@ -469,7 +469,7 @@ void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
 
     int32_t frame_offset = (int64_t)master_ts - (int64_t)vm0_frame_ts;
 
-    log_v_debug_P( PSTR("%ld %ld"), temp, frame_offset );
+    // log_v_debug_P( PSTR("%ld %ld"), temp, frame_offset );
 
     frame_rate_adjust = frame_offset;
 
@@ -909,8 +909,9 @@ PT_BEGIN( pt );
             thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
         }
 
-        
         THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
+
+        log_v_debug_P( PSTR("%u %lu"), vm0_frame_number, time_u32_get_network_time() );
 
         frame_rate_adjust = 0;
 
