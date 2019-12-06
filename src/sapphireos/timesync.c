@@ -49,7 +49,6 @@ static bool ntp_valid;
 
 // master clock
 static ntp_ts_t master_time;
-static ntp_ts_t network_time;
 static uint32_t last_clock_update;
 static uint32_t base_system_time;
 static int32_t sync_difference;
@@ -241,7 +240,6 @@ static void time_v_set_master_clock_internal(
         
         // hard sync
         master_time         = source_ts;
-        network_time        = source_ts;
         base_system_time    = local_system_time;
         last_clock_update   = local_system_time;
         sync_difference     = 0;
@@ -578,7 +576,7 @@ PT_BEGIN( pt );
 
                     // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
                     //     elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
-                    log_v_debug_P( PSTR("offset %d diff: %ld"), clock_offset, clock_diff );
+                    log_v_debug_P( PSTR("offset %4d diff: %6ld"), clock_offset, clock_diff );
                 }
             }
         }
@@ -826,7 +824,6 @@ PT_BEGIN( pt );
         uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
 
         uint64_t master = ntp_u64_conv_to_u64( master_time );
-        uint64_t network = ntp_u64_conv_to_u64( network_time );
 
         int16_t clock_adjust = 0;
 
@@ -854,10 +851,8 @@ PT_BEGIN( pt );
         sync_difference -= clock_adjust;
 
         master += ( ( (uint64_t)( elapsed - clock_adjust ) << 32 ) / 1000 );
-        network += ( ( (uint64_t)elapsed << 32 ) / 1000 );
 
         master_time = ntp_ts_from_u64( master );
-        network_time = ntp_ts_from_u64( network );
 
         base_system_time += elapsed;  
         last_clock_update = now;
