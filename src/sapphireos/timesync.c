@@ -87,8 +87,14 @@ static int8_t ntp_kv_handler(
 
     if( op == KV_OP_GET ){
 
-        uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-        uint32_t seconds = ntp_master_time.seconds + ( elapsed / 1000 );
+        uint32_t elapsed = 0;
+        uint32_t seconds = 0;
+
+        if( ntp_valid ){
+            
+            elapsed = tmr_u32_elapsed_time_ms( base_system_time );
+            seconds = ntp_master_time.seconds + ( elapsed / 1000 );
+        }
 
         memcpy( data, &seconds, len );
 
@@ -819,43 +825,46 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        uint32_t now = tmr_u32_get_system_time_ms();
+        if( ntp_valid ){
 
-        uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
+            uint32_t now = tmr_u32_get_system_time_ms();
 
-        uint64_t master = ntp_u64_conv_to_u64( ntp_master_time );
+            uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
 
-        int16_t clock_adjust = 0;
+            uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( ntp_master_time );
 
-        if( ntp_sync_difference > 50 ){
+            int16_t clock_adjust = 0;
 
-            // our clock is ahead, so we need to slow down
-            clock_adjust = 10;
+            if( ntp_sync_difference > 50 ){
+
+                // our clock is ahead, so we need to slow down
+                clock_adjust = 10;
+            }
+            else if( ntp_sync_difference > 2 ){
+
+                // our clock is ahead, so we need to slow down
+                clock_adjust = 1;
+            }
+            else if( ntp_sync_difference < -50 ){
+
+                // our clock is behind, so we need to speed up
+                clock_adjust = -10;
+            }
+            else if( ntp_sync_difference < -2 ){
+
+                // our clock is behind, so we need to speed up
+                clock_adjust = -1;
+            }
+
+            ntp_sync_difference -= clock_adjust;
+
+            temp_ntp_master_u64 += ( ( (uint64_t)( elapsed - clock_adjust ) << 32 ) / 1000 );
+
+            ntp_master_time = ntp_ts_from_u64( temp_ntp_master_u64 );
+
+            base_system_time += elapsed;  
+            last_clock_update = now;
         }
-        else if( ntp_sync_difference > 2 ){
-
-            // our clock is ahead, so we need to slow down
-            clock_adjust = 1;
-        }
-        else if( ntp_sync_difference < -50 ){
-
-            // our clock is behind, so we need to speed up
-            clock_adjust = -10;
-        }
-        else if( ntp_sync_difference < -2 ){
-
-            // our clock is behind, so we need to speed up
-            clock_adjust = -1;
-        }
-
-        ntp_sync_difference -= clock_adjust;
-
-        master += ( ( (uint64_t)( elapsed - clock_adjust ) << 32 ) / 1000 );
-
-        ntp_master_time = ntp_ts_from_u64( master );
-
-        base_system_time += elapsed;  
-        last_clock_update = now;
     }
 
 PT_END( pt );
