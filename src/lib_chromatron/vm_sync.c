@@ -111,10 +111,10 @@ static uint32_t prev;
         TMR_WAIT( pt, 1000 - ( net_time % 1000 ) );
 
         debug_strobe();
-        uint32_t net = time_u32_get_network_time();
-        uint32_t delta = net - prev;
-        prev = net;
-        log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
+        // uint32_t net = time_u32_get_network_time();
+        // uint32_t delta = net - prev;
+        // prev = net;
+        // log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
     }
 
 PT_END( pt );
@@ -124,6 +124,7 @@ PT_END( pt );
 #endif
 
 void vm_sync_v_init( void ){
+    return;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 

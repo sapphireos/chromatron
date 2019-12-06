@@ -493,7 +493,7 @@ PT_BEGIN( pt );
                 else if( ( filtered_rtt > 0 ) && 
                          ( elapsed_rtt > ( filtered_rtt + RTT_QUALITY_LIMIT ) ) ){
 
-                    log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
+                    // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
 
 
                     // although we are not using this sync message for our clock,
@@ -575,10 +575,11 @@ PT_BEGIN( pt );
                 else{
 
                     net_time += elapsed_remote_net;
-                }
 
-                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                    elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                    // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                    //     elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                    log_v_debug_P( PSTR("offset %d diff: %ld"), clock_offset, clock_diff );
+                }
             }
         }
         // socket timeout
