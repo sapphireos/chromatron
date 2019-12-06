@@ -391,8 +391,10 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     // vm0_sync_frame_number = frame;
     // vm0_sync_frame_ts = ts;
 
-    // vm0_frame_number = frame;
-    // vm0_frame_ts = ts;
+    vm0_frame_number = frame;
+    vm0_frame_ts = ts;
+
+    update_frame_rate = TRUE;
 
 /*
 
@@ -907,6 +909,8 @@ PT_BEGIN( pt );
 
             net_time = time_u32_get_network_aligned( gfx_frame_rate );
             THREAD_WAIT_WHILE( pt, !update_frame_rate && ( time_i8_compare_network_time( net_time ) > 0 )  );
+
+            // log_v_debug_P( PSTR("%6u %12lu"), vm0_frame_number, time_u32_get_network_time() );
         }
         else{
 
