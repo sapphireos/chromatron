@@ -391,8 +391,8 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     // vm0_sync_frame_number = frame;
     // vm0_sync_frame_ts = ts;
 
-    vm0_frame_number = frame;
-    vm0_frame_ts = ts;
+    // vm0_frame_number = frame;
+    // vm0_frame_ts = ts;
 
 /*
 
@@ -441,37 +441,37 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
 void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
 
-    int32_t frame_delta = (int32_t)master_frame - (int32_t)vm0_frame_number;
-    int32_t temp = frame_delta;
+    // int32_t frame_delta = (int32_t)master_frame - (int32_t)vm0_frame_number;
+    // int32_t temp = frame_delta;
 
-    // master is ahead
-    if( frame_delta > 0 ){
+    // // master is ahead
+    // if( frame_delta > 0 ){
 
-        // rewind timestamp to match ours
-        while( frame_delta > 0 ){
+    //     // rewind timestamp to match ours
+    //     while( frame_delta > 0 ){
 
-            frame_delta--;
-            master_frame--;
-            master_ts -= gfx_frame_rate;
-        }
-    }
-    // we are ahead
-    else if( frame_delta < 0 ){
+    //         frame_delta--;
+    //         master_frame--;
+    //         master_ts -= gfx_frame_rate;
+    //     }
+    // }
+    // // we are ahead
+    // else if( frame_delta < 0 ){
 
-        // fastforwards timestamp to match ours
-        while( frame_delta < 0 ){
+    //     // fastforwards timestamp to match ours
+    //     while( frame_delta < 0 ){
 
-            frame_delta++;
-            master_frame++;
-            master_ts += gfx_frame_rate;
-        }
-    }
+    //         frame_delta++;
+    //         master_frame++;
+    //         master_ts += gfx_frame_rate;
+    //     }
+    // }
 
-    int32_t frame_offset = (int64_t)master_ts - (int64_t)vm0_frame_ts;
+    // int32_t frame_offset = (int64_t)master_ts - (int64_t)vm0_frame_ts;
 
     // log_v_debug_P( PSTR("%ld %ld"), temp, frame_offset );
 
-    frame_rate_adjust = frame_offset;
+    // frame_rate_adjust = frame_offset;
 
     // vm0_sync_frame_number = master_frame;
     // vm0_sync_frame_ts = master_ts;
@@ -893,6 +893,8 @@ PT_END( pt );
 PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    static uint32_t prev;
 
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
@@ -911,7 +913,10 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
 
-        log_v_debug_P( PSTR("%u %lu"), vm0_frame_number, time_u32_get_network_time() );
+        uint32_t net = time_u32_get_network_time();
+        uint32_t delta = net - prev;
+        prev = net;
+        // log_v_debug_P( PSTR("%u %lu"), vm0_frame_number, delta );
 
         frame_rate_adjust = 0;
 

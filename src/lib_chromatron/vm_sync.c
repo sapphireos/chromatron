@@ -26,7 +26,7 @@
 
 
 
-// #define SYNC_DEBUG
+#define SYNC_DEBUG
 
 
 #include "timesync.h"
@@ -91,14 +91,16 @@ PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) );
 
 static void debug_strobe( void ){
-    io_v_digital_write( IO_PIN_PWM_0, TRUE );
+    io_v_digital_write( IO_PIN_PWM_1, TRUE );
     _delay_us( 10 );
-    io_v_digital_write( IO_PIN_PWM_0, FALSE );
+    io_v_digital_write( IO_PIN_PWM_1, FALSE );
 } 
 
 PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+static uint32_t prev;
 
     while( TRUE ){
 
@@ -109,6 +111,10 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 - ( net_time % 1000 ) );
 
         debug_strobe();
+        uint32_t net = time_u32_get_network_time();
+        uint32_t delta = net - prev;
+        prev = net;
+        log_v_debug_P( PSTR("%lu %lu"), delta, net );
     }
 
 PT_END( pt );
