@@ -38,9 +38,8 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
-static uint32_t local_time;
-static uint32_t last_net_time;
-static uint32_t net_time;
+// static uint32_t local_time;
+// static uint32_t last_net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
@@ -48,10 +47,12 @@ static bool is_sync;
 static bool ntp_valid;
 
 // master clock
-static ntp_ts_t ntp_master_time;
+static ntp_ts_t master_ntp_time;
+static uint32_t master_net_time;
 static uint32_t last_clock_update;
 static uint32_t base_system_time;
 static int32_t ntp_sync_difference;
+static int32_t master_sync_difference;
 
 static bool gps_sync;
 
@@ -93,7 +94,7 @@ static int8_t ntp_kv_handler(
         if( ntp_valid ){
             
             elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-            seconds = ntp_master_time.seconds + ( elapsed / 1000 );
+            seconds = master_ntp_time.seconds + ( elapsed / 1000 );
         }
 
         memcpy( data, &seconds, len );
@@ -107,7 +108,7 @@ static int8_t ntp_kv_handler(
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &sync_state,       0,                      "net_time_state" },
     { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
@@ -125,7 +126,7 @@ void hal_rtc_v_irq( void ){
 void time_v_init( void ){
 
     // January 1, 2018, midnight
-    ntp_master_time.seconds = 1514786400 + 2208988800 - 21600;
+    master_ntp_time.seconds = 1514786400 + 2208988800 - 21600;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -167,15 +168,19 @@ bool time_b_is_sync( void ){
 }
 
 uint32_t time_u32_get_network_time( void ){
+    
+    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, tmr_u32_get_system_time_ms() );
 
-    int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
+    return master_net_time + elapsed_ms;
 
-    // now adjust for drift
-    int32_t drift = ( filtered_drift * elapsed ) / 65536;
+    // int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
 
-    uint32_t adjusted_net_time = net_time + ( elapsed - drift );
+    // // now adjust for drift
+    // int32_t drift = ( filtered_drift * elapsed ) / 65536;
 
-    return adjusted_net_time;
+    // uint32_t adjusted_net_time = net_time + ( elapsed - drift );
+
+    // return adjusted_net_time;
 }
 
 void time_v_set_gps_sync( bool sync ){
@@ -199,7 +204,7 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
         log_v_debug_P( PSTR("elapsed time out of range: %lu"), elapsed_ms ); 
     }
 
-    uint64_t now = ntp_u64_conv_to_u64( ntp_master_time );
+    uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
 
     // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
 
@@ -210,10 +215,9 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
 static void time_v_set_ntp_master_clock_internal( 
     ntp_ts_t source_ts, 
+    uint32_t source_net_time,
     uint32_t local_system_time,
-    uint8_t source ){
-
-    is_sync = TRUE;
+    uint8_t source ){    
 
     master_source = source;
 
@@ -228,27 +232,33 @@ static void time_v_set_ntp_master_clock_internal(
         ntp_valid = TRUE;
     }
 
-    ntp_ts_t local_ts = time_t_from_system_time( local_system_time );
+    ntp_ts_t local_ntp_ts = time_t_from_system_time( local_system_time );
+    uint32_t net_time = time_u32_get_network_time();
 
     // get deltas
-    int64_t delta_seconds = (int64_t)local_ts.seconds - (int64_t)source_ts.seconds;
-    int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ts ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
+    int64_t delta_ntp_seconds = (int64_t)local_ntp_ts.seconds - (int64_t)source_ts.seconds;
+    int16_t delta_ntp_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ntp_ts ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
+    int32_t delta_master_ms = (int64_t)source_net_time - (int64_t)net_time;
 
     // char s[ISO8601_STRING_MIN_LEN_MS];
-    // ntp_v_to_iso8601( s, sizeof(s), local_ts );
+    // ntp_v_to_iso8601( s, sizeof(s), local_ntp_ts );
     // log_v_debug_P( PSTR("Local:    %s"), s );
     // ntp_v_to_iso8601( s, sizeof(s), source_ts );
     // log_v_debug_P( PSTR("Remote:   %s"), s );
 
-    if( abs64( delta_seconds ) > 60 ){
+    if( ( abs64( delta_master_ms ) > 60000 ) || !is_sync ){
 
         log_v_debug_P( PSTR("HARD SYNC") );
         
         // hard sync
-        ntp_master_time     = source_ts;
-        base_system_time    = local_system_time;
-        last_clock_update   = local_system_time;
-        ntp_sync_difference = 0;
+        master_ntp_time         = source_ts;
+        master_net_time         = source_net_time;
+        base_system_time        = local_system_time;
+        last_clock_update       = local_system_time;
+        ntp_sync_difference     = 0;
+        master_sync_difference  = 0;
+
+        is_sync = TRUE;
 
         return;
     }
@@ -256,9 +266,11 @@ static void time_v_set_ntp_master_clock_internal(
     // gradual adjustment
 
     // set difference
-    ntp_sync_difference = ( delta_seconds * 1000 ) + delta_ms;
+    ntp_sync_difference = ( delta_ntp_seconds * 1000 ) + delta_ntp_ms;
+    master_sync_difference = delta_master_ms;
 
     // log_v_debug_P( PSTR("ntp_sync_difference: %ld"), ntp_sync_difference );   
+    log_v_debug_P( PSTR("%ld"), master_sync_difference );   
 }
 
 void time_v_set_ntp_master_clock( 
@@ -280,7 +292,7 @@ void time_v_set_ntp_master_clock(
         log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
     }
 
-    time_v_set_ntp_master_clock_internal( source_ts, local_system_time, source );
+    time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -456,14 +468,14 @@ PT_BEGIN( pt );
                     continue;
                 }
 
-                net_time = tmr_u32_get_system_time_ms();
-                local_time = net_time;
+                master_net_time = tmr_u32_get_system_time_ms();
+                // local_time = net_time;
 
                 time_msg_sync_t msg;
                 msg.magic           = TIME_PROTOCOL_MAGIC;
                 msg.version         = TIME_PROTOCOL_VERSION;
                 msg.type            = TIME_MSG_SYNC;
-                msg.net_time        = net_time;
+                msg.net_time        = master_net_time;
                 msg.uptime          = master_uptime;
                 msg.flags           = 0;
                 msg.ntp_time        = time_t_now();
@@ -483,7 +495,7 @@ PT_BEGIN( pt );
                 master_uptime = msg->uptime;
 
                 uint32_t now = tmr_u32_get_system_time_ms();
-                uint32_t est_net_time = time_u32_get_network_time();
+                // uint32_t est_net_time = time_u32_get_network_time();
                 
                 int32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
                 if( elapsed_rtt > 500 ){
@@ -520,70 +532,72 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    time_v_set_ntp_master_clock_internal( msg->ntp_time, now, msg->source );
+                    uint32_t corrected_net_time = msg->net_time + ( elapsed_rtt / 2 );
+
+                    time_v_set_ntp_master_clock_internal( msg->ntp_time, corrected_net_time, now, msg->source );
                 }
 
-                int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
-                local_time = now;
+                // int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
+                // local_time = now;
 
-                // adjust network timestamp from server with RTT measurement
-                uint32_t adjusted_net_time = msg->net_time + ( elapsed_rtt / 2 );
+                // // adjust network timestamp from server with RTT measurement
+                // uint32_t adjusted_net_time = msg->net_time + ( elapsed_rtt / 2 );
 
-                int32_t elapsed_remote_net = tmr_u32_elapsed_times( last_net_time, adjusted_net_time );
-                last_net_time = adjusted_net_time;
+                // int32_t elapsed_remote_net = tmr_u32_elapsed_times( last_net_time, adjusted_net_time );
+                // last_net_time = adjusted_net_time;
 
-                // compute drift
-                int32_t clock_diff = elapsed_local - elapsed_remote_net;
-                int16_t drift = ( clock_diff * 65536 ) / elapsed_remote_net;
+                // // compute drift
+                // int32_t clock_diff = elapsed_local - elapsed_remote_net;
+                // int16_t drift = ( clock_diff * 65536 ) / elapsed_remote_net;
 
-                if( drift_init < 1 ){
+                // if( drift_init < 1 ){
 
-                    drift_init++;
-                }
-                else if( drift_init == 1 ){
+                //     drift_init++;
+                // }
+                // else if( drift_init == 1 ){
 
-                    drift_init++;
-                    filtered_drift = drift;
-                    filtered_rtt = elapsed_rtt;
-                }
-                else{
+                //     drift_init++;
+                //     filtered_drift = drift;
+                //     filtered_rtt = elapsed_rtt;
+                // }
+                // else{
 
-                    filtered_drift = util_i16_ewma( drift, filtered_drift, DRIFT_FILTER );
-                    filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
+                //     filtered_drift = util_i16_ewma( drift, filtered_drift, DRIFT_FILTER );
+                //     filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
 
-                    if( drift_init < 255 ){
+                //     if( drift_init < 255 ){
 
-                        drift_init++;
-                    }
-                }
+                //         drift_init++;
+                //     }
+                // }
 
-                // compute offset between actual network time and what our internal estimate was
-                int16_t clock_offset = (int64_t)est_net_time - (int64_t)adjusted_net_time;
+                // // compute offset between actual network time and what our internal estimate was
+                // int16_t clock_offset = (int64_t)est_net_time - (int64_t)adjusted_net_time;
 
 
-                // how bad is our offset?
-                if( abs16( clock_offset ) > 500 ){
-                    // worse than 0.5 seconds, do a hard jump
+                // // how bad is our offset?
+                // if( abs16( clock_offset ) > 500 ){
+                //     // worse than 0.5 seconds, do a hard jump
 
-                    net_time = adjusted_net_time;
+                //     net_time = adjusted_net_time;
 
-                    // reset drift filter
-                    drift = 0;
-                    drift_init = 0;
-                    filtered_drift = 0;
+                //     // reset drift filter
+                //     drift = 0;
+                //     drift_init = 0;
+                //     filtered_drift = 0;
 
-                    filtered_rtt = 0;
+                //     filtered_rtt = 0;
                 
-                    log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
-                }
-                else{
+                //     log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
+                // }
+                // else{
 
-                    net_time += elapsed_remote_net;
+                //     net_time += elapsed_remote_net;
 
-                    // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                    //     elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
-                    log_v_debug_P( PSTR("offset %4d diff: %6ld"), clock_offset, clock_diff );
-                }
+                //     // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                //     //     elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                //     log_v_debug_P( PSTR("offset %4d diff: %6ld"), clock_offset, clock_diff );
+                // }
             }
         }
         // socket timeout
@@ -610,14 +624,14 @@ static void send_master( void ){
     raddr.port = TIME_SERVER_PORT;
     raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-    net_time = tmr_u32_get_system_time_ms();
-    local_time = net_time;
+    master_net_time = tmr_u32_get_system_time_ms();
+    // local_time = master_net_time;
 
     time_msg_master_t msg;
     msg.magic           = TIME_PROTOCOL_MAGIC;
     msg.version         = TIME_PROTOCOL_VERSION;
     msg.type            = TIME_MSG_MASTER;
-    msg.net_time        = net_time;
+    msg.net_time        = master_net_time;
     msg.uptime          = master_uptime;
     msg.flags           = 0;
     msg.source          = master_source;
@@ -829,9 +843,9 @@ PT_BEGIN( pt );
 
             uint32_t now = tmr_u32_get_system_time_ms();
 
-            uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
+            uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
 
-            uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( ntp_master_time );
+            uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
 
             int16_t clock_adjust = 0;
 
@@ -858,11 +872,14 @@ PT_BEGIN( pt );
 
             ntp_sync_difference -= clock_adjust;
 
-            temp_ntp_master_u64 += ( ( (uint64_t)( elapsed - clock_adjust ) << 32 ) / 1000 );
+            temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - clock_adjust ) << 32 ) / 1000 );
 
-            ntp_master_time = ntp_ts_from_u64( temp_ntp_master_u64 );
+            // update master clocks
+            master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
+            master_net_time += elapsed_ms;
 
-            base_system_time += elapsed;  
+            // update local reference
+            base_system_time += elapsed_ms;  
             last_clock_update = now;
         }
     }
