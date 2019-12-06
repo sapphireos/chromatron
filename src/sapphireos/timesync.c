@@ -206,7 +206,9 @@ int8_t time_i8_compare_network_time( uint32_t time ){
 
 uint32_t time_u32_get_network_aligned( uint32_t alignment ){
 
-    return time_u32_get_network_time() + ( alignment - net_time % alignment );
+    uint32_t net_time = time_u32_get_network_time();
+
+    return net_time + ( alignment - net_time % alignment );
 }
 
 void time_v_set_gps_sync( bool sync ){
