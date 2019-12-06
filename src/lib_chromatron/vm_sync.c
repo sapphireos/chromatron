@@ -26,7 +26,7 @@
 
 
 
-#define SYNC_DEBUG
+// #define SYNC_DEBUG
 
 
 #include "timesync.h"
@@ -106,10 +106,6 @@ static uint32_t prev;
 
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
-        // uint32_t net_time = time_u32_get_network_time();
-        
-        // TMR_WAIT( pt, 1000 - ( net_time % 1000 ) );
-
         static uint32_t net_time;
         net_time = time_u32_get_network_aligned( 1000 );
 
@@ -145,7 +141,7 @@ void vm_sync_v_init( void ){
                     0,
                     0 );    
     #endif
-return;
+
     // check if time sync is enabled
     // if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
