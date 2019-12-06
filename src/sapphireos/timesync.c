@@ -749,6 +749,7 @@ PT_BEGIN( pt );
 
     if( sync_state == STATE_SLAVE ){
 
+        TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
         request_sync();
     }
 

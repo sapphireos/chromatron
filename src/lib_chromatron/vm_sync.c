@@ -114,7 +114,7 @@ static uint32_t prev;
         uint32_t net = time_u32_get_network_time();
         uint32_t delta = net - prev;
         prev = net;
-        log_v_debug_P( PSTR("%lu %lu"), delta, net );
+        log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
     }
 
 PT_END( pt );
