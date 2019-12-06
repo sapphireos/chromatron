@@ -94,7 +94,7 @@ uint32_t time_u32_get_network_time( void );
 void time_v_set_gps_sync( bool sync );
 
 ntp_ts_t time_t_from_system_time( uint32_t end_time );
-void time_v_set_master_clock( 
+void time_v_set_ntp_master_clock( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,
     uint8_t source );

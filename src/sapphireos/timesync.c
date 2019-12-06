@@ -208,7 +208,7 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
     return ntp_ts_from_u64( now ); 
 }
 
-static void time_v_set_master_clock_internal( 
+static void time_v_set_ntp_master_clock_internal( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,
     uint8_t source ){
@@ -261,7 +261,7 @@ static void time_v_set_master_clock_internal(
     // log_v_debug_P( PSTR("ntp_sync_difference: %ld"), ntp_sync_difference );   
 }
 
-void time_v_set_master_clock( 
+void time_v_set_ntp_master_clock( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,
     uint8_t source ){
@@ -280,7 +280,7 @@ void time_v_set_master_clock(
         log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
     }
 
-    time_v_set_master_clock_internal( source_ts, local_system_time, source );
+    time_v_set_ntp_master_clock_internal( source_ts, local_system_time, source );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -520,7 +520,7 @@ PT_BEGIN( pt );
                     // this is probably OK, we don't usually need better than second precision
                     // on the NTP clock for most use cases.
 
-                    time_v_set_master_clock_internal( msg->ntp_time, now, msg->source );
+                    time_v_set_ntp_master_clock_internal( msg->ntp_time, now, msg->source );
                 }
 
                 int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
