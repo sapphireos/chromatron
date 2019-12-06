@@ -134,6 +134,7 @@ void vm_sync_v_frame_trigger( void );
 bool vm_sync_b_is_master( void );
 bool vm_sync_b_is_slave( void );
 bool vm_sync_b_is_slave_synced( void );
+bool vm_sync_b_is_synced( void );
 
 #endif
 

@@ -894,31 +894,25 @@ PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    static uint32_t prev;
+    static uint32_t net_time;
 
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
     while(1){
 
-        if( time_b_is_sync() ){
+        THREAD_WAIT_WHILE( pt, !vm_b_running() );
 
-            uint32_t net_time = time_u32_get_network_time();
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + gfx_frame_rate - ( net_time % gfx_frame_rate ) );            
+        if( vm_sync_b_is_synced() ){
+
+            net_time = time_u32_get_network_aligned( gfx_frame_rate );
+            THREAD_WAIT_WHILE( pt, !update_frame_rate && ( time_i8_compare_network_time( net_time ) > 0 )  );
         }
         else{
 
             thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
+            THREAD_WAIT_WHILE( pt, !update_frame_rate && thread_b_alarm_set() );
         }
-
-        THREAD_WAIT_WHILE( pt, ( !update_frame_rate && thread_b_alarm_set() ) || ( !vm_b_running() ) );
-
-        uint32_t net = time_u32_get_network_time();
-        uint32_t delta = net - prev;
-        prev = net;
-        // log_v_debug_P( PSTR("%u %lu"), vm0_frame_number, delta );
-
-        frame_rate_adjust = 0;
 
         // check if shutting down
         if( wifi_b_shutdown() ){

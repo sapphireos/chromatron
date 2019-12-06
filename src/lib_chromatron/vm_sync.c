@@ -186,6 +186,11 @@ bool vm_sync_b_is_slave_synced( void ){
     return sync_state == STATE_SLAVE_SYNC;
 }
 
+bool vm_sync_b_is_synced( void ){
+
+    return ( sync_state == STATE_MASTER ) || ( sync_state == STATE_SLAVE_SYNC );
+}
+
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 	return sync_group_hash;
