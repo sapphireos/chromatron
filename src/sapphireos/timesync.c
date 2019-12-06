@@ -48,10 +48,10 @@ static bool is_sync;
 static bool ntp_valid;
 
 // master clock
-static ntp_ts_t master_time;
+static ntp_ts_t ntp_master_time;
 static uint32_t last_clock_update;
 static uint32_t base_system_time;
-static int32_t sync_difference;
+static int32_t ntp_sync_difference;
 
 static bool gps_sync;
 
@@ -88,7 +88,7 @@ static int8_t ntp_kv_handler(
     if( op == KV_OP_GET ){
 
         uint32_t elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-        uint32_t seconds = master_time.seconds + ( elapsed / 1000 );
+        uint32_t seconds = ntp_master_time.seconds + ( elapsed / 1000 );
 
         memcpy( data, &seconds, len );
 
@@ -119,7 +119,7 @@ void hal_rtc_v_irq( void ){
 void time_v_init( void ){
 
     // January 1, 2018, midnight
-    master_time.seconds = 1514786400 + 2208988800 - 21600;
+    ntp_master_time.seconds = 1514786400 + 2208988800 - 21600;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -193,7 +193,7 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
         log_v_debug_P( PSTR("elapsed time out of range: %lu"), elapsed_ms ); 
     }
 
-    uint64_t now = ntp_u64_conv_to_u64( master_time );
+    uint64_t now = ntp_u64_conv_to_u64( ntp_master_time );
 
     // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
 
@@ -239,10 +239,10 @@ static void time_v_set_master_clock_internal(
         log_v_debug_P( PSTR("HARD SYNC") );
         
         // hard sync
-        master_time         = source_ts;
+        ntp_master_time     = source_ts;
         base_system_time    = local_system_time;
         last_clock_update   = local_system_time;
-        sync_difference     = 0;
+        ntp_sync_difference = 0;
 
         return;
     }
@@ -250,9 +250,9 @@ static void time_v_set_master_clock_internal(
     // gradual adjustment
 
     // set difference
-    sync_difference = ( delta_seconds * 1000 ) + delta_ms;
+    ntp_sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );   
+    // log_v_debug_P( PSTR("ntp_sync_difference: %ld"), ntp_sync_difference );   
 }
 
 void time_v_set_master_clock( 
@@ -823,36 +823,36 @@ PT_BEGIN( pt );
 
         uint32_t elapsed = tmr_u32_elapsed_times( last_clock_update, now );
 
-        uint64_t master = ntp_u64_conv_to_u64( master_time );
+        uint64_t master = ntp_u64_conv_to_u64( ntp_master_time );
 
         int16_t clock_adjust = 0;
 
-        if( sync_difference > 50 ){
+        if( ntp_sync_difference > 50 ){
 
             // our clock is ahead, so we need to slow down
             clock_adjust = 10;
         }
-        else if( sync_difference > 2 ){
+        else if( ntp_sync_difference > 2 ){
 
             // our clock is ahead, so we need to slow down
             clock_adjust = 1;
         }
-        else if( sync_difference < -50 ){
+        else if( ntp_sync_difference < -50 ){
 
             // our clock is behind, so we need to speed up
             clock_adjust = -10;
         }
-        else if( sync_difference < -2 ){
+        else if( ntp_sync_difference < -2 ){
 
             // our clock is behind, so we need to speed up
             clock_adjust = -1;
         }
 
-        sync_difference -= clock_adjust;
+        ntp_sync_difference -= clock_adjust;
 
         master += ( ( (uint64_t)( elapsed - clock_adjust ) << 32 ) / 1000 );
 
-        master_time = ntp_ts_from_u64( master );
+        ntp_master_time = ntp_ts_from_u64( master );
 
         base_system_time += elapsed;  
         last_clock_update = now;
