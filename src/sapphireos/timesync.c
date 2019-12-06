@@ -647,6 +647,8 @@ static void request_sync( void ){
     raddr.ipaddr = master_ip;
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+
+    rtt_start = tmr_u32_get_system_time_ms();
 }
 
 
@@ -672,8 +674,8 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 200 );
         send_not_master();
 
-        TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
-        // TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+        thread_v_set_alarm( thread_u32_get_alarm() + 2000 + ( rnd_u16_get_int() >> 3 ) );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_WAIT ) );
     }
 
     if( sync_state == STATE_WAIT ){
@@ -745,6 +747,11 @@ PT_BEGIN( pt );
         }
     }
 
+    if( sync_state == STATE_SLAVE ){
+
+        request_sync();
+    }
+
     while( sync_state == STATE_SLAVE ){
 
         // check if local source is better than or same as NTP.  if so, stop our client.
@@ -793,8 +800,6 @@ PT_BEGIN( pt );
             sntp_v_start();
         }
         
-        rtt_start = tmr_u32_get_system_time_ms();
-
         request_sync();
     }
 
