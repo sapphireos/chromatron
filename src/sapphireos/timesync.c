@@ -183,6 +183,32 @@ uint32_t time_u32_get_network_time( void ){
     // return adjusted_net_time;
 }
 
+// returns 1 if time > network_time,
+// -1 if time < network_time,
+// 0 if equal
+int8_t time_i8_compare_network_time( uint32_t time ){
+    
+    int32_t distance = ( int32_t )( time - time_u32_get_network_time() );
+    
+    if( distance < 0 ){
+    
+        return -1;
+    }
+    else if( distance > 0 ){
+    
+        return 1;
+    }
+    else{
+    
+        return 0;
+    }
+}
+
+uint32_t time_u32_get_network_aligned( uint32_t alignment ){
+
+    return time_u32_get_network_time() + ( alignment - net_time % alignment );
+}
+
 void time_v_set_gps_sync( bool sync ){
 
     gps_sync = sync;
@@ -270,7 +296,7 @@ static void time_v_set_ntp_master_clock_internal(
     master_sync_difference = delta_master_ms;
 
     // log_v_debug_P( PSTR("ntp_sync_difference: %ld"), ntp_sync_difference );   
-    log_v_debug_P( PSTR("%ld"), master_sync_difference );   
+    // log_v_debug_P( PSTR("%ld"), master_sync_difference );   
 }
 
 void time_v_set_ntp_master_clock( 

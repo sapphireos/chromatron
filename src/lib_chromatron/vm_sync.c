@@ -106,15 +106,21 @@ static uint32_t prev;
 
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
-        uint32_t net_time = time_u32_get_network_time();
+        // uint32_t net_time = time_u32_get_network_time();
         
-        TMR_WAIT( pt, 1000 - ( net_time % 1000 ) );
+        // TMR_WAIT( pt, 1000 - ( net_time % 1000 ) );
+
+        static uint32_t net_time;
+        net_time = time_u32_get_network_aligned( 1000 );
+
+        THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
+
 
         debug_strobe();
-        // uint32_t net = time_u32_get_network_time();
-        // uint32_t delta = net - prev;
-        // prev = net;
-        // log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
+        uint32_t net = time_u32_get_network_time();
+        uint32_t delta = net - prev;
+        prev = net;
+        log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
     }
 
 PT_END( pt );
