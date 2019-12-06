@@ -47,7 +47,7 @@
 
 #define TIME_MASTER_SYNC_RATE           4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
-#define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds
+//#define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds // unused
 
 
 typedef struct __attribute__((packed)){

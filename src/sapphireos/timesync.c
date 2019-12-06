@@ -38,8 +38,6 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
-// static uint32_t local_time;
-// static uint32_t last_net_time;
 static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
@@ -60,11 +58,6 @@ static uint8_t sync_state;
 #define STATE_WAIT              0
 #define STATE_MASTER            1
 #define STATE_SLAVE             2
-
-
-#define DRIFT_FILTER            32
-static uint8_t drift_init;
-static int16_t filtered_drift;
 
 static uint32_t rtt_start;
 static uint16_t filtered_rtt;
@@ -172,15 +165,6 @@ uint32_t time_u32_get_network_time( void ){
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, tmr_u32_get_system_time_ms() );
 
     return master_net_time + elapsed_ms;
-
-    // int32_t elapsed = tmr_u32_elapsed_time_ms( local_time );
-
-    // // now adjust for drift
-    // int32_t drift = ( filtered_drift * elapsed ) / 65536;
-
-    // uint32_t adjusted_net_time = net_time + ( elapsed - drift );
-
-    // return adjusted_net_time;
 }
 
 // returns 1 if time > network_time,
@@ -431,8 +415,6 @@ PT_BEGIN( pt );
                     master_uptime = msg->uptime;
                     master_source = msg->source;
 
-                    filtered_drift = 0;
-                    drift_init = 0;
                     filtered_rtt = 0;
 
                     sync_state = STATE_SLAVE;
@@ -458,8 +440,6 @@ PT_BEGIN( pt );
                         master_uptime = msg->uptime;
                         master_source = msg->source;
 
-                        filtered_drift = 0;
-                        drift_init = 0;
                         filtered_rtt = 0;
                     
                         sync_state = STATE_SLAVE;
@@ -564,68 +544,6 @@ PT_BEGIN( pt );
 
                     time_v_set_ntp_master_clock_internal( msg->ntp_time, corrected_net_time, now, msg->source );
                 }
-
-                // int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
-                // local_time = now;
-
-                // // adjust network timestamp from server with RTT measurement
-                // uint32_t adjusted_net_time = msg->net_time + ( elapsed_rtt / 2 );
-
-                // int32_t elapsed_remote_net = tmr_u32_elapsed_times( last_net_time, adjusted_net_time );
-                // last_net_time = adjusted_net_time;
-
-                // // compute drift
-                // int32_t clock_diff = elapsed_local - elapsed_remote_net;
-                // int16_t drift = ( clock_diff * 65536 ) / elapsed_remote_net;
-
-                // if( drift_init < 1 ){
-
-                //     drift_init++;
-                // }
-                // else if( drift_init == 1 ){
-
-                //     drift_init++;
-                //     filtered_drift = drift;
-                //     filtered_rtt = elapsed_rtt;
-                // }
-                // else{
-
-                //     filtered_drift = util_i16_ewma( drift, filtered_drift, DRIFT_FILTER );
-                //     filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
-
-                //     if( drift_init < 255 ){
-
-                //         drift_init++;
-                //     }
-                // }
-
-                // // compute offset between actual network time and what our internal estimate was
-                // int16_t clock_offset = (int64_t)est_net_time - (int64_t)adjusted_net_time;
-
-
-                // // how bad is our offset?
-                // if( abs16( clock_offset ) > 500 ){
-                //     // worse than 0.5 seconds, do a hard jump
-
-                //     net_time = adjusted_net_time;
-
-                //     // reset drift filter
-                //     drift = 0;
-                //     drift_init = 0;
-                //     filtered_drift = 0;
-
-                //     filtered_rtt = 0;
-                
-                //     log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
-                // }
-                // else{
-
-                //     net_time += elapsed_remote_net;
-
-                //     // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                //     //     elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
-                //     log_v_debug_P( PSTR("offset %4d diff: %6ld"), clock_offset, clock_diff );
-                // }
             }
         }
         // socket timeout
@@ -653,7 +571,6 @@ static void send_master( void ){
     raddr.ipaddr = ip_a_addr(255,255,255,255);
 
     master_net_time = tmr_u32_get_system_time_ms();
-    // local_time = master_net_time;
 
     time_msg_master_t msg;
     msg.magic           = TIME_PROTOCOL_MAGIC;
@@ -748,11 +665,6 @@ PT_BEGIN( pt );
 
     while( sync_state == STATE_MASTER ){
 
-        // reset drift filter in master mode, because the
-        // master does not have drift, by definition.
-        filtered_drift = 0;
-
-
         // default sync source to internal clock
         master_source = TIME_SOURCE_INTERNAL;
 
@@ -809,16 +721,7 @@ PT_BEGIN( pt );
         }
 
         // random delay
-        uint16_t delay;
-
-        if( drift_init > 16 ){
-
-            delay = ( TIME_SLAVE_SYNC_RATE_MAX * 1000 ) + ( rnd_u16_get_int() >> 3 );
-        }
-        else{
-
-            delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
-        }
+        uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
 
         TMR_WAIT( pt, delay );
 
