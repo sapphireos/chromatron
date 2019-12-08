@@ -45,6 +45,7 @@ static uint32_t get_channel( uint8_t channel ){
 		return TIM_CHANNEL_4;
 	}
 	#else
+	#ifdef BOARD_CHROMATRONX
 	if( channel == IO_PIN_T0 ){
 
 		return TIM_CHANNEL_1;
@@ -53,6 +54,16 @@ static uint32_t get_channel( uint8_t channel ){
 
 		return TIM_CHANNEL_2;
 	}
+	#else
+	if( channel == IO_PIN_PWM0 ){
+
+		return TIM_CHANNEL_1;
+	}
+	else if( channel == IO_PIN_PWM1 ){
+
+		return TIM_CHANNEL_2;
+	}
+	#endif
 	#endif
 
 	ASSERT( 0 );

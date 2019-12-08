@@ -371,6 +371,13 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 
 #define IO_PIN_ANALOG_COUNT 6
 
+#define IO_PIN_PWM0         IO_PIN_GPIO9
+#define IO_PIN_PWM1         IO_PIN_GPIO11
+
+#define UART5_RX_Pin        GPIO_PIN_5
+#define UART5_RX_GPIO_Port  GPIOB
+#define UART5_TX_Pin        GPIO_PIN_6
+#define UART5_TX_GPIO_Port  GPIOB
 
 #define IO_PIN_PIX_CLK2     22  //
 #define IO_PIN_PIX_DAT2     23  //
