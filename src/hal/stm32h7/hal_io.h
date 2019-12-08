@@ -387,6 +387,11 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define AUX_USART_RX_Pin 		GPIO_PIN_5
 #define AUX_USART_RX_GPIO_Port 	GPIOB
 
+#define HW_REV0_Pin        GPIO_PIN_8
+#define HW_REV0_GPIO_Port  GPIOD
+#define HW_REV1_Pin        GPIO_PIN_9
+#define HW_REV1_GPIO_Port  GPIOD
+
 // WIFI_RX 		- PA0
 // WIFI_TX 		- PA1
 // WIFI_RST 	- PA2
@@ -432,12 +437,12 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define WIFI_TXD_GPIO_Port 		GPIOA
 #define WIFI_RST_Pin 			GPIO_PIN_2
 #define WIFI_RST_GPIO_Port 		GPIOA
-#define WIFI_PD_Pin 			GPIO_PIN_3
-#define WIFI_PD_GPIO_Port 		GPIOC
+#define WIFI_PD_rev0_Pin 		     GPIO_PIN_5
+#define WIFI_PD_rev0_GPIO_Port       GPIOC
+#define WIFI_BOOT_rev0_Pin           GPIO_PIN_4
+#define WIFI_BOOT_rev0_GPIO_Port     GPIOC
 #define WIFI_IRQ_Pin 			GPIO_PIN_3
 #define WIFI_IRQ_Port 			GPIOA
-#define WIFI_BOOT_Pin 			GPIO_PIN_2
-#define WIFI_BOOT_GPIO_Port 	GPIOC
 #define WIFI_CTS_Pin 			GPIO_PIN_1
 #define WIFI_CTS_GPIO_Port 		GPIOC
 
