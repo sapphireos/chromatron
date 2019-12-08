@@ -25,7 +25,7 @@
 
 #ifndef BOOTLOADER
 
-void main( void ) __attribute__ ((noreturn));
+void main( void ) __attribute__ ((noreturn, weak));
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
