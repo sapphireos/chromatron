@@ -71,14 +71,14 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define WIFI_TXD_GPIO_Port 		GPIOE
 #define WIFI_RST_Pin 			GPIO_PIN_4
 #define WIFI_RST_GPIO_Port 		GPIOE
-#define WIFI_PD_Pin 			GPIO_PIN_0
-#define WIFI_PD_GPIO_Port 		GPIOF
+#define WIFI_PD_rev0_Pin 			GPIO_PIN_0
+#define WIFI_PD_rev0_GPIO_Port 		GPIOF
 #define WIFI_IRQ_Pin 			GPIO_PIN_5
 #define WIFI_IRQ_Port 			GPIOE
 #define WIFI_CTS_Pin 			GPIO_PIN_1
 #define WIFI_CTS_GPIO_Port 		GPIOF
-#define WIFI_BOOT_Pin 			GPIO_PIN_3
-#define WIFI_BOOT_GPIO_Port 	GPIOE
+#define WIFI_BOOT_rev0_Pin 			GPIO_PIN_3
+#define WIFI_BOOT_rev0_GPIO_Port 	GPIOE
 
 #define PIX_CLK_3_Pin 			GPIO_PIN_2
 #define PIX_CLK_3_GPIO_Port 	GPIOE
@@ -247,12 +247,12 @@ void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number )
 #define WIFI_TXD_GPIO_Port 		GPIOE
 #define WIFI_RST_Pin 			GPIO_PIN_10
 #define WIFI_RST_GPIO_Port 		GPIOE
-#define WIFI_PD_Pin 			GPIO_PIN_12
-#define WIFI_PD_GPIO_Port 		GPIOE
+#define WIFI_PD_rev0_Pin 			GPIO_PIN_12
+#define WIFI_PD_rev0_GPIO_Port 		GPIOE
 #define WIFI_IRQ_Pin 			GPIO_PIN_14
 #define WIFI_IRQ_Port 			GPIOE
-#define WIFI_BOOT_Pin 			GPIO_PIN_15
-#define WIFI_BOOT_GPIO_Port 	GPIOE
+#define WIFI_BOOT_rev0_Pin 			GPIO_PIN_15
+#define WIFI_BOOT_rev0_GPIO_Port 	GPIOE
 #define WIFI_CTS_Pin 			GPIO_PIN_11
 #define WIFI_CTS_GPIO_Port 		GPIOB
 
