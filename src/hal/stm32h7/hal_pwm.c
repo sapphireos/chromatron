@@ -45,25 +45,21 @@ static uint32_t get_channel( uint8_t channel ){
 		return TIM_CHANNEL_4;
 	}
 	#else
-<<<<<<< HEAD
 	#ifdef BOARD_CHROMATRONX
 	if( channel == IO_PIN_T0 ){
-=======
-	if( channel == IO_PIN_GPIO9 ){
->>>>>>> vm_sync
-
+		
 		return TIM_CHANNEL_1;
 	}
-	else if( channel == IO_PIN_GPIO11 ){
+	else if( channel == IO_PIN_T1 ){
 
 		return TIM_CHANNEL_2;
 	}
 	#else
-	if( channel == IO_PIN_PWM0 ){
+	if( channel == IO_PIN_GPIO9 ){
 
 		return TIM_CHANNEL_1;
 	}
-	else if( channel == IO_PIN_PWM1 ){
+	else if( channel == IO_PIN_GPIO11 ){
 
 		return TIM_CHANNEL_2;
 	}
