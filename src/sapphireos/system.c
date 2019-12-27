@@ -67,6 +67,7 @@ static sys_error_t sys_error;
 static sys_warnings_t warnings;
 
 static uint8_t reboot_delay;
+static bool is_rebooting;
 
 static bool interrupts_enabled = FALSE;
 
@@ -465,6 +466,14 @@ void sys_v_load_recovery( void ){
 
 // start reboot delay thread
 void sys_v_reboot_delay( sys_mode_t8 mode ){
+
+    // check if reboot is already initiated
+    if( is_rebooting ){
+
+        return;
+    }
+
+    is_rebooting = TRUE;
 
     if( mode == SYS_MODE_SAFE ){
 
