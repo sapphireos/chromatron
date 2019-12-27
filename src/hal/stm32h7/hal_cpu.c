@@ -498,6 +498,9 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
+    SCB_DisableICache();
+    SCB_DisableDCache();
+
     HAL_NVIC_SystemReset();    
 }
 
