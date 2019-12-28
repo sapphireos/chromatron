@@ -37,7 +37,7 @@ _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x4000; /* required amount of stack */
 
 /* Highest address of the user mode stack */
-_estack = 0x20020000 - 4;     /* end of DCTMRAM */
+_estack = 0x20020000 - 12;     /* end of DCTMRAM minus bootdata */
 /* set start of stack */
 _sstack = _estack - _Min_Stack_Size;
 
@@ -201,18 +201,6 @@ SECTIONS
     _enon_cacheable = .;        /* define a global symbol at non_cacheable end */
   } >RAM_NO_CACHE
   
-  /* Boot data section */
-  .bootdata (NOLOAD):
-  {
-    . = ALIGN(8);
-    _sbootdata = .;        /* create a global symbol at bootdata start */
-    *(.bootdata)           /* .bootdata sections */
-    *(.bootdata*)          /* .bootdata* sections */
-
-    . = ALIGN(4);
-    _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >RAM_NO_CACHE
-
   /* Heap */
   .memory_heap (NOLOAD):
   {
@@ -223,6 +211,18 @@ SECTIONS
 
     . = ALIGN(4);
     _ememory_heap = .;        /* define a global symbol at memory_heap end */
+  } >DTCMRAM
+
+  /* Boot data section */
+  .bootdata (NOLOAD):
+  {
+    . = ALIGN(8);
+    _sbootdata = .;        /* create a global symbol at bootdata start */
+    *(.bootdata)           /* .bootdata sections */
+    *(.bootdata*)          /* .bootdata* sections */
+
+    . = ALIGN(4);
+    _ebootdata = .;        /* define a global symbol at bootdata end */
   } >DTCMRAM
 
   /* Remove information from the standard libraries */

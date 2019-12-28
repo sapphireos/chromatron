@@ -50,20 +50,19 @@
     ],
 
     "LINK_FLAGS": [
-        "-specs=nosys.specs",
+        "-specs=nano.specs",
         "--output %(TARGET_DIR)/main.elf",
         "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
-        "-lc",
         "-lm",
+        "-lc",
         "-lnosys",
-        "-Wl,-u,vfprintf",
-        "-Wl,--section-start=.bootdata=0x2407FFF8",
+        "-Wl,--section-start=.bootdata=0x2001FFF8",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
     ],
 
-    "LINKER_SCRIPT": "STM32H743ZITx_FLASH.ld",
+    "LINKER_SCRIPT": "STM32H743ZITx_BOOT.ld",
 
     "OBJ_DIR": "obj",
     "DEP_DIR": "dep",

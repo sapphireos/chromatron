@@ -37,7 +37,7 @@ _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x4000; /* required amount of stack */
 
 /* Highest address of the user mode stack */
-_estack = 0x20020000 - 4;     /* end of DCTMRAM */
+_estack = 0x20020000 - 12;     /* end of DCTMRAM minus bootdata */
 /* set start of stack */
 _sstack = _estack - _Min_Stack_Size;
 
@@ -183,7 +183,7 @@ SECTIONS
 
     . = ALIGN(4);
     _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >RAM_NO_CACHE
+  } >DTCMRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
