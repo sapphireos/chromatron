@@ -44,7 +44,7 @@ void influx_v_transmit( catbus_hash_t32 hash ){
 	kv_meta_t meta;
 
 	// get meta of measurement
-	if( kv_i8_lookup_hash( hash, &meta, KV_META_FLAGS_GET_NAME ) < 0 ){
+	if( kv_i8_lookup_hash_with_name( hash, &meta ) < 0 ){
 
 		return;
 	}
