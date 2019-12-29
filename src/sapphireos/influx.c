@@ -38,6 +38,7 @@ void influx_v_transmit( catbus_hash_t32 hash ){
 
 	// check if hash should be transmitted
 
+return;
 
 	#define BUF_SIZE 256
 
