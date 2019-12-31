@@ -515,7 +515,7 @@ int8_t kvdb_i8_array_set( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t in
     uint16_t type_len = type_u16_size( type );
     uint16_t array_len = entry->count + 1;
 
-    if( len >= type_len ){
+    if( len > type_len ){
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
