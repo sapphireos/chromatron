@@ -42,6 +42,7 @@
 #define TIME_SOURCE_RTC                 16
 #define TIME_SOURCE_INTERNAL_NTP_SYNC   9 // any source above this level is assumed to have a valid NTP sync
 #define TIME_SOURCE_INTERNAL            8
+#define TIME_SOURCE_LOCAL_ONLY          4
 #define TIME_SOURCE_NONE                0
 
 

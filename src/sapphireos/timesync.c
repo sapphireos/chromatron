@@ -368,6 +368,16 @@ static uint8_t get_best_local_source( void ){
         return TIME_SOURCE_INTERNAL;
     }
 
+    // !!! THIS fails spectacularly!
+
+    // if it has been more than 1 minute and we have no sync, then
+    // we'll try to do a local net time sync and we just won't 
+    // have an NTP reference.
+    // if( tmr_u64_get_system_time_us() >= (uint32_t)60 * 1000000 ){
+
+    //     return TIME_SOURCE_LOCAL_ONLY;
+    // }
+
     return TIME_SOURCE_NONE;
 }
 
