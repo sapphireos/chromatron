@@ -397,6 +397,7 @@ static int8_t _vm_i8_run_stream(
     vm_string_t *string;
     int32_t *db_ptr;
     uint16_t db_ptr_len;
+    uint16_t string_addr;
     
     #ifdef VM_ENABLE_GFX
     int32_t value_i32;
@@ -2372,7 +2373,12 @@ opcode_db_store:
     if( type_b_is_string( type ) ){
 
         // special handling for string types
-        string = (vm_string_t *)&data[src];
+
+        // load string address
+        string_addr = data[src];
+
+        // load string header
+        string = (vm_string_t *)&data[string_addr];
 
         db_ptr = &data[string->addr + 1]; // actual string starts 1 word after header
         db_ptr_len = string->length;
