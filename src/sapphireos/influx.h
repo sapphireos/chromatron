@@ -26,9 +26,14 @@
 #ifndef INFLUX_H
 #define INFLUX_H
 
+#if 0
 #define INFLUX_DEFAULT_UDP_PORT 		8089
 
 void influx_v_init( void );
 void influx_v_transmit( catbus_hash_t32 hash );
 
+#else
+#define influx_v_transmit(a)
+
+#endif
 #endif

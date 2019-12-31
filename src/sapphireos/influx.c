@@ -24,6 +24,8 @@
 #include "config.h"
 #include "influx.h"
 
+#if 0
+
 static socket_t sock;
 
 void influx_v_init( void ){
@@ -110,3 +112,4 @@ return;
 }
 
 
+#endif
