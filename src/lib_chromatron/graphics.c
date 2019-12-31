@@ -462,7 +462,6 @@ void gfx_v_sync_db( bool all ){
             continue;
         }
 
-        // uint8_t buf[CATBUS_MAX_DATA + sizeof(wifi_msg_kv_data_t)];
         uint8_t buf[GFX_MAX_DB_LEN + sizeof(wifi_msg_kv_data_t)];
         wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
         uint8_t *data = (uint8_t *)( msg + 1 );
