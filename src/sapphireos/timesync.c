@@ -71,6 +71,13 @@ static uint16_t filtered_rtt;
 static int16_t tz_offset;
 
 
+static void debug_strobe( void ){
+    io_v_digital_write( IO_PIN_PWM_1, TRUE );
+    _delay_us( 100 );
+    io_v_digital_write( IO_PIN_PWM_1, FALSE );
+} 
+
+
 
 static int8_t ntp_kv_handler(
     kv_op_t8 op,
@@ -494,6 +501,7 @@ PT_BEGIN( pt );
                 msg.source          = master_source;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+                debug_strobe();
             }
             else if( *type == TIME_MSG_SYNC ){
 
@@ -501,6 +509,7 @@ PT_BEGIN( pt );
 
                     continue;
                 }
+                debug_strobe();
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
@@ -617,6 +626,7 @@ static void request_sync( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 
     rtt_start = tmr_u32_get_system_time_ms();
+    debug_strobe();
 }
 
 
@@ -714,22 +724,19 @@ PT_BEGIN( pt );
 
     if( sync_state == STATE_SLAVE ){
 
+        sntp_v_stop();
+
         TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
         request_sync();
     }
 
     while( sync_state == STATE_SLAVE ){
 
-        // check if local source is better than or same as NTP.  if so, stop our client.
-        if( master_source >= TIME_SOURCE_NTP ){
-            
-            sntp_v_stop();
-        }
-
         // random delay
-        uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+        // uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
 
-        TMR_WAIT( pt, delay );
+        // TMR_WAIT( pt, delay );
+        TMR_WAIT( pt, 1000 );
 
         if( get_best_local_source() > master_source ){
 

@@ -144,10 +144,10 @@ void vm_sync_v_init( void ){
     #ifdef SYNC_DEBUG
     io_v_set_mode( IO_PIN_PWM_1, IO_MODE_OUTPUT );
 
-    thread_t_create( vm_sync_debug_thread,
-                    PSTR("vm_sync_debug"),
-                    0,
-                    0 );    
+    // thread_t_create( vm_sync_debug_thread,
+    //                 PSTR("vm_sync_debug"),
+    //                 0,
+    //                 0 );    
     #endif
 return;
     // check if time sync is enabled
