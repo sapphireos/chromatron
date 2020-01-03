@@ -71,8 +71,6 @@ static thread_t thread = -1;
 KV_SECTION_META kv_meta_t sntp_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING64,     0, 0,  0,                  cfg_i8_kv_handler,  "sntp_server" },
     { SAPPHIRE_TYPE_UINT8,        0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
-    { SAPPHIRE_TYPE_UINT16,       0, 0,  0,                  cfg_i8_kv_handler,  "sntp_sync_interval" },
-    { SAPPHIRE_TYPE_BOOL,         0, 0,  0,                  cfg_i8_kv_handler,  "enable_sntp" },
 };
 
 
@@ -148,22 +146,16 @@ void sntp_v_start( void ){
         return;
     }
 
-    // check if SNTP is enabled
-    if( cfg_b_get_boolean( CFG_PARAM_ENABLE_SNTP ) ){
+    ASSERT( thread <= 0 );
+    
+    log_v_debug_P( PSTR("starting SNTP client") );
 
-        log_v_debug_P( PSTR("starting SNTP client") );
+    status = SNTP_STATUS_NO_SYNC;
 
-        status = SNTP_STATUS_NO_SYNC;
-
-        thread = thread_t_create( sntp_client_thread,
-                                  PSTR("sntp_client"),
-                                  0,
-                                  0 );
-    }
-    else{
-
-        status = SNTP_STATUS_DISABLED;
-    }
+    thread = thread_t_create( sntp_client_thread,
+                              PSTR("sntp_client"),
+                              0,
+                              0 );
 }
 
 void sntp_v_stop( void ){
@@ -417,33 +409,9 @@ retry:
         continue;
 
 clean_up:
-        if(TRUE){}
-
-        uint16_t sync_interval;
-
-        if( status != SNTP_STATUS_SYNCHRONIZED ){
-
-            sync_interval = SNTP_MINIMUM_POLL_INTERVAL;
-        }
-        else{
-
-            // get sync interval from config database
-            cfg_i8_get( CFG_PARAM_SNTP_SYNC_INTERVAL, &sync_interval );
-
-            // bounds check sync interval
-            if( sync_interval < SNTP_MINIMUM_POLL_INTERVAL ){
-
-                sync_interval = SNTP_DEFAULT_POLL_INTERVAL;
-
-                // store minimum sync to config database
-                cfg_v_set( CFG_PARAM_SNTP_SYNC_INTERVAL, &sync_interval );
-            }
-        }
-
-        uint32_t timer = (uint32_t)sync_interval * 1000; // convert interval to milliseconds
-
+        
         // wait during polling interval
-        TMR_WAIT( pt, timer );
+        TMR_WAIT( pt, (uint32_t)SNTP_DEFAULT_POLL_INTERVAL * 1000 );
     }
 
 PT_END( pt );
