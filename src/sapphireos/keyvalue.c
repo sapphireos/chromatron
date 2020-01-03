@@ -683,12 +683,8 @@ static int8_t _kv_i8_internal_set(
         // check if parameter has a notifier
         if( meta->handler != 0 ){
 
-            ATOMIC;
-
             // call handler
             status = meta->handler( KV_OP_SET, hash, (void *)data, copy_len );
-
-            END_ATOMIC;
         }
 
         // check if persist flag is set
