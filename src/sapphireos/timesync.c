@@ -644,13 +644,13 @@ PT_BEGIN( pt );
 
     if( sync_state == STATE_WAIT ){
 
-        // check if we have a clock source
-        if( get_best_local_source() == TIME_SOURCE_NONE ){
+        // // check if we have a clock source
+        // if( get_best_local_source() == TIME_SOURCE_NONE ){
 
-            // no clock source available, but try to start SNTP 
-            // and maybe we'll get a sync from that.
-            sntp_v_start();
-        }
+        //     // no clock source available, but try to start SNTP 
+        //     // and maybe we'll get a sync from that.
+        //     sntp_v_start();
+        // }
 
         // elect ourselves as master.
         // even if we don't have an NTP reference, we can at least sync the local net clock.
@@ -674,11 +674,15 @@ PT_BEGIN( pt );
         }
         else{
 
-            // start SNTP (ignored if already running)
-            sntp_v_start();
+            if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
 
+                log_v_debug_P( PSTR("master starting sntp") );
+
+                // start SNTP (ignored if already running)
+                sntp_v_start();
+            }
             // check if synchronized
-            if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+            else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
                 master_source = TIME_SOURCE_NTP;
             }
@@ -743,12 +747,6 @@ PT_BEGIN( pt );
             break;
         }
 
-        // check if local source is worse than NTP.  if so, try to start our NTP client
-        if( master_source < TIME_SOURCE_NTP ){
-
-            sntp_v_start();
-        }
-        
         request_sync();
     }
 
