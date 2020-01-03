@@ -126,7 +126,7 @@ PT_END( pt );
 #endif
 
 void vm_sync_v_init( void ){
-    
+    return;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 

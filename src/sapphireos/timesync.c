@@ -239,6 +239,8 @@ static void time_v_set_ntp_master_clock_internal(
         if( !ntp_valid ){
 
             log_v_debug_P( PSTR("NTP valid") );
+
+            master_ntp_time = source_ts;
         }
 
         ntp_valid = TRUE;
