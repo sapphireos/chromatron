@@ -605,9 +605,12 @@ PT_BEGIN( pt );
 
                 // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
                                 
-                slave_frame     = msg->frame_number;
-                slave_net_time  = msg->net_time;
-                gfx_v_set_sync( slave_frame, slave_net_time );
+
+
+                                
+                // slave_frame     = msg->frame_number;
+                // slave_net_time  = msg->net_time;
+                // gfx_v_set_sync( slave_frame, slave_net_time );
             }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_N ){

@@ -334,9 +334,9 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     update_frame_rate = TRUE;
 }
 
-void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
+// void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
 
-}
+// }
 
 
 void gfx_v_pixel_bridge_enable( void ){

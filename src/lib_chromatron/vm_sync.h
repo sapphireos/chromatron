@@ -31,8 +31,6 @@
 
 #define SYNC_SERVER_PORT                	32038
 
-// #define SYNC_SIGNAL                         SIGNAL_SYS_5
-
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	2
 
@@ -78,53 +76,7 @@ typedef struct __attribute__((packed)){
 #define VM_SYNC_MSG_SHUTDOWN                    10
 
 
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-//     uint64_t uptime;
-// } vm_sync_msg_master_t;
-// #define VM_SYNC_MSG_MASTER             		1
-
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-// } vm_sync_msg_get_ts_t;
-// #define VM_SYNC_MSG_GET_TIMESTAMP           2
-
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-//     uint32_t net_time;
-//     uint16_t frame_number;
-// } vm_sync_msg_ts_t;
-// #define VM_SYNC_MSG_TIMESTAMP           	3
-
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-// } vm_sync_msg_get_sync_data_t;
-// #define VM_SYNC_MSG_GET_SYNC_DATA           4
-
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-//     wifi_msg_vm_frame_sync_t sync;
-// } vm_sync_msg_sync_init_t;
-// #define VM_SYNC_MSG_SYNC_INIT           	5
-
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-//     uint16_t offset;
-// } vm_sync_msg_sync_data_t;
-// #define VM_SYNC_MSG_SYNC_DATA           	6
-	
-// typedef struct __attribute__((packed)){
-//     vm_sync_msg_header_t header;
-//     uint32_t hash;
-// } vm_sync_msg_sync_done_t;
-// #define VM_SYNC_MSG_SYNC_DONE           	7
-
-
-
 uint32_t vm_sync_u32_get_sync_group_hash( void );
-// int8_t vm_sync_i8_request_frame_sync( void );
-
-// void vm_sync_v_process_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 
 void vm_sync_v_init( void );
 void vm_sync_v_trigger( void );
