@@ -322,6 +322,13 @@ PT_BEGIN( pt );
         char name[CFG_STR_LEN];
         cfg_i8_get( CFG_PARAM_SNTP_SERVER, name );
 
+        // check if name is empty
+        if( strnlen( name, sizeof(name) ) == 0 ){
+
+            strncpy_P( name, PSTR("pool.ntp.org"), sizeof(name) );
+            cfg_v_set( CFG_PARAM_SNTP_SERVER, name );
+        }
+
         ntp_server_addr.ipaddr = dns_a_query( name );
 
         if( ip_b_is_zeroes( ntp_server_addr.ipaddr ) ){
