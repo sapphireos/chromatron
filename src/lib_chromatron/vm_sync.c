@@ -26,7 +26,7 @@
 
 
 
-#define SYNC_DEBUG
+// #define SYNC_DEBUG
 
 
 #include "timesync.h"
@@ -90,42 +90,50 @@ PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 #ifdef SYNC_DEBUG
 PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) );
 
-// static void debug_strobe( void ){
-//     io_v_digital_write( IO_PIN_PWM_1, TRUE );
-//     _delay_us( 10 );
-//     io_v_digital_write( IO_PIN_PWM_1, FALSE );
-// } 
+static void debug_strobe( void ){
+    io_v_digital_write( IO_PIN_PWM_1, TRUE );
+    _delay_us( 100 );
+    io_v_digital_write( IO_PIN_PWM_1, FALSE );
+} 
 
 PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-// static uint32_t prev;
+static uint32_t prev;
 
     while( TRUE ){
 
-        THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
+        // THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
 
         static uint32_t net_time;
-        net_time = time_u32_get_network_aligned( 500 );
+        net_time = time_u32_get_network_aligned( 250 );
+
+        // uint32_t net = time_u32_get_network_time();
+        // log_v_debug_P( PSTR("%8lu %8lu"), net_time, net );
 
         THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
+        // TMR_WAIT( pt, 100 );
+        // log_v_debug_P( PSTR("%lu"), tmr_u32_elapsed_time_ms( prev ) );
+        prev = tmr_u32_get_system_time_ms();
 
         // debug_strobe();
         io_v_digital_write( IO_PIN_PWM_1, TRUE );
 
-        net_time = time_u32_get_network_aligned( 500 );
+        net_time = time_u32_get_network_aligned( 250 );
 
         THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
+        // TMR_WAIT( pt, 100 );
+        // log_v_debug_P( PSTR("%lu"), tmr_u32_elapsed_time_ms( prev ) );
+        prev = tmr_u32_get_system_time_ms();
 
         io_v_digital_write( IO_PIN_PWM_1, FALSE );
-
 
 
         // uint32_t net = time_u32_get_network_time();
         // uint32_t delta = net - prev;
         // prev = net;
-        // log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
+        // log_v_debug_P( PSTR("%5lu %10lu"), delta, net );
     }
 
 PT_END( pt );
@@ -144,12 +152,12 @@ void vm_sync_v_init( void ){
     #ifdef SYNC_DEBUG
     io_v_set_mode( IO_PIN_PWM_1, IO_MODE_OUTPUT );
 
-    // thread_t_create( vm_sync_debug_thread,
-    //                 PSTR("vm_sync_debug"),
-    //                 0,
-    //                 0 );    
+    thread_t_create( vm_sync_debug_thread,
+                    PSTR("vm_sync_debug"),
+                    0,
+                    0 );    
     #endif
-return;
+
     // check if time sync is enabled
     if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
@@ -206,8 +214,7 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
 static bool vm_sync_wait( void ){
 
-	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_sync() );
-    // return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) );
+	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_local_sync() );
 }
 
 
@@ -295,7 +302,6 @@ static void send_sync_0( wifi_msg_vm_frame_sync_t *sync, sock_addr_t *raddr ){
     msg.data_len            = sync->data_len;
     msg.rng_seed            = sync->rng_seed;
     msg.net_time            = time_u32_get_network_time();
-    // msg.timestamp           =tmr_u32_get_system_time_ms();
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
 }
@@ -380,7 +386,7 @@ static void send_sync_to_slave( sock_addr_t *raddr ){
 
     send_sync_0( &sync, raddr );
 
-    // log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
+    log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
 
     uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
     uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
@@ -667,7 +673,7 @@ PT_BEGIN( pt );
 
         	// vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
-        	// log_v_debug_P( PSTR("sync requested") );
+        	log_v_debug_P( PSTR("sync requested") );
 
             if( ip_b_is_zeroes( pending_slave ) ){
 
@@ -753,7 +759,8 @@ PT_BEGIN( pt );
             send_request();
 
             // wait some time
-            TMR_WAIT( pt, 500 );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state != STATE_SLAVE_SYNC ) );
 
             // check if we got a sync
             if( sync_state != STATE_SLAVE ){
