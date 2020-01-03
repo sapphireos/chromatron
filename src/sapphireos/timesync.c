@@ -59,6 +59,7 @@ static uint8_t sync_state;
 #define STATE_MASTER            1
 #define STATE_SLAVE             2
 
+static uint8_t sync_id;
 static uint32_t rtt_start;
 static uint16_t filtered_rtt;
 #define RTT_FILTER              32
@@ -70,12 +71,6 @@ static uint16_t filtered_rtt;
 // are aligned on the hour.
 static int16_t tz_offset;
 
-
-static void debug_strobe( void ){
-    io_v_digital_write( IO_PIN_PWM_1, TRUE );
-    _delay_us( 100 );
-    io_v_digital_write( IO_PIN_PWM_1, FALSE );
-} 
 
 
 
@@ -164,14 +159,26 @@ void time_v_init( void ){
                     0 );    
 }
 
-bool time_b_is_sync( void ){
+bool time_b_is_local_sync( void ){
 
     return is_sync;
+}
+
+bool time_b_is_ntp_sync( void ){
+
+    return ntp_valid;
 }
 
 uint32_t time_u32_get_network_time( void ){
     
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, tmr_u32_get_system_time_ms() );
+
+    return master_net_time + elapsed_ms;
+}
+
+uint32_t time_u32_get_network_time_from_local( uint32_t local_time ){
+    
+    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, local_time );
 
     return master_net_time + elapsed_ms;
 }
@@ -238,7 +245,8 @@ static void time_v_set_ntp_master_clock_internal(
     ntp_ts_t source_ts, 
     uint32_t source_net_time,
     uint32_t local_system_time,
-    uint8_t source ){    
+    uint8_t source,
+    uint16_t delay ){    
 
     master_source = source;
 
@@ -247,14 +255,18 @@ static void time_v_set_ntp_master_clock_internal(
 
         if( !ntp_valid ){
 
-            log_v_debug_P( PSTR("NTP valid") );
+            // log_v_debug_P( PSTR("NTP valid") );
         }
 
         ntp_valid = TRUE;
     }
 
+    // adjust local time with delay.
+    // local timestamp now matches when the sync message was transmitted, rather than received.
+    local_system_time -= delay;
+
     ntp_ts_t local_ntp_ts = time_t_from_system_time( local_system_time );
-    uint32_t local_net_time = time_u32_get_network_time();
+    uint32_t local_net_time = time_u32_get_network_time_from_local( local_system_time );
 
     // get deltas
     int64_t delta_ntp_seconds = (int64_t)local_ntp_ts.seconds - (int64_t)source_ts.seconds;
@@ -271,7 +283,7 @@ static void time_v_set_ntp_master_clock_internal(
         ( abs64( delta_ntp_seconds ) > 60 ) ||
         !is_sync ){
 
-        log_v_debug_P( PSTR("HARD SYNC") );
+        // log_v_debug_P( PSTR("HARD SYNC") );
         
         // hard sync
         master_ntp_time         = source_ts;
@@ -293,7 +305,7 @@ static void time_v_set_ntp_master_clock_internal(
     master_sync_difference = delta_master_ms;
 
     // log_v_debug_P( PSTR("ntp_sync_difference: %ld"), ntp_sync_difference );   
-    // log_v_debug_P( PSTR("%ld"), master_sync_difference );   
+    // log_v_debug_P( PSTR("dly: %3u diff: %5ld"), delay, master_sync_difference );   
 }
 
 void time_v_set_ntp_master_clock( 
@@ -315,7 +327,7 @@ void time_v_set_ntp_master_clock(
         log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
     }
 
-    time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source );
+    time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source, 0 );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -395,6 +407,8 @@ PT_BEGIN( pt );
 
         // check if data received
         if( sock_i16_get_bytes_read( sock ) > 0 ){
+
+            uint32_t now = tmr_u32_get_system_time_ms();
 
             uint32_t *magic = sock_vp_get_data( sock );
 
@@ -487,21 +501,20 @@ PT_BEGIN( pt );
                     continue;
                 }
 
-                master_net_time = tmr_u32_get_system_time_ms();
-                // local_time = net_time;
+                time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
 
                 time_msg_sync_t msg;
                 msg.magic           = TIME_PROTOCOL_MAGIC;
                 msg.version         = TIME_PROTOCOL_VERSION;
                 msg.type            = TIME_MSG_SYNC;
-                msg.net_time        = master_net_time;
+                msg.net_time        = time_u32_get_network_time_from_local( now );
                 msg.uptime          = master_uptime;
                 msg.flags           = 0;
-                msg.ntp_time        = time_t_now();
+                msg.ntp_time        = time_t_from_system_time( now );
                 msg.source          = master_source;
+                msg.id              = req->id;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-                debug_strobe();
             }
             else if( *type == TIME_MSG_SYNC ){
 
@@ -509,53 +522,62 @@ PT_BEGIN( pt );
 
                     continue;
                 }
-                debug_strobe();
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
-                master_uptime = msg->uptime;
+                // check id
+                if( msg->id != sync_id ){
 
-                uint32_t now = tmr_u32_get_system_time_ms();
+                    log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+                    continue;
+                }
+
+                master_uptime = msg->uptime;
                 // uint32_t est_net_time = time_u32_get_network_time();
                 
-                int32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
+                uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
+
+                // init filtered RTT if needed
+                if( filtered_rtt == 0 ){
+
+                    filtered_rtt = elapsed_rtt;
+                }
+
                 if( elapsed_rtt > 500 ){
 
                     // a 0.5 second RTT is clearly ridiculous.
-                    log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+                    // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
 
                     continue;
                 }
                 // check quality of RTT sample
-                else if( ( filtered_rtt > 0 ) && 
-                         ( elapsed_rtt > ( filtered_rtt + RTT_QUALITY_LIMIT ) ) ){
+                else if( elapsed_rtt > ( filtered_rtt + RTT_QUALITY_LIMIT ) ){
 
                     // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
-
 
                     // although we are not using this sync message for our clock,
                     // we will bump the filtered RTT up a bit in case the overall RTT is
                     // drifting upwards.  this prevents us from losing sync on a busy network.
-                    // also - only do this if RTT has been initiatized.
-                    if( filtered_rtt > 0 ){
                         
-                        filtered_rtt += RTT_RELAX;
-                    }
+                    filtered_rtt += RTT_RELAX;
 
                     continue;
                 }
+                else{
+
+                    // filter rtt
+                    filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
+                }
+
 
                 // check sync
                 if( msg->source != TIME_SOURCE_NONE ){
                     
-                    // does not compensate for transmission time, so there will be a fraction of a
-                    // second offset in NTP time.
-                    // this is probably OK, we don't usually need better than second precision
-                    // on the NTP clock for most use cases.
+                    // log_v_debug_P( PSTR("%4ld %4u"), elapsed_rtt, filtered_rtt );
 
-                    uint32_t corrected_net_time = msg->net_time + ( elapsed_rtt / 2 );
+                    uint16_t delay = elapsed_rtt / 2;
 
-                    time_v_set_ntp_master_clock_internal( msg->ntp_time, corrected_net_time, now, msg->source );
+                    time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
                 }
             }
         }
@@ -582,8 +604,6 @@ static void send_master( void ){
     sock_addr_t raddr;
     raddr.port = TIME_SERVER_PORT;
     raddr.ipaddr = ip_a_addr(255,255,255,255);
-
-    master_net_time = tmr_u32_get_system_time_ms();
 
     time_msg_master_t msg;
     msg.magic           = TIME_PROTOCOL_MAGIC;
@@ -614,10 +634,13 @@ static void send_not_master( void ){
 
 static void request_sync( void ){
 
+    sync_id++;
+
     time_msg_request_sync_t msg;
     msg.magic           = TIME_PROTOCOL_MAGIC;
     msg.version         = TIME_PROTOCOL_VERSION;
     msg.type            = TIME_MSG_REQUEST_SYNC;
+    msg.id              = sync_id;
     
     sock_addr_t raddr;
     raddr.port = TIME_SERVER_PORT;
@@ -626,7 +649,6 @@ static void request_sync( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 
     rtt_start = tmr_u32_get_system_time_ms();
-    debug_strobe();
 }
 
 
@@ -658,19 +680,16 @@ PT_BEGIN( pt );
 
     if( sync_state == STATE_WAIT ){
 
-        // // check if we have a clock source
-        // if( get_best_local_source() == TIME_SOURCE_NONE ){
-
-        //     // no clock source available, but try to start SNTP 
-        //     // and maybe we'll get a sync from that.
-        //     sntp_v_start();
-        // }
-
         // elect ourselves as master.
         // even if we don't have an NTP reference, we can at least sync the local net clock.
         sync_state = STATE_MASTER;
         master_uptime = 0;
         master_ip = ip_a_addr(0,0,0,0);
+        is_sync = TRUE;
+
+        // set initial clocks
+        // base_system_time = tmr_u32_get_system_time_ms();
+        // master_net_time = base_system_time;
 
         log_v_debug_P( PSTR("we are master") );
     }
@@ -690,10 +709,10 @@ PT_BEGIN( pt );
 
             if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
 
-                log_v_debug_P( PSTR("master starting sntp") );
+                // log_v_debug_P( PSTR("master starting sntp") );
 
                 // start SNTP (ignored if already running)
-                sntp_v_start();
+                // sntp_v_start();
             }
             // check if synchronized
             else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
@@ -724,6 +743,9 @@ PT_BEGIN( pt );
 
     if( sync_state == STATE_SLAVE ){
 
+        // reset sync
+        is_sync = FALSE;
+
         sntp_v_stop();
 
         TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
@@ -733,10 +755,9 @@ PT_BEGIN( pt );
     while( sync_state == STATE_SLAVE ){
 
         // random delay
-        // uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
-
-        // TMR_WAIT( pt, delay );
-        TMR_WAIT( pt, 1000 );
+        uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+        TMR_WAIT( pt, delay );
+        // TMR_WAIT( pt, 1000 );
 
         if( get_best_local_source() > master_source ){
 
@@ -772,45 +793,24 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    while( TRUE ){
 
+    THREAD_WAIT_WHILE( pt, sync_state == STATE_WAIT );
+
+    last_clock_update = tmr_u32_get_system_time_ms();
+    thread_v_set_alarm( last_clock_update );
+
+    while( sync_state != STATE_WAIT ){
+    
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        if( ntp_valid ){
+        uint32_t now = tmr_u32_get_system_time_ms();
+        uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
 
-            uint32_t now = tmr_u32_get_system_time_ms();
+        int16_t master_clock_adjust = 0;
+        int16_t ntp_clock_adjust = 0;
 
-            uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
-
-            uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
-
-            int16_t ntp_clock_adjust = 0;
-
-            if( ntp_sync_difference > 50 ){
-
-                // our clock is ahead, so we need to slow down
-                ntp_clock_adjust = 10;
-            }
-            else if( ntp_sync_difference > 2 ){
-
-                // our clock is ahead, so we need to slow down
-                ntp_clock_adjust = 1;
-            }
-            else if( ntp_sync_difference < -50 ){
-
-                // our clock is behind, so we need to speed up
-                ntp_clock_adjust = -10;
-            }
-            else if( ntp_sync_difference < -2 ){
-
-                // our clock is behind, so we need to speed up
-                ntp_clock_adjust = -1;
-            }
-
-            ntp_sync_difference -= ntp_clock_adjust;
-
-            int16_t master_clock_adjust = 0;
+        if( is_sync ){
 
             if( master_sync_difference > 50 ){
 
@@ -836,15 +836,48 @@ PT_BEGIN( pt );
             master_sync_difference -= master_clock_adjust;
 
             // update master clocks
-            temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - ntp_clock_adjust ) << 32 ) / 1000 );
-            master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
             master_net_time += elapsed_ms - master_clock_adjust;
 
             // update local reference
             base_system_time += elapsed_ms;  
-            last_clock_update = now;
         }
+
+        if( ntp_valid ){
+
+            uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
+
+            if( ntp_sync_difference > 50 ){
+
+                // our clock is ahead, so we need to slow down
+                ntp_clock_adjust = 10;
+            }
+            else if( ntp_sync_difference > 2 ){
+
+                // our clock is ahead, so we need to slow down
+                ntp_clock_adjust = 1;
+            }
+            else if( ntp_sync_difference < -50 ){
+
+                // our clock is behind, so we need to speed up
+                ntp_clock_adjust = -10;
+            }
+            else if( ntp_sync_difference < -2 ){
+
+                // our clock is behind, so we need to speed up
+                ntp_clock_adjust = -1;
+            }
+
+            ntp_sync_difference -= ntp_clock_adjust;            
+
+            // update master clocks
+            temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - ntp_clock_adjust ) << 32 ) / 1000 );
+            master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
+        }
+
+        last_clock_update = now;
     }
+
+    THREAD_RESTART( pt );
 
 PT_END( pt );
 }

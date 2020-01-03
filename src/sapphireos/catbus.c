@@ -1058,7 +1058,7 @@ PT_BEGIN( pt );
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
             #ifdef ENABLE_TIME_SYNC
-            if( time_b_is_sync() ){
+            if( time_b_is_ntp_sync() ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }

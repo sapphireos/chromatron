@@ -156,14 +156,14 @@ PT_BEGIN( pt );
         THREAD_YIELD( pt );
 
         // wait for sync and for cron jobs to be loaded
-        THREAD_WAIT_WHILE( pt, !time_b_is_sync() || list_b_is_empty( &cron_list ) );
+        THREAD_WAIT_WHILE( pt, !time_b_is_ntp_sync() || list_b_is_empty( &cron_list ) );
 
         // initialize cron clock
         ntp_ts_t ntp_local_now = time_t_local_now();
         datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
         cron_seconds = ntp_local_now.seconds;
 
-        while( time_b_is_sync() && !list_b_is_empty( &cron_list ) ){
+        while( time_b_is_ntp_sync() && !list_b_is_empty( &cron_list ) ){
 
             TMR_WAIT( pt, 1000 );
             

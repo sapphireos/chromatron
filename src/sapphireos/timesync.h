@@ -73,6 +73,7 @@ typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
+    uint8_t id;
 } time_msg_request_sync_t;
 #define TIME_MSG_REQUEST_SYNC       3
 
@@ -85,13 +86,16 @@ typedef struct __attribute__((packed)){
     uint32_t net_time;
     uint64_t uptime;
     ntp_ts_t ntp_time;
+    uint8_t id;
 } time_msg_sync_t;
 #define TIME_MSG_SYNC               4
 
 
 void time_v_init( void );
-bool time_b_is_sync( void );
+bool time_b_is_local_sync( void );
+bool time_b_is_ntp_sync( void );
 uint32_t time_u32_get_network_time( void );
+uint32_t time_u32_get_network_time_from_local( uint32_t local_time );
 int8_t time_i8_compare_network_time( uint32_t time );
 uint32_t time_u32_get_network_aligned( uint32_t alignment );
 void time_v_set_gps_sync( bool sync );
