@@ -108,6 +108,8 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
     { SAPPHIRE_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
+
+    { SAPPHIRE_TYPE_INT32,     0, KV_FLAGS_READ_ONLY, &master_sync_difference,                 0,         "net_master_sync_diff" },
 };
 
 

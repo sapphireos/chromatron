@@ -149,12 +149,12 @@ void vm_sync_v_init( void ){
                     0,
                     0 );    
     #endif
-
+return;
     // check if time sync is enabled
-    // if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
-    //     return;
-    // }
+        return;
+    }
 
 	// init sync group hash
 	char buf[32];
