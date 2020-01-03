@@ -32,7 +32,8 @@
 
 #include "wifi_cmd.h"
 
-#define TIME_SERVER_PORT                32037
+// #define TIME_SERVER_PORT                32037
+#define TIME_SERVER_PORT                32035
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION           4
@@ -42,7 +43,6 @@
 #define TIME_SOURCE_RTC                 16
 #define TIME_SOURCE_INTERNAL_NTP_SYNC   9 // any source above this level is assumed to have a valid NTP sync
 #define TIME_SOURCE_INTERNAL            8
-#define TIME_SOURCE_LOCAL_ONLY          4
 #define TIME_SOURCE_NONE                0
 
 

@@ -368,16 +368,6 @@ static uint8_t get_best_local_source( void ){
         return TIME_SOURCE_INTERNAL;
     }
 
-    // !!! THIS fails spectacularly!
-
-    // if it has been more than 1 minute and we have no sync, then
-    // we'll try to do a local net time sync and we just won't 
-    // have an NTP reference.
-    // if( tmr_u64_get_system_time_us() >= (uint32_t)60 * 1000000 ){
-
-    //     return TIME_SOURCE_LOCAL_ONLY;
-    // }
-
     return TIME_SOURCE_NONE;
 }
 
@@ -655,22 +645,20 @@ PT_BEGIN( pt );
     if( sync_state == STATE_WAIT ){
 
         // check if we have a clock source
-        if( get_best_local_source() != TIME_SOURCE_NONE ){
-
-            // elect ourselves as master
-            sync_state = STATE_MASTER;
-            master_uptime = 0;
-            master_ip = ip_a_addr(0,0,0,0);
-
-            log_v_debug_P( PSTR("we are master") );
-        }
-        else{
+        if( get_best_local_source() == TIME_SOURCE_NONE ){
 
             // no clock source available, but try to start SNTP 
             // and maybe we'll get a sync from that.
             sntp_v_start();
         }
 
+        // elect ourselves as master.
+        // even if we don't have an NTP reference, we can at least sync the local net clock.
+        sync_state = STATE_MASTER;
+        master_uptime = 0;
+        master_ip = ip_a_addr(0,0,0,0);
+
+        log_v_debug_P( PSTR("we are master") );
     }
 
     while( sync_state == STATE_MASTER ){
