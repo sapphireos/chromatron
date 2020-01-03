@@ -26,7 +26,7 @@
 
 
 
-// #define SYNC_DEBUG
+#define SYNC_DEBUG
 
 
 #include "timesync.h"
@@ -90,33 +90,42 @@ PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 #ifdef SYNC_DEBUG
 PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) );
 
-static void debug_strobe( void ){
-    io_v_digital_write( IO_PIN_PWM_1, TRUE );
-    _delay_us( 10 );
-    io_v_digital_write( IO_PIN_PWM_1, FALSE );
-} 
+// static void debug_strobe( void ){
+//     io_v_digital_write( IO_PIN_PWM_1, TRUE );
+//     _delay_us( 10 );
+//     io_v_digital_write( IO_PIN_PWM_1, FALSE );
+// } 
 
 PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-static uint32_t prev;
+// static uint32_t prev;
 
     while( TRUE ){
 
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
         static uint32_t net_time;
-        net_time = time_u32_get_network_aligned( 1000 );
+        net_time = time_u32_get_network_aligned( 500 );
 
         THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
 
+        // debug_strobe();
+        io_v_digital_write( IO_PIN_PWM_1, TRUE );
 
-        debug_strobe();
-        uint32_t net = time_u32_get_network_time();
-        uint32_t delta = net - prev;
-        prev = net;
-        log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
+        net_time = time_u32_get_network_aligned( 500 );
+
+        THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
+
+        io_v_digital_write( IO_PIN_PWM_1, FALSE );
+
+
+
+        // uint32_t net = time_u32_get_network_time();
+        // uint32_t delta = net - prev;
+        // prev = net;
+        // log_v_debug_P( PSTR("%5lu %15lu"), delta, net );
     }
 
 PT_END( pt );
@@ -126,7 +135,6 @@ PT_END( pt );
 #endif
 
 void vm_sync_v_init( void ){
-    return;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -134,7 +142,7 @@ void vm_sync_v_init( void ){
     }
 
     #ifdef SYNC_DEBUG
-    io_v_set_mode( IO_PIN_PWM_0, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_PWM_1, IO_MODE_OUTPUT );
 
     thread_t_create( vm_sync_debug_thread,
                     PSTR("vm_sync_debug"),

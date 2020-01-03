@@ -623,6 +623,8 @@ void pixel_v_init( void ){
     PIX_CLK_PORT.DIRCLR = ( 1 << PIX_CLK_PIN );
     PIX_DATA_PORT.DIRCLR = ( 1 << PIX_DATA_PIN );
 
+pixel_v_enable();
+return;
     // bounds check
     if( pix_apa102_dimmer > 31 ){
 
