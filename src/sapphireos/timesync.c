@@ -239,8 +239,6 @@ static void time_v_set_ntp_master_clock_internal(
         if( !ntp_valid ){
 
             log_v_debug_P( PSTR("NTP valid") );
-
-            master_ntp_time = source_ts;
         }
 
         ntp_valid = TRUE;
@@ -260,7 +258,9 @@ static void time_v_set_ntp_master_clock_internal(
     // ntp_v_to_iso8601( s, sizeof(s), source_ts );
     // log_v_debug_P( PSTR("Remote:   %s"), s );
 
-    if( ( abs64( delta_master_ms ) > 60000 ) || !is_sync ){
+    if( ( abs64( delta_master_ms ) > 60000 ) ||
+        ( abs64( delta_ntp_seconds ) > 60 ) ||
+        !is_sync ){
 
         log_v_debug_P( PSTR("HARD SYNC") );
         
