@@ -716,38 +716,6 @@ PT_BEGIN( pt );
     		}
 
             TMR_WAIT( pt, 500 );
-
-//             THREAD_WAIT_SIGNAL( pt, SYNC_SIGNAL );
-
-//             wifi_msg_vm_frame_sync_t sync;
-//             if( get_frame_sync( &sync ) < 0 ){
-
-//                 goto master_error;
-//             }
-
-//             send_sync_0( &sync );
-
-//             log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
-
-//             uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-//             uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
-
-//             for( uint16_t i = 0; i < sync.data_len; ){
-
-//                 int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
-//                 if( bytes_read < 0 ){
-
-//                     goto master_error;
-//                 }
-
-//                 send_sync_n( i, sync.frame_number, data, bytes_read );
-
-//                 i += WIFI_MAX_SYNC_DATA;
-//             }
-
-// master_error:
-//     		TMR_WAIT( pt, 8 * 1000 );
-//             thread_v_clear_signal( SYNC_SIGNAL );
     	}
 
         while( ( sync_state == STATE_SLAVE ) && !vm_sync_wait() ){
