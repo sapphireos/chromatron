@@ -79,10 +79,10 @@ void pwm_v_init( void ){
 	pwm_timer.Instance = TIM4;
 	#else
 	__HAL_RCC_TIM1_CLK_ENABLE();
-	pwm_timer.Instance = TIM1;
+	pwm_timer.Instance = TIM1; // APB2
 	#endif
 
-	pwm_timer.Init.Prescaler 			= 16;
+	pwm_timer.Init.Prescaler 			= 1;
 	pwm_timer.Init.CounterMode 			= TIM_COUNTERMODE_UP;
 	pwm_timer.Init.Period 				= 65535; // 16 bits
 	pwm_timer.Init.ClockDivision 		= TIM_CLOCKDIVISION_DIV1;
