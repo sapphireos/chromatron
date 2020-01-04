@@ -399,6 +399,8 @@ static void send_sync_to_slave( sock_addr_t *raddr ){
             return;
         }
 
+        bytes_read -= sizeof(wifi_msg_vm_sync_data_t); // subtract header from bytes read
+
         uint32_t *reg = (uint32_t *)data;
         for( uint8_t j = 0; j < bytes_read / 4; j++ ){
 
@@ -554,7 +556,7 @@ PT_BEGIN( pt );
                 // slave_net_time  = msg->net_time;
                 // slave_net_time  = msg->uptime / 1000;
 
-                log_v_debug_P( PSTR("starting slave sync, frame: %u"), msg->frame_number );
+                log_v_debug_P( PSTR("starting slave sync, frame: %u len: %u"), msg->frame_number, msg->data_len );
 
                 wifi_msg_vm_frame_sync_t sync;
                 sync.program_name_hash  = msg->program_name_hash;
