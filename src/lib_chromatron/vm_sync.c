@@ -715,11 +715,9 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
 
-    	// if( sync_state == STATE_IDLE ){
-
-            // random delay, see if other masters show up
-            // TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 4 ) );
-    	// }
+        // random delay, see if other masters show up
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_IDLE ) );
 
         // no masters, elect ourselves
         if( sync_state == STATE_IDLE ){
