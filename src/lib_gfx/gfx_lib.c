@@ -1310,15 +1310,7 @@ void gfx_v_set_hs_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj ){
 
     uint16_t index = calc_index( obj, x, y );
 
-    if( index >= MAX_PIXELS ){
-        return;
-    }
-
-    hs_fade[index] = a;
-
-    // reset fader, this will trigger the fader process to recalculate the fader steps.
-    hue_step[index] = 0;
-    sat_step[index] = 0;
+    _gfx_v_set_hs_fade_1d( a, index );
 }
 
 uint16_t gfx_u16_get_hs_fade( uint16_t x, uint16_t y, uint8_t obj ){
@@ -1334,14 +1326,7 @@ void gfx_v_set_v_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj ){
 
     uint16_t index = calc_index( obj, x, y );
 
-    if( index >= MAX_PIXELS ){
-        return;
-    }
-
-    v_fade[index] = a;
-
-    // reset fader, this will trigger the fader process to recalculate the fader steps.
-    val_step[index] = 0;
+    _gfx_v_set_v_fade_1d( a, index );
 }
 
 uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj ){
