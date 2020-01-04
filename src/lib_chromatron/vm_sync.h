@@ -35,7 +35,7 @@
 #define SYNC_PROTOCOL_VERSION           	2
 
 #define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
-#define SYNC_RATE                           8000
+#define SYNC_RATE                           4000
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
