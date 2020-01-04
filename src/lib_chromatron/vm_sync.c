@@ -399,14 +399,15 @@ static void send_sync_to_slave( sock_addr_t *raddr ){
             return;
         }
 
-        // uint32_t *reg = (uint32_t *)data;
-        // for( uint8_t j = 0; j < bytes_read / 4; j++ ){
+        uint32_t *reg = (uint32_t *)data;
+        for( uint8_t j = 0; j < bytes_read / 4; j++ ){
 
-        //     log_v_debug_P(PSTR("0x%0x"), *reg);
-        //     reg++;
-        // }
+            log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
+            reg++;
+        }
 
         send_sync_n( i, sync.frame_number, data, bytes_read, raddr );
+        log_v_debug_P(PSTR("net: %lu"), time_u32_get_network_time());
 
         i += WIFI_MAX_SYNC_DATA;
     }    
@@ -644,12 +645,12 @@ PT_BEGIN( pt );
 
                 memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
 
-                // uint32_t *reg = (uint32_t *)&buf[sizeof(wifi_msg_vm_sync_data_t)];
-                // for( uint8_t j = 0; j < data_len / 4; j++ ){
+                uint32_t *reg = (uint32_t *)&buf[sizeof(wifi_msg_vm_sync_data_t)];
+                for( uint8_t j = 0; j < data_len / 4; j++ ){
 
-                //     log_v_debug_P(PSTR("0x%0x"), *reg);
-                //     reg++;
-                // }
+                    log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
+                    reg++;
+                }
 
                 set_frame_data( sync, data_len );
 
@@ -662,6 +663,7 @@ PT_BEGIN( pt );
 
                         sync_state = STATE_SLAVE_SYNC;
 
+                        log_v_debug_P(PSTR("net: %lu"), time_u32_get_network_time());
                         log_v_debug_P( PSTR("finished sync data") );
                         gfx_v_set_sync0( slave_frame, slave_net_time );
                     }
