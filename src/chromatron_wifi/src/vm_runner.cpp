@@ -574,8 +574,11 @@ void vm_v_set_vm_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_
 
     if( offset + len > vm_state[vm_index].data_len ){
 
+        intf_v_printf("PREV offset: %u len: %u", len);
         len = vm_state[vm_index].data_len - offset;
     }
+
+    intf_v_printf("offset: %u len: %u", offset, len);
 
     memcpy( data_start + offset, data, len );
 }   
