@@ -272,8 +272,6 @@ static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
 
 static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
 
-    log_v_debug_P( PSTR("set_frame_data %u %u"), msg->offset, len );
-
     if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
 
         return -1;
