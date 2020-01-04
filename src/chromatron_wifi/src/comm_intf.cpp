@@ -513,13 +513,21 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
     }
     else if( data_id == WIFI_DATA_ID_VM_SET_FRAME_SYNC ){
 
+        wifi_msg_vm_frame_sync_t *msg = (wifi_msg_vm_frame_sync_t *)data;
+
         vm_state_t *state = vm_p_get_state( 0 );
 
-        wifi_msg_vm_frame_sync_t msg;
-        state->program_name_hash    = msg.program_name_hash;
-        state->frame_number         = msg.frame_number;
-        state->data_len             = msg.data_len;
-        state->rng_seed             = msg.rng_seed;
+        // verify program name
+        if( state->program_name_hash == msg->program_name_hash ){
+
+            state->frame_number         = msg->frame_number;
+            state->data_len             = msg->data_len;
+            state->rng_seed             = msg->rng_seed;
+        }
+        else{
+
+            intf_v_printf("Invalid program name hash for VM sync");
+        }
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0 );
     }
