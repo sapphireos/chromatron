@@ -509,12 +509,22 @@ vm_thread_t* vm_p_get_threads( uint8_t vm_index ){
         return 0;
     }
 
+    if( vm_handles[vm_index] <= 0 ){
+
+        return 0;
+    }
+
     return vm_state[vm_index].threads;
 }
 
 vm_state_t* vm_p_get_state( uint8_t vm_index ){
     
     if( vm_index >= VM_MAX_VMS ){
+
+        return 0;
+    }
+
+    if( vm_handles[vm_index] <= 0 ){
 
         return 0;
     }
@@ -528,6 +538,11 @@ uint16_t vm_u16_get_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint
 
         return 0;
     }    
+
+    if( vm_handles[vm_index] <= 0 ){
+
+        return 0;
+    }
 
     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *data_start = (uint8_t *)( stream + vm_state[vm_index].data_start );
@@ -548,6 +563,11 @@ void vm_v_set_vm_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_
 
         return;
     }    
+
+    if( vm_handles[vm_index] <= 0 ){
+
+        return;
+    }
 
     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *data_start = (uint8_t *)( stream + vm_state[vm_index].data_start );

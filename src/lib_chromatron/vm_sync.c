@@ -277,14 +277,12 @@ static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
         return -1;
     }
 
-    uint16_t bytes_read;
-
     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
 
         return -2;
     }
 
-    return bytes_read;
+    return 0;
 }
 
 static void send_sync_0( wifi_msg_vm_frame_sync_t *sync, sock_addr_t *raddr ){
