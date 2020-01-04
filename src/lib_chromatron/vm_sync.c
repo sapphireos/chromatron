@@ -272,7 +272,7 @@ static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
 
 static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
 
-    log_v_debug_P( PSTR("set_frame_data %u"), len );
+    log_v_debug_P( PSTR("set_frame_data %u %u"), msg->offset, len );
 
     if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
 
@@ -716,8 +716,8 @@ PT_BEGIN( pt );
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
 
         // random delay, see if other masters show up
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_IDLE ) );
+        // thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
+        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_IDLE ) );
 
         // no masters, elect ourselves
         if( sync_state == STATE_IDLE ){

@@ -569,12 +569,19 @@ void vm_v_set_vm_data( uint8_t vm_index, uint16_t offset, uint8_t *data, uint16_
         return;
     }
 
+    if( vm_state[vm_index].data_len == 0 ){
+
+        intf_v_printf("vm len 0!");
+        return;
+    }
+
+
     uint8_t *stream = (uint8_t *)mem2_vp_get_ptr( vm_handles[vm_index] );
     uint8_t *data_start = (uint8_t *)( stream + vm_state[vm_index].data_start );
 
     if( offset + len > vm_state[vm_index].data_len ){
 
-        intf_v_printf("PREV offset: %u len: %u", len);
+        intf_v_printf("PREV offset: %u len: %u vm len: %u", offset, len, vm_state[vm_index].data_len);
         len = vm_state[vm_index].data_len - offset;
     }
 

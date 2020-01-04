@@ -542,6 +542,8 @@ static void process_data( uint8_t data_id, uint8_t *data, uint16_t len ){
 
         wifi_msg_vm_sync_data_t *msg = (wifi_msg_vm_sync_data_t *)data;
 
+        intf_v_printf("COMM offset: %u len: %u", msg->offset, len);
+
         vm_v_set_vm_data( 0, msg->offset, (uint8_t *)( msg + 1 ), len - sizeof(wifi_msg_vm_sync_data_t) );
 
         _intf_i8_transmit_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0 );
