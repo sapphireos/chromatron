@@ -654,7 +654,10 @@ PT_BEGIN( pt );
                     reg++;
                 }
 
-                set_frame_data( sync, data_len );
+                if( set_frame_data( sync, data_len ) < 0 ){
+
+                    log_v_debug_P( PSTR("error") );    
+                }
 
                 // check if sync is finished
                 if( msg->offset == slave_offset ){
