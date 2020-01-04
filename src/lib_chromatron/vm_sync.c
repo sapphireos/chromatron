@@ -399,6 +399,13 @@ static void send_sync_to_slave( sock_addr_t *raddr ){
             return;
         }
 
+        // uint32_t *reg = (uint32_t *)data;
+        // for( uint8_t j = 0; j < bytes_read / 4; j++ ){
+
+        //     log_v_debug_P(PSTR("0x%0x"), *reg);
+        //     reg++;
+        // }
+
         send_sync_n( i, sync.frame_number, data, bytes_read, raddr );
 
         i += WIFI_MAX_SYNC_DATA;
@@ -621,7 +628,7 @@ PT_BEGIN( pt );
 
                 int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
 
-                if( data_len > (int16_t)WIFI_MAX_SYNC_DATA ){
+                if( ( data_len > (int16_t)WIFI_MAX_SYNC_DATA ) || ( data_len <= 0 ) ){
 
                     log_v_debug_P( PSTR("invalid len") );
                     continue;
@@ -636,6 +643,13 @@ PT_BEGIN( pt );
                 sync->offset = msg->offset;
 
                 memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
+
+                // uint32_t *reg = (uint32_t *)&buf[sizeof(wifi_msg_vm_sync_data_t)];
+                // for( uint8_t j = 0; j < data_len / 4; j++ ){
+
+                //     log_v_debug_P(PSTR("0x%0x"), *reg);
+                //     reg++;
+                // }
 
                 set_frame_data( sync, data_len );
 
