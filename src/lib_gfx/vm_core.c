@@ -168,14 +168,14 @@ static int8_t _vm_i8_run_stream(
         &&opcode_pstore_hue,        // 55
         &&opcode_pstore_sat,        // 56
         &&opcode_pstore_val,        // 57
-        &&opcode_pstore_vfade,      // 58
-        &&opcode_pstore_hsfade,     // 59
+        &&opcode_pstore_hsfade,     // 58
+        &&opcode_pstore_vfade,      // 59
 
         &&opcode_pload_hue,         // 60
         &&opcode_pload_sat,         // 61
         &&opcode_pload_val,         // 62
-        &&opcode_pload_vfade,       // 63
-        &&opcode_pload_hsfade,      // 64
+        &&opcode_pload_hsfade,      // 63
+        &&opcode_pload_vfade,       // 64
 
         &&opcode_db_store,          // 65
         &&opcode_db_load,           // 66
