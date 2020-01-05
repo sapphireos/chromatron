@@ -674,8 +674,8 @@ void pixel_v_init( void ){
     PIX_CLK_PORT.DIRSET = ( 1 << PIX_CLK_PIN );
     PIX_DATA_PORT.DIRSET = ( 1 << PIX_DATA_PIN );
 
-
-    
+// pixel_v_enable();
+    // return;
     if( pix_mode == PIX_MODE_PIXIE ){
 
         // Adafruit Pixie runs in UART mode at 115200 baud
@@ -724,6 +724,9 @@ void pixel_v_init( void ){
     PIXEL_TIMER.INTCTRLB |= PIXEL_TIMER_CC_INTLVL;
 
 
+    // start timer
+    GFX_TIMER.CTRLA = TC_CLKSEL_DIV1024_gc;
+    GFX_TIMER.CTRLB = 0;
 
     pixel_v_enable();
 }

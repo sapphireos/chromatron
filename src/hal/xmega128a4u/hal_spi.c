@@ -27,7 +27,7 @@
 #include "timers.h"
 #include "spi.h"
 
-void spi_v_init( uint8_t channel, uint32_t freq ){
+void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
     // set TX and XCK pins to output
     SPI_USER_IO_PORT.DIRSET = ( 1 << SPI_USER_SCK_PIN ) | ( 1 << SPI_USER_MOSI_PIN );

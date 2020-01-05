@@ -50,7 +50,7 @@ static const hal_spi_ch_t spi_io[] = {
 static SPI_HandleTypeDef spi;
 static uint32_t actual_freq;
 
-void spi_v_init( uint8_t channel, uint32_t freq ){
+void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
@@ -118,7 +118,14 @@ void spi_v_init( uint8_t channel, uint32_t freq ){
 	spi.Init.Direction 						= SPI_DIRECTION_2LINES;
 	spi.Init.DataSize 						= SPI_DATASIZE_8BIT;
 	spi.Init.CLKPolarity 					= SPI_POLARITY_LOW;
-	spi.Init.CLKPhase 						= SPI_PHASE_1EDGE;
+	if( mode == 0 ){
+
+		spi.Init.CLKPhase 						= SPI_PHASE_1EDGE;	
+	}
+	else{
+		
+		spi.Init.CLKPhase 						= SPI_PHASE_2EDGE;
+	}
 	spi.Init.NSS 							= SPI_NSS_SOFT;
 	spi.Init.BaudRatePrescaler 				= baud << 28;
 	spi.Init.FirstBit 						= SPI_FIRSTBIT_MSB;

@@ -51,7 +51,7 @@
 #include <stddef.h>
 #include <string.h>
 
-static uint16_t slowest_time;
+static uint32_t slowest_time;
 static uint32_t slowest_id;
 
 static uint16_t board_type;
@@ -68,7 +68,7 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "catbus_data_port" },
     // { SAPPHIRE_TYPE_BOOL,        0,                   0, cfg_i8_kv_handler,  "enable_cpu_sleep" },
-    { SAPPHIRE_TYPE_UINT16,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
+    { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,         &board_type, cfg_i8_kv_handler,  "board_type" },
     { SAPPHIRE_TYPE_UINT8,       0, 0,                   0, cfg_i8_kv_handler,  "cfg_recovery_boot_count" },
@@ -561,9 +561,7 @@ int8_t cfg_i8_kv_handler(
 
 void cfg_v_set( catbus_hash_t32 parameter, void *value ){
 
-    // ASSERT( !osirq_b_is_irq() );
-
-    ATOMIC;
+    uint32_t start = tmr_u32_get_system_time_us();
 
     // IP config params are in-memory only
     if( parameter == CFG_PARAM_IP_ADDRESS ){
@@ -587,16 +585,20 @@ void cfg_v_set( catbus_hash_t32 parameter, void *value ){
         write_param( parameter, value );
     }
 
-    END_ATOMIC;
+    uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+
+    if( elapsed > slowest_time ){
+
+        slowest_time = elapsed;
+        slowest_id = parameter;
+    }
 }
 
 int8_t cfg_i8_get( catbus_hash_t32 parameter, void *value ){
 
     int8_t status = 0;
 
-    ATOMIC;
-
-    uint32_t start = tmr_u32_get_system_time_us();
+    // uint32_t start = tmr_u32_get_system_time_us();
 
     if( ( parameter == CFG_PARAM_IP_ADDRESS ) && ( value != 0 ) ){
 
@@ -629,16 +631,13 @@ int8_t cfg_i8_get( catbus_hash_t32 parameter, void *value ){
         // }
     }
 
-    uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+    // uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
-    if( elapsed > slowest_time ){
+    // if( elapsed > slowest_time ){
 
-        slowest_time = elapsed;
-        slowest_id = parameter;
-    }
-
-
-    END_ATOMIC;
+    //     slowest_time = elapsed;
+    //     slowest_id = parameter;
+    // }
 
     return status;
 }

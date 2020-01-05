@@ -1,3 +1,4 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,35 +20,20 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#include "sapphire.h"
-#include "init.h"
 
-#ifndef BOOTLOADER
+#ifndef INFLUX_H
+#define INFLUX_H
 
-void main( void ) __attribute__ ((noreturn, weak));
-void app_v_init( void ) __attribute__((weak));
-void libs_v_init( void ) __attribute__((weak));
+#if 0
+#define INFLUX_DEFAULT_UDP_PORT 		8089
 
-void main( void ){      
-        
-    if( sapphire_i8_init() == 0 ){
-            
-        if( app_v_init != 0 ){            
+void influx_v_init( void );
+void influx_v_transmit( catbus_hash_t32 hash );
 
-            app_v_init();
-        }
+#else
+#define influx_v_transmit(a)
 
-        if( libs_v_init != 0 ){
-
-            libs_v_init();
-        }
-    }
-    
-	sapphire_run();
-	
-	// should never get here:
-	for(;;);
-}   
-
+#endif
 #endif

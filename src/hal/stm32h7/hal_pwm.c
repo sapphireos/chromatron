@@ -45,6 +45,16 @@ static uint32_t get_channel( uint8_t channel ){
 		return TIM_CHANNEL_4;
 	}
 	#else
+	#ifdef BOARD_CHROMATRONX
+	if( channel == IO_PIN_T0 ){
+		
+		return TIM_CHANNEL_1;
+	}
+	else if( channel == IO_PIN_T1 ){
+
+		return TIM_CHANNEL_2;
+	}
+	#else
 	if( channel == IO_PIN_GPIO9 ){
 
 		return TIM_CHANNEL_1;
@@ -53,6 +63,7 @@ static uint32_t get_channel( uint8_t channel ){
 
 		return TIM_CHANNEL_2;
 	}
+	#endif
 	#endif
 
 	ASSERT( 0 );
@@ -68,10 +79,10 @@ void pwm_v_init( void ){
 	pwm_timer.Instance = TIM4;
 	#else
 	__HAL_RCC_TIM1_CLK_ENABLE();
-	pwm_timer.Instance = TIM1;
+	pwm_timer.Instance = TIM1; // APB2
 	#endif
 
-	pwm_timer.Init.Prescaler 			= 16;
+	pwm_timer.Init.Prescaler 			= 1;
 	pwm_timer.Init.CounterMode 			= TIM_COUNTERMODE_UP;
 	pwm_timer.Init.Period 				= 65535; // 16 bits
 	pwm_timer.Init.ClockDivision 		= TIM_CLOCKDIVISION_DIV1;

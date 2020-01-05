@@ -534,6 +534,9 @@ class Chromatron(object):
     def reboot(self):
         self._device.reboot()
 
+    def safe(self):
+        self._device.safe_mode()
+
     def load_vm(self, vm_index=0, filename=None, start=True, bin_data=None):
         self.stop_vm(vm_index)
 
@@ -1504,6 +1507,19 @@ def reboot(ctx):
     group.reboot()
 
     click.echo("Rebooted:")
+
+    echo_group(group)
+
+
+@cli.command()
+@click.pass_context
+def safe(ctx):
+    """Reboot devices to safe mode"""
+
+    group = ctx.obj['GROUP']()
+    group.safe()
+
+    click.echo("Rebooted to safe mode:")
 
     echo_group(group)
 

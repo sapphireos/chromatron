@@ -56,7 +56,7 @@
         "-lm",
         "-lnosys",
         "-Wl,-u,vfprintf",
-        "-Wl,--section-start=.bootdata=0x2407FFF8",
+        "-Wl,--section-start=.bootdata=0x2001FFF8",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"

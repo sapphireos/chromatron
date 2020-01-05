@@ -28,7 +28,7 @@
 #include "hash.h"
 #include "catbus.h"
 #include "random.h"
-
+#include "influx.h"
 #include "timesync.h"
 
 
@@ -1058,7 +1058,7 @@ PT_BEGIN( pt );
             msg->ntp_timestamp = send_state->ntp_timestamp;
 
             #ifdef ENABLE_TIME_SYNC
-            if( time_b_is_sync() ){
+            if( time_b_is_ntp_sync() ){
                 
                 msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
             }
@@ -1233,6 +1233,8 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
     
         kv_v_notify_hash_set( hash );
     }
+
+    influx_v_transmit( hash );
 
     #ifdef ENABLE_TIME_SYNC
     ntp_ts_t ntp_timestamp = time_t_now();

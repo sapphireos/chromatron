@@ -417,6 +417,36 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
             return gfx_u16_noise( params[0] % 65536 );
             break;
 
+        case __KV__sine:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            return sine( params[0] );
+
+            break;
+
+        case __KV__cosine:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            return cosine( params[0] );
+
+            break;
+
+        case __KV__triangle:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            return triangle( params[0] );
+
+            break;
+
         default:
             break;
     }    
@@ -1280,15 +1310,7 @@ void gfx_v_set_hs_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj ){
 
     uint16_t index = calc_index( obj, x, y );
 
-    if( index >= MAX_PIXELS ){
-        return;
-    }
-
-    hs_fade[index] = a;
-
-    // reset fader, this will trigger the fader process to recalculate the fader steps.
-    hue_step[index] = 0;
-    sat_step[index] = 0;
+    _gfx_v_set_hs_fade_1d( a, index );
 }
 
 uint16_t gfx_u16_get_hs_fade( uint16_t x, uint16_t y, uint8_t obj ){
@@ -1304,14 +1326,7 @@ void gfx_v_set_v_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj ){
 
     uint16_t index = calc_index( obj, x, y );
 
-    if( index >= MAX_PIXELS ){
-        return;
-    }
-
-    v_fade[index] = a;
-
-    // reset fader, this will trigger the fader process to recalculate the fader steps.
-    val_step[index] = 0;
+    _gfx_v_set_v_fade_1d( a, index );
 }
 
 uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj ){
@@ -1758,6 +1773,9 @@ void gfxlib_v_init( void ){
     gfx_v_reset();
 
     update_master_fader();
+
+    // DEBUG
+    gfx_v_set_red_boost( 6553 );
 }
 
 // convert all HSV to RGB

@@ -104,11 +104,43 @@ void io_v_init( void ){
 
         io_v_set_mode( i, IO_MODE_INPUT_PULLDOWN );
     }
+
+    #if !defined(BOARD_CHROMATRONX) && !defined(BOARD_NUCLEAR)
+    // set up HW rev
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    // set up IO
+    GPIO_InitStruct.Pin         = HW_REV0_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLUP;
+    HAL_GPIO_Init(HW_REV0_GPIO_Port, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin         = HW_REV1_Pin;
+    GPIO_InitStruct.Mode        = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed       = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Pull        = GPIO_PULLUP;
+    HAL_GPIO_Init(HW_REV1_GPIO_Port, &GPIO_InitStruct);
+    #endif
 }
 
 uint8_t io_u8_get_board_rev( void ){
 
-    return 0;
+    uint8_t rev = 0;
+
+    #if !defined(BOARD_CHROMATRONX) && !defined(BOARD_NUCLEAR)
+    if( HAL_GPIO_ReadPin(HW_REV0_GPIO_Port, HW_REV0_Pin) == GPIO_PIN_RESET ){
+
+        rev |= 0x01;
+    }
+
+    if( HAL_GPIO_ReadPin(HW_REV1_GPIO_Port, HW_REV1_Pin) == GPIO_PIN_RESET ){
+
+        rev |= 0x02;
+    }
+    #endif
+
+    return rev;
 }
 
 void hal_io_v_get_port( uint8_t pin, GPIO_TypeDef **port, uint32_t *pin_number ){

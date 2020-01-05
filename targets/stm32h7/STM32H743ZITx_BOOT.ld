@@ -183,7 +183,7 @@ SECTIONS
 
     . = ALIGN(4);
     _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >RAM_NO_CACHE
+  } >DTCMRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

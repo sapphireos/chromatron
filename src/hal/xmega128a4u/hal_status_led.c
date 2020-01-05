@@ -95,7 +95,7 @@ PT_BEGIN( pt );
                 status_led_v_set( 0, STATUS_LED_BLUE );
             }
 
-            if( time_b_is_sync() ){
+            if( time_b_is_local_sync() ){
 
                 uint32_t net_time = time_u32_get_network_time();
 
@@ -122,11 +122,18 @@ PT_BEGIN( pt );
                 }
             }
 
-            uint32_t net_time = time_u32_get_network_time();
+            if( time_b_is_local_sync() ){
 
-            if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) != 0 ){
+                uint32_t net_time = time_u32_get_network_time();
 
-                TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
+                if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) != 0 ){
+
+                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
+                }
+            }
+            else{
+
+                TMR_WAIT( pt, 500 );
             }
         }
         else{

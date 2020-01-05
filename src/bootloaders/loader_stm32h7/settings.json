@@ -23,20 +23,5 @@
     "_comment": "Additional libraries to include with the build",
     "LIBRARIES": ["lib_armloader"],
 
-    "DEFINES": ["BOOTLOADER"],
-
-    "LINKER_SCRIPT": "STM32H743ZITx_BOOT.ld",
-
-     "LINK_FLAGS": [
-        "-specs=nano.specs",
-        "--output %(TARGET_DIR)/main.elf",
-        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
-        "-lm",
-        "-lc",
-        "-lnosys",
-        "-Wl,--section-start=.bootdata=0x2407FFF8",
-        "-T %(LINKER_SCRIPT)",
-        "-Wl,--gc-sections",
-        "-Wl,--relax"
-    ]
+    "DEFINES": ["BOOTLOADER"]
 }
