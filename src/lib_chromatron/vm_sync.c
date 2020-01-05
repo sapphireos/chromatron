@@ -779,17 +779,16 @@ PT_BEGIN( pt );
     	if( sync_state == STATE_SLAVE_SYNC ){
 
     		log_v_debug_P( PSTR("vm sync!") );
-    	}
 
-        if( sync_state != STATE_SLAVE_SYNC ){
+            while( ( sync_state == STATE_SLAVE_SYNC ) && !vm_sync_wait() ){
+
+                TMR_WAIT( pt, 1 * 1000 );
+            }
+    	}
+        else{
 
             TMR_WAIT( pt, 8000 );
         }
-
-    	while( ( sync_state == STATE_SLAVE_SYNC ) && !vm_sync_wait() ){
-
-    		TMR_WAIT( pt, 1 * 1000 );
-    	}
     }
 
 PT_END( pt );
