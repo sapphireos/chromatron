@@ -707,10 +707,10 @@ PT_BEGIN( pt );
 
                 if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
 
-                    // log_v_debug_P( PSTR("master starting sntp") );
+                    log_v_debug_P( PSTR("master starting sntp") );
 
                     // start SNTP (ignored if already running)
-                    // sntp_v_start();
+                    sntp_v_start();
                 }
                 // check if synchronized
                 else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
