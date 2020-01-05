@@ -34,6 +34,7 @@ static IWDG_HandleTypeDef wdg;
 
 // system timer kicks the iwdg at 65.536 millisecond intervals
 #define WDG_TIMEOUT 64 // approx 4.2 second timeout
+// #define WDG_TIMEOUT 255
 
 static volatile bool wdg_enabled;
 static volatile uint8_t wdg_timer;

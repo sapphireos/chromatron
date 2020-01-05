@@ -45,6 +45,7 @@ static ip_addr_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
 static bool is_sync;
+static bool ntp_valid;
 
 // master clock
 static ntp_ts_t master_time;
@@ -102,6 +103,7 @@ static int8_t ntp_kv_handler(
 KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_time,         0,                      "net_time" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &sync_state,       0,                      "net_time_state" },
     { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
     { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
@@ -120,13 +122,13 @@ void time_v_init( void ){
     // January 1, 2018, midnight
     master_time.seconds = 1514786400 + 2208988800 - 21600;
 
-    // check if time sync is enabled
-    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
     }
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    
+    // check if time sync is enabled
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
         return;
     }
@@ -179,6 +181,11 @@ void time_v_set_gps_sync( bool sync ){
 
 ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
+    if( !ntp_valid ){
+
+        return ntp_ts_from_u64( 0 );    
+    }
+
     uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
 
     // ASSERT( elapsed_ms < 4000000000 );
@@ -196,14 +203,25 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
     return ntp_ts_from_u64( now ); 
 }
 
-
-void time_v_set_master_clock( 
+static void time_v_set_master_clock_internal( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,
     uint8_t source ){
 
     is_sync = TRUE;
+
     master_source = source;
+
+    // if source is usable to sync ntp, set ntp valid.
+    if( source > TIME_SOURCE_INTERNAL ){
+
+        if( !ntp_valid ){
+
+            log_v_debug_P( PSTR("NTP valid") );
+        }
+
+        ntp_valid = TRUE;
+    }
 
     ntp_ts_t local_ts = time_t_from_system_time( local_system_time );
 
@@ -211,11 +229,11 @@ void time_v_set_master_clock(
     int64_t delta_seconds = (int64_t)local_ts.seconds - (int64_t)source_ts.seconds;
     int16_t delta_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ts ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
 
-    char s[ISO8601_STRING_MIN_LEN_MS];
-    ntp_v_to_iso8601( s, sizeof(s), local_ts );
-    log_v_debug_P( PSTR("Local:    %s"), s );
-    ntp_v_to_iso8601( s, sizeof(s), source_ts );
-    log_v_debug_P( PSTR("Remote:   %s"), s );
+    // char s[ISO8601_STRING_MIN_LEN_MS];
+    // ntp_v_to_iso8601( s, sizeof(s), local_ts );
+    // log_v_debug_P( PSTR("Local:    %s"), s );
+    // ntp_v_to_iso8601( s, sizeof(s), source_ts );
+    // log_v_debug_P( PSTR("Remote:   %s"), s );
 
     if( abs64( delta_seconds ) > 60 ){
 
@@ -236,7 +254,29 @@ void time_v_set_master_clock(
     // set difference
     sync_difference = ( delta_seconds * 1000 ) + delta_ms;
 
-    log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );
+    // log_v_debug_P( PSTR("sync_difference: %ld"), sync_difference );   
+}
+
+void time_v_set_master_clock( 
+    ntp_ts_t source_ts, 
+    uint32_t local_system_time,
+    uint8_t source ){
+
+    if( sync_state == STATE_SLAVE ){
+
+        // our source isn't as good as the master, don't do anything.
+        if( source <= master_source ){
+
+            return;
+        }
+
+        // our source is better, we are master now
+        sync_state = STATE_MASTER;
+        master_ip = ip_a_addr(0,0,0,0);
+        log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
+    }
+
+    time_v_set_master_clock_internal( source_ts, local_system_time, source );
 }
 
 ntp_ts_t time_t_now( void ){
@@ -282,15 +322,25 @@ static uint8_t get_best_local_source( void ){
 
     if( gps_sync ){
 
-        return TIME_FLAGS_SOURCE_GPS;
+        return TIME_SOURCE_GPS;
     }
 
     if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
-        return TIME_FLAGS_SOURCE_NTP;
+        return TIME_SOURCE_NTP;
     }
 
-    return 0;
+    if( is_sync && ntp_valid ){
+
+        return TIME_SOURCE_INTERNAL_NTP_SYNC;
+    }
+
+    if( is_sync ){
+
+        return TIME_SOURCE_INTERNAL;
+    }
+
+    return TIME_SOURCE_NONE;
 }
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
@@ -375,6 +425,9 @@ PT_BEGIN( pt );
                             master_ip.ip2, 
                             master_ip.ip1, 
                             master_ip.ip0 );                    
+
+                        // stop sntp
+                        sntp_v_stop();
                     }
                 } 
             }
@@ -387,6 +440,9 @@ PT_BEGIN( pt );
                     sync_state = STATE_WAIT;
 
                     log_v_debug_P( PSTR("lost master, resetting state") );
+
+                    // stop sntp
+                    sntp_v_stop();
                 }
             }
             else if( *type == TIME_MSG_REQUEST_SYNC ){
@@ -424,17 +480,6 @@ PT_BEGIN( pt );
 
                 uint32_t now = tmr_u32_get_system_time_ms();
                 uint32_t est_net_time = time_u32_get_network_time();
-
-                // check sync
-                if( msg->source > 0 ){
-                    
-                    // does not compensate for transmission time, so there will be a fraction of a
-                    // second offset in NTP time.
-                    // this is probably OK, we don't usually need better than second precision
-                    // on the NTP clock for most use cases.
-
-                    time_v_set_master_clock( msg->ntp_time, now, msg->source );
-                }
                 
                 int32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
                 if( elapsed_rtt > 500 ){
@@ -461,6 +506,17 @@ PT_BEGIN( pt );
                     }
 
                     continue;
+                }
+
+                // check sync
+                if( msg->source != TIME_SOURCE_NONE ){
+                    
+                    // does not compensate for transmission time, so there will be a fraction of a
+                    // second offset in NTP time.
+                    // this is probably OK, we don't usually need better than second precision
+                    // on the NTP clock for most use cases.
+
+                    time_v_set_master_clock_internal( msg->ntp_time, now, msg->source );
                 }
 
                 int32_t elapsed_local = tmr_u32_elapsed_times( local_time, now );  
@@ -514,15 +570,15 @@ PT_BEGIN( pt );
 
                     filtered_rtt = 0;
                 
-                    // log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
+                    log_v_debug_P( PSTR("hard jump: %ld"), clock_offset );
                 }
                 else{
 
                     net_time += elapsed_remote_net;
                 }
 
-                // log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
-                    // elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
+                log_v_debug_P( PSTR("rtt: %lu filt: %u offset %d drift: %d"), 
+                    elapsed_rtt, filtered_rtt, clock_offset, filtered_drift );
             }
         }
         // socket timeout
@@ -532,6 +588,7 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("timed out, resetting state") );
 
+                master_source = 0;
                 sync_state = STATE_WAIT;
             }
         }
@@ -596,7 +653,7 @@ static void request_sync( void ){
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-        
+    
     master_ip = ip_a_addr(0,0,0,0);
 
     THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
@@ -612,19 +669,22 @@ PT_BEGIN( pt );
         send_not_master();
         TMR_WAIT( pt, 200 );
         send_not_master();
+        TMR_WAIT( pt, 200 );
+        send_not_master();
 
-        // TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
-        TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+        TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
     }
 
     if( sync_state == STATE_WAIT ){
 
         // check if we have a clock source
-        if( get_best_local_source() > 0 ){
+        if( get_best_local_source() != TIME_SOURCE_NONE ){
 
             // elect ourselves as master
             sync_state = STATE_MASTER;
             master_uptime = 0;
+            master_ip = ip_a_addr(0,0,0,0);
 
             log_v_debug_P( PSTR("we are master") );
         }
@@ -643,22 +703,15 @@ PT_BEGIN( pt );
         // master does not have drift, by definition.
         filtered_drift = 0;
 
-        // check state
-        if( sync_state != STATE_MASTER ){
 
-            // no longer master
-            log_v_debug_P( PSTR("no longer master") );
-
-            sntp_v_stop();
-
-            break;
-        }
+        // default sync source to internal clock
+        master_source = TIME_SOURCE_INTERNAL;
 
         // check sync sources
         if( gps_sync ){
 
             sntp_v_stop();
-            master_source = TIME_FLAGS_SOURCE_GPS;
+            master_source = TIME_SOURCE_GPS;
         }
         else{
 
@@ -668,7 +721,7 @@ PT_BEGIN( pt );
             // check if synchronized
             if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
-                master_source = TIME_FLAGS_SOURCE_NTP;
+                master_source = TIME_SOURCE_NTP;
             }
         }
 
@@ -676,12 +729,29 @@ PT_BEGIN( pt );
 
         send_master();
 
-        TMR_WAIT( pt, TIME_MASTER_SYNC_RATE * 1000 );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() +  TIME_MASTER_SYNC_RATE * 1000 );
+
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( !sys_b_shutdown() ) );
+
+        if( sys_b_shutdown() ){
+
+            send_not_master();
+            TMR_WAIT( pt, 200 );
+            send_not_master();
+            TMR_WAIT( pt, 200 );
+            send_not_master();   
+
+            THREAD_EXIT( pt );
+        }
     }
 
     while( sync_state == STATE_SLAVE ){
 
-        sntp_v_stop();
+        // check if local source is better than or same as NTP.  if so, stop our client.
+        if( master_source >= TIME_SOURCE_NTP ){
+            
+            sntp_v_stop();
+        }
 
         // random delay
         uint16_t delay;
@@ -704,6 +774,7 @@ PT_BEGIN( pt );
             master_uptime = 0;
 
             log_v_debug_P( PSTR("we are master (local source)") );
+            master_ip = ip_a_addr(0,0,0,0);
         } 
 
 
@@ -714,6 +785,12 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("no longer slave") );
 
             break;
+        }
+
+        // check if local source is worse than NTP.  if so, try to start our NTP client
+        if( master_source < TIME_SOURCE_NTP ){
+
+            sntp_v_start();
         }
         
         rtt_start = tmr_u32_get_system_time_ms();

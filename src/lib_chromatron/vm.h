@@ -31,6 +31,7 @@ void vm_v_start( void );
 void vm_v_stop( void );
 void vm_v_reset( void );
 
+int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info );
 int8_t vm_i8_run_loops( void );
 
 bool vm_b_running( void );

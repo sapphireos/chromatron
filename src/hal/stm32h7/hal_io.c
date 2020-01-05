@@ -43,6 +43,29 @@ static const hal_io_ch_t board_io[IO_PIN_COUNT] = {
     { SPI4_SCK_GPIO_Port, SPI4_SCK_Pin }, // IO_PIN_GPIOSCK
     { SPI4_MOSI_GPIO_Port, SPI4_MOSI_Pin }, // IO_PIN_GPIOMOSI
     { SPI4_MISO_GPIO_Port, SPI4_MISO_Pin }, // IO_PIN_GPIOMISO
+#endif
+#ifdef BOARD_NUCLEAR
+    { GPIOC, GPIO_PIN_0 }, // IO_PIN_0
+    { GPIOC, GPIO_PIN_3 }, // IO_PIN_1
+    { GPIOF, GPIO_PIN_12 }, // IO_PIN_2
+    { GPIOF, GPIO_PIN_13 }, // IO_PIN_3
+    { GPIOF, GPIO_PIN_14 }, // IO_PIN_4
+    { GPIOE, GPIO_PIN_9 }, // IO_PIN_5
+    { GPIOE, GPIO_PIN_13 }, // IO_PIN_6
+    { GPIOA, GPIO_PIN_3 }, // IO_PIN_7
+    { GPIOF, GPIO_PIN_5 }, // IO_PIN_8
+    { GPIOE, GPIO_PIN_3 }, // IO_PIN_9
+    { GPIOF, GPIO_PIN_7 }, // IO_PIN_10
+    { GPIOE, GPIO_PIN_4 }, // IO_PIN_CS
+    { GPIOD, GPIO_PIN_14 }, // IO_PIN_T0
+    { GPIOD, GPIO_PIN_15 }, // IO_PIN_T1
+    { GPIOA, GPIO_PIN_5 }, // IO_PIN_PIX_CLK
+    { GPIOA, GPIO_PIN_7 }, // IO_PIN_PIX_DAT
+    { GPIOB, GPIO_PIN_6 }, // IO_PIN_GPIOSCL
+    { GPIOB, GPIO_PIN_7 }, // IO_PIN_GPIOSDA
+    { GPIOE, GPIO_PIN_2 }, // IO_PIN_GPIOSCK
+    { GPIOE, GPIO_PIN_6 }, // IO_PIN_GPIOMOSI
+    { GPIOE, GPIO_PIN_5 }, // IO_PIN_GPIOMISO
 #else
     { GPIOC, GPIO_PIN_5 }, // IO_PIN_GPIOA0
     { GPIOC, GPIO_PIN_4 }, // IO_PIN_GPIOA1

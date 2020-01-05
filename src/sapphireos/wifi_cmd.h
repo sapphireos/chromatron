@@ -112,6 +112,7 @@ typedef struct __attribute__((packed)){
     uint16_t wifi_avg_time;
     uint16_t mem_avg_time;
     int8_t wifi_router;
+    int8_t wifi_channel;
 } wifi_msg_info_t;
 #define WIFI_DATA_ID_INFO               0x13
 
@@ -120,9 +121,9 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     bool low_power;
     bool led_quiet;
-    int8_t midi_channel;
     bool high_speed;
     uint8_t tx_power;
+    bool mdns_enable;
 } wifi_msg_set_options_t;
 #define WIFI_DATA_ID_SET_OPTIONS        0x15
 

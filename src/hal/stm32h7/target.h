@@ -28,12 +28,17 @@
 #define HW_NAME "STM32H7"
 
 // #define BOARD_CHROMATRONX
+// #define BOARD_NUCLEAR
 
 // set crystal speed
 #ifdef BOARD_CHROMATRONX
 #define HSE_VALUE    ((int32_t)8000000)
 #else
+#ifdef BOARD_NUCLEAR
+#define HSE_VALUE    ((int32_t)8000000)
+#else
 #define HSE_VALUE    ((int32_t)16000000)
+#endif
 #endif
 
 // modules

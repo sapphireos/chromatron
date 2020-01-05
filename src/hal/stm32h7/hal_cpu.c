@@ -31,6 +31,10 @@
 #pragma message "BOARD_CHROMATRONX"
 #endif
 
+#ifdef BOARD_NUCLEAR
+#pragma message "BOARD_NUCLEAR"
+#endif
+
 
 static void cpu_normal_clock_config( void ){
 
@@ -71,7 +75,11 @@ static void cpu_normal_clock_config( void ){
     #ifdef BOARD_CHROMATRONX
     RCC_OscInitStruct.PLL.PLLM = 1;
     #else
+    #ifdef BOARD_NUCLEAR
+    RCC_OscInitStruct.PLL.PLLM = 1;
+    #else
     RCC_OscInitStruct.PLL.PLLM = 2;
+    #endif
     #endif
     RCC_OscInitStruct.PLL.PLLN = 100;
     RCC_OscInitStruct.PLL.PLLP = 2;
@@ -120,7 +128,11 @@ static void cpu_normal_clock_config( void ){
     #ifdef BOARD_CHROMATRONX
     PeriphClkInitStruct.PLL2.PLL2M = 1;
     #else
+    #ifdef BOARD_NUCLEAR
+    PeriphClkInitStruct.PLL2.PLL2M = 1;
+    #else
     PeriphClkInitStruct.PLL2.PLL2M = 2;
+    #endif
     #endif
     PeriphClkInitStruct.PLL2.PLL2N = 25;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
@@ -134,7 +146,11 @@ static void cpu_normal_clock_config( void ){
     #ifdef BOARD_CHROMATRONX
     PeriphClkInitStruct.PLL3.PLL3M = 8;
     #else
+    #ifdef BOARD_NUCLEAR
+    PeriphClkInitStruct.PLL3.PLL3M = 8;
+    #else
     PeriphClkInitStruct.PLL3.PLL3M = 16;
+    #endif
     #endif
     PeriphClkInitStruct.PLL3.PLL3N = 256;
     PeriphClkInitStruct.PLL3.PLL3P = 4;

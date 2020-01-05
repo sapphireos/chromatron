@@ -389,8 +389,10 @@ if __name__ == '__main__':
 
     from pprint import pprint
 
+    util.setup_basic_logging()
+
     # kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
-    kv1 = CatbusService(tags=['stuff'], visible=False)
+    kv1 = CatbusService(tags=['stuff'], visible=True)
     # kv1['kv_test_key'] = 0
 
     # kv1.receive('woof', 'kv_test_key', ['test'])
@@ -398,18 +400,18 @@ if __name__ == '__main__':
     # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
 
     # kv1.receive('amg_data', 'amg_data', ['test'])
-    kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
-    kv1.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
+    # kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
+    # kv1.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
 
 
-    kv1['track_1_fader'] = 0
-    kv1['track_2_fader'] = 0
+    # kv1['track_1_fader'] = 0
+    # kv1['track_2_fader'] = 0
 
     try:
         while True:
             time.sleep(0.1)
-            kv1['track_1_fader'] += 1024
-            kv1['track_2_fader'] += 1024
+            # kv1['track_1_fader'] += 1024
+            # kv1['track_2_fader'] += 1024
 
             # print kv1['track_1_fader']
 

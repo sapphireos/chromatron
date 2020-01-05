@@ -43,13 +43,11 @@ static char hostname[32];
 static char ssid_list[WIFI_MAX_APS][WIFI_SSID_LEN];
 static char pass_list[WIFI_MAX_APS][WIFI_PASS_LEN];
 
-static int32_t connected_router = -1;
-
 // scan results
-static int32_t scan_rssi[WIFI_MAX_APS];
-static int32_t scan_channel[WIFI_MAX_APS];
-static uint8_t scan_bssid[WIFI_MAX_APS][6];
-static int32_t best_router;
+static int8_t best_rssi;
+static int8_t best_channel;
+static uint8_t best_bssid[6];
+static int8_t best_router;
 
 static WiFiUDP udp[WIFI_MAX_PORTS];
 static uint8_t port_rx_depth[WIFI_MAX_PORTS];
@@ -208,6 +206,11 @@ void wifi_v_send_status( void ){
     intf_i8_send_msg( WIFI_DATA_ID_STATUS, (uint8_t *)&status_msg, sizeof(status_msg) );
 }
 
+int8_t wifi_i8_get_channel( void ){
+    
+    return best_channel;
+}
+
 void wifi_v_process( void ){
    
     if( ( WiFi.status() == WL_CONNECTED ) || ( WiFi.getMode() == WIFI_AP ) ){
@@ -221,49 +224,39 @@ void wifi_v_process( void ){
             wifi_v_set_status_bits( WIFI_STATUS_CONNECTED );
             wifi_v_clr_status_bits( WIFI_STATUS_CONNECTING );
             wifi_v_send_status();
-
-            intf_v_printf("Connected!");
         }
 
         // if in station mode:
         // NOTE:
         // MDNS will CRASH in AP mode!!!
 
-        if( WiFi.getMode() == WIFI_STA ){
+        if( ( opt_b_get_mdns_enable() ) &&
+            ( WiFi.getMode() == WIFI_STA ) && 
+            ( WiFi.status() == WL_CONNECTED ) ){
 
             // check if MDNS is up
-            // if( mdns_connected ){
+            if( mdns_connected ){
 
-            //     MDNS.update();
-            // }
-            // else{
+                MDNS.update();
+            }
+            else{
                 
-            //     // enable MDNS
-            //     if( MDNS.begin( hostname ) ){
+                // enable MDNS
+                if( MDNS.begin( hostname ) ){
 
-            //         MDNS.addService( "catbus", "udp", 44632 );
-            //         MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );
+                    MDNS.addService( "catbus", "udp", 44632 );
+                    MDNS.addServiceTxt( "catbus", "udp", "service", "chromatron" );
 
-            //         int8_t midi_channel = opt_i8_get_midi_channel();
+                    mdns_connected = true;
 
-            //         if( midi_channel >= 0 ){
+                    intf_v_printf("MDNS connected");
+                }
+                else{
 
-            //             MDNS.addService( "apple-midi", "udp", 5004 );
-            //             char temp[32];
-            //             snprintf( temp, sizeof(temp), "%d", midi_channel );
-            //             MDNS.addServiceTxt( "apple-midi", "udp", "channel", temp );
-            //         }
-
-            //         mdns_connected = true;
-
-            //         intf_v_printf("MDNS connected");
-            //     }
-            //     else{
-
-            //         // MDNS fail - probably failed the IGMP join
-            //         // intf_v_printf("MDNS fail");
-            //     }
-            // }        
+                    // MDNS fail - probably failed the IGMP join
+                    // intf_v_printf("MDNS fail");
+                }
+            }        
         }
     }
     else{
@@ -291,25 +284,45 @@ void wifi_v_process( void ){
 
                 bool match = false;
                 int32_t index = 0;
-                // check if this network is in our list
-                for( ; index < networks_found; index++ ){
 
-                    if( strncmp( network_ssid.c_str(), ssid_list[index], WIFI_SSID_LEN ) == 0 ){
+                // check if this router is in our password list
+                // and is better than the previous best we've found, and record it.
+                for( ; index < WIFI_MAX_APS; index++ ){
 
-                        // check if this router's index in our password list
-                        // is lower than the previous best we've found, and record it.
+                    // check ssid match
+                    if( strncmp( network_ssid.c_str(), ssid_list[index], WIFI_SSID_LEN ) != 0 ){
 
-                        // we are selection routers based on priority in the list,
-                        // NOT based on best RSSI.
+                        // no match
 
-                        if( ( index < best_router ) || ( best_router < 0 ) ){
-
-                            best_router = index;
-                        }
-
-                        match = true;
-                        break;
+                        continue;
                     }
+
+                    intf_v_printf("Found: %d %d %s", WiFi.RSSI( i ), WiFi.channel( i ), network_ssid.c_str());
+
+                    // we are selecting routers based on priority in the list,
+                    // NOT based on best RSSI, unless the previous best has the same SSID.
+
+                    match = true;
+
+                    if( best_router < 0 ){
+
+                        best_router = index;
+                    }
+                    else if( ( strncmp( network_ssid.c_str(), ssid_list[best_router], WIFI_SSID_LEN ) == 0 ) &&
+                             ( WiFi.RSSI( i ) > best_rssi ) ){
+
+                        best_router = index;   
+                    }
+                    else if( index < best_router ){
+
+                        best_router = index;
+                    }
+                    else{
+
+                        match = false;
+                    }
+
+                    break;
                 }                
 
                 if( !match ){
@@ -317,11 +330,9 @@ void wifi_v_process( void ){
                     continue;
                 }
 
-                scan_rssi[index]    = WiFi.RSSI( i );
-                scan_channel[index] = WiFi.channel( i );
-                memcpy( scan_bssid[index], WiFi.BSSID( i ), sizeof(scan_bssid[index]) );
-
-                intf_v_printf("%d %d %s", scan_rssi[index], scan_channel[index], network_ssid.c_str());
+                best_rssi    = WiFi.RSSI( i );
+                best_channel = WiFi.channel( i );
+                memcpy( best_bssid, WiFi.BSSID( i ), sizeof(best_bssid) );
             }
             
             scanning = false;
@@ -343,8 +354,10 @@ void wifi_v_process( void ){
 
             WiFi.begin( ssid_list[best_router], 
                         pass_list[best_router], 
-                        scan_channel[best_router], 
-                        scan_bssid[best_router] );  
+                        best_channel,
+                        best_bssid );  
+
+            intf_v_printf("Connect: %d %d %s", best_rssi, best_channel, ssid_list[best_router]);
         }
         else{
 
@@ -567,8 +580,11 @@ void wifi_v_send_udp( wifi_msg_udp_header_t *header, uint8_t *data ){
 
 void wifi_v_disconnect( void ){
 
-    // MDNS.close();
-    connected_router = -1;
+    if( mdns_connected ){
+        
+        MDNS.close();
+    }
+
     mdns_connected = false;
     request_connect = false;
 
@@ -638,12 +654,11 @@ void wifi_v_scan( void ){
     WiFi.scanDelete();
 
     best_router = -1;
-    for( uint32_t i = 0; i < WIFI_MAX_APS; i++ ){
+    
+    best_rssi = -127;
+    best_channel = -1;
+    memset( best_bssid, 0, sizeof(best_bssid) );
 
-        scan_rssi[i] = -127;
-        scan_channel[i] = -1;
-        memset( scan_bssid[i], 0, sizeof(scan_bssid[i]) );
-    }
 
     scanning = true;
     WiFi.scanNetworks(true, false);

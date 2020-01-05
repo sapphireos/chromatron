@@ -418,7 +418,13 @@ class Server(Ribbon):
             if requested_hash in self._database:
                 resolved_hashes.append(CatbusStringField(self._database.lookup_hash(requested_hash)))
 
-        return ResolvedHashMsg(keys=resolved_hashes)
+            # resolve tag name
+            elif requested_hash in self._database.get_tag_info():
+                resolved_hashes.append(CatbusStringField(self._database.get_tag_info()[requested_hash]))
+
+        response = ResolvedHashMsg(keys=resolved_hashes)
+        
+        return response, host
 
     def _handle_resolved_hash(self, msg, host):
         pass
@@ -654,7 +660,7 @@ class Server(Ribbon):
                         pass
 
                     response, host = self._process_msg(msg, host)
-
+                    
                     if response:
                         response.header.transaction_id = msg.header.transaction_id
                         self._send_data_msg(response, host)

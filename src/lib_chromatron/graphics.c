@@ -66,7 +66,9 @@ static volatile uint8_t run_flags;
 
 static uint16_t vm_timer_rate; 
 static uint16_t vm0_frame_number;
-static uint32_t last_vm0_frame_ts;
+static uint32_t vm0_frame_ts;
+static uint16_t vm0_sync_frame_number;
+static uint32_t vm0_sync_frame_ts;
 static int16_t frame_rate_adjust;
 
 #define FADER_TIMER_RATE 625 // 20 ms (gfx timer)
@@ -375,45 +377,127 @@ bool gfx_b_running( void ){
     return pixel_transfer_enable;
 }
 
-uint16_t gfx_u16_get_frame_number( void ){
-
-    return vm0_frame_number;
-}
-
-uint32_t gfx_u32_get_frame_ts( void ){
-
-    return last_vm0_frame_ts;
-}
-
-void gfx_v_set_frame_number( uint16_t frame ){
-
-    vm0_frame_number = frame;
-}
-
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
-    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
-    int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
+    vm0_sync_frame_number = frame;
+    vm0_sync_frame_ts = ts;
 
-    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+    vm0_frame_number = frame;
+    vm0_frame_ts = ts;
+
+/*
+
+    // uint16_t rate = SYNC_RATE / gfx_frame_rate;
+    // rate *= gfx_frame_rate;
+
+    int16_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    // last_vm0_frame_ts += ( frame_offset * gfx_frame_rate );
+
+    // int32_t frame_offset = 0;
+    int32_t time_offset = tmr_u32_elapsed_times( last_vm0_frame_ts, ts );
+
+    // int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_frame_rate );
+    int32_t corrected_time_offset = time_offset;
 
     // we are ahead
     if( corrected_time_offset > 10 ){
 
         // slow down
-        frame_rate_adjust = 10;
+        frame_rate_adjust = 4;
+    }
+    else if( corrected_time_offset > 2 ){
+
+        // slow down
+        frame_rate_adjust = 1;
     }
     // we are behind
-    else if( corrected_time_offset < 10 ){
+    else if( corrected_time_offset < -10 ){
 
         // speed up
-        frame_rate_adjust = -10;
+        frame_rate_adjust = -4;
+    }
+    else if( corrected_time_offset < -2 ){
+
+        // speed up
+        frame_rate_adjust = -1;
     }
 
-    log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
+    log_v_debug_P( PSTR("offset net: %ld frames: %d adj: %d"), time_offset, frame_offset, frame_rate_adjust );
+
+    update_vm_timer();
+
+    last_vm0_frame_ts = ts;
+*/
+}
+
+void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
+
+    uint16_t master_frames_elapsed = (int32_t)master_frame - (int32_t)vm0_sync_frame_number;
+    uint32_t master_time_elapsed = tmr_u32_elapsed_times( master_ts, vm0_sync_frame_ts );
+    uint16_t master_rate = master_time_elapsed / master_frames_elapsed;
+
+    uint16_t our_frames_elapsed = (int32_t)vm0_frame_number - (int32_t)vm0_sync_frame_number;
+    uint32_t our_time_elapsed = tmr_u32_elapsed_times( vm0_frame_ts, vm0_sync_frame_ts );
+    uint16_t our_rate = our_time_elapsed / our_frames_elapsed;
+    
+    // get rate delta
+    int16_t delta = master_rate - our_rate;
+
+    log_v_debug_P( PSTR("master frames: %u elapsed: %lu rate: %u | our frames: %u elapsed: %lu rate %u delta: %d"), 
+        master_frames_elapsed, master_time_elapsed, master_rate, our_frames_elapsed, our_time_elapsed, our_rate, delta );
+
+    // update parameters for next sync
+    vm0_sync_frame_number = master_frame;
+    vm0_sync_frame_ts = master_ts;
+
+    // now figure out our offset
+    // we need to adjust our local frame counter to match the master's
+    // or rather, we adjust the master to match ours, using the master's timing data.
+
+    // get frame delta
+    int16_t frame_delta = vm0_frame_number - master_frame;
+    
+    // delta is positive if we are ahead of master.  if so, master timestamp needs to increase
+    // by that many frames.
+    // the opposite will occur if we are behind.
+    uint32_t master_ts_adjusted = master_ts + ( (int32_t)frame_delta * master_rate );
+
+    int32_t true_offset = vm0_frame_ts - master_ts_adjusted;
+
+    // we are ahead
+    if( true_offset > 0 ){
+    
+        if( true_offset > 10 ){
+
+            // slow down
+            frame_rate_adjust = 4;
+        }
+        else if( true_offset > 2 ){
+
+            // slow down
+            frame_rate_adjust = 1;
+        }
+    }
+    // we are behind
+    else if( true_offset > 0 ){
+     
+        if( true_offset < -10 ){
+
+            // speed up
+            frame_rate_adjust = -4;
+        }
+        else if( true_offset < -2 ){
+
+            // speed up
+            frame_rate_adjust = -1;
+        }
+    }
+
+    log_v_debug_P( PSTR("frame delta: %d master adjusted: %lu true offset: %ld adj: %d"), frame_delta, master_ts_adjusted, true_offset, frame_rate_adjust );
 
     update_vm_timer();
 }
+
 
 void gfx_v_pixel_bridge_enable( void ){
 
@@ -773,6 +857,24 @@ PT_BEGIN( pt );
 
                 // let's delay
                 TMR_WAIT( pt, 100 );
+            }
+
+            vm0_frame_ts = time_u32_get_network_time();
+            vm0_frame_number++;
+            // last_vm0_frame_ts += gfx_frame_rate;
+
+            // if( vm_sync_b_is_slave() ){
+
+            //     uint32_t net_time = time_u32_get_network_time();
+            // }
+
+            vm_sync_v_frame_trigger();
+
+            uint16_t rate = SYNC_RATE / gfx_frame_rate;
+
+            if( ( vm0_frame_number % rate ) == 0 ){
+
+                vm_sync_v_trigger();
             }
         }
     }

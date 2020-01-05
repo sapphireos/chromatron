@@ -30,13 +30,13 @@ extern "C"{
 static bool low_power;
 static bool led_quiet;
 static bool high_speed;
-static int8_t midi_channel;
+static bool mdns;
 
 void opt_v_set_options( wifi_msg_set_options_t *msg ){
 
 	low_power 		= msg->low_power;
 	led_quiet 		= msg->led_quiet;	
-	midi_channel 	= msg->midi_channel;
+	mdns 			= msg->mdns_enable;
 
 	opt_v_set_high_speed( msg->high_speed );
 	opt_v_set_tx_power( msg->tx_power );
@@ -82,15 +82,8 @@ bool opt_b_get_high_speed( void ){
 	return high_speed;
 }
 
-void opt_v_set_midi_channel( int8_t channel ){
+bool opt_b_get_mdns_enable( void ){
 
-	midi_channel = channel;
+	return mdns;
 }
-
-int8_t opt_i8_get_midi_channel( void ){
-
-	return midi_channel;
-}
-
-
 

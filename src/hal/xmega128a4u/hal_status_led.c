@@ -31,6 +31,7 @@
 #include "flash_fs.h"
 #include "esp8266.h"
 #include "adc.h"
+#include "timesync.h"
 
 #include "hal_status_led.h"
 
@@ -94,7 +95,19 @@ PT_BEGIN( pt );
                 status_led_v_set( 0, STATUS_LED_BLUE );
             }
 
-            TMR_WAIT( pt, 500 );
+            if( time_b_is_sync() ){
+
+                uint32_t net_time = time_u32_get_network_time();
+
+                if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) == 0 ){
+
+                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
+                }
+            }
+            else{
+
+                TMR_WAIT( pt, 500 );
+            }
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -108,8 +121,13 @@ PT_BEGIN( pt );
                     status_led_v_set( 1, STATUS_LED_BLUE );
                 }
             }
-        
-            TMR_WAIT( pt, 500 );
+
+            uint32_t net_time = time_u32_get_network_time();
+
+            if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) != 0 ){
+
+                TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
+            }
         }
         else{
 

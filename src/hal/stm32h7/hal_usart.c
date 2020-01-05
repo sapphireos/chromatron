@@ -26,29 +26,26 @@
 
 #include "hal_usart.h"
 
-static USART_t usart0;
-
-void usart_v_init( uint8_t channel ){
+void usart_v_init( USART_t *usart ){
 
     // enable clock
-    __HAL_RCC_USART1_CLK_ENABLE();
+    // __HAL_RCC_USART1_CLK_ENABLE();
 
-    USART_t *usart = &usart0;
-
-    usart->Instance = HAL_USART;
+    // usart->Instance = HAL_USART;
 
 	// defaults: 115200, 8N1
-    usart->Init.BaudRate = 115200;
-    usart->Init.WordLength = UART_WORDLENGTH_8B;
-    usart->Init.StopBits = UART_STOPBITS_1;
-    usart->Init.Parity = UART_PARITY_NONE;
-    usart->Init.Mode = UART_MODE_TX_RX;
-    usart->Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    usart->Init.OverSampling = UART_OVERSAMPLING_16;
-    usart->Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    usart->Init.BaudRate                = 115200;
+    usart->Init.WordLength              = UART_WORDLENGTH_8B;
+    usart->Init.StopBits                = UART_STOPBITS_1;
+    usart->Init.Parity                  = UART_PARITY_NONE;
+    usart->Init.Mode                    = UART_MODE_TX_RX;
+    usart->Init.HwFlowCtl               = UART_HWCONTROL_NONE;
+    usart->Init.OverSampling            = UART_OVERSAMPLING_16;
+    usart->Init.OneBitSampling          = UART_ONE_BIT_SAMPLE_DISABLE;
+    usart->Init.FIFOMode                = UART_FIFOMODE_DISABLE; 
+    usart->AdvancedInit.AdvFeatureInit  = UART_ADVFEATURE_NO_INIT;
 
-    usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    // usart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
 
     if (HAL_UART_Init(usart) != HAL_OK)
     {
@@ -56,9 +53,7 @@ void usart_v_init( uint8_t channel ){
     }
 }
 
-void usart_v_set_baud( uint8_t channel, baud_t baud ){
-
-    USART_t *usart = &usart0;
+void usart_v_set_baud( USART_t *usart, baud_t baud ){
 
 	usart->Init.BaudRate = baud;
     
@@ -68,9 +63,7 @@ void usart_v_set_baud( uint8_t channel, baud_t baud ){
     }
 }
 
-void usart_v_set_double_speed( uint8_t channel, bool clk2x ){
-
-    USART_t *usart = &usart0;
+void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
 
 	uint32_t baud = usart->Init.BaudRate;
 
@@ -91,25 +84,19 @@ void usart_v_set_double_speed( uint8_t channel, bool clk2x ){
     usart->Init.BaudRate = baud;
 }
 
-void usart_v_send_byte( uint8_t channel, uint8_t data ){
-
-    USART_t *usart = &usart0;
+void usart_v_send_byte( USART_t *usart, uint8_t data ){
 
 	HAL_UART_Transmit( usart, &data, sizeof(data), 100 );
 }
 
-void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
-
-    USART_t *usart = &usart0;
+void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
 
 	HAL_UART_Transmit( usart, (uint8_t *)data, len, 100 );
 }
 
-int16_t usart_i16_get_byte( uint8_t channel ){
+int16_t usart_i16_get_byte( USART_t *usart ){
 
-    USART_t *usart = &usart0;
-
-    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXNE ) ){
+    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXFNE ) ){
 
         return usart->Instance->RDR;
     }
@@ -117,11 +104,9 @@ int16_t usart_i16_get_byte( uint8_t channel ){
 	return -1;
 }
 
-uint8_t usart_u8_bytes_available( uint8_t channel ){
+uint8_t usart_u8_bytes_available( USART_t *usart ){
 
-    USART_t *usart = &usart0;
-
-    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXNE ) ){
+    if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXFNE ) ){
 
         return 1;
     }

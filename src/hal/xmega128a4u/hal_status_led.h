@@ -35,5 +35,6 @@
 #define LED_BLUE_PORT   PORTD
 #define LED_BLUE_PIN    4
 
+#define LED_TIME_SYNC_INTERVAL 512
 
 #endif

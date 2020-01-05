@@ -348,9 +348,13 @@ PT_THREAD( ( *thread_p_get_function( thread_t thread_id ) ) )( pt_t *pt, void *s
 
 uint32_t thread_u32_get_current_addr( void ){
 
+    #ifdef AVR
     // multiply the address by 2 to get the byte address.
     // this makes it easy to look up the thread function in the .lss file.
     return current_thread_addr << 1;
+    #else
+    return current_thread_addr;
+    #endif
 }
 
 void *thread_vp_get_data( thread_t thread_id ){

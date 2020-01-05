@@ -87,6 +87,7 @@ BUILD_CONFIGS_FWID_FILE = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
 BASE_DIR = os.getcwd()
 MASTER_HASH_DB_FILE = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
 TOOLS_DIR = os.path.join(PROJECTS_FILE_PATH, 'tools')
+LIB_INIT_FILENAME = '__libs.c'
 
 def get_build_package_dir():
     return firmware_package.firmware_package_dir('build')
@@ -530,6 +531,12 @@ class Builder(object):
             pass
 
         try:
+            os.remove(os.path.join(self.target_dir, LIB_INIT_FILENAME))
+
+        except OSError:
+            pass
+
+        try:
             os.remove(os.path.join(self.target_dir, 'manifest.txt'))
 
         except OSError:
@@ -766,7 +773,10 @@ class ConfigBuilder(Builder):
             self.app_builder.libraries.append(builder.proj_name)
 
 
-        lib_init_filename = os.path.join(self.app_builder.target_dir, '__libs.c')
+        # self.app_builder.build_libs()
+        self.app_builder.clean()
+
+        lib_init_filename = os.path.join(self.app_builder.target_dir, LIB_INIT_FILENAME)
 
         lib_init = """
 #include "sapphire.h"
@@ -787,13 +797,10 @@ void libs_v_init( void ){
 
         lib_init += '\n}\n'
 
-
         # create lib init file
         with open(lib_init_filename, 'w+') as f:
             f.write(lib_init)
-
-        # self.app_builder.build_libs()
-        self.app_builder.clean()
+        
         try:
             self.app_builder.build()
 

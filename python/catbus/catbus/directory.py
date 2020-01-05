@@ -33,6 +33,9 @@ from messages import *
 from sapphire.common import Ribbon, MsgQueueEmptyException
 
 
+TTL = 240
+
+
 class Directory(Ribbon):
     def initialize(self):
         self.name = '%s' % ('catbus_directory')
@@ -59,6 +62,7 @@ class Directory(Ribbon):
         self._msg_handlers = {
             ErrorMsg: self._handle_error,
             AnnounceMsg: self._handle_announce,
+            ShutdownMsg: self._handle_shutdown,
         }
 
         self._last_ttl = time.time()
@@ -82,22 +86,34 @@ class Directory(Ribbon):
                     c = Client()
                     c.connect(host)
 
-                    key = c.lookup_hash(hashed_key)[hashed_key]
+                    key = c.lookup_hash(hashed_key)
 
                     if len(key) == 0:
                         raise KeyError(hashed_key)
 
-                    self._hash_lookup[hashed_key] = key
+                    self._hash_lookup[hashed_key] = key[hashed_key]
 
                     return key
 
                 else:
                     raise
 
+    def _handle_shutdown(self, msg, host):
+        with self.__lock:
+            try:
+                # remove entry
+                del self._directory[msg.header.origin_id]
+
+            except KeyError:
+                pass
+
     def _handle_error(self, msg, host):
         print msg
 
     def _handle_announce(self, msg, host):
+        # update host port with advertised data port
+        host = (host[0], msg.data_port)
+
         resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
         info = {'host': host,
@@ -105,13 +121,17 @@ class Directory(Ribbon):
                 'data_port': msg.data_port,
                 'version': msg.header.version,
                 'universe': msg.header.universe,
-                'ttl': 30}
+                'ttl': TTL}
 
         with self.__lock:
             self._directory[msg.header.origin_id] = info
 
     def _process_msg(self, msg, host):
-        response = self._msg_handlers[type(msg)](msg, host)
+        try:
+            response = self._msg_handlers[type(msg)](msg, host)
+
+        except KeyError:
+            raise UnknownMessageException
 
         return response
 
@@ -160,7 +180,7 @@ if __name__ == '__main__':
         while True:
             time.sleep(1.0)
 
-            pprint(d.get_directory())
+            # pprint(d.get_directory())
             print len(d.get_directory())
 
     except KeyboardInterrupt:

@@ -86,6 +86,7 @@ static uint8_t wifi_mac[6];
 static uint8_t wifi_status_reg;
 static int8_t wifi_rssi;
 static int8_t wifi_router;
+static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static bool default_ap_mode;
 
@@ -143,6 +144,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_status,                      0,   "wifi_status" },
     { SAPPHIRE_TYPE_MAC48,         0, 0, &wifi_mac,                         0,   "wifi_mac" },
     { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_rssi,                        0,   "wifi_rssi" },
+    { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_channel,                     0,   "wifi_channel" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_connects,                    0,   "wifi_connects" },
 
@@ -692,6 +694,7 @@ static void get_info( void ){
     mem_avg_time                = msg.mem_avg_time;
 
     wifi_router                 = msg.wifi_router;
+    wifi_channel                = msg.wifi_channel;
 }
 
 
@@ -968,6 +971,7 @@ end:
 
 
 static void send_options_msg( void ){
+
     // send options message
     wifi_msg_set_options_t options_msg;
     memset( &options_msg, 0, sizeof(options_msg) );
@@ -1008,9 +1012,14 @@ static void send_options_msg( void ){
 
     options_msg.tx_power = tx_power; // in dbm
 
-    if( kv_i8_get( __KV__midi_channel, &options_msg.midi_channel, sizeof(options_msg.midi_channel) ) < 0 ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        options_msg.midi_channel = -1;                
+        // disable mdns in safe mode
+        options_msg.mdns_enable = FALSE;    
+    }
+    else{
+
+        options_msg.mdns_enable = TRUE;       
     }
 
     wifi_i8_send_msg( WIFI_DATA_ID_SET_OPTIONS, (uint8_t *)&options_msg, sizeof(options_msg) );
@@ -1046,6 +1055,13 @@ PT_BEGIN( pt );
 
             break;
         }
+    }
+
+    if( watchdog == 0 ){
+
+        log_v_debug_P( PSTR("wifi failed to boot") );
+
+        THREAD_EXIT( pt );
     }
 
     watchdog = WIFI_WATCHDOG_TIMEOUT;
@@ -1370,6 +1386,14 @@ restart:
     uint8_t cfg_digest[MD5_LEN];
     cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
 
+    // check if we've never loaded the wifi before
+    if( ( file_len == 0 ) && 
+        ( fs_i32_get_size( state->fw_file ) < 128 ) ){
+
+        goto error;
+    }
+
+
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // file and cfg match, so our file is valid
@@ -1556,6 +1580,7 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 
 void wifi_v_init( void ){
+    // return;
 // io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
     hal_wifi_v_init();
 

@@ -51,7 +51,11 @@ void hal_wifi_v_init( void ){
     #ifdef BOARD_CHROMATRONX
     __HAL_RCC_UART8_CLK_ENABLE();
     #else
+    #ifdef BOARD_NUCLEAR
+    __HAL_RCC_UART7_CLK_ENABLE();
+    #else
     __HAL_RCC_UART4_CLK_ENABLE();
+    #endif
     #endif
     
     wifi_usart.Instance                 = WIFI_USART;
@@ -280,7 +284,11 @@ void hal_wifi_v_enter_boot_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
+    #ifdef BOARD_NUCLEAR
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #else
     GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
+    #endif
     #endif
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
 
@@ -291,7 +299,11 @@ void hal_wifi_v_enter_boot_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
+    #ifdef BOARD_NUCLEAR
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #else
     GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
+    #endif
     #endif
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
 
@@ -306,7 +318,11 @@ void hal_wifi_v_enter_boot_mode( void ){
     #ifdef BOARD_CHROMATRONX
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
     #else
+    #ifdef BOARD_NUCLEAR
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    #else
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    #endif
     #endif
     wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
@@ -391,7 +407,11 @@ void hal_wifi_v_enter_normal_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
+    #ifdef BOARD_NUCLEAR
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #else
     GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
+    #endif
     #endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_RXD_GPIO_Port, &GPIO_InitStruct);
@@ -402,7 +422,11 @@ void hal_wifi_v_enter_normal_mode( void ){
     #ifdef BOARD_CHROMATRONX
     GPIO_InitStruct.Alternate = GPIO_AF8_UART8;
     #else
+    #ifdef BOARD_NUCLEAR
+    GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+    #else
     GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
+    #endif
     #endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(WIFI_TXD_GPIO_Port, &GPIO_InitStruct);
@@ -418,7 +442,11 @@ void hal_wifi_v_enter_normal_mode( void ){
     #ifdef BOARD_CHROMATRONX
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
     #else
+    #ifdef BOARD_NUCLEAR
+    wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_SWAP_INIT;
+    #else
     wifi_usart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    #endif
     #endif
     wifi_usart.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
     if (HAL_UART_Init(&wifi_usart) != HAL_OK)
@@ -426,5 +454,3 @@ void hal_wifi_v_enter_normal_mode( void ){
         _Error_Handler(__FILE__, __LINE__);
     }
 }
-
-
