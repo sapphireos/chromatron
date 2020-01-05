@@ -171,18 +171,8 @@ void vm_sync_v_init( void ){
 
 	sync_group_hash = hash_u32_string( buf );    
 
-	sock = sock_s_create( SOCK_DGRAM );	
-
-	sock_v_bind( sock, SYNC_SERVER_PORT );
-	sock_v_set_timeout( sock, 32 );
-
     thread_t_create( vm_sync_server_thread,
                     PSTR("vm_sync_server"),
-                    0,
-                    0 );    
-
-    thread_t_create( vm_sync_thread,
-                    PSTR("vm_sync"),
                     0,
                     0 );    
 }
@@ -462,11 +452,27 @@ PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+
+    sock = sock_s_create( SOCK_DGRAM ); 
+
+    sock_v_bind( sock, SYNC_SERVER_PORT );
+    sock_v_set_timeout( sock, 32 );
+
+    thread_t_create( vm_sync_thread,
+                    PSTR("vm_sync"),
+                    0,
+                    0 );   
+
+
     while( TRUE ){
 
-    	THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( !sys_b_shutdown() ) );
-        // uint32_t now = time_u32_get_network_time();
-        // uint32_t now = tmr_u32_get_system_time_ms();
+        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+    	THREAD_WAIT_WHILE( pt, 
+            ( sock_i8_recvfrom( sock ) < 0 ) &&
+             ( !sys_b_shutdown() ) &&
+             ( wifi_b_connected() ) );
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
@@ -483,6 +489,18 @@ PT_BEGIN( pt );
 
     		THREAD_EXIT( pt );
     	}
+
+        // check if wifi is NOT connected
+        if( !wifi_b_connected() ){
+
+            if( sync_state != STATE_IDLE ){
+
+                log_v_debug_P( PSTR("wifi disconnected, resetting vm sync") );
+                sync_state = STATE_IDLE;    
+            }
+
+            continue;
+        }
 
 		// check if data received
         int16_t sock_data_len = sock_i16_get_bytes_read( sock );
