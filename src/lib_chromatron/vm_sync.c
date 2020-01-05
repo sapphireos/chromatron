@@ -740,6 +740,7 @@ PT_BEGIN( pt );
 
             sync_state = STATE_MASTER;
             master_uptime = 0;
+            master_ip = ip_a_addr(0,0,0,0);
 
             log_v_debug_P( PSTR("we are sync master") );
         }
