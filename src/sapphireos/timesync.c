@@ -656,13 +656,15 @@ PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    master_ip = ip_a_addr(0,0,0,0);
+    while( TRUE ){
 
-    THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
+        master_ip = ip_a_addr(0,0,0,0);
+        sync_state = STATE_WAIT;
 
-    // random delay, see if other masters show up
-    if( sync_state == STATE_WAIT ){
+        THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() || !wifi_b_connected() );
 
+        // random delay, see if other masters show up
+    
         // send, broadcast a message staying we are not a master.
         // this way, if we *were* the master and got reset, then when we come back up
         // we'll tell everyone else we aren't the master, so someone else will jump in
@@ -676,115 +678,121 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 2000 + ( rnd_u16_get_int() >> 3 ) );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_WAIT ) );
-    }
+    
+        // check if we are still waiting
+        if( sync_state == STATE_WAIT ){
 
-    if( sync_state == STATE_WAIT ){
-
-        // elect ourselves as master.
-        // even if we don't have an NTP reference, we can at least sync the local net clock.
-        sync_state = STATE_MASTER;
-        master_uptime = 0;
-        master_ip = ip_a_addr(0,0,0,0);
-        is_sync = TRUE;
-
-        // set initial clocks
-        // base_system_time = tmr_u32_get_system_time_ms();
-        // master_net_time = base_system_time;
-
-        log_v_debug_P( PSTR("we are master") );
-    }
-
-    while( sync_state == STATE_MASTER ){
-
-        // default sync source to internal clock
-        master_source = TIME_SOURCE_INTERNAL;
-
-        // check sync sources
-        if( gps_sync ){
-
-            sntp_v_stop();
-            master_source = TIME_SOURCE_GPS;
-        }
-        else{
-
-            if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
-
-                // log_v_debug_P( PSTR("master starting sntp") );
-
-                // start SNTP (ignored if already running)
-                // sntp_v_start();
-            }
-            // check if synchronized
-            else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
-
-                master_source = TIME_SOURCE_NTP;
-            }
-        }
-
-        master_uptime = tmr_u64_get_system_time_us();
-
-        send_master();
-
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() +  TIME_MASTER_SYNC_RATE * 1000 );
-
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( !sys_b_shutdown() ) );
-
-        if( sys_b_shutdown() ){
-
-            send_not_master();
-            TMR_WAIT( pt, 200 );
-            send_not_master();
-            TMR_WAIT( pt, 200 );
-            send_not_master();   
-
-            THREAD_EXIT( pt );
-        }
-    }
-
-    if( sync_state == STATE_SLAVE ){
-
-        // reset sync
-        is_sync = FALSE;
-
-        sntp_v_stop();
-
-        TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
-        request_sync();
-    }
-
-    while( sync_state == STATE_SLAVE ){
-
-        // random delay
-        uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
-        TMR_WAIT( pt, delay );
-        // TMR_WAIT( pt, 1000 );
-
-        if( get_best_local_source() > master_source ){
-
-            // elect ourselves as master
+            // elect ourselves as master.
+            // even if we don't have an NTP reference, we can at least sync the local net clock.
             sync_state = STATE_MASTER;
             master_uptime = 0;
-
-            log_v_debug_P( PSTR("we are master (local source)") );
             master_ip = ip_a_addr(0,0,0,0);
-        } 
+            is_sync = TRUE;
 
-
-        // check state
-        if( sync_state != STATE_SLAVE ){
-
-            // no longer master
-            log_v_debug_P( PSTR("no longer slave") );
-
-            break;
+            log_v_debug_P( PSTR("we are master") );
         }
 
-        request_sync();
+        while( sync_state == STATE_MASTER ){
+
+            // default sync source to internal clock
+            master_source = TIME_SOURCE_INTERNAL;
+
+            // check sync sources
+            if( gps_sync ){
+
+                sntp_v_stop();
+                master_source = TIME_SOURCE_GPS;
+            }
+            else{
+
+                if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
+
+                    // log_v_debug_P( PSTR("master starting sntp") );
+
+                    // start SNTP (ignored if already running)
+                    // sntp_v_start();
+                }
+                // check if synchronized
+                else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+
+                    master_source = TIME_SOURCE_NTP;
+                }
+            }
+
+            master_uptime = tmr_u64_get_system_time_us();
+
+            send_master();
+
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() +  TIME_MASTER_SYNC_RATE * 1000 );
+
+            THREAD_WAIT_WHILE( pt, 
+                thread_b_alarm_set() && 
+                ( !sys_b_shutdown() ) &&
+                ( wifi_b_connected() ) );
+
+            if( sys_b_shutdown() ){
+
+                send_not_master();
+                TMR_WAIT( pt, 200 );
+                send_not_master();
+                TMR_WAIT( pt, 200 );
+                send_not_master();   
+
+                THREAD_EXIT( pt );
+            }
+            else if( !wifi_b_connected() ){
+
+                THREAD_RESTART( pt );
+            }
+        }
+
+        if( sync_state == STATE_SLAVE ){
+
+            // reset sync
+            is_sync = FALSE;
+
+            sntp_v_stop();
+
+            TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
+            request_sync();
+        }
+
+        while( sync_state == STATE_SLAVE ){
+
+            // random delay
+            uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+            TMR_WAIT( pt, delay );
+            // TMR_WAIT( pt, 1000 );
+
+            if( get_best_local_source() > master_source ){
+
+                // elect ourselves as master
+                sync_state = STATE_MASTER;
+                master_uptime = 0;
+
+                log_v_debug_P( PSTR("we are master (local source)") );
+                master_ip = ip_a_addr(0,0,0,0);
+            } 
+
+
+            // check state
+            if( sync_state != STATE_SLAVE ){
+
+                // no longer master
+                log_v_debug_P( PSTR("no longer slave") );
+
+                break;
+            }
+
+            if( !wifi_b_connected() ){
+
+                THREAD_RESTART( pt );
+            }
+
+            request_sync();
+        }
     }
-
-    // restart if we get here
-    THREAD_RESTART( pt );
-
+    
 PT_END( pt );
 }
 
