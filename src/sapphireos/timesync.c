@@ -551,7 +551,7 @@ PT_BEGIN( pt );
                     continue;
                 }
                 // check quality of RTT sample
-                else if( elapsed_rtt > ( filtered_rtt + RTT_QUALITY_LIMIT ) ){
+                else if( elapsed_rtt > ( filtered_rtt + (uint32_t)RTT_QUALITY_LIMIT ) ){
 
                     // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
 
