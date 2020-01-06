@@ -530,11 +530,12 @@ class Builder(object):
         except OSError:
             pass
 
-        try:
-            os.remove(os.path.join(self.target_dir, LIB_INIT_FILENAME))
+        for d in self.source_dirs:
+            try:
+                os.remove(os.path.join(d, LIB_INIT_FILENAME))
 
-        except OSError:
-            pass
+            except OSError:
+                pass
 
         try:
             os.remove(os.path.join(self.target_dir, 'manifest.txt'))
