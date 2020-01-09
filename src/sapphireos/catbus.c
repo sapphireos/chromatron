@@ -1085,10 +1085,10 @@ PT_BEGIN( pt );
                 // set flag so we try again
                 send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
 
-                log_v_debug_P( PSTR("publish failed") );
+                // log_v_debug_P( PSTR("publish failed") );
 
                 // delay, hopefully the tx queue will be less busy
-                TMR_WAIT( pt, 50 );                
+                TMR_WAIT( pt, 20 );                
 
                 // send us back to top of loop, so we try this again
                 continue;
