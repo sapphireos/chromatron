@@ -1813,17 +1813,16 @@ PT_BEGIN( pt );
                 goto end;
             }
 
+            // check if we match query
+            if( !_catbus_b_query_self( &msg->query ) ){
 
+                goto end;
+            }
+            
             // check link type
 
             // source link 
             if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
-
-                // check if we match query
-                if( !_catbus_b_query_self( &msg->query ) ){
-
-                    goto end;
-                }
 
                 // check if we have the destination key
                 if( kv_i16_search_hash( msg->dest_hash ) < 0 ){
