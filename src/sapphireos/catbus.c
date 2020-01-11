@@ -708,6 +708,8 @@ static catbus_link_t _catbus_l_create_link(
     }
     else{
 
+        state.flags |= CATBUS_LINK_FLAGS_DEST;
+
         // check if we have this item
         if( kv_i16_search_hash( dest_hash ) < 0 ){
 
