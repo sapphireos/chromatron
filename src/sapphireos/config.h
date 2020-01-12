@@ -157,6 +157,7 @@ extern bool cfg_b_is_gateway( void ) __attribute__((weak));
 
 bool cfg_b_get_boolean( catbus_hash_t32 parameter );
 uint16_t cfg_u16_get_board_type( void );
+uint64_t cfg_u64_get_device_id( void );
 
 void cfg_v_reset_on_next_boot( void );
 void cfg_v_default_all( void );

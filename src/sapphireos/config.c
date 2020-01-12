@@ -781,6 +781,14 @@ uint16_t cfg_u16_get_board_type( void ){
     return board_type;
 }
 
+uint64_t cfg_u64_get_device_id( void ){
+
+    uint64_t device_id;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &device_id );
+
+    return device_id;
+}
+
 void cfg_v_set_boolean( catbus_hash_t32 parameter, bool value ){
 
     cfg_v_set( parameter, &value );
