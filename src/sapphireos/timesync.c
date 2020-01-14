@@ -433,6 +433,11 @@ PT_BEGIN( pt );
 
                 time_msg_master_t *msg = (time_msg_master_t *)magic;
 
+                if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_master_t) ){
+
+                    log_v_debug_P( PSTR("invalid len") );
+                }
+
                 if( sync_state == STATE_WAIT ){
 
                     // select master
@@ -503,6 +508,11 @@ PT_BEGIN( pt );
 
                 time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
 
+                if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_request_sync_t) ){
+
+                    log_v_debug_P( PSTR("invalid len") );
+                }
+
                 time_msg_sync_t msg;
                 msg.magic           = TIME_PROTOCOL_MAGIC;
                 msg.version         = TIME_PROTOCOL_VERSION;
@@ -524,6 +534,11 @@ PT_BEGIN( pt );
                 }
 
                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
+
+                if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_sync_t) ){
+
+                    log_v_debug_P( PSTR("invalid len") );
+                }
 
                 // check id
                 if( msg->id != sync_id ){

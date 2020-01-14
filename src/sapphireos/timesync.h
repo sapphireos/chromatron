@@ -33,10 +33,9 @@
 #include "wifi_cmd.h"
 
 #define TIME_SERVER_PORT                32037
-// #define TIME_SERVER_PORT                32035
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION           4
+#define TIME_PROTOCOL_VERSION           5
 
 #define TIME_SOURCE_GPS                 64
 #define TIME_SOURCE_NTP                 32
