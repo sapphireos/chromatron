@@ -45,8 +45,9 @@ typedef struct{
     uint8_t reserved[7];
     uint32_t check_hash;
 } catbus_link_state_t;
-#define CATBUS_LINK_FLAGS_SOURCE        0x01
-#define CATBUS_LINK_FLAGS_DEST          0x04
+#define CATBUS_LINK_FLAGS_SEND          0x01
+#define CATBUS_LINK_FLAGS_RECEIVE       0x02
+#define CATBUS_LINK_FLAGS_DATA          0x04
 #define CATBUS_LINK_FLAGS_VALID         0x80
 
 typedef struct{
@@ -696,7 +697,7 @@ static catbus_link_t _catbus_l_create_link(
 
     if( source ){
 
-        state.flags |= CATBUS_LINK_FLAGS_SOURCE;
+        state.flags |= CATBUS_LINK_FLAGS_SEND;
 
         // check if we have this item
         if( kv_i16_search_hash( source_hash ) < 0 ){
@@ -708,7 +709,7 @@ static catbus_link_t _catbus_l_create_link(
     }
     else{
 
-        state.flags |= CATBUS_LINK_FLAGS_DEST;
+        state.flags |= CATBUS_LINK_FLAGS_RECEIVE;
 
         // check if we have this item
         if( kv_i16_search_hash( dest_hash ) < 0 ){
@@ -1803,20 +1804,22 @@ PT_BEGIN( pt );
             }
 
             catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
-
-            if( ( msg->flags & CATBUS_LINK_FLAGS_SOURCE ) &&
-                ( msg->flags & CATBUS_LINK_FLAGS_DEST ) ){
-
-                log_v_debug_P( PSTR("bad flags") );
-
-                // invalid flag combination
-                goto end;
-            }
             
             // check link type
 
             // source link 
-            if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
+            if( msg->flags & CATBUS_LINK_FLAGS_SEND ){
+
+                // Send Link
+                // A device is requesting to SEND data TO this node
+
+                if( ( msg->flags & CATBUS_LINK_FLAGS_RECEIVE ) ||
+                    ( msg->flags & CATBUS_LINK_FLAGS_DATA ) ){
+
+                    // bad flag combination
+                    goto end;
+                }
+
 
                 // check if we match query
                 if( !_catbus_b_query_self( &msg->query ) ){
@@ -1830,8 +1833,8 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
-                // change link flags and echo message back to sender
-                msg->flags = CATBUS_LINK_FLAGS_DEST;
+                // change link flags to request data and echo message back to sender
+                msg->flags = CATBUS_LINK_FLAGS_DATA;
 
                 // set up destination
                 raddr.port = msg->data_port;
@@ -1845,7 +1848,50 @@ PT_BEGIN( pt );
                 sock_i16_sendto( sock, (uint8_t *)msg, sizeof(catbus_msg_link_t), &raddr );   
             }
             // receiver link
-            else if( msg->flags & CATBUS_LINK_FLAGS_DEST ){
+            else if( msg->flags & CATBUS_LINK_FLAGS_RECEIVE ){
+
+                // Receive Link
+                // A device is request to RECEIVE data FROM this node
+
+                if( ( msg->flags & CATBUS_LINK_FLAGS_SEND ) ||
+                    ( msg->flags & CATBUS_LINK_FLAGS_DATA ) ){
+
+                    // bad flag combination
+                    goto end;
+                }
+
+                // check if we match query
+                if( !_catbus_b_query_self( &msg->query ) ){
+
+                    goto end;
+                }
+
+                // check if we have the source key:
+                if( kv_i16_search_hash( msg->source_hash ) < 0 ){
+
+                    goto end;
+                }
+                
+                // set up destination
+                raddr.port = msg->data_port;
+
+                _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
+            }
+            // data link
+            else if( msg->flags & CATBUS_LINK_FLAGS_DATA ){
+
+                // Data Link
+                // A device is requesting the link data be transmitted to it.
+                // This is not conditional on a query, only that the source
+                // key is available.
+                // Data Links are only sent in response to a Send Link.
+
+                if( ( msg->flags & CATBUS_LINK_FLAGS_RECEIVE ) ||
+                    ( msg->flags & CATBUS_LINK_FLAGS_SEND ) ){
+
+                    // bad flag combination
+                    goto end;
+                }
 
                 // check if we have the source key:
                 if( kv_i16_search_hash( msg->source_hash ) < 0 ){
@@ -1994,7 +2040,7 @@ PT_BEGIN( pt );
             catbus_msg_link_add_t *msg = (catbus_msg_link_add_t *)header;
 
             bool source = FALSE;
-            if( msg->flags & CATBUS_LINK_FLAGS_SOURCE ){
+            if( msg->flags & CATBUS_LINK_FLAGS_SEND ){
 
                 source = TRUE;
             }

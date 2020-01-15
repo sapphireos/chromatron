@@ -494,23 +494,21 @@ class Server(Ribbon):
         return reply_msg, host
 
     def _handle_link(self, msg, host):
-        # check flags
-        if (msg.flags & CATBUS_MSG_LINK_FLAGS_DEST) == 0:
-            # check query
-            if not self._database.query(*msg.query):
-                return
-        
         # check link type
         
 
         # source link
-        if msg.flags & CATBUS_MSG_LINK_FLAG_SOURCE:
+        if msg.flags & CATBUS_MSG_LINK_FLAGS_SEND:
             # check if we have dest key OR a default callback
             if (msg.dest_hash not in self._database) and (self._default_callback == None):
                 return
 
+            # run query
+            if not self._database.query(*msg.query):    
+                return
+
             # change link flags and echo message back to sender
-            reply_msg = LinkMsg(flags=CATBUS_MSG_LINK_FLAGS_DEST,
+            reply_msg = LinkMsg(flags=CATBUS_MSG_LINK_FLAGS_DATA,
                                 data_port=self._data_port,
                                 source_hash=msg.source_hash,
                                 dest_hash=msg.dest_hash,
@@ -523,7 +521,34 @@ class Server(Ribbon):
             return reply_msg, host
 
         # receiver link
-        else:
+        elif msg.flags & CATBUS_MSG_LINK_FLAGS_RECEIVE:
+
+            # check if we have the source key
+            if msg.source_hash not in self._database:
+                return
+
+            # run query
+            if not self._database.query(*msg.query):    
+                return
+            
+            # change host reply port to data port
+            host = (host[0], msg.data_port)
+
+            # remove current entries for this host
+            self._send_list = [a for a in self._send_list if 
+                                (a['host'] != host) or
+                                (a['dest_hash'] != msg.dest_hash) or
+                                (a['source_hash'] != msg.source_hash)]
+            
+            # add to sender list
+            entry = {'host': host, 
+                     'dest_hash': msg.dest_hash, 
+                     'source_hash': msg.source_hash,
+                     'ttl': 32.0}
+
+            self._send_list.append(entry)
+
+        elif msg.flags & CATBUS_MSG_LINK_FLAGS_DATA:
             # check if we have the source key
             if msg.source_hash not in self._database:
                 return
@@ -547,7 +572,7 @@ class Server(Ribbon):
 
     def _handle_link_data(self, msg, host):
         # setup timestamp
-        if (msg.flags & CATBUS_MSG_LINK_FLAGS_DEST) == 0:
+        if (msg.flags & CATBUS_MSG_LINK_FLAGS_DATA) == 0:
             timestamp = util.now()
         else:
             timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
@@ -693,7 +718,7 @@ class Server(Ribbon):
                     link_flags = 0
 
                     if link.source:
-                        link_flags = CATBUS_MSG_LINK_FLAG_SOURCE
+                        link_flags = CATBUS_MSG_LINK_FLAGS_SEND
                     
                     query = CatbusQuery()
                     query._value = link.tags

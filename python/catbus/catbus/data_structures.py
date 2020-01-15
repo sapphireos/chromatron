@@ -219,8 +219,9 @@ CATBUS_MSG_DISC_FLAG_QUERY_ALL          = 0x01
 
 CATBUS_MSG_DATA_FLAG_TIME_SYNC          = 0x01
 
-CATBUS_MSG_LINK_FLAG_SOURCE             = 0x01
-CATBUS_MSG_LINK_FLAGS_DEST              = 0x04
+CATBUS_MSG_LINK_FLAGS_SEND              = 0x01
+CATBUS_MSG_LINK_FLAGS_RECEIVE           = 0x02
+CATBUS_MSG_LINK_FLAGS_DATA              = 0x04
 
 META_TAG_NAME = 'meta_tag_name'
 META_TAG_LOC = 'meta_tag_location'
