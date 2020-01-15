@@ -50,6 +50,9 @@ static uint16_t vm_sizes[VM_MAX_VMS];
 
 static uint8_t vm_active_threads[VM_MAX_VMS];
 
+static uint32_t last_full_sync;
+
+
 
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
@@ -213,7 +216,6 @@ static int8_t send_reset_message( uint8_t vm_id ){
 
     return wifi_i8_send_msg( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
 }
-
 
 int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
 
@@ -840,7 +842,16 @@ PT_END( pt );
 
 int8_t vm_i8_run_loops( void ){
 
-     for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+    // check if we need to do a full db sync
+    uint32_t now = tmr_u32_get_system_time_ms();
+
+    if( tmr_u32_elapsed_times( last_full_sync, now ) > 1000 ){
+
+        last_full_sync = now;
+        gfx_v_sync_db( TRUE );
+    }
+
+    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
                     
         if( vm_b_is_vm_running( i ) ){
 
