@@ -43,7 +43,7 @@ static const hal_io_ch_t board_io[IO_PIN_COUNT] = {
     { SPI4_SCK_GPIO_Port, SPI4_SCK_Pin }, // IO_PIN_GPIOSCK
     { SPI4_MOSI_GPIO_Port, SPI4_MOSI_Pin }, // IO_PIN_GPIOMOSI
     { SPI4_MISO_GPIO_Port, SPI4_MISO_Pin }, // IO_PIN_GPIOMISO
-#endif
+#else
 #ifdef BOARD_NUCLEAR
     { GPIOC, GPIO_PIN_0 }, // IO_PIN_0
     { GPIOC, GPIO_PIN_3 }, // IO_PIN_1
@@ -89,6 +89,7 @@ static const hal_io_ch_t board_io[IO_PIN_COUNT] = {
     { GPIOE, GPIO_PIN_11 }, // IO_PIN_GPIO11
     { GPIOE, GPIO_PIN_12 }, // IO_PIN_GPIO12
     { GPIOE, GPIO_PIN_15 }, // IO_PIN_GPIO13
+#endif
 #endif
 };
 
