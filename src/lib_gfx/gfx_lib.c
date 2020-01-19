@@ -1106,7 +1106,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
 
         if( y & 1 ){
 
-            x = ( pix_arrays[obj].size_x - 1 ) - x;
+            x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
         }
     }
 
