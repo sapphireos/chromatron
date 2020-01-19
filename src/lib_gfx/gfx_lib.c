@@ -1114,9 +1114,17 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
 
     if( y == 65535 ){
 
-        // check virtual array
-        // note this only works in one dimension
-        if( virtual_array_length > 0 ){
+        // check if virtual array enabled
+        if( virtual_array_length == 0 ){
+            
+            // normal mode
+
+            i = x % pix_arrays[obj].count;
+        }
+        else{ 
+
+            // virtual array enabled
+            // note this only works in one dimension
 
             uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
             uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
@@ -1138,10 +1146,6 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
             i -= adjusted_virtual_array_start;
 
             i %= pix_arrays[obj].count;
-        }
-        else{
-            
-            i = x % pix_arrays[obj].count;
         }
     }
     else{
