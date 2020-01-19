@@ -340,7 +340,7 @@ static void send_request( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
-static void send_shutdown( void ){
+static void send_shutdown( ip_addr_t *addr ){
 
     vm_sync_msg_shutdown_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
@@ -352,7 +352,15 @@ static void send_shutdown( void ){
     // set up broadcast address
     sock_addr_t raddr;
     raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
+
+    if( addr == 0 ){
+
+        raddr.ipaddr = ip_a_addr(255,255,255,255);    
+    }
+    else{
+
+        raddr.ipaddr = *addr;
+    }
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
@@ -480,11 +488,11 @@ PT_BEGIN( pt );
     		// if we're a master, signal that we are shutting down
     		if( sync_state == STATE_MASTER ){
 
-	    		send_shutdown();
+	    		send_shutdown( 0 );
 	    		TMR_WAIT( pt, 200 );
-	    		send_shutdown();
+	    		send_shutdown( 0 );
 	    		TMR_WAIT( pt, 200 );
-	    		send_shutdown();
+	    		send_shutdown( 0 );
 	    	}
 
     		THREAD_EXIT( pt );
@@ -704,8 +712,11 @@ PT_BEGIN( pt );
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
         	if( sync_state != STATE_MASTER ){
-
         		// this message can only be processed by a master
+
+                // since we aren't one, inform the requester
+                send_shutdown( &raddr.ipaddr );
+
         		continue;
         	}
 
