@@ -177,6 +177,11 @@ void vm_sync_v_init( void ){
                     0 );    
 }
 
+void vm_sync_v_reset( void ){
+
+    sync_state = STATE_IDLE;
+}
+
 bool vm_sync_b_is_master( void ){
 
     return sync_state == STATE_MASTER;
@@ -705,7 +710,7 @@ PT_BEGIN( pt );
                 if( sync_state != STATE_IDLE ){
 
                     log_v_debug_P( PSTR("sync master shutting down") );
-                    sync_state = STATE_IDLE;
+                    vm_sync_v_reset();
                 }
             }
         }

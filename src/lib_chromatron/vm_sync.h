@@ -77,6 +77,7 @@ typedef struct __attribute__((packed)){
 uint32_t vm_sync_u32_get_sync_group_hash( void );
 
 void vm_sync_v_init( void );
+void vm_sync_v_reset( void );
 void vm_sync_v_trigger( void );
 void vm_sync_v_frame_trigger( void );
 

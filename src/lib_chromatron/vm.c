@@ -761,6 +761,12 @@ PT_BEGIN( pt );
 
                     log_v_debug_P( PSTR("VM %d error: %d"), i, vm_status[i] );
                 }
+
+                // reset vm sync
+                if( i == 0 ){
+
+                    vm_sync_v_reset();
+                }
             }
 
             // Are we resetting a VM?
@@ -773,6 +779,12 @@ PT_BEGIN( pt );
 
                 send_reset_message( i );
                 reset_published_data( i );
+
+                // reset vm sync
+                if( i == 0 ){
+
+                    vm_sync_v_reset();
+                }
             }
 
             // Did VM that was not running just get told to start?
@@ -814,6 +826,12 @@ PT_BEGIN( pt );
                 vm_max_cycles[i]        = 0;
                 vm_sizes[i]             = 0;
                 vm_active_threads[i]    = 0;
+
+                // reset vm sync
+                if( i == 0 ){
+
+                    vm_sync_v_reset();
+                }
             }
             
             // always reset the reset
