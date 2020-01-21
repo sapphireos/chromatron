@@ -761,15 +761,26 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("we are sync master") );
         }
 
-    	while( ( sync_state == STATE_MASTER ) && !vm_sync_wait() ){
+        if( sync_state == STATE_MASTER ){
 
-    		if( sys_b_shutdown() ){
+        	while( ( sync_state == STATE_MASTER ) && !vm_sync_wait() ){
 
-    			THREAD_EXIT( pt );
-    		}
+        		if( sys_b_shutdown() ){
 
-            TMR_WAIT( pt, 500 );
-    	}
+        			THREAD_EXIT( pt );
+        		}
+
+                TMR_WAIT( pt, 500 );
+        	}
+
+            // no longer master
+            // notify any clients
+            send_shutdown( 0 );
+            TMR_WAIT( pt, 200 );
+            send_shutdown( 0 );
+            TMR_WAIT( pt, 200 );
+            send_shutdown( 0 );
+        }
 
         while( ( sync_state == STATE_SLAVE ) && !vm_sync_wait() ){
 
