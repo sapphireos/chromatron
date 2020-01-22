@@ -101,7 +101,7 @@ class Client(object):
             except socket.error:
                 pass
 
-        raise NoResponseFromHost(msg.header.msg_type)
+        raise NoResponseFromHost(msg.header.msg_type, host)
 
     def set_window(self, read, write):
         self.read_window_size = read
@@ -160,13 +160,14 @@ class Client(object):
             for k, v in temp.iteritems():
                 cache[int(k)] = v
 
-        except ValueError:
+        except ValueError as e:
             # if the cache file has an error, or if it is
             # being rewritten and has not fully synced to disk,
             # we get an error here.
 
             # just bypass and carryon with no cache
-            pass
+            print e
+            # pass
 
         except IOError:
             pass
