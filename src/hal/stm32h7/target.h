@@ -27,7 +27,7 @@
 
 #define HW_NAME "STM32H7"
 
-#define BOARD_CHROMATRONX
+// #define BOARD_CHROMATRONX
 // #define BOARD_NUCLEAR
 
 // set crystal speed
