@@ -90,8 +90,8 @@ static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static bool default_ap_mode;
 
-static uint16_t wifi_comm_errors;
-static uint16_t wifi_comm_errors2;
+static uint16_t wifi_comm_errors_esp;
+static uint16_t wifi_comm_errors_mcu;
 static uint8_t wifi_connects;
 
 static uint16_t wifi_rx_udp_overruns;
@@ -113,7 +113,6 @@ static uint8_t wifi_version_major;
 static uint8_t wifi_version_minor;
 static uint8_t wifi_version_patch;
 
-static uint8_t comm_stalls;
 static uint8_t watchdog;
 
 static uint8_t tx_power;
@@ -152,8 +151,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_version_minor,               0,   "wifi_version_minor" },
     { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_version_patch,               0,   "wifi_version_patch" },
 
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors,                 0,   "wifi_comm_errors" },
-    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors2,                0,   "wifi_comm_errors2" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors_esp,             0,   "wifi_comm_errors_esp" },
+    { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_comm_errors_mcu,             0,   "wifi_comm_errors_mcu" },
     { SAPPHIRE_TYPE_UINT16,        0, 0, &wifi_rx_udp_overruns,             0,   "wifi_comm_rx_udp_overruns" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_sent,                    0,   "wifi_udp_sent" },
@@ -171,8 +170,6 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_rate_tx" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rate_rx" },
-
-    { SAPPHIRE_TYPE_UINT8,         0, 0, &comm_stalls,                      0,   "wifi_comm_stalls" },
 };
 
 void debug_strobe( void ){
@@ -681,7 +678,7 @@ static void get_info( void ){
     wifi_rx_udp_overruns        = msg.rx_udp_overruns;
     wifi_udp_received           = msg.udp_received;
     wifi_udp_sent               = msg.udp_sent;
-    wifi_comm_errors            = msg.comm_errors;
+    wifi_comm_errors_esp        = msg.comm_errors;
     mem_heap_peak               = msg.mem_heap_peak;
     mem_used                    = msg.mem_used;
 
@@ -960,7 +957,7 @@ int8_t process_rx_data( wifi_data_header_t *header, uint8_t *data ){
 
 len_error:
 
-    wifi_comm_errors2++;
+    wifi_comm_errors_mcu++;
 
     log_v_debug_P( PSTR("Wifi len error: %d"), header->data_id );
     status = -3;

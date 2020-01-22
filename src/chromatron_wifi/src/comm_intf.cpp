@@ -628,6 +628,7 @@ void intf_v_process( void ){
 
         if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
 
+            comm_errors++;
             Serial.write( WIFI_COMM_NAK );
             // Serial.write( 1 );
             return;
@@ -641,6 +642,7 @@ void intf_v_process( void ){
     // check CRC
     if( crc_u16_block( (uint8_t *)&header, sizeof(header) ) != 0 ){
 
+        comm_errors++;
         Serial.write( WIFI_COMM_NAK );
         // Serial.write( 2 );
         return;
@@ -661,6 +663,7 @@ void intf_v_process( void ){
 
             if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
 
+                comm_errors++;
                 Serial.write( WIFI_COMM_NAK );
                 // Serial.write( 3 );
                 return;
@@ -684,6 +687,8 @@ void intf_v_process( void ){
 
             if( elapsed( comm_timeout ) > WIFI_COMM_TIMEOUT ){
 
+                comm_errors++;
+
                 Serial.write( WIFI_COMM_NAK );
                 // Serial.write( 4 );
                 return;
@@ -693,6 +698,8 @@ void intf_v_process( void ){
         Serial.readBytes( (uint8_t *)&crc, sizeof(crc) );
 
         if( crc_u16_block( data_buf, header.len ) != crc ){
+
+            comm_errors++;
 
             Serial.write( WIFI_COMM_NAK );
             // Serial.write( 5 );
