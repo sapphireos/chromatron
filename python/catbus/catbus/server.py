@@ -240,6 +240,7 @@ class Server(Ribbon):
             SetKeysMsg: self._handle_set_keys,
             LinkMsg: self._handle_link,
             LinkDataMsg: self._handle_link_data,
+            ShutdownMsg: self._handle_shutdown,
         }
 
         self._last_announce = time.time() - 10.0
@@ -251,6 +252,13 @@ class Server(Ribbon):
         self.__lock = threading.Lock()
 
         self._default_callback = None
+
+    def clean_up(self):
+        self._send_shutdown()
+        time.sleep(0.1)
+        self._send_shutdown()
+        time.sleep(0.1)
+        self._send_shutdown()
 
     def send(self, source_key=None, dest_key=None, dest_query=[]):
         link = Link(source=True,
@@ -380,15 +388,15 @@ class Server(Ribbon):
         except socket.error:
             pass
 
-    def _send_announce_msg(self, msg, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
-        msg.header.origin_id = self._origin_id
-        s = self.__announce_sock
+    # def _send_announce_msg(self, msg, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
+    #     msg.header.origin_id = self._origin_id
+    #     s = self.__announce_sock
 
-        try:
-            s.sendto(serialize(msg), host)
+    #     try:
+    #         s.sendto(serialize(msg), host)
 
-        except socket.error:
-            pass
+    #     except socket.error:
+    #         pass
 
     def _send_announce(self, host=('<broadcast>', CATBUS_DISCOVERY_PORT), discovery_id=None):
         msg = AnnounceMsg(
@@ -398,7 +406,12 @@ class Server(Ribbon):
         if discovery_id:
             msg.header.transaction_id = discovery_id
 
-        self._send_announce_msg(msg, host)
+        self._send_data_msg(msg, host)
+
+    def _send_shutdown(self, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
+        msg = ShutdownMsg()
+
+        self._send_data_msg(msg, host)
 
     def _handle_error(self, msg, host):
         if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
@@ -645,6 +658,8 @@ class Server(Ribbon):
 
                 link.callback(link.source_key, msg.data.value, source_query, timestamp)
 
+    def _handle_shutdown(self, msg, host):
+        pass
 
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)

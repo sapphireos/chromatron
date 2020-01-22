@@ -126,6 +126,17 @@ class CatbusService(Database):
         self._server.stop()
         del self._server
 
+    # block wait until service is terminated
+    def wait(self):
+        try:
+            while True:
+                time.sleep(1.0)
+
+        except KeyboardInterrupt:
+            pass
+
+        self.stop()
+
 
 
 def echo_name(name, host, left_align=True, nl=True):
