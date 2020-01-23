@@ -124,6 +124,7 @@ class CatbusService(Database):
 
     def stop(self):
         self._server.stop()
+        self._server.join()
         del self._server
 
     # block wait until service is terminated
