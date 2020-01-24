@@ -176,6 +176,9 @@ class InvalidDataTypeException(DeviceMetaErrorException):
 class InvalidDeviceIDException(DeviceMetaErrorException):
     pass
 
+class NotASapphireDevice(Exception):
+    pass
+
 class KVKey(object):
     def __init__(self,
                  device=None,
@@ -376,9 +379,16 @@ class Device(object):
         return query_dict(self.to_dict(), **kwargs)
 
     def scan(self, get_all=True):
-        self.get_firmware_info()
         try:
             self.get_kv_meta()
+
+            # check if this is a chromatron device (running sapphireos)
+            try:
+                if self.get_key('os_name') != 'sapphire':
+                    raise NotASapphireDevice()
+
+            except KeyError:
+                raise NotASapphireDevice()                
 
             if get_all:
                 self.get_all_kv()
@@ -411,6 +421,8 @@ class Device(object):
             # we pass here since we can get to the file system and fix
             # the firmware without the KV system.
             pass
+
+        self.get_firmware_info()
 
         return self
 

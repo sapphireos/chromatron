@@ -37,7 +37,7 @@ from sapphire.buildtools import firmware_package
 import json
 from datetime import datetime, timedelta
 
-from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOCH
+from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOCH, NotASapphireDevice
 from elysianfields import *
 from sapphire.common.util import now
 
@@ -308,7 +308,12 @@ class Chromatron(object):
 
 
     def init_scan(self):
-        self._device.scan(get_all=False)
+        try:
+            self._device.scan(get_all=False)
+        except NotASapphireDevice:
+            self.__invalid_device = True
+            return
+
         self._update_meta()
         self.firmware_version = self._device.firmware_version
 
@@ -793,6 +798,13 @@ class DeviceGroup(DictMixin, object):
             t.join()
 
         for ct in scan_group:
+            try:
+                if ct.__invalid_device:
+                    continue
+
+            except AttributeError:
+                pass
+
             try:
                 self.group[ct.device_id] = ct
 
