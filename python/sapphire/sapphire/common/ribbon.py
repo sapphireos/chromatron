@@ -162,7 +162,6 @@ class Ribbon(threading.Thread):
                 logging.exception("Ribbon: %s unexpected exception: %s" % (self.name, e))
                 time.sleep(2.0)
 
-
         try:
             self.clean_up()
 
@@ -220,7 +219,7 @@ class Ribbon(threading.Thread):
                 break
 
             except Empty:
-                if timeout:
+                if timeout != None:
                     raise MsgQueueEmptyException
 
         qsize = self.queue.qsize()
