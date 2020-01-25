@@ -61,8 +61,9 @@ static const adc_ch_t board_channels[] = {
 	{&hadc1, ADC_CHANNEL_19},		 // IO_PIN_GPIOA4
 	{&hadc1, ADC_CHANNEL_18},		 // IO_PIN_GPIOA5
 
-	{&hadc1, ADC_CHANNEL_5},	 		// vmon
+	{&hadc1, ADC_CHANNEL_5},	 	 // vmon
 	{&hadc3, ADC_CHANNEL_VREFINT},	 // vref (internal)
+	{&hadc3, ADC_CHANNEL_VBAT_DIV4}, // vbat (internal)
 #endif
 };
 
@@ -110,7 +111,7 @@ void adc_v_init( void ){
 	adc_channels = board_channels;
 	adc_channel_count = cnt_of_array(board_channels);
 	
-	
+
   	// init VMON
     GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Alternate 	= 0;
@@ -203,10 +204,6 @@ void adc_v_init( void ){
 	}
 
 
-	HAL_ADCEx_Calibration_Start( &hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
-	HAL_ADCEx_Calibration_Start( &hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
-	HAL_ADCEx_Calibration_Start( &hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
-
 	thread_t_create( hal_adc_thread,
                      PSTR("hal_adc"),
                      0,
@@ -217,18 +214,29 @@ PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	// init VREF Buffer
+	HAL_SYSCFG_EnableVREFBUF();
+	// connect vref to VREF+ pin
+	HAL_SYSCFG_VREFBUF_HighImpedanceConfig( SYSCFG_VREFBUF_HIGH_IMPEDANCE_DISABLE );
+	// set vref to 2.5V
+	HAL_SYSCFG_VREFBUF_VoltageScalingConfig( SYSCFG_VREFBUF_VOLTAGE_SCALE1 );
+
+	HAL_ADCEx_Calibration_Start( &hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
+	HAL_ADCEx_Calibration_Start( &hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
+	HAL_ADCEx_Calibration_Start( &hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED );
+
 	TMR_WAIT( pt, 1000 );
 
 	log_v_debug_P( PSTR("VCC: %u Vrefint: %u"), adc_u16_read_vcc(), adc_u16_read_raw( ADC_CHANNEL_REF ) );
     
-    while(1){
+  /*  while(1){
 
         // vref calibration
 
         #define SAMPLES 8
         uint32_t accum = 0;
 
-        for( uint32_t i = 0; i <SAMPLES; i++ ){
+        for( uint32_t i = 0; i < SAMPLES; i++ ){
 
             accum += adc_u16_read_vcc();
             _delay_us(20);
@@ -239,7 +247,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 4000 );
     }
-
+*/
 PT_END( pt );
 }
 
@@ -328,10 +336,10 @@ uint16_t adc_u16_read_raw( uint8_t channel ){
 
 uint16_t adc_u16_read_supply_voltage( void ){
 
-	uint16_t raw = adc_u16_read_raw( ADC_CHANNEL_VSUPPLY );
-	uint16_t mv = adc_u16_convert_to_millivolts( raw );
+	// uint16_t mv = adc_u16_read_mv( ADC_CHANNEL_VSUPPLY );
 
-    return mv * 2;
+    // return mv;
+    return adc_u16_read_raw(ADC_CHANNEL_VSUPPLY);
 }
 
 uint16_t adc_u16_read_vcc( void ){
@@ -340,10 +348,9 @@ uint16_t adc_u16_read_vcc( void ){
 	return 0;
 	#endif
 
-	uint16_t vref_int = adc_u16_read_raw( ADC_CHANNEL_REF );
-	// this is nominally 1.2V
+	uint16_t vbat = adc_u16_read_mv( ADC_CHANNEL_VBAT );
 
-    return ( 1200 * 4095 ) / vref_int;
+    return vbat * 4;
 }
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
@@ -352,7 +359,7 @@ uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
 
 	// assuming 3300 mv VREF at 12 bits (4095 codes)
 
-	millivolts = (uint32_t)raw_value * vref;
+	millivolts = (uint32_t)raw_value * 2500;
 	millivolts /= 4096;
 
 	return millivolts;
