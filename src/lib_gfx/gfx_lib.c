@@ -1097,6 +1097,26 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         }
     }
 
+    // invert x axis
+    if( gfx_invert_x ){
+
+        // if y is not given, we need to figure out which row we're in
+        if( y == 65535 ){
+
+            uint16_t row = x / pix_arrays[obj].size_x;
+            uint16_t temp_x = x % pix_arrays[obj].size_x;
+
+            // flip x around
+            temp_x = ( pix_arrays[obj].size_x - 1 ) - temp_x;
+
+            x = ( row * pix_arrays[obj].size_x ) + temp_x;
+        }   
+        else{
+
+            x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
+        }        
+    }
+
     int16_t i = 0;
 
     if( y == 65535 ){
