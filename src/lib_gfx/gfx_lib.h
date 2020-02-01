@@ -30,7 +30,7 @@
 #include "catbus_common.h"
 #include "target.h"
 
-#define GFX_VERSION             1
+#define GFX_VERSION             2
 
 typedef struct  __attribute__((packed)){
     uint8_t version;
@@ -39,6 +39,7 @@ typedef struct  __attribute__((packed)){
     uint16_t pix_size_y;
     uint8_t pix_mode;
     bool interleave_x;
+    bool invert_x;
     bool transpose;
     uint16_t hs_fade;
     uint16_t v_fade;

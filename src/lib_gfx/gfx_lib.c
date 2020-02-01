@@ -75,8 +75,9 @@ static uint8_t pix_mode;
 static uint16_t pix_count;
 static uint16_t pix_size_x;
 static uint16_t pix_size_y;
-static bool pix_interleave_x;
-static bool pix_transpose;
+static bool gfx_interleave_x;
+static bool gfx_invert_x;
+static bool gfx_transpose;
 
 static uint8_t pix_array_count;
 static gfx_pixel_array_t *pix_arrays;
@@ -107,7 +108,6 @@ static uint8_t smootherstep_lookup[DIMMER_LOOKUP_SIZE] = {
 #define NOISE_TABLE_SIZE 256
 static uint8_t noise_table[NOISE_TABLE_SIZE];
 
-
 #ifdef GFX_LIB_KV_LINKAGE
 #include "keyvalue.h"
 
@@ -116,8 +116,9 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,   "gfx_master_dimmer" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,   "pix_size_x" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &pix_interleave_x,            0,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &pix_transpose,               0,   "gfx_transpose" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,   "gfx_interleave_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,   "gfx_invert_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,   "gfx_transpose" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     0,   "gfx_hsfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      0,   "gfx_vfade" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,   "gfx_dimmer_curve" },
@@ -206,22 +207,6 @@ static void update_master_fader( void ){
     dimmer_step = step;
 }
 
-// static void sync_db( void ){
-
-//     kvdb_i8_add( __KV__pix_count,                   CATBUS_TYPE_UINT16, 1, &pix_count,                 sizeof(pix_count)            );
-//     kvdb_i8_add( __KV__pix_size_x,                  CATBUS_TYPE_UINT16, 1, &pix_size_x,                sizeof(pix_size_x)           );
-//     kvdb_i8_add( __KV__pix_size_y,                  CATBUS_TYPE_UINT16, 1, &pix_size_y,                sizeof(pix_size_y)           );
-//     kvdb_i8_add( __KV__pix_mode,                    CATBUS_TYPE_UINT8,  1, &pix_mode,                  sizeof(pix_mode)             );
-//     kvdb_i8_add( __KV__gfx_hsfade,                  CATBUS_TYPE_UINT16, 1, &global_hs_fade,            sizeof(global_hs_fade)       );
-//     kvdb_i8_add( __KV__gfx_vfade,                   CATBUS_TYPE_UINT16, 1, &global_v_fade,             sizeof(global_v_fade)        );
-//     kvdb_i8_add( __KV__gfx_interleave_x,            CATBUS_TYPE_BOOL,   1, &pix_interleave_x,          sizeof(pix_interleave_x)     );
-//     kvdb_i8_add( __KV__gfx_transpose,               CATBUS_TYPE_BOOL,   1, &pix_transpose,             sizeof(pix_transpose)        );
-//     kvdb_i8_add( __KV__gfx_master_dimmer,           CATBUS_TYPE_UINT16, 1, &pix_master_dimmer,         sizeof(pix_master_dimmer)    );
-//     kvdb_i8_add( __KV__gfx_sub_dimmer,              CATBUS_TYPE_UINT16, 1, &pix_sub_dimmer,            sizeof(pix_sub_dimmer)       );
-//     kvdb_i8_add( __KV__gfx_frame_rate,              CATBUS_TYPE_UINT16, 1, &gfx_frame_rate,            sizeof(gfx_frame_rate)       );
-//     kvdb_i8_add( __KV__gfx_virtual_array_start,     CATBUS_TYPE_UINT16, 1, &virtual_array_start,       sizeof(virtual_array_start)  );
-//     kvdb_i8_add( __KV__gfx_virtual_array_length,    CATBUS_TYPE_UINT16, 1, &virtual_array_length,      sizeof(virtual_array_length) );
-// }
 
 static void param_error_check( void ){
 
@@ -311,8 +296,9 @@ void gfx_v_set_params( gfx_params_t *params ){
     pix_count               = params->pix_count;
     pix_size_x              = params->pix_size_x;
     pix_size_y              = params->pix_size_y;
-    pix_interleave_x        = params->interleave_x;
-    pix_transpose           = params->transpose;
+    gfx_interleave_x        = params->interleave_x;
+    gfx_invert_x            = params->invert_x;
+    gfx_transpose           = params->transpose;
     pix_mode                = params->pix_mode;
     global_hs_fade          = params->hs_fade;
     global_v_fade           = params->v_fade;
@@ -351,8 +337,9 @@ void gfx_v_get_params( gfx_params_t *params ){
     params->pix_count               = pix_count;
     params->pix_size_x              = pix_size_x;
     params->pix_size_y              = pix_size_y;
-    params->interleave_x            = pix_interleave_x;
-    params->transpose               = pix_transpose;
+    params->interleave_x            = gfx_interleave_x;
+    params->invert_x                = gfx_invert_x;
+    params->transpose               = gfx_transpose;
     params->pix_mode                = pix_mode;
     params->hs_fade                 = global_hs_fade;
     params->v_fade                  = global_v_fade;
@@ -508,22 +495,22 @@ uint16_t gfx_u16_get_size_y( void ){
 
 void gfx_v_set_interleave_x( bool setting ){
 
-    pix_interleave_x = setting;
+    gfx_interleave_x = setting;
 }
 
 bool gfx_b_get_interleave_x( void ){
 
-    return pix_interleave_x;
+    return gfx_interleave_x;
 }
 
 void gfx_v_set_transpose( bool setting ){
 
-    pix_transpose = setting;
+    gfx_transpose = setting;
 }
 
 bool gfx_b_get_transpose( void ){
 
-    return pix_transpose;
+    return gfx_transpose;
 }
 
 void gfx_v_set_hsfade( uint16_t setting ){
@@ -1093,7 +1080,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         return 0xffff;
     }
 
-    if( pix_transpose ){
+    if( gfx_transpose ){
 
         uint16_t temp = y;
         y = x;
@@ -1102,7 +1089,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
 
     // interleaving only works on 2D access.
     // 1D will address array linearly along its physical axis.
-    if( pix_interleave_x && ( y < 65535 ) ){
+    if( gfx_interleave_x && ( y < 65535 ) ){
 
         if( y & 1 ){
 
