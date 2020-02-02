@@ -29,7 +29,7 @@
 #include "hal_io.h"
 
 
-void spi_v_init( uint8_t channel, uint32_t freq ){
+void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
