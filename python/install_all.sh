@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 
-cd sapphire
+pushd sapphire
 python setup.py install
+popd
 
-cd ../catbus
+pushd catbus
 python setup.py install
+popd
 
-cd ../chromatron
+pushd chromatron
 python setup.py install
+popd
+
+pushd elysianfields
+python setup.py install
+popd
