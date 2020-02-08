@@ -1678,6 +1678,15 @@ uint32_t wifi_u32_get_received( void ){
     return wifi_udp_received;
 }
 
+
+#else
+// ESP8266 host builds
+
+bool wifi_b_connected( void ){
+
+    return FALSE;
+}
+
 #endif
 
 

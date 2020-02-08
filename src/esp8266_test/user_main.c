@@ -81,4 +81,6 @@ void ICACHE_FLASH_ATTR user_init(void)
     os_timer_disarm(&ptimer);
     os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
     os_timer_arm(&ptimer, 2000, 1);
+
+    main();
 }

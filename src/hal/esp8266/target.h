@@ -57,7 +57,7 @@
 #define VM_ENABLE_GFX
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
-#define VM_MAX_IMAGE_SIZE   	16384
+#define VM_MAX_IMAGE_SIZE   	4096
 #define VM_MAX_CYCLES       	16000
 #define VM_OPTIMIZED_DECODE
 #define VM_MAX_VMS                  4
@@ -69,13 +69,13 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           8192
-#define MEM_HEAP_SIZE			65535
+#define MAX_MEM_HANDLES         128
+#define MEM_MAX_STACK           4096
+#define MEM_HEAP_SIZE			16384
 
 // flash fs
 // maximum number of blocks the FS can handle
-#define FFS_BLOCK_MAX_BLOCKS 16384
+#define FFS_BLOCK_MAX_BLOCKS 512
 
 #define FLASH_FS_MAX_USER_FILES 64
 
