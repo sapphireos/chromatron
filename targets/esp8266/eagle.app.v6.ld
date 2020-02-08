@@ -183,6 +183,11 @@ SECTIONS
     *(.routing_end)
     KEEP(*(.routing_end))
 
+    *sapphireos/obj/*.o (.text .text.*)
+    *hal/esp8266/obj/*.o (.text .text.*)
+    *lib_chromatron/obj/*.o (.text .text.*)
+    *lib_gfx/obj/*.o (.text .text.*)
+
     *libat.a:(.literal.* .text.*)
     *libcrypto.a:(.literal.* .text.*)
     *libespnow.a:(.literal.* .text.*)

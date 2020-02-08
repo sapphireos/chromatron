@@ -12,7 +12,7 @@
         "-Wl,-EL", 
         "-fno-inline-functions",
         "-nostdlib",
-        "-O3",
+        "-Os",
         "-g3",
         "-mlongcalls",
         "-mtext-section-literals",
