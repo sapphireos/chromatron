@@ -20,9 +20,8 @@
         "-U__STRICT_ANSI__",
         "-ffunction-sections",
         "-fdata-sections", 
-        "-fno-exceptions",
         "-fno-builtin-printf",
-        "-DPLATFORMIO=30605",
+        "-DPLATFORMIO=40100",
         "-DESP8266",
         "-DCHROMATRON_ESP8266",
         "-DARDUINO_ARCH_ESP8266",
@@ -51,8 +50,8 @@
     "LINK_FLAGS": [
         "--output %(TARGET_DIR)/main.elf",
         "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
-        "-O3",
         "-nostdlib",
+        "-Os",
         "-Wl,--no-check-sections", 
         "-Wl,-static -Wl,--gc-sections", 
         "-u call_user_start", 
@@ -82,9 +81,7 @@
         "-lwpa2",
         "-lwps",
         "-Wl,--end-group",
-        "-T %(LINKER_SCRIPT)",
-        "-Wl,--gc-sections",
-        "-Wl,--relax"
+        "-T %(LINKER_SCRIPT)"
     ],
 
     "LINKER_SCRIPT": "eagle.app.v6.ld",

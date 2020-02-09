@@ -1148,14 +1148,14 @@ class AppBuilder(HexBuilder):
             padding = [0] * padding_len
 
             header = [
-                # set magic number
-                0xe9, 
-                # number of segments
-                3, 
-                # flash interface (DIO)
-                0x02, 
-                # flash speed and size (4 MByte, 40 MHz)
-                0x40
+                # # set magic number
+                # 0xe9, 
+                # # number of segments
+                # 3, 
+                # # flash interface (DIO)
+                # 0x02, 
+                # # flash speed and size (4 MByte, 40 MHz)
+                # 0x40
             ]
 
 
