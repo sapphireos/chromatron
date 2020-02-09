@@ -106,8 +106,6 @@
         "dep"
     ],
 
-    "OS_PROJECT": "sapphire",
-
     "FW_INFO_ADDR": "0x40210000",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
