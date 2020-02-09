@@ -78,6 +78,8 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
 
+    os_printf("MEOW!!!\n");
+
     os_timer_disarm(&ptimer);
     os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
     os_timer_arm(&ptimer, 500, 1);
