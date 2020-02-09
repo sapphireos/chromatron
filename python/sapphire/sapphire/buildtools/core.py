@@ -962,7 +962,7 @@ class HexBuilder(Builder):
                 runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objcopy -O ihex -j %s main.elf %s.hex' % (section, section)))
             
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
-            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
             
         else:
@@ -1133,29 +1133,36 @@ class AppBuilder(HexBuilder):
             f2 = open('.rodata.bin', 'r')
             f3 = open('.irom0.text.bin', 'r')
 
-            b0 = f0.read()
-            b1 = f1.read()
-            b2 = f2.read()
-            b3 = f3.read()
+            b0 = [ord(c) for c in f0.read()]
+            b1 = [ord(c) for c in f1.read()]
+            b2 = [ord(c) for c in f2.read()]
+            b3 = [ord(c) for c in f3.read()]
 
             f0.close()
             f1.close()
             f2.close()
             f3.close()
 
+            # pad first three images to 64KB
+            padding_len = 65536 - (len(b0) + len(b1) + len(b2))
+            padding = [0] * padding_len
+
+            image_data = b0
+            image_data.extend(b1)
+            image_data.extend(b2)
+            image_data.extend(padding)
+            image_data.extend(b3)
+
+            # set magic number
+            image_data[0] = 0xE9
+
+            # convert back to string
+            image_data = ''.join([chr(c) for c in image_data])
+
             # stitch binary together
             with open('main.bin', 'w') as f:
-                f.write(b0)
-                f.write(b1)
-                f.write(b2)
-
-                # pad first three images to 64KB
-                padding_len = 65536 - (len(b0) + len(b1) + len(b2))
-                f.write('\0' * padding_len)
-
-                # append final image
-                f.write(b3)
-
+                f.write(image_data)
+                
             # convert to hex
             ih = IntelHex()
             ih.loadbin('main.bin')
