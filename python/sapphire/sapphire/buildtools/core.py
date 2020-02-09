@@ -1149,8 +1149,8 @@ class AppBuilder(HexBuilder):
                 f.write(b1)
                 f.write(b2)
 
-                # pad first three images to 32KB
-                padding_len = 32768 - (len(b0) + len(b1) + len(b2))
+                # pad first three images to 64KB
+                padding_len = 65536 - (len(b0) + len(b1) + len(b2))
                 f.write('\0' * padding_len)
 
                 # append final image
