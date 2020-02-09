@@ -1147,14 +1147,24 @@ class AppBuilder(HexBuilder):
             padding_len = 65536 - (len(b0) + len(b1) + len(b2))
             padding = [0] * padding_len
 
-            image_data = b0
+            header = [
+                # set magic number
+                0xe9, 
+                # number of segments
+                3, 
+                # flash interface (DIO)
+                0x02, 
+                # flash speed and size (4 MByte, 40 MHz)
+                0x40
+            ]
+
+
+            image_data = header
+            image_data.extend(b0)
             image_data.extend(b1)
             image_data.extend(b2)
             image_data.extend(padding)
             image_data.extend(b3)
-
-            # set magic number
-            image_data[0] = 0xE9
 
             # convert back to string
             image_data = ''.join([chr(c) for c in image_data])
