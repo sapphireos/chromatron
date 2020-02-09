@@ -119,7 +119,7 @@ SECTIONS
     *(.xt_except_desc_end)
     *(.dynamic)
     *(.gnu.version_d)
-    . = ALIGN(4);       /* this table MUST be 4-byte aligned */
+    . = ALIGN(4);		/* this table MUST be 4-byte aligned */
     _bss_table_start = ABSOLUTE(.);
     LONG(_bss_start)
     LONG(_bss_end)
@@ -154,6 +154,39 @@ SECTIONS
   .irom0.text : ALIGN(4)
   {
     _irom0_text_start = ABSOLUTE(.);
+
+    /* Sapphire firmware info section */
+    *(.fwinfo)
+    KEEP(*(.fwinfo))
+
+    /* Key-value service meta data sections */
+    *(.kv_meta_start)
+    KEEP(*(.kv_meta_start))
+    *(.kv_meta)
+    KEEP(*(.kv_meta))
+    *(.kv_meta_end)
+    KEEP(*(.kv_meta_end))
+
+    /* Presence service meta data sections */
+    *(.service_start)
+    KEEP(*(.service_start))
+    *(.service)
+    KEEP(*(.service))
+    *(.service_end)
+    KEEP(*(.service_end))
+
+    /* Routing table entry sections */
+    *(.routing_start)
+    KEEP(*(.routing_start))
+    *(.routing)
+    KEEP(*(.routing))
+    *(.routing_end)
+    KEEP(*(.routing_end))
+
+    *sapphireos/obj/*.o (.text .text.*)
+    *hal/esp8266/obj/*.o (.text .text.*)
+    *lib_chromatron/obj/*.o (.text .text.*)
+    *lib_gfx/obj/*.o (.text .text.*)
 
     *libat.a:(.literal.* .text.*)
     *libcrypto.a:(.literal.* .text.*)
@@ -227,4 +260,4 @@ SECTIONS
 }
 
 /* get ROM code address */
-INCLUDE "../ld/eagle.rom.addr.v6.ld"
+INCLUDE "eagle.rom.addr.v6.ld"
