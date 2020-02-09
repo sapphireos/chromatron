@@ -970,44 +970,9 @@ class HexBuilder(Builder):
 
         # convert to bin
         if self.settings["TOOLCHAIN"] == "XTENSA":
-
             for section in esp8266_sections:
                 ih = IntelHex('%s.hex' % (section))
                 ih.tobinfile('%s.bin' % (section))
-
-            # read binaries
-            f0 = open('.text.bin', 'r')
-            f1 = open('.data.bin', 'r')
-            f2 = open('.rodata.bin', 'r')
-            f3 = open('.irom0.text.bin', 'r')
-
-            b0 = f0.read()
-            b1 = f1.read()
-            b2 = f2.read()
-            b3 = f3.read()
-
-            f0.close()
-            f1.close()
-            f2.close()
-            f3.close()
-
-            # stitch binary together
-            with open('main.bin', 'w') as f:
-                f.write(b0)
-                f.write(b1)
-                f.write(b2)
-
-                # pad first three images to 32KB
-                padding_len = 32768 - (len(b0) + len(b1) + len(b2))
-                f.write('\0' * padding_len)
-
-                # append final image
-                f.write(b3)
-
-            # convert to hex
-            ih = IntelHex()
-            ih.loadbin('main.bin')
-            ih.write_hex_file('main.hex')
 
         else:
             ih = IntelHex('main.hex')
@@ -1048,7 +1013,11 @@ class AppBuilder(HexBuilder):
         # change to target dir
         os.chdir(self.target_dir)
 
-        ih = IntelHex('main.hex')
+        if self.settings["TOOLCHAIN"] == "XTENSA":
+            ih = IntelHex('.irom0.text.hex')
+
+        else:
+            ih = IntelHex('main.hex')
 
         starting_offset = ih.minaddr()
 
@@ -1156,8 +1125,46 @@ class AppBuilder(HexBuilder):
 
         ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
-        ih.write_hex_file('main.hex')
-        ih.tobinfile('firmware.bin')
+        if self.settings["TOOLCHAIN"] == "XTENSA":
+            ih.tobinfile('.irom0.text.bin')
+
+            f0 = open('.text.bin', 'r')
+            f1 = open('.data.bin', 'r')
+            f2 = open('.rodata.bin', 'r')
+            f3 = open('.irom0.text.bin', 'r')
+
+            b0 = f0.read()
+            b1 = f1.read()
+            b2 = f2.read()
+            b3 = f3.read()
+
+            f0.close()
+            f1.close()
+            f2.close()
+            f3.close()
+
+            # stitch binary together
+            with open('main.bin', 'w') as f:
+                f.write(b0)
+                f.write(b1)
+                f.write(b2)
+
+                # pad first three images to 32KB
+                padding_len = 32768 - (len(b0) + len(b1) + len(b2))
+                f.write('\0' * padding_len)
+
+                # append final image
+                f.write(b3)
+
+            # convert to hex
+            ih = IntelHex()
+            ih.loadbin('main.bin')
+            ih.write_hex_file('main.hex')
+            ih.tobinfile('firmware.bin')
+
+        else:
+            ih.write_hex_file('main.hex')
+            ih.tobinfile('firmware.bin')
 
         # get loader info
         try:
