@@ -956,7 +956,11 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
 
         elif self.settings["TOOLCHAIN"] == "XTENSA":
-            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objcopy -O ihex -R .data -R .bootdata -R .rodata main.elf main.hex'))
+            esp8266_sections = ['.irom0.text', '.text', '.data', '.rodata']
+
+            for section in esp8266_sections:
+                runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objcopy -O ihex -j %s main.elf %s.hex' % (section, section)))
+            
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
@@ -964,8 +968,50 @@ class HexBuilder(Builder):
         else:
             raise Exception("Unsupported toolchain")
 
-        ih = IntelHex('main.hex')
-        ih.tobinfile('main.bin')
+        # convert to bin
+        if self.settings["TOOLCHAIN"] == "XTENSA":
+
+            for section in esp8266_sections:
+                ih = IntelHex('%s.hex' % (section))
+                ih.tobinfile('%s.bin' % (section))
+
+            # read binaries
+            f0 = open('.text.bin', 'r')
+            f1 = open('.data.bin', 'r')
+            f2 = open('.rodata.bin', 'r')
+            f3 = open('.irom0.text.bin', 'r')
+
+            b0 = f0.read()
+            b1 = f1.read()
+            b2 = f2.read()
+            b3 = f3.read()
+
+            f0.close()
+            f1.close()
+            f2.close()
+            f3.close()
+
+            # stitch binary together
+            with open('main.bin', 'w') as f:
+                f.write(b0)
+                f.write(b1)
+                f.write(b2)
+
+                # pad first three images to 32KB
+                padding_len = 32768 - (len(b0) + len(b1) + len(b2))
+                f.write('\0' * padding_len)
+
+                # append final image
+                f.write(b3)
+
+            # convert to hex
+            ih = IntelHex()
+            ih.loadbin('main.bin')
+            ih.write_hex_file('main.hex')
+
+        else:
+            ih = IntelHex('main.hex')
+            ih.tobinfile('main.bin')
 
         # change back to working dir
         os.chdir(cwd)
