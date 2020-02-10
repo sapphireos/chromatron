@@ -66,6 +66,26 @@ void blinky(void *arg)
 	state ^= 1;
 }
 
+#define LOOP_PRIO 1
+#define LOOP_QUEUE_LEN 4
+
+static os_event_t loop_q[LOOP_QUEUE_LEN];
+
+//Main code function
+static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
+ 
+    // DO STUFF
+
+    blinky(0);
+
+    for(uint8_t i = 0; i < 10; i++){
+
+        os_delay_us(50000);    
+    }
+    
+    system_os_post(LOOP_PRIO, 0, 0 );
+}
+ 
 void ICACHE_FLASH_ATTR user_init(void)
 {
     gpio_init();
@@ -80,9 +100,14 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     os_printf("MEOW!!!\n");
 
-    os_timer_disarm(&ptimer);
-    os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
-    os_timer_arm(&ptimer, 500, 1);
+    // os_timer_disarm(&ptimer);
+    // os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
+    // os_timer_arm(&ptimer, 500, 1);
 
     // main();
+    //Start os task
+    system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
+    system_os_post(LOOP_PRIO, 0, 0 );    
 }
+
+
