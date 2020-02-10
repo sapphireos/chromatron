@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <limits.h>
 #include <errno.h>
@@ -38,19 +39,19 @@
 #include "user_interface.h"
 // #include "debug.h"
 
-void* malloc(size_t size) {
-    size = ((size + 3) & ~((size_t)0x3));
-    return os_malloc(size);
-}
+// void* malloc(size_t size) {
+//     size = ((size + 3) & ~((size_t)0x3));
+//     return os_malloc(size);
+// }
 
-void free(void* ptr) {
-    os_free(ptr);
-}
+// void free(void* ptr) {
+//     os_free(ptr);
+// }
 
-void* realloc(void* ptr, size_t size) {
-    size = ((size + 3) & ~((size_t)0x3));
-    return os_realloc(ptr, size);
-}
+// void* realloc(void* ptr, size_t size) {
+//     size = ((size + 3) & ~((size_t)0x3));
+//     return os_realloc(ptr, size);
+// }
 
 int puts(const char * str) {
     return os_printf("%s", str);

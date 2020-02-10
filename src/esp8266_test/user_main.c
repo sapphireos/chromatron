@@ -54,6 +54,42 @@ user_rf_cal_sector_set(void)
     return rf_cal_sec;
 }
 
+// user_pre_init is required from SDK v3.0.0 onwards
+// It is used to register the parition map with the SDK, primarily to allow
+// the app to use the SDK's OTA capability.  We don't make use of that in 
+// otb-iot and therefore the only info we provide is the mandatory stuff:
+// - RF calibration data
+// - Physical data
+// - System parameter
+// The location and length of these are from the 2A SDK getting started guide
+void ICACHE_FLASH_ATTR user_pre_init(void)
+{
+  bool rc = false;
+  static const partition_item_t part_table[] = 
+  {
+    {SYSTEM_PARTITION_RF_CAL,
+     0x3fb000,
+     0x1000},
+    {SYSTEM_PARTITION_PHY_DATA,
+     0x3fc000,
+     0x1000},
+    {SYSTEM_PARTITION_SYSTEM_PARAMETER,
+     0x3fd000,
+     0x3000},
+  };
+
+  // This isn't an ideal approach but there's not much point moving on unless
+  // or until this has succeeded cos otherwise the SDK will just barf and 
+  // refuse to call user_init()
+  while (!rc)
+  {
+    rc = system_partition_table_regist(part_table,
+                       sizeof(part_table)/sizeof(part_table[0]),
+                                       4);
+  }
+}
+
+
 void blinky(void *arg)
 {
 	static uint8_t state = 0;
