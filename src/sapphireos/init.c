@@ -146,6 +146,7 @@ int8_t sapphire_i8_init( void ){
     // init EEPROM
     ee_v_init();
 
+    trace_printf("CFG\r\n");
 	// init config manager
 	cfg_v_init();
 

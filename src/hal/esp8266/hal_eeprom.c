@@ -84,6 +84,13 @@ void ee_v_init( void ){
 
 	memset( ee_data, 0xff, sizeof(ee_data) );
 
+	if( flash25_u32_capacity() == 0 ){
+
+		trace_printf("Flash EE fail\r\n");
+
+		return;
+	}
+
 	block_header_t header;
 
 	// scan for first valid block
