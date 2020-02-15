@@ -59,7 +59,7 @@ typedef struct{
 	uint16_t size;
 	mem_handle_t handle;
     mem_type_t8 type;
-    #ifdef ARM
+    #ifdef ALIGN32
     uint8_t padding_len;
     uint16_t header_padding;
     #endif

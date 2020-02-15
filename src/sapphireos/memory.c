@@ -409,7 +409,7 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
 
     mem_handle_t handle = -1;
 
-    #ifdef ARM
+    #ifdef ALIGN32
     uint8_t padding_len = 4 - ( ( sizeof(mem_block_header_t) + size + 1 ) % 4 );
 
     size += padding_len;
@@ -451,7 +451,7 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
     header->size = size;
     header->handle = handle;
     header->type = type;
-    #ifdef ARM
+    #ifdef ALIGN32
     header->padding_len = padding_len;
     #endif
 
@@ -696,7 +696,7 @@ uint16_t mem2_u16_get_size( mem_handle_t handle ){
 	// get pointer to the header
 	mem_block_header_t *header = handles[handle];
 
-    #ifdef ARM
+    #ifdef ALIGN32
     uint16_t size = header->size - header->padding_len;
     #else
     uint16_t size = header->size;
