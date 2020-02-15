@@ -49,7 +49,7 @@
 #endif
 //#define ENABLE_RECORD_CREATOR
 
-#if MAX_MEM_HANDLES < 256
+#if (MAX_MEM_HANDLES < 256) && !defined(ALIGN32)
     typedef int8_t mem_handle_t;
 #else
     typedef int16_t mem_handle_t;
