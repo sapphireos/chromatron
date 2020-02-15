@@ -20,33 +20,10 @@
 // 
 // </license>
 
+#ifndef _TRACE_H	
+#define _TRACE_H
 
-#ifndef _HAL_CPU_H	
-#define _HAL_CPU_H
-
-#include "bool.h"
-#include "trace.h"
-// #define trace_printf(...)
-
-#define ENABLE_INTERRUPTS 
-#define DISABLE_INTERRUPTS
-
-#define RESET_SOURCE_POWER_ON   0x01
-#define RESET_SOURCE_JTAG       0x02
-#define RESET_SOURCE_EXTERNAL   0x04
-#define RESET_SOURCE_BROWNOUT   0x08
-
-#define ATOMIC 
-#define END_ATOMIC 
-
-#define FLASH_STRING(x) x
-#define FLASH_STRING_T const char*
-
-#define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
-#define NON_CACHEABLE __attribute__ ((section (".non_cacheable")))
-#define MEMORY_HEAP __attribute__ ((section (".memory_heap")))
-
-void hal_cpu_v_delay_us( uint16_t us );
-
+#define TRACE_BUF_SIZE 256
+int trace_printf(const char* format, ...);
 
 #endif
