@@ -99,16 +99,9 @@
 // total pages
 #define TOTAL_PAGES ( N_APP_PAGES + 32 )
 
+#define FLASH_START 	( 0x40210000 )
 
-#if (defined(DEBUG) || defined(NO_BOOT)) && !defined(BOOTLOADER)
-	#define FLASH_START 	( 0x08000000 + 0 )
-#else
-	#define FLASH_START 	( 0x08000000 + 0x20000 )
-#endif
-
-#define BOOTLOADER_FLASH_START 0x08000000
-
-#define FW_INFO_ADDRESS 0x00000400 // this must match the offset in the makefile!
+#define FW_INFO_ADDRESS 0x0000000 // this must match the offset in the makefile!
 #define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
 
 
