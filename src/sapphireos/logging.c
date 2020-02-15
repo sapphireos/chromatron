@@ -68,8 +68,10 @@ void log_v_init( void ){
 
 static void append_log( char *buf ){
 
-    // trace_printf("%s", buf); // log prints already have newlines
-
+    #ifdef ENABLE_LOG_TO_TRACE_PRINT
+    trace_printf("%s", buf); // log prints already have newlines
+    #endif
+    
     // check if file is not open
     if( f < 0 ){
 

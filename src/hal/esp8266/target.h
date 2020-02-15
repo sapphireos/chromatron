@@ -89,6 +89,7 @@
 
 // logging
 #define LOG_MAX_BUFFER_SIZE     2048
+#define ENABLE_LOG_TO_TRACE_PRINT
 
 // bootloader target settings
 // page size in bytes
