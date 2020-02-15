@@ -708,6 +708,89 @@ void process_signalled_threads( void ){
 //     }
 // }
 
+void thread_core( void ){
+
+    // set sleep flag
+    thread_flags |= FLAGS_SLEEP;
+
+    // ********************************************************************
+    // Process Waiting threads
+    //
+    // Loop through all waiting threads
+    // ********************************************************************
+    list_node_t ln = thread_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
+
+        thread_state_t *state = (thread_state_t *)&ln_state->data;
+
+        if( ( ( state->flags & THREAD_FLAGS_ALARM ) != 0 ) &&
+              ( tmr_i8_compare_time( state->alarm ) < 0 ) ){
+
+            run_cause = THREAD_FLAGS_ALARM;
+
+            // clear flags
+            state->flags &= ~THREAD_FLAGS_ALARM;
+            state->flags &= ~THREAD_FLAGS_SLEEPING;
+            state->flags &= ~THREAD_FLAGS_WAITING;
+            state->flags &= ~THREAD_FLAGS_YIELDED;
+
+            run_thread( ln, state );
+        }
+        else if( ( ( ( state->flags & THREAD_FLAGS_WAITING ) != 0 ) ||
+                   ( ( state->flags & THREAD_FLAGS_YIELDED ) != 0 ) ) ){
+
+            // clear wait flags
+            state->flags &= ~THREAD_FLAGS_WAITING;
+            state->flags &= ~THREAD_FLAGS_YIELDED;
+            state->flags &= ~THREAD_FLAGS_SLEEPING;
+
+            // run the thread
+            run_thread( ln, state );
+        }
+
+        ln = ln_state->next;
+
+        process_signalled_threads();
+
+        #ifdef ENABLE_USB
+        usb_v_poll();
+        #endif
+    }
+
+    mem2_v_collect_garbage();        
+
+    // ********************************************************************
+    // Check for sleep conditions
+    //
+    // If no IRQ threads, and all threads are asleep, enter sleep mode
+    // ********************************************************************
+    #ifdef ENABLE_POWER
+    if( ( thread_flags & FLAGS_SLEEP ) &&
+        ( thread_u16_get_signals() == 0 ) ){
+
+        uint32_t sleep_start = tmr_u32_get_system_time_us();
+
+        pwr_v_sleep();
+
+        // zzzzzzzzzzzzz
+
+        sleep_us += tmr_u32_elapsed_time_us( sleep_start );
+    }
+    #endif
+
+    #ifdef __SIM__
+    break;
+    #endif
+
+    if( loops < 0xffff ){
+
+        loops++;
+    }
+}
+
 // start the thread scheduler
 void thread_start( void ){
 
@@ -732,85 +815,7 @@ void thread_start( void ){
 	// infinite loop running the thread scheduler
 	while(1){
 
-		// set sleep flag
-		thread_flags |= FLAGS_SLEEP;
-
-		// ********************************************************************
-		// Process Waiting threads
-		//
-		// Loop through all waiting threads
-		// ********************************************************************
-        list_node_t ln = thread_list.head;
-
-        while( ln >= 0 ){
-
-            list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
-
-            thread_state_t *state = (thread_state_t *)&ln_state->data;
-
-            if( ( ( state->flags & THREAD_FLAGS_ALARM ) != 0 ) &&
-                  ( tmr_i8_compare_time( state->alarm ) < 0 ) ){
-
-                run_cause = THREAD_FLAGS_ALARM;
-
-                // clear flags
-                state->flags &= ~THREAD_FLAGS_ALARM;
-                state->flags &= ~THREAD_FLAGS_SLEEPING;
-                state->flags &= ~THREAD_FLAGS_WAITING;
-                state->flags &= ~THREAD_FLAGS_YIELDED;
-
-                run_thread( ln, state );
-            }
-			else if( ( ( ( state->flags & THREAD_FLAGS_WAITING ) != 0 ) ||
-                       ( ( state->flags & THREAD_FLAGS_YIELDED ) != 0 ) ) ){
-
-				// clear wait flags
-				state->flags &= ~THREAD_FLAGS_WAITING;
-				state->flags &= ~THREAD_FLAGS_YIELDED;
-                state->flags &= ~THREAD_FLAGS_SLEEPING;
-
-				// run the thread
-				run_thread( ln, state );
-			}
-
-            ln = ln_state->next;
-
-            process_signalled_threads();
-
-            #ifdef ENABLE_USB
-            usb_v_poll();
-            #endif
-		}
-
-        mem2_v_collect_garbage();        
-
-		// ********************************************************************
-		// Check for sleep conditions
-		//
-		// If no IRQ threads, and all threads are asleep, enter sleep mode
-		// ********************************************************************
-        #ifdef ENABLE_POWER
-		if( ( thread_flags & FLAGS_SLEEP ) &&
-            ( thread_u16_get_signals() == 0 ) ){
-
-            uint32_t sleep_start = tmr_u32_get_system_time_us();
-
-            pwr_v_sleep();
-
-            // zzzzzzzzzzzzz
-
-            sleep_us += tmr_u32_elapsed_time_us( sleep_start );
-		}
-        #endif
-
-        #ifdef __SIM__
-        break;
-        #endif
-
-        if( loops < 0xffff ){
-
-            loops++;
-        }
+		thread_core();
 	}
 }
 

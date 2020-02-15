@@ -33,11 +33,13 @@
 
 #include <stdint.h>
 
+#ifndef TRUE
 typedef uint8_t bool;
 #define TRUE 1
 #define FALSE 0
 #define true TRUE
 #define false FALSE
+#endif
 
 #endif
 #endif

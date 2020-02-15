@@ -1,6 +1,9 @@
 #include "osapi.h"
 #include "user_interface.h"
 
+#include "threading.h"
+
+
 static os_timer_t ptimer;
 
 /******************************************************************************
@@ -110,16 +113,18 @@ static os_event_t loop_q[LOOP_QUEUE_LEN];
 //Main code function
 static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
  
+    thread_core();
+
     // DO STUFF
 
-    blinky(0);
+    // blinky(0);
 
-    for(uint8_t i = 0; i < 10; i++){
+    // for(uint8_t i = 0; i < 10; i++){
 
-        os_delay_us(50000);    
-    }
+    //     os_delay_us(50000);    
+    // }
     
-    system_os_post(LOOP_PRIO, 0, 0 );
+    // system_os_post(LOOP_PRIO, 0, 0 );
 }
  
 void ICACHE_FLASH_ATTR user_init(void)
@@ -140,7 +145,9 @@ void ICACHE_FLASH_ATTR user_init(void)
     // os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
     // os_timer_arm(&ptimer, 500, 1);
 
-    // main();
+    // this will init SapphireOS
+    main();
+    
     //Start os task
     system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
     system_os_post(LOOP_PRIO, 0, 0 );    
