@@ -83,9 +83,14 @@
     #endif
     
     #define PGM_P const char*
+
+    #ifdef ESP8266
+    #define PROGMEM __attribute__((section(".irom0.text"))) __attribute__((aligned(4)))
+    #define PSTR(s) (__extension__({static const char __c[] __attribute__((aligned(4))) PROGMEM = (s); &__c[0];}))
+    #else
     #define PROGMEM
-    // #define PSTR(s) ({static char c[ ] = (s); c;})
     #define PSTR(s) s
+    #endif
 
     #define strncpy_P strncpy
     #define strncmp_P strncmp
