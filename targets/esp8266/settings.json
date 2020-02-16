@@ -12,7 +12,7 @@
         "-Wl,-EL", 
         "-fno-inline-functions",
         "-nostdlib",
-        "-Og",
+        "-Os",
         "-g3",
         "-mforce-l32",
         "-mlongcalls",
@@ -52,7 +52,6 @@
     "LINK_FLAGS": [
         "--output %(TARGET_DIR)/main.elf",
         "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
-        "-Og",
         "-nostdlib",
         "-Wl,--no-check-sections", 
         "-Wl,-static -Wl,--gc-sections", 
