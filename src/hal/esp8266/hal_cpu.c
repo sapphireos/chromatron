@@ -82,7 +82,7 @@ void cpu_v_sleep( void ){
 
 bool cpu_b_osc_fail( void ){
 
-    return 
+    return 0;
 }
 
 uint32_t cpu_u32_get_clock_speed( void ){
