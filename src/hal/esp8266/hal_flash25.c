@@ -37,7 +37,7 @@ static uint32_t max_address;
 
 
 void hal_flash25_v_init( void ){
-
+return;
     // read max address
     max_address = flash25_u32_read_capacity_from_info();
 

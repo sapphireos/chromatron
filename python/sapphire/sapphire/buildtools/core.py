@@ -956,11 +956,6 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
 
         elif self.settings["TOOLCHAIN"] == "XTENSA":
-            esp8266_sections = ['.irom0.text', '.text', '.data', '.rodata']
-
-            for section in esp8266_sections:
-                runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objcopy -O ihex -j %s main.elf %s.hex' % (section, section)))
-            
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
             # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
@@ -970,13 +965,20 @@ class HexBuilder(Builder):
 
         # convert to bin
         if self.settings["TOOLCHAIN"] == "XTENSA":
-            for section in esp8266_sections:
-                ih = IntelHex('%s.hex' % (section))
-                ih.tobinfile('%s.bin' % (section))
+            runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
+
+            # create binary image
+            # often, the ESP8266 loads in two images, one at 0x00000000, and one at 0x00010000.
+            # we're just going to combine the two so we just have the one image.
+            ih = IntelHex()
+            ih.loadbin('0x00000000_firmware.bin', offset=0x00000)
+            ih.loadbin('0x00010000_firmware.bin', offset=0x10000)
+            ih.tobinfile('main.bin')
+            ih.write_hex_file('main.hex')
 
         else:
-            ih = IntelHex('main.hex')
-            ih.tobinfile('main.bin')
+            ih = IntelHex()
+            ih.loadbinfile('main.bin')
 
         # change back to working dir
         os.chdir(cwd)
@@ -1012,12 +1014,8 @@ class AppBuilder(HexBuilder):
 
         # change to target dir
         os.chdir(self.target_dir)
-
-        if self.settings["TOOLCHAIN"] == "XTENSA":
-            ih = IntelHex('.irom0.text.hex')
-
-        else:
-            ih = IntelHex('main.hex')
+    
+        ih = IntelHex('main.hex')
 
         starting_offset = ih.minaddr()
 
@@ -1125,63 +1123,8 @@ class AppBuilder(HexBuilder):
 
         ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
-        if self.settings["TOOLCHAIN"] == "XTENSA":
-            ih.tobinfile('.irom0.text.bin')
-
-            f0 = open('.text.bin', 'r')
-            f1 = open('.data.bin', 'r')
-            f2 = open('.rodata.bin', 'r')
-            f3 = open('.irom0.text.bin', 'r')
-
-            b0 = [ord(c) for c in f0.read()]
-            b1 = [ord(c) for c in f1.read()]
-            b2 = [ord(c) for c in f2.read()]
-            b3 = [ord(c) for c in f3.read()]
-
-            f0.close()
-            f1.close()
-            f2.close()
-            f3.close()
-
-            # pad first three images to 64KB
-            padding_len = 65536 - (len(b0) + len(b1) + len(b2))
-            padding = [0] * padding_len
-
-            header = [
-                # set magic number
-                0xe9, 
-                # number of segments
-                3, 
-                # flash interface (DIO)
-                0x02, 
-                # flash speed and size (4 MByte, 40 MHz)
-                0x40
-            ]
-
-
-            image_data = header
-            image_data.extend(b0)
-            image_data.extend(b1)
-            image_data.extend(b2)
-            image_data.extend(padding)
-            image_data.extend(b3)
-
-            # convert back to string
-            image_data = ''.join([chr(c) for c in image_data])
-
-            # stitch binary together
-            with open('main.bin', 'w') as f:
-                f.write(image_data)
-                
-            # convert to hex
-            ih = IntelHex()
-            ih.loadbin('main.bin')
-            ih.write_hex_file('main.hex')
-            ih.tobinfile('firmware.bin')
-
-        else:
-            ih.write_hex_file('main.hex')
-            ih.tobinfile('firmware.bin')
+        ih.write_hex_file('main.hex')
+        ih.tobinfile('firmware.bin')
 
         # get loader info
         try:
