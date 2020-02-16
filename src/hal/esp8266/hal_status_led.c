@@ -194,6 +194,7 @@ void status_led_v_set( uint8_t state, uint8_t led ){
             break;
 
         case STATUS_LED_RED:
+            GPIO_OUTPUT_SET(2, 1);
             break;
 
         case STATUS_LED_YELLOW:
