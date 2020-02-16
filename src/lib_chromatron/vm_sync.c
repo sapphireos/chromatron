@@ -50,12 +50,12 @@ static uint8_t sync_state;
 #define STATE_SLAVE_SYNC 	3
 
 
-static ip_addr_t master_ip;
+static ip_addr4_t master_ip;
 static uint64_t master_uptime;
 
 static uint16_t slave_offset;
 static uint16_t slave_frame;
-static ip_addr_t pending_slave;
+static ip_addr4_t pending_slave;
 static uint32_t slave_net_time;
 
 
@@ -345,7 +345,7 @@ static void send_request( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
-static void send_shutdown( ip_addr_t *addr ){
+static void send_shutdown( ip_addr4_t *addr ){
 
     vm_sync_msg_shutdown_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;

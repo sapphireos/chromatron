@@ -26,10 +26,6 @@
 #include "ip.h"
 #include "catbus_common.h"
 
-#if !defined(ESP8266) || defined(CHROMATRON_ESP8266)
-typedef ip_addr_t sos_ip_addr_t;
-#endif
-
 #define WIFI_UDP_BUF_LEN            548
 
 #define WIFI_MAX_PORTS              16
@@ -94,10 +90,10 @@ typedef struct __attribute__((packed)){
     uint8_t version_minor;
     uint8_t version_patch;
     uint8_t mac[6];
-    sos_ip_addr_t ip;
-    sos_ip_addr_t subnet;
-    sos_ip_addr_t gateway;
-    sos_ip_addr_t dns;
+    ip_addr4_t ip;
+    ip_addr4_t subnet;
+    ip_addr4_t gateway;
+    ip_addr4_t dns;
     int8_t rssi;
     uint16_t rx_udp_overruns;
     uint32_t udp_received;
@@ -135,7 +131,7 @@ typedef struct __attribute__((packed)){
 #define WIFI_DATA_ID_PORTS              0x21
 
 typedef struct __attribute__((packed)){
-    sos_ip_addr_t addr;
+    ip_addr4_t addr;
     uint16_t lport;
     uint16_t rport;
     uint16_t len;

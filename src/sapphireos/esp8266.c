@@ -1553,7 +1553,7 @@ PT_END( pt );
 }
 
 
-int8_t get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
+int8_t get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
     // check if interface is up
     if( !wifi_b_connected() ){

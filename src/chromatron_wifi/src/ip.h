@@ -28,7 +28,7 @@ typedef struct __attribute__((packed)){
 	uint8_t ip2;
 	uint8_t ip1;
 	uint8_t ip0;
-} sos_ip_addr_t;
+} ip_addr4_t;
 
 
 #endif
