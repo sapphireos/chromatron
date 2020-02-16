@@ -103,7 +103,7 @@ uint16_t adc_u16_read_supply_voltage( void ){
 
 uint16_t adc_u16_read_vcc( void ){
 
-	return 0;
+	return ( system_get_vdd33() * 1000 ) / 1024;
 }
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){

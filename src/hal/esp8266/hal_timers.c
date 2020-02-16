@@ -29,6 +29,8 @@
 #include "hal_timers.h"
 #include "hal_watchdog.h"
 
+static uint32_t last_sys_time;
+static uint32_t overflows;
 
 void hal_timer_v_init( void ){
 
@@ -42,7 +44,16 @@ bool tmr_b_io_timers_running( void ){
 
 uint64_t tmr_u64_get_system_time_us( void ){
 
-    return 0;    
+	uint32_t now = system_get_time();
+
+	if( now <= last_sys_time ){
+
+		overflows++;
+	}
+
+	last_sys_time = now;
+
+    return (uint64_t)overflows * 0x100000000 + now;
 }
 
 
@@ -53,7 +64,6 @@ int8_t tmr_i8_set_alarm_microseconds( int64_t alarm ){
 
 void tmr_v_cancel_alarm( void ){
 
-    
 }
 
 // return true if alarm is armed
