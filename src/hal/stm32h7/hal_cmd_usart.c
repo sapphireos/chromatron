@@ -95,7 +95,7 @@ ISR(UART4_IRQHandler){
 }
 #endif
 
-int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
+int8_t cmd_usart_i8_get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
     *subnet = ip_a_addr(240,1,2,3);
     *subnet_mask = ip_a_addr(255,255,255,255);

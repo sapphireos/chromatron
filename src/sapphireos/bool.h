@@ -33,8 +33,13 @@
 
 #include <stdint.h>
 
-#ifndef TRUE
 typedef uint8_t bool;
+
+#ifdef ESP8266
+#include "user_interface.h"
+#define TRUE true
+#define FALSE false
+#else
 #define TRUE 1
 #define FALSE 0
 #define true TRUE

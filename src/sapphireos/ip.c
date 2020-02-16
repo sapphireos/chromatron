@@ -63,7 +63,7 @@ void ip_v_init( void ){
 
 // initialize common fields of IP header
 void ip_v_init_header( ip_hdr_t *ip_hdr,
-                       ip_addr_t dest_addr,
+                       ip_addr4_t dest_addr,
                        uint8_t protocol,
                        uint8_t ttl,
                        uint16_t len ){
@@ -213,9 +213,9 @@ uint16_t ip_u16_checksum( void *data, uint16_t len ){
 #endif
 
 
-ip_addr_t ip_a_addr( uint8_t ip3, uint8_t ip2, uint8_t ip1, uint8_t ip0 ){
+ip_addr4_t ip_a_addr( uint8_t ip3, uint8_t ip2, uint8_t ip1, uint8_t ip0 ){
 
-	ip_addr_t ip;
+	ip_addr4_t ip;
 
 	ip.ip3 = ip3;
 	ip.ip2 = ip2;
@@ -225,12 +225,12 @@ ip_addr_t ip_a_addr( uint8_t ip3, uint8_t ip2, uint8_t ip1, uint8_t ip0 ){
 	return ip;
 }
 
-bool ip_b_mask_compare( ip_addr_t subnet_addr,
-						ip_addr_t subnet_mask,
-						ip_addr_t dest_addr ){
+bool ip_b_mask_compare( ip_addr4_t subnet_addr,
+						ip_addr4_t subnet_mask,
+						ip_addr4_t dest_addr ){
 
-	ip_addr_t masked_subnet;
-	ip_addr_t masked_dest;
+	ip_addr4_t masked_subnet;
+	ip_addr4_t masked_dest;
 
     // check if mask is all 0s
     if( ip_b_addr_compare( subnet_mask, ip_a_addr(0,0,0,0) ) ){
@@ -254,7 +254,7 @@ bool ip_b_mask_compare( ip_addr_t subnet_addr,
 	return ip_b_addr_compare( masked_subnet, masked_dest );
 }
 
-bool ip_b_addr_compare( ip_addr_t addr1, ip_addr_t addr2 ){
+bool ip_b_addr_compare( ip_addr4_t addr1, ip_addr4_t addr2 ){
 
 	if( ( addr1.ip3 == addr2.ip3 ) &&
 		( addr1.ip2 == addr2.ip2 ) &&
@@ -267,7 +267,7 @@ bool ip_b_addr_compare( ip_addr_t addr1, ip_addr_t addr2 ){
 	return FALSE;
 }
 
-bool ip_b_is_zeroes( ip_addr_t addr ){
+bool ip_b_is_zeroes( ip_addr4_t addr ){
 
     if( ( addr.ip3 == 0 ) &&
 		( addr.ip2 == 0 ) &&
@@ -281,11 +281,11 @@ bool ip_b_is_zeroes( ip_addr_t addr ){
 }
 
 // check if the given ip address is a broadcast for this node's subnet
-bool ip_b_check_broadcast( ip_addr_t dest_addr ){
+bool ip_b_check_broadcast( ip_addr4_t dest_addr ){
 
-	ip_addr_t masked_dest;
+	ip_addr4_t masked_dest;
 
-	ip_addr_t subnet;
+	ip_addr4_t subnet;
 	cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, &subnet );
 
 	// check broadcast
@@ -313,14 +313,14 @@ bool ip_b_check_broadcast( ip_addr_t dest_addr ){
 
 
 // check if the given ip address is for this node
-bool ip_b_check_dest( ip_addr_t dest_addr ){
+bool ip_b_check_dest( ip_addr4_t dest_addr ){
 
 	return ip_b_check_loopback( dest_addr );
 }
 
-bool ip_b_check_loopback( ip_addr_t dest_addr ){
+bool ip_b_check_loopback( ip_addr4_t dest_addr ){
 
-	ip_addr_t my_addr;
+	ip_addr4_t my_addr;
 	cfg_i8_get( CFG_PARAM_IP_ADDRESS, &my_addr );
 
 	// check unicast
@@ -338,7 +338,7 @@ bool ip_b_check_loopback( ip_addr_t dest_addr ){
 	return FALSE;
 }
 
-bool ip_b_check_link_local( ip_addr_t dest_addr ){
+bool ip_b_check_link_local( ip_addr4_t dest_addr ){
 
 	if( ip_b_mask_compare( ip_a_addr(169,254,0,0), ip_a_addr(255,255,0,0), dest_addr ) == TRUE ){
 
@@ -348,14 +348,14 @@ bool ip_b_check_link_local( ip_addr_t dest_addr ){
 	return FALSE;
 }
 
-uint32_t ip_u32_to_int( ip_addr_t ip ){
+uint32_t ip_u32_to_int( ip_addr4_t ip ){
 
    return ( (uint32_t)ip.ip3 << 24 ) + ( (uint32_t)ip.ip2 << 16 ) + ( ip.ip1 << 8 ) +( ip.ip0 );
 }
 
-ip_addr_t ip_a_from_int( uint32_t i ){
+ip_addr4_t ip_a_from_int( uint32_t i ){
 
-    ip_addr_t ip;
+    ip_addr4_t ip;
 
     ip.ip3 = i >> 24;
     ip.ip2 = i >> 16;

@@ -61,7 +61,7 @@ static int uart_putchar( char c, FILE *stream )
 #endif
 
 
-int8_t cmd_usart_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
+int8_t cmd_usart_i8_get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
     #ifdef ENABLE_USB_UDP_TRANSPORT
 

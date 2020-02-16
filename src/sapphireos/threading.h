@@ -155,7 +155,7 @@ int32_t thread_i32_get_next_alarm( void );
     void thread_start( void ) __attribute__ ((noreturn));
 #endif
 
-#ifdef XTENSA
+#ifdef ESP8266
 void thread_core( void );
 #endif
 

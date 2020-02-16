@@ -48,7 +48,7 @@ typedef int8_t netmsg_type_t;
 #define NETMSG_ROUTE_DEFAULT                1
 
 typedef struct{
-	ip_addr_t ipaddr;
+	ip_addr4_t ipaddr;
 	uint16_t port;
 } sock_addr_t;
 
@@ -73,7 +73,7 @@ typedef struct{
 
 #define ROUTE_FLAGS_ALLOW_GLOBAL_BROADCAST 0x01
 
-typedef int8_t ( *route_i8_get_route )( ip_addr_t *subnet, ip_addr_t *subnet_mask );
+typedef int8_t ( *route_i8_get_route )( ip_addr4_t *subnet, ip_addr4_t *subnet_mask );
 typedef int8_t ( *route_i8_transmit_msg )( netmsg_t msg );
 typedef void ( *route_v_open_close_port )( uint8_t protocol, uint16_t port, bool open );
 

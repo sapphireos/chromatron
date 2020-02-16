@@ -35,7 +35,7 @@
 
 typedef struct{
     uint8_t status;
-    ip_addr_t ip;
+    ip_addr4_t ip;
     uint32_t ttl;
     char name; // first byte of name
 } dns_query_t;
@@ -123,13 +123,13 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint16_t id;
     uint32_t ttl;
-    ip_addr_t ip;
+    ip_addr4_t ip;
 } dns_parsed_a_record_t;
 
 
 void dns_v_init( void );
 int8_t dns_i8_add_entry( char *name );
-ip_addr_t dns_a_query( char *name );
+ip_addr4_t dns_a_query( char *name );
 
 int8_t dns_i8_parse_A_record( void *response, uint16_t response_len, dns_parsed_a_record_t *record );
 

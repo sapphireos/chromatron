@@ -38,7 +38,7 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
-static ip_addr_t master_ip;
+static ip_addr4_t master_ip;
 static uint64_t master_uptime;
 static uint8_t master_source;
 static bool is_sync;

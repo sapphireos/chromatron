@@ -65,7 +65,7 @@ void ( *netmsg_v_receive_msg )( netmsg_t msg );
 void default_open_close_port( uint8_t protocol, uint16_t port, bool open ){
 }
 
-int8_t loopback_i8_get_route( ip_addr_t *subnet, ip_addr_t *subnet_mask ){
+int8_t loopback_i8_get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
     *subnet = ip_a_addr(127,0,0,0);
     *subnet_mask = ip_a_addr(255,0,0,0);
@@ -345,8 +345,8 @@ int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
         // load meta data
         memcpy_P( &route, ptr, sizeof(route) );
     
-        ip_addr_t subnet;
-        ip_addr_t subnet_mask;
+        ip_addr4_t subnet;
+        ip_addr4_t subnet_mask;
 
         int8_t route_status = route.get_route( &subnet, &subnet_mask );
         if( route_status < 0 ){

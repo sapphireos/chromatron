@@ -61,7 +61,7 @@ typedef struct{
 	uint8_t ip2;
 	uint8_t ip1;
 	uint8_t ip0;
-} ip_addr_t;
+} ip_addr4_t;
 
 typedef struct{
 	uint8_t vhl; // version and header length
@@ -72,8 +72,8 @@ typedef struct{
 	uint8_t ttl; // time to live
 	uint8_t protocol; // next protocol
 	uint16_t header_checksum; // self-explanatory
-	ip_addr_t source_addr;
-	ip_addr_t dest_addr;
+	ip_addr4_t source_addr;
+	ip_addr4_t dest_addr;
 } ip_hdr_t;
 
 
@@ -81,7 +81,7 @@ typedef struct{
 void ip_v_init( void );
 
 void ip_v_init_header( ip_hdr_t *ip_hdr,
-                       ip_addr_t dest_addr,
+                       ip_addr4_t dest_addr,
                        uint8_t protocol,
                        uint8_t ttl,
                        uint16_t len );
@@ -91,17 +91,17 @@ uint16_t ip_u16_ip_hdr_checksum( ip_hdr_t *ip_hdr );
 uint16_t ip_u16_checksum( void *data, uint16_t len );
 #endif
 
-ip_addr_t ip_a_addr( uint8_t ip3, uint8_t ip2, uint8_t ip1, uint8_t ip0 );
-bool ip_b_is_zeroes( ip_addr_t addr );
-bool ip_b_mask_compare( ip_addr_t subnet_addr,
-						ip_addr_t subnet_mask,
-						ip_addr_t dest_addr );
-bool ip_b_addr_compare( ip_addr_t addr1, ip_addr_t addr2 );
-bool ip_b_check_broadcast( ip_addr_t dest_addr );
-bool ip_b_check_dest( ip_addr_t dest_addr );
-bool ip_b_check_loopback( ip_addr_t dest_addr );
-bool ip_b_check_link_local( ip_addr_t dest_addr );
-uint32_t ip_u32_to_int( ip_addr_t ip );
-ip_addr_t ip_a_from_int( uint32_t i );
+ip_addr4_t ip_a_addr( uint8_t ip3, uint8_t ip2, uint8_t ip1, uint8_t ip0 );
+bool ip_b_is_zeroes( ip_addr4_t addr );
+bool ip_b_mask_compare( ip_addr4_t subnet_addr,
+						ip_addr4_t subnet_mask,
+						ip_addr4_t dest_addr );
+bool ip_b_addr_compare( ip_addr4_t addr1, ip_addr4_t addr2 );
+bool ip_b_check_broadcast( ip_addr4_t dest_addr );
+bool ip_b_check_dest( ip_addr4_t dest_addr );
+bool ip_b_check_loopback( ip_addr4_t dest_addr );
+bool ip_b_check_link_local( ip_addr4_t dest_addr );
+uint32_t ip_u32_to_int( ip_addr4_t ip );
+ip_addr4_t ip_a_from_int( uint32_t i );
 
 #endif

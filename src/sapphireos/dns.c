@@ -159,7 +159,7 @@ int8_t dns_i8_add_entry( char *name ){
 
 // search DNS cache for name
 // if there is no entry, adds it so the resolver will perform a query
-ip_addr_t dns_a_query( char *name ){
+ip_addr4_t dns_a_query( char *name ){
 
     // search cache for entry
     list_node_t ln = query_list.head;
@@ -198,7 +198,7 @@ PT_BEGIN( pt );
     THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() );
 
     // get DNS server config
-    ip_addr_t dns_server;
+    ip_addr4_t dns_server;
     cfg_i8_get( CFG_PARAM_DNS_SERVER, &dns_server );
 
     // if DNS server address is not available

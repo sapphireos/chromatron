@@ -22,14 +22,12 @@
 // </license>
  */
 
-
 #include "system.h"
 #include "threading.h"
 #include "timers.h"
 #include "config.h"
 #include "io.h"
 #include "flash_fs.h"
-#include "adc.h"
 #include "esp8266.h"
 
 #include "hal_status_led.h"
@@ -151,7 +149,7 @@ PT_END( pt );
 
 void reset_all( void ){
 
-  
+    GPIO_OUTPUT_SET(2, 0);
 }
 
 void status_led_v_init( void ){
@@ -192,6 +190,7 @@ void status_led_v_set( uint8_t state, uint8_t led ){
             break;
 
         case STATUS_LED_GREEN:
+            GPIO_OUTPUT_SET(2, 1);
             break;
 
         case STATUS_LED_RED:

@@ -24,6 +24,7 @@
 #ifndef _HAL_CPU_H	
 #define _HAL_CPU_H
 
+#include "user_interface.h"
 #include "bool.h"
 #include "trace.h"
 // #define trace_printf(...)

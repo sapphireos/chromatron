@@ -121,10 +121,10 @@
 
 
 typedef struct{
-    ip_addr_t ip;
-    ip_addr_t subnet;
-    ip_addr_t dns_server;
-    ip_addr_t internet_gateway;
+    ip_addr4_t ip;
+    ip_addr4_t subnet;
+    ip_addr4_t dns_server;
+    ip_addr4_t internet_gateway;
 } cfg_ip_config_t;
 
 typedef struct{

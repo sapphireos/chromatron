@@ -813,7 +813,7 @@ void cfg_v_set_string_P( catbus_hash_t32 parameter, PGM_P value ){
     cfg_v_set( parameter, s );
 }
 
-void cfg_v_set_ipv4( catbus_hash_t32 parameter, ip_addr_t value ){
+void cfg_v_set_ipv4( catbus_hash_t32 parameter, ip_addr4_t value ){
 
     cfg_v_set( parameter, &value );
 }

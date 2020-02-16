@@ -20,7 +20,6 @@
 // 
 // </license>
 
-#include "user_interface.h"
 #include "hal_cpu.h"
 #include "cpu.h"
 #include "hal_timers.h"

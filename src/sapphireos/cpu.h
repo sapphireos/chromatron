@@ -31,8 +31,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "bool.h"
 #include "hal_cpu.h"
+#include "bool.h"
 
 #define _TOKENPASTE(x, y) x ## y
 #define TOKENPASTE(x, y) _TOKENPASTE(x, y)
