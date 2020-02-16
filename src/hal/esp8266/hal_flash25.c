@@ -38,9 +38,6 @@ static uint32_t max_address;
 
 void hal_flash25_v_init( void ){
 
-   
-
-
     // read max address
     max_address = flash25_u32_read_capacity_from_info();
 
@@ -53,7 +50,6 @@ void hal_flash25_v_init( void ){
     // disable writes
     flash25_v_write_disable();
 
-    spi_flash_erase_protect_enable();
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -223,9 +219,7 @@ void flash25_v_erase_4k( uint32_t address ){
 
     BUSY_WAIT( flash25_b_busy() );
 
-    spi_flash_erase_protect_disable();
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-    spi_flash_erase_protect_enable();
 }
 
 // erase the entire array
@@ -245,7 +239,7 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
     
     uint32_t id = spi_flash_get_id();
 
-    trace_printf("ID: 0x%x", id);
+    trace_printf("Flash ID: 0x%x\r\n", id);
 
     info->mfg_id = FLASH_MFG_ESP12;
     info->dev_id_1 = FLASH_DEV_ID1_ESP12;

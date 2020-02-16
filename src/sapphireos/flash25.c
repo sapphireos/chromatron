@@ -120,6 +120,9 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 
             break;
 
+        case FLASH_MFG_ESP12:
+            capacity = 2097152;
+
 		default:
 			break;
 	}
