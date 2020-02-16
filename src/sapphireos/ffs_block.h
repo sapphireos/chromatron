@@ -75,6 +75,9 @@ typedef struct __attribute__((packed)){
     int8_t phy_last_page;
     int8_t logical_last_page;
     int8_t phy_next_free;
+    #ifdef FFS_ALIGN32
+    uint8_t padding[3];
+    #endif
 } ffs_index_info_t;
 
 

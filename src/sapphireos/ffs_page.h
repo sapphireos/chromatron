@@ -31,9 +31,16 @@
 #define FFS_PAGE_INDEX_FREE     0xff
 
 typedef struct __attribute__((packed)){
+	#ifdef FFS_ALIGN32
+    uint8_t data[FFS_PAGE_DATA_SIZE];
+    uint8_t len;
+    uint8_t padding;
+    uint16_t crc;
+	#else
     uint8_t len;
     uint8_t data[FFS_PAGE_DATA_SIZE];
     uint16_t crc;
+    #endif
 } ffs_page_t;
 
 

@@ -52,6 +52,8 @@ void hal_flash25_v_init( void ){
 
     // disable writes
     flash25_v_write_disable();
+
+    spi_flash_erase_protect_enable();
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -103,16 +105,12 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 
 void flash25_v_write_enable( void ){
 
-    BUSY_WAIT( flash25_b_busy() );
-
-
+    // BUSY_WAIT( flash25_b_busy() );
 }
 
 void flash25_v_write_disable( void ){
 
-    BUSY_WAIT( flash25_b_busy() );
-    
-   
+    // BUSY_WAIT( flash25_b_busy() );   
 }
 
 // write a single byte to the device
@@ -183,7 +181,10 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         flash25_v_write_enable();
 
 
-      
+        // do write
+
+
+        
         address += page_len;
         ptr += page_len;
         len -= page_len;
@@ -222,6 +223,9 @@ void flash25_v_erase_4k( uint32_t address ){
 
     BUSY_WAIT( flash25_b_busy() );
 
+    spi_flash_erase_protect_disable();
+    spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    spi_flash_erase_protect_enable();
 }
 
 // erase the entire array
@@ -239,7 +243,13 @@ void flash25_v_erase_chip( void ){
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
     
-   
+    uint32_t id = spi_flash_get_id();
+
+    trace_printf("ID: 0x%x", id);
+
+    info->mfg_id = FLASH_MFG_ESP12;
+    info->dev_id_1 = FLASH_DEV_ID1_ESP12;
+    info->dev_id_2 = FLASH_DEV_ID2_ESP12_32MBIT;
 }
 
 uint32_t flash25_u32_capacity( void ){

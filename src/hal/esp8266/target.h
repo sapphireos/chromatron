@@ -79,6 +79,8 @@
 
 #define FLASH_FS_MAX_USER_FILES 64
 
+#define FFS_ALIGN32
+
 // virtual fs
 #define FS_MAX_VIRTUAL_FILES 32
 

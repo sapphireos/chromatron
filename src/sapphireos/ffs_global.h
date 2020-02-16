@@ -50,7 +50,12 @@
 typedef int8_t ffs_file_t;
 
 #define FFS_PAGE_DATA_SIZE          64
+
+#ifdef FFS_ALIGN32
+#define FFS_DATA_PAGES_PER_BLOCK    48
+#else
 #define FFS_DATA_PAGES_PER_BLOCK    51
+#endif
 #define FFS_SPARE_PAGES_PER_BLOCK   8
 
 #define FFS_PAGES_PER_BLOCK         ( FFS_DATA_PAGES_PER_BLOCK + FFS_SPARE_PAGES_PER_BLOCK )
