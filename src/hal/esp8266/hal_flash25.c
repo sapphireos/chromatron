@@ -35,9 +35,50 @@ extern uint16_t block0_unlock;
 
 static uint32_t max_address;
 
+// the ESP8266 can only access flash on a 32 bit alignment, so 
+// we are doing a simple word cache.
+static uint32_t cache_data;
+static uint32_t cache_address;
+static bool cache_dirty;
+
+// typedef enum{
+//     CACHE_INVALID,
+//     CACHE_VALID,
+//     CACHE_DIRTY,
+// } cache_state_t;
+
+// static cache_state_t cache_state;
+
+
+static void flush_cache( void ){
+
+    // cache is clean, nothing to do
+    if( !cache_dirty ){
+
+        return;
+    }
+
+    // commit to flash
+    spi_flash_write( cache_address, &cache_data, sizeof(cache_data) );
+
+    // cache is now valid
+    cache_dirty = FALSE;
+}
+
+static void load_cache( uint32_t address ){
+
+    if( cache_dirty ){
+
+        flush_cache();
+    }
+
+    spi_flash_read( address, &cache_data, sizeof(cache_data) );
+    cache_address = address;
+}
 
 void hal_flash25_v_init( void ){
-return;
+// return;
+
     // read max address
     max_address = flash25_u32_read_capacity_from_info();
 
@@ -50,12 +91,13 @@ return;
     // disable writes
     flash25_v_write_disable();
 
+    // init cache so we start with valid data
+    load_cache( 0 );
 }
 
 uint8_t flash25_u8_read_status( void ){
 
     uint8_t status = 0;
-
 
     return status;
 }
@@ -80,8 +122,14 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
-    
+    // we can optimize this later, for now, we do just a simple byte read
+    // through the cache
+    while( len > 0 ){
 
+        *((uint8_t *)ptr)++ = flash25_u8_read_byte( address );
+        address++;
+        len--;
+    }
 }
 
 // read a single byte
@@ -92,11 +140,18 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
-	uint8_t byte;
+    // check if byte is in cache
+    uint32_t word_address = address & ( ~0x03 );
+    uint32_t byte_address = address & (  0x03 );
 
-	flash25_v_read( address, &byte, sizeof(byte) );
+    if( word_address != cache_address ){
 
-	return byte;
+        // cache miss
+        load_cache( word_address );
+    }
+
+    // return byte
+    return ( uint8_t )( cache_data >> ( 8 * byte_address ) );
 }
 
 void flash25_v_write_enable( void ){
