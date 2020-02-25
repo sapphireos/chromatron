@@ -14,7 +14,6 @@
         "-nostdlib",
         "-Og",
         "-g3",
-        "-mforce-l32",
         "-mlongcalls",
         "-mtext-section-literals",
         "-falign-functions=4",

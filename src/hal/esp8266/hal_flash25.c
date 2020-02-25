@@ -37,44 +37,44 @@ static uint32_t max_address;
 
 // the ESP8266 can only access flash on a 32 bit alignment, so 
 // we are doing a simple word cache.
-// static uint32_t cache_data;
-// static uint32_t cache_address;
-// static bool cache_dirty;
+static uint32_t cache_data;
+static uint32_t cache_address;
+static bool cache_dirty;
 
 // typedef enum{
 //     CACHE_INVALID,
-//     CACHE_VALID,
+    // CACHE_VALID,
 //     CACHE_DIRTY,
 // } cache_state_t;
 
 // static cache_state_t cache_state;
 
 
-// static void flush_cache( void ){
+static void flush_cache( void ){
 
-//     // cache is clean, nothing to do
-//     if( !cache_dirty ){
+    // cache is clean, nothing to do
+    if( !cache_dirty ){
 
-//         return;
-//     }
+        return;
+    }
 
-//     // commit to flash
-//     spi_flash_write( cache_address, &cache_data, sizeof(cache_data) );
+    // commit to flash
+    spi_flash_write( cache_address, &cache_data, sizeof(cache_data) );
 
-//     // cache is now valid
-//     cache_dirty = FALSE;
-// }
+    // cache is now valid
+    cache_dirty = FALSE;
+}
 
-// static void load_cache( uint32_t address ){
+static void load_cache( uint32_t address ){
 
-//     if( cache_dirty ){
+    if( cache_dirty ){
 
-//         flush_cache();
-//     }
+        flush_cache();
+    }
 
-//     spi_flash_read( address, &cache_data, sizeof(cache_data) );
-//     cache_address = address;
-// }
+    spi_flash_read( address, &cache_data, sizeof(cache_data) );
+    cache_address = address;
+}
 
 void hal_flash25_v_init( void ){
 // return;
@@ -83,7 +83,8 @@ void hal_flash25_v_init( void ){
 
     // read max address
     uint32_t stuff = flash25_u32_read_capacity_from_info();
-    max_address = stuff;
+    // stuff = flash25_u32_read_capacity_from_info();
+    // max_address = stuff;
     trace_printf("%d\r\n", stuff);
 
     uint32_t temp2 = 0;
@@ -111,7 +112,7 @@ void hal_flash25_v_init( void ){
     flash25_v_write_disable();
 
     // init cache so we start with valid data
-    // load_cache( 0 );
+    load_cache( 0 );
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -129,7 +130,7 @@ void flash25_v_write_status( uint8_t status ){
 // read len bytes into ptr
 void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
     // this could probably be an assert, since a read of 0 is pretty useless.
     // on the other hand, it is also somewhat harmless.
@@ -155,23 +156,23 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
     // check if byte is in cache
-    // uint32_t word_address = address & ( ~0x03 );
-    // uint32_t byte_address = address & (  0x03 );
+    uint32_t word_address = address & ( ~0x03 );
+    uint32_t byte_address = address & (  0x03 );
 
-    // if( word_address != cache_address ){
+    if( word_address != cache_address ){
 
         // cache miss
-        // load_cache( word_address );
-    // }
+        load_cache( word_address );
+    }
 
     // return byte
-    // return ( uint8_t )( cache_data >> ( 8 * byte_address ) );
+    return ( uint8_t )( cache_data >> ( 8 * byte_address ) );
 }
 
 void flash25_v_write_enable( void ){
@@ -187,7 +188,7 @@ void flash25_v_write_disable( void ){
 // write a single byte to the device
 void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
 	// don't write to block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
@@ -215,7 +216,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 // end of the array, etc.
 void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
     // don't write to  block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
@@ -278,7 +279,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 // check the busy bit before calling this function.
 void flash25_v_erase_4k( uint32_t address ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
 	// don't erase block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
