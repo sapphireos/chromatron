@@ -79,12 +79,12 @@ static void load_cache( uint32_t address ){
 void hal_flash25_v_init( void ){
 // return;
     trace_printf("meow\r\n");
-    // read max address
-    max_address = flash25_u32_read_capacity_from_info();
 
+
+    // read max address
+    flash25_u32_read_capacity_from_info();
     trace_printf("%d\r\n", max_address);
 
-    
     uint32_t temp2 = 0;
     spi_flash_erase_sector(2*1048576 / 4096);
     

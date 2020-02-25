@@ -54,7 +54,7 @@ uint8_t flash25_u8_read_mfg_id( void ){
 
 // returns capacity in bytes
 uint32_t flash25_u32_read_capacity_from_info( void ){
-    return 4194304;
+
 	flash25_device_info_t info;
 
 	flash25_v_read_device_info( &info );
@@ -122,7 +122,6 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 
         case FLASH_MFG_ESP12:
             capacity = 4194304;
-
             break;
 
 		default:
