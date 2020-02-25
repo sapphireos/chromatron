@@ -12,7 +12,7 @@
         "-Wl,-EL", 
         "-fno-inline-functions",
         "-nostdlib",
-        "-Os",
+        "-Og",
         "-g3",
         "-mforce-l32",
         "-mlongcalls",
