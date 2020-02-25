@@ -80,8 +80,6 @@ void hal_flash25_v_init( void ){
 
     // read max address
     uint32_t stuff = flash25_u32_read_capacity_from_info();
-    // stuff = flash25_u32_read_capacity_from_info();
-    
     
     max_address = stuff;
 
@@ -130,7 +128,7 @@ void flash25_v_write_status( uint8_t status ){
 // read len bytes into ptr
 void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
     // this could probably be an assert, since a read of 0 is pretty useless.
     // on the other hand, it is also somewhat harmless.
@@ -156,7 +154,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
@@ -188,7 +186,7 @@ void flash25_v_write_disable( void ){
 // write a single byte to the device
 void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
 	// don't write to block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
@@ -216,7 +214,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 // end of the array, etc.
 void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
     // don't write to  block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
@@ -279,7 +277,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 // check the busy bit before calling this function.
 void flash25_v_erase_4k( uint32_t address ){
 
-    // ASSERT( address < max_address );
+    ASSERT( address < max_address );
 
 	// don't erase block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
@@ -324,7 +322,12 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
 
 uint32_t flash25_u32_capacity( void ){
 
-    return max_address;
+    // return max_address;
+
+    // issue is with this function not returning 0.....
+
+    // return 400000;
+    return 0;
 }
 
 
