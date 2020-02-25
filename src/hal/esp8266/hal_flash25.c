@@ -326,8 +326,8 @@ uint32_t flash25_u32_capacity( void ){
 
     // issue is with this function not returning 0.....
 
-    // return 400000;
-    return 0;
+    return 400000;
+    // return 0;
 }
 
 
