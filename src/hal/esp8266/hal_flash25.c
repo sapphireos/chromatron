@@ -33,7 +33,7 @@
 
 extern uint16_t block0_unlock;
 
-static uint32_t meow;
+static uint32_t max_address;
 
 // the ESP8266 can only access flash on a 32 bit alignment, so 
 // we are doing a simple word cache.
@@ -83,7 +83,7 @@ void hal_flash25_v_init( void ){
 
     // read max address
     uint32_t stuff = flash25_u32_read_capacity_from_info();
-    meow = stuff;
+    max_address = stuff;
     trace_printf("%d\r\n", stuff);
 
     uint32_t temp2 = 0;
@@ -323,8 +323,7 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
 
 uint32_t flash25_u32_capacity( void ){
 
-    // return max_address;
-    return 0;
+    return max_address;
 }
 
 
