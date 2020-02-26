@@ -124,7 +124,7 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
     //     os_delay_us(50000);    
     // }
     
-    // system_os_post(LOOP_PRIO, 0, 0 );
+    system_os_post(LOOP_PRIO, 0, 0 );
 }
  
 void ICACHE_FLASH_ATTR user_init(void)
@@ -147,8 +147,8 @@ void ICACHE_FLASH_ATTR user_init(void)
     main();
     
     //Start os task
-    system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
-    system_os_post(LOOP_PRIO, 0, 0 );    
+    // system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
+    // system_os_post(LOOP_PRIO, 0, 0 );    
 }
 
 

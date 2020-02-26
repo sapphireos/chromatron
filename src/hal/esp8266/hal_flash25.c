@@ -85,18 +85,18 @@ void hal_flash25_v_init( void ){
 
     trace_printf("%d\r\n", stuff);
 
-    uint32_t temp2 = 0;
-    spi_flash_erase_sector(2*1048576 / 4096);
+    // uint32_t temp2 = 0;
+    // spi_flash_erase_sector(2*1048576 / 4096);
     
-    spi_flash_read(2*1048576, &temp2, sizeof(temp2));    
-    trace_printf("%x\r\n", temp2);
+    // spi_flash_read(2*1048576, &temp2, sizeof(temp2));    
+    // trace_printf("%x\r\n", temp2);
 
 
-    uint32_t temp = 0x12345678;
-    spi_flash_write(2*1048576, &temp, sizeof(temp));
+    // uint32_t temp = 0x12345678;
+    // spi_flash_write(2*1048576, &temp, sizeof(temp));
 
-    spi_flash_read(2*1048576, &temp2, sizeof(temp2));    
-    trace_printf("%x\r\n", temp2);
+    // spi_flash_read(2*1048576, &temp2, sizeof(temp2));    
+    // trace_printf("%x\r\n", temp2);
 
     
 
@@ -111,6 +111,10 @@ void hal_flash25_v_init( void ){
 
     // init cache so we start with valid data
     load_cache( 0 );
+
+    // ****************************************************************
+    // loop here and see if we are erasing stuff?????
+
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -293,7 +297,7 @@ void flash25_v_erase_4k( uint32_t address ){
 
     BUSY_WAIT( flash25_b_busy() );
 
-    spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    // spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
 }
 
 // erase the entire array
