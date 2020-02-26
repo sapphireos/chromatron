@@ -965,14 +965,19 @@ class HexBuilder(Builder):
 
         # convert to bin
         if self.settings["TOOLCHAIN"] == "XTENSA":
-            runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
+            # runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
+            # runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
+            import esptool
+            esptool.main('elf2image -o image -ff 40m -fm dio -fs 4MB main.elf'.split())
 
             # create binary image
             # often, the ESP8266 loads in two images, one at 0x00000000, and one at 0x00010000.
             # we're just going to combine the two so we just have the one image.
             ih = IntelHex()
-            ih.loadbin('0x00000000_firmware.bin', offset=0x00000)
-            ih.loadbin('0x00010000_firmware.bin', offset=0x10000)
+            # ih.loadbin('0x00000000_firmware.bin', offset=0x00000)
+            # ih.loadbin('0x00010000_firmware.bin', offset=0x10000)
+            ih.loadbin('image0x00000.bin', offset=0x00000)
+            ih.loadbin('image0x10000.bin', offset=0x10000)
             ih.tobinfile('main.bin')
             ih.write_hex_file('main.hex')
 
