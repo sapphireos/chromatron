@@ -34,21 +34,14 @@
 extern uint16_t block0_unlock;
 
 static uint32_t max_address;
+static uint32_t start_address;
 
 // the ESP8266 can only access flash on a 32 bit alignment, so 
 // we are doing a simple word cache.
+// cache uses physical address, not logical.
 static uint32_t cache_data;
 static uint32_t cache_address;
 static bool cache_dirty;
-
-// typedef enum{
-//     CACHE_INVALID,
-    // CACHE_VALID,
-//     CACHE_DIRTY,
-// } cache_state_t;
-
-// static cache_state_t cache_state;
-
 
 static void flush_cache( void ){
 
@@ -79,12 +72,21 @@ static void load_cache( uint32_t address ){
 void hal_flash25_v_init( void ){
 
     // read max address
-    uint32_t stuff = flash25_u32_read_capacity_from_info();
+    max_address = flash25_u32_read_capacity_from_info();
+
+    if( max_address > ( 3 * 1048576 ) ){
+
+        max_address = ( 3 * 1048576 );
+        start_address = ( 1 * 1048576 );
+    }
+    else{
+
+        trace_printf("Invalid flash size!\r\n");
+
+        // invalid flash
+        max_address = 0;
+    }
     
-    max_address = stuff;
-
-    trace_printf("%d\r\n", stuff);
-
     // uint32_t temp2 = 0;
     // spi_flash_erase_sector(2*1048576 / 4096);
     
@@ -110,11 +112,7 @@ void hal_flash25_v_init( void ){
     flash25_v_write_disable();
 
     // init cache so we start with valid data
-    load_cache( 0 );
-
-    // ****************************************************************
-    // loop here and see if we are erasing stuff?????
-
+    load_cache( start_address );
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -141,6 +139,8 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
+    address += start_address;
+
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
@@ -162,6 +162,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
+
+    address += start_address;
 
     // check if byte is in cache
     uint32_t word_address = address & ( ~0x03 );
@@ -204,6 +206,8 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         block0_unlock = 0;
 	}
 
+    address += start_address;
+
   
 
     flash25_v_write_enable();
@@ -231,6 +235,8 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
         block0_unlock = 0;
 	}
+
+    address += start_address;
 
 
     // this could probably be an assert, since a write of 0 is pretty useless.
@@ -297,7 +303,9 @@ void flash25_v_erase_4k( uint32_t address ){
 
     BUSY_WAIT( flash25_b_busy() );
 
-    // spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    address += start_address;
+
+    spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
 }
 
 // erase the entire array
@@ -317,22 +325,16 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
     
     uint32_t id = spi_flash_get_id();
 
-    trace_printf("Flash ID: 0x%x\r\n", id);
+    // trace_printf("Flash ID: 0x%x\r\n", id);
 
-    info->mfg_id = FLASH_MFG_ESP12;
-    info->dev_id_1 = FLASH_DEV_ID1_ESP12;
-    info->dev_id_2 = FLASH_DEV_ID2_ESP12_32MBIT;
+    info->mfg_id = FLASH_MFG_WINBOND; // assume winbond
+    info->dev_id_1 = ( id >> 8 ) & 0xff;
+    info->dev_id_2 = ( id >> 16 ) & 0xff;
 }
 
 uint32_t flash25_u32_capacity( void ){
 
-    // return max_address;
-
-    // issue is with this function not returning 0.....
-
-    // return 400000;
-    return 1;
-    // return 0;
+    return max_address;
 }
 
 
