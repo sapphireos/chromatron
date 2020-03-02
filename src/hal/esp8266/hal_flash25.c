@@ -76,7 +76,7 @@ void hal_flash25_v_init( void ){
 
     if( max_address > ( 3 * 1048576 ) ){
 
-        max_address = ( 3 * 1048576 );
+        max_address = ( 2 * 1048576 );
         start_address = ( 1 * 1048576 );
     }
     else{
@@ -145,6 +145,8 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
+
+    trace_printf("0x%x\r\n", address);
 
     ASSERT( address < max_address );
 

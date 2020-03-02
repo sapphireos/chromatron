@@ -38,7 +38,9 @@
 #include "ffs_fw.h"
 
 static uint32_t fw_size;
+#if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
 static uint32_t fw_size1;
+#endif
 static uint32_t fw_size2;
 
 PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
@@ -128,6 +130,7 @@ static void erase_start_blocks( uint8_t partition ){
 
 int8_t ffs_fw_i8_init( void ){
 
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     // init sizes for firmware 1
     flash25_v_read( FW_LENGTH_ADDRESS + FLASH_FS_FIRMWARE_1_PARTITION_START, &fw_size1, sizeof(fw_size1) );
 
@@ -135,6 +138,7 @@ int8_t ffs_fw_i8_init( void ){
 
         fw_size1 = 0;
     }
+    #endif
 
     fw_size2 = FLASH_FS_FIRMWARE_2_PARTITION_SIZE;
 
@@ -285,10 +289,12 @@ uint32_t ffs_fw_u32_size( uint8_t partition ){
 
         return fw_size;
     }
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     else if( partition == 1 ){
 
         return fw_size1;
     }
+    #endif
     else{
 
         return fw_size2;
