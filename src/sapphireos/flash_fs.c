@@ -73,7 +73,7 @@ void ffs_v_init( void ){
         // restart in normal mode
         sys_reboot();
     }
-
+    
     ffs_fw_i8_init();
 
     ffs_v_mount();

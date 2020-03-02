@@ -122,6 +122,8 @@ void ffs_block_v_init( void ){
 		blocks[i].next_block = FFS_BLOCK_INVALID;
 	}
 
+    trace_printf("Block scan...\r\n");
+
     ffs_block_meta_t meta;
 
     // scan and verify all block headers

@@ -110,6 +110,8 @@ void ffs_page_v_reset( void ){
 
 void ffs_page_v_init( void ){
 
+    trace_printf("Page scan...\r\n");
+
     invalidate_cache();
 
     ffs_page_v_reset();
