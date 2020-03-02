@@ -30,21 +30,15 @@
 
 void wdg_v_reset( void ){
 
-
+    system_soft_wdt_feed();
 }
 
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
-
+    system_soft_wdt_restart();
 }
 
 void wdg_v_disable( void ){
 
-
+    system_soft_wdt_stop();
 }
-
-void hal_wdg_v_kick( void ){
-
-
-}
-
