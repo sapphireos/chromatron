@@ -129,6 +129,10 @@ void ffs_block_v_init( void ){
     // scan and verify all block headers
     for( uint16_t i = 0; i < _total_blocks; i++ ){
 
+        trace_printf("block: %d\r\n", i);
+
+        sys_v_wdt_reset();
+
         // read header flags
         uint8_t flags = ffs_block_u8_read_flags( i );
 
@@ -169,6 +173,8 @@ void ffs_block_v_init( void ){
 
 int8_t ffs_block_i8_verify_free_space( void ){
 
+    trace_printf("Verify free space...\r\n");
+
     block_t block = free_list;
 
     bool errors = FALSE;
@@ -180,6 +186,8 @@ int8_t ffs_block_i8_verify_free_space( void ){
         uint32_t addr = FFS_BLOCK_ADDRESS( block );
 
         for( uint8_t j = 0; j < FLASH_FS_ERASE_BLOCK_SIZE / 256; j++ ){
+
+            sys_v_wdt_reset();
 
             flash25_v_read( addr, data, sizeof(data) );
 

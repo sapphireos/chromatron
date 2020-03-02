@@ -146,7 +146,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 // read a single byte
 uint8_t flash25_u8_read_byte( uint32_t address ){
 
-    trace_printf("0x%x\r\n", address);
+    // trace_printf("0x%x\r\n", address);
 
     ASSERT( address < max_address );
 

@@ -80,7 +80,9 @@ int8_t sapphire_i8_init( void ){
 	sys_v_init(); // init system controller
 
 	// disable watchdog timer
+    #ifndef ESP8266
     sys_v_disable_watchdog();
+    #endif
 
 	// Must be called second!
 	thread_v_init();

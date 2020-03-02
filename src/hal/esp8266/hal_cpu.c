@@ -23,12 +23,21 @@
 #include "hal_cpu.h"
 #include "cpu.h"
 #include "hal_timers.h"
+#include "watchdog.h"
 
 #include "system.h"
 
 void cpu_v_init( void ){
 
     DISABLE_INTERRUPTS;
+
+    // NOTE
+    // the ESP8266 needs the software watchdog to be enabled and kicked, even during init.
+    // if we don't kick the SW watchdog, the hardware watchdog will reset the cpu.
+    // it is not possible to disable the hardware watchdog.
+    // thus, all startup routines need watchdog kicks for long running operations.
+
+    wdg_v_enable( 0, 0 );
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
