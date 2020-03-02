@@ -115,7 +115,7 @@ static uint8_t wifi_version_patch;
 
 static uint8_t watchdog;
 
-static uint8_t tx_power;
+static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 #ifdef ARM
 static bool connect_hold;
@@ -1067,6 +1067,11 @@ PT_BEGIN( pt );
     get_info();
     send_options_msg();
     send_ports();
+
+    if( tx_power < WIFI_MAX_HW_TX_POWER ){
+
+        log_v_debug_P( PSTR("TX power set to: %d dbm!"), tx_power );
+    }
 
     while(1){
 
