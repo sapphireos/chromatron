@@ -41,9 +41,13 @@ static uint32_t fw_size;
 #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
 static uint32_t fw_size1;
 #endif
+#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
 static uint32_t fw_size2;
+#endif
 
+#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
 PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
+#endif
 
 typedef struct{
     uint32_t partition_start;
@@ -77,6 +81,7 @@ static void erase_fw_partition( uint8_t partition ){
 
 // note - cannot erase partition 1
 
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( partition == 2 ){
         
         for( uint16_t i = 0; i < FLASH_FS_FIRMWARE_2_N_BLOCKS; i++ ){
@@ -93,6 +98,7 @@ static void erase_fw_partition( uint8_t partition ){
             sys_v_wdt_reset();
         }
     }
+    #endif
 }
 
 static void erase_start_blocks( uint8_t partition ){
@@ -104,10 +110,12 @@ static void erase_start_blocks( uint8_t partition ){
         partition_start = FLASH_FS_FIRMWARE_0_PARTITION_START;
     }
     // note - cannot erase partition 1
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( partition == 2 ){
 
         partition_start = FLASH_FS_FIRMWARE_2_PARTITION_START;
     }
+    #endif
     else{
 
         ASSERT( FALSE );
@@ -140,7 +148,9 @@ int8_t ffs_fw_i8_init( void ){
     }
     #endif
 
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     fw_size2 = FLASH_FS_FIRMWARE_2_PARTITION_SIZE;
+    #endif
 
 
     uint32_t sys_fw_length = sys_v_get_fw_length() + sizeof(uint16_t); // adjust for CRC
@@ -199,11 +209,13 @@ int8_t ffs_fw_i8_init( void ){
         }
     }
 
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     thread_t_create( fw2_init_thread,
                      PSTR("fw2_init_thread"),
                      0,
                      0 );
-
+    #endif
+    
     return FFS_STATUS_OK;
 }
 
@@ -295,10 +307,14 @@ uint32_t ffs_fw_u32_size( uint8_t partition ){
         return fw_size1;
     }
     #endif
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else{
 
         return fw_size2;
     }
+    #endif
+
+    ASSERT( FALSE ); // bad partition ID
 }
 
 void ffs_fw_v_erase( uint8_t partition, bool immediate ){
@@ -322,7 +338,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
     }
     
     // note - cannot erase partition 1
-
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( partition == 2 ){
 
         // check if we've already erased the file
@@ -337,6 +353,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         // clear firmware size
         fw_size2 = 0;
     }
+    #endif
     else{
 
         return;
@@ -389,6 +406,7 @@ int32_t ffs_fw_i32_read( uint8_t partition, uint32_t position, void *data, uint3
         // copy data
         flash25_v_read( position + FLASH_FS_FIRMWARE_0_PARTITION_START, data, read_len );
     }
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( partition == 2 ){
 
         // check position
@@ -409,6 +427,7 @@ int32_t ffs_fw_i32_read( uint8_t partition, uint32_t position, void *data, uint3
         // copy data
         flash25_v_read( position + FLASH_FS_FIRMWARE_2_PARTITION_START, data, read_len );
     }
+    #endif
 
     // return length of data copied
     return read_len;
@@ -447,6 +466,7 @@ int32_t ffs_fw_i32_write( uint8_t partition, uint32_t position, const void *data
         // adjust file size
         fw_size = write_len + position;
     }
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( partition == 2 ){
 
         // check position
@@ -475,11 +495,12 @@ int32_t ffs_fw_i32_write( uint8_t partition, uint32_t position, const void *data
         // adjust file size
         fw_size2 = write_len + position;
     }
+    #endif
 
     return write_len;
 }
 
-
+#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
 PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -489,7 +510,7 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
+#endif
 
 PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
 {
