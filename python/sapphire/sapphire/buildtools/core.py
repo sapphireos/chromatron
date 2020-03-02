@@ -974,16 +974,11 @@ class HexBuilder(Builder):
             # often, the ESP8266 loads in two images, one at 0x00000000, and one at 0x00010000.
             # we're just going to combine the two so we just have the one image.
             ih = IntelHex()
-            # ih.loadbin('0x00000000_firmware.bin', offset=0x00000)
-            # ih.loadbin('0x00010000_firmware.bin', offset=0x10000)
+            
             ih.loadbin('image0x00000.bin', offset=0x00000)
             ih.loadbin('image0x10000.bin', offset=0x10000)
             ih.tobinfile('main.bin')
             ih.write_hex_file('main.hex')
-
-        else:
-            ih = IntelHex()
-            ih.loadbinfile('main.bin')
 
         # change back to working dir
         os.chdir(cwd)
