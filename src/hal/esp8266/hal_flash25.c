@@ -127,7 +127,8 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    address += start_address;
+    // don't need to do this with the simple algorithm! flash25_u8_read_byte will offset.
+    // address += start_address;
 
     // busy wait
     BUSY_WAIT( flash25_b_busy() );

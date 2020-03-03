@@ -24,12 +24,13 @@
 #ifndef _HAL_CPU_H
 #define _HAL_CPU_H
 
-#include "system.h"
 
-void cpu_v_init( void );
-uint8_t cpu_u8_get_reset_source( void );
-void cpu_v_remap_isrs( void );
-void cpu_v_sleep( void );
+
+#define ATOMIC 
+#define END_ATOMIC 
+
+#define FLASH_STRING(x) x
+#define FLASH_STRING_T const char*
 
 #define ENABLE_INTERRUPTS
 #define DISABLE_INTERRUPTS
@@ -38,25 +39,5 @@ void cpu_v_sleep( void );
 #define RESET_SOURCE_JTAG       2
 #define RESET_SOURCE_EXTERNAL   4
 #define RESET_SOURCE_BROWNOUT   8
-
-#define CLK_DIV_1   0b00000000
-#define CLK_DIV_2   0b00000001
-#define CLK_DIV_4   0b00000010
-#define CLK_DIV_8   0b00000011
-#define CLK_DIV_16  0b00000100
-#define CLK_DIV_32  0b00000101
-#define CLK_DIV_64  0b00000110
-#define CLK_DIV_128 0b00000111
-#define CLK_DIV_256 0b00001000
-
-#define SLP_MODE_ACTIVE     0b00000000
-#define SLP_MODE_IDLE       0b00000001
-#define SLP_MODE_ACDNRM     0b00000011
-#define SLP_MODE_PWRDN      0b00000101
-#define SLP_MODE_PWRSAVE    0b00000111
-#define SLP_MODE_STNDBY     0b00001101
-#define SLP_MODE_EXSTNDBY   0b00001111
-
-#define ENABLE_CONFIG_CHANGE
 
 #endif

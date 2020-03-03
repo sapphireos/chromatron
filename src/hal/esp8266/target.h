@@ -75,7 +75,7 @@
 
 // flash fs
 // maximum number of blocks the FS can handle
-#define FFS_BLOCK_MAX_BLOCKS 512
+#define FFS_BLOCK_MAX_BLOCKS 1024
 
 #define FLASH_FS_MAX_USER_FILES 64
 

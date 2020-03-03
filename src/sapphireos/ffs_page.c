@@ -110,8 +110,6 @@ void ffs_page_v_reset( void ){
 
 void ffs_page_v_init( void ){
 
-    trace_printf("Page scan...\r\n");
-
     invalidate_cache();
 
     ffs_page_v_reset();
@@ -123,8 +121,12 @@ void ffs_page_v_init( void ){
 
     ffs_block_meta_t meta;
 
+    trace_printf("Scanning for files...\r\n");
+
     // scan for files
     for( uint16_t i = 0; i < ffs_block_u16_total_blocks(); i++ ){
+
+        sys_v_wdt_reset();
 
         // read header flags
         uint8_t flags = ffs_block_u8_read_flags( i );
@@ -150,6 +152,8 @@ void ffs_page_v_init( void ){
         // ignore invalid blocks, the block driver will handle those
     }
 
+    trace_printf("File data scan...\r\n");
+
     // file data scan
     for( uint8_t file = 0; file < FFS_MAX_FILES; file++ ){
 
@@ -169,6 +173,8 @@ scan_start:
         block_t block = files[file].start_block;
 
         while( block != FFS_BLOCK_INVALID ){
+
+            sys_v_wdt_reset();
 
             // read meta header.
             // we've already scanned the meta data once and verified the data is intact, so we'll

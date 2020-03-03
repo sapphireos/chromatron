@@ -27,6 +27,7 @@
         "-Wundef",
         "-Wno-uninitialized",
         "-Wno-int-to-pointer-cast",
+        "-Wno-pointer-to-int-cast",
         "-Wno-format",
         "-std=gnu99",
         "-MD",

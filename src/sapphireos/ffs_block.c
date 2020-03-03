@@ -129,8 +129,6 @@ void ffs_block_v_init( void ){
     // scan and verify all block headers
     for( uint16_t i = 0; i < _total_blocks; i++ ){
 
-        trace_printf("block: %d\r\n", i);
-
         sys_v_wdt_reset();
 
         // read header flags
