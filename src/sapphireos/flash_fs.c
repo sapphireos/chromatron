@@ -63,6 +63,8 @@ void ffs_v_init( void ){
 
     uint8_t fs_version = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
 
+    trace_printf("FlashFS version: %d\r\n", fs_version);
+
     // check system mode and version
     if( ( sys_u8_get_mode() == SYS_MODE_FORMAT ) ||
         ( fs_version != FFS_VERSION ) ){

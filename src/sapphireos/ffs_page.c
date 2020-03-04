@@ -215,6 +215,8 @@ scan_start:
             block = ffs_block_fb_next( block );
         }
 
+        sys_v_wdt_reset();
+
         // now we have file map and we've resolved duplicates
         // let's check for missing blocks
         // we'll treat that is a file error and delete the entire file
