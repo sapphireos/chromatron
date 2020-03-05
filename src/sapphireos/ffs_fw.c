@@ -200,12 +200,12 @@ int8_t ffs_fw_i8_init( void ){
             // read byte from internal flash
             uint8_t temp = pgm_read_byte_far( i + FLASH_START );
 
-            trace_printf("%03d -> 0x%02x\r\n", i, temp);
+            // trace_printf("%03d -> 0x%02x\r\n", i, temp);
 
-            if( i > 129 ){
+            // if( i > 129 ){
 
-                while(1);
-            }
+            //     while(1);
+            // }
 
             // write to external flash
             flash25_v_write_byte( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, temp );
