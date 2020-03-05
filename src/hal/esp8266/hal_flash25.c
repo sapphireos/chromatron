@@ -170,7 +170,7 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     }
 
     // return byte
-    return cache_data.bytes[byte_address];
+    return cache_data.bytes[3 - byte_address];
 }
 
 void flash25_v_write_enable( void ){
@@ -212,7 +212,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         load_cache( word_address );
     }
 
-    cache_data.bytes[byte_address] = byte;
+    cache_data.bytes[3 - byte_address] = byte;
     cache_dirty = TRUE;
 
     flash25_v_write_enable();

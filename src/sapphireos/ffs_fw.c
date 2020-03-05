@@ -190,7 +190,7 @@ int8_t ffs_fw_i8_init( void ){
         // erase partition
         erase_fw_partition( 0 );
 
-        trace_printf("copy firmware...\r\n");
+        trace_printf("copy firmware... len: %d\r\n", sys_fw_length);
 
         // copy firmware to partition
         for( uint32_t i = 0; i < sys_fw_length; i++ ){
@@ -200,6 +200,13 @@ int8_t ffs_fw_i8_init( void ){
             // read byte from internal flash
             uint8_t temp = pgm_read_byte_far( i + FLASH_START );
 
+            trace_printf("%03d -> 0x%02x\r\n", i, temp);
+
+            if( i > 129 ){
+
+                while(1);
+            }
+
             // write to external flash
             flash25_v_write_byte( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, temp );
         }
@@ -208,6 +215,8 @@ int8_t ffs_fw_i8_init( void ){
 
         // recheck CRC
         if( ffs_fw_u16_crc() != 0 ){
+
+            trace_printf("fw crc fail!!!\r\n");
 
             fw_size = 0;
 
