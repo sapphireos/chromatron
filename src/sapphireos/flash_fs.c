@@ -233,13 +233,21 @@ int32_t ffs_i32_get_file_size( ffs_file_t file_id ){
         return ffs_fw_u32_size( 0 );
     }
     else if( file_id == FFS_FILE_ID_FIRMWARE_1 ){
-
+        #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
         return ffs_fw_u32_size( 1 );
+        #else
+        return -1;
+        #endif
     }
     else if( file_id == FFS_FILE_ID_FIRMWARE_2 ){
 
+        #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
         return ffs_fw_u32_size( 2 );
+        #else
+        return -1;
+        #endif
     }
+    
 
     ASSERT( file_id < FFS_MAX_FILES );
 
@@ -280,18 +288,22 @@ int8_t ffs_i8_read_filename( ffs_file_t file_id, char *dst, uint8_t max_len ){
 
         return FFS_STATUS_OK;
     }
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     else if( file_id == FFS_FILE_ID_FIRMWARE_1 ){
 
         strlcpy_P( dst, PSTR("firmware2.bin"), max_len );
 
         return FFS_STATUS_OK;
     }
+    #endif
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( file_id == FFS_FILE_ID_FIRMWARE_2 ){
 
         strlcpy_P( dst, PSTR("wifi_firmware.bin"), max_len );
 
         return FFS_STATUS_OK;
     }
+    #endif
 
     ASSERT( file_id < FFS_MAX_FILES );
 
@@ -384,19 +396,23 @@ int8_t ffs_i8_delete_file( ffs_file_t file_id ){
         return FFS_STATUS_OK;
     }
 
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     if( file_id == FFS_FILE_ID_FIRMWARE_1 ){
 
         ffs_fw_v_erase( 1, FALSE );
 
         return FFS_STATUS_OK;
     }
+    #endif
 
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     if( file_id == FFS_FILE_ID_FIRMWARE_2 ){
 
         ffs_fw_v_erase( 2, FALSE );
 
         return FFS_STATUS_OK;
     }
+    #endif
 
     ASSERT( file_id < FFS_MAX_FILES );
 
@@ -419,14 +435,19 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
 
         return ffs_fw_i32_read( 0, position, data, len );
     }
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     else if( file_id == FFS_FILE_ID_FIRMWARE_1 ){
 
         return ffs_fw_i32_read( 1, position, data, len );
     }
+    #endif
+
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( file_id == FFS_FILE_ID_FIRMWARE_2 ){
 
         return ffs_fw_i32_read( 2, position, data, len );
     }
+    #endif
 
     ASSERT( file_id < FFS_MAX_FILES );
 
@@ -524,14 +545,18 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
 
         return ffs_fw_i32_write( 0, position, data, len );
     }
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     else if( file_id == FFS_FILE_ID_FIRMWARE_1 ){
 
         return ffs_fw_i32_write( 1, position, data, len );
     }
+    #endif
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
     else if( file_id == FFS_FILE_ID_FIRMWARE_2 ){
 
         return ffs_fw_i32_write( 2, position, data, len );
     }
+    #endif
 
 
     ASSERT( file_id < FFS_MAX_FILES );

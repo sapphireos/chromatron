@@ -62,6 +62,8 @@ PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *i ) );
 
 static void erase_fw_partition( uint8_t partition ){
 
+    trace_printf("erasing fw partition %d\r\n", partition);
+
     if( partition == 0 ){
 
         for( uint16_t i = 0; i < FLASH_FS_FIRMWARE_0_N_BLOCKS; i++ ){
@@ -188,6 +190,8 @@ int8_t ffs_fw_i8_init( void ){
         // erase partition
         erase_fw_partition( 0 );
 
+        trace_printf("copy firmware...\r\n");
+
         // copy firmware to partition
         for( uint32_t i = 0; i < sys_fw_length; i++ ){
 
@@ -227,6 +231,8 @@ uint16_t ffs_fw_u16_crc( void ){
     return 0;
     #endif
 
+    trace_printf("fw crc check...\r\n");
+
 	uint16_t crc = crc_u16_start();
 	uint32_t length = fw_size;
     uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START;
@@ -258,6 +264,8 @@ uint16_t ffs_fw_u16_crc( void ){
 	}
 
     crc = crc_u16_finish( crc );
+
+    trace_printf("fw crc: 0x%04x\r\n", crc);
 
 	return crc;
 }
