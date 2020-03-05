@@ -79,10 +79,12 @@ void hal_flash25_v_init( void ){
     // read max address
     max_address = flash25_u32_read_capacity_from_info();
 
-    if( max_address > ( 3 * 1048576 ) ){
+    if( max_address > ( 2 * 1048576 ) ){
 
-        max_address = ( 2 * 1048576 );
-        start_address = ( 1 * 1048576 );
+        start_address = ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024 );
+        max_address -= start_address;
+
+        max_address -= ( 32 * 1024 );
     }
     else{
 
