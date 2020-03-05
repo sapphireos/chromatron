@@ -36,10 +36,15 @@ extern uint16_t block0_unlock;
 static uint32_t max_address;
 static uint32_t start_address;
 
+typedef union{
+    uint32_t word;
+    uint8_t bytes[4];
+} cache_data_t;
+
 // the ESP8266 can only access flash on a 32 bit alignment, so 
 // we are doing a simple word cache.
 // cache uses physical address, not logical.
-static uint32_t cache_data;
+static cache_data_t cache_data;
 static uint32_t cache_address;
 static bool cache_dirty;
 
@@ -52,7 +57,7 @@ static void flush_cache( void ){
     }
 
     // commit to flash
-    spi_flash_write( cache_address, &cache_data, sizeof(cache_data) );
+    spi_flash_write( cache_address, &cache_data.word, sizeof(cache_data) );
 
     // cache is now valid
     cache_dirty = FALSE;
@@ -65,7 +70,7 @@ static void load_cache( uint32_t address ){
         flush_cache();
     }
 
-    spi_flash_read( address, &cache_data, sizeof(cache_data) );
+    spi_flash_read( address, &cache_data.word, sizeof(cache_data) );
     cache_address = address;
 }
 
@@ -165,7 +170,7 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     }
 
     // return byte
-    return ( uint8_t )( cache_data >> ( 8 * byte_address ) );
+    return cache_data.bytes[byte_address];
 }
 
 void flash25_v_write_enable( void ){
@@ -197,7 +202,18 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
     address += start_address;
 
-    
+    // check cache
+    uint32_t word_address = address & ( ~0x03 );
+    uint32_t byte_address = address & (  0x03 );
+
+    if( word_address != cache_address ){
+
+        // cache miss
+        load_cache( word_address );
+    }
+
+    cache_data.bytes[byte_address] = byte;
+    cache_dirty = TRUE;
 
     flash25_v_write_enable();
 
@@ -225,7 +241,8 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         block0_unlock = 0;
 	}
 
-    address += start_address;
+    // don't need to do this with the simple algorithm! flash25_v_write_byte will offset.
+    // address += start_address;
 
 
     // this could probably be an assert, since a write of 0 is pretty useless.
@@ -239,19 +256,20 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
     while( len > 0 ){
 
         // compute page data
-        uint16_t page_len = 256 - ( address & 0xff );
+        // uint16_t page_len = 256 - ( address & 0xff );
 
-        if( page_len > len ){
+        // if( page_len > len ){
 
-            page_len = len;
-        }
+        //     page_len = len;
+        // }
+        uint16_t page_len = 1;
 
         // enable writes
         flash25_v_write_enable();
 
 
         // do write
-
+        flash25_v_write_byte( address, *(uint8_t *)ptr );
 
         
         address += page_len;
