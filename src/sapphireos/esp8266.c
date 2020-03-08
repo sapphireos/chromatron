@@ -62,8 +62,11 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "watchdog.h"
 #include "hal_status_led.h"
 #include "hash.h"
+
+#ifndef ESP8266
 #include "hal_esp8266.h"
 #include "esp8266_loader.h"
+#endif
 
 #ifdef ENABLE_USB
 #include "usb_intf.h"
@@ -178,7 +181,7 @@ void debug_strobe( void ){
     // io_v_digital_write( IO_PIN_1_XCK, FALSE );
 }
 
-
+#ifndef ESP8266
 static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
@@ -460,8 +463,13 @@ void send_ports( void ){
 
     wifi_i8_send_msg( WIFI_DATA_ID_PORTS, (uint8_t *)&ports, sizeof(ports) );
 }
+#endif
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
+
+    #ifdef ESP8266
+
+    #else
 
     if( protocol == IP_PROTO_UDP ){
 
@@ -504,6 +512,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
     // send ports message
     send_ports();
+    #endif
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
@@ -630,7 +639,7 @@ typedef struct{
 
 PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
 
-
+#ifndef ESP8266
 static void get_info( void ){
 
     if( wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 ) < 0 ){
@@ -693,7 +702,7 @@ static void get_info( void ){
     wifi_router                 = msg.wifi_router;
     wifi_channel                = msg.wifi_channel;
 }
-
+#endif
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -1253,6 +1262,8 @@ PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
 
+    #ifndef ESP8266
+
     state->fw_file = 0;
     state->tries = WIFI_LOADER_MAX_TRIES;
 
@@ -1510,6 +1521,13 @@ error:
 
 run_wifi:
 
+    if( state->fw_file > 0 ){
+
+        fs_f_close( state->fw_file );
+    }
+
+    #endif
+
     trace_printf( "Starting wifi!\r\n" );
     // log_v_debug_P( PSTR("Starting wifi!") );
 
@@ -1525,11 +1543,6 @@ run_wifi:
                  0,
                  0 );
 
-
-    if( state->fw_file > 0 ){
-
-        fs_f_close( state->fw_file );
-    }
 
 PT_END( pt );
 }
@@ -1693,95 +1706,4 @@ bool wifi_b_connected( void ){
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-// Old scan code:
-
-// log_v_debug_P( PSTR("Start scan") );
-
-            // // run a scan
-            // wifi_i8_send_msg( WIFI_DATA_ID_WIFI_SCAN, 0, 0 );
-
-            // thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-            // THREAD_WAIT_WHILE( pt, ( wifi_networks_handle < 0 ) &&
-            //                        ( thread_b_alarm_set() ) );
-
-
-            // uint32_t network_hashes[4];
-            // memset( network_hashes, 0, sizeof(network_hashes) );
-            // int8_t selected_network = -1;
-
-            // if( wifi_networks_handle > 0 ){
-
-            //     // gather available networks
-            //     char ssid[WIFI_SSID_LEN];
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-            //     network_hashes[0] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
-            //     network_hashes[1] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
-            //     network_hashes[2] = hash_u32_string( ssid );
-
-            //     memset( ssid, 0, sizeof(ssid) );
-            //     kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
-            //     network_hashes[3] = hash_u32_string( ssid );
-
-
-            //     wifi_msg_scan_results_t *msg = (wifi_msg_scan_results_t *)mem2_vp_get_ptr( wifi_networks_handle );
-
-            //     // search for matching networks and track best signal
-            //     // int8_t best_rssi = -120;
-            //     int8_t best_index = -1;
-
-            //     for( uint8_t i = 0; i < msg->count; i++ ){
-
-            //         // log_v_debug_P(PSTR("%ld %lu"), msg->networks[i].rssi, msg->networks[i].ssid_hash );
-
-            //         // is this RSSI any good?
-
-            //         // if( msg->networks[i].rssi <= best_rssi ){
-
-            //         //     continue;
-            //         // }
-
-            //         // do we have this SSID?
-            //         for( uint8_t j = 0; j < cnt_of_array(network_hashes); j++ ){
-
-            //             if( network_hashes[j] == msg->networks[i].ssid_hash ){
-
-            //                 // match!
-
-            //                 // record RSSI and index
-            //                 best_index = j;
-            //                 // best_rssi = msg->networks[i].rssi;
-
-            //                 break;
-            //             }
-            //         }
-            //     }
-
-            //     if( best_index >= 0 ){
-
-            //         // log_v_debug_P( PSTR("Best: %d %lu"), best_rssi, network_hashes[best_index] );
-
-            //         selected_network = best_index;
-            //     }
-
-            //     mem2_v_free( wifi_networks_handle );
-            //     wifi_networks_handle = -1;     
-            // }
-
 
