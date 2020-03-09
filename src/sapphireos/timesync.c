@@ -394,6 +394,21 @@ static uint8_t get_best_local_source( void ){
     return TIME_SOURCE_NONE;
 }
 
+static void send_not_master( ip_addr_t ip ){
+
+    time_msg_not_master_t msg;
+    msg.magic           = TIME_PROTOCOL_MAGIC;
+    msg.version         = TIME_PROTOCOL_VERSION;
+    msg.type            = TIME_MSG_NOT_MASTER;
+
+    sock_addr_t raddr;
+    raddr.ipaddr = ip;
+    raddr.port = TIME_SERVER_PORT;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+}
+
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -530,6 +545,8 @@ PT_BEGIN( pt );
 
                 if( sync_state == STATE_MASTER ){
 
+                    send_not_master( raddr.ipaddr );
+
                     continue;
                 }
 
@@ -632,21 +649,6 @@ static void send_master( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
-static void send_not_master( void ){
-
-    time_msg_not_master_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_NOT_MASTER;
-    
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
-}
-
 static void request_sync( void ){
 
     sync_id++;
@@ -685,17 +687,17 @@ PT_BEGIN( pt );
         // we'll tell everyone else we aren't the master, so someone else will jump in
         // (with the current network time).
 
-        send_not_master();
+        send_not_master( ip_a_addr(255,255,255,255) );
         TMR_WAIT( pt, 200 );
-        send_not_master();
+        send_not_master( ip_a_addr(255,255,255,255) );
         TMR_WAIT( pt, 200 );
-        send_not_master();
+        send_not_master( ip_a_addr(255,255,255,255) );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 2000 + ( rnd_u16_get_int() >> 3 ) );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_WAIT ) );
-    
-        // check if we are still waiting
-        if( sync_state == STATE_WAIT ){
+
+        // check if we are still waiting or we have a GPS sync
+        if( ( sync_state == STATE_WAIT ) || ( gps_sync ) ){
 
             // elect ourselves as master.
             // even if we don't have an NTP reference, we can at least sync the local net clock.
@@ -747,11 +749,11 @@ PT_BEGIN( pt );
 
             if( sys_b_shutdown() ){
 
-                send_not_master();
+                send_not_master( ip_a_addr(255,255,255,255) );
                 TMR_WAIT( pt, 200 );
-                send_not_master();
+                send_not_master( ip_a_addr(255,255,255,255) );
                 TMR_WAIT( pt, 200 );
-                send_not_master();   
+                send_not_master( ip_a_addr(255,255,255,255) );   
 
                 THREAD_EXIT( pt );
             }
