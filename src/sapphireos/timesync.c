@@ -470,6 +470,27 @@ PT_BEGIN( pt );
                         master_ip.ip1, 
                         master_ip.ip0 );                    
                 }
+                else if( sync_state == STATE_SLAVE ){
+
+                    // check if this master is better
+                    if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
+
+                        // select master
+                        master_ip = raddr.ipaddr;
+                        master_uptime = msg->uptime;
+                        master_source = msg->source;
+
+                        filtered_rtt = 0;
+                    
+                        sync_state = STATE_SLAVE;
+
+                        log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
+                            master_ip.ip3, 
+                            master_ip.ip2, 
+                            master_ip.ip1, 
+                            master_ip.ip0 );       
+                    }
+                }
                 else if( sync_state == STATE_MASTER ){
 
                     log_v_debug_P( PSTR("rx sync while master") );
@@ -489,7 +510,7 @@ PT_BEGIN( pt );
                     
                         sync_state = STATE_SLAVE;
 
-                        log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
+                        log_v_debug_P( PSTR("assigning new master and switching to slave mode: %d.%d.%d.%d"), 
                             master_ip.ip3, 
                             master_ip.ip2, 
                             master_ip.ip1, 
