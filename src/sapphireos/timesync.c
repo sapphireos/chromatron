@@ -394,6 +394,21 @@ static uint8_t get_best_local_source( void ){
     return TIME_SOURCE_NONE;
 }
 
+static void send_not_master( ip_addr_t ip ){
+
+    time_msg_not_master_t msg;
+    msg.magic           = TIME_PROTOCOL_MAGIC;
+    msg.version         = TIME_PROTOCOL_VERSION;
+    msg.type            = TIME_MSG_NOT_MASTER;
+
+    sock_addr_t raddr;
+    raddr.ipaddr = ip;
+    raddr.port = TIME_SERVER_PORT;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+}
+
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -455,6 +470,27 @@ PT_BEGIN( pt );
                         master_ip.ip1, 
                         master_ip.ip0 );                    
                 }
+                else if( sync_state == STATE_SLAVE ){
+
+                    // check if this master is better
+                    if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
+
+                        // select master
+                        master_ip = raddr.ipaddr;
+                        master_uptime = msg->uptime;
+                        master_source = msg->source;
+
+                        filtered_rtt = 0;
+                    
+                        sync_state = STATE_SLAVE;
+
+                        log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
+                            master_ip.ip3, 
+                            master_ip.ip2, 
+                            master_ip.ip1, 
+                            master_ip.ip0 );       
+                    }
+                }
                 else if( sync_state == STATE_MASTER ){
 
                     log_v_debug_P( PSTR("rx sync while master") );
@@ -474,7 +510,7 @@ PT_BEGIN( pt );
                     
                         sync_state = STATE_SLAVE;
 
-                        log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
+                        log_v_debug_P( PSTR("assigning new master and switching to slave mode: %d.%d.%d.%d"), 
                             master_ip.ip3, 
                             master_ip.ip2, 
                             master_ip.ip1, 
@@ -529,6 +565,8 @@ PT_BEGIN( pt );
             else if( *type == TIME_MSG_SYNC ){
 
                 if( sync_state == STATE_MASTER ){
+
+                    send_not_master( raddr.ipaddr );
 
                     continue;
                 }
@@ -632,21 +670,6 @@ static void send_master( void ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
-static void send_not_master( void ){
-
-    time_msg_not_master_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_NOT_MASTER;
-    
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
-}
-
 static void request_sync( void ){
 
     sync_id++;
@@ -685,17 +708,17 @@ PT_BEGIN( pt );
         // we'll tell everyone else we aren't the master, so someone else will jump in
         // (with the current network time).
 
-        send_not_master();
+        send_not_master( ip_a_addr(255,255,255,255) );
         TMR_WAIT( pt, 200 );
-        send_not_master();
+        send_not_master( ip_a_addr(255,255,255,255) );
         TMR_WAIT( pt, 200 );
-        send_not_master();
+        send_not_master( ip_a_addr(255,255,255,255) );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 2000 + ( rnd_u16_get_int() >> 3 ) );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_WAIT ) );
-    
-        // check if we are still waiting
-        if( sync_state == STATE_WAIT ){
+
+        // check if we are still waiting or we have a GPS sync
+        if( ( sync_state == STATE_WAIT ) || ( gps_sync ) ){
 
             // elect ourselves as master.
             // even if we don't have an NTP reference, we can at least sync the local net clock.
@@ -747,11 +770,11 @@ PT_BEGIN( pt );
 
             if( sys_b_shutdown() ){
 
-                send_not_master();
+                send_not_master( ip_a_addr(255,255,255,255) );
                 TMR_WAIT( pt, 200 );
-                send_not_master();
+                send_not_master( ip_a_addr(255,255,255,255) );
                 TMR_WAIT( pt, 200 );
-                send_not_master();   
+                send_not_master( ip_a_addr(255,255,255,255) );   
 
                 THREAD_EXIT( pt );
             }
