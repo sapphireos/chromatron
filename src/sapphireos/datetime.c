@@ -265,6 +265,12 @@ uint32_t datetime_u32_datetime_to_seconds( const datetime_t *datetime ){
         datetime_copy.year--;
 	}
 
+    // check for leap year
+    if( datetime_b_is_leap_year( datetime ) ){
+
+        temp_days--;
+    }
+
 	// calculate days from month
     for( uint8_t month = JANUARY; month < datetime->month; month++ ){
 
