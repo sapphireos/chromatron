@@ -812,11 +812,13 @@ void thread_start( void ){
     fs_f_create_virtual( PSTR("threadinfo"), vfile );
 
 
+    #ifndef ESP8266
 	// infinite loop running the thread scheduler
 	while(1){
 
 		thread_core();
 	}
+    #endif
 }
 
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) )

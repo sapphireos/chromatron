@@ -241,8 +241,6 @@ void sapphire_run( void ){
     // enable watchdog timer
     sys_v_init_watchdog();
 
-    #ifndef XTENSA
 	// start the thread scheduler
 	thread_start();
-    #endif
 }

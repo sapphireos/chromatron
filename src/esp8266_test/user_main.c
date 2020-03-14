@@ -127,6 +127,10 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
     system_os_post(LOOP_PRIO, 0, 0 );
 }
  
+
+void app_v_init( void ) __attribute__((weak));
+void libs_v_init( void ) __attribute__((weak));
+
 void ICACHE_FLASH_ATTR user_init(void)
 {
     gpio_init();
@@ -143,12 +147,30 @@ void ICACHE_FLASH_ATTR user_init(void)
     // os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
     // os_timer_arm(&ptimer, 500, 1);
 
+    if( sapphire_i8_init() == 0 ){
+            
+        if( app_v_init != 0 ){            
+
+            app_v_init();
+        }
+
+        if( libs_v_init != 0 ){
+
+            libs_v_init();
+        }
+    }
+    
+    sapphire_run();
+  
+
     // this will init SapphireOS
-    main();
+    // main();
+
+    os_printf("\r\nMEOW\r\n");
     
     //Start os task
-    // system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
-    // system_os_post(LOOP_PRIO, 0, 0 );    
+    system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
+    system_os_post(LOOP_PRIO, 0, 0 );    
 }
 
 
