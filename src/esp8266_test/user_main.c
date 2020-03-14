@@ -139,7 +139,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
 
     // Disable WiFi
-    	wifi_set_opmode(NULL_MODE);
+  	wifi_set_opmode(NULL_MODE);
 
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
 
@@ -147,6 +147,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     // os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
     // os_timer_arm(&ptimer, 500, 1);
 
+    // sapphireos init
     if( sapphire_i8_init() == 0 ){
             
         if( app_v_init != 0 ){            
@@ -160,14 +161,10 @@ void ICACHE_FLASH_ATTR user_init(void)
         }
     }
     
+    // start OS
+    // on the ESP8266 this will return
     sapphire_run();
   
-
-    // this will init SapphireOS
-    // main();
-
-    os_printf("\r\nMEOW\r\n");
-    
     //Start os task
     system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
     system_os_post(LOOP_PRIO, 0, 0 );    

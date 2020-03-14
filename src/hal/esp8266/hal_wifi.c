@@ -32,7 +32,7 @@
 #define WIFI_OPMODE_STA_AP 	0x03
 
 void wifi_v_init( void ){
-	return;
+	// return;
 	trace_printf( "wifi_v_init\r\n" );
 
 	wifi_station_disconnect();
@@ -40,16 +40,16 @@ void wifi_v_init( void ){
 	// set opmode without saving to flash (since we always set this)
 	wifi_set_opmode_current( WIFI_OPMODE_STA );
 
-	// char *ssid = SSID;
- //    char *password = PASSWORD;
+	char *ssid = SSID;
+    char *password = PASSWORD;
     
- //    struct station_config config = {0};
- //    strcpy( &config.ssid, ssid );
- //    strcpy( &config.password, password );
+    struct station_config config = {0};
+    strcpy( &config.ssid, ssid );
+    strcpy( &config.password, password );
 
- //    wifi_station_set_config( &config );
+    wifi_station_set_config( &config );
 
- //    wifi_station_connect();
+    wifi_station_connect();
 }
 
 void wifi_v_shutdown( void ){
