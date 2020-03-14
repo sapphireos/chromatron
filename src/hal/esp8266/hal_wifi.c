@@ -96,4 +96,14 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
 }
 
+#else
+
+bool wifi_b_connected( void ){
+
+	return FALSE;
+}
+
+
 #endif
+
+
