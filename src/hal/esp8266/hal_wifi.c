@@ -33,17 +33,19 @@
 
 void wifi_v_init( void ){
 
-	return;
+	trace_printf( "wifi_v_init\r\n" );
+
+	wifi_station_disconnect();
+
 	// set opmode without saving to flash (since we always set this)
 	wifi_set_opmode_current( WIFI_OPMODE_STA );
 
-	char ssid[32] = SSID;
-    char password[64] = PASSWORD;
+	char *ssid = SSID;
+    char *password = PASSWORD;
     
-    struct station_config config;
-    config.bssid_set = 0;    
-    memcpy( &config.ssid, ssid, 32 );
-    memcpy( &config.password, password, 64 );
+    struct station_config config = {0};
+    strcpy( &config.ssid, ssid );
+    strcpy( &config.password, password );
 
     wifi_station_set_config( &config );
 
