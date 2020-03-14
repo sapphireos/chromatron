@@ -28,7 +28,7 @@
 #include "config.h"
 #include "io.h"
 #include "flash_fs.h"
-#include "esp8266.h"
+#include "wifi.h"
 
 #include "hal_status_led.h"
 

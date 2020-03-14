@@ -29,7 +29,7 @@
 #include "config.h"
 #include "io.h"
 #include "flash_fs.h"
-#include "esp8266.h"
+#include "wifi.h"
 #include "adc.h"
 #include "timesync.h"
 

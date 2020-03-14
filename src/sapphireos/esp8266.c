@@ -45,12 +45,14 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 
 #if defined(ENABLE_WIFI) && !defined(ESP8266)
 
+#include "wifi.h"
+#include "esp8266.h"
+
 #include "threading.h"
 #include "timers.h"
 #include "os_irq.h"
 #include "keyvalue.h"
 #include "hal_usart.h"
-#include "esp8266.h"
 #include "wifi_cmd.h"
 #include "netmsg.h"
 #include "ip.h"
@@ -622,6 +624,18 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     return NETMSG_TX_OK_RELEASE;
 }
 
+static bool _wifi_b_ap_mode_enabled( void ){
+
+    if( default_ap_mode ){
+
+        return TRUE;
+    }
+
+    bool wifi_enable_ap = FALSE;
+    cfg_i8_get( CFG_PARAM_WIFI_ENABLE_AP, &wifi_enable_ap );
+    
+    return wifi_enable_ap;    
+}
 
 typedef struct{
     uint8_t timeout;
@@ -713,7 +727,7 @@ PT_BEGIN( pt );
         
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
-        bool ap_mode = wifi_b_ap_mode_enabled();
+        bool ap_mode = _wifi_b_ap_mode_enabled();
 
         // get SSIDs from database
         wifi_msg_connect_t msg;
@@ -880,7 +894,7 @@ end:
 
     if( wifi_b_connected() ){
 
-        if( !wifi_b_ap_mode_enabled() ){
+        if( !_wifi_b_ap_mode_enabled() ){
 
             wifi_connects++;
 
@@ -1649,19 +1663,6 @@ bool wifi_b_ap_mode( void ){
     return ( wifi_status_reg & WIFI_STATUS_AP_MODE ) != 0;
 }
 
-bool wifi_b_ap_mode_enabled( void ){
-
-    if( default_ap_mode ){
-
-        return TRUE;
-    }
-
-    bool wifi_enable_ap = FALSE;
-    cfg_i8_get( CFG_PARAM_WIFI_ENABLE_AP, &wifi_enable_ap );
-    
-    return wifi_enable_ap;    
-}
-
 bool wifi_b_attached( void ){
 
     return wifi_status >= WIFI_STATE_ALIVE;
@@ -1680,15 +1681,6 @@ int8_t wifi_i8_get_status( void ){
 uint32_t wifi_u32_get_received( void ){
 
     return wifi_udp_received;
-}
-
-
-#else
-// ESP8266 host builds
-
-bool wifi_b_connected( void ){
-
-    return FALSE;
 }
 
 #endif

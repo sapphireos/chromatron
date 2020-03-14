@@ -28,7 +28,7 @@
 #include "fs.h"
 #include "random.h"
 #include "graphics.h"
-#include "esp8266.h"
+#include "wifi.h"
 #include "hash.h"
 #include "kvdb.h"
 #include "vm_wifi_cmd.h"

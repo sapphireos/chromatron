@@ -1,4 +1,3 @@
-/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,40 +19,57 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
-
-
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
 #include "wifi.h"
-#include "i2s.h"
+
+void wifi_v_init( void ){
+
+}
+
+void wifi_v_shutdown( void ){
 
 
-#endif
+}
+
+bool wifi_b_connected( void ){
+
+	return FALSE;
+}
+
+bool wifi_b_attached( void ){
+
+	return FALSE;
+}
+
+int8_t wifi_i8_rssi( void ){
+
+	return 0;
+}
+
+void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
+
+}
+
+bool wifi_b_ap_mode( void ){
+
+	return FALSE;
+}
+
+bool wifi_b_shutdown( void ){
+
+}
+
+int8_t wifi_i8_get_status( void ){
+
+}
+
+uint32_t wifi_u32_get_received( void ){
+
+}
+
+int8_t wifi_i8_send_udp( netmsg_t netmsg ){
+
+
+}
+
+

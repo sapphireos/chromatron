@@ -33,7 +33,7 @@
 
 #include "pixel.h"
 #include "graphics.h"
-#include "esp8266.h"
+#include "wifi.h"
 #include "vm.h"
 #include "timesync.h"
 #include "kvdb.h"

@@ -41,7 +41,7 @@
 #include "usb_intf.h"
 #include "catbus.h"
 #include "keyvalue.h"
-#include "esp8266.h"
+#include "wifi.h"
 
 #include <stdio.h>
 #include <stdlib.h>

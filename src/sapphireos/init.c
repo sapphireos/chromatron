@@ -64,7 +64,7 @@
 #endif
 
 #ifdef ENABLE_WIFI
-#include "esp8266.h"
+#include "wifi.h"
 #endif
 
 #ifdef ENABLE_TIME_SYNC
