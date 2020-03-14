@@ -33,6 +33,7 @@
 
 void wifi_v_init( void ){
 
+	return;
 	// set opmode without saving to flash (since we always set this)
 	wifi_set_opmode_current( WIFI_OPMODE_STA );
 
