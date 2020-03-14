@@ -135,6 +135,10 @@ void ICACHE_FLASH_ATTR user_init(void)
 {
     gpio_init();
 
+    // disable SDK debug prints
+    // NOTE this will disable ALL console prints, including ours!
+    // system_set_os_print( 0 );
+
     uart_init(115200, 115200);
     os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
 
