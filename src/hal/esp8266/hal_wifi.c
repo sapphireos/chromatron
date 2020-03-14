@@ -20,10 +20,33 @@
 // 
 // </license>
 
+#include "system.h"
 #include "wifi.h"
+
+#include "test_ssid.h"
+
+#ifdef ENABLE_WIFI
+
+#define WIFI_OPMODE_STA 	0x01
+#define WIFI_OPMODE_AP 		0x02
+#define WIFI_OPMODE_STA_AP 	0x03
 
 void wifi_v_init( void ){
 
+	// set opmode without saving to flash (since we always set this)
+	wifi_set_opmode_current( WIFI_OPMODE_STA );
+
+	char ssid[32] = SSID;
+    char password[64] = PASSWORD;
+    
+    struct station_config config;
+    config.bssid_set = 0;    
+    memcpy( &config.ssid, ssid, 32 );
+    memcpy( &config.password, password, 64 );
+
+    wifi_station_set_config( &config );
+
+    wifi_station_connect();
 }
 
 void wifi_v_shutdown( void ){
@@ -72,4 +95,4 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
 }
 
-
+#endif
