@@ -24,6 +24,8 @@
 #ifndef _ESP8266_LOADER_H_
 #define _ESP8266_LOADER_H_
 
+#define WIFI_LOADER_MAX_TRIES   8
+
 #define MD5_LEN 16
 
 #define ESP_SYNC_TIMEOUT 		15000

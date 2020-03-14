@@ -43,7 +43,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 
 #include "system.h"
 
-#ifdef ENABLE_WIFI
+#if defined(ENABLE_WIFI) && !defined(ESP8266)
 
 #include "threading.h"
 #include "timers.h"
@@ -63,10 +63,8 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "hal_status_led.h"
 #include "hash.h"
 
-#ifndef ESP8266
 #include "hal_esp8266.h"
 #include "esp8266_loader.h"
-#endif
 
 #ifdef ENABLE_USB
 #include "usb_intf.h"
@@ -181,7 +179,6 @@ void debug_strobe( void ){
     // io_v_digital_write( IO_PIN_1_XCK, FALSE );
 }
 
-#ifndef ESP8266
 static int8_t _wifi_i8_send_header( uint8_t data_id, uint16_t data_len ){
 
     uint8_t tries = WIFI_COMM_TRIES;
@@ -463,13 +460,9 @@ void send_ports( void ){
 
     wifi_i8_send_msg( WIFI_DATA_ID_PORTS, (uint8_t *)&ports, sizeof(ports) );
 }
-#endif
+
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
-
-    #ifdef ESP8266
-
-    #else
 
     if( protocol == IP_PROTO_UDP ){
 
@@ -512,7 +505,6 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
     // send ports message
     send_ports();
-    #endif
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
@@ -639,7 +631,6 @@ typedef struct{
 
 PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
 
-#ifndef ESP8266
 static void get_info( void ){
 
     if( wifi_i8_send_msg( WIFI_DATA_ID_INFO, 0, 0 ) < 0 ){
@@ -702,7 +693,6 @@ static void get_info( void ){
     wifi_router                 = msg.wifi_router;
     wifi_channel                = msg.wifi_channel;
 }
-#endif
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -1262,8 +1252,6 @@ PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
 
-    #ifndef ESP8266
-
     state->fw_file = 0;
     state->tries = WIFI_LOADER_MAX_TRIES;
 
@@ -1525,8 +1513,6 @@ run_wifi:
 
         fs_f_close( state->fw_file );
     }
-
-    #endif
 
     trace_printf( "Starting wifi!\r\n" );
     // log_v_debug_P( PSTR("Starting wifi!") );

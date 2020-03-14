@@ -34,11 +34,8 @@
 #define WIFI_STATE_ALIVE        1
 #define WIFI_STATE_SHUTDOWN     2
 
-#define WIFI_SIGNAL 			SIGNAL_SYS_3
-
 #define WIFI_AP_MIN_PASS_LEN    8
 
-#define WIFI_LOADER_MAX_TRIES   8
 #define WIFI_WATCHDOG_TIMEOUT   8
 
 // maximum power setting the hardware will support.

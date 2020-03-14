@@ -394,7 +394,7 @@ static uint8_t get_best_local_source( void ){
     return TIME_SOURCE_NONE;
 }
 
-static void send_not_master( ip_addr_t ip ){
+static void send_not_master( ip_addr4_t ip ){
 
     time_msg_not_master_t msg;
     msg.magic           = TIME_PROTOCOL_MAGIC;
