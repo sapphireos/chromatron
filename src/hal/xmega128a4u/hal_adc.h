@@ -26,11 +26,7 @@
 #ifndef _HAL_ADC_H
 #define _HAL_ADC_H
 
-// channels - on AVR CPU
-#define ADC_CHANNEL_0           0
-#define ADC_CHANNEL_1           1
-#define ADC_CHANNEL_10          10
-#define ADC_CHANNEL_11          11
+#include "hal_io.h"
 
 #define ADC_CHANNEL_VSUPPLY     3 // divided VIN measurement
 
@@ -47,10 +43,10 @@
 #define ADC_VREF_INTVCC_DIV1V6  ADC_REFSEL_INTVCC_gc // VCC / 1.6V (approx 2.0V at 3.3VCC)
 
 // channels - on board
-#define ANALOG_CHANNEL_ADC0     ADC_CHANNEL_1
-#define ANALOG_CHANNEL_ADC1     ADC_CHANNEL_0
-#define ANALOG_CHANNEL_DAC0     ADC_CHANNEL_10 // DAC channels are also ADC inputs
-#define ANALOG_CHANNEL_DAC1     ADC_CHANNEL_11
+#define ANALOG_CHANNEL_ADC0     IO_PIN_4_ADC0
+#define ANALOG_CHANNEL_ADC1     IO_PIN_5_ADC1
+#define ANALOG_CHANNEL_DAC0     IO_PIN_6_DAC0 // DAC channels are also ADC inputs
+#define ANALOG_CHANNEL_DAC1     IO_PIN_7_DAC1
 
 // vsupply pin
 #define ADC_VSUPPLY_PORT        PORTA

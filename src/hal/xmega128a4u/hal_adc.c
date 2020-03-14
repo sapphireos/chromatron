@@ -82,12 +82,10 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
         ADCA.CH0.CTRL = ADC_CH_INPUTMODE_DIFF_gc;
 
         switch( channel ){
-            case ADC_CHANNEL_0:
             case IO_PIN_5_ADC1:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc;
                 break;
 
-            case ADC_CHANNEL_1:
             case IO_PIN_4_ADC0:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
                 break;
@@ -96,12 +94,10 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc;
                 break;
 
-            case ADC_CHANNEL_10:
             case IO_PIN_6_DAC0:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN10_gc;
                 break;
 
-            case ADC_CHANNEL_11:
             case IO_PIN_7_DAC1:
                 ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN11_gc;
                 break;
