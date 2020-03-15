@@ -33,9 +33,6 @@
 
 #define WIFI_CONNECT_TIMEOUT    10000
 
-#include "netmsg.h"
-#include "wifi_cmd.h"
-
 #define WIFI_STATE_ERROR        -2
 #define WIFI_STATE_BOOT         -1
 #define WIFI_STATE_UNKNOWN      0
@@ -44,11 +41,20 @@
 
 #define WIFI_AP_MIN_PASS_LEN    8
 
+
+#include "netmsg.h"
+
+#ifndef ESP8266
+#include "wifi_cmd.h"
+
+
 #define WIFI_WATCHDOG_TIMEOUT   8
 
 int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
 int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read );
 
 extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ) __attribute__((weak));
+
+#endif
 
 #endif

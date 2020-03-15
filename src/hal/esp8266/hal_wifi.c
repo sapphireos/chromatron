@@ -183,6 +183,53 @@ static bool _wifi_b_ap_mode_enabled( void ){
     return wifi_enable_ap;    
 }
 
+void scan_cb( void *result, STATUS status ){
+
+	struct bss_info* info = (struct bss_info*)result;
+
+
+}
+
+static bool is_ssid_configured( void ){
+
+	char ssid[WIFI_SSID_LEN];
+	
+	memset( ssid, 0, sizeof(ssid) );
+	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+       
+   	if( ssid[0] != 0 ){
+
+   		return TRUE;
+   	}
+
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+       
+   	if( ssid[0] != 0 ){
+
+   		return TRUE;
+   	}
+
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+       
+   	if( ssid[0] != 0 ){
+
+   		return TRUE;
+   	}
+
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+       
+   	if( ssid[0] != 0 ){
+
+   		return TRUE;
+   	}
+
+   	return FALSE;
+}
+
+
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -198,27 +245,8 @@ PT_BEGIN( pt );
 
         bool ap_mode = _wifi_b_ap_mode_enabled();
 
-        // get SSIDs from database
-        wifi_msg_connect_t msg;
-        memset( &msg, 0, sizeof(msg) );
-
-        cfg_i8_get( CFG_PARAM_WIFI_SSID, msg.ssid[0] );
-        cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, msg.pass[0] );
-        
-        kv_i8_get( __KV__wifi_ssid2, msg.ssid[1], sizeof(msg.ssid[1]) );
-        kv_i8_get( __KV__wifi_password2, msg.pass[1], sizeof(msg.pass[1]) );  
-
-        kv_i8_get( __KV__wifi_ssid3, msg.ssid[2], sizeof(msg.ssid[2]) );
-        kv_i8_get( __KV__wifi_password3, msg.pass[2], sizeof(msg.pass[2]) );  
-
-        kv_i8_get( __KV__wifi_ssid4, msg.ssid[3], sizeof(msg.ssid[3]) );
-        kv_i8_get( __KV__wifi_password4, msg.pass[3], sizeof(msg.pass[3]) );  
-
         // check if no APs are configured
-        if( ( msg.ssid[0][0] == 0 ) &&
-            ( msg.ssid[1][0] == 0 ) &&
-            ( msg.ssid[2][0] == 0 ) &&
-            ( msg.ssid[3][0] == 0 ) ){
+        if( !is_ssid_configured() ){
 
             // no SSIDs are configured
 
@@ -232,7 +260,20 @@ station_mode:
             // scan first
             wifi_router = -1;
             log_v_debug_P( PSTR("Scanning...") );
-            // wifi_i8_send_msg( WIFI_DATA_ID_SCAN, (uint8_t *)&msg, sizeof(msg) );
+            
+            struct scan_config scan_config = {
+            	.ssid = 0,
+            	.bssid = 0,
+            	.channel = 0,
+            	.show_hidden = 0,
+            	.scan_type = 0,
+            	.scan_time = 0,
+            };
+
+            if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
+
+            	log_v_error_P( PSTR("Scan error") );
+            }
 
             scan_timeout = 200;
             while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
@@ -240,8 +281,6 @@ station_mode:
                 scan_timeout--;
 
                 TMR_WAIT( pt, 50 );
-
-                // get_info();
             }
 
             if( wifi_router < 0 ){
@@ -251,7 +290,7 @@ station_mode:
 
             log_v_debug_P( PSTR("Connecting...") );
             
-            
+
             // wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, 0, 0 );
 
 
@@ -265,19 +304,20 @@ station_mode:
             ASSERT( wifi_mac[0] != 0 );
 
             // AP mode
-            wifi_msg_ap_connect_t ap_msg;
+            char ap_ssid[WIFI_SSID_LEN];
+            char ap_pass[WIFI_PASS_LEN];
 
-            cfg_i8_get( CFG_PARAM_WIFI_AP_SSID, ap_msg.ssid );
-            cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_msg.pass );
+            cfg_i8_get( CFG_PARAM_WIFI_AP_SSID, ap_ssid );
+            cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_pass );
 
             // check if AP mode SSID is set:
-            if( ( ap_msg.ssid[0] == 0 ) || ( default_ap_mode ) ){
+            if( ( ap_ssid[0] == 0 ) || ( default_ap_mode ) ){
 
                 // set up default AP
-                memset( ap_msg.ssid, 0, sizeof(ap_msg.ssid) );
-                memset( ap_msg.pass, 0, sizeof(ap_msg.pass) );
+                memset( ap_ssid, 0, sizeof(ap_ssid) );
+                memset( ap_pass, 0, sizeof(ap_pass) );
 
-                strlcpy_P( ap_msg.ssid, PSTR("Chromatron_"), sizeof(ap_msg.ssid) );
+                strlcpy_P( ap_ssid, PSTR("Chromatron_"), sizeof(ap_ssid) );
 
                 char mac[16];
                 memset( mac, 0, sizeof(mac) );
@@ -285,13 +325,13 @@ station_mode:
                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-                strncat( ap_msg.ssid, mac, sizeof(ap_msg.ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) );
 
-                strlcpy_P( ap_msg.pass, PSTR("12345678"), sizeof(ap_msg.pass) );
+                strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
                 default_ap_mode = TRUE;
             }
-            else if( strnlen( ap_msg.pass, sizeof(ap_msg.pass) ) < WIFI_AP_MIN_PASS_LEN ){
+            else if( strnlen( ap_pass, sizeof(ap_pass) ) < WIFI_AP_MIN_PASS_LEN ){
 
                 log_v_warn_P( PSTR("AP mode password must be at least 8 characters.") );
 
@@ -302,12 +342,14 @@ station_mode:
                 goto end;
             }
 
-            log_v_debug_P( PSTR("Starting AP: %s"), ap_msg.ssid );
+            log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
             // check if wifi settings were present
-            if( ap_msg.ssid[0] != 0 ){        
+            if( ap_ssid[0] != 0 ){        
 
                 // wifi_i8_send_msg( WIFI_DATA_ID_AP_MODE, (uint8_t *)&ap_msg, sizeof(ap_msg) );
+
+            	
 
                 thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
                 THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&

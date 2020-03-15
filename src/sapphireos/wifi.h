@@ -25,6 +25,10 @@
 
 #include "esp8266.h"
 
+#define WIFI_SSID_LEN               32
+#define WIFI_PASS_LEN               32
+
+
 void wifi_v_init( void );
 void wifi_v_shutdown( void );
 bool wifi_b_connected( void );
