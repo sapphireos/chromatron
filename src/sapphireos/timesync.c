@@ -473,7 +473,8 @@ PT_BEGIN( pt );
                 else if( sync_state == STATE_SLAVE ){
 
                     // check if this master is better
-                    if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
+                    if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) && 
+                         is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
 
                         // select master
                         master_ip = raddr.ipaddr;

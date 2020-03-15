@@ -26,6 +26,7 @@ import time
 import threading
 import select
 from client import Client
+from broadcast import send_udp_broadcast
 
 from messages import *
 from catbustypes import *
@@ -383,7 +384,11 @@ class Server(Ribbon):
         s = self.__data_sock
 
         try:
-            s.sendto(serialize(msg), host)
+            if host[0] == '<broadcast>':
+                send_udp_broadcast(s, host[1], serialize(msg))
+
+            else:
+                s.sendto(serialize(msg), host)
 
         except socket.error:
             pass
@@ -734,6 +739,9 @@ class Server(Ribbon):
 
                     if link.source:
                         link_flags = CATBUS_MSG_LINK_FLAGS_SEND
+
+                    else:
+                        link_flags = CATBUS_MSG_LINK_FLAGS_RECEIVE
                     
                     query = CatbusQuery()
                     query._value = link.tags
