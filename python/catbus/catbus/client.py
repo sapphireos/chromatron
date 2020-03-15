@@ -720,7 +720,7 @@ class Client(object):
             if response.flags & CATBUS_LINK_FLAGS_VALID == 0:
                 continue
 
-            if response.flags & CATBUS_LINK_FLAGS_SOURCE:
+            if response.flags & CATBUS_MSG_LINK_FLAGS_SOURCE:
                 source = True
             else:
                 source = False
@@ -746,7 +746,7 @@ class Client(object):
 
     def add_link(self, source, source_key, dest_key, query, tag):
         if source:
-            flags = CATBUS_LINK_FLAGS_SOURCE
+            flags = CATBUS_MSG_LINK_FLAGS_SOURCE
 
         else:
             flags = 0

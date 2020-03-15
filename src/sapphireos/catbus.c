@@ -1852,7 +1852,7 @@ PT_BEGIN( pt );
 
                 // Receive Link
                 // A device is request to RECEIVE data FROM this node
-
+                
                 if( ( msg->flags & CATBUS_LINK_FLAGS_SEND ) ||
                     ( msg->flags & CATBUS_LINK_FLAGS_DATA ) ){
 
@@ -1871,7 +1871,7 @@ PT_BEGIN( pt );
 
                     goto end;
                 }
-                
+
                 // set up destination
                 raddr.port = msg->data_port;
 
@@ -1903,6 +1903,12 @@ PT_BEGIN( pt );
                 raddr.port = msg->data_port;
 
                 _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
+            }
+            else{
+
+                log_v_debug_P( PSTR("invalid link flags: 0x%02x"), msg->flags );
+
+                goto end;
             }
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_LINK_DATA ){

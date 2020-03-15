@@ -739,6 +739,9 @@ class Server(Ribbon):
 
                     if link.source:
                         link_flags = CATBUS_MSG_LINK_FLAGS_SEND
+
+                    else:
+                        link_flags = CATBUS_MSG_LINK_FLAGS_RECEIVE
                     
                     query = CatbusQuery()
                     query._value = link.tags
