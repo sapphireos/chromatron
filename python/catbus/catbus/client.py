@@ -266,8 +266,6 @@ class Client(object):
 
         discover_sock.settimeout(0.3)
 
-        broadcast_addrs = get_broadcast_addresses()
-
         for i in xrange(3):
             send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
 
