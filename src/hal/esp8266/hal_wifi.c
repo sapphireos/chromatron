@@ -251,41 +251,9 @@ station_mode:
 
             log_v_debug_P( PSTR("Connecting...") );
             
-            #ifdef ARM
-            connect_hold = TRUE;
-            #endif
-
+            
             // wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, 0, 0 );
 
-            #ifdef ARM
-            // since ARM targets don't use the ESP for anything other than wifi, we don't
-            // need to spin lock the entire CPU.
-            TMR_WAIT( pt, 1000 );
-            #else
-
-            // the wifi module will hang for around 900 ms when doing a connect.
-            // since we can't response to messages while that happens, we're going to do a blocking wait
-            // for 1 second here.
-            #ifdef ENABLE_USB
-            usb_v_detach();
-            #endif
-
-            for( uint8_t i = 0; i < 10; i++ ){
-
-                _delay_ms( 100 );
-                sys_v_wdt_reset();
-            }
-
-            #ifdef ENABLE_USB
-            usb_v_attach();
-            #endif
-            #endif
-
-            #ifdef ARM
-            connect_hold = FALSE;
-            #endif
-
-            // get_info();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
             THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
