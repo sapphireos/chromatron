@@ -108,3 +108,11 @@ void hal_cpu_v_delay_us( uint16_t us ){
 	os_delay_us( us );
 }
 
+void hal_cpu_v_delay_ms( uint16_t ms ){
+	
+	for( uint32_t i = 0; i < ms; i++ ){
+		
+		os_delay_us( 1000 );
+	}
+}
+

@@ -31,6 +31,7 @@
 // since we are using an integer, we will set to 17 for our max.
 #define WIFI_MAX_HW_TX_POWER    17
 
+#define WIFI_CONNECT_TIMEOUT    10000
 
 #include "netmsg.h"
 #include "wifi_cmd.h"

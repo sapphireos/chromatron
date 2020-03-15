@@ -80,7 +80,6 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 
 #define WIFI_COMM_TRIES         4
 #define WIFI_COMM_TIMEOUT       200000
-#define WIFI_CONNECT_TIMEOUT    10000
 
 static uint16_t ports[WIFI_MAX_PORTS];
 

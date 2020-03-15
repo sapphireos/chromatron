@@ -25,6 +25,7 @@
 #define _HAL_CPU_H
 
 #include "user_interface.h"
+#include "osapi.h"
 #include "bool.h"
 #include "trace.h"
 // #define trace_printf(...)
@@ -48,6 +49,6 @@
 #define MEMORY_HEAP __attribute__ ((section (".memory_heap")))
 
 void hal_cpu_v_delay_us( uint16_t us );
-
+void hal_cpu_v_delay_ms( uint16_t ms );
 
 #endif
