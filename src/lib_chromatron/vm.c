@@ -652,7 +652,7 @@ PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
 
-    log_v_debug_P( PSTR("new thread %d on vm %d"), state->thread_id, state->vm_id );
+    // log_v_debug_P( PSTR("new thread %d on vm %d"), state->thread_id, state->vm_id );
     
     while( vm_active_threads[state->vm_id] & ( 1 << state->thread_id ) ){
 
@@ -690,7 +690,7 @@ PT_BEGIN( pt );
 exit:
     vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
 
-    log_v_debug_P( PSTR("stop thread %d on vm %d"), state->thread_id, state->vm_id );
+    // log_v_debug_P( PSTR("stop thread %d on vm %d"), state->thread_id, state->vm_id );
 
 PT_END( pt );
 }
