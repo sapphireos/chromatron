@@ -24,6 +24,7 @@ import socket
 from data_structures import *
 from messages import *
 from options import *
+from broadcast import send_udp_broadcast
 import time
 import netifaces
 import os
@@ -34,22 +35,6 @@ DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.js
 
 import random
 
-def get_broadcast_addresses():
-    addrs = []
-    for interface in netifaces.interfaces():
-        try:
-            for addr in netifaces.ifaddresses(interface)[socket.AF_INET]:
-                try:
-                    addrs.append(addr['broadcast'])
-
-                except KeyError:
-                    pass
-
-        except KeyError:
-            pass
-
-
-    return addrs
 
 class Client(object):
     def __init__(self):
@@ -284,8 +269,7 @@ class Client(object):
         broadcast_addrs = get_broadcast_addresses()
 
         for i in xrange(3):
-            for addr in broadcast_addrs:
-                discover_sock.sendto(msg.pack(), (addr, CATBUS_DISCOVERY_PORT))
+            send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
 
             start = time.time()
 
