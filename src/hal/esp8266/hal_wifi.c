@@ -42,6 +42,8 @@ static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static bool default_ap_mode;
 
+static bool connected;
+
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -112,7 +114,7 @@ void wifi_v_shutdown( void ){
 
 bool wifi_b_connected( void ){
 
-	return FALSE;
+	return connected;
 }
 
 bool wifi_b_attached( void ){
@@ -336,14 +338,14 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static uint8_t scan_timeout;
+
+    connected = FALSE;
     
     // check if we are connected
     while( !wifi_b_connected() ){
 
         wifi_rssi = -127;
         
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
         bool ap_mode = _wifi_b_ap_mode_enabled();
 
         // check if no APs are configured
@@ -403,8 +405,26 @@ station_mode:
 			wifi_station_connect();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-            THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
+            THREAD_WAIT_WHILE( pt, ( wifi_station_get_connect_status() != STATION_GOT_IP ) &&
                                    ( thread_b_alarm_set() ) );
+
+           	// check if we're connected
+           	if( wifi_station_get_connect_status() == STATION_GOT_IP ){
+
+           		connected = TRUE;
+
+           		// get IP info
+           		struct ip_info info;
+           		memset( &info, 0, sizeof(info) );
+           		wifi_get_ip_info( STATION_IF, &info );
+
+				cfg_v_set( CFG_PARAM_IP_ADDRESS, &info.ip );
+			    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
+
+			    uint32_t dns_ip = dns_getserver( 0 );
+
+			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
+           	}
         }
         // AP mode
         else{
