@@ -95,8 +95,11 @@ void wifi_v_init( void ){
                  0 );
 
 
-	// char *ssid = SSID;
- //    char *password = PASSWORD;
+	char *ssid = SSID;
+    char *password = PASSWORD;
+
+    cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
+    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, password );
     
  //    struct station_config config = {0};
  //    strcpy( &config.ssid, ssid );
