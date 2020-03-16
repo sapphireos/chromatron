@@ -33,6 +33,7 @@
 
 static uint8_t wifi_mac[6];
 static int8_t wifi_rssi;
+static uint8_t wifi_bssid[6];
 static int8_t wifi_router;
 static int8_t wifi_channel;
 static uint32_t wifi_uptime;
@@ -183,11 +184,111 @@ static bool _wifi_b_ap_mode_enabled( void ){
     return wifi_enable_ap;    
 }
 
+
+static int8_t has_ssid( char *check_ssid ){
+
+	char ssid[WIFI_SSID_LEN];
+	
+	memset( ssid, 0, sizeof(ssid) );
+	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+       
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+
+   		return 0;
+   	}
+
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+       
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+
+   		return 1;
+   	}
+
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+       
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+
+   		return 2;
+   	}
+
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+       
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+
+   		return 3;
+   	}
+
+   	return -1;
+}
+
+
+
+static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
+
+	memset( pass, 0, WIFI_PASS_LEN );
+
+	if( router == 0 ){
+
+		cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, pass );
+	}
+    else if( router == 1 ){
+	   	
+	   	kv_i8_get( __KV__wifi_ssid2, pass, WIFI_PASS_LEN );
+	}
+	else if( router == 2 ){
+	   	
+	   	kv_i8_get( __KV__wifi_ssid3, pass, WIFI_PASS_LEN );
+	}
+	else if( router == 3 ){
+	   	
+	   	kv_i8_get( __KV__wifi_ssid4, pass, WIFI_PASS_LEN );
+	}
+}
+
 void scan_cb( void *result, STATUS status ){
 
 	struct bss_info* info = (struct bss_info*)result;
 
+	trace_printf("scan: %d\n", status);
 
+	int8_t best_rssi = -127;
+	uint8_t best_channel = 0;
+	uint8_t *best_bssid = 0;
+	int8_t router = -1;
+
+	while( info != 0 ){
+
+		trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
+
+		router = has_ssid( info->ssid );
+		if( router < 0 ){
+
+			goto end;
+		}
+
+		if( info->rssi > best_rssi ){
+
+			best_bssid 		= info->bssid;
+			best_rssi 		= info->rssi;
+			best_channel 	= info->channel;
+		}
+
+	end:
+		info = info->next.stqe_next;
+	}
+
+	if( best_rssi == -127 ){
+
+		return;
+	}
+
+	// select router
+	wifi_router = router;
+	memcpy( wifi_bssid, best_bssid, sizeof(wifi_bssid) );
+	wifi_channel = best_channel;
 }
 
 static bool is_ssid_configured( void ){
@@ -270,6 +371,7 @@ station_mode:
             	.scan_time = 0,
             };
 
+            wifi_station_disconnect();
             if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
 
             	log_v_error_P( PSTR("Scan error") );
@@ -290,9 +392,15 @@ station_mode:
 
             log_v_debug_P( PSTR("Connecting...") );
             
+			struct station_config sta_config;
+			memset( &sta_config, 0, sizeof(sta_config) );
+			memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
+			sta_config.bssid_set = 1;
+			sta_config.channel = wifi_channel;
+			get_pass( wifi_router, sta_config.password );
 
-            // wifi_i8_send_msg( WIFI_DATA_ID_CONNECT, 0, 0 );
-
+			wifi_station_set_config_current( &sta_config );
+			wifi_station_connect();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
             THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
@@ -349,7 +457,7 @@ station_mode:
 
                 // wifi_i8_send_msg( WIFI_DATA_ID_AP_MODE, (uint8_t *)&ap_msg, sizeof(ap_msg) );
 
-            	
+
 
                 thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
                 THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
