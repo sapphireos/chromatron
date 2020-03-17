@@ -46,7 +46,7 @@
 
 #define FW_INFO_SECTION __attribute__ ((section (".fwinfo"), used))
 #define NON_CACHEABLE __attribute__ ((section (".non_cacheable")))
-#define MEMORY_HEAP __attribute__ ((section (".memory_heap")))
+#define MEMORY_HEAP __attribute__ ((section (".memory_heap"), aligned(4)))
 
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );
