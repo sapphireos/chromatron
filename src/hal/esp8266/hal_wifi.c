@@ -205,7 +205,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
 			if( conn != 0 ){
 
-				espconn_disconnect( conn );
+				espconn_delete( conn );
 				conn->type = ESPCONN_INVALID;	
 			}
         }
@@ -297,6 +297,8 @@ uint32_t wifi_u32_get_received( void ){
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
+
+return NETMSG_TX_ERR_RELEASE;
 
 	int8_t status = 0;
 
