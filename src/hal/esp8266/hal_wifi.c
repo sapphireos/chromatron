@@ -118,17 +118,24 @@ void wifi_v_init( void ){
  //    wifi_station_connect();
 }
 
+static struct espconn esp_conn[8];
+static esp_udp udp_conn[8];
+
 void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
 	struct espconn* conn = (struct espconn*)arg;
 
+	remot_info *remote_info = 0;
+   
+    espconn_get_connection_info( conn, &remote_info, 0 );
+
 	trace_printf("RX: %d bytes from %d.%d.%d.%d:%u\n", 
 		len, 
-		conn->proto.udp->remote_ip[0],
-		conn->proto.udp->remote_ip[1],
-		conn->proto.udp->remote_ip[2],
-		conn->proto.udp->remote_ip[3],
-		conn->proto.udp->remote_port);
+		remote_info->remote_ip[0],
+		remote_info->remote_ip[1],
+		remote_info->remote_ip[2],
+		remote_info->remote_ip[3],
+		remote_info->remote_port);
 }
 
 
@@ -139,57 +146,34 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
         if( open ){
 
         	trace_printf("Open port: %u\n", port);
-            
-            list_node_t node = list_ln_create_node( 0, sizeof(struct espconn) + sizeof(esp_udp) );
 
-            if( node < 0 ){
+        	int8_t index = -1;
+        	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
 
-            	// this is bad.
-            	ASSERT( FALSE );
+        		if( esp_conn[i].type == ESPCONN_INVALID ){
 
-            	return;
-            }
+        			index = i;
+        			break;
+        		}
+        	}
 
-            memset( list_vp_get_data( node ), 0, list_u16_node_size( node ) );
+            esp_conn[index].type 			= ESPCONN_UDP;
+			esp_conn[index].state 			= ESPCONN_NONE; 
+			esp_conn[index].proto.udp 		= &udp_conn[index];
+			esp_conn[index].recv_callback 	= udp_recv_callback;
+			esp_conn[index].sent_callback 	= 0;
+			esp_conn[index].link_cnt 		= 0;
+			esp_conn[index].reverse 		= 0;
 
-            struct espconn* conn = list_vp_get_data( node );
-            esp_udp* udp = (esp_udp*)( conn + 1 );
-
-            conn->type 			= ESPCONN_UDP;
-			conn->state 		= ESPCONN_NONE; 
-			conn->proto.udp 	= udp;
-			conn->recv_callback = udp_recv_callback;
-			conn->sent_callback = 0;
-			conn->link_cnt 		= 0;
-			conn->reverse 		= 0;
-
-			udp->remote_port 	= 0;
-			udp->local_port 	= port;
-
-			list_v_insert_head( &conn_list, node );
-
-			espconn_create( conn );
+			udp_conn[index].remote_port 	= 0;
+			udp_conn[index].local_port 		= port;
+ 
+			espconn_create( &esp_conn[index] );
         }
         else{
 
         	trace_printf("Close port: %u\n", port);
 			
-			list_node_t node = conn_list.head;
-
-			while( node > 0 ){
-
-				struct espconn* conn = list_vp_get_data( node );
-
-				if( conn->proto.udp->local_port == port ){
-
-					list_v_remove( &conn_list, node );
-					list_v_release_node( node );
-
-					break;
-				}
-
-				node = list_ln_next( node );
-			}
         }
     }
 }
