@@ -138,6 +138,23 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 		remote_info->remote_port);
 }
 
+struct espconn* get_conn( uint16_t lport ){
+
+	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
+
+		if( esp_conn[i].type == ESPCONN_INVALID ){
+
+			continue;
+		}
+
+		if( esp_conn[i].proto.udp->local_port == lport ){
+
+			return &esp_conn[i];
+		}
+	}
+
+	return 0;
+}
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
@@ -157,6 +174,9 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
         		}
         	}
 
+        	memset( &esp_conn[index], 0, sizeof(esp_conn[index]) );
+        	memset( &udp_conn[index], 0, sizeof(udp_conn[index]) );
+
             esp_conn[index].type 			= ESPCONN_UDP;
 			esp_conn[index].state 			= ESPCONN_NONE; 
 			esp_conn[index].proto.udp 		= &udp_conn[index];
@@ -174,6 +194,13 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
         	trace_printf("Close port: %u\n", port);
 			
+			struct espconn* conn = get_conn( port );
+
+			if( conn != 0 ){
+
+				espconn_disconnect( conn );
+				conn->type = ESPCONN_INVALID;	
+			}
         }
     }
 }
@@ -264,7 +291,116 @@ uint32_t wifi_u32_get_received( void ){
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
+	int8_t status = 0;
 
+    if( !wifi_b_connected() ){
+
+        return NETMSG_TX_ERR_RELEASE;
+    }
+
+    netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
+
+    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
+
+    uint16_t data_len = 0;
+
+    uint8_t *data = 0;
+    uint8_t *h2 = 0;
+    uint16_t h2_len = 0;
+
+    if( netmsg_state->data_handle > 0 ){
+
+        data = mem2_vp_get_ptr( netmsg_state->data_handle );
+        data_len = mem2_u16_get_size( netmsg_state->data_handle );
+    }
+
+    // header 2, if present
+    if( netmsg_state->header_2_handle > 0 ){
+
+        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+    }
+
+    // get esp conn
+    struct espconn* conn = get_conn( netmsg_state->laddr.port );
+
+    trace_printf("found conn: %d\n", conn);
+
+    // setup header
+    // wifi_msg_udp_header_t udp_header;
+    // udp_header.addr = netmsg_state->raddr.ipaddr;
+    // udp_header.lport = netmsg_state->laddr.port;
+    // udp_header.rport = netmsg_state->raddr.port;
+    // udp_header.len = data_len + h2_len;
+    
+    // bail out of header fails, it is already tried multiple times
+    // if( _wifi_i8_send_header( WIFI_DATA_ID_SEND_UDP, sizeof(wifi_msg_udp_header_t) + data_len + h2_len ) < 0 ){
+
+    //     break;
+    // }
+
+    // uint16_t crc = crc_u16_start();
+
+    // uint16_t len = sizeof(wifi_msg_udp_header_t);
+    // uint8_t *send_data = (uint8_t *)&udp_header;
+    // while( len > 0 ){
+
+    //     hal_wifi_v_usart_send_char( *send_data );
+    //     crc = crc_u16_byte( crc, *send_data );
+
+    //     send_data++;
+    //     len--;
+    // }
+
+    // len = h2_len;
+    // send_data = h2;
+    // while( len > 0 ){
+
+    //     hal_wifi_v_usart_send_char( *send_data );
+    //     crc = crc_u16_byte( crc, *send_data );
+
+    //     send_data++;
+    //     len--;
+    // }
+
+    // len = data_len;
+    // send_data = data;
+    // while( len > 0 ){
+
+    //     hal_wifi_v_usart_send_char( *send_data );
+    //     crc = crc_u16_byte( crc, *send_data );
+
+    //     send_data++;
+    //     len--;
+    // }
+
+    // crc = crc_u16_finish( crc );
+    // hal_wifi_v_usart_send_data( (uint8_t *)&crc, sizeof(crc) );
+
+    // int16_t byte = hal_wifi_i16_usart_get_char_timeout( WIFI_COMM_TIMEOUT );
+
+    // if( byte == WIFI_COMM_ACK ){
+
+    //     break;
+    // }
+    // else if( byte < 0 ){
+
+    //     log_v_debug_P( PSTR("msg response timeout") );       
+    // }
+    // else{
+
+    //     log_v_debug_P( PSTR("udp invalid response -> 0x%02x"), byte );
+    // }
+
+
+    // if( status < 0 ){
+     
+    //     log_v_debug_P( PSTR("msg failed") );
+
+    //     return NETMSG_TX_ERR_RELEASE;   
+    // }
+    
+    return NETMSG_TX_OK_RELEASE;
 }
 
 static bool _wifi_b_ap_mode_enabled( void ){
