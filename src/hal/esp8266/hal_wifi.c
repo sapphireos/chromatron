@@ -26,8 +26,12 @@
 #include "threading.h"
 #include "timers.h"
 #include "logging.h"
+#include "memory.h"
+#include "list.h"
 
 #include "test_ssid.h"
+
+#include "espconn.h"
 
 #ifdef ENABLE_WIFI
 
@@ -78,6 +82,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 
+static list_t conn_list;
 
 void wifi_v_init( void ){
 	
@@ -94,12 +99,15 @@ void wifi_v_init( void ){
                  0,
                  0 );
 
+	wifi_get_macaddr( 0, wifi_mac );
 
 	char *ssid = SSID;
     char *password = PASSWORD;
 
     cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
     cfg_v_set( CFG_PARAM_WIFI_PASSWORD, password );
+
+    list_v_init( &conn_list );
     
  //    struct station_config config = {0};
  //    strcpy( &config.ssid, ssid );
@@ -109,6 +117,105 @@ void wifi_v_init( void ){
 
  //    wifi_station_connect();
 }
+
+void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
+
+	struct espconn* conn = (struct espconn*)arg;
+
+	trace_printf("RX: %d bytes from %d.%d.%d.%d:%u\n", 
+		len, 
+		conn->proto.udp->remote_ip[0],
+		conn->proto.udp->remote_ip[1],
+		conn->proto.udp->remote_ip[2],
+		conn->proto.udp->remote_ip[3],
+		conn->proto.udp->remote_port);
+}
+
+
+void open_close_port( uint8_t protocol, uint16_t port, bool open ){
+
+    if( protocol == IP_PROTO_UDP ){
+
+        if( open ){
+
+        	trace_printf("Open port: %u\n", port);
+            
+            list_node_t node = list_ln_create_node( 0, sizeof(struct espconn) + sizeof(esp_udp) );
+
+            if( node < 0 ){
+
+            	// this is bad.
+            	ASSERT( FALSE );
+
+            	return;
+            }
+
+            memset( list_vp_get_data( node ), 0, list_u16_node_size( node ) );
+
+            struct espconn* conn = list_vp_get_data( node );
+            esp_udp* udp = (esp_udp*)( conn + 1 );
+
+            conn->type 			= ESPCONN_UDP;
+			conn->state 		= ESPCONN_NONE; 
+			conn->proto.udp 	= udp;
+			conn->recv_callback = udp_recv_callback;
+			conn->sent_callback = 0;
+			conn->link_cnt 		= 0;
+			conn->reverse 		= 0;
+
+			udp->remote_port 	= 0;
+			udp->local_port 	= port;
+
+			list_v_insert_head( &conn_list, node );
+
+			espconn_create( conn );
+        }
+        else{
+
+        	trace_printf("Close port: %u\n", port);
+			
+			list_node_t node = conn_list.head;
+
+			while( node > 0 ){
+
+				struct espconn* conn = list_vp_get_data( node );
+
+				if( conn->proto.udp->local_port == port ){
+
+					list_v_remove( &conn_list, node );
+					list_v_release_node( node );
+
+					break;
+				}
+
+				node = list_ln_next( node );
+			}
+        }
+    }
+}
+
+int8_t get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
+
+    // check if interface is up
+    if( !wifi_b_connected() ){
+
+        return NETMSG_ROUTE_NOT_AVAILABLE;
+    }
+
+    cfg_i8_get( CFG_PARAM_IP_ADDRESS, subnet );
+    cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, subnet_mask );
+
+    // set this route as default
+    return NETMSG_ROUTE_DEFAULT;
+}
+
+ROUTING_TABLE routing_table_entry_t route_wifi = {
+    get_route,
+    wifi_i8_send_udp,
+    open_close_port,
+    ROUTE_FLAGS_ALLOW_GLOBAL_BROADCAST
+};
+
 
 void wifi_v_shutdown( void ){
 
@@ -544,6 +651,4 @@ bool wifi_b_attached( void ){
 }
 
 #endif
-
-
 
