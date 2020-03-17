@@ -405,6 +405,7 @@ station_mode:
 			memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
 			sta_config.bssid_set = 1;
 			sta_config.channel = wifi_channel;
+			wifi_v_get_ssid( sta_config.ssid );
 			get_pass( wifi_router, sta_config.password );
 
 			wifi_station_set_config_current( &sta_config );
