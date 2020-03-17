@@ -117,7 +117,7 @@ PT_BEGIN( pt );
 
             status_led_v_set( 0, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 500 );
+            TMR_WAIT( pt, 200 );
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -125,7 +125,19 @@ PT_BEGIN( pt );
                 status_led_v_set( 1, STATUS_LED_GREEN );
             }
 
-            TMR_WAIT( pt, 500 );
+            TMR_WAIT( pt, 200 );
+
+            status_led_v_set( 0, STATUS_LED_GREEN );
+
+            TMR_WAIT( pt, 200 );
+
+            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
+                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
+
+                status_led_v_set( 1, STATUS_LED_GREEN );
+            }
+
+            TMR_WAIT( pt, 1000 );
 
             #ifdef ENABLE_WIFI
             if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
@@ -187,6 +199,7 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
+            GPIO_OUTPUT_SET(2, 1);
             break;
 
         case STATUS_LED_GREEN:
