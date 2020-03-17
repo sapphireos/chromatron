@@ -262,13 +262,13 @@ void scan_cb( void *result, STATUS status ){
 	int8_t best_rssi = -127;
 	uint8_t best_channel = 0;
 	uint8_t *best_bssid = 0;
-	int8_t router = -1;
+	int8_t best_router = -1;
 
 	while( info != 0 ){
 
 		trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
 
-		router = has_ssid( info->ssid );
+		int8_t router = has_ssid( info->ssid );
 		if( router < 0 ){
 
 			goto end;
@@ -279,6 +279,7 @@ void scan_cb( void *result, STATUS status ){
 			best_bssid 		= info->bssid;
 			best_rssi 		= info->rssi;
 			best_channel 	= info->channel;
+			best_router 	= router;
 		}
 
 	end:
@@ -290,8 +291,10 @@ void scan_cb( void *result, STATUS status ){
 		return;
 	}
 
+	trace_printf("router: %d\n", best_router);
+
 	// select router
-	wifi_router = router;
+	wifi_router = best_router;
 	memcpy( wifi_bssid, best_bssid, sizeof(wifi_bssid) );
 	wifi_channel = best_channel;
 }
