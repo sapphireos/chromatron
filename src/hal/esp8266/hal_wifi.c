@@ -174,6 +174,13 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
         		}
         	}
 
+        	if( index < 0 ){
+
+        		ASSERT( FALSE );
+
+        		return;
+        	}
+
         	memset( &esp_conn[index], 0, sizeof(esp_conn[index]) );
         	memset( &udp_conn[index], 0, sizeof(udp_conn[index]) );
 
