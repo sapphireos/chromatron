@@ -298,8 +298,6 @@ uint32_t wifi_u32_get_received( void ){
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
-return NETMSG_TX_ERR_RELEASE;
-
 	int8_t status = 0;
 
     if( !wifi_b_connected() ){
@@ -334,6 +332,14 @@ return NETMSG_TX_ERR_RELEASE;
     struct espconn* conn = get_conn( netmsg_state->laddr.port );
 
     trace_printf("found conn: %d\n", conn);
+
+    conn->proto.udp->remote_ip[0] = netmsg_state->raddr.ipaddr.ip3;
+    conn->proto.udp->remote_ip[1] = netmsg_state->raddr.ipaddr.ip2;
+    conn->proto.udp->remote_ip[2] = netmsg_state->raddr.ipaddr.ip1;
+    conn->proto.udp->remote_ip[3] = netmsg_state->raddr.ipaddr.ip0;
+    conn->proto.udp->remote_port = netmsg_state->raddr.port;
+
+    espconn_sendto( conn, data, data_len );
 
     // setup header
     // wifi_msg_udp_header_t udp_header;
