@@ -98,7 +98,7 @@ typedef int8_t ( *kv_handler_t )(
     void *data,
     uint16_t len );
     
-typedef struct  __attribute__((packed)){
+typedef struct  __attribute__((packed, aligned(4))){
     sapphire_type_t8 type;
     uint8_t array_len;
     kv_flags_t8 flags;

@@ -49,7 +49,12 @@
 #define MEMORY_HEAP __attribute__ ((section (".memory_heap"), aligned(4)))
 
 // helper to load from unaligned pointers
-#define GET_PTR(dst, src) memcpy( &dst, src, sizeof(dst) )
+static inline uint32_t load32( uint8_t *ptr ){
+
+    return (((uint32_t)ptr[3] << 24) | ((uint32_t)ptr[2] << 16) | ((uint32_t)ptr[1] << 8) | ((uint32_t)ptr[0] << 0));
+}
+#define LOAD32(ptr) load32((uint8_t *)ptr)
+
 
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );
