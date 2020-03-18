@@ -57,6 +57,7 @@
         "-u call_user_start", 
         "-u _printf_float",
         "-u _scanf_float",
+        "-Wl,--section-start=.bootdata=0x3FFE8000",
         "-L%(BASE_DIR)/src/hal/esp8266/sdk/lib",
         "-L%(BASE_DIR)/targets/esp8266",
         "-Wl,--start-group",

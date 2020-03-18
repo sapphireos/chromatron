@@ -63,6 +63,18 @@ SECTIONS
     _dport0_literal_end = ABSOLUTE(.);
   } >dport0_0_seg :dport0_0_phdr
 
+  /* Boot data section */
+  .bootdata (NOLOAD):
+  {
+    . = ALIGN(8);
+    _sbootdata = .;        /* create a global symbol at bootdata start */
+    *(.bootdata)           /* .bootdata sections */
+    *(.bootdata*)          /* .bootdata* sections */
+
+    . = ALIGN(4);
+    _ebootdata = .;        /* define a global symbol at bootdata end */
+  } >dram0_0_seg
+
   .dport0.data : ALIGN(4)
   {
     _dport0_data_start = ABSOLUTE(.);
