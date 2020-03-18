@@ -55,6 +55,15 @@ static inline uint32_t load32( uint8_t *ptr ){
 }
 #define LOAD32(ptr) load32((uint8_t *)ptr)
 
+static inline void store32( uint8_t *ptr, uint32_t val ){
+
+    ptr[0] = ( val >> 0 ) & 0xff;
+    ptr[1] = ( val >> 8 ) & 0xff;
+    ptr[2] = ( val >> 16 ) & 0xff;
+    ptr[3] = ( val >> 24 ) & 0xff;
+}
+#define STORE32(ptr, val) store32((uint8_t *)ptr, val)
+
 
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );

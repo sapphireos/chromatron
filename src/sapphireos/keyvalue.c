@@ -795,7 +795,8 @@ int8_t kv_i8_internal_get(
     void *data,
     uint16_t max_len )
 {
-
+    trace_printf("kv_i8_internal_get 0x%x\n", data);
+    
     uint16_t array_len = meta->array_len + 1;
 
     // bound index

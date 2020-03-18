@@ -1644,8 +1644,6 @@ PT_BEGIN( pt );
             uint16_t reply_len = 0;
             kv_meta_t meta;
 
-            trace_printf("0x%x\n", &meta);
-
             for( uint8_t i = 0; i < msg->count; i++ ){
 
                 if( kv_i8_lookup_hash( LOAD32(hash), &meta ) == 0 ){
@@ -1702,6 +1700,9 @@ PT_BEGIN( pt );
                     data->meta.count    = meta.array_len;
                     data->meta.flags    = meta.flags;
                     data->meta.reserved = 0;
+
+                    trace_printf("0x%x\n", data);
+                    trace_printf("0x%x\n", &data->data);
 
                     if( kv_i8_get( LOAD32(hash), &data->data, type_len ) != KV_ERR_STATUS_OK ){
 
