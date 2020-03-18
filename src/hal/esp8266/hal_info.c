@@ -42,32 +42,26 @@ static int8_t hal_info_kv_handler(
     	}
     	else if( hash == __KV__cpu_clock ){
 
-    		// *(uint32_t *)data = cpu_u32_get_clock_speed();
             STORE32(data, cpu_u32_get_clock_speed());
     	}
         else if( hash == __KV__vm_max_image_size ){
 
-            // *(uint32_t *)data = VM_MAX_IMAGE_SIZE;
             STORE32(data, VM_MAX_IMAGE_SIZE);
         }
         else if( hash == __KV__vm_max_cycle_limit ){
 
-            // *(uint32_t *)data = VM_MAX_CYCLES;
             STORE32(data, VM_MAX_CYCLES);
         }
         else if( hash == __KV__vm_max_call_depth ){
 
-            // *(uint32_t *)data = VM_MAX_CALL_DEPTH;
             STORE32(data, VM_MAX_CALL_DEPTH);
         }
         else if( hash == __KV__vm_max_threads ){
 
-            // *(uint32_t *)data = VM_MAX_THREADS;
             STORE32(data, VM_MAX_THREADS);
         }
         else if( hash == __KV__vm_max_vms ){
 
-            // *(uint32_t *)data = VM_MAX_VMS;
             STORE32(data, VM_MAX_VMS);
         }
 

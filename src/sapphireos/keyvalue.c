@@ -80,11 +80,11 @@ static int8_t _kv_i8_dynamic_count_handler(
 
         if( hash == __KV__kv_dynamic_count ){
             
-            *(uint16_t *)data = kvdb_u16_count();
+            STORE16(data, kvdb_u16_count());
         }
         else if( hash == __KV__kv_dynamic_db_size ){
             
-            *(uint16_t *)data = kvdb_u16_db_size();
+            STORE16(data, kvdb_u16_db_size());
         }
 
         return 0;
@@ -795,8 +795,6 @@ int8_t kv_i8_internal_get(
     void *data,
     uint16_t max_len )
 {
-    trace_printf("kv_i8_internal_get 0x%x\n", data);
-    
     uint16_t array_len = meta->array_len + 1;
 
     // bound index

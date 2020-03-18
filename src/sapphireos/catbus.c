@@ -1701,9 +1701,6 @@ PT_BEGIN( pt );
                     data->meta.flags    = meta.flags;
                     data->meta.reserved = 0;
 
-                    trace_printf("0x%x\n", data);
-                    trace_printf("0x%x\n", &data->data);
-
                     if( kv_i8_get( LOAD32(hash), &data->data, type_len ) != KV_ERR_STATUS_OK ){
 
                         error = CATBUS_ERROR_KEY_NOT_FOUND;
