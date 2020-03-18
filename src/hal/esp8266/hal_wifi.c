@@ -99,15 +99,15 @@ void wifi_v_init( void ){
 
 	wifi_get_macaddr( 0, wifi_mac );
 
-    char ssid[32];
-    char pass[32];
-    memset( ssid, 0, 32 );
-    memset( pass, 0, 32 );
-    strcpy(ssid, SSID);
-    strcpy(pass, PASSWORD);
+    // char ssid[32];
+    // char pass[32];
+    // memset( ssid, 0, 32 );
+    // memset( pass, 0, 32 );
+    // strcpy(ssid, SSID);
+    // strcpy(pass, PASSWORD);
 
-    cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
-    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
+    // cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
+    // cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
 
     list_v_init( &conn_list );
     
