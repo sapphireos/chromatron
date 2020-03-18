@@ -129,16 +129,16 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
    
     espconn_get_connection_info( conn, &remote_info, 0 );
 
-    if(remote_info->remote_port != 44632){
-	trace_printf("RX: %d bytes from %d.%d.%d.%d:%u -> %u\n", 
-		len, 
-		remote_info->remote_ip[0],
-		remote_info->remote_ip[1],
-		remote_info->remote_ip[2],
-		remote_info->remote_ip[3],
-		remote_info->remote_port,
-        conn->proto.udp->local_port);
-    }
+ //    if(remote_info->remote_port != 44632){
+	// trace_printf("RX: %d bytes from %d.%d.%d.%d:%u -> %u\n", 
+	// 	len, 
+	// 	remote_info->remote_ip[0],
+	// 	remote_info->remote_ip[1],
+	// 	remote_info->remote_ip[2],
+	// 	remote_info->remote_ip[3],
+	// 	remote_info->remote_port,
+ //        conn->proto.udp->local_port);
+ //    }
 
     netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
 
@@ -202,7 +202,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
         if( open ){
 
-        	trace_printf("Open port: %u\n", port);
+        	// trace_printf("Open port: %u\n", port);
 
         	int8_t index = -1;
         	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
@@ -239,7 +239,7 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
         }
         else{
 
-        	trace_printf("Close port: %u\n", port);
+        	// trace_printf("Close port: %u\n", port);
 			
 			struct espconn* conn = get_conn( port );
 
@@ -392,7 +392,7 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     conn->proto.udp->remote_ip[3] = netmsg_state->raddr.ipaddr.ip0;
     conn->proto.udp->remote_port = netmsg_state->raddr.port;
 
-    trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
+    // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
     if( espconn_sendto( conn, data, data_len ) != 0 ){
 
         log_v_debug_P( PSTR("msg failed") );
