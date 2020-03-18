@@ -1536,7 +1536,7 @@ PT_BEGIN( pt );
 
             _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_RESOLVED_HASH, header->transaction_id );
 
-            catbus_hash_t32 *hash = &msg->first_hash;
+            catbus_hash_t32 *hash_ptr = &msg->first_hash;
             catbus_string_t *str = &reply->first_string;
             reply->count = msg->count;
 
@@ -1544,12 +1544,15 @@ PT_BEGIN( pt );
 
                 msg->count--;
 
-                if( kv_i8_get_name( *hash, str->str ) != KV_ERR_STATUS_OK ){
+                catbus_hash_t32 hash;
+                GET_PTR( hash, hash_ptr );
+
+                if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
 
                     // try query tags
                     for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
 
-                        if( meta_tag_hashes[i] == *hash ){
+                        if( meta_tag_hashes[i] == hash ){
 
                             // retrieve string from config DB
                             cfg_i8_get( CFG_PARAM_META_TAG_0 + i, str->str );
@@ -1559,7 +1562,7 @@ PT_BEGIN( pt );
                     }
                 }
 
-                hash++;
+                hash_ptr++;
                 str++;
             }
 
@@ -1638,7 +1641,8 @@ PT_BEGIN( pt );
 
             uint8_t reply_count = 0;
 
-            catbus_hash_t32 *hash = &msg->first_hash;
+            catbus_hash_t32 *hash_ptr = &msg->first_hash;
+            catbus_hash_t32 hash;
 
             // calculate total data length of the response
             uint16_t reply_len = 0;
@@ -1646,7 +1650,8 @@ PT_BEGIN( pt );
 
             for( uint8_t i = 0; i < msg->count; i++ ){
 
-                if( kv_i8_lookup_hash( *hash, &meta ) == 0 ){
+                GET_PTR( hash, hash_ptr );
+                if( kv_i8_lookup_hash( hash, &meta ) == 0 ){
 
                     uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
                     
@@ -1660,10 +1665,10 @@ PT_BEGIN( pt );
                 }       
                 else{
 
-                    log_v_debug_P( PSTR("%lu not found"), *hash );
+                    log_v_debug_P( PSTR("%lu not found"), hash );
                 }         
 
-                hash++;
+                hash_ptr++;
             }
 
             if( reply_len > CATBUS_MAX_DATA ){
@@ -1684,24 +1689,25 @@ PT_BEGIN( pt );
 
             _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_KEY_DATA, header->transaction_id );
 
-            hash = &msg->first_hash;
+            hash_ptr = &msg->first_hash;
             catbus_data_t *data = &reply->first_data;
 
             reply->count = reply_count;
 
             for( uint8_t i = 0; i < reply_count; i++ ){
 
-                if( kv_i8_lookup_hash( *hash, &meta ) == 0 ){
+                GET_PTR( hash, hash_ptr );
+                if( kv_i8_lookup_hash( hash, &meta ) == 0 ){
 
                     uint16_t type_len = kv_u16_get_size_meta( &meta );
 
-                    data->meta.hash     = *hash;
+                    data->meta.hash     = hash;
                     data->meta.type     = meta.type;
                     data->meta.count    = meta.array_len;
                     data->meta.flags    = meta.flags;
                     data->meta.reserved = 0;
 
-                    if( kv_i8_get( *hash, &data->data, type_len ) != KV_ERR_STATUS_OK ){
+                    if( kv_i8_get( hash, &data->data, type_len ) != KV_ERR_STATUS_OK ){
 
                         error = CATBUS_ERROR_KEY_NOT_FOUND;
                         mem2_v_free( h );
@@ -1713,7 +1719,7 @@ PT_BEGIN( pt );
                     data = (catbus_data_t *)ptr;
                 }
 
-                hash++;
+                hash_ptr++;
             }
 
             // send reply

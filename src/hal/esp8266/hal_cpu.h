@@ -48,6 +48,9 @@
 #define NON_CACHEABLE __attribute__ ((section (".non_cacheable")))
 #define MEMORY_HEAP __attribute__ ((section (".memory_heap"), aligned(4)))
 
+// helper to load from unaligned pointers
+#define GET_PTR(dst, src) memcpy( &dst, src, sizeof(dst) )
+
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );
 
