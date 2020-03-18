@@ -62,8 +62,6 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { SAPPHIRE_TYPE_BOOL,          0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_enable_ap" },    
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_ssid" },
     { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
-    { SAPPHIRE_TYPE_KEY128,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_md5" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_fw_len" },
 
     { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &tx_power,          0,                   "wifi_tx_power" },
 };
@@ -101,11 +99,15 @@ void wifi_v_init( void ){
 
 	wifi_get_macaddr( 0, wifi_mac );
 
-	char *ssid = SSID;
-    char *password = PASSWORD;
+    char ssid[32];
+    char pass[32];
+    memset( ssid, 0, 32 );
+    memset( pass, 0, 32 );
+    strcpy(ssid, SSID);
+    strcpy(pass, PASSWORD);
 
     cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
-    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, password );
+    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
 
     list_v_init( &conn_list );
     

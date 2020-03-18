@@ -38,7 +38,7 @@ static int8_t hal_info_kv_handler(
             
             memset( data, 0, len );
 
-            strlcpy_P( data, PSTR("uChromatron"), len );
+            strlcpy_P( data, PSTR("ChromatronESP8266"), len );
     	}
     	else if( hash == __KV__cpu_clock ){
 

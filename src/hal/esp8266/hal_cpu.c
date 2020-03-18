@@ -95,7 +95,7 @@ bool cpu_b_osc_fail( void ){
 
 uint32_t cpu_u32_get_clock_speed( void ){
 
-    return system_get_cpu_freq();
+    return system_get_cpu_freq() * 1000000;
 }
 
 void cpu_reboot( void ){
