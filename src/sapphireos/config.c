@@ -61,7 +61,7 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip" },
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_subnet" },
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_dns_server" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_internet_gateway" },
+    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_gateway" },
     { SAPPHIRE_TYPE_UINT64,      0, 0,                   0, cfg_i8_kv_handler,  "device_id" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "fw_load_count" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
