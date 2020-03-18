@@ -687,6 +687,7 @@ static void get_info( void ){
     cfg_v_set( CFG_PARAM_IP_ADDRESS, &msg.ip );
     cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &msg.subnet );
     cfg_v_set( CFG_PARAM_DNS_SERVER, &msg.dns );
+    cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &msg.gateway );
 
     wifi_rx_udp_overruns        = msg.rx_udp_overruns;
     wifi_udp_received           = msg.udp_received;

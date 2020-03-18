@@ -59,8 +59,9 @@ static uint16_t board_type;
 KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "cfg_version" },
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "subnet" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "dns_server" },
+    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_subnet" },
+    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_dns_server" },
+    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_internet_gateway" },
     { SAPPHIRE_TYPE_UINT64,      0, 0,                   0, cfg_i8_kv_handler,  "device_id" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "fw_load_count" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
@@ -576,10 +577,10 @@ void cfg_v_set( catbus_hash_t32 parameter, void *value ){
 
         memcpy( &ip_config.dns_server, value, sizeof(ip_config.dns_server) );
     }
-    // else if( parameter == CFG_PARAM_INTERNET_GATEWAY ){
+    else if( parameter == CFG_PARAM_INTERNET_GATEWAY ){
 
-    //     memcpy( &ip_config.internet_gateway, value, sizeof(ip_config.internet_gateway) );
-    // }
+        memcpy( &ip_config.internet_gateway, value, sizeof(ip_config.internet_gateway) );
+    }
     else{
 
         write_param( parameter, value );
@@ -617,10 +618,10 @@ int8_t cfg_i8_get( catbus_hash_t32 parameter, void *value ){
 
         memcpy( value, &board_type, sizeof(board_type) );   
     }
-    // else if( ( parameter == CFG_PARAM_INTERNET_GATEWAY ) && ( value != 0 ) ){
+    else if( ( parameter == CFG_PARAM_INTERNET_GATEWAY ) && ( value != 0 ) ){
 
-    //     memcpy( value, &ip_config.internet_gateway, sizeof(ip_config.internet_gateway) );
-    // }
+        memcpy( value, &ip_config.internet_gateway, sizeof(ip_config.internet_gateway) );
+    }
     else{
 
         status = read_param( parameter, value );

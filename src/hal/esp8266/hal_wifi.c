@@ -331,7 +331,20 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     // get esp conn
     struct espconn* conn = get_conn( netmsg_state->laddr.port );
 
-    trace_printf("found conn: %d\n", conn);
+    // check if general broadcast
+    if( ip_b_check_broadcast( netmsg_state->raddr.ipaddr ) ){
+
+        // change to subnet
+        ip_addr4_t subnet;
+        cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, &subnet );
+        ip_addr4_t gw;
+        cfg_i8_get( CFG_PARAM_INTERNET_GATEWAY, &gw );
+
+        netmsg_state->raddr.ipaddr.ip3 = ~subnet.ip3 | gw.ip3;
+        netmsg_state->raddr.ipaddr.ip2 = ~subnet.ip2 | gw.ip2;
+        netmsg_state->raddr.ipaddr.ip1 = ~subnet.ip1 | gw.ip1;
+        netmsg_state->raddr.ipaddr.ip0 = ~subnet.ip0 | gw.ip0;
+    }
 
     conn->proto.udp->remote_ip[0] = netmsg_state->raddr.ipaddr.ip3;
     conn->proto.udp->remote_ip[1] = netmsg_state->raddr.ipaddr.ip2;
@@ -339,7 +352,13 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     conn->proto.udp->remote_ip[3] = netmsg_state->raddr.ipaddr.ip0;
     conn->proto.udp->remote_port = netmsg_state->raddr.port;
 
-    espconn_sendto( conn, data, data_len );
+    trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
+    if( espconn_sendto( conn, data, data_len ) != 0 ){
+
+        log_v_debug_P( PSTR("msg failed") );
+
+        return NETMSG_TX_ERR_RELEASE;   
+    }
 
     // setup header
     // wifi_msg_udp_header_t udp_header;
@@ -669,9 +688,9 @@ station_mode:
 
 				cfg_v_set( CFG_PARAM_IP_ADDRESS, &info.ip );
 			    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
+                cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
 
 			    uint32_t dns_ip = dns_getserver( 0 );
-
 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
            	}
         }

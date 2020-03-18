@@ -69,8 +69,9 @@
 #define CFG_PARAM_VERSION 	    				__KV__cfg_version
 
 #define CFG_PARAM_IP_ADDRESS 					__KV__ip
-#define CFG_PARAM_IP_SUBNET_MASK				__KV__subnet
-#define CFG_PARAM_DNS_SERVER                    __KV__dns_server
+#define CFG_PARAM_IP_SUBNET_MASK				__KV__ip_subnet
+#define CFG_PARAM_DNS_SERVER                    __KV__ip_dns_server
+#define CFG_PARAM_INTERNET_GATEWAY              __KV__ip_gateway
 
 #define CFG_PARAM_DEVICE_ID                     __KV__device_id
 
