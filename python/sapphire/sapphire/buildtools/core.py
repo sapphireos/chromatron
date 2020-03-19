@@ -901,10 +901,6 @@ class HexBuilder(Builder):
             source_path, source_fname = os.path.split(source)
             cmd += obj_dir + '/' + source_fname + '.o' + ' '
 
-        # linker flags
-        for flag in self.settings["LINK_FLAGS"]:
-            cmd += flag + ' '
-
         # included libraries
         for lib in self.libraries:
             lib_project = get_project_builder(lib, target=self.target_type)
@@ -913,15 +909,9 @@ class HexBuilder(Builder):
                 source_path, source_fname = os.path.split(source)
                 cmd += lib_project.target_dir + '/' + obj_dir + '/' + source_fname + '.o' + ' '
 
-            # lib_dir = get_project_builder(lib, target=self.target_type).target_dir
-            #
-            # cmd += '%s ' % (lib_dir + '/' + lib + '.a')
-
-        # include all libraries again, so GCC can handle cross dependencies
-        # for lib in self.libraries:
-        #     lib_dir = get_project_builder(lib, target=self.target_type).target_dir
-        #
-        #     cmd += '%s ' % (lib_dir + '/' + lib + '.a')
+        # linker flags
+        for flag in self.settings["LINK_FLAGS"]:
+            cmd += flag + ' '
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
         if self.settings["TOOLCHAIN"] != "XTENSA":
