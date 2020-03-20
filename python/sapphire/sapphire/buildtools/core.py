@@ -967,7 +967,16 @@ class HexBuilder(Builder):
             ih = IntelHex()
             
             ih.loadbin('image0x00000.bin', offset=0x00000)
-            ih.loadbin('image0x10000.bin', offset=0x10000)
+            try:
+                # non bootloader builds will load irom to 0x10000
+                ih.loadbin('image0x10000.bin', offset=0x10000)
+
+            except IOError:
+                # bootloader builds will load irom to 0x12000
+                # however, the entire binary file is offset. so we don't
+                # need the extra 0x2000 length here.
+                ih.loadbin('image0x12000.bin', offset=0x10000)
+
             ih.tobinfile('main.bin')
             ih.write_hex_file('main.hex')
 
