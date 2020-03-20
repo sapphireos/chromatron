@@ -77,7 +77,7 @@ Generic mode:
 extern boot_data_t BOOTDATA boot_data;
 
 
-void loader_main( void ){
+void main( void ){
 
     // hal_cpu_v_boot_init();
   
@@ -201,7 +201,3 @@ fatal_error:
     while(1);
 }
 
-void call_user_start(void){
-
-    loader_main();
-}
