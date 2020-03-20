@@ -148,7 +148,7 @@ uint16_t ldr_u16_get_internal_crc( void ){
 		wdg_v_reset();
 	}
 
-	// return crc_u16_finish( crc );
+	return crc_u16_finish( crc );
 }
 
 // compute CRC of external partition
@@ -175,11 +175,11 @@ uint16_t ldr_u16_get_partition_crc( void ){
         address += copy_len;
         length -= copy_len;
 
-		// crc = crc_u16_partial_block( crc, buf, copy_len );
+		crc = crc_u16_partial_block( crc, buf, copy_len );
 
 		// reset watchdog timer
 		wdg_v_reset();
 	}
 
-	// return crc_u16_finish( crc );
+	return crc_u16_finish( crc );
 }
