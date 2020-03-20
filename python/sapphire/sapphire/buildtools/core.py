@@ -1286,20 +1286,6 @@ class ExeBuilder(Builder):
         for flag in self.settings["LINK_FLAGS"]:
             cmd += flag + ' '
 
-        # included libraries
-        # for lib in self.libraries:
-            # lib_proj = get_project_builder(lib, target=self.target_type)
-
-            # lib_dir = get_project_builder(lib, target=self.target_type).target_dir
-
-            # cmd += '%s ' % (lib_dir + '/' + lib + '.a')
-
-        # include all libraries again, so GCC can handle cross dependencies
-        # for lib in self.libraries:
-            # lib_dir = get_project_builder(lib, target=self.target_type).target_dir
-
-            # cmd += '%s ' % (lib_dir + '/' + lib + '.a')
-
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
         cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
