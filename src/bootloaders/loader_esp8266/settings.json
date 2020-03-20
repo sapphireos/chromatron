@@ -12,6 +12,6 @@
     "_comment": "and should not be modified",
     "FWID": "65e4df62-aff1-4a3f-9706-54135c14c71a",
 
-    "BUILD_TYPE": "app",
+    "BUILD_TYPE": "esp8266_loader",
     "DEFINES": ["BOOTLOADER"]
 }

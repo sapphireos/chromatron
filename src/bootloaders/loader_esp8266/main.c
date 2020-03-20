@@ -77,7 +77,7 @@ Generic mode:
 extern boot_data_t BOOTDATA boot_data;
 
 void call_user_start(void){
-
+    trace_printf("hello");
 }
 
 void loader_main( void ){

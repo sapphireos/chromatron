@@ -179,6 +179,7 @@ def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True, **kw
     modes = {"os": OSBuilder, 
              "loader": LoaderBuilder, 
              "arm_loader": ARMLoaderBuilder, 
+             "esp8266_loader": ESP8266LoaderBuilder,
              "app": AppBuilder, 
              "lib": LibBuilder, 
              "exe": ExeBuilder}
@@ -947,8 +948,8 @@ class HexBuilder(Builder):
 
         elif self.settings["TOOLCHAIN"] == "XTENSA":
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
-            # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
+            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             
         else:
             raise Exception("Unsupported toolchain")
@@ -1226,6 +1227,9 @@ class ARMLoaderBuilder(HexBuilder):
         except KeyError:
             pass
 
+class ESP8266LoaderBuilder(ARMLoaderBuilder):
+    def __init__(self, *args, **kwargs):
+        super(ESP8266LoaderBuilder, self).__init__(*args, **kwargs)
 
 class ExeBuilder(Builder):
     def __init__(self, *args, **kwargs):

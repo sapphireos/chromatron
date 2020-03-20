@@ -42,6 +42,8 @@ int trace_printf(const char* format, ...){
       #ifndef BOOTLOADER
       // Transfer the buffer to the device
       ret = os_printf("%s", buf);
+      #else
+      ret = ets_printf("%s", buf);
       #endif
     }
 
