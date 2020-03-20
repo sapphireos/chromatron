@@ -4,9 +4,11 @@ MEMORY
 {
   dport0_0_seg :                        org = 0x3FF00000, len = 0x10
   dram0_0_seg :                         org = 0x3FFE8000, len = 0x14000
-  iram1_0_seg :                         org = 0x4010f000, len = 0x1000
+  iram1_0_seg :                         org = 0x4010e000, len = 0x2000
   irom0_0_seg :                         org = 0x40210000, len = 0x5C000
 }
+
+/* BOOTLOADER */
 
 PHDRS
 {

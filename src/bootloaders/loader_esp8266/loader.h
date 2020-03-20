@@ -71,6 +71,11 @@ typedef struct{
 #define ESP_MEM_IROM0_ADDR		0x40218000
 #define ESP_MEM_IROM0_SIZE		0x5C000
 
+typedef struct{
+	uint32_t addr;
+	uint32_t length;
+} esp_section_header_t;
+
 
 // ROM functions
 int SPIEraseBlock(uint32_t block);
@@ -79,10 +84,6 @@ int SPIRead(uint32_t addr, void *dest, size_t size);
 int SPIWrite(uint32_t addr, void *src, size_t size);
 int SPIEraseAreaEx(const uint32_t start, const uint32_t size);
 
-typedef struct{
-	uint32_t addr;
-	uint32_t length;
-} esp_section_header_t;
 
 #define LDR_VERSION_MAJOR   '1'
 #define LDR_VERSION_MINOR   '0'

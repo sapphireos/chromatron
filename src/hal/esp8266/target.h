@@ -102,7 +102,7 @@
 // total pages
 #define TOTAL_PAGES ( N_APP_PAGES + 32 )
 
-#define FLASH_START 	( 0x40200000 )
+#define FLASH_START 	( 0x40202000 )
 
 #define FW_INFO_ADDRESS 0x00010000
 #define FW_LENGTH_ADDRESS FW_INFO_ADDRESS

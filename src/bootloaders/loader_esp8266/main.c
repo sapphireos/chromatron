@@ -77,38 +77,10 @@ Generic mode:
 extern boot_data_t BOOTDATA boot_data;
 
 
-typedef struct {
-    unsigned char       magic; // 0xe9
-    unsigned char       num_segments;
-
-    /* SPI Flash Interface (0 = QIO, 1 = QOUT, 2 = DIO, 0x3 = DOUT) */
-    unsigned char       flash_mode;
-
-    /* High four bits: 0 = 512K, 1 = 256K, 2 = 1M, 3 = 2M, 4 = 4M, 8 = 8M, 9 = 16M
-       Low four bits:  0 = 40MHz, 1= 26MHz, 2 = 20MHz, 0xf = 80MHz */
-    unsigned char       flash_size_freq;
-
-    uint32_t            entry;
-} image_header_t;
-
-
-typedef struct {
-    uint32_t            address;
-    uint32_t            size;
-} section_header_t;
-
-
-
-
 void main( void ){
 
-    // hal_cpu_v_boot_init();
-  
-    // HAL_FLASH_Lock();
-
     trace_printf("Welcome to Sapphire\n");
-
-    trace_printf("App flash start: 0x%0x\n", FLASH_START);
+    trace_printf("ESP8266 Bootloader\n");
 
     // init CRC
     crc_v_init();
@@ -120,6 +92,8 @@ void main( void ){
 
     // check reset source
     uint8_t reset_source = cpu_u8_get_reset_source();
+
+    trace_printf("Reset source: %d\n", reset_source);
 
     // check for power on reset
     if( reset_source & RESET_SOURCE_POWER_ON ){
@@ -137,31 +111,39 @@ void main( void ){
 
     // check integrity of internal firmware
     uint16_t internal_crc = ldr_u16_get_internal_crc();
+    uint16_t partition_crc = ldr_u16_get_partition_crc();
+
+    trace_printf("Internal crc: 0x%04x\n", internal_crc);
+    trace_printf("Partition crc: 0x%04x\n", partition_crc);
+
+    // check if internal and partition CRCs are bad.
+    // in this case, we are screwed.
+    if( ( internal_crc != 0 ) && ( partition_crc != 0 ) ){
+
+        goto fatal_error;
+    }
 
     // check if internal partition is damaged
     if( internal_crc != 0 ){
+
+        trace_printf("Recovering internal FW...\n");
 
         // try to recover several times - we really don't want to
         // fail here if we can avoid it
         for( uint8_t i = 0; i < 5; i++ ){
 
-            // check external partition crc
-            if( ldr_u16_get_partition_crc() == 0 ){
+            // copy partition to the internal flash
+            ldr_v_copy_partition_to_internal();
 
-                // partition CRC is ok
-                // copy partition to the internal flash
-                ldr_v_copy_partition_to_internal();
+            // set loader status
+            boot_data.loader_status = LDR_STATUS_RECOVERED_FW;
 
-                // set loader status
-                boot_data.loader_status = LDR_STATUS_RECOVERED_FW;
+            // recompute internal crc
+            internal_crc = ldr_u16_get_internal_crc();
 
-                // recompute internal crc
-                internal_crc = ldr_u16_get_internal_crc();
+            if( internal_crc == 0 ){
 
-                if( internal_crc == 0 ){
-
-                    break;
-                }
+                break;
             }
         }
     }
@@ -177,8 +159,12 @@ void main( void ){
     // check loader command
     if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
 
+        trace_printf("Load new FW requested\n");
+
         // check that partition CRC is ok
-        if( ldr_u16_get_partition_crc() == 0 ){
+        if( partition_crc == 0 ){
+
+            trace_printf("Copying FW...\n");
 
             // partition CRC is ok
             // copy partition to the internal flash
@@ -198,6 +184,8 @@ void main( void ){
         }
         // partition CRC is bad
         else{
+            
+            trace_printf("Bad FW CRC\n");
 
             boot_data.loader_status = LDR_STATUS_PARTITION_CRC_BAD;
         }
@@ -207,9 +195,6 @@ void main( void ){
     boot_data.loader_command = LDR_CMD_NONE;
 
     // run application
-    trace_printf("Jumping to app\n");
-    // HAL_FLASH_Lock();
-
     ldr_v_clear_yellow_led();
     ldr_run_app();
 

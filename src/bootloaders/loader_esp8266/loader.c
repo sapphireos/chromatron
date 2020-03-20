@@ -75,21 +75,47 @@ void ldr_v_copy_partition_to_internal( void ){
 	}
 }
 
-typedef void (*pFunction)(void);
-pFunction JumpToApplication;
-uint32_t jumpAddress;
+// typedef void (*pFunction)(void);
+// pFunction JumpToApplication;
+// uint32_t jumpAddress;
 
 
 void ldr_run_app( void ){
 
-	DISABLE_INTERRUPTS;
-	wdg_v_disable();
-	
-	jumpAddress = *(volatile uint32_t *)( FLASH_START );
- 
-	JumpToApplication = (pFunction)jumpAddress;
+    // scan for firmware image
+    esp_image_header_t image_header;
+    uint32_t addr = FLASH_START;
+    SPIRead( addr, &image_header, sizeof(image_header) );
 
-	JumpToApplication();
+    trace_printf("image: %x %u %x %x %x",
+    	image_header.magic,
+    	image_header.segment_count,
+    	image_header.flash_mode,
+    	image_header.flash_info,
+    	image_header.entry_addr);
+
+   	addr += sizeof(image_header);
+
+    for( uint8_t i = 0; i < image_header.segment_count; i++ ){
+
+    	esp_section_header_t section_header;
+    	SPIRead( addr, &section_header, sizeof(image_header) );
+
+		trace_printf("section: %x %x",
+			section_header.addr,
+			section_header.length);
+
+    	addr += sizeof(section_header);	
+    }
+
+	// DISABLE_INTERRUPTS;
+	// wdg_v_disable();
+	
+	// jumpAddress = *(volatile uint32_t *)( FLASH_START );
+ 
+	// JumpToApplication = (pFunction)jumpAddress;
+
+	// JumpToApplication();
 }
 
 
