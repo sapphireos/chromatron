@@ -76,6 +76,10 @@ Generic mode:
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
+void call_user_start(void){
+
+}
+
 void loader_main( void ){
 
     hal_cpu_v_boot_init();

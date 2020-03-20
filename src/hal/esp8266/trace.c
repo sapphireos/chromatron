@@ -39,8 +39,10 @@ int trace_printf(const char* format, ...){
   ret = vsnprintf (buf, sizeof(buf), format, ap);
   if (ret > 0)
     {
+      #ifndef BOOTLOADER
       // Transfer the buffer to the device
       ret = os_printf("%s", buf);
+      #endif
     }
 
   va_end (ap);

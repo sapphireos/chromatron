@@ -61,7 +61,9 @@ int printf(const char* format, ...) {
     int ret;
     va_list arglist;
     va_start(arglist, format);
+    #ifndef BOOTLOADER
     ret = ets_vprintf(format, arglist);
+    #endif
     va_end(arglist);
     return ret;
 }
@@ -70,7 +72,9 @@ int sprintf(char* buffer, const char* format, ...) {
     int ret;
     va_list arglist;
     va_start(arglist, format);
+    #ifndef BOOTLOADER
     ret = ets_vsprintf(buffer, format, arglist);
+    #endif
     va_end(arglist);
     return ret;
 }
@@ -79,13 +83,17 @@ int snprintf(char* buffer, size_t size, const char* format, ...) {
     int ret;
     va_list arglist;
     va_start(arglist, format);
+    #ifndef BOOTLOADER
     ret = ets_vsnprintf(buffer, size, format, arglist);
+    #endif
     va_end(arglist);
     return ret;
 }
 
 int vsnprintf(char * buffer, size_t size, const char * format, va_list arg) {
+    #ifndef BOOTLOADER
     return ets_vsnprintf(buffer, size, format, arg);
+    #endif
 }
 
 size_t ICACHE_FLASH_ATTR strnlen(const char *s, size_t len) {
@@ -208,12 +216,14 @@ int ICACHE_FLASH_ATTR strcasecmp(const char * str1, const char * str2) {
 }
 
 char* ICACHE_FLASH_ATTR strdup(const char *str) {
+    #ifndef BOOTLOADER
     size_t len = strlen(str) + 1;
     char *cstr = malloc(len);
     if(cstr) {
         memcpy(cstr, str, len);
     }
     return cstr;
+    #endif
 }
 
 // long int ICACHE_FLASH_ATTR strtol(const char* str, char** endptr, int base) {

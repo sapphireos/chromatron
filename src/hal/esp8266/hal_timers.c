@@ -44,6 +44,7 @@ bool tmr_b_io_timers_running( void ){
 
 uint64_t tmr_u64_get_system_time_us( void ){
 
+    #ifndef BOOTLOADER
 	uint32_t now = system_get_time();
 
 	if( now <= last_sys_time ){
@@ -54,6 +55,7 @@ uint64_t tmr_u64_get_system_time_us( void ){
 	last_sys_time = now;
 
     return (uint64_t)overflows * 0x100000000 + now;
+    #endif
 }
 
 

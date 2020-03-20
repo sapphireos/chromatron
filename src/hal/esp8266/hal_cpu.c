@@ -100,7 +100,9 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
+    #ifndef BOOTLOADER
     system_restart();
+    #endif
 }
 
 void hal_cpu_v_delay_us( uint16_t us ){

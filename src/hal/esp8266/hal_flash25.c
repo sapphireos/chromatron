@@ -56,8 +56,10 @@ static void flush_cache( void ){
         return;
     }
 
+    #ifndef BOOTLOADER
     // commit to flash
     spi_flash_write( cache_address, &cache_data.word, sizeof(cache_data) );
+    #endif
 
     // cache is now valid
     cache_dirty = FALSE;
@@ -70,7 +72,10 @@ static void load_cache( uint32_t address ){
         flush_cache();
     }
 
+    #ifndef BOOTLOADER
     spi_flash_read( address, &cache_data.word, sizeof(cache_data) );
+    #endif
+    
     cache_address = address;
 }
 
@@ -315,8 +320,9 @@ void flash25_v_erase_4k( uint32_t address ){
     address += start_address;
 
     // trace_printf("Erase: 0x%x\r\n", address);
-
+    #ifndef BOOTLOADER
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    #endif
 }
 
 // erase the entire array
@@ -333,7 +339,7 @@ void flash25_v_erase_chip( void ){
 }
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
-    
+    #ifndef BOOTLOADER
     uint32_t id = spi_flash_get_id();
 
     // trace_printf("Flash ID: 0x%x\r\n", id);
@@ -341,6 +347,7 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
     info->mfg_id = FLASH_MFG_WINBOND; // assume winbond
     info->dev_id_1 = ( id >> 8 ) & 0xff;
     info->dev_id_2 = ( id >> 16 ) & 0xff;
+    #endif
 }
 
 uint32_t flash25_u32_capacity( void ){
