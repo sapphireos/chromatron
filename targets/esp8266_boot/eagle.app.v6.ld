@@ -167,10 +167,7 @@ SECTIONS
   {
     _irom0_text_start = ABSOLUTE(.);
 
-    *sapphireos/obj/*.o (.text .text.*)
-    *hal/esp8266/obj/*.o (.text .text.*)
-    *lib_chromatron/obj/*.o (.text .text.*)
-    *lib_gfx/obj/*.o (.text .text.*)
+    
 
     *libat.a:(.literal.* .text.*)
     *libcrypto.a:(.literal.* .text.*)

@@ -76,15 +76,12 @@ Generic mode:
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
-void call_user_start(void){
-    trace_printf("hello");
-}
 
 void loader_main( void ){
 
-    hal_cpu_v_boot_init();
+    // hal_cpu_v_boot_init();
   
-    HAL_FLASH_Lock();
+    // HAL_FLASH_Lock();
 
     trace_printf("Welcome to Sapphire\n");
 
@@ -188,7 +185,7 @@ void loader_main( void ){
 
     // run application
     trace_printf("Jumping to app\n");
-    HAL_FLASH_Lock();
+    // HAL_FLASH_Lock();
 
     ldr_v_clear_yellow_led();
     ldr_run_app();
@@ -202,4 +199,9 @@ fatal_error:
     ldr_v_set_red_led();
 
     while(1);
+}
+
+void call_user_start(void){
+
+    loader_main();
 }

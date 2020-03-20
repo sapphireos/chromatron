@@ -82,6 +82,7 @@ static void load_cache( uint32_t address ){
 void hal_flash25_v_init( void ){
 
     // read max address
+    #ifndef BOOTLOADER
     max_address = flash25_u32_read_capacity_from_info();
 
     if( max_address > ( 2 * 1048576 ) ){
@@ -98,6 +99,10 @@ void hal_flash25_v_init( void ){
         // invalid flash
         max_address = 0;
     }
+    #else
+    start_address = ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024 );
+    max_address = 1048576;
+    #endif
 
     trace_printf("Flash capacity: %d\r\n", max_address);
     
