@@ -140,9 +140,14 @@ uint16_t ldr_u16_get_internal_crc( void ){
 
 	uint32_t length = ldr_u32_read_internal_length();
 
-	for( uint32_t i = 0; i < length; i++ ){
+	uint32_t *ptr = (uint32_t *)FLASH_START;
 
-		// crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
+	for( uint32_t i = 0; i < length / 4; i++ ){
+
+		// this is wrong, but demonstrates a proper 32 bit aligned read.
+		crc = crc_u16_byte( crc, *ptr & 0xff );
+
+		ptr++;
 
 		// reset watchdog timer
 		wdg_v_reset();
