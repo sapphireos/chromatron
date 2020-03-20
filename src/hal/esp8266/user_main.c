@@ -3,6 +3,7 @@
 
 #include "threading.h"
 
+#ifndef BOOTLOADER
 
 static os_timer_t ptimer;
 
@@ -131,6 +132,7 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
+
 void ICACHE_FLASH_ATTR user_init(void)
 {
     gpio_init();
@@ -174,4 +176,20 @@ void ICACHE_FLASH_ATTR user_init(void)
     system_os_post(LOOP_PRIO, 0, 0 );    
 }
 
+#else
+// BOOTLOADER
 
+void ICACHE_FLASH_ATTR user_pre_init(void){
+
+}
+
+void ICACHE_FLASH_ATTR user_init(void)
+{
+  
+    // uart_init(115200, 115200);
+    // os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+ 
+    // PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
+}
+
+#endif
