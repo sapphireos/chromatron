@@ -29,6 +29,61 @@
 #include "target.h"
 #include "system.h"
 
+typedef struct{
+	uint8_t magic;
+	uint8_t segment_count;
+	uint8_t flash_mode;
+	uint8_t flash_info;
+	uint32_t entry_addr;
+} esp_image_header_t;
+#define ESP_IMAGE_MAGIC 0xE9
+
+#define ESP_FLASH_INTF_QIO 		0
+#define ESP_FLASH_INTF_QOUT 	1
+#define ESP_FLASH_INTF_DIO 		2
+#define ESP_FLASH_INTF_DOUT 	3
+
+// flash info, split in 2 nibbles:
+// size: upper nibble
+#define ESP_FLASH_SIZE_512K		0
+#define ESP_FLASH_SIZE_256K		1
+#define ESP_FLASH_SIZE_1M		2
+#define ESP_FLASH_SIZE_2M		3
+#define ESP_FLASH_SIZE_4M		4
+#define ESP_FLASH_SIZE_8M		8
+#define ESP_FLASH_SIZE_16M		9
+
+// speed: lower nibble
+#define ESP_FLASH_SPEED_40M		0
+#define ESP_FLASH_SPEED_26M		1
+#define ESP_FLASH_SPEED_20M		2
+#define ESP_FLASH_SPEED_80M		15
+
+#define ESP_MEM_DRAM0_ADDR		0x3FFE8000
+#define ESP_MEM_DRAM0_SIZE		0x14000
+
+#define ESP_MEM_IRAM0_ADDR		0x40100000
+#define ESP_MEM_IRAM0_SIZE		0x8000
+
+#define ESP_MEM_IRAM1_ADDR		0x40108000
+#define ESP_MEM_IRAM1_SIZE		0x8000
+
+#define ESP_MEM_IROM0_ADDR		0x40218000
+#define ESP_MEM_IROM0_SIZE		0x5C000
+
+
+// ROM functions
+int SPIEraseBlock(uint32_t block);
+int SPIEraseSector(uint32_t sector);
+int SPIRead(uint32_t addr, void *dest, size_t size);
+int SPIWrite(uint32_t addr, void *src, size_t size);
+int SPIEraseAreaEx(const uint32_t start, const uint32_t size);
+
+typedef struct{
+	uint32_t addr;
+	uint32_t length;
+} esp_section_header_t;
+
 #define LDR_VERSION_MAJOR   '1'
 #define LDR_VERSION_MINOR   '0'
 
