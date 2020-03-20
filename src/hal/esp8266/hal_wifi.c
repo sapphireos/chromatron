@@ -28,6 +28,7 @@
 #include "logging.h"
 #include "memory.h"
 #include "list.h"
+#include "sockets.h"
 
 #include "test_ssid.h"
 
@@ -79,8 +80,14 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
+PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
+
+
+static struct espconn esp_conn[WIFI_MAX_PORTS];
+static esp_udp udp_conn[WIFI_MAX_PORTS];
 
 static list_t conn_list;
+static list_t rx_list;
 
 void wifi_v_init( void ){
 	
@@ -97,6 +104,12 @@ void wifi_v_init( void ){
                  0,
                  0 );
 
+    thread_t_create_critical( 
+                 wifi_rx_process_thread,
+                 PSTR("wifi_rx_processor"),
+                 0,
+                 0 );
+
 	wifi_get_macaddr( 0, wifi_mac );
 
     // char ssid[32];
@@ -110,6 +123,7 @@ void wifi_v_init( void ){
     // cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
 
     list_v_init( &conn_list );
+    list_v_init( &rx_list );
     
  //    struct station_config config = {0};
  //    strcpy( &config.ssid, ssid );
@@ -120,8 +134,6 @@ void wifi_v_init( void ){
  //    wifi_station_connect();
 }
 
-static struct espconn esp_conn[8];
-static esp_udp udp_conn[8];
 
 void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
@@ -166,7 +178,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     if( state->data_handle < 0 ){
 
-        log_v_debug_P( PSTR("rx udp no handle") );     
+        log_v_error_P( PSTR("rx udp no handle") );     
 
         netmsg_v_release( rx_netmsg );
 
@@ -177,8 +189,37 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
     uint8_t *data = mem2_vp_get_ptr_fast( state->data_handle );
     memcpy( data, pdata, len );
 
-    netmsg_v_receive( rx_netmsg );
+    // post to rx Q
+    if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
+
+        log_v_warn_P( PSTR("rx q full") );     
+
+        netmsg_v_release( rx_netmsg );
+
+        return;
+    }
+
+    list_v_insert_head( &rx_list, rx_netmsg );
 }
+
+
+
+PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, list_u8_count( &rx_list ) == 0 );
+        THREAD_WAIT_WHILE( pt, sock_b_rx_pending() ); // wait while sockets are busy
+
+        netmsg_t rx_netmsg = list_ln_remove_tail( &rx_list );
+        netmsg_v_receive( rx_netmsg );
+    }   
+
+PT_END( pt );
+}
+
 
 struct espconn* get_conn( uint16_t lport ){
 

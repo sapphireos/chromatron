@@ -40,7 +40,8 @@
 // #define ENABLE_WIFI_USB_LOADER
 
 // wifi
-#define WIFI_MAX_NETMSGS		16
+#define WIFI_MAX_PORTS          16
+#define WIFI_MAX_RX_NETMSGS		8
 
 // pixel config
 #define USE_HSV_BRIDGE
