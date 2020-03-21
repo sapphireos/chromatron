@@ -148,11 +148,9 @@ uint32_t ldr_u32_read_internal_length( void ){
 
 	uint32_t internal_length;
 
-	uint32_t addr = FLASH_START + FW_LENGTH_ADDRESS;
+	uint32_t addr = FW_START_OFFSET + FW_LENGTH_ADDRESS;
 
-	trace_printf("addr 0x%08x\n", addr);
-
-	memcpy_P( &internal_length, (void *)addr, sizeof(internal_length) );
+	SPIRead( addr, &internal_length, sizeof(internal_length) );
 
 	internal_length += sizeof(uint16_t);
 
@@ -164,7 +162,6 @@ uint32_t ldr_u32_read_internal_length( void ){
 	return internal_length;
 }
 
-#include "ip.h"
 uint16_t ldr_u16_get_internal_crc( void ){
 
 	uint16_t crc = crc_u16_start();
@@ -173,27 +170,15 @@ uint16_t ldr_u16_get_internal_crc( void ){
 
 	trace_printf("Internal len: %u\n", length);
 
-	// uint32_t *ptr = (uint32_t *)FLASH_START;
-	// uint32_t *ptr = (uint32_t *)0x40200000;
-
-	length = 256;
-
-	for( uint32_t i = 0; i < length / 4; i += 4 ){
-
-		// uint8_t *temp = (uint8_t *)ptr;
+	for( uint32_t i = 0; i < length; i += 4 ){
 
 		uint32_t temp;
-		SPIRead(i +  0x12000, &temp, 4);
-		// trace_printf("0x%08x 0x%08x\n", ptr, *(const uint32_t *)ptr);
-		trace_printf("0x%08x 0x%08x\n", i, HTONL(temp));
-
-		// this is wrong, but demonstrates a proper 32 bit aligned read.
-		// crc = crc_u16_byte( crc, temp[0] );
-		// crc = crc_u16_byte( crc, temp[1] );
-		// crc = crc_u16_byte( crc, temp[2] );
-		// crc = crc_u16_byte( crc, temp[3] );
-
-		// ptr++;
+		SPIRead( i + FW_START_OFFSET, &temp, sizeof(temp) );
+		
+		crc = crc_u16_byte( crc, ( temp >>  0 ) & 0xff );
+		crc = crc_u16_byte( crc, ( temp >>  8 ) & 0xff );
+		crc = crc_u16_byte( crc, ( temp >> 16 ) & 0xff );
+		crc = crc_u16_byte( crc, ( temp >> 24 ) & 0xff );
 
 		// reset watchdog timer
 		wdg_v_reset();

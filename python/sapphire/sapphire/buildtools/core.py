@@ -1082,8 +1082,15 @@ class AppBuilder(HexBuilder):
         kv_index = ''
         for a in sorted_hashes:
             kv_index += struct.pack('<LB', a, kv_meta_by_hash[a][1])
+
+        # get temp size with index and 16 bit crc
+        temp_size = ih.maxaddr() - ih.minaddr() + 1 + len(kv_index) + 2
+
+        # pad to 32 bits, taking into account 16 bit crc
+        padding = 4 - temp_size % 4
+        ih.puts(ih.maxaddr() + 1, '\0' * padding)
                 
-        # write to end of hex file
+        # write index to end of hex file
         ih.puts(ih.maxaddr() + 1, kv_index)
 
         size = ih.maxaddr() - ih.minaddr() + 1
@@ -1122,6 +1129,9 @@ class AppBuilder(HexBuilder):
         logging.info("app version: %s" % (self.version))
 
         ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
+
+        size = ih.maxaddr() - ih.minaddr() + 1
+        assert size % 4 == 0
 
         ih.write_hex_file('main.hex')
         ih.tobinfile('firmware.bin')
