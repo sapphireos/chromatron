@@ -84,28 +84,41 @@ void ldr_run_app( void ){
 
     // scan for firmware image
     esp_image_header_t image_header;
-    uint32_t addr = FLASH_START;
+    uint32_t addr = FW_START_OFFSET;
     SPIRead( addr, &image_header, sizeof(image_header) );
 
-    trace_printf("image: %x %u %x %x %x",
+    trace_printf("image: %x %u %x %x %x\n",
     	image_header.magic,
     	image_header.segment_count,
     	image_header.flash_mode,
     	image_header.flash_info,
     	image_header.entry_addr);
 
+   	if( image_header.magic != ESP_IMAGE_MAGIC ){
+
+   		trace_printf("Bad image header!\n");
+   		return;
+   	}
+
    	addr += sizeof(image_header);
 
     for( uint8_t i = 0; i < image_header.segment_count; i++ ){
 
     	esp_section_header_t section_header;
-    	SPIRead( addr, &section_header, sizeof(image_header) );
-
-		trace_printf("section: %x %x",
-			section_header.addr,
-			section_header.length);
+    	SPIRead( addr, &section_header, sizeof(section_header) );
 
     	addr += sizeof(section_header);	
+
+    	// check if valid address range we can load to
+    	if( ( section_header.addr < 0x40000000 ) ||
+    		( ( section_header.addr >= 0x40100000 ) &&
+    		  ( section_header.addr < 0x40108000 ) ) ){
+
+    		trace_printf("Load: 0x%08x %u bytes\n", section_header.addr, section_header.length);
+    		SPIRead( addr, (void *)section_header.addr, section_header.length );
+    	}
+
+    	addr += section_header.length;
     }
 
 	// DISABLE_INTERRUPTS;
