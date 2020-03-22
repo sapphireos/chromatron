@@ -53,20 +53,23 @@ void ldr_v_erase_app( void ){
 
 void ldr_v_copy_partition_to_internal( void ){
 
-    ldr_v_erase_app();
+    // ldr_v_erase_app();
+
+    uint32_t length = ldr_u32_read_partition_length();
 	
-	for( uint32_t i = 0; i < ldr_u32_read_partition_length(); i += 4 ){
+	for( uint32_t i = 0; i < length; i += 4 ){
 
 		// load page data
-		uint32_t data;
+		uint8_t data[4] __attribute__((aligned(4)));
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
+		trace_printf("0x%08x\n", *(uint32_t*)data);
 
 		if( i % 4096 == 0 ){
 
 			trace_printf("Write: %u KB\n", i / 1024);
-		}		
+		}
 
-		SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
+		// SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
 
 		// reset watchdog timer
 		wdg_v_reset();
@@ -195,7 +198,7 @@ uint16_t ldr_u16_get_partition_crc( void ){
 
 	while( length > 0 ){
 
-        uint8_t buf[4];
+        uint8_t buf[4] __attribute__((aligned(4)));
         uint16_t copy_len = sizeof(buf);
 
         if( (uint32_t)copy_len > length ){
@@ -204,6 +207,8 @@ uint16_t ldr_u16_get_partition_crc( void ){
         }
 
         flash25_v_read( address, buf, copy_len );
+
+        // trace_printf("0x%08x\n", *(uint32_t*)buf);
 
         address += copy_len;
         length -= copy_len;
