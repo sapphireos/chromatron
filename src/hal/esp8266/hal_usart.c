@@ -34,7 +34,7 @@ static uint8_t rx_buf[256];
 PT_THREAD( uart_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );  
-    
+
     while(1){
 
     	THREAD_YIELD( pt );

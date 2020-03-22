@@ -185,6 +185,8 @@ PT_THREAD( serial_cmd_thread( pt_t *pt, void *state ) )
 
 PT_BEGIN( pt );
 
+    usart_v_init( 0 );
+
     while(1){
 
         THREAD_YIELD( pt );
