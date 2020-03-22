@@ -1683,7 +1683,7 @@ uint32_t wifi_u32_get_received( void ){
     return wifi_udp_received;
 }
 
-#else
+#elif !defined(ESP8266)
 bool wifi_b_connected( void ){
 
     return FALSE;
