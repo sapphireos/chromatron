@@ -55,6 +55,12 @@ static inline uint32_t load32( uint8_t *ptr ){
 }
 #define LOAD32(ptr) load32((uint8_t *)ptr)
 
+static inline uint16_t load16( uint8_t *ptr ){
+
+    return (((uint32_t)ptr[1] << 8) | ((uint32_t)ptr[0] << 0));
+}
+#define LOAD16(ptr) load16((uint8_t *)ptr)
+
 static inline void store32( uint8_t *ptr, uint32_t val ){
 
     ptr[0] = ( val >> 0 ) & 0xff;

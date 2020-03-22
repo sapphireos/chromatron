@@ -124,6 +124,23 @@
 
 #endif
 
+#ifndef LOAD32
+#define LOAD32(ptr) (*ptr)
+#endif
+
+#ifndef LOAD16
+#define LOAD16(ptr) (*ptr)
+#endif
+
+#ifndef STORE32
+#define STORE32(ptr, val) (*(uint32_t*)ptr = val)
+#endif
+
+#ifndef STORE16
+#define STORE16(ptr, val) (*(uint16_t*)ptr = val)
+#endif
+
+
 void cpu_v_init( void );
 uint8_t cpu_u8_get_reset_source( void );
 void cpu_v_remap_isrs( void );
