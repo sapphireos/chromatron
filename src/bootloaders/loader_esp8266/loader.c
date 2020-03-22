@@ -87,12 +87,12 @@ void ldr_run_app( void ){
     uint32_t addr = FW_START_OFFSET;
     SPIRead( addr, &image_header, sizeof(image_header) );
 
-    trace_printf("image: %x %u %x %x %x\n",
-    	image_header.magic,
-    	image_header.segment_count,
-    	image_header.flash_mode,
-    	image_header.flash_info,
-    	image_header.entry_addr);
+    // trace_printf("image: %x %u %x %x %x\n",
+    // 	image_header.magic,
+    // 	image_header.segment_count,
+    // 	image_header.flash_mode,
+    // 	image_header.flash_info,
+    // 	image_header.entry_addr);
 
    	if( image_header.magic != ESP_IMAGE_MAGIC ){
 
@@ -117,18 +117,15 @@ void ldr_run_app( void ){
     		trace_printf("Load: 0x%08x %u bytes\n", section_header.addr, section_header.length);
     		SPIRead( addr, (void *)section_header.addr, section_header.length );
     	}
-
+    	
     	addr += section_header.length;
     }
 
-	// DISABLE_INTERRUPTS;
-	// wdg_v_disable();
-	
-	// jumpAddress = *(volatile uint32_t *)( FLASH_START );
- 
-	// JumpToApplication = (pFunction)jumpAddress;
+    trace_printf("Entry: 0x%08x\n", image_header.entry_addr);
 
-	// JumpToApplication();
+    register uint32_t sp asm("a1") = 0x3ffffff0;
+    register uint32_t pc asm("a3") = image_header.entry_addr;
+    __asm__  __volatile__ ("jx a3");
 }
 
 

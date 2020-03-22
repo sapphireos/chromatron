@@ -3,7 +3,9 @@
 MEMORY
 {
   dport0_0_seg :                        org = 0x3FF00000, len = 0x10
-  dram0_0_seg :                         org = 0x3FFE8000, len = 0x14000
+  dram0_0_bootdata_seg :                org = 0x3FFE8000, len = 0x100
+  /* Move dram0 to end of dram so that loading the main image does not overwrite the bootloader data */
+  dram0_0_seg :                         org = 0x3FFFBC00, len = 0x400
   iram1_0_seg :                         org = 0x4010e000, len = 0x2000
   irom0_0_seg :                         org = 0x40210000, len = 0x5C000
 }
@@ -75,7 +77,7 @@ SECTIONS
 
     . = ALIGN(4);
     _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >dram0_0_seg
+  } >dram0_0_bootdata_seg
 
   .dport0.data : ALIGN(4)
   {
