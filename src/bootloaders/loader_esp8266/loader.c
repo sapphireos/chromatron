@@ -44,11 +44,14 @@ void ldr_v_erase_app( void ){
 
 	uint32_t offset = FW_START_OFFSET / 4096;
 
+	trace_printf("Erasing firmware");
+
 	for( uint32_t i = 0; i < FLASH_FS_FIRMWARE_0_N_BLOCKS; i++ ){
 
-		trace_printf("Erase: %u\n", i);
+		trace_printf(".");
 		SPIEraseSector( i + offset );
 	}
+	trace_printf("Done\n");
 }
 
 void ldr_v_copy_partition_to_internal( void ){
@@ -57,6 +60,8 @@ void ldr_v_copy_partition_to_internal( void ){
 
     uint32_t length = ldr_u32_read_partition_length();
 	
+	trace_printf("Writing firmware");
+
 	for( uint32_t i = 0; i < length; i += 4 ){
 
 		// load page data
@@ -65,7 +70,7 @@ void ldr_v_copy_partition_to_internal( void ){
 
 		if( i % 4096 == 0 ){
 
-			trace_printf("Write: %u KB\n", i / 1024);
+			trace_printf(".");
 		}
 
 		SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
@@ -73,6 +78,8 @@ void ldr_v_copy_partition_to_internal( void ){
 		// reset watchdog timer
 		wdg_v_reset();
 	}
+
+	trace_printf("Done\n");
 }
 
 typedef void (app_func_t)(void);
