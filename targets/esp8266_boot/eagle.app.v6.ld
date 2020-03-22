@@ -22,11 +22,6 @@ PHDRS
 
 /*  Default entry point:  */
 ENTRY(main)
-EXTERN(_DebugExceptionVector)
-EXTERN(_DoubleExceptionVector)
-EXTERN(_KernelExceptionVector)
-EXTERN(_NMIExceptionVector)
-EXTERN(_UserExceptionVector)
 PROVIDE(_memmap_vecbase_reset = 0x40000000);
 /* Various memory-map dependent cache attribute settings: */
 _memmap_cacheattr_wb_base = 0x00000110;
@@ -64,6 +59,14 @@ SECTIONS
     *(.dport.literal)
     _dport0_literal_end = ABSOLUTE(.);
   } >dport0_0_seg :dport0_0_phdr
+  
+  .dport0.data : ALIGN(4)
+  {
+    _dport0_data_start = ABSOLUTE(.);
+    *(.dport0.data)
+    *(.dport.data)
+    _dport0_data_end = ABSOLUTE(.);
+  } >dport0_0_seg :dport0_0_phdr
 
   /* Boot data section */
   .bootdata (NOLOAD):
@@ -77,16 +80,25 @@ SECTIONS
     _ebootdata = .;        /* define a global symbol at bootdata end */
   } >dram0_0_seg
 
-  .dport0.data : ALIGN(4)
-  {
-    _dport0_data_start = ABSOLUTE(.);
-    *(.dport0.data)
-    *(.dport.data)
-    _dport0_data_end = ABSOLUTE(.);
-  } >dport0_0_seg :dport0_0_phdr
-
   .data : ALIGN(4)
   {
+    _heap_start = ABSOLUTE(.);
+  } >dram0_0_seg :dram0_0_bss_phdr
+
+  .text : ALIGN(4)
+  {
+    _stext = .;
+    _text_start = ABSOLUTE(.);
+    *(.entry.text)
+    *(.init.literal)
+    *(.init)
+    *(.literal .text .literal.* .text.* .stub .gnu.warning .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)
+    *(.fini.literal)
+    *(.fini)
+    *(.gnu.version)
+    _text_end = ABSOLUTE(.);
+    _etext = .;
+    . = ALIGN (8);
     _data_start = ABSOLUTE(.);
     *(.data)
     *(.data.*)
@@ -100,10 +112,7 @@ SECTIONS
     *(.gnu.linkonce.s2.*)
     *(.jcr)
     _data_end = ABSOLUTE(.);
-  } >dram0_0_seg :dram0_0_phdr
-
-  .rodata : ALIGN(4)
-  {
+    . = ALIGN (8);
     _rodata_start = ABSOLUTE(.);
     *(.sdk.version)
     *(.rodata)
@@ -116,7 +125,7 @@ SECTIONS
     *(.gnu.linkonce.e.*)
     *(.gnu.version_r)
     *(.eh_frame)
-    /*  C++ constructor and destructor tables, properly ordered:  */
+     /*  C++ constructor and destructor tables, properly ordered:  */
     KEEP (*crtbegin.o(.ctors))
     KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
     KEEP (*(SORT(.ctors.*)))
@@ -133,16 +142,13 @@ SECTIONS
     *(.xt_except_desc_end)
     *(.dynamic)
     *(.gnu.version_d)
-    . = ALIGN(4);		/* this table MUST be 4-byte aligned */
+    . = ALIGN(4);   /* this table MUST be 4-byte aligned */
     _bss_table_start = ABSOLUTE(.);
     LONG(_bss_start)
     LONG(_bss_end)
     _bss_table_end = ABSOLUTE(.);
     _rodata_end = ABSOLUTE(.);
-  } >dram0_0_seg :dram0_0_phdr
-
-  .bss ALIGN(8) (NOLOAD) : ALIGN(4)
-  {
+    
     . = ALIGN (8);
     _bss_start = ABSOLUTE(.);
     *(.dynsbss)
@@ -160,76 +166,6 @@ SECTIONS
     *(COMMON)
     . = ALIGN (8);
     _bss_end = ABSOLUTE(.);
-    _heap_start = ABSOLUTE(.);
-/*    _stack_sentry = ALIGN(0x8); */
-  } >dram0_0_seg :dram0_0_bss_phdr
-/* __stack = 0x3ffc8000; */
-
-  .irom0.text : ALIGN(4)
-  {
-    _irom0_text_start = ABSOLUTE(.);
-
-    
-
-    *libat.a:(.literal.* .text.*)
-    *libcrypto.a:(.literal.* .text.*)
-    *libespnow.a:(.literal.* .text.*)
-    *libjson.a:(.literal.* .text.*)
-    *liblwip.a:(.literal.* .text.*)
-    *libmesh.a:(.literal.* .text.*)
-    *libnet80211.a:(.literal.* .text.*)
-    *libsmartconfig.a:(.literal.* .text.*)
-    *libssl.a:(.literal.* .text.*)
-    *libupgrade.a:(.literal.* .text.*)
-    *libwpa.a:(.literal.* .text.*)
-    *libwpa2.a:(.literal.* .text.*)
-    *libwps.a:(.literal.* .text.*)
-
-    *libmbedtls.a:(.literal.* .text.*)
-
-    *libm.a:(.literal .text .literal.* .text.*)
-
-    *(.irom0.literal .irom.literal .irom.text.literal .irom0.text .irom.text .irom0.text.*)
-    _irom0_text_end = ABSOLUTE(.);
-  } >irom0_0_seg :irom0_0_phdr
-
-  .text : ALIGN(4)
-  {
-    _stext = .;
-    _text_start = ABSOLUTE(.);
-    *(.UserEnter.text)
-    . = ALIGN(16);
-    *(.DebugExceptionVector.text)
-    . = ALIGN(16);
-    *(.NMIExceptionVector.text)
-    . = ALIGN(16);
-    *(.KernelExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN(16);
-    *(.UserExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN(16);
-    *(.DoubleExceptionVector.text)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    LONG(0)
-    . = ALIGN (16);
-    *(.entry.text)
-    *(.init.literal)
-    *(.init)
-    *(.literal .text .literal.* .text.* .stub .gnu.warning .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)
-    *(.fini.literal)
-    *(.fini)
-    *(.gnu.version)
-    _text_end = ABSOLUTE(.);
-    _etext = .;
   } >iram1_0_seg :iram1_0_phdr
 
   .lit4 : ALIGN(4)
@@ -240,6 +176,13 @@ SECTIONS
     *(.gnu.linkonce.lit4.*)
     _lit4_end = ABSOLUTE(.);
   } >iram1_0_seg :iram1_0_phdr
+
+  .irom0.text : ALIGN(4)
+  {
+    _irom0_text_start = ABSOLUTE(.);
+    *(.irom0.literal .irom.literal .irom.text.literal .irom0.text .irom.text .irom0.text.*)
+    _irom0_text_end = ABSOLUTE(.);
+  } >irom0_0_seg :irom0_0_phdr
 }
 
 /* get ROM code address */
