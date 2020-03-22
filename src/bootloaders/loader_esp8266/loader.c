@@ -42,7 +42,11 @@
 
 void ldr_v_erase_app( void ){
 
-	
+	for( uint32_t i = 0; i < FLASH_FS_FIRMWARE_0_N_BLOCKS; i++ ){
+
+		trace_printf("Erase: %u\n", i);
+		SPIEraseBlock( i );
+	}
 }
 
 void ldr_v_copy_partition_to_internal( void ){
@@ -55,8 +59,10 @@ void ldr_v_copy_partition_to_internal( void ){
 		uint32_t data;
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
-		if( i % 1024 == 0 )
-		trace_printf("Write: %u\n", i);
+		if( i % 1024 == 0 ){
+
+			trace_printf("Write: %u KB\n", i / 1024);
+		}		
 
 		SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
 

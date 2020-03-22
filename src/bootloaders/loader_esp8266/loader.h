@@ -82,7 +82,6 @@ int SPIEraseBlock(uint32_t block);
 int SPIEraseSector(uint32_t sector);
 int SPIRead(uint32_t addr, void *dest, size_t size);
 int SPIWrite(uint32_t addr, void *src, size_t size);
-int SPIEraseAreaEx(const uint32_t start, const uint32_t size);
 
 
 #define LDR_VERSION_MAJOR   '1'
