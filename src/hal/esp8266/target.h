@@ -94,23 +94,11 @@
 #define LOG_MAX_BUFFER_SIZE     2048
 #define ENABLE_LOG_TO_TRACE_PRINT
 
-// bootloader target settings
-// page size in bytes
-#define PAGE_SIZE 1024
-// number of pages in app section
-#define N_APP_PAGES 480
-// total pages
-#define TOTAL_PAGES ( N_APP_PAGES + 32 )
 
 #define FW_START_OFFSET 0x00002000
 #define FLASH_START 	( 0x40200000 + FW_START_OFFSET )
 #define FW_INFO_ADDRESS 0x00010000
 #define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
-
-
-#define MAX_PROGRAM_LENGTH ( (uint32_t)( (uint32_t)PAGE_SIZE * (uint32_t)N_APP_PAGES ) )
-#define FLASH_LENGTH ( (uint32_t)( (uint32_t)PAGE_SIZE * (uint32_t)TOTAL_PAGES ) )
-
 
 // asserts
 // comment this out to turn off compiler asserts

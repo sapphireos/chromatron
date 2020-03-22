@@ -64,7 +64,6 @@ Generic mode:
 #include "cpu.h"
 
 #include "eeprom.h"
-#include "bootcore.h"
 #include "boot_data.h"
 #include "loader.h"
 #include "flash25.h"
@@ -84,9 +83,6 @@ void main( void ){
 
     // init CRC
     crc_v_init();
-
-    // init boot module
-    boot_v_init();
 
     ldr_v_set_yellow_led();
 

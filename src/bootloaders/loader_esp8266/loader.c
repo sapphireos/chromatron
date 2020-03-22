@@ -28,7 +28,6 @@
 #include "target.h"
 
 #include "boot_data.h"
-#include "bootcore.h"
 #include "crc.h"
 #include "eeprom.h"
 #include "flash25.h"
@@ -43,32 +42,21 @@
 
 void ldr_v_erase_app( void ){
 
-	nvm_v_erase_app_flash();
+	
 }
 
 void ldr_v_copy_partition_to_internal( void ){
 
     ldr_v_erase_app();
-	// page data buffer
-	uint8_t buf[PAGE_SIZE];
-
-	// calculate number of pages
-	uint16_t n_pages = ( ldr_u32_read_partition_length() / PAGE_SIZE ) + 1;
-
-	// bounds check pages
-	if( n_pages > N_APP_PAGES ){
-
-		n_pages = N_APP_PAGES;
-	}
-
-	// loop through pages
-	for( uint16_t i = 0; i < n_pages; i++ ){
+	
+	for( uint16_t i = 0; i < ldr_u32_read_partition_length(); i += 4 ){
 
 		// load page data
-		ldr_v_read_partition_data( (uint32_t)i * PAGE_SIZE, buf, PAGE_SIZE );
+		uint32_t data;
+		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
-		// write page data to app page
-		boot_v_write_page( i, buf );
+		trace_printf("Write: %u\n", i);
+
 
 		// reset watchdog timer
 		wdg_v_reset();
@@ -142,11 +130,6 @@ uint32_t ldr_u32_read_partition_length( void ){
 	
     partition_length += sizeof(uint16_t);
 
-	if( partition_length > ( (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE ) ){
-
-		partition_length = (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE;
-	}
-
 	return partition_length;
 }
 
@@ -160,11 +143,6 @@ uint32_t ldr_u32_read_internal_length( void ){
 	SPIRead( addr, &internal_length, sizeof(internal_length) );
 
 	internal_length += sizeof(uint16_t);
-
-	if( internal_length > ( (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE ) ){
-
-		internal_length = (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE;
-	}
 
 	return internal_length;
 }
@@ -207,8 +185,8 @@ uint16_t ldr_u16_get_partition_crc( void ){
 
 	while( length > 0 ){
 
-        uint8_t buf[PAGE_SIZE];
-        uint16_t copy_len = PAGE_SIZE;
+        uint8_t buf[4];
+        uint16_t copy_len = sizeof(buf);
 
         if( (uint32_t)copy_len > length ){
 

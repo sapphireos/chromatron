@@ -288,10 +288,12 @@ uint32_t ffs_fw_u32_read_internal_length( void ){
 
     internal_length += sizeof(uint16_t);
 
+    #ifdef N_APP_PAGES
     if( internal_length > ( (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE ) ){
 
         internal_length = (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE;
     }
+    #endif
 
     return internal_length;
 }
