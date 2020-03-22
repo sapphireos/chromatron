@@ -75,9 +75,7 @@ void ldr_v_copy_partition_to_internal( void ){
 	}
 }
 
-// typedef void (*pFunction)(void);
-// pFunction JumpToApplication;
-// uint32_t jumpAddress;
+typedef void (app_func_t)(void);
 
 
 void ldr_run_app( void ){
@@ -123,9 +121,8 @@ void ldr_run_app( void ){
 
     trace_printf("Entry: 0x%08x\n", image_header.entry_addr);
 
-    register uint32_t sp asm("a1") = 0x3ffffff0;
-    register uint32_t pc asm("a3") = image_header.entry_addr;
-    __asm__  __volatile__ ("jx a3");
+ 	app_func_t* app_start = (app_func_t*)image_header.entry_addr;
+ 	app_start();
 }
 
 
