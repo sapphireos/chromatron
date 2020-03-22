@@ -53,7 +53,7 @@ void ldr_v_erase_app( void ){
 
 void ldr_v_copy_partition_to_internal( void ){
 
-    // ldr_v_erase_app();
+    ldr_v_erase_app();
 
     uint32_t length = ldr_u32_read_partition_length();
 	
@@ -62,14 +62,13 @@ void ldr_v_copy_partition_to_internal( void ){
 		// load page data
 		uint8_t data[4] __attribute__((aligned(4)));
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
-		trace_printf("0x%08x\n", *(uint32_t*)data);
 
 		if( i % 4096 == 0 ){
 
 			trace_printf("Write: %u KB\n", i / 1024);
 		}
 
-		// SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
+		SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
 
 		// reset watchdog timer
 		wdg_v_reset();

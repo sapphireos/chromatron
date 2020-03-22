@@ -85,13 +85,15 @@ static void load_cache( uint32_t address ){
 
 void hal_flash25_v_init( void ){
 
+    // FW_START_OFFSET offsets from the end of the bootloader section.
+    start_address = FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_START_OFFSET;
+
     // read max address
     #ifndef BOOTLOADER
     max_address = flash25_u32_read_capacity_from_info();
 
     if( max_address > ( 2 * 1048576 ) ){
-
-        start_address = FLASH_FS_FIRMWARE_0_PARTITION_SIZE;
+        
         max_address -= start_address;
 
         max_address -= ( 32 * 1024 );
@@ -104,7 +106,6 @@ void hal_flash25_v_init( void ){
         max_address = 0;
     }
     #else
-    start_address = FLASH_FS_FIRMWARE_0_PARTITION_SIZE;
     max_address = 1048576;
     #endif
 
