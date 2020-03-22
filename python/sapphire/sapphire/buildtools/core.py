@@ -975,7 +975,12 @@ class HexBuilder(Builder):
                 # bootloader builds will load irom to 0x12000
                 # however, the entire binary file is offset. so we don't
                 # need the extra 0x2000 length here.
-                ih.loadbin('image0x12000.bin', offset=0x10000)
+                try:
+                    ih.loadbin('image0x12000.bin', offset=0x10000)
+
+                except IOError:
+                    # sometimes we might not have this file at all
+                    pass
 
             ih.tobinfile('main.bin')
             ih.write_hex_file('main.hex')
