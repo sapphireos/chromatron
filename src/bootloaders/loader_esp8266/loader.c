@@ -201,6 +201,8 @@ uint16_t ldr_u16_get_partition_crc( void ){
 
 	uint32_t length = ldr_u32_read_partition_length();
 
+	trace_printf("Partition len: %u\n", length);
+
     uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START;
 
 	while( length > 0 ){

@@ -59,6 +59,8 @@ static void flush_cache( void ){
     #ifndef BOOTLOADER
     // commit to flash
     spi_flash_write( cache_address, &cache_data.word, sizeof(cache_data) );
+    #else
+    SPIWrite( cache_address, &cache_data.word, sizeof(cache_data) );
     #endif
 
     // cache is now valid
@@ -74,6 +76,8 @@ static void load_cache( uint32_t address ){
 
     #ifndef BOOTLOADER
     spi_flash_read( address, &cache_data.word, sizeof(cache_data) );
+    #else
+    SPIRead( address, &cache_data.word, sizeof(cache_data) );
     #endif
     
     cache_address = address;
