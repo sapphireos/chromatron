@@ -49,14 +49,16 @@ void ldr_v_copy_partition_to_internal( void ){
 
     ldr_v_erase_app();
 	
-	for( uint16_t i = 0; i < ldr_u32_read_partition_length(); i += 4 ){
+	for( uint32_t i = 0; i < ldr_u32_read_partition_length(); i += 4 ){
 
 		// load page data
 		uint32_t data;
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
+		if( i % 1024 == 0 )
 		trace_printf("Write: %u\n", i);
 
+		SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
 
 		// reset watchdog timer
 		wdg_v_reset();
