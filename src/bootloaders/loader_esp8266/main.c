@@ -169,6 +169,8 @@ void main( void ){
             // recompute internal CRC
             internal_crc = ldr_u16_get_internal_crc();
 
+            trace_printf("Internal crc: 0x%04x\n", internal_crc);
+
             // set loader status
             boot_data.loader_status = LDR_STATUS_NEW_FW;
 

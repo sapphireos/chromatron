@@ -91,7 +91,7 @@ void hal_flash25_v_init( void ){
 
     if( max_address > ( 2 * 1048576 ) ){
 
-        start_address = ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024 );
+        start_address = FLASH_FS_FIRMWARE_0_PARTITION_SIZE;
         max_address -= start_address;
 
         max_address -= ( 32 * 1024 );
@@ -104,7 +104,7 @@ void hal_flash25_v_init( void ){
         max_address = 0;
     }
     #else
-    start_address = ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024 );
+    start_address = FLASH_FS_FIRMWARE_0_PARTITION_SIZE;
     max_address = 1048576;
     #endif
 

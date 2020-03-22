@@ -117,7 +117,9 @@ uint32_t cpu_u32_get_clock_speed( void ){
 void cpu_reboot( void ){
 
     #ifndef BOOTLOADER
+    wdg_v_disable();
     system_restart();
+    while(1);
     #endif
 }
 
