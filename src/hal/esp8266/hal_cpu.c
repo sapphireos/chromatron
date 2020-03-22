@@ -43,7 +43,18 @@ void cpu_v_init( void ){
 uint8_t cpu_u8_get_reset_source( void ){
 
     #ifdef BOOTLOADER
-    return rtc_get_reset_reason();
+    int reason = rtc_get_reset_reason();
+
+    if( reason == 2 ){
+
+        return RESET_SOURCE_EXTERNAL;       
+    }
+    else if( reason == 4 ){
+
+        return 0;       
+    }
+
+    return RESET_SOURCE_POWER_ON; 
 
     #else
 	struct rst_info *info = system_get_rst_info();
