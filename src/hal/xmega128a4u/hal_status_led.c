@@ -95,6 +95,7 @@ PT_BEGIN( pt );
                 status_led_v_set( 0, STATUS_LED_BLUE );
             }
 
+            #ifdef ENABLE_TIMESYNC
             if( time_b_is_local_sync() ){
 
                 uint32_t net_time = time_u32_get_network_time();
@@ -108,6 +109,9 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 500 );
             }
+            #else
+            TMR_WAIT( pt, 500 );
+            #endif
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -121,7 +125,7 @@ PT_BEGIN( pt );
                     status_led_v_set( 1, STATUS_LED_BLUE );
                 }
             }
-
+            #ifdef ENABLE_TIMESYNC
             if( time_b_is_local_sync() ){
 
                 uint32_t net_time = time_u32_get_network_time();
@@ -135,6 +139,9 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 500 );
             }
+            #else
+            TMR_WAIT( pt, 500 );
+            #endif
         }
         else{
 
@@ -150,6 +157,7 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 500 );
 
+            #ifdef ENABLE_WIFI
             if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
 
                 status_led_v_set( 0, STATUS_LED_RED );
@@ -160,6 +168,7 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 500 );
             }
+            #endif
         }
     }
 

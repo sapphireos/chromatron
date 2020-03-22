@@ -1683,5 +1683,16 @@ uint32_t wifi_u32_get_received( void ){
     return wifi_udp_received;
 }
 
+#else
+bool wifi_b_connected( void ){
+
+    return FALSE;
+}
+
+bool wifi_b_ap_mode( void ){
+
+    return FALSE;
+}
+
 #endif
 

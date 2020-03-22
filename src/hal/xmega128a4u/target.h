@@ -29,14 +29,14 @@
 
 
 // modules
-#define ENABLE_CATBUS_LINK
-#define ENABLE_TIME_SYNC
+// #define ENABLE_CATBUS_LINK
+// #define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
-#define ENABLE_WIFI
+// #define ENABLE_WIFI
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
-#define ENABLE_POWER
+// #define ENABLE_POWER
 #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
 
@@ -47,10 +47,10 @@
 // #define USE_GFX_LIB
 
 // VM config
-#define VM_TARGET_ESP
+// #define VM_TARGET_ESP
 // #define VM_ENABLE_GFX
-#define VM_ENABLE_KV
-#define VM_ENABLE_CATBUS
+// #define VM_ENABLE_KV
+// #define VM_ENABLE_CATBUS
 
 // this needs to match what is in the wifi target.h!!
 #define VM_MAX_VMS                  4
