@@ -40,45 +40,54 @@
 // UartDev is defined and initialized in rom code.
 extern UartDevice    UartDev;
 
-static baud_t baud0;
-static baud_t baud1;
+// static baud_t baud0;
+// static baud_t baud1;
 
-static void uart_isr(void * arg) __attribute__((section("iram.text.")));
+// static void uart_isr(void * arg) __attribute__((section("iram.text.")));
 
-static void uart_isr(void * arg)
-{
+// static void uart_isr(void * arg)
+// {
    
-}
+// }
 
 
 // static uint8_t rx_buf[256];
 
-// PT_THREAD( uart_rx_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );  
+static uint8_t rx_fifo_len(void){
 
-//     while(1){
+    return (READ_PERI_REG(UART_STATUS(UART0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT;
+} 
 
-//      THREAD_YIELD( pt );
+
+PT_THREAD( uart_rx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );  
+
+    while(1){
+
+        THREAD_YIELD( pt );
+        THREAD_WAIT_WHILE( pt, rx_fifo_len() == 0 );
             
-//         uint8_t temp;
-//         uint16_t len = rx_buff_deq( &temp, sizeof(temp) );
+        uint8_t fifo_len = rx_fifo_len();
 
-//         if( len == 0 ){
+        while( fifo_len > 0 ){
 
-//          continue;
-//         }
-        
-//         trace_printf("0x%02x\n", temp);
-//     }
+            uint8_t temp = READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
+            trace_printf("%c", temp);
 
-// PT_END( pt );
-// }
+            fifo_len--;
+        }
 
-void usart_v_init( uint8_t channel ){
+        trace_printf("\n");
+    }
 
-        PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
-        PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
+PT_END( pt );
+}
+
+static void usart_v_config( uint8_t channel ){
+
+    PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
+    PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
 // #if UART_HW_RTS
 //         PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDO_U, FUNC_U0RTS);   //HW FLOW CONTROL RTS PIN
 // #endif
@@ -121,22 +130,30 @@ void usart_v_init( uint8_t channel ){
     //clear all interrupt
     WRITE_PERI_REG(UART_INT_CLR(channel), 0xffff);
     //enable rx_interrupt
-    SET_PERI_REG_MASK(UART_INT_ENA(channel), UART_RXFIFO_FULL_INT_ENA | UART_RXFIFO_OVF_INT_ENA);
+    // SET_PERI_REG_MASK(UART_INT_ENA(channel), UART_RXFIFO_FULL_INT_ENA | UART_RXFIFO_OVF_INT_ENA);
 
-    ETS_UART_INTR_ATTACH(uart_isr,  0);
-    ETS_UART_INTR_ENABLE();
+    // ETS_UART_INTR_ATTACH(uart_isr,  0);
+    // ETS_UART_INTR_ENABLE();
 
-    // thread_t_create_critical( THREAD_CAST(uart_rx_thread),
- //                              PSTR("uart_rx"),
- //                              0,
- //                              0 );
+}
 
+void usart_v_init( uint8_t channel ){
+        
+    usart_v_config( channel );
+
+    if( channel == 0 ){
+
+        thread_t_create_critical( THREAD_CAST(uart_rx_thread),
+                                  PSTR("uart_rx"),
+                                  0,
+                                  0 );
+    }
 }
 
 void usart_v_set_baud( uint8_t channel, baud_t baud ){
 
     UartDev.baut_rate = baud;
-    usart_v_init( channel );
+    usart_v_config( channel );
 
     // if( channel == 0 ){
 

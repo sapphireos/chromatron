@@ -141,13 +141,10 @@ void ICACHE_FLASH_ATTR user_init(void)
     // NOTE this will disable ALL console prints, including ours!
     // system_set_os_print( 0 );
 
-    // uart_init(115200, 115200);
-    
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 115200 );
-    
-    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+    uart_init(115200, 115200);
 
+    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+    
     // Disable WiFi
   	wifi_set_opmode(NULL_MODE);
 
@@ -170,6 +167,10 @@ void ICACHE_FLASH_ATTR user_init(void)
             libs_v_init();
         }
     }
+
+
+    usart_v_init( 0 );
+    usart_v_set_baud( 0, 4000000 );
     
     // start OS
     // on the ESP8266 this will return
