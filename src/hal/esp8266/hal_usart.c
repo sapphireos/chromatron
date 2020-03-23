@@ -36,22 +36,9 @@
 #include "driver/uart_register.h"
 
 
-
 // UartDev is defined and initialized in rom code.
 extern UartDevice    UartDev;
 
-// static baud_t baud0;
-// static baud_t baud1;
-
-// static void uart_isr(void * arg) __attribute__((section("iram.text.")));
-
-// static void uart_isr(void * arg)
-// {
-   
-// }
-
-
-// static uint8_t rx_buf[256];
 
 static uint8_t rx_fifo_len(void){
 
@@ -141,30 +128,19 @@ void usart_v_init( uint8_t channel ){
         
     usart_v_config( channel );
 
-    if( channel == 0 ){
+    // if( channel == 0 ){
 
-        thread_t_create_critical( THREAD_CAST(uart_rx_thread),
-                                  PSTR("uart_rx"),
-                                  0,
-                                  0 );
-    }
+    //     thread_t_create_critical( THREAD_CAST(uart_rx_thread),
+    //                               PSTR("uart_rx"),
+    //                               0,
+    //                               0 );
+    // }
 }
 
 void usart_v_set_baud( uint8_t channel, baud_t baud ){
 
     UartDev.baut_rate = baud;
     usart_v_config( channel );
-
-    // if( channel == 0 ){
-
-    //     baud0 = baud;
-    // }
-    // else{
-
-    //     baud1 = baud;
-    // }
-
-    // uart_init( baud0, baud1 );
 }
 
 void usart_v_send_byte( uint8_t channel, uint8_t data ){
@@ -193,11 +169,16 @@ void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
 
 int16_t usart_i16_get_byte( uint8_t channel ){
 
-    return -1;
+	if( rx_fifo_len() == 0 ){
+
+		return -1;
+	}
+
+	return READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
 }
 
 uint8_t usart_u8_bytes_available( uint8_t channel ){
 
-    return 0;
+    return rx_fifo_len();
 }
 
