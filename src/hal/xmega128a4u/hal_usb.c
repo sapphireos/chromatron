@@ -45,26 +45,26 @@ static uint8_t rx2_size;
 
 void usb_v_poll( void ){
 
-    // #ifdef ENABLE_WIFI_USB_LOADER
-    // b = CDC_Device_ReceiveByte( &CDC_interface_2 );
-    //
-    // while( b >= 0 ){
-    //
-    //     if( rx_size < cnt_of_array(rx2_buf) ){
-    //
-    //         rx2_buf[rx2_ins] = b;
-    //         rx2_size++;
-    //         rx2_ins++;
-    //
-    //         if( rx2_ins >= cnt_of_array(rx2_buf) ){
-    //
-    //             rx2_ins = 0;
-    //         }
-    //
-    //         b = CDC_Device_ReceiveByte( &CDC_interface_2 );
-    //     }
-    // }
-    // #endif
+    #ifdef ENABLE_WIFI_USB_LOADER
+    int16_t b = usb_i16_get_char();
+    
+    while( b >= 0 ){
+    
+        if( rx2_size < cnt_of_array(rx2_buf) ){
+    
+            rx2_buf[rx2_ins] = b;
+            rx2_size++;
+            rx2_ins++;
+    
+            if( rx2_ins >= cnt_of_array(rx2_buf) ){
+    
+                rx2_ins = 0;
+            }
+    
+            b = usb_i16_get_char();
+        }
+    }
+    #endif
 }
 
 bool _usb_b_callback_cdc_enable( void ){
@@ -105,7 +105,6 @@ int16_t usb_i16_get_char( void ){
     if( udi_cdc_is_rx_ready() ){
 
         uint8_t c = udi_cdc_getc();
-        // return udi_cdc_getc();
 
         return c;
     }
