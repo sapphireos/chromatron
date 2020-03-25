@@ -31,6 +31,8 @@ typedef struct __attribute__((packed)){
 	uint16_t padding;
 } coproc_hdr_t;
 
+#define COPROC_BUF_SIZE				96
+
 #define OPCODE_TEST					0x01
 
 
