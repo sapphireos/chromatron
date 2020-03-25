@@ -78,11 +78,7 @@ static int8_t fs_i8_kv_handler(
         }
         else if( hash == __KV__fs_capacity ){
 
-            #ifdef ENABLE_FFS
             a = flash25_u32_capacity();
-            #else
-            a = 0;
-            #endif
         }
 
         memcpy( data, &a, sizeof(a) );
@@ -122,12 +118,12 @@ void fs_v_mount( void );
 
 #ifdef ENABLE_FFS
 static int8_t create_file_on_media( char *fname );
+#endif
 static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len );
 static uint16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len );
 static int8_t read_fname_from_media( file_id_t8 file_id, void *ptr, uint16_t max_len );
 static uint32_t get_free_space_on_media( file_id_t8 file_id );
 static bool media_busy( void );
-#endif
 
 
 // static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
@@ -340,12 +336,7 @@ uint32_t fs_u32_get_file_count( void ){
 // and all other media (RAM and internal flash) is read only.
 bool fs_b_busy( void ){
 
-    #ifdef ENABLE_FFS
 	return media_busy();
-
-    #else
-    return FALSE;
-    #endif
 }
 
 // read from a file
@@ -478,12 +469,10 @@ int32_t fs_i32_get_size( file_t file ){
 
         return vfiles[vfile_id].handler( FS_VFILE_OP_SIZE, 0, 0, 0 );
 	}
-    #ifdef ENABLE_FFS
     else{
 
         return ffs_i32_get_file_size( state->file_id );
     }
-    #endif
 
     return -1;
 }
@@ -598,11 +587,7 @@ bool fs_b_exists_id( file_id_t8 id ){
         return ( vfiles[id - FLASH_FS_MAX_FILES].filename != 0 );
     }
 
-    #ifdef ENABLE_FFS
     return ffs_i32_get_file_size( id ) >= 0;
-    #else
-    return FALSE;
-    #endif
 }
 
 file_id_t8 fs_i8_get_file_id( char *filename ){
@@ -620,7 +605,7 @@ file_id_t8 fs_i8_get_file_id( char *filename ){
             }
         }
     }
-    #ifdef ENABLE_FFS
+
     // search for file on flash file system
     for( uint8_t i = 0; i < FLASH_FS_MAX_FILES; i++ ){
 
@@ -641,7 +626,6 @@ file_id_t8 fs_i8_get_file_id( char *filename ){
             return i;
         }
     }
-    #endif
 
     return -1;
 }
@@ -684,12 +668,10 @@ int8_t fs_i8_get_filename_id( file_id_t8 id, void *dst, uint16_t buf_size ){
             return -1;
         }
     }
-    #ifdef ENABLE_FFS
     else{
 
         return read_fname_from_media( id, dst, buf_size );
     }
-    #endif
 
     return -1;
 }
@@ -714,12 +696,10 @@ int32_t fs_i32_get_size_id( file_id_t8 id ){
             return -1;
         }
     }
-    #ifdef ENABLE_FFS
     else{
 
         return ffs_i32_get_file_size( id );
     }
-    #endif
 
     return -1;
 }
@@ -738,7 +718,6 @@ int8_t fs_i8_delete_id( file_id_t8 id ){
 
         return vfiles[vfile_id].handler( FS_VFILE_OP_DELETE, 0, 0, 0 );
     }
-    #ifdef ENABLE_FFS
     else{
 
         // scan memory handles for file handles and invalidate the file ID for
@@ -779,7 +758,6 @@ int8_t fs_i8_delete_id( file_id_t8 id ){
 
         return ffs_i8_delete_file( id );
     }
-    #endif
 
     return -1;
 }
@@ -819,13 +797,11 @@ int16_t fs_i16_read_id( file_id_t8 id, uint32_t pos, void *dst, uint16_t len ){
         bytes_read = vfiles[vfile_id].handler( FS_VFILE_OP_READ, pos, dst, read_len );
 
     }
-    #ifdef ENABLE_FFS
     else{
 
         // read file data
         bytes_read = read_from_media( id, pos, dst, len );
     }
-    #endif
 
     return bytes_read;
 }
@@ -867,26 +843,25 @@ int16_t fs_i16_write_id( file_id_t8 id, uint32_t pos, const void *src, uint16_t 
         // we're trusting that the vfile handler is properly implemented and won't trash memory on a write
         bytes_written = vfiles[vfile_id].handler( FS_VFILE_OP_WRITE, pos, (void *)src, write_len );
     }
-    #ifdef ENABLE_FFS
+
     else{
 
         // write file data
         bytes_written = write_to_media( id, pos, (void *)src, len );
     }
-    #endif
 
     return bytes_written;
 }
 
-#ifdef ENABLE_FFS
 // driver functions:
-
+#ifdef ENABLE_FFS
 static int8_t create_file_on_media( char *fname ){
 
     int8_t file_id = ffs_i8_create_file( fname );
 
     return file_id;
 }
+#endif
 
 // returns number of bytes committed to the device driver's write buffers,
 // NOT the number that have actually been written to the device!  The drivers
@@ -972,5 +947,3 @@ static bool media_busy( void ){
 	return FALSE;
 }
 
-
-#endif

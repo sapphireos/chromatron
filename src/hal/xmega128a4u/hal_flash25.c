@@ -35,8 +35,6 @@ This module provides a low level SPI driver for 25 series flash memory.
 
 */
 
-#ifdef ENABLE_FFS
-
 // this driver is set up to use the USART in master SPI mode
 
 // these bits in USART.CTRLC seem to be missing from the IO header
@@ -629,6 +627,4 @@ uint32_t flash25_u32_capacity( void ){
 
     return max_address;
 }
-
-#endif
 

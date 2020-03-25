@@ -82,6 +82,12 @@ void ffs_v_init( void ){
 
     ffs_gc_v_init();
 
+    #else
+
+    // FFS disabled, just mount firmware partitions
+
+    ffs_fw_i8_init();
+
     #endif
 
     trace_printf("FlashFS files: %d free space: %d ver: %d\r\n", ffs_u32_get_file_count(), ffs_u32_get_free_space(), fs_version );
@@ -139,7 +145,7 @@ uint32_t ffs_u32_get_file_count( void ){
 
     #else
 
-    return 0;
+    return 2; // add 2 for firmware
 
     #endif
 }
@@ -215,7 +221,7 @@ uint32_t ffs_u32_get_total_space( void ){
     #endif
 }
 
-#ifdef ENABLE_FFS
+
 int32_t ffs_i32_get_file_size( ffs_file_t file_id ){
 
     if( ffs_fail ){
@@ -248,7 +254,7 @@ int32_t ffs_i32_get_file_size( ffs_file_t file_id ){
         #endif
     }
     
-
+    #ifdef ENABLE_FFS
     ASSERT( file_id < FFS_MAX_FILES );
 
     int32_t raw_size = ffs_page_i32_file_size( file_id );
@@ -268,6 +274,9 @@ int32_t ffs_i32_get_file_size( ffs_file_t file_id ){
 
     // return data size
     return raw_size - (int32_t)FFS_FILE_META_SIZE;
+    #else
+    return -1;
+    #endif
 }
 
 int8_t ffs_i8_read_filename( ffs_file_t file_id, char *dst, uint8_t max_len ){
@@ -305,6 +314,8 @@ int8_t ffs_i8_read_filename( ffs_file_t file_id, char *dst, uint8_t max_len ){
     }
     #endif
 
+    #ifdef ENABLE_FFS
+
     ASSERT( file_id < FFS_MAX_FILES );
 
     // read meta0
@@ -319,6 +330,8 @@ int8_t ffs_i8_read_filename( ffs_file_t file_id, char *dst, uint8_t max_len ){
     // copy filename
     strlcpy( dst, meta0->filename, max_len );
 
+    #endif
+
     return FFS_STATUS_OK;
 }
 
@@ -329,6 +342,7 @@ ffs_file_t ffs_i8_create_file( char filename[] ){
         return FFS_STATUS_ERROR;
     }
 
+#ifdef ENABLE_FFS
     // create file
     ffs_file_t file = ffs_page_i8_create_file();
 
@@ -372,9 +386,10 @@ clean_up:
 
     // delete file
     ffs_page_i8_delete_file( file );
-
+#endif
     return FFS_STATUS_ERROR;
 }
+
 
 int8_t ffs_i8_delete_file( ffs_file_t file_id ){
 
@@ -414,9 +429,13 @@ int8_t ffs_i8_delete_file( ffs_file_t file_id ){
     }
     #endif
 
+    #ifdef ENABLE_FFS
     ASSERT( file_id < FFS_MAX_FILES );
 
     return ffs_page_i8_delete_file( file_id );
+    #else
+    return FFS_STATUS_ERROR;
+    #endif
 }
 
 int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_t len ){
@@ -449,6 +468,7 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
     }
     #endif
 
+    #ifdef ENABLE_FFS
     ASSERT( file_id < FFS_MAX_FILES );
 
     // get file size
@@ -527,6 +547,9 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
     }
 
 	return total_read;
+    #else
+    return 0;
+    #endif
 }
 
 int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, uint32_t len ){
@@ -558,6 +581,7 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
     }
     #endif
 
+    #ifdef ENABLE_FFS
 
     ASSERT( file_id < FFS_MAX_FILES );
 
@@ -614,5 +638,8 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
     }
 
 	return total_written;
+    #else
+    return 0;
+    #endif
 }
-#endif
+

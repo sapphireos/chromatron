@@ -54,14 +54,14 @@ uint32_t ffs_u32_get_free_space( void );
 uint32_t ffs_u32_get_available_space( void );
 uint32_t ffs_u32_get_total_space( void );
 
-#ifdef ENABLE_FFS
+
 int32_t ffs_i32_get_file_size( ffs_file_t file_id );
 int8_t ffs_i8_read_filename( ffs_file_t file_id, char *dst, uint8_t max_len );
 ffs_file_t ffs_i8_create_file( char filename[] );
 int8_t ffs_i8_delete_file( ffs_file_t file_id );
 int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_t len );
 int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, uint32_t len );
-#endif
+
 
 
 #endif
