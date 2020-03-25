@@ -24,6 +24,8 @@
 
 #include "coprocessor.h"
 
+#include "hal_usart.h"
+
 static coproc_hdr_t rx_hdr;
 static uint8_t rx_buf[COPROC_BUF_SIZE];
 
@@ -32,7 +34,7 @@ static void receive_block( uint8_t *data, uint8_t len ){
 
 	while( len > 0 ){
 
-		*data++ = usart_i16_get_byte();
+		*data++ = usart_i16_get_byte( UART_CHANNEL );
 		len--;
 	}
 }
@@ -69,9 +71,9 @@ void coproc_v_dispatch( coproc_hdr_t *hdr ){
 		ASSERT( FALSE );
 	}
 
-	usart_v_send_byte( 0, COPROC_SOF );
-	usart_v_send_data( 0, (uint8_t *)&reply_hdr, sizeof(reply_hdr) );
-	usart_v_send_data( 0, tx_buf, reply_hdr.length );	
+	usart_v_send_byte( UART_CHANNEL, COPROC_SOF );
+	usart_v_send_data( UART_CHANNEL, (uint8_t *)&reply_hdr, sizeof(reply_hdr) );
+	usart_v_send_data( UART_CHANNEL, tx_buf, reply_hdr.length );	
 }
 
 
@@ -88,9 +90,9 @@ uint8_t coproc_u8_issue(
 	hdr.length 	= len;
 	hdr.padding = 0;
 
-	usart_v_send_byte( 0, COPROC_SOF );
-	usart_v_send_data( 0, (uint8_t *)&hdr, sizeof(hdr) );
-	usart_v_send_data( 0, data, len );
+	usart_v_send_byte( UART_CHANNEL, COPROC_SOF );
+	usart_v_send_data( UART_CHANNEL, (uint8_t *)&hdr, sizeof(hdr) );
+	usart_v_send_data( UART_CHANNEL, data, len );
 
 
 	// wait for response
@@ -98,10 +100,10 @@ uint8_t coproc_u8_issue(
 	// if the coprocessor does not respond, the system is broken.
 
 	// synchronize to SOF
-	while( usart_i16_get_byte( 0 ) != COPROC_SOF );
+	while( usart_i16_get_byte( UART_CHANNEL ) != COPROC_SOF );
 
 	// wait for header
-	while( usart_u8_bytes_available( 0 ) < sizeof(hdr) );
+	while( usart_u8_bytes_available( UART_CHANNEL ) < sizeof(hdr) );
 
 	// receive header
 	receive_block( (uint8_t *)&rx_hdr, sizeof(rx_hdr) );

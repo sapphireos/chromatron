@@ -22,8 +22,10 @@
 
 #include "sapphire.h"
 
+#include "coprocessor.h"
+
 #include "app.h"
-	
+
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )

@@ -23,6 +23,8 @@
 #ifndef _COPROCESSOR_H_
 #define _COPROCESSOR_H_
 
+#define UART_CHANNEL 0
+
 #define COPROC_SOF		0x17
 
 typedef struct __attribute__((packed)){
