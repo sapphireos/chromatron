@@ -60,7 +60,7 @@ class Client(object):
 
             try:
                 # start = time.time()
-                print 'send', type(msg), len(msg.pack())
+                # print 'send', type(msg), len(msg.pack())
                 self.__sock.sendto(msg.pack(), host)
 
                 while True:
@@ -68,7 +68,6 @@ class Client(object):
 
                     reply_msg = deserialize(data)
                     # elapsed = time.time() - start
-                    print 'recv', type(reply_msg), len(data), '\n'
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
@@ -370,11 +369,9 @@ class Client(object):
             hashes[catbus_string_hash(key)] = key
 
         answers = {}
-        CATBUS_MAX_GET_KEY_ITEM_COUNT = 1
+
         while len(hashes) > 0:
             request_list = hashes.keys()[:CATBUS_MAX_GET_KEY_ITEM_COUNT]
-
-            print request_list
 
             msg = GetKeysMsg(hashes=request_list)
 
