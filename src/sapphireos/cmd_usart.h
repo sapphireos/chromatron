@@ -26,6 +26,25 @@
 
 #include "usart_bauds.h"
 
+#ifdef ENABLE_USB_UDP_TRANSPORT
+
+#define CMD_USART_MAX_PACKET_LEN    548
+
+#define CMD_USART_TIMEOUT_MS        250
+
+#define CMD_USART_VERSION           0x02
+#define CMD_USART_UDP_SOF           0x85
+#define CMD_USART_UDP_ACK           0x97
+#define CMD_USART_UDP_NAK           0x14
+
+// must be 8 bytes to fit in endpoint size!
+typedef struct{
+    uint16_t lport;
+    uint16_t rport;
+    uint16_t data_len;
+    uint16_t header_crc;
+} cmd_usart_udp_header_t;
+
 void cmd_usart_v_init( void );
 
 void cmd_usart_v_set_baud( baud_t baud );
@@ -40,5 +59,7 @@ uint16_t cmd_usart_u16_rx_size( void );
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len );
 
 void cmd_usart_v_flush( void );
+
+#endif
 
 #endif

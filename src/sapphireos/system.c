@@ -540,7 +540,6 @@ bool sys_b_shutdown( void ){
 
 
 #include "hal_io.h"
-#include "hal_cmd_usart.h"
 
 // runtime assertion handling.
 // note all assertions are considered fatal, and will result in the system

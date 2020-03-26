@@ -36,17 +36,8 @@ PT_THREAD( app_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );  
 
     hal_wifi_v_init();
-
-    // while(1){
-
-    //       TMR_WAIT( pt, 100 );
-    //     log_v_debug_P(PSTR("meow"));        
-    // }
-
     
     TMR_WAIT( pt, 5000 );
-
-    log_v_debug_P(PSTR("meow"));
 
     wifi_v_start_loader();
 

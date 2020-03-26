@@ -45,8 +45,8 @@ try:
     count = 0
 
     while True:
-        # time.sleep(0.01)
-        # port.write("meow %d\n" % (i))
+        time.sleep(0.001)
+        port.write("meow %d\n" % (i))
         i += 1
 
         char = port.read(1)

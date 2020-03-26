@@ -30,21 +30,3 @@
 
 #include "udp.h"
 
-#define CMD_USART_MAX_PACKET_LEN    548
-
-#define CMD_USART_TIMEOUT_MS        250
-
-#define CMD_USART_VERSION           0x02
-#define CMD_USART_UDP_SOF           0x85
-#define CMD_USART_UDP_ACK           0x97
-#define CMD_USART_UDP_NAK           0x14
-
-// must be 8 bytes to fit in endpoint size!
-typedef struct{
-    uint16_t lport;
-    uint16_t rport;
-    uint16_t data_len;
-    uint16_t header_crc;
-} cmd_usart_udp_header_t;
-
-#endif
