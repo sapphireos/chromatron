@@ -42,27 +42,28 @@ static uint8_t rx2_ext;
 static uint8_t rx2_size;
 #endif
 
+#define PORT 0
+
 
 void usb_v_poll( void ){
 
     #ifdef ENABLE_WIFI_USB_LOADER
     int16_t b = usb_i16_get_char();
-    
-    while( b >= 0 ){
-    
-        if( rx2_size < cnt_of_array(rx2_buf) ){
-    
-            rx2_buf[rx2_ins] = b;
-            rx2_size++;
-            rx2_ins++;
-    
-            if( rx2_ins >= cnt_of_array(rx2_buf) ){
-    
-                rx2_ins = 0;
-            }
-    
-            b = usb_i16_get_char();
-        }
+        
+    while( ( b >= 0 ) && ( rx2_size < cnt_of_array(rx2_buf) ) ){
+
+        usb_v_send_char(b);
+
+        // rx2_buf[rx2_ins] = b;
+        // rx2_size++;
+        // rx2_ins++;
+
+        // if( rx2_ins >= cnt_of_array(rx2_buf) ){
+
+        //     rx2_ins = 0;
+        // }
+
+        b = usb_i16_get_char();
     }
     #endif
 }
@@ -102,9 +103,9 @@ void usb_v_detach( void ){
 
 int16_t usb_i16_get_char( void ){
 
-    if( udi_cdc_is_rx_ready() ){
+    if( udi_cdc_multi_is_rx_ready( PORT ) ){
 
-        uint8_t c = udi_cdc_getc();
+        uint8_t c = udi_cdc_multi_getc( PORT );
 
         return c;
     }
@@ -114,7 +115,7 @@ int16_t usb_i16_get_char( void ){
 
 void usb_v_send_char( uint8_t data ){
 
-    udi_cdc_putc( data );
+    udi_cdc_multi_putc( PORT, data );
 }
 
 void usb_v_send_data( const uint8_t *data, uint16_t len ){
@@ -129,7 +130,7 @@ void usb_v_send_data( const uint8_t *data, uint16_t len ){
 
 uint16_t usb_u16_rx_size( void ){
 
-    return udi_cdc_get_nb_received_data();
+    return udi_cdc_multi_get_nb_received_data( PORT );
 }
 
 void usb_v_flush( void ){
@@ -164,14 +165,5 @@ void usb_v_send_char2( uint8_t data ){
 
 }
 #endif
-
-
-// void sw_test_usb_v_init( void ){
-//
-// }
-//
-// void sw_test_usb_v_process( void ){
-//
-// }
 
 #endif

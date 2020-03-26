@@ -125,7 +125,7 @@ typedef struct {
 //! CDC communication endpoints size for all speeds
 #define UDI_CDC_COMM_EP_SIZE        8
 //! CDC data endpoints size for FS speed (8B, 16B, 32B, 64B)
-#define UDI_CDC_DATA_EPS_FS_SIZE    8
+#define UDI_CDC_DATA_EPS_FS_SIZE    64
 //! CDC data endpoints size for HS speed (512B only)
 #define UDI_CDC_DATA_EPS_HS_SIZE    512
 
