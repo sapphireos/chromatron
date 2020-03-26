@@ -661,8 +661,7 @@ PT_BEGIN( pt );
     state->fw_file = 0;
     state->tries = WIFI_LOADER_MAX_TRIES;
 
-    // log_v_debug_P( PSTR("wifi loader starting") );
-    trace_printf( "Starting Wifi loader\r\n" );
+    log_v_debug_P( PSTR("wifi loader starting") );
     
 restart:
 
@@ -858,9 +857,9 @@ restart:
 
 load_image:
     
-    #ifdef ENABLE_USB
-    usb_v_detach();
-    #endif
+    // #ifdef ENABLE_USB
+    // usb_v_detach();
+    // #endif
 
     log_v_debug_P( PSTR("Loading wifi image...") );
 

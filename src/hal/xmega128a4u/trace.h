@@ -23,11 +23,11 @@
 #ifndef _TRACE_H	
 #define _TRACE_H
 
-#ifndef BOOTLOADER
+#include <avr/pgmspace.h>
+
 #define TRACE_BUF_SIZE 256
-int trace_printf(const char* format, ...);
-#else
-#define trace_printf ets_printf
-#endif
+#define trace_printf(format, ...) _trace_printf(PSTR(format), ##__VA_ARGS__)
+
+int _trace_printf(PGM_P format, ...);
 
 #endif

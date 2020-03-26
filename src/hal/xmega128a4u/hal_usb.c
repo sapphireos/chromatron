@@ -48,23 +48,23 @@ static uint8_t rx2_size;
 void usb_v_poll( void ){
 
     #ifdef ENABLE_WIFI_USB_LOADER
-    int16_t b = usb_i16_get_char();
+    // int16_t b = usb_i16_get_char();
         
-    while( ( b >= 0 ) && ( rx2_size < cnt_of_array(rx2_buf) ) ){
+    // while( ( b >= 0 ) && ( rx2_size < cnt_of_array(rx2_buf) ) ){
 
-        usb_v_send_char(b);
+    //     usb_v_send_char(b);
 
-        // rx2_buf[rx2_ins] = b;
-        // rx2_size++;
-        // rx2_ins++;
+    //     // rx2_buf[rx2_ins] = b;
+    //     // rx2_size++;
+    //     // rx2_ins++;
 
-        // if( rx2_ins >= cnt_of_array(rx2_buf) ){
+    //     // if( rx2_ins >= cnt_of_array(rx2_buf) ){
 
-        //     rx2_ins = 0;
-        // }
+    //     //     rx2_ins = 0;
+    //     // }
 
-        b = usb_i16_get_char();
-    }
+    //     b = usb_i16_get_char();
+    // }
     #endif
 }
 
@@ -120,12 +120,7 @@ void usb_v_send_char( uint8_t data ){
 
 void usb_v_send_data( const uint8_t *data, uint16_t len ){
 
-    while( len > 0 ){
-
-        usb_v_send_char( *data );
-        data++;
-        len--;
-    }
+    udi_cdc_multi_write_buf( PORT, data, len );
 }
 
 uint16_t usb_u16_rx_size( void ){

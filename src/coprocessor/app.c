@@ -25,6 +25,7 @@
 #include "coprocessor.h"
 
 #include "esp8266_loader.h"
+#include "hal_esp8266.h"
 
 #include "app.h"
 
@@ -34,8 +35,10 @@ PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
-    TMR_WAIT( pt, 5000 );
+    hal_wifi_v_init();
     
+    TMR_WAIT( pt, 5000 );
+
     wifi_v_start_loader();
 
     THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );

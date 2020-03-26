@@ -23,17 +23,20 @@
  */
 
 #ifndef _TARGET_H
+        
 #define _TARGET_H
 
 #define HW_NAME "Xmega128A4U"
 
+#define TRACE
+#define ENABLE_LOG_TO_TRACE_PRINT
 
 // modules
 // #define ENABLE_CATBUS_LINK
 // #define ENABLE_TIME_SYNC
 // #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_WIFI
-// #define ENABLE_FFS
+#define ENABLE_FFS
 // #define ENABLE_NETWORK
 // #define ENABLE_IP
 // #define ENABLE_POWER

@@ -30,21 +30,21 @@
 
 #ifndef BOOTLOADER
 
-int trace_printf(const char* format, ...){
+int _trace_printf(PGM_P format, ...){
   int ret;
   va_list ap;
 
   va_start (ap, format);
 
   static char buf[TRACE_BUF_SIZE];
+  memset( buf, 0, sizeof(buf) );
 
   // Print to the local buffer
-  ret = vsnprintf (buf, sizeof(buf), format, ap);
+  ret = vsnprintf_P (buf, sizeof(buf), format, ap);
   if (ret > 0)
     {
-      
       // Transfer the buffer to the device
-      usb_v_send_data( (uint8_t *)buf, strnlen( buf, TRACE_BUF_SIZE ) );
+      usb_v_send_data( (uint8_t *)buf, strlen( buf ) );
     }
 
   va_end (ap);
