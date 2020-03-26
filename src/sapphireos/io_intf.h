@@ -27,6 +27,14 @@
 
 #include "system.h"
 
+// hack around Atmel USB stack defining these.
+#ifdef HIGH
+#undef HIGH
+#endif
+#ifdef LOW
+#undef LOW
+#endif
+
 #define HIGH ( TRUE )
 #define LOW  ( FALSE )
 

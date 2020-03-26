@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief Preprocessor stringizing utils.
+ * \brief Chip-specific system clock manager configuration
  *
- * Copyright (c) 2014-2018 Microchip Technology Inc. and its subsidiaries.
+ * Copyright (c) 2011-2018 Microchip Technology Inc. and its subsidiaries.
  *
  * \asf_license_start
  *
@@ -33,42 +33,39 @@
 /*
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
-#ifndef _STRINGZ_H_
-#define _STRINGZ_H_
+#ifndef CONF_CLOCK_H_INCLUDED
+#define CONF_CLOCK_H_INCLUDED
 
-/**
- * \defgroup group_xmega_utils_stringz Stringize
- *
- * \ingroup group_xmega_utils
- *
- * \{
- */
+//! Configuration using On-Chip RC oscillator at 48MHz
+//! The RC oscillator is calibrated via USB Start Of Frame
+//! Clk USB     = 48MHz (used by USB)
+//! Clk sys     = 48MHz
+//! Clk cpu/per = 24MHz
+#define CONFIG_USBCLK_SOURCE     USBCLK_SRC_RCOSC
+#define CONFIG_OSC_RC32_CAL      48000000UL
 
-/*! \brief Stringize.
- *
- * Stringize a preprocessing token, this token being allowed to be \#defined.
- *
- * May be used only within macros with the token passed as an argument if the token is \#defined.
- *
- * For example, writing STRINGZ(PIN) within a macro \#defined by PIN_NAME(PIN)
- * and invoked as PIN_NAME(PIN0) with PIN0 \#defined as A0 is equivalent to
- * writing "A0".
- */
-#define STRINGZ(x)                                #x
+#define CONFIG_OSC_AUTOCAL_RC32MHZ_REF_OSC  OSC_ID_USBSOF
 
-/*! \brief Absolute stringize.
- *
- * Stringize a preprocessing token, this token being allowed to be \#defined.
- *
- * No restriction of use if the token is \#defined.
- *
- * For example, writing ASTRINGZ(PIN0) anywhere with PIN0 \#defined as A0 is
- * equivalent to writing "A0".
- */
-#define ASTRINGZ(x)                               STRINGZ(x)
+#define CONFIG_SYSCLK_SOURCE     SYSCLK_SRC_RC32MHZ
+#define CONFIG_SYSCLK_PSADIV     SYSCLK_PSADIV_2
+#define CONFIG_SYSCLK_PSBCDIV    SYSCLK_PSBCDIV_1_1
 
-/**
- * \}
- */
+/*
+//! Use external board OSC (8MHz)
+//! Clk pll     = 48MHz (used by USB)
+//! Clk sys     = 48MHz
+//! Clk cpu/per = 12MHz
 
-#endif  // _STRINGZ_H_
+#define CONFIG_PLL0_SOURCE       PLL_SRC_XOSC
+#define CONFIG_PLL0_MUL          6
+#define CONFIG_PLL0_DIV          1
+
+#define CONFIG_USBCLK_SOURCE     USBCLK_SRC_PLL
+
+#define CONFIG_SYSCLK_SOURCE     SYSCLK_SRC_PLL
+#define CONFIG_SYSCLK_PSADIV     SYSCLK_PSADIV_2
+#define CONFIG_SYSCLK_PSBCDIV    SYSCLK_PSBCDIV_1_2
+*/
+
+
+#endif /* CONF_CLOCK_H_INCLUDED */

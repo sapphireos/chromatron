@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * \brief Preprocessor stringizing utils.
+ * \brief Board configuration
  *
  * Copyright (c) 2014-2018 Microchip Technology Inc. and its subsidiaries.
  *
@@ -33,42 +33,19 @@
 /*
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
-#ifndef _STRINGZ_H_
-#define _STRINGZ_H_
+#ifndef CONF_BOARD_H_INCLUDED
+#define CONF_BOARD_H_INCLUDED
 
-/**
- * \defgroup group_xmega_utils_stringz Stringize
- *
- * \ingroup group_xmega_utils
- *
- * \{
- */
+//! Definition of USART connection for this example
+//! TXC0 on PC3 and RXC0 on PC2
+#define  USART               USARTC0
+#define  USART_RX_Vect       USARTC0_RXC_vect
+#define  USART_DRE_Vect      USARTC0_DRE_vect
+#define  USART_SYSCLK        SYSCLK_USART0
+#define  USART_PORT          PORTC
+#define  USART_PORT_PIN_TX   (1<<3)  // PC3 (TXC0)
+#define  USART_PORT_PIN_RX   (1<<2)  // PC2 (RXC0)
+#define  USART_PORT_SYSCLK   SYSCLK_PORT_C
 
-/*! \brief Stringize.
- *
- * Stringize a preprocessing token, this token being allowed to be \#defined.
- *
- * May be used only within macros with the token passed as an argument if the token is \#defined.
- *
- * For example, writing STRINGZ(PIN) within a macro \#defined by PIN_NAME(PIN)
- * and invoked as PIN_NAME(PIN0) with PIN0 \#defined as A0 is equivalent to
- * writing "A0".
- */
-#define STRINGZ(x)                                #x
 
-/*! \brief Absolute stringize.
- *
- * Stringize a preprocessing token, this token being allowed to be \#defined.
- *
- * No restriction of use if the token is \#defined.
- *
- * For example, writing ASTRINGZ(PIN0) anywhere with PIN0 \#defined as A0 is
- * equivalent to writing "A0".
- */
-#define ASTRINGZ(x)                               STRINGZ(x)
-
-/**
- * \}
- */
-
-#endif  // _STRINGZ_H_
+#endif /* CONF_BOARD_H_INCLUDED */
