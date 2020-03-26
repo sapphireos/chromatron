@@ -334,7 +334,7 @@ class SerialChannel(Channel):
             raise ChannelTimeoutException
 
         except struct.error:
-            # print "read struct error"
+            print "read struct error"
             raise ChannelErrorException
 
 
@@ -522,7 +522,7 @@ class LegacySerialUDPChannel(Channel):
             raise ChannelTimeoutException
 
         except struct.error:
-            # print "read struct error"
+            print "read struct error"
             raise ChannelErrorException
 
 
@@ -657,7 +657,13 @@ class SerialUDPChannel(Channel):
             header = CmdUsartUDPHeader()
 
             # wait for SOF
-            sof = struct.unpack('<B', self._read_data(1))[0]
+            sof_data = self._read_data(1)
+
+            if len(sof_data) == 0:
+                print 'no sof received'
+                raise ChannelErrorException()
+
+            sof = struct.unpack('<B', sof_data)[0]
 
             if sof != CMD_USART_UDP_SOF:
                 print 'sof error', sof
@@ -710,7 +716,7 @@ class SerialUDPChannel(Channel):
             raise ChannelTimeoutException
 
         except struct.error:
-            # print "read struct error"
+            print "read struct error"
             raise ChannelErrorException
 
 
@@ -912,7 +918,7 @@ class UDPSerialBridge(threading.Thread):
 
                 except Exception as e:
                     # flush
-                    print e
+                    print e, type(e)
                     while True:
                         try:
                             self.sock.settimeout(0.1)

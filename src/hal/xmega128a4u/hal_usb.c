@@ -49,7 +49,7 @@ static bool attached;
 void usb_v_poll( void ){
 
     #ifdef ENABLE_WIFI_USB_LOADER
-    int16_t b = usb_i16_get_char();\
+    int16_t b = usb_i16_get_char();
         
     while( ( b >= 0 ) && ( rx2_size < cnt_of_array(rx2_buf) ) ){
 
