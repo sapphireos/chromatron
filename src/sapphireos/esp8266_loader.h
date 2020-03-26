@@ -104,6 +104,14 @@ int8_t esp_i8_load_flash( file_t file );
 int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] );
 void esp_v_flash_end( void );
 
+
+void wifi_v_start_loader( void );
+int8_t wifi_i8_loader_status( void );
+
+#define ESP_LOADER_STATUS_BUSY      1
+#define ESP_LOADER_STATUS_OK        0 
+#define ESP_LOADER_STATUS_FAIL      -1
+
 #endif
 
 

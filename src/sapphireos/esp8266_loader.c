@@ -31,13 +31,18 @@
 
 #include "hal_esp8266.h"
 #include "esp8266_loader.h"
+#include "hal_status_led.h"
 
 // #define NO_LOGGING
 #include "logging.h"
 
+#include "wifi_cmd.h"
+
+#ifdef ENABLE_USB
+#include "usb_intf.h"
+#endif
 
 #include "esp_stub.txt"
-
 
 
 // Maximum block sized for RAM and Flash writes, respectively.
@@ -67,6 +72,15 @@
 #define ESP_CESANTA_CMD_FLASH_WRITE     1
 #define ESP_CESANTA_CMD_FLASH_READ      2
 #define ESP_CESANTA_CMD_FLASH_DIGEST    3
+
+
+typedef struct{
+    uint8_t timeout;
+    file_t fw_file;
+    uint8_t tries;
+} loader_thread_state_t;
+
+PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) );
 
 
 
@@ -618,5 +632,293 @@ void esp_v_flash_end( void ){
 
     esp_v_command( ESP_FLASH_END, (uint8_t *)&cmd, sizeof(cmd), 0 );
 }
+
+static int8_t loader_status;
+
+
+void wifi_v_start_loader( void ){
+
+    thread_t_create_critical( THREAD_CAST(wifi_loader_thread),
+                              PSTR("wifi_loader"),
+                              0,
+                              sizeof(loader_thread_state_t) );
+
+    loader_status = ESP_LOADER_STATUS_BUSY;
+}
+
+int8_t wifi_i8_loader_status( void ){
+
+    return loader_status;
+}
+
+
+PT_THREAD( wifi_loader_thread( pt_t *pt, loader_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+
+    loader_status = ESP_LOADER_STATUS_BUSY;
+
+    state->fw_file = 0;
+    state->tries = WIFI_LOADER_MAX_TRIES;
+
+    // log_v_debug_P( PSTR("wifi loader starting") );
+    trace_printf( "Starting Wifi loader\r\n" );
+    
+restart:
+
+    // check if we've exceeded our retries
+    if( state->tries == 0 ){
+
+        // wifi is hosed, give up.
+        goto error;
+    }
+
+    state->tries--;
+
+    hal_wifi_v_enter_boot_mode();
+    
+    if( state->fw_file == 0 ){
+
+        state->fw_file = fs_f_open_P( PSTR("wifi_firmware.bin"), FS_MODE_READ_ONLY );
+    }
+
+    if( state->fw_file <= 0 ){
+
+        goto run_wifi;
+    }
+
+    // delay while wifi boots up
+    TMR_WAIT( pt, 250 );
+
+    state->timeout = 10;
+    while( state->timeout > 0 ){
+
+        hal_wifi_v_usart_flush();
+
+        state->timeout--;
+
+        if( state->timeout == 0 ){
+
+            log_v_debug_P( PSTR("wifi loader timeout") );
+
+            sys_v_reboot_delay(SYS_MODE_SAFE);
+            THREAD_RESTART( pt );
+        }
+
+        uint8_t buf[32];
+        memset( buf, 0xff, sizeof(buf) );
+
+        esp_v_send_sync();
+
+        // blocking wait!
+        int8_t status = esp_i8_wait_response( buf, sizeof(buf), ESP_SYNC_TIMEOUT );
+
+        if( status == 0 ){
+
+            esp_response_t *resp = (esp_response_t *)buf;
+
+            if( resp->opcode == ESP_SYNC ){
+
+                break;
+            }
+        }
+
+        TMR_WAIT( pt, 5 );
+    }
+
+    // delay, as Sync will output several responses
+    TMR_WAIT( pt, 50 );
+
+    int8_t status = esp_i8_load_cesanta_stub();
+
+    if( status < 0 ){
+
+        log_v_debug_P( PSTR("error %d"), status );
+
+        TMR_WAIT( pt, 500 );
+        THREAD_RESTART( pt );
+    }
+
+    // change baud rate
+    hal_wifi_v_usart_set_baud( ESP_CESANTA_BAUD_USART_SETTING );
+    hal_wifi_v_usart_flush();    
+
+
+    uint8_t buf[4];
+    esp_i8_wait_response( buf, sizeof(buf), 100000 );    
+
+    if( ( buf[0] != 'O' ) ||
+        ( buf[1] != 'H' ) ||
+        ( buf[2] != 'A' ) ||
+        ( buf[3] != 'I' ) ){
+
+     log_v_debug_P( PSTR("error: 0x%02x 0x%02x 0x%02x 0x%02x"),
+                buf[0],
+                buf[1],
+                buf[2],
+                buf[3] );
+
+        TMR_WAIT( pt, 500 );
+        THREAD_RESTART( pt );
+    }
+
+    status_led_v_set( 1, STATUS_LED_BLUE );
+
+    trace_printf( "Cesanta flasher ready!\r\n" );
+    // log_v_debug_P( PSTR("Cesanta flasher ready!") );
+
+    uint32_t file_len;
+    cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &file_len );
+
+    uint8_t wifi_digest[MD5_LEN];
+
+    int8_t md5_status = esp_i8_md5( file_len, wifi_digest );
+    if( md5_status < 0 ){
+
+        log_v_debug_P( PSTR("error %d"), md5_status );
+
+        TMR_WAIT( pt, 1000 );
+        THREAD_RESTART( pt );
+    }
+
+    fs_v_seek( state->fw_file, file_len );
+
+    uint8_t file_digest[MD5_LEN];
+    memset( file_digest, 0, MD5_LEN );
+    fs_i16_read( state->fw_file, file_digest, MD5_LEN );
+
+    uint8_t cfg_digest[MD5_LEN];
+    cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
+
+    // check if we've never loaded the wifi before
+    if( ( file_len == 0 ) && 
+        ( fs_i32_get_size( state->fw_file ) < 128 ) ){
+
+        goto error;
+    }
+
+
+    if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
+
+        // file and cfg match, so our file is valid
+
+
+        if( memcmp( file_digest, wifi_digest, MD5_LEN ) == 0 ){
+
+            // all 3 match, run wifi
+            // log_v_debug_P( PSTR("Wifi firmware image valid") );
+
+            goto run_wifi;
+        }
+        else{
+            // wifi does not match file - need to load
+
+            log_v_debug_P( PSTR("Wifi firmware image fail") );
+
+            goto load_image;
+        }
+    }
+    else{
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );        
+    }
+
+    if( memcmp( wifi_digest, cfg_digest, MD5_LEN ) == 0 ){
+
+        // wifi matches cfg, this is ok, run.
+        // maybe the file is bad.
+        
+        goto run_wifi;
+    }
+    else{
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad config") );                
+    }
+
+    if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
+
+        // in this case, file matches wifi, so our wifi image is valid
+        // and so is our file.
+        // but our cfg is mismatched.
+        // so we'll restore it and then run the wifi
+
+        cfg_v_set( CFG_PARAM_WIFI_MD5, file_digest );
+
+        log_v_debug_P( PSTR("Wifi MD5 mismatch, restored from file") );
+
+        goto run_wifi;
+    }
+
+    // probably don't want to actually assert here...
+
+    // try to run anyway
+    goto run_wifi;
+
+
+
+load_image:
+    
+    #ifdef ENABLE_USB
+    usb_v_detach();
+    #endif
+
+    log_v_debug_P( PSTR("Loading wifi image...") );
+
+    status = esp_i8_load_flash( state->fw_file );
+    if( status < 0 ){
+
+        log_v_debug_P( PSTR("error %d"), status );
+        goto error;
+    }
+
+    memset( wifi_digest, 0xff, MD5_LEN );
+
+    status = esp_i8_md5( file_len, wifi_digest );
+    if( status < 0 ){
+
+        log_v_debug_P( PSTR("error %d"), status );
+        goto restart;
+    }
+
+    // verify
+
+    log_v_debug_P( PSTR("Wifi flash load done") );
+
+    if( state->fw_file > 0 ){
+
+        fs_f_close( state->fw_file );
+    }
+
+    // restart
+    sys_reboot();
+
+    THREAD_EXIT( pt );
+
+error:
+
+    loader_status = ESP_LOADER_STATUS_FAIL;
+
+    hal_wifi_v_reset(); // hold chip in reset
+
+    status_led_v_set( 1, STATUS_LED_RED );
+
+    if( state->fw_file > 0 ){
+
+        fs_f_close( state->fw_file );
+    }
+
+
+    log_v_debug_P( PSTR("wifi load fail") );
+
+    THREAD_EXIT( pt );
+
+run_wifi:
+    
+    loader_status = ESP_LOADER_STATUS_OK;
+
+    
+PT_END( pt );
+}
+
 
 #endif
