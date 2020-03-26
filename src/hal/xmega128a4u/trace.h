@@ -20,41 +20,14 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _TRACE_H	
+#define _TRACE_H
 
-#include "coprocessor.h"
+#ifndef BOOTLOADER
+#define TRACE_BUF_SIZE 256
+int trace_printf(const char* format, ...);
+#else
+#define trace_printf ets_printf
+#endif
 
-#include "esp8266_loader.h"
-
-#include "app.h"
-
-
-
-PT_THREAD( app_thread( pt_t *pt, void *state ) )
-{       	
-PT_BEGIN( pt );  
-
-    TMR_WAIT( pt, 5000 );
-    
-    wifi_v_start_loader();
-
-    THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
-
-    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
-
-        THREAD_EXIT( pt );
-    }
-
-
-PT_END( pt );	
-}
-
-
-void app_v_init( void ){
-
-    thread_t_create( app_thread,
-                     PSTR("app"),
-                     0,
-                     0 );
-}
-
+#endif

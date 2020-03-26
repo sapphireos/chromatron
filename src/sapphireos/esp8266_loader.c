@@ -22,7 +22,7 @@
 
 #include "system.h"
 
-#if defined(ENABLE_WIFI) && !defined(ESP8266)
+#if !defined(ESP8266)
 
 #include "fs.h"
 #include "timers.h"

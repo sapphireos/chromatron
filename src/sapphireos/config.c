@@ -72,7 +72,9 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
     { SAPPHIRE_TYPE_UINT16,      0, 0,         &board_type, cfg_i8_kv_handler,  "board_type" },
+    #ifndef DISABLE_RECOVERY_MODE
     { SAPPHIRE_TYPE_UINT8,       0, 0,                   0, cfg_i8_kv_handler,  "cfg_recovery_boot_count" },
+    #endif
 };
 
 #ifdef CFG_INCLUDE_MANUAL_IP

@@ -20,41 +20,34 @@
 // 
 // </license>
 
-#include "sapphire.h"
 
-#include "coprocessor.h"
+#include "trace.h"
 
-#include "esp8266_loader.h"
+#include "system.h"
+#include "hal_usb.h"
 
-#include "app.h"
+#include <stdarg.h>
 
+#ifndef BOOTLOADER
 
+int trace_printf(const char* format, ...){
+  int ret;
+  va_list ap;
 
-PT_THREAD( app_thread( pt_t *pt, void *state ) )
-{       	
-PT_BEGIN( pt );  
+  va_start (ap, format);
 
-    TMR_WAIT( pt, 5000 );
-    
-    wifi_v_start_loader();
+  static char buf[TRACE_BUF_SIZE];
 
-    THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
-
-    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
-
-        THREAD_EXIT( pt );
+  // Print to the local buffer
+  ret = vsnprintf (buf, sizeof(buf), format, ap);
+  if (ret > 0)
+    {
+      
+      // Transfer the buffer to the device
+      usb_v_send_data( (uint8_t *)buf, strnlen( buf, TRACE_BUF_SIZE ) );
     }
 
-
-PT_END( pt );	
+  va_end (ap);
+  return ret;
 }
-
-
-void app_v_init( void ){
-
-    thread_t_create( app_thread,
-                     PSTR("app"),
-                     0,
-                     0 );
-}
-
+#endif

@@ -34,6 +34,7 @@
 #include "timesync.h"
 
 #include "hal_status_led.h"
+#include "esp8266_loader.h"
 
 static bool enabled;
 
@@ -159,6 +160,9 @@ PT_BEGIN( pt );
 
             #ifdef ENABLE_WIFI
             if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
+            #else
+            if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+            #endif
 
                 status_led_v_set( 0, STATUS_LED_RED );
 
@@ -168,7 +172,6 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 500 );
             }
-            #endif
         }
     }
 

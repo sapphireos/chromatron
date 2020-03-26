@@ -266,13 +266,17 @@ void sys_v_check_io_for_safe_mode( void ){
 bool sys_b_is_recovery_mode( void ){
 
     uint8_t count = 0;
+    
+    #ifndef DISABLE_RECOVERY_MODE
     cfg_i8_get( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
+    #endif
 
     return count >= SYS_RECOVERY_BOOT_COUNT;
 }
 
 void sys_v_check_recovery_mode( void ){
 
+    #ifndef DISABLE_RECOVERY_MODE
     if( sys_b_is_recovery_mode() ){
 
         sys_mode = SYS_MODE_SAFE;    
@@ -282,6 +286,7 @@ void sys_v_check_recovery_mode( void ){
                          PSTR("recovery_reset"),
                          0,
                          0 );
+    #endif
 }
 
 bool sys_b_brownout( void ){
