@@ -29,5 +29,6 @@
 #define trace_printf(format, ...) _trace_printf(PSTR(format), ##__VA_ARGS__)
 
 int _trace_printf(PGM_P format, ...);
+int trace_printf_ram(const char* format, ...);
 
 #endif

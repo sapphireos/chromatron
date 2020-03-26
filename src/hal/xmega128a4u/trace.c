@@ -44,7 +44,28 @@ int _trace_printf(PGM_P format, ...){
   if (ret > 0)
     {
       // Transfer the buffer to the device
-      usb_v_send_data( (uint8_t *)buf, strlen( buf ) );
+      usb_v_send_data( (uint8_t *)buf, ret );
+    }
+
+  va_end (ap);
+  return ret;
+}
+
+int trace_printf_ram(const char* format, ...){
+  int ret;
+  va_list ap;
+
+  va_start (ap, format);
+
+  static char buf[TRACE_BUF_SIZE];
+  memset( buf, 0, sizeof(buf) );
+
+  // Print to the local buffer
+  ret = vsnprintf (buf, sizeof(buf), format, ap);
+  if (ret > 0)
+    {
+      // Transfer the buffer to the device
+      usb_v_send_data( (uint8_t *)buf, ret );
     }
 
   va_end (ap);

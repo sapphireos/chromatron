@@ -69,7 +69,11 @@ void log_v_init( void ){
 static void append_log( char *buf ){
 
     #ifdef ENABLE_LOG_TO_TRACE_PRINT
+    #ifdef AVR
+    trace_printf_ram("%s", buf);
+    #else
     trace_printf("%s", buf); // log prints already have newlines
+    #endif
     #endif
     
     // check if file is not open
