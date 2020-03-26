@@ -2458,7 +2458,10 @@ end:
                 // also don't log unknown messages, it creates a lot of noise when
                 // this is a normal condition when adding new protocol features
 
-                log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
+                if( header->msg_type != CATBUS_MSG_TYPE_LINK ){
+                    
+                    log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
+                }
             }
 
             // don't send unknown message errors. it just causes a ton of extra traffic
