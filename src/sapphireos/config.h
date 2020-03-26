@@ -75,8 +75,6 @@
 
 #define CFG_PARAM_DEVICE_ID                     __KV__device_id
 
-#define CFG_PARAM_BOARD_TYPE                    __KV__board_type
-
 #define CFG_PARAM_FIRMWARE_LOAD_COUNT           __KV__fw_load_count
 #define CFG_PARAM_MAX_LOG_SIZE                  __KV__max_log_size
 
@@ -157,7 +155,6 @@ bool cfg_b_manual_ip( void );
 extern bool cfg_b_is_gateway( void ) __attribute__((weak));
 
 bool cfg_b_get_boolean( catbus_hash_t32 parameter );
-uint16_t cfg_u16_get_board_type( void );
 uint64_t cfg_u64_get_device_id( void );
 
 void cfg_v_reset_on_next_boot( void );

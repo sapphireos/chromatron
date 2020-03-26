@@ -370,9 +370,11 @@ class Client(object):
             hashes[catbus_string_hash(key)] = key
 
         answers = {}
-
+        CATBUS_MAX_GET_KEY_ITEM_COUNT = 1
         while len(hashes) > 0:
             request_list = hashes.keys()[:CATBUS_MAX_GET_KEY_ITEM_COUNT]
+
+            print request_list
 
             msg = GetKeysMsg(hashes=request_list)
 
