@@ -129,7 +129,11 @@ void usb_v_send_char( uint8_t data ){
         return;
     }
 
-    while( !udi_cdc_multi_is_tx_ready( PORT ) );
+    if( !udi_cdc_multi_is_tx_ready( PORT ) ){
+
+        udi_cdc_signal_overrun();
+        return;
+    }
 
     udi_cdc_multi_putc( PORT, data );
 }
