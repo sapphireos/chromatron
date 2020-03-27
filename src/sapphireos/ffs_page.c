@@ -39,6 +39,8 @@
 // #define NO_EVENT_LOGGING
 #include "event_log.h"
 
+#ifdef ENABLE_FFS
+
 typedef struct{
     ffs_page_t page;
     uint16_t page_number;
@@ -884,3 +886,5 @@ static int32_t ffs_page_i32_seek_page( ffs_file_t file_id, uint16_t page ){
     // page not found, assume end of file
     return FFS_STATUS_EOF;
 }
+
+#endif

@@ -36,6 +36,7 @@
 #include "flash25.h"
 #include "flash_fs_partitions.h"
 
+#ifdef ENABLE_FFS
 
 typedef struct{
 	block_t next_block;
@@ -742,3 +743,5 @@ void ffs_block_v_hard_error( void ){
 
     sys_v_set_warnings( SYS_WARN_FLASHFS_HARD_ERROR );
 }
+
+#endif
