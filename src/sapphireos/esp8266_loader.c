@@ -767,7 +767,12 @@ restart:
     // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
     uint32_t file_len;
+    #ifdef ENABLE_ESP_UPGRADE_LOADER
+    fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
+    log_v_debug_P( PSTR("wifi fw len: %u"), file_len );
+    #else
     cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &file_len );
+    #endif
 
     uint8_t wifi_digest[MD5_LEN];
 
@@ -780,14 +785,20 @@ restart:
         THREAD_RESTART( pt );
     }
 
+    #ifdef ENABLE_ESP_UPGRADE_LOADER
+    fs_v_seek( state->fw_file, file_len + sizeof(file_len) );
+    #else
     fs_v_seek( state->fw_file, file_len );
+    #endif
 
     uint8_t file_digest[MD5_LEN];
     memset( file_digest, 0, MD5_LEN );
     fs_i16_read( state->fw_file, file_digest, MD5_LEN );
 
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     uint8_t cfg_digest[MD5_LEN];
     cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
+    #endif
 
     // check if we've never loaded the wifi before
     if( ( file_len == 0 ) && 
@@ -796,9 +807,9 @@ restart:
         goto error;
     }
 
-
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
-
+    #endif
         // file and cfg match, so our file is valid
 
 
@@ -816,12 +827,15 @@ restart:
 
             goto load_image;
         }
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     }
     else{
 
         log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );        
     }
+    #endif
 
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     if( memcmp( wifi_digest, cfg_digest, MD5_LEN ) == 0 ){
 
         // wifi matches cfg, this is ok, run.
@@ -833,6 +847,7 @@ restart:
 
         log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad config") );                
     }
+    #endif
 
     if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
 
@@ -841,7 +856,9 @@ restart:
         // but our cfg is mismatched.
         // so we'll restore it and then run the wifi
 
+        #ifndef ENABLE_ESP_UPGRADE_LOADER
         cfg_v_set( CFG_PARAM_WIFI_MD5, file_digest );
+        #endif
 
         log_v_debug_P( PSTR("Wifi MD5 mismatch, restored from file") );
 
