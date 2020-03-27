@@ -34,6 +34,8 @@
 
 #include "dns.h"
 
+#ifdef ENABLE_WIFI
+
 #define NO_LOGGING
 #include "logging.h"
 
@@ -545,3 +547,5 @@ int8_t dns_i8_parse_A_record( void *response, uint16_t response_len, dns_parsed_
     // message did not contain an A record
     return -6;
 }
+
+#endif

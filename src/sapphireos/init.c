@@ -211,8 +211,9 @@ int8_t sapphire_i8_init( void ){
         return -2;
     }
 
-
+    #ifdef ENABLE_WIFI
     dns_v_init();
+    #endif
 
     log_v_info_P( PSTR("Sapphire start") );
     trace_printf( "SapphireOS ready\r\n" );
