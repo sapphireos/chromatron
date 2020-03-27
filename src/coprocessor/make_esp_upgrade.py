@@ -31,7 +31,7 @@ def make_firmware_zip():
 
 
 if __name__ == '__main__':
-    shutil.copy('../esp8266_test/wifi_firmware.bin', '.')
+    shutil.copy('../esp8266_upgrade/wifi_firmware.bin', '.')
 
     make_manifest()
 

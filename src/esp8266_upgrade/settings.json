@@ -2,7 +2,7 @@
 	"_comment": "This is the project name.",
     "_comment": "The project name is used by the build system",
     "_comment": "to identify and search for projects",
-    "PROJ_NAME": "esp8266_test",
+    "PROJ_NAME": "esp8266_upgrade",
 
     "_comment": "Project version",
     "PROJ_VERSION": "0.1",
