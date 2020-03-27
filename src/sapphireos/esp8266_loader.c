@@ -455,19 +455,28 @@ int8_t esp_i8_load_cesanta_stub( void ){
 // Cesanta protocol
 int8_t esp_i8_load_flash( file_t file ){
 
+    int32_t file_len;
+
     // make sure file is at position 0!
     fs_v_seek( file, 0 );
 
-    int32_t file_len = fs_i32_get_size( file );
+    #ifdef ENABLE_ESP_UPGRADE_LOADER
+    fs_i16_read( file, &file_len, sizeof(file_len) );
+    #else
+    file_len = fs_i32_get_size( file );
+    #endif
 
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     // file image will have md5 checksum appended, so throw away last 16 bytes
     file_len -= MD5_LEN;
+    #endif
 
     if( file_len < 0 ){
 
         return -1;
     }
 
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     uint32_t cfg_file_len;
     cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &cfg_file_len );
 
@@ -476,6 +485,7 @@ int8_t esp_i8_load_flash( file_t file ){
 
         return -2;
     }
+    #endif
 
     uint8_t buf[6];
     memset( buf, 0, sizeof(buf) );
@@ -768,6 +778,7 @@ restart:
 
     uint32_t file_len;
     #ifdef ENABLE_ESP_UPGRADE_LOADER
+    fs_v_seek( state->fw_file, 0 );
     fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
     log_v_debug_P( PSTR("wifi fw len: %u"), file_len );
     #else
