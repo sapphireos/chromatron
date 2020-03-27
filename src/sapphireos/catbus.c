@@ -381,10 +381,12 @@ void catbus_v_init( void ){
                      0,
                      0 );
 
+    #ifdef ENABLE_WIFI
     thread_t_create( catbus_announce_thread,
                      PSTR("catbus_announce"),
                      0,
                      0 );
+    #endif
     #endif
 }
 
