@@ -164,6 +164,42 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         address++;
         len--;
     }
+
+    #if 0
+    // byte read until address is 32 bit aligned
+    uint32_t header_len = len % 4;
+    while( header_len > 0 ){
+
+        *(uint8_t *)ptr = flash25_u8_read_byte( address );
+        ptr++;
+        address++;
+        header_len--;
+    }
+
+    len -= header_len;
+
+    uint32_t trailer_len = len % 4;
+    uint32_t block_len = len - trailer_len;
+
+    // block read
+    #ifndef BOOTLOADER
+    spi_flash_read( address + start_address, ptr, block_len );
+    #else
+    SPIRead( address + start_address, ptr, block_len );
+    #endif
+
+    address += block_len;
+    ptr += block_len;    
+
+    // unaligned read remainind bytes
+    while( trailer_len > 0 ){
+
+        *(uint8_t *)ptr = flash25_u8_read_byte( address );
+        ptr++;
+        address++;
+        trailer_len--;        
+    }
+    #endif
 }
 
 // read a single byte
