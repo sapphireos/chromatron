@@ -94,12 +94,11 @@ void ldr_run_app( void ){
     uint32_t addr = FW_START_OFFSET;
     SPIRead( addr, &image_header, sizeof(image_header) );
 
-    // trace_printf("image: %x %u %x %x %x\n",
-    // 	image_header.magic,
-    // 	image_header.segment_count,
-    // 	image_header.flash_mode,
-    // 	image_header.flash_info,
-    // 	image_header.entry_addr);
+    trace_printf("image: %x %u %x %x %x\n",
+    	image_header.magic,
+    	image_header.segment_count,
+    	image_header.flash_mode,
+    	image_header.flash_info);
 
    	if( image_header.magic != ESP_IMAGE_MAGIC ){
 

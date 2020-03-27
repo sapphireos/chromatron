@@ -534,12 +534,6 @@ int8_t esp_i8_load_flash( file_t file ){
             return -4;
         }
 
-        if( ( file_buf[0] == ESP_IMAGE_MAGIC ) && ( len == 0 ) ){
-
-            file_buf[2] = 0;
-            file_buf[3] = 0;
-        }
-
         hal_wifi_v_usart_flush();
 
         hal_wifi_v_usart_send_data( file_buf, sizeof(file_buf) );

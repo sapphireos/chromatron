@@ -89,7 +89,7 @@ void ICACHE_FLASH_ATTR user_pre_init(void)
   {
     rc = system_partition_table_regist(part_table,
                        sizeof(part_table)/sizeof(part_table[0]),
-                                       4);
+                                       FLASH_SIZE_32M_MAP_512_512);
   }
 }
 

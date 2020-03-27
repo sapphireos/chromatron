@@ -1170,13 +1170,6 @@ class AppBuilder(HexBuilder):
                 # need to pad to sector length
                 combined_image += (4096 - (len(combined_image) % 4096)) * chr(0xff)
 
-                # we override bytes 2 and 3 in the ESP8266 image
-                data_bytes = [ord(c) for c in combined_image]
-                data_bytes[2] = 0
-                data_bytes[3] = 0
-                # convert back to string
-                combined_image = ''.join(map(chr, data_bytes))
-
                 # write a combined image suitable for esptool
                 with open("esptool_image.bin", 'wb') as f:
                     f.write(combined_image)
