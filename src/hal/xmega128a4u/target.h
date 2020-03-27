@@ -35,13 +35,14 @@
 // #define ENABLE_CATBUS_LINK
 // #define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
-#define ENABLE_WIFI
+// #define ENABLE_WIFI
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
 // #define ENABLE_POWER
 #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
+#define ENABLE_ESP_UPGRADE_LOADER
 
 
 // recovery mode

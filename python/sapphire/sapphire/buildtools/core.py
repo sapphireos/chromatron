@@ -1174,6 +1174,9 @@ class AppBuilder(HexBuilder):
                 md5 = hashlib.md5(combined_image)
                 combined_image += md5.digest()
 
+                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+                combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+
                 with open("wifi_firmware.bin", 'wb') as f:
                     f.write(combined_image)
 
