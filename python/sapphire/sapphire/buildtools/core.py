@@ -1177,6 +1177,10 @@ class AppBuilder(HexBuilder):
                 # convert back to string
                 combined_image = ''.join(map(chr, data_bytes))
 
+                # write a combined image suitable for esptool
+                with open("esptool_image.bin", 'wb') as f:
+                    f.write(combined_image)
+
                 # append MD5
                 md5 = hashlib.md5(combined_image)
                 combined_image += md5.digest()
