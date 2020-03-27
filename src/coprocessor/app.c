@@ -56,9 +56,11 @@ PT_END( pt );
 
 void app_v_init( void ){
 
+    #ifndef ENABLE_WIFI
     thread_t_create( app_thread,
                      PSTR("app"),
                      0,
                      0 );
+    #endif
 }
 

@@ -35,8 +35,8 @@
 // #define ENABLE_CATBUS_LINK
 // #define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
-// #define ENABLE_WIFI
-// #define ENABLE_FFS
+#define ENABLE_WIFI
+#define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
 // #define ENABLE_POWER
