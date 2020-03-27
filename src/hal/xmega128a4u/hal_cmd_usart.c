@@ -25,14 +25,8 @@
 #include "cpu.h"
 #include "system.h"
 
+#include "hal_usb.h"
 #include "cmd_usart.h"
-#include "usb_intf.h"
-#include "netmsg.h"
-#include "sockets.h"
-#include "threading.h"
-#include "crc.h"
-#include "timers.h"
-#include "logging.h"
 
 #ifdef ENABLE_USB_UDP_TRANSPORT
 

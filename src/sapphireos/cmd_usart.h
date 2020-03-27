@@ -26,8 +26,6 @@
 
 #include "usart_bauds.h"
 
-#ifdef ENABLE_USB_UDP_TRANSPORT
-
 #define CMD_USART_MAX_PACKET_LEN    548
 
 #define CMD_USART_TIMEOUT_MS        250
@@ -59,7 +57,5 @@ uint16_t cmd_usart_u16_rx_size( void );
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len );
 
 void cmd_usart_v_flush( void );
-
-#endif
 
 #endif
