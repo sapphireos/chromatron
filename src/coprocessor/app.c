@@ -35,18 +35,18 @@ PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
-    // hal_wifi_v_init();
+    hal_wifi_v_init();
     
-    // TMR_WAIT( pt, 5000 );
+    wifi_v_start_loader();
 
-    // wifi_v_start_loader();
+    THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 
-    // THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
 
-    // if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+        THREAD_EXIT( pt );
+    }
 
-    //     THREAD_EXIT( pt );
-    // }
+    hal_wifi_v_enter_normal_mode();
 
 
 PT_END( pt );	
