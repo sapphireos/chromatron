@@ -1145,16 +1145,34 @@ class AppBuilder(HexBuilder):
         try:
             loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.target_type)
 
-            # create loader image
-            loader_hex = os.path.join(loader_project.target_dir, "main.hex")
-            try:
-                self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
-            
-            except IOError:
-                logging.info("Loader image not found, cannot create loader_image.hex")
+            if self.settings["TOOLCHAIN"] == "XTENSA":
+                # create loader image
+                with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
+                    loader_image = f.read()
 
-            except Exception as e:
-                logging.exception(e)
+                bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
+
+                # pad bootloader
+                loader_image += (bootloader_size - len(loader_image) % bootloader_size) * '\0'
+
+                with open("firmware.bin", 'rb') as f:
+                    firmware_image = f.read()
+
+                with open("firmware_combined.bin", 'wb') as f:
+                    f.write(loader_image)
+                    f.write(firmware_image)
+
+            else:
+                # create loader image
+                loader_hex = os.path.join(loader_project.target_dir, "main.hex")
+                try:
+                    self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+                
+                except IOError:
+                    logging.info("Loader image not found, cannot create loader_image.hex")
+
+                except Exception as e:
+                    logging.exception(e)
 
         except KeyError:
             logging.info("Loader project not found, cannot create loader_image.hex")
@@ -1176,6 +1194,7 @@ class AppBuilder(HexBuilder):
             f.write(json.dumps(data))
 
         # create firmware zip file
+        # TODO why are we making this one?
         zf = zipfile.ZipFile('chromatron_main_fw.zip', 'w')
         zf.write('manifest.txt')
         zf.write('firmware.bin')
