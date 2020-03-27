@@ -820,9 +820,46 @@ restart:
 
     #ifndef ENABLE_ESP_UPGRADE_LOADER
     if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
-    #endif
         // file and cfg match, so our file is valid
+    #endif
 
+        #ifdef ENABLE_ESP_UPGRADE_LOADER
+        log_v_debug_P( PSTR("file md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
+                file_digest[0],
+                file_digest[1],
+                file_digest[2],
+                file_digest[3],
+                file_digest[4],
+                file_digest[5],
+                file_digest[6],
+                file_digest[7],
+                file_digest[8],
+                file_digest[9],
+                file_digest[10],
+                file_digest[11],
+                file_digest[12],
+                file_digest[13],
+                file_digest[14],
+                file_digest[15] );
+
+        log_v_debug_P( PSTR("esp md5:  %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
+                wifi_digest[0],
+                wifi_digest[1],
+                wifi_digest[2],
+                wifi_digest[3],
+                wifi_digest[4],
+                wifi_digest[5],
+                wifi_digest[6],
+                wifi_digest[7],
+                wifi_digest[8],
+                wifi_digest[9],
+                wifi_digest[10],
+                wifi_digest[11],
+                wifi_digest[12],
+                wifi_digest[13],
+                wifi_digest[14],
+                wifi_digest[15] );
+        #endif
 
         if( memcmp( file_digest, wifi_digest, MD5_LEN ) == 0 ){
 
@@ -908,6 +945,28 @@ load_image:
     }
 
     // verify
+    if( memcmp( wifi_digest, file_digest, MD5_LEN ) != 0 ){
+
+        log_v_debug_P( PSTR("load md5:  %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
+                wifi_digest[0],
+                wifi_digest[1],
+                wifi_digest[2],
+                wifi_digest[3],
+                wifi_digest[4],
+                wifi_digest[5],
+                wifi_digest[6],
+                wifi_digest[7],
+                wifi_digest[8],
+                wifi_digest[9],
+                wifi_digest[10],
+                wifi_digest[11],
+                wifi_digest[12],
+                wifi_digest[13],
+                wifi_digest[14],
+                wifi_digest[15] );
+
+        goto error;
+    }
 
     log_v_debug_P( PSTR("Wifi flash load done") );
 
