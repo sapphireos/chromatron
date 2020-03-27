@@ -107,20 +107,21 @@ void main( void ){
 
     // check integrity of internal firmware
     uint16_t internal_crc = ldr_u16_get_internal_crc();
-    uint16_t partition_crc = ldr_u16_get_partition_crc();
-
     trace_printf("Internal crc: 0x%04x\n", internal_crc);
-    trace_printf("Partition crc: 0x%04x\n", partition_crc);
-
-    // check if internal and partition CRCs are bad.
-    // in this case, we are screwed.
-    if( ( internal_crc != 0 ) && ( partition_crc != 0 ) ){
-
-        goto fatal_error;
-    }
 
     // check if internal partition is damaged
     if( internal_crc != 0 ){
+
+        // check partition
+        uint16_t partition_crc = ldr_u16_get_partition_crc();
+        trace_printf("Partition crc: 0x%04x\n", partition_crc);
+
+        if( partition_crc != 0 ){
+
+            // internal and partition are bad.
+
+            goto fatal_error;
+        }
 
         trace_printf("Recovering internal FW...\n");
 
@@ -156,6 +157,10 @@ void main( void ){
     if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
 
         trace_printf("Load new FW requested\n");
+
+        // check partition
+        uint16_t partition_crc = ldr_u16_get_partition_crc();
+        trace_printf("Partition crc: 0x%04x\n", partition_crc);
 
         // check that partition CRC is ok
         if( partition_crc == 0 ){

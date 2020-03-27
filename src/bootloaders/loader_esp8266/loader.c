@@ -94,11 +94,11 @@ void ldr_run_app( void ){
     uint32_t addr = FW_START_OFFSET;
     SPIRead( addr, &image_header, sizeof(image_header) );
 
-    trace_printf("image: %x %u %x %x %x\n",
-    	image_header.magic,
-    	image_header.segment_count,
-    	image_header.flash_mode,
-    	image_header.flash_info);
+    // trace_printf("image: %x %u %x %x %x\n",
+    // 	image_header.magic,
+    // 	image_header.segment_count,
+    // 	image_header.flash_mode,
+    // 	image_header.flash_info);
 
    	if( image_header.magic != ESP_IMAGE_MAGIC ){
 
@@ -149,6 +149,12 @@ uint32_t ldr_u32_read_partition_length( void ){
 	flash25_v_read( FW_LENGTH_ADDRESS + start_address, &partition_length, sizeof(partition_length) );
 	
     partition_length += sizeof(uint16_t);
+
+    // check max length
+    if( partition_length > FW_MAX_SIZE ){
+
+        return 0;
+    }
 
 	return partition_length;
 }
