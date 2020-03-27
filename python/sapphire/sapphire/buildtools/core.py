@@ -1150,6 +1150,10 @@ class AppBuilder(HexBuilder):
                 with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
                     loader_image = f.read()
 
+                # sanity check
+                if ord(loader_image[0]) != 0xE9:
+                    raise Exception("invalid esp bootloader image")
+
                 bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
 
                 # pad bootloader
@@ -1158,9 +1162,20 @@ class AppBuilder(HexBuilder):
                 with open("firmware.bin", 'rb') as f:
                     firmware_image = f.read()
 
-                with open("firmware_combined.bin", 'wb') as f:
-                    f.write(loader_image)
-                    f.write(firmware_image)
+                if ord(firmware_image[0]) != 0xE9:
+                    raise Exception("invalid esp firmware image")
+
+                combined_image = loader_image + firmware_image
+
+                # need to pad to sector length
+                combined_image += (4096 - (len(combined_image) % 4096)) * '\0'
+
+                # append MD5
+                md5 = hashlib.md5(combined_image)
+                combined_image += md5.digest()
+
+                with open("wifi_firmware.bin", 'wb') as f:
+                    f.write(combined_image)
 
             else:
                 # create loader image
