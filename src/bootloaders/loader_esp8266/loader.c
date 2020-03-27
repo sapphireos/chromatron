@@ -38,6 +38,8 @@
 
 #include "loader.h"
 
+#include "rom_functions.h"
+
 #include <string.h>
 
 void ldr_v_erase_app( void ){
@@ -73,7 +75,7 @@ void ldr_v_copy_partition_to_internal( void ){
 			trace_printf(".");
 		}
 
-		SPIWrite( i + FW_START_OFFSET, &data, sizeof(data) );
+		SPIWrite( i + FW_START_OFFSET, (const uint8_t *)&data, sizeof(data) );
 
 		// reset watchdog timer
 		wdg_v_reset();
