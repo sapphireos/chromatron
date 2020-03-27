@@ -93,6 +93,8 @@ void hal_flash25_v_init( void ){
     max_address = flash25_u32_read_capacity_from_info();
 
     if( max_address > ( 2 * 1048576 ) ){
+
+        max_address = ( 1.5 * 1048576 );
         
         max_address -= start_address;
 
@@ -152,6 +154,8 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     // don't need to do this with the simple algorithm! flash25_u8_read_byte will offset.
     // address += start_address;
 
+    trace_printf("read %u %u\n", address, len);
+    #if 0
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
@@ -164,40 +168,53 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         address++;
         len--;
     }
-
-    #if 0
-    // byte read until address is 32 bit aligned
-    uint32_t header_len = len % 4;
-    while( header_len > 0 ){
-
-        *(uint8_t *)ptr = flash25_u8_read_byte( address );
-        ptr++;
-        address++;
-        header_len--;
-    }
-
-    len -= header_len;
-
-    uint32_t trailer_len = len % 4;
-    uint32_t block_len = len - trailer_len;
-
-    // block read
-    #ifndef BOOTLOADER
-    spi_flash_read( address + start_address, ptr, block_len );
-    #else
-    SPIRead( address + start_address, ptr, block_len );
     #endif
 
-    address += block_len;
-    ptr += block_len;    
-
-    // unaligned read remainind bytes
-    while( trailer_len > 0 ){
+    #if 1
+    // byte read until address is 32 bit aligned
+    while( ( address % 4 ) != 0 ){
 
         *(uint8_t *)ptr = flash25_u8_read_byte( address );
         ptr++;
         address++;
-        trailer_len--;        
+        len--;
+
+        // trace_printf("read 1\n");
+    }
+
+    uint32_t block_len = ( len / 4 ) * 4;
+
+    // trace_printf("block %u\n", block_len);
+
+    while( block_len > 0 ){
+
+        *(uint8_t *)ptr = flash25_u8_read_byte( address );
+        ptr++;
+        address++;
+        block_len--;
+        len--;
+    }
+
+    // block read
+    // #ifndef BOOTLOADER
+    // spi_flash_read( address + start_address, ptr, block_len );
+    // #else
+    // SPIRead( address + start_address, ptr, block_len );
+    // #endif
+
+    // address += block_len;
+    // ptr += block_len;    
+    // len -= block_len;
+
+    // unaligned read remainind bytes
+    while( len > 0 ){
+
+        *(uint8_t *)ptr = flash25_u8_read_byte( address );
+        ptr++;
+        address++;
+        len--;        
+
+        // trace_printf("trail 1\n");
     }
     #endif
 }
