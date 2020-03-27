@@ -50,10 +50,8 @@
 #include "sockets.h"
 #endif
 
-#ifdef ENABLE_FFS
 #include "flash25.h"
 #include "flash_fs.h"
-#endif
 
 #ifdef ENABLE_POWER
 #include "power.h"
@@ -118,13 +116,11 @@ int8_t sapphire_i8_init( void ){
     // init serial port
     cmd_usart_v_init();
 
-    #ifdef ENABLE_FFS
     // init flash driver
     flash25_v_init();
 
     // init flash file system
     ffs_v_init();
-    #endif
 
     // init user file system
     fs_v_init();
