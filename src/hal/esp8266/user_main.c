@@ -144,9 +144,6 @@ void ICACHE_FLASH_ATTR user_init(void)
     uart_init(115200, 115200);
 
     os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
-
-    // set blue status LED so we know something is happening
-    GPIO_OUTPUT_SET(2, 0);
     
     // Disable WiFi
   	wifi_set_opmode(NULL_MODE);
