@@ -947,7 +947,7 @@ load_image:
     // verify
     if( memcmp( wifi_digest, file_digest, MD5_LEN ) != 0 ){
 
-        log_v_debug_P( PSTR("load md5:  %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
+        log_v_debug_P( PSTR("load md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
                 wifi_digest[0],
                 wifi_digest[1],
                 wifi_digest[2],
