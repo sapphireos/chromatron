@@ -169,8 +169,8 @@ void ICACHE_FLASH_ATTR user_init(void)
     }
 
 
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 4000000 );
+    // usart_v_init( 0 );
+    // usart_v_set_baud( 0, 4000000 );
     
     // start OS
     // on the ESP8266 this will return
