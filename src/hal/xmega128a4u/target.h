@@ -77,8 +77,8 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         80
-#define MEM_MAX_STACK           1024
+#define MAX_MEM_HANDLES         32
+#define MEM_MAX_STACK           1536
 
 // flash fs
 
