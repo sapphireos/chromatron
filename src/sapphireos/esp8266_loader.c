@@ -780,7 +780,7 @@ restart:
     #ifdef ENABLE_ESP_UPGRADE_LOADER
     fs_v_seek( state->fw_file, 0 );
     fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
-    log_v_debug_P( PSTR("wifi fw len: %u"), file_len );
+    log_v_debug_P( PSTR("wifi fw len: %lu"), file_len );
     #else
     cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &file_len );
     #endif
@@ -916,10 +916,17 @@ load_image:
         fs_f_close( state->fw_file );
     }
 
+    #ifndef ENABLE_ESP_UPGRADE_LOADER
     // restart
     sys_reboot();
 
     THREAD_EXIT( pt );
+
+    #else
+    goto run_wifi;
+    #endif
+
+    
 
 error:
 

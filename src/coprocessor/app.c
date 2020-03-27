@@ -41,10 +41,12 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 
-    // if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
 
-    //     THREAD_EXIT( pt );
-    // }
+        log_v_debug_P( PSTR("ESP load failed") );
+
+        THREAD_EXIT( pt );
+    }
 
     hal_wifi_v_enter_normal_mode();
 
