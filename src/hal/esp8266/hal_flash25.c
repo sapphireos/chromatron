@@ -36,6 +36,8 @@ extern uint16_t block0_unlock;
 static uint32_t max_address;
 static uint32_t start_address;
 
+#define CACHE_ADDR_INVALID 0xffffffff
+
 typedef union{
     uint32_t word;
     uint8_t bytes[4];
@@ -101,6 +103,14 @@ static void load_cache( uint32_t address ){
     trace_printf("cache load:  0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
 }
 
+// flush cache and then set address to an invalid range.
+// this will force a reload on the next read.
+static void invalidate_cache( void ){
+
+    flush_cache();
+    cache_address = CACHE_ADDR_INVALID;
+}
+
 void hal_flash25_v_init( void ){
 
     // FW_START_OFFSET offsets from the end of the bootloader section.
@@ -141,8 +151,8 @@ void hal_flash25_v_init( void ){
     // disable writes
     flash25_v_write_disable();
 
-    // init cache so we start with valid data
-    load_cache( start_address );
+    // init cache to invalid to force a load on the first read
+    cache_address = CACHE_ADDR_INVALID;
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -279,7 +289,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
     flash25_v_write_enable();
 
-    // flush_cache();
+    flush_cache();
 
     BUSY_WAIT( flash25_b_busy() );
 
@@ -359,6 +369,8 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 void flash25_v_erase_4k( uint32_t address ){
 
     ASSERT( address < max_address );
+
+    invalidate_cache();
 
 	// don't erase block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
