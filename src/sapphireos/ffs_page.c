@@ -41,7 +41,7 @@
 
 #ifdef ENABLE_FFS
 
-typedef struct{
+typedef struct __attribute__((aligned(4))){
     ffs_page_t page;
     uint16_t page_number;
     ffs_file_t file_id;
@@ -662,6 +662,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // calculate CRC
         page_cache.page.crc = crc_u16_block( page_cache.page.data, page_cache.page.len );
 
+        trace_printf("ffs_page_i8_write\r\n");
         // write to flash
         flash25_v_write( page_addr, &page_cache.page, sizeof(ffs_page_t) );
 
@@ -816,7 +817,7 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
 
             return FFS_STATUS_ERROR;
         }
-
+        trace_printf("ffs_page_i8_block_copy\r\n");
         // write page data
         flash25_v_write( page_address( dest_block, i ), &page_cache.page, sizeof(page_cache.page) );
 

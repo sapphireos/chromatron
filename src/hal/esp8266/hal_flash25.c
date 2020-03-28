@@ -179,14 +179,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    // byte read until address is 32 bit aligned
-    while( ( address % 4 ) != 0 ){
-
-        *(uint8_t *)ptr = flash25_u8_read_byte( address );
-        ptr++;
-        address++;
-        len--;
-    }
+    ASSERT( ( address % 4 ) == 0 );
 
     uint32_t block_len = ( len / 4 ) * 4;
 
@@ -300,10 +293,6 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         block0_unlock = 0;
 	}
 
-    // don't need to do this with the simple algorithm! flash25_v_write_byte will offset.
-    // address += start_address;
-
-
     // this could probably be an assert, since a write of 0 is pretty useless.
     // on the other hand, it is also somewhat harmless.
     if( len == 0 ){
@@ -311,7 +300,14 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
- 
+    ASSERT( ( address % 4 ) == 0 );
+
+    uint32_t block_len = ( len / 4 ) * 4;
+
+    // misaligned pointers will cause an exception!
+    ASSERT( ( (uint32_t)ptr % 4 ) == 0 );
+    
+
     while( len > 0 ){
 
         // compute page data

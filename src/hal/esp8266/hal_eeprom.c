@@ -54,7 +54,7 @@ KV_SECTION_META kv_meta_t hal_eeprom_kv[] = {
 
 static bool commit;
 
-static uint8_t ee_data[EE_ARRAY_SIZE];
+static uint8_t ee_data[EE_ARRAY_SIZE] __attribute__((aligned(4)));
 
 
 #define STATUS_ERASED 			0xff
@@ -63,20 +63,19 @@ static uint8_t ee_data[EE_ARRAY_SIZE];
 #define STATUS_DIRTY 			0x00
 
 
-typedef struct __attribute__((packed)){
-    uint8_t status;
-    uint8_t reserved;
+typedef struct __attribute__((packed, aligned(4))){
+    uint32_t status;
     uint32_t total_writes;
-    uint8_t reserved2[10];
+    uint32_t reserved[2];
 } block_header_t;
 
 
 PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) );
 
 
-static void set_block_status( uint8_t block, uint8_t status ){
+static void set_block_status( uint8_t block, uint32_t status ){
 
-	ffs_eeprom_v_write( block, 0, &status, sizeof(status) );
+	ffs_eeprom_v_write( block, 0, (uint8_t *)&status, sizeof(status) );
 }
 
 
