@@ -306,33 +306,27 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
     // misaligned pointers will cause an exception!
     ASSERT( ( (uint32_t)ptr % 4 ) == 0 );
+
+    // enable writes
+    flash25_v_write_enable();
+
+    // block write
+    spi_write( address, (uint32_t *)ptr, block_len );
     
+    address += block_len;
+    ptr += block_len;    
+    len -= block_len;
 
+    // unaligned write remainind bytes
     while( len > 0 ){
-
-        // compute page data
-        // uint16_t page_len = 256 - ( address & 0xff );
-
-        // if( page_len > len ){
-
-        //     page_len = len;
-        // }
-        uint16_t page_len = 1;
-
+        
         // enable writes
         flash25_v_write_enable();
 
-
-        // do write
         flash25_v_write_byte( address, *(uint8_t *)ptr );
-
-        
-        address += page_len;
-        ptr += page_len;
-        len -= page_len;
-
-        // writes will automatically be disabled following completion
-        // of the write.
+        ptr++;
+        address++;
+        len--;        
 
         BUSY_WAIT( flash25_b_busy() );
     }

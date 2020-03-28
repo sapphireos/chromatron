@@ -599,7 +599,6 @@ int8_t ffs_block_i8_read_meta( block_t block, ffs_block_meta_t *meta ){
 
 int8_t ffs_block_i8_write_meta( block_t block, const ffs_block_meta_t *meta ){
 
-    trace_printf("ffs_block_i8_write_meta\r\n");
     // write to flash
     flash25_v_write( FFS_META_0(block), meta, sizeof(ffs_block_meta_t) );
     flash25_v_write( FFS_META_1(block), meta, sizeof(ffs_block_meta_t) );
