@@ -50,14 +50,18 @@ static bool cache_dirty;
 
 static SpiFlashOpResult spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
+    address += start_address;
+
     #ifdef BOOTLOADER
-    SPIRead( address + start_address, ptr, size );
+    SPIRead( address, ptr, size );
     #else
-    spi_flash_read( address + start_address, ptr, size );
+    spi_flash_read( address, ptr, size );
     #endif
 }
 
 static SpiFlashOpResult spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
+
+    address += start_address;
     
     #ifdef BOOTLOADER
     SPIWrite( address, ptr, size );
@@ -192,7 +196,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     uint32_t block_len = ( len / 4 ) * 4;
 
     // block read
-    spi_read( address + start_address, ptr, block_len );
+    spi_read( address, ptr, block_len );
     
     address += block_len;
     ptr += block_len;    
@@ -217,8 +221,6 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
-    address += start_address;
-
     // check if byte is in cache
     uint32_t word_address = address & ( ~0x03 );
     uint32_t byte_address = address & (  0x03 );
@@ -230,8 +232,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     }
 
     // return byte
-    return cache_data.bytes[3 - byte_address];
-    // return cache_data.bytes[byte_address];
+    // return cache_data.bytes[3 - byte_address];
+    return cache_data.bytes[byte_address];
 }
 
 void flash25_v_write_enable( void ){
@@ -261,8 +263,6 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         block0_unlock = 0;
 	}
 
-    address += start_address;
-
     // check cache
     uint32_t word_address = address & ( ~0x03 );
     uint32_t byte_address = address & (  0x03 );
@@ -273,8 +273,8 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         load_cache( word_address );
     }
 
-    cache_data.bytes[3 - byte_address] = byte;
-    // cache_data.bytes[byte_address] = byte;
+    // cache_data.bytes[3 - byte_address] = byte;
+    cache_data.bytes[byte_address] = byte;
     cache_dirty = TRUE;
 
     flash25_v_write_enable();
