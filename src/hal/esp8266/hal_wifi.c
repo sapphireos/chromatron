@@ -81,7 +81,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
-
+PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 
 static struct espconn esp_conn[WIFI_MAX_PORTS];
 static esp_udp udp_conn[WIFI_MAX_PORTS];
@@ -109,6 +109,12 @@ void wifi_v_init( void ){
                  PSTR("wifi_rx_processor"),
                  0,
                  0 );
+
+    thread_t_create_critical( 
+                wifi_status_thread,
+                PSTR("wifi_status"),
+                0,
+                0 );
 
 	wifi_get_macaddr( 0, wifi_mac );
 
@@ -335,7 +341,7 @@ bool wifi_b_attached( void ){
 
 int8_t wifi_i8_rssi( void ){
 
-	return 0;
+	return wifi_rssi;
 }
 
 void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
@@ -797,6 +803,32 @@ end:
     log_v_debug_P( PSTR("Wifi disconnected") );
 
     THREAD_RESTART( pt );
+
+PT_END( pt );
+}
+
+PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+
+        if( wifi_b_connected() ){
+
+            wifi_uptime += 1;
+        }
+        else{
+
+            wifi_uptime = 0;
+        }
+
+        wifi_rssi = wifi_station_get_rssi();
+    }
 
 PT_END( pt );
 }
