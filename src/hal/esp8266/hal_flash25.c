@@ -300,10 +300,6 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         block0_unlock = 0;
 	}
 
-    // don't need to do this with the simple algorithm! flash25_v_write_byte will offset.
-    // address += start_address;
-
-
     // this could probably be an assert, since a write of 0 is pretty useless.
     // on the other hand, it is also somewhat harmless.
     if( len == 0 ){
@@ -311,35 +307,65 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
- 
+    // byte write until address is 32 bit aligned
+    while( ( address % 4 ) != 0 ){
+
+        flash25_v_write_byte( address, *(uint8_t *)ptr );
+        ptr++;
+        address++;
+        len--;
+    }
+
+    uint32_t block_len = ( len / 4 ) * 4;
+
+    // misaligned pointers will cause an exception!
+    ASSERT( ( (uint32_t)ptr % 4 ) == 0 );
+
+    // block write
+    spi_write( address, (uint32_t *)ptr, block_len );
+    
+    address += block_len;
+    ptr += block_len;    
+    len -= block_len;
+
+    // unaligned write remainind bytes
     while( len > 0 ){
 
-        // compute page data
-        // uint16_t page_len = 256 - ( address & 0xff );
-
-        // if( page_len > len ){
-
-        //     page_len = len;
-        // }
-        uint16_t page_len = 1;
-
-        // enable writes
-        flash25_v_write_enable();
-
-
-        // do write
         flash25_v_write_byte( address, *(uint8_t *)ptr );
+        ptr++;
+        address++;
+        len--;        
+    }
+
+ 
+    // while( len > 0 ){
+
+    //     // compute page data
+    //     // uint16_t page_len = 256 - ( address & 0xff );
+
+    //     // if( page_len > len ){
+
+    //     //     page_len = len;
+    //     // }
+    //     uint16_t page_len = 1;
+
+    //     // enable writes
+    //     flash25_v_write_enable();
+
+
+    //     // do write
+    //     flash25_v_write_byte( address, *(uint8_t *)ptr );
 
         
-        address += page_len;
-        ptr += page_len;
-        len -= page_len;
+    //     address += page_len;
+    //     ptr += page_len;
+    //     len -= page_len;
 
-        // writes will automatically be disabled following completion
-        // of the write.
+    //     // writes will automatically be disabled following completion
+    //     // of the write.
 
-        BUSY_WAIT( flash25_b_busy() );
-    }
+    //     BUSY_WAIT( flash25_b_busy() );
+    // }
 
     // send write disable to end command
     // this should already be disabled, but lets make certain.

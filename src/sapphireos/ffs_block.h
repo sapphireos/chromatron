@@ -46,7 +46,7 @@ typedef uint16_t block_t;
 // macro to compute a block address from an FS block number
 #define FFS_BLOCK_ADDRESS(block_num) ( ( (uint32_t)block_num * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + (uint32_t)FLASH_FS_FILE_SYSTEM_START )
 
-typedef struct __attribute__((packed, aligned(4))){
+typedef struct __attribute__((packed)){
     uint8_t file_id;
     uint8_t flags;
     uint8_t block;
@@ -54,11 +54,11 @@ typedef struct __attribute__((packed, aligned(4))){
     uint8_t reserved[4];
 } ffs_block_meta_t;
 
-typedef struct __attribute__((packed, aligned(4))){
+typedef struct __attribute__((packed)){
     uint8_t page_index[FFS_PAGES_PER_BLOCK];
 } ffs_block_index_t;
 
-typedef struct __attribute__((packed, aligned(4))){
+typedef struct __attribute__((packed)){
     ffs_block_meta_t meta;
     ffs_block_index_t index;
 } ffs_block_header_t;
