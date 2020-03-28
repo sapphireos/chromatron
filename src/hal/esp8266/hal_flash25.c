@@ -183,15 +183,42 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
     uint32_t block_len = ( len / 4 ) * 4;
 
-    // misaligned pointers will cause an exception!
-    ASSERT( ( (uint32_t)ptr % 4 ) == 0 );
-
-    // block read
-    spi_read( address, ptr, block_len );
     
-    address += block_len;
-    ptr += block_len;    
-    len -= block_len;
+    // misaligned pointers will cause an exception!
+    // if our alignment is off, we'll copy into an aligned buffer
+    // and do the flash write from there.
+    if( ( (uint32_t)ptr % 4 ) != 0 ){
+
+        uint8_t buf[64] __attribute__((aligned(4)));
+
+        while( block_len > 0 ){
+
+            uint32_t copy_len = sizeof(buf);
+            if( copy_len > block_len ){
+
+                copy_len = block_len;
+            }
+
+            // block read
+            spi_read( address, (uint32_t *)buf, copy_len );
+
+            memcpy( ptr, buf, copy_len );
+
+            ptr += copy_len;
+            address += copy_len;
+            block_len -= copy_len;
+            len -= copy_len;
+        }
+    }
+    else{
+
+        // block read
+        spi_read( address, ptr, block_len );
+        
+        address += block_len;
+        ptr += block_len;    
+        len -= block_len;
+    }
 
     // unaligned read remainind bytes
     while( len > 0 ){
@@ -304,19 +331,45 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
     uint32_t block_len = ( len / 4 ) * 4;
 
-    // misaligned pointers will cause an exception!
-    ASSERT( ( (uint32_t)ptr % 4 ) == 0 );
-
     // enable writes
     flash25_v_write_enable();
 
-    // block write
-    spi_write( address, (uint32_t *)ptr, block_len );
-    
-    address += block_len;
-    ptr += block_len;    
-    len -= block_len;
+    // misaligned pointers will cause an exception!
+    // if our alignment is off, we'll copy into an aligned buffer
+    // and do the flash write from there.
+    if( ( (uint32_t)ptr % 4 ) != 0 ){
 
+        uint8_t buf[64] __attribute__((aligned(4)));
+
+        while( block_len > 0 ){
+
+            uint32_t copy_len = sizeof(buf);
+            if( copy_len > block_len ){
+
+                copy_len = block_len;
+            }
+
+            memcpy( buf, ptr, copy_len );
+            
+            // block write
+            spi_write( address, (uint32_t *)buf, copy_len );
+
+            ptr += copy_len;
+            address += copy_len;
+            block_len -= copy_len;
+            len -= copy_len;
+        }
+    }
+    else{
+
+        // block write
+        spi_write( address, (uint32_t *)ptr, block_len );
+
+        address += block_len;
+        ptr += block_len;    
+        len -= block_len;
+    }
+    
     // unaligned write remainind bytes
     while( len > 0 ){
         
