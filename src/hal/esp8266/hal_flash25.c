@@ -179,20 +179,6 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    #if 0
-    // busy wait
-    BUSY_WAIT( flash25_b_busy() );
-
-    // we can optimize this later, for now, we do just a simple byte read
-    // through the cache
-    while( len > 0 ){
-
-        *(uint8_t *)ptr = flash25_u8_read_byte( address );
-        ptr++;
-        address++;
-        len--;
-    }
-    #else
     // byte read until address is 32 bit aligned
     while( ( address % 4 ) != 0 ){
 
@@ -222,7 +208,6 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         address++;
         len--;        
     }
-    #endif
 }
 
 // read a single byte
@@ -244,7 +229,6 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     }
 
     // return byte
-    // return cache_data.bytes[3 - byte_address];
     return cache_data.bytes[byte_address];
 }
 
@@ -285,7 +269,6 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         load_cache( word_address );
     }
 
-    // cache_data.bytes[3 - byte_address] = byte;
     cache_data.bytes[byte_address] = byte;
     cache_dirty = TRUE;
 
