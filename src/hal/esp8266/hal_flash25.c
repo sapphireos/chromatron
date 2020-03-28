@@ -83,7 +83,7 @@ static void flush_cache( void ){
     // commit to flash
     spi_write( cache_address, &cache_data.word, sizeof(cache_data) );
 
-    trace_printf("cache flush: 0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
+    // trace_printf("cache flush: 0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
     
     // cache is now valid
     cache_dirty = FALSE;
@@ -100,7 +100,7 @@ static void load_cache( uint32_t address ){
 
     cache_address = address;
 
-    trace_printf("cache load:  0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
+    // trace_printf("cache load:  0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
 }
 
 // flush cache and then set address to an invalid range.
@@ -179,8 +179,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    // trace_printf("read %u %u\n", address, len);
-    #if 1
+    #if 0
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
@@ -204,6 +203,9 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     }
 
     uint32_t block_len = ( len / 4 ) * 4;
+
+    // misaligned pointers will cause an exception!
+    ASSERT( ( (uint32_t)ptr % 4 ) == 0 );
 
     // block read
     spi_read( address, ptr, block_len );

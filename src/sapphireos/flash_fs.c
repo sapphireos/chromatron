@@ -65,24 +65,6 @@ void ffs_v_init( void ){
 
     trace_printf("FlashFS version: %d\r\n", fs_version);
 
-    // erase block 0
-    flash25_v_unlock_block0();
-    flash25_v_erase_4k( 0 );
-
-    // write version
-    flash25_v_unlock_block0();
-    flash25_v_write_byte( FLASH_FS_VERSION_ADDR, FFS_VERSION );
-
-    fs_version = flash25_u8_read_byte( 0 );
-
-    fs_version = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
-
-    trace_printf("FlashFS version: %d\r\n", fs_version);
-    
-    while(1){
-        sys_v_wdt_reset();
-    }
-
     // check system mode and version
     if( ( sys_u8_get_mode() == SYS_MODE_FORMAT ) ||
         ( fs_version != FFS_VERSION ) ){

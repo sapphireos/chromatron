@@ -181,7 +181,7 @@ int8_t ffs_block_i8_verify_free_space( void ){
     while( block != FFS_BLOCK_INVALID ){
 
         // check all data in block
-        uint8_t data[256];
+        uint8_t data[256] __attribute__((aligned(4)));
         uint32_t addr = FFS_BLOCK_ADDRESS( block );
 
         for( uint8_t j = 0; j < FLASH_FS_ERASE_BLOCK_SIZE / 256; j++ ){
