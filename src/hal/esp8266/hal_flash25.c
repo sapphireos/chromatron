@@ -76,6 +76,8 @@ static void flush_cache( void ){
 
     // commit to flash
     spi_write( cache_address, &cache_data.word, sizeof(cache_data) );
+
+    trace_printf("cache flush: 0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
     
     // cache is now valid
     cache_dirty = FALSE;
@@ -91,6 +93,8 @@ static void load_cache( uint32_t address ){
     spi_read( address, &cache_data.word, sizeof(cache_data) );
 
     cache_address = address;
+
+    trace_printf("cache load:  0x%08x = 0x%08x\r\n", cache_address, cache_data.word);
 }
 
 void hal_flash25_v_init( void ){
@@ -226,8 +230,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     }
 
     // return byte
-    // return cache_data.bytes[3 - byte_address];
-    return cache_data.bytes[byte_address];
+    return cache_data.bytes[3 - byte_address];
+    // return cache_data.bytes[byte_address];
 }
 
 void flash25_v_write_enable( void ){
@@ -269,11 +273,13 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         load_cache( word_address );
     }
 
-    // cache_data.bytes[3 - byte_address] = byte;
-    cache_data.bytes[byte_address] = byte;
+    cache_data.bytes[3 - byte_address] = byte;
+    // cache_data.bytes[byte_address] = byte;
     cache_dirty = TRUE;
 
     flash25_v_write_enable();
+
+    // flush_cache();
 
     BUSY_WAIT( flash25_b_busy() );
 
