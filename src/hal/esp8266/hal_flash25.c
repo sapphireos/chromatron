@@ -30,11 +30,12 @@
 #ifdef ENABLE_FFS
 
 
+// FW_START_OFFSET offsets from the end of the bootloader section.
+#define START_ADDRESS ( FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_START_OFFSET )
 
 extern uint16_t block0_unlock;
 
 static uint32_t max_address;
-static uint32_t start_address;
 
 #define CACHE_ADDR_INVALID 0xffffffff
 
@@ -52,7 +53,7 @@ static bool cache_dirty;
 
 static SpiFlashOpResult spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
-    address += start_address;
+    address += START_ADDRESS;
 
     #ifdef BOOTLOADER
     SPIRead( address, ptr, size );
@@ -63,7 +64,7 @@ static SpiFlashOpResult spi_read( uint32_t address, uint32_t *ptr, uint32_t size
 
 static SpiFlashOpResult spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
 
-    address += start_address;
+    address += START_ADDRESS;
     
     #ifdef BOOTLOADER
     SPIWrite( address, ptr, size );
@@ -113,20 +114,14 @@ static void invalidate_cache( void ){
 
 void hal_flash25_v_init( void ){
 
-    // FW_START_OFFSET offsets from the end of the bootloader section.
-    start_address = FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_START_OFFSET;
-
     // read max address
     #ifndef BOOTLOADER
     max_address = flash25_u32_read_capacity_from_info();
 
     if( max_address > ( 2 * 1048576 ) ){
-
-        max_address = ( 1.5 * 1048576 );
         
-        max_address -= start_address;
-
-        max_address -= ( 32 * 1024 );
+        max_address -= START_ADDRESS;
+        max_address -= ( 32 * 1024 ); // reserve space for SDK config area
     }
     else{
 
@@ -414,7 +409,7 @@ void flash25_v_erase_4k( uint32_t address ){
 
     BUSY_WAIT( flash25_b_busy() );
 
-    address += start_address;
+    address += START_ADDRESS;
 
     // trace_printf("Erase: 0x%x\r\n", address);
     #ifndef BOOTLOADER
