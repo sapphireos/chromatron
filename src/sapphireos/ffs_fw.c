@@ -195,23 +195,27 @@ int8_t ffs_fw_i8_init( void ){
 
         trace_printf("copy firmware... len: %d\r\n", sys_fw_length);
 
+        uint8_t buf[256] __attribute__((aligned(4)));
+
         // copy firmware to partition
-        for( uint32_t i = 0; i < sys_fw_length; i++ ){
+        for( uint32_t i = 0; i < sys_fw_length; i += sizeof(buf) ){
 
             sys_v_wdt_reset();
 
+            uint32_t block_len = sys_fw_length - i;
+
+            if( block_len > sizeof(buf) ){
+
+                block_len = sizeof(buf);
+            }
+
             // read byte from internal flash
-            uint8_t temp = pgm_read_byte_far( i + FLASH_START );
+            for( uint16_t j = 0; j < block_len; j++ ){
 
-            // trace_printf("%03d -> 0x%02x\r\n", i, temp);
+                buf[j] = pgm_read_byte_far( i + j + FLASH_START );
+            }
 
-            // if( i > 129 ){
-
-            //     while(1);
-            // }
-
-            // write to external flash
-            flash25_v_write_byte( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, temp );
+            flash25_v_write( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, buf, block_len );
         }
 
         fw_size = sys_fw_length;
