@@ -29,6 +29,8 @@
 #include "flash_fs_partitions.h"
 #include "ffs_eeprom.h"
 
+uint16_t eeprom_erase_unlock;
+
 static uint32_t flash_addr( uint8_t block, uint16_t addr ){
 
 	return FLASH_FS_EEPROM_PARTITION_START + 
@@ -48,8 +50,10 @@ void ffs_eeprom_v_read( uint8_t block, uint16_t addr, uint8_t *dest, uint16_t le
 
 void ffs_eeprom_v_erase( uint8_t block ){
 
+    eeprom_erase_unlock = EEPROM_UNLOCK_CODE;
 	flash25_v_write_enable();
 	flash25_v_erase_4k( flash_addr( block, 0 ) );
+    eeprom_erase_unlock = 0;
 }
 
 

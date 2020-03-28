@@ -58,7 +58,6 @@
 #define FLASH_FS_EEPROM_PARTITION_SIZE 	 	( (uint32_t)FLASH_FS_EEPROM_SIZE_KB * (uint32_t)1024 ) // in bytes
 #define FLASH_FS_EEPROM_N_BLOCKS        	( FLASH_FS_EEPROM_PARTITION_SIZE / FLASH_FS_ERASE_BLOCK_SIZE ) // in blocks
 
-
 // User file system partition 4:
 // file system size is the size of the file system partition
 #define FLASH_FS_FILE_SYSTEM_START		( FLASH_FS_EEPROM_PARTITION_START + \

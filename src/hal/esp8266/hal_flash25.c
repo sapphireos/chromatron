@@ -34,6 +34,7 @@
 #define START_ADDRESS ( FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_START_OFFSET )
 
 extern uint16_t block0_unlock;
+extern uint16_t eeprom_erase_unlock;
 
 static uint32_t max_address;
 
@@ -406,6 +407,16 @@ void flash25_v_erase_4k( uint32_t address ){
 
         block0_unlock = 0;
 	}
+    // don't erase eeprom
+    else if( ( address >= FLASH_FS_EEPROM_PARTITION_START ) &&
+             ( address <  ( FLASH_FS_EEPROM_PARTITION_START + FLASH_FS_EEPROM_PARTITION_SIZE ) ) ){
+
+        // unless unlocked
+        if( eeprom_erase_unlock != EEPROM_UNLOCK_CODE ){
+
+            return;
+        }
+    }
 
     BUSY_WAIT( flash25_b_busy() );
 

@@ -103,6 +103,7 @@ typedef struct __attribute__((packed)){
 
 
 #define BLOCK0_UNLOCK_CODE  0x1701
+#define EEPROM_UNLOCK_CODE  0x2893 // USS Stargazer
 
 void flash25_v_init( void );
 uint8_t flash25_u8_read_status( void );
