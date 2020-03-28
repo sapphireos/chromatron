@@ -48,6 +48,24 @@ static cache_data_t cache_data;
 static uint32_t cache_address;
 static bool cache_dirty;
 
+static SpiFlashOpResult spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
+
+    #ifdef BOOTLOADER
+    SPIRead( address + start_address, ptr, size );
+    #else
+    spi_flash_read( address + start_address, ptr, size );
+    #endif
+}
+
+static SpiFlashOpResult spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
+    
+    #ifdef BOOTLOADER
+    SPIWrite( address, ptr, size );
+    #else
+    spi_flash_write( address, ptr, size );
+    #endif    
+}
+
 static void flush_cache( void ){
 
     // cache is clean, nothing to do
@@ -56,13 +74,9 @@ static void flush_cache( void ){
         return;
     }
 
-    #ifndef BOOTLOADER
     // commit to flash
-    spi_flash_write( cache_address, &cache_data.word, sizeof(cache_data) );
-    #else
-    SPIWrite( cache_address, &cache_data.word, sizeof(cache_data) );
-    #endif
-
+    spi_write( cache_address, &cache_data.word, sizeof(cache_data) );
+    
     // cache is now valid
     cache_dirty = FALSE;
 }
@@ -74,12 +88,8 @@ static void load_cache( uint32_t address ){
         flush_cache();
     }
 
-    #ifndef BOOTLOADER
-    spi_flash_read( address, &cache_data.word, sizeof(cache_data) );
-    #else
-    SPIRead( address, &cache_data.word, sizeof(cache_data) );
-    #endif
-    
+    spi_read( address, &cache_data.word, sizeof(cache_data) );
+
     cache_address = address;
 }
 
@@ -151,11 +161,8 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    // don't need to do this with the simple algorithm! flash25_u8_read_byte will offset.
-    // address += start_address;
-
-    trace_printf("read %u %u\n", address, len);
-    #if 0
+    // trace_printf("read %u %u\n", address, len);
+    #if 1
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
@@ -168,9 +175,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         address++;
         len--;
     }
-    #endif
-
-    #if 1
+    #else
     // byte read until address is 32 bit aligned
     while( ( address % 4 ) != 0 ){
 
@@ -178,33 +183,16 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         ptr++;
         address++;
         len--;
-
-        // trace_printf("read 1\n");
     }
 
     uint32_t block_len = ( len / 4 ) * 4;
 
-    // trace_printf("block %u\n", block_len);
-
-    while( block_len > 0 ){
-
-        *(uint8_t *)ptr = flash25_u8_read_byte( address );
-        ptr++;
-        address++;
-        block_len--;
-        len--;
-    }
-
     // block read
-    // #ifndef BOOTLOADER
-    // spi_flash_read( address + start_address, ptr, block_len );
-    // #else
-    // SPIRead( address + start_address, ptr, block_len );
-    // #endif
-
-    // address += block_len;
-    // ptr += block_len;    
-    // len -= block_len;
+    spi_read( address + start_address, ptr, block_len );
+    
+    address += block_len;
+    ptr += block_len;    
+    len -= block_len;
 
     // unaligned read remainind bytes
     while( len > 0 ){
@@ -213,8 +201,6 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         ptr++;
         address++;
         len--;        
-
-        // trace_printf("trail 1\n");
     }
     #endif
 }
@@ -240,7 +226,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     }
 
     // return byte
-    return cache_data.bytes[3 - byte_address];
+    // return cache_data.bytes[3 - byte_address];
+    return cache_data.bytes[byte_address];
 }
 
 void flash25_v_write_enable( void ){
@@ -282,7 +269,8 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         load_cache( word_address );
     }
 
-    cache_data.bytes[3 - byte_address] = byte;
+    // cache_data.bytes[3 - byte_address] = byte;
+    cache_data.bytes[byte_address] = byte;
     cache_dirty = TRUE;
 
     flash25_v_write_enable();

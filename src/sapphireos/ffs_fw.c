@@ -165,6 +165,7 @@ int8_t ffs_fw_i8_init( void ){
                     &ext_fw_length,
                     sizeof(ext_fw_length) );
 
+
     // check for invalid ext firmware length
     if( ext_fw_length > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){
 
@@ -174,6 +175,8 @@ int8_t ffs_fw_i8_init( void ){
 
         fw_size = ext_fw_length + sizeof(uint16_t); // adjust for CRC
     }
+
+    trace_printf("partition len: %d\r\n", ext_fw_length);
 
     // bounds check
     if( fw_size > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){

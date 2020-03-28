@@ -29,6 +29,8 @@ except IndexError:
 
 port = serial.Serial(port_name, baudrate=baudrate)
 
+start = None
+
 try:
     buf = ''
 
@@ -39,8 +41,16 @@ try:
             # check if buffer is empty
             if len(buf) == 0:
                 continue
-                
-            print buf
+
+            now = time.time()
+            if start == None:
+                elapsed = 0.0
+
+            else:
+                elapsed = now - start                   
+            
+            start = now
+            print "%5d" % (elapsed * 1000), buf
             buf = ''
 
         else:
