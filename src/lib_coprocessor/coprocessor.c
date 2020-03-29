@@ -63,12 +63,32 @@ void coproc_v_dispatch(
     uint8_t response[COPROC_BUF_SIZE] ){
 
     uint8_t len = hdr->length;
+    int64_t *params = (int64_t *)data;
+    int64_t retval = 0;
 
     if( hdr->opcode == OPCODE_TEST ){
 
         memcpy( response, data, len );
         *response_len = len;
     }
+    else if( hdr->opcode == OPCODE_IO_SET_MODE ){
+
+		io_v_set_mode( params[0], params[1] );
+	}
+	else if( hdr->opcode == OPCODE_IO_GET_MODE ){
+
+		retval = io_u8_get_mode( params[0] );
+		memcpy( response, &retval, sizeof(retval) );
+	}
+	else if( hdr->opcode == OPCODE_IO_DIGITAL_WRITE ){
+
+		io_v_digital_write( params[0], params[1] );
+	}
+	else if( hdr->opcode == OPCODE_IO_DIGITAL_READ ){
+
+		retval = io_b_digital_read( params[0] );
+		memcpy( response, &retval, sizeof(retval) );
+	}
     else{
 
         ASSERT( FALSE );
@@ -86,11 +106,11 @@ uint8_t coproc_u8_issue(
 
 	coproc_hdr_t hdr;
 
+	hdr.sof     = COPROC_SOF;
 	hdr.opcode 	= opcode;
 	hdr.length 	= len;
 	hdr.padding = 0;
 
-	usart_v_send_byte( UART_CHANNEL, COPROC_SOF );
 	usart_v_send_data( UART_CHANNEL, (uint8_t *)&hdr, sizeof(hdr) );
 	usart_v_send_data( UART_CHANNEL, data, len );
 
@@ -98,9 +118,6 @@ uint8_t coproc_u8_issue(
 	// wait for response
 	// note there is no timeout.
 	// if the coprocessor does not respond, the system is broken.
-
-	// synchronize to SOF
-	while( usart_i16_get_byte( UART_CHANNEL ) != COPROC_SOF );
 
 	// wait for header
 	while( usart_u8_bytes_available( UART_CHANNEL ) < sizeof(hdr) );
