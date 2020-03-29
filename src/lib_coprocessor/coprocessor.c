@@ -143,6 +143,11 @@ int64_t coproc_i64_call0( uint8_t opcode ){
 
 	int64_t retval = 0;
 
+	uint8_t *rx_data;
+
+	coproc_u8_issue( opcode, 0, 0, &rx_data );
+
+	retval = *(int64_t *)rx_data;
 
 	return retval;
 }
@@ -151,6 +156,13 @@ int64_t coproc_i64_call1( uint8_t opcode, int64_t param0 ){
 
 	int64_t retval = 0;
 
+	uint8_t *rx_data;
+	int64_t param_buf[1];
+	param_buf[0] = param0;
+
+	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf), &rx_data );
+
+	retval = *(int64_t *)rx_data;
 
 	return retval;
 }
@@ -159,6 +171,14 @@ int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 ){
 
 	int64_t retval = 0;
 
+	uint8_t *rx_data;
+	int64_t param_buf[2];
+	param_buf[0] = param0;
+	param_buf[1] = param0;
+
+	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf), &rx_data );
+
+	retval = *(int64_t *)rx_data;
 
 	return retval;
 }
@@ -166,6 +186,16 @@ int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 ){
 int64_t coproc_i64_call3( uint8_t opcode, int64_t param0, int64_t param1, int64_t param2 ){
 
 	int64_t retval = 0;
+
+	uint8_t *rx_data;
+	int64_t param_buf[3];
+	param_buf[0] = param0;
+	param_buf[1] = param0;
+	param_buf[2] = param0;
+
+	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf), &rx_data );
+
+	retval = *(int64_t *)rx_data;
 
 
 	return retval;

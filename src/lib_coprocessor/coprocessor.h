@@ -65,6 +65,12 @@ void coproc_v_dispatch(
 	uint8_t *response_len,
 	uint8_t response[COPROC_BUF_SIZE] );
 
+uint8_t coproc_u8_issue( 
+	uint8_t opcode, 
+	uint8_t *data, 
+	uint8_t len,
+	uint8_t **rx_data );
+
 void coproc_v_test( void );
 
 int64_t coproc_i64_call0( uint8_t opcode );
