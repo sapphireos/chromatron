@@ -1015,11 +1015,10 @@ uint16_t mem2_u16_stack_count( void ){
 #endif
 
 #ifdef ESP8266
-    uint16_t count = stack_usage;
+    uint16_t count = 0;
 
     uint8_t *stack = (uint8_t *)( 0x40000000 - MEM_MAX_STACK );
-    stack += count;
-
+    
     while( count < MEM_MAX_STACK ){
 
         if( *stack != CANARY_VALUE ){

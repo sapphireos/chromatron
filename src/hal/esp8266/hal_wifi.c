@@ -91,8 +91,6 @@ static list_t rx_list;
 
 void wifi_v_init( void ){
 	
-	trace_printf( "wifi_v_init\r\n" );
-
 	wifi_station_disconnect();
 
 	// set opmode without saving to flash (since we always set this)

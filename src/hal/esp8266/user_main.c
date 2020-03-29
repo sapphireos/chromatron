@@ -138,7 +138,7 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
-    system_set_os_print( 0 );
+    // system_set_os_print( 0 );
 
     uart_init(115200, 115200);
 
@@ -155,8 +155,8 @@ void ICACHE_FLASH_ATTR user_init(void)
     uint8_t *ptr = stack_start;
     while( ptr >= stack_end ){
 
-      *ptr = 0x47; // canary
-      ptr--;
+        *ptr = 0x47; // canary
+        ptr--;
     }
 
     // Disable WiFi
@@ -183,8 +183,8 @@ void ICACHE_FLASH_ATTR user_init(void)
     }
 
 
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 4000000 );
+    // usart_v_init( 0 );
+    // usart_v_set_baud( 0, 4000000 );
     
     // start OS
     // on the ESP8266 this will return
