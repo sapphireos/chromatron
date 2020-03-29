@@ -90,6 +90,10 @@ static uint32_t mem_alloc_fails;
     extern uint8_t _estack;
 #endif
 
+#ifdef ESP8266
+    extern uint8_t *stack_start;
+#endif
+
 
 static uint16_t mem_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
@@ -996,6 +1000,28 @@ uint16_t mem2_u16_stack_count( void ){
 #ifdef ARM
     uint16_t count = stack_usage;
     uint8_t *stack = &_estack - MEM_MAX_STACK;
+    stack += count;
+
+    while( count < MEM_MAX_STACK ){
+
+        if( *stack != CANARY_VALUE ){
+
+            break;
+        }
+
+        stack++;
+        count++;
+    }
+
+    stack_usage = MEM_MAX_STACK - count;
+
+    return stack_usage; 
+#endif
+
+#ifdef ESP8266
+    uint16_t count = stack_usage;
+
+    uint8_t *stack = (uint8_t *)( 0x40000000 - MEM_MAX_STACK );
     stack += count;
 
     while( count < MEM_MAX_STACK ){

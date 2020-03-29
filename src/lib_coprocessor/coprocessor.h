@@ -25,12 +25,20 @@
 
 #define UART_CHANNEL 0
 
+
+typedef struct __attribute__((packed)){
+	uint8_t data[4];
+	uint8_t parity[3];
+} coproc_block_t;
+
+
 #define COPROC_SOF		0x17
 
 typedef struct __attribute__((packed)){
+	uint8_t sof;
 	uint8_t opcode;
 	uint8_t length;
-	uint16_t padding;
+	uint8_t padding;
 } coproc_hdr_t;
 
 #define COPROC_BUF_SIZE				96
