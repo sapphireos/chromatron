@@ -1,6 +1,10 @@
 #include "osapi.h"
 #include "user_interface.h"
 
+#include "uart.h"
+#include "init.h"
+#include "hal_usart.h"
+#include "sapphire.h"
 #include "threading.h"
 
 #ifndef BOOTLOADER

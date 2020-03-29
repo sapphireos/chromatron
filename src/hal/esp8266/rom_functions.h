@@ -84,6 +84,11 @@ typedef struct {
     uint32_t status_mask;
 } esp_rom_spiflash_chip_t;
 
+// JGB these were missing
+int ets_vsprintf(char *str, const char *format, va_list argptr);
+int ets_vsnprintf(char * s, size_t n, const char * format, va_list arg);
+int ets_vprintf(const char * format, va_list arg);
+
 
 typedef void (*int_handler_t)(void *arg);
 // JGB: this is declared in ets_sys.h

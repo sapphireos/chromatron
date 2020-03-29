@@ -38,6 +38,7 @@
 #include "mem.h"
 #include "user_interface.h"
 // #include "debug.h"
+#include "rom_functions.h"
 
 // void* malloc(size_t size) {
 //     size = ((size + 3) & ~((size_t)0x3));
