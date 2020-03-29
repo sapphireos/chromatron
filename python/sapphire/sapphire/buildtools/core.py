@@ -905,10 +905,14 @@ class HexBuilder(Builder):
         # included libraries
         for lib in self.libraries:
             lib_project = get_project_builder(lib, target=self.target_type)
+
             # source object files
             for source in lib_project.list_source():
                 source_path, source_fname = os.path.split(source)
                 cmd += lib_project.target_dir + '/' + obj_dir + '/' + source_fname + '.o' + ' '
+
+        lib_s = ' '.join(self.libraries)
+        logging.info("Libraries: %s" % (lib_s))
 
         # linker flags
         for flag in self.settings["LINK_FLAGS"]:
