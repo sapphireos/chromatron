@@ -30,13 +30,18 @@
 #include "app.h"
 
 
-void receive( void *buf, uint16_t len ){
+static void receive( void *buf, uint8_t len ){
 
     if( hal_wifi_i8_usart_receive( buf, len, 10000000 ) < 0 ){
 
         // timeout, fatal error
         sys_reboot();
     }
+}
+
+static void send( void *buf, uint8_t len ){
+
+    hal_wifi_v_usart_send_data( buf, len );    
 }
 
 
@@ -62,6 +67,8 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_YIELD( pt );
+
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
         coproc_block_t block;
@@ -84,6 +91,17 @@ PT_BEGIN( pt );
 
             i += 4;
         }
+
+        uint8_t response[COPROC_BUF_SIZE];
+        uint8_t response_len = 0;
+
+        // run command
+        coproc_v_dispatch( hdr, buf, &response_len, response );
+
+        hdr->length = response_len;
+
+        send( hdr, sizeof(coproc_hdr_t) );
+        send( response, response_len );
     }
 
 PT_END( pt );	

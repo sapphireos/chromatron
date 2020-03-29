@@ -47,33 +47,23 @@ static void receive_block( uint8_t *data, uint8_t len ){
 
 // process a message
 // assumes CRC is valid
-void coproc_v_dispatch( coproc_hdr_t *hdr ){
-
-	coproc_hdr_t reply_hdr;
-
-	reply_hdr.opcode 	= hdr->opcode;
-	reply_hdr.length 	= 0;
-	reply_hdr.padding 	= 0;
-
+void coproc_v_dispatch( 
+	coproc_hdr_t *hdr, 
+	const uint8_t *data,
+	uint8_t *response_len,
+	uint8_t response[COPROC_BUF_SIZE] ){
 
 	uint8_t len = hdr->length;
-	uint8_t *data = (uint8_t *)( hdr + 1 );
-
-	uint8_t tx_buf[COPROC_BUF_SIZE];	
 
 	if( hdr->opcode == OPCODE_TEST ){
 
-		memcpy( tx_buf, data, len );
-		reply_hdr.length = len;
+		memcpy( response, data, len );
+		*response_len = len;
 	}
 	else{
 
 		ASSERT( FALSE );
 	}
-
-	usart_v_send_byte( UART_CHANNEL, COPROC_SOF );
-	usart_v_send_data( UART_CHANNEL, (uint8_t *)&reply_hdr, sizeof(reply_hdr) );
-	usart_v_send_data( UART_CHANNEL, tx_buf, reply_hdr.length );	
 }
 
 

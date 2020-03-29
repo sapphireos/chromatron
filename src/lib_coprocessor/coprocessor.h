@@ -49,5 +49,10 @@ typedef struct __attribute__((packed)){
 #define RESPONSE_OK	 				0xF0
 #define RESPONSE_ERR				0xF1
 
+void coproc_v_dispatch( 
+	coproc_hdr_t *hdr, 
+	const uint8_t *data,
+	uint8_t *response_len,
+	uint8_t response[COPROC_BUF_SIZE] );
 
 #endif
