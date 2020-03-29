@@ -902,8 +902,9 @@ class HexBuilder(Builder):
             source_path, source_fname = os.path.split(source)
             cmd += obj_dir + '/' + source_fname + '.o' + ' '
 
+        libraries = self.get_libraries()
         # included libraries
-        for lib in self.libraries:
+        for lib in libraries:
             lib_project = get_project_builder(lib, target=self.target_type)
 
             # source object files
@@ -911,7 +912,7 @@ class HexBuilder(Builder):
                 source_path, source_fname = os.path.split(source)
                 cmd += lib_project.target_dir + '/' + obj_dir + '/' + source_fname + '.o' + ' '
 
-        lib_s = ' '.join(self.libraries)
+        lib_s = ' '.join(libraries)
         logging.info("Libraries: %s" % (lib_s))
 
         # linker flags
