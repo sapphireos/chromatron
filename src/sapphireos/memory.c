@@ -90,10 +90,6 @@ static uint32_t mem_alloc_fails;
     extern uint8_t _estack;
 #endif
 
-#ifdef ESP8266
-    extern uint8_t *stack_start;
-#endif
-
 
 static uint16_t mem_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 

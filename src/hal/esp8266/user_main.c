@@ -132,8 +132,6 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
-uint8_t *stack_start;
-
 void ICACHE_FLASH_ATTR user_init(void)
 {
     gpio_init();
@@ -149,13 +147,13 @@ void ICACHE_FLASH_ATTR user_init(void)
     register uint32_t *sp asm("a1");
     os_printf("0x%08x\r\n", sp);
 
-    stack_start = (uint8_t *)( (uint32_t)sp - 64 );
+    uint8_t *stack_start = (uint8_t *)( (uint32_t)sp - 64 );
     uint8_t *stack_end = (uint8_t *)( 0x40000000 - MEM_MAX_STACK );
 
     os_printf("0x%08x -> 0x%08x\r\n", stack_start, stack_end);
 
     uint8_t *ptr = stack_start;
-    while( ptr < stack_end ){
+    while( ptr >= stack_end ){
 
       *ptr = 0x47; // canary
       ptr--;
