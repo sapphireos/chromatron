@@ -55,29 +55,6 @@ static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 }
 
 
-// process a message
-// assumes CRC is valid
-void coproc_v_dispatch( 
-    coproc_hdr_t *hdr, 
-    const uint8_t *data,
-    uint8_t *response_len,
-    uint8_t response[COPROC_BUF_SIZE] ){
-
-    uint8_t len = hdr->length;
-
-    if( hdr->opcode == OPCODE_TEST ){
-
-        memcpy( response, data, len );
-        *response_len = len;
-    }
-    else{
-
-        ASSERT( FALSE );
-    }
-}
-
-
-
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  

@@ -50,8 +50,32 @@ void coproc_v_parity_check( coproc_block_t *block ){
 }
 
 void coproc_v_parity_generate( coproc_block_t *block ){
-	
+
 }
+
+
+// process a message
+// assumes CRC is valid
+void coproc_v_dispatch( 
+    coproc_hdr_t *hdr, 
+    const uint8_t *data,
+    uint8_t *response_len,
+    uint8_t response[COPROC_BUF_SIZE] ){
+
+    uint8_t len = hdr->length;
+
+    if( hdr->opcode == OPCODE_TEST ){
+
+        memcpy( response, data, len );
+        *response_len = len;
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+}
+
+
 
 
 uint8_t coproc_u8_issue( 
@@ -112,5 +136,38 @@ void coproc_v_test( void ){
 	ASSERT( response[1] == 2 );
 	ASSERT( response[2] == 3 );
 	ASSERT( response[3] == 4 );
+}
+
+
+int64_t coproc_i64_call0( uint8_t opcode ){
+
+	int64_t retval = 0;
+
+
+	return retval;
+}
+
+int64_t coproc_i64_call1( uint8_t opcode, int64_t param0 ){
+
+	int64_t retval = 0;
+
+
+	return retval;
+}
+
+int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 ){
+
+	int64_t retval = 0;
+
+
+	return retval;
+}
+
+int64_t coproc_i64_call3( uint8_t opcode, int64_t param0, int64_t param1, int64_t param2 ){
+
+	int64_t retval = 0;
+
+
+	return retval;
 }
 
