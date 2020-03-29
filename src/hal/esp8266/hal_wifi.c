@@ -703,7 +703,7 @@ station_mode:
 			    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
                 cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
 
-			    uint32_t dns_ip = dns_getserver( 0 );
+                ip_addr_t dns_ip = espconn_dns_getserver( 0 );
 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
            	}
         }

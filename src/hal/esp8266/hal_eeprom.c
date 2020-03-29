@@ -34,6 +34,7 @@
 #include "threading.h"
 
 #include "ffs_global.h"
+#include "flash25.h"
 #include "hal_flash25.h"
 #include "ffs_eeprom.h"
 #include "hal_eeprom.h"

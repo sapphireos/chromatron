@@ -25,6 +25,7 @@
 
 #include "osapi.h"
 
+#include <stdio.h>
 #include <stdarg.h>
 
 #ifndef BOOTLOADER

@@ -40,6 +40,123 @@
 // #include "debug.h"
 #include "rom_functions.h"
 
+// ##########################################################################
+//                             ctype functions
+// ##########################################################################
+
+int islower(int c) {
+    if(c >= 'a' && c <= 'z') {
+        return 1;
+    }
+    return 0;
+}
+
+int isdigit(int c) {
+    if(c >= '0' && c <= '9') {
+        return 1;
+    }
+    return 0;
+}
+
+int isupper(int c) {
+    if(c >= 'A' && c <= 'Z') {
+        return 1;
+    }
+    return 0;
+}
+
+int isalpha(int c) {
+    if(islower(c) || isupper(c)) {
+        return 1;
+    }
+    return 0;
+}
+
+int isalnum(int c) {
+    if(isalpha(c) || isdigit(c)) {
+        return 1;
+    }
+    return 0;
+}
+
+int iscntrl(int c) {
+    if(c <= 0x1F || c == 0x7F) {
+        return 1;
+    }
+    return 0;
+}
+
+int isprint(int c) {
+    if(!iscntrl(c)) {
+        return 1;
+    }
+    return 0;
+}
+
+int isgraph(int c) {
+    if(isprint(c) && c != ' ') {
+        return 1;
+    }
+    return 0;
+}
+
+int ispunct(int c) {
+    if(isgraph(c) && !isalnum(c)) {
+        return 1;
+    }
+    return 0;
+}
+
+int isspace(int c) {
+    switch(c) {
+        case 0x20: // ' '
+        case 0x09: // '\t'
+        case 0x0a: // '\n'
+        case 0x0b: // '\v'
+        case 0x0c: // '\f'
+        case 0x0d: // '\r'
+            return 1;
+    }
+    return 0;
+}
+
+// int isxdigit(int c) {
+//     if(c >= 'A' && c <= 'F') {
+//         return 1;
+//     }
+//     if(c >= 'a' && c <= 'f') {
+//         return 1;
+//     }
+//     if(isdigit(c)) {
+//         return 1;
+//     }
+//     return 0;
+// }
+
+int tolower(int c) {
+    if(isupper(c)) {
+        c += 0x20;
+    }
+    return c;
+}
+
+int toupper(int c) {
+    if(islower(c)) {
+        c -= 0x20;
+    }
+    return c;
+}
+
+int isblank(int c) {
+    switch(c) {
+        case 0x20: // ' '
+        case 0x09: // '\t'
+            return 1;
+    }
+    return 0;
+}
+
+
 // void* malloc(size_t size) {
 //     size = ((size + 3) & ~((size_t)0x3));
 //     return os_malloc(size);
@@ -324,122 +441,6 @@ double ICACHE_FLASH_ATTR strtod(const char* str, char** endptr) {
     }
     *endptr = (char*) str;
     return result * factor;
-}
-
-// ##########################################################################
-//                             ctype functions
-// ##########################################################################
-
-int isalnum(int c) {
-    if(isalpha(c) || isdigit(c)) {
-        return 1;
-    }
-    return 0;
-}
-
-int isalpha(int c) {
-    if(islower(c) || isupper(c)) {
-        return 1;
-    }
-    return 0;
-}
-
-int iscntrl(int c) {
-    if(c <= 0x1F || c == 0x7F) {
-        return 1;
-    }
-    return 0;
-}
-
-int isdigit(int c) {
-    if(c >= '0' && c <= '9') {
-        return 1;
-    }
-    return 0;
-}
-
-int isgraph(int c) {
-    if(isprint(c) && c != ' ') {
-        return 1;
-    }
-    return 0;
-}
-
-// int islower(int c) {
-//     if(c >= 'a' && c <= 'z') {
-//         return 1;
-//     }
-//     return 0;
-// }
-
-int isprint(int c) {
-    if(!iscntrl(c)) {
-        return 1;
-    }
-    return 0;
-}
-
-int ispunct(int c) {
-    if(isgraph(c) && !isalnum(c)) {
-        return 1;
-    }
-    return 0;
-}
-
-int isspace(int c) {
-    switch(c) {
-        case 0x20: // ' '
-        case 0x09: // '\t'
-        case 0x0a: // '\n'
-        case 0x0b: // '\v'
-        case 0x0c: // '\f'
-        case 0x0d: // '\r'
-            return 1;
-    }
-    return 0;
-}
-
-int isupper(int c) {
-    if(c >= 'A' && c <= 'Z') {
-        return 1;
-    }
-    return 0;
-}
-
-// int isxdigit(int c) {
-//     if(c >= 'A' && c <= 'F') {
-//         return 1;
-//     }
-//     if(c >= 'a' && c <= 'f') {
-//         return 1;
-//     }
-//     if(isdigit(c)) {
-//         return 1;
-//     }
-//     return 0;
-// }
-
-int tolower(int c) {
-    if(isupper(c)) {
-        c += 0x20;
-    }
-    return c;
-}
-
-int toupper(int c) {
-    if(islower(c)) {
-        c -= 0x20;
-    }
-    return c;
-}
-
-int isblank(int c) {
-    switch(c) {
-        case 0x20: // ' '
-        case 0x09: // '\t'
-            return 1;
-    }
-    return 0;
 }
 
 // ##########################################################################
