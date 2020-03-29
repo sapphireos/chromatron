@@ -89,6 +89,11 @@ void coproc_v_dispatch(
 		retval = io_b_digital_read( params[0] );
 		memcpy( response, &retval, sizeof(retval) );
 	}
+	else if( hdr->opcode == OPCODE_IO_READ_ADC ){
+
+		retval = adc_u16_read_mv( params[0] );
+		memcpy( response, &retval, sizeof(retval) );
+	}
     else{
 
         ASSERT( FALSE );

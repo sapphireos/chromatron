@@ -49,7 +49,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_GET_MODE			0x11
 #define OPCODE_IO_DIGITAL_WRITE		0x12
 #define OPCODE_IO_DIGITAL_READ		0x13
-
+#define OPCODE_IO_READ_ADC			0x14
 
 #define RESPONSE_OK	 				0xF0
 #define RESPONSE_ERR				0xF1
