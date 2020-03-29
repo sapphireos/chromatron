@@ -45,27 +45,13 @@ static void receive_block( uint8_t *data, uint8_t len ){
 // 	return crc_u16_block( (uint8_t *)hdr, sizeof(coproc_hdr_t) + hdr->length );
 // }
 
-// process a message
-// assumes CRC is valid
-void coproc_v_dispatch( 
-	coproc_hdr_t *hdr, 
-	const uint8_t *data,
-	uint8_t *response_len,
-	uint8_t response[COPROC_BUF_SIZE] ){
+void coproc_v_parity_check( coproc_block_t *block ){
 
-	uint8_t len = hdr->length;
-
-	if( hdr->opcode == OPCODE_TEST ){
-
-		memcpy( response, data, len );
-		*response_len = len;
-	}
-	else{
-
-		ASSERT( FALSE );
-	}
 }
 
+void coproc_v_parity_generate( coproc_block_t *block ){
+	
+}
 
 
 uint8_t coproc_u8_issue( 
@@ -123,8 +109,8 @@ void coproc_v_test( void ){
 
 	ASSERT( response_len == sizeof(data) );
 	ASSERT( response[0] == 1 );
-	ASSERT( response[1] == 1 );
-	ASSERT( response[2] == 1 );
-	ASSERT( response[3] == 1 );
+	ASSERT( response[1] == 2 );
+	ASSERT( response[2] == 3 );
+	ASSERT( response[3] == 4 );
 }
 

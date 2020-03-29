@@ -25,9 +25,10 @@
 
 #define UART_CHANNEL 0
 
+#define COPROC_BLOCK_LEN 4
 
 typedef struct __attribute__((packed)){
-	uint8_t data[4];
+	uint8_t data[COPROC_BLOCK_LEN];
 	uint8_t parity[3];
 } coproc_block_t;
 
@@ -49,10 +50,14 @@ typedef struct __attribute__((packed)){
 #define RESPONSE_OK	 				0xF0
 #define RESPONSE_ERR				0xF1
 
-void coproc_v_dispatch( 
-	coproc_hdr_t *hdr, 
-	const uint8_t *data,
-	uint8_t *response_len,
-	uint8_t response[COPROC_BUF_SIZE] );
+void coproc_v_parity_check( coproc_block_t *block );
+void coproc_v_parity_generate( coproc_block_t *block );
+
+
+// void coproc_v_dispatch( 
+// 	coproc_hdr_t *hdr, 
+// 	const uint8_t *data,
+// 	uint8_t *response_len,
+// 	uint8_t response[COPROC_BUF_SIZE] );
 
 #endif

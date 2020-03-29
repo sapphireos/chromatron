@@ -30,19 +30,52 @@
 #include "app.h"
 
 
-static void receive( void *buf, uint8_t len ){
+static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
-    if( hal_wifi_i8_usart_receive( buf, len, 10000000 ) < 0 ){
+    coproc_block_t block;
+    if( hal_wifi_i8_usart_receive( (uint8_t *)&block, sizeof(block), 10000000 ) < 0 ){
 
         // timeout, fatal error
         sys_reboot();
     }
+
+    coproc_v_parity_check( &block );
+
+    memcpy( data, block.data, COPROC_BLOCK_LEN );
 }
 
-static void send( void *buf, uint8_t len ){
+static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
-    hal_wifi_v_usart_send_data( buf, len );    
+    coproc_block_t block;
+    memcpy( block.data, data, COPROC_BLOCK_LEN );
+
+    coproc_v_parity_generate( &block );
+
+    hal_wifi_v_usart_send_data( (uint8_t *)&block, sizeof(block) );    
 }
+
+
+// process a message
+// assumes CRC is valid
+void coproc_v_dispatch( 
+    coproc_hdr_t *hdr, 
+    const uint8_t *data,
+    uint8_t *response_len,
+    uint8_t response[COPROC_BUF_SIZE] ){
+
+    uint8_t len = hdr->length;
+
+    if( hdr->opcode == OPCODE_TEST ){
+
+        memcpy( response, data, len );
+        *response_len = len;
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+}
+
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
@@ -71,37 +104,43 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
-        coproc_block_t block;
-        receive( &block, sizeof(block) );
-
-        coproc_hdr_t *hdr = (coproc_hdr_t *)block.data;
+        coproc_hdr_t hdr;
+        receive_block( (uint8_t *)&hdr );
 
         uint8_t buf[COPROC_BUF_SIZE];
 
-        uint8_t n_blocks = 1 + ( hdr->length - 1 ) / 4;
+        uint8_t n_blocks = 1 + ( hdr.length - 1 ) / 4;
         uint8_t i = 0;
         while( n_blocks > 0 ){
             
-            receive( &block, sizeof(block) );
-            
-            buf[i + 0] = block.data[i + 0];           
-            buf[i + 1] = block.data[i + 1];           
-            buf[i + 2] = block.data[i + 2];           
-            buf[i + 3] = block.data[i + 3];           
+            receive_block( &buf[i] );
+                
+            n_blocks--;
 
-            i += 4;
+            i += COPROC_BLOCK_LEN;
         }
 
         uint8_t response[COPROC_BUF_SIZE];
         uint8_t response_len = 0;
 
         // run command
-        coproc_v_dispatch( hdr, buf, &response_len, response );
+        coproc_v_dispatch( &hdr, buf, &response_len, response );
 
-        hdr->length = response_len;
+        hdr.length = response_len;
 
-        send( hdr, sizeof(coproc_hdr_t) );
-        send( response, response_len );
+        send_block( (uint8_t *)&hdr );
+
+        int16_t data_len = response_len;
+        i = 0;
+        while( data_len > 0 ){
+
+            send_block( &response[i] );    
+            
+            i += COPROC_BLOCK_LEN;
+            data_len -= COPROC_BLOCK_LEN;
+        }
+
+        
     }
 
 PT_END( pt );	
