@@ -108,7 +108,11 @@ int8_t sys_kv_reboot_handler(
             switch( mode ){
 
                 case SYS_REBOOT_SAFE:
+                    #ifndef DISABLE_SAFE_MODE
                     sys_v_reboot_delay( SYS_MODE_SAFE );
+                    #else
+                    sys_v_reboot_delay( SYS_MODE_NORMAL );
+                    #endif
                     break;
 
                 case SYS_REBOOT_LOADFW:
@@ -233,8 +237,12 @@ void sys_v_init( void ){
 	// check if there was reset not caused by a commanded reboot
 	else if( boot_data.boot_mode != BOOT_MODE_REBOOT ){
 
+        #ifndef DISABLE_SAFE_MODE
         sys_mode = SYS_MODE_SAFE;
-	}
+	    #else
+        sys_mode = SYS_MODE_NORMAL;
+        #endif
+    }
     else{
 
        sys_mode = SYS_MODE_NORMAL;
@@ -259,7 +267,9 @@ void sys_v_check_io_for_safe_mode( void ){
 
     if( io_b_button_down() ){
 
+        #ifndef DISABLE_SAFE_MODE
         sys_mode = SYS_MODE_SAFE;
+        #endif
     }
 }
 
@@ -279,7 +289,9 @@ void sys_v_check_recovery_mode( void ){
     #ifndef DISABLE_RECOVERY_MODE
     if( sys_b_is_recovery_mode() ){
 
-        sys_mode = SYS_MODE_SAFE;    
+        #ifndef DISABLE_SAFE_MODE
+        sys_mode = SYS_MODE_SAFE;
+        #endif    
     }   
 
     thread_t_create( THREAD_CAST(sys_reset_recovery_thread),

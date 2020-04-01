@@ -44,6 +44,7 @@
 // #define ENABLE_WIFI_USB_LOADER
 #define ENABLE_ESP_UPGRADE_LOADER
 
+#define DISABLE_SAFE_MODE
 
 // recovery mode
 #define DISABLE_RECOVERY_MODE
