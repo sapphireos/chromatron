@@ -26,17 +26,50 @@
 
 #include "hal_usart.h"
 
+#ifdef AVR
+#include "hal_esp8266.h"
+#endif
+
 static coproc_hdr_t rx_hdr;
 static uint8_t rx_buf[COPROC_BUF_SIZE];
 
 
-static void receive_block( uint8_t *data, uint8_t len ){
+static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
+	coproc_block_t block;
+	
+	block.data[0] = data[0];
+	block.data[1] = data[1];
+	block.data[2] = data[2];
+	block.data[3] = data[3];	
+
+	#ifdef ESP8266
+	usart_v_send_data( UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
+	#else
+	hal_wifi_v_usart_send_data( (uint8_t *)&block, sizeof(block) );
+	#endif
+}
+
+static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
+
+	coproc_block_t block;
+	uint8_t *rx_data = (uint8_t *)&block;
+	uint8_t len = sizeof(block);
+
+	#ifdef ESP8266
 	while( len > 0 ){
 
-		*data++ = usart_i16_get_byte( UART_CHANNEL );
+		*rx_data++ = usart_i16_get_byte( UART_CHANNEL );
 		len--;
 	}
+	#else
+	hal_wifi_i8_usart_receive( rx_data, len, 10000000 );
+	#endif
+
+	data[0] = block.data[0];
+	data[1] = block.data[1];
+	data[2] = block.data[2];
+	data[3] = block.data[3];
 }
 
 static void flush( void ){
@@ -44,11 +77,6 @@ static void flush( void ){
 	while( usart_i16_get_byte( UART_CHANNEL ) >= 0 );
 }
 
-
-// uint16_t coproc_v_crc( coproc_hdr_t *hdr ){
-
-// 	return crc_u16_block( (uint8_t *)hdr, sizeof(coproc_hdr_t) + hdr->length );
-// }
 
 void coproc_v_sync( void ){
 
@@ -142,23 +170,36 @@ uint8_t coproc_u8_issue(
 	hdr.length 	= len;
 	hdr.padding = 0;
 
-	usart_v_send_data( UART_CHANNEL, (uint8_t *)&hdr, sizeof(hdr) );
-	usart_v_send_data( UART_CHANNEL, data, len );
+	send_block( (uint8_t *)&hdr );
 
+	while( len > 0 ){
+
+		send_block( data );
+
+		data += COPROC_BLOCK_LEN;
+		len -= COPROC_BLOCK_LEN;
+	}
+
+	memset( &hdr, 0, sizeof(hdr) );
 
 	// wait for response
 	// note there is no timeout.
 	// if the coprocessor does not respond, the system is broken.
 
 	// wait for header
-	while( usart_u8_bytes_available( UART_CHANNEL ) < sizeof(hdr) );
-
-	// receive header
-	receive_block( (uint8_t *)&rx_hdr, sizeof(rx_hdr) );
-
-	ASSERT( rx_hdr.length < sizeof(rx_buf) );
+	receive_block( (uint8_t *)&hdr );
 	
-	receive_block( &rx_buf[sizeof(rx_hdr)], rx_hdr.length );	
+	ASSERT( rx_hdr.length < sizeof(rx_buf) );
+		
+	data = rx_buf;
+	len = rx_hdr.length;
+	while( len > 0 ){
+
+		receive_block( data );
+
+		data += COPROC_BLOCK_LEN;
+		len -= COPROC_BLOCK_LEN;
+	}
 
 	*rx_data = rx_buf;
 
