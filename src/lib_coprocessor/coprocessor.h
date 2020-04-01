@@ -72,8 +72,7 @@ void coproc_v_dispatch(
 uint8_t coproc_u8_issue( 
 	uint8_t opcode, 
 	uint8_t *data, 
-	uint8_t len,
-	uint8_t **rx_data );
+	uint8_t len );
 
 void coproc_v_test( void );
 

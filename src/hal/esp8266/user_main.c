@@ -146,19 +146,19 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
-    system_set_os_print( 0 );
+    // system_set_os_print( 0 );
 
     uart_init(115200, 115200);
 
     os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
 
     register uint32_t *sp asm("a1");
-    os_printf("0x%08x\r\n", sp);
+    // os_printf("0x%08x\r\n", sp);
 
     uint8_t *stack_start = (uint8_t *)( (uint32_t)sp - 64 );
     uint8_t *stack_end = (uint8_t *)( 0x40000000 - MEM_MAX_STACK );
 
-    os_printf("0x%08x -> 0x%08x\r\n", stack_start, stack_end);
+    // os_printf("0x%08x -> 0x%08x\r\n", stack_start, stack_end);
 
     uint8_t *ptr = stack_start;
     while( ptr >= stack_end ){

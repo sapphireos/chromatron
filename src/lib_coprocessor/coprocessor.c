@@ -160,8 +160,7 @@ void coproc_v_dispatch(
 uint8_t coproc_u8_issue( 
 	uint8_t opcode, 
 	uint8_t *data, 
-	uint8_t len,
-	uint8_t **rx_data ){
+	uint8_t len ){
 
 	coproc_hdr_t hdr;
 
@@ -201,8 +200,6 @@ uint8_t coproc_u8_issue(
 		len -= COPROC_BLOCK_LEN;
 	}
 
-	*rx_data = rx_buf;
-
 	return rx_hdr.length;
 }
 
@@ -210,7 +207,7 @@ uint8_t coproc_u8_issue(
 void coproc_v_test( void ){
 
 	uint8_t response_len;
-	uint8_t *response;
+	uint8_t *response = rx_buf;
 
 	uint8_t data[4];
 	data[0] = 1;
@@ -218,7 +215,7 @@ void coproc_v_test( void ){
 	data[2] = 3;
 	data[3] = 4;
 
-	response_len = coproc_u8_issue( OPCODE_TEST, data, sizeof(data), &response );
+	response_len = coproc_u8_issue( OPCODE_TEST, data, sizeof(data) );
 
 	ASSERT( response_len == sizeof(data) );
 	ASSERT( response[0] == 1 );
@@ -232,11 +229,9 @@ int64_t coproc_i64_call0( uint8_t opcode ){
 
 	int64_t retval = 0;
 
-	uint8_t *rx_data;
+	coproc_u8_issue( opcode, 0, 0 );
 
-	coproc_u8_issue( opcode, 0, 0, &rx_data );
-
-	retval = *(int64_t *)rx_data;
+	retval = *(int64_t *)rx_buf;
 
 	return retval;
 }
@@ -245,13 +240,12 @@ int64_t coproc_i64_call1( uint8_t opcode, int64_t param0 ){
 
 	int64_t retval = 0;
 
-	uint8_t *rx_data;
 	int64_t param_buf[1];
 	param_buf[0] = param0;
 
-	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf), &rx_data );
+	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int64_t *)rx_data;
+	retval = *(int64_t *)rx_buf;
 
 	return retval;
 }
@@ -260,14 +254,13 @@ int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 ){
 
 	int64_t retval = 0;
 
-	uint8_t *rx_data;
 	int64_t param_buf[2];
 	param_buf[0] = param0;
 	param_buf[1] = param0;
 
-	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf), &rx_data );
+	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int64_t *)rx_data;
+	retval = *(int64_t *)rx_buf;
 
 	return retval;
 }
@@ -276,16 +269,15 @@ int64_t coproc_i64_call3( uint8_t opcode, int64_t param0, int64_t param1, int64_
 
 	int64_t retval = 0;
 
-	uint8_t *rx_data;
+
 	int64_t param_buf[3];
 	param_buf[0] = param0;
 	param_buf[1] = param0;
 	param_buf[2] = param0;
 
-	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf), &rx_data );
+	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int64_t *)rx_data;
-
+	retval = *(int64_t *)rx_buf;
 
 	return retval;
 }

@@ -82,7 +82,7 @@ PT_BEGIN( pt );
     TMR_WAIT( pt, 2000 );
 
     hal_wifi_v_usart_flush();
-
+return;
     // wait for sync
     while( hal_wifi_i16_usart_get_char() != COPROC_SYNC );
     // if we don't get a sync, the watchdog timer will restart the entire system.
