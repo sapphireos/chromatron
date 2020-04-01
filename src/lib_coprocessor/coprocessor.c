@@ -42,7 +42,7 @@ static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	block.data[0] = data[0];
 	block.data[1] = data[1];
 	block.data[2] = data[2];
-	block.data[3] = data[3];	
+	block.data[3] = data[3];
 
 	#ifdef ESP8266
 	usart_v_send_data( UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
@@ -59,6 +59,9 @@ static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 	#ifdef ESP8266
 	while( len > 0 ){
+
+		// wait for data
+		while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
 
 		*rx_data++ = usart_i16_get_byte( UART_CHANNEL );
 		len--;
@@ -166,7 +169,7 @@ uint8_t coproc_u8_issue(
 	uint8_t len ){
 
 	if( !sync ){
-		
+
 		return 0;
 	}
 
