@@ -193,11 +193,13 @@ void status_led_v_init( void ){
 
     enabled = TRUE;
 
+    #ifndef ENABLE_COPROCESSOR
     thread_t_create( status_led_thread,
                      PSTR("status_led"),
                      0,
                      0 );
-
+    #endif
+    
     reset_all();
 }
 
