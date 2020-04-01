@@ -447,7 +447,7 @@ void hal_wifi_v_enter_normal_mode( void ){
     usart_v_set_double_speed( &WIFI_USART, TRUE );
     usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
 
-    // enable_rx_dma();
+    enable_rx_dma();
 }
 
 
