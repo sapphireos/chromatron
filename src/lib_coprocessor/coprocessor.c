@@ -39,11 +39,37 @@ static void receive_block( uint8_t *data, uint8_t len ){
 	}
 }
 
+static void flush( void ){
+
+	while( usart_i16_get_byte( UART_CHANNEL ) >= 0 );
+}
+
 
 // uint16_t coproc_v_crc( coproc_hdr_t *hdr ){
 
 // 	return crc_u16_block( (uint8_t *)hdr, sizeof(coproc_hdr_t) + hdr->length );
 // }
+
+void coproc_v_sync( void ){
+
+	flush();
+
+	int16_t byte = -1;
+
+	while( byte != COPROC_SYNC ){
+
+		usart_v_send_byte( UART_CHANNEL, COPROC_SYNC );
+
+		uint32_t start_time = tmr_u32_get_system_time_ms();
+
+		do{
+
+			byte = usart_i16_get_byte( UART_CHANNEL );
+
+		} while( ( byte != COPROC_SYNC ) &&
+			     ( tmr_u32_elapsed_time_ms( start_time ) < 50 ) );
+	}
+}
 
 void coproc_v_parity_check( coproc_block_t *block ){
 

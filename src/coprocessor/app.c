@@ -74,7 +74,20 @@ PT_BEGIN( pt );
 
     hal_wifi_v_enter_normal_mode();
 
+    // wait for module to boot up
+    TMR_WAIT( pt, 2000 );
 
+    hal_wifi_v_usart_flush();
+
+    // wait for sync
+    while( hal_wifi_i16_usart_get_char() != COPROC_SYNC );
+    // if we don't get a sync, the watchdog timer will restart the entire system.
+
+    // send confirmation
+    hal_wifi_v_usart_send_char( COPROC_SYNC );
+    
+    
+    // main message loop
     while(1){
 
         THREAD_YIELD( pt );

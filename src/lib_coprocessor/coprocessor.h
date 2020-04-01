@@ -33,6 +33,8 @@ typedef struct __attribute__((packed)){
 } coproc_block_t;
 
 
+#define COPROC_SYNC		0x56
+
 #define COPROC_SOF		0x17
 
 typedef struct __attribute__((packed)){
@@ -54,6 +56,8 @@ typedef struct __attribute__((packed)){
 #define RESPONSE_OK	 				0xF0
 #define RESPONSE_ERR				0xF1
 
+
+void coproc_v_sync( void );
 
 void coproc_v_parity_check( coproc_block_t *block );
 void coproc_v_parity_generate( coproc_block_t *block );

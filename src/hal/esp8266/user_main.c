@@ -7,6 +7,10 @@
 #include "sapphire.h"
 #include "threading.h"
 
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
+
 #ifndef BOOTLOADER
 
 static os_timer_t ptimer;
@@ -187,13 +191,18 @@ void ICACHE_FLASH_ATTR user_init(void)
     }
 
 
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 4000000 );
+    // usart_v_init( 0 );
+    // usart_v_set_baud( 0, 4000000 );
     
     // start OS
     // on the ESP8266 this will return
     sapphire_run();
-  
+    
+    #ifdef ENABLE_COPROCESSOR
+    coproc_v_sync();    
+    #endif
+
+
     //Start os task
     system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
     system_os_post(LOOP_PRIO, 0, 0 );    
