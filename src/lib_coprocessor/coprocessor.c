@@ -33,6 +33,7 @@
 static coproc_hdr_t rx_hdr;
 static uint8_t rx_buf[COPROC_BUF_SIZE];
 
+static bool sync;
 
 static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
@@ -97,6 +98,8 @@ void coproc_v_sync( void ){
 		} while( ( byte != COPROC_SYNC ) &&
 			     ( tmr_u32_elapsed_time_ms( start_time ) < 50 ) );
 	}
+
+	sync = TRUE;
 }
 
 void coproc_v_parity_check( coproc_block_t *block ){
@@ -161,6 +164,11 @@ uint8_t coproc_u8_issue(
 	uint8_t opcode, 
 	uint8_t *data, 
 	uint8_t len ){
+
+	if( !sync ){
+		
+		return 0;
+	}
 
 	coproc_hdr_t hdr;
 

@@ -146,7 +146,7 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
-    // system_set_os_print( 0 );
+    system_set_os_print( 0 );
 
     uart_init(115200, 115200);
 
@@ -191,17 +191,16 @@ void ICACHE_FLASH_ATTR user_init(void)
     }
 
 
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 115200 );
-    
     // start OS
     // on the ESP8266 this will return
     sapphire_run();
-    
-    #ifdef ENABLE_COPROCESSOR
-    coproc_v_sync();    
-    #endif
 
+    #ifdef ENABLE_COPROCESSOR
+    usart_v_init( 0 );
+    usart_v_set_baud( 0, 115200 );
+
+    coproc_v_sync();    
+    #endif    
 
     //Start os task
     system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
