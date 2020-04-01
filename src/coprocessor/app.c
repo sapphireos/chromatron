@@ -74,6 +74,10 @@ PT_BEGIN( pt );
 
     hal_wifi_v_enter_normal_mode();
 
+    // reset baud rate
+    usart_v_set_double_speed( &WIFI_USART, FALSE );
+    usart_v_set_baud( &WIFI_USART, BAUD_115200 );
+
     // wait for module to boot up
     TMR_WAIT( pt, 2000 );
 
@@ -85,8 +89,8 @@ PT_BEGIN( pt );
 
     // send confirmation
     hal_wifi_v_usart_send_char( COPROC_SYNC );
-    
-    
+
+
     // main message loop
     while(1){
 
@@ -142,7 +146,7 @@ void app_v_init( void ){
 
     #ifndef ENABLE_WIFI
     thread_t_create( app_thread,
-                     PSTR("app"),
+                     PSTR("coprocessor"),
                      0,
                      0 );
     #endif

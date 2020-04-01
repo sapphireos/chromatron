@@ -33,7 +33,7 @@ typedef struct __attribute__((packed)){
 } coproc_block_t;
 
 
-#define COPROC_SYNC		0x56
+#define COPROC_SYNC		0xB9
 
 #define COPROC_SOF		0x17
 
