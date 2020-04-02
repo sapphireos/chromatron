@@ -177,6 +177,10 @@ void coproc_v_dispatch(
 		ffs_fw_i32_write( 0, fw_addr, data, len );
 		fw_addr += len;
 	}	
+	else if( hdr->opcode == OPCODE_IO_FW_BOOTLOAD ){
+		
+		sys_v_reboot_delay( SYS_REBOOT_LOADFW );
+	}	
     else{
 
         ASSERT( FALSE );
@@ -268,9 +272,40 @@ void coproc_v_fw_erase( void ){
 	coproc_i32_call0( OPCODE_IO_FW_ERASE );	
 }
 
-void coproc_v_fw_load( uint8_t *data, uint8_t len ){
+void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
-	coproc_u8_issue( OPCODE_IO_FW_LOAD, data, len );	
+	// this will load an entire image
+
+	// check CRC
+	uint16_t remote_crc = coproc_u16_fw_crc();
+	uint16_t local_crc = crc_u16_block( data, len - sizeof(uint16_t) );
+
+	if( remote_crc == local_crc ){
+
+		return;
+	}
+
+	coproc_v_fw_erase();
+
+	while( len > 0 ){
+
+		uint8_t copy_len = 32;
+		if( copy_len > len ){
+
+			copy_len = len;
+		}
+
+		coproc_u8_issue( OPCODE_IO_FW_LOAD, data, copy_len );
+		data += copy_len;
+		len -= copy_len;
+	}
+
+	coproc_v_fw_bootload();
+}
+
+void coproc_v_fw_bootload( void ){
+
+	coproc_i32_call0( OPCODE_IO_FW_BOOTLOAD );	
 }
 
 

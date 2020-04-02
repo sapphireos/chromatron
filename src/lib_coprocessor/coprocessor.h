@@ -55,6 +55,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_FW_CRC			0x20
 #define OPCODE_IO_FW_ERASE			0x21
 #define OPCODE_IO_FW_LOAD			0x22
+#define OPCODE_IO_FW_BOOTLOAD		0x23
 
 
 
@@ -79,7 +80,8 @@ void coproc_v_test( void );
 
 uint16_t coproc_u16_fw_crc( void );
 void coproc_v_fw_erase( void );
-void coproc_v_fw_load( uint8_t *data, uint8_t len );
+void coproc_v_fw_load( uint8_t *data, uint32_t len );
+void coproc_v_fw_bootload( void );
 
 int32_t coproc_i32_call0( uint8_t opcode );
 int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 );
