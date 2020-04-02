@@ -52,9 +52,10 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_DIGITAL_WRITE		0x12
 #define OPCODE_IO_DIGITAL_READ		0x13
 #define OPCODE_IO_READ_ADC			0x14
+#define OPCODE_IO_FW_CRC			0x20
+#define OPCODE_IO_FW_ERASE			0x21
+#define OPCODE_IO_FW_LOAD			0x22
 
-#define RESPONSE_OK	 				0xF0
-#define RESPONSE_ERR				0xF1
 
 
 void coproc_v_sync( void );
@@ -76,10 +77,15 @@ uint8_t coproc_u8_issue(
 
 void coproc_v_test( void );
 
+uint16_t coproc_u16_fw_crc( void );
+void coproc_v_fw_erase( void );
+void coproc_v_fw_load( uint8_t *data, uint8_t len );
+
 int32_t coproc_i32_call0( uint8_t opcode );
 int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 );
 int32_t coproc_i32_call2( uint8_t opcode, int32_t param0, int32_t param1 );
 int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_t param2 );
+
 
 
 #endif

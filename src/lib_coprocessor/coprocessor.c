@@ -25,6 +25,7 @@
 #include "coprocessor.h"
 
 #include "hal_usart.h"
+#include "ffs_fw.h"
 
 #ifdef AVR
 #include "hal_esp8266.h"
@@ -118,6 +119,8 @@ void coproc_v_parity_generate( coproc_block_t *block ){
 }
 
 
+static uint32_t fw_addr;
+
 // process a message
 // assumes CRC is valid
 void coproc_v_dispatch( 
@@ -158,6 +161,22 @@ void coproc_v_dispatch(
 		retval = adc_u16_read_mv( params[0] );
 		memcpy( response, &retval, sizeof(retval) );
 	}
+	else if( hdr->opcode == OPCODE_IO_FW_CRC ){
+
+		retval = ffs_fw_u16_crc();
+		memcpy( response, &retval, sizeof(retval) );
+	}
+	else if( hdr->opcode == OPCODE_IO_FW_ERASE ){
+			
+		// immediate (non threaded) erase of main fw partition
+		ffs_fw_v_erase( 0, TRUE );
+		fw_addr = 0;
+	}
+	else if( hdr->opcode == OPCODE_IO_FW_LOAD ){
+		
+		ffs_fw_i32_write( 0, fw_addr, data, len );
+		fw_addr += len;
+	}	
     else{
 
         ASSERT( FALSE );
@@ -237,6 +256,21 @@ void coproc_v_test( void ){
 	ASSERT( response[1] == 2 );
 	ASSERT( response[2] == 3 );
 	ASSERT( response[3] == 4 );
+}
+
+uint16_t coproc_u16_fw_crc( void ){
+
+	return coproc_i32_call0( OPCODE_IO_FW_CRC );
+}
+
+void coproc_v_fw_erase( void ){
+	
+	coproc_i32_call0( OPCODE_IO_FW_ERASE );	
+}
+
+void coproc_v_fw_load( uint8_t *data, uint8_t len ){
+
+	coproc_u8_issue( OPCODE_IO_FW_LOAD, data, len );	
 }
 
 
