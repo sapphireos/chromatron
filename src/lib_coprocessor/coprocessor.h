@@ -35,7 +35,7 @@ typedef struct __attribute__((packed)){
 
 #define COPROC_SYNC		0xB9
 
-#define COPROC_SOF		0x17
+#define COPROC_SOF		0xE6
 
 typedef struct __attribute__((packed)){
 	uint8_t sof;

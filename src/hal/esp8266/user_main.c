@@ -102,18 +102,6 @@ void ICACHE_FLASH_ATTR user_pre_init(void)
 }
 
 
-void blinky(void *arg)
-{
-	static uint8_t state = 0;
-
-	if (state) {
-		GPIO_OUTPUT_SET(2, 1);
-	} else {
-		GPIO_OUTPUT_SET(2, 0);
-	}
-	state ^= 1;
-}
-
 #define LOOP_PRIO 1
 #define LOOP_QUEUE_LEN 4
 
@@ -124,15 +112,6 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
  
     thread_core();
 
-    // DO STUFF
-
-    // blinky(0);
-
-    // for(uint8_t i = 0; i < 10; i++){
-
-    //     os_delay_us(50000);    
-    // }
-    
     system_os_post(LOOP_PRIO, 0, 0 );
 }
  
@@ -195,6 +174,9 @@ void ICACHE_FLASH_ATTR user_init(void)
     // on the ESP8266 this will return
     sapphire_run();
 
+    // turn off LED
+    GPIO_OUTPUT_SET(2, 1);
+
     #ifdef ENABLE_COPROCESSOR
     usart_v_init( 0 );
     usart_v_set_baud( 0, 4000000 );
@@ -217,10 +199,6 @@ void ICACHE_FLASH_ATTR user_pre_init(void){
 void ICACHE_FLASH_ATTR user_init(void)
 {
   
-    // uart_init(115200, 115200);
-    // os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
- 
-    // PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
 }
 
 #endif
