@@ -127,8 +127,8 @@ void coproc_v_dispatch(
     uint8_t response[COPROC_BUF_SIZE] ){
 
     uint8_t len = hdr->length;
-    int64_t *params = (int64_t *)data;
-    int64_t retval = 0;
+    int32_t *params = (int32_t *)data;
+    int32_t retval = 0;
 
     if( hdr->opcode == OPCODE_TEST ){
 
@@ -240,59 +240,59 @@ void coproc_v_test( void ){
 }
 
 
-int64_t coproc_i64_call0( uint8_t opcode ){
+int32_t coproc_i32_call0( uint8_t opcode ){
 
-	int64_t retval = 0;
+	int32_t retval = 0;
 
 	coproc_u8_issue( opcode, 0, 0 );
 
-	retval = *(int64_t *)rx_buf;
+	retval = *(int32_t *)rx_buf;
 
 	return retval;
 }
 
-int64_t coproc_i64_call1( uint8_t opcode, int64_t param0 ){
+int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 ){
 
-	int64_t retval = 0;
+	int32_t retval = 0;
 
-	int64_t param_buf[1];
+	int32_t param_buf[1];
 	param_buf[0] = param0;
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int64_t *)rx_buf;
+	retval = *(int32_t *)rx_buf;
 
 	return retval;
 }
 
-int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 ){
+int32_t coproc_i32_call2( uint8_t opcode, int32_t param0, int32_t param1 ){
 
-	int64_t retval = 0;
+	int32_t retval = 0;
 
-	int64_t param_buf[2];
+	int32_t param_buf[2];
 	param_buf[0] = param0;
 	param_buf[1] = param1;
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int64_t *)rx_buf;
+	retval = *(int32_t *)rx_buf;
 
 	return retval;
 }
 
-int64_t coproc_i64_call3( uint8_t opcode, int64_t param0, int64_t param1, int64_t param2 ){
+int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_t param2 ){
 
-	int64_t retval = 0;
+	int32_t retval = 0;
 
 
-	int64_t param_buf[3];
+	int32_t param_buf[3];
 	param_buf[0] = param0;
 	param_buf[1] = param1;
 	param_buf[2] = param2;
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int64_t *)rx_buf;
+	retval = *(int32_t *)rx_buf;
 
 	return retval;
 }

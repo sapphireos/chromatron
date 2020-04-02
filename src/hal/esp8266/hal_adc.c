@@ -81,7 +81,7 @@ PT_END( pt );
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
     #ifdef ENABLE_COPROCESSOR
-    return coproc_i64_call1( OPCODE_IO_READ_ADC, channel );
+    return coproc_i32_call1( OPCODE_IO_READ_ADC, channel );
     #endif
 
 	return 0;

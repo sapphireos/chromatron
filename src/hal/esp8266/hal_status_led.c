@@ -95,7 +95,23 @@ PT_BEGIN( pt );
                 status_led_v_set( 0, STATUS_LED_BLUE );
             }
 
+            #ifdef ENABLE_TIMESYNC
+            if( time_b_is_local_sync() ){
+
+                uint32_t net_time = time_u32_get_network_time();
+
+                if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) == 0 ){
+
+                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
+                }
+            }
+            else{
+
+                TMR_WAIT( pt, 500 );
+            }
+            #else
             TMR_WAIT( pt, 500 );
+            #endif
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -109,11 +125,53 @@ PT_BEGIN( pt );
                     status_led_v_set( 1, STATUS_LED_BLUE );
                 }
             }
-        
+            #ifdef ENABLE_TIMESYNC
+            if( time_b_is_local_sync() ){
+
+                uint32_t net_time = time_u32_get_network_time();
+
+                if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) != 0 ){
+
+                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
+                }
+            }
+            else{
+
+                TMR_WAIT( pt, 500 );
+            }
+            #else
             TMR_WAIT( pt, 500 );
+            #endif
         }
         #endif
         else{
+
+            #ifdef ENABLE_COPROCESSOR
+
+            status_led_v_set( 0, STATUS_LED_GREEN );
+
+            TMR_WAIT( pt, 500 );
+
+            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
+                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
+
+                status_led_v_set( 1, STATUS_LED_GREEN );
+            }
+
+            TMR_WAIT( pt, 500 );
+
+            if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
+            
+                status_led_v_set( 0, STATUS_LED_RED );
+
+                TMR_WAIT( pt, 500 );
+
+                status_led_v_set( 1, STATUS_LED_RED );
+
+                TMR_WAIT( pt, 500 );
+            }
+
+            #else
 
             status_led_v_set( 0, STATUS_LED_GREEN );
 
@@ -138,6 +196,8 @@ PT_BEGIN( pt );
             }
 
             TMR_WAIT( pt, 1000 );
+
+            #endif
 
             #ifdef ENABLE_WIFI
             if( wifi_i8_get_status() == WIFI_STATE_ERROR ){

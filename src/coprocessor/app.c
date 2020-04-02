@@ -75,8 +75,8 @@ PT_BEGIN( pt );
     hal_wifi_v_enter_normal_mode();
 
     // reset baud rate
-    usart_v_set_double_speed( &WIFI_USART, FALSE );
-    usart_v_set_baud( &WIFI_USART, BAUD_115200 );
+    // usart_v_set_double_speed( &WIFI_USART, FALSE );
+    // usart_v_set_baud( &WIFI_USART, BAUD_115200 );
 
     TMR_WAIT( pt, 4000 );
 

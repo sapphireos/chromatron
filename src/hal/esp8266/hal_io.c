@@ -48,7 +48,7 @@ uint8_t io_u8_get_board_rev( void ){
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 
 	#ifdef ENABLE_COPROCESSOR
-	coproc_i64_call2( OPCODE_IO_SET_MODE, pin, mode );
+	coproc_i32_call2( OPCODE_IO_SET_MODE, pin, mode );
 	#endif
 }
 
@@ -56,21 +56,21 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 io_mode_t8 io_u8_get_mode( uint8_t pin ){
 	
 	#ifdef ENABLE_COPROCESSOR
-	coproc_i64_call1( OPCODE_IO_GET_MODE, pin );
+	coproc_i32_call1( OPCODE_IO_GET_MODE, pin );
 	#endif
 }
 
 void io_v_digital_write( uint8_t pin, bool state ){
 
 	#ifdef ENABLE_COPROCESSOR
-	coproc_i64_call2( OPCODE_IO_DIGITAL_WRITE, pin, state );
+	coproc_i32_call2( OPCODE_IO_DIGITAL_WRITE, pin, state );
 	#endif
 }
 
 bool io_b_digital_read( uint8_t pin ){
     	
     #ifdef ENABLE_COPROCESSOR
-	return coproc_i64_call1( OPCODE_IO_DIGITAL_READ, pin );
+	return coproc_i32_call1( OPCODE_IO_DIGITAL_READ, pin );
 	#endif
 
     return FALSE;

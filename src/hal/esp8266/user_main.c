@@ -197,7 +197,7 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     #ifdef ENABLE_COPROCESSOR
     usart_v_init( 0 );
-    usart_v_set_baud( 0, 115200 );
+    usart_v_set_baud( 0, 4000000 );
 
     coproc_v_sync();    
     #endif    

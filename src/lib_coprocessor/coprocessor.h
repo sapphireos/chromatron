@@ -76,10 +76,10 @@ uint8_t coproc_u8_issue(
 
 void coproc_v_test( void );
 
-int64_t coproc_i64_call0( uint8_t opcode );
-int64_t coproc_i64_call1( uint8_t opcode, int64_t param0 );
-int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 );
-int64_t coproc_i64_call3( uint8_t opcode, int64_t param0, int64_t param1, int64_t param2 );
+int32_t coproc_i32_call0( uint8_t opcode );
+int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 );
+int32_t coproc_i32_call2( uint8_t opcode, int32_t param0, int32_t param1 );
+int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_t param2 );
 
 
 #endif
