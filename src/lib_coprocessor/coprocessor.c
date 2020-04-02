@@ -44,6 +44,10 @@ static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	block.data[2] = data[2];
 	block.data[3] = data[3];
 
+	block.parity[0] = 0xff;
+	block.parity[1] = 0xff;
+	block.parity[2] = 0xff;
+
 	#ifdef ESP8266
 	usart_v_send_data( UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
 	#else
@@ -267,7 +271,7 @@ int64_t coproc_i64_call2( uint8_t opcode, int64_t param0, int64_t param1 ){
 
 	int64_t param_buf[2];
 	param_buf[0] = param0;
-	param_buf[1] = param0;
+	param_buf[1] = param1;
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
@@ -283,8 +287,8 @@ int64_t coproc_i64_call3( uint8_t opcode, int64_t param0, int64_t param1, int64_
 
 	int64_t param_buf[3];
 	param_buf[0] = param0;
-	param_buf[1] = param0;
-	param_buf[2] = param0;
+	param_buf[1] = param1;
+	param_buf[2] = param2;
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 

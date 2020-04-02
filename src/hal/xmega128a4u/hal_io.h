@@ -54,7 +54,12 @@ uint8_t io_u8_get_pin( uint8_t pin );
 #define IO_PIN_PWM_1        9 // PC1
 #define IO_PIN_PWM_2        10 // PC2
 #define IO_PIN_PWM_3        11 // PC3
-#define IO_PIN_COUNT        12
+
+#define IO_PIN_LED_RED      12 // PC4
+#define IO_PIN_LED_GREEN    13 // PD5
+#define IO_PIN_LED_BLUE     14 // PD4
+
+#define IO_PIN_COUNT        15
 
 #define IO_PIN0_PORT        PORTA
 #define IO_PIN0_PINCTRL     PIN4CTRL
@@ -92,6 +97,15 @@ uint8_t io_u8_get_pin( uint8_t pin );
 #define IO_PWM3_PORT        PORTC
 #define IO_PWM3_PINCTRL     PIN3CTRL
 #define IO_PWM3_PIN         3
+#define IO_LED_RED_PORT     PORTC
+#define IO_LED_RED_PINCTRL  PIN4CTRL
+#define IO_LED_RED_PIN      4
+#define IO_LED_GREEN_PORT    PORTD
+#define IO_LED_GREEN_PINCTRL PIN5CTRL
+#define IO_LED_GREEN_PIN     5
+#define IO_LED_BLUE_PORT    PORTD
+#define IO_LED_BLUE_PINCTRL PIN4CTRL
+#define IO_LED_BLUE_PIN     4
 
 
 

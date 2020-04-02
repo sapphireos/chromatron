@@ -177,6 +177,18 @@ io_port_t* io_p_get_port( uint8_t pin ){
             return &IO_PWM3_PORT;
             break;
 
+        case IO_PIN_LED_RED:
+            return &IO_LED_RED_PORT;
+            break;
+
+        case IO_PIN_LED_GREEN:
+            return &IO_LED_GREEN_PORT;
+            break;
+
+        case IO_PIN_LED_BLUE:
+            return &IO_LED_BLUE_PORT;
+            break;
+
         default:
             return &IO_PIN0_PORT;
             break;
@@ -233,6 +245,18 @@ uint8_t io_u8_get_pin( uint8_t pin ){
 
         case IO_PIN_PWM_3:
             return IO_PWM3_PIN;
+            break;
+
+        case IO_PIN_LED_RED:
+            return IO_LED_RED_PIN;
+            break;
+
+        case IO_PIN_LED_GREEN:
+            return IO_LED_GREEN_PIN;
+            break;
+
+        case IO_PIN_LED_BLUE:
+            return IO_LED_BLUE_PIN;
             break;
 
         default:
@@ -307,7 +331,22 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
             port = &IO_PWM3_PORT;
             pin_mask = IO_PWM3_PIN;
             break;
-        
+
+        case IO_PIN_LED_RED:
+            port = &IO_LED_RED_PORT;
+            pin_mask = IO_LED_RED_PIN;
+            break;
+
+        case IO_PIN_LED_GREEN:
+            port = &IO_LED_GREEN_PORT;
+            pin_mask = IO_LED_GREEN_PIN;
+            break;
+
+        case IO_PIN_LED_BLUE:
+            port = &IO_LED_BLUE_PORT;
+            pin_mask = IO_LED_BLUE_PIN;
+            break;
+
         default:
             return;
             break;
@@ -448,6 +487,22 @@ io_mode_t8 io_u8_get_mode( uint8_t pin ){
             port = &IO_PWM3_PORT;
             pin_mask = IO_PWM3_PIN;
             break;
+
+        case IO_PIN_LED_RED:
+            port = &IO_LED_RED_PORT;
+            pin_mask = IO_LED_RED_PIN;
+            break;
+
+        case IO_PIN_LED_GREEN:
+            port = &IO_LED_GREEN_PORT;
+            pin_mask = IO_LED_GREEN_PIN;
+            break;
+
+        case IO_PIN_LED_BLUE:
+            port = &IO_LED_BLUE_PORT;
+            pin_mask = IO_LED_BLUE_PIN;
+            break;
+
         
         default:
             return 0;
@@ -588,6 +643,22 @@ void io_v_digital_write( uint8_t pin, bool state ){
             pin_mask = IO_PWM3_PIN;
             break;
 
+        case IO_PIN_LED_RED:
+            port = &IO_LED_RED_PORT;
+            pin_mask = IO_LED_RED_PIN;
+            break;
+
+        case IO_PIN_LED_GREEN:
+            port = &IO_LED_GREEN_PORT;
+            pin_mask = IO_LED_GREEN_PIN;
+            break;
+
+        case IO_PIN_LED_BLUE:
+            port = &IO_LED_BLUE_PORT;
+            pin_mask = IO_LED_BLUE_PIN;
+            break;
+
+
         default:
             return;
             break;
@@ -669,6 +740,22 @@ bool io_b_digital_read( uint8_t pin ){
             port = &IO_PWM3_PORT;
             pin_mask = IO_PWM3_PIN;
             break;
+
+        case IO_PIN_LED_RED:
+            port = &IO_LED_RED_PORT;
+            pin_mask = IO_LED_RED_PIN;
+            break;
+
+        case IO_PIN_LED_GREEN:
+            port = &IO_LED_GREEN_PORT;
+            pin_mask = IO_LED_GREEN_PIN;
+            break;
+
+        case IO_PIN_LED_BLUE:
+            port = &IO_LED_BLUE_PORT;
+            pin_mask = IO_LED_BLUE_PIN;
+            break;
+
 
         default:
             return FALSE;
