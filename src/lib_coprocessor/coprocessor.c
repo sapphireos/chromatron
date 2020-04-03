@@ -285,6 +285,8 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 		return;
 	}
 
+	sys_v_wdt_reset();
+
 	coproc_v_fw_erase();
 
 	while( len > 0 ){
@@ -298,7 +300,11 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 		coproc_u8_issue( OPCODE_IO_FW_LOAD, data, copy_len );
 		data += copy_len;
 		len -= copy_len;
+
+		sys_v_wdt_reset();
 	}
+
+	sys_v_wdt_reset();
 
 	coproc_v_fw_bootload();
 
