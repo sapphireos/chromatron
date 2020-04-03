@@ -52,12 +52,19 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_DIGITAL_WRITE		0x12
 #define OPCODE_IO_DIGITAL_READ		0x13
 #define OPCODE_IO_READ_ADC			0x14
-#define OPCODE_IO_FW_CRC			0x20
-#define OPCODE_IO_FW_ERASE			0x21
-#define OPCODE_IO_FW_LOAD			0x22
-#define OPCODE_IO_FW_BOOTLOAD		0x23
+#define OPCODE_FW_CRC				0x20
+#define OPCODE_FW_ERASE				0x21
+#define OPCODE_FW_LOAD				0x22
+#define OPCODE_FW_BOOTLOAD			0x23
+#define OPCODE_PIX_SET_COUNT		0x30
+#define OPCODE_PIX_SET_MODE			0x31
+#define OPCODE_PIX_SET_DITHER		0x32
+#define OPCODE_PIX_SET_CLOCK		0x33
+#define OPCODE_PIX_SET_RGB_ORDER	0x34
+#define OPCODE_PIX_SET_APA102_DIM	0x35
 
-
+void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] );
+void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );
 
 void coproc_v_sync( void );
 

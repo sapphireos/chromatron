@@ -27,32 +27,129 @@
 #include "esp8266_loader.h"
 #include "hal_esp8266.h"
 
+#include "ffs_fw.h"
+#include "pixel.h"
+
 #include "app.h"
 
 
-static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
+// static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
-    coproc_block_t block;
-    if( hal_wifi_i8_usart_receive( (uint8_t *)&block, sizeof(block), 10000000 ) < 0 ){
+//     coproc_block_t block;
+//     if( hal_wifi_i8_usart_receive( (uint8_t *)&block, sizeof(block), 10000000 ) < 0 ){
 
-        // timeout, fatal error
-        sys_reboot();
+//         // timeout, fatal error
+//         sys_reboot();
+//     }
+
+//     coproc_v_parity_check( &block );
+
+//     memcpy( data, block.data, COPROC_BLOCK_LEN );
+// }
+
+// static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
+
+//     coproc_block_t block;
+//     memcpy( block.data, data, COPROC_BLOCK_LEN );
+
+//     coproc_v_parity_generate( &block );
+
+//     hal_wifi_v_usart_send_data( (uint8_t *)&block, sizeof(block) );    
+// }
+
+
+static uint32_t fw_addr;
+
+// process a message
+// assumes CRC is valid
+void coproc_v_dispatch( 
+    coproc_hdr_t *hdr, 
+    const uint8_t *data,
+    uint8_t *response_len,
+    uint8_t response[COPROC_BUF_SIZE] ){
+
+    uint8_t len = hdr->length;
+    int32_t *params = (int32_t *)data;
+    int32_t retval = 0;
+
+    if( hdr->opcode == OPCODE_TEST ){
+
+        memcpy( response, data, len );
+        *response_len = len;
     }
+    else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
-    coproc_v_parity_check( &block );
+        io_v_set_mode( params[0], params[1] );
+    }
+    else if( hdr->opcode == OPCODE_IO_GET_MODE ){
 
-    memcpy( data, block.data, COPROC_BLOCK_LEN );
+        retval = io_u8_get_mode( params[0] );
+        memcpy( response, &retval, sizeof(retval) );
+    }
+    else if( hdr->opcode == OPCODE_IO_DIGITAL_WRITE ){
+
+        io_v_digital_write( params[0], params[1] );
+    }
+    else if( hdr->opcode == OPCODE_IO_DIGITAL_READ ){
+
+        retval = io_b_digital_read( params[0] );
+        memcpy( response, &retval, sizeof(retval) );
+    }
+    else if( hdr->opcode == OPCODE_IO_READ_ADC ){
+
+        retval = adc_u16_read_mv( params[0] );
+        memcpy( response, &retval, sizeof(retval) );
+    }
+    else if( hdr->opcode == OPCODE_FW_CRC ){
+
+        retval = ffs_fw_u16_crc();
+        memcpy( response, &retval, sizeof(retval) );
+    }
+    else if( hdr->opcode == OPCODE_FW_ERASE ){
+            
+        // immediate (non threaded) erase of main fw partition
+        ffs_fw_v_erase( 0, TRUE );
+        fw_addr = 0;
+    }
+    else if( hdr->opcode == OPCODE_FW_LOAD ){
+        
+        ffs_fw_i32_write( 0, fw_addr, data, len );
+        fw_addr += len;
+    }   
+    else if( hdr->opcode == OPCODE_FW_BOOTLOAD ){
+        
+        sys_v_reboot_delay( SYS_REBOOT_LOADFW );
+    }
+    else if( hdr->opcode == OPCODE_PIX_SET_COUNT ){
+        
+        pixel_v_set_pix_count( params[0] );        
+    }
+    else if( hdr->opcode == OPCODE_PIX_SET_MODE ){
+        
+        pixel_v_set_pix_mode( params[0] );        
+    }
+    else if( hdr->opcode == OPCODE_PIX_SET_DITHER ){
+        
+        pixel_v_set_pix_dither( params[0] );        
+    }
+    else if( hdr->opcode == OPCODE_PIX_SET_CLOCK ){
+        
+        pixel_v_set_pix_clock( params[0] );        
+    }
+    else if( hdr->opcode == OPCODE_PIX_SET_RGB_ORDER ){
+        
+        pixel_v_set_rgb_order( params[0] );        
+    }
+    else if( hdr->opcode == OPCODE_PIX_SET_APA102_DIM ){
+        
+        pixel_v_set_apa102_dimmer( params[0] );        
+    }   
+    else{
+
+        ASSERT( FALSE );
+    }
 }
 
-static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
-
-    coproc_block_t block;
-    memcpy( block.data, data, COPROC_BLOCK_LEN );
-
-    coproc_v_parity_generate( &block );
-
-    hal_wifi_v_usart_send_data( (uint8_t *)&block, sizeof(block) );    
-}
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
@@ -98,7 +195,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
         coproc_hdr_t hdr;
-        receive_block( (uint8_t *)&hdr );
+        coproc_v_receive_block( (uint8_t *)&hdr );
 
         uint8_t buf[COPROC_BUF_SIZE];
 
@@ -106,7 +203,7 @@ PT_BEGIN( pt );
         uint8_t i = 0;
         while( n_blocks > 0 ){
             
-            receive_block( &buf[i] );
+            coproc_v_receive_block( &buf[i] );
                 
             n_blocks--;
 
@@ -121,13 +218,13 @@ PT_BEGIN( pt );
 
         hdr.length = response_len;
 
-        send_block( (uint8_t *)&hdr );
+        coproc_v_send_block( (uint8_t *)&hdr );
 
         int16_t data_len = response_len;
         i = 0;
         while( data_len > 0 ){
 
-            send_block( &response[i] );    
+            coproc_v_send_block( &response[i] );    
             
             i += COPROC_BLOCK_LEN;
             data_len -= COPROC_BLOCK_LEN;

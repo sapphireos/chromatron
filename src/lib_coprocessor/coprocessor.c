@@ -36,7 +36,7 @@ static uint8_t rx_buf[COPROC_BUF_SIZE];
 
 static bool sync;
 
-static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
+void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 	coproc_block_t block;
 	
@@ -47,7 +47,7 @@ static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 	block.parity[0] = 0xff;
 	block.parity[1] = 0xff;
-	block.parity[2] = 0xff;
+ 	block.parity[2] = 0xff;
 
 	#ifdef ESP8266
 	usart_v_send_data( UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
@@ -56,7 +56,7 @@ static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	#endif
 }
 
-static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
+void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 	coproc_block_t block;
 	uint8_t *rx_data = (uint8_t *)&block;
@@ -119,75 +119,6 @@ void coproc_v_parity_generate( coproc_block_t *block ){
 }
 
 
-static uint32_t fw_addr;
-
-// process a message
-// assumes CRC is valid
-void coproc_v_dispatch( 
-    coproc_hdr_t *hdr, 
-    const uint8_t *data,
-    uint8_t *response_len,
-    uint8_t response[COPROC_BUF_SIZE] ){
-
-    uint8_t len = hdr->length;
-    int32_t *params = (int32_t *)data;
-    int32_t retval = 0;
-
-    if( hdr->opcode == OPCODE_TEST ){
-
-        memcpy( response, data, len );
-        *response_len = len;
-    }
-    else if( hdr->opcode == OPCODE_IO_SET_MODE ){
-
-		io_v_set_mode( params[0], params[1] );
-	}
-	else if( hdr->opcode == OPCODE_IO_GET_MODE ){
-
-		retval = io_u8_get_mode( params[0] );
-		memcpy( response, &retval, sizeof(retval) );
-	}
-	else if( hdr->opcode == OPCODE_IO_DIGITAL_WRITE ){
-
-		io_v_digital_write( params[0], params[1] );
-	}
-	else if( hdr->opcode == OPCODE_IO_DIGITAL_READ ){
-
-		retval = io_b_digital_read( params[0] );
-		memcpy( response, &retval, sizeof(retval) );
-	}
-	else if( hdr->opcode == OPCODE_IO_READ_ADC ){
-
-		retval = adc_u16_read_mv( params[0] );
-		memcpy( response, &retval, sizeof(retval) );
-	}
-	else if( hdr->opcode == OPCODE_IO_FW_CRC ){
-
-		retval = ffs_fw_u16_crc();
-		memcpy( response, &retval, sizeof(retval) );
-	}
-	else if( hdr->opcode == OPCODE_IO_FW_ERASE ){
-			
-		// immediate (non threaded) erase of main fw partition
-		ffs_fw_v_erase( 0, TRUE );
-		fw_addr = 0;
-	}
-	else if( hdr->opcode == OPCODE_IO_FW_LOAD ){
-		
-		ffs_fw_i32_write( 0, fw_addr, data, len );
-		fw_addr += len;
-	}	
-	else if( hdr->opcode == OPCODE_IO_FW_BOOTLOAD ){
-		
-		sys_v_reboot_delay( SYS_REBOOT_LOADFW );
-	}	
-    else{
-
-        ASSERT( FALSE );
-    }
-}
-
-
 
 
 uint8_t coproc_u8_issue( 
@@ -207,11 +138,11 @@ uint8_t coproc_u8_issue(
 	hdr.length 	= len;
 	hdr.padding = 0;
 
-	send_block( (uint8_t *)&hdr );
+	coproc_v_send_block( (uint8_t *)&hdr );
 
 	while( len > 0 ){
 
-		send_block( data );
+		coproc_v_send_block( data );
 
 		data += COPROC_BLOCK_LEN;
 		len -= COPROC_BLOCK_LEN;
@@ -224,7 +155,7 @@ uint8_t coproc_u8_issue(
 	// if the coprocessor does not respond, the system is broken.
 
 	// wait for header
-	receive_block( (uint8_t *)&hdr );
+	coproc_v_receive_block( (uint8_t *)&hdr );
 	
 	ASSERT( rx_hdr.length < sizeof(rx_buf) );
 		
@@ -232,7 +163,7 @@ uint8_t coproc_u8_issue(
 	len = rx_hdr.length;
 	while( len > 0 ){
 
-		receive_block( data );
+		coproc_v_receive_block( data );
 
 		data += COPROC_BLOCK_LEN;
 		len -= COPROC_BLOCK_LEN;
@@ -264,12 +195,12 @@ void coproc_v_test( void ){
 
 uint16_t coproc_u16_fw_crc( void ){
 
-	return coproc_i32_call0( OPCODE_IO_FW_CRC );
+	return coproc_i32_call0( OPCODE_FW_CRC );
 }
 
 void coproc_v_fw_erase( void ){
 	
-	coproc_i32_call0( OPCODE_IO_FW_ERASE );	
+	coproc_i32_call0( OPCODE_FW_ERASE );	
 }
 
 void coproc_v_fw_load( uint8_t *data, uint32_t len ){
@@ -297,7 +228,7 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 			copy_len = len;
 		}
 
-		coproc_u8_issue( OPCODE_IO_FW_LOAD, data, copy_len );
+		coproc_u8_issue( OPCODE_FW_LOAD, data, copy_len );
 		data += copy_len;
 		len -= copy_len;
 
@@ -313,7 +244,7 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
 void coproc_v_fw_bootload( void ){
 
-	coproc_i32_call0( OPCODE_IO_FW_BOOTLOAD );	
+	coproc_i32_call0( OPCODE_FW_BOOTLOAD );	
 }
 
 
