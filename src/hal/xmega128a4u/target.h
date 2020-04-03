@@ -45,7 +45,7 @@
 #define ENABLE_ESP_UPGRADE_LOADER
 #define ENABLE_COPROCESSOR
 
-#define DISABLE_SAFE_MODE
+// #define DISABLE_SAFE_MODE
 
 // recovery mode
 #define DISABLE_RECOVERY_MODE
