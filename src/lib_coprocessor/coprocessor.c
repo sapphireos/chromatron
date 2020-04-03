@@ -301,6 +301,8 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 	}
 
 	coproc_v_fw_bootload();
+
+	// the coprocessor will reset the ESP8266 at this point.
 }
 
 void coproc_v_fw_bootload( void ){

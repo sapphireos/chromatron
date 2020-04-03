@@ -9,6 +9,12 @@
 
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
+
+// manual place in irom0 section.
+// if just in .irom0.text, will create a section type conflict. no idea why.
+static __attribute__((section(".irom0.text.coproc"), aligned(4))) uint8_t coproc_fw[] = {
+    #include "coproc_firmware.txt"
+};
 #endif
 
 #ifndef BOOTLOADER
@@ -181,7 +187,9 @@ void ICACHE_FLASH_ATTR user_init(void)
     usart_v_init( 0 );
     usart_v_set_baud( 0, 4000000 );
 
-    coproc_v_sync();    
+    coproc_v_sync();
+
+    coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
     #endif    
 
     //Start os task
