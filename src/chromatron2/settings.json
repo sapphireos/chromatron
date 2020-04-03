@@ -19,6 +19,9 @@
     "_comment": "lib - build as a library",
  	"BUILD_TYPE": "app",
 
+    "_comment": "temporary!!!",
+    "LOADER_PROJECT": "loader_esp8266",
+
     "_comment": "Additional libraries to include with the build",
     "LIBRARIES": ["lib_gfx", "lib_chromatron2"],
 
