@@ -32,486 +32,118 @@
 #include "datetime.h"
 
 #include "pixel.h"
+#include "hal_pixel.h"
 #include "graphics.h"
-#include "wifi.h"
 #include "vm.h"
 #include "timesync.h"
 #include "kvdb.h"
 #include "hash.h"
-#include "vm_wifi_cmd.h"
-#include "vm_sync.h"
 
-
-
-static uint16_t hs_fade = 1000;
-static uint16_t v_fade = 1000;
-static uint16_t gfx_master_dimmer = 65535;
-static uint16_t gfx_sub_dimmer = 65535;
-static uint16_t pix_count;
-static uint16_t pix_size_x;
-static uint16_t pix_size_y;
-static bool gfx_interleave_x;
-static bool gfx_invert_x;
-static bool gfx_transpose;
-static uint16_t gfx_frame_rate = 100;
-static uint16_t old_frame_rate = 100;
-static uint8_t gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
-static uint8_t gfx_sat_curve = GFX_SAT_CURVE_DEFAULT;
-
-static uint16_t gfx_virtual_array_start;
-static uint16_t gfx_virtual_array_length;
-
-static bool pixel_transfer_enable = TRUE;
-
-static bool update_frame_rate;
 
 static uint16_t vm0_frame_number;
-static uint32_t vm0_frame_ts;
-
-PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
-PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) );
-
-
+static uint32_t last_vm0_frame_ts;
+static int16_t frame_rate_adjust;
 static uint16_t vm_fader_time;
 
-
-static void update_vm_timer( void ){
-
-    update_frame_rate = TRUE;
-}
-
-static void param_error_check( void ){
-
-    // error check
-    if( pix_count > MAX_PIXELS ){
-
-        pix_count = MAX_PIXELS;
-    }
-    else if( pix_count == 0 ){
-
-        // this is necessary to prevent divide by 0 errors.
-        // also, 0 pixels doesn't really make sense in a
-        // pixel graphics library, does it?
-        pix_count = 1;
-    }
-
-    if( ( (uint32_t)pix_size_x * (uint32_t)pix_size_y ) > pix_count ){
-
-        pix_size_x = pix_count;
-        pix_size_y = 1;
-    }
-
-    if( pix_size_x > pix_count ){
-
-        pix_size_x = 1;
-    }
-
-    if( pix_size_y > pix_count ){
-
-        pix_size_y = 1;
-    }
-
-    if( pix_count > 0 ){
-
-        if( pix_size_x == 0 ){
-
-            pix_size_x = 1;
-        }
-
-        if( pix_size_y == 0 ){
-
-            pix_size_y = 1;
-        }
-    }
-
-    if( gfx_frame_rate < 10 ){
-
-        gfx_frame_rate = 10;
-    }
-
-    if( gfx_dimmer_curve < 8 ){
-
-        gfx_dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
-    }
-
-    if( gfx_sat_curve < 8 ){
-
-        gfx_sat_curve = GFX_SAT_CURVE_DEFAULT;
-    }
-}
-
-
-int8_t gfx_i8_kv_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len )
-{
-
-    if( op == KV_OP_SET ){
-
-        param_error_check();
-
-        // gfx_v_sync_params();
-
-        if( hash == __KV__gfx_frame_rate ){
-
-            if( gfx_frame_rate != old_frame_rate ){
-
-                old_frame_rate = gfx_frame_rate;
-                update_vm_timer();    
-            }
-        }
-        
-    }
-
-    return 0;
-}
-
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_count,                   gfx_i8_kv_handler,   "pix_count" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_sub_dimmer,              gfx_i8_kv_handler,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_master_dimmer,           gfx_i8_kv_handler,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  gfx_i8_kv_handler,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  gfx_i8_kv_handler,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            gfx_i8_kv_handler,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                gfx_i8_kv_handler,   "gfx_invert_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               gfx_i8_kv_handler,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_dimmer_curve,            gfx_i8_kv_handler,   "gfx_dimmer_curve" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &gfx_sat_curve,               gfx_i8_kv_handler,   "gfx_sat_curve" },
-    
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_start,     gfx_i8_kv_handler,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_virtual_array_length,    gfx_i8_kv_handler,   "gfx_varray_length" },
-
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY,  &vm_fader_time,            0,                   "vm_fade_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
 };
 
-// void gfx_v_set_params( gfx_params_t *params ){
+PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
-//     if( params->version != GFX_VERSION ){
-
-//         return;
-//     }
-
-//     pix_count                   = params->pix_count;
-//     pix_size_x                  = params->pix_size_x;
-//     pix_size_y                  = params->pix_size_y;
-//     gfx_interleave_x            = params->interleave_x;
-//     gfx_transpose               = params->transpose;
-//     hs_fade                     = params->hs_fade;
-//     v_fade                      = params->v_fade;
-//     gfx_master_dimmer           = params->master_dimmer;
-//     gfx_sub_dimmer              = params->sub_dimmer;
-//     gfx_frame_rate              = params->frame_rate;
-//     gfx_dimmer_curve            = params->dimmer_curve;
-//     gfx_virtual_array_start     = params->virtual_array_start;
-//     gfx_virtual_array_length    = params->virtual_array_length;
-
-//     // we cannot set pix mode via this function
-//     // pix_mode                = params->pix_mode;
-
-
-//     param_error_check();
-
-//     update_vm_timer();
-// }
-
-// void gfx_v_get_params( gfx_params_t *params ){
-
-//     params->version             = GFX_VERSION;
-//     params->pix_count           = pix_count;
-//     params->pix_size_x          = pix_size_x;
-//     params->pix_size_y          = pix_size_y;
-//     params->interleave_x        = gfx_interleave_x;
-//     params->transpose           = gfx_transpose;
-//     params->hs_fade             = hs_fade;
-//     params->v_fade              = v_fade;
-//     params->master_dimmer       = gfx_master_dimmer;
-//     params->sub_dimmer          = gfx_sub_dimmer;
-//     params->frame_rate          = gfx_frame_rate;   
-//     params->dimmer_curve        = gfx_dimmer_curve;
-//     params->sat_curve           = gfx_sat_curve;
-//     params->pix_mode            = pixel_u8_get_mode();
-
-//     params->virtual_array_start   = gfx_virtual_array_start;
-//     params->virtual_array_length  = gfx_virtual_array_length;
-//     params->sync_group_hash       = vm_sync_u32_get_sync_group_hash();
-
-//     // override dimmer curve for the Pixie, since it already has curves built in
-//     if( pixel_u8_get_mode() == PIX_MODE_PIXIE ){
-
-//         params->dimmer_curve = 64;
-//     }
-// }
-
-// uint16_t gfx_u16_get_vm_frame_rate( void ){
-
-//     return gfx_frame_rate;
-// }
-
-// void gfx_v_set_pix_count( uint16_t setting ){
-
-//     pix_count = setting;
-// }
-
-// uint16_t gfx_u16_get_pix_count( void ){
-
-//     return pix_count;
-// }
-
-// void gfx_v_set_master_dimmer( uint16_t setting ){
-
-//     gfx_master_dimmer = setting;
-
-//     param_error_check();
-
-//     gfx_v_sync_params();
-// }
-
-// uint16_t gfx_u16_get_master_dimmer( void ){
-
-//     return gfx_master_dimmer;
-// }
-
-// void gfx_v_set_submaster_dimmer( uint16_t setting ){
-
-//     gfx_sub_dimmer = setting;
-
-//     param_error_check();
-
-//     gfx_v_sync_params();
-// }
-
-// uint16_t gfx_u16_get_submaster_dimmer( void ){
-
-//     return gfx_sub_dimmer;
-// }
 
 void gfx_v_init( void ){
 
     if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
-        // override size settings
-        pix_count = 1;
-        pix_size_x = 1;
-        pix_size_y = 1;
+        log_v_warn_P( PSTR("Analog mode not supported on this hardware") );
     }
 
-    param_error_check();
+    gfxlib_v_init();
 
     pixel_v_init();
 
-    thread_t_create( gfx_fader_thread,
-                PSTR("gfx_fader"),
-                0,
-                0 );
+    // init pixel count
+    gfx_v_set_pix_count( hal_pixel_u16_get_pix_count() );
 
-    thread_t_create( gfx_vm_loop_thread,
-                PSTR("gfx_vm_loop"),
+    thread_t_create( gfx_control_thread,
+                PSTR("gfx_control"),
                 0,
                 0 );
 }
 
 bool gfx_b_running( void ){
 
-    return pixel_transfer_enable;
+    return TRUE;
+}
+
+uint16_t gfx_u16_get_frame_number( void ){
+
+    return vm0_frame_number;
+}
+
+uint32_t gfx_u32_get_frame_ts( void ){
+
+    return last_vm0_frame_ts;
+}
+
+void gfx_v_set_frame_number( uint16_t frame ){
+
+    vm0_frame_number = frame;
 }
 
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
-    vm0_frame_number = frame;
-    vm0_frame_ts = ts;
+    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
+    int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
 
-    update_frame_rate = TRUE;
-}
+    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_u16_get_vm_frame_rate() );
 
+    // we are ahead
+    if( corrected_time_offset > 10 ){
 
-void gfx_v_pixel_bridge_enable( void ){
+        // slow down
+        frame_rate_adjust = 10;
+    }
+    // we are behind
+    else if( corrected_time_offset < 10 ){
 
-    pixel_transfer_enable = TRUE;
-}
-
-void gfx_v_pixel_bridge_disable( void ){
-
-    pixel_transfer_enable = FALSE;
-}
-
-
-static bool should_halt_fader( void ){
-
-    if( !wifi_b_attached() ){
-        return TRUE;
+        // speed up
+        frame_rate_adjust = -10;
     }
 
-    return 
-        ( pixel_u8_get_mode() == PIX_MODE_OFF ) ||
-        ( gfx_u16_get_pix_count() == 0 ) ||
-        ( !vm_b_running() ) ||
-        ( !gfx_b_running() );
+    log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
+
+    // update_vm_timer();
 }
 
-PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) )
+gfx_pixel_array_t master_array;
+
+PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    THREAD_WAIT_WHILE( pt, should_halt_fader() );
-
-    // init alarm
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-    
+        
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
 
-        // check if shutting down
-        if( wifi_b_shutdown() ){
-            
-            pixel_v_clear();
-
-            uint16_t h = 0;
-            uint16_t s = 0;
-            uint16_t v = 4096;
-
-            pixel_v_load_hsv( 0, 1, &h, &s, &v );
-
-            THREAD_EXIT( pt );
-        }
-
-        if( should_halt_fader() ){
-
-            THREAD_RESTART( pt );            
-        }
-
-        // if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
-
-        //     THREAD_RESTART( pt );
-        // }
-
-        // wifi_msg_fader_info_t fader_info;
-
-        // if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, (uint8_t *)&fader_info, sizeof(fader_info), 0 ) < 0 ){
-
-        //     THREAD_RESTART( pt );
-        // }
-
-        // vm_fader_time = fader_info.fader_time;
-
-        // if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
-
-        //     if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, 0, 0 ) < 0 ){
-
-        //         THREAD_RESTART( pt );
-        //     }
-
-        //     wifi_msg_rgb_pix0_t msg_pix0;
-        //     uint16_t bytes_read;
-
-        //     if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg_pix0, sizeof(msg_pix0), &bytes_read ) < 0 ){
-
-        //         THREAD_RESTART( pt );
-        //     }
-
-        //     pixel_v_set_analog_rgb( msg_pix0.r, msg_pix0.g, msg_pix0.b );
-        // }
-        // else{
+        // set master gfx pixel count before starting faders
+        // doing this through set_params also runs the error check,
+        // updates the dimmer lookup, and updates the master fader.
+        gfx_params_t params;
+        gfx_v_get_params( &params );
+        params.pix_count = hal_pixel_u16_get_pix_count();
+        gfx_v_set_params( &params );
         
-        //     uint8_t pages = ( ( gfx_u16_get_pix_count() - 1 ) / WIFI_RGB_DATA_N_PIXELS ) + 1;
+        uint32_t start = tmr_u32_get_system_time_us();
 
-        //     for( uint8_t page = 0; page < pages; page++ ){
+        gfx_v_process_faders();
 
-        //         if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, &page, sizeof(page) ) < 0 ){
+        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
-        //             THREAD_RESTART( pt );
-        //         }
-
-        //         wifi_msg_rgb_array_t msg;   
-        //         uint16_t bytes_read;
-
-        //         if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
-
-        //             THREAD_RESTART( pt );
-        //         }
-
-        //         // unpack RGBD pointers
-        //         uint8_t *r = msg.rgbd_array;
-        //         uint8_t *g = r + msg.count;
-        //         uint8_t *b = g + msg.count;
-        //         uint8_t *d = b + msg.count;
-
-        //         pixel_v_load_rgb( msg.index, msg.count, r, g, b, d );   
-        //     }
-        // }
-    }
-            
-PT_END( pt );
-}
-
-
-PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    static uint32_t net_time;
-
-    // init alarm
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, !vm_b_running() );
-
-        if( vm_sync_b_is_synced() ){
-
-            net_time = time_u32_get_network_aligned( gfx_frame_rate );
-            THREAD_WAIT_WHILE( pt, !update_frame_rate && ( time_i8_compare_network_time( net_time ) > 0 )  );
-
-            // log_v_debug_P( PSTR("%6u %12lu"), vm0_frame_number, time_u32_get_network_time() );
-        }
-        else{
-
-            thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
-            THREAD_WAIT_WHILE( pt, !update_frame_rate && thread_b_alarm_set() );
-        }
-
-        // check if shutting down
-        if( wifi_b_shutdown() ){
-
-            THREAD_EXIT( pt );
-        }
-
-        if( update_frame_rate ){
-
-            update_frame_rate = FALSE;
-            THREAD_RESTART( pt );            
-        }
-
-        // if( vm_i8_run_loops() < 0 ){
-
-        //     // comm fail
-
-        //     // let's delay
-        //     TMR_WAIT( pt, 100 );
-
-        //     THREAD_RESTART( pt );            
-        // }
-
-        vm0_frame_ts = time_u32_get_network_time();
-        vm0_frame_number++;
-
-        vm_sync_v_frame_trigger();
-
-        uint16_t rate = SYNC_RATE / gfx_frame_rate;
-
-        if( ( vm0_frame_number % rate ) == 0 ){
-
-            vm_sync_v_trigger();
-        }
+        vm_fader_time = elapsed;
     }
 
 PT_END( pt );
 }
-

@@ -28,33 +28,12 @@
 #include "wifi_cmd.h"
 #include "keyvalue.h"
 
-#define GFX_MAX_DB_LEN		128
-
-#define GFX_TIMER           TCD0
-#define GFX_TIMER_CCA_vect  TCD0_CCA_vect
-#define GFX_TIMER_CCB_vect  TCD0_CCB_vect
-#define GFX_TIMER_CCC_vect  TCD0_CCC_vect
-#define GFX_TIMER_CCD_vect  TCD0_CCD_vect
-
-
 
 void gfx_v_init( void );
 bool gfx_b_running( void );
-
-void gfx_v_set_sync0( uint16_t frames, uint32_t ts );
-void gfx_v_set_sync( uint16_t frames, uint32_t ts );
-
-void gfx_v_pixel_bridge_enable( void );
-void gfx_v_pixel_bridge_disable( void );
-
-void gfx_v_sync_params( void );
-void gfx_v_sync_db( bool all );
-void gfx_v_read_db_key( uint32_t hash );
-void gfx_v_read_db( void );
-
-void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag );
-void gfx_v_reset_subscribed( uint8_t tag );
-
-void gfx_v_init_vm( uint8_t vm_id );
+uint16_t gfx_u16_get_frame_number( void );
+uint32_t gfx_u32_get_frame_ts( void );
+void gfx_v_set_frame_number( uint16_t frame );
+void gfx_v_set_sync0( uint16_t frame, uint32_t ts );
 
 #endif
