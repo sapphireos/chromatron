@@ -60,9 +60,6 @@ void gfx_v_init( void ){
 
     pixel_v_init();
 
-    // init pixel count
-    gfx_v_set_pix_count( hal_pixel_u16_get_pix_count() );
-
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
                 0,
@@ -93,14 +90,6 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
         THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
 
-        // set master gfx pixel count before starting faders
-        // doing this through set_params also runs the error check,
-        // updates the dimmer lookup, and updates the master fader.
-        gfx_params_t params;
-        gfx_v_get_params( &params );
-        params.pix_count = hal_pixel_u16_get_pix_count();
-        gfx_v_set_params( &params );
-        
         uint32_t start = tmr_u32_get_system_time_us();
 
         gfx_v_process_faders();

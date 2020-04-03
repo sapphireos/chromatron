@@ -22,8 +22,6 @@
 
 #include "target.h"
 
-#ifdef USE_GFX_LIB
-
 #include <inttypes.h>
 #include "bool.h"
 #include "trig.h"
@@ -32,7 +30,7 @@
 #include "pix_modes.h"
 #include "kvdb.h"
 #include "hsv_to_rgb.h"
-
+#include "keyvalue.h"
 #include "gfx_lib.h"
 
 
@@ -70,7 +68,6 @@ static uint16_t current_dimmer = 0;
 static int16_t dimmer_step = 0;
 
 static uint8_t pix_mode;
-static uint16_t pix_count;
 static uint16_t pix_size_x;
 static uint16_t pix_size_y;
 static bool gfx_interleave_x;
@@ -106,8 +103,29 @@ static uint8_t smootherstep_lookup[DIMMER_LOOKUP_SIZE] = {
 #define NOISE_TABLE_SIZE 256
 static uint8_t noise_table[NOISE_TABLE_SIZE];
 
-#ifdef GFX_LIB_KV_LINKAGE
-#include "keyvalue.h"
+
+static uint16_t pix_counts[N_PIXEL_OUTPUTS];
+static uint16_t pix_count;
+
+KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        0,    "pix_count" },
+    #if N_PIXEL_OUTPUTS > 1
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        0,    "pix_count_1" },
+    #endif
+    #if N_PIXEL_OUTPUTS > 2
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        0,    "pix_count_2" },
+    #endif
+    #if N_PIXEL_OUTPUTS > 3
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        0,    "pix_count_3" },
+    #endif
+    #if N_PIXEL_OUTPUTS > 4
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        0,    "pix_count_4" },
+    #endif
+    #if N_PIXEL_OUTPUTS > 5
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        0,    "pix_count_5" },
+    #endif
+};
+
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,   "gfx_sub_dimmer" },
@@ -125,8 +143,6 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,   "gfx_varray_start" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,   "gfx_varray_length" },
 };
-#endif
-
 
 static void compute_dimmer_lookup( void ){
 
@@ -205,8 +221,20 @@ static void update_master_fader( void ){
     dimmer_step = step;
 }
 
+static void update_pix_count( void ){
+
+    pix_count = 0;
+
+    for( uint8_t i = 0; i < N_PIXEL_OUTPUTS; i++ ){
+
+        pix_count += pix_counts[i];
+    }
+}
 
 static void param_error_check( void ){
+
+    // update pix count
+    update_pix_count();
 
     // error check
     if( pix_count > MAX_PIXELS ){
@@ -447,6 +475,27 @@ void gfx_v_set_pix_count( uint16_t setting ){
 uint16_t gfx_u16_get_pix_count( void ){
 
     return pix_count;
+}
+
+uint16_t gfx_u16_get_pix_driver_count( uint8_t output ){
+
+    ASSERT( output < N_PIXEL_OUTPUTS );
+
+    return pix_counts[output];
+}
+
+uint16_t gfx_u16_get_pix_driver_offset( uint8_t output ){
+
+    ASSERT( output < N_PIXEL_OUTPUTS );
+
+    uint16_t offset = 0;
+
+    for( uint8_t i = 0; i < output; i++ ){
+
+        offset += pix_counts[i];
+    }
+    
+    return offset;
 }
 
 void gfx_v_set_master_dimmer( uint16_t setting ){
@@ -2704,6 +2753,4 @@ Other HSV to RGB code for reference
 //         }
 //     }
 // }
-
-#endif
 

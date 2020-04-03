@@ -99,8 +99,9 @@ void gfx_v_get_params( gfx_params_t *params );
 
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len );
 
-void gfx_v_set_pix_count( uint16_t setting );
 uint16_t gfx_u16_get_pix_count( void );
+uint16_t gfx_u16_get_pix_driver_count( uint8_t output );
+uint16_t gfx_u16_get_pix_driver_offset( uint8_t output );
 
 void gfx_v_set_master_dimmer( uint16_t setting );
 uint16_t gfx_u16_get_master_dimmer( void );

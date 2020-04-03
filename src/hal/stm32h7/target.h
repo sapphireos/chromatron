@@ -67,9 +67,6 @@
 #define N_PIXEL_OUTPUTS         1
 #endif
 
-#define USE_GFX_LIB
-#define GFX_LIB_KV_LINKAGE
-
 // VM config
 // #define VM_TARGET_ESP
 #define VM_ENABLE_GFX

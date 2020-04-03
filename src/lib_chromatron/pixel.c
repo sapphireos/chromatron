@@ -38,8 +38,6 @@
 #include <math.h>
 
 
-#ifndef ENABLE_COPROCESSOR
-
 #define FADE_TIMER_VALUE            1 // 1 ms
 #define FADE_TIMER_VALUE_PIXIE      2 // Pixie needs at least 1 ms between frames
 #define FADE_TIMER_VALUE_WS2811     1 // 1 ms
@@ -146,13 +144,13 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     }
 
     // advance buffer for driver
-    uint16_t driver_offset = hal_pixel_u16_driver_offset( driver );
+    uint16_t driver_offset = gfx_u16_get_pix_driver_offset( driver );
     
     buf += offsets[driver];
 
     *offset = buf;
 
-    uint16_t transfer_pixel_count = hal_pixel_u16_driver_pixels( driver );
+    uint16_t transfer_pixel_count = gfx_u16_get_pix_driver_count( driver );
 
     if( transfer_pixel_count == 0 ){
 
@@ -347,12 +345,12 @@ PT_BEGIN( pt );
         // uint16_t r, g, b, w;
         uint16_t r, g, b;
 
-        for( uint8_t ch = 0; ch < hal_pixel_u8_driver_count(); ch++ ){
+        for( uint8_t ch = 0; ch < N_PIXEL_OUTPUTS; ch++ ){
 
             if( temp_channels_complete & ( 1 << ch ) ){
 
-                uint16_t pix_offset = hal_pixel_u16_driver_offset( ch );
-                uint16_t pix_count = hal_pixel_u16_driver_pixels( ch );
+                uint16_t pix_offset = gfx_u16_get_pix_driver_offset( ch );
+                uint16_t pix_count = gfx_u16_get_pix_driver_count( ch );
 
                 uint8_t driver_pix_mode = pix_mode;
                 if( ch == 5 ){
@@ -410,11 +408,9 @@ void pixel_v_init( void ){
 
     hal_pixel_v_init();
 
-    pixel_v_enable();
-
     offsets[0] = 0;
 
-    for( uint8_t ch = 1; ch < hal_pixel_u8_driver_count(); ch++ ){
+    for( uint8_t ch = 1; ch < N_PIXEL_OUTPUTS; ch++ ){
 
         uint8_t driver_pix_mode = pix_mode;
         // if( ch == 5 ){
@@ -423,7 +419,7 @@ void pixel_v_init( void ){
         // }
 
         offsets[ch] = offsets[ch - 1] + 
-                            hal_pixel_u16_driver_pixels( ch - 1 ) * bytes_per_pixel( driver_pix_mode ) + 
+                            gfx_u16_get_pix_driver_count( ch - 1 ) * bytes_per_pixel( driver_pix_mode ) + 
                             TRAILER_LENGTH + HEADER_LENGTH;
     }
 
@@ -432,16 +428,3 @@ void pixel_v_init( void ){
                      0,
                      0 );
 }
-
-#else
-
-void pixel_v_init( void ){
-
-    hal_pixel_v_init();
-
-
-}
-
-
-#endif
-
