@@ -33,31 +33,6 @@
 #include "app.h"
 
 
-// static void receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
-
-//     coproc_block_t block;
-//     if( hal_wifi_i8_usart_receive( (uint8_t *)&block, sizeof(block), 10000000 ) < 0 ){
-
-//         // timeout, fatal error
-//         sys_reboot();
-//     }
-
-//     coproc_v_parity_check( &block );
-
-//     memcpy( data, block.data, COPROC_BLOCK_LEN );
-// }
-
-// static void send_block( uint8_t data[COPROC_BLOCK_LEN] ){
-
-//     coproc_block_t block;
-//     memcpy( block.data, data, COPROC_BLOCK_LEN );
-
-//     coproc_v_parity_generate( &block );
-
-//     hal_wifi_v_usart_send_data( (uint8_t *)&block, sizeof(block) );    
-// }
-
-
 static uint32_t fw_addr;
 
 // process a message
@@ -158,6 +133,7 @@ PT_BEGIN( pt );
 
     hal_wifi_v_init();
     
+    // run firmware loader    
     wifi_v_start_loader();
 
     THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );

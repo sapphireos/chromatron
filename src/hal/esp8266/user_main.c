@@ -10,11 +10,13 @@
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
 
+#ifndef ESP8266_UPGRADE
 // manual place in irom0 section.
 // if just in .irom0.text, will create a section type conflict. no idea why.
 static __attribute__((section(".irom0.text.coproc"), aligned(4))) uint8_t coproc_fw[] = {
     #include "coproc_firmware.txt"
 };
+#endif
 #endif
 
 #ifndef BOOTLOADER
@@ -131,7 +133,9 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
+    #ifdef ENABLE_COPROCESSOR
     system_set_os_print( 0 );
+    #endif
 
     uart_init(115200, 115200);
 
@@ -189,7 +193,9 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     coproc_v_sync();
 
+    #ifndef ESP8266_UPGRADE
     coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
+    #endif    
     #endif    
 
     //Start os task

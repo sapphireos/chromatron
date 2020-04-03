@@ -23,6 +23,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdarg.h>
 
 int uart_rx_one_char(uint8_t *ch);
 uint8_t uart_rx_one_char_block();
