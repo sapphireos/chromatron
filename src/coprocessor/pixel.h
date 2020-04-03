@@ -62,11 +62,14 @@
 
 void pixel_v_init( void );
 
-void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b );
+void pixel_v_set_pix_count( uint16_t value );
+void pixel_v_set_pix_mode( uint8_t value );
+void pixel_v_set_pix_dither( bool value );
+void pixel_v_set_pix_clock( uint8_t value );
+void pixel_v_set_rgb_order( uint8_t value );
+void pixel_v_set_apa102_dimmer( uint8_t value );
 
-bool pixel_b_enabled( void );
 
-uint8_t pixel_u8_get_mode( void );
 
 void pixel_v_load_rgb(
     uint16_t index,

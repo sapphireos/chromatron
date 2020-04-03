@@ -43,13 +43,15 @@
 #define PWM_FADE_TIMER_WATCHDOG_VALUE   1250 // 40 ms
 
 
-static bool pix_dither;
+// settings
 static uint8_t pix_mode;
 static uint16_t pix_count;
-
+static bool pix_dither;
 static uint8_t pix_clock;
 static uint8_t pix_rgb_order;
 static uint8_t pix_apa102_dimmer = 31;
+
+
 static bool apa102_trailer;
 
 static uint8_t array_r[MAX_PIXELS];
@@ -504,57 +506,6 @@ void pixel_v_disable( void ){
     PIX_CLK_PORT.PIN1CTRL &= ~PORT_INVEN_bm;
 }
 
-void pixel_v_set_analog_rgb( uint16_t r, uint16_t g, uint16_t b ){
-
-    if( pix_mode != PIX_MODE_ANALOG ){
-
-        return;
-    }
-
-    uint16_t data0, data1, data2;
-
-    if( pix_rgb_order == PIX_ORDER_RGB ){
-
-        data0 = r;
-        data1 = g;
-        data2 = b;
-    }
-    else if( pix_rgb_order == PIX_ORDER_RBG ){
-
-        data0 = r;
-        data1 = b;
-        data2 = g;
-    }
-    else if( pix_rgb_order == PIX_ORDER_GRB ){
-
-        data0 = g;
-        data1 = r;
-        data2 = b;
-    }
-    else if( pix_rgb_order == PIX_ORDER_BGR ){
-
-        data0 = b;
-        data1 = g;
-        data2 = r;
-    }
-    else if( pix_rgb_order == PIX_ORDER_BRG ){
-
-        data0 = b;
-        data1 = r;
-        data2 = g;
-    }
-    else if( pix_rgb_order == PIX_ORDER_GBR ){
-
-        data0 = g;
-        data1 = b;
-        data2 = r;
-    }
-
-    pwm_v_write( 0, data0 );
-    pwm_v_write( 1, data1 );
-    pwm_v_write( 2, data2 );
-}
-
 void pixel_v_init( void ){
 
     ATOMIC;
@@ -690,15 +641,48 @@ void pixel_v_init( void ){
     pixel_v_enable();
 }
 
-bool pixel_b_enabled( void ){
+void pixel_v_set_pix_count( uint16_t value ){
 
-    return pix_mode != PIX_MODE_OFF;
+    pix_count = value;
+
+    pixel_v_init();
 }
 
-uint8_t pixel_u8_get_mode( void ){
+void pixel_v_set_pix_mode( uint8_t value ){
 
-    return pix_mode;
+    pix_mode = value;
+
+    pixel_v_init();
 }
+
+void pixel_v_set_pix_dither( bool value ){
+
+    pix_dither = value;
+
+    pixel_v_init();
+}
+
+void pixel_v_set_pix_clock( uint8_t value ){
+
+    pix_clock = value;
+
+    pixel_v_init();
+}
+
+void pixel_v_set_rgb_order( uint8_t value ){
+
+    pix_rgb_order = value;
+
+    pixel_v_init();
+}
+
+void pixel_v_set_apa102_dimmer( uint8_t value ){
+
+    pix_apa102_dimmer = value;
+
+    pixel_v_init();
+}
+
 
 void pixel_v_load_rgb(
     uint16_t index,
