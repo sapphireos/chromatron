@@ -155,12 +155,23 @@ PT_BEGIN( pt );
 
     hal_wifi_v_usart_flush();
 
+
     // wait for sync
     while( hal_wifi_i16_usart_get_char() != COPROC_SYNC );
     // if we don't get a sync, the watchdog timer will restart the entire system.
 
     // send confirmation
     hal_wifi_v_usart_send_char( COPROC_SYNC );
+
+
+    log_v_debug_P( PSTR("sync") );
+
+    // note these pins get driven when the ESP8266 boots up.
+    // which means if it resets, then we short out the coprocessor.
+    WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
+    WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
+
+THREAD_EXIT( pt );
 
 
     // main message loop
