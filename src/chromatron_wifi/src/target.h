@@ -27,25 +27,6 @@
 
 #ifndef PROGMEM
 	#define PROGMEM
-	// #define pgm_read_word(a) *a
 #endif
-
-#define MAX_PIXELS              320
-#define FADER_RATE              20
-#define USE_GFX_LIB
-
-#define VM_TARGET_ESP
-#define VM_ENABLE_GFX
-#define VM_ENABLE_KV
-// #define VM_ENABLE_CATBUS
-
-#define VM_MAX_VMS                  4
-#define VM_MAX_CALL_DEPTH           8
-#define VM_MAX_THREADS              4
-#define VM_MAX_IMAGE_SIZE           4096
-#define VM_MAX_CYCLES               8192
-#define VM_MIN_DELAY                10
-
-// #define VM_OPTIMIZED_DECODE // this will crash the ESP
 
 #endif
