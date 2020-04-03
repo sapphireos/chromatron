@@ -56,11 +56,6 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 void gfx_v_init( void ){
 
-    if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
-
-        log_v_warn_P( PSTR("Analog mode not supported on this hardware") );
-    }
-
     gfxlib_v_init();
 
     pixel_v_init();

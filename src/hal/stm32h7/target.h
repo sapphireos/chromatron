@@ -57,7 +57,6 @@
 #define WIFI_MAX_NETMSGS		16
 
 // pixel config
-#define USE_HSV_BRIDGE
 #define FADER_RATE              20
 
 #ifdef BOARD_CHROMATRONX

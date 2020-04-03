@@ -141,12 +141,10 @@ uint16_t *gfx_u16p_get_hue( void );
 uint16_t *gfx_u16p_get_sat( void );
 uint16_t *gfx_u16p_get_val( void );
 
-#ifndef USE_HSV_BRIDGE
 uint8_t *gfx_u8p_get_red( void );
 uint8_t *gfx_u8p_get_green( void );
 uint8_t *gfx_u8p_get_blue( void );
 uint8_t *gfx_u8p_get_dither( void );
-#endif
 
 void gfx_v_set_background_hsv( int32_t h, int32_t s, int32_t v );
 
@@ -174,11 +172,9 @@ uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj );
 
-#ifndef USE_HSV_BRIDGE
 uint16_t gfx_u16_get_pix0_red( void );
 uint16_t gfx_u16_get_pix0_green( void );
 uint16_t gfx_u16_get_pix0_blue( void );
-#endif
 
 void gfx_v_clear( void );
 void gfx_v_reset_faders( void );

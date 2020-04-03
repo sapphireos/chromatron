@@ -37,6 +37,7 @@
 
 #include <math.h>
 
+
 #ifndef ENABLE_COPROCESSOR
 
 #define FADE_TIMER_VALUE            1 // 1 ms
@@ -306,15 +307,6 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
 }
 
 
-void pixel_v_enable( void ){
-   
-}
-
-void pixel_v_disable( void ){
-   
-}
-
-
 static volatile uint16_t channels_complete;
 
 void hal_pixel_v_transfer_complete_callback( uint8_t driver ){
@@ -441,14 +433,15 @@ void pixel_v_init( void ){
                      0 );
 }
 
-bool pixel_b_enabled( void ){
+#else
 
-    return 0;
+void pixel_v_init( void ){
+
+    hal_pixel_v_init();
+
+
 }
 
-uint8_t pixel_u8_get_mode( void ){
-
-    return 0;
-}
 
 #endif
+

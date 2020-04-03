@@ -30,8 +30,5 @@
 
 void pixel_v_init( void );
 
-bool pixel_b_enabled( void );
-
-uint8_t pixel_u8_get_mode( void );
 
 #endif

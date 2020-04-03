@@ -30,7 +30,6 @@
 	// #define pgm_read_word(a) *a
 #endif
 
-// #define USE_HSV_BRIDGE
 #define MAX_PIXELS              320
 #define FADER_RATE              20
 #define USE_GFX_LIB
