@@ -297,7 +297,9 @@ static uint16_t setup_pixel_buffer( uint8_t driver, uint8_t **offset ){
     memset( &buf[buf_index], 0, TRAILER_LENGTH );
     buf_index += TRAILER_LENGTH;
 
+    #ifdef ARM
     hal_cpu_v_clean_d_cache();
+    #endif
 
     return buf_index;
 }

@@ -77,6 +77,7 @@
         "-lwpa",
         "-lwpa2",
         "-lwps",
+        "-lm",
         "-Wl,--end-group",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
