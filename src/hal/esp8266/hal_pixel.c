@@ -30,6 +30,21 @@
 
 #include "logging.h"
 
+#ifdef ENABLE_COPROCESSOR
+
+void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
+    
+   
+}
+
+
+void hal_pixel_v_init( void ){
+
+}
+
+
+#else
+
 static uint16_t pix_counts[1];
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
@@ -84,6 +99,7 @@ void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
 
 void hal_pixel_v_init( void ){
 
-    
+    coproc_config();    
 }
 
+#endif

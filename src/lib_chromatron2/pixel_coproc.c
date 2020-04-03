@@ -37,7 +37,9 @@
 
 #include <math.h>
 
-#ifndef ENABLE_COPROCESSOR
+#ifdef ENABLE_COPROCESSOR
+
+#include "coprocessor.h"
 
 #define FADE_TIMER_VALUE            1 // 1 ms
 #define FADE_TIMER_VALUE_PIXIE      2 // Pixie needs at least 1 ms between frames
@@ -72,6 +74,13 @@ static uint8_t dither_cycle;
 static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING];
 
 static uint16_t offsets[N_PIXEL_OUTPUTS];
+
+
+static void coproc_config( void ){
+
+    coproc_i32_call1( OPCODE_PIX_SET_COUNT, pix_count );
+}
+
 
 int8_t pix_i8_kv_handler(
     kv_op_t8 op,
@@ -413,6 +422,7 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+#endif
 
 void pixel_v_init( void ){
 
