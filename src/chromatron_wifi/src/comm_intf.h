@@ -31,13 +31,6 @@
 #define IRQ_GPIO 14
 #define CTS_GPIO 15
 
-#ifdef __cplusplus
-extern "C"{
-    #include "catbus_common.h"
-    #include "gfx_lib.h"
-}
-#endif
-
 typedef struct{
     uint16_t intf_run_time;
     uint16_t intf_max_time;

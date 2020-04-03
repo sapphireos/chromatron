@@ -1,1 +1,0 @@
-../../lib_gfx/pix_modes.h

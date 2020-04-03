@@ -31,12 +31,9 @@
 #include "options.h"
 
 extern "C"{
-    #include "random.h"
-    #include "vm_runner.h"
     #include "user_interface.h"
     #include "crc.h"
     #include "wifi_cmd.h"
-    #include "kvdb.h"
     #include "memory.h"
 }
 
@@ -71,17 +68,11 @@ void setup(){
 
     system_update_cpu_freq( SYS_CPU_80MHZ );
 
-    rnd_v_init();
-
     mem2_v_init( mem_heap, sizeof(mem_heap) );
-
-    kvdb_v_init();
 
     wifi_v_init();
 
     intf_v_init();
-
-    vm_v_init();
 
     opt_v_set_high_speed( true );        
 

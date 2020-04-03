@@ -24,7 +24,6 @@
 #define _WIFI_CMD_H
 
 #include "ip.h"
-#include "catbus_common.h"
 
 #define WIFI_UDP_BUF_LEN            548
 
@@ -160,14 +159,6 @@ typedef struct __attribute__((packed)){
 //     wifi_network_t networks[WIFI_SCAN_RESULTS_LEN];
 // } wifi_msg_scan_results_t;
 // #define WIFI_DATA_ID_WIFI_SCAN_RESULTS 0x27
-
-typedef struct __attribute__((packed)){
-    uint8_t tag;
-    uint8_t padding[3];
-    catbus_meta_t meta;
-} wifi_msg_kv_data_t;
-#define WIFI_DATA_ID_KV_DATA            0x31
-#define WIFI_DATA_ID_GET_KV_DATA        0x32
 
 #endif
 
