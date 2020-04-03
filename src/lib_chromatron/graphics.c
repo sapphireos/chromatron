@@ -39,10 +39,12 @@
 #include "kvdb.h"
 #include "hash.h"
 
-
+#ifdef ENABLE_TIME_SYNC
 static uint16_t vm0_frame_number;
-static uint32_t last_vm0_frame_ts;
-static int16_t frame_rate_adjust;
+static uint32_t vm0_frame_ts;
+static bool update_frame_rate;
+#endif
+
 static uint16_t vm_fader_time;
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
@@ -77,47 +79,15 @@ bool gfx_b_running( void ){
     return TRUE;
 }
 
-uint16_t gfx_u16_get_frame_number( void ){
-
-    return vm0_frame_number;
-}
-
-uint32_t gfx_u32_get_frame_ts( void ){
-
-    return last_vm0_frame_ts;
-}
-
-void gfx_v_set_frame_number( uint16_t frame ){
-
-    vm0_frame_number = frame;
-}
-
 void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 
-    int32_t frame_offset = (int32_t)vm0_frame_number - (int32_t)frame;
-    int32_t time_offset = (int32_t)last_vm0_frame_ts - (int32_t)ts;
+    #ifdef ENABLE_TIME_SYNC
+    vm0_frame_number = frame;
+    vm0_frame_ts = ts;
 
-    int32_t corrected_time_offset = time_offset + ( frame_offset * gfx_u16_get_vm_frame_rate() );
-
-    // we are ahead
-    if( corrected_time_offset > 10 ){
-
-        // slow down
-        frame_rate_adjust = 10;
-    }
-    // we are behind
-    else if( corrected_time_offset < 10 ){
-
-        // speed up
-        frame_rate_adjust = -10;
-    }
-
-    log_v_debug_P( PSTR("offset net: %ld frame: %ld corr: %ld adj: %d"), time_offset, frame_offset, corrected_time_offset, frame_rate_adjust );
-
-    // update_vm_timer();
+    update_frame_rate = TRUE;
+    #endif
 }
-
-gfx_pixel_array_t master_array;
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
