@@ -71,14 +71,6 @@ static uint32_t vm0_frame_ts;
 PT_THREAD( gfx_fader_thread( pt_t *pt, void *state ) );
 PT_THREAD( gfx_vm_loop_thread( pt_t *pt, void *state ) );
 
-typedef struct{
-    catbus_hash_t32 hash;
-    uint8_t tag;
-    uint8_t flags;
-} subscribed_key_t;
-#define KEY_FLAG_UPDATED        0x01
-
-static subscribed_key_t subscribed_keys[32];
 
 static uint16_t vm_fader_time;
 
@@ -160,7 +152,7 @@ int8_t gfx_i8_kv_handler(
 
         param_error_check();
 
-        gfx_v_sync_params();
+        // gfx_v_sync_params();
 
         if( hash == __KV__gfx_frame_rate ){
 
@@ -227,76 +219,76 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
 //     update_vm_timer();
 // }
 
-void gfx_v_get_params( gfx_params_t *params ){
+// void gfx_v_get_params( gfx_params_t *params ){
 
-    params->version             = GFX_VERSION;
-    params->pix_count           = pix_count;
-    params->pix_size_x          = pix_size_x;
-    params->pix_size_y          = pix_size_y;
-    params->interleave_x        = gfx_interleave_x;
-    params->transpose           = gfx_transpose;
-    params->hs_fade             = hs_fade;
-    params->v_fade              = v_fade;
-    params->master_dimmer       = gfx_master_dimmer;
-    params->sub_dimmer          = gfx_sub_dimmer;
-    params->frame_rate          = gfx_frame_rate;   
-    params->dimmer_curve        = gfx_dimmer_curve;
-    params->sat_curve           = gfx_sat_curve;
-    params->pix_mode            = pixel_u8_get_mode();
+//     params->version             = GFX_VERSION;
+//     params->pix_count           = pix_count;
+//     params->pix_size_x          = pix_size_x;
+//     params->pix_size_y          = pix_size_y;
+//     params->interleave_x        = gfx_interleave_x;
+//     params->transpose           = gfx_transpose;
+//     params->hs_fade             = hs_fade;
+//     params->v_fade              = v_fade;
+//     params->master_dimmer       = gfx_master_dimmer;
+//     params->sub_dimmer          = gfx_sub_dimmer;
+//     params->frame_rate          = gfx_frame_rate;   
+//     params->dimmer_curve        = gfx_dimmer_curve;
+//     params->sat_curve           = gfx_sat_curve;
+//     params->pix_mode            = pixel_u8_get_mode();
 
-    params->virtual_array_start   = gfx_virtual_array_start;
-    params->virtual_array_length  = gfx_virtual_array_length;
-    params->sync_group_hash       = vm_sync_u32_get_sync_group_hash();
+//     params->virtual_array_start   = gfx_virtual_array_start;
+//     params->virtual_array_length  = gfx_virtual_array_length;
+//     params->sync_group_hash       = vm_sync_u32_get_sync_group_hash();
 
-    // override dimmer curve for the Pixie, since it already has curves built in
-    if( pixel_u8_get_mode() == PIX_MODE_PIXIE ){
+//     // override dimmer curve for the Pixie, since it already has curves built in
+//     if( pixel_u8_get_mode() == PIX_MODE_PIXIE ){
 
-        params->dimmer_curve = 64;
-    }
-}
+//         params->dimmer_curve = 64;
+//     }
+// }
 
-uint16_t gfx_u16_get_vm_frame_rate( void ){
+// uint16_t gfx_u16_get_vm_frame_rate( void ){
 
-    return gfx_frame_rate;
-}
+//     return gfx_frame_rate;
+// }
 
-void gfx_v_set_pix_count( uint16_t setting ){
+// void gfx_v_set_pix_count( uint16_t setting ){
 
-    pix_count = setting;
-}
+//     pix_count = setting;
+// }
 
-uint16_t gfx_u16_get_pix_count( void ){
+// uint16_t gfx_u16_get_pix_count( void ){
 
-    return pix_count;
-}
+//     return pix_count;
+// }
 
-void gfx_v_set_master_dimmer( uint16_t setting ){
+// void gfx_v_set_master_dimmer( uint16_t setting ){
 
-    gfx_master_dimmer = setting;
+//     gfx_master_dimmer = setting;
 
-    param_error_check();
+//     param_error_check();
 
-    gfx_v_sync_params();
-}
+//     gfx_v_sync_params();
+// }
 
-uint16_t gfx_u16_get_master_dimmer( void ){
+// uint16_t gfx_u16_get_master_dimmer( void ){
 
-    return gfx_master_dimmer;
-}
+//     return gfx_master_dimmer;
+// }
 
-void gfx_v_set_submaster_dimmer( uint16_t setting ){
+// void gfx_v_set_submaster_dimmer( uint16_t setting ){
 
-    gfx_sub_dimmer = setting;
+//     gfx_sub_dimmer = setting;
 
-    param_error_check();
+//     param_error_check();
 
-    gfx_v_sync_params();
-}
+//     gfx_v_sync_params();
+// }
 
-uint16_t gfx_u16_get_submaster_dimmer( void ){
+// uint16_t gfx_u16_get_submaster_dimmer( void ){
 
-    return gfx_sub_dimmer;
-}
+//     return gfx_sub_dimmer;
+// }
 
 void gfx_v_init( void ){
 
@@ -336,10 +328,6 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     update_frame_rate = TRUE;
 }
 
-// void gfx_v_set_sync( uint16_t master_frame, uint32_t master_ts ){
-
-// }
-
 
 void gfx_v_pixel_bridge_enable( void ){
 
@@ -351,183 +339,6 @@ void gfx_v_pixel_bridge_disable( void ){
     pixel_transfer_enable = FALSE;
 }
 
-void gfx_v_sync_params( void ){
-
-    gfx_params_t params;
-
-    gfx_v_get_params( &params );
-
-    wifi_i8_send_msg( WIFI_DATA_ID_GFX_PARAMS, (uint8_t *)&params, sizeof(params) );
-}
-
-// int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ){
-    
-//     if( data_id == WIFI_DATA_ID_VM_INFO ){
-
-//         if( len != sizeof(wifi_msg_vm_info_t) ){
-
-//             return -1;
-//         }
-
-//         wifi_msg_vm_info_t *msg = (wifi_msg_vm_info_t *)data;
-
-//         vm_v_received_info( msg );
-//     }
-//     else if( ( data_id == WIFI_DATA_ID_VM_FRAME_SYNC ) ||
-//              ( data_id == WIFI_DATA_ID_VM_SYNC_DATA ) ||
-//              ( data_id == WIFI_DATA_ID_VM_SYNC_DONE ) ){
-
-//         vm_sync_v_process_msg( data_id, data, len );
-//     }
-
-//     return 0;    
-// }
-
-void gfx_v_subscribe_key( catbus_hash_t32 hash, uint8_t tag ){
-
-    int8_t empty = -1;
-    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        if( subscribed_keys[i].hash == hash ){
-
-            subscribed_keys[i].tag |= tag;
-            return;
-        }
-        else if( ( subscribed_keys[i].hash == 0 ) && ( empty < 0 ) ){
-
-            empty = i;
-        }
-    }
-
-    if( empty < 0 ){
-
-        log_v_debug_P( PSTR("subscribed keys full") );
-
-        return;
-    }
-
-    subscribed_keys[empty].hash     = hash;
-    subscribed_keys[empty].tag      = tag;
-    subscribed_keys[empty].flags    = KEY_FLAG_UPDATED;
-}
-
-
-void gfx_v_reset_subscribed( uint8_t tag ){
-
-    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        if( subscribed_keys[i].tag & tag ){
-
-            subscribed_keys[i].tag &= ~tag;
-
-            if( subscribed_keys[i].tag == 0 ){
-
-                subscribed_keys[i].hash = 0;
-            } 
-        }
-    }  
-}
-
-void kv_v_notify_hash_set( catbus_hash_t32 hash ){
-
-    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        if( subscribed_keys[i].hash == hash ){
-
-            subscribed_keys[i].flags |= KEY_FLAG_UPDATED;
-
-            break;
-        }
-    }   
-}
-
-
-void gfx_v_sync_db( bool all ){
-
-    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        if( subscribed_keys[i].hash == 0 ){
-
-            continue;
-        }
-
-        if( ( subscribed_keys[i].flags == 0 ) && !all ){
-
-            continue;
-        }
-
-        subscribed_keys[i].flags = 0;
-
-        kv_meta_t meta;
-        if( kv_i8_lookup_hash( subscribed_keys[i].hash, &meta ) < 0 ){
-
-            continue;
-        }
-
-        uint8_t buf[GFX_MAX_DB_LEN + sizeof(wifi_msg_kv_data_t)];
-        wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;
-        uint8_t *data = (uint8_t *)( msg + 1 );
-    
-        if( kv_i8_internal_get( &meta, meta.hash, 0, 0, data, GFX_MAX_DB_LEN ) < 0 ){
-
-            continue;
-        }  
-
-        uint16_t data_len = type_u16_size( meta.type ) * ( (uint16_t)meta.array_len + 1 );
-
-        msg->meta.hash        = meta.hash;
-        msg->meta.type        = meta.type;
-        msg->meta.count       = meta.array_len;
-        msg->meta.flags       = meta.flags;
-        msg->meta.reserved    = 0;
-        msg->tag              = subscribed_keys[i].tag;
-
-        if( wifi_i8_send_msg( WIFI_DATA_ID_KV_DATA, buf, data_len + sizeof(wifi_msg_kv_data_t) ) < 0 ){
-
-            continue;
-        }   
-    }
-}
-
-void gfx_v_read_db_key( uint32_t hash ){
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)&hash, sizeof(hash) ) < 0 ){
-
-        return;
-    }
-
-    uint8_t buf[GFX_MAX_DB_LEN + sizeof(wifi_msg_kv_data_t)];
-    wifi_msg_kv_data_t *msg = (wifi_msg_kv_data_t *)buf;   
-
-    uint16_t bytes_read = 0;
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_GET_KV_DATA, (uint8_t *)buf, sizeof(buf), &bytes_read ) < 0 ){
-
-        return;
-    }
-
-    if( bytes_read < sizeof(wifi_msg_kv_data_t) ){
-
-        return;
-    }
-
-    uint8_t *kv_data = (uint8_t *)( msg + 1 );
-
-    catbus_i8_array_set( msg->meta.hash, msg->meta.type, 0, msg->meta.count + 1, kv_data, 0 );
-}   
-
-void gfx_v_read_db( void ){
-
-    for( uint8_t i = 0; i < cnt_of_array(subscribed_keys); i++ ){
-
-        if( subscribed_keys[i].hash == 0 ){
-
-            continue;
-        }
-
-        gfx_v_read_db_key( subscribed_keys[i].hash );
-    }
-}
 
 static bool should_halt_fader( void ){
 
@@ -575,97 +386,65 @@ PT_BEGIN( pt );
             THREAD_RESTART( pt );            
         }
 
-        if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
+        // if( wifi_i8_send_msg( WIFI_DATA_ID_RUN_FADER, 0, 0 ) < 0 ){
 
-            THREAD_RESTART( pt );
-        }
+        //     THREAD_RESTART( pt );
+        // }
 
-        wifi_msg_fader_info_t fader_info;
+        // wifi_msg_fader_info_t fader_info;
 
-        if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, (uint8_t *)&fader_info, sizeof(fader_info), 0 ) < 0 ){
+        // if( wifi_i8_receive_msg( WIFI_DATA_ID_RUN_FADER, (uint8_t *)&fader_info, sizeof(fader_info), 0 ) < 0 ){
 
-            THREAD_RESTART( pt );
-        }
+        //     THREAD_RESTART( pt );
+        // }
 
-        vm_fader_time = fader_info.fader_time;
+        // vm_fader_time = fader_info.fader_time;
 
-        // get pixel data
-        #ifdef USE_HSV_BRIDGE
+        // if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
 
-        uint8_t pages = ( ( gfx_u16_get_pix_count() - 1 ) / WIFI_HSV_DATA_N_PIXELS ) + 1;
+        //     if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, 0, 0 ) < 0 ){
 
-        for( uint8_t page = 0; page < pages; page++ ){
+        //         THREAD_RESTART( pt );
+        //     }
 
-            if( wifi_i8_send_msg( WIFI_DATA_ID_HSV_ARRAY, &page, sizeof(page) ) < 0 ){
+        //     wifi_msg_rgb_pix0_t msg_pix0;
+        //     uint16_t bytes_read;
 
-                THREAD_RESTART( pt );
-            }
+        //     if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg_pix0, sizeof(msg_pix0), &bytes_read ) < 0 ){
 
-            wifi_msg_hsv_array_t msg;   
-            uint16_t bytes_read;
+        //         THREAD_RESTART( pt );
+        //     }
 
-            if( wifi_i8_receive_msg( WIFI_DATA_ID_HSV_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
-
-                THREAD_RESTART( pt );
-            }
-
-            // unpack HSV pointers
-            uint16_t *h = (uint16_t *)msg.hsv_array;
-            uint16_t *s = h + msg.count;
-            uint16_t *v = s + msg.count;
-
-            pixel_v_load_hsv( msg.index, msg.count, h, s, v );
-        }
-
-        #else
-
-        if( pixel_u8_get_mode() == PIX_MODE_ANALOG ){
-
-            if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_PIX0, 0, 0 ) < 0 ){
-
-                THREAD_RESTART( pt );
-            }
-
-            wifi_msg_rgb_pix0_t msg_pix0;
-            uint16_t bytes_read;
-
-            if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_PIX0, (uint8_t *)&msg_pix0, sizeof(msg_pix0), &bytes_read ) < 0 ){
-
-                THREAD_RESTART( pt );
-            }
-
-            pixel_v_set_analog_rgb( msg_pix0.r, msg_pix0.g, msg_pix0.b );
-        }
-        else{
+        //     pixel_v_set_analog_rgb( msg_pix0.r, msg_pix0.g, msg_pix0.b );
+        // }
+        // else{
         
-            uint8_t pages = ( ( gfx_u16_get_pix_count() - 1 ) / WIFI_RGB_DATA_N_PIXELS ) + 1;
+        //     uint8_t pages = ( ( gfx_u16_get_pix_count() - 1 ) / WIFI_RGB_DATA_N_PIXELS ) + 1;
 
-            for( uint8_t page = 0; page < pages; page++ ){
+        //     for( uint8_t page = 0; page < pages; page++ ){
 
-                if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, &page, sizeof(page) ) < 0 ){
+        //         if( wifi_i8_send_msg( WIFI_DATA_ID_RGB_ARRAY, &page, sizeof(page) ) < 0 ){
 
-                    THREAD_RESTART( pt );
-                }
+        //             THREAD_RESTART( pt );
+        //         }
 
-                wifi_msg_rgb_array_t msg;   
-                uint16_t bytes_read;
+        //         wifi_msg_rgb_array_t msg;   
+        //         uint16_t bytes_read;
 
-                if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
+        //         if( wifi_i8_receive_msg( WIFI_DATA_ID_RGB_ARRAY, (uint8_t *)&msg, sizeof(msg), &bytes_read ) < 0 ){
 
-                    THREAD_RESTART( pt );
-                }
+        //             THREAD_RESTART( pt );
+        //         }
 
-                // unpack RGBD pointers
-                uint8_t *r = msg.rgbd_array;
-                uint8_t *g = r + msg.count;
-                uint8_t *b = g + msg.count;
-                uint8_t *d = b + msg.count;
+        //         // unpack RGBD pointers
+        //         uint8_t *r = msg.rgbd_array;
+        //         uint8_t *g = r + msg.count;
+        //         uint8_t *b = g + msg.count;
+        //         uint8_t *d = b + msg.count;
 
-                pixel_v_load_rgb( msg.index, msg.count, r, g, b, d );   
-            }
-        }
-
-        #endif
+        //         pixel_v_load_rgb( msg.index, msg.count, r, g, b, d );   
+        //     }
+        // }
     }
             
 PT_END( pt );
@@ -710,15 +489,15 @@ PT_BEGIN( pt );
             THREAD_RESTART( pt );            
         }
 
-        if( vm_i8_run_loops() < 0 ){
+        // if( vm_i8_run_loops() < 0 ){
 
-            // comm fail
+        //     // comm fail
 
-            // let's delay
-            TMR_WAIT( pt, 100 );
+        //     // let's delay
+        //     TMR_WAIT( pt, 100 );
 
-            THREAD_RESTART( pt );            
-        }
+        //     THREAD_RESTART( pt );            
+        // }
 
         vm0_frame_ts = time_u32_get_network_time();
         vm0_frame_number++;

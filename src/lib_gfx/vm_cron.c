@@ -31,10 +31,6 @@
 #include "datetime.h"
 #include "util.h"
 
-#ifdef VM_TARGET_ESP
-#include "esp8266.h"
-#endif
-
 #include "vm_core.h"
 #include "vm_cron.h"
 #include "vm_wifi_cmd.h"
@@ -201,14 +197,8 @@ PT_BEGIN( pt );
 
                     if( job_ready( &cron_now, entry ) ){
 
-                        #ifdef VM_TARGET_ESP
-                        wifi_msg_vm_info_t info;
-                        int8_t status = vm_i8_run_vm( entry->vm_id, WIFI_DATA_ID_VM_RUN_FUNC, entry->cron.func_addr, &info );
-                        #else
-
                         int8_t status = vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
-                        #endif
-
+                       
                         log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
                     }
 

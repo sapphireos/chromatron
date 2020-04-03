@@ -28,16 +28,16 @@
 #include "fs.h"
 #include "random.h"
 #include "graphics.h"
-#include "wifi.h"
 #include "hash.h"
 #include "kvdb.h"
-#include "vm_wifi_cmd.h"
+#include "config.h"
 
 #include "vm.h"
 #include "vm_core.h"
 #include "vm_cron.h"
-#include "vm_sync.h"
 
+
+static thread_t vm_threads[VM_MAX_VMS];
 
 static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
@@ -46,12 +46,12 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
-static uint16_t vm_sizes[VM_MAX_VMS];
 
-static uint8_t vm_active_threads[VM_MAX_VMS];
+#define VM_FLAG_RUN_LOOP        0x01
+#define VM_FLAG_RUN_THREADS     0x02
+static uint8_t vm_run_flags[VM_MAX_VMS];
 
-static uint32_t last_full_sync;
-
+static bool update_frame_rate;
 
 
 int8_t vm_i8_kv_handler(
@@ -62,6 +62,12 @@ int8_t vm_i8_kv_handler(
 
     if( op == KV_OP_SET ){
 
+        if( hash == __KV__gfx_frame_rate ){
+
+            gfx_v_set_vm_frame_rate( *(uint16_t *)data );
+
+            update_frame_rate = TRUE;
+        }
     }
     else if( op == KV_OP_GET ){
 
@@ -69,15 +75,9 @@ int8_t vm_i8_kv_handler(
 
             *(uint8_t *)data = VM_ISA_VERSION;
         }
-        else if( hash == __KV__vm_total_size ){
+        else if( hash == __KV__gfx_frame_rate ){
 
-            uint16_t *total_size = (uint16_t *)data;
-            *total_size = 0;
-
-            for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
-
-                *total_size += vm_sizes[i];
-            }
+            *(uint16_t *)data = gfx_u16_get_vm_frame_rate();
         }
     }
 
@@ -93,7 +93,6 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[0],          0,                  "vm_size" },
 
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
@@ -102,7 +101,6 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[1],          0,                  "vm_size_1" },
 
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
@@ -111,7 +109,6 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[2],          0,                  "vm_size_2" },
 
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
@@ -120,19 +117,18 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_sizes[3],          0,                  "vm_size_3" },
 
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_total_size" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
+
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    0,                     vm_i8_kv_handler,   "gfx_frame_rate" },
 };
 
-typedef struct{
-    uint8_t vm_id;
-    uint8_t thread_id;
-    uint16_t func_addr;
-} vm_thread_state_t;
-
-PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) );
+static const char* vm_names[VM_MAX_VMS] = {
+    "vm_0",
+    "vm_1",
+    "vm_2",
+    "vm_3",
+};
 
 // keys that we really don't want the VM be to be able to write to.
 // generally, these are going to be things that would allow it to 
@@ -149,7 +145,6 @@ static const PROGMEM uint32_t restricted_keys[] = {
     __KV__pix_mode,
     __KV__catbus_data_port,    
 };
-
 
 static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
@@ -182,129 +177,14 @@ static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
 static void reset_published_data( uint8_t vm_id ){
 
-    gfx_v_reset_subscribed( 1 << vm_id );
     kvdb_v_clear_tag( 0, 1 << vm_id );
     catbus_v_purge_links( get_link_tag( vm_id ) );
 } 
 
-static file_t get_program_handle( catbus_hash_t32 hash ){
+static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
 
-    char program_fname[KV_NAME_LEN];
+    catbus_hash_t32 hash;
 
-    if( kv_i8_get( hash, program_fname, sizeof(program_fname) ) < 0 ){
-
-        return -1;
-    }
-
-    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
-
-    if( f < 0 ){
-
-        return -1;
-    }
-
-    return f;
-}
-
-
-#ifdef VM_TARGET_ESP
-
-static int8_t send_reset_message( uint8_t vm_id ){
-
-    wifi_msg_reset_vm_t reset_msg;
-    reset_msg.vm_id = vm_id;
-
-    return wifi_i8_send_msg( WIFI_DATA_ID_RESET_VM, (uint8_t *)&reset_msg, sizeof(reset_msg) );
-}
-
-int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info ){
-
-    // ensure info will return valid data even if we don't run the VM
-    memset( info, 0, sizeof(wifi_msg_vm_info_t) );
-
-    if( wifi_b_shutdown() ){
-
-        return 0;
-    }
-
-    if( ( vm_id == 0 ) && ( data_id != WIFI_DATA_ID_INIT_VM ) ){
-
-        // special handling for vm sync
-
-        // vm is syncing, but not yet synced
-        if( vm_sync_b_is_slave() ){
-
-            return 0;
-        }
-    }
-
-
-    // synchronize database parameters
-    gfx_v_sync_db( FALSE );
-
-    wifi_msg_vm_run_t msg;
-    msg.vm_id = vm_id;
-    msg.func_addr = func_addr;
-    if( wifi_i8_send_msg( data_id, (uint8_t *)&msg, sizeof(msg) ) < 0 ){
-
-        return VM_STATUS_COMM_ERROR;
-    }
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_INFO, (uint8_t *)info, sizeof(wifi_msg_vm_info_t), 0 ) < 0 ){
-
-        return VM_STATUS_COMM_ERROR;
-    }
-
-    for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
-
-        // check if starting a new thread
-        if( ( info->thread_delays[i] >= 0 ) && ( ( vm_active_threads[vm_id] & ( 1 << i ) ) == 0 ) ){
-
-            vm_active_threads[vm_id] |= ( 1 << i );
-
-            vm_thread_state_t state;
-            state.vm_id         = vm_id;
-            state.thread_id     = i;
-
-            thread_t_create( THREAD_CAST(vm_thread),
-                             PSTR("vm_thread"),
-                             &state,
-                             sizeof(state) );
-        }
-        // check if thread stopped
-        else if( ( info->thread_delays[i] < 0 ) && ( ( vm_active_threads[vm_id] & ( 1 << i ) ) != 0 ) ){
-
-            vm_active_threads[vm_id] &= ~( 1 << i );
-        }
-    }
-
-    // read database
-    gfx_v_read_db();
-
-    return info->status;
-}
-
-// static void reset_vm( uint8_t vm_id ){
-
-//     send_reset_message( vm_id );
-//     reset_published_data( vm_id );
-//     vm_cron_v_unload( vm_id );
-//     vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
-
-//     vm_loop_time[vm_id]     = 0;
-//     vm_thread_time[vm_id]   = 0;
-//     vm_max_cycles[vm_id]    = 0;      
-// }
-
-static int8_t load_vm_wifi( uint8_t vm_id ){
-
-    uint32_t start_time = tmr_u32_get_system_time_ms();
-
-    wifi_msg_load_vm_t vm_load_msg;
-
-    catbus_hash_t32 hash = 0;
-    catbus_hash_t32 link_tag = get_link_tag( vm_id );
-    
     if( vm_id == 0 ){
 
         hash = __KV__vm_prog;
@@ -324,29 +204,36 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     else{
 
         ASSERT( FALSE );
-    }
+    }    
 
-    vm_loop_time[vm_id]     = 0;
-    vm_thread_time[vm_id]   = 0;
-    vm_max_cycles[vm_id]    = 0;
+    return kv_i8_get( hash, name, FFS_FILENAME_LEN );
+}
 
-    file_t f = get_program_handle( hash );
+
+static bool is_vm_running( uint8_t vm_id ){
+
+    return ( vm_status[vm_id] >= VM_STATUS_OK ) && ( vm_status[vm_id] != VM_STATUS_HALT );
+}
+
+
+static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle ){
+
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+    catbus_hash_t32 link_tag = get_link_tag( vm_id );
+
+    *handle = -1;
+    
+
+    // open file
+    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
 
     if( f < 0 ){
+
+        log_v_debug_P( PSTR("VM file not found") );
 
         return -1;
     }
 
-    if( send_reset_message( vm_id ) < 0 ){
-
-        goto error;
-    }
-
-    reset_published_data( vm_id );
-
-    // sync graphics parameters, because script init function will run as soon as loading is complete.
-    gfx_v_sync_params();
-    
     log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
 
     // file found, get program size from file header
@@ -359,8 +246,6 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         goto error;
     }
 
-    int32_t vm_size_copy = vm_size;
-
     fs_v_seek( f, 0 );    
     int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
 
@@ -369,14 +254,16 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     // check file hash
     while( check_len > 0 ){
 
-        uint16_t copy_len = sizeof(vm_load_msg.chunk);
+        uint8_t chunk[512];
+
+        uint16_t copy_len = sizeof(chunk);
 
         if( copy_len > check_len ){
 
             copy_len = check_len;
         }
 
-        int16_t read = fs_i16_read( f, vm_load_msg.chunk, copy_len );
+        int16_t read = fs_i16_read( f, chunk, copy_len );
 
         if( read < 0 ){
 
@@ -385,7 +272,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         }
 
         // update hash
-        computed_file_hash = hash_u32_partial( computed_file_hash, vm_load_msg.chunk, copy_len );
+        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
         
         check_len -= read;
     }
@@ -419,37 +306,21 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     // seek back to program start
     fs_v_seek( f, sizeof(vm_size) );
 
-    vm_load_msg.total_size  = vm_size;
-    vm_load_msg.offset      = 0;
+    // allocate memory
+    *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
 
-    while( vm_size > 0 ){
+    if( *handle < 0 ){
 
-        uint16_t copy_len = sizeof(vm_load_msg.chunk);
+        goto error;
+    }
 
-        if( copy_len > vm_size ){
+    // read file
+    int16_t read = fs_i16_read( f, mem2_vp_get_ptr( *handle ), vm_size );
 
-            copy_len = vm_size;
-        }
+    if( read < 0 ){
 
-        int16_t read = fs_i16_read( f, vm_load_msg.chunk, copy_len );
-
-        if( read < 0 ){
-
-            // this should not happen. famous last words.
-            goto error;
-        }
-
-        vm_load_msg.vm_id = vm_id;
-        vm_load_msg.total_size = vm_size;
-        uint16_t msg_len = read + sizeof(vm_load_msg.vm_id) + sizeof(vm_load_msg.total_size) + sizeof(vm_load_msg.offset);
-        if( wifi_i8_send_msg( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, msg_len ) < 0 ){
-
-            // comm error
-            goto error;
-        }
-        
-        vm_load_msg.offset += read;
-        vm_size -= read;
+        // this should not happen. famous last words.
+        goto error;
     }
 
     // read magic number
@@ -491,8 +362,6 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
         kvdb_v_set_tag( meta.hash, 1 << vm_id );      
-
-        gfx_v_subscribe_key( meta.hash, ( 1 << vm_id ) );
     }   
 
 
@@ -504,8 +373,6 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     for( uint16_t i = 0; i < state.read_keys_count; i++ ){
 
         fs_i16_read( f, (uint8_t *)&read_key_hash, sizeof(uint32_t) );
-
-        gfx_v_subscribe_key( read_key_hash, ( 1 << vm_id ) );
     }
     
 
@@ -518,24 +385,8 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
 
         fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
 
-        // TODO
-        // this dirty hack brought to you by:
-        // not supporting variable length strings!
-
-        // for now, the compiler defaults to string512 for the type
-        // of all strings.  since we don't normally need strings that large
-        // and more importantly, have no where near enough ram to actually 
-        // use them, we'll constrain them to 64 bytes until (if?) we have
-        // an actual fix for this.
-        if( publish.type == CATBUS_TYPE_STRING512 ){
-
-            publish.type = CATBUS_TYPE_STRING64;
-        }
-
         kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
         kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
-
-        gfx_v_subscribe_key( publish.hash, ( 1 << vm_id ) );
     }   
 
     // check write keys
@@ -555,7 +406,7 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
         for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
 
             uint32_t restricted_key = 0;
-            memcpy_P( (uint8_t *)&restricted_key, &restricted_keys[j], sizeof(restricted_key) );
+            memcpy( (uint8_t *)&restricted_key, &restricted_keys[j], sizeof(restricted_key) );
 
             if( restricted_key == 0 ){
 
@@ -572,8 +423,6 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
                 goto error;
             }
         }
-
-        gfx_v_subscribe_key( write_hash, ( 1 << vm_id ) );   
     }
 
     // set up links
@@ -598,99 +447,198 @@ static int8_t load_vm_wifi( uint8_t vm_id ){
     // load cron jobs
     vm_cron_v_load( vm_id, &state, f );
 
-    // send len 0 to indicate load complete.
-    uint16_t msg_len = sizeof(vm_load_msg.vm_id) + sizeof(vm_load_msg.total_size) + sizeof(vm_load_msg.offset);
-    vm_load_msg.vm_id = vm_id;
-    if( wifi_i8_send_msg( WIFI_DATA_ID_LOAD_VM, (uint8_t *)&vm_load_msg, msg_len ) < 0 ){
-
-        // comm error
-        goto error;
-    }
-
-    // synchronize published vars that may have initializers
-    fs_v_seek( f, sizeof(vm_size) + state.publish_start );
-
-    for( uint8_t i = 0; i < state.publish_count; i++ ){
-
-        vm_publish_t publish;
-
-        fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
-
-        gfx_v_read_db_key( publish.hash );
-    }   
-
     fs_f_close( f );
 
-    // synchronize database parameters
-    gfx_v_sync_db( TRUE );
-
-    vm_sizes[vm_id] = vm_size_copy;
+    vm_status[vm_id]        = VM_STATUS_READY;
+    vm_loop_time[vm_id]     = 0;
+    vm_thread_time[vm_id]   = 0;
+    vm_max_cycles[vm_id]    = 0;
 
     log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
-
-    // init function is ready to run
 
     return 0;
 
 error:
     
+    if( *handle > 0 ){
+
+        mem2_v_free( *handle );
+    }
+
     fs_f_close( f );
     return -1;
 }
 
-#else
 
-#endif
-
-static bool is_vm_running( uint8_t vm_id ){
-
-    return ( vm_status[vm_id] >= VM_STATUS_OK ) && ( vm_status[vm_id] != VM_STATUS_HALT );
-}
+typedef struct{
+    uint8_t vm_id;
+    char program_fname[FFS_FILENAME_LEN];
+    mem_handle_t handle;
+    int8_t vm_return;
+    vm_state_t vm_state;
+} vm_thread_state_t;
 
 
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
-
-    // log_v_debug_P( PSTR("new thread %d on vm %d"), state->thread_id, state->vm_id );
     
-    while( vm_active_threads[state->vm_id] & ( 1 << state->thread_id ) ){
+    if( state->handle > 0 ){
 
-        wifi_msg_vm_info_t info;
-        if( vm_i8_run_vm( state->vm_id, WIFI_DATA_ID_VM_RUN_THREAD, state->thread_id, &info ) == VM_STATUS_COMM_ERROR ){
+        mem2_v_free( state->handle );
+    }
+    
+    vm_loop_time[state->vm_id]     = 0;
+    vm_thread_time[state->vm_id]   = 0;
+    vm_max_cycles[state->vm_id]    = 0;
 
-            TMR_WAIT( pt, 100 );
+    get_program_fname( state->vm_id, state->program_fname );
 
+    trace_printf( "Starting VM thread: %s\r\n", state->program_fname );
+
+    // reset VM data
+    reset_published_data( state->vm_id );
+
+    if( load_vm( state->vm_id, state->program_fname, &state->handle ) < 0 ){
+
+        // error loading VM
+        goto exit;        
+    }
+
+    state->vm_return = vm_i8_load_program( 0, mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
+
+    if( state->vm_return ){
+
+        log_v_debug_P( PSTR("VM load fail: %d"), state->vm_return );
+
+        goto exit;
+    }
+
+    // init RNG seed to device ID
+    uint64_t rng_seed;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &rng_seed );
+
+    // make sure seed is never 0 (otherwise RNG will not work)
+    if( rng_seed == 0 ){
+
+        rng_seed = 1;
+    }
+
+    state->vm_state.rng_seed = rng_seed;
+
+    // set thread tick
+    state->vm_state.tick_rate = VM_THREAD_RATE;
+
+    // init database
+    vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
+
+    // run VM init
+    state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+    if( state->vm_return ){
+
+        log_v_debug_P( PSTR("VM init fail: %d"), state->vm_return );
+
+        goto exit;
+    }
+
+    vm_status[state->vm_id] = VM_STATUS_OK;
+    
+    while( vm_status[state->vm_id] == VM_STATUS_OK ){
+
+        THREAD_WAIT_WHILE( pt, vm_run_flags[state->vm_id] == 0 );
+
+        uint32_t start = tmr_u32_get_system_time_us();
+
+        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
+
+            state->vm_return = vm_i8_run_loop( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        }
+
+        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_THREADS ){
+
+            state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        }
+
+        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
+            
+            vm_loop_time[state->vm_id] = elapsed;
+        }
+
+
+        vm_run_flags[state->vm_id] = 0;        
+
+        if( state->vm_return == VM_STATUS_HALT ){
+
+            vm_status[state->vm_id] = VM_STATUS_HALT;
+            trace_printf( "VM %d halted\r\n", state->vm_id );
+        }
+        else if( state->vm_return < 0 ){
+
+            vm_status[state->vm_id] = state->vm_return;
+
+            trace_printf( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
+            goto exit;
+        }
+
+        vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
+
+        THREAD_YIELD( pt );
+    }    
+
+exit:
+    trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
+
+    if( state->handle > 0 ){
+
+        mem2_v_free( state->handle );
+    }
+
+    // reset VM data
+    reset_published_data( state->vm_id );
+    
+PT_END( pt );
+}
+
+PT_THREAD( vm_loop_timing( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        thread_v_set_alarm( thread_u32_get_alarm() + gfx_u16_get_vm_frame_rate() );
+        THREAD_WAIT_WHILE( pt, !update_frame_rate && thread_b_alarm_set() );
+
+        if( update_frame_rate ){
+
+            update_frame_rate = FALSE;
             continue;
         }
 
-        if( ( info.status < 0 ) || ( info.status == VM_STATUS_HALT ) ){
+        for( uint32_t i = 0; i < cnt_of_array(vm_run_flags); i++ ){
 
-            vm_status[state->vm_id] = info.status;
-
-            goto exit;
+            vm_run_flags[i] |= VM_FLAG_RUN_LOOP;
         }
-
-        if( info.thread_delays[state->thread_id] < 0 ){
-
-            // terminating thread
-            goto exit;
-        }
-
-        int32_t delay = info.thread_delays[state->thread_id];
-        if( delay < VM_MIN_DELAY ){
-
-            delay = VM_MIN_DELAY;
-        }
-
-
-        TMR_WAIT( pt, delay );
     }
 
-exit:
-    vm_active_threads[state->vm_id] &= ~( 1 << state->thread_id );
+PT_END( pt );
+}
 
-    // log_v_debug_P( PSTR("stop thread %d on vm %d"), state->thread_id, state->vm_id );
+PT_THREAD( vm_thread_timing( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        thread_v_set_alarm( thread_u32_get_alarm() + VM_THREAD_RATE );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        for( uint32_t i = 0; i < cnt_of_array(vm_run_flags); i++ ){
+
+            vm_run_flags[i] |= VM_FLAG_RUN_THREADS;
+        }
+    }
 
 PT_END( pt );
 }
@@ -706,13 +654,7 @@ PT_BEGIN( pt );
     kvdb_v_set_name_P( PSTR("vm_3") );
 
 
-    THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-
-
     while(1){
-
-        
-#ifdef VM_TARGET_ESP
 
         THREAD_WAIT_WHILE( pt, 
             ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||
@@ -732,11 +674,6 @@ PT_BEGIN( pt );
               ( !vm_reset[3] ) )
         );
 
-        if( wifi_b_shutdown() ){
-
-            THREAD_EXIT( pt );
-        }
-
 
         // check what we're doing, and to what VM    
         for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
@@ -747,9 +684,8 @@ PT_BEGIN( pt );
                 ( vm_status[i] != VM_STATUS_READY ) &&
                 ( vm_status[i] != 0 ) ){
 
-                vm_run[i]               = FALSE;
-                vm_reset[i]             = FALSE;
-                vm_active_threads[i]    = 0;
+                vm_run[i] = FALSE;
+                vm_reset[i] = FALSE;
 
                 if( vm_status[i] == VM_STATUS_HALT ){
 
@@ -761,12 +697,6 @@ PT_BEGIN( pt );
 
                     log_v_debug_P( PSTR("VM %d error: %d"), i, vm_status[i] );
                 }
-
-                // reset vm sync
-                if( i == 0 ){
-
-                    vm_sync_v_reset();
-                }
             }
 
             // Are we resetting a VM?
@@ -774,16 +704,12 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
-                vm_status[i]            = VM_STATUS_NOT_RUNNING;
-                vm_active_threads[i]    = 0;
+                vm_status[i] = VM_STATUS_NOT_RUNNING;
 
-                send_reset_message( i );
-                reset_published_data( i );
+                // verify thread exists
+                if( vm_threads[i] > 0 ){
 
-                // reset vm sync
-                if( i == 0 ){
-
-                    vm_sync_v_reset();
+                    thread_v_restart( vm_threads[i] );
                 }
             }
 
@@ -791,47 +717,35 @@ PT_BEGIN( pt );
             // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) ){
 
-                int8_t status = load_vm_wifi( i );
+                vm_thread_state_t thread_state;
+                memset( &thread_state, 0, sizeof(thread_state) );
+                thread_state.vm_id = i;
 
-                if( status == 0 ){
+                vm_threads[i] = thread_t_create( THREAD_CAST(vm_thread),
+                                                 vm_names[i],
+                                                 &thread_state,
+                                                 sizeof(thread_state) );
 
-                    wifi_msg_vm_info_t info;
+                if( vm_threads[i] < 0 ){
 
-                    // initialize VM (run init function)
-                    vm_status[i] = vm_i8_run_vm( i, WIFI_DATA_ID_INIT_VM, 0, &info );
+                    vm_run[i] = FALSE;
 
-                    if( vm_status[i] < 0 ){
-                        
-                        vm_run[i] = FALSE;
+                    log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
 
-                        log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
-
-                        goto error;
-                    }
-
-                    log_v_debug_P( PSTR("VM init %d OK: %d"), i, vm_status[i] );
+                    goto error; 
                 }
+
+                vm_status[i] = VM_STATUS_OK;
             }
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
 
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
-                send_reset_message( i );
-                reset_published_data( i );
-                vm_cron_v_unload( i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
-                vm_loop_time[i]         = 0;
-                vm_thread_time[i]       = 0;
-                vm_max_cycles[i]        = 0;
-                vm_sizes[i]             = 0;
-                vm_active_threads[i]    = 0;
-
-                // reset vm sync
-                if( i == 0 ){
-
-                    vm_sync_v_reset();
-                }
+                vm_loop_time[i]     = 0;
+                vm_thread_time[i]   = 0;
+                vm_max_cycles[i]    = 0;
             }
             
             // always reset the reset
@@ -847,48 +761,10 @@ PT_BEGIN( pt );
         // longish delay after error to prevent swamping CPU trying
         // to reload a bad file.
         TMR_WAIT( pt, 1000 );
-
-
-#else
-  
-#endif
-
     }
 
 PT_END( pt );
 }
-
-int8_t vm_i8_run_loops( void ){
-
-    // check if we need to do a full db sync
-    uint32_t now = tmr_u32_get_system_time_ms();
-
-    if( tmr_u32_elapsed_times( last_full_sync, now ) > 1000 ){
-
-        last_full_sync = now;
-        gfx_v_sync_db( TRUE );
-    }
-
-    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
-                    
-        if( vm_b_is_vm_running( i ) ){
-
-            wifi_msg_vm_info_t info;
-
-            if( vm_i8_run_vm( i, WIFI_DATA_ID_RUN_VM, 0, &info ) == VM_STATUS_COMM_ERROR ){
-
-                return VM_STATUS_COMM_ERROR;
-            }
-
-            vm_status[i]            = info.status;
-            vm_loop_time[i]         = info.run_time;
-            vm_max_cycles[i]        = info.max_cycles;
-        }
-    }
-
-    return 0;
-}
-
 
 void vm_v_init( void ){
 
@@ -902,13 +778,25 @@ void vm_v_init( void ){
     memset( vm_status, VM_STATUS_NOT_RUNNING, sizeof(vm_status) );
 
     thread_t_create( vm_loader,
-                 PSTR("vm_loader"),
-                 0,
-                 0 );
+                     PSTR("vm_loader"),
+                     0,
+                     0 );
+
+    thread_t_create( vm_loop_timing,
+                     PSTR("vm_loop_timing"),
+                     0,
+                     0 );
+
+    thread_t_create( vm_thread_timing,
+                     PSTR("vm_thread_timing"),
+                     0,
+                     0 );
 
     vm_cron_v_init();
 }
 
+
+// these are legacy controls from when we only had 1 VM
 void vm_v_start( void ){
 
     vm_run[0] = TRUE;
@@ -923,6 +811,7 @@ void vm_v_reset( void ){
 
     vm_reset[0] = TRUE;
 }
+
 
 bool vm_b_running( void ){
 
@@ -943,3 +832,16 @@ bool vm_b_is_vm_running( uint8_t i ){
 
     return is_vm_running( i );   
 }
+
+int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){
+
+    if( vm_threads[i] <= 0 ){
+        
+        return VM_STATUS_ERROR;        
+    }
+
+    vm_thread_state_t *thread_state = thread_vp_get_data( vm_threads[i] );
+
+    return vm_i8_run( mem2_vp_get_ptr( thread_state->handle ), func_addr, 0, &thread_state->vm_state );
+}
+

@@ -215,15 +215,15 @@ static bool vm_sync_wait( void ){
 
 static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
-	if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, 0, 0 ) < 0 ){
+	// if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, 0, 0 ) < 0 ){
 
-        return -1;
-    }
+ //        return -1;
+ //    }
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
+ //    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
 
-        return -2;
-    }
+ //        return -2;
+ //    }
 
     return 0;
 }
@@ -231,15 +231,15 @@ static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
 static int8_t set_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
+    // if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
 
-        return -1;
-    }
+    //     return -1;
+    // }
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0, 0 ) < 0 ){
+    // if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0, 0 ) < 0 ){
 
-        return -2;
-    }
+    //     return -2;
+    // }
 
     return 0;
 }
@@ -247,35 +247,36 @@ static int8_t set_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
 static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
 
-    msg->offset = offset;
+    // msg->offset = offset;
 
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) ) < 0 ){
+    // if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) ) < 0 ){
 
-        return -1;
-    }
+    //     return -1;
+    // }
 
-    uint16_t bytes_read;
+    // uint16_t bytes_read;
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
+    // if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
 
-        return -2;
-    }
+    //     return -2;
+    // }
 
-    return bytes_read;
+    // return bytes_read;
+    return -1;
 }
 
 
 static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
 
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
+    // if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
 
-        return -1;
-    }
+    //     return -1;
+    // }
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
+    // if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
 
-        return -2;
-    }
+    //     return -2;
+    // }
 
     return 0;
 }
