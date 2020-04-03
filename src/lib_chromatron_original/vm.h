@@ -1,0 +1,40 @@
+// <license>
+// 
+//     This file is part of the Sapphire Operating System.
+// 
+//     Copyright (C) 2013-2019  Jeremy Billheimer
+// 
+// 
+//     This program is free software: you can redistribute it and/or modify
+//     it under the terms of the GNU General Public License as published by
+//     the Free Software Foundation, either version 3 of the License, or
+//     (at your option) any later version.
+// 
+//     This program is distributed in the hope that it will be useful,
+//     but WITHOUT ANY WARRANTY; without even the implied warranty of
+//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//     GNU General Public License for more details.
+// 
+//     You should have received a copy of the GNU General Public License
+//     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// </license>
+
+#ifndef _VM_H
+#define _VM_H
+
+#include "vm_core.h"
+#include "vm_wifi_cmd.h"
+
+void vm_v_init( void );
+void vm_v_start( void );
+void vm_v_stop( void );
+void vm_v_reset( void );
+
+int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info );
+int8_t vm_i8_run_loops( void );
+
+bool vm_b_running( void );
+bool vm_b_is_vm_running( uint8_t i );
+
+#endif
