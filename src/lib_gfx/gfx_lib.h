@@ -103,30 +103,6 @@ uint16_t gfx_u16_get_pix_count( void );
 uint16_t gfx_u16_get_pix_driver_count( uint8_t output );
 uint16_t gfx_u16_get_pix_driver_offset( uint8_t output );
 
-void gfx_v_set_master_dimmer( uint16_t setting );
-uint16_t gfx_u16_get_master_dimmer( void );
-
-void gfx_v_set_submaster_dimmer( uint16_t setting );
-uint16_t gfx_u16_get_submaster_dimmer( void );
-
-void gfx_v_set_size_x( uint16_t size );
-uint16_t gfx_u16_get_size_x( void );
-
-void gfx_v_set_size_y( uint16_t size );
-uint16_t gfx_u16_get_size_y( void );
-
-void gfx_v_set_interleave_x( bool setting );
-bool gfx_b_get_interleave_x( void );
-
-void gfx_v_set_transpose( bool setting );
-bool gfx_b_get_transpose( void );
-
-void gfx_v_set_hsfade( uint16_t setting );
-uint16_t gfx_u16_get_hsfade( void );
-
-void gfx_v_set_vfade( uint16_t setting );
-uint16_t gfx_u16_get_vfade( void );
-
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src );
 void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src );
 void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src );
@@ -146,8 +122,6 @@ uint8_t *gfx_u8p_get_red( void );
 uint8_t *gfx_u8p_get_green( void );
 uint8_t *gfx_u8p_get_blue( void );
 uint8_t *gfx_u8p_get_dither( void );
-
-void gfx_v_set_background_hsv( int32_t h, int32_t s, int32_t v );
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index );
 void gfx_v_set_hsv_2d( int32_t h, int32_t s, int32_t v, uint16_t x, uint16_t y );

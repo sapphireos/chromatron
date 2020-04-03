@@ -498,89 +498,6 @@ uint16_t gfx_u16_get_pix_driver_offset( uint8_t output ){
     return offset;
 }
 
-void gfx_v_set_master_dimmer( uint16_t setting ){
-
-    pix_master_dimmer = setting;
-    update_master_fader();
-}
-
-uint16_t gfx_u16_get_master_dimmer( void ){
-
-    return pix_master_dimmer;
-}
-
-void gfx_v_set_submaster_dimmer( uint16_t setting ){
-
-    pix_sub_dimmer = setting;
-    update_master_fader();
-}
-
-uint16_t gfx_u16_get_submaster_dimmer( void ){
-
-    return pix_sub_dimmer;
-}
-
-void gfx_v_set_size_x( uint16_t size ){
-
-    pix_size_x = size;
-}
-
-uint16_t gfx_u16_get_size_x( void ){
-
-    return pix_size_x;
-}
-
-void gfx_v_set_size_y( uint16_t size ){
-
-    pix_size_y = size;
-}
-
-uint16_t gfx_u16_get_size_y( void ){
-
-    return pix_size_y;
-}
-
-void gfx_v_set_interleave_x( bool setting ){
-
-    gfx_interleave_x = setting;
-}
-
-bool gfx_b_get_interleave_x( void ){
-
-    return gfx_interleave_x;
-}
-
-void gfx_v_set_transpose( bool setting ){
-
-    gfx_transpose = setting;
-}
-
-bool gfx_b_get_transpose( void ){
-
-    return gfx_transpose;
-}
-
-void gfx_v_set_hsfade( uint16_t setting ){
-
-    global_hs_fade = setting;
-}
-
-uint16_t gfx_u16_get_hsfade( void ){
-
-    return global_hs_fade;
-}
-
-void gfx_v_set_vfade( uint16_t setting ){
-
-    global_v_fade = setting;
-}
-
-uint16_t gfx_u16_get_vfade( void ){
-
-    return global_v_fade;
-}
-
-
 
 static inline void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
@@ -1109,14 +1026,6 @@ uint16_t gfx_u16_get_pix0_green( void ){
 uint16_t gfx_u16_get_pix0_blue( void ){
 
     return pix0_16bit_blue;
-}
-
-void gfx_v_set_background_hsv( int32_t h, int32_t s, int32_t v ){
-
-    for( uint16_t i = 0; i < MAX_PIXELS; i++ ){
-
-        gfx_v_set_hsv( h, s, v, i );
-    }
 }
 
 static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
