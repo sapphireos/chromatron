@@ -153,8 +153,8 @@ THREAD_EXIT( pt );
     // which means if it resets, then we short out the coprocessor.
     // 1) We don't need CTS, so lets set it to input.
     // 2) We do need TXD, but only when transmitting.  So we'll leave it as input until we need it.
-    WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
-    WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
+    // WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
+    // WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
 
 
     // reset baud rate
@@ -175,14 +175,14 @@ THREAD_EXIT( pt );
 
     // send confirmation
     // Set TXD to output for transmission
-    WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
+    // WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     hal_wifi_v_usart_send_char( COPROC_SYNC );
 
     // wait for transmit complete
-    _delay_us( 5 );
+    // _delay_us( 5 );
 
     // reset IO to input
-    WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
+    // WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
 
     log_v_debug_P( PSTR("sync") );
 
@@ -221,7 +221,7 @@ THREAD_EXIT( pt );
         hdr.length = response_len;
 
         // Set TXD to output for transmission
-        WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
+        // WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
 
         coproc_v_send_block( (uint8_t *)&hdr );
 
@@ -236,10 +236,10 @@ THREAD_EXIT( pt );
         }
 
         // wait for transmit complete
-        _delay_us( 5 );
+        // _delay_us( 5 );
 
         // Set TXD to input to protect against a short in case the ESP8266 resets
-        WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
+        // WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
     }
 
 PT_END( pt );	
