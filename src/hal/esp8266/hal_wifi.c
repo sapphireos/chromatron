@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "list.h"
 #include "sockets.h"
+#include "hal_io.h"
 
 #include "test_ssid.h"
 
@@ -653,6 +654,9 @@ station_mode:
             	.scan_time = 0,
             };
 
+            // light LED while scanning since the CPU will freeze
+            io_v_set_esp_led( 1 );
+
             wifi_station_disconnect();
             if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
 
@@ -666,6 +670,8 @@ station_mode:
 
                 TMR_WAIT( pt, 50 );
             }
+
+            io_v_set_esp_led( 0 );
 
             if( wifi_router < 0 ){
 

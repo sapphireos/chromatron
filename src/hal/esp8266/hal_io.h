@@ -52,6 +52,7 @@
 
 #endif
 
+void io_v_set_esp_led( bool state );
 
 #endif
 

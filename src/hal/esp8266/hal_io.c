@@ -97,3 +97,15 @@ void io_v_disable_interrupt( uint8_t int_number )
 {
 
 }
+
+void io_v_set_esp_led( bool state ){
+
+    if( state ){
+
+        GPIO_OUTPUT_SET(2, 0);    
+    }
+    else{
+
+        GPIO_OUTPUT_SET(2, 1);    
+    }
+}

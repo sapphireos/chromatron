@@ -188,7 +188,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     sapphire_run();
 
     // turn off LED
-    GPIO_OUTPUT_SET(2, 1);
+    io_v_set_esp_led( 0 );
 
     #ifdef ENABLE_COPROCESSOR
     usart_v_init( 0 );
