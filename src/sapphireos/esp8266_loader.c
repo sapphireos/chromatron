@@ -1003,6 +1003,9 @@ run_wifi:
     
     loader_status = ESP_LOADER_STATUS_OK;
 
+    status_led_v_set( 0, STATUS_LED_BLUE );
+    status_led_v_set( 1, STATUS_LED_GREEN );
+
     
 PT_END( pt );
 }
