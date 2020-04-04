@@ -37,10 +37,8 @@
 
 #define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
 
-static bool load_disable;
-
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,      0, 0,  &load_disable, cfg_i8_kv_handler,  "coproc_load_disable" },
+    { SAPPHIRE_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
 };
 #endif
 
@@ -161,7 +159,7 @@ PT_BEGIN( pt );
     
     #ifdef ENABLE_ESP_UPGRADE_LOADER
 
-    if( !load_disable ){
+    if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){
 
         // run firmware loader    
         wifi_v_start_loader();
