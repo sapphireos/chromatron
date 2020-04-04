@@ -38,7 +38,7 @@
 // #define ENABLE_POWER
 // #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
-#define ENABLE_COPROCESSOR
+// #define ENABLE_COPROCESSOR
 #define ESP8266_UPGRADE
 
 // wifi
