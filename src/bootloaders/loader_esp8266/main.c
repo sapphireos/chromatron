@@ -75,6 +75,9 @@ Generic mode:
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
+#ifdef ENABLE_COPROCESSOR
+#error "ESP8266 bootloader not compatible with ENABLE_COPROCESSOR!"
+#endif
 
 void main( void ){
 
