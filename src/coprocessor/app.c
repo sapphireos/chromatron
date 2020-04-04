@@ -22,6 +22,7 @@
 
 #include "sapphire.h"
 
+#include "config.h"
 #include "coprocessor.h"
 
 #include "esp8266_loader.h"
@@ -31,6 +32,18 @@
 #include "pixel.h"
 
 #include "app.h"
+
+#ifdef ENABLE_ESP_UPGRADE_LOADER
+
+#define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
+
+static bool load_disable;
+
+KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
+    { SAPPHIRE_TYPE_BOOL,      0, 0,  &load_disable, cfg_i8_kv_handler,  "coproc_load_disable" },
+};
+#endif
+
 
 
 static uint32_t fw_addr;
@@ -47,6 +60,8 @@ void coproc_v_dispatch(
     int32_t *params = (int32_t *)data;
     int32_t retval = 0;
 
+    *response_len = sizeof(retval);
+
     if( hdr->opcode == OPCODE_TEST ){
 
         memcpy( response, data, len );
@@ -57,6 +72,11 @@ void coproc_v_dispatch(
         sys_reboot();
 
         while(1);
+    }
+    else if( hdr->opcode == OPCODE_LOAD_DISABLE ){
+
+        bool value = TRUE;
+        cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
     }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
@@ -139,17 +159,24 @@ PT_BEGIN( pt );
 
     hal_wifi_v_init();
     
-    // run firmware loader    
-    wifi_v_start_loader();
+    #ifdef ENABLE_ESP_UPGRADE_LOADER
 
-    THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+    if( !load_disable ){
 
-    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+        // run firmware loader    
+        wifi_v_start_loader();
 
-        log_v_debug_P( PSTR("ESP load failed") );
+        THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 
-        THREAD_EXIT( pt );
+        if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+
+            log_v_debug_P( PSTR("ESP load failed") );
+
+            THREAD_EXIT( pt );
+        }
     }
+
+    #endif
     
 // THREAD_EXIT( pt );
 
@@ -186,6 +213,8 @@ PT_BEGIN( pt );
     // WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     hal_wifi_v_usart_send_char( COPROC_SYNC );
 
+    hal_wifi_v_usart_flush();
+
     // wait for transmit complete
     // _delay_us( 5 );
 
@@ -193,9 +222,6 @@ PT_BEGIN( pt );
     // WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
 
     log_v_debug_P( PSTR("sync") );
-
-
-    hal_wifi_v_usart_flush();
 
     // main message loop
     while(1){
@@ -209,7 +235,12 @@ PT_BEGIN( pt );
 
         uint8_t buf[COPROC_BUF_SIZE];
 
-        uint8_t n_blocks = 1 + ( hdr.length - 1 ) / 4;
+        uint8_t n_blocks = 0;
+        if( hdr.length > 0 ){
+
+            n_blocks = 1 + ( hdr.length - 1 ) / 4;
+        }
+
         uint8_t i = 0;
         while( n_blocks > 0 ){
             
