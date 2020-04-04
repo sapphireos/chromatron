@@ -31,6 +31,8 @@
 #include "coprocessor.h"
 #endif
 
+extern boot_data_t BOOTDATA boot_data;
+
 void cpu_v_init( void ){
 
     DISABLE_INTERRUPTS;
@@ -41,7 +43,38 @@ void cpu_v_init( void ){
     // it is not possible to disable the hardware watchdog.
     // thus, all startup routines need watchdog kicks for long running operations.
 
+    #ifndef BOOTLOADER
     wdg_v_enable( 0, 0 );
+    #endif
+
+    hal_cpu_v_load_bootdata();
+}
+
+
+void hal_cpu_v_load_bootdata( void ){
+
+    volatile uint32_t *rtc_mem = (uint32_t*)0x60001200;
+
+    // load bootloader data from RTC
+    uint32_t *ptr = (uint32_t *)&boot_data;
+
+    for( uint32_t i = 0; i < sizeof(boot_data); i += 4 ){
+
+        *ptr++ = *rtc_mem++;
+    }
+}
+
+void hal_cpu_v_store_bootdata( void ){
+
+    volatile uint32_t *rtc_mem = (uint32_t*)0x60001200;
+
+    // load bootloader data from RTC
+    uint32_t *ptr = (uint32_t *)&boot_data;
+
+    for( uint32_t i = 0; i < sizeof(boot_data); i += 4 ){
+
+        *rtc_mem++ = *ptr++;
+    }
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
@@ -119,6 +152,8 @@ uint32_t cpu_u32_get_clock_speed( void ){
 }
 
 void cpu_reboot( void ){
+
+    hal_cpu_v_store_bootdata();
 
 #ifndef BOOTLOADER
     #ifdef ENABLE_COPROCESSOR

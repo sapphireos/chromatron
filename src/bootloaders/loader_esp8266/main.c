@@ -84,6 +84,8 @@ void main( void ){
     trace_printf("Welcome to Sapphire\n");
     trace_printf("ESP8266 Bootloader\n");
 
+    cpu_v_init();
+
     // init CRC
     crc_v_init();
 
@@ -202,6 +204,9 @@ void main( void ){
 
     // run application
     ldr_v_clear_yellow_led();
+
+    hal_cpu_v_store_bootdata();
+    
     ldr_run_app();
 
 
