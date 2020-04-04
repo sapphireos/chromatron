@@ -155,8 +155,8 @@ PT_BEGIN( pt );
     // which means if it resets, then we short out the coprocessor.
     // 1) We don't need CTS, so lets set it to input.
     // 2) We do need TXD, but only when transmitting.  So we'll leave it as input until we need it.
-    WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
-    WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
+    // WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
+    // WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
 
 THREAD_EXIT( pt );
     // reset baud rate
