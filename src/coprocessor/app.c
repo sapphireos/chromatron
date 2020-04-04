@@ -121,7 +121,7 @@ void coproc_v_dispatch(
     }   
     else{
 
-        log_v_debug_P( PSTR("bad opcode: %u"), hdr->opcode );
+        log_v_debug_P( PSTR("bad opcode: 0x%02x"), hdr->opcode );
     }
 }
 
@@ -158,7 +158,7 @@ PT_BEGIN( pt );
     // WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
     // WIFI_CTS_PORT.DIRCLR                = ( 1 << WIFI_CTS_PIN );
 
-THREAD_EXIT( pt );
+// THREAD_EXIT( pt );
     // reset baud rate
     // usart_v_set_double_speed( &WIFI_USART, FALSE );
     // usart_v_set_baud( &WIFI_USART, BAUD_115200 );

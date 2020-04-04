@@ -134,7 +134,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
     #ifdef ENABLE_COPROCESSOR
-    // system_set_os_print( 0 );
+    system_set_os_print( 0 );
     #endif
 
     uart_init(115200, 115200);
