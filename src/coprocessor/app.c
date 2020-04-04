@@ -141,7 +141,7 @@ PT_BEGIN( pt );
     if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
 
         log_v_debug_P( PSTR("ESP load failed") );
-hal_wifi_v_enter_normal_mode();
+
         THREAD_EXIT( pt );
     }
     
