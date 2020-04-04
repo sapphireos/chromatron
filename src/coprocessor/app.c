@@ -172,10 +172,17 @@ PT_BEGIN( pt );
     // Set TXD to output for transmission
     WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     hal_wifi_v_usart_send_char( COPROC_SYNC );
+
+    // wait for transmit complete
+    _delay_us( 5 );
+
+    // reset IO to input
     WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
 
     log_v_debug_P( PSTR("sync") );
 
+
+    hal_wifi_v_usart_flush();
 
     // main message loop
     while(1){
@@ -222,6 +229,9 @@ PT_BEGIN( pt );
             i += COPROC_BLOCK_LEN;
             data_len -= COPROC_BLOCK_LEN;
         }
+
+        // wait for transmit complete
+        _delay_us( 5 );
 
         // Set TXD to input to protect against a short in case the ESP8266 resets
         WIFI_USART_TXD_PORT.DIRCLR          = ( 1 << WIFI_USART_TXD_PIN );
