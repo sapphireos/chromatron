@@ -31,7 +31,6 @@
 #include "hal_esp8266.h"
 #endif
 
-static coproc_hdr_t rx_hdr;
 static uint8_t rx_buf[COPROC_BUF_SIZE];
 
 static bool sync;
@@ -157,10 +156,11 @@ uint8_t coproc_u8_issue(
 	// wait for header
 	coproc_v_receive_block( (uint8_t *)&hdr );
 	
-	ASSERT( rx_hdr.length < sizeof(rx_buf) );
+	ASSERT( hdr.sof == COPROC_SOF );
+	ASSERT( hdr.length < sizeof(rx_buf) );
 		
 	data = rx_buf;
-	len = rx_hdr.length;
+	len = hdr.length;
 	while( len > 0 ){
 
 		coproc_v_receive_block( data );
@@ -169,7 +169,7 @@ uint8_t coproc_u8_issue(
 		len -= COPROC_BLOCK_LEN;
 	}
 
-	return rx_hdr.length;
+	return hdr.length;
 }
 
 // note this function should not return, the coprocessor will hit the reset line.

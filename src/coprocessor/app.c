@@ -159,7 +159,7 @@ PT_BEGIN( pt );
     
     #ifdef ENABLE_ESP_UPGRADE_LOADER
 
-    if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){
+    if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){ 
 
         // run firmware loader    
         wifi_v_start_loader();
@@ -230,6 +230,8 @@ PT_BEGIN( pt );
 
         coproc_hdr_t hdr;
         coproc_v_receive_block( (uint8_t *)&hdr );
+
+        ASSERT( hdr.sof == COPROC_SOF );
 
         uint8_t buf[COPROC_BUF_SIZE];
 
