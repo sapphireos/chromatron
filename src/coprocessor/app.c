@@ -145,7 +145,7 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
     
-// THREAD_EXIT( pt );
+THREAD_EXIT( pt );
 
     hal_wifi_v_enter_normal_mode();
 THREAD_EXIT( pt );
