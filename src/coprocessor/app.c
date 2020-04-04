@@ -144,9 +144,11 @@ PT_BEGIN( pt );
 
         THREAD_EXIT( pt );
     }
+    
+// THREAD_EXIT( pt );
 
     hal_wifi_v_enter_normal_mode();
-
+THREAD_EXIT( pt );
     // note these pins get driven when the ESP8266 boots up.
     // which means if it resets, then we short out the coprocessor.
     // 1) We don't need CTS, so lets set it to input.
@@ -165,7 +167,10 @@ PT_BEGIN( pt );
 
 
     // wait for sync
-    while( hal_wifi_i16_usart_get_char() != COPROC_SYNC );
+    while( hal_wifi_i16_usart_get_char() != COPROC_SYNC ){
+
+        sys_v_wdt_reset();
+    }
     // if we don't get a sync, the watchdog timer will restart the entire system.
 
     // send confirmation

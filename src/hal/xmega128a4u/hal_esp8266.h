@@ -35,11 +35,16 @@
 #define WIFI_TIMER              TCD1
 #define WIFI_TIMER_ISR          TCD1_OVF_vect
 
+// ESP8266 GPIO12
 #define WIFI_USART_TXD_PORT     PORTE
 #define WIFI_USART_TXD_PIN      3
+
+// ESP8266 GPIO13
 #define WIFI_USART_RXD_PORT     PORTE
 #define WIFI_USART_RXD_PIN      2
-#define WIFI_USART_XCK_PORT     PORTE
+
+
+// ESP8266 GPIO14
 #define WIFI_IRQ_PIN      		1
 #define WIFI_IRQ_PORT      		PORTE
 #define WIFI_IRQ_PINCTRL  		PIN1CTRL
@@ -47,10 +52,12 @@
 #define WIFI_PD_PORT            PORTE
 #define WIFI_PD_PIN             0
 
+// ESP8266 GPIO0 (BOOT))
 #define WIFI_BOOT_PORT          PORTA
 #define WIFI_BOOT_PIN           5
 #define WIFI_BOOT_PINCTRL       PIN5CTRL
 
+// ESP8266 GPIO15
 #define WIFI_CTS_PORT            PORTA
 #define WIFI_CTS_PIN             6
 #define WIFI_CTS_PINCTRL         PIN6CTRL
