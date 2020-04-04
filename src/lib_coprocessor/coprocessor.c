@@ -172,6 +172,12 @@ uint8_t coproc_u8_issue(
 	return rx_hdr.length;
 }
 
+// note this function should not return, the coprocessor will hit the reset line.
+void coproc_v_reboot( void ){
+
+	coproc_i32_call0( OPCODE_REBOOT );
+}
+
 
 void coproc_v_test( void ){
 

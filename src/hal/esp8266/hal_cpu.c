@@ -27,6 +27,10 @@
 
 #include "system.h"
 
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
+
 void cpu_v_init( void ){
 
     DISABLE_INTERRUPTS;
@@ -116,11 +120,19 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
-    #ifndef BOOTLOADER
+#ifndef BOOTLOADER
+    #ifdef ENABLE_COPROCESSOR
+
+    coproc_v_reboot();
+
+    #else
+
     wdg_v_disable();
     system_restart();
     while(1);
+
     #endif
+#endif
 }
 
 void hal_cpu_v_delay_us( uint16_t us ){

@@ -47,6 +47,7 @@ typedef struct __attribute__((packed)){
 #define COPROC_BUF_SIZE				96
 
 #define OPCODE_TEST					0x01
+#define OPCODE_REBOOT				0x02
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
 #define OPCODE_IO_DIGITAL_WRITE		0x12
@@ -82,6 +83,8 @@ uint8_t coproc_u8_issue(
 	uint8_t opcode, 
 	uint8_t *data, 
 	uint8_t len );
+
+void coproc_v_reboot( void );
 
 void coproc_v_test( void );
 

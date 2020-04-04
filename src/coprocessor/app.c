@@ -52,6 +52,12 @@ void coproc_v_dispatch(
         memcpy( response, data, len );
         *response_len = len;
     }
+    else if( hdr->opcode == OPCODE_REBOOT ){
+
+        sys_reboot();
+
+        while(1);
+    }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
         io_v_set_mode( params[0], params[1] );
