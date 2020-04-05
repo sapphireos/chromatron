@@ -60,7 +60,7 @@ uint16_t crc_u16_start( void ){
 }
 
 
-uint16_t crc_u16_block( uint8_t *ptr, uint16_t length ){
+uint16_t crc_u16_block( uint8_t *ptr, uint32_t length ){
 
     crc_u16_start();
 
@@ -71,7 +71,7 @@ uint16_t crc_u16_block( uint8_t *ptr, uint16_t length ){
 
 // compute the CRC for the given block with initialization or
 // finishing the last two 0 bytes
-uint16_t crc_u16_partial_block( uint16_t crc, uint8_t *ptr, uint16_t length ){
+uint16_t crc_u16_partial_block( uint16_t crc, uint8_t *ptr, uint32_t length ){
 
     while( length > 0 ){
 

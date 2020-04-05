@@ -31,8 +31,8 @@
 void crc_v_init( void );
 uint16_t crc_u16_start( void );
 uint16_t crc_u16_finish( uint16_t crc );
-uint16_t crc_u16_block( uint8_t *ptr, uint16_t length );
-uint16_t crc_u16_partial_block( uint16_t crc, uint8_t *ptr, uint16_t length );
+uint16_t crc_u16_block( uint8_t *ptr, uint32_t length );
+uint16_t crc_u16_partial_block( uint16_t crc, uint8_t *ptr, uint32_t length );
 uint16_t crc_u16_byte( uint16_t crc, uint8_t data );
 
 #endif
