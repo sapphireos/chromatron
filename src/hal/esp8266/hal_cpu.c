@@ -31,7 +31,8 @@
 #include "coprocessor.h"
 #endif
 
-extern boot_data_t BOOTDATA boot_data;
+extern volatile boot_data_t BOOTDATA boot_data;
+#define RTC_MEM ((volatile uint32_t*)0x60001200)
 
 void cpu_v_init( void ){
 
@@ -53,27 +54,23 @@ void cpu_v_init( void ){
 
 void hal_cpu_v_load_bootdata( void ){
 
-    volatile uint32_t *rtc_mem = (uint32_t*)0x60001200;
-
     // load bootloader data from RTC
     uint32_t *ptr = (uint32_t *)&boot_data;
 
-    for( uint32_t i = 0; i < sizeof(boot_data); i += 4 ){
+    for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
 
-        *ptr++ = *rtc_mem++;
+        ptr[i] = RTC_MEM[i];
     }
 }
 
 void hal_cpu_v_store_bootdata( void ){
 
-    volatile uint32_t *rtc_mem = (uint32_t*)0x60001200;
-
     // load bootloader data from RTC
     uint32_t *ptr = (uint32_t *)&boot_data;
 
-    for( uint32_t i = 0; i < sizeof(boot_data); i += 4 ){
+    for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
 
-        *rtc_mem++ = *ptr++;
+        RTC_MEM[i] = ptr[i];
     }
 }
 
