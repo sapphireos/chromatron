@@ -70,6 +70,14 @@ typedef struct __attribute__((packed)){
 #define OPCODE_PIX_SET_APA102_DIM	0x35
 #define OPCODE_PIX_LOAD				0x36
 
+#define OPCODE_IO_CMD_IS_RX_CHAR	0x40
+#define OPCODE_IO_CMD_SEND_CHAR		0x41
+#define OPCODE_IO_CMD_SEND_DATA		0x42
+#define OPCODE_IO_CMD_GET_CHAR		0x43
+#define OPCODE_IO_CMD_GET_DATA		0x44
+#define OPCODE_IO_CMD_RX_SIZE		0x45
+#define OPCODE_IO_CMD_FLUSH			0x46
+
 
 #define COPROC_PIX_WAIT_COUNT		16
 

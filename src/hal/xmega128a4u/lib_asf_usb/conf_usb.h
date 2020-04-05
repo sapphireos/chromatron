@@ -60,13 +60,13 @@
 #define UDD_USB_INT_LEVEL USB_INTLVL_HI_gc
 
 //! Device definition (mandatory)
-#ifdef ENABLE_USB_UDP_TRANSPORT
+// #ifdef ENABLE_USB_UDP_TRANSPORT
     #define  USB_DEVICE_VENDOR_ID             0xF055
     #define  USB_DEVICE_PRODUCT_ID            0x73D5
-#else
-    #define  USB_DEVICE_VENDOR_ID             USB_VID_ATMEL
-    #define  USB_DEVICE_PRODUCT_ID            USB_PID_ATMEL_ASF_CDC
-#endif
+// #else
+//     #define  USB_DEVICE_VENDOR_ID             USB_VID_ATMEL
+//     #define  USB_DEVICE_PRODUCT_ID            USB_PID_ATMEL_ASF_CDC
+// #endif
 #define  USB_DEVICE_MAJOR_VERSION         1
 #define  USB_DEVICE_MINOR_VERSION         0
 #define  USB_DEVICE_POWER                 500 // Consumption on Vbus line (mA)

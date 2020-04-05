@@ -27,6 +27,10 @@
 
 #include "cmd_usart.h"
 
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
+
 void cmd_usart_v_set_baud( baud_t baud ){
 
 }
@@ -38,10 +42,22 @@ bool cmd_usart_b_received_char( void ){
 
 void cmd_usart_v_send_char( uint8_t data ){
 
+    #ifdef ENABLE_COPROCESSOR
+    coproc_i32_call1( OPCODE_IO_CMD_SEND_CHAR, data );
+    #endif
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
+    #ifdef ENABLE_COPROCESSOR
+    while( len > 0 ){
+
+        cmd_usart_v_send_char( *data );
+
+        data++;
+        len--;
+    }
+    #endif
 }
 
 
@@ -51,6 +67,10 @@ int16_t cmd_usart_i16_get_char( void ){
 
         return -1;
     }
+
+    #ifdef ENABLE_COPROCESSOR
+    return coproc_i32_call0( OPCODE_IO_CMD_GET_CHAR );
+    #endif
 
     return -1;
 }
@@ -79,11 +99,17 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 
 uint16_t cmd_usart_u16_rx_size( void ){
 
+    #ifdef ENABLE_COPROCESSOR
+    return coproc_i32_call0( OPCODE_IO_CMD_RX_SIZE );
+    #endif
+
     return 0;
 }
 
 void cmd_usart_v_flush( void ){
 
-
+    #ifdef ENABLE_COPROCESSOR
+    coproc_i32_call0( OPCODE_IO_CMD_FLUSH );
+    #endif
 }
 

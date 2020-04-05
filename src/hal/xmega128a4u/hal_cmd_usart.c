@@ -28,7 +28,6 @@
 #include "hal_usb.h"
 #include "cmd_usart.h"
 
-#ifdef ENABLE_USB_UDP_TRANSPORT
 
 void cmd_usart_v_set_baud( baud_t baud ){
 
@@ -107,5 +106,3 @@ void cmd_usart_v_flush( void ){
     usb_v_flush();
     #endif
 }
-
-#endif

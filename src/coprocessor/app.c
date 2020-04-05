@@ -28,6 +28,7 @@
 #include "esp8266_loader.h"
 #include "hal_esp8266.h"
 #include "status_led.h"
+#include "hal_cmd_usart.h"
 
 #include "ffs_fw.h"
 #include "pixel.h"
@@ -166,6 +167,42 @@ void coproc_v_dispatch(
 
         pixel_v_set_pix_count( pix_transfer_count );
     }   
+    #ifndef ENABLE_USB_UDP_TRANSPORT
+    else if( hdr->opcode == OPCODE_IO_CMD_IS_RX_CHAR ){
+
+        *retval = cmd_usart_b_received_char();
+    }
+    else if( hdr->opcode == OPCODE_IO_CMD_SEND_CHAR ){
+
+        cmd_usart_v_send_char( params[0] );
+    }
+    else if( hdr->opcode == OPCODE_IO_CMD_SEND_DATA ){
+
+        uint32_t tx_len = params[0];
+        uint8_t *tx_data = (uint8_t *)&params[1];
+
+        cmd_usart_v_send_data( tx_data, tx_len );
+    }
+    else if( hdr->opcode == OPCODE_IO_CMD_GET_CHAR ){
+
+        *retval = cmd_usart_i16_get_char();
+    }
+    else if( hdr->opcode == OPCODE_IO_CMD_GET_DATA ){
+
+        uint32_t rx_len = params[0];
+        uint8_t *rx_data = (uint8_t *)&retval[1];
+
+        *retval = cmd_usart_u8_get_data( rx_data, rx_len );
+    }
+    else if( hdr->opcode == OPCODE_IO_CMD_RX_SIZE ){
+
+        *retval = cmd_usart_u16_rx_size();
+    }
+    else if( hdr->opcode == OPCODE_IO_CMD_FLUSH ){
+
+        cmd_usart_v_flush();        
+    }
+    #endif
     else{
 
         log_v_debug_P( PSTR("bad opcode: 0x%02x"), hdr->opcode );
