@@ -107,22 +107,111 @@ static uint8_t noise_table[NOISE_TABLE_SIZE];
 static uint16_t pix_counts[N_PIXEL_OUTPUTS];
 static uint16_t pix_count;
 
+
+static void update_pix_count( void ){
+
+    pix_count = 0;
+
+    for( uint8_t i = 0; i < N_PIXEL_OUTPUTS; i++ ){
+
+        pix_count += pix_counts[i];
+    }
+}
+
+
+static void param_error_check( void ){
+
+    // update pix count
+    update_pix_count();
+
+    // error check
+    if( pix_count > MAX_PIXELS ){
+
+        pix_count = MAX_PIXELS;
+    }
+    else if( pix_count == 0 ){
+
+        // this is necessary to prevent divide by 0 errors.
+        // also, 0 pixels doesn't really make sense in a
+        // pixel graphics library, does it?
+        pix_count = 1;
+    }
+
+    if( ( (uint32_t)pix_size_x * (uint32_t)pix_size_y ) > pix_count ){
+        
+        pix_size_x = pix_count;
+        pix_size_y = 1;
+    }
+
+    if( pix_size_x > pix_count ){
+
+        pix_size_x = 1;
+    }
+
+    if( pix_size_y > pix_count ){
+
+        pix_size_y = 1;
+    }
+
+    if( pix_count > 0 ){
+
+        if( pix_size_x == 0 ){
+
+            pix_size_x = 1;
+        }
+
+        if( pix_size_y == 0 ){
+
+            pix_size_y = 1;
+        }
+    }
+
+    if( gfx_frame_rate < 10 ){
+
+        gfx_frame_rate = 10;
+    }
+
+    if( dimmer_curve < 8 ){
+
+        dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
+    }
+
+    if( sat_curve < 8 ){
+
+        sat_curve = GFX_SAT_CURVE_DEFAULT;
+    }
+}
+
+int8_t pix_i8_count_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_SET ){
+
+        param_error_check();
+    }
+
+    return 0;
+}
+
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        0,    "pix_count" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        pix_i8_count_handler,    "pix_count" },
     #if N_PIXEL_OUTPUTS > 1
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        0,    "pix_count_1" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        pix_i8_count_handler,    "pix_count_1" },
     #endif
     #if N_PIXEL_OUTPUTS > 2
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        0,    "pix_count_2" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        pix_i8_count_handler,    "pix_count_2" },
     #endif
     #if N_PIXEL_OUTPUTS > 3
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        0,    "pix_count_3" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        pix_i8_count_handler,    "pix_count_3" },
     #endif
     #if N_PIXEL_OUTPUTS > 4
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        0,    "pix_count_4" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        pix_i8_count_handler,    "pix_count_4" },
     #endif
     #if N_PIXEL_OUTPUTS > 5
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        0,    "pix_count_5" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        pix_i8_count_handler,    "pix_count_5" },
     #endif
 };
 
@@ -221,78 +310,6 @@ static void update_master_fader( void ){
     dimmer_step = step;
 }
 
-static void update_pix_count( void ){
-
-    pix_count = 0;
-
-    for( uint8_t i = 0; i < N_PIXEL_OUTPUTS; i++ ){
-
-        pix_count += pix_counts[i];
-    }
-}
-
-static void param_error_check( void ){
-
-    // update pix count
-    update_pix_count();
-
-    // error check
-    if( pix_count > MAX_PIXELS ){
-
-        pix_count = MAX_PIXELS;
-    }
-    else if( pix_count == 0 ){
-
-        // this is necessary to prevent divide by 0 errors.
-        // also, 0 pixels doesn't really make sense in a
-        // pixel graphics library, does it?
-        pix_count = 1;
-    }
-
-    if( ( (uint32_t)pix_size_x * (uint32_t)pix_size_y ) > pix_count ){
-        
-        pix_size_x = pix_count;
-        pix_size_y = 1;
-    }
-
-    if( pix_size_x > pix_count ){
-
-        pix_size_x = 1;
-    }
-
-    if( pix_size_y > pix_count ){
-
-        pix_size_y = 1;
-    }
-
-    if( pix_count > 0 ){
-
-        if( pix_size_x == 0 ){
-
-            pix_size_x = 1;
-        }
-
-        if( pix_size_y == 0 ){
-
-            pix_size_y = 1;
-        }
-    }
-
-    if( gfx_frame_rate < 10 ){
-
-        gfx_frame_rate = 10;
-    }
-
-    if( dimmer_curve < 8 ){
-
-        dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
-    }
-
-    if( sat_curve < 8 ){
-
-        sat_curve = GFX_SAT_CURVE_DEFAULT;
-    }
-}
 
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate ){
 

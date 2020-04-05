@@ -222,9 +222,6 @@ PT_END( pt );
 void reset_all( void ){
 
     #ifdef ENABLE_COPROCESSOR
-    io_v_set_mode( IO_PIN_LED_RED, IO_MODE_OUTPUT );
-    io_v_set_mode( IO_PIN_LED_GREEN, IO_MODE_OUTPUT );
-    io_v_set_mode( IO_PIN_LED_BLUE, IO_MODE_OUTPUT );
     
     io_v_digital_write( IO_PIN_LED_RED, 1 );
     io_v_digital_write( IO_PIN_LED_GREEN, 1 );
