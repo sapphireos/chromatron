@@ -57,9 +57,9 @@ static SpiFlashOpResult spi_read( uint32_t address, uint32_t *ptr, uint32_t size
     address += START_ADDRESS;
 
     #ifdef BOOTLOADER
-    SPIRead( address, ptr, size );
+    return SPIRead( address, ptr, size );
     #else
-    spi_flash_read( address, ptr, size );
+    return spi_flash_read( address, ptr, size );
     #endif
 }
 
@@ -68,9 +68,9 @@ static SpiFlashOpResult spi_write( uint32_t address, uint32_t *ptr, uint32_t siz
     address += START_ADDRESS;
     
     #ifdef BOOTLOADER
-    SPIWrite( address, ptr, size );
+    return SPIWrite( address, ptr, size );
     #else
-    spi_flash_write( address, ptr, size );
+    return spi_flash_write( address, ptr, size );
     #endif    
 }
 

@@ -374,14 +374,17 @@ bool wifi_b_ap_mode( void ){
 
 bool wifi_b_shutdown( void ){
 
+    return FALSE;
 }
 
 int8_t wifi_i8_get_status( void ){
 
+    return 0;
 }
 
 uint32_t wifi_u32_get_received( void ){
 
+    return 0;
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
@@ -543,7 +546,7 @@ void scan_cb( void *result, STATUS status ){
 
 		trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
 
-		int8_t router = has_ssid( info->ssid );
+		int8_t router = has_ssid( (char *)info->ssid );
 		if( router < 0 ){
 
 			goto end;
@@ -645,15 +648,9 @@ station_mode:
             wifi_router = -1;
             log_v_debug_P( PSTR("Scanning...") );
             
-            struct scan_config scan_config = {
-            	.ssid = 0,
-            	.bssid = 0,
-            	.channel = 0,
-            	.show_hidden = 0,
-            	.scan_type = 0,
-            	.scan_time = 0,
-            };
-
+            struct scan_config scan_config;
+            memset( &scan_config, 0, sizeof(scan_config) );
+            
             // light LED while scanning since the CPU will freeze
             io_v_set_esp_led( 1 );
 
@@ -685,8 +682,8 @@ station_mode:
 			memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
 			sta_config.bssid_set = 1;
 			sta_config.channel = wifi_channel;
-			wifi_v_get_ssid( sta_config.ssid );
-			get_pass( wifi_router, sta_config.password );
+			wifi_v_get_ssid( (char *)sta_config.ssid );
+			get_pass( wifi_router, (char *)sta_config.password );
 
 			wifi_station_set_config_current( &sta_config );
 			wifi_station_connect();

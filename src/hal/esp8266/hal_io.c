@@ -56,7 +56,7 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 io_mode_t8 io_u8_get_mode( uint8_t pin ){
 	
 	#ifdef ENABLE_COPROCESSOR
-	coproc_i32_call1( OPCODE_IO_GET_MODE, pin );
+	return coproc_i32_call1( OPCODE_IO_GET_MODE, pin );
 	#endif
 }
 

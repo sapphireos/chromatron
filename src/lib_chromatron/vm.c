@@ -203,6 +203,8 @@ static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
     }
     else{
 
+        hash = 0;
+
         ASSERT( FALSE );
     }    
 

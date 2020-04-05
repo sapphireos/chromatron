@@ -52,6 +52,7 @@ int16_t cmd_usart_i16_get_char( void ){
         return -1;
     }
 
+    return -1;
 }
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){

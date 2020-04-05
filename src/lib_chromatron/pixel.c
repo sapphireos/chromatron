@@ -152,7 +152,13 @@ PT_BEGIN( pt );
                 data1 = b;
                 data2 = r;
             }
+            else{
 
+                // should never get there
+                data0 = 0xff;
+                data1 = 0xff;
+                data2 = 0xff;
+            }
 
             coproc_i32_call2( OPCODE_IO_WRITE_PWM, 0, data0 );
             coproc_i32_call2( OPCODE_IO_WRITE_PWM, 1, data1 );

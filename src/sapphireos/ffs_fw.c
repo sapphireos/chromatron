@@ -343,6 +343,8 @@ uint32_t ffs_fw_u32_size( uint8_t partition ){
     #endif
 
     ASSERT( FALSE ); // bad partition ID
+
+    return 0;
 }
 
 void ffs_fw_v_erase( uint8_t partition, bool immediate ){
