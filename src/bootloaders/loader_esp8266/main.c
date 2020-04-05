@@ -193,6 +193,9 @@ void main( void ){
 
             boot_data.loader_status = LDR_STATUS_PARTITION_CRC_BAD;
         }
+    }
+
+    if( flash25_u8_read_byte( BOOTLOADER_INFO_BLOCK ) != 0xff ){
 
         // erase stored bootdata
         flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );

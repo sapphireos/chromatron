@@ -236,16 +236,14 @@ PT_BEGIN( pt );
 
     #endif
 
-    status_led_v_set( 1, STATUS_LED_GREEN );
+    status_led_v_set( 1, STATUS_LED_YELLOW );
 
+// THREAD_EXIT( pt );
     hal_wifi_v_enter_normal_mode();
 
     TMR_WAIT( pt, 300 );
 
-    TMR_WAIT( pt, 4000 );
-
     hal_wifi_v_usart_flush();
-
 
     // wait for sync
     while( hal_wifi_i16_usart_get_char() != COPROC_SYNC ){

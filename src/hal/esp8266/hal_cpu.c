@@ -126,16 +126,20 @@ uint8_t cpu_u8_get_reset_source( void ){
     #ifdef BOOTLOADER
     int reason = rtc_get_reset_reason();
 
-    if( reason == 2 ){
+    if( reason == 1 ){ // power on
+
+        return RESET_SOURCE_POWER_ON; 
+    }
+    else if( reason == 2 ){ // external reset or deep sleep
 
         return RESET_SOURCE_EXTERNAL;       
     }
-    else if( reason == 4 ){
+    else if( reason == 4 ){ // hardware wdt
 
         return 0;       
     }
 
-    return RESET_SOURCE_POWER_ON; 
+    return 0;
 
     #else
 	struct rst_info *info = system_get_rst_info();
