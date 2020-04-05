@@ -127,9 +127,34 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
+
+#define RTC_MEM ((volatile uint32_t*)0x60001200)
+
 void ICACHE_FLASH_ATTR user_init(void)
 {
     gpio_init();
+
+    
+    uart_init(115200, 115200);
+
+    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+
+    uint32_t buf[4];
+    // // buf[0] = 0x1234;
+    // // buf[1] = 0x5678;
+    // // buf[2] = 0x99AA;
+    // // buf[3] = 0xABCD;
+    // // for( uint32_t i = 0; i < sizeof(buf) / 4; i++ ){
+
+    // //     RTC_MEM[i] = buf[i];
+    // // }
+
+    // memset( buf, 0, sizeof(buf) );
+
+    for( uint32_t i = 0; i < sizeof(buf) / 4; i++ ){
+
+        os_printf("0x%08x\r\n", RTC_MEM[i]);
+    }
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
@@ -137,9 +162,6 @@ void ICACHE_FLASH_ATTR user_init(void)
     system_set_os_print( 0 );
     #endif
 
-    uart_init(115200, 115200);
-
-    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
 
 // return;
 

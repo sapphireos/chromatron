@@ -41,6 +41,10 @@
 #define ENABLE_COPROCESSOR
 #define ESP8266_UPGRADE
 
+#ifdef BOOTLOADER
+#undef ENABLE_COPROCESSOR
+#endif
+
 // wifi
 #define WIFI_MAX_PORTS          16
 #define WIFI_MAX_RX_NETMSGS		8

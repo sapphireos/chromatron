@@ -96,12 +96,6 @@ void main( void ){
 
     trace_printf("Reset source: %d\n", reset_source);
 
-    // check for power on reset
-    if( reset_source == RESET_SOURCE_POWER_ON ){
-
-        boot_data.loader_command = LDR_CMD_NONE; // init loader command
-    }
-
     boot_data.loader_version_major = LDR_VERSION_MAJOR;
     boot_data.loader_version_minor = LDR_VERSION_MINOR;
 
@@ -157,6 +151,8 @@ void main( void ){
         // we cannot recover from this
         goto fatal_error;
     }
+
+    trace_printf("Loader cmd: %04x\n", boot_data.loader_command);
 
     // check loader command
     if( boot_data.loader_command == LDR_CMD_LOAD_FW ){

@@ -56,10 +56,22 @@ void hal_cpu_v_load_bootdata( void ){
 
     // load bootloader data from RTC
     uint32_t *ptr = (uint32_t *)&boot_data;
+    volatile uint32_t *rtc = RTC_MEM;
+    uint32_t checksum = 0;
 
     for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
 
-        ptr[i] = RTC_MEM[i];
+        *ptr = *rtc;
+        checksum += *ptr;
+        ptr++;
+        rtc++;
+    }
+
+    if( *rtc != checksum ){
+
+        trace_printf("RTC checksum fail\r\n");
+
+        memset( (void *)&boot_data, 0, sizeof(boot_data) );
     }
 }
 
@@ -67,11 +79,18 @@ void hal_cpu_v_store_bootdata( void ){
 
     // load bootloader data from RTC
     uint32_t *ptr = (uint32_t *)&boot_data;
+    volatile uint32_t *rtc = RTC_MEM;
+    uint32_t checksum = 0;
 
     for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
 
-        RTC_MEM[i] = ptr[i];
+        *rtc = *ptr;
+        checksum += *ptr;
+        ptr++;
+        rtc++;
     }
+
+    *rtc = checksum;
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
