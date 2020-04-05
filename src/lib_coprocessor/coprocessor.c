@@ -221,13 +221,26 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 	// this will load an entire image
 
 	// check CRC
-	uint16_t remote_crc = coproc_u16_fw_crc();
-	uint16_t local_crc = crc_u16_block( data, len - sizeof(uint16_t) );
+	uint16_t local_crc = crc_u16_block( data, len );
 
-	if( remote_crc == local_crc ){
+	if( local_crc != 0 ){
+
+		log_v_debug_P( PSTR("local coproc image crc fail: 0x%04x"), local_crc );
 
 		return;
 	}
+
+	// check version
+	char coproc_firmware_version[FW_VER_LEN];
+    coproc_v_fw_version( coproc_firmware_version );
+
+    char local_firmware_version[FW_VER_LEN];
+    memcpy( local_firmware_version, data + COPROC_FW_INFO_ADDRESS + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
+
+    log_v_debug_P( PSTR("coproc ver: %s"), coproc_firmware_version );
+    log_v_debug_P( PSTR("local  ver: %s"), local_firmware_version );
+
+    return;
 
 	sys_v_wdt_reset();
 
