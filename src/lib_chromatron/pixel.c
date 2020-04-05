@@ -101,42 +101,96 @@ PT_BEGIN( pt );
         #ifdef ENABLE_COPROCESSOR
         
         uint16_t pix_count = gfx_u16_get_pix_count();
-        uint8_t *r = gfx_u8p_get_red();
-        uint8_t *g = gfx_u8p_get_green();
-        uint8_t *b = gfx_u8p_get_blue();
-        uint8_t *d = gfx_u8p_get_dither();
-
-        uint16_t index = 0;
-        while( pix_count > 0 ){
-
-            uint32_t buf[17];
-
-            uint8_t copy_len = cnt_of_array(buf) - 1;
             
-            if( copy_len > pix_count ){
+        coproc_i32_call1( OPCODE_PIX_SET_COUNT, pix_count );
 
-                copy_len = pix_count;
+        if( pix_mode == PIX_MODE_ANALOG ){
+
+            uint16_t data0, data1, data2;
+            uint16_t r = gfx_u16_get_pix0_red();
+            uint16_t g = gfx_u16_get_pix0_green();
+            uint16_t b = gfx_u16_get_pix0_blue();
+
+            if( pix_rgb_order == PIX_ORDER_RGB ){
+
+                data0 = r;
+                data1 = g;
+                data2 = b;
+            }
+            else if( pix_rgb_order == PIX_ORDER_RBG ){
+
+                data0 = r;
+                data1 = b;
+                data2 = g;
+            }
+            else if( pix_rgb_order == PIX_ORDER_GRB ){
+
+                data0 = g;
+                data1 = r;
+                data2 = b;
+            }
+            else if( pix_rgb_order == PIX_ORDER_BGR ){
+
+                data0 = b;
+                data1 = g;
+                data2 = r;
+            }
+            else if( pix_rgb_order == PIX_ORDER_BRG ){
+
+                data0 = b;
+                data1 = r;
+                data2 = g;
+            }
+            else if( pix_rgb_order == PIX_ORDER_GBR ){
+
+                data0 = g;
+                data1 = b;
+                data2 = r;
             }
 
-            buf[0] = index;
 
-            uint8_t *pix_data = (uint8_t *)&buf[1];
+            coproc_i32_call2( OPCODE_IO_WRITE_PWM, 0, data0 );
+            coproc_i32_call2( OPCODE_IO_WRITE_PWM, 1, data1 );
+            coproc_i32_call2( OPCODE_IO_WRITE_PWM, 2, data2 );
+        }        
+        else{
 
-            for( uint8_t i = 0; i < copy_len; i++ ){
+            uint8_t *r = gfx_u8p_get_red();
+            uint8_t *g = gfx_u8p_get_green();
+            uint8_t *b = gfx_u8p_get_blue();
+            uint8_t *d = gfx_u8p_get_dither();
 
-                pix_data[i + copy_len * 0] = *r++;
-                pix_data[i + copy_len * 1] = *g++;
-                pix_data[i + copy_len * 2] = *b++;
-                pix_data[i + copy_len * 3] = *d++;
+            uint16_t index = 0;
+            while( pix_count > 0 ){
 
+                uint32_t buf[17];
+
+                uint8_t copy_len = cnt_of_array(buf) - 1;
+                
+                if( copy_len > pix_count ){
+
+                    copy_len = pix_count;
+                }
+
+                buf[0] = index;
+
+                uint8_t *pix_data = (uint8_t *)&buf[1];
+
+                for( uint8_t i = 0; i < copy_len; i++ ){
+
+                    pix_data[i + copy_len * 0] = *r++;
+                    pix_data[i + copy_len * 1] = *g++;
+                    pix_data[i + copy_len * 2] = *b++;
+                    pix_data[i + copy_len * 3] = *d++;
+
+                }
+
+                coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );
+
+                index += copy_len;
+                pix_count -= copy_len;
             }
-
-            coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );
-
-            index += copy_len;
-            pix_count -= copy_len;
         }
-
         
         #endif        
     }

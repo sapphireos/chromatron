@@ -99,6 +99,10 @@ void coproc_v_dispatch(
         retval = adc_u16_read_mv( params[0] );
         memcpy( response, &retval, sizeof(retval) );
     }
+    else if( hdr->opcode == OPCODE_IO_WRITE_PWM ){
+        
+        pwm_v_write( params[0], params[1] );        
+    }
     else if( hdr->opcode == OPCODE_FW_CRC ){
 
         retval = ffs_fw_u16_crc();

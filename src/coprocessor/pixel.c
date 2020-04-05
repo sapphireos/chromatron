@@ -643,9 +643,14 @@ void pixel_v_init( void ){
 
 void pixel_v_set_pix_count( uint16_t value ){
 
+    bool changed = pix_count != value;
+
     pix_count = value;
 
-    pixel_v_init();
+    if( changed ){
+        
+        pixel_v_init();
+    }
 }
 
 void pixel_v_set_pix_mode( uint8_t value ){
