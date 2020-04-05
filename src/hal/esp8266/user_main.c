@@ -107,7 +107,9 @@ void ICACHE_FLASH_ATTR user_init(void)
     #ifdef ESP8266_UPGRADE
     coproc_i32_call0(  OPCODE_LOAD_DISABLE );
     #else
+    io_v_set_esp_led( 1 );
     coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
+    io_v_set_esp_led( 0 );
     #endif    
     #endif    
 

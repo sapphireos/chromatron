@@ -27,6 +27,7 @@
 
 #include "esp8266_loader.h"
 #include "hal_esp8266.h"
+#include "status_led.h"
 
 #include "ffs_fw.h"
 #include "pixel.h"
@@ -110,7 +111,9 @@ void coproc_v_dispatch(
         *retval = ffs_fw_u16_crc();
     }
     else if( hdr->opcode == OPCODE_FW_ERASE ){
-            
+        
+        status_led_v_set( 1, STATUS_LED_TEAL );
+
         // immediate (non threaded) erase of main fw partition
         ffs_fw_v_erase( 0, TRUE );
         fw_addr = 0;
@@ -203,8 +206,8 @@ PT_BEGIN( pt );
     }
 
     #endif
-    
-// THREAD_EXIT( pt );
+
+    status_led_v_set( 1, STATUS_LED_GREEN );
 
     hal_wifi_v_enter_normal_mode();
 
