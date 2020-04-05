@@ -160,13 +160,13 @@ uint8_t coproc_u8_issue(
 	ASSERT( hdr.length < sizeof(rx_buf) );
 		
 	data = rx_buf;
-	len = hdr.length;
-	while( len > 0 ){
+	int16_t rx_len = hdr.length;
+	while( rx_len > 0 ){
 
 		coproc_v_receive_block( data );
 
 		data += COPROC_BLOCK_LEN;
-		len -= COPROC_BLOCK_LEN;
+		rx_len -= COPROC_BLOCK_LEN;
 	}
 
 	return hdr.length;
