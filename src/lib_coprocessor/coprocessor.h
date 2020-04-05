@@ -86,6 +86,7 @@ typedef struct __attribute__((packed)){
 void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] );
 void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );
 
+void coproc_v_init( void );
 void coproc_v_sync( void );
 
 void coproc_v_parity_check( coproc_block_t *block );

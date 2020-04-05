@@ -118,6 +118,13 @@ void coproc_v_parity_generate( coproc_block_t *block ){
 }
 
 
+void coproc_v_init( void ){
+
+	char coproc_firmware_version[FW_VER_LEN];
+    memset( coproc_firmware_version, 0, FW_VER_LEN );
+    coproc_v_fw_version( coproc_firmware_version );
+    log_v_debug_P( PSTR("coproc ver: %s"), coproc_firmware_version );
+}
 
 
 uint8_t coproc_u8_issue( 
@@ -225,7 +232,7 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
 	if( local_crc != 0 ){
 
-		log_v_debug_P( PSTR("local coproc image crc fail: 0x%04x len: %u"), local_crc, len );
+		// log_v_debug_P( PSTR("local coproc image crc fail: 0x%04x len: %u"), local_crc, len );
 
 		return;
 	}
@@ -239,8 +246,8 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
     memset( local_firmware_version, 0, FW_VER_LEN );
     memcpy( local_firmware_version, data + COPROC_FW_INFO_ADDRESS + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
 
-    log_v_debug_P( PSTR("coproc ver: %s"), coproc_firmware_version );
-    log_v_debug_P( PSTR("local  ver: %s"), local_firmware_version );
+    // log_v_debug_P( PSTR("coproc ver: %s"), coproc_firmware_version );
+    // log_v_debug_P( PSTR("local  ver: %s"), local_firmware_version );
 
     if( memcmp( coproc_firmware_version, local_firmware_version, FW_VER_LEN ) == 0 ){
 

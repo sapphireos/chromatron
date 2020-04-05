@@ -74,6 +74,25 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     system_update_cpu_freq( SYS_CPU_160MHZ );
 
+
+    #ifdef ENABLE_COPROCESSOR
+    usart_v_init( 0 );
+    usart_v_set_baud( 0, 4000000 );
+
+    coproc_v_sync();
+
+    // delay before sending first message
+    _delay_ms( 10 );
+
+    #ifdef ESP8266_UPGRADE
+    coproc_i32_call0(  OPCODE_LOAD_DISABLE );
+    #else
+    io_v_set_esp_led( 1 );
+    coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
+    io_v_set_esp_led( 0 );
+    #endif    
+    #endif    
+
     // sapphireos init
     if( sapphire_i8_init() == 0 ){
             
@@ -95,23 +114,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     // turn off LED
     io_v_set_esp_led( 0 );
 
-    #ifdef ENABLE_COPROCESSOR
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 4000000 );
-
-    coproc_v_sync();
-
-    // delay before sending first message
-    _delay_ms( 10 );
-
-    #ifdef ESP8266_UPGRADE
-    coproc_i32_call0(  OPCODE_LOAD_DISABLE );
-    #else
-    io_v_set_esp_led( 1 );
-    coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
-    io_v_set_esp_led( 0 );
-    #endif    
-    #endif    
+    coproc_v_init();
 
     //Start os task
     system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);

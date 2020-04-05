@@ -33,6 +33,9 @@
 // #include "io_kv.h"
 // #include "vm_sync.h"
 
+#ifdef ESP8266_UPGRADE
+#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
+#endif
 
 SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
 
