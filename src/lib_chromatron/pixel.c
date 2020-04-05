@@ -120,17 +120,15 @@ PT_BEGIN( pt );
 
             buf[0] = index;
 
+            uint8_t *pix_data = (uint8_t *)&buf[1];
+
             for( uint8_t i = 0; i < copy_len; i++ ){
 
-                buf[i + 1]  = ( (uint32_t)*r << 24 );
-                buf[i + 1] |= ( (uint32_t)*g << 16 );
-                buf[i + 1] |= ( (uint32_t)*b << 8  );
-                buf[i + 1] |= ( (uint32_t)*d << 0  );
+                pix_data[i + copy_len * 0] = *r++;
+                pix_data[i + copy_len * 1] = *g++;
+                pix_data[i + copy_len * 2] = *b++;
+                pix_data[i + copy_len * 3] = *d++;
 
-                r++;
-                g++;
-                b++;
-                d++;
             }
 
             coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );

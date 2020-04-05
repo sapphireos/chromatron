@@ -142,6 +142,21 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_PIX_SET_APA102_DIM ){
         
         pixel_v_set_apa102_dimmer( params[0] );        
+    }
+    else if( hdr->opcode == OPCODE_PIX_LOAD ){
+        
+        int32_t index = *params++;
+        uint8_t pix_len = len / sizeof(uint32_t) - 1;
+
+        uint8_t *r = (uint8_t *)params;
+        params += pix_len;
+        uint8_t *g = (uint8_t *)params;
+        params += pix_len;
+        uint8_t *b = (uint8_t *)params;
+        params += pix_len;
+        uint8_t *d = (uint8_t *)params;
+    
+        pixel_v_load_rgb( index, pix_len, r, g, b, d );
     }   
     else{
 
