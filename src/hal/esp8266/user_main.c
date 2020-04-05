@@ -21,7 +21,98 @@ static __attribute__((section(".irom0.text.coproc"), aligned(4))) uint8_t coproc
 
 #ifndef BOOTLOADER
 
-static os_timer_t ptimer;
+
+#define LOOP_PRIO 1
+#define LOOP_QUEUE_LEN 4
+
+static os_event_t loop_q[LOOP_QUEUE_LEN];
+
+//Main code function
+static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
+ 
+    thread_core();
+
+    system_os_post(LOOP_PRIO, 0, 0 );
+}
+ 
+
+void app_v_init( void ) __attribute__((weak));
+void libs_v_init( void ) __attribute__((weak));
+
+
+void ICACHE_FLASH_ATTR user_init(void)
+{
+    gpio_init();
+    
+    uart_init(115200, 115200);
+
+    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+
+    // disable SDK debug prints
+    // NOTE this will disable ALL console prints, including ours!
+    #ifdef ENABLE_COPROCESSOR
+    system_set_os_print( 0 );
+    #endif
+
+    register uint32_t *sp asm("a1");
+
+    uint8_t *stack_start = (uint8_t *)( (uint32_t)sp - 64 );
+    uint8_t *stack_end = (uint8_t *)( 0x40000000 - MEM_MAX_STACK );
+
+    uint8_t *ptr = stack_start;
+    while( ptr >= stack_end ){
+
+        *ptr = 0x47; // canary
+        ptr--;
+    }
+
+    // Disable WiFi
+  	wifi_set_opmode(NULL_MODE);
+
+    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
+
+    // sapphireos init
+    if( sapphire_i8_init() == 0 ){
+            
+        if( app_v_init != 0 ){            
+
+            app_v_init();
+        }
+
+        if( libs_v_init != 0 ){
+
+            libs_v_init();
+        }
+    }
+
+    // start OS
+    // on the ESP8266 this will return
+    sapphire_run();
+
+    // turn off LED
+    io_v_set_esp_led( 0 );
+
+    #ifdef ENABLE_COPROCESSOR
+    usart_v_init( 0 );
+    usart_v_set_baud( 0, 4000000 );
+
+    coproc_v_sync();
+
+    // delay before sending first message
+    _delay_ms( 10 );
+
+    #ifdef ESP8266_UPGRADE
+    // coproc_i32_call0(  OPCODE_LOAD_DISABLE );
+    #else
+    coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
+    #endif    
+    #endif    
+
+    //Start os task
+    system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
+    system_os_post(LOOP_PRIO, 0, 0 );    
+}
+
 
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
@@ -107,130 +198,6 @@ void ICACHE_FLASH_ATTR user_pre_init(void)
                        sizeof(part_table)/sizeof(part_table[0]),
                                        FLASH_SIZE_32M_MAP_512_512);
   }
-}
-
-
-#define LOOP_PRIO 1
-#define LOOP_QUEUE_LEN 4
-
-static os_event_t loop_q[LOOP_QUEUE_LEN];
-
-//Main code function
-static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
- 
-    thread_core();
-
-    system_os_post(LOOP_PRIO, 0, 0 );
-}
- 
-
-void app_v_init( void ) __attribute__((weak));
-void libs_v_init( void ) __attribute__((weak));
-
-
-#define RTC_MEM ((volatile uint32_t*)0x60001200)
-
-void ICACHE_FLASH_ATTR user_init(void)
-{
-    gpio_init();
-
-    
-    uart_init(115200, 115200);
-
-    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
-
-    uint32_t buf[4];
-    // // buf[0] = 0x1234;
-    // // buf[1] = 0x5678;
-    // // buf[2] = 0x99AA;
-    // // buf[3] = 0xABCD;
-    // // for( uint32_t i = 0; i < sizeof(buf) / 4; i++ ){
-
-    // //     RTC_MEM[i] = buf[i];
-    // // }
-
-    // memset( buf, 0, sizeof(buf) );
-
-    for( uint32_t i = 0; i < sizeof(buf) / 4; i++ ){
-
-        os_printf("0x%08x\r\n", RTC_MEM[i]);
-    }
-
-    // disable SDK debug prints
-    // NOTE this will disable ALL console prints, including ours!
-    #ifdef ENABLE_COPROCESSOR
-    system_set_os_print( 0 );
-    #endif
-
-
-// return;
-
-    register uint32_t *sp asm("a1");
-    // os_printf("0x%08x\r\n", sp);
-
-    uint8_t *stack_start = (uint8_t *)( (uint32_t)sp - 64 );
-    uint8_t *stack_end = (uint8_t *)( 0x40000000 - MEM_MAX_STACK );
-
-    // os_printf("0x%08x -> 0x%08x\r\n", stack_start, stack_end);
-
-    uint8_t *ptr = stack_start;
-    while( ptr >= stack_end ){
-
-        *ptr = 0x47; // canary
-        ptr--;
-    }
-
-    // Disable WiFi
-  	wifi_set_opmode(NULL_MODE);
-
-    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
-// return;
-
-    // os_timer_disarm(&ptimer);
-    // os_timer_setfn(&ptimer, (os_timer_func_t *)blinky, NULL);
-    // os_timer_arm(&ptimer, 500, 1);
-
-    // sapphireos init
-    if( sapphire_i8_init() == 0 ){
-            
-        if( app_v_init != 0 ){            
-
-            app_v_init();
-        }
-
-        if( libs_v_init != 0 ){
-
-            libs_v_init();
-        }
-    }
-// return;
-
-    // start OS
-    // on the ESP8266 this will return
-    sapphire_run();
-
-    // turn off LED
-    io_v_set_esp_led( 0 );
-
-    #ifdef ENABLE_COPROCESSOR
-    usart_v_init( 0 );
-    usart_v_set_baud( 0, 4000000 );
-
-    coproc_v_sync();
-
-    // delay before sending first message
-    _delay_ms( 10 );
-
-    #ifdef ESP8266_UPGRADE
-    // coproc_i32_call0(  OPCODE_LOAD_DISABLE );
-    #else
-    coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
-    #endif    
-    #endif    
-
-    //Start os task
-    system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);
-    system_os_post(LOOP_PRIO, 0, 0 );    
 }
 
 #else
