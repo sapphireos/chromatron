@@ -201,8 +201,6 @@ void main( void ){
     // run application
     ldr_v_clear_yellow_led();
 
-    hal_cpu_v_store_bootdata();
-
     ldr_run_app();
 
 
