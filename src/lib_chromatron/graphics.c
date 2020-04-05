@@ -84,6 +84,9 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    // init alarm
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
         
     while(1){
 

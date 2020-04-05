@@ -954,7 +954,7 @@ class HexBuilder(Builder):
         elif self.settings["TOOLCHAIN"] == "XTENSA":
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
-            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             
         else:
             raise Exception("Unsupported toolchain")
