@@ -50,11 +50,6 @@ void hal_cpu_v_boot_init( void );
 #define ENABLE_INTERRUPTS __enable_irq()
 #define DISABLE_INTERRUPTS __disable_irq()
 
-#define RESET_SOURCE_POWER_ON   0x01
-#define RESET_SOURCE_JTAG       0x02
-#define RESET_SOURCE_EXTERNAL   0x04
-#define RESET_SOURCE_BROWNOUT   0x08
-
 #define ATOMIC uint32_t __primask = __get_PRIMASK(); DISABLE_INTERRUPTS;
 #define END_ATOMIC if( !__primask ){ ENABLE_INTERRUPTS; }
 

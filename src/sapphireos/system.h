@@ -155,6 +155,7 @@ void sys_v_check_io_for_safe_mode( void );
 bool sys_b_is_recovery_mode( void );
 void sys_v_check_recovery_mode( void );
 bool sys_b_brownout( void );
+uint8_t sys_u8_get_reset_source( void );
 
 sys_mode_t8 sys_u8_get_mode( void );
 loader_status_t8 sys_u8_get_loader_status( void );

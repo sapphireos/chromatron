@@ -120,10 +120,15 @@ void coproc_v_parity_generate( coproc_block_t *block ){
 
 void coproc_v_init( void ){
 
+	if( !sync ){
+
+		return;
+	}
+
 	char coproc_firmware_version[FW_VER_LEN];
     memset( coproc_firmware_version, 0, FW_VER_LEN );
     coproc_v_fw_version( coproc_firmware_version );
-    log_v_debug_P( PSTR("coproc ver: %s"), coproc_firmware_version );
+    log_v_debug_P( PSTR("coproc ver: %s reset: %u"), coproc_firmware_version, coproc_i32_call0( OPCODE_GET_RESET_SOURCE ) );
 }
 
 

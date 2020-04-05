@@ -109,7 +109,24 @@ uint8_t cpu_u8_get_reset_source( void ){
 
     uint8_t temp = RST.STATUS;
 
-    return temp;
+    if( temp & RST_PORF_bm ){
+
+        return RESET_SOURCE_POWER_ON;
+    }
+    else if( temp & RST_PDIRF_bm ){
+
+        return RESET_SOURCE_JTAG;
+    }
+    else if( temp & RST_EXTRF_bm ){
+
+        return RESET_SOURCE_EXTERNAL;
+    }
+    else if( temp & RST_BORF_bm ){
+
+        return RESET_SOURCE_BROWNOUT;
+    }
+
+    return 0;
 }
 
 void cpu_v_clear_reset_source( void ){

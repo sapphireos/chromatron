@@ -84,6 +84,10 @@ void coproc_v_dispatch(
         cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
         #endif
     }
+    else if( hdr->opcode == OPCODE_GET_RESET_SOURCE ){
+
+        *retval = sys_u8_get_reset_source();
+    }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
         io_v_set_mode( params[0], params[1] );

@@ -306,6 +306,11 @@ bool sys_b_brownout( void ){
     return reset_source & RESET_SOURCE_BROWNOUT;
 }
 
+uint8_t sys_u8_get_reset_source( void ){
+
+    return reset_source;
+}
+
 sys_mode_t8 sys_u8_get_mode( void ){
 
     return sys_mode;
