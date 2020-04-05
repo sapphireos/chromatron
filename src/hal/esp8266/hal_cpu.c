@@ -205,11 +205,7 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
-    if( ( boot_data.loader_command == LDR_CMD_LOAD_FW ) || 
-        ( boot_data.boot_mode = BOOT_MODE_NORMAL ) ){
-        
-        hal_cpu_v_store_bootdata();
-    }
+    hal_cpu_v_store_bootdata();
 
 #ifndef BOOTLOADER
     #ifdef ENABLE_COPROCESSOR
