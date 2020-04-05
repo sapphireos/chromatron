@@ -52,7 +52,12 @@
 // pixel config
 #define FADER_RATE              20
 
-#define MAX_PIXELS              128
+#ifdef ENABLE_COPROCESSOR
+    #define MAX_PIXELS              320
+#else
+    #define MAX_PIXELS              128
+#endif
+
 #define N_PIXEL_OUTPUTS         1
 
 // VM config

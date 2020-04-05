@@ -112,7 +112,7 @@ PT_BEGIN( pt );
         #ifdef ENABLE_COPROCESSOR
         
         uint16_t pix_count = gfx_u16_get_pix_count();
-            
+
         coproc_i32_call1( OPCODE_PIX_SET_COUNT, pix_count );
 
         if( pix_mode == PIX_MODE_ANALOG ){
@@ -177,12 +177,14 @@ PT_BEGIN( pt );
             uint8_t *b = gfx_u8p_get_blue();
             uint8_t *d = gfx_u8p_get_dither();
 
+            #define N_TRANSFER_PIXELS 32
+
             uint16_t index = 0;
             while( pix_count > 0 ){
 
-                uint32_t buf[17];
+                uint32_t buf[N_TRANSFER_PIXELS + 1];
 
-                uint8_t copy_len = cnt_of_array(buf) - 1;
+                uint16_t copy_len = N_TRANSFER_PIXELS;
                 
                 if( copy_len > pix_count ){
 
@@ -193,13 +195,12 @@ PT_BEGIN( pt );
 
                 uint8_t *pix_data = (uint8_t *)&buf[1];
 
-                for( uint8_t i = 0; i < copy_len; i++ ){
+                for( uint16_t i = 0; i < copy_len; i++ ){
 
                     pix_data[i + copy_len * 0] = *r++;
                     pix_data[i + copy_len * 1] = *g++;
                     pix_data[i + copy_len * 2] = *b++;
                     pix_data[i + copy_len * 3] = *d++;
-
                 }
 
                 coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );

@@ -128,6 +128,9 @@ static void param_error_check( void ){
     if( pix_count > MAX_PIXELS ){
 
         pix_count = MAX_PIXELS;
+
+        memset( pix_counts, 0, sizeof(pix_counts) );
+        pix_counts[0] = MAX_PIXELS;
     }
     else if( pix_count == 0 ){
 
