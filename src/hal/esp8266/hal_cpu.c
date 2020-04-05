@@ -141,6 +141,10 @@ uint8_t cpu_u8_get_reset_source( void ){
 
     return 0;
 
+    #elif defined(ENABLE_COPROCESSOR)
+
+    return coproc_i32_call0( OPCODE_GET_RESET_SOURCE );
+
     #else
 	struct rst_info *info = system_get_rst_info();
 
@@ -201,7 +205,8 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
-    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+    if( ( boot_data.loader_command == LDR_CMD_LOAD_FW ) || 
+        ( boot_data.boot_mode = BOOT_MODE_NORMAL ) ){
         
         hal_cpu_v_store_bootdata();
     }
