@@ -91,6 +91,11 @@ PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    coproc_i32_call1( OPCODE_PIX_SET_RGB_ORDER, pix_rgb_order );
+    coproc_i32_call1( OPCODE_PIX_SET_CLOCK, pix_clock );
+    coproc_i32_call1( OPCODE_PIX_SET_DITHER, pix_dither );
+    coproc_i32_call1( OPCODE_PIX_SET_MODE, pix_mode );
+    coproc_i32_call1( OPCODE_PIX_SET_APA102_DIM, pix_apa102_dimmer );
 
     while(1){
 
