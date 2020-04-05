@@ -72,9 +72,11 @@ void coproc_v_dispatch(
         while(1);
     }
     else if( hdr->opcode == OPCODE_LOAD_DISABLE ){
-
+        
+        #ifdef ENABLE_ESP_UPGRADE_LOADER
         bool value = TRUE;
         cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
+        #endif
     }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 

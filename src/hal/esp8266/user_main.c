@@ -104,7 +104,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     _delay_ms( 10 );
 
     #ifdef ESP8266_UPGRADE
-    // coproc_i32_call0(  OPCODE_LOAD_DISABLE );
+    coproc_i32_call0(  OPCODE_LOAD_DISABLE );
     #else
     coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
     #endif    
