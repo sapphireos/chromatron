@@ -37,6 +37,10 @@ PT_BEGIN( pt );
     
     log_v_debug_P( PSTR("coproc crc: 0x%04x"), coproc_u16_fw_crc() );
 
+    char firmware_version[FW_VER_LEN];
+    coproc_v_fw_version( firmware_version );
+    log_v_debug_P( PSTR("coproc ver: %s"), firmware_version );
+
 PT_END( pt );	
 }
 

@@ -56,7 +56,10 @@ void coproc_v_dispatch(
 
     uint8_t len = hdr->length;
     int32_t *params = (int32_t *)data;
-    int32_t retval = 0;
+
+    // set up default return value
+    int32_t *retval = (int32_t *)response;
+    *retval = 0;
 
     *response_len = sizeof(retval);
 
@@ -84,8 +87,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_GET_MODE ){
 
-        retval = io_u8_get_mode( params[0] );
-        memcpy( response, &retval, sizeof(retval) );
+        *retval = io_u8_get_mode( params[0] );
     }
     else if( hdr->opcode == OPCODE_IO_DIGITAL_WRITE ){
 
@@ -93,13 +95,11 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_DIGITAL_READ ){
 
-        retval = io_b_digital_read( params[0] );
-        memcpy( response, &retval, sizeof(retval) );
+        *retval = io_b_digital_read( params[0] );
     }
     else if( hdr->opcode == OPCODE_IO_READ_ADC ){
 
-        retval = adc_u16_read_mv( params[0] );
-        memcpy( response, &retval, sizeof(retval) );
+        *retval = adc_u16_read_mv( params[0] );
     }
     else if( hdr->opcode == OPCODE_IO_WRITE_PWM ){
         
@@ -107,8 +107,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_FW_CRC ){
 
-        retval = ffs_fw_u16_crc();
-        memcpy( response, &retval, sizeof(retval) );
+        *retval = ffs_fw_u16_crc();
     }
     else if( hdr->opcode == OPCODE_FW_ERASE ){
             
@@ -124,6 +123,11 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_FW_BOOTLOAD ){
         
         sys_v_reboot_delay( SYS_REBOOT_LOADFW );
+    }
+    else if( hdr->opcode == OPCODE_FW_VERSION ){
+
+        sys_v_get_fw_version( (char *)response );
+        *response_len = FW_VER_LEN;
     }
     else if( hdr->opcode == OPCODE_PIX_SET_COUNT ){
         

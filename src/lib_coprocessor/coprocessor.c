@@ -199,6 +199,13 @@ void coproc_v_test( void ){
 	ASSERT( response[3] == 4 );
 }
 
+void coproc_v_fw_version( char firmware_version[FW_VER_LEN] ){
+
+	memset( firmware_version, 0, FW_VER_LEN );
+	uint8_t response_len = coproc_u8_issue( OPCODE_FW_VERSION, 0, 0 );
+	memcpy( firmware_version, rx_buf, response_len );
+}
+
 uint16_t coproc_u16_fw_crc( void ){
 
 	return coproc_i32_call0( OPCODE_FW_CRC );

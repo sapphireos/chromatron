@@ -60,6 +60,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_FW_ERASE				0x21
 #define OPCODE_FW_LOAD				0x22
 #define OPCODE_FW_BOOTLOAD			0x23
+#define OPCODE_FW_VERSION			0x24
 
 #define OPCODE_PIX_SET_COUNT		0x30
 #define OPCODE_PIX_SET_MODE			0x31
@@ -93,6 +94,7 @@ void coproc_v_reboot( void );
 
 void coproc_v_test( void );
 
+void coproc_v_fw_version( char firmware_version[FW_VER_LEN] );
 uint16_t coproc_u16_fw_crc( void );
 void coproc_v_fw_erase( void );
 void coproc_v_fw_load( uint8_t *data, uint32_t len );

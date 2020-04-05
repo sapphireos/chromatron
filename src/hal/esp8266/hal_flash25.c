@@ -423,7 +423,9 @@ void flash25_v_erase_4k( uint32_t address ){
     address += START_ADDRESS;
 
     // trace_printf("Erase: 0x%x\r\n", address);
-    #ifndef BOOTLOADER
+    #ifdef BOOTLOADER
+    SPIEraseSector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    #else
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
     #endif
 }
