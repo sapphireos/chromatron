@@ -13,7 +13,8 @@
 #ifndef ESP8266_UPGRADE
 // manual place in irom0 section.
 // if just in .irom0.text, will create a section type conflict. no idea why.
-static __attribute__((section(".irom0.text.coproc"), aligned(4))) uint8_t coproc_fw[] = {
+// static const __attribute__((section(".irom0.text.coproc"), aligned(4))) uint8_t coproc_fw[] = {
+static PROGMEM __attribute__((aligned(4))) uint8_t coproc_fw[] = {
     #include "coproc_firmware.txt"
 };
 #endif

@@ -225,7 +225,7 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
 	if( local_crc != 0 ){
 
-		log_v_debug_P( PSTR("local coproc image crc fail: 0x%04x"), local_crc );
+		log_v_debug_P( PSTR("local coproc image crc fail: 0x%04x len: %u"), local_crc, len );
 
 		return;
 	}
