@@ -71,6 +71,8 @@ typedef struct __attribute__((packed)){
 #define OPCODE_PIX_LOAD				0x36
 
 
+#define COPROC_PIX_WAIT_COUNT		16
+
 #define COPROC_FW_INFO_ADDRESS 0x1FC // this must match the offset in the xmega makefile!
 
 void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] );

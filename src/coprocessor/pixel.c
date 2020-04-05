@@ -688,41 +688,61 @@ void pixel_v_set_apa102_dimmer( uint8_t value ){
     pixel_v_init();
 }
 
+uint8_t *pixel_u8p_get_red( void ){
 
-void pixel_v_load_rgb(
-    uint16_t index,
-    uint16_t len,
-    uint8_t *r,
-    uint8_t *g,
-    uint8_t *b,
-    uint8_t *d ){
-
-    uint16_t transfer_count = len;
-
-    if( ( index + transfer_count ) > MAX_PIXELS ){
-
-        transfer_count = MAX_PIXELS - index;
-    }
-
-    // bounds check
-    if( ( index + transfer_count ) > MAX_PIXELS ){
-
-        log_v_debug_P( PSTR("pix transfer out of bounds") );
-        return;
-    }
-
-    // need to do the copy with interrupts disabled,
-    // so that way we have access into the arrays without
-    // the pixel driver touching them
-    ATOMIC;
-
-    memcpy( &array_r[index], r, transfer_count );
-    memcpy( &array_g[index], g, transfer_count );
-    memcpy( &array_b[index], b, transfer_count );
-    memcpy( &array_misc.dither[index], d, transfer_count );
-
-    END_ATOMIC;
+    return array_r;
 }
+
+uint8_t *pixel_u8p_get_green( void ){
+
+    return array_g;
+}
+
+uint8_t *pixel_u8p_get_blue( void ){
+
+    return array_b;
+}
+
+uint8_t *pixel_u8p_get_dither( void ){
+
+    return array_misc.dither;
+}
+
+
+// void pixel_v_load_rgb(
+//     uint16_t index,
+//     uint16_t len,
+//     uint8_t *r,
+//     uint8_t *g,
+//     uint8_t *b,
+//     uint8_t *d ){
+
+//     uint16_t transfer_count = len;
+
+//     if( ( index + transfer_count ) > MAX_PIXELS ){
+
+//         transfer_count = MAX_PIXELS - index;
+//     }
+
+//     // bounds check
+//     if( ( index + transfer_count ) > MAX_PIXELS ){
+
+//         log_v_debug_P( PSTR("pix transfer out of bounds") );
+//         return;
+//     }
+
+//     // need to do the copy with interrupts disabled,
+//     // so that way we have access into the arrays without
+//     // the pixel driver touching them
+//     ATOMIC;
+
+//     memcpy( &array_r[index], r, transfer_count );
+//     memcpy( &array_g[index], g, transfer_count );
+//     memcpy( &array_b[index], b, transfer_count );
+//     memcpy( &array_misc.dither[index], d, transfer_count );
+
+//     END_ATOMIC;
+// }
 
 void pixel_v_clear( void ){
 

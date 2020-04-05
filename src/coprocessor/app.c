@@ -46,6 +46,7 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
 
 
 static uint32_t fw_addr;
+static uint32_t pix_transfer_count;
 
 // process a message
 // assumes CRC is valid
@@ -160,21 +161,23 @@ void coproc_v_dispatch(
         pixel_v_set_apa102_dimmer( params[0] );        
     }
     else if( hdr->opcode == OPCODE_PIX_LOAD ){
+
+        pix_transfer_count = *params;
         
-        int32_t index = *params++;
-        uint8_t pix_len = len / sizeof(uint32_t) - 1;
+        // int32_t index = *params++;
+        // uint8_t pix_len = len / sizeof(uint32_t) - 1;
 
-        uint8_t *pix_data = (uint8_t *)params;
+        // uint8_t *pix_data = (uint8_t *)params;
 
-        uint8_t *r = pix_data;
-        pix_data += pix_len;
-        uint8_t *g = pix_data;
-        pix_data += pix_len;
-        uint8_t *b = pix_data;
-        pix_data += pix_len;
-        uint8_t *d = pix_data;
+        // uint8_t *r = pix_data;
+        // pix_data += pix_len;
+        // uint8_t *g = pix_data;
+        // pix_data += pix_len;
+        // uint8_t *b = pix_data;
+        // pix_data += pix_len;
+        // uint8_t *d = pix_data;
     
-        pixel_v_load_rgb( index, pix_len, r, g, b, d );
+        // pixel_v_load_rgb( index, pix_len, r, g, b, d );
     }   
     else{
 
@@ -282,6 +285,42 @@ PT_BEGIN( pt );
             
             i += COPROC_BLOCK_LEN;
             data_len -= COPROC_BLOCK_LEN;
+        }
+
+        if( pix_transfer_count > 0 ){
+
+            uint8_t *r = pixel_u8p_get_red();
+            uint8_t *g = pixel_u8p_get_green();
+            uint8_t *b = pixel_u8p_get_blue();
+            uint8_t *d = pixel_u8p_get_dither();
+
+            while( pix_transfer_count > 0 ){
+
+                uint8_t temp_r, temp_g, temp_b, temp_d;
+
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_r = hal_wifi_i16_usart_get_char();
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_g = hal_wifi_i16_usart_get_char();
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_b = hal_wifi_i16_usart_get_char();
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_d = hal_wifi_i16_usart_get_char();                
+
+                pix_transfer_count--;
+
+                if( ( pix_transfer_count % COPROC_PIX_WAIT_COUNT ) == 0 ){
+
+                    hal_wifi_v_usart_send_char( COPROC_SYNC );
+                }
+
+                ATOMIC;
+                *r++ = temp_r;
+                *g++ = temp_g;
+                *b++ = temp_b;
+                *d++ = temp_d;
+                END_ATOMIC;
+            }
         }
     }
 

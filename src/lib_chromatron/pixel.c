@@ -33,6 +33,7 @@
 
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
+#include "hal_usart.h"
 #endif
 
 static bool pix_dither;
@@ -113,7 +114,7 @@ PT_BEGIN( pt );
         
         uint16_t pix_count = gfx_u16_get_pix_count();
 
-        coproc_i32_call1( OPCODE_PIX_SET_COUNT, pix_count );
+        // coproc_i32_call1( OPCODE_PIX_SET_COUNT, pix_count );
 
         if( pix_mode == PIX_MODE_ANALOG ){
 
@@ -177,37 +178,55 @@ PT_BEGIN( pt );
             uint8_t *b = gfx_u8p_get_blue();
             uint8_t *d = gfx_u8p_get_dither();
 
-            #define N_TRANSFER_PIXELS 32
+            coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
 
-            uint16_t index = 0;
             while( pix_count > 0 ){
 
-                uint32_t buf[N_TRANSFER_PIXELS + 1];
+                usart_v_send_byte( UART_CHANNEL, *r++ );
+                usart_v_send_byte( UART_CHANNEL, *g++ );
+                usart_v_send_byte( UART_CHANNEL, *b++ );
+                usart_v_send_byte( UART_CHANNEL, *d++ );
 
-                uint16_t copy_len = N_TRANSFER_PIXELS;
-                
-                if( copy_len > pix_count ){
+                pix_count--;
 
-                    copy_len = pix_count;
+                if( ( pix_count % COPROC_PIX_WAIT_COUNT ) == 0 ){
+
+                    while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
+                    usart_i16_get_byte( UART_CHANNEL );                
                 }
-
-                buf[0] = index;
-
-                uint8_t *pix_data = (uint8_t *)&buf[1];
-
-                for( uint16_t i = 0; i < copy_len; i++ ){
-
-                    pix_data[i + copy_len * 0] = *r++;
-                    pix_data[i + copy_len * 1] = *g++;
-                    pix_data[i + copy_len * 2] = *b++;
-                    pix_data[i + copy_len * 3] = *d++;
-                }
-
-                coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );
-
-                index += copy_len;
-                pix_count -= copy_len;
             }
+
+            // #define N_TRANSFER_PIXELS 32
+
+            // uint16_t index = 0;
+            // while( pix_count > 0 ){
+
+            //     uint32_t buf[N_TRANSFER_PIXELS + 1];
+
+            //     uint16_t copy_len = N_TRANSFER_PIXELS;
+                
+            //     if( copy_len > pix_count ){
+
+            //         copy_len = pix_count;
+            //     }
+
+            //     buf[0] = index;
+
+            //     uint8_t *pix_data = (uint8_t *)&buf[1];
+
+            //     for( uint16_t i = 0; i < copy_len; i++ ){
+
+            //         pix_data[i + copy_len * 0] = *r++;
+            //         pix_data[i + copy_len * 1] = *g++;
+            //         pix_data[i + copy_len * 2] = *b++;
+            //         pix_data[i + copy_len * 3] = *d++;
+            //     }
+
+            //     coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );
+
+            //     index += copy_len;
+            //     pix_count -= copy_len;
+            // }
         }
 
         if( sys_b_shutdown() ){
