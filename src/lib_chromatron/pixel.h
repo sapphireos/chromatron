@@ -30,5 +30,4 @@
 
 void pixel_v_init( void );
 
-
 #endif

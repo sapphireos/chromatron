@@ -1401,6 +1401,15 @@ void gfx_v_clear( void ){
     }
 }
 
+void gfx_v_shutdown_graphic( void ){
+
+    gfx_v_clear();
+
+    array_red[0] = 16;
+    array_green[0] = 16;
+    array_blue[0] = 16;    
+}
+
 void gfx_v_reset( void ){
 
     // initialize pixel arrays to defaults    

@@ -208,6 +208,11 @@ PT_BEGIN( pt );
                 pix_count -= copy_len;
             }
         }
+
+        if( sys_b_shutdown() ){
+            
+            THREAD_EXIT( pt );
+        }
         
         #endif        
     }
