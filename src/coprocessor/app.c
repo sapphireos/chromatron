@@ -122,7 +122,10 @@ void coproc_v_dispatch(
     }   
     else if( hdr->opcode == OPCODE_FW_BOOTLOAD ){
         
-        sys_v_reboot_delay( SYS_REBOOT_LOADFW );
+        sys_v_load_fw();
+        cpu_reboot();
+
+        while(1);
     }
     else if( hdr->opcode == OPCODE_FW_VERSION ){
 

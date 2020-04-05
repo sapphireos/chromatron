@@ -232,15 +232,22 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
 	// check version
 	char coproc_firmware_version[FW_VER_LEN];
+	memset( coproc_firmware_version, 0, FW_VER_LEN );
     coproc_v_fw_version( coproc_firmware_version );
 
     char local_firmware_version[FW_VER_LEN];
+    memset( local_firmware_version, 0, FW_VER_LEN );
     memcpy( local_firmware_version, data + COPROC_FW_INFO_ADDRESS + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
 
     log_v_debug_P( PSTR("coproc ver: %s"), coproc_firmware_version );
     log_v_debug_P( PSTR("local  ver: %s"), local_firmware_version );
 
-    return;
+    if( memcmp( coproc_firmware_version, local_firmware_version, FW_VER_LEN ) == 0 ){
+
+    	return;
+    }
+
+    log_v_debug_P( PSTR("loading new coprocessor firmware...") );
 
 	sys_v_wdt_reset();
 
@@ -262,6 +269,15 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 	}
 
 	sys_v_wdt_reset();
+
+	uint16_t coproc_crc = coproc_u16_fw_crc();
+
+	log_v_debug_P( PSTR("coproc image crc: 0x%04x"), coproc_crc );
+
+	if( coproc_crc != 0 ){
+
+		ASSERT( FALSE );
+	}
 
 	coproc_v_fw_bootload();
 
