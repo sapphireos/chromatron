@@ -51,16 +51,6 @@ void ldr_v_erase_app( void ){
 
 	for( uint32_t i = 0; i < FLASH_FS_FIRMWARE_0_N_BLOCKS; i++ ){
 
-        if( i % 1 ){
-
-            io_v_set_esp_led( 1 );
-        }
-        else{
-
-            io_v_set_esp_led( 0 );
-        }
-
-		// trace_printf(".");
 		SPIEraseSector( i + offset );
 	}
 	// trace_printf("Done\n");
@@ -79,20 +69,6 @@ void ldr_v_copy_partition_to_internal( void ){
 		// load page data
 		uint8_t data[4] __attribute__((aligned(4)));
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
-
-        if( i % 8192 ){
-
-            io_v_set_esp_led( 1 );
-        }
-        else if( i % 4096 ){
-
-            io_v_set_esp_led( 0 );
-        }
-
-		// if( i % 4096 == 0 ){
-
-		// 	trace_printf(".");
-		// }
 
 		SPIWrite( i + FW_START_OFFSET, (const uint8_t *)&data, sizeof(data) );
 
