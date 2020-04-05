@@ -61,7 +61,7 @@ void coproc_v_dispatch(
     int32_t *retval = (int32_t *)response;
     *retval = 0;
 
-    *response_len = sizeof(retval);
+    *response_len = sizeof(int32_t);
 
     if( hdr->opcode == OPCODE_TEST ){
 
