@@ -44,7 +44,7 @@ typedef struct __attribute__((packed)){
 	uint8_t padding;
 } coproc_hdr_t;
 
-#define COPROC_BUF_SIZE				96
+#define COPROC_BUF_SIZE				255
 
 #define OPCODE_TEST					0x01
 #define OPCODE_REBOOT				0x02
@@ -64,6 +64,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_PIX_SET_CLOCK		0x33
 #define OPCODE_PIX_SET_RGB_ORDER	0x34
 #define OPCODE_PIX_SET_APA102_DIM	0x35
+#define OPCODE_PIX_LOAD				0x36
 
 void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] );
 void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );

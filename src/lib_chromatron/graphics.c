@@ -93,6 +93,9 @@ PT_BEGIN( pt );
         uint32_t start = tmr_u32_get_system_time_us();
 
         gfx_v_process_faders();
+        gfx_v_sync_array();
+
+        thread_v_signal( PIX_SIGNAL_0 );
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
