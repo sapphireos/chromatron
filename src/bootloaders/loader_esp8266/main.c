@@ -193,6 +193,9 @@ void main( void ){
 
             boot_data.loader_status = LDR_STATUS_PARTITION_CRC_BAD;
         }
+
+        // erase stored bootdata
+        flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
     }
 
     // clear loader command
