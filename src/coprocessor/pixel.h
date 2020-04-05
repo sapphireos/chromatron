@@ -74,14 +74,6 @@ uint8_t *pixel_u8p_get_green( void );
 uint8_t *pixel_u8p_get_blue( void );
 uint8_t *pixel_u8p_get_dither( void );
 
-// void pixel_v_load_rgb(
-//     uint16_t index,
-//     uint16_t len,
-//     uint8_t *r,
-//     uint8_t *g,
-//     uint8_t *b,
-//     uint8_t *d );
-
 // reset all arrays to 0
 void pixel_v_clear( void );
 

@@ -74,6 +74,8 @@ int8_t pix_i8_kv_handler(
         coproc_i32_call1( OPCODE_PIX_SET_DITHER, pix_dither );
         coproc_i32_call1( OPCODE_PIX_SET_MODE, pix_mode );
         coproc_i32_call1( OPCODE_PIX_SET_APA102_DIM, pix_apa102_dimmer );
+
+        gfx_v_set_pix_mode( pix_mode );
         #endif
     }
 
@@ -195,38 +197,6 @@ PT_BEGIN( pt );
                     usart_i16_get_byte( UART_CHANNEL );                
                 }
             }
-
-            // #define N_TRANSFER_PIXELS 32
-
-            // uint16_t index = 0;
-            // while( pix_count > 0 ){
-
-            //     uint32_t buf[N_TRANSFER_PIXELS + 1];
-
-            //     uint16_t copy_len = N_TRANSFER_PIXELS;
-                
-            //     if( copy_len > pix_count ){
-
-            //         copy_len = pix_count;
-            //     }
-
-            //     buf[0] = index;
-
-            //     uint8_t *pix_data = (uint8_t *)&buf[1];
-
-            //     for( uint16_t i = 0; i < copy_len; i++ ){
-
-            //         pix_data[i + copy_len * 0] = *r++;
-            //         pix_data[i + copy_len * 1] = *g++;
-            //         pix_data[i + copy_len * 2] = *b++;
-            //         pix_data[i + copy_len * 3] = *d++;
-            //     }
-
-            //     coproc_u8_issue( OPCODE_PIX_LOAD, (uint8_t *)buf, ( copy_len + 1 ) * sizeof(uint32_t) );
-
-            //     index += copy_len;
-            //     pix_count -= copy_len;
-            // }
         }
 
         if( sys_b_shutdown() ){
@@ -247,6 +217,8 @@ void pixel_v_init( void ){
 
         pix_clock = 6; // 2.461 Mhz
     }
+
+    gfx_v_set_pix_mode( pix_mode );
 
     hal_pixel_v_init();
 

@@ -313,6 +313,10 @@ static void update_master_fader( void ){
     dimmer_step = step;
 }
 
+void gfx_v_set_pix_mode( uint8_t mode ){
+
+    pix_mode = mode;
+}
 
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate ){
 
@@ -1820,7 +1824,7 @@ void gfx_v_sync_array( void ){
             g /= 256;
             b /= 256;
             w /= 256;
-        
+
             array_red[i] = r;
             array_green[i] = g;
             array_blue[i] = b;
