@@ -71,6 +71,8 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
 
+    system_update_cpu_freq( SYS_CPU_160MHZ );
+
     // sapphireos init
     if( sapphire_i8_init() == 0 ){
             
