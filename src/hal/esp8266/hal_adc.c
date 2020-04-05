@@ -104,7 +104,11 @@ uint16_t adc_u16_read_raw( uint8_t channel ){
 uint16_t adc_u16_read_supply_voltage( void ){
 
     #ifdef ENABLE_COPROCESSOR
-    return adc_u16_read_mv( ADC_CHANNEL_VSUPPLY );
+    uint16_t mv = adc_u16_read_mv( ADC_CHANNEL_VSUPPLY );
+
+    // divider ratio is 49.9 + 2.2) / 2.2 = 23.682
+
+    return ( mv * 23682 ) / 1000;
     #endif
 
     return 0;
@@ -113,7 +117,7 @@ uint16_t adc_u16_read_supply_voltage( void ){
 uint16_t adc_u16_read_vcc( void ){
 
     #ifdef ENABLE_COPROCESSOR
-    return adc_u16_read_mv( ADC_CHANNEL_VCC );
+    return adc_u16_read_mv( ADC_CHANNEL_VCC ) * 10;
     #endif
 
 	return ( system_get_vdd33() * 1000 ) / 1024;
