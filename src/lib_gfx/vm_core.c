@@ -31,6 +31,7 @@
 #include "vm_lib.h"
 #include "catbus_types.h"
 #include "datetime.h"
+#include "logging.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -38,6 +39,10 @@
 #ifdef VM_ENABLE_CATBUS
 #include "catbus.h"
 #endif
+#endif
+
+#if defined(ESP8266) && defined(VM_OPTIMIZED_DECODE)
+#error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
 #if defined(ESP8266) || defined(ARM) // very slight speed boost using 32 bit numbers on Xtensa

@@ -63,7 +63,6 @@
 #define VM_MAX_IMAGE_SIZE   	4096
 #define VM_MAX_CYCLES       	16000
 #define VM_MIN_DELAY                10
-#define VM_OPTIMIZED_DECODE
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              4
