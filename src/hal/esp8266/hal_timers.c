@@ -28,6 +28,7 @@
 #include "power.h"
 #include "hal_timers.h"
 #include "hal_watchdog.h"
+#include "logging.h"
 
 static uint32_t last_sys_time;
 static uint32_t overflows;
@@ -47,7 +48,9 @@ uint64_t tmr_u64_get_system_time_us( void ){
     #ifndef BOOTLOADER
 	uint32_t now = system_get_time();
 
-	if( now <= last_sys_time ){
+	if( now < last_sys_time ){
+
+        // log_v_debug_P( PSTR("%lu %lu %lu"), now, last_sys_time, overflows );
 
 		overflows++;
 	}
