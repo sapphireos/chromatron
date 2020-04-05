@@ -164,13 +164,15 @@ void coproc_v_dispatch(
         int32_t index = *params++;
         uint8_t pix_len = len / sizeof(uint32_t) - 1;
 
-        uint8_t *r = (uint8_t *)params;
-        params += pix_len;
-        uint8_t *g = (uint8_t *)params;
-        params += pix_len;
-        uint8_t *b = (uint8_t *)params;
-        params += pix_len;
-        uint8_t *d = (uint8_t *)params;
+        uint8_t *pix_data = (uint8_t *)params;
+
+        uint8_t *r = pix_data;
+        pix_data += pix_len;
+        uint8_t *g = pix_data;
+        pix_data += pix_len;
+        uint8_t *b = pix_data;
+        pix_data += pix_len;
+        uint8_t *d = pix_data;
     
         pixel_v_load_rgb( index, pix_len, r, g, b, d );
     }   

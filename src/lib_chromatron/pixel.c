@@ -61,6 +61,12 @@ int8_t pix_i8_kv_handler(
             }
         }
 
+        if( ( pix_mode == PIX_MODE_WS2811 ) ||
+            ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+
+            pix_clock = 6; // 2.461 Mhz
+        }
+
         #ifdef ENABLE_COPROCESSOR
         coproc_i32_call1( OPCODE_PIX_SET_RGB_ORDER, pix_rgb_order );
         coproc_i32_call1( OPCODE_PIX_SET_CLOCK, pix_clock );
@@ -210,6 +216,12 @@ PT_END( pt );
 }
 
 void pixel_v_init( void ){
+
+    if( ( pix_mode == PIX_MODE_WS2811 ) ||
+        ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+
+        pix_clock = 6; // 2.461 Mhz
+    }
 
     hal_pixel_v_init();
 
