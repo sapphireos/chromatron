@@ -73,7 +73,7 @@ Generic mode:
 #include "watchdog.h"
 
 // bootloader shared memory
-extern volatile boot_data_t BOOTDATA boot_data;
+extern boot_data_t BOOTDATA boot_data;
 
 #ifdef ENABLE_COPROCESSOR
 #error "ESP8266 bootloader not compatible with ENABLE_COPROCESSOR!"

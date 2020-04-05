@@ -32,7 +32,7 @@
 #include "coprocessor.h"
 #endif
 
-extern volatile boot_data_t BOOTDATA boot_data;
+extern boot_data_t BOOTDATA boot_data;
 //#define RTC_MEM ((volatile uint32_t*)0x60001200)
 
 void cpu_v_init( void ){
@@ -58,7 +58,9 @@ void hal_cpu_v_load_bootdata( void ){
         
     flash25_v_read( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
 
-    if( ( buf[0] + buf[1] ) == buf[2] ){
+    if( ( buf[0] + buf[1] ) != buf[2] ){
+
+        memset( &boot_data, 0, sizeof(boot_data) );
 
         return;
     }
@@ -195,7 +197,10 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
-    hal_cpu_v_store_bootdata();
+    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+        
+        hal_cpu_v_store_bootdata();
+    }
 
 #ifndef BOOTLOADER
     #ifdef ENABLE_COPROCESSOR
