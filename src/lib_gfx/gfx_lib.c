@@ -1558,6 +1558,8 @@ uint16_t gfx_u16_get_curved_sat( uint16_t _sat ){
 
 void gfx_v_process_faders( void ){
 
+    update_master_fader();
+
     // update master dimmer
     if( dimmer_step != 0 ){
 
