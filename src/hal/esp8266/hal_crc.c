@@ -113,7 +113,7 @@ uint16_t crc_u16_partial_block(uint16_t crc, uint8_t *ptr, uint32_t length){
 
     uint8_t temp;
 
-    for(uint16_t i = 0; i < length; i++){
+    for(uint32_t i = 0; i < length; i++){
 
         temp = crc >> 8;
 
