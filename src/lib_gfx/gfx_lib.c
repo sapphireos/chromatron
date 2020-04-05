@@ -1410,7 +1410,10 @@ void gfx_v_clear( void ){
 
 void gfx_v_shutdown_graphic( void ){
 
-    gfx_v_clear();
+    memset( array_red, 0, sizeof(array_red) );
+    memset( array_green, 0, sizeof(array_green) );
+    memset( array_blue, 0, sizeof(array_blue) );
+    memset( array_misc, 0, sizeof(array_misc) );
 
     array_red[0] = 16;
     array_green[0] = 16;
