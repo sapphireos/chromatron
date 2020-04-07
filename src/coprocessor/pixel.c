@@ -111,8 +111,8 @@ static void setup_tx_dma_A( uint8_t *buf, uint8_t len ){
     DMA.PIXEL_DMA_CH_A.TRIGSRC = PIXEL_USART_DMA_TRIG;
     DMA.PIXEL_DMA_CH_A.TRFCNT = len;
 
-    DMA.PIXEL_DMA_CH_A.DESTADDR0 = ( ( (uint16_t)(PIXEL_DATA_PORT_ptr)->DATA ) >> 0 ) & 0xFF;
-    DMA.PIXEL_DMA_CH_A.DESTADDR1 = ( ( (uint16_t)(PIXEL_DATA_PORT_ptr)->DATA ) >> 8 ) & 0xFF;
+    DMA.PIXEL_DMA_CH_A.DESTADDR0 = ( ( (uint16_t)&PIXEL_DATA_PORT.DATA ) >> 0 ) & 0xFF;
+    DMA.PIXEL_DMA_CH_A.DESTADDR1 = ( ( (uint16_t)&PIXEL_DATA_PORT.DATA ) >> 8 ) & 0xFF;
     DMA.PIXEL_DMA_CH_A.DESTADDR2 = 0;
 
     DMA.PIXEL_DMA_CH_A.SRCADDR0 = ( ( (uint16_t)buf ) >> 0 ) & 0xFF;
@@ -138,8 +138,8 @@ static void setup_tx_dma_B( uint8_t *buf, uint8_t len ){
     DMA.PIXEL_DMA_CH_B.TRIGSRC = PIXEL_USART_DMA_TRIG;
     DMA.PIXEL_DMA_CH_B.TRFCNT = len;
 
-    DMA.PIXEL_DMA_CH_B.DESTADDR0 = ( ( (uint16_t)(PIXEL_DATA_PORT_ptr)->DATA ) >> 0 ) & 0xFF;
-    DMA.PIXEL_DMA_CH_B.DESTADDR1 = ( ( (uint16_t)(PIXEL_DATA_PORT_ptr)->DATA ) >> 8 ) & 0xFF;
+    DMA.PIXEL_DMA_CH_B.DESTADDR0 = ( ( (uint16_t)&PIXEL_DATA_PORT.DATA ) >> 0 ) & 0xFF;
+    DMA.PIXEL_DMA_CH_B.DESTADDR1 = ( ( (uint16_t)&PIXEL_DATA_PORT.DATA ) >> 8 ) & 0xFF;
     DMA.PIXEL_DMA_CH_B.DESTADDR2 = 0;
 
     DMA.PIXEL_DMA_CH_B.SRCADDR0 = ( ( (uint16_t)buf ) >> 0 ) & 0xFF;
@@ -478,7 +478,7 @@ void pixel_v_enable( void ){
     else{
 
         // enable TX only
-        (PIXEL_DATA_PORT_ptr)->CTRLB |= USART_TXEN_bm;
+        PIXEL_DATA_PORT.CTRLB |= USART_TXEN_bm;
 
         PIX_CLK_PORT.PIN1CTRL |= PORT_INVEN_bm;
 
@@ -499,7 +499,7 @@ void pixel_v_disable( void ){
     PIXEL_EN_PORT.OUTCLR = ( 1 << PIXEL_EN_PIN );
 
     // disable port
-    (PIXEL_DATA_PORT_ptr)->CTRLB &= ~USART_TXEN_bm;
+    PIXEL_DATA_PORT.CTRLB &= ~USART_TXEN_bm;
 
     // un-invert
     PIX_CLK_PORT.PIN3CTRL &= ~PORT_INVEN_bm;
@@ -589,28 +589,28 @@ void pixel_v_init( void ){
     if( pix_mode == PIX_MODE_PIXIE ){
 
         // Adafruit Pixie runs in UART mode at 115200 baud
-        usart_v_init( PIXEL_DATA_PORT );
-        usart_v_set_baud( PIXEL_DATA_PORT, BAUD_115200 );
+        usart_v_init( &PIXEL_DATA_PORT );
+        usart_v_set_baud( &PIXEL_DATA_PORT, BAUD_115200 );
     }
     else{
 
         // set USART to master SPI mode
-        (PIXEL_DATA_PORT_ptr)->CTRLC = USART_CMODE_MSPI_gc | ( 0 << UDORD ) | ( 0 << UCPHA );
+        PIXEL_DATA_PORT.CTRLC = USART_CMODE_MSPI_gc | ( 0 << UDORD ) | ( 0 << UCPHA );
     }
 
     // set clock rate
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 6; // 2.461 Mhz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 7; // 2 Mhz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 10; // 1.45 MHz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 11; // 1.333 Mhz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 12; // 1.23 MHz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 15; // 1 Mhz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 19; // 800 khz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 25;
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 31; // 500 khz
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 45;
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 63;
-    // (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = 127;
+    // PIXEL_DATA_PORT.BAUDCTRLA = 6; // 2.461 Mhz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 7; // 2 Mhz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 10; // 1.45 MHz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 11; // 1.333 Mhz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 12; // 1.23 MHz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 15; // 1 Mhz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 19; // 800 khz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 25;
+    // PIXEL_DATA_PORT.BAUDCTRLA = 31; // 500 khz
+    // PIXEL_DATA_PORT.BAUDCTRLA = 45;
+    // PIXEL_DATA_PORT.BAUDCTRLA = 63;
+    // PIXEL_DATA_PORT.BAUDCTRLA = 127;
 
     if( pix_clock < 7 ){
 
@@ -625,8 +625,8 @@ void pixel_v_init( void ){
 
     if( pix_mode != PIX_MODE_PIXIE ){
 
-        (PIXEL_DATA_PORT_ptr)->BAUDCTRLA = pix_clock;
-        (PIXEL_DATA_PORT_ptr)->BAUDCTRLB = 0;
+        PIXEL_DATA_PORT.BAUDCTRLA = pix_clock;
+        PIXEL_DATA_PORT.BAUDCTRLB = 0;
     }
 
     // setup pixel timer

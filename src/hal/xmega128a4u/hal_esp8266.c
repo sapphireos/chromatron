@@ -115,8 +115,8 @@ void enable_rx_dma( void ){
     DMA.WIFI_DMA_CH.TRIGSRC = WIFI_USART_DMA_TRIG;
     DMA.WIFI_DMA_CH.TRFCNT = sizeof(rx_dma_buf);
 
-    DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)(WIFI_USART_ptr)->DATA ) >> 0 ) & 0xFF;
-    DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)(WIFI_USART_ptr)->DATA ) >> 8 ) & 0xFF;
+    DMA.WIFI_DMA_CH.SRCADDR0 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 0 ) & 0xFF;
+    DMA.WIFI_DMA_CH.SRCADDR1 = ( ( (uint16_t)&WIFI_USART.DATA ) >> 8 ) & 0xFF;
     DMA.WIFI_DMA_CH.SRCADDR2 = 0;
 
     DMA.WIFI_DMA_CH.DESTADDR0 = ( ( (uint16_t)rx_dma_buf ) >> 0 ) & 0xFF;
@@ -177,21 +177,21 @@ void hal_wifi_v_reset( void ){
 
 void hal_wifi_v_usart_send_char( uint8_t b ){
 
-	usart_v_send_byte( WIFI_USART, b );
+	usart_v_send_byte( &WIFI_USART, b );
 
     current_tx_bytes += 1;
 }
 
 void hal_wifi_v_usart_send_data( uint8_t *data, uint16_t len ){
 
-	usart_v_send_data( WIFI_USART, data, len );
+	usart_v_send_data( &WIFI_USART, data, len );
 
     current_tx_bytes += len;
 }
 
 void hal_wifi_v_usart_set_baud( baud_t baud ){
 
-    usart_v_set_baud( WIFI_USART, baud );
+    usart_v_set_baud( &WIFI_USART, baud );
 }
 
 static inline uint8_t get_char( void )  __attribute__((always_inline));
@@ -306,7 +306,7 @@ void hal_wifi_v_usart_flush( void ){
 
     disable_rx_dma();
 
-	BUSY_WAIT( usart_i16_get_byte( WIFI_USART ) >= 0 );
+	BUSY_WAIT( usart_i16_get_byte( &WIFI_USART ) >= 0 );
 
     memset( (uint8_t *)rx_dma_buf, 0, sizeof(rx_dma_buf) );
 
@@ -381,11 +381,11 @@ void hal_wifi_v_enter_boot_mode( void ){
     // re-init uart
     WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     WIFI_USART_RXD_PORT.DIRCLR          = ( 1 << WIFI_USART_RXD_PIN );
-    usart_v_init( WIFI_USART );
+    usart_v_init( &WIFI_USART );
 
 
-    usart_v_set_double_speed( WIFI_USART, FALSE );
-    usart_v_set_baud( WIFI_USART, BAUD_115200 );
+    usart_v_set_double_speed( &WIFI_USART, FALSE );
+    usart_v_set_baud( &WIFI_USART, BAUD_115200 );
     hal_wifi_v_usart_flush();
 
     _delay_ms(WIFI_RESET_DELAY_MS);
@@ -438,14 +438,14 @@ void hal_wifi_v_enter_normal_mode( void ){
 
 
     // disable receive interrupt
-    (WIFI_USART_ptr)->CTRLA &= ~USART_RXCINTLVL_HI_gc;
+    WIFI_USART.CTRLA &= ~USART_RXCINTLVL_HI_gc;
 
     // re-init uart
     WIFI_USART_TXD_PORT.DIRSET          = ( 1 << WIFI_USART_TXD_PIN );
     WIFI_USART_RXD_PORT.DIRCLR          = ( 1 << WIFI_USART_RXD_PIN );
-    usart_v_init( WIFI_USART );
-    usart_v_set_double_speed( WIFI_USART, TRUE );
-    usart_v_set_baud( WIFI_USART, BAUD_2000000 );
+    usart_v_init( &WIFI_USART );
+    usart_v_set_double_speed( &WIFI_USART, TRUE );
+    usart_v_set_baud( &WIFI_USART, BAUD_2000000 );
 
     enable_rx_dma();
 }

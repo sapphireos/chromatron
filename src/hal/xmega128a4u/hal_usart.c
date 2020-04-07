@@ -23,14 +23,6 @@
 #include "system.h"
 #include "timers.h"
 #include "hal_usart.h"
-#include "hal_esp8266.h"
-
-
-#define USER_USART_ptr          &USARTC1
-#define USER_USART_RX_VECT      USARTC1_RXC_vect
-
-// this must match pixel.h
-#define PIXEL_DATA_PORT_ptr         &USARTC0
 
 
 // tables for CLK2X = 0
@@ -76,18 +68,7 @@ static const PROGMEM int8_t bscale_table[] = {
 };
 
 
-void usart_v_init( uint8_t channel ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+void usart_v_init( USART_t *usart ){
 
     COMPILER_ASSERT( cnt_of_array(bsel_table) == cnt_of_array(bscale_table) );
 
@@ -96,18 +77,7 @@ void usart_v_init( uint8_t channel ){
     usart->CTRLC = 0x03; // datasheet reset default
 }
 
-void usart_v_set_baud( uint8_t channel, baud_t baud ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+void usart_v_set_baud( USART_t *usart, baud_t baud ){
 
     ASSERT( baud < cnt_of_array(bsel_table) );
 
@@ -118,18 +88,7 @@ void usart_v_set_baud( uint8_t channel, baud_t baud ){
     usart->BAUDCTRLB = bscale << USART_BSCALE_gp;
 }
 
-void usart_v_set_double_speed( uint8_t channel, bool clk2x ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
 
     if( clk2x ){
 
@@ -142,35 +101,13 @@ void usart_v_set_double_speed( uint8_t channel, bool clk2x ){
 }
 
 
-void usart_v_send_byte( uint8_t channel, uint8_t data ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+void usart_v_send_byte( USART_t *usart, uint8_t data ){
 
     BUSY_WAIT( ( usart->STATUS & USART_DREIF_bm ) == 0 );
     usart->DATA = data;
 }
 
-void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
 
     while( len > 0 ){
 
@@ -182,18 +119,7 @@ void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
     }
 }
 
-int16_t usart_i16_get_byte( uint8_t channel ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+int16_t usart_i16_get_byte( USART_t *usart ){
 
     if( ( usart->STATUS & USART_RXCIF_bm ) == 0 ){
 
@@ -203,18 +129,7 @@ int16_t usart_i16_get_byte( uint8_t channel ){
     return usart->DATA;
 }
 
-uint8_t usart_u8_bytes_available( uint8_t channel ){
-
-    USART_t *usart = USER_USART_ptr;
-
-    if( channel == WIFI_USART ){
-
-        usart = WIFI_USART_ptr;
-    }
-    else if( channel == PIXEL_DATA_PORT ){
-
-        usart = PIXEL_DATA_PORT_ptr;
-    }
+uint8_t usart_u8_bytes_available( USART_t *usart ){
 
     if( ( usart->STATUS & USART_RXCIF_bm ) == 0 ){
 

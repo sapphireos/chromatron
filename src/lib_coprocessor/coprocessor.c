@@ -49,7 +49,7 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
  	block.parity[2] = 0xff;
 
 	#ifdef ESP8266
-	usart_v_send_data( COPROC_UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
+	usart_v_send_data( UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
 	#else
 	hal_wifi_v_usart_send_data( (uint8_t *)&block, sizeof(block) );
 	#endif
@@ -65,9 +65,9 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	while( len > 0 ){
 
 		// wait for data
-		while( usart_u8_bytes_available( COPROC_UART_CHANNEL ) == 0 );
+		while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
 
-		*rx_data++ = usart_i16_get_byte( COPROC_UART_CHANNEL );
+		*rx_data++ = usart_i16_get_byte( UART_CHANNEL );
 		len--;
 	}
 	#else
@@ -82,7 +82,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 static void flush( void ){
 
-	while( usart_i16_get_byte( COPROC_UART_CHANNEL ) >= 0 );
+	while( usart_i16_get_byte( UART_CHANNEL ) >= 0 );
 }
 
 
@@ -94,13 +94,13 @@ void coproc_v_sync( void ){
 
 	while( byte != COPROC_SYNC ){
 
-		usart_v_send_byte( COPROC_UART_CHANNEL, COPROC_SYNC );
+		usart_v_send_byte( UART_CHANNEL, COPROC_SYNC );
 
 		uint32_t start_time = tmr_u32_get_system_time_ms();
 
 		do{
 
-			byte = usart_i16_get_byte( COPROC_UART_CHANNEL );
+			byte = usart_i16_get_byte( UART_CHANNEL );
 
 		} while( ( byte != COPROC_SYNC ) &&
 			     ( tmr_u32_elapsed_time_ms( start_time ) < 50 ) );
