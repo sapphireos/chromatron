@@ -26,7 +26,9 @@
 
 #include "hal_usart.h"
 
-void usart_v_init( USART_t *usart ){
+void usart_v_init( uint8_t channel ){
+
+    USART_t *usart = HAL_USART;
 
     // enable clock
     // __HAL_RCC_USART1_CLK_ENABLE();
@@ -53,7 +55,9 @@ void usart_v_init( USART_t *usart ){
     }
 }
 
-void usart_v_set_baud( USART_t *usart, baud_t baud ){
+void usart_v_set_baud( uint8_t channel, baud_t baud ){
+
+    USART_t *usart = HAL_USART;
 
 	usart->Init.BaudRate = baud;
     
@@ -63,7 +67,9 @@ void usart_v_set_baud( USART_t *usart, baud_t baud ){
     }
 }
 
-void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
+void usart_v_set_double_speed( uint8_t channel, bool clk2x ){
+
+    USART_t *usart = HAL_USART;
 
 	uint32_t baud = usart->Init.BaudRate;
 
@@ -84,17 +90,23 @@ void usart_v_set_double_speed( USART_t *usart, bool clk2x ){
     usart->Init.BaudRate = baud;
 }
 
-void usart_v_send_byte( USART_t *usart, uint8_t data ){
+void usart_v_send_byte( uint8_t channel, uint8_t data ){
+
+    USART_t *usart = HAL_USART;
 
 	HAL_UART_Transmit( usart, &data, sizeof(data), 100 );
 }
 
-void usart_v_send_data( USART_t *usart, const uint8_t *data, uint16_t len ){
+void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
+
+    USART_t *usart = HAL_USART;
 
 	HAL_UART_Transmit( usart, (uint8_t *)data, len, 100 );
 }
 
-int16_t usart_i16_get_byte( USART_t *usart ){
+int16_t usart_i16_get_byte( uint8_t channel ){
+
+    USART_t *usart = HAL_USART;
 
     if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXFNE ) ){
 
@@ -104,7 +116,9 @@ int16_t usart_i16_get_byte( USART_t *usart ){
 	return -1;
 }
 
-uint8_t usart_u8_bytes_available( USART_t *usart ){
+uint8_t usart_u8_bytes_available( uint8_t channel ){
+
+    USART_t *usart = HAL_USART;
 
     if( __HAL_UART_GET_FLAG( usart, UART_FLAG_RXFNE ) ){
 

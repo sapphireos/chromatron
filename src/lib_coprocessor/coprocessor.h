@@ -23,7 +23,7 @@
 #ifndef _COPROCESSOR_H_
 #define _COPROCESSOR_H_
 
-#define UART_CHANNEL 0
+#define COPROC_UART_CHANNEL 1
 
 #define COPROC_BLOCK_LEN 4
 
@@ -51,6 +51,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_LOAD_DISABLE			0x03
 #define OPCODE_GET_RESET_SOURCE		0x04
 #define OPCODE_GET_WIFI				0x05
+
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
 #define OPCODE_IO_DIGITAL_WRITE		0x12

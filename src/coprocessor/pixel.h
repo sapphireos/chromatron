@@ -40,7 +40,7 @@
 #define PIX_DATA_PORT           PORTC
 #define PIX_DATA_PIN            3
 
-#define PIXEL_DATA_PORT             USARTC0
+#define PIXEL_DATA_PORT_ptr         &USARTC0
 
 // DMA
 #define PIXEL_DMA_CH_A              CH0

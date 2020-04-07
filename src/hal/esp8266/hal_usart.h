@@ -27,6 +27,8 @@
 #include "cpu.h"
 #include "usart_bauds.h"
 
+#define USER_USART 0
+
 
 void usart_v_init( uint8_t channel );
 void usart_v_set_baud( uint8_t channel, baud_t baud );

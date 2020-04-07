@@ -184,17 +184,17 @@ PT_BEGIN( pt );
 
             while( pix_count > 0 ){
 
-                usart_v_send_byte( UART_CHANNEL, *r++ );
-                usart_v_send_byte( UART_CHANNEL, *g++ );
-                usart_v_send_byte( UART_CHANNEL, *b++ );
-                usart_v_send_byte( UART_CHANNEL, *d++ );
+                usart_v_send_byte( COPROC_UART_CHANNEL, *r++ );
+                usart_v_send_byte( COPROC_UART_CHANNEL, *g++ );
+                usart_v_send_byte( COPROC_UART_CHANNEL, *b++ );
+                usart_v_send_byte( COPROC_UART_CHANNEL, *d++ );
 
                 pix_count--;
 
                 if( ( pix_count % COPROC_PIX_WAIT_COUNT ) == 0 ){
 
-                    while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
-                    usart_i16_get_byte( UART_CHANNEL );                
+                    while( usart_u8_bytes_available( COPROC_UART_CHANNEL ) == 0 );
+                    usart_i16_get_byte( COPROC_UART_CHANNEL );                
                 }
             }
         }

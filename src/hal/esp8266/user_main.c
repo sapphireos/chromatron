@@ -47,7 +47,21 @@ void ICACHE_FLASH_ATTR user_init(void)
     
     uart_init(115200, 115200);
 
-    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+    os_printf("\r\nESP8266 SDK version: %s\r\n", system_get_sdk_version());
+
+    os_printf("Sleep type: %u\r\n", wifi_get_sleep_type());
+
+    // Disable WiFi
+    wifi_set_opmode(NULL_MODE);
+
+
+    wifi_set_sleep_type(MODEM_SLEEP_T);
+    // wifi_set_sleep_type(NONE_SLEEP_T);
+
+    // wifi_fpm_set_sleep_type(MODEM_SLEEP_T);
+    // wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+    // wifi_fpm_open();
+    // wifi_fpm_do_sleep(10000000);
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!
@@ -66,10 +80,7 @@ void ICACHE_FLASH_ATTR user_init(void)
         *ptr = 0x47; // canary
         ptr--;
     }
-
-    // Disable WiFi
-  	wifi_set_opmode(NULL_MODE);
-
+    
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
 
     system_update_cpu_freq( SYS_CPU_160MHZ );
