@@ -164,11 +164,11 @@ class Publisher(Ribbon):
             self.link_data_transmissions[host][msg.dest_hash] = msg
 
         # print self.link_data_transmissions
-        for host in self.link_data_transmissions.keys():
+        for host in list(self.link_data_transmissions.keys()):
             msgs = self.link_data_transmissions[host]
 
             # get a random message for this host and send it
-            target = random.choice(msgs.keys())
+            target = random.choice(list(msgs.keys()))
             msg = msgs[target]
 
             self._server._send_data_msg(msg, host)
@@ -319,7 +319,7 @@ class Server(Ribbon):
         if _lock:
             self.__lock.acquire()
 
-        if isinstance(key, basestring):
+        if isinstance(key, str):
             key_hash = catbus_string_hash(key)
 
         else:
@@ -461,7 +461,7 @@ class Server(Ribbon):
             item_count = CATBUS_MAX_KEY_META
     
         meta = []
-        for i in xrange(item_count):
+        for i in range(item_count):
             key = keys[i + index]
             item = self._database.get_item(key)
             meta.append(item.meta)
@@ -770,8 +770,8 @@ class Server(Ribbon):
                 # for link in self._links:
                 #     print link
 
-                for i in self._receive_cache.keys():
-                    for j in self._receive_cache[i].keys():
+                for i in list(self._receive_cache.keys()):
+                    for j in list(self._receive_cache[i].keys()):
                         self._receive_cache[i][j]['ttl'] -= 4
 
                         if self._receive_cache[i][j]['ttl'] <= 0:

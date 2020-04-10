@@ -250,6 +250,6 @@ META_TAGS = [
     META_TAG_LOC,
 ]
 
-for i in xrange(META_TAG_GROUP_COUNT):
+for i in range(META_TAG_GROUP_COUNT):
     META_TAGS.append(META_TAG_BASE % (i))
 

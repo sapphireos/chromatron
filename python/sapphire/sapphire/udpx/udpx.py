@@ -220,7 +220,7 @@ class ClientSocket(object):
 
         # print '',
         # retry loop
-        for i in xrange(self._tries):
+        for i in range(self._tries):
 
             # set initial timeout
             timeout = self._initial_timeout

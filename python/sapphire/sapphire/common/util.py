@@ -115,10 +115,10 @@ def coerce_value_to_target_type(value, target):
     elif isinstance(target, float):
         return float(value)
 
-    elif isinstance(target, long):
-        return long(value)
+    elif isinstance(target, int):
+        return int(value)
 
-    elif isinstance(target, basestring):
+    elif isinstance(target, str):
         return str(value)
 
     return value
@@ -142,7 +142,7 @@ def ntp_to_datetime(seconds, fraction):
     return delta + NTP_EPOCH
 
 def datetime_to_microseconds(dt):
-    return long((dt - NTP_EPOCH).total_seconds() * 1000000)
+    return int((dt - NTP_EPOCH).total_seconds() * 1000000)
 
 def microseconds_to_datetime(ms):
     return timedelta(microseconds=ms) + NTP_EPOCH
@@ -165,7 +165,7 @@ def linear_interp(x, x0, x1, y0, y1):
     return y
 
 def coerce_string_to_list(s):
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         return [s]
 
     return s

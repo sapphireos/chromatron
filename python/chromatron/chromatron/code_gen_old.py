@@ -688,7 +688,7 @@ class ASTWalker(object):
         elif isinstance(node, RecordDeclareNode):
             pass
 
-        elif isinstance(node, basestring):
+        elif isinstance(node, str):
             pass
 
         else:
@@ -881,7 +881,7 @@ class ASTPrinter(object):
         elif isinstance(node, LenNode):
             self.echo('LEN(%s)' % (node.value))
 
-        elif isinstance(node, basestring):
+        elif isinstance(node, str):
             pass
 
         elif isinstance(node, ArrayFuncNode):
@@ -925,7 +925,7 @@ class CodeGeneratorPass0(object):
 
         imported_modules = []
 
-        for i in xrange(len(tree.body)):
+        for i in range(len(tree.body)):
             node = tree.body[i]
         
             if isinstance(node, ast.Import):
@@ -1646,7 +1646,7 @@ class RecordVarIR(DataIR):
 
     def translate_field(self, field):
         i = 0
-        for f, v in self.fields.iteritems():
+        for f, v in self.fields.items():
             if f == field:
                 return i
             i += v.size()
@@ -1854,7 +1854,7 @@ class ExpressionIR(IntermediateNode):
     def fold_constants(self):
         final_const = None
 
-        for i in xrange(len(self.ops)):
+        for i in range(len(self.ops)):
             op = self.ops[i]
             if op.is_constant_op():
                 # get constant
@@ -3110,7 +3110,7 @@ class CodeGeneratorPass2(object):
 
             #     return code
                 
-            elif isinstance(node, basestring):
+            elif isinstance(node, str):
                 return node
 
             elif isinstance(node, list):
@@ -3186,7 +3186,7 @@ class CodeGeneratorPass3(object):
         # second pass, resolve jumps for breaks and continues
         loop_contexts = []
         i = 0
-        for i in xrange(len(updated_code)):
+        for i in range(len(updated_code)):
             ir = updated_code[i]
 
             try:
@@ -3281,7 +3281,7 @@ class CodeGeneratorPass3(object):
                         pass
 
         # fifth pass, remove useless index loads
-        for i in xrange(len(updated_code)):
+        for i in range(len(updated_code)):
             ir = updated_code[i]
 
             if isinstance(ir, IndexLoadIR):
@@ -3310,7 +3310,7 @@ class CodeGeneratorPass4(object):
 
         # first pass, collect registers and the instruction
         # address ranges they are used
-        for i in xrange(len(code)):
+        for i in range(len(code)):
             ir = code[i]
             for reg in ir.get_data_nodes():
                 if not isinstance(reg, TempIR):
@@ -3349,7 +3349,7 @@ class CodeGeneratorPass4(object):
 
         # local_registers = {}
 
-        for i in xrange(len(code)):
+        for i in range(len(code)):
             ir = code[i]
 
             if isinstance(ir, FunctionIR):
@@ -3474,7 +3474,7 @@ class CodeGeneratorPass4(object):
             # 'local_registers': local_registers
         }
 
-        for reg, data in registers.iteritems():
+        for reg, data in registers.items():
             if isinstance(data, StringIR):
                 addr = data.addr
                 # convert string to hash
@@ -4330,7 +4330,7 @@ class CodeGeneratorPass5(object):
         self.write_keys = state['data']['write_keys']
 
         self.registers = {}
-        for reg, data in registers.iteritems():
+        for reg, data in registers.items():
             self.registers[reg] = data
 
         self.arrays = state['arrays']
@@ -4401,7 +4401,7 @@ class CodeGeneratorPass5(object):
                             raise IncorrectNumberOfParameters('%s line: %d' % (ir.name, ir.line_no))
 
                         # move parameters
-                        for i in xrange(param_len):
+                        for i in range(param_len):
                             self.append_code(Mov(self.functions[ir.name][i], ir.params[i]))
 
                         ins = Call(ir.name)
@@ -4686,7 +4686,7 @@ class CodeGeneratorPass6(object):
                 else:
                     assembled_code = ins.assemble()
 
-                    for i in xrange(len(assembled_code)):
+                    for i in range(len(assembled_code)):
                         byte = assembled_code[i]
 
                         if isinstance(byte, DataIR):
@@ -4758,7 +4758,7 @@ class CodeGeneratorPass7(object):
         meta_names = []
 
         # sort registers by address
-        sorted_regs = sorted(self.registers['registers'].values(), key=lambda a: a.addr)
+        sorted_regs = sorted(list(self.registers['registers'].values()), key=lambda a: a.addr)
 
         # remove duplicates
         regs = []
@@ -4783,7 +4783,7 @@ class CodeGeneratorPass7(object):
 
         # set up pixel objects
         pix_objects = []
-        for pix in sorted(self.state['objects']['pixel_arrays'].itervalues(), key=lambda a: a.addr):
+        for pix in sorted(iter(self.state['objects']['pixel_arrays'].values()), key=lambda a: a.addr):
             pix_objects.append(
                 PixelArrayObject(
                     index=pix.index, 
@@ -4800,7 +4800,7 @@ class CodeGeneratorPass7(object):
 
         # also translate again for VM
         pix_objects_dict = {}
-        for name, pix in self.state['objects']['pixel_arrays'].iteritems():
+        for name, pix in self.state['objects']['pixel_arrays'].items():
             pix_objects_dict[name] = PixelArrayObject(
                                         index=pix.index, 
                                         count=pix.length, 
@@ -4813,17 +4813,17 @@ class CodeGeneratorPass7(object):
 
         # set up read keys
         packed_read_keys = ''
-        for key, hashed_key in self.state['data']['read_keys'].iteritems():
+        for key, hashed_key in self.state['data']['read_keys'].items():
             packed_read_keys += struct.pack('<L', hashed_key)
 
         # set up write keys
         packed_write_keys = ''
-        for key, hashed_key in self.state['data']['write_keys'].iteritems():
+        for key, hashed_key in self.state['data']['write_keys'].items():
             packed_write_keys += struct.pack('<L', hashed_key)
 
         # set up published registers
         packed_publish = ''
-        for reg in self.state['data']['publish'].itervalues():
+        for reg in self.state['data']['publish'].values():
             packed_publish += VMPublishVar(hash=catbus_string_hash(PUBLISHED_VAR_NAME_PREFIX + reg.name), addr=reg.addr).pack()
 
             meta_names.append(PUBLISHED_VAR_NAME_PREFIX + reg.name)
@@ -4900,7 +4900,7 @@ class CodeGeneratorPass7(object):
                 stream += struct.pack('<l', int(reg.name)) # int32
 
             else:
-                for i in xrange(reg.size()):
+                for i in range(reg.size()):
                     stream += struct.pack('<l', 0) # int32
 
 
@@ -5036,11 +5036,11 @@ class VM(object):
         self.kv['kv_test_array'] = [0] * 8
         self.kv['kv_test_key'] = 0
 
-        self.hue        = [0 for i in xrange(self.pix_count)]
-        self.sat        = [0 for i in xrange(self.pix_count)]
-        self.val        = [0 for i in xrange(self.pix_count)]
-        self.hs_fade    = [0 for i in xrange(self.pix_count)]
-        self.v_fade     = [0 for i in xrange(self.pix_count)]
+        self.hue        = [0 for i in range(self.pix_count)]
+        self.sat        = [0 for i in range(self.pix_count)]
+        self.val        = [0 for i in range(self.pix_count)]
+        self.hs_fade    = [0 for i in range(self.pix_count)]
+        self.v_fade     = [0 for i in range(self.pix_count)]
 
         self.gfx_data   = {'hue': self.hue,
                            'sat': self.sat,
@@ -5057,10 +5057,10 @@ class VM(object):
 
 
         # initialize data table
-        data_size = sum([a.size() for a in self.registers.values()])
+        data_size = sum([a.size() for a in list(self.registers.values())])
         self.memory = [0] * data_size
 
-        for reg, data in self.registers.iteritems():
+        for reg, data in self.registers.items():
             if isinstance(data, ConstIR):
                 self.memory[data.addr] = data.name
         
@@ -5078,11 +5078,11 @@ class VM(object):
 
     def dump_registers(self):
         regs = {}
-        for reg, data in self.registers.iteritems():
+        for reg, data in self.registers.items():
             if isinstance(data, ArrayVarIR):
                 regs[reg] = []
 
-                for i in xrange(data.size()):
+                for i in range(data.size()):
                     regs[reg].append(self.memory[data.addr + i])
 
             else:
@@ -5502,7 +5502,7 @@ class VM(object):
                     # look up array
                     ary = self.gfx_data[ins.result.attr]
 
-                    for i in xrange(obj.length):
+                    for i in range(obj.length):
                         index = i + obj.index
 
                         index %= self.pix_count
@@ -5527,7 +5527,7 @@ class VM(object):
 
                     addr = ins.result.addr
 
-                    for i in xrange(ary.length):
+                    for i in range(ary.length):
                         self.memory[addr] = data
 
                         addr += ary.stride
@@ -5543,7 +5543,7 @@ class VM(object):
                     # look up array
                     ary = self.gfx_data[ins.result.attr]
 
-                    for i in xrange(obj.length):
+                    for i in range(obj.length):
                         index = i + obj.index
 
                         index %= self.pix_count
@@ -5572,7 +5572,7 @@ class VM(object):
 
                     addr = ins.result.addr
 
-                    for i in xrange(ary.length):
+                    for i in range(ary.length):
                         self.memory[addr] += data
 
                         addr += ary.stride
@@ -5588,7 +5588,7 @@ class VM(object):
                     # look up array
                     ary = self.gfx_data[ins.result.attr]
 
-                    for i in xrange(obj.length):
+                    for i in range(obj.length):
                         index = i + obj.index
 
                         index %= self.pix_count
@@ -5617,7 +5617,7 @@ class VM(object):
 
                     addr = ins.result.addr
 
-                    for i in xrange(ary.length):
+                    for i in range(ary.length):
                         self.memory[addr] -= data
 
                         addr += ary.stride
@@ -5632,7 +5632,7 @@ class VM(object):
                     # look up array
                     ary = self.gfx_data[ins.result.attr]
 
-                    for i in xrange(obj.length):
+                    for i in range(obj.length):
                         index = i + obj.index
 
                         index %= self.pix_count
@@ -5661,7 +5661,7 @@ class VM(object):
 
                     addr = ins.result.addr
 
-                    for i in xrange(ary.length):
+                    for i in range(ary.length):
                         self.memory[addr] *= data
 
                         addr += ary.stride
@@ -5676,7 +5676,7 @@ class VM(object):
                     # look up array
                     ary = self.gfx_data[ins.result.attr]
 
-                    for i in xrange(obj.length):
+                    for i in range(obj.length):
                         index = i + obj.index
 
                         index %= self.pix_count
@@ -5705,7 +5705,7 @@ class VM(object):
 
                     addr = ins.result.addr
 
-                    for i in xrange(ary.length):
+                    for i in range(ary.length):
                         self.memory[addr] /= data
 
                         addr += ary.stride
@@ -5720,7 +5720,7 @@ class VM(object):
                     # look up array
                     ary = self.gfx_data[ins.result.attr]
 
-                    for i in xrange(obj.length):
+                    for i in range(obj.length):
                         index = i + obj.index
 
                         index %= self.pix_count
@@ -5749,7 +5749,7 @@ class VM(object):
 
                     addr = ins.result.addr
 
-                    for i in xrange(ary.length):
+                    for i in range(ary.length):
                         self.memory[addr] %= data
 
                         addr += ary.stride
@@ -5847,7 +5847,7 @@ def compile_text(text, debug_print=False, script_name=''):
         print('')
         print('Records:')
 
-        for i in state2['records'].values():
+        for i in list(state2['records'].values()):
             print(i)
 
     cg3 = CodeGeneratorPass3()
@@ -5868,7 +5868,7 @@ def compile_text(text, debug_print=False, script_name=''):
         print('')
         print('PASS 4')
         print('Registers:')
-        for k, v in state4['data']['registers'].iteritems():
+        for k, v in state4['data']['registers'].items():
             print('%3d %32s %s' % (v.line_no, k, v))
 
     cg5 = CodeGeneratorPass5(state4)
@@ -5904,7 +5904,7 @@ def compile_text(text, debug_print=False, script_name=''):
 
         print('')
         print('Registers:')
-        for k, v in state6['data']['registers'].iteritems():
+        for k, v in state6['data']['registers'].items():
             print('%3d %32s %s' % (v.line_no, k, v))
 
 

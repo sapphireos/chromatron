@@ -697,7 +697,7 @@ class insCall(BaseInstruction):
 
     def execute(self, vm):
         # load arguments with parameters
-        for i in xrange(len(self.params)):
+        for i in range(len(self.params)):
             param = self.params[i]
             arg = self.args[i]
 
@@ -712,7 +712,7 @@ class insCall(BaseInstruction):
         assert len(self.params) == len(self.args)
 
         bc.append(len(self.params))
-        for i in xrange(len(self.params)):
+        for i in range(len(self.params)):
             bc.extend(self.params[i].assemble())
             bc.extend(self.args[i].assemble())
 
@@ -797,7 +797,7 @@ class insLibCall(BaseInstruction):
         addr = self.params[0].addr
         a = memory[addr]
 
-        for i in xrange(self.params[0].var.length - 1):
+        for i in range(self.params[0].var.length - 1):
             addr += 1
             if memory[addr] < a:
                 a = memory[addr]
@@ -808,7 +808,7 @@ class insLibCall(BaseInstruction):
         addr = self.params[0].addr
         a = memory[addr]
 
-        for i in xrange(self.params[0].var.length - 1):
+        for i in range(self.params[0].var.length - 1):
             addr += 1
             if memory[addr] > a:
                 a = memory[addr]
@@ -819,7 +819,7 @@ class insLibCall(BaseInstruction):
         addr = self.params[0].addr
         a = 0
 
-        for i in xrange(self.params[0].var.length):
+        for i in range(self.params[0].var.length):
         
             a += memory[addr]
             addr += 1
@@ -830,7 +830,7 @@ class insLibCall(BaseInstruction):
         addr = self.params[0].addr
         a = 0
 
-        for i in xrange(self.params[0].var.length):
+        for i in range(self.params[0].var.length):
         
             a += memory[addr]
             addr += 1
@@ -954,7 +954,7 @@ class insIndex(BaseInstruction):
     def execute(self, vm):
         addr = self.base_addr.addr
 
-        for i in xrange(len(self.indexes)):
+        for i in range(len(self.indexes)):
             index = vm.memory[self.indexes[i].addr]
             
             count = self.counts[i]
@@ -977,7 +977,7 @@ class insIndex(BaseInstruction):
         bc.extend(self.base_addr.assemble())
         bc.append(len(self.indexes))
 
-        for i in xrange(len(self.indexes)):
+        for i in range(len(self.indexes)):
             bc.extend(self.indexes[i].assemble())
             bc.extend([self.counts[i] % 0xff, (self.counts[i] >> 8) % 0xff])
             bc.extend([self.strides[i] % 0xff, (self.strides[i] >> 8) % 0xff])
@@ -1118,7 +1118,7 @@ class insVectorMov(insVector):
         value = vm.memory[self.value.addr]
         addr = vm.memory[self.target.addr]
 
-        for i in xrange(self.length):
+        for i in range(self.length):
             vm.memory[addr] = value
             addr += 1
 
@@ -1131,7 +1131,7 @@ class insVectorAdd(insVector):
         value = vm.memory[self.value.addr]
         addr = vm.memory[self.target.addr]
 
-        for i in xrange(self.length):
+        for i in range(self.length):
             vm.memory[addr] += value
             addr += 1
 
@@ -1144,7 +1144,7 @@ class insVectorSub(insVector):
         value = vm.memory[self.value.addr]
         addr = vm.memory[self.target.addr]
 
-        for i in xrange(self.length):
+        for i in range(self.length):
             vm.memory[addr] -= value
             addr += 1
 
@@ -1158,13 +1158,13 @@ class insVectorMul(insVector):
         addr = vm.memory[self.target.addr]
 
         if self.type == 'f16':
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] = (vm.memory[addr] * value) / 65536
                     
                 addr += 1
 
         else:
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] *= value
                 addr += 1
 
@@ -1179,18 +1179,18 @@ class insVectorDiv(insVector):
 
         # check for divide by zero
         if value == 0:
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] = value
                 addr += 1
 
         elif self.type == 'f16':
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] = (vm.memory[addr] * 65536) / value
                     
                 addr += 1
 
         else:
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] /= value
                 addr += 1
 
@@ -1205,18 +1205,18 @@ class insVectorMod(insVector):
 
         # check for divide by zero
         if value == 0:
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] = value
                 addr += 1
 
         elif self.type == 'f16':
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] = vm.memory[addr] % value
                     
                 addr += 1
 
         else:
-            for i in xrange(self.length):
+            for i in range(self.length):
                 vm.memory[addr] %= value
                 addr += 1
 
@@ -1260,7 +1260,7 @@ class insPixelVectorMov(insPixelVector):
 
         value %= 65536
 
-        for i in xrange(len(array)):
+        for i in range(len(array)):
             array[i] = value
     
 class insPixelVectorAdd(insPixelVector):
@@ -1273,14 +1273,14 @@ class insPixelVectorAdd(insPixelVector):
         array = vm.gfx_data[self.attr]
 
         if self.attr == 'hue':
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] += value
 
                 array[i] %= 65536
 
 
         else:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] += value
 
                 if array[i] < 0:
@@ -1299,14 +1299,14 @@ class insPixelVectorSub(insPixelVector):
         array = vm.gfx_data[self.attr]
 
         if self.attr == 'hue':
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] -= value
 
                 array[i] %= 65536
 
 
         else:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] -= value
 
                 if array[i] < 0:
@@ -1325,20 +1325,20 @@ class insPixelVectorMul(insPixelVector):
         array = vm.gfx_data[self.attr]
 
         if self.attr == 'hue':
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = (array[i] * value) / 65536
 
                 array[i] %= 65536
 
         elif self.attr in ['hs_fade', 'v_fade']:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
 
                 array[i] = array[i] * value
 
                 array[i] %= 65536
 
         else:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = (array[i] * value) / 65536
 
                 if array[i] < 0:
@@ -1358,23 +1358,23 @@ class insPixelVectorDiv(insPixelVector):
 
         # check for divide by zero
         if value == 0:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = value
 
         elif self.attr in ['hue']:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = (array[i] * 65536) / value
 
                 array[i] %= 65536
 
         elif self.attr in ['hs_fade', 'v_fade']:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = array[i] / value
 
                 array[i] %= 65536
 
         else:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = (array[i] * 65536) / value
 
                 if array[i] < 0:
@@ -1394,17 +1394,17 @@ class insPixelVectorMod(insPixelVector):
 
         # check for divide by zero
         if value == 0:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] = value
 
         elif self.attr == 'hue':
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] %= value
 
                 array[i] %= 65536
 
         else:
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 array[i] %= value
 
                 if array[i] < 0:
@@ -1625,7 +1625,7 @@ class insDBStore(BaseInstruction):
                 vm.db[self.db_item][index] = vm.memory[self.value.addr]
 
             except IndexError:
-                for i in xrange(len(vm.db[self.db_item])):
+                for i in range(len(vm.db[self.db_item])):
                     vm.db[self.db_item][i] = vm.memory[self.value.addr]                    
 
         except TypeError:

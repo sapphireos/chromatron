@@ -312,10 +312,10 @@ def compile_file(filename, debug_print=False):
             # pprint(condition)
 
             condition_triggers = []
-            for name, hashed_val in condition['data']['read_keys'].iteritems():
+            for name, hashed_val in condition['data']['read_keys'].items():
                 condition_triggers.append(hashed_val)
 
-            for name, reg in condition['data']['local_registers'].iteritems():
+            for name, reg in condition['data']['local_registers'].items():
                 if name in local_vars:
                     condition_triggers.append(reg.addr)
 
@@ -357,7 +357,7 @@ def compile_file(filename, debug_print=False):
     
     index = 0
     trigger_index = []
-    for i in xrange(len(rules)):
+    for i in range(len(rules)):
         for trigger in triggers[i]:
             info = AutomatonTriggerIndex(
                     hash=trigger,

@@ -29,7 +29,7 @@ import signal
 import sys
 import os
 import time
-import Queue
+import queue
 
 
 def load_settings(filename='settings.json'):

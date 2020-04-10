@@ -110,7 +110,7 @@ class Client(object):
         return self._connected_host != None
 
     def connect(self, host, get_meta=True):
-        if isinstance(host, basestring):
+        if isinstance(host, str):
             # if no port is specified, set default
             host = (host, CATBUS_DISCOVERY_PORT)
 
@@ -142,7 +142,7 @@ class Client(object):
 
             cache = {}
             # have to convert keys back to int because json only does string keys
-            for k, v in temp.iteritems():
+            for k, v in temp.items():
                 cache[int(k)] = v
 
         except ValueError as e:
@@ -168,19 +168,19 @@ class Client(object):
                 arg_list.append(arg)
 
         # filter out any items in the cache
-        for k, v in cache.iteritems():
+        for k, v in cache.items():
             if k in arg_list:
                 resolved_keys[k] = v
 
         arg_list = [a for a in arg_list if a not in cache]
 
-        chunks = [arg_list[x:x + CATBUS_MAX_HASH_LOOKUPS] for x in xrange(0, len(arg_list), CATBUS_MAX_HASH_LOOKUPS)]
+        chunks = [arg_list[x:x + CATBUS_MAX_HASH_LOOKUPS] for x in range(0, len(arg_list), CATBUS_MAX_HASH_LOOKUPS)]
 
         for chunk in chunks:
             hashes = []
 
             for key in chunk:
-                if isinstance(key, basestring):
+                if isinstance(key, str):
                     key = str(key)
                     hashed_key = catbus_string_hash(key)
 
@@ -193,7 +193,7 @@ class Client(object):
 
             response, sender = self._exchange(msg)
 
-            for i in xrange(len(response.keys)):
+            for i in range(len(response.keys)):
                 key = response.keys[i]
                 hashed_key = hashes[i]
 
@@ -206,14 +206,14 @@ class Client(object):
         tags = None
 
         # check for any keys that didn't resolve
-        for k, v in resolved_keys.iteritems():
+        for k, v in resolved_keys.items():
             if k == 0:
                 continue
 
             if v == None:
                 # try computing hash from meta tags
                 if tags is None:
-                    tags = {catbus_string_hash(v): v for v in self.get_tags().itervalues() if len(v) > 0}
+                    tags = {catbus_string_hash(v): v for v in self.get_tags().values() if len(v) > 0}
                 
                 try:
                     resolved_keys[k] = tags[k]
@@ -266,7 +266,7 @@ class Client(object):
 
         discover_sock.settimeout(0.3)
 
-        for i in xrange(3):
+        for i in range(3):
             send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
 
             start = time.time()
@@ -337,7 +337,7 @@ class Client(object):
         return meta
 
     def get_all_keys(self):
-        return self.get_keys(self.meta.keys())
+        return self.get_keys(list(self.meta.keys()))
 
     def get_keys(self, *args, **kwargs):
         with_meta = False
@@ -346,7 +346,7 @@ class Client(object):
 
         key_list = []
         for arg in args:
-            if isinstance(arg, basestring):
+            if isinstance(arg, str):
                 key_list.append(arg)
 
             else:
@@ -371,7 +371,7 @@ class Client(object):
         answers = {}
 
         while len(hashes) > 0:
-            request_list = hashes.keys()[:CATBUS_MAX_GET_KEY_ITEM_COUNT]
+            request_list = list(hashes.keys())[:CATBUS_MAX_GET_KEY_ITEM_COUNT]
 
             msg = GetKeysMsg(hashes=request_list)
 
@@ -406,16 +406,16 @@ class Client(object):
         # check if we have these keys
         # we're doing this because on older versions of catbus,
         # requesting a key that does not exist may return garbage.
-        key_data = {str(k):v for k,v in key_data.iteritems() if k in self.meta}
+        key_data = {str(k):v for k,v in key_data.items() if k in self.meta}
 
         # need to get meta data so we can pack
-        meta = self.get_keys(key_data.keys(), with_meta=True)
+        meta = self.get_keys(list(key_data.keys()), with_meta=True)
         
         # create data items
         items = []
         batches = []
         for key in key_data:
-            if isinstance(key_data[key], basestring):
+            if isinstance(key_data[key], str):
                 # we do not support unicode, and things break if leaks into the system
                 key_data[key] = str(key_data[key])
 
@@ -441,7 +441,7 @@ class Client(object):
         batches = [batch for batch in batches if len(batch) > 0]
 
         hashes = {}
-        for key in key_data.iterkeys():
+        for key in key_data.keys():
             hashes[catbus_string_hash(key)] = key
 
         answers = {}

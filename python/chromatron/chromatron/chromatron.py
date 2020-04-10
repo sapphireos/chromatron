@@ -291,7 +291,7 @@ class Chromatron(object):
                     click.echo('Found more than 1 matching device!')
                     return
 
-                host = matches.values()[0]['host'][0]
+                host = list(matches.values())[0]['host'][0]
 
 
         self._device = Device(host=host)
@@ -679,7 +679,7 @@ class Chromatron(object):
     def get_pixel_mode(self):
         mode = self.get_key('pix_mode')
 
-        for k, v in led_modes.iteritems():
+        for k, v in led_modes.items():
             if mode == v:
                 return k
 
@@ -754,7 +754,7 @@ class DeviceGroup(DictMixin, object):
 
     def keys(self):
         """Return list of keys"""
-        return self.group.keys()
+        return list(self.group.keys())
 
     # def __setattr__(self, name, value):
     #     if name not in self.__dict__:
@@ -785,7 +785,7 @@ class DeviceGroup(DictMixin, object):
         def scan_func(device):
             device.init_scan()
 
-        for match in self.matches.itervalues():
+        for match in self.matches.values():
             ct = Chromatron(host=match['host'][0], init_scan=False)
             scan_group.append(ct)
 
@@ -825,15 +825,15 @@ class DeviceGroup(DictMixin, object):
 
             methods = []
 
-            for f in [f for f in dir(self.group.values()[0]) if
-                        isinstance(self.group.values()[0].__getattribute__(f), types.MethodType) and
+            for f in [f for f in dir(list(self.group.values())[0]) if
+                        isinstance(list(self.group.values())[0].__getattribute__(f), types.MethodType) and
                         not f.startswith('_')]:
 
                 if f not in local_methods:
                     methods.append(f)
 
-            for f in [f for f in dir(self.group.values()[0]._device) if
-                        isinstance(self.group.values()[0]._device.__getattribute__(f), types.MethodType) and
+            for f in [f for f in dir(list(self.group.values())[0]._device) if
+                        isinstance(list(self.group.values())[0]._device.__getattribute__(f), types.MethodType) and
                         not f.startswith('_')]:
 
                 if f not in local_methods and f not in methods:
@@ -867,7 +867,7 @@ class DeviceGroup(DictMixin, object):
 
             # need to convert device id back to a number
             # JSON only does string keys
-            for k, v in data['matches'].iteritems():
+            for k, v in data['matches'].items():
                 self.matches[int(k)] = v
 
         return self
@@ -875,7 +875,7 @@ class DeviceGroup(DictMixin, object):
     def make_func(self, f):
         def wrapper(*args, **kwargs):
             results = {}
-            for d in self.group.itervalues():
+            for d in self.group.values():
                 try:
                     method = d.__getattribute__(f)
 
@@ -891,27 +891,27 @@ class DeviceGroup(DictMixin, object):
     @property
     def dimmer(self):
         results = {}
-        for d in self.group.itervalues():
+        for d in self.group.values():
             results[d.device_id] = d.dimmer
 
         return results
 
     @dimmer.setter
     def dimmer(self, value):
-        for d in self.group.itervalues():
+        for d in self.group.values():
             d.dimmer = value
 
     @property
     def sub_dimmer(self):
         results = {}
-        for d in self.group.itervalues():
+        for d in self.group.values():
             results[d.device_id] = d.sub_dimmer
 
         return results
 
     @sub_dimmer.setter
     def sub_dimmer(self, value):
-        for d in self.group.itervalues():
+        for d in self.group.values():
             d.sub_dimmer = value
 
     # @property
@@ -952,7 +952,7 @@ def echo_name(ct, left_align=True, nl=True):
     click.echo(name_s, nl=nl)
 
 def echo_group(group):
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, left_align=False)
 
 
@@ -1173,7 +1173,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
         connected = False
 
-        for i in xrange(50):
+        for i in range(50):
             try:
                 ct.get_key('ip')
 
@@ -1185,7 +1185,7 @@ def setup_wifi(wifi_ssid, wifi_password):
 
             time.sleep(0.5)
 
-        for i in xrange(50):
+        for i in range(50):
             try:
                 if ct.get_key('ip') != '0.0.0.0':
                     connected = True
@@ -1231,7 +1231,7 @@ def reset_meta(ctx, force):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         for key in catbus.META_TAGS:
@@ -1257,7 +1257,7 @@ def setup_meta(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         current_name = ct.get_key(catbus.META_TAG_NAME)
@@ -1269,7 +1269,7 @@ def setup_meta(ctx):
         ct.set_key(catbus.META_TAG_NAME, str(name_s))
         ct.set_key(catbus.META_TAG_LOC, str(location_s))
 
-        for i in xrange(catbus.META_TAG_GROUP_COUNT):
+        for i in range(catbus.META_TAG_GROUP_COUNT):
             tag_name = 'meta_tag_%d' % (i)
             tag_s =  click.prompt("Tag %d" % (i), default=ct.get_key(tag_name))
 
@@ -1288,7 +1288,7 @@ def meta_set_name(ctx, tag):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         ct.set_key(catbus.META_TAG_NAME, str(tag))
 
@@ -1300,7 +1300,7 @@ def meta_set_location(ctx, tag):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         ct.set_key(catbus.META_TAG_LOC, str(tag))
 
@@ -1312,7 +1312,7 @@ def add_meta_tag(ctx, tag):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         ct.set_key('meta_cmd_add', str(tag))
 
@@ -1324,7 +1324,7 @@ def rm_meta_tag(ctx, tag):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         ct.set_key('meta_cmd_rm', str(tag))
 
@@ -1335,7 +1335,7 @@ def list_meta_tag(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         
         for meta in catbus.META_TAGS:
@@ -1358,7 +1358,7 @@ def show(ctx):
     s = '                                      dB     Sec. '
     click.echo(s)
 
-    for ct in group.itervalues():
+    for ct in group.values():
         name = ct.name
         rssi = ct.get_key('wifi_rssi')
         uptime = ct.get_key('wifi_uptime')
@@ -1421,7 +1421,7 @@ def ping(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         start = time.time()
         ct.echo()
         elapsed = int((time.time() - start) * 1000)
@@ -1458,7 +1458,7 @@ def identify(ctx):
 
     marked = {}
 
-    for ct in group.itervalues():
+    for ct in group.values():
         name_s = '%-32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
 
         click.echo('%s %s' % (name_s, ''), nl=False)
@@ -1481,7 +1481,7 @@ def identify(ctx):
     set_group_to_marked = False
 
     if len(marked) > 0:
-        for ct in marked.itervalues():
+        for ct in marked.values():
             ct.set_all_hsv(h=0.333, s=1.0, v=1.0)
 
             name_s = '%-32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
@@ -1496,13 +1496,13 @@ def identify(ctx):
     click.echo('\nIdentify finished, restarting VMs that were running')
 
     # restore VM states
-    for ct in group.itervalues():
+    for ct in group.values():
         ct.set_key('vm_run', vm_states[ct.device_id])
 
 
     if set_group_to_marked:
         # remove non-marked devices from group
-        for ct in group.values():
+        for ct in list(group.values()):
             if ct.device_id not in marked:
                 del group[ct.device_id]
 
@@ -1638,7 +1638,7 @@ def reload(ctx):
     group = ctx.obj['GROUP']()
     n = ctx.obj['n']
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         try:
@@ -1710,7 +1710,7 @@ def fs_list(ctx):
     """List files"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         files = ct.list_files()
@@ -1737,7 +1737,7 @@ def fs_cat(ctx, filename):
     """View a file"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         try:
@@ -1755,7 +1755,7 @@ def fs_rm(ctx, filename):
     """Remove a file"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         try:
@@ -1776,7 +1776,7 @@ def fs_put(ctx, filename):
     data = f.read()
     f.close()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         try:
@@ -1793,7 +1793,7 @@ def fs_get(ctx, filename):
     """Get a file"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         # create folder for device name
@@ -1834,7 +1834,7 @@ def keys_list(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         data = ct.list_keys()
@@ -1853,7 +1853,7 @@ def keys_get(ctx, key):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         try:
@@ -1874,7 +1874,7 @@ def keys_set(ctx, key, value):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         try:
@@ -1910,7 +1910,7 @@ def dimmer_set_master_dimmer(ctx, value):
 
     click.echo("Setting master dimmer:")
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         
         ct.dimmer = value
@@ -1933,7 +1933,7 @@ def dimmer_set_sub_dimmer(ctx, value):
 
     click.echo("Setting submaster dimmer:")
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=True)
         
         ct.sub_dimmer = value
@@ -1945,7 +1945,7 @@ def dimmer_show_dimmers(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         master_dimmer = click.style("%01.3f" % (ct.dimmer), fg=VAL_COLOR)
@@ -1968,7 +1968,7 @@ def reset_pixels(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
         ct.reset_pixels()
         click.echo(" pixels reset")
@@ -1984,7 +1984,7 @@ def setup_pixels(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         click.clear()
         echo_name(ct)
         current_settings = ct.get_pixel_settings()
@@ -2202,7 +2202,7 @@ def pixel_set_clock(ctx, value):
 
     clock_s = click.style('%d Hz' % (value), fg=VAL_COLOR)
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         setting, actual = ct.set_pixel_clock(value)
@@ -2221,7 +2221,7 @@ def pixel_get_clock(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         # check if analog, if so,
@@ -2259,7 +2259,7 @@ def pixel_show_settings(ctx):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct, nl=False)
 
         try:
@@ -2296,7 +2296,7 @@ def hue(ctx, value):
 
     value = float(value)
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         ct.set_all_hsv(h=value)
@@ -2311,7 +2311,7 @@ def sat(ctx, value):
 
     value = float(value)
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         ct.set_all_hsv(s=value)
@@ -2326,7 +2326,7 @@ def val(ctx, value):
 
     value = float(value)
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         ct.set_all_hsv(v=value)
@@ -2391,7 +2391,7 @@ def manifest(ctx, release):
 
     firmwares = firmware_package.get_firmware(include_firmware_image=True, release=release)
 
-    for name, info in firmwares.iteritems():
+    for name, info in firmwares.items():
         name_s = click.style('%s' % (info['manifest']['name']), fg='white')
         version_s = click.style('%s' % (info['manifest']['version']), fg='cyan')
         timestamp_s = click.style('%s' % (info['manifest']['timestamp']), fg='magenta')
@@ -2418,7 +2418,7 @@ def backup(ctx):
     except IOError:
         backup_data = {}
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         click.echo(click.style('Backing up settings', fg='white'))
@@ -2444,7 +2444,7 @@ def restore(ctx):
         click.echo(click.style('No backup data found', fg=ERROR_COLOR))
         return
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         click.echo(click.style('Restoring settings', fg='white'))
@@ -2524,7 +2524,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
     # since it is kind of messy to try to get the click progress bar
     # into the Chromatron.load_firmware() method.
 
-    for ct in group.itervalues():
+    for ct in group.values():
         echo_name(ct)
 
         firmware_loaded = False
@@ -2537,7 +2537,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
         if change_firmware:
             new_fwid = None
             # look up firmware id
-            for info in firmwares.itervalues():
+            for info in firmwares.values():
                 if info['short_name'] == change_firmware:
                     new_fwid = info['manifest']['fwid'].replace('-', '')
 
@@ -2651,7 +2651,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
 
             click.echo('Waiting for device')
 
-            for i in xrange(100):
+            for i in range(100):
                 if i > 10:
                     # don't start trying to echo too soon,
                     # because the reboot command takes a few seconds
@@ -2699,7 +2699,7 @@ def version(ctx):
     """Show firmware version on selected devices"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         main_version, wifi_firmware_version = ct.get_version()
         fw_name = ct.get_key('firmware_name')
 
@@ -2721,7 +2721,7 @@ def link_show(ctx):
     """Show links"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
         click.echo(name_s)
 
@@ -2756,7 +2756,7 @@ def link_send(ctx, source, dest, target):
     """Add a sender link"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
         click.echo(name_s)
 
@@ -2776,7 +2776,7 @@ def link_receive(ctx, source, dest, target):
 
     source = False
 
-    for ct in group.itervalues():
+    for ct in group.values():
         name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
         click.echo(name_s)
 
@@ -2790,7 +2790,7 @@ def link_delete(ctx, tag):
 
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
         click.echo(name_s)
 
@@ -2808,7 +2808,7 @@ def time_get(ctx):
     """Get NTP time"""
     group = ctx.obj['GROUP']()
 
-    for ct in group.itervalues():
+    for ct in group.values():
         ntp_seconds = ct.get_key("ntp_seconds")
         ntp_now = timedelta(seconds=ntp_seconds) + NTP_EPOCH
 
@@ -2847,11 +2847,11 @@ if __name__ == '__main__':
         d1.val = 1.0
         d2.val = 1.0
 
-        for d in d1.itervalues():
+        for d in d1.values():
             print(d)
             d.val = 1.0
 
-        for d in d2.itervalues():
+        for d in d2.values():
             print(d)
             d.val = 1.0
 
@@ -2859,7 +2859,7 @@ if __name__ == '__main__':
         while True:
             time.sleep(0.02)
 
-            for d in d1.itervalues():
+            for d in d1.values():
             #     print d
                 d.hue += 0.01
             #     print "D"
@@ -2870,7 +2870,7 @@ if __name__ == '__main__':
 
             # print "E"
 
-            for d in d2.itervalues():
+            for d in d2.values():
                 d.hue += 0.01
 
             d1.update_pixels()

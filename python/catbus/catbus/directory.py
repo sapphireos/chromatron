@@ -164,10 +164,10 @@ class Directory(Ribbon):
             self._last_ttl = time.time()
 
             with self.__lock:
-                for key, info in self._directory.iteritems():
+                for key, info in self._directory.items():
                     info['ttl'] -= 4.0
 
-                self._directory = {k: v for k, v in self._directory.iteritems() if v['ttl'] >= 0.0}
+                self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@
 # Copyright (C) 2008-2015, Eli Bendersky
 # License: BSD
 #-----------------------------------------------------------------
-from __future__ import print_function
+
 import sys
 
 # This is not required if you've installed pycparser into

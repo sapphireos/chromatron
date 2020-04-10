@@ -76,7 +76,7 @@ class Logger(object):
     def _hash_tags(self, tags):
         hashes = []
         for tag in tags:
-            assert isinstance(tag, basestring)
+            assert isinstance(tag, str)
             hashes.append((fnv1a_64(tag)))
 
         return sum(hashes) % ((2**63) - 1)
@@ -122,7 +122,7 @@ class Logger(object):
 
     def query_tags(self, tags):
         results = []
-        for hashed_tags, dest_tags in self.tags.iteritems():
+        for hashed_tags, dest_tags in self.tags.items():
             if query_tags(tags, dest_tags):
                 results.append(hashed_tags)
 

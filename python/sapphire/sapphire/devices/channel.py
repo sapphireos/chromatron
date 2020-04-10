@@ -37,7 +37,7 @@ import socket
 import struct
 import time
 import threading
-from Queue import Queue
+from queue import Queue
 
 MFG_NAME = "Sapphire Open Systems"
 

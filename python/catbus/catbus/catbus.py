@@ -56,7 +56,7 @@ from sapphire.common import Ribbon, MsgQueueEmptyException
 import sapphire.common.util as util
 from sapphire.query import query_dict
 import select
-import Queue
+import queue
 from pprint import pprint
 
 from .data_structures import *
@@ -183,7 +183,7 @@ def discover(ctx):
     s = 'Name                                        Location                Tags'
     click.echo(s)
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -233,7 +233,7 @@ def list(ctx):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -259,7 +259,7 @@ def ping(ctx):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -292,7 +292,7 @@ def get(ctx, key):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -315,7 +315,7 @@ def set(ctx, key, value):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)

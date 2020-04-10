@@ -3669,7 +3669,7 @@ class CGTestsLocal(CGTestsBase):
         vm.run_once()
         regs = vm.dump_registers()
 
-        for reg, value in expected.iteritems():
+        for reg, value in expected.items():
             try:
                 try:
                     self.assertEqual(regs[reg], value)

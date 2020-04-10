@@ -99,8 +99,8 @@ class Database(DictMixin, object):
     def keys(self):
         """Return list of keys"""
         with self._lock:
-            keys = self._kv_items.keys()
-            keys.extend(self._hashes.keys())
+            keys = list(self._kv_items.keys())
+            keys.extend(list(self._hashes.keys()))
             return keys
 
     def get_query(self):
@@ -142,10 +142,10 @@ class Database(DictMixin, object):
         elif isinstance(value, float):
             return 'float'
 
-        elif isinstance(value, long):
+        elif isinstance(value, int):
             return 'int64'
 
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             return 'string128'
 
         else:
@@ -171,7 +171,7 @@ class Database(DictMixin, object):
 
         # check if adding an array
         try:
-            if not isinstance(value, basestring):
+            if not isinstance(value, str):
                 count = len(value)
 
         except TypeError:
@@ -246,6 +246,6 @@ class Database(DictMixin, object):
         # you get default types and options only.
         # this requires an actual string key
         else:
-            assert isinstance(key, basestring)
+            assert isinstance(key, str)
             self.add_item(key, value)
 

@@ -77,12 +77,12 @@ class Midi(object):
         selected_input_port = None
 
         try:
-            for i in xrange(len(available_output_ports)):
+            for i in range(len(available_output_ports)):
                 if available_output_ports[i].find(port) >= 0:
                     selected_output_port = i
                     break
 
-            for i in xrange(len(available_input_ports)):
+            for i in range(len(available_input_ports)):
                 if available_input_ports[i].find(port) >= 0:
                     selected_input_port = i
                     break

@@ -147,7 +147,7 @@ class cg1RecordType(cg1Node):
         self.fields = fields
 
     def build(self, builder):
-        fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in self.fields.items()}
+        fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in list(self.fields.items())}
         return builder.create_record(self.name, fields, lineno=self.lineno)
 
 
@@ -241,7 +241,7 @@ class cg1Module(cg1Node):
             elif isinstance(node, cg1Assign):
                 if isinstance(node.value, cg1GenericObject):
                     args = [a.build(builder) for a in node.value.args]
-                    kw = {k: v.build(builder) for k, v in node.value.kw.items()}
+                    kw = {k: v.build(builder) for k, v in list(node.value.kw.items())}
 
                     builder.generic_object(node.target.name, node.value.name, args, kw, lineno=node.lineno)
 
@@ -618,14 +618,14 @@ class CodeGenPass1(ast.NodeVisitor):
         return self.visit(self._ast)
 
     def visit_Module(self, node):
-        body = map(self.visit, node.body)
+        body = list(map(self.visit, node.body))
         
         return cg1Module("module", body, lineno=0)
 
     def visit_FunctionDef(self, node):
         self.in_func = True
-        body = map(self.visit, list(node.body))
-        params = map(self.visit, node.args.args)
+        body = list(map(self.visit, list(node.body)))
+        params = list(map(self.visit, node.args.args))
 
         params = [cg1VarInt32(a.name, lineno=a.lineno) for a in params]
 
@@ -762,12 +762,12 @@ class CodeGenPass1(ast.NodeVisitor):
             for kw in map(self.visit, node.keywords):
                 kwargs.update(kw)
 
-            args = map(self.visit, node.args)
+            args = list(map(self.visit, node.args))
             return cg1Call(node.func.id, args, kwargs, lineno=node.lineno)
 
         else:
             # function call at module level
-            return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
+            return cg1Call(node.func.id, list(map(self.visit, node.args)), lineno=node.lineno)
 
     def visit_Yield(self, node):
         return cg1Call('yield',[], lineno=node.lineno)
@@ -779,7 +779,7 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1List([self.visit(e) for e in node.elts], lineno=node.lineno)
 
     def visit_If(self, node):
-        return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse), lineno=node.lineno)
+        return cg1If(self.visit(node.test), list(map(self.visit, node.body)), list(map(self.visit, node.orelse)), lineno=node.lineno)
     
     def visit_Compare(self, node):
         assert len(node.ops) <= 1
@@ -904,7 +904,7 @@ class CodeGenPass1(ast.NodeVisitor):
         # rarely used, so we are not going to support it.
         assert len(node.orelse) == 0
 
-        return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body), lineno=node.lineno)
+        return cg1For(self.visit(node.target), self.visit(node.iter), list(map(self.visit, node.body)), lineno=node.lineno)
 
     def visit_While(self, node):
         # Check for an else clause.  Python has an atypical else construct
@@ -912,7 +912,7 @@ class CodeGenPass1(ast.NodeVisitor):
         # rarely used, so we are not going to support it.
         assert len(node.orelse) == 0
 
-        return cg1While(self.visit(node.test), map(self.visit, node.body), lineno=node.lineno)
+        return cg1While(self.visit(node.test), list(map(self.visit, node.body)), lineno=node.lineno)
 
     def visit_Attribute(self, node):
         load = True

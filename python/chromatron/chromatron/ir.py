@@ -366,7 +366,7 @@ class irRecord(irVar):
 
         self.offsets = offsets
         self.length = 0
-        for field in self.fields.values():
+        for field in list(self.fields.values()):
             self.length += field.length
 
 
@@ -379,7 +379,7 @@ class irRecord(irVar):
         return "Record(%s, %s, %d)" % (self.name, self.type, self.length)
 
     def get_field_from_offset(self, offset): 
-        for field_name, addr in self.offsets.items():
+        for field_name, addr in list(self.offsets.items()):
             if addr.name == offset.name:
                 return self.fields[field_name]
 
@@ -397,7 +397,7 @@ class irRecord(irVar):
 
         except KeyError:
             # try looking up by offset
-            for field_name, addr in self.offsets.items():
+            for field_name, addr in list(self.offsets.items()):
                 if addr.name == index.name:
                     return self.fields[field_name].lookup(indexes)
 
@@ -490,7 +490,7 @@ class irPixelArray(irObject):
         except IndexError:
             raise SyntaxError("Missing arguments for PixelArray", lineno=self.lineno)            
 
-        for k, v in kw.items():
+        for k, v in list(kw.items()):
             if k not in self.fields:
                 raise SyntaxError("Invalid argument for PixelArray: %s" % (k), lineno=self.lineno)
 
@@ -667,7 +667,7 @@ class irFunc(IR):
     def labels(self):
         labels = {}
 
-        for i in xrange(len(self.body)):
+        for i in range(len(self.body)):
             ins = self.body[i]
 
             if isinstance(ins, irLabel):
@@ -1196,7 +1196,7 @@ class irIndex(IR):
 
         target = self.target
 
-        for i in xrange(len(self.indexes)):
+        for i in range(len(self.indexes)):
             count = target.count
             counts.append(count)
             
@@ -1541,7 +1541,7 @@ class Builder(object):
 
         pixarray = irPixelArray('temp', lineno=0)
         pixfields = {}
-        for field, value in pixarray.fields.items():
+        for field, value in list(pixarray.fields.items()):
             pixfields[field] = {'type': 'i32', 'dimensions': []}
 
         self.create_record('PixelArray', pixfields, lineno=0)
@@ -1564,23 +1564,23 @@ class Builder(object):
         s = "FX IR:\n"
 
         s += 'Globals:\n'
-        for i in self.globals.values():
+        for i in list(self.globals.values()):
             s += '%d\t%s\n' % (i.lineno, i)
 
         s += 'Locals:\n'
         for fname in sorted(self.locals.keys()):
-            if len(self.locals[fname].values()) > 0:
+            if len(list(self.locals[fname].values())) > 0:
                 s += '\t%s\n' % (fname)
 
                 for l in sorted(self.locals[fname].values()):
                     s += '%d\t\t%s\n' % (l.lineno, l)
 
         s += 'PixelArrays:\n'
-        for i in self.pixel_arrays.values():
+        for i in list(self.pixel_arrays.values()):
             s += '%d\t%s\n' % (i.lineno, i)
 
         s += 'Functions:\n'
-        for func in self.funcs.values():
+        for func in list(self.funcs.values()):
             s += '%s\n' % (func)
 
         return s
@@ -1588,10 +1588,10 @@ class Builder(object):
     def finish_module(self):
         # clean up stuff after first pass is done
 
-        for func in self.funcs.values():
+        for func in list(self.funcs.values()):
             func.remove_dead_labels()
 
-        for func in self.funcs.values():
+        for func in list(self.funcs.values()):
             prev_line = 0
             for ir in func.body:
                 if isinstance(ir, irLabel):
@@ -1621,7 +1621,7 @@ class Builder(object):
         new_fields = {}
         offsets = {}
         offset = 0
-        for field_name, field in fields.items():
+        for field_name, field in list(fields.items()):
             field_type = field['type']
             field_dims = field['dimensions']
             
@@ -2171,7 +2171,7 @@ class Builder(object):
         try:
             args = self.funcs[func_name].params
 
-            for i in xrange(len(params)):
+            for i in range(len(params)):
                 params[i] = self.load_value(params[i], lineno=lineno)
 
             ir = irCall(func_name, params, args, result, lineno=lineno)
@@ -2475,7 +2475,7 @@ class Builder(object):
             self.cron_tab[func] = []
 
         # convert parameters from const objects into raw integers
-        for k, v in params.items():
+        for k, v in list(params.items()):
             try:
                 params[k] = v.name
 
@@ -2500,14 +2500,14 @@ class Builder(object):
                 raise SyntaxError("Day of month must be within 0 - 31, got %d" % (params['day_of_month']), lineno=lineno)
         
         if 'day_of_week' in params:
-            if isinstance(params['day_of_week'], basestring):
+            if isinstance(params['day_of_week'], str):
                 params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
 
             if params['day_of_week'] < 1 or params['day_of_week'] > 7:
                 raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
         
         if 'month' in params:
-            if isinstance(params['month'], basestring):
+            if isinstance(params['month'], str):
                 params['month'] = MONTHS[params['month'].lower()]
 
             if params['month'] < 1 or params['month'] > 12:
@@ -2666,7 +2666,7 @@ class Builder(object):
         code = self.funcs[func].body
 
 
-        liveness = [[] for i in xrange(len(code))]
+        liveness = [[] for i in range(len(code))]
 
         for line in unreachable:
             liveness[line] = None
@@ -2776,7 +2776,7 @@ class Builder(object):
 
         # look for additional pixel arrays
         index = 1
-        for i in self.globals.values():
+        for i in list(self.globals.values()):
             if isinstance(i, irRecord) and i.type == 'PixelArray' and i.name != 'pixels':
                 self.pixel_array_indexes.append(i.name)
                 self.pixel_arrays[i.name].array_list_index = index
@@ -2796,7 +2796,7 @@ class Builder(object):
                     self.data_table.append(field)
         
         # update mirror fields in pixel arrays
-        for name, pix_array in self.pixel_arrays.items():
+        for name, pix_array in list(self.pixel_arrays.items()):
             mirror = pix_array.fields['mirror']
 
             # negative mirrors are undefined, no further processing
@@ -2815,7 +2815,7 @@ class Builder(object):
             pix_array_records[name].fields['mirror'].default_value = int(pix_array.fields['mirror'])
 
         # allocate all other globals
-        for i in self.globals.values():
+        for i in list(self.globals.values()):
             if isinstance(i, irRecord) and i.type == 'PixelArray':
                 continue
 
@@ -2830,7 +2830,7 @@ class Builder(object):
             self.data_table.append(i)
 
         # assign palettes to pixel arrays
-        for name, pix_array in self.pixel_arrays.items():
+        for name, pix_array in list(self.pixel_arrays.items()):
             palette = pix_array.fields['palette']
 
             # check if no palette assigned
@@ -2869,7 +2869,7 @@ class Builder(object):
                         continue
 
                     # remove anything that is no longer live
-                    for var in registers.values():
+                    for var in list(registers.values()):
                         # check for arrays with obviously bogus sizes
                         assert var.length < 65535
 
@@ -2879,7 +2879,7 @@ class Builder(object):
                             del registers[var.name]
 
                             var_addr = var.addr
-                            for i in xrange(var.length):
+                            for i in range(var.length):
                                 address_pool.append(var_addr)
                                 var_addr += 1
 
@@ -2948,8 +2948,8 @@ class Builder(object):
                         a.addr = trash_var.addr
 
                     
-            for func_name, local in self.locals.items():
-                for i in local.values():
+            for func_name, local in list(self.locals.items()):
+                for i in list(local.values()):
                     # assign func name to var
                     i.name = '%s.%s' % (func_name, i.name)
 
@@ -2957,8 +2957,8 @@ class Builder(object):
 
         # NOT optimizing registers
         else:
-            for func_name, local in self.locals.items():
-                for i in local.values():
+            for func_name, local in list(self.locals.items()):
+                for i in list(local.values()):
                     i.addr = addr
                     addr += i.length
 
@@ -2977,7 +2977,7 @@ class Builder(object):
 
         global_strings = []
         # do the same thing for global vars
-        for g in self.globals.values():
+        for g in list(self.globals.values()):
             if isinstance(g, irVar_str):
                 global_strings.append(g)
                 if g.default_value not in used_strings:
@@ -3035,7 +3035,7 @@ class Builder(object):
 
             else:
                 default_value = '['
-                for n in xrange(i.count):
+                for n in range(i.count):
                     try:
                         val = i.default_value[n]
                     except TypeError: # no default value given, so this will be all 0s
@@ -3082,11 +3082,11 @@ class Builder(object):
 
     def remove_unreachable(self):
         if self.optimizations['remove_unreachable_code']:
-            for func in self.funcs.values():
+            for func in list(self.funcs.values()):
                 unreachable = self.unreachable(func.name)
 
                 new_code = []
-                for i in xrange(len(func.body)):
+                for i in range(len(func.body)):
                     if i not in unreachable:
                         new_code.append(func.body[i])
 
@@ -3105,7 +3105,7 @@ class Builder(object):
             self.func('loop', lineno=0)
             self.ret(self.get_var(0), lineno=0)
         
-        for func in self.funcs.values():
+        for func in list(self.funcs.values()):
             ins = []
                     
             code = func.generate()
@@ -3196,7 +3196,7 @@ class Builder(object):
 
         # set up pixel arrays
         pix_obj_len = 0
-        for pix in self.pixel_arrays.values():
+        for pix in list(self.pixel_arrays.values()):
             pix_obj_len += pix.length
 
         # set up read keys
@@ -3242,14 +3242,14 @@ class Builder(object):
 
         # set up DB entries
         packed_db = ''
-        for name, entry in self.db_entries.items():
+        for name, entry in list(self.db_entries.items()):
             packed_db += entry.pack()
 
             meta_names.append(name)
         
         # set up cron entries
         packed_cron = ''
-        for func_name, entries in self.cron_tab.items():
+        for func_name, entries in list(self.cron_tab.items()):
             
             for entry in entries:
                 item = CronItem(
@@ -3350,7 +3350,7 @@ class Builder(object):
 
             else:
                 try:
-                    for i in xrange(var.length):
+                    for i in range(var.length):
                         try:
                             default_value = var.default_value[i]
 
@@ -3455,17 +3455,17 @@ class VM(object):
             self.data = builder.data_table
             self.data.extend(builder.strings)
 
-            for k, v in builder.pixel_arrays.items():
+            for k, v in list(builder.pixel_arrays.items()):
                 self.pixel_arrays[k] = v.fields
 
         # set up pixel arrays
         self.pix_count = pix_size_x * pix_size_y
 
-        self.hue        = [0 for i in xrange(self.pix_count)]
-        self.sat        = [0 for i in xrange(self.pix_count)]
-        self.val        = [0 for i in xrange(self.pix_count)]
-        self.hs_fade    = [0 for i in xrange(self.pix_count)]
-        self.v_fade     = [0 for i in xrange(self.pix_count)]
+        self.hue        = [0 for i in range(self.pix_count)]
+        self.sat        = [0 for i in range(self.pix_count)]
+        self.val        = [0 for i in range(self.pix_count)]
+        self.hs_fade    = [0 for i in range(self.pix_count)]
+        self.v_fade     = [0 for i in range(self.pix_count)]
 
         self.gfx_data   = {'hue': self.hue,
                            'sat': self.sat,
@@ -3510,7 +3510,7 @@ class VM(object):
                 self.memory.append(var.strlen)
 
                 s = []
-                for i in xrange(var.strlen):
+                for i in range(var.strlen):
                     s.append(var.strdata[i])
 
                     if len(s) == 4:
@@ -3523,7 +3523,7 @@ class VM(object):
                     addr += 1
                 
             else:
-                for i in xrange(var.length):
+                for i in range(var.length):
                     try:
                         self.memory.append(var.default_value[i])
                     except TypeError:
@@ -3561,7 +3561,7 @@ class VM(object):
             if isinstance(var, irArray):
                 value = []
                 addr = var.addr
-                for i in xrange(var.length):
+                for i in range(var.length):
                     value.append(self.memory[addr])
                     addr += 1
 
@@ -3588,7 +3588,7 @@ class VM(object):
 
                 # unpack string
                 s = []
-                for i in xrange(memlen):
+                for i in range(memlen):
                     s.extend(self.memory[ref])
                     ref += 1
 
@@ -3619,11 +3619,11 @@ class VM(object):
 
         # linearize code stream
         code = []
-        for v in self.code.values():
+        for v in list(self.code.values()):
             code.extend(v)
 
         # scan code stream and get offsets for all functions and labels
-        for i in xrange(len(code)):
+        for i in range(len(code)):
             ins = code[i]
             if isinstance(ins, insFunction) or isinstance(ins, insLabel):
                 offsets[ins.name] = i
