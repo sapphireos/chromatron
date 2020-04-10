@@ -71,7 +71,7 @@ class VMContainer(Ribbon):
         next_run = time.time() + self.frame_rate
 
         if self.check_file_hash():
-            print "Reloading VM"
+            print("Reloading VM")
             self.load_vm()
 
         self.vm.run('loop')

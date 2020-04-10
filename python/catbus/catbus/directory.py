@@ -108,7 +108,7 @@ class Directory(Ribbon):
                 pass
 
     def _handle_error(self, msg, host):
-        print msg
+        print(msg)
 
     def _handle_announce(self, msg, host):
         # update host port with advertised data port
@@ -181,7 +181,7 @@ if __name__ == '__main__':
             time.sleep(1.0)
 
             # pprint(d.get_directory())
-            print len(d.get_directory())
+            print(len(d.get_directory()))
 
     except KeyboardInterrupt:
         pass

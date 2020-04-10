@@ -3679,10 +3679,10 @@ class CGTestsLocal(CGTestsBase):
                     self.assertEqual(vm.db[reg], value)
 
             except AssertionError:
-                print '\n*******************************'
-                print program
-                print 'Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg])
-                print '-------------------------------\n'
+                print('\n*******************************')
+                print(program)
+                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
+                print('-------------------------------\n')
                 raise
 
 

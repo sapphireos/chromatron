@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
     # time.sleep(2.0)
 
-    print l.query("things", [], util.now() - timedelta(seconds=6000), util.now())
+    print(l.query("things", [], util.now() - timedelta(seconds=6000), util.now()))
 
     # print l.query_tags(['meow'])
     # print l.query_tags(['test', 'meow'])

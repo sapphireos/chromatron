@@ -261,7 +261,7 @@ class KVMeta(DictMixin):
 
     def __setitem__(self, key, value):
         if key in self.kv_items:
-            print "DuplicateKeyNameException: %s" % (key)
+            print("DuplicateKeyNameException: %s" % (key))
             # print key
             # we already have an item here
             # raise DuplicateKeyNameException("DuplicateKeyNameException: %s" % (key))
@@ -342,8 +342,8 @@ class Device(object):
                 self._client.connect(('localhost', self._bridge.port))
 
             except Exception as e:
-                print "fall back to legacy", 0
-                print e
+                print("fall back to legacy", 0)
+                print(e)
                 
                 # fail to connect
                 self._client = None
@@ -507,12 +507,12 @@ class Device(object):
                 self._keys.check()
 
             except DuplicateKeyIDException as e:
-                print e
+                print(e)
 
                 raise
 
         except (NoResponseFromHost, IOError, AttributeError):
-            print "fallback to legacy", 1
+            print("fallback to legacy", 1)
             self._client = None
         
             data = self.get_file("kvmeta")
@@ -532,7 +532,7 @@ class Device(object):
                 self._keys.check()
 
             except DuplicateKeyIDException as e:
-                print e
+                print(e)
 
                 raise
 
@@ -688,12 +688,12 @@ class Device(object):
                         self._keys[key]._value = param.param_value
 
                 except KeyError as e:
-                    print "KeyError: %s" % (str(e))
-                    print "attempting to connect anyway..."
+                    print("KeyError: %s" % (str(e)))
+                    print("attempting to connect anyway...")
 
                 except struct.error as e:
-                    print "struct.error: %s" % (str(e))
-                    print "attempting to connect anyway..."
+                    print("struct.error: %s" % (str(e)))
+                    print("attempting to connect anyway...")
 
         return responses
 
@@ -800,7 +800,7 @@ class Device(object):
             self._client.delete_file(filename)
 
         except (NoResponseFromHost, IOError, AttributeError, ProtocolErrorException):
-            print "fallback to legacy", 2
+            print("fallback to legacy", 2)
             self._client = None
         
             file_id = self.get_file_id(filename)
@@ -816,7 +816,7 @@ class Device(object):
             data = self._client.read_file(filename, progress=progress)
 
         except (NoResponseFromHost, AttributeError, ProtocolErrorException):
-            print "fallback to legacy", 3
+            print("fallback to legacy", 3)
             self._client = None
             file_id = self.get_file_id(filename)
 
@@ -846,7 +846,7 @@ class Device(object):
             data = self._client.write_file(filename, data, progress=progress)
 
         except (NoResponseFromHost, AttributeError, ProtocolErrorException) as e:
-            print "fallback to legacy", 4, e
+            print("fallback to legacy", 4, e)
             self._client = None
             # get file id
             try:
@@ -915,7 +915,7 @@ class Device(object):
                 return
 
         except (NoResponseFromHost, IOError, AttributeError):
-            print "fallback to legacy", 5
+            print("fallback to legacy", 5)
             self._client = None
             # read back to verify
             read_back = self.get_file(filename)
@@ -945,7 +945,7 @@ class Device(object):
             self.delete_file("firmware.bin")
 
         except (NoResponseFromHost, IOError, AttributeError):
-            print "fallback to legacy", 6
+            print("fallback to legacy", 6)
             self._client = None
             file_id = self.get_file_id("firmware.bin")
             self.remove_file(file_id, timeout=5.0) # firmware delete is slow
@@ -1151,7 +1151,7 @@ class Device(object):
             sys.stdout.write("\rReading: %5d bytes" % (length))
             sys.stdout.flush()
 
-        print ""
+        print("")
 
         data = self.get_file(line, progress=progress)
 
@@ -1170,7 +1170,7 @@ class Device(object):
         data = f.read()
         f.close()
 
-        print ""
+        print("")
 
         self.put_file(line, data, progress=progress)
 
@@ -1188,14 +1188,14 @@ class Device(object):
 
         self.load_firmware(firmware_id=fw, progress=progress)
 
-        print ""
+        print("")
 
         return "Rebooting..."
 
     def cli_rebootloadfw(self, line):
         self.reboot_and_load_fw()
 
-        print ""
+        print("")
 
         return "Rebooting with load firmware command..."
 
@@ -1532,9 +1532,9 @@ class Device(object):
 
 
     def cli_resetcfg(self, line):
-        print ""
-        print "DANGER ZONE! Are you sure you want to do this?"
-        print "Type 'yes' if you are sure."
+        print("")
+        print("DANGER ZONE! Are you sure you want to do this?")
+        print("Type 'yes' if you are sure.")
 
         yes = raw_input()
 
@@ -1685,7 +1685,7 @@ class Device(object):
 
         # verify first byte (quick sanity check)
         if data_bytes[0] != 0xE9:
-            print "Invalid firmware image!"
+            print("Invalid firmware image!")
             return
 
         # compute firmware length, minus the md5 at the end
@@ -1697,7 +1697,7 @@ class Device(object):
         md5_digest = hashlib.md5(data[:fw_len]).digest()
 
         if file_md5 != md5_digest:
-            print "Invalid firmware image!"
+            print("Invalid firmware image!")
             return
 
 
@@ -1726,7 +1726,7 @@ class Device(object):
 
 
 
-        print "\nLoading firmware image"
+        print("\nLoading firmware image")
 
         try:
             self.delete_file(filename)
@@ -1743,20 +1743,20 @@ class Device(object):
             self.put_file(filename, data, progress=progress)
 
         except Exception as e:
-            print type(e), e
+            print(type(e), e)
             raise
 
-        print "\nVerifying firmware image..."
+        print("\nVerifying firmware image...")
 
         self.check_file(filename, data)
 
-        print "Setting firmware length..."
+        print("Setting firmware length...")
         self.set_key('wifi_fw_len', fw_len)
 
-        print "Setting MD5..."
+        print("Setting MD5...")
         self.set_key('wifi_md5', binascii.hexlify(md5_digest))
 
-        print "Starting wifi firmware flasher..."
+        print("Starting wifi firmware flasher...")
 
         self.reboot()
 
@@ -1772,7 +1772,7 @@ class Device(object):
 
         self.echo('')
 
-        print "Firmware load complete"
+        print("Firmware load complete")
 
     def cli_loadvm(self, line):
         with open('vm.bin', 'rb') as f:
@@ -1794,12 +1794,12 @@ class Device(object):
         kvmeta = sapphiredata.KVMetaArray().unpack(data)
 
         for kv in kvmeta:
-            print kv
+            print(kv)
 
     def cli_getfileid(self, line):
         file_id = self.get_file_id(line)
 
-        print "File ID: %d" % (file_id)
+        print("File ID: %d" % (file_id))
 
 def createDevice(**kwargs):
     return Device(**kwargs)

@@ -215,7 +215,7 @@ def compile_file(filename, debug_print=False):
 
     if debug_print:
         pprint(results)
-        print '\n'
+        print('\n')
         
     # aliases = results['alias']
 
@@ -231,9 +231,9 @@ def compile_file(filename, debug_print=False):
             db_vars.append(kv)
 
     if debug_print:
-        print "DB Vars:"
+        print("DB Vars:")
         for v in db_vars:
-            print v
+            print(v)
 
 
     local_vars = []
@@ -244,9 +244,9 @@ def compile_file(filename, debug_print=False):
 
 
     if debug_print:
-        print "Local Vars:"
+        print("Local Vars:")
         for v in local_vars:
-            print v
+            print(v)
 
     send_links = []
 
@@ -267,8 +267,8 @@ def compile_file(filename, debug_print=False):
             send_links.append(info)
 
     if debug_print:
-        print "Send:"
-        print send_links
+        print("Send:")
+        print(send_links)
 
     receive_links = []
 
@@ -289,8 +289,8 @@ def compile_file(filename, debug_print=False):
             receive_links.append(info)
 
     if debug_print:
-        print "Recv:"
-        print receive_links
+        print("Recv:")
+        print(receive_links)
 
     
     rules = []
@@ -304,8 +304,8 @@ def compile_file(filename, debug_print=False):
             condition = format_code(rule['condition'][0])
 
             if debug_print:
-                print "\n\nCondition:"
-                print condition
+                print("\n\nCondition:")
+                print(condition)
 
             condition = compile_vm_code(condition, local_vars=local_vars, debug_print=debug_print)
 
@@ -331,8 +331,8 @@ def compile_file(filename, debug_print=False):
                 largest_code = len(condition_code)
 
             if debug_print:
-                print "\n\nAction:"
-                print action
+                print("\n\nAction:")
+                print(action)
 
             action = compile_vm_code(action, condition=False, local_vars=local_vars, debug_print=debug_print)
             # pprint(action)
@@ -376,11 +376,11 @@ def compile_file(filename, debug_print=False):
                         rules=rules)
 
     if debug_print:
-        print ''
-        print ''
-        print ''
-        print ''
-        print automaton_data
+        print('')
+        print('')
+        print('')
+        print('')
+        print(automaton_data)
 
     bin_filename = scriptname + '.auto'
     # bin_filename = 'automaton.auto'
@@ -388,12 +388,12 @@ def compile_file(filename, debug_print=False):
         f.write(automaton_data.pack())
 
     if debug_print:
-        print "Saved as %s" % (bin_filename)
+        print("Saved as %s" % (bin_filename))
 
-        print "%d bytes" % (automaton_data.size())
+        print("%d bytes" % (automaton_data.size()))
 
-        print "Max code: %d bytes" % (largest_code)
-        print "Max data: %d bytes" % (largest_data * 4)
+        print("Max code: %d bytes" % (largest_code))
+        print("Max data: %d bytes" % (largest_data * 4))
 
 
     return bin_filename

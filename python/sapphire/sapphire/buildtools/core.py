@@ -1450,7 +1450,7 @@ def get_build_configs():
                 if proj_name not in fwids:
                     fwids[proj_name] = str(uuid.uuid4())
 
-                    print "Created FWID %s for project: %s" % (fwids[proj_name], proj_name)
+                    print("Created FWID %s for project: %s" % (fwids[proj_name], proj_name))
                     
                     # save to file
                     with open(BUILD_CONFIGS_FWID_FILE, 'w+') as f:
@@ -1651,12 +1651,12 @@ def main():
 
         # check if we already have this release
         if release_name in releases:
-            print "This release already exists."
+            print("This release already exists.")
 
             overwrite = raw_input("Enter 'overwrite' to overwrite this release: ")
 
             if overwrite != 'overwrite':
-                print "Release cancelled"
+                print("Release cancelled")
                 return
 
             # erase original release
@@ -1682,7 +1682,7 @@ def main():
         projects = get_project_list()
 
         for key in projects:
-            print "%20s %s" % (key, projects[key])
+            print("%20s %s" % (key, projects[key]))
 
         return
 
@@ -1731,8 +1731,8 @@ def main():
         with open(PROJECTS_FILE, 'w+') as f:
             f.write(json.dumps(projects))
 
-        print "Found %d projects" % (len(projects))
-        print "Saved project file: %s" % (PROJECTS_FILE)
+        print("Found %d projects" % (len(projects)))
+        print("Saved project file: %s" % (PROJECTS_FILE))
 
 
         return

@@ -151,7 +151,7 @@ class Client(object):
             # we get an error here.
 
             # just bypass and carryon with no cache
-            print e
+            print(e)
             # pass
 
         except IOError:
@@ -391,7 +391,7 @@ class Client(object):
                     del hashes[item.meta.hash]
 
             except InvalidMessageException:
-                print "Invalid message received"
+                print("Invalid message received")
                 return answers
 
         return answers
@@ -796,7 +796,7 @@ if __name__ == '__main__':
     # print c.get_key('test_woof')
     # c.set_key('test_woof', ['4','5','6','7'])
 
-    print c.get_key('fx_a')
+    print(c.get_key('fx_a'))
 
 
 

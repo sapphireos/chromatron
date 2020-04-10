@@ -2831,8 +2831,8 @@ if __name__ == '__main__':
     d1 = DeviceGroup('arc')
     d2 = DeviceGroup('flux')
 
-    print d1
-    print d2
+    print(d1)
+    print(d2)
 
     # ct = Chromatron('10.0.0.120')
 
@@ -2848,11 +2848,11 @@ if __name__ == '__main__':
         d2.val = 1.0
 
         for d in d1.itervalues():
-            print d
+            print(d)
             d.val = 1.0
 
         for d in d2.itervalues():
-            print d
+            print(d)
             d.val = 1.0
 
 

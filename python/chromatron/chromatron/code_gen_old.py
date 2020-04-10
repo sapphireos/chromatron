@@ -715,7 +715,7 @@ class ASTPrinter(object):
 
         line = '%s %s%s' % (line_no, ' ' * self.indent * self.level, s)
 
-        print line
+        print(line)
 
     def generate(self, node):
         self.level += 1
@@ -5099,7 +5099,7 @@ class VM(object):
 
     def debug_print(self, s):
         if self.enable_debug_print:
-            print s
+            print(s)
 
     def get_var(self, name):
         return self.memory[name]
@@ -5485,7 +5485,7 @@ class VM(object):
                 break
 
             elif isinstance(ins, Print):
-                print "%s %s = %s" % (ins.mnemonic, ins.op1, self.memory[ins.op1.addr])
+                print("%s %s = %s" % (ins.mnemonic, ins.op1, self.memory[ins.op1.addr]))
 
             elif isinstance(ins, Call):
                 last_func = self.current_function
@@ -5756,10 +5756,10 @@ class VM(object):
 
             elif isinstance(ins, Assert):
                 if not self.memory[ins.op1.addr]:
-                    print 'ASSERT'
-                    print pc
-                    print ins
-                    print func
+                    print('ASSERT')
+                    print(pc)
+                    print(ins)
+                    print(func)
                     pprint(self.dump_registers())
 
                 assert self.memory[ins.op1.addr]
@@ -5814,16 +5814,16 @@ def compile_text(text, debug_print=False, script_name=''):
 
     if debug_print:
         from . import astpp
-        print 'AST'
-        print astpp.dump(tree)
+        print('AST')
+        print(astpp.dump(tree))
 
     cg1 = CodeGeneratorPass1()
     state1 = cg1.generate(tree)
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 1'
+        print('')
+        print('')
+        print('PASS 1')
         printer = ASTPrinter(state1)
         printer.render()
 
@@ -5832,92 +5832,92 @@ def compile_text(text, debug_print=False, script_name=''):
     state2 = cg2.generate(state1)
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 2'
+        print('')
+        print('')
+        print('PASS 2')
         for i in state2['code']:
-            print i
+            print(i)
 
-        print ''
-        print 'Objects:'
+        print('')
+        print('Objects:')
 
         for i in state2['objects']:
-            print i
+            print(i)
 
-        print ''
-        print 'Records:'
+        print('')
+        print('Records:')
 
         for i in state2['records'].values():
-            print i
+            print(i)
 
     cg3 = CodeGeneratorPass3()
     state3 = cg3.generate(state2)
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 3'
+        print('')
+        print('')
+        print('PASS 3')
         for i in state3['code']:
-            print i
+            print(i)
 
     cg4 = CodeGeneratorPass4()
     state4 = cg4.generate(state3)
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 4'
-        print 'Registers:'
+        print('')
+        print('')
+        print('PASS 4')
+        print('Registers:')
         for k, v in state4['data']['registers'].iteritems():
-            print '%3d %32s %s' % (v.line_no, k, v)
+            print('%3d %32s %s' % (v.line_no, k, v))
 
     cg5 = CodeGeneratorPass5(state4)
     state5 = cg5.generate(state4)
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 5'
+        print('')
+        print('')
+        print('PASS 5')
         for func in state5['code']:
-            print func
+            print(func)
             for ins in state5['code'][func]:
-                print '    ', ins
+                print('    ', ins)
 
     cg6 = CodeGeneratorPass6(state5)
     state6 = cg6.generate()
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 6'
-        print state6['functions']
+        print('')
+        print('')
+        print('PASS 6')
+        print(state6['functions'])
 
         addr = 0
         for i in state6['code']:
             try:
-                print addr, hex(i)
+                print(addr, hex(i))
 
             except TypeError:
-                print addr, i
+                print(addr, i)
 
             addr += 1
 
-        print ''
-        print 'Registers:'
+        print('')
+        print('Registers:')
         for k, v in state6['data']['registers'].iteritems():
-            print '%3d %32s %s' % (v.line_no, k, v)
+            print('%3d %32s %s' % (v.line_no, k, v))
 
 
     cg7 = CodeGeneratorPass7(state6, script_name=script_name)
     state7 = cg7.generate()
 
     if debug_print:
-        print ''
-        print ''
-        print 'PASS 7'
+        print('')
+        print('')
+        print('PASS 7')
         pprint(state7)
 
-        print "VM ISA: %d" % (VM_ISA_VERSION)
+        print("VM ISA: %d" % (VM_ISA_VERSION))
 
     return state7
 

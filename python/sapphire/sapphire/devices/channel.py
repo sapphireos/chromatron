@@ -301,14 +301,14 @@ class SerialChannel(Channel):
 
                 # check header
                 if ( ( header.len != ( ~header.inverted_len & 0xffff ) ) ):
-                    print "read header error"
+                    print("read header error")
                     continue
 
                 # receive data
                 data = self._read_data(header.len)
                 if len(data) != header.len:
-                    print "invalid data length"
-                    print header.len, len(data)
+                    print("invalid data length")
+                    print(header.len, len(data))
 
                     raise ChannelErrorException()
 
@@ -320,17 +320,17 @@ class SerialChannel(Channel):
                 if self.crc_func(data) == crc:
                     return data
 
-                print "read crc error: %x %x" % (crc, self.crc_func(data))
-                print header.len, len(data)
+                print("read crc error: %x %x" % (crc, self.crc_func(data)))
+                print(header.len, len(data))
 
                 raise ChannelErrorException()
 
             if tries == 0:
-                print "read tries exceeded"
+                print("read tries exceeded")
                 raise ChannelErrorException()
 
         except serial.SerialTimeoutException:
-            print "read timeout"
+            print("read timeout")
             raise ChannelTimeoutException
 
         except struct.error:
@@ -396,7 +396,7 @@ class SerialChannel(Channel):
 
                 else:
                     error = struct.unpack('B', self.port.read(1))[0]
-                    print "error: %d" % (error)
+                    print("error: %d" % (error))
 
                     time.sleep(0.5)
 
@@ -410,7 +410,7 @@ class SerialChannel(Channel):
 
 
         if tries == 0:
-            print "write tries exceeded"
+            print("write tries exceeded")
             raise ChannelErrorException()
 
     def settimeout(self, timeout):
@@ -479,7 +479,7 @@ class LegacySerialUDPChannel(Channel):
             sof = struct.unpack('<B', self._read_data(1))[0]
 
             if sof != CMD_USART_UDP_SOF:
-                print "sof error", sof
+                print("sof error", sof)
                 raise ChannelErrorException()
 
             # wait for header data
@@ -494,14 +494,14 @@ class LegacySerialUDPChannel(Channel):
 
             # check header
             if header_crc != computed_crc:
-                print "read header error"
+                print("read header error")
                 raise ChannelErrorException()
 
             # receive data
             data = self._read_data(header.data_len)
             if len(data) != header.data_len:
-                print "invalid data length"
-                print header.data_len, len(data)
+                print("invalid data length")
+                print(header.data_len, len(data))
 
                 raise ChannelErrorException()
 
@@ -512,13 +512,13 @@ class LegacySerialUDPChannel(Channel):
             if self.crc_func(data) == crc:
                 return data
 
-            print "read crc error: %x %x" % (crc, self.crc_func(data))
-            print header.len, len(data)
+            print("read crc error: %x %x" % (crc, self.crc_func(data)))
+            print(header.len, len(data))
 
             raise ChannelErrorException()
 
         except serial.SerialTimeoutException:
-            print "read timeout"
+            print("read timeout")
             raise ChannelTimeoutException
 
         except struct.error:
@@ -595,7 +595,7 @@ class LegacySerialUDPChannel(Channel):
 
                 else:
                     error = struct.unpack('B', self.port.read(1))[0]
-                    print "error: %d" % (error)
+                    print("error: %d" % (error))
 
                     time.sleep(0.5)
 
@@ -609,7 +609,7 @@ class LegacySerialUDPChannel(Channel):
 
 
         if tries == 0:
-            print "write tries exceeded"
+            print("write tries exceeded")
             raise ChannelErrorException()
 
     def settimeout(self, timeout):
@@ -660,14 +660,14 @@ class SerialUDPChannel(Channel):
             sof = struct.unpack('<B', self._read_data(1))[0]
 
             if sof != CMD_USART_UDP_SOF:
-                print 'sof error', sof
+                print('sof error', sof)
                 raise ChannelErrorException()
 
             # wait for version
             version = struct.unpack('<B', self._read_data(1))[0]
 
             if version != CMD_USART_VERSION:
-                print 'version error', version
+                print('version error', version)
                 raise ChannelErrorException()
 
             # wait for header data
@@ -682,14 +682,14 @@ class SerialUDPChannel(Channel):
 
             # check header
             if header_crc != computed_crc:
-                print "read header error"
+                print("read header error")
                 raise ChannelErrorException()
 
             # receive data
             data = self._read_data(header.data_len)
             if len(data) != header.data_len:
-                print "invalid data length"
-                print header.data_len, len(data)
+                print("invalid data length")
+                print(header.data_len, len(data))
 
                 raise ChannelErrorException()
 
@@ -700,13 +700,13 @@ class SerialUDPChannel(Channel):
             if self.crc_func(data) == crc:
                 return data
 
-            print "read crc error: %x %x" % (crc, self.crc_func(data))
-            print header.len, len(data)
+            print("read crc error: %x %x" % (crc, self.crc_func(data)))
+            print(header.len, len(data))
 
             raise ChannelErrorException()
 
         except serial.SerialTimeoutException:
-            print "read timeout"
+            print("read timeout")
             raise ChannelTimeoutException
 
         except struct.error:
@@ -768,7 +768,7 @@ class SerialUDPChannel(Channel):
 
                 else:
                     error = struct.unpack('B', self.port.read(1))[0]
-                    print "error: %d" % (error)
+                    print("error: %d" % (error))
 
                     time.sleep(0.5)
 
@@ -776,7 +776,7 @@ class SerialUDPChannel(Channel):
                 # if tries == 0:
                     # raise
 
-                print e
+                print(e)
 
                 # try to reopen port
                 self.close()
@@ -784,7 +784,7 @@ class SerialUDPChannel(Channel):
 
 
         if tries == 0:
-            print "write tries exceeded"
+            print("write tries exceeded")
             raise ChannelErrorException()
 
     def settimeout(self, timeout):
@@ -912,7 +912,7 @@ class UDPSerialBridge(threading.Thread):
 
                 except Exception as e:
                     # flush
-                    print e
+                    print(e)
                     while True:
                         try:
                             self.sock.settimeout(0.1)
@@ -926,7 +926,7 @@ class UDPSerialBridge(threading.Thread):
                 pass
 
             except Exception as e:
-                print e
+                print(e)
                 pass
             
 
@@ -987,7 +987,7 @@ if __name__ == '__main__':
     ports = list(serial.tools.list_ports.comports())
 
     for port in ports:
-        print port.device, port.vid, port.pid, port.manufacturer, port.product
+        print(port.device, port.vid, port.pid, port.manufacturer, port.product)
 
     # chan = createChannel('usb')
     # print chan

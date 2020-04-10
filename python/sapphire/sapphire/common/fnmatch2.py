@@ -71,7 +71,7 @@ def test_fnmatch():
 
     elapsed = time.time() - start
 
-    print elapsed * 1000.0
+    print(elapsed * 1000.0)
 
 
 # @profile
@@ -84,7 +84,7 @@ def test_fnmatch2():
 
     elapsed = time.time() - start
 
-    print elapsed * 1000.0
+    print(elapsed * 1000.0)
 
 
 def test_mem_usage():

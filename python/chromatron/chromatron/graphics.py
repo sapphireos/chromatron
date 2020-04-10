@@ -513,7 +513,7 @@ class FXRunner(Ribbon):
         self.wait(next_run - time.time())
 
         if self.watcher.changed():
-            print "Reloading VM"
+            print("Reloading VM")
 
             self.load_vm()
 

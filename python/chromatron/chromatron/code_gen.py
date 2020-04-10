@@ -971,7 +971,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     builder = cg1_data.build(script_name=script_name)
     if debug_print:
-        print builder
+        print(builder)
 
     builder.allocate()
     builder.generate_instructions()
@@ -985,20 +985,20 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     builder.generate_binary()
 
     if debug_print or summarize:
-        print "VM ISA:  %d" % (VM_ISA_VERSION)
-        print "Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash)
-        print "Stream length:   %d bytes"   % (len(builder.stream))
-        print "Code length:     %d bytes"   % (builder.header.code_len)
-        print "Data length:     %d bytes"   % (builder.header.data_len)
-        print "Functions:       %d"         % (len(builder.funcs))
-        print "Read keys:       %d"         % (len(builder.read_keys))
-        print "Write keys:      %d"         % (len(builder.write_keys))
-        print "Published vars:  %d"         % (builder.published_var_count)
-        print "Pixel arrays:    %d"         % (len(builder.pixel_arrays))
-        print "Links:           %d"         % (len(builder.links))
-        print "DB entries:      %d"         % (len(builder.db_entries))
-        print "Cron entries:    %d"         % (len(builder.cron_tab))
-        print "Stream hash:     0x%08x"     % (builder.stream_hash)
+        print("VM ISA:  %d" % (VM_ISA_VERSION))
+        print("Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash))
+        print("Stream length:   %d bytes"   % (len(builder.stream)))
+        print("Code length:     %d bytes"   % (builder.header.code_len))
+        print("Data length:     %d bytes"   % (builder.header.data_len))
+        print("Functions:       %d"         % (len(builder.funcs)))
+        print("Read keys:       %d"         % (len(builder.read_keys)))
+        print("Write keys:      %d"         % (len(builder.write_keys)))
+        print("Published vars:  %d"         % (builder.published_var_count))
+        print("Pixel arrays:    %d"         % (len(builder.pixel_arrays)))
+        print("Links:           %d"         % (len(builder.links)))
+        print("DB entries:      %d"         % (len(builder.db_entries)))
+        print("Cron entries:    %d"         % (len(builder.cron_tab)))
+        print("Stream hash:     0x%08x"     % (builder.stream_hash))
 
     return builder
 
@@ -1041,9 +1041,9 @@ if __name__ == '__main__':
                 continue
 
             with open(os.path.join(path, fpath)) as f:
-                print '\n*********************************'
-                print fpath
-                print '---------------------------------'
+                print('\n*********************************')
+                print(fpath)
+                print('---------------------------------')
                 text = f.read()
                 try:
                     builder = compile_text(text, summarize=False)
@@ -1054,12 +1054,12 @@ if __name__ == '__main__':
 
 
                 except SyntaxError as e:
-                    print "SyntaxError:", e
+                    print("SyntaxError:", e)
 
                 except Exception as e:
-                    print "Exception:", e
+                    print("Exception:", e)
 
-        print ''
+        print('')
         for param in ['code', 'data', 'stream']:
             highest = 0
             name = ''
@@ -1068,7 +1068,7 @@ if __name__ == '__main__':
                     highest = stats[script][param]
                     name = script
 
-            print "Largest %8s size: %32s %5d bytes" % (param, name, highest)
+            print("Largest %8s size: %32s %5d bytes" % (param, name, highest))
 
 
 

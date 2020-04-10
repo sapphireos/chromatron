@@ -647,7 +647,7 @@ class irFunc(IR):
                     s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
 
                 except IndexError:
-                    print "Source interleave from imported files not yet supported"
+                    print("Source interleave from imported files not yet supported")
                     pass
 
             if isinstance(node, irLabel):
@@ -3022,7 +3022,7 @@ class Builder(object):
         return self.data_table
 
     def print_data_table(self):
-        print "DATA: "
+        print("DATA: ")
         for i in sorted(self.data_table, key=lambda d: d.addr):
             default_value = ''
 
@@ -3050,35 +3050,35 @@ class Builder(object):
 
                 default_value += ']'
             
-            print '\t%3d: %s = %s' % (i.addr, i, default_value)
+            print('\t%3d: %s = %s' % (i.addr, i, default_value))
 
-        print "STRINGS: "
+        print("STRINGS: ")
         if len(self.strings) == 0:
-            print "\t None"
+            print("\t None")
 
         else:
             for s in self.strings:
-                print '\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name)
+                print('\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name))
 
     def print_instructions(self):
-        print "INSTRUCTIONS: "
+        print("INSTRUCTIONS: ")
         i = 0
         for func in self.code:
-            print '\t%s:' % (func)
+            print('\t%s:' % (func))
 
             for ins in self.code[func]:
                 s = '\t\t%3d: %s' % (i, str(ins))
-                print s
+                print(s)
                 i += 1
 
     def print_control_flow(self):
-        print "CONTROL FLOW: "
+        print("CONTROL FLOW: ")
         
         for func in self.funcs:
             cfg = self.control_flow(func)
 
-            print func
-            print cfg
+            print(func)
+            print(cfg)
 
     def remove_unreachable(self):
         if self.optimizations['remove_unreachable_code']:
@@ -3146,7 +3146,7 @@ class Builder(object):
                         self.bytecode.extend(ins.assemble())
 
                     except Exception:
-                        print "Assembly failed for %s" % (ins)
+                        print("Assembly failed for %s" % (ins))
                         raise
 
         # go through byte code and replace labels with addresses
@@ -3343,8 +3343,8 @@ class Builder(object):
                     addr += var.length
 
                 except struct.error:
-                    print "*********************************"
-                    print "packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value))
+                    print("*********************************")
+                    print("packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value)))
 
                     raise
 
@@ -3368,8 +3368,8 @@ class Builder(object):
                                     stream += struct.pack('<l', val)
 
                 except struct.error:
-                    print "*********************************"
-                    print "packing error: var: %s type: %s default: %s type: %s index: %d" % (var, var.type, default_value, type(default_value), i)
+                    print("*********************************")
+                    print("packing error: var: %s type: %s default: %s type: %s index: %d" % (var, var.type, default_value, type(default_value), i))
 
                     raise
 
@@ -3380,7 +3380,7 @@ class Builder(object):
             assert addr * 4 == data_len
 
         except AssertionError:
-            print "Bad data length. Last addr: %d data len: %d" % (addr * 4, data_len)
+            print("Bad data length. Last addr: %d data len: %d" % (addr * 4, data_len))
             raise
 
         # create hash of stream

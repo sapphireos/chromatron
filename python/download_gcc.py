@@ -18,8 +18,8 @@ if __name__ == "__main__":
     for platform in build_tool_archives.values():
         for tool in platform:
 
-            print "Downloading: %s" % (tool[1])
+            print("Downloading: %s" % (tool[1]))
 
             urllib.URLopener().retrieve(tool[0] + tool[1], tool[1], reporthook=progress)
 
-            print ''
+            print('')

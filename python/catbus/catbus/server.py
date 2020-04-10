@@ -420,7 +420,7 @@ class Server(Ribbon):
 
     def _handle_error(self, msg, host):
         if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
-            print msg, host
+            print(msg, host)
 
     def _handle_discover(self, msg, host):
         if self.visible:
