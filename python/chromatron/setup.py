@@ -55,6 +55,5 @@ setup(
     entry_points='''
         [console_scripts]
         chromatron=chromatron.chromatron:main
-        chromatron_legacy=chromatron.chromatron_legacy:main
     ''',
 )
