@@ -31,7 +31,7 @@ except ImportError:
     sys.exit(0)
 
 import time
-import midi_config
+from . import midi_config
 from catbus import CatbusService
 
 

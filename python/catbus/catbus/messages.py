@@ -22,9 +22,9 @@
 
 
 from elysianfields import *
-from data_structures import *
-from catbustypes import *
-from options import *
+from .data_structures import *
+from .catbustypes import *
+from .options import *
 import random
 
 

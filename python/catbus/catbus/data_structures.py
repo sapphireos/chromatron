@@ -22,7 +22,7 @@
 
 
 from elysianfields import *
-from catbustypes import *
+from .catbustypes import *
 from fnvhash import fnv1a_32
 
 
@@ -43,7 +43,7 @@ class NoResponseFromHost(Exception):
     def __init__(self, msg=None, host=None, *args):
         super(NoResponseFromHost, self).__init__(*args)
 
-        from messages import lookup_msg
+        from .messages import lookup_msg
         
         self.msg = lookup_msg(msg)
         self.host = host

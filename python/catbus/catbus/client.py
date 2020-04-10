@@ -21,10 +21,10 @@
 # </license>
 
 import socket
-from data_structures import *
-from messages import *
-from options import *
-from broadcast import send_udp_broadcast
+from .data_structures import *
+from .messages import *
+from .options import *
+from .broadcast import send_udp_broadcast
 import time
 import netifaces
 import os

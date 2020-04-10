@@ -20,7 +20,7 @@
 # 
 # </license>
 import sys
-import code_gen
+from . import code_gen
 import time
 import threading
 from sapphire.common.ribbon import Ribbon

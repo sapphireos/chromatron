@@ -59,12 +59,12 @@ import select
 import Queue
 from pprint import pprint
 
-from data_structures import *
-from messages import *
-from options import *
-from database import *
-from server import *
-from client import *
+from .data_structures import *
+from .messages import *
+from .options import *
+from .database import *
+from .server import *
+from .client import *
 
 
 import click

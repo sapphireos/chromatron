@@ -27,7 +27,7 @@ import sys
 import random
 from elysianfields import *
 from catbus import *
-import trig
+from . import trig
 from copy import copy
 
 VM_ISA_VERSION  = 9
@@ -5813,7 +5813,7 @@ def compile_text(text, debug_print=False, script_name=''):
     tree = cg0.generate(text)
 
     if debug_print:
-        import astpp
+        from . import astpp
         print 'AST'
         print astpp.dump(tree)
 

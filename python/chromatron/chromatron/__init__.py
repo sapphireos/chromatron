@@ -20,4 +20,4 @@
 # 
 # </license>
 
-from chromatron import *
+from .chromatron import *

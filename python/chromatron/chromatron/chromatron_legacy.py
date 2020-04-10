@@ -32,7 +32,7 @@ import getpass
 import zipfile
 import hashlib
 import pkg_resources
-from filewatcher import Watcher
+from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 import json
 
@@ -40,10 +40,10 @@ from sapphire.devices.legacydevice import Device, DeviceUnreachableException
 from elysianfields import *
 from sapphire.common.util import now
 
-import streamer
+from . import streamer
 
 import catbus
-import code_gen
+from . import code_gen
 
 import click
 
@@ -1490,7 +1490,7 @@ def automaton(ctx):
 def automaton_load(ctx, filename, live):
     """Compile and load script to automaton"""
 
-    import automaton
+    from . import automaton
     group = ctx.obj['GROUP']()
 
     if live:

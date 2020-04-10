@@ -32,7 +32,7 @@ import getpass
 import zipfile
 import hashlib
 import pkg_resources
-from filewatcher import Watcher
+from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 import json
 from datetime import datetime, timedelta
@@ -41,10 +41,10 @@ from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOC
 from elysianfields import *
 from sapphire.common.util import now
 
-import streamer
+from . import streamer
 
 import catbus
-import code_gen
+from . import code_gen
 
 import click
 

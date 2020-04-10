@@ -43,13 +43,13 @@ import hashlib
 import zipfile
 import ConfigParser
 from pprint import pprint
-import firmware_package
+from . import firmware_package
 
-import settings
+from . import settings
 
 from intelhex import IntelHex
 
-import global_settings
+from . import global_settings
 
 from sapphire.devices.sapphiredata import KVMetaField, KVMetaFieldWidePtr
 from sapphire.common import util

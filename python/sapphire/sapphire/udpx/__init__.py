@@ -22,4 +22,4 @@
 # </license>
 #
 
-from udpx import *
+from .udpx import *

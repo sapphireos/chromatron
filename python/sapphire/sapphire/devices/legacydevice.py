@@ -26,12 +26,12 @@
 """
 
 from elysianfields import *
-from protocols import *
+from .protocols import *
 from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, catbus_string_hash, NoResponseFromHost, ProtocolErrorException
 
-import sapphiredata
-import firmware
-import channel
+from . import sapphiredata
+from . import firmware
+from . import channel
 
 import time
 import sys

@@ -32,14 +32,14 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.graphics import *
 from kivy.clock import Clock
 
-from trig import sine, cosine
+from .trig import sine, cosine
 import math
-import code_gen
+from . import code_gen
 import time
 import threading
 from sapphire.common.ribbon import Ribbon
 
-from filewatcher import Watcher
+from .filewatcher import Watcher
 
 
 class Pixel(object):

@@ -26,8 +26,8 @@ import ast
 import sys
 from textwrap import dedent
 
-from ir import *
-from instructions import *
+from .ir import *
+from .instructions import *
 
 
 # see http://dev.stephendiehl.com/numpile/

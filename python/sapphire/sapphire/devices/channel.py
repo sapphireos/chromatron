@@ -32,7 +32,7 @@ except ImportError:
     pass
 
 import crcmod
-import sapphiredata
+from . import sapphiredata
 import socket
 import struct
 import time

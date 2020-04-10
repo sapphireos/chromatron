@@ -20,8 +20,8 @@
 # 
 # </license>
 
-import util
-from ribbon import Ribbon
+from . import util
+from .ribbon import Ribbon
 
 import json
 import logging

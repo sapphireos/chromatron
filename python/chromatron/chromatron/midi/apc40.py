@@ -21,7 +21,7 @@
 # </license>
 
 import time
-import midi
+from . import midi
 import fnmatch
 
 

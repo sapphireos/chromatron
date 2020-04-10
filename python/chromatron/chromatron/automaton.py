@@ -31,7 +31,7 @@ from pyparsing import *
 from elysianfields import *
 from catbus import *
 
-import code_gen
+from . import code_gen
 
 
 

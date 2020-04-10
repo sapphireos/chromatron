@@ -25,10 +25,10 @@ import logging
 import time
 import threading
 import select
-from client import Client
+from .client import Client
 from copy import copy
 
-from messages import *
+from .messages import *
 
 from sapphire.common import Ribbon, MsgQueueEmptyException
 

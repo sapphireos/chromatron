@@ -22,5 +22,5 @@
 # </license>
 #
 
-from protocol import *
-from sapphiretypes import *
+from .protocol import *
+from .sapphiretypes import *

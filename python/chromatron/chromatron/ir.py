@@ -20,7 +20,7 @@
 # 
 # </license>
 
-from instructions import *
+from .instructions import *
 
 from elysianfields import *
 from catbus import *

@@ -21,7 +21,7 @@
 # </license>
 
 import unittest
-import code_gen
+from . import code_gen
 
 # nose2 --with-coverage --coverage-report=html
 
