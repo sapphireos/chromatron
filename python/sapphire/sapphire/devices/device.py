@@ -41,7 +41,7 @@ from datetime import datetime, timedelta
 from pprint import pprint
 import hashlib
 import binascii
-from UserDict import DictMixin
+from collections import UserDict 
 import json
 import base64
 import traceback
@@ -251,7 +251,7 @@ class KVKey(object):
     value = property(get_value, set_value)
 
 
-class KVMeta(DictMixin):
+class KVMeta(UserDict):
     def __init__(self):
         self.kv_items = dict()
 

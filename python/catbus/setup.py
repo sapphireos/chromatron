@@ -45,7 +45,7 @@ setup(
         "elysianfields >= 1.0",
         "fnvhash==0.1.0",
         "crcmod==1.7",
-        "netifaces==0.10.6",
+        "netifaces==0.10.9",
     ],
 
     entry_points='''

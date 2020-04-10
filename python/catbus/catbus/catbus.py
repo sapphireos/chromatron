@@ -47,7 +47,6 @@ import random
 import sys
 import os
 from datetime import datetime, timedelta
-from UserDict import DictMixin
 import logging
 
 from elysianfields import *

@@ -22,7 +22,7 @@
 
 
 import threading
-from UserDict import DictMixin
+from collections import UserDict 
 import random
 import time
 import logging
@@ -34,7 +34,7 @@ from .data_structures import *
 DATAFILE_EXT = '.catbusdb'
 
 
-class Database(DictMixin, object):
+class Database(UserDict):
     """KV Database that acts like a dict.  Thread-safe."""
     def __init__(self, name=None, location=None, tags=[], datafile='data'):
         super(Database, self).__init__()

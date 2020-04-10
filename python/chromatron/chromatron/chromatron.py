@@ -27,7 +27,7 @@ import socket
 import types
 import threading
 import json
-from UserDict import DictMixin
+from collections import UserDict 
 import getpass
 import zipfile
 import hashlib
@@ -699,7 +699,7 @@ class Chromatron(object):
         self.set_key('gfx_transpose', False)
 
 
-class DeviceGroup(DictMixin, object):
+class DeviceGroup(UserDict):
     def __init__(self, *args, **kwargs):
         try:
             host = kwargs['host']
