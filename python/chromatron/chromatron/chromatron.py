@@ -701,6 +701,8 @@ class Chromatron(object):
 
 class DeviceGroup(UserDict):
     def __init__(self, *args, **kwargs):
+        super().__init__()
+        
         try:
             host = kwargs['host']
         except KeyError:

@@ -202,8 +202,8 @@ from sapphire.common import util
 
 @util.memoize
 def catbus_string_hash(s):
-    s = str(s) # no unicode!
-    
+    s = s.encode()
+
     if len(s) == 0:
         return 0
 

@@ -469,7 +469,7 @@ def lookup_msg(msg):
 
 
 def deserialize(buf):
-    msg_id = ord(buf[CATBUS_MSG_TYPE_OFFSET])
+    msg_id = int(buf[CATBUS_MSG_TYPE_OFFSET])
 
     try:
         return messages[msg_id]().unpack(buf)

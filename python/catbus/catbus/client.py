@@ -485,7 +485,7 @@ class Client(object):
 
 
     def read_file(self, filename, progress=None):
-        file_data = ''
+        file_data = bytes()
 
         msg = FileOpenMsg(
                 flags=CATBUS_MSG_FILE_FLAG_READ,
