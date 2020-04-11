@@ -32,7 +32,7 @@ import getpass
 import zipfile
 import hashlib
 import pkg_resources
-from filewatcher import Watcher
+from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 import json
 from datetime import datetime, timedelta

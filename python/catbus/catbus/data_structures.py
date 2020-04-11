@@ -22,7 +22,7 @@
 
 
 from elysianfields import *
-from catbustypes import *
+from .catbustypes import *
 from fnvhash import fnv1a_32
 
 
