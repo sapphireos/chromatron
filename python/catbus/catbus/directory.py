@@ -30,7 +30,7 @@ from copy import copy
 
 from .messages import *
 
-from sapphire.common import Ribbon, MsgQueueEmptyException
+from sapphire.common import Ribbon, MsgQueueEmptyException, util
 
 
 TTL = 240
@@ -63,6 +63,7 @@ class Directory(Ribbon):
             ErrorMsg: self._handle_error,
             AnnounceMsg: self._handle_announce,
             ShutdownMsg: self._handle_shutdown,
+            LinkMsg: self._handle_link,
         }
 
         self._last_ttl = time.time()
@@ -98,9 +99,15 @@ class Directory(Ribbon):
                 else:
                     raise
 
+    def _handle_link(self, msg, host):
+        pass
+
     def _handle_shutdown(self, msg, host):
         with self.__lock:
             try:
+                info = self._directory[msg.header.origin_id]
+                logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
+
                 # remove entry
                 del self._directory[msg.header.origin_id]
 
@@ -124,6 +131,15 @@ class Directory(Ribbon):
                 'ttl': TTL}
 
         with self.__lock:
+            # check if we have this node already
+            if msg.header.origin_id not in self._directory:
+                c = Client()
+                c.connect(host)
+                name = c.get_key(META_TAG_NAME)
+                info['name'] = name
+
+                logging.info(f"Added: {info['name']:32} @ {info['host']}")
+
             self._directory[msg.header.origin_id] = info
 
     def _process_msg(self, msg, host):
@@ -148,6 +164,7 @@ class Directory(Ribbon):
                     self._process_msg(msg, host)
 
                 except UnknownMessageException as e:
+                    raise
                     pass
 
                 except Exception as e:
@@ -167,12 +184,18 @@ class Directory(Ribbon):
                 for key, info in self._directory.items():
                     info['ttl'] -= 4.0
 
+                    if info['ttl'] < 0.0:
+                        info = self._directory[msg.header.origin_id]
+                        logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
+
                 self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
 
 if __name__ == '__main__':
 
     from pprint import pprint
+
+    util.setup_basic_logging()
 
     d = Directory()
 
@@ -181,7 +204,7 @@ if __name__ == '__main__':
             time.sleep(1.0)
 
             # pprint(d.get_directory())
-            print(len(d.get_directory()))
+            # print(len(d.get_directory()))
 
     except KeyboardInterrupt:
         pass
