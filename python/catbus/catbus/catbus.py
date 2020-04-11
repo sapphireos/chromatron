@@ -171,19 +171,11 @@ def discover(ctx):
 
         client.connect(host)
 
-        name = client.get_key(META_TAG_NAME)
-        location = client.get_key(META_TAG_LOC)
+        name, location, *tags = client.get_keys(META_TAGS).values()
 
         name_s = '%32s @ %20s:%5s' % (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (host[0]), fg=HOST_COLOR), click.style('%5d' % (host[1]), fg=HOST_COLOR))
 
         location_s = click.style('%16s' % (location), fg=VAL_COLOR)
-
-        tags = []
-        for tag in META_TAGS:
-            if tag in [META_TAG_NAME, META_TAG_LOC]:
-                continue
-
-            tags.append(client.get_key(tag))
 
         s = '%s %-32s %s %s %s %s %s %s' % \
             (name_s, location_s, tags[0], tags[1], tags[2], tags[3], tags[4], tags[5])
