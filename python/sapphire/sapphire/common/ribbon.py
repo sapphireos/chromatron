@@ -37,6 +37,7 @@ class Ribbon(threading.Thread):
 
     __lock = threading.Lock()
     __ribbons = []
+    __ribbon_id = 0
 
     @classmethod
     def shutdown(cls, timeout=10.0):
@@ -104,6 +105,8 @@ class Ribbon(threading.Thread):
 
         with self.__lock:
             self.__ribbons.append(self)
+            self.ribbon_id = self.__ribbon_id
+            self.__ribbon_id += 1
 
         self._kwargs = kwargs
 
@@ -149,8 +152,8 @@ class Ribbon(threading.Thread):
         time.sleep(1.0)
 
     def run(self):
-        # append thread ID to name
-        self.name += '.%d' % (self.ident)
+        # append ribbon ID to name
+        self.name += '.%d' % (self.ribbon_id)
 
         logging.info("Ribbon: %s started" % (self.name))
 
