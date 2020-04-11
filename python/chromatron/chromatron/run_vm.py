@@ -55,7 +55,8 @@ class VMContainer(Ribbon):
 
     def check_file_hash(self):
         m = hashlib.md5()
-        m.update(open(self.fx_file).read())
+        with open(self.fx_file, 'rb') as f:
+            m.update(f.read())
 
         new_hash = m.hexdigest()
         old_hash = self.file_hash
@@ -81,12 +82,8 @@ class VMContainer(Ribbon):
 
 if __name__ == '__main__':
 
-    # app = App()
-
     vm = VMContainer(fx_file=sys.argv[1])
     vm.stop()
     vm.join()
-
-    # app.run()
 
     pprint(vm.vm.dump_registers())
