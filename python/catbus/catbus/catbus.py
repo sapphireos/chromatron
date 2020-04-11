@@ -224,6 +224,27 @@ def list(ctx):
 
             click.echo(s)
 
+@cli.command()
+@click.pass_context
+def meta(ctx):
+    """Dump key meta data"""
+    client = ctx.obj['CLIENT']
+    matches = ctx.obj['MATCHES']
+
+    for node in matches.values():
+        host = node['host']
+
+        client.connect(host)
+
+        name = client.get_key(META_TAG_NAME)
+
+        echo_name(name, host)
+
+        for k, val in client.meta.items():
+            s = '%42s %42s' % (click.style('%s' % (k), fg=KEY_COLOR), click.style('%s' % (val), fg=VAL_COLOR))
+
+            click.echo(s)
+
 
 @cli.command()
 @click.pass_context
