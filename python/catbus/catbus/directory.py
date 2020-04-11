@@ -124,20 +124,20 @@ class Directory(Ribbon):
 
         resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
-        info = {'host': host,
-                'query': resolved_query,
-                'data_port': msg.data_port,
-                'version': msg.header.version,
-                'universe': msg.header.universe,
-                'ttl': TTL}
-
         with self.__lock:
             # check if we have this node already
             if msg.header.origin_id not in self._directory:
                 c = Client()
                 c.connect(host)
                 name = c.get_key(META_TAG_NAME)
-                info['name'] = name
+
+                info = {'host': host,
+                        'name': name,
+                        'query': resolved_query,
+                        'data_port': msg.data_port,
+                        'version': msg.header.version,
+                        'universe': msg.header.universe,
+                        'ttl': TTL}
 
                 logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
@@ -145,7 +145,7 @@ class Directory(Ribbon):
 
             else:
                 # reset ttl
-                info['ttl'] = TTL
+                self._directory[msg.header.origin_id]['ttl'] = TTL
 
     def _process_msg(self, msg, host):
         try:
@@ -190,7 +190,6 @@ class Directory(Ribbon):
                     info['ttl'] -= 4.0
 
                     if info['ttl'] < 0.0:
-                        info = self._directory[msg.header.origin_id]
                         logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
 
                 self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
