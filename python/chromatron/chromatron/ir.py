@@ -1763,8 +1763,12 @@ class Builder(object):
         else:
             raise VariableNotDeclared(obj_name, "Object '%s' not declared" % (obj_name), lineno=lineno)            
 
-    def add_const(self, name, data_type='i32', lineno=None):
-        name = str(name)
+    def add_const(self, value, data_type='i32', lineno=None):
+        if data_type == 'i32':
+            # coerce to int
+            value = int(value)
+
+        name = str(value)
 
         if name in self.globals:
             return self.globals[name]
