@@ -525,7 +525,7 @@ class insF16Mul(insBinop):
         # NOTE!
         # need to cast to i64 in C version to prevent overflow!
 
-        vm.memory[self.result.addr] = (vm.memory[self.op1.addr] * vm.memory[self.op2.addr]) / 65536
+        vm.memory[self.result.addr] = int((vm.memory[self.op1.addr] * vm.memory[self.op2.addr]) / 65536)
 
 class insF16Div(insBinop):
     mnemonic = 'F16_DIV'
@@ -539,7 +539,7 @@ class insF16Div(insBinop):
             # NOTE!
             # need to cast left hand side to i64 for multiply by 65536.
             # doing it in this order prevents loss of precision on the fractional side.
-            vm.memory[self.result.addr] = (vm.memory[self.op1.addr] * 65536) / vm.memory[self.op2.addr]
+            vm.memory[self.result.addr] = int((vm.memory[self.op1.addr] * 65536) / vm.memory[self.op2.addr])
 
 class insF16Mod(insBinop):
     mnemonic = 'F16_MOD'
