@@ -647,7 +647,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def _handle_Number(self, node):
         keywords = {}
         for kw in node.keywords:
-            keywords[kw.arg] = kw.value.id
+            keywords[kw.arg] = kw.value.value
 
         if len(node.args) > 0:
             keywords['init_val'] = node.args[0].n
