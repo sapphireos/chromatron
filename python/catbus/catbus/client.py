@@ -46,7 +46,14 @@ class Client(object):
         self.write_window_size = 1
 
         self.nodes = {}
-        self.meta = {}
+        self._meta = {}
+
+    @property
+    def meta(self):
+        if len(self._meta) == 0:
+            self.get_meta()
+
+        return self._meta
 
     def _exchange(self, msg, host=None, timeout=1.0, tries=5):
         self.__sock.settimeout(timeout)
@@ -109,16 +116,12 @@ class Client(object):
     def is_connected(self):
         return self._connected_host != None
 
-    def connect(self, host, get_meta=True):
+    def connect(self, host):
         if isinstance(host, str):
             # if no port is specified, set default
             host = (host, CATBUS_DISCOVERY_PORT)
 
         self._connected_host = host
-
-        if get_meta:
-            # initialize meta data
-            self.get_meta()
 
     def ping(self):
         msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
@@ -332,7 +335,7 @@ class Client(object):
                 meta[keys[response.hash]] = response
 
 
-        self.meta = meta
+        self._meta = meta
 
         return meta
 

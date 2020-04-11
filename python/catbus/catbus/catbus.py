@@ -45,8 +45,6 @@ import time
 import sys
 import os
 
-from elysianfields import *
-
 from database import *
 from server import *
 from client import *
