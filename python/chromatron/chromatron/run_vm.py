@@ -21,6 +21,7 @@
 # </license>
 import sys
 from . import code_gen
+from .vm import VM
 import time
 import threading
 from sapphire.common.ribbon import Ribbon
@@ -46,10 +47,9 @@ class VMContainer(Ribbon):
 
     def load_vm(self):
         self.code = code_gen.compile_script(self.fx_file)
-        self.vm = code_gen.VM(
-                    self.code,
-                    pix_size_x=self.width,
-                    pix_size_y=self.height)
+        self.vm = VM(self.code,
+                     pix_size_x=self.width,
+                     pix_size_y=self.height)
 
         self.vm.run('init')
 
