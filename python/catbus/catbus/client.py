@@ -776,10 +776,10 @@ if __name__ == '__main__':
     
     c = Client()
 
-    # c.discover()
+    c.discover()
 
-    # for node in c.discover().values():
-        # pprint(node)
+    for node in c.discover().values():
+        pprint(node)
 
     # c.connect(('10.0.0.119', 44632))
     # c.connect(('10.0.0.102', 44632))
