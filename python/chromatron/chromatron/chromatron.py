@@ -186,6 +186,8 @@ PIXEL_SETTINGS = [
 #     'vcc'
 # ]
 
+QUERY_FILENAME = os.path.join(firmware_package.data_dir(), 'chromatron_last_query.db')
+
 
 def get_package_fx_script(fname):
     return pkg_resources.resource_filename('chromatron', fname)
@@ -828,11 +830,11 @@ class DeviceGroup(UserDict):
 
         return d
 
-    def save_to_file(self, filename='chromatron_last_query.db'):
+    def save_to_file(self, filename=QUERY_FILENAME):
         with open(filename, 'w+') as f:
             f.write(json.dumps(self.to_dict()))
 
-    def load_from_file(self, filename='chromatron_last_query.db'):
+    def load_from_file(self, filename=QUERY_FILENAME):
         with open(filename, 'r') as f:
             data = json.loads(f.read())
 
