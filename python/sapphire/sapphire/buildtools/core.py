@@ -1435,13 +1435,13 @@ def get_build_configs():
                 try:
                     full_name   = parser.get(section, 'full_name')
 
-                except parser.NoOptionError:
+                except configparser.NoOptionError:
                     full_name   = proj_name                
 
                 try:
                     libs        = parser.get(section, 'libs').split(',')
 
-                except parser.NoOptionError:
+                except configparser.NoOptionError:
                     libs = []
 
                 # trim whitespace
