@@ -629,6 +629,7 @@ class irFunc(IR):
 
     def __str__(self):
         global source_code
+        print(source_code)
         params = params_to_string(self.params)
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
@@ -647,6 +648,7 @@ class irFunc(IR):
                     s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
 
                 except IndexError:
+                    raise
                     print("Source interleave from imported files not yet supported")
                     pass
 
@@ -1460,19 +1462,14 @@ CONST65535 = irConst(65535, lineno=0)
 
 
 class Builder(object):
-    def __init__(self, script_name='fx_script'):
+    def __init__(self, script_name='fx_script', source=[]):
         global source_code
         self.script_name = script_name
 
         # load source code for debug
-        source_code = []
-        try:
-            with open(script_name, 'r') as f:
-                source_code = f.readlines()
-
-        except IOError: # cannot read file
-            pass
-
+        source_code = source
+        
+        
         self.funcs = {}
         self.locals = {}
         self.globals = {}

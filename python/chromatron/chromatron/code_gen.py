@@ -216,9 +216,9 @@ class cg1Module(cg1Node):
         self.module = None
         self.ctx = {}
 
-    def build(self, builder=None, script_name=''):
+    def build(self, builder=None, script_name='', source=[]):
         if builder == None:
-            builder = Builder(script_name=script_name)
+            builder = Builder(script_name=script_name, source=source)
 
         # collect everything at module level that is not part of a function
         startup_code = [a for a in self.body if not isinstance(a, cg1Func)]
@@ -966,10 +966,10 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     cg1_data = cg1(source)
 
     # if debug_print:
-    #     print pformat_ast(tree)
-    #     print pformat_ast(cg1_data)
+    #     print(pformat_ast(tree))
+    #     print(pformat_ast(cg1_data))
 
-    builder = cg1_data.build(script_name=script_name)
+    builder = cg1_data.build(script_name=script_name, source=source)
     if debug_print:
         print(builder)
 
