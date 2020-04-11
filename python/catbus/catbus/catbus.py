@@ -346,27 +346,11 @@ def listen(ctx, key):
 
         click.echo('%s %24s %12d %24s @ %24s' % (timestamp, key, value, name, location))
 
-        # query_format = '%32s, %32s %32s, %32s'
-
-        # query_1 = query_format % (query[0], query[1], query[2], query[3])
-        # query_2 = query_format % (query[4], query[5], query[6], query[7])
-
-        # click.echo('%s %32s %12d\n%s\n%s' % (timestamp, key, value, query_1, query_2))
-        # print timestamp, key, value, query
-
-        # click.echo('%s %32s %12d' % (timestamp, key, value))
-        # click.echo('%s %12d' % (timestamp, value))
-        # click.echo('%s %s' % (' ' * 48, query_1))
-        # click.echo('%s %s' % (' ' * 48, query_2))
-
     kv.receive(key, key, query, callback)
-
-    # kv.register(key, callback)
 
     try:
         while True:
             time.sleep(1.0)
-            # print kv[key]
 
     except KeyboardInterrupt:
         pass
@@ -391,50 +375,10 @@ def hash(key):
 
 
 def main():
+    util.setup_basic_logging()
     cli(obj={})
 
 
 if __name__ == '__main__':
 
     main()
-
-    # from pprint import pprint
-
-    # util.setup_basic_logging()
-
-    # kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
-    # kv1 = CatbusService(tags=['stuff'], visible=True)
-    # kv1['kv_test_key'] = 0
-
-    # kv1.receive('woof', 'kv_test_key', ['test'])
-    # kv1.receive('woof', 'kv_test_array', ['test'])
-    # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
-
-    # kv1.receive('amg_data', 'amg_data', ['test'])
-    # kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
-    # kv1.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
-
-
-    # kv1['track_1_fader'] = 0
-    # kv1['track_2_fader'] = 0
-
-    # try:
-    #     while True:
-    #         time.sleep(0.1)
-    #         # kv1['track_1_fader'] += 1024
-    #         # kv1['track_2_fader'] += 1024
-
-    #         # print kv1['track_1_fader']
-
-    #         # print kv1['kv_test_key']
-    #         # kv1['woof'] += 1
-    #         # print kv1['woof']
-
-    #         # try:
-    #             # print kv1['amg_data']
-                
-    #         # except KeyError:
-    #             # pass
-
-    # except KeyboardInterrupt:
-    #     pass
