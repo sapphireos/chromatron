@@ -106,6 +106,7 @@ class Directory(Ribbon):
         with self.__lock:
             try:
                 info = self._directory[msg.header.origin_id]
+
                 logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
 
                 # remove entry
@@ -138,9 +139,13 @@ class Directory(Ribbon):
                 name = c.get_key(META_TAG_NAME)
                 info['name'] = name
 
-                logging.info(f"Added: {info['name']:32} @ {info['host']}")
+                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
-            self._directory[msg.header.origin_id] = info
+                self._directory[msg.header.origin_id] = info
+
+            else:
+                # reset ttl
+                info['ttl'] = TTL
 
     def _process_msg(self, msg, host):
         try:
