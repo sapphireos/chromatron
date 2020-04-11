@@ -50,6 +50,6 @@ setup(
 
     entry_points='''
         [console_scripts]
-        catbus=catbus.catbus:main
+        catbus=catbus.__main__:main
     ''',
 )
