@@ -1418,30 +1418,30 @@ def get_build_configs():
     for filename in os.listdir(BUILD_CONFIGS_DIR):
         filepath = os.path.join(BUILD_CONFIGS_DIR, filename)
         
-        configparser = configparser.SafeConfigParser()
+        parser = configparser.SafeConfigParser()
 
         try:
-            configparser.read(filepath)
+            parser.read(filepath)
 
         except configparser.MissingSectionHeaderError:
             continue
 
-        for section in configparser.sections():
+        for section in parser.sections():
             try:
                 proj_name       = section
-                proj_version    = configparser.get(section, 'proj_version')
-                base_proj       = configparser.get(section, 'base_proj')
+                proj_version    = parser.get(section, 'proj_version')
+                base_proj       = parser.get(section, 'base_proj')
 
                 try:
-                    full_name   = configparser.get(section, 'full_name')
+                    full_name   = parser.get(section, 'full_name')
 
-                except configparser.NoOptionError:
+                except parser.NoOptionError:
                     full_name   = proj_name                
 
                 try:
-                    libs        = configparser.get(section, 'libs').split(',')
+                    libs        = parser.get(section, 'libs').split(',')
 
-                except configparser.NoOptionError:
+                except parser.NoOptionError:
                     libs = []
 
                 # trim whitespace
