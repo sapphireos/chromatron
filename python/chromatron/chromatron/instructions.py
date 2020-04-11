@@ -1133,6 +1133,10 @@ class insVectorAdd(insVector):
 
         for i in range(self.length):
             vm.memory[addr] += value
+
+            # coerce to int
+            vm.memory[addr] = int(vm.memory[addr])
+        
             addr += 1
 
 class insVectorSub(insVector):
@@ -1146,6 +1150,9 @@ class insVectorSub(insVector):
 
         for i in range(self.length):
             vm.memory[addr] -= value
+            # coerce to int
+            vm.memory[addr] = int(vm.memory[addr])
+
             addr += 1
 
 class insVectorMul(insVector):
@@ -1160,12 +1167,19 @@ class insVectorMul(insVector):
         if self.type == 'f16':
             for i in range(self.length):
                 vm.memory[addr] = (vm.memory[addr] * value) / 65536
+
+                # coerce to int
+                vm.memory[addr] = int(vm.memory[addr])
                     
                 addr += 1
 
         else:
             for i in range(self.length):
                 vm.memory[addr] *= value
+
+                # coerce to int
+                vm.memory[addr] = int(vm.memory[addr])
+
                 addr += 1
 
 class insVectorDiv(insVector):
@@ -1219,12 +1233,19 @@ class insVectorMod(insVector):
         elif self.type == 'f16':
             for i in range(self.length):
                 vm.memory[addr] = vm.memory[addr] % value
+
+                # coerce to int
+                vm.memory[addr] = int(vm.memory[addr])
                     
                 addr += 1
 
         else:
             for i in range(self.length):
                 vm.memory[addr] %= value
+                
+                # coerce to int
+                vm.memory[addr] = int(vm.memory[addr])
+
                 addr += 1
 
 
