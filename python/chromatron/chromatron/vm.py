@@ -201,7 +201,7 @@ class VM(object):
 
             ins = code[pc]
 
-            # print cycles, pc, ins
+            # print(cycles, pc, ins)
 
             pc += 1
 

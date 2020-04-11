@@ -22,6 +22,7 @@
 
 import unittest
 from . import code_gen
+from .vm import VM
 
 # nose2 --with-coverage --coverage-report=html
 
@@ -3173,7 +3174,7 @@ def init():
 class CGHSVArrayTests(unittest.TestCase):
     def test_pix_load_from_pix_2(self):
         builder = code_gen.compile_text(test_pix_load_from_pix_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3185,7 +3186,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_pix_load_from_pix(self):
         builder = code_gen.compile_text(test_pix_load_from_pix, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3195,7 +3196,7 @@ class CGHSVArrayTests(unittest.TestCase):
         
     def test_pix_load_from_array(self):
         builder = code_gen.compile_text(test_pix_load_from_array, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3205,7 +3206,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_pix_mov_from_array(self):
         builder = code_gen.compile_text(test_pix_mov_from_array, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3215,7 +3216,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_1(self):
         builder = code_gen.compile_text(hue_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3226,7 +3227,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_2(self):
         builder = code_gen.compile_text(hue_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3237,7 +3238,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_add(self):
         builder = code_gen.compile_text(hue_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3248,7 +3249,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_add_2(self):
         builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3259,7 +3260,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_sub(self):
         builder = code_gen.compile_text(hue_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3270,7 +3271,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_mul(self):
         builder = code_gen.compile_text(hue_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3281,7 +3282,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_mul_f16(self):
         builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3292,7 +3293,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_div(self):
         builder = code_gen.compile_text(hue_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3303,7 +3304,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_div_f16(self):
         builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3314,7 +3315,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hue_array_mod(self):
         builder = code_gen.compile_text(hue_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3325,7 +3326,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_1(self):
         builder = code_gen.compile_text(sat_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3336,7 +3337,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_2(self):
         builder = code_gen.compile_text(sat_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3347,7 +3348,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_add(self):
         builder = code_gen.compile_text(sat_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3358,7 +3359,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_sub(self):
         builder = code_gen.compile_text(sat_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3369,7 +3370,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_mul(self):
         builder = code_gen.compile_text(sat_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3380,7 +3381,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_div(self):
         builder = code_gen.compile_text(sat_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3391,7 +3392,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_sat_array_mod(self):
         builder = code_gen.compile_text(sat_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3402,7 +3403,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_1(self):
         builder = code_gen.compile_text(val_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3413,7 +3414,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_2(self):
         builder = code_gen.compile_text(val_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3424,7 +3425,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_add(self):
         builder = code_gen.compile_text(val_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3435,7 +3436,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_sub(self):
         builder = code_gen.compile_text(val_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3446,7 +3447,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_mul(self):
         builder = code_gen.compile_text(val_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3457,7 +3458,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_div(self):
         builder = code_gen.compile_text(val_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3468,7 +3469,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_val_array_mod(self):
         builder = code_gen.compile_text(val_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3480,7 +3481,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_1(self):
         builder = code_gen.compile_text(hs_fade_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3491,7 +3492,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_2(self):
         builder = code_gen.compile_text(hs_fade_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3502,7 +3503,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_add(self):
         builder = code_gen.compile_text(hs_fade_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3513,7 +3514,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_sub(self):
         builder = code_gen.compile_text(hs_fade_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3524,7 +3525,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_mul(self):
         builder = code_gen.compile_text(hs_fade_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3535,7 +3536,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_div(self):
         builder = code_gen.compile_text(hs_fade_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3546,7 +3547,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_hs_fade_array_mod(self):
         builder = code_gen.compile_text(hs_fade_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3557,7 +3558,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_1(self):
         builder = code_gen.compile_text(v_fade_array_1, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3568,7 +3569,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_2(self):
         builder = code_gen.compile_text(v_fade_array_2, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3579,7 +3580,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_add(self):
         builder = code_gen.compile_text(v_fade_array_add, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3590,7 +3591,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_sub(self):
         builder = code_gen.compile_text(v_fade_array_sub, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3601,7 +3602,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_mul(self):
         builder = code_gen.compile_text(v_fade_array_mul, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3612,7 +3613,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_div(self):
         builder = code_gen.compile_text(v_fade_array_div, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3623,7 +3624,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_v_fade_array_mod(self):
         builder = code_gen.compile_text(v_fade_array_mod, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3635,7 +3636,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_gfx_array_indexing(self):
         builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3648,7 +3649,7 @@ class CGHSVArrayTests(unittest.TestCase):
 
     def test_gfx_array_load(self):
         builder = code_gen.compile_text(gfx_array_load, debug_print=False)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
 
         vm.run_once()
 
@@ -3664,7 +3665,7 @@ class CGTestsLocal(CGTestsBase):
     def run_test(self, program, expected={}):
         
         builder = code_gen.compile_text(program)
-        vm = code_gen.VM(builder)
+        vm = VM(builder)
         
         vm.run_once()
         regs = vm.dump_registers()

@@ -1278,6 +1278,8 @@ class insPixelVectorAdd(insPixelVector):
 
                 array[i] %= 65536
 
+                # coerce to int
+                array[i] = int(array[i])
 
         else:
             for i in range(len(array)):
@@ -1288,6 +1290,9 @@ class insPixelVectorAdd(insPixelVector):
 
                 elif array[i] > 65535:
                     array[i] = 65535
+
+                # coerce to int
+                array[i] = int(array[i])
 
 class insPixelVectorSub(insPixelVector):
     mnemonic = 'PSUB'
@@ -1304,6 +1309,8 @@ class insPixelVectorSub(insPixelVector):
 
                 array[i] %= 65536
 
+                # coerce to int
+                array[i] = int(array[i])
 
         else:
             for i in range(len(array)):
@@ -1314,6 +1321,9 @@ class insPixelVectorSub(insPixelVector):
 
                 elif array[i] > 65535:
                     array[i] = 65535
+
+                # coerce to int
+                array[i] = int(array[i])
 
 class insPixelVectorMul(insPixelVector):
     mnemonic = 'PMUL'
@@ -1330,12 +1340,18 @@ class insPixelVectorMul(insPixelVector):
 
                 array[i] %= 65536
 
+                # coerce to int
+                array[i] = int(array[i])
+
         elif self.attr in ['hs_fade', 'v_fade']:
             for i in range(len(array)):
 
                 array[i] = array[i] * value
 
                 array[i] %= 65536
+
+                # coerce to int
+                array[i] = int(array[i])
 
         else:
             for i in range(len(array)):
@@ -1346,6 +1362,9 @@ class insPixelVectorMul(insPixelVector):
 
                 elif array[i] > 65535:
                     array[i] = 65535
+
+                # coerce to int
+                array[i] = int(array[i])
 
 class insPixelVectorDiv(insPixelVector):
     mnemonic = 'PDIV'
@@ -1367,11 +1386,17 @@ class insPixelVectorDiv(insPixelVector):
 
                 array[i] %= 65536
 
+                # coerce to int
+                array[i] = int(array[i])
+
         elif self.attr in ['hs_fade', 'v_fade']:
             for i in range(len(array)):
                 array[i] = array[i] / value
 
                 array[i] %= 65536
+
+                # coerce to int
+                array[i] = int(array[i])
 
         else:
             for i in range(len(array)):
@@ -1382,6 +1407,9 @@ class insPixelVectorDiv(insPixelVector):
 
                 elif array[i] > 65535:
                     array[i] = 65535
+
+                # coerce to int
+                array[i] = int(array[i])
 
 class insPixelVectorMod(insPixelVector):
     mnemonic = 'PMOD'
@@ -1403,6 +1431,9 @@ class insPixelVectorMod(insPixelVector):
 
                 array[i] %= 65536
 
+                # coerce to int
+                array[i] = int(array[i])
+
         else:
             for i in range(len(array)):
                 array[i] %= value
@@ -1413,6 +1444,8 @@ class insPixelVectorMod(insPixelVector):
                 elif array[i] > 65535:
                     array[i] = 65535
 
+                # coerce to int
+                array[i] = int(array[i])
 
     
 class insPixelStore(BaseInstruction):

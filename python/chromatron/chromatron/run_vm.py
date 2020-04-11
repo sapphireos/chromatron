@@ -31,7 +31,7 @@ from pprint import pprint
 
 
 class VMContainer(Ribbon):
-    def initialize(self, fx_file=None, width=8, height=8):
+    def initialize(self, fx_file=None, width=2, height=2):
         self.fx_file = fx_file
 
         self.width = width
@@ -87,3 +87,4 @@ if __name__ == '__main__':
     vm.join()
 
     pprint(vm.vm.dump_registers())
+    pprint(vm.vm.dump_hsv())
