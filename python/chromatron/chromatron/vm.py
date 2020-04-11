@@ -144,7 +144,7 @@ class VM(object):
                 ref += 1
                 
                 # convert string length to memory cells
-                memlen = ((strlen - 1) / 4) + 1
+                memlen = int(((strlen - 1) / 4) + 1)
 
                 # unpack string
                 s = []
