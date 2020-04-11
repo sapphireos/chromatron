@@ -422,7 +422,7 @@ class irStrLiteral(irVar_str):
         self.length = 1 # this is a reference to a string, so the length is 1
         self.ref = None
 
-        self.size = ((self.strlen - 1) / 4) + 2 # space for characters + 32 bit length
+        self.size = int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
         
     def __str__(self):
         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
@@ -3346,6 +3346,7 @@ class Builder(object):
                 except struct.error:
                     print("*********************************")
                     print("packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value)))
+                    print("*********************************")
 
                     raise
 
