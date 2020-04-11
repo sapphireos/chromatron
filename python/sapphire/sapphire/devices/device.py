@@ -330,7 +330,7 @@ class Device(object):
 
         if self.channel_type == 'network':
             self._client = Client()
-            self._client.connect(self.host, get_meta=False)
+            self._client.connect(self.host)
 
         elif self.channel_type == 'serial_udp':
             self._client = Client()
@@ -426,12 +426,6 @@ class Device(object):
 
         return self
 
-
-    def get_cli(self):
-        return [f.replace(CLI_PREFIX, '', 1) for f in dir(self)
-                if f.startswith(CLI_PREFIX)
-                and not f.startswith('_')
-                and isinstance(self.__getattribute__(f), types.MethodType)]
 
     def get_kv_meta(self):    
         kvmeta = self._client.get_meta()
@@ -703,6 +697,12 @@ class Device(object):
     ##########################
     # Command Line Interface
     ##########################
+    def get_cli(self):
+        return [f.replace(CLI_PREFIX, '', 1) for f in dir(self)
+                if f.startswith(CLI_PREFIX)
+                and not f.startswith('_')
+                and isinstance(self.__getattribute__(f), types.MethodType)]
+
     def cli_scan(self, line):
         self.scan()
 
