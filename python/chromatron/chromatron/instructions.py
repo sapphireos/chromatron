@@ -1186,12 +1186,19 @@ class insVectorDiv(insVector):
         elif self.type == 'f16':
             for i in range(self.length):
                 vm.memory[addr] = (vm.memory[addr] * 65536) / value
+
+                # coerce to int
+                vm.memory[addr] = int(vm.memory[addr])
                     
                 addr += 1
 
         else:
             for i in range(self.length):
                 vm.memory[addr] /= value
+                
+                # coerce to int
+                vm.memory[addr] = int(vm.memory[addr])
+
                 addr += 1
 
 class insVectorMod(insVector):
