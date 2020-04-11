@@ -33,6 +33,8 @@ import json
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
 
+DISCOVERY_TIMEOUT = 0.3
+
 import random
 
 
@@ -267,14 +269,14 @@ class Client(object):
         discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        discover_sock.settimeout(0.3)
+        discover_sock.settimeout(DISCOVERY_TIMEOUT)
 
         for i in range(3):
             send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
 
             start = time.time()
 
-            while (time.time() - start) < 0.3:
+            while (time.time() - start) < DISCOVERY_TIMEOUT:
                 try:
                     data, sender = discover_sock.recvfrom(1024)
 
