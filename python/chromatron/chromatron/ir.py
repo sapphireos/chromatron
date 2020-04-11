@@ -3183,7 +3183,7 @@ class Builder(object):
 
 
     def generate_binary(self, filename=None):
-        stream = ''
+        stream = bytes()
         meta_names = []
 
         code_len = len(self.bytecode)
@@ -3200,18 +3200,18 @@ class Builder(object):
             pix_obj_len += pix.length
 
         # set up read keys
-        packed_read_keys = ''
+        packed_read_keys = bytes()
         for key in self.read_keys:
             packed_read_keys += struct.pack('<L', catbus_string_hash(key))
 
         # set up write keys
-        packed_write_keys = ''
+        packed_write_keys = bytes()
         for key in self.write_keys:
             packed_write_keys += struct.pack('<L', catbus_string_hash(key))
 
         # set up published registers
         self.published_var_count = 0
-        packed_publish = ''
+        packed_publish = bytes()
         for var in self.data_table:
             if var.publish:
                 published_var = VMPublishVar(
@@ -3224,7 +3224,7 @@ class Builder(object):
                 self.published_var_count += 1
 
         # set up links
-        packed_links = ''
+        packed_links = bytes()
         for link in self.links:
             source_hash = catbus_string_hash(link['source'])
             dest_hash = catbus_string_hash(link['dest'])
@@ -3241,14 +3241,14 @@ class Builder(object):
                                  query=query).pack()
 
         # set up DB entries
-        packed_db = ''
+        packed_db = bytes()
         for name, entry in list(self.db_entries.items()):
             packed_db += entry.pack()
 
             meta_names.append(name)
         
         # set up cron entries
-        packed_cron = ''
+        packed_cron = bytes()
         for func_name, entries in list(self.cron_tab.items()):
             
             for entry in entries:
@@ -3299,7 +3299,7 @@ class Builder(object):
             stream += struct.pack('<B', b)
 
         # add padding if necessary to make sure data is 32 bit aligned
-        stream += '\0' * padding_len
+        stream += bytes([0] * padding_len)
 
         # ensure padding is correct
         assert len(stream) % 4 == 0
@@ -3328,7 +3328,7 @@ class Builder(object):
 
                 padding_len = (4 - (var.strlen % 4)) % 4
                 # add padding if necessary to make sure data is 32 bit aligned
-                stream += '\0' * padding_len
+                stream += bytes([0] * padding_len)
 
                 addr += var.size
 
@@ -3397,7 +3397,7 @@ class Builder(object):
         prog_len = len(stream)
         stream = struct.pack('<l', prog_len) + stream
 
-        meta_data = ''
+        meta_data = bytes()
 
         # marker for meta
         meta_data += struct.pack('<L', META_MAGIC)
@@ -3405,9 +3405,9 @@ class Builder(object):
         # first string is script name
         # note the conversion with str(), this is because from a CLI
         # we might end up with unicode, when we really, really need ASCII.
-        padded_string = str(self.script_name)
+        padded_string = self.script_name.encode('utf-8')
         # pad to string len
-        padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
+        padded_string += bytes([0] * (VM_STRING_LEN - len(padded_string)))
 
         meta_data += padded_string
 
@@ -3418,7 +3418,7 @@ class Builder(object):
             if len(padded_string) > VM_STRING_LEN:
                 raise SyntaxError("%s exceeds %d characters" % (padded_string, VM_STRING_LEN))
 
-            padded_string += '\0' * (VM_STRING_LEN - len(padded_string))
+            padded_string += bytes([0] * (VM_STRING_LEN - len(padded_string)))
             meta_data += padded_string
 
 
