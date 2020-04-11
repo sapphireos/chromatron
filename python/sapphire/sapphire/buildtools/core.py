@@ -392,10 +392,11 @@ class Builder(object):
         source_files = self.list_source()
         hashed_files = {}
 
-        for f in source_files:
+        for fname in source_files:
             m = hashlib.sha256()
-            m.update(open(f).read())
-            hashed_files[f] = m.hexdigest()
+            with open(fname, 'rb') as f:
+                m.update(f.read())
+            hashed_files[fname] = m.hexdigest()
 
         return hashed_files
 
@@ -407,12 +408,16 @@ class Builder(object):
 
     def get_source_hash_file(self):
         try:
-            hash_file = open("source_hash.json")
+            hash_data = open("source_hash.json", 'r').read()
 
         except IOError:
             return {}
 
-        return json.loads(hash_file.read())
+        try:
+            return json.loads(hash_data)
+
+        except json.decoder.JSONDecodeError:
+            return {}
 
     def get_buildnumber(self):
         try:
