@@ -1469,7 +1469,7 @@ class Builder(object):
         # load source code for debug
         source_code = source
         
-        
+
         self.funcs = {}
         self.locals = {}
         self.globals = {}
@@ -3410,7 +3410,7 @@ class Builder(object):
 
         # next, attach names of stuff
         for s in meta_names:
-            padded_string = s
+            padded_string = s.encode('utf-8')
 
             if len(padded_string) > VM_STRING_LEN:
                 raise SyntaxError("%s exceeds %d characters" % (padded_string, VM_STRING_LEN))
