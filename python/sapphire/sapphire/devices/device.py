@@ -253,39 +253,30 @@ class KVKey(object):
 
 class KVMeta(UserDict):
     def __init__(self):
-        self.kv_items = dict()
-
-    def keys(self):
-        return list(self.kv_items.keys())
-
-    def __getitem__(self, key):
-        return self.kv_items[key]
-
+        super().__init__()
+        
     def __setitem__(self, key, value):
-        if key in self.kv_items:
+        if key in self.data:
             print("DuplicateKeyNameException: %s" % (key))
             # print key
             # we already have an item here
             # raise DuplicateKeyNameException("DuplicateKeyNameException: %s" % (key))
 
-        self.kv_items[key] = value
+        self.data[key] = value
         value.key = key
-
-    def __delitem__(self, key):
-        del self.kv_items[key]
 
     def check(self):
         # check for duplicate IDs
-        for key in self.kv_items:
-            l = len([k for k, v in self.kv_items.items()
-                        if v.group == self.kv_items[key].group
-                            and v.id == self.kv_items[key].id])
+        for key in self.data:
+            l = len([k for k, v in self.data.items()
+                        if v.group == self.data[key].group
+                            and v.id == self.data[key].id])
 
             if l > 1:
                 raise DuplicateKeyIDException("DuplicateKeyIDException: %s" % (key))
 
     def is_system(self, key):
-        group = self.kv_items[key].group
+        group = self.data[key].group
 
         return group in sys_groups
 

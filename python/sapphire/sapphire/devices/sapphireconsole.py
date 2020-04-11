@@ -171,13 +171,13 @@ cli_template = """
             sys.stdout.write('%s@%s: ' % (target.name.ljust(16), target.host))
 
             try:
-                print target.cli_$fname(line)
+                print(target.cli_$fname(line))
 
             except DeviceUnreachableException as e:
-                print 'Error:%s from %s' % (e, target.host)
+                print('Error:%s from %s' % (e, target.host))
 
             except Exception as e:
-                print 'Error: %s' % (e)
+                print('Error: %s' % (e))
                 #traceback.print_exc()
 
 """
@@ -196,10 +196,10 @@ def makeConsole(targets=[], devices=[], device=None):
 
     for fname in cli_funcs:
         s += cli_template.replace('$fname', fname)
-
+    
     exec(s)
 
-    return aConsole(targets=targets, devices=devices)
+    return locals()['aConsole'](targets=targets, devices=devices)
 
 def main():
     try:
