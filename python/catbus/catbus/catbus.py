@@ -58,12 +58,12 @@ import select
 import queue
 from pprint import pprint
 
-from .data_structures import *
-from .messages import *
-from .options import *
-from .database import *
-from .server import *
-from .client import *
+from data_structures import *
+from messages import *
+from options import *
+from database import *
+from server import *
+from client import *
 
 
 import click
@@ -396,14 +396,14 @@ def main():
 
 if __name__ == '__main__':
 
-    # main()
+    main()
 
-    from pprint import pprint
+    # from pprint import pprint
 
-    util.setup_basic_logging()
+    # util.setup_basic_logging()
 
     # kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
-    kv1 = CatbusService(tags=['stuff'], visible=True)
+    # kv1 = CatbusService(tags=['stuff'], visible=True)
     # kv1['kv_test_key'] = 0
 
     # kv1.receive('woof', 'kv_test_key', ['test'])
@@ -418,28 +418,23 @@ if __name__ == '__main__':
     # kv1['track_1_fader'] = 0
     # kv1['track_2_fader'] = 0
 
-    try:
-        while True:
-            time.sleep(0.1)
-            # kv1['track_1_fader'] += 1024
-            # kv1['track_2_fader'] += 1024
+    # try:
+    #     while True:
+    #         time.sleep(0.1)
+    #         # kv1['track_1_fader'] += 1024
+    #         # kv1['track_2_fader'] += 1024
 
-            # print kv1['track_1_fader']
+    #         # print kv1['track_1_fader']
 
-            # print kv1['kv_test_key']
-            # kv1['woof'] += 1
-            # print kv1['woof']
+    #         # print kv1['kv_test_key']
+    #         # kv1['woof'] += 1
+    #         # print kv1['woof']
 
-            # try:
-                # print kv1['amg_data']
+    #         # try:
+    #             # print kv1['amg_data']
                 
-            # except KeyError:
-                # pass
+    #         # except KeyError:
+    #             # pass
 
-    except KeyboardInterrupt:
-        pass
-
-
-
-
-    #     
+    # except KeyboardInterrupt:
+    #     pass

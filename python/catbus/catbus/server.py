@@ -25,11 +25,11 @@ import logging
 import time
 import threading
 import select
-from .client import Client
-from .broadcast import send_udp_broadcast
+from client import Client
+from broadcast import send_udp_broadcast
 
-from .messages import *
-from .catbustypes import *
+from messages import *
+from catbustypes import *
 
 from sapphire.common import Ribbon, MsgQueueEmptyException
 

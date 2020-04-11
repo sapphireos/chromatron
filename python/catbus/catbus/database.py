@@ -28,7 +28,7 @@ import time
 import logging
 
 
-from .data_structures import *
+from data_structures import *
 
 
 DATAFILE_EXT = '.catbusdb'

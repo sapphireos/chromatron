@@ -21,10 +21,10 @@
 # </license>
 
 import socket
-from .data_structures import *
-from .messages import *
-from .options import *
-from .broadcast import send_udp_broadcast
+from data_structures import *
+from messages import *
+from options import *
+from broadcast import send_udp_broadcast
 import time
 import netifaces
 import os
@@ -778,7 +778,7 @@ if __name__ == '__main__':
     # for node in c.discover().values():
         # pprint(node)
 
-    c.connect(('10.0.0.119', 44632))
+    # c.connect(('10.0.0.119', 44632))
     # c.connect(('10.0.0.102', 44632))
     # pprint(c.get_links())
 
@@ -796,7 +796,7 @@ if __name__ == '__main__':
     # print c.get_key('test_woof')
     # c.set_key('test_woof', ['4','5','6','7'])
 
-    print(c.get_key('fx_a'))
+    # print(c.get_key('fx_a'))
 
 
 

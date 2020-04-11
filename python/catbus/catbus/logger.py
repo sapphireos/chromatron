@@ -24,8 +24,8 @@
 import time
 from datetime import datetime, timedelta
 import sqlite3
-from .client import Client
-from .data_structures import META_TAGS, catbus_string_hash, query_tags
+from client import Client
+from data_structures import META_TAGS, catbus_string_hash, query_tags
 import sapphire.common.util as util
 from fnvhash import fnv1a_64
 from sapphire.common import Ribbon, MsgQueueEmptyException
