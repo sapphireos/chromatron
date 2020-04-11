@@ -22,7 +22,6 @@
 # </license>
 #
 
-import sapphire.udpx.udpx as udpx
 import serial
 from elysianfields import *
 
@@ -124,55 +123,6 @@ class NullChannel(Channel):
 
     def settimeout(self, timeout=None):
         pass
-
-
-class UdpxChannel(Channel):
-
-    def __init__(self, host):
-        super(UdpxChannel, self).__init__(host, 'network')
-
-        self.host = host
-        self.sock = udpx.ClientSocket()
-
-    def open(self):
-        pass
-
-    def close(self):
-        self.sock.shutdown()
-        self.sock.close()
-
-    def read(self):
-        try:
-            data, host = self.sock.recvfrom()
-
-            # check host address
-            if host[0] != self.host[0]:
-                raise ChannelInvalidHostException(self.host)
-
-            else:
-                # set host so we have the host port
-                self.host = host
-
-        except socket.timeout:
-            raise ChannelTimeoutException
-
-        except socket.error:
-            raise ChannelUnreachableException
-
-        return data
-
-    def write(self, data, port=None):
-        try:
-            self.sock.sendto(data, self.host)
-
-        except socket.timeout:
-            raise ChannelTimeoutException(self.host)
-
-        except socket.error:
-            raise ChannelUnreachableException
-
-    def settimeout(self, timeout):
-        self.sock.settimeout(timeout)
 
 
 UART_RX_BUF_SIZE = 255
@@ -647,12 +597,13 @@ class UDPSerialBridge(threading.Thread):
             except Exception as e:
                 print(e)
                 pass
-            
 
-def createChannel(host, port=None):
+class NotSerialChannel(Exception):
+    pass
+
+def createSerialChannel(host, port=None):
     if host == 'usb':
         comport = None
-        porttype = None
 
         # scan ports
         ports = list(serial.tools.list_ports.comports())
@@ -660,30 +611,27 @@ def createChannel(host, port=None):
         for port in ports:
             if port.vid == CHROMATRON_VID and port.pid == CHROMATRON_PID:
                     comport = port.device
-                    porttype = 'udp_transport'
                     break
 
         if comport == None:
             raise ChannelInvalidHostException("Could not find attached device")
 
-        if porttype == 'legacy':
-            return USBChannel(comport)
+        ch = USBUDPChannel(comport)
 
-        elif porttype == 'udp_transport':
-            ch = USBUDPChannel(comport)
+        try:
+            ch.test()
 
-            try:
-                ch.test()
+            return ch
 
-                return ch
-
-            except ChannelErrorException:
-                ch.close()
+        except ChannelErrorException:
+            ch.close()
 
     try:
         socket.inet_aton(host)
+        raise NotSerialChannel
 
-        return UdpxChannel(host=(host, port))
+    except NotSerialChannel:
+        raise
 
     except:
         return SerialUDPChannel(host)

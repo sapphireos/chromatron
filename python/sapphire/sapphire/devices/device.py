@@ -319,12 +319,15 @@ class Device(object):
         # if no channel is specified, create one
         if self._channel is None:
             try:
-                self._channel = channel.createChannel(self.host)
+                self._channel = channel.createSerialChannel(self.host)
+                self.channel_type = self._channel.channel_type
 
             except channel.ChannelInvalidHostException:
                 raise DeviceUnreachableException
 
-        self.channel_type = self._channel.channel_type
+            except channel.NotSerialChannel:
+                self.channel_type = 'network'
+        
         self._client = None
         self._bridge = None
 

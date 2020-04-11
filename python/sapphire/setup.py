@@ -31,7 +31,6 @@ setup(
               'sapphire.fields',
               'sapphire.common',
               'sapphire.query',
-              'sapphire.udpx',
               'sapphire.devices',
               'sapphire.buildtools',
               ],
