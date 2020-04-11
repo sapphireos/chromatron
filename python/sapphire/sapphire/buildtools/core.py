@@ -157,7 +157,7 @@ def runcmd(cmd, tofile=False, tolog=True):
     output = ''
 
     for line in p.stdout.readlines():
-        output += line
+        output += line.decode('utf-8')
 
     if output != '':
         if not tofile and tolog:
@@ -1073,10 +1073,10 @@ class AppBuilder(HexBuilder):
         # create lookups by 32 bit hash
         index = 0
         for kv in kv_meta_data:
-            hash32 = fnv1a_32(str(kv.param_name))
+            hash32 = fnv1a_32(kv.param_name.encode('utf-8'))
 
             if hash32 in kv_meta_by_hash:
-                raise Exception("Hash collision! %s 0x%lx" % (str(kv.param_name), hash32))
+                raise Exception("Hash collision! %s 0x%lx" % (kv.param_name, hash32))
 
             kv_meta_by_hash[hash32] = (kv, index)
 
@@ -1086,7 +1086,7 @@ class AppBuilder(HexBuilder):
         sorted_hashes = sorted(kv_meta_by_hash.keys())
 
         # create binary look up table
-        kv_index = ''
+        kv_index = bytes()
         for a in sorted_hashes:
             kv_index += struct.pack('<LB', a, kv_meta_by_hash[a][1])
                 
@@ -1105,10 +1105,10 @@ class AppBuilder(HexBuilder):
         fw_info = struct.pack(fw_info_fmt,
                                 size,
                                 fwid.bytes,
-                                os_project.proj_name,
-                                os_project.version,
-                                str(self.settings['PROJ_NAME']),
-                                self.version)
+                                os_project.proj_name.encode('utf-8'),
+                                os_project.version.encode('utf-8'),
+                                self.settings['PROJ_NAME'].encode('utf-8'),
+                                self.version.encode('utf-8'))
 
         # insert fw info into hex
         ih.puts(fw_info_addr, fw_info)
