@@ -3325,7 +3325,7 @@ class Builder(object):
                 # pack string meta data
                 # u16 addr in data table : u16 max length in characters
                 stream += struct.pack('<HH', addr, var.strlen)
-                stream +=  var.strdata
+                stream += var.strdata.encode('utf-8')
 
                 padding_len = (4 - (var.strlen % 4)) % 4
                 # add padding if necessary to make sure data is 32 bit aligned
