@@ -708,7 +708,7 @@ class DeviceGroup(UserDict):
         except KeyError:
             host = None
 
-        self.group = {}
+        self.data = {}
         self.matches = {}
         self.tags = args
         self.from_file = False
@@ -752,34 +752,10 @@ class DeviceGroup(UserDict):
         self.timestamp = now()
 
     def __str__(self):
-        return "Group: %d devices @ %s" % (len(self.group), self.tags)
-
-    def keys(self):
-        """Return list of keys"""
-        return list(self.group.keys())
-
-    # def __setattr__(self, name, value):
-    #     if name not in self.__dict__:
-    #         self.__dict__[name] = value
-
-    #     elif name in ['hue', 'sat', 'val', 'r', 'g', 'b']:
-    #         for d in self.group.itervalues():
-    #             setattr(d, name, value)
-
-    #             print d, name, value
-        
-    #     else:
-    #         self.__dict__[name] = value
-
-    def __getitem__(self, key):
-        return self.group[key]
-
-    def __delitem__(self, key):
-        del self.group[key]
-        del self.matches[key]
+        return "Group: %d devices @ %s" % (len(self.data), self.tags)
 
     def scan_devices(self):
-        self.group = {}
+        self.data = {}
 
         scan_group = []
         threads = []
@@ -808,7 +784,7 @@ class DeviceGroup(UserDict):
                 pass
 
             try:
-                self.group[ct.device_id] = ct
+                self.data[ct.device_id] = ct
 
             except AttributeError:
                 pass
@@ -820,22 +796,21 @@ class DeviceGroup(UserDict):
 
             local_methods.append(f)
 
-
-        if len(self.group) > 0:
+        if len(self.data) > 0:
             # collect methods from underlying driver.
             # only adds methods that aren't used by the parent class.
 
             methods = []
 
-            for f in [f for f in dir(list(self.group.values())[0]) if
-                        isinstance(list(self.group.values())[0].__getattribute__(f), types.MethodType) and
+            for f in [f for f in dir(list(self.data.values())[0]) if
+                        isinstance(list(self.data.values())[0].__getattribute__(f), types.MethodType) and
                         not f.startswith('_')]:
 
                 if f not in local_methods:
                     methods.append(f)
 
-            for f in [f for f in dir(list(self.group.values())[0]._device) if
-                        isinstance(list(self.group.values())[0]._device.__getattribute__(f), types.MethodType) and
+            for f in [f for f in dir(list(self.data.values())[0]._device) if
+                        isinstance(list(self.data.values())[0]._device.__getattribute__(f), types.MethodType) and
                         not f.startswith('_')]:
 
                 if f not in local_methods and f not in methods:
@@ -877,7 +852,7 @@ class DeviceGroup(UserDict):
     def make_func(self, f):
         def wrapper(*args, **kwargs):
             results = {}
-            for d in self.group.values():
+            for d in self.data.values():
                 try:
                     method = d.__getattribute__(f)
 
@@ -893,27 +868,27 @@ class DeviceGroup(UserDict):
     @property
     def dimmer(self):
         results = {}
-        for d in self.group.values():
+        for d in self.data.values():
             results[d.device_id] = d.dimmer
 
         return results
 
     @dimmer.setter
     def dimmer(self, value):
-        for d in self.group.values():
+        for d in self.data.values():
             d.dimmer = value
 
     @property
     def sub_dimmer(self):
         results = {}
-        for d in self.group.values():
+        for d in self.data.values():
             results[d.device_id] = d.sub_dimmer
 
         return results
 
     @sub_dimmer.setter
     def sub_dimmer(self, value):
-        for d in self.group.values():
+        for d in self.data.values():
             d.sub_dimmer = value
 
     # @property
@@ -930,17 +905,17 @@ class DeviceGroup(UserDict):
 
     # @hue.setter
     # def hue(self, value):
-    #     for d in self.group.itervalues():
+    #     for d in self.data.itervalues():
     #         d.hue = value
 
     # @sat.setter
     # def sat(self, value):
-    #     for d in self.group.itervalues():
+    #     for d in self.data.itervalues():
     #         d.sat = value
 
     # @val.setter
     # def val(self, value):
-    #     for d in self.group.itervalues():
+    #     for d in self.data.itervalues():
     #         d.val = value
 
 
