@@ -2801,8 +2801,12 @@ class Builder(object):
             mirror = pix_array.fields['mirror']
 
             # negative mirrors are undefined, no further processing
-            if mirror < 0:
-                continue
+            try:
+                if mirror < 0:
+                    continue
+
+            except TypeError:
+                pass
 
             # check for common errors
             if mirror == name:
