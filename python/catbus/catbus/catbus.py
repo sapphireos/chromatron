@@ -45,9 +45,9 @@ import time
 import sys
 import os
 
-from database import *
-from server import *
-from client import *
+from .database import *
+from .server import *
+from .client import *
 
 
 import click
