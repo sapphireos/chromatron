@@ -1572,7 +1572,7 @@ class Builder(object):
             if len(list(self.locals[fname].values())) > 0:
                 s += '\t%s\n' % (fname)
 
-                for l in sorted(self.locals[fname].values()):
+                for l in self.locals[fname].values():
                     s += '%d\t\t%s\n' % (l.lineno, l)
 
         s += 'PixelArrays:\n'
