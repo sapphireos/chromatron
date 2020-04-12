@@ -158,12 +158,6 @@ class DeviceUnreachableException(DeviceCommsErrorException):
 class DeviceMetaErrorException(Exception):
     pass
 
-class DuplicateKeyNameException(DeviceMetaErrorException):
-    pass
-
-class DuplicateKeyIDException(DeviceMetaErrorException):
-    pass
-
 class ReadOnlyKeyException(DeviceMetaErrorException):
     pass
 
@@ -182,7 +176,6 @@ class NotASapphireDevice(Exception):
 class KVKey(object):
     def __init__(self,
                  device=None,
-                 group=None,
                  id=None,
                  flags=None,
                  type=None,
@@ -191,7 +184,6 @@ class KVKey(object):
 
         self._device = device
 
-        self.group = group
         self.id = id
         self.type = type
         self._value = value
@@ -230,9 +222,6 @@ class KVKey(object):
         s = "%32s %6s %8s %s" % (self.key, flags, get_type_name(self.type), str(self._value))
         return s
 
-    def is_sys(self):
-        return self.group < KV_GROUP_APP_BASE
-
     def is_readonly(self):
         return "read_only" in self.flags
 
@@ -256,29 +245,8 @@ class KVMeta(UserDict):
         super().__init__()
         
     def __setitem__(self, key, value):
-        if key in self.data:
-            print("DuplicateKeyNameException: %s" % (key))
-            # print key
-            # we already have an item here
-            # raise DuplicateKeyNameException("DuplicateKeyNameException: %s" % (key))
-
         self.data[key] = value
         value.key = key
-
-    def check(self):
-        # check for duplicate IDs
-        for key in self.data:
-            l = len([k for k, v in self.data.items()
-                        if v.group == self.data[key].group
-                            and v.id == self.data[key].id])
-
-            if l > 1:
-                raise DuplicateKeyIDException("DuplicateKeyIDException: %s" % (key))
-
-    def is_system(self, key):
-        group = self.data[key].group
-
-        return group in sys_groups
 
 
 class Device(object):
@@ -375,54 +343,46 @@ class Device(object):
     def query(self, **kwargs):
         return query_dict(self.to_dict(), **kwargs)
 
-    def scan(self, get_all=True):
+    def scan(self, get_all=True):    
+        self.get_kv_meta()
+
+        # check if this is a chromatron device (running sapphireos)
         try:
-            self.get_kv_meta()
+            if self.get_key('os_name') != 'sapphire':
+                raise NotASapphireDevice()
 
-            # check if this is a chromatron device (running sapphireos)
+        except KeyError:
+            raise NotASapphireDevice()                
+
+        if get_all:
+            self.get_all_kv()
+
+        else:
+            self.get_key('device_id')
             try:
-                if self.get_key('os_name') != 'sapphire':
-                    raise NotASapphireDevice()
+                self.get_key('meta_tag_name')
 
             except KeyError:
-                raise NotASapphireDevice()                
+                self.get_key('name')
 
-            if get_all:
-                self.get_all_kv()
+        if self.device_id == None:
+            self.device_id = self._keys["device_id"]._value
 
-            else:
-                self.get_key('device_id')
-                try:
-                    self.get_key('meta_tag_name')
+        elif self.device_id != self._keys["device_id"]._value:
+            raise InvalidDeviceIDException(self._keys["device_id"]._value, self.device_id)
 
-                except KeyError:
-                    self.get_key('name')
+        try:
+            if self._keys["meta_tag_name"]._value:
+                self.name = self._keys["meta_tag_name"]._value
 
-            if self.device_id == None:
-                self.device_id = self._keys["device_id"]._value
+        except KeyError:
+            if self._keys["name"]._value:
+                self.name = self._keys["name"]._value
 
-            elif self.device_id != self._keys["device_id"]._value:
-                raise InvalidDeviceIDException(self._keys["device_id"]._value, self.device_id)
-
-            try:
-                if self._keys["meta_tag_name"]._value:
-                    self.name = self._keys["meta_tag_name"]._value
-
-            except KeyError:
-                if self._keys["name"]._value:
-                    self.name = self._keys["name"]._value
-
-
-        except DuplicateKeyIDException:
-            # error is printed by the check function.
-            # we pass here since we can get to the file system and fix
-            # the firmware without the KV system.
-            pass
 
         self.get_firmware_info()
 
         return self
-
 
     def get_kv_meta(self):    
         kvmeta = self._client.get_meta()
@@ -432,17 +392,7 @@ class Device(object):
 
         # load keys into meta data
         for key, meta in kvmeta.items():
-            self._keys[key] = KVKey(key=key, device=self, group=0, id=meta.hash, flags=meta.flags, type=meta.type)
-
-        # run duplicate ID check
-        try:
-            self._keys.check()
-
-        except DuplicateKeyIDException as e:
-            print(e)
-
-            raise
-
+            self._keys[key] = KVKey(key=key, device=self, id=meta.hash, flags=meta.flags, type=meta.type)
 
     def get_all_kv(self):
         keys = [key for key in self._keys]
@@ -486,9 +436,6 @@ class Device(object):
         return self.get_kv(param)[param]
 
     def get_kv(self, *args):
-        params = []
-
-        keys = {}
         expanded_keys = []
         responses = {}
 
