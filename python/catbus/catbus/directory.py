@@ -249,11 +249,8 @@ def get_directory():
 
     return json.loads(buf)
 
-if __name__ == '__main__':
-
-    from pprint import pprint
-
-    util.setup_basic_logging()
+def main():
+    util.setup_basic_logging(console=False, filename='catbus_directory.log')
 
     d = Directory()
     svr = DirectoryServer(directory=d)
@@ -263,10 +260,8 @@ if __name__ == '__main__':
         while True:
             time.sleep(1.0)
 
-            # pprint(d.get_directory())
-            # print(len(d.get_directory()))
-
     except KeyboardInterrupt:
         pass
 
-
+if __name__ == '__main__':
+    main()

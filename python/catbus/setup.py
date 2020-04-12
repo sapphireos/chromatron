@@ -51,5 +51,6 @@ setup(
     entry_points='''
         [console_scripts]
         catbus=catbus.__main__:main
+        catbus_directory=catbus.directory:main
     ''',
 )
