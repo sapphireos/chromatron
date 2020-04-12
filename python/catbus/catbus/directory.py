@@ -27,7 +27,11 @@ import threading
 import select
 from .client import Client
 from copy import copy
+import socket
+import json
+import struct
 
+from .options import *
 from .messages import *
 
 from sapphire.common import Ribbon, MsgQueueEmptyException, util
@@ -194,6 +198,56 @@ class Directory(Ribbon):
 
                 self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
+class DirectoryServer(Ribbon):
+    def initialize(self, directory=None):
+        self.name = '%s' % ('directory_server')
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            # this option may fail on some platforms
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        self.sock.bind(('localhost', CATBUS_DIRECTORY_PORT))
+        self.sock.settimeout(1.0)
+        self.sock.listen(1)
+
+        self.directory = directory
+        
+    def loop(self):
+        try:
+            conn, addr = self.sock.accept()
+
+            data = json.dumps(self.directory.get_directory())
+
+            conn.send(struct.pack('<L', len(data)))
+            conn.send(data.encode('utf-8'))
+
+            conn.close()
+
+        except socket.timeout:
+            pass
+
+    def clean_up(self):
+        self.sock.close()
+
+def get_directory():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
+
+    data = sock.recv(4)
+    length = struct.unpack('<L', data)[0]
+
+    buf = bytes()
+
+    while len(buf) < length:
+        buf += sock.recv(1024)
+
+    return json.loads(buf)
 
 if __name__ == '__main__':
 
@@ -202,6 +256,8 @@ if __name__ == '__main__':
     util.setup_basic_logging()
 
     d = Directory()
+    svr = DirectoryServer(directory=d)
+    
 
     try:
         while True:
