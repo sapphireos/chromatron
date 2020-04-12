@@ -330,7 +330,10 @@ class SerialUDPChannel(Channel):
         self.host = self.port.port
 
     def close(self):
-        self.port.close()
+        try:
+            self.port.close()
+        except AttributeError:
+            pass
 
     def _read_data(self, length):
         start = time.time()
@@ -601,6 +604,9 @@ class UDPSerialBridge(threading.Thread):
 class NotSerialChannel(Exception):
     pass
 
+class InvalidChannel(Exception):
+    pass
+
 def createSerialChannel(host, port=None):
     if host == 'usb':
         comport = None
@@ -634,7 +640,11 @@ def createSerialChannel(host, port=None):
         raise
 
     except:
-        return SerialUDPChannel(host)
+        try:
+            return SerialUDPChannel(host)
+
+        except:
+            raise InvalidChannel
 
 
 if __name__ == '__main__':

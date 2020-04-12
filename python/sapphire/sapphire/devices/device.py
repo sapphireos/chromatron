@@ -318,6 +318,9 @@ class Device(object):
 
             except channel.NotSerialChannel:
                 self.channel_type = 'network'
+
+            except channel.InvalidChannel:
+                raise
         
         self._client = None
         self._bridge = None
