@@ -48,6 +48,7 @@ import os
 from .database import *
 from .server import *
 from .client import *
+from .directory import get_directory
 
 
 import click
@@ -360,6 +361,12 @@ def hash(key):
 
     click.echo('%d 0x%08x' % (hashed_key, hashed_key & 0xffffffff))
 
+
+@cli.command()
+def directory():
+    """Query directory server"""
+
+    print(get_directory())
 
 def main():
     cli(obj={})
