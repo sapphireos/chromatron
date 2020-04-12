@@ -750,6 +750,7 @@ class DeviceGroup(UserDict):
         else:
             raise Exception()
 
+        
         self.scan_devices()
 
         self.timestamp = now()
@@ -793,11 +794,8 @@ class DeviceGroup(UserDict):
                 pass
 
         # collect methods from this class.
-        local_methods = []
-        for f in [f for f in dir(self) if
-                    isinstance(self.__getattribute__(f), types.MethodType)]:
-
-            local_methods.append(f)
+        # skip some items, as they will make a ton of calls to the network
+        local_methods = [f for f in dir(self) if f not in ['dimmer', 'sub_dimmer'] and isinstance(self.__getattribute__(f), types.MethodType)]
 
         if len(self.data) > 0:
             # collect methods from underlying driver.
@@ -822,6 +820,7 @@ class DeviceGroup(UserDict):
             for method in methods:
                 self.__dict__[method] = self.make_func(method)
 
+    
     def to_dict(self):
         d = {}
 

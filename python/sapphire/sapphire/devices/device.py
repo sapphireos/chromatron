@@ -419,15 +419,20 @@ class Device(object):
         expanded_keys = []
         responses = {}
 
-        # iterate over keys and create requests for them
-        for key in args:
-            expanded_keys.extend(fnmatch.filter(list(self._keys.keys()), key))
+        if len(self._keys) > 0:
+            # iterate over keys and create requests for them
+            for key in args:
+                expanded_keys.extend(fnmatch.filter(list(self._keys.keys()), key))
+
+        else:
+            expanded_keys = args
 
         responses = self._client.get_keys(expanded_keys)
     
-        for k, v in responses.items():
-            # update internal meta data
-            self._keys[k]._value = v
+        if len(self._keys) > 0:
+            for k, v in responses.items():
+                # update internal meta data
+                self._keys[k]._value = v
 
         return responses
 
