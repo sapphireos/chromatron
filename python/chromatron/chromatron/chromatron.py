@@ -319,13 +319,15 @@ class Chromatron(object):
         self._update_meta()
         self.firmware_version = self._device.firmware_version
 
-        network_host = (self._device.get_key('ip'), self._device.get_key('catbus_data_port'))
+        keys = self._device.get_kv('ip', 'catbus_data_port', 'pix_count')
+
+        network_host = (keys['ip'], keys['catbus_data_port'])
 
         if ((network_host[0] != '0.0.0.0') and (self.host != 'usb')) or self.force_network:
             self.client.connect(network_host)
 
         try:
-            pix_count = self.get_key('pix_count')
+            pix_count = keys['pix_count']
 
         except KeyError:
             pix_count = 0
