@@ -1339,13 +1339,15 @@ def show(ctx):
     click.echo(s)
 
     for ct in group.values():
+        keys = ct.get_keys('wifi_rssi', 'wifi_uptime', 'supply_voltage', catbus.META_TAG_LOC, 'meta_tag_0', 'meta_tag_1')
+
         name = ct.name
-        rssi = ct.get_key('wifi_rssi')
-        uptime = ct.get_key('wifi_uptime')
-        supply_voltage = ct.get_key('supply_voltage')  / 1000.0
-        location = ct.get_key(catbus.META_TAG_LOC)
-        tag_0 = ct.get_key('meta_tag_0')
-        tag_1 = ct.get_key('meta_tag_1')
+        rssi = keys['wifi_rssi']
+        uptime = keys['wifi_uptime']
+        supply_voltage = keys['supply_voltage']  / 1000.0
+        location = keys[catbus.META_TAG_LOC]
+        tag_0 = keys['meta_tag_0']
+        tag_1 = keys['meta_tag_1']
         
         name_s = '%32s @ %20s' % (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
 
