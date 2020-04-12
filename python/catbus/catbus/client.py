@@ -32,6 +32,7 @@ import json
 
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
+DATA_DIR_FILE_PATH_ALT = 'catbus_hashes.json'
 
 DISCOVERY_TIMEOUT = 0.3
 
@@ -140,8 +141,13 @@ class Client(object):
         # open cache file
         cache = {}
         try:
-            with open(DATA_DIR_FILE_PATH, 'r') as f:
-                file_data = f.read()
+            try:
+                with open(DATA_DIR_FILE_PATH, 'r') as f:
+                    file_data = f.read()
+
+            except PermissionError:
+                with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
+                    file_data = f.read()
 
             temp = json.loads(file_data)
 
@@ -238,11 +244,19 @@ class Client(object):
 
         if changed:
             # update cache file, if anything changed
-            with open(DATA_DIR_FILE_PATH, 'w') as f:
-                f.write(json.dumps(cache))
+            try:
+                with open(DATA_DIR_FILE_PATH, 'w') as f:
+                    f.write(json.dumps(cache))
 
-                # ensure file is committed to disk
-                f.flush()
+                    # ensure file is committed to disk
+                    f.flush()
+
+            except PermissionError:
+                with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
+                    f.write(json.dumps(cache))
+
+                    # ensure file is committed to disk
+                    f.flush()
 
         return resolved_keys
 
