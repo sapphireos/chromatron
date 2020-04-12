@@ -1254,7 +1254,7 @@ class Device(object):
             loop_rate = params["thread_loops"] / (params["thread_run_time"] / 1000.0)
             cpu_usage = (params["thread_task_time"] / params["thread_run_time"]) * 100.0
 
-        s = "CPU:%2.1f%% Tsk:%8d Slp:%8d Ohd:%8d MaxT:%3d Loops:%8d @ %5d/sec" % \
+        s = "CPU:%4.1f%% Tsk:%8d Slp:%8d Ohd:%8d MaxT:%3d Loops:%8d @ %5d/sec" % \
             (cpu_usage,
              params["thread_task_time"],
              params["thread_sleep_time"],

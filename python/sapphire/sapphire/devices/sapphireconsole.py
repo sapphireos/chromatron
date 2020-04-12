@@ -150,7 +150,7 @@ class SapphireConsole(cmd.Cmd):
 cli_template = """
     def do_$fname(self, line):
         for target in self.targets:
-            sys.stdout.write('%s@%s: ' % (target.name.ljust(16), target.host))
+            sys.stdout.write('%s@%12s: ' % (target.name.ljust(16), target.host))
 
             try:
                 print(target.cli_$fname(line))
@@ -210,7 +210,7 @@ def main():
                 sys.exit(0)
 
             print(f"Found {len(targets)} devices")
-            
+
         except:
             print("*** Unable to connect to %s" % host)
             raise
