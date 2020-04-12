@@ -357,28 +357,8 @@ class Device(object):
         if get_all:
             self.get_all_kv()
 
-        else:
-            self.get_key('device_id')
-            try:
-                self.get_key('meta_tag_name')
-
-            except KeyError:
-                self.get_key('name')
-
-        if self.device_id == None:
-            self.device_id = self._keys["device_id"]._value
-
-        elif self.device_id != self._keys["device_id"]._value:
-            raise InvalidDeviceIDException(self._keys["device_id"]._value, self.device_id)
-
-        try:
-            if self._keys["meta_tag_name"]._value:
-                self.name = self._keys["meta_tag_name"]._value
-
-        except KeyError:
-            if self._keys["name"]._value:
-                self.name = self._keys["name"]._value
-
+        self.device_id = self.get_key('device_id')            
+        self.name = self.get_key('meta_tag_name')
 
         self.get_firmware_info()
 

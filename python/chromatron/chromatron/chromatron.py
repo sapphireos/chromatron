@@ -317,7 +317,6 @@ class Chromatron(object):
             return
 
         self._update_meta()
-        self.firmware_version = self._device.firmware_version
 
         keys = self._device.get_kv('ip', 'catbus_data_port', 'pix_count')
 
@@ -487,7 +486,7 @@ class Chromatron(object):
         self._device.reboot_and_load_fw()
 
     def get_version(self):
-        main_ver = self._device.firmware_version
+        main_ver = self._device.get_firmware_info().firmware.version
         raw_wifi_ver = self.get_key('wifi_version')
 
         major = (raw_wifi_ver >> 12) & 0x0f
