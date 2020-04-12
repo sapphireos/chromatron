@@ -48,7 +48,6 @@ import os
 from .database import *
 from .server import *
 from .client import *
-from .directory import get_directory
 
 
 import click
@@ -363,10 +362,12 @@ def hash(key):
 
 
 @cli.command()
-def directory():
+@click.pass_context
+def directory(ctx):
     """Query directory server"""
-
-    print(get_directory())
+    
+    client = ctx.obj['CLIENT']
+    print(client.get_directory())
 
 def main():
     cli(obj={})

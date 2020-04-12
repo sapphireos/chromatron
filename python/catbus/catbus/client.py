@@ -34,7 +34,7 @@ from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
 DATA_DIR_FILE_PATH_ALT = 'catbus_hashes.json'
 
-DISCOVERY_TIMEOUT = 0.3
+DISCOVERY_TIMEOUT = 1.0
 
 import random
 
@@ -260,6 +260,25 @@ class Client(object):
 
         return resolved_keys
 
+    def get_directory(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
+
+        except ConnectionRefusedError:
+            return None
+
+        data = sock.recv(4)
+        length = struct.unpack('<L', data)[0]
+
+        buf = bytes()
+
+        while len(buf) < length:
+            buf += sock.recv(1024)
+
+        return json.loads(buf)
+
     def discover(self, *args, **kwargs):
         """Discover KV nodes on the network"""
         self.nodes = {}
@@ -274,46 +293,57 @@ class Client(object):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
-        # note we're creating a new socket for discovery.
-        # the reason to do this is we may get a stray response after
-        # we've completed discovery, and that may interfere with
-        # other communications (you receive an announce when you
-        # were expecting a data message, etc).
+        # try to contact directory server
+        directory = self.get_directory()
 
-        discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        if directory == None:
+            # note we're creating a new socket for discovery.
+            # the reason to do this is we may get a stray response after
+            # we've completed discovery, and that may interfere with
+            # other communications (you receive an announce when you
+            # were expecting a data message, etc).
 
-        discover_sock.settimeout(DISCOVERY_TIMEOUT)
+            discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        for i in range(3):
-            send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
+            discover_sock.settimeout(DISCOVERY_TIMEOUT)
 
-            start = time.time()
+            for i in range(3):
+                send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
 
-            while (time.time() - start) < DISCOVERY_TIMEOUT:
-                try:
-                    data, sender = discover_sock.recvfrom(1024)
+                start = time.time()
 
-                    response = deserialize(data)
-                    
-                    if not isinstance(response, AnnounceMsg):
-                        continue
+                while (time.time() - start) < DISCOVERY_TIMEOUT:
+                    try:
+                        data, sender = discover_sock.recvfrom(1024)
 
-                    if response.header.transaction_id == msg.header.transaction_id and \
-                        query_tags(tags, response.query):
+                        response = deserialize(data)
+                        
+                        if not isinstance(response, AnnounceMsg):
+                            continue
 
-                        # add to node list
-                        self.nodes[response.header.origin_id] = \
-                            {'host': (sender[0], response.data_port),
-                             'tags': response.query}
+                        if response.header.transaction_id == msg.header.transaction_id and \
+                            query_tags(tags, response.query):
 
-                except InvalidMessageException as e:
-                    logging.exception(e)
+                            # add to node list
+                            self.nodes[response.header.origin_id] = \
+                                {'host': (sender[0], response.data_port),
+                                 'tags': response.query}
 
-                except socket.timeout:
-                    pass
+                    except InvalidMessageException as e:
+                        logging.exception(e)
 
-        discover_sock.close()
+                    except socket.timeout:
+                        pass
+
+            discover_sock.close()
+        
+        else:
+            for origin_id, v in directory.items():
+                if query_tags(tags, v['tags']):
+                    self.nodes[origin_id] = \
+                                    {'host': tuple(v['host']),
+                                     'tags': v['tags']}
 
         return self.nodes
 

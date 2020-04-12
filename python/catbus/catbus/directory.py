@@ -98,7 +98,7 @@ class Directory(Ribbon):
 
                     self._hash_lookup[hashed_key] = key[hashed_key]
 
-                    return key
+                    return self._hash_lookup[hashed_key]
 
                 else:
                     raise
@@ -138,6 +138,7 @@ class Directory(Ribbon):
                 info = {'host': host,
                         'name': name,
                         'query': resolved_query,
+                        'tags': [t for t in msg.query if t != 0],
                         'data_port': msg.data_port,
                         'version': msg.header.version,
                         'universe': msg.header.universe,
@@ -233,21 +234,6 @@ class DirectoryServer(Ribbon):
 
     def clean_up(self):
         self.sock.close()
-
-def get_directory():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
-
-    data = sock.recv(4)
-    length = struct.unpack('<L', data)[0]
-
-    buf = bytes()
-
-    while len(buf) < length:
-        buf += sock.recv(1024)
-
-    return json.loads(buf)
 
 def main():
     util.setup_basic_logging(console=False, filename='catbus_directory.log')
