@@ -411,7 +411,9 @@ class Client(object):
         # check if we have these keys
         # we're doing this because on older versions of catbus,
         # requesting a key that does not exist may return garbage.
-        key_list = [k for k in key_list if k in self.meta]
+        # key_list = [k for k in key_list if k in self.meta]
+        # disabled this code path, this is legacy support - 
+        # i don't think i have any more of these in the field.
 
         hashes = {}
         for key in key_list:
