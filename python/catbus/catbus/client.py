@@ -51,6 +51,11 @@ class Client(object):
         self.nodes = {}
         self._meta = {}
 
+        try:
+            os.makedirs(firmware_package.data_dir())
+        except FileExistsError:
+            pass
+            
     @property
     def meta(self):
         if len(self._meta) == 0:
