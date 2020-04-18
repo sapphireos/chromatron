@@ -3,7 +3,7 @@ Description=Catbus Directory Server
 
 [Service]
 Type=simple
-ExecStart=catbus_directory
+ExecStart=/usr/local/bin/catbus_directory
 
 [Install]
 WantedBy=multi-user.target
