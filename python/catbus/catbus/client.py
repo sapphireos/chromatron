@@ -55,6 +55,8 @@ class Client(object):
             os.makedirs(firmware_package.data_dir())
         except FileExistsError:
             pass
+        except PermissionError:
+            pass
             
     @property
     def meta(self):
@@ -256,7 +258,7 @@ class Client(object):
                     # ensure file is committed to disk
                     f.flush()
 
-            except PermissionError:
+            except (PermissionError, FileNotFoundError):
                 with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
                     f.write(json.dumps(cache))
 

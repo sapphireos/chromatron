@@ -31,6 +31,7 @@ from copy import copy
 import socket
 import json
 import struct
+import sys
 
 from .options import *
 from .messages import *
@@ -178,7 +179,6 @@ class Directory(Ribbon):
                     self._process_msg(msg, host)
 
                 except UnknownMessageException as e:
-                    raise
                     pass
 
                 except Exception as e:
@@ -240,6 +240,11 @@ class DirectoryServer(Ribbon):
         self.sock.close()
 
 def main():
+    try:
+        LOG_FILE_PATH = sys.argv[1]
+    except IndexError:
+        pass
+
     util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
 
     d = Directory()

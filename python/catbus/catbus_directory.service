@@ -3,7 +3,9 @@ Description=Catbus Directory Server
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/catbus_directory
+User=catbus
+WorkingDirectory=/var/log/chromatron
+ExecStart=/usr/local/bin/catbus_directory catbus_directory.log
 
 [Install]
 WantedBy=multi-user.target
