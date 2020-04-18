@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-sudo cp chromatron.service /etc/systemd/system/chromatron.service
-sudo chmod 644 /etc/systemd/system/chromatron.service
+sudo cp catbus_directory.service /etc/systemd/system/catbus_directory.service
+sudo chmod 644 /etc/systemd/system/catbus_directory.service
