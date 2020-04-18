@@ -23,6 +23,7 @@
 
 import logging
 import time
+import os
 import threading
 import select
 from .client import Client
@@ -33,6 +34,9 @@ import struct
 
 from .options import *
 from .messages import *
+
+from sapphire.buildtools import firmware_package
+LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
 from sapphire.common import Ribbon, MsgQueueEmptyException, util
 
@@ -236,7 +240,7 @@ class DirectoryServer(Ribbon):
         self.sock.close()
 
 def main():
-    util.setup_basic_logging(console=False, filename='catbus_directory.log')
+    util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
 
     d = Directory()
     svr = DirectoryServer(directory=d)
