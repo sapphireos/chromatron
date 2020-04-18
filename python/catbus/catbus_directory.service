@@ -1,0 +1,9 @@
+[Unit]
+Description=Catbus Directory Server
+
+[Service]
+Type=simple
+ExecStart=catbus_directory
+
+[Install]
+WantedBy=multi-user.target
