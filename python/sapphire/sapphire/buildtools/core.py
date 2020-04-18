@@ -1416,6 +1416,10 @@ def get_build_configs():
 
 
     for filename in os.listdir(BUILD_CONFIGS_DIR):
+        # skip hidden files
+        if filename.startswith('.'):
+            continue
+
         filepath = os.path.join(BUILD_CONFIGS_DIR, filename)
         
         parser = configparser.SafeConfigParser()
