@@ -1089,31 +1089,31 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
 
     // x interleave
     // note pix_size_x and pix_size_y must be set correctly for this to work properly
-    // if( gfx_interleave_x ){
+    if( gfx_interleave_x ){
 
-    //     // if y is not given, we need to figure out which row we're in
-    //     if( y == 65535 ){
+        // if y is not given, we need to figure out which row we're in
+        if( y == 65535 ){
 
-    //         uint16_t row = x / pix_arrays[obj].size_x;
+            uint16_t row = x / pix_arrays[obj].size_x;
             
-    //         if( row & 1 ){
+            if( row & 1 ){
 
-    //             uint16_t temp_x = x % pix_arrays[obj].size_x;
+                uint16_t temp_x = x % pix_arrays[obj].size_x;
 
-    //             // flip x around
-    //             temp_x = ( pix_arrays[obj].size_x - 1 ) - temp_x;
-    //             x = ( row * pix_arrays[obj].size_x ) + temp_x;
-    //         }
-    //     }   
-    //     // 2D access, this is easier because we already know y
-    //     else{
+                // flip x around
+                temp_x = ( pix_arrays[obj].size_x - 1 ) - temp_x;
+                x = ( row * pix_arrays[obj].size_x ) + temp_x;
+            }
+        }   
+        // 2D access, this is easier because we already know y
+        else{
 
-    //         if( y & 1 ){
+            if( y & 1 ){
 
-    //             x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
-    //         }
-    //     }        
-    // }
+                x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
+            }
+        }        
+    }
     
 
     // invert x axis
