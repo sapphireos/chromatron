@@ -18,7 +18,8 @@ class Watcher(threading.Thread):
 
     def _get_hash(self):
         m = hashlib.md5()
-        m.update(open(self.filename).read())
+        with open(self.filename, 'rb') as f:
+            m.update(f.read())
 
         return m.hexdigest()
 

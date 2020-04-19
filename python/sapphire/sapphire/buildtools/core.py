@@ -39,8 +39,6 @@ import urllib.request, urllib.parse, urllib.error
 import tarfile
 import zipfile
 from datetime import datetime
-import hashlib
-import zipfile
 import configparser
 from pprint import pprint
 from . import firmware_package
