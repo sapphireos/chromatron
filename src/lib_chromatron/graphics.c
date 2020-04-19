@@ -234,6 +234,7 @@ void gfx_v_get_params( gfx_params_t *params ){
     params->pix_size_x          = pix_size_x;
     params->pix_size_y          = pix_size_y;
     params->interleave_x        = gfx_interleave_x;
+    params->invert_x            = gfx_invert_x;
     params->transpose           = gfx_transpose;
     params->hs_fade             = hs_fade;
     params->v_fade              = v_fade;
