@@ -2666,7 +2666,7 @@ class Builder(object):
 
         code = self.funcs[func].body
 
-
+        self.debug_print('liveness')
         liveness = [[] for i in range(len(code))]
 
         for line in unreachable:
@@ -2707,39 +2707,37 @@ class Builder(object):
 
 
 
-        # print '------', func, '---------'
+        self.debug_print('------%s------' % (func))
 
-        # print 'use'
-        # for i in use:
-        #     print [a.name for a in i]
-        # print 'define'
-        # for i in define:
-        #     print [a.name for a in i]
+        self.debug_print('use')
+        for i in use:
+            self.debug_print([a.name for a in i])
+        self.debug_print('define')
+        for i in define:
+            self.debug_print([a.name for a in i])
                 
-        # pc = 0
+        pc = 0
         
-        # for l in liveness:
-        #     temp = 5
-        #     print pc, ': ',
-            
-        #     if l == None:
-        #         print 'UNREACHABLE',
+        for l in liveness:
+            temp = 5
+            if l == None:
+                self.debug_print('%s: UNREACHABLE' % (pc))
 
-        #     else:
-        #         for a in l:
-        #             print a.name,
-        #             temp -= 1
+            else:
+                for a in l:
+                    self.debug_print('%s: %s' % (pc, a.name))
+                    temp -= 1
 
-        #     print '\t' * temp, code[pc]
+            self.debug_print('\t' * temp + str(code[pc]))
 
-        #     pc += 1
+            pc += 1
 
-        # print '------'
+        self.debug_print('------')
 
         return liveness
 
     def debug_print(self, s):
-        # print s
+        # print(s)
         pass
 
     def allocate(self):
@@ -3024,10 +3022,21 @@ class Builder(object):
 
         self.data_count = addr
 
+        unallocated = []
+        for i in self.data_table:
+            if i.addr == None:
+                self.debug_print("NOT ALLOCATED: %s" % (i))
+                unallocated.append(i)
+
+        self.data_table = [a for a in self.data_table if a not in unallocated]
+
         return self.data_table
 
     def print_data_table(self):
         print("DATA: ")
+        for i in self.data_table:
+            print(type(i), i, i.addr)
+
         for i in sorted(self.data_table, key=lambda d: d.addr):
             default_value = ''
 
