@@ -253,6 +253,13 @@ class Builder(object):
         # add target dir
         self.source_dirs.append(self.target_dir)
 
+        # skip dirs
+        try:
+            self.skip_dirs = [os.path.join(self.target_dir, a) for a in self.settings["SKIP_DIRS"]]
+            
+        except KeyError:
+            self.skip_dirs = []
+
     def get_tools(self):
         tools = build_tool_archives[sys.platform]
 
@@ -677,6 +684,15 @@ class Builder(object):
                 lib_proj = get_project_builder(include, target=self.target_type)
                 include_dirs = [lib_proj.target_dir]
                 include_dirs.extend(lib_proj.source_dirs)
+
+                # process directories to skip
+                skips = []
+                for d in include_dirs:
+                    for skip in self.skip_dirs:
+                        if skip in d:
+                            skips.append(d)
+
+                include_dirs = [a for a in include_dirs if a not in skips]
 
                 cmd += '-D%s ' % (include.upper())
 
