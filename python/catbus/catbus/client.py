@@ -455,7 +455,11 @@ class Client(object):
         return answers
 
     def get_key(self, key):
-        return self.get_keys(key)[key]
+        try:
+            return self.get_keys(key)[key]
+
+        except KeyError:
+            raise KeyError(key)
 
     def set_keys(self, **kwargs):
         key_data = kwargs
