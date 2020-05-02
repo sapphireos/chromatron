@@ -35,6 +35,7 @@ import sys
 
 from .options import *
 from .messages import *
+from .data_structures import *
 
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
@@ -131,7 +132,13 @@ class Directory(Ribbon):
         # update host port with advertised data port
         host = (host[0], msg.data_port)
 
-        resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
+        try:
+            resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
+
+        except NoResponseFromHost:
+            logging.warn(f"No response from: {host}")
+
+            return
 
         with self.__lock:
             # check if we have this node already
