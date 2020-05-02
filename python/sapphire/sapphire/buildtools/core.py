@@ -42,6 +42,7 @@ from datetime import datetime
 import configparser
 from pprint import pprint
 from . import firmware_package
+from . import esptool
 
 from . import settings
 
@@ -966,7 +967,6 @@ class HexBuilder(Builder):
         if self.settings["TOOLCHAIN"] == "XTENSA":
             # runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
             # runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
-            import esptool
             esptool.main('elf2image -o image -ff 40m -fm dio -fs 4MB main.elf'.split())
 
             # create binary image
@@ -1159,24 +1159,24 @@ class AppBuilder(HexBuilder):
                     loader_image = f.read()
 
                 # sanity check
-                if ord(loader_image[0]) != 0xE9:
+                if loader_image[0] != 0xE9:
                     raise Exception("invalid esp bootloader image")
 
                 bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
 
                 # pad bootloader
-                loader_image += (bootloader_size - len(loader_image) % bootloader_size) * '\0'
+                loader_image += bytes((bootloader_size - len(loader_image) % bootloader_size) * [0])
 
                 with open("firmware.bin", 'rb') as f:
                     firmware_image = f.read()
 
-                if ord(firmware_image[0]) != 0xE9:
+                if firmware_image[0] != 0xE9:
                     raise Exception("invalid esp firmware image")
 
                 combined_image = loader_image + firmware_image
 
                 # need to pad to sector length
-                combined_image += (4096 - (len(combined_image) % 4096)) * chr(0xff)
+                combined_image += bytes((4096 - (len(combined_image) % 4096)) * [0xff])
 
                 # write a combined image suitable for esptool
                 with open("esptool_image.bin", 'wb') as f:

@@ -2,7 +2,7 @@
 	"_comment": "This is the project name.",
     "_comment": "The project name is used by the build system",
     "_comment": "to identify and search for projects",
-    "PROJ_NAME": "lib_chromatron",
+    "PROJ_NAME": "lib_chromatron_original",
 
     "_comment": "Project version",
     "PROJ_VERSION": "1.0",
