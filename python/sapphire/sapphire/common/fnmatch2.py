@@ -64,36 +64,36 @@ import time
 # @profile
 def test_fnmatch():
     start = time.time()
-    for i in xrange(1000000):
+    for i in range(1000000):
         fnmatch.fnmatch('stuff', '*')
         fnmatch.fnmatch('things.stuff', '*.stuff')
         fnmatch.fnmatch('cat.meow', 'cat*.meow')
 
     elapsed = time.time() - start
 
-    print elapsed * 1000.0
+    print(elapsed * 1000.0)
 
 
 # @profile
 def test_fnmatch2():
     start = time.time()
-    for i in xrange(1000000):
+    for i in range(1000000):
         fnmatch2('stuff', '*')
         fnmatch2('things.stuff', '*.stuff')
         fnmatch2('cat.meow', 'cat*.meow')
 
     elapsed = time.time() - start
 
-    print elapsed * 1000.0
+    print(elapsed * 1000.0)
 
 
 def test_mem_usage():
-    for i in xrange(1000):
-        for j in xrange(100):
+    for i in range(1000):
+        for j in range(100):
             fnmatch2('stuff.%d' % (i), '*%d' % (j))
 
-    for i in xrange(1000):
-        for j in xrange(100):
+    for i in range(1000):
+        for j in range(100):
             fnmatch2('stuff.%d' % (i), '*%d' % (j))
 
 # test_fnmatch()

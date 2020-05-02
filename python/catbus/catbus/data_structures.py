@@ -22,7 +22,7 @@
 
 
 from elysianfields import *
-from catbustypes import *
+from .catbustypes import *
 from fnvhash import fnv1a_32
 
 
@@ -43,7 +43,7 @@ class NoResponseFromHost(Exception):
     def __init__(self, msg=None, host=None, *args):
         super(NoResponseFromHost, self).__init__(*args)
 
-        from messages import lookup_msg
+        from .messages import lookup_msg
         
         self.msg = lookup_msg(msg)
         self.host = host
@@ -202,8 +202,11 @@ from sapphire.common import util
 
 @util.memoize
 def catbus_string_hash(s):
-    s = str(s) # no unicode!
-    
+    try:
+        s = s.encode()
+    except AttributeError:
+        pass
+
     if len(s) == 0:
         return 0
 
@@ -250,6 +253,6 @@ META_TAGS = [
     META_TAG_LOC,
 ]
 
-for i in xrange(META_TAG_GROUP_COUNT):
+for i in range(META_TAG_GROUP_COUNT):
     META_TAGS.append(META_TAG_BASE % (i))
 

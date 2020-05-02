@@ -24,8 +24,8 @@
 import time
 from datetime import datetime, timedelta
 import sqlite3
-from client import Client
-from data_structures import META_TAGS, catbus_string_hash, query_tags
+from .client import Client
+from .data_structures import META_TAGS, catbus_string_hash, query_tags
 import sapphire.common.util as util
 from fnvhash import fnv1a_64
 from sapphire.common import Ribbon, MsgQueueEmptyException
@@ -76,7 +76,7 @@ class Logger(object):
     def _hash_tags(self, tags):
         hashes = []
         for tag in tags:
-            assert isinstance(tag, basestring)
+            assert isinstance(tag, str)
             hashes.append((fnv1a_64(tag)))
 
         return sum(hashes) % ((2**63) - 1)
@@ -122,7 +122,7 @@ class Logger(object):
 
     def query_tags(self, tags):
         results = []
-        for hashed_tags, dest_tags in self.tags.iteritems():
+        for hashed_tags, dest_tags in self.tags.items():
             if query_tags(tags, dest_tags):
                 results.append(hashed_tags)
 
@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
     # time.sleep(2.0)
 
-    print l.query("things", [], util.now() - timedelta(seconds=6000), util.now())
+    print(l.query("things", [], util.now() - timedelta(seconds=6000), util.now()))
 
     # print l.query_tags(['meow'])
     # print l.query_tags(['test', 'meow'])

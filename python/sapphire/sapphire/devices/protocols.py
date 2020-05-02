@@ -24,7 +24,7 @@
 
 from elysianfields import *
 from sapphire.fields.protocol import *
-from sapphiredata import *
+from .sapphiredata import *
 
 CMD2_APP_CMD_BASE = 32768
 

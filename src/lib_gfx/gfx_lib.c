@@ -1114,7 +1114,6 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
             }
         }        
     }
-    
 
     // invert x axis
     if( gfx_invert_x ){

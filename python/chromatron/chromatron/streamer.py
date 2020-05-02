@@ -86,7 +86,7 @@ class PixelArray(object):
 
         self.name = name
         self.length = length
-        self.list = [value for a in xrange(length)]
+        self.list = [value for a in range(length)]
 
         self.streamer = streamer
         self.streamer.register_array(self)
@@ -133,35 +133,35 @@ class PixelArray(object):
 
     def __iadd__(self, other):
         with self.__lock:
-            for i in xrange(len(self.list)):
+            for i in range(len(self.list)):
                 self.list[i] = self.check(other + self.list[i])
 
         return self
 
     def __isub__(self, other):
         with self.__lock:
-            for i in xrange(len(self.list)):
+            for i in range(len(self.list)):
                 self.list[i] = self.check(other - self.list[i])
 
         return self
 
     def __imul__(self, other):
         with self.__lock:
-            for i in xrange(len(self.list)):
+            for i in range(len(self.list)):
                 self.list[i] = self.check(other * self.list[i])
 
         return self
 
     def __idiv__(self, other):
         with self.__lock:
-            for i in xrange(len(self.list)):
+            for i in range(len(self.list)):
                 self.list[i] = self.check(other / self.list[i])
 
         return self
 
     def __imod__(self, other):
         with self.__lock:
-            for i in xrange(len(self.list)):
+            for i in range(len(self.list)):
                 self.list[i] = self.check(other % self.list[i])
 
         return self
@@ -170,7 +170,7 @@ class PixelArray(object):
         with self.__lock:
             other = self.check(other)
 
-            for i in xrange(len(self.list)):
+            for i in range(len(self.list)):
                 self.list[i] = other
 
 
@@ -231,7 +231,7 @@ class Streamer(object):
 
             i = 0
             index = 0
-            for i in xrange(len(hue_list)):
+            for i in range(len(hue_list)):
                 h = hue_list[i]
                 s = sat_list[i]
                 v = val_list[i]
@@ -283,7 +283,7 @@ class Streamer(object):
 
             i = 0
             index = 0
-            for i in xrange(len(r_list)):
+            for i in range(len(r_list)):
                 pix_r = r_list[i]
                 pix_g = g_list[i]
                 pix_b = b_list[i]

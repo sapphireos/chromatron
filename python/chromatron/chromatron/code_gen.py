@@ -26,8 +26,8 @@ import ast
 import sys
 from textwrap import dedent
 
-from ir import *
-from instructions import *
+from .ir import *
+from .instructions import *
 
 
 # see http://dev.stephendiehl.com/numpile/
@@ -147,7 +147,7 @@ class cg1RecordType(cg1Node):
         self.fields = fields
 
     def build(self, builder):
-        fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in self.fields.items()}
+        fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in list(self.fields.items())}
         return builder.create_record(self.name, fields, lineno=self.lineno)
 
 
@@ -216,9 +216,9 @@ class cg1Module(cg1Node):
         self.module = None
         self.ctx = {}
 
-    def build(self, builder=None, script_name=''):
+    def build(self, builder=None, script_name='', source=[]):
         if builder == None:
-            builder = Builder(script_name=script_name)
+            builder = Builder(script_name=script_name, source=source)
 
         # collect everything at module level that is not part of a function
         startup_code = [a for a in self.body if not isinstance(a, cg1Func)]
@@ -241,7 +241,7 @@ class cg1Module(cg1Node):
             elif isinstance(node, cg1Assign):
                 if isinstance(node.value, cg1GenericObject):
                     args = [a.build(builder) for a in node.value.args]
-                    kw = {k: v.build(builder) for k, v in node.value.kw.items()}
+                    kw = {k: v.build(builder) for k, v in list(node.value.kw.items())}
 
                     builder.generic_object(node.target.name, node.value.name, args, kw, lineno=node.lineno)
 
@@ -618,14 +618,14 @@ class CodeGenPass1(ast.NodeVisitor):
         return self.visit(self._ast)
 
     def visit_Module(self, node):
-        body = map(self.visit, node.body)
+        body = list(map(self.visit, node.body))
         
         return cg1Module("module", body, lineno=0)
 
     def visit_FunctionDef(self, node):
         self.in_func = True
-        body = map(self.visit, list(node.body))
-        params = map(self.visit, node.args.args)
+        body = list(map(self.visit, list(node.body)))
+        params = list(map(self.visit, node.args.args))
 
         params = [cg1VarInt32(a.name, lineno=a.lineno) for a in params]
 
@@ -647,7 +647,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def _handle_Number(self, node):
         keywords = {}
         for kw in node.keywords:
-            keywords[kw.arg] = kw.value.id
+            keywords[kw.arg] = kw.value.value
 
         if len(node.args) > 0:
             keywords['init_val'] = node.args[0].n
@@ -657,7 +657,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def _handle_Fixed16(self, node):
         keywords = {}
         for kw in node.keywords:
-            keywords[kw.arg] = kw.value.id
+            keywords[kw.arg] = kw.value.value
 
         if len(node.args) > 0:
             keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
@@ -667,7 +667,7 @@ class CodeGenPass1(ast.NodeVisitor):
     def _handle_String(self, node):
         keywords = {}
         for kw in node.keywords:
-            keywords[kw.arg] = kw.value.id
+            keywords[kw.arg] = kw.value.value
 
         if len(node.args) == 0:
             keywords['length'] = 1
@@ -762,12 +762,12 @@ class CodeGenPass1(ast.NodeVisitor):
             for kw in map(self.visit, node.keywords):
                 kwargs.update(kw)
 
-            args = map(self.visit, node.args)
+            args = list(map(self.visit, node.args))
             return cg1Call(node.func.id, args, kwargs, lineno=node.lineno)
 
         else:
             # function call at module level
-            return cg1Call(node.func.id, map(self.visit, node.args), lineno=node.lineno)
+            return cg1Call(node.func.id, list(map(self.visit, node.args)), lineno=node.lineno)
 
     def visit_Yield(self, node):
         return cg1Call('yield',[], lineno=node.lineno)
@@ -779,7 +779,7 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1List([self.visit(e) for e in node.elts], lineno=node.lineno)
 
     def visit_If(self, node):
-        return cg1If(self.visit(node.test), map(self.visit, node.body), map(self.visit, node.orelse), lineno=node.lineno)
+        return cg1If(self.visit(node.test), list(map(self.visit, node.body)), list(map(self.visit, node.orelse)), lineno=node.lineno)
     
     def visit_Compare(self, node):
         assert len(node.ops) <= 1
@@ -831,6 +831,9 @@ class CodeGenPass1(ast.NodeVisitor):
     
     def visit_Name(self, node):
         return cg1Var(node.id, lineno=node.lineno)
+
+    def visit_arg(self, node):
+        return cg1Var(node.arg, lineno=node.lineno)
 
     def visit_BinOp(self, node):
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)
@@ -904,7 +907,7 @@ class CodeGenPass1(ast.NodeVisitor):
         # rarely used, so we are not going to support it.
         assert len(node.orelse) == 0
 
-        return cg1For(self.visit(node.target), self.visit(node.iter), map(self.visit, node.body), lineno=node.lineno)
+        return cg1For(self.visit(node.target), self.visit(node.iter), list(map(self.visit, node.body)), lineno=node.lineno)
 
     def visit_While(self, node):
         # Check for an else clause.  Python has an atypical else construct
@@ -912,7 +915,7 @@ class CodeGenPass1(ast.NodeVisitor):
         # rarely used, so we are not going to support it.
         assert len(node.orelse) == 0
 
-        return cg1While(self.visit(node.test), map(self.visit, node.body), lineno=node.lineno)
+        return cg1While(self.visit(node.test), list(map(self.visit, node.body)), lineno=node.lineno)
 
     def visit_Attribute(self, node):
         load = True
@@ -962,16 +965,18 @@ class CodeGenPass1(ast.NodeVisitor):
 def compile_text(source, debug_print=False, summarize=False, script_name=''):
     tree = ast.parse(source)
 
+    if debug_print:
+        print(pformat_ast(tree))
+
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
     # if debug_print:
-    #     print pformat_ast(tree)
-    #     print pformat_ast(cg1_data)
+    #     print(pformat_ast(cg1_data))
 
-    builder = cg1_data.build(script_name=script_name)
+    builder = cg1_data.build(script_name=script_name, source=source)
     if debug_print:
-        print builder
+        print(builder)
 
     builder.allocate()
     builder.generate_instructions()
@@ -985,20 +990,20 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     builder.generate_binary()
 
     if debug_print or summarize:
-        print "VM ISA:  %d" % (VM_ISA_VERSION)
-        print "Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash)
-        print "Stream length:   %d bytes"   % (len(builder.stream))
-        print "Code length:     %d bytes"   % (builder.header.code_len)
-        print "Data length:     %d bytes"   % (builder.header.data_len)
-        print "Functions:       %d"         % (len(builder.funcs))
-        print "Read keys:       %d"         % (len(builder.read_keys))
-        print "Write keys:      %d"         % (len(builder.write_keys))
-        print "Published vars:  %d"         % (builder.published_var_count)
-        print "Pixel arrays:    %d"         % (len(builder.pixel_arrays))
-        print "Links:           %d"         % (len(builder.links))
-        print "DB entries:      %d"         % (len(builder.db_entries))
-        print "Cron entries:    %d"         % (len(builder.cron_tab))
-        print "Stream hash:     0x%08x"     % (builder.stream_hash)
+        print("VM ISA:  %d" % (VM_ISA_VERSION))
+        print("Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash))
+        print("Stream length:   %d bytes"   % (len(builder.stream)))
+        print("Code length:     %d bytes"   % (builder.header.code_len))
+        print("Data length:     %d bytes"   % (builder.header.data_len))
+        print("Functions:       %d"         % (len(builder.funcs)))
+        print("Read keys:       %d"         % (len(builder.read_keys)))
+        print("Write keys:      %d"         % (len(builder.write_keys)))
+        print("Published vars:  %d"         % (builder.published_var_count))
+        print("Pixel arrays:    %d"         % (len(builder.pixel_arrays)))
+        print("Links:           %d"         % (len(builder.links)))
+        print("DB entries:      %d"         % (len(builder.db_entries)))
+        print("Cron entries:    %d"         % (len(builder.cron_tab)))
+        print("Stream hash:     0x%08x"     % (builder.stream_hash))
 
     return builder
 
@@ -1041,9 +1046,9 @@ if __name__ == '__main__':
                 continue
 
             with open(os.path.join(path, fpath)) as f:
-                print '\n*********************************'
-                print fpath
-                print '---------------------------------'
+                print('\n*********************************')
+                print(fpath)
+                print('---------------------------------')
                 text = f.read()
                 try:
                     builder = compile_text(text, summarize=False)
@@ -1054,12 +1059,12 @@ if __name__ == '__main__':
 
 
                 except SyntaxError as e:
-                    print "SyntaxError:", e
+                    print("SyntaxError:", e)
 
                 except Exception as e:
-                    print "Exception:", e
+                    print("Exception:", e)
 
-        print ''
+        print('')
         for param in ['code', 'data', 'stream']:
             highest = 0
             name = ''
@@ -1068,74 +1073,5 @@ if __name__ == '__main__':
                     highest = stats[script][param]
                     name = script
 
-            print "Largest %8s size: %32s %5d bytes" % (param, name, highest)
-
-
-
-        # pprint.pprint(stats)
-
-
-
-
-
-    # with open('cg2_test.fx') as f:
-    #     source = f.read()
-
-
-    # with open('chandelier.fx') as f:
-        # source = f.read()
-
-    # tree = ast.parse(source)
-
-    # print pformat_ast(tree)
-
-    # print '\n'
-
-    # cg1 = CodeGenPass1()
-
-    # cg1_data = cg1(source)
-
-    # print pformat_ast(cg1_data)
-
-    # try:
-    #     builder = cg1_data.build()
-
-    #     print builder
-
-    # except SyntaxError as e:
-    #     print e
-
-    #     raise
-    #     # sys.exit(0)
-
-
-
-    # data = builder.allocate()
-
-    # # print builder
-
-    # ins = builder.generate_instructions()
-
-    # builder.print_instructions(ins)
-    # builder.print_data_table(data)
-
-    # stream = builder.assemble()
-
-    # # pprint.pprint(stream)
-
-    # builder.generate_binary('cg2_test.fxb')
-    
-
-    # vm = VM(builder)
-
-    # pprint.pprint(vm.dump_registers())
-    # # vm.run('init')
-    # vm.run_once()
-
-    # pprint.pprint(vm.dump_registers())
-
-    # print vm.memory
-    # print vm.db
-    # print vm.pixel_arrays
-    # print vm.dump_hsv()
+            print("Largest %8s size: %32s %5d bytes" % (param, name, highest))
 

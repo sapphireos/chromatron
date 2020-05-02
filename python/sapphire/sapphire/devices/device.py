@@ -28,9 +28,9 @@
 from elysianfields import *
 from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, catbus_string_hash, NoResponseFromHost, ProtocolErrorException
 
-import sapphiredata
-import firmware
-import channel
+from . import sapphiredata
+from . import firmware
+from . import channel
 
 import time
 import sys
@@ -41,7 +41,7 @@ from datetime import datetime, timedelta
 from pprint import pprint
 import hashlib
 import binascii
-from UserDict import DictMixin
+from collections import UserDict 
 import json
 import base64
 import traceback
@@ -158,12 +158,6 @@ class DeviceUnreachableException(DeviceCommsErrorException):
 class DeviceMetaErrorException(Exception):
     pass
 
-class DuplicateKeyNameException(DeviceMetaErrorException):
-    pass
-
-class DuplicateKeyIDException(DeviceMetaErrorException):
-    pass
-
 class ReadOnlyKeyException(DeviceMetaErrorException):
     pass
 
@@ -182,7 +176,6 @@ class NotASapphireDevice(Exception):
 class KVKey(object):
     def __init__(self,
                  device=None,
-                 group=None,
                  id=None,
                  flags=None,
                  type=None,
@@ -191,7 +184,6 @@ class KVKey(object):
 
         self._device = device
 
-        self.group = group
         self.id = id
         self.type = type
         self._value = value
@@ -230,9 +222,6 @@ class KVKey(object):
         s = "%32s %6s %8s %s" % (self.key, flags, get_type_name(self.type), str(self._value))
         return s
 
-    def is_sys(self):
-        return self.group < KV_GROUP_APP_BASE
-
     def is_readonly(self):
         return "read_only" in self.flags
 
@@ -251,43 +240,13 @@ class KVKey(object):
     value = property(get_value, set_value)
 
 
-class KVMeta(DictMixin):
+class KVMeta(UserDict):
     def __init__(self):
-        self.kv_items = dict()
-
-    def keys(self):
-        return self.kv_items.keys()
-
-    def __getitem__(self, key):
-        return self.kv_items[key]
-
+        super().__init__()
+        
     def __setitem__(self, key, value):
-        if key in self.kv_items:
-            print "DuplicateKeyNameException: %s" % (key)
-            # print key
-            # we already have an item here
-            # raise DuplicateKeyNameException("DuplicateKeyNameException: %s" % (key))
-
-        self.kv_items[key] = value
+        self.data[key] = value
         value.key = key
-
-    def __delitem__(self, key):
-        del self.kv_items[key]
-
-    def check(self):
-        # check for duplicate IDs
-        for key in self.kv_items:
-            l = len([k for k, v in self.kv_items.iteritems()
-                        if v.group == self.kv_items[key].group
-                            and v.id == self.kv_items[key].id])
-
-            if l > 1:
-                raise DuplicateKeyIDException("DuplicateKeyIDException: %s" % (key))
-
-    def is_system(self, key):
-        group = self.kv_items[key].group
-
-        return group in sys_groups
 
 
 class Device(object):
@@ -319,18 +278,24 @@ class Device(object):
         # if no channel is specified, create one
         if self._channel is None:
             try:
-                self._channel = channel.createChannel(self.host)
+                self._channel = channel.createSerialChannel(self.host)
+                self.channel_type = self._channel.channel_type
 
             except channel.ChannelInvalidHostException:
                 raise DeviceUnreachableException
 
-        self.channel_type = self._channel.channel_type
+            except channel.NotSerialChannel:
+                self.channel_type = 'network'
+
+            except channel.InvalidChannel:
+                raise
+        
         self._client = None
         self._bridge = None
 
         if self.channel_type == 'network':
             self._client = Client()
-            self._client.connect(self.host, get_meta=False)
+            self._client.connect(self.host)
 
         elif self.channel_type == 'serial_udp':
             self._client = Client()
@@ -368,7 +333,7 @@ class Device(object):
     def to_dict(self):
         d = dict()
 
-        for k, v in self._keys.iteritems():
+        for k, v in self._keys.items():
             d[k] = v.value
 
         d["firmware_name"] = self.firmware_name
@@ -378,60 +343,26 @@ class Device(object):
     def query(self, **kwargs):
         return query_dict(self.to_dict(), **kwargs)
 
-    def scan(self, get_all=True):
+    def scan(self, get_all=True):    
+        self.get_kv_meta()
+
+        # check if this is a chromatron device (running sapphireos)
         try:
-            self.get_kv_meta()
+            if self.get_key('os_name') != 'sapphire':
+                raise NotASapphireDevice()
 
-            # check if this is a chromatron device (running sapphireos)
-            try:
-                if self.get_key('os_name') != 'sapphire':
-                    raise NotASapphireDevice()
+        except KeyError:
+            raise NotASapphireDevice()                
 
-            except KeyError:
-                raise NotASapphireDevice()                
+        if get_all:
+            self.get_all_kv()
 
-            if get_all:
-                self.get_all_kv()
-
-            else:
-                self.get_key('device_id')
-                try:
-                    self.get_key('meta_tag_name')
-
-                except KeyError:
-                    self.get_key('name')
-
-            if self.device_id == None:
-                self.device_id = self._keys["device_id"]._value
-
-            elif self.device_id != self._keys["device_id"]._value:
-                raise InvalidDeviceIDException(self._keys["device_id"]._value, self.device_id)
-
-            try:
-                if self._keys["meta_tag_name"]._value:
-                    self.name = self._keys["meta_tag_name"]._value
-
-            except KeyError:
-                if self._keys["name"]._value:
-                    self.name = self._keys["name"]._value
-
-
-        except DuplicateKeyIDException:
-            # error is printed by the check function.
-            # we pass here since we can get to the file system and fix
-            # the firmware without the KV system.
-            pass
+        self.device_id = self.get_key('device_id')            
+        self.name = self.get_key('meta_tag_name')
 
         self.get_firmware_info()
 
         return self
-
-
-    def get_cli(self):
-        return [f.replace(CLI_PREFIX, '', 1) for f in dir(self)
-                if f.startswith(CLI_PREFIX)
-                and not f.startswith('_')
-                and isinstance(self.__getattribute__(f), types.MethodType)]
 
     def get_kv_meta(self):    
         kvmeta = self._client.get_meta()
@@ -440,18 +371,8 @@ class Device(object):
         self._keys = KVMeta()
 
         # load keys into meta data
-        for key, meta in kvmeta.iteritems():
-            self._keys[key] = KVKey(key=key, device=self, group=0, id=meta.hash, flags=meta.flags, type=meta.type)
-
-        # run duplicate ID check
-        try:
-            self._keys.check()
-
-        except DuplicateKeyIDException as e:
-            print e
-
-            raise
-
+        for key, meta in kvmeta.items():
+            self._keys[key] = KVKey(key=key, device=self, id=meta.hash, flags=meta.flags, type=meta.type)
 
     def get_all_kv(self):
         keys = [key for key in self._keys]
@@ -483,7 +404,7 @@ class Device(object):
             if 'read_only' in self._keys[key].flags:
                 raise ReadOnlyKeyException(key)
 
-            if isinstance(kwargs[key], basestring):
+            if isinstance(kwargs[key], str):
                 # we do not support unicode, and things break if leaks into the system
                 kwargs[key] = str(kwargs[key])
             
@@ -495,21 +416,23 @@ class Device(object):
         return self.get_kv(param)[param]
 
     def get_kv(self, *args):
-        params = []
-
-        keys = {}
         expanded_keys = []
         responses = {}
 
-        # iterate over keys and create requests for them
-        for key in args:
-            expanded_keys.extend(fnmatch.filter(self._keys.keys(), key))
+        if len(self._keys) > 0:
+            # iterate over keys and create requests for them
+            for key in args:
+                expanded_keys.extend(fnmatch.filter(list(self._keys.keys()), key))
+
+        else:
+            expanded_keys = args
 
         responses = self._client.get_keys(expanded_keys)
     
-        for k, v in responses.iteritems():
-            # update internal meta data
-            self._keys[k]._value = v
+        if len(self._keys) > 0:
+            for k, v in responses.items():
+                # update internal meta data
+                self._keys[k]._value = v
 
         return responses
 
@@ -703,6 +626,12 @@ class Device(object):
     ##########################
     # Command Line Interface
     ##########################
+    def get_cli(self):
+        return [f.replace(CLI_PREFIX, '', 1) for f in dir(self)
+                if f.startswith(CLI_PREFIX)
+                and not f.startswith('_')
+                and isinstance(self.__getattribute__(f), types.MethodType)]
+
     def cli_scan(self, line):
         self.scan()
 
@@ -741,8 +670,8 @@ class Device(object):
         s = "\n"
 
         # sort between disk and virtual files
-        disk_files = sorted([f for f in fileinfo.values() if (f['flags'] & 1) == 0], key=lambda a: a['filename'])
-        vfiles = sorted([f for f in fileinfo.values() if (f['flags'] & 1) != 0], key=lambda a: a['filename'])
+        disk_files = sorted([f for f in list(fileinfo.values()) if (f['flags'] & 1) == 0], key=lambda a: a['filename'])
+        vfiles = sorted([f for f in list(fileinfo.values()) if (f['flags'] & 1) != 0], key=lambda a: a['filename'])
 
         # iterate over file listing
         for f in disk_files:
@@ -772,7 +701,7 @@ class Device(object):
     def cli_cat(self, line):
         data = self.get_file(line)
 
-        s = "\n" + data
+        s = "\n" + data.decode('utf-8')
 
         return s
 
@@ -781,7 +710,7 @@ class Device(object):
             sys.stdout.write("\rReading: %5d bytes" % (length))
             sys.stdout.flush()
 
-        print ""
+        print("")
 
         data = self.get_file(line, progress=progress)
 
@@ -800,7 +729,7 @@ class Device(object):
         data = f.read()
         f.close()
 
-        print ""
+        print("")
 
         self.put_file(line, data, progress=progress)
 
@@ -818,14 +747,14 @@ class Device(object):
 
         self.load_firmware(firmware_id=fw, progress=progress)
 
-        print ""
+        print("")
 
         return "Rebooting..."
 
     def cli_rebootloadfw(self, line):
         self.reboot_and_load_fw()
 
-        print ""
+        print("")
 
         return "Rebooting with load firmware command..."
 
@@ -1146,7 +1075,7 @@ class Device(object):
         if isinstance(params, dict):
             s = "\nName                             Flags  Type     Value\n"
 
-            for k in sorted(params.iterkeys()):
+            for k in sorted(params.keys()):
                 s += "%s\n" % (self._keys[k])
 
         else:
@@ -1177,11 +1106,11 @@ class Device(object):
 
 
     def cli_resetcfg(self, line):
-        print ""
-        print "DANGER ZONE! Are you sure you want to do this?"
-        print "Type 'yes' if you are sure."
+        print("")
+        print("DANGER ZONE! Are you sure you want to do this?")
+        print("Type 'yes' if you are sure.")
 
-        yes = raw_input()
+        yes = input()
 
         if yes == "yes":
             self.reset_config()
@@ -1192,7 +1121,7 @@ class Device(object):
 
     def cli_systime(self, line):
         t = self.get_key("sys_time")
-        dt = timedelta(seconds=long(t / 1000))
+        dt = timedelta(seconds=int(t / 1000))
 
         return "%11d ms (%s)" % (t, str(dt))
 
@@ -1247,7 +1176,7 @@ class Device(object):
         params = self.get_kv("thread_task_time", "thread_sleep_time", "thread_peak", "thread_loops", "thread_run_time")
 
         # convert all params to floats
-        params = {k: float(v) for (k, v) in params.iteritems()}
+        params = {k: float(v) for (k, v) in params.items()}
 
         if params["thread_run_time"] == 0:
             loop_rate = 0
@@ -1257,7 +1186,7 @@ class Device(object):
             loop_rate = params["thread_loops"] / (params["thread_run_time"] / 1000.0)
             cpu_usage = (params["thread_task_time"] / params["thread_run_time"]) * 100.0
 
-        s = "CPU:%2.1f%% Tsk:%8d Slp:%8d Ohd:%8d MaxT:%3d Loops:%8d @ %5d/sec" % \
+        s = "CPU:%4.1f%% Tsk:%8d Slp:%8d Ohd:%8d MaxT:%3d Loops:%8d @ %5d/sec" % \
             (cpu_usage,
              params["thread_task_time"],
              params["thread_sleep_time"],
@@ -1272,7 +1201,7 @@ class Device(object):
         params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
 
         # convert all params to floats
-        params = {k: float(v) for (k, v) in params.iteritems()}
+        params = {k: float(v) for (k, v) in params.items()}
 
         irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
 
@@ -1330,7 +1259,7 @@ class Device(object):
 
         # verify first byte (quick sanity check)
         if data_bytes[0] != 0xE9:
-            print "Invalid firmware image!"
+            print("Invalid firmware image!")
             return
 
         # compute firmware length, minus the md5 at the end
@@ -1342,7 +1271,7 @@ class Device(object):
         md5_digest = hashlib.md5(data[:fw_len]).digest()
 
         if file_md5 != md5_digest:
-            print "Invalid firmware image!"
+            print("Invalid firmware image!")
             return
 
 
@@ -1371,7 +1300,7 @@ class Device(object):
 
 
 
-        print "\nLoading firmware image"
+        print("\nLoading firmware image")
 
         try:
             self.delete_file(filename)
@@ -1386,26 +1315,26 @@ class Device(object):
             self.put_file(filename, data, progress=progress)
 
         except Exception as e:
-            print type(e), e
+            print(type(e), e)
             raise
 
-        print "\nVerifying firmware image..."
+        print("\nVerifying firmware image...")
 
         self.check_file(filename, data)
 
-        print "Setting firmware length..."
+        print("Setting firmware length...")
         self.set_key('wifi_fw_len', fw_len)
 
-        print "Setting MD5..."
+        print("Setting MD5...")
         self.set_key('wifi_md5', binascii.hexlify(md5_digest))
 
-        print "Starting wifi firmware flasher..."
+        print("Starting wifi firmware flasher...")
 
         self.reboot()
 
         time.sleep(5.0)
 
-        for i in xrange(20):
+        for i in range(20):
             try:
                 self.echo('')
 
@@ -1415,7 +1344,7 @@ class Device(object):
 
         self.echo('')
 
-        print "Firmware load complete"
+        print("Firmware load complete")
 
     def cli_loadvm(self, line):
         with open('vm.bin', 'rb') as f:
@@ -1437,12 +1366,12 @@ class Device(object):
         kvmeta = sapphiredata.KVMetaArray().unpack(data)
 
         for kv in kvmeta:
-            print kv
+            print(kv)
 
     def cli_getfileid(self, line):
         file_id = self.get_file_id(line)
 
-        print "File ID: %d" % (file_id)
+        print("File ID: %d" % (file_id))
 
 def createDevice(**kwargs):
     return Device(**kwargs)

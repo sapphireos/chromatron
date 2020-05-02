@@ -20,5 +20,5 @@
 # 
 # </license>
 
-from midi import Midi, MidiPortNotFound, print_midi_ports
-from apc40 import APC40
+from .midi import Midi, MidiPortNotFound, print_midi_ports
+from .apc40 import APC40

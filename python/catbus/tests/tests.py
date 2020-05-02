@@ -27,7 +27,7 @@ class DatabaseTests(unittest.TestCase):
 
 class DiscoverTestBase(object):
     def test_discover(self):
-        nodes = self.client.discover(self.CATBUS_TEST_TAG).values()
+        nodes = list(self.client.discover(self.CATBUS_TEST_TAG).values())
         self.assertEqual(len(nodes), 1)
 
 @unittest.skip('')

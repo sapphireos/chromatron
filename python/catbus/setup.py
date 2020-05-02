@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='catbus',
 
-    version='1.0.3',
+    version='1.0.4',
 
     packages=['catbus'],
 
@@ -40,16 +40,17 @@ setup(
     long_description=open('README.txt').read(),
 
     install_requires=[
-        "sapphire >= 1.0.2",
-        "click >= 6.6",
-        "elysianfields >= 1.0",
+        "sapphire >= 1.0.4",
+        "click == 7.1.1",
+        "elysianfields >= 1.0.5",
         "fnvhash==0.1.0",
         "crcmod==1.7",
-        "netifaces==0.10.6",
+        "netifaces==0.10.9",
     ],
 
     entry_points='''
         [console_scripts]
-        catbus=catbus.catbus:main
+        catbus=catbus.__main__:main
+        catbus_directory=catbus.directory:main
     ''',
 )

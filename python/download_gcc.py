@@ -1,6 +1,6 @@
 
 import sys
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from sapphire.buildtools.core import *
 
@@ -15,11 +15,11 @@ def progress(chunk, chunk_size, total_size):
     sys.stdout.flush()
 
 if __name__ == "__main__":
-    for platform in build_tool_archives.values():
+    for platform in list(build_tool_archives.values()):
         for tool in platform:
 
-            print "Downloading: %s" % (tool[1])
+            print("Downloading: %s" % (tool[1]))
 
-            urllib.URLopener().retrieve(tool[0] + tool[1], tool[1], reporthook=progress)
+            urllib.request.URLopener().retrieve(tool[0] + tool[1], tool[1], reporthook=progress)
 
-            print ''
+            print('')

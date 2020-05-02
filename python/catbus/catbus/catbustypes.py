@@ -108,7 +108,7 @@ def get_type_id(type_name):
     return type_id_registry[type_name]
 
 def get_type_name(catbus_type):
-    for k, v in type_id_registry.iteritems():
+    for k, v in type_id_registry.items():
         if catbus_type == v:
             return k
 

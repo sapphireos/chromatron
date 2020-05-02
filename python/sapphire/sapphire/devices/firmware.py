@@ -24,8 +24,6 @@
 
 import os
 
-# from sapphiredevices.buildtools import core
-
 class FirmwareNotFoundException(Exception):
     def __init__(self, value = None):
         self.value = value

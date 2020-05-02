@@ -23,14 +23,23 @@
 
 import logging
 import time
+import os
 import threading
 import select
-from client import Client
+from .client import Client
 from copy import copy
+import socket
+import json
+import struct
+import sys
 
-from messages import *
+from .options import *
+from .messages import *
 
-from sapphire.common import Ribbon, MsgQueueEmptyException
+from sapphire.buildtools import firmware_package
+LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
+
+from sapphire.common import Ribbon, MsgQueueEmptyException, util
 
 
 TTL = 240
@@ -63,6 +72,7 @@ class Directory(Ribbon):
             ErrorMsg: self._handle_error,
             AnnounceMsg: self._handle_announce,
             ShutdownMsg: self._handle_shutdown,
+            LinkMsg: self._handle_link,
         }
 
         self._last_ttl = time.time()
@@ -93,14 +103,21 @@ class Directory(Ribbon):
 
                     self._hash_lookup[hashed_key] = key[hashed_key]
 
-                    return key
+                    return self._hash_lookup[hashed_key]
 
                 else:
                     raise
 
+    def _handle_link(self, msg, host):
+        pass
+
     def _handle_shutdown(self, msg, host):
         with self.__lock:
             try:
+                info = self._directory[msg.header.origin_id]
+
+                logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
+
                 # remove entry
                 del self._directory[msg.header.origin_id]
 
@@ -108,7 +125,7 @@ class Directory(Ribbon):
                 pass
 
     def _handle_error(self, msg, host):
-        print msg
+        print(msg)
 
     def _handle_announce(self, msg, host):
         # update host port with advertised data port
@@ -116,15 +133,29 @@ class Directory(Ribbon):
 
         resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
-        info = {'host': host,
-                'query': resolved_query,
-                'data_port': msg.data_port,
-                'version': msg.header.version,
-                'universe': msg.header.universe,
-                'ttl': TTL}
-
         with self.__lock:
-            self._directory[msg.header.origin_id] = info
+            # check if we have this node already
+            if msg.header.origin_id not in self._directory:
+                c = Client()
+                c.connect(host)
+                name = c.get_key(META_TAG_NAME)
+
+                info = {'host': host,
+                        'name': name,
+                        'query': resolved_query,
+                        'tags': [t for t in msg.query if t != 0],
+                        'data_port': msg.data_port,
+                        'version': msg.header.version,
+                        'universe': msg.header.universe,
+                        'ttl': TTL}
+
+                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
+
+                self._directory[msg.header.origin_id] = info
+
+            else:
+                # reset ttl
+                self._directory[msg.header.origin_id]['ttl'] = TTL
 
     def _process_msg(self, msg, host):
         try:
@@ -164,26 +195,68 @@ class Directory(Ribbon):
             self._last_ttl = time.time()
 
             with self.__lock:
-                for key, info in self._directory.iteritems():
+                for key, info in self._directory.items():
                     info['ttl'] -= 4.0
 
-                self._directory = {k: v for k, v in self._directory.iteritems() if v['ttl'] >= 0.0}
+                    if info['ttl'] < 0.0:
+                        logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
 
+                self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
-if __name__ == '__main__':
+class DirectoryServer(Ribbon):
+    def initialize(self, directory=None):
+        self.name = '%s' % ('directory_server')
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    from pprint import pprint
+        try:
+            # this option may fail on some platforms
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        self.sock.bind(('localhost', CATBUS_DIRECTORY_PORT))
+        self.sock.settimeout(1.0)
+        self.sock.listen(1)
+
+        self.directory = directory
+        
+    def loop(self):
+        try:
+            conn, addr = self.sock.accept()
+
+            data = json.dumps(self.directory.get_directory())
+
+            conn.send(struct.pack('<L', len(data)))
+            conn.send(data.encode('utf-8'))
+
+            conn.close()
+
+        except socket.timeout:
+            pass
+
+    def clean_up(self):
+        self.sock.close()
+
+def main():
+    try:
+        LOG_FILE_PATH = sys.argv[1]
+    except IndexError:
+        pass
+
+    util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
 
     d = Directory()
+    svr = DirectoryServer(directory=d)
+    
 
     try:
         while True:
             time.sleep(1.0)
 
-            # pprint(d.get_directory())
-            print len(d.get_directory())
-
     except KeyboardInterrupt:
         pass
 
-
+if __name__ == '__main__':
+    main()

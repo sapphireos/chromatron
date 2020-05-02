@@ -21,10 +21,10 @@
 # </license>
 
 import socket
-from data_structures import *
-from messages import *
-from options import *
-from broadcast import send_udp_broadcast
+from .data_structures import *
+from .messages import *
+from .options import *
+from .broadcast import send_udp_broadcast
 import time
 import netifaces
 import os
@@ -32,6 +32,9 @@ import json
 
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
+DATA_DIR_FILE_PATH_ALT = 'catbus_hashes.json'
+
+DISCOVERY_TIMEOUT = 1.0
 
 import random
 
@@ -46,7 +49,21 @@ class Client(object):
         self.write_window_size = 1
 
         self.nodes = {}
-        self.meta = {}
+        self._meta = {}
+
+        try:
+            os.makedirs(firmware_package.data_dir())
+        except FileExistsError:
+            pass
+        except PermissionError:
+            pass
+            
+    @property
+    def meta(self):
+        if len(self._meta) == 0:
+            self.get_meta()
+
+        return self._meta
 
     def _exchange(self, msg, host=None, timeout=1.0, tries=5):
         self.__sock.settimeout(timeout)
@@ -109,16 +126,12 @@ class Client(object):
     def is_connected(self):
         return self._connected_host != None
 
-    def connect(self, host, get_meta=True):
-        if isinstance(host, basestring):
+    def connect(self, host):
+        if isinstance(host, str):
             # if no port is specified, set default
             host = (host, CATBUS_DISCOVERY_PORT)
 
         self._connected_host = host
-
-        if get_meta:
-            # initialize meta data
-            self.get_meta()
 
     def ping(self):
         msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
@@ -135,14 +148,19 @@ class Client(object):
         # open cache file
         cache = {}
         try:
-            with open(DATA_DIR_FILE_PATH, 'r') as f:
-                file_data = f.read()
+            try:
+                with open(DATA_DIR_FILE_PATH, 'r') as f:
+                    file_data = f.read()
+
+            except PermissionError:
+                with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
+                    file_data = f.read()
 
             temp = json.loads(file_data)
 
             cache = {}
             # have to convert keys back to int because json only does string keys
-            for k, v in temp.iteritems():
+            for k, v in temp.items():
                 cache[int(k)] = v
 
         except ValueError as e:
@@ -151,7 +169,7 @@ class Client(object):
             # we get an error here.
 
             # just bypass and carryon with no cache
-            print e
+            print(e)
             # pass
 
         except IOError:
@@ -168,19 +186,19 @@ class Client(object):
                 arg_list.append(arg)
 
         # filter out any items in the cache
-        for k, v in cache.iteritems():
+        for k, v in cache.items():
             if k in arg_list:
                 resolved_keys[k] = v
 
         arg_list = [a for a in arg_list if a not in cache]
 
-        chunks = [arg_list[x:x + CATBUS_MAX_HASH_LOOKUPS] for x in xrange(0, len(arg_list), CATBUS_MAX_HASH_LOOKUPS)]
+        chunks = [arg_list[x:x + CATBUS_MAX_HASH_LOOKUPS] for x in range(0, len(arg_list), CATBUS_MAX_HASH_LOOKUPS)]
 
         for chunk in chunks:
             hashes = []
 
             for key in chunk:
-                if isinstance(key, basestring):
+                if isinstance(key, str):
                     key = str(key)
                     hashed_key = catbus_string_hash(key)
 
@@ -193,7 +211,7 @@ class Client(object):
 
             response, sender = self._exchange(msg)
 
-            for i in xrange(len(response.keys)):
+            for i in range(len(response.keys)):
                 key = response.keys[i]
                 hashed_key = hashes[i]
 
@@ -206,14 +224,14 @@ class Client(object):
         tags = None
 
         # check for any keys that didn't resolve
-        for k, v in resolved_keys.iteritems():
+        for k, v in resolved_keys.items():
             if k == 0:
                 continue
 
             if v == None:
                 # try computing hash from meta tags
                 if tags is None:
-                    tags = {catbus_string_hash(v): v for v in self.get_tags().itervalues() if len(v) > 0}
+                    tags = {catbus_string_hash(v): v for v in self.get_tags().values() if len(v) > 0}
                 
                 try:
                     resolved_keys[k] = tags[k]
@@ -233,13 +251,40 @@ class Client(object):
 
         if changed:
             # update cache file, if anything changed
-            with open(DATA_DIR_FILE_PATH, 'w') as f:
-                f.write(json.dumps(cache))
+            try:
+                with open(DATA_DIR_FILE_PATH, 'w') as f:
+                    f.write(json.dumps(cache))
 
-                # ensure file is committed to disk
-                f.flush()
+                    # ensure file is committed to disk
+                    f.flush()
+
+            except (PermissionError, FileNotFoundError):
+                with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
+                    f.write(json.dumps(cache))
+
+                    # ensure file is committed to disk
+                    f.flush()
 
         return resolved_keys
+
+    def get_directory(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
+
+        except ConnectionRefusedError:
+            return None
+
+        data = sock.recv(4)
+        length = struct.unpack('<L', data)[0]
+
+        buf = bytes()
+
+        while len(buf) < length:
+            buf += sock.recv(1024)
+
+        return json.loads(buf)
 
     def discover(self, *args, **kwargs):
         """Discover KV nodes on the network"""
@@ -255,46 +300,57 @@ class Client(object):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
-        # note we're creating a new socket for discovery.
-        # the reason to do this is we may get a stray response after
-        # we've completed discovery, and that may interfere with
-        # other communications (you receive an announce when you
-        # were expecting a data message, etc).
+        # try to contact directory server
+        directory = self.get_directory()
 
-        discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        if directory == None:
+            # note we're creating a new socket for discovery.
+            # the reason to do this is we may get a stray response after
+            # we've completed discovery, and that may interfere with
+            # other communications (you receive an announce when you
+            # were expecting a data message, etc).
 
-        discover_sock.settimeout(0.3)
+            discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        for i in xrange(3):
-            send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
+            discover_sock.settimeout(DISCOVERY_TIMEOUT)
 
-            start = time.time()
+            for i in range(3):
+                send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
 
-            while (time.time() - start) < 0.3:
-                try:
-                    data, sender = discover_sock.recvfrom(1024)
+                start = time.time()
 
-                    response = deserialize(data)
-                    
-                    if not isinstance(response, AnnounceMsg):
-                        continue
+                while (time.time() - start) < DISCOVERY_TIMEOUT:
+                    try:
+                        data, sender = discover_sock.recvfrom(1024)
 
-                    if response.header.transaction_id == msg.header.transaction_id and \
-                        query_tags(tags, response.query):
+                        response = deserialize(data)
+                        
+                        if not isinstance(response, AnnounceMsg):
+                            continue
 
-                        # add to node list
-                        self.nodes[response.header.origin_id] = \
-                            {'host': (sender[0], response.data_port),
-                             'tags': response.query}
+                        if response.header.transaction_id == msg.header.transaction_id and \
+                            query_tags(tags, response.query):
 
-                except InvalidMessageException as e:
-                    logging.exception(e)
+                            # add to node list
+                            self.nodes[response.header.origin_id] = \
+                                {'host': (sender[0], response.data_port),
+                                 'tags': response.query}
 
-                except socket.timeout:
-                    pass
+                    except InvalidMessageException as e:
+                        logging.exception(e)
 
-        discover_sock.close()
+                    except socket.timeout:
+                        pass
+
+            discover_sock.close()
+        
+        else:
+            for origin_id, v in directory.items():
+                if query_tags(tags, v['tags']):
+                    self.nodes[origin_id] = \
+                                    {'host': tuple(v['host']),
+                                     'tags': v['tags']}
 
         return self.nodes
 
@@ -332,12 +388,12 @@ class Client(object):
                 meta[keys[response.hash]] = response
 
 
-        self.meta = meta
+        self._meta = meta
 
         return meta
 
     def get_all_keys(self):
-        return self.get_keys(self.meta.keys())
+        return self.get_keys(list(self.meta.keys()))
 
     def get_keys(self, *args, **kwargs):
         with_meta = False
@@ -346,7 +402,7 @@ class Client(object):
 
         key_list = []
         for arg in args:
-            if isinstance(arg, basestring):
+            if isinstance(arg, str):
                 key_list.append(arg)
 
             else:
@@ -362,7 +418,9 @@ class Client(object):
         # check if we have these keys
         # we're doing this because on older versions of catbus,
         # requesting a key that does not exist may return garbage.
-        key_list = [k for k in key_list if k in self.meta]
+        # key_list = [k for k in key_list if k in self.meta]
+        # disabled this code path, this is legacy support - 
+        # i don't think i have any more of these in the field.
 
         hashes = {}
         for key in key_list:
@@ -371,7 +429,7 @@ class Client(object):
         answers = {}
 
         while len(hashes) > 0:
-            request_list = hashes.keys()[:CATBUS_MAX_GET_KEY_ITEM_COUNT]
+            request_list = list(hashes.keys())[:CATBUS_MAX_GET_KEY_ITEM_COUNT]
 
             msg = GetKeysMsg(hashes=request_list)
 
@@ -391,7 +449,7 @@ class Client(object):
                     del hashes[item.meta.hash]
 
             except InvalidMessageException:
-                print "Invalid message received"
+                print("Invalid message received")
                 return answers
 
         return answers
@@ -406,16 +464,16 @@ class Client(object):
         # check if we have these keys
         # we're doing this because on older versions of catbus,
         # requesting a key that does not exist may return garbage.
-        key_data = {str(k):v for k,v in key_data.iteritems() if k in self.meta}
+        key_data = {str(k):v for k,v in key_data.items() if k in self.meta}
 
         # need to get meta data so we can pack
-        meta = self.get_keys(key_data.keys(), with_meta=True)
+        meta = self.get_keys(list(key_data.keys()), with_meta=True)
         
         # create data items
         items = []
         batches = []
         for key in key_data:
-            if isinstance(key_data[key], basestring):
+            if isinstance(key_data[key], str):
                 # we do not support unicode, and things break if leaks into the system
                 key_data[key] = str(key_data[key])
 
@@ -441,7 +499,7 @@ class Client(object):
         batches = [batch for batch in batches if len(batch) > 0]
 
         hashes = {}
-        for key in key_data.iterkeys():
+        for key in key_data.keys():
             hashes[catbus_string_hash(key)] = key
 
         answers = {}
@@ -485,7 +543,7 @@ class Client(object):
 
 
     def read_file(self, filename, progress=None):
-        file_data = ''
+        file_data = bytes()
 
         msg = FileOpenMsg(
                 flags=CATBUS_MSG_FILE_FLAG_READ,
@@ -773,12 +831,12 @@ if __name__ == '__main__':
     
     c = Client()
 
-    # c.discover()
+    c.discover()
 
-    # for node in c.discover().values():
-        # pprint(node)
+    for node in c.discover().values():
+        pprint(node)
 
-    c.connect(('10.0.0.119', 44632))
+    # c.connect(('10.0.0.119', 44632))
     # c.connect(('10.0.0.102', 44632))
     # pprint(c.get_links())
 
@@ -796,7 +854,7 @@ if __name__ == '__main__':
     # print c.get_key('test_woof')
     # c.set_key('test_woof', ['4','5','6','7'])
 
-    print c.get_key('fx_a')
+    # print(c.get_key('fx_a'))
 
 
 
