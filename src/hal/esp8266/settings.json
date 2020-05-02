@@ -21,6 +21,8 @@
 
     "RECURSIVE_BUILD": "true",
 
+    "SKIP_DIRS": ["lwip2"],
+
     "DEFINES": [],
 
     "_comment": "Additional libraries to include with the build",

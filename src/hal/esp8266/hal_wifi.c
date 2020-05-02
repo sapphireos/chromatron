@@ -31,6 +31,8 @@
 #include "sockets.h"
 #include "hal_io.h"
 
+#include "hal_arp.h"
+
 #include "test_ssid.h"
 
 #include "espconn.h"
@@ -83,6 +85,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
+PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
 static struct espconn esp_conn[WIFI_MAX_PORTS];
@@ -90,6 +93,7 @@ static esp_udp udp_conn[WIFI_MAX_PORTS];
 
 static list_t conn_list;
 static list_t rx_list;
+
 
 void wifi_v_init( void ){
 	
@@ -117,6 +121,12 @@ void wifi_v_init( void ){
                 0 );
 
     thread_t_create_critical( 
+                wifi_arp_thread,
+                PSTR("wifi_arp"),
+                0,
+                0 );
+
+    thread_t_create_critical( 
                 wifi_echo_thread,
                 PSTR("wifi_echo"),
                 0,
@@ -139,7 +149,7 @@ void wifi_v_init( void ){
 
     // set tx power
     system_phy_set_max_tpw( tx_power * 4 );
-    
+
  //    struct station_config config = {0};
  //    strcpy( &config.ssid, ssid );
  //    strcpy( &config.password, password );
@@ -839,6 +849,35 @@ PT_BEGIN( pt );
         }
 
         wifi_rssi = wifi_station_get_rssi();
+    }
+
+PT_END( pt );
+}
+
+// the ESP8266 sometimes stops responding to ARP requests.
+// so, we will periodically send a gratuitous ARP.
+PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+        hal_arp_v_gratuitous_arp();
+        TMR_WAIT( pt, 2000 );
+
+        hal_arp_v_gratuitous_arp();
+        TMR_WAIT( pt, 4000 );
+
+        hal_arp_v_gratuitous_arp();
+
+        while( wifi_b_connected() ){
+
+            TMR_WAIT( pt, 16000 );
+
+            hal_arp_v_gratuitous_arp();
+        }
     }
 
 PT_END( pt );
