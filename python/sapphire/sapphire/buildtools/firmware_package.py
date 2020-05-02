@@ -35,7 +35,7 @@ class FirmwarePackageDirNotFound(Exception):
     pass
 
 def data_dir():
-    return user_data_dir("Chromatron", "SapphireOpenSystems")
+    return user_data_dir("Chromatron")
 
 def firmware_package_dir(release=None):
     package_dir = os.path.join(data_dir(), 'firmware_packages')

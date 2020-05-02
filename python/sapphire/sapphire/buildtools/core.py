@@ -35,21 +35,19 @@ import crcmod
 import struct
 import argparse
 import hashlib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import tarfile
 import zipfile
 from datetime import datetime
-import hashlib
-import zipfile
-import ConfigParser
+import configparser
 from pprint import pprint
-import firmware_package
+from . import firmware_package
 
-import settings
+from . import settings
 
 from intelhex import IntelHex
 
-import global_settings
+from . import global_settings
 
 from sapphire.devices.sapphiredata import KVMetaField, KVMetaFieldWidePtr
 from sapphire.common import util
@@ -127,7 +125,7 @@ def get_tools():
     os.chdir(TOOLS_DIR)
 
     for tool in build_tool_archives[sys.platform]:
-        urllib.URLopener().retrieve(tool[0] + tool[1], tool[1])
+        urllib.request.URLopener().retrieve(tool[0] + tool[1], tool[1])
 
         if tool[1].endswith('.tar.bz2'):
             tar = tarfile.open(tool[1])
@@ -157,7 +155,7 @@ def runcmd(cmd, tofile=False, tolog=True):
     output = ''
 
     for line in p.stdout.readlines():
-        output += line
+        output += line.decode('utf-8')
 
     if output != '':
         if not tofile and tolog:
@@ -282,7 +280,7 @@ class Builder(object):
         settings = self._get_default_settings()
 
         # override defaults with app settings
-        for k, v in app_settings.iteritems():
+        for k, v in app_settings.items():
             if k == "LIBRARIES":
                 settings[k].extend(v)
 
@@ -393,10 +391,11 @@ class Builder(object):
         source_files = self.list_source()
         hashed_files = {}
 
-        for f in source_files:
+        for fname in source_files:
             m = hashlib.sha256()
-            m.update(open(f).read())
-            hashed_files[f] = m.hexdigest()
+            with open(fname, 'rb') as f:
+                m.update(f.read())
+            hashed_files[fname] = m.hexdigest()
 
         return hashed_files
 
@@ -408,12 +407,16 @@ class Builder(object):
 
     def get_source_hash_file(self):
         try:
-            hash_file = open("source_hash.json")
+            hash_data = open("source_hash.json", 'r').read()
 
         except IOError:
             return {}
 
-        return json.loads(hash_file.read())
+        try:
+            return json.loads(hash_data)
+
+        except json.decoder.JSONDecodeError:
+            return {}
 
     def get_buildnumber(self):
         try:
@@ -581,7 +584,7 @@ class Builder(object):
         # get KV hashes and add to defines
         hashes = self.create_kv_hashes()
 
-        for k, v in hashes.iteritems():
+        for k, v in hashes.items():
             self.defines.append('%s=((catbus_hash_t32)%s)' % (k, v))
 
         # self.settings["C_FLAGS"].append('-fdollars-in-identifiers')
@@ -602,7 +605,7 @@ class Builder(object):
     def build_libs(self):
         libs = self.get_libraries()
 
-        for lib, builder in libs.iteritems():
+        for lib, builder in libs.items():
             logging.info("Building library %s" % (lib))
         
             builder.clean()
@@ -1076,10 +1079,10 @@ class AppBuilder(HexBuilder):
         # create lookups by 32 bit hash
         index = 0
         for kv in kv_meta_data:
-            hash32 = fnv1a_32(str(kv.param_name))
+            hash32 = fnv1a_32(kv.param_name.encode('utf-8'))
 
             if hash32 in kv_meta_by_hash:
-                raise Exception("Hash collision! %s 0x%lx" % (str(kv.param_name), hash32))
+                raise Exception("Hash collision! %s 0x%lx" % (kv.param_name, hash32))
 
             kv_meta_by_hash[hash32] = (kv, index)
 
@@ -1089,7 +1092,7 @@ class AppBuilder(HexBuilder):
         sorted_hashes = sorted(kv_meta_by_hash.keys())
 
         # create binary look up table
-        kv_index = ''
+        kv_index = bytes()
         for a in sorted_hashes:
             kv_index += struct.pack('<LB', a, kv_meta_by_hash[a][1])
 
@@ -1115,10 +1118,10 @@ class AppBuilder(HexBuilder):
         fw_info = struct.pack(fw_info_fmt,
                                 size,
                                 fwid.bytes,
-                                os_project.proj_name,
-                                os_project.version,
-                                str(self.settings['PROJ_NAME']),
-                                self.version)
+                                os_project.proj_name.encode('utf-8'),
+                                os_project.version.encode('utf-8'),
+                                self.settings['PROJ_NAME'].encode('utf-8'),
+                                self.version.encode('utf-8'))
 
         # insert fw info into hex
         ih.puts(fw_info_addr, fw_info)
@@ -1404,32 +1407,36 @@ def get_build_configs():
 
 
     for filename in os.listdir(BUILD_CONFIGS_DIR):
-        filepath = os.path.join(BUILD_CONFIGS_DIR, filename)
-        
-        configparser = ConfigParser.SafeConfigParser()
-
-        try:
-            configparser.read(filepath)
-
-        except ConfigParser.MissingSectionHeaderError:
+        # skip hidden files
+        if filename.startswith('.'):
             continue
 
-        for section in configparser.sections():
+        filepath = os.path.join(BUILD_CONFIGS_DIR, filename)
+        
+        parser = configparser.SafeConfigParser()
+
+        try:
+            parser.read(filepath)
+
+        except configparser.MissingSectionHeaderError:
+            continue
+
+        for section in parser.sections():
             try:
                 proj_name       = section
-                proj_version    = configparser.get(section, 'proj_version')
-                base_proj       = configparser.get(section, 'base_proj')
+                proj_version    = parser.get(section, 'proj_version')
+                base_proj       = parser.get(section, 'base_proj')
 
                 try:
-                    full_name   = configparser.get(section, 'full_name')
+                    full_name   = parser.get(section, 'full_name')
 
-                except ConfigParser.NoOptionError:
+                except configparser.NoOptionError:
                     full_name   = proj_name                
 
                 try:
-                    libs        = configparser.get(section, 'libs').split(',')
+                    libs        = parser.get(section, 'libs').split(',')
 
-                except ConfigParser.NoOptionError:
+                except configparser.NoOptionError:
                     libs = []
 
                 # trim whitespace
@@ -1443,7 +1450,7 @@ def get_build_configs():
                 if proj_name not in fwids:
                     fwids[proj_name] = str(uuid.uuid4())
 
-                    print "Created FWID %s for project: %s" % (fwids[proj_name], proj_name)
+                    print("Created FWID %s for project: %s" % (fwids[proj_name], proj_name))
                     
                     # save to file
                     with open(BUILD_CONFIGS_FWID_FILE, 'w+') as f:
@@ -1456,7 +1463,7 @@ def get_build_configs():
                                             'BASE_PROJ': base_proj,
                                             'LIBS': libs}
 
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
 
 
@@ -1519,7 +1526,7 @@ def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=Fal
             # return Builder(projects[proj_name], target_type=target)
 
         elif fwid:
-            for k, v in projects.iteritems():
+            for k, v in projects.items():
                 try:
                     builder = get_project_builder(k, target=target)
 
@@ -1640,16 +1647,16 @@ def main():
         # get current packages
         releases = firmware_package.get_releases()
 
-        release_name = raw_input("Enter release name: ")
+        release_name = input("Enter release name: ")
 
         # check if we already have this release
         if release_name in releases:
-            print "This release already exists."
+            print("This release already exists.")
 
-            overwrite = raw_input("Enter 'overwrite' to overwrite this release: ")
+            overwrite = input("Enter 'overwrite' to overwrite this release: ")
 
             if overwrite != 'overwrite':
-                print "Release cancelled"
+                print("Release cancelled")
                 return
 
             # erase original release
@@ -1675,7 +1682,7 @@ def main():
         projects = get_project_list()
 
         for key in projects:
-            print "%20s %s" % (key, projects[key])
+            print("%20s %s" % (key, projects[key]))
 
         return
 
@@ -1724,8 +1731,8 @@ def main():
         with open(PROJECTS_FILE, 'w+') as f:
             f.write(json.dumps(projects))
 
-        print "Found %d projects" % (len(projects))
-        print "Saved project file: %s" % (PROJECTS_FILE)
+        print("Found %d projects" % (len(projects)))
+        print("Saved project file: %s" % (PROJECTS_FILE))
 
 
         return
@@ -1757,7 +1764,7 @@ def main():
     if args["build_all"]:
         configs = get_build_configs()
         
-        args["project"] = configs.keys()
+        args["project"] = list(configs.keys())
 
     if args['def']:
         defines = args['def']

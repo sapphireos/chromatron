@@ -25,13 +25,12 @@ from setuptools import setup
 setup(
     name='sapphire',
 
-    version='1.0.3',
+    version='1.0.4',
 
     packages=['sapphire',
               'sapphire.fields',
               'sapphire.common',
               'sapphire.query',
-              'sapphire.udpx',
               'sapphire.devices',
               'sapphire.buildtools',
               ],
@@ -56,8 +55,7 @@ setup(
         "crcmod == 1.7",
         "pyparsing == 2.2.0",
         "intelhex == 2.1",
-        "pydispatcher == 2.0.5",
-        "elysianfields >= 1.0",
+        "elysianfields >= 1.0.5",
         "fnvhash",
     ],
 

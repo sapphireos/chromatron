@@ -25,4 +25,4 @@ CATBUS_VERSION           = 1
 
 DEFAULT_SERVICE_NAME     = 'sapphire.catbus'
 
-
+CATBUS_DIRECTORY_PORT    = 44633

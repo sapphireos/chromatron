@@ -32,14 +32,14 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.graphics import *
 from kivy.clock import Clock
 
-from trig import sine, cosine
+from .trig import sine, cosine
 import math
-import code_gen
+from . import code_gen
 import time
 import threading
 from sapphire.common.ribbon import Ribbon
 
-from filewatcher import Watcher
+from .filewatcher import Watcher
 
 
 class Pixel(object):
@@ -290,7 +290,7 @@ class GraphicState(Ribbon):
         self.reset()
 
     def reset(self):
-        self.pixels = [Pixel() for i in xrange(self.height * self.width)]
+        self.pixels = [Pixel() for i in range(self.height * self.width)]
 
         self.update_fader_settings()
 
@@ -325,7 +325,7 @@ class GraphicState(Ribbon):
         return self.pixels[x][y].is_fading()
 
     def update_fader_settings(self):
-        for i in xrange(len(self.pixels)):
+        for i in range(len(self.pixels)):
             self.pixels[i].hs_fade = self._hs_fade
             self.pixels[i].v_fade = self._v_fade
             self.pixels[i].fade_rate = self._fader_rate
@@ -429,7 +429,7 @@ class GraphicState(Ribbon):
     #         self.pixels[i].v_fade = a
 
     def load_arrays(self, arrays):
-        for i in xrange(len(self.pixels)):
+        for i in range(len(self.pixels)):
             self.pixels[i].hue = arrays['hue'][i] / 65536.0
             self.pixels[i].sat = arrays['sat'][i] / 65536.0
             self.pixels[i].val = arrays['val'][i] / 65536.0
@@ -465,13 +465,13 @@ class GraphicState(Ribbon):
 
 
     def clear(self):
-        for i in xrange(len(self.pixels)):
+        for i in range(len(self.pixels)):
             self.pixels[i].val = 0.0
 
     def loop(self):
         next_run = time.time() + self._fader_rate
 
-        for i in xrange(len(self.pixels)):
+        for i in range(len(self.pixels)):
             self.pixels[i].fade()
 
         self.wait(next_run - time.time())
@@ -513,7 +513,7 @@ class FXRunner(Ribbon):
         self.wait(next_run - time.time())
 
         if self.watcher.changed():
-            print "Reloading VM"
+            print("Reloading VM")
 
             self.load_vm()
 
@@ -550,14 +550,14 @@ class DisplayWindow(Widget):
         with self.canvas:
             pseudo_x = canvas_x
 
-            for x in xrange(self.gfx.width):
+            for x in range(self.gfx.width):
                 self.rects.append([])
 
                 # Kivy's coords put 0,0 at the bottom left, but Chromatron
                 # puts it at top left.  So we draw from top down in Kivy.
                 pseudo_y = canvas_y + (canvas_height - pseudo_pixel_height)
 
-                for y in xrange(self.gfx.height):
+                for y in range(self.gfx.height):
                     self.pixels.append(Color(0.0, 0.0, 0.0, mode='hsv'))
                     self.rects[x].append(
                         Rectangle(pos=(pseudo_x, pseudo_y),
@@ -574,7 +574,7 @@ class DisplayWindow(Widget):
     def update(self, dt):
         # start = time.time()
 
-        for i in xrange(len(self.gfx.pixels)):
+        for i in range(len(self.gfx.pixels)):
 
             # this will miss final updates:
             # if not self.gfx.is_fading(x, y):

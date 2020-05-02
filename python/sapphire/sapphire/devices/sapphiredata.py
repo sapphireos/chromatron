@@ -272,8 +272,8 @@ class KVParamField(StructField):
             self._fields[valuefield._name] = valuefield
 
         except KeyError:
-            print "ERROR:", self.type
-            print self
+            print("ERROR:", self.type)
+            print(self)
             raise
 
         return self

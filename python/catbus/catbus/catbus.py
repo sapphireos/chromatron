@@ -40,31 +40,14 @@ No IPv6 support
 
 """
 
-import threading
 import socket
 import time
-import random
 import sys
 import os
-from datetime import datetime, timedelta
-from UserDict import DictMixin
-import logging
 
-from elysianfields import *
-from sapphire.fields import get_field_for_type, get_type_id
-from sapphire.common import Ribbon, MsgQueueEmptyException
-import sapphire.common.util as util
-from sapphire.query import query_dict
-import select
-import Queue
-from pprint import pprint
-
-from data_structures import *
-from messages import *
-from options import *
-from database import *
-from server import *
-from client import *
+from .database import *
+from .server import *
+from .client import *
 
 
 import click
@@ -151,7 +134,7 @@ def echo_name(name, host, left_align=True, nl=True):
 
 
 @click.group()
-@click.option('--query', default=None, multiple=True, help="Query for tag match. Type 'all' to retrieve all matches.")
+@click.option('--query', '-q', default=None, multiple=True, help="Query for tag match. Type 'all' to retrieve all matches.")
 @click.pass_context
 def cli(ctx, query):
     """Catbus Key-Value Pub-Sub System CLI"""
@@ -183,24 +166,16 @@ def discover(ctx):
     s = 'Name                                        Location                Tags'
     click.echo(s)
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
 
-        name = client.get_key(META_TAG_NAME)
-        location = client.get_key(META_TAG_LOC)
+        name, location, *tags = client.get_keys(META_TAGS).values()
 
         name_s = '%32s @ %20s:%5s' % (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (host[0]), fg=HOST_COLOR), click.style('%5d' % (host[1]), fg=HOST_COLOR))
 
         location_s = click.style('%16s' % (location), fg=VAL_COLOR)
-
-        tags = []
-        for tag in META_TAGS:
-            if tag in [META_TAG_NAME, META_TAG_LOC]:
-                continue
-
-            tags.append(client.get_key(tag))
 
         s = '%s %-32s %s %s %s %s %s %s' % \
             (name_s, location_s, tags[0], tags[1], tags[2], tags[3], tags[4], tags[5])
@@ -233,7 +208,7 @@ def list(ctx):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -242,11 +217,30 @@ def list(ctx):
 
         echo_name(name, host)
 
-        keys = client.list_keys()
+        keys = client.get_all_keys()
 
-        for k in keys:
-            val = client.get_key(k)
+        for k, val in keys.items():
+            s = '%42s %42s' % (click.style('%s' % (k), fg=KEY_COLOR), click.style('%s' % (val), fg=VAL_COLOR))
 
+            click.echo(s)
+
+@cli.command()
+@click.pass_context
+def meta(ctx):
+    """Dump key meta data"""
+    client = ctx.obj['CLIENT']
+    matches = ctx.obj['MATCHES']
+
+    for node in matches.values():
+        host = node['host']
+
+        client.connect(host)
+
+        name = client.get_key(META_TAG_NAME)
+
+        echo_name(name, host)
+
+        for k, val in client.meta.items():
             s = '%42s %42s' % (click.style('%s' % (k), fg=KEY_COLOR), click.style('%s' % (val), fg=VAL_COLOR))
 
             click.echo(s)
@@ -259,7 +253,7 @@ def ping(ctx):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -292,7 +286,7 @@ def get(ctx, key):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -315,7 +309,7 @@ def set(ctx, key, value):
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
 
-    for node in matches.itervalues():
+    for node in matches.values():
         host = node['host']
 
         client.connect(host)
@@ -347,27 +341,11 @@ def listen(ctx, key):
 
         click.echo('%s %24s %12d %24s @ %24s' % (timestamp, key, value, name, location))
 
-        # query_format = '%32s, %32s %32s, %32s'
-
-        # query_1 = query_format % (query[0], query[1], query[2], query[3])
-        # query_2 = query_format % (query[4], query[5], query[6], query[7])
-
-        # click.echo('%s %32s %12d\n%s\n%s' % (timestamp, key, value, query_1, query_2))
-        # print timestamp, key, value, query
-
-        # click.echo('%s %32s %12d' % (timestamp, key, value))
-        # click.echo('%s %12d' % (timestamp, value))
-        # click.echo('%s %s' % (' ' * 48, query_1))
-        # click.echo('%s %s' % (' ' * 48, query_2))
-
     kv.receive(key, key, query, callback)
-
-    # kv.register(key, callback)
 
     try:
         while True:
             time.sleep(1.0)
-            # print kv[key]
 
     except KeyboardInterrupt:
         pass
@@ -378,69 +356,20 @@ def listen(ctx, key):
 def hash(key):
     """Print hash for a key"""
 
-    # convert to ASCII
-    key = str(key)
-
     hashed_key = catbus_string_hash(key)
 
     click.echo('%d 0x%08x' % (hashed_key, hashed_key & 0xffffffff))
 
-    from fnvhash import fnv1a_32
-    hashed_key = fnv1a_32(key)
 
-    click.echo('FNV1A: %d 0x%08x' % (hashed_key, hashed_key & 0xffffffff))
-
+@cli.command()
+@click.pass_context
+def directory(ctx):
+    """Query directory server"""
+    
+    client = ctx.obj['CLIENT']
+    print(client.get_directory())
 
 def main():
     cli(obj={})
 
-
-if __name__ == '__main__':
-
-    # main()
-
-    from pprint import pprint
-
-    util.setup_basic_logging()
-
-    # kv1 = CatbusService(data_port=11632, tags=['stuff'], visible=False)
-    kv1 = CatbusService(tags=['stuff'], visible=True)
-    # kv1['kv_test_key'] = 0
-
-    # kv1.receive('woof', 'kv_test_key', ['test'])
-    # kv1.receive('woof', 'kv_test_array', ['test'])
-    # # kv1.receive('woof', 'wifi_uptime', ['catbus'])
-
-    # kv1.receive('amg_data', 'amg_data', ['test'])
-    # kv1.send('track_1_fader', 'gfx_master_dimmer', ['ir_frame'])
-    # kv1.send('track_2_fader', 'gfx_master_dimmer', ['chandelier'])
-
-
-    # kv1['track_1_fader'] = 0
-    # kv1['track_2_fader'] = 0
-
-    try:
-        while True:
-            time.sleep(0.1)
-            # kv1['track_1_fader'] += 1024
-            # kv1['track_2_fader'] += 1024
-
-            # print kv1['track_1_fader']
-
-            # print kv1['kv_test_key']
-            # kv1['woof'] += 1
-            # print kv1['woof']
-
-            # try:
-                # print kv1['amg_data']
-                
-            # except KeyError:
-                # pass
-
-    except KeyboardInterrupt:
-        pass
-
-
-
-
-    #     
+    

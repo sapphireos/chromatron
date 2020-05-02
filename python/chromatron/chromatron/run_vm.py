@@ -20,7 +20,8 @@
 # 
 # </license>
 import sys
-import code_gen
+from . import code_gen
+from .vm import VM
 import time
 import threading
 from sapphire.common.ribbon import Ribbon
@@ -30,7 +31,7 @@ from pprint import pprint
 
 
 class VMContainer(Ribbon):
-    def initialize(self, fx_file=None, width=8, height=8):
+    def initialize(self, fx_file=None, width=2, height=2):
         self.fx_file = fx_file
 
         self.width = width
@@ -46,16 +47,16 @@ class VMContainer(Ribbon):
 
     def load_vm(self):
         self.code = code_gen.compile_script(self.fx_file)
-        self.vm = code_gen.VM(
-                    self.code,
-                    pix_size_x=self.width,
-                    pix_size_y=self.height)
+        self.vm = VM(self.code,
+                     pix_size_x=self.width,
+                     pix_size_y=self.height)
 
         self.vm.run('init')
 
     def check_file_hash(self):
         m = hashlib.md5()
-        m.update(open(self.fx_file).read())
+        with open(self.fx_file, 'rb') as f:
+            m.update(f.read())
 
         new_hash = m.hexdigest()
         old_hash = self.file_hash
@@ -71,7 +72,7 @@ class VMContainer(Ribbon):
         next_run = time.time() + self.frame_rate
 
         if self.check_file_hash():
-            print "Reloading VM"
+            print("Reloading VM")
             self.load_vm()
 
         self.vm.run('loop')
@@ -81,12 +82,9 @@ class VMContainer(Ribbon):
 
 if __name__ == '__main__':
 
-    # app = App()
-
     vm = VMContainer(fx_file=sys.argv[1])
     vm.stop()
     vm.join()
 
-    # app.run()
-
     pprint(vm.vm.dump_registers())
+    pprint(vm.vm.dump_hsv())

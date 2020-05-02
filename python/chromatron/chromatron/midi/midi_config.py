@@ -20,7 +20,7 @@
 # 
 # </license>
 import os
-import ConfigParser
+import configparser
 
 CONFIG_EXTENSION = '.cfg'
 
@@ -28,7 +28,7 @@ def load_config(path=os.getcwd()):
 
     midi_cfg_data = {'midi_in':{}, 'midi_out':{}}
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
 
     for f in os.listdir(path):
         fname, ext = os.path.splitext(f)

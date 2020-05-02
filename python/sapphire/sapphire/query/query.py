@@ -46,7 +46,7 @@ def query_dict(d, **kwargs):
 
         for attr in attr_list:
             # converts keys in dict to string for comparison to work
-            if attr not in [str(k) for k in d.keys()]:
+            if attr not in [str(k) for k in list(d.keys())]:
                 return None
 
         contains = True

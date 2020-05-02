@@ -26,32 +26,14 @@
 import threading
 
 from sapphire.devices.device import Device, DeviceUnreachableException
+from sapphire.devices import channel 
+from chromatron import DeviceGroup
 
 import sys
 import traceback # ignore unused warning!
 
 import cmd2 as cmd
 
-from pyparsing import *
-
-
-# set up query parse grammar
-query_item   = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\()*+,-./:;<>?@[\\]^_`{|}~'
-equals       = Suppress('=')
-query_param  = Word(query_item).setResultsName('param')
-query_value  = Word(query_item).setResultsName('value')
-query_expr   = Group(query_param + equals + query_value)
-query_list   = ZeroOrMore(query_expr)
-
-def make_query_dict(line):
-    q = query_list.parseString(line)
-
-    d = dict()
-
-    for i in q:
-        d[i.param] = i.value
-
-    return d
 
 class SapphireConsole(cmd.Cmd):
 
@@ -74,7 +56,7 @@ class SapphireConsole(cmd.Cmd):
 
     def perror(self, errmsg, statement=None):
         traceback.print_exc()
-        print (str(errmsg))
+        print((str(errmsg)))
 
     def do_scan(self, line):
         pass
@@ -117,10 +99,10 @@ class SapphireConsole(cmd.Cmd):
         devices = self.query(line)
 
         if devices:
-            print "Found %d devices" % (len(devices))
+            print("Found %d devices" % (len(devices)))
 
             for device in devices:
-                print device.who()
+                print(device.who())
 
     def do_select(self, line):
         # query for targets
@@ -130,7 +112,7 @@ class SapphireConsole(cmd.Cmd):
 
         self.init_shell(line)
 
-        print "Selected %d devices" % (len(self.targets))
+        print("Selected %d devices" % (len(self.targets)))
 
         return True
 
@@ -143,7 +125,7 @@ class SapphireConsole(cmd.Cmd):
 
         self.init_shell(line)
 
-        print "Selected %d devices" % (len(self.targets))
+        print("Selected %d devices" % (len(self.targets)))
 
         return True
 
@@ -156,28 +138,28 @@ class SapphireConsole(cmd.Cmd):
 
         self.init_shell(line)
 
-        print "Selected %d devices" % (len(self.targets))
+        print("Selected %d devices" % (len(self.targets)))
 
         return True
 
     def do_who(self, line):
         for target in self.targets:
-            print target.who()
+            print(target.who())
 
 
 cli_template = """
     def do_$fname(self, line):
         for target in self.targets:
-            sys.stdout.write('%s@%s: ' % (target.name.ljust(16), target.host))
+            sys.stdout.write('%s@%12s: ' % (target.name.ljust(16), target.host))
 
             try:
-                print target.cli_$fname(line)
+                print(target.cli_$fname(line))
 
             except DeviceUnreachableException as e:
-                print 'Error:%s from %s' % (e, target.host)
+                print('Error:%s from %s' % (e, target.host))
 
             except Exception as e:
-                print 'Error: %s' % (e)
+                print('Error: %s' % (e))
                 #traceback.print_exc()
 
 """
@@ -196,31 +178,48 @@ def makeConsole(targets=[], devices=[], device=None):
 
     for fname in cli_funcs:
         s += cli_template.replace('$fname', fname)
-
+    
     exec(s)
 
-    return aConsole(targets=targets, devices=devices)
+    return locals()['aConsole'](targets=targets, devices=devices)
 
 def main():
     try:
         host = sys.argv[1]
         sys.argv[1] = '' # prevents an unknown syntax error in the command loop
 
+        targets = []
         try:
-            print "Connecting to %s" % host
-
             d = Device(host=host)
+            print("Connecting to %s" % host)
             d.scan()
 
-            c = makeConsole(targets=[d])
-            c.cmdloop()
+            targets = [d]
+
+        except channel.InvalidChannel:
+            # try a query
+            query = sys.argv[2:]
+            query.append(host)
+
+            devices = DeviceGroup(*query)
+
+            targets = [d._device for d in devices.values()]
+
+            if len(targets) == 0:
+                print("No devices found")
+                sys.exit(0)
+
+            print(f"Found {len(targets)} devices")
 
         except:
-            print "*** Unable to connect to %s" % host
+            print("*** Unable to connect to %s" % host)
             raise
 
+        c = makeConsole(targets=targets)
+        c.cmdloop()
+
     except IndexError:
-        print "No device specified"
+        print("No device specified")
 
 
 if __name__ == '__main__':

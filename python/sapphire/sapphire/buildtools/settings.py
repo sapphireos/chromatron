@@ -83,7 +83,7 @@ def load_config(path=None, override_settings=dict()):
             config = json.loads(f.read())
             
             mod_dict = globals()
-            for k, v in config.iteritems():
+            for k, v in config.items():
                 mod_dict[k] = v
 
         except ValueError:
@@ -94,7 +94,7 @@ def load_config(path=None, override_settings=dict()):
     # apply override settings
     mod_dict = globals()
 
-    for k, v in override_settings.iteritems():
+    for k, v in override_settings.items():
         mod_dict[k] = v
 
 

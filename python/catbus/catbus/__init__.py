@@ -20,10 +20,10 @@
 # 
 # </license>
 
-from data_structures import *
-from catbustypes import *
-from options import *
-from client import Client
-from catbus import CatbusService
-from directory import *
+from .data_structures import *
+from .catbustypes import *
+from .options import *
+from .client import Client
+from .catbus import CatbusService
+from .directory import *
 
