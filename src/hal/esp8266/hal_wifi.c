@@ -136,6 +136,9 @@ void wifi_v_init( void ){
 
     list_v_init( &conn_list );
     list_v_init( &rx_list );
+
+    // set tx power
+    system_phy_set_max_tpw( tx_power * 4 );
     
  //    struct station_config config = {0};
  //    strcpy( &config.ssid, ssid );
