@@ -25,6 +25,7 @@ import zipfile
 import hashlib
 import json
 import shutil
+import requests
 from appdirs import *
 from sapphire.common import util
 
@@ -135,8 +136,6 @@ def get_firmware(release=None, include_firmware_image=False, sort_fwid=False):
     return firmwares
 
 def get_releases(use_date_for_key=False):
-    import requests
-    
     cwd = os.getcwd()
     releases = {}
 

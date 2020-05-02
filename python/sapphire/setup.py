@@ -49,7 +49,6 @@ setup(
         "requests==2.22.0",
         "setuptools == 34.2.0",
         "pyserial == 3.4.0",
-        "bitstring == 3.1.5",
         "cmd2 == 0.6.9",
         "click >= 6.6",
         "crcmod == 1.7",
