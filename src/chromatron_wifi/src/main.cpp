@@ -76,7 +76,7 @@ void setup(){
 
     opt_v_set_high_speed( true );        
 
-    wifi_set_sleep_type( MODEM_SLEEP_T );
+    wifi_set_sleep_type( NONE_SLEEP_T );
 
     intf_v_printf( "ESP online" );
     intf_v_printf( "ESP free heap: %d", ESP.getFreeHeap() );
