@@ -44,10 +44,8 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	block.data[2] = data[2];
 	block.data[3] = data[3];
 
-	block.parity[0] = 0xff;
-	block.parity[1] = 0xff;
- 	block.parity[2] = 0xff;
-
+	block.crc = crc_u16_block( data, COPROC_BLOCK_LEN ) & 0xff;
+	
 	#ifdef ESP8266
 	usart_v_send_data( UART_CHANNEL, (uint8_t *)&block, sizeof(block) );
 	#else
@@ -78,6 +76,13 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	data[1] = block.data[1];
 	data[2] = block.data[2];
 	data[3] = block.data[3];
+
+	// error check.  fatal if this fails.
+	if( ( crc_u16_block( data, COPROC_BLOCK_LEN ) & 0xff ) != block.crc ){
+
+		// BOOM!
+		while(1);
+	}
 }
 
 static void flush( void ){
@@ -118,14 +123,6 @@ void coproc_v_sync( void ){
 	}
 
 	sync = TRUE;
-}
-
-void coproc_v_parity_check( coproc_block_t *block ){
-
-}
-
-void coproc_v_parity_generate( coproc_block_t *block ){
-
 }
 
 

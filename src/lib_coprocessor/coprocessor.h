@@ -29,7 +29,7 @@
 
 typedef struct __attribute__((packed)){
 	uint8_t data[COPROC_BLOCK_LEN];
-	uint8_t parity[3];
+	uint8_t crc;
 } coproc_block_t;
 
 
@@ -91,9 +91,6 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );
 
 void coproc_v_init( void );
 void coproc_v_sync( void );
-
-void coproc_v_parity_check( coproc_block_t *block );
-void coproc_v_parity_generate( coproc_block_t *block );
 
 
 void coproc_v_dispatch( 
