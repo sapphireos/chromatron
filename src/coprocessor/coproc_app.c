@@ -259,6 +259,20 @@ PT_BEGIN( pt );
     // send confirmation
     hal_wifi_v_usart_send_char( COPROC_SYNC );
 
+    // await protocol version
+    while( !hal_wifi_b_usart_rx_available() );
+    
+    uint8_t version = hal_wifi_i16_usart_get_char();
+
+    if( version != 0 ){
+
+        // watchdog timeout here
+        while(1);
+    }
+
+    // echo version back
+    hal_wifi_v_usart_send_char( version );
+
     hal_wifi_v_usart_flush();
 
     log_v_debug_P( PSTR("sync") );

@@ -34,6 +34,7 @@ typedef struct __attribute__((packed)){
 
 
 #define COPROC_SYNC		0xB9
+#define COPROC_VERSION 	0
 
 #define COPROC_SOF		0xE6
 

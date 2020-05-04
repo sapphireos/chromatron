@@ -106,6 +106,17 @@ void coproc_v_sync( void ){
 			     ( tmr_u32_elapsed_time_ms( start_time ) < 50 ) );
 	}
 
+	// send protocol version
+	usart_v_send_byte( UART_CHANNEL, COPROC_VERSION );
+
+	while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
+
+	if( usart_i16_get_byte( UART_CHANNEL ) != COPROC_VERSION ){
+
+		// lets hope this was a bus error and rebooting will recover
+		while(1);
+	}
+
 	sync = TRUE;
 }
 
