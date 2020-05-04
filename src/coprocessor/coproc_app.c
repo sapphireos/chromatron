@@ -33,7 +33,7 @@
 #include "ffs_fw.h"
 #include "pixel.h"
 
-#include "app.h"
+#include "coproc_app.h"
 
 #ifdef ENABLE_ESP_UPGRADE_LOADER
 
