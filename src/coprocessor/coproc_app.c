@@ -206,6 +206,26 @@ void coproc_v_dispatch(
 
         cmd_usart_v_flush();        
     }
+    else if( hdr->opcode == OPCODE_IO_USART_INIT ){
+
+        usart_v_init( USER_USART );
+    }
+    else if( hdr->opcode == OPCODE_IO_USART_SEND_CHAR ){
+
+        usart_v_send_byte( USER_USART, params[0] );
+    }
+    else if( hdr->opcode == OPCODE_IO_USART_GET_CHAR ){
+
+        *retval = usart_i16_get_byte( USER_USART );
+    }
+    else if( hdr->opcode == OPCODE_IO_USART_RX_SIZE ){
+
+        *retval = usart_u8_bytes_available( USER_USART );
+    }
+    else if( hdr->opcode == OPCODE_IO_USART_SET_BAUD ){
+
+        usart_v_set_baud( USER_USART, params[0] );
+    }
     #endif
     else{
 

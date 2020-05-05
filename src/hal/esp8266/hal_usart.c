@@ -35,6 +35,11 @@
 #include "driver/uart.h"
 #include "driver/uart_register.h"
 
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
+
+
 // UartDev is defined and initialized in rom code.
 extern UartDevice    UartDev;
 
@@ -82,6 +87,12 @@ void usart_v_init( uint8_t channel ){
     if( channel == 0 ){
         usart_v_config( channel );
     }
+    #ifdef ENABLE_COPROCESSOR
+    else if( channel == USER_USART ){
+
+        coproc_i32_call0( OPCODE_IO_USART_INIT );
+    }
+    #endif
 }
 
 void usart_v_set_baud( uint8_t channel, baud_t baud ){
@@ -90,6 +101,12 @@ void usart_v_set_baud( uint8_t channel, baud_t baud ){
         UartDev.baut_rate = baud;
         usart_v_config( channel );
     }
+    #ifdef ENABLE_COPROCESSOR
+    else if( channel == USER_USART ){
+
+        coproc_i32_call1( OPCODE_IO_USART_SET_BAUD, baud );
+    }
+    #endif
 }
 
 void usart_v_send_byte( uint8_t channel, uint8_t data ){
@@ -106,6 +123,12 @@ void usart_v_send_byte( uint8_t channel, uint8_t data ){
 
         WRITE_PERI_REG(UART_FIFO(channel), data);
     }
+    #ifdef ENABLE_COPROCESSOR
+    else if( channel == USER_USART ){
+
+        coproc_i32_call1( OPCODE_IO_USART_SEND_CHAR, data );
+    }
+    #endif
 }
 
 void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
@@ -129,6 +152,12 @@ int16_t usart_i16_get_byte( uint8_t channel ){
 
     	return READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
     }
+    #ifdef ENABLE_COPROCESSOR
+    else if( channel == USER_USART ){
+
+        return coproc_i32_call0( OPCODE_IO_USART_GET_CHAR );
+    }
+    #endif
 
     return -1;
 }
@@ -138,6 +167,12 @@ uint8_t usart_u8_bytes_available( uint8_t channel ){
     if( channel == 0 ){
         return rx_fifo_len();
     }
+    #ifdef ENABLE_COPROCESSOR
+    else if( channel == USER_USART ){
+
+        return coproc_i32_call0( OPCODE_IO_USART_RX_SIZE );
+    }
+    #endif
 
     return 0;
 }

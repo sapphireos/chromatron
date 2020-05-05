@@ -27,6 +27,12 @@
 #include "cpu.h"
 #include "usart_bauds.h"
 
+#ifdef ENABLE_COPROCESSOR
+#define USER_USART          1
+#else
+#define USER_USART          0
+#endif
+
 
 void usart_v_init( uint8_t channel );
 void usart_v_set_baud( uint8_t channel, baud_t baud );
