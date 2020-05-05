@@ -589,8 +589,8 @@ void pixel_v_init( void ){
     if( pix_mode == PIX_MODE_PIXIE ){
 
         // Adafruit Pixie runs in UART mode at 115200 baud
-        usart_v_init( &PIXEL_DATA_PORT );
-        usart_v_set_baud( &PIXEL_DATA_PORT, BAUD_115200 );
+        usart_v_init( PIXEL_USART );
+        usart_v_set_baud( PIXEL_USART, BAUD_115200 );
     }
     else{
 
