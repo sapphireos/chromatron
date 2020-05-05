@@ -35,53 +35,18 @@
 #include "driver/uart.h"
 #include "driver/uart_register.h"
 
-
 // UartDev is defined and initialized in rom code.
 extern UartDevice    UartDev;
-
 
 static uint8_t rx_fifo_len(void){
 
     return (READ_PERI_REG(UART_STATUS(UART0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT;
 } 
 
-
-PT_THREAD( uart_rx_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );  
-
-    while(1){
-
-        THREAD_YIELD( pt );
-        THREAD_WAIT_WHILE( pt, rx_fifo_len() == 0 );
-            
-        uint8_t fifo_len = rx_fifo_len();
-
-        while( fifo_len > 0 ){
-
-            uint8_t temp = READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
-            trace_printf("%c", temp);
-
-            fifo_len--;
-        }
-
-        trace_printf("\n");
-    }
-
-PT_END( pt );
-}
-
 static void usart_v_config( uint8_t channel ){
 
     PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
-// #if UART_HW_RTS
-//         PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDO_U, FUNC_U0RTS);   //HW FLOW CONTROL RTS PIN
-// #endif
-// #if UART_HW_CTS
-//         PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTCK_U, FUNC_U0CTS);   //HW FLOW CONTROL CTS PIN
-// #endif
-//     }
 
     uart_div_modify(channel, UART_CLK_FREQ / (UartDev.baut_rate));//SET BAUDRATE
 
@@ -98,16 +63,10 @@ static void usart_v_config( uint8_t channel ){
         //set rx fifo trigger
         WRITE_PERI_REG(UART_CONF1(channel),
                        ((100 & UART_RXFIFO_FULL_THRHD) << UART_RXFIFO_FULL_THRHD_S) |
-// #if UART_HW_RTS
-//                        ((110 & UART_RX_FLOW_THRHD) << UART_RX_FLOW_THRHD_S) |
-//                        UART_RX_FLOW_EN |   //enbale rx flow control
-// #endif
+
                        (0x02 & UART_RX_TOUT_THRHD) << UART_RX_TOUT_THRHD_S |
                        UART_RX_TOUT_EN |
                        ((0x10 & UART_TXFIFO_EMPTY_THRHD) << UART_TXFIFO_EMPTY_THRHD_S)); //wjl
-// #if UART_HW_CTS
-//         SET_PERI_REG_MASK(UART_CONF0(channel), UART_TX_FLOW_EN);  //add this sentense to add a tx flow control via MTCK( CTS )
-// #endif
         SET_PERI_REG_MASK(UART_INT_ENA(channel), UART_RXFIFO_TOUT_INT_ENA | UART_FRM_ERR_INT_ENA);
     } 
     else {
@@ -116,45 +75,37 @@ static void usart_v_config( uint8_t channel ){
 
     //clear all interrupt
     WRITE_PERI_REG(UART_INT_CLR(channel), 0xffff);
-    //enable rx_interrupt
-    // SET_PERI_REG_MASK(UART_INT_ENA(channel), UART_RXFIFO_FULL_INT_ENA | UART_RXFIFO_OVF_INT_ENA);
-
-    // ETS_UART_INTR_ATTACH(uart_isr,  0);
-    // ETS_UART_INTR_ENABLE();
-
 }
 
 void usart_v_init( uint8_t channel ){
-        
-    usart_v_config( channel );
-
-    // if( channel == 0 ){
-
-    //     thread_t_create_critical( THREAD_CAST(uart_rx_thread),
-    //                               PSTR("uart_rx"),
-    //                               0,
-    //                               0 );
-    // }
+    
+    if( channel == 0 ){
+        usart_v_config( channel );
+    }
 }
 
 void usart_v_set_baud( uint8_t channel, baud_t baud ){
 
-    UartDev.baut_rate = baud;
-    usart_v_config( channel );
+    if( channel == 0 ){
+        UartDev.baut_rate = baud;
+        usart_v_config( channel );
+    }
 }
 
 void usart_v_send_byte( uint8_t channel, uint8_t data ){
 
-    // uart_tx_one_char( channel, data );
-    while (true) {
-        uint32_t fifo_cnt = READ_PERI_REG(UART_STATUS(channel)) & (UART_TXFIFO_CNT << UART_TXFIFO_CNT_S);
+    if( channel == 0 ){
 
-        if ((fifo_cnt >> UART_TXFIFO_CNT_S & UART_TXFIFO_CNT) < 126) {
-            break;
+        while (true) {
+            uint32_t fifo_cnt = READ_PERI_REG(UART_STATUS(channel)) & (UART_TXFIFO_CNT << UART_TXFIFO_CNT_S);
+
+            if ((fifo_cnt >> UART_TXFIFO_CNT_S & UART_TXFIFO_CNT) < 126) {
+                break;
+            }
         }
-    }
 
-    WRITE_PERI_REG(UART_FIFO(channel), data);
+        WRITE_PERI_REG(UART_FIFO(channel), data);
+    }
 }
 
 void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
@@ -169,16 +120,25 @@ void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
 
 int16_t usart_i16_get_byte( uint8_t channel ){
 
-	if( rx_fifo_len() == 0 ){
+    if( channel == 0 ){
+    
+    	if( rx_fifo_len() == 0 ){
 
-		return -1;
-	}
+    		return -1;
+    	}
 
-	return READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
+    	return READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
+    }
+
+    return -1;
 }
 
 uint8_t usart_u8_bytes_available( uint8_t channel ){
 
-    return rx_fifo_len();
+    if( channel == 0 ){
+        return rx_fifo_len();
+    }
+
+    return 0;
 }
 
