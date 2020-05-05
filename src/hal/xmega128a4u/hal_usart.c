@@ -91,6 +91,12 @@ void usart_v_init( uint8_t channel ){
 
     USART_t *usart = get_channel( channel );
 
+    if( channel == USER_USART ){
+
+        io_v_set_mode( IO_PIN_2_TXD, IO_MODE_OUTPUT );
+        io_v_set_mode( IO_PIN_3_RXD, IO_MODE_INPUT );
+    }
+
     COMPILER_ASSERT( cnt_of_array(bsel_table) == cnt_of_array(bscale_table) );
 
     usart->CTRLA = 0;
