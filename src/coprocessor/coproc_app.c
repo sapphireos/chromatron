@@ -226,6 +226,38 @@ void coproc_v_dispatch(
 
         usart_v_set_baud( USER_USART, params[0] );
     }
+    else if( hdr->opcode == OPCODE_IO_I2C_INIT ){
+
+
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_SET_PINS ){
+
+        
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_WRITE ){
+
+        
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_READ ){
+
+        
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_MEM_WRITE ){
+
+        
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_MEM_READ ){
+
+        
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_WRITE_REG8 ){
+
+        
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_READ_REG8 ){
+
+        
+    }
     #endif
     else{
 

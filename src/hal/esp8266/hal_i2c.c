@@ -29,18 +29,31 @@
 #include "i2c.h"
 
 
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
+
+
 void i2c_v_init( i2c_baud_t8 baud ){
 
-	
+	#ifdef ENABLE_COPROCESSOR
+    
+    coproc_i32_call1( OPCODE_IO_I2C_INIT, baud );
+    
+    #else
+
+    #endif
 }
 
 void i2c_v_set_pins( uint8_t clock, uint8_t data ){
-	// no-op on this platform
-}
+	
+	#ifdef ENABLE_COPROCESSOR
+    
+    coproc_i32_call2( OPCODE_IO_I2C_SET_PINS, clock, data );
+    
+    #else
 
-uint8_t i2c_u8_status( void ){
-
-    return 0;
+    #endif
 }
 
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){

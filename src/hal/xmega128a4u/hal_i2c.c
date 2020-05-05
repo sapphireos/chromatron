@@ -239,11 +239,6 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
     I2C_DELAY();
 }
 
-uint8_t i2c_u8_status( void ){
-
-    return 0;
-}
-
 static void i2c_v_start( void ){
 
     SDA_HIGH();

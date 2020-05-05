@@ -126,11 +126,6 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 	// no-op on this platform
 }
 
-uint8_t i2c_u8_status( void ){
-
-    return 0;
-}
-
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
 	HAL_I2C_Master_Transmit( &i2c1, dev_addr, (uint8_t *)src, len, I2C_TIMEOUT );
