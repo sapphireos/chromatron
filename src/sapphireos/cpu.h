@@ -105,6 +105,7 @@
     #define strlcmp_P strlcmp
     #define strcmp_P strcmp
     #define strlen_P strlen
+    #define strcpy_P strcpy
     #define memcpy_P memcpy
     #define memcpy_PF memcpy
     #define strnlen(s, n) strlen(s) // NOT SAFE!!!
