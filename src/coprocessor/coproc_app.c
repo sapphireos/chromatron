@@ -49,6 +49,8 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
 static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
 
+static i2c_setup_t i2c_setup;
+
 // process a message
 // assumes CRC is valid
 void coproc_v_dispatch( 
@@ -228,35 +230,41 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_I2C_INIT ){
 
-
+        i2c_v_init( params[0] );
     }
     else if( hdr->opcode == OPCODE_IO_I2C_SET_PINS ){
 
-        
+        i2c_v_set_pins( params[0], params[1] );
+    }
+    else if( hdr->opcode == OPCODE_IO_I2C_SETUP ){
+
+        i2c_setup = *(i2c_setup_t *)params;
     }
     else if( hdr->opcode == OPCODE_IO_I2C_WRITE ){
 
-        
+        i2c_v_write( i2c_setup.dev_addr, data, i2c_setup.len );
     }
     else if( hdr->opcode == OPCODE_IO_I2C_READ ){
 
-        
+        i2c_v_read( i2c_setup.dev_addr, response, i2c_setup.len );   
+        *response_len = i2c_setup.len;
     }
     else if( hdr->opcode == OPCODE_IO_I2C_MEM_WRITE ){
 
-        
+        i2c_v_mem_write( i2c_setup.dev_addr, i2c_setup.mem_addr, i2c_setup.addr_size, data, i2c_setup.len, i2c_setup.delay_ms );        
     }
     else if( hdr->opcode == OPCODE_IO_I2C_MEM_READ ){
 
-        
+        i2c_v_mem_read( i2c_setup.dev_addr, i2c_setup.mem_addr, i2c_setup.addr_size, response, i2c_setup.len, i2c_setup.delay_ms );           
+        *response_len = i2c_setup.len;
     }
     else if( hdr->opcode == OPCODE_IO_I2C_WRITE_REG8 ){
 
-        
+        i2c_v_write_reg8( params[0], params[1], params[2] );
     }
     else if( hdr->opcode == OPCODE_IO_I2C_READ_REG8 ){
 
-        
+        *retval = i2c_u8_read_reg8( params[0], params[1] );   
     }
     #endif
     else{

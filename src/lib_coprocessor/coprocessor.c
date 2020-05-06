@@ -31,7 +31,7 @@
 #include "hal_esp8266.h"
 #endif
 
-static uint8_t rx_buf[COPROC_BUF_SIZE];
+static uint8_t buffer[COPROC_BUF_SIZE];
 
 static bool sync;
 
@@ -177,9 +177,9 @@ uint8_t coproc_u8_issue(
 	coproc_v_receive_block( (uint8_t *)&hdr );
 	
 	ASSERT( hdr.sof == COPROC_SOF );
-	ASSERT( hdr.length < sizeof(rx_buf) );
+	ASSERT( hdr.length < sizeof(buffer) );
 		
-	data = rx_buf;
+	data = buffer;
 	int16_t rx_len = hdr.length;
 	while( rx_len > 0 ){
 
@@ -202,7 +202,7 @@ void coproc_v_reboot( void ){
 void coproc_v_test( void ){
 
 	uint8_t response_len;
-	uint8_t *response = rx_buf;
+	uint8_t *response = buffer;
 
 	uint8_t data[4];
 	data[0] = 1;
@@ -223,7 +223,7 @@ void coproc_v_fw_version( char firmware_version[FW_VER_LEN] ){
 
 	memset( firmware_version, 0, FW_VER_LEN );
 	uint8_t response_len = coproc_u8_issue( OPCODE_FW_VERSION, 0, 0 );
-	memcpy( firmware_version, rx_buf, response_len );
+	memcpy( firmware_version, buffer, response_len );
 }
 
 uint16_t coproc_u16_fw_crc( void ){
@@ -316,7 +316,7 @@ int32_t coproc_i32_call0( uint8_t opcode ){
 
 	coproc_u8_issue( opcode, 0, 0 );
 
-	retval = *(int32_t *)rx_buf;
+	retval = *(int32_t *)buffer;
 
 	return retval;
 }
@@ -330,7 +330,7 @@ int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 ){
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int32_t *)rx_buf;
+	retval = *(int32_t *)buffer;
 
 	return retval;
 }
@@ -345,7 +345,7 @@ int32_t coproc_i32_call2( uint8_t opcode, int32_t param0, int32_t param1 ){
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int32_t *)rx_buf;
+	retval = *(int32_t *)buffer;
 
 	return retval;
 }
@@ -354,7 +354,6 @@ int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_
 
 	int32_t retval = 0;
 
-
 	int32_t param_buf[3];
 	param_buf[0] = param0;
 	param_buf[1] = param1;
@@ -362,8 +361,43 @@ int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_
 
 	coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
 
-	retval = *(int32_t *)rx_buf;
+	retval = *(int32_t *)buffer;
 
 	return retval;
+}
+
+int32_t coproc_i32_callv( uint8_t opcode, const uint8_t *data, uint16_t len ){
+
+	if( len >= COPROC_BUF_SIZE ){
+
+		return -1;
+	}
+
+	int32_t retval = 0;
+
+	coproc_u8_issue( opcode, (uint8_t *)data, len );
+
+	retval = *(int32_t *)buffer;
+
+	return retval;
+}
+
+int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len ){
+	
+	if( len >= COPROC_BUF_SIZE ){
+
+		return -1;
+	}
+
+	uint8_t response_len = coproc_u8_issue( opcode, 0, 0 );
+
+	if( response_len > len ){
+
+		response_len = len;
+	}
+
+	memcpy( data, buffer, response_len );
+
+	return response_len;
 }
 

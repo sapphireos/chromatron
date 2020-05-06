@@ -91,6 +91,7 @@ typedef struct __attribute__((packed)){
 // I2C
 #define OPCODE_IO_I2C_INIT			0x60
 #define OPCODE_IO_I2C_SET_PINS		0x61
+#define OPCODE_IO_I2C_SETUP			0x62
 #define OPCODE_IO_I2C_WRITE			0x62
 #define OPCODE_IO_I2C_READ			0x63
 #define OPCODE_IO_I2C_MEM_WRITE		0x64
@@ -98,6 +99,13 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_I2C_WRITE_REG8	0x66
 #define OPCODE_IO_I2C_READ_REG8		0x67
 
+typedef struct{
+	uint8_t dev_addr;
+	uint8_t len;
+	uint8_t mem_addr;
+	uint8_t addr_size;
+	uint16_t delay_ms;
+} i2c_setup_t;
 
 #define COPROC_PIX_WAIT_COUNT		16
 
@@ -136,6 +144,7 @@ int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 );
 int32_t coproc_i32_call2( uint8_t opcode, int32_t param0, int32_t param1 );
 int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_t param2 );
 
-
+int32_t coproc_i32_callv( uint8_t opcode, const uint8_t *data, uint16_t len );
+int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len );
 
 #endif
