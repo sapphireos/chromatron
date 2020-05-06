@@ -63,9 +63,9 @@ void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 	i2c_setup_t setup = {
 		.dev_addr = dev_addr,
 		.len = len,
-	}
+	};
     
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, &setup, sizeof(setup) );
+    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
     coproc_i32_callv( OPCODE_IO_I2C_WRITE, src, len );
     
     #else
@@ -80,9 +80,9 @@ void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
     i2c_setup_t setup = {
 		.dev_addr 	= dev_addr,
 		.len 		= len,
-	}
+	};
     
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, &setup, sizeof(setup) );
+    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
     coproc_i32_callp( OPCODE_IO_I2C_READ, dst, len );
     
     #else
@@ -100,9 +100,9 @@ void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, co
 		.mem_addr 	= mem_addr,
 		.addr_size  = addr_size,
 		.delay_ms   = delay_ms,
-	}
+	};
     
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, &setup, sizeof(setup) );
+    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
     coproc_i32_callv( OPCODE_IO_I2C_MEM_WRITE, src, len );
     
     #else
@@ -120,35 +120,12 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
 		.mem_addr 	= mem_addr,
 		.addr_size  = addr_size,
 		.delay_ms   = delay_ms,
-	}
+	};
     
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, &setup, sizeof(setup) );
-    coproc_i32_callv( OPCODE_IO_I2C_MEM_READ, src, len );
-    
-    #else
-
-    #endif
-}
-
-void i2c_v_write_reg8( uint8_t dev_addr, uint8_t reg_addr, uint8_t data ){
-
-	#ifdef ENABLE_COPROCESSOR
-    
-    coproc_i32_call3( OPCODE_IO_I2C_WRITE_REG8, dev_addr, reg_addr, data );
+    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
+    coproc_i32_callv( OPCODE_IO_I2C_MEM_READ, dst, len );
     
     #else
 
     #endif
 }
-
-uint8_t i2c_u8_read_reg8( uint8_t dev_addr, uint8_t reg_addr ){
-
-	#ifdef ENABLE_COPROCESSOR
-    
-    return coproc_i32_call2( OPCODE_IO_I2C_READ_REG8, dev_addr, reg_addr );
-    
-    #else
-
-    #endif
-}
-
