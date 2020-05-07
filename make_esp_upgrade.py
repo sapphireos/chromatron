@@ -50,6 +50,9 @@ if __name__ == '__main__':
     # copy firmware zip
     package_dir = core.get_build_package_dir()
     shutil.copy('chromatron_esp_upgrade_fw.zip', package_dir)
+
+    # remove component firmware packages, they will just make things confusing
     os.remove(os.path.join(package_dir, 'esp8266_upgrade.zip'))
+    os.remove(os.path.join(package_dir, 'coprocessor.zip'))
 
     print("Output dir: %s" % (package_dir))
