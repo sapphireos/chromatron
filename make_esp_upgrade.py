@@ -27,11 +27,21 @@ def make_firmware_zip():
     zf = zipfile.ZipFile('chromatron_esp_upgrade_fw.zip', 'w')
     zf.write('manifest.txt')
     zf.write('wifi_firmware.bin')
+    zf.write('firmware.bin')
     zf.close()
 
 
 if __name__ == '__main__':
-    shutil.copy('../esp8266_upgrade/wifi_firmware.bin', '.')
+    print("Make ESP upgrade package...")
+    
+    print("Build ESP8266 upgrade firmware...")
+    os.system('./build_esp8266_upgrade.sh')
+
+    print("Build coprocessor firmware...")
+    os.system('./build_coprocessor.sh')
+
+    shutil.copy('src/esp8266_upgrade/wifi_firmware.bin', '.')
+    shutil.copy('src/coprocessor/firmware.bin', '.')
 
     make_manifest()
 
@@ -40,4 +50,6 @@ if __name__ == '__main__':
     # copy firmware zip
     package_dir = core.get_build_package_dir()
     shutil.copy('chromatron_esp_upgrade_fw.zip', package_dir)
+    os.remove(os.path.join(package_dir, 'esp8266_upgrade.zip'))
 
+    print("Output dir: %s" % (package_dir))
