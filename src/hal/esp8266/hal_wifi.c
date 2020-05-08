@@ -839,13 +839,15 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
-        if( wifi_b_connected() ){
+        if( wifi_station_get_connect_status() == STATION_GOT_IP ){
 
-            wifi_uptime += 1;
+            wifi_uptime++;
+            connected = TRUE;
         }
         else{
 
             wifi_uptime = 0;
+            connected = FALSE;
         }
 
         wifi_rssi = wifi_station_get_rssi();
