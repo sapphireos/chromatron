@@ -116,6 +116,8 @@ CHROMATRON_SERVICE_NAME = "sapphire.device.chromatron"
 
 CHROMATRON_WIFI_FWID = '7148b7b4-2526-487d-9a5b-bfc1d6b0259b'.replace('-', '')
 CHROMATRON_ESP_UPGRADE_FWID = '4b2e4ce5-1f41-494e-8edd-d748c7c81dcb'.replace('-', '')
+CHROMATRON_OLD_FWID = 'bc0d76b1-cdf2-4cfe-895a-706123979091'.replace('-', '')
+
 
 F_PER = 32000000
 
