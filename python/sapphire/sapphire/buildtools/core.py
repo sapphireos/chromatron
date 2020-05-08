@@ -550,7 +550,7 @@ class Builder(object):
                 pass
 
         try:
-            os.remove(os.path.join(self.target_dir, 'manifest.txt'))
+            os.remove(os.path.join(self.target_dir, firmware_package.MANIFEST_FILENAME))
 
         except OSError:
             pass
@@ -1236,13 +1236,13 @@ class AppBuilder(HexBuilder):
             'target': self.target_type
         }
 
-        with open('manifest.txt', 'w+') as f:
+        with open(firmware_package.MANIFEST_FILENAME, 'w+') as f:
             f.write(json.dumps(data))
 
         # create firmware zip file
         # TODO why are we making this one?
         zf = zipfile.ZipFile('chromatron_main_fw.zip', 'w')
-        zf.write('manifest.txt')
+        zf.write(firmware_package.MANIFEST_FILENAME)
         zf.write('firmware.bin')
         zf.close()
 
@@ -1250,7 +1250,7 @@ class AppBuilder(HexBuilder):
         # we'll remove the first zip after
         # we update the firmware tools
         zf = zipfile.ZipFile('%s.zip' % (self.settings['PROJ_NAME']), 'w')
-        zf.write('manifest.txt')
+        zf.write(firmware_package.MANIFEST_FILENAME)
         zf.write('firmware.bin')
         zf.close()
 
