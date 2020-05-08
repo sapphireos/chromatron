@@ -30,6 +30,8 @@ from appdirs import *
 from sapphire.common import util
 
 PUBLISHED_AT_FILENAME = 'published_at.txt'
+MANIFEST_FILENAME = 'manifest.json'
+
 
 class FirmwarePackageDirNotFound(Exception):
     pass
@@ -47,7 +49,7 @@ def firmware_package_dir(release=None):
         return package_dir
 
 def open_manifest(dir):
-    with open('manifest.txt', 'r') as f:
+    with open(MANIFEST_FILENAME, 'r') as f:
         return json.loads(f.read())
 
 def get_firmware(release=None, include_firmware_image=False, sort_fwid=False):
@@ -272,7 +274,7 @@ class FirmwarePackage(object):
         os.chdir('chromatron_fw')
 
         # read manifest
-        with open('manifest.txt', 'r') as f:
+        with open(MANIFEST_FILENAME, 'r') as f:
             data = json.loads(f.read())
 
             self.ct_fw_timestamp = data['timestamp']
@@ -292,7 +294,7 @@ class FirmwarePackage(object):
         os.chdir('chromatron_wifi_fw')
 
         # read manifest
-        with open('manifest.txt', 'r') as f:
+        with open(MANIFEST_FILENAME, 'r') as f:
             data = json.loads(f.read())
 
             self.ct_wifi_fw_timestamp = data['timestamp']
