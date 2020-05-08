@@ -34,6 +34,7 @@ import hashlib
 import pkg_resources
 from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
+from sapphire.buildtools.firmware_package import FirmwarePackage
 import json
 from datetime import datetime, timedelta
 
@@ -192,86 +193,6 @@ QUERY_FILENAME = os.path.join(firmware_package.data_dir(), 'chromatron_last_quer
 
 def get_package_fx_script(fname):
     return pkg_resources.resource_filename('chromatron', fname)
-
-class FirmwarePackage(object):
-    def __init__(self, filename='chromatron_fw_package.zip'):
-        if filename:
-            self.open(filename)
-
-    def open(self, filename='chromatron_fw_package.zip'):
-        self.filename = filename
-
-        zf = zipfile.ZipFile(filename)
-        zf.extractall('.firmware')
-        zf.close()
-
-        os.chdir('.firmware')
-
-        zf = zipfile.ZipFile('chromatron_main_fw.zip')
-        zf.extractall('chromatron_fw')
-        zf.close()
-
-        os.chdir('chromatron_fw')
-
-        # read manifest
-        with open('manifest.txt', 'r') as f:
-            data = json.loads(f.read())
-
-            self.ct_fw_timestamp = data['timestamp']
-            self.ct_fw_version = data['version']
-            self.ct_fw_sha256 = data['sha256']
-
-        # read bin data
-        with open('firmware.bin', 'rb') as f:
-            self.ct_fw_data = f.read()
-
-        os.chdir('..')
-
-        zf = zipfile.ZipFile('chromatron_wifi_fw.zip')
-        zf.extractall('chromatron_wifi_fw')
-        zf.close()
-
-        os.chdir('chromatron_wifi_fw')
-
-        # read manifest
-        with open('manifest.txt', 'r') as f:
-            data = json.loads(f.read())
-
-            self.ct_wifi_fw_timestamp = data['timestamp']
-            self.ct_wifi_fw_version = data['version']
-            self.ct_wifi_fw_md5 = data['md5']
-            self.ct_wifi_fw_sha256 = data['sha256']
-
-        # read bin data
-        with open('wifi_firmware.bin', 'rb') as f:
-            self.ct_wifi_fw_data = f.read()
-
-        os.chdir('..')
-
-        # verify data
-        fw_sha256 = hashlib.sha256(self.ct_fw_data)
-        assert fw_sha256.hexdigest() == self.ct_fw_sha256
-
-        # note that wifi firmware has the MD5 appended,
-        # so we need to remove that for the calculation
-        wifi_fw_md5 = hashlib.md5(self.ct_wifi_fw_data[:-16])
-        assert wifi_fw_md5.hexdigest() == self.ct_wifi_fw_md5
-
-        # also verify the SHA256
-        wifi_fw_sha256 = hashlib.sha256(self.ct_wifi_fw_data)
-        assert wifi_fw_sha256.hexdigest() == self.ct_wifi_fw_sha256
-
-
-    def __str__(self):
-        s = 'AVR Firmware\nv%-10s\nSHA256: %s\nTimestamp: %s\n\nWifi Firmware:\nv%-10s\nSHA256: %s\nTimestamp: %s' % \
-            (self.ct_fw_version,
-             self.ct_fw_sha256,
-             self.ct_fw_timestamp,
-             self.ct_wifi_fw_version,
-             self.ct_wifi_fw_sha256,
-             self.ct_wifi_fw_timestamp)
-
-        return s
 
 
 # note - this is just a convenience wrapper around the
