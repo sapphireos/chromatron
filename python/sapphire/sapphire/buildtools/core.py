@@ -1608,6 +1608,11 @@ def make_project(proj_name):
 
     save_project_info(proj_name, os.path.abspath(project_dir))
 
+def get_fwid():
+    logging.info("Creating FWID")
+
+    return str(uuid.uuid4())
+
 
 def main():
     # set global log level
@@ -1636,6 +1641,7 @@ def main():
     parser.add_argument("--discover", action="store_true", help="discover projects")
     parser.add_argument("--create", help="create a new template project")
     parser.add_argument("--unlink", help="unlink a project")
+    parser.add_argument("--fwid", action="store_true", help="create a firmware ID")
     parser.add_argument("--make_release", action="store_true", help="make current build a release package")
     parser.add_argument("--install_build_tools", action="store_true", help="install build tools")
 
@@ -1709,6 +1715,10 @@ def main():
     # check if reset
     if args["reset"]:
         os.remove(get_project_info_file())
+        return
+
+    if args["fwid"]:
+        print(get_fwid())
         return
 
     # check if discovering
