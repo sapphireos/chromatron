@@ -370,7 +370,28 @@ def directory(ctx):
 
     if d is None:
         print("Directory not running")
+        return
 
+    click.echo('Found %d nodes' % (len(d)))
+
+    s = 'Name                                        Tags'
+    click.echo(s)
+
+    for node in d.values():
+        host = node['host']
+
+        name = node['name']
+        tags = node['query']
+
+        name_s = '%32s @ %20s:%5s' % \
+            (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (host[0]), fg=HOST_COLOR), click.style('%5d' % (host[1]), fg=HOST_COLOR))
+
+        s = name_s
+
+        for tag in tags:
+            s += ' %s' % (tag)
+
+        click.echo(s)
 
 def main():
     cli(obj={})
