@@ -20,6 +20,10 @@
 	{
 		"target": "xmega128a4u"
 	},
+	"esp8266_loader":
+	{
+		"target": "esp8266_boot"
+	},
 	"feather_esp12":
 	{
 		"target": "esp8266",
