@@ -23,8 +23,6 @@
 
     "DEFINES": ["BOARD=USER_BOARD"],
 
-    "TARGET": "chromatron",
-
     "_comment": "Additional libraries to include with the build",
     "LIBRARIES": []
 }

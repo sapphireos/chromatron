@@ -16,6 +16,10 @@
 			"ESP8266_UPGRADE"
 		]
 	},
+	"coprocessor":
+	{
+		"target": "xmega128a4u"
+	},
 	"feather_esp12":
 	{
 		"target": "esp8266",
