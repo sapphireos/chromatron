@@ -57,6 +57,9 @@ from catbus import catbus_string_hash
 from fnvhash import fnv1a_32
 
 
+CHROMATRON_ESP_UPGRADE_FWID = '4b2e4ce5-1f41-494e-8edd-d748c7c81dcb'.replace('-', '')
+
+
 class SettingsParseException(Exception):
     pass
 
@@ -1237,7 +1240,16 @@ class AppBuilder(HexBuilder):
 
         package = FirmwarePackage(self.settings['PROJ_NAME'])
         package.FWID = self.settings['FWID']
+
+        if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
+            print("Special handling for ESP8266 upgrade on Chromatron Classic")
+
         package.add_image('firmware.bin', ih.tobinstr(), self.board_type, self.version)
+            
+        if 'extra_files' in self.board:
+            for file in self.board['extra_files']:
+                package.add_image(file, None, self.board_type, self.version)
+
         package.save()
 
         sys.exit(0)

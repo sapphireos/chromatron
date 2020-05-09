@@ -308,6 +308,10 @@ class FirmwarePackage(object):
                             raise BadFirmwareHash(target, file)
 
     def add_image(self, filename, data, target, version):
+        if data == None:
+            with open(filename, 'rb') as f:
+                data = f.read()
+
         sha256 = hashlib.sha256(data).hexdigest()
 
         if target not in self.manifest['targets']:
