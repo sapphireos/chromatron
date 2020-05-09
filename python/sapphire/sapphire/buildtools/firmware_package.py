@@ -286,10 +286,10 @@ class FirmwarePackage(object):
                 with myzip.open(MANIFEST_FILENAME) as myfile:
                     self.manifest = json.loads(myfile.read())
 
-                self.version = self.manifest['version']
                 self.FWID = self.manifest['FWID']
 
             except KeyError:
+                raise
                 # file is probably bad
                 return
 

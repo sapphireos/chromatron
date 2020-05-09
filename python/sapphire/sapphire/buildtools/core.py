@@ -1234,17 +1234,29 @@ class AppBuilder(HexBuilder):
         except KeyError:
             logging.info("Loader project not found, cannot create loader_image.hex")
 
-        # create sha256 of binary
-        # sha256 = hashlib.sha256(ih.tobinstr())
-
+        
+        # create firmware package
 
         package = FirmwarePackage(self.settings['PROJ_NAME'])
         package.FWID = self.settings['FWID']
 
         if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
             print("Special handling for ESP8266 upgrade on Chromatron Classic")
+            coproc_package = FirmwarePackage('coprocessor')
 
-        package.add_image('firmware.bin', ih.tobinstr(), self.board_type, self.version)
+            try:
+                coproc_image = coproc_package.images['coprocessor']['firmware.bin']
+
+            except KeyError:
+                logging.error("Must build coprocessor firmware first!")
+                sys.exit(-1)
+
+            coproc_version = coproc_package.manifest['targets']['coprocessor']['firmware.bin']['version']
+            
+            package.add_image('firmware.bin', coproc_image, self.board_type, coproc_version)
+
+        else:
+            package.add_image('firmware.bin', ih.tobinstr(), self.board_type, self.version)
             
         if 'extra_files' in self.board:
             for file in self.board['extra_files']:
@@ -1252,60 +1264,7 @@ class AppBuilder(HexBuilder):
 
         package.save()
 
-        sys.exit(0)
-
-        # create manifest file
-        data = {
-            'name': self.settings['FULL_NAME'],
-            'timestamp': datetime.utcnow().isoformat(),
-            'sha256': sha256.hexdigest(),
-            'fwid': self.settings['FWID'],
-            'version': self.version,
-            'target': self.board_type
-        }
-
-        with open(firmware_package.MANIFEST_FILENAME, 'w+') as f:
-            f.write(json.dumps(data))
-
-        # create firmware zip file
-        # TODO why are we making this one?
-        zf = zipfile.ZipFile('chromatron_main_fw.zip', 'w')
-        zf.write(firmware_package.MANIFEST_FILENAME)
-        zf.write('firmware.bin')
-        zf.close()
-
-        # create second, project specific zip
-        # we'll remove the first zip after
-        # we update the firmware tools
-        zf = zipfile.ZipFile('%s.zip' % (self.settings['PROJ_NAME']), 'w')
-        zf.write(firmware_package.MANIFEST_FILENAME)
-        zf.write('firmware.bin')
-        zf.close()
-
-
-        # change back to original dir
-        os.chdir(cwd)
-
         logging.info("Package dir: %s" % (get_build_package_dir()))
-
-        # make sure we have the firmware package dir
-        try:
-            os.makedirs(get_build_package_dir())
-
-        except OSError:
-            pass
-
-
-        # copy firmware zip
-        try:
-            shutil.copy(os.path.join(self.target_dir, '%s.zip' % (self.proj_name)), get_build_package_dir())
-
-        except IOError:
-            raise AppZipNotFound
-
-        # update build date
-        with open(os.path.join(get_build_package_dir(), firmware_package.PUBLISHED_AT_FILENAME), 'w') as f:
-            f.write(util.now().isoformat())
 
 
 class LoaderBuilder(HexBuilder):
