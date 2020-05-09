@@ -42,6 +42,7 @@ from datetime import datetime
 import configparser
 from pprint import pprint
 from . import firmware_package
+from .firmware_package import FirmwarePackage
 from . import esptool
 
 from . import settings
@@ -1231,7 +1232,15 @@ class AppBuilder(HexBuilder):
             logging.info("Loader project not found, cannot create loader_image.hex")
 
         # create sha256 of binary
-        sha256 = hashlib.sha256(ih.tobinstr())
+        # sha256 = hashlib.sha256(ih.tobinstr())
+
+
+        package = FirmwarePackage(self.settings['PROJ_NAME'])
+        package.FWID = self.settings['FWID']
+        package.add_image('firmware.bin', ih.tobinstr(), self.board_type, self.version)
+        package.save()
+
+        sys.exit(0)
 
         # create manifest file
         data = {

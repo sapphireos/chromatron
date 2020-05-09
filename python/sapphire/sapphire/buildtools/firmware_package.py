@@ -26,27 +26,31 @@ import hashlib
 import json
 import shutil
 import requests
+from datetime import datetime
 from appdirs import *
 from sapphire.common import util
 
 PUBLISHED_AT_FILENAME = 'published_at.txt'
 MANIFEST_FILENAME = 'manifest.json'
 
-
 class FirmwarePackageDirNotFound(Exception):
+    pass
+
+class BadFirmwareHash(Exception):
     pass
 
 def data_dir():
     return user_data_dir("Chromatron")
 
-def firmware_package_dir(release=None):
-    package_dir = os.path.join(data_dir(), 'firmware_packages')
+PACKAGE_DIR = os.path.join(data_dir(), 'firmware_packages')
 
+
+def firmware_package_dir(release=None):
     if release:
-        return os.path.join(package_dir, release)
+        return os.path.join(PACKAGE_DIR, release)
 
     else:
-        return package_dir
+        return PACKAGE_DIR
 
 def open_manifest(dir):
     with open(MANIFEST_FILENAME, 'r') as f:
@@ -254,85 +258,90 @@ def update_releases():
 
 
 class FirmwarePackage(object):
-    def __init__(self, filename='chromatron_fw_package.zip'):
-        if filename:
-            self.open(filename)
+    def __init__(self, name):
+        self.name = name
+        self.filename = os.path.join(PACKAGE_DIR, f"{self.name}.zip")
 
-    def open(self, filename='chromatron_fw_package.zip'):
-        self.filename = filename
+        self.FWID = None
 
-        zf = zipfile.ZipFile(filename)
-        zf.extractall('.firmware')
-        zf.close()
+        # create empty manifest
+        self.manifest = {
+            'timestamp': None,
+            'FWID': None,
+            'name': None,
+            'targets': {}
+        }
 
-        os.chdir('.firmware')
+        self.images = {}
 
-        zf = zipfile.ZipFile('chromatron_main_fw.zip')
-        zf.extractall('chromatron_fw')
-        zf.close()
+        try:
+            self.load()
 
-        os.chdir('chromatron_fw')
+        except FileNotFoundError:
+            pass
 
-        # read manifest
-        with open(MANIFEST_FILENAME, 'r') as f:
-            data = json.loads(f.read())
+    def load(self):
+        with zipfile.ZipFile(self.filename) as myzip:
+            try:
+                with myzip.open(MANIFEST_FILENAME) as myfile:
+                    self.manifest = json.loads(myfile.read())
 
-            self.ct_fw_timestamp = data['timestamp']
-            self.ct_fw_version = data['version']
-            self.ct_fw_sha256 = data['sha256']
+                self.version = self.manifest['version']
+                self.FWID = self.manifest['FWID']
 
-        # read bin data
-        with open('firmware.bin', 'rb') as f:
-            self.ct_fw_data = f.read()
+            except KeyError:
+                # file is probably bad
+                return
 
-        os.chdir('..')
+            for target in self.manifest['targets']:
+                self.images[target] = {}
 
-        zf = zipfile.ZipFile('chromatron_wifi_fw.zip')
-        zf.extractall('chromatron_wifi_fw')
-        zf.close()
+                for file in self.manifest['targets'][target]:
+                    with myzip.open(f"{target}_{file}", 'r') as myfile:
+                        data = myfile.read()
+                        self.images[target][file] = data
 
-        os.chdir('chromatron_wifi_fw')
+                        # verify file
+                        sha256 = hashlib.sha256(data).hexdigest()
 
-        # read manifest
-        with open(MANIFEST_FILENAME, 'r') as f:
-            data = json.loads(f.read())
+                        if sha256 != self.manifest['targets'][target][file]['sha256']:
+                            raise BadFirmwareHash(target, file)
 
-            self.ct_wifi_fw_timestamp = data['timestamp']
-            self.ct_wifi_fw_version = data['version']
-            self.ct_wifi_fw_md5 = data['md5']
-            self.ct_wifi_fw_sha256 = data['sha256']
+    def add_image(self, filename, data, target, version):
+        sha256 = hashlib.sha256(data).hexdigest()
 
-        # read bin data
-        with open('wifi_firmware.bin', 'rb') as f:
-            self.ct_wifi_fw_data = f.read()
+        if target not in self.manifest['targets']:
+            self.manifest['targets'][target] = {}
 
-        os.chdir('..')
+        if filename not in self.manifest['targets'][target]:
+            self.manifest['targets'][target][filename] = {}
 
-        # verify data
-        fw_sha256 = hashlib.sha256(self.ct_fw_data)
-        assert fw_sha256.hexdigest() == self.ct_fw_sha256
+        self.manifest['targets'][target][filename]['sha256'] = sha256
+        self.manifest['targets'][target][filename]['length'] = len(data)
+        self.manifest['targets'][target][filename]['version'] = version
 
-        # note that wifi firmware has the MD5 appended,
-        # so we need to remove that for the calculation
-        wifi_fw_md5 = hashlib.md5(self.ct_wifi_fw_data[:-16])
-        assert wifi_fw_md5.hexdigest() == self.ct_wifi_fw_md5
+        if target not in self.images:
+            self.images[target] = {}
 
-        # also verify the SHA256
-        wifi_fw_sha256 = hashlib.sha256(self.ct_wifi_fw_data)
-        assert wifi_fw_sha256.hexdigest() == self.ct_wifi_fw_sha256
+        self.images[target][filename] = data
 
+    def save(self):
+        # remove old file
+        try:
+            os.remove(self.filename)
+        except FileNotFoundError:
+            pass
 
-    def __str__(self):
-        s = 'AVR Firmware\nv%-10s\nSHA256: %s\nTimestamp: %s\n\nWifi Firmware:\nv%-10s\nSHA256: %s\nTimestamp: %s' % \
-            (self.ct_fw_version,
-             self.ct_fw_sha256,
-             self.ct_fw_timestamp,
-             self.ct_wifi_fw_version,
-             self.ct_wifi_fw_sha256,
-             self.ct_wifi_fw_timestamp)
+        self.manifest['name'] = self.name
+        self.manifest['FWID'] = self.FWID
+        self.manifest['timestamp'] = datetime.utcnow().isoformat()
 
-        return s
+        with zipfile.ZipFile(self.filename, mode='w') as myzip:
+            myzip.writestr(MANIFEST_FILENAME, json.dumps(self.manifest, indent=4, separators=(',', ': ')))
 
+            for target in self.images:
+                for filename in self.images[target]:
+                    myzip.writestr(f"{target}_{filename}", self.images[target][filename])
 
 
 
