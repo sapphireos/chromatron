@@ -67,8 +67,6 @@ class ProtocolErrorException(Exception):
 class DataUnpackingError(Exception):
     pass
 
-
-
 class CatbusStringField(String32Field):
     pass
 

@@ -273,7 +273,7 @@ class Client(object):
             sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
 
         except ConnectionRefusedError:
-            return None
+             return None
 
         data = sock.recv(4)
         length = struct.unpack('<L', data)[0]

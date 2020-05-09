@@ -139,15 +139,14 @@ def echo_name(name, host, left_align=True, nl=True):
 def cli(ctx, query):
     """Catbus Key-Value Pub-Sub System CLI"""
 
-    if ctx.invoked_subcommand != 'hash':
+    client = Client()
+    ctx.obj['CLIENT'] = client
+
+    if ctx.invoked_subcommand not in ['hash', 'directory']:
         if query == None:
             query = ('all')
 
         ctx.obj['QUERY'] = query
-
-        client = Client()
-
-        ctx.obj['CLIENT'] = client
 
         matches = client.discover(*query)
 
@@ -365,9 +364,13 @@ def hash(key):
 @click.pass_context
 def directory(ctx):
     """Query directory server"""
-    
     client = ctx.obj['CLIENT']
-    print(client.get_directory())
+
+    d = client.get_directory()
+
+    if d is None:
+        print("Directory not running")
+
 
 def main():
     cli(obj={})
