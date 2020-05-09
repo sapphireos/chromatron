@@ -374,7 +374,7 @@ def directory(ctx):
 
     click.echo('Found %d nodes' % (len(d)))
 
-    s = 'Name                                        Tags'
+    s = 'Name                                        TTL  Tags'
     click.echo(s)
 
     for node in d.values():
@@ -383,8 +383,11 @@ def directory(ctx):
         name = node['name']
         tags = node['query']
 
-        name_s = '%32s @ %20s:%5s' % \
-            (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (host[0]), fg=HOST_COLOR), click.style('%5d' % (host[1]), fg=HOST_COLOR))
+        name_s = '%32s @ %20s:%5s %3s' % \
+            (click.style('%s' % (name), fg=NAME_COLOR), 
+             click.style('%s' % (host[0]), fg=HOST_COLOR), 
+             click.style('%5d' % (host[1]), fg=HOST_COLOR),
+             click.style('%3d' % (node['ttl']), fg=KEY_COLOR))
 
         s = name_s
 
