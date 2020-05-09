@@ -505,6 +505,12 @@ class Builder(object):
             files.extend(b.list_source())
             files.extend(b.list_headers())
 
+        for lib in self.libraries:
+            b = get_project_builder(lib, target=self.board_type)
+
+            files.extend(b.list_source())
+            files.extend(b.list_headers())
+
         hashes = {}
 
         for f in files:
