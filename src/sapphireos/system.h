@@ -49,6 +49,7 @@
 #define OS_VER_LEN  16
 #define FW_NAME_LEN  128
 #define FW_VER_LEN  16
+#define HW_NAME_LEN  32
 
 typedef struct __attribute__((packed)){
     uint32_t fw_length;
@@ -57,6 +58,7 @@ typedef struct __attribute__((packed)){
     char os_version[OS_VER_LEN];
     char firmware_name[FW_NAME_LEN];
     char firmware_version[FW_VER_LEN];
+    char board[HW_NAME_LEN];
 } fw_info_t;
 
 

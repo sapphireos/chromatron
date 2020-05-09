@@ -25,8 +25,6 @@
 #ifndef _TARGET_H
 #define _TARGET_H
 
-#define HW_NAME "ESP8266"
-
 // modules
 #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC

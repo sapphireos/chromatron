@@ -1,0 +1,26 @@
+{
+	"chromatron_classic":
+	{
+		"target": "esp8266",
+		"defines":
+		[
+			"ENABLE_COPROCESSOR"
+		]
+	},
+	"chromatron_classic_upgrade":
+	{
+		"target": "esp8266",
+		"defines":
+		[
+			"ENABLE_COPROCESSOR",
+			"ESP8266_UPGRADE"
+		]
+	},
+	"feather_esp12":
+	{
+		"target": "esp8266",
+		"defines":
+		[
+		]	
+	}
+}

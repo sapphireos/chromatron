@@ -76,17 +76,20 @@ KV_CHARS.extend(['_'])
 KV_CHARS.extend(digits)
 # KV_HEADER = '_kv_hashes.h'
     
-SETTINGS_DIR = os.path.dirname(os.path.abspath(global_settings.__file__))
-SETTINGS_FILE = 'settings.json'
-PROJECTS_FILE_NAME = 'projects.json'
-PROJECTS_FILE_PATH = firmware_package.data_dir()
-PROJECTS_FILE = os.path.join(PROJECTS_FILE_PATH, PROJECTS_FILE_NAME)
-BUILD_CONFIGS_DIR = os.path.join(os.getcwd(), 'configurations')
-BUILD_CONFIGS_FWID_FILE = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
-BASE_DIR = os.getcwd()
-MASTER_HASH_DB_FILE = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
-TOOLS_DIR = os.path.join(PROJECTS_FILE_PATH, 'tools')
-LIB_INIT_FILENAME = '__libs.c'
+SETTINGS_DIR                = os.path.dirname(os.path.abspath(global_settings.__file__))
+SETTINGS_FILE               = 'settings.json'
+PROJECTS_FILE_NAME          = 'projects.json'
+PROJECTS_FILE_PATH          = firmware_package.data_dir()
+PROJECTS_FILE               = os.path.join(PROJECTS_FILE_PATH, PROJECTS_FILE_NAME)
+BUILD_CONFIGS_DIR           = os.path.join(os.getcwd(), 'configurations')
+BUILD_CONFIGS_FWID_FILE     = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
+BASE_DIR                    = os.getcwd()
+TARGETS_DIR                 = os.path.join(BASE_DIR, 'targets')
+BOARDS_FILE                 = os.path.join(TARGETS_DIR, 'boards.json')
+MASTER_HASH_DB_FILE         = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
+TOOLS_DIR                   = os.path.join(PROJECTS_FILE_PATH, 'tools')
+LIB_INIT_FILENAME           = '__libs.c'
+
 
 def get_build_package_dir():
     return firmware_package.firmware_package_dir('build')
@@ -172,8 +175,8 @@ def runcmd(cmd, tofile=False, tolog=True):
     return output
 
 
-def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True, **kwargs):
-    builder = Builder(target_dir, target_type, fnv_hash=fnv_hash, **kwargs)
+def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, **kwargs):
+    builder = Builder(target_dir, board_type, fnv_hash=fnv_hash, **kwargs)
 
     modes = {"os": OSBuilder, 
              "loader": LoaderBuilder, 
@@ -183,14 +186,19 @@ def get_builder(target_dir, target_type, build_loader=False, fnv_hash=True, **kw
              "lib": LibBuilder, 
              "exe": ExeBuilder}
 
-    return modes[builder.settings["BUILD_TYPE"]](target_dir, target_type, build_loader=build_loader, fnv_hash=fnv_hash)
+    return modes[builder.settings["BUILD_TYPE"]](target_dir, board_type, build_loader=build_loader, fnv_hash=fnv_hash)
 
 class Builder(object):
-    def __init__(self, target_dir, target_type=None, build_loader=False, fnv_hash=True, defines=[]):
+    def __init__(self, target_dir, board_type=None, build_loader=False, fnv_hash=True, defines=[]):
         self.target_dir = target_dir
-        self.target_type = target_type
+        self.board_type = board_type
 
         self.build_loader = build_loader
+
+        with open(BOARDS_FILE, 'r') as f:
+            boards = json.loads(f.read())
+
+        self.board = boards[self.board_type]
 
         try:
             self.settings = self.get_settings()
@@ -232,6 +240,10 @@ class Builder(object):
             self.defines = list()
 
         self.defines.extend(defines)
+
+        # load defines from board settings
+        if 'defines' in self.board:
+            self.defines.extend(self.board['defines'])
 
         if self.build_loader:
             self.defines.append("BOOTLOADER")
@@ -281,9 +293,9 @@ class Builder(object):
 
         # check if app settings override target type
         if "TARGET" in app_settings:
-            self.target_type = app_settings["TARGET"]
+            self.board_type = app_settings["TARGET"]
 
-        self.settings_dir = os.path.join(BASE_DIR, 'targets', self.target_type)
+        self.settings_dir = os.path.join(TARGETS_DIR, self.board["target"])
 
         settings = self._get_default_settings()
 
@@ -488,7 +500,7 @@ class Builder(object):
 
         # process source in all included projects as well
         for include in self.includes:
-            b = get_project_builder(include, target=self.target_type)
+            b = get_project_builder(include, target=self.board_type)
 
             files.extend(b.list_source())
             files.extend(b.list_headers())
@@ -575,7 +587,7 @@ class Builder(object):
                     raise
 
     def build(self):
-        logging.info("Building %s for target: %s" % (self.settings["PROJ_NAME"], self.target_type))
+        logging.info("Building %s for board: %s target: %s" % (self.settings["PROJ_NAME"], self.board_type, self.board["target"]))
         logging.info("Toolchain: %s" % (self.settings["TOOLCHAIN"]))
 
         self.pre_process()
@@ -604,7 +616,7 @@ class Builder(object):
             if lib in current_libs:
                 continue
 
-            libs[lib] = get_project_builder(lib, target=self.target_type)
+            libs[lib] = get_project_builder(lib, target=self.board_type)
 
             libs.update(libs[lib].get_libraries(current_libs=libs))
 
@@ -676,12 +688,12 @@ class Builder(object):
             cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
-                include_dir = get_project_builder(include, target=self.target_type).target_dir
+                include_dir = get_project_builder(include, target=self.board_type).target_dir
 
                 cmd += '-I%s ' % (include_dir)
 
             for include in self.libraries:
-                lib_proj = get_project_builder(include, target=self.target_type)
+                lib_proj = get_project_builder(include, target=self.board_type)
                 include_dirs = [lib_proj.target_dir]
                 include_dirs.extend(lib_proj.source_dirs)
 
@@ -758,7 +770,7 @@ class ConfigBuilder(Builder):
         self.proj_name = self.build_config['PROJ_NAME']
         self.fwid = self.build_config['FWID']
 
-        self.app_builder = get_project_builder(self.build_config['BASE_PROJ'], target=self.target_type)
+        self.app_builder = get_project_builder(self.build_config['BASE_PROJ'], target=self.board_type)
             
         # change app's FWID to the config FWID
         self.app_builder.settings['FWID'] = self.fwid
@@ -769,7 +781,7 @@ class ConfigBuilder(Builder):
 
         self.lib_builders = []
         for lib in self.build_config['LIBS']:
-            builder = get_project_builder(lib, target=self.target_type)
+            builder = get_project_builder(lib, target=self.board_type)
 
             self.lib_builders.append(builder)
 
@@ -780,7 +792,7 @@ class ConfigBuilder(Builder):
         super(ConfigBuilder, self).clean()
 
     def build(self):
-        logging.info("Building configuration %s for target: %s" % (self.proj_name, self.target_type))
+        logging.info("Building configuration %s for target: %s" % (self.proj_name, self.board_type))
 
         includes = []
         inits = []
@@ -925,7 +937,7 @@ class HexBuilder(Builder):
         libraries = self.get_libraries()
         # included libraries
         for lib in libraries:
-            lib_project = get_project_builder(lib, target=self.target_type)
+            lib_project = get_project_builder(lib, target=self.board_type)
 
             # source object files
             for source in lib_project.list_source():
@@ -1034,7 +1046,7 @@ class AppBuilder(HexBuilder):
     def post_process(self):
         logging.info("Processing binaries")
 
-        fw_info_fmt = '<I16s128s16s128s16s'
+        fw_info_fmt = '<I16s128s16s128s16s32s'
 
         fw_info_addr = int(self.settings["FW_INFO_ADDR"], 16)
 
@@ -1126,7 +1138,7 @@ class AppBuilder(HexBuilder):
 
         # get os info
         try:
-            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.target_type)
+            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.board_type)
         except KeyError:
             os_project = ""
 
@@ -1137,7 +1149,8 @@ class AppBuilder(HexBuilder):
                                 os_project.proj_name.encode('utf-8'),
                                 os_project.version.encode('utf-8'),
                                 self.settings['PROJ_NAME'].encode('utf-8'),
-                                self.version.encode('utf-8'))
+                                self.version.encode('utf-8'),
+                                self.board_type.encode('utf-8'))
 
         # insert fw info into hex
         ih.puts(fw_info_addr, fw_info)
@@ -1167,7 +1180,7 @@ class AppBuilder(HexBuilder):
 
         # get loader info
         try:
-            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.target_type)
+            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type)
 
             if self.settings["TOOLCHAIN"] == "XTENSA":
                 # create loader image
@@ -1233,7 +1246,7 @@ class AppBuilder(HexBuilder):
             'sha256': sha256.hexdigest(),
             'fwid': self.settings['FWID'],
             'version': self.version,
-            'target': self.target_type
+            'target': self.board_type
         }
 
         with open(firmware_package.MANIFEST_FILENAME, 'w+') as f:
@@ -1334,7 +1347,7 @@ class ExeBuilder(Builder):
         source_files = []
 
         for lib in self.libraries:
-            lib_proj = get_project_builder(lib, target=self.target_type)
+            lib_proj = get_project_builder(lib, target=self.board_type)
 
             source_files.extend(lib_proj.list_source())
 
@@ -1539,7 +1552,7 @@ def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=Fal
     try:
         if proj_name:
             return get_builder(projects[proj_name], target, build_loader=build_loader, **kwargs)
-            # return Builder(projects[proj_name], target_type=target)
+            # return Builder(projects[proj_name], board_type=target)
 
         elif fwid:
             for k, v in projects.items():
@@ -1561,7 +1574,7 @@ def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=Fal
                 raise ProjectNotFoundException(proj_name)
 
             # build from config
-            return ConfigBuilder(build_config=configs[proj_name], target_type=target, **kwargs)
+            return ConfigBuilder(build_config=configs[proj_name], board_type=target, **kwargs)
 
         else:
             raise ProjectNotFoundException(fwid)
@@ -1775,10 +1788,10 @@ def main():
 
     # check if setting target
     if args["target"]:
-        target_type = args["target"]
+        board_type = args["target"]
 
     else:
-        target_type = "chromatron"
+        board_type = "chromatron_classic"
 
     if args["loader"]:
         build_loader = True
@@ -1804,7 +1817,7 @@ def main():
 
             # check if project is in the projects list
             try:
-                builder = get_project_builder(p, build_loader=build_loader, target=target_type, defines=defines)
+                builder = get_project_builder(p, build_loader=build_loader, target=board_type, defines=defines)
             except Exception:
                 raise
 
@@ -1823,7 +1836,7 @@ def main():
         for d in args["dir"]:
             target_dir = os.path.abspath(d)
 
-            builder = get_builder(target_dir, target_type, build_loader=build_loader, defines=defines)
+            builder = get_builder(target_dir, board_type, build_loader=build_loader, defines=defines)
 
             # init logging
             builder.init_logging()
@@ -1836,7 +1849,7 @@ def main():
 
     # build in current directory
     else:
-        builder = get_builder(target_dir, target_type, build_loader=build_loader, defines=defines)
+        builder = get_builder(target_dir, board_type, build_loader=build_loader, defines=defines)
 
         # init logging
         builder.init_logging()

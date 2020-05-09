@@ -26,8 +26,6 @@
         
 #define _TARGET_H
 
-#define HW_NAME "Xmega128A4U"
-
 // #define TRACE
 // #define ENABLE_LOG_TO_TRACE_PRINT
 

@@ -25,8 +25,6 @@
 #ifndef _TARGET_H
 #define _TARGET_H
 
-#define HW_NAME "STM32H7"
-
 // #define BOARD_CHROMATRONX
 // #define BOARD_NUCLEAR
 
