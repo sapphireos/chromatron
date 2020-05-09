@@ -90,6 +90,17 @@ void coproc_v_dispatch(
 
         *retval = sys_u8_get_reset_source();
     }
+    else if( hdr->opcode == OPCODE_GET_WIFI ){
+
+        uint8_t buf[WIFI_SSID_LEN + WIFI_PASS_LEN];
+        memset( buf, 0, sizeof(buf) );
+
+        cfg_i8_get( CFG_PARAM_WIFI_SSID, buf );
+        cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, &buf[WIFI_SSID_LEN] );
+
+        *response_len = sizeof(buf);
+        memcpy( response, buf, sizeof(buf) );
+    }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
         io_v_set_mode( params[0], params[1] );

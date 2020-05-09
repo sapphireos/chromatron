@@ -115,6 +115,7 @@ void ICACHE_FLASH_ATTR user_init(void)
     io_v_set_esp_led( 0 );
 
     coproc_v_init();
+    coproc_v_get_wifi(); // init wifi config
 
     //Start os task
     system_os_task(loop, LOOP_PRIO, loop_q, LOOP_QUEUE_LEN);

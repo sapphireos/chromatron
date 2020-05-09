@@ -138,6 +138,7 @@ uint16_t coproc_u16_fw_crc( void );
 void coproc_v_fw_erase( void );
 void coproc_v_fw_load( uint8_t *data, uint32_t len );
 void coproc_v_fw_bootload( void );
+void coproc_v_get_wifi( void );
 
 int32_t coproc_i32_call0( uint8_t opcode );
 int32_t coproc_i32_call1( uint8_t opcode, int32_t param0 );

@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#include "config.h"
+
 #include "coprocessor.h"
 
 #include "hal_usart.h"
@@ -309,6 +311,25 @@ void coproc_v_fw_bootload( void ){
 	coproc_i32_call0( OPCODE_FW_BOOTLOAD );	
 }
 
+void coproc_v_get_wifi( void ){
+
+	uint8_t buf[WIFI_SSID_LEN + WIFI_PASS_LEN];
+	memset( buf, 0, sizeof(buf) );
+
+	cfg_i8_get( CFG_PARAM_WIFI_SSID, buf );
+
+	if( buf[0] != 0 ){
+
+		return;
+	} 
+
+	coproc_i32_callp( OPCODE_GET_WIFI, buf, sizeof(buf) );
+
+	cfg_v_set( CFG_PARAM_WIFI_SSID, buf );
+	cfg_v_set( CFG_PARAM_WIFI_PASSWORD, &buf[WIFI_SSID_LEN] );
+
+	log_v_debug_P( PSTR("retrieved wifi config: %s"), buf );
+}
 
 int32_t coproc_i32_call0( uint8_t opcode ){
 
