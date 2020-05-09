@@ -1211,15 +1211,16 @@ class AppBuilder(HexBuilder):
                 with open("esptool_image.bin", 'wb') as f:
                     f.write(combined_image)
 
-                # append MD5
-                md5 = hashlib.md5(combined_image)
-                combined_image += md5.digest()
+                if 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']:
+                    # append MD5
+                    md5 = hashlib.md5(combined_image)
+                    combined_image += md5.digest()
 
-                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+                    # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+                    combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
-                with open("wifi_firmware.bin", 'wb') as f:
-                    f.write(combined_image)
+                    with open("wifi_firmware.bin", 'wb') as f:
+                        f.write(combined_image)
 
             else:
                 # create loader image

@@ -14,6 +14,10 @@
 		[
 			"ENABLE_COPROCESSOR",
 			"ESP8266_UPGRADE"
+		],
+		"extra_files":
+		[
+			"wifi_firmware.bin"
 		]
 	},
 	"coprocessor":
