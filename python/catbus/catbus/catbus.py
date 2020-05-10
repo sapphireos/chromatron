@@ -377,7 +377,7 @@ def directory(ctx):
     s = 'Name                                        TTL  Tags'
     click.echo(s)
 
-    for node in d.values():
+    for node in sorted(d.values(), key=lambda node: node['name']):
         host = node['host']
 
         name = node['name']
