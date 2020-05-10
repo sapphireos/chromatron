@@ -305,14 +305,6 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 		ASSERT( FALSE );
 	}
 
-	#ifdef ESP8266
-
-	// configure bootdata
-	boot_data.boot_mode = BOOT_MODE_REBOOT;
-	hal_cpu_v_store_bootdata(); // commit bootdata
-
-	#endif
-
 	// request coprocessor bootload
 	coproc_v_fw_bootload();
 
@@ -321,7 +313,17 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
 void coproc_v_fw_bootload( void ){
 
+	// #ifdef ESP8266
+
+	// // configure bootdata
+	// boot_data.boot_mode = BOOT_MODE_REBOOT;
+	// hal_cpu_v_store_bootdata(); // commit bootdata
+
+	// #endif
+
 	coproc_i32_call0( OPCODE_FW_BOOTLOAD );	
+
+	// the coprocessor will reset the ESP8266 at this point.
 }
 
 void coproc_v_get_wifi( void ){

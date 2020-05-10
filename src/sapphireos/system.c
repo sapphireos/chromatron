@@ -182,8 +182,6 @@ int8_t sys_kv_fw_info_handler(
 PT_THREAD( sys_reset_recovery_thread( pt_t *pt, void *state ) );
 PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 
-static uint8_t old_mode;
-static uint8_t old_cmd;
 
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
@@ -199,9 +197,6 @@ KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_name" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_version" },
-
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &old_mode,                   0,  "old_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &old_cmd,                   0,  "old_cmd" },
 };
 
 void sys_v_init( void ){
@@ -215,12 +210,6 @@ void sys_v_init( void ){
 
 	// increment reboot counter
 	boot_data.reboots++;
-
-    old_mode = boot_data.boot_mode;
-    old_cmd = boot_data.loader_command;
-
-
-
 
     // initialize loader command
     boot_data.loader_command = LDR_CMD_NONE;
@@ -468,6 +457,15 @@ uint32_t sys_v_get_fw_length( void ){
 // this will request an immediate reboot from the loader.
 void sys_reboot( void ){
 
+    boot_data.boot_mode = BOOT_MODE_REBOOT;
+
+	reboot();
+}
+
+// immediate reset into bootloader
+void sys_reboot_to_loader( void ){
+
+    boot_data.loader_command = LDR_CMD_SERIAL_BOOT;
     boot_data.boot_mode = BOOT_MODE_REBOOT;
 
 	reboot();
