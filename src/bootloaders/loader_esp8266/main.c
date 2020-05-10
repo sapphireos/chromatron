@@ -179,6 +179,7 @@ void main( void ){
 
             // set loader status
             boot_data.loader_status = LDR_STATUS_NEW_FW;
+            boot_data.boot_mode = BOOT_MODE_REBOOT;
 
             // check internal CRC
             if( internal_crc != 0 ){
