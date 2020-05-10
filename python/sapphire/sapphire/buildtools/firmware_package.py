@@ -26,17 +26,25 @@ import hashlib
 import json
 import shutil
 import requests
+import uuid
 from datetime import datetime
 from appdirs import *
 from sapphire.common import util
 
 PUBLISHED_AT_FILENAME = 'published_at.txt'
 MANIFEST_FILENAME = 'manifest.json'
+OLD_MANIFEST_FILENAME = 'manifest.txt'
 
 class FirmwarePackageDirNotFound(Exception):
     pass
 
 class BadFirmwareHash(Exception):
+    pass
+
+class FirmwarePackageNotFound(Exception):
+    pass
+
+class NotAFirmwarePackage(Exception):
     pass
 
 def data_dir():
@@ -258,17 +266,43 @@ def update_releases():
 
 
 class FirmwarePackage(object):
-    def __init__(self, name):
-        self.name = name
-        self.filename = os.path.join(PACKAGE_DIR, f"{self.name}.zip")
-
+    def __init__(self, name_or_fwid):
         self.FWID = None
+        self.name = None
+
+        # test if UUID or name
+        try:
+            uuid.UUID(name_or_fwid.replace('-', ''))
+            self.FWID = name_or_fwid
+
+            # look for package
+            for file in [a for a in os.listdir(PACKAGE_DIR) if a.endswith('.zip')]:
+                try:
+                    fw = FirmwarePackage(os.path.splitext(file)[0])
+
+                except NotAFirmwarePackage:
+                    continue
+
+                if fw.FWID.replace('-', '') == self.FWID.replace('-', ''):
+                    self.name = fw.name
+                    break
+
+            if self.name is None:
+                raise FirmwarePackageNotFound                
+
+        except ValueError:
+            self.name = name_or_fwid
+
+
+        assert self.name is not None
+
+        self.filename = os.path.join(PACKAGE_DIR, f"{self.name}.zip")
 
         # create empty manifest
         self.manifest = {
             'timestamp': None,
-            'FWID': None,
-            'name': None,
+            'FWID': self.FWID,
+            'name': self.name,
             'targets': {}
         }
 
@@ -282,16 +316,14 @@ class FirmwarePackage(object):
 
     def load(self):
         with zipfile.ZipFile(self.filename) as myzip:
-            try:
-                with myzip.open(MANIFEST_FILENAME) as myfile:
-                    self.manifest = json.loads(myfile.read())
+            if MANIFEST_FILENAME not in myzip.namelist():
+                # this is not a firmware package
+                raise NotAFirmwarePackage
+                            
+            with myzip.open(MANIFEST_FILENAME) as myfile:
+                self.manifest = json.loads(myfile.read())
 
-                self.FWID = self.manifest['FWID']
-
-            except KeyError:
-                raise
-                # file is probably bad
-                return
+            self.FWID = self.manifest['FWID']
 
             for target in self.manifest['targets']:
                 self.images[target] = {}
@@ -352,8 +384,10 @@ class FirmwarePackage(object):
 if __name__ == "__main__":
     from pprint import pprint
 
+    fw = FirmwarePackage('4b2e4ce5-1f41-494e-8edd-d748c7c81dcb')
+
     # pprint(get_firmware())
-    pprint(get_releases(use_date_for_key=True))
+    # pprint(get_releases(use_date_for_key=True))
     # pprint(get_most_recent_release())
     # update_releases()
 

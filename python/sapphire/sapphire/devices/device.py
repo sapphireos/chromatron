@@ -29,7 +29,6 @@ from elysianfields import *
 from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, catbus_string_hash, NoResponseFromHost, ProtocolErrorException
 
 from . import sapphiredata
-from . import firmware
 from . import channel
 
 import time
@@ -46,6 +45,9 @@ import json
 import base64
 import traceback
 import crcmod
+
+from sapphire.buildtools import firmware_package
+from sapphire.buildtools.firmware_package import FirmwarePackage
 
 from sapphire.query import query_dict
 
@@ -501,33 +503,34 @@ class Device(object):
 
     def load_firmware(self, firmware_id=None, progress=None, verify=True):
         if firmware_id == None:
-            fw_info = self.get_firmware_info()
-            fw_file = firmware.get_firmware(fw_info.firmware_id)
+            fw_info = self.get_firmware_info()  
+            fw = FirmwarePackage(fw_info.firmware_id)
 
         else:
-            fw_file = firmware.get_firmware(firmware_id)
+            fw = FirmwarePackage(firmware_id)
 
         if fw_file is None:
             raise IOError("Firmware image not found")
 
-        # read firmware data
-        f = open(fw_file, 'rb')
-        firmware_data = f.read()
-        f.close()
 
-        # delete old firmware
-        self.delete_file("firmware.bin")
+        # # read firmware data
+        # f = open(fw_file, 'rb')
+        # firmware_data = f.read()
+        # f.close()
 
-        filehash = catbus_string_hash(firmware_data)
+        # # delete old firmware
+        # self.delete_file("firmware.bin")
 
-        # load firmware image
-        self.put_file("firmware.bin", firmware_data, progress=progress)
+        # filehash = catbus_string_hash(firmware_data)
 
-        if verify:
-            self.check_file("firmware.bin", firmware_data)
+        # # load firmware image
+        # self.put_file("firmware.bin", firmware_data, progress=progress)
 
-        # reboot to loader
-        self.reboot_and_load_fw()
+        # if verify:
+        #     self.check_file("firmware.bin", firmware_data)
+
+        # # reboot to loader
+        # self.reboot_and_load_fw()
 
     def get_firmware_info(self):
         try:
@@ -1254,105 +1257,105 @@ class Device(object):
 
         return ntp_now.isoformat()
 
-    def cli_loadwifi(self, line):
-        def progress(length):
-            sys.stdout.write("\rWrite: %5d bytes" % (length))
-            sys.stdout.flush()
+    # def cli_loadwifi(self, line):
+    #     def progress(length):
+    #         sys.stdout.write("\rWrite: %5d bytes" % (length))
+    #         sys.stdout.flush()
 
-        filename = 'wifi_firmware.bin'
-        with open(filename, 'rb') as f:
-            data = f.read()
+    #     filename = 'wifi_firmware.bin'
+    #     with open(filename, 'rb') as f:
+    #         data = f.read()
 
-        data_bytes = [ord(c) for c in data]
+    #     data_bytes = [ord(c) for c in data]
 
-        # verify first byte (quick sanity check)
-        if data_bytes[0] != 0xE9:
-            print("Invalid firmware image!")
-            return
+    #     # verify first byte (quick sanity check)
+    #     if data_bytes[0] != 0xE9:
+    #         print("Invalid firmware image!")
+    #         return
 
-        # compute firmware length, minus the md5 at the end
-        # md5 is always 16 bytes
-        fw_len = len(data) - 16
+    #     # compute firmware length, minus the md5 at the end
+    #     # md5 is always 16 bytes
+    #     fw_len = len(data) - 16
 
-        # get md5 from file
-        file_md5 = data[fw_len:]
-        md5_digest = hashlib.md5(data[:fw_len]).digest()
+    #     # get md5 from file
+    #     file_md5 = data[fw_len:]
+    #     md5_digest = hashlib.md5(data[:fw_len]).digest()
 
-        if file_md5 != md5_digest:
-            print("Invalid firmware image!")
-            return
-
-
-
-        # preprocessing should already be done by build script,
-        # but leaving this here for now in case we need it.
-
-        # # we override bytes 2 and 3 in the ESP8266 image
-        # data_bytes[2] = 0
-        # data_bytes[3] = 0
-        #
-        # # convert back to string
-        # data = ''.join(map(chr, data_bytes))
-        #
-        # # need to pad to sector length
-        # padding_len = 4096 - (len(data) % 4096)
-        # data += (chr(0xff) * padding_len)
-        #
-        # fw_len = len(data)
-        #
-        # md5_digest = hashlib.md5(data).digest()
-        # data += md5_digest
-        #
-        # with open('wifi_firmware_padded.bin', 'w') as f:
-        #     f.write(data)
+    #     if file_md5 != md5_digest:
+    #         print("Invalid firmware image!")
+    #         return
 
 
 
-        print("\nLoading firmware image")
+    #     # preprocessing should already be done by build script,
+    #     # but leaving this here for now in case we need it.
 
-        try:
-            self.delete_file(filename)
-
-        except IOError: # file not found
-            pass
-
-        # calculate crc of file data
-        filehash = catbus_string_hash(data)
-
-        try:
-            self.put_file(filename, data, progress=progress)
-
-        except Exception as e:
-            print(type(e), e)
-            raise
-
-        print("\nVerifying firmware image...")
-
-        self.check_file(filename, data)
-
-        print("Setting firmware length...")
-        self.set_key('wifi_fw_len', fw_len)
-
-        print("Setting MD5...")
-        self.set_key('wifi_md5', binascii.hexlify(md5_digest))
-
-        print("Starting wifi firmware flasher...")
-
-        self.reboot()
-
-        time.sleep(5.0)
-
-        for i in range(20):
-            try:
-                self.echo('')
-
-            except DeviceUnreachableException:
-                time.sleep(1.0)
+    #     # # we override bytes 2 and 3 in the ESP8266 image
+    #     # data_bytes[2] = 0
+    #     # data_bytes[3] = 0
+    #     #
+    #     # # convert back to string
+    #     # data = ''.join(map(chr, data_bytes))
+    #     #
+    #     # # need to pad to sector length
+    #     # padding_len = 4096 - (len(data) % 4096)
+    #     # data += (chr(0xff) * padding_len)
+    #     #
+    #     # fw_len = len(data)
+    #     #
+    #     # md5_digest = hashlib.md5(data).digest()
+    #     # data += md5_digest
+    #     #
+    #     # with open('wifi_firmware_padded.bin', 'w') as f:
+    #     #     f.write(data)
 
 
-        self.echo('')
 
-        print("Firmware load complete")
+    #     print("\nLoading firmware image")
+
+    #     try:
+    #         self.delete_file(filename)
+
+    #     except IOError: # file not found
+    #         pass
+
+    #     # calculate crc of file data
+    #     filehash = catbus_string_hash(data)
+
+    #     try:
+    #         self.put_file(filename, data, progress=progress)
+
+    #     except Exception as e:
+    #         print(type(e), e)
+    #         raise
+
+    #     print("\nVerifying firmware image...")
+
+    #     self.check_file(filename, data)
+
+    #     print("Setting firmware length...")
+    #     self.set_key('wifi_fw_len', fw_len)
+
+    #     print("Setting MD5...")
+    #     self.set_key('wifi_md5', binascii.hexlify(md5_digest))
+
+    #     print("Starting wifi firmware flasher...")
+
+    #     self.reboot()
+
+    #     time.sleep(5.0)
+
+    #     for i in range(20):
+    #         try:
+    #             self.echo('')
+
+    #         except DeviceUnreachableException:
+    #             time.sleep(1.0)
+
+
+    #     self.echo('')
+
+    #     print("Firmware load complete")
 
     def cli_loadvm(self, line):
         with open('vm.bin', 'rb') as f:
