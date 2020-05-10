@@ -265,36 +265,41 @@ def update_releases():
     return new_releases
 
 
+def get_firmware_package(name_or_fwid):
+    # test if UUID or name
+    name = None
+    try:
+        uuid.UUID(name_or_fwid.replace('-', ''))
+        
+        # look for package
+        for file in [a for a in os.listdir(PACKAGE_DIR) if a.endswith('.zip')]:
+            try:
+                fw = FirmwarePackage(os.path.splitext(file)[0])
+
+            except NotAFirmwarePackage:
+                continue
+
+            if fw.FWID.replace('-', '') == self.FWID.replace('-', ''):
+                name = fw.name
+                break
+
+        if name is None:
+            raise FirmwarePackageNotFound                
+
+    except ValueError:
+        name = name_or_fwid
+
+    fw = FirmwarePackage(name)
+
+    if fw.FWID == None:
+        raise FirmwarePackageNotFound(name_or_fwid)
+
+    return fw
+
 class FirmwarePackage(object):
-    def __init__(self, name_or_fwid):
+    def __init__(self, name, create_if_not_found=False):
         self.FWID = None
-        self.name = None
-
-        # test if UUID or name
-        try:
-            uuid.UUID(name_or_fwid.replace('-', ''))
-            self.FWID = name_or_fwid
-
-            # look for package
-            for file in [a for a in os.listdir(PACKAGE_DIR) if a.endswith('.zip')]:
-                try:
-                    fw = FirmwarePackage(os.path.splitext(file)[0])
-
-                except NotAFirmwarePackage:
-                    continue
-
-                if fw.FWID.replace('-', '') == self.FWID.replace('-', ''):
-                    self.name = fw.name
-                    break
-
-            if self.name is None:
-                raise FirmwarePackageNotFound                
-
-        except ValueError:
-            self.name = name_or_fwid
-
-
-        assert self.name is not None
+        self.name = name
 
         self.filename = os.path.join(PACKAGE_DIR, f"{self.name}.zip")
 
@@ -313,6 +318,10 @@ class FirmwarePackage(object):
 
         except FileNotFoundError:
             pass
+
+
+    def __str__(self):
+        return f"FirmwarePackage:{self.name} FWID:{self.FWID}"
 
     def load(self):
         with zipfile.ZipFile(self.filename) as myzip:
@@ -381,10 +390,10 @@ class FirmwarePackage(object):
 
 
 
-if __name__ == "__main__":
-    from pprint import pprint
+# if __name__ == "__main__":
+#     from pprint import pprint
 
-    fw = FirmwarePackage('4b2e4ce5-1f41-494e-8edd-d748c7c81dcb')
+#     fw = FirmwarePackage('4b2e4ce5-1f41-494e-8edd-d748c7c81dcb')
 
     # pprint(get_firmware())
     # pprint(get_releases(use_date_for_key=True))

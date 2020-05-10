@@ -1234,10 +1234,10 @@ class AppBuilder(HexBuilder):
         except KeyError:
             logging.info("Loader project not found, cannot create loader_image.hex")
 
-        
+
         # create firmware package
 
-        package = FirmwarePackage(self.settings['PROJ_NAME'])
+        package = FirmwarePackage(self.settings['PROJ_NAME'], create_if_not_found=True)
         package.FWID = self.settings['FWID']
 
         if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:

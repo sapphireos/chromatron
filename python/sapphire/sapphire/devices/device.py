@@ -504,13 +504,15 @@ class Device(object):
     def load_firmware(self, firmware_id=None, progress=None, verify=True):
         if firmware_id == None:
             fw_info = self.get_firmware_info()  
-            fw = FirmwarePackage(fw_info.firmware_id)
+            firmware_id = fw_info.firmware_id
+        
+        fw = firmware_package.get_firmware_package(firmware_id)
+        
+        print(fw.manifest)
+        print(fw.images.keys())
 
-        else:
-            fw = FirmwarePackage(firmware_id)
-
-        if fw_file is None:
-            raise IOError("Firmware image not found")
+        # if fw_file is None:
+        #     raise IOError("Firmware image not found")
 
 
         # # read firmware data
@@ -748,7 +750,12 @@ class Device(object):
         else:
             fw = line
 
-        self.load_firmware(firmware_id=fw, progress=progress)
+        try:
+            self.load_firmware(firmware_id=fw, progress=progress)
+
+        except firmware_package.FirmwarePackageNotFound:
+            print("Firmware not found")
+            return
 
         print("")
 
