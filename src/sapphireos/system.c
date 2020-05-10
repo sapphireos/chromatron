@@ -462,15 +462,6 @@ void sys_reboot( void ){
 	reboot();
 }
 
-// immediate reset into bootloader
-void sys_reboot_to_loader( void ){
-
-    boot_data.loader_command = LDR_CMD_SERIAL_BOOT;
-    boot_data.boot_mode = BOOT_MODE_REBOOT;
-
-	reboot();
-}
-
 // reboot with a load firmware command to the bootloader
 void sys_v_load_fw( void ){
 
