@@ -279,7 +279,7 @@ def get_firmware_package(name_or_fwid):
             except NotAFirmwarePackage:
                 continue
 
-            if fw.FWID.replace('-', '') == self.FWID.replace('-', ''):
+            if fw.FWID.replace('-', '') == name_or_fwid.replace('-', ''):
                 name = fw.name
                 break
 
@@ -332,7 +332,7 @@ class FirmwarePackage(object):
             with myzip.open(MANIFEST_FILENAME) as myfile:
                 self.manifest = json.loads(myfile.read())
 
-            self.FWID = self.manifest['FWID']
+            self.FWID = self.manifest['FWID'].replace('-', '')
 
             for target in self.manifest['targets']:
                 self.images[target] = {}

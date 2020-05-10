@@ -48,6 +48,7 @@ import crcmod
 
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
+from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
 
 from sapphire.query import query_dict
 
@@ -502,37 +503,41 @@ class Device(object):
             raise IOError("Firmware image does not match!")
 
     def load_firmware(self, firmware_id=None, progress=None, verify=True):
+        fw_info = self.get_firmware_info()  
+
         if firmware_id == None:
-            fw_info = self.get_firmware_info()  
             firmware_id = fw_info.firmware_id
         
         fw = firmware_package.get_firmware_package(firmware_id)
+
+        if fw_info.board not in fw.manifest['targets']:
+            # board not found, or board not listed (from 2.x firmware without that information)
+            hw_type = self.get_key('hw_type')
+            if hw_type in ['Chromatron']:
+                if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
+                    fw_info.board = 'chromatron_classic_upgrade'
+
+                else:
+                    raise Exception("Must perform ESP8266 upgrade!")
+
+            elif hw_type in ['ChromatronESP8266']:
+                fw_info.board = 'chromatron_classic'
+
+
+        for filename, data in fw.images[fw_info.board].items():
+            # delete old firmware
+            self.delete_file(filename)
+
+            filehash = catbus_string_hash(data)
+            
+            # load firmware image
+            self.put_file(filename, data, progress=progress)
         
-        print(fw.manifest)
-        print(fw.images.keys())
+            # if verify:
+            self.check_file(filename, data)
 
-        # if fw_file is None:
-        #     raise IOError("Firmware image not found")
-
-
-        # # read firmware data
-        # f = open(fw_file, 'rb')
-        # firmware_data = f.read()
-        # f.close()
-
-        # # delete old firmware
-        # self.delete_file("firmware.bin")
-
-        # filehash = catbus_string_hash(firmware_data)
-
-        # # load firmware image
-        # self.put_file("firmware.bin", firmware_data, progress=progress)
-
-        # if verify:
-        #     self.check_file("firmware.bin", firmware_data)
-
-        # # reboot to loader
-        # self.reboot_and_load_fw()
+        # reboot to loader
+        self.reboot_and_load_fw()
 
     def get_firmware_info(self):
         try:

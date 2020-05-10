@@ -160,7 +160,7 @@ cli_template = """
 
             except Exception as e:
                 print('Error: %s' % (e))
-                #traceback.print_exc()
+                traceback.print_exc()
 
 """
 
