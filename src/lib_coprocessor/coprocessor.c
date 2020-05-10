@@ -24,6 +24,7 @@
 
 #include "config.h"
 
+#include "boot_data.h"
 #include "coprocessor.h"
 
 #include "hal_usart.h"
@@ -32,6 +33,9 @@
 #ifdef AVR
 #include "hal_esp8266.h"
 #endif
+
+// bootloader shared memory
+extern boot_data_t BOOTDATA boot_data;
 
 static uint8_t buffer[COPROC_BUF_SIZE];
 
@@ -301,6 +305,15 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 		ASSERT( FALSE );
 	}
 
+	#ifdef ESP8266
+
+	// configure bootdata
+	boot_data.boot_mode = BOOT_MODE_REBOOT;
+	hal_cpu_v_store_bootdata(); // commit bootdata
+
+	#endif
+
+	// request coprocessor bootload
 	coproc_v_fw_bootload();
 
 	// the coprocessor will reset the ESP8266 at this point.
