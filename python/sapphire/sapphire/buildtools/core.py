@@ -846,7 +846,7 @@ void libs_v_init( void ){
             pass
 
         # copy firmware zip
-        shutil.copy(os.path.join(self.app_builder.target_dir, '%s.zip' % (self.proj_name)), get_build_package_dir())
+        # shutil.copy(os.path.join(self.app_builder.target_dir, '%s.zip' % (self.proj_name)), get_build_package_dir())
 
         # update build date
         with open(os.path.join(get_build_package_dir(), firmware_package.PUBLISHED_AT_FILENAME), 'w') as f:

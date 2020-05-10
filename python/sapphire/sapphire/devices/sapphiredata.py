@@ -63,7 +63,8 @@ class FirmwareInfoField(StructField):
                   StringField(_name="os_name", _length=128),
                   StringField(_name="os_version", _length=16),
                   StringField(_name="firmware_name", _length=128),
-                  StringField(_name="firmware_version", _length=16)]
+                  StringField(_name="firmware_version", _length=16),
+                  StringField(_name="board", _length=32)]
 
         super(FirmwareInfoField, self).__init__(_name="firmware_info", _fields=fields, **kwargs)
 

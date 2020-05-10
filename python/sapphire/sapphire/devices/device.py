@@ -770,6 +770,14 @@ class Device(object):
 
         return s
 
+    def cli_hwinfo(self, line):
+        fwinfo = self.get_firmware_info()
+
+        s = "%s" % \
+            (fwinfo.board)
+
+        return s
+
     def cli_linkinfo(self, line):
         info = self.get_kvlink_info()
 
