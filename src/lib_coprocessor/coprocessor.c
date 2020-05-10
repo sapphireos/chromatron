@@ -316,19 +316,20 @@ void coproc_v_get_wifi( void ){
 	uint8_t buf[WIFI_SSID_LEN + WIFI_PASS_LEN];
 	memset( buf, 0, sizeof(buf) );
 
-	cfg_i8_get( CFG_PARAM_WIFI_SSID, buf );
+	// cfg_i8_get( CFG_PARAM_WIFI_SSID, buf );
 
-	if( buf[0] != 0 ){
+	// if( buf[0] != 0 ){
 
-		return;
-	} 
+	// 	return;
+	// } 
 
-	coproc_i32_callp( OPCODE_GET_WIFI, buf, sizeof(buf) );
+	int32_t len = coproc_i32_callp( OPCODE_GET_WIFI, buf, sizeof(buf) );
 
-	cfg_v_set( CFG_PARAM_WIFI_SSID, buf );
-	cfg_v_set( CFG_PARAM_WIFI_PASSWORD, &buf[WIFI_SSID_LEN] );
+	// cfg_v_set( CFG_PARAM_WIFI_SSID, buf );
+	// cfg_v_set( CFG_PARAM_WIFI_PASSWORD, &buf[WIFI_SSID_LEN] );
+	buf[63] = 0;
 
-	log_v_debug_P( PSTR("retrieved wifi config: %s"), buf );
+	log_v_debug_P( PSTR("retrieved wifi config: %s %ld"), buf, len );
 }
 
 int32_t coproc_i32_call0( uint8_t opcode ){
