@@ -523,7 +523,6 @@ class Device(object):
             elif hw_type in ['ChromatronESP8266']:
                 fw_info.board = 'chromatron_classic'
 
-
         for filename, data in fw.images[fw_info.board].items():
             # delete old firmware
             self.delete_file(filename)
