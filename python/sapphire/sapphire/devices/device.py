@@ -482,7 +482,7 @@ class Device(object):
         data = self._client.write_file(filename, data, progress=progress)
 
         if progress:
-            progress(len(data))
+            progress(len(data), filename=filename)
 
     def list_files_raw(self):
         data = self.get_file("fileinfo")
@@ -745,8 +745,11 @@ class Device(object):
         return ""
 
     def cli_loadfw(self, line):
-        def progress(length):
-            sys.stdout.write("\rWrite: %5d bytes" % (length))
+        def progress(length, filename=None):
+            if filename != None:
+                sys.stdout.write("\rWrite: %16s %5d bytes" % (filename, length))
+            else:
+                sys.stdout.write("\rWrite: %5d bytes" % (length))
             sys.stdout.flush()
 
         if line == "":
