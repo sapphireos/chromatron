@@ -1261,7 +1261,7 @@ def show(ctx):
     s = '                                      dB     Sec. '
     click.echo(s)
 
-    for ct in group.values():
+    for ct in sorted(group.values(), key=lambda a: a.name):
         keys = ct.get_keys('wifi_rssi', 'wifi_uptime', 'supply_voltage', catbus.META_TAG_LOC, 'meta_tag_0', 'meta_tag_1')
 
         name = ct.name
