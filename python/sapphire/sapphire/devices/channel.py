@@ -337,7 +337,7 @@ class SerialUDPChannel(Channel):
 
     def _read_data(self, length):
         start = time.time()
-        data = ''
+        data = bytes()
 
         while len(data) < length:
             data += self.port.read(length)
