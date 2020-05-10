@@ -47,7 +47,7 @@
 static uint8_t pix_mode;
 static uint16_t pix_count;
 static bool pix_dither;
-static uint8_t pix_clock;
+static uint32_t pix_clock;
 static uint8_t pix_rgb_order;
 static uint8_t pix_apa102_dimmer = 31;
 
@@ -612,20 +612,26 @@ void pixel_v_init( void ){
     // PIXEL_DATA_PORT.BAUDCTRLA = 63;
     // PIXEL_DATA_PORT.BAUDCTRLA = 127;
 
-    if( pix_clock < 7 ){
+    uint8_t bsel = ( F_CPU / ( 2 * pix_clock ) ) - 1;
 
-        pix_clock = 31;
+    if( bsel < 7 ){
+
+        bsel = 31;
     }
 
     if( ( pix_mode == PIX_MODE_WS2811 ) ||
         ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-        pix_clock = 6; // 2.461 Mhz
+        bsel = 6; // 2.461 Mhz
     }
+
+    uint32_t actual = F_CPU / ( 2 * ( bsel + 1 ) );
+
+    pix_clock = actual;
 
     if( pix_mode != PIX_MODE_PIXIE ){
 
-        PIXEL_DATA_PORT.BAUDCTRLA = pix_clock;
+        PIXEL_DATA_PORT.BAUDCTRLA = bsel;
         PIXEL_DATA_PORT.BAUDCTRLB = 0;
     }
 
@@ -667,7 +673,7 @@ void pixel_v_set_pix_dither( bool value ){
     pixel_v_init();
 }
 
-void pixel_v_set_pix_clock( uint8_t value ){
+void pixel_v_set_pix_clock( uint32_t value ){
 
     pix_clock = value;
 

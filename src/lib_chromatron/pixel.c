@@ -38,7 +38,7 @@
 
 static bool pix_dither;
 static uint8_t pix_mode;
-static uint8_t pix_clock;
+static uint32_t pix_clock;
 static uint8_t pix_rgb_order;
 
 static uint8_t pix_apa102_dimmer = 31;
@@ -65,7 +65,7 @@ int8_t pix_i8_kv_handler(
         if( ( pix_mode == PIX_MODE_WS2811 ) ||
             ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-            pix_clock = 6; // 2.461 Mhz
+            pix_clock = 2400000;
         }
 
         #ifdef ENABLE_COPROCESSOR
@@ -85,7 +85,7 @@ int8_t pix_i8_kv_handler(
 
 KV_SECTION_META kv_meta_t pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_rgb_order,       pix_i8_kv_handler,    "pix_rgb_order" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST, &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &pix_dither,          pix_i8_kv_handler,    "pix_dither" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
@@ -215,7 +215,7 @@ void pixel_v_init( void ){
     if( ( pix_mode == PIX_MODE_WS2811 ) ||
         ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-        pix_clock = 6; // 2.461 Mhz
+        pix_clock = 2400000;
     }
 
     gfx_v_set_pix_mode( pix_mode );

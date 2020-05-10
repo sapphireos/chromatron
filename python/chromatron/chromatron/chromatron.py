@@ -127,10 +127,6 @@ CHROMATRON_SERVICE_NAME = "sapphire.device.chromatron"
 CHROMATRON_WIFI_FWID = '7148b7b4-2526-487d-9a5b-bfc1d6b0259b'.replace('-', '')
 CHROMATRON_OLD_FWID = 'bc0d76b1-cdf2-4cfe-895a-706123979091'.replace('-', '')
 
-
-F_PER = 32000000
-
-
 led_modes = {
     'off': 0,
     'ws2801': 1,
@@ -567,38 +563,14 @@ class Chromatron(object):
     def check_file(self, filename, data):
         return self._device.check_file(filename, data)
 
-    def calc_pixel_clock(self, speed):
-        if speed > 3200000:
-            speed = 3200000
-            # raise ValueError("Maximum pixel clock is 3.200 MHz")
-
-        elif speed < 250000:
-            speed = 250000
-            # raise ValueError("Minimum pixel clock is 250 KHz")
-
-        bsel = (F_PER / (2 * speed)) - 1
-
-        actual = F_PER / (2 * (bsel + 1))
-
-        return bsel, actual
-
     def set_pixel_clock(self, speed):
-        bsel, actual = self.calc_pixel_clock(speed)
+        self.set_key('pix_clock', speed)
 
-        self.set_key('pix_clock', bsel)
-
-        return bsel, actual
+        return self.get_key('pix_clock')
 
     def get_pixel_clock(self):
-        # check pixel mode
-        # PWM mode does not use clock
-        # pix_mode = self.get_key('pix_mode')
-
-        bsel = self.get_key('pix_clock')
-        actual = F_PER / (2 * (bsel + 1))
-
-        return actual
-
+        return self.get_key('pix_clock')
+        
     def get_pixel_settings(self):
         settings = {}
 
