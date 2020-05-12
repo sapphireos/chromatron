@@ -267,14 +267,16 @@ def update_releases():
     return new_releases
 
 
-def get_firmware_package(name_or_fwid):
+def get_firmware_package(name_or_fwid, release='build'):
+    release_dir = os.path.join(PACKAGE_DIR, release)
+
     # test if UUID or name
     name = None
     try:
         uuid.UUID(name_or_fwid.replace('-', ''))
         
         # look for package
-        for file in [a for a in os.listdir(PACKAGE_DIR) if a.endswith('.zip')]:
+        for file in [a for a in os.listdir(release_dir) if a.endswith('.zip')]:
             try:
                 fw = FirmwarePackage(os.path.splitext(file)[0])
 
