@@ -42,7 +42,7 @@ from datetime import datetime
 import configparser
 from pprint import pprint
 from . import firmware_package
-from .firmware_package import FirmwarePackage, get_build_package_dir
+from .firmware_package import FirmwarePackage, get_build_package_dir, get_firmware_package, FirmwarePackageNotFound
 from . import esptool
 
 from . import settings
@@ -1227,8 +1227,11 @@ class AppBuilder(HexBuilder):
 
 
         # create firmware package
+        try:
+            package = get_firmware_package(self.settings['PROJ_NAME'])
+        except FirmwarePackageNotFound:
+            package = FirmwarePackage(self.settings['PROJ_NAME'])
 
-        package = FirmwarePackage(self.settings['PROJ_NAME'], create_if_not_found=True)
         package.FWID = self.settings['FWID']
 
         if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:

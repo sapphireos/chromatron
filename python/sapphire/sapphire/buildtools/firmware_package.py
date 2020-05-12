@@ -275,39 +275,40 @@ def get_firmware_package(name_or_fwid, release='build'):
     try:
         uuid.UUID(name_or_fwid.replace('-', ''))
         
+        # this is an FWID
+
         # look for package
         for file in [a for a in os.listdir(release_dir) if a.endswith('.zip')]:
             try:
-                fw = FirmwarePackage(os.path.splitext(file)[0])
+                fw = FirmwarePackage(filepath=os.path.join(release_dir, file))
 
             except NotAFirmwarePackage:
                 continue
 
+            # check if FWID matches
             if fw.FWID.replace('-', '') == name_or_fwid.replace('-', ''):
-                name = fw.name
-                break
+                return fw
 
-        if name is None:
-            raise FirmwarePackageNotFound                
+        raise FirmwarePackageNotFound(name_or_fwid)
 
     except ValueError:
         name = name_or_fwid
 
-    fw = FirmwarePackage(name)
+        try:
+            fw = FirmwarePackage(filepath=os.path.join(release_dir, name_or_fwid + '.zip'))
 
-    if fw.FWID == None:
-        raise FirmwarePackageNotFound(name_or_fwid)
+        except FileNotFoundError:
+            raise FirmwarePackageNotFound(name_or_fwid)
 
     return fw
 
 class FirmwarePackage(object):
-    def __init__(self, name, create_if_not_found=False):
+    def __init__(self, name=None, filepath=None):
         self.FWID = None
         self.name = name
 
-        self.dir = None
         self.filename = f"{self.name}.zip"
-        self.filepath = None
+        self.filepath = filepath
 
         # create empty manifest
         self.manifest = {
@@ -319,28 +320,13 @@ class FirmwarePackage(object):
 
         self.images = {}
 
-        try:
+        if self.filepath != None:
             self.load()
-
-        except FileNotFoundError:
-            if not create_if_not_found:
-                raise
 
     def __str__(self):
         return f"FirmwarePackage:{self.name} FWID:{self.FWID}"
 
     def load(self):
-        # find the file
-        for d in [os.path.join(PACKAGE_DIR, a) for a in os.listdir(PACKAGE_DIR) if os.path.isdir(os.path.join(PACKAGE_DIR, a))]:
-            if self.filename in os.listdir(d):
-                self.dir = d
-                break
-
-        if self.dir == None:
-            raise FileNotFoundError
-
-        self.filepath = os.path.join(self.dir, self.filename)
-        
         with zipfile.ZipFile(self.filepath) as myzip:
             if MANIFEST_FILENAME not in myzip.namelist():
                 # this is not a firmware package
@@ -349,6 +335,7 @@ class FirmwarePackage(object):
             with myzip.open(MANIFEST_FILENAME) as myfile:
                 self.manifest = json.loads(myfile.read())
 
+            self.name = self.manifest['name']
             self.FWID = self.manifest['FWID'].replace('-', '')
 
             for target in self.manifest['targets']:
@@ -389,8 +376,7 @@ class FirmwarePackage(object):
 
     def save(self):
         # we only save to the build package
-        self.dir = get_build_package_dir()
-        self.filepath = os.path.join(self.dir, self.filename)
+        self.filepath = os.path.join(get_build_package_dir(), self.filename)
 
         # remove old file
         try:
@@ -400,7 +386,7 @@ class FirmwarePackage(object):
 
         # make sure package dir exists
         try:
-            os.mkdir(self.dir)
+            os.mkdir(get_build_package_dir())
 
         except FileExistsError:
             pass
