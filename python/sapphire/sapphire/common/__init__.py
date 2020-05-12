@@ -22,7 +22,6 @@
 # </license>
 #
 
-from .app import *
 from .ribbon import *
 from .fnmatch2 import *
 from . import util

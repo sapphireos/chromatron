@@ -49,8 +49,6 @@ from . import settings
 
 from intelhex import IntelHex
 
-from . import global_settings
-
 from sapphire.devices.sapphiredata import KVMetaField, KVMetaFieldWidePtr
 from sapphire.common import util
 from catbus import catbus_string_hash
@@ -80,7 +78,7 @@ KV_CHARS.extend(['_'])
 KV_CHARS.extend(digits)
 # KV_HEADER = '_kv_hashes.h'
     
-SETTINGS_DIR                = os.path.dirname(os.path.abspath(global_settings.__file__))
+SETTINGS_DIR                = os.path.dirname(os.path.abspath(settings.__file__))
 SETTINGS_FILE               = 'settings.json'
 PROJECTS_FILE_NAME          = 'projects.json'
 PROJECTS_FILE_PATH          = firmware_package.data_dir()
