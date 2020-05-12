@@ -42,7 +42,7 @@ from datetime import datetime
 import configparser
 from pprint import pprint
 from . import firmware_package
-from .firmware_package import FirmwarePackage
+from .firmware_package import FirmwarePackage, get_build_package_dir
 from . import esptool
 
 from . import settings
@@ -91,10 +91,6 @@ BOARDS_FILE                 = os.path.join(TARGETS_DIR, 'boards.json')
 MASTER_HASH_DB_FILE         = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
 TOOLS_DIR                   = os.path.join(PROJECTS_FILE_PATH, 'tools')
 LIB_INIT_FILENAME           = '__libs.c'
-
-
-def get_build_package_dir():
-    return firmware_package.firmware_package_dir('build')
 
 
 tools_linux = [
@@ -842,9 +838,6 @@ void libs_v_init( void ){
 
         except OSError:
             pass
-
-        # copy firmware zip
-        # shutil.copy(os.path.join(self.app_builder.target_dir, '%s.zip' % (self.proj_name)), get_build_package_dir())
 
         # update build date
         with open(os.path.join(get_build_package_dir(), firmware_package.PUBLISHED_AT_FILENAME), 'w') as f:
@@ -1672,7 +1665,7 @@ def main():
         # copy build package to new name
         shutil.copytree(get_build_package_dir(), firmware_package.firmware_package_dir(release=release_name))
 
-        shutil.make_archive(os.path.join(firmware_package.firmware_package_dir(), release_name), 'zip', firmware_package.firmware_package_dir(release=release_name))
+        shutil.make_archive(firmware_package.firmware_package_dir(release=release_name), 'zip', firmware_package.firmware_package_dir(release=release_name))
 
         # erase build release
         shutil.rmtree(get_build_package_dir(), True)

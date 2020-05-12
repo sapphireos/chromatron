@@ -28,14 +28,12 @@ setup(
     version='1.0.4',
 
     packages=['sapphire',
-              'sapphire.fields',
               'sapphire.common',
-              'sapphire.query',
               'sapphire.devices',
               'sapphire.buildtools',
               ],
 
-    package_data={'sapphire.buildtools': ['settings.json', 'linker.x', 'project_template/*']},
+    package_data={'sapphire.buildtools': ['project_template/*']},
 
     license='GNU General Public License v3',
 

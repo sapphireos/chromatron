@@ -52,6 +52,8 @@ def data_dir():
 
 PACKAGE_DIR = os.path.join(data_dir(), 'firmware_packages')
 
+def get_build_package_dir():
+    return firmware_package_dir('build')
 
 def firmware_package_dir(release=None):
     if release:
@@ -301,7 +303,9 @@ class FirmwarePackage(object):
         self.FWID = None
         self.name = name
 
-        self.filename = os.path.join(PACKAGE_DIR, f"{self.name}.zip")
+        self.dir = None
+        self.filename = f"{self.name}.zip"
+        self.filepath = None
 
         # create empty manifest
         self.manifest = {
@@ -317,14 +321,25 @@ class FirmwarePackage(object):
             self.load()
 
         except FileNotFoundError:
-            pass
-
+            if not create_if_not_found:
+                raise
 
     def __str__(self):
         return f"FirmwarePackage:{self.name} FWID:{self.FWID}"
 
     def load(self):
-        with zipfile.ZipFile(self.filename) as myzip:
+        # find the file
+        for d in [os.path.join(PACKAGE_DIR, a) for a in os.listdir(PACKAGE_DIR) if os.path.isdir(os.path.join(PACKAGE_DIR, a))]:
+            if self.filename in os.listdir(d):
+                self.dir = d
+                break
+
+        if self.dir == None:
+            raise FileNotFoundError
+
+        self.filepath = os.path.join(self.dir, self.filename)
+        
+        with zipfile.ZipFile(self.filepath) as myzip:
             if MANIFEST_FILENAME not in myzip.namelist():
                 # this is not a firmware package
                 raise NotAFirmwarePackage
@@ -371,23 +386,33 @@ class FirmwarePackage(object):
         self.images[target][filename] = data
 
     def save(self):
+        # we only save to the build package
+        self.dir = get_build_package_dir()
+        self.filepath = os.path.join(self.dir, self.filename)
+
         # remove old file
         try:
-            os.remove(self.filename)
+            os.remove(self.filepath)
         except FileNotFoundError:
+            pass
+
+        # make sure package dir exists
+        try:
+            os.mkdir(self.dir)
+
+        except FileExistsError:
             pass
 
         self.manifest['name'] = self.name
         self.manifest['FWID'] = self.FWID
         self.manifest['timestamp'] = datetime.utcnow().isoformat()
 
-        with zipfile.ZipFile(self.filename, mode='w') as myzip:
+        with zipfile.ZipFile(self.filepath, mode='w') as myzip:
             myzip.writestr(MANIFEST_FILENAME, json.dumps(self.manifest, indent=4, separators=(',', ': ')))
 
             for target in self.images:
                 for filename in self.images[target]:
                     myzip.writestr(f"{target}_{filename}", self.images[target][filename])
-
 
 
 # if __name__ == "__main__":
