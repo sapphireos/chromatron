@@ -125,34 +125,3 @@ def init_logging():
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
 
-
-def init(override_settings=dict()):
-    global _INITIALIZED
-    
-    if _INITIALIZED:
-        return
-
-    try:
-        load_config(override_settings=override_settings)
-        init_logging()
-
-        global _SETTINGS_PATH
-
-        if _SETTINGS_PATH:
-            logging.info("Loaded config from: %s" % (_SETTINGS_PATH))
-
-        else:
-            logging.info("Loaded default config")
-
-        logging.info("Log level: '%s' to file: %s" % (LOG_LEVEL, _LOG_FILE_PATH))
-
-    except ValueError as e:
-        init_logging()
-
-        logging.error("Parse error in config file: %s" % (e))
-
-    _INITIALIZED = True
-
-
-
-
