@@ -61,16 +61,6 @@ class SapphireConsole(cmd.Cmd):
     def do_scan(self, line):
         pass
 
-    def query(self, line):
-        if line == 'all':
-            devices = self.devices
-
-        else:
-            qdict = make_query_dict(line)
-            devices = [o for o in self.devices if o.query(**qdict)]
-
-        return devices
-
     def init_shell(self, query):
         # set up next command shell
         if len(self.targets) > 0:

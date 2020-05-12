@@ -50,8 +50,6 @@ from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
 
-from sapphire.query import query_dict
-
 import fnmatch
 
 crc_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
@@ -342,9 +340,6 @@ class Device(object):
         d["firmware_name"] = self.firmware_name
 
         return d
-
-    def query(self, **kwargs):
-        return query_dict(self.to_dict(), **kwargs)
 
     def scan(self, get_all=True):    
         self.get_kv_meta()

@@ -25,7 +25,7 @@
 """
 
 from elysianfields import *
-from sapphire.fields import get_field_for_type
+from catbus import get_field_for_type
 
 
 class FileInfoField(StructField):
