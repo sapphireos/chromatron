@@ -2458,6 +2458,14 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
                 click.echo("Firmware change cancelled")
                 return
 
+            click.echo(click.style('Backing up settings', fg='white'))
+        
+            backup_data[ct.get_key('device_id')] = ct.get_keys(*BACKUP_SETTINGS)
+            
+            with open(BACKUP_FILE, 'w+') as f:
+                f.write(json.dumps(backup_data, indent=4, separators=(',', ': ')))
+
+
         with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
             ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
 
