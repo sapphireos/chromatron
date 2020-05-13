@@ -205,7 +205,7 @@ def list_releases(use_date_for_key=False):
 
 
 def get_most_recent_release():
-    releases = get_releases(use_date_for_key=True)
+    releases = list_releases(use_date_for_key=True)
     
     most_recent = sorted(releases.keys())[-1]
 
@@ -220,7 +220,7 @@ def update_releases():
         pass
     
     # get local releases
-    local_releases = get_releases()
+    local_releases = list_releases()
 
     # get releases
     r = requests.get('https://api.github.com/repos/sapphireos/chromatron/releases')
@@ -414,7 +414,7 @@ class FirmwarePackage(object):
 #     fw = FirmwarePackage('4b2e4ce5-1f41-494e-8edd-d748c7c81dcb')
 
     # pprint(get_firmware())
-    # pprint(get_releases(use_date_for_key=True))
+    # pprint(list_releases(use_date_for_key=True))
     # pprint(get_most_recent_release())
     # update_releases()
 

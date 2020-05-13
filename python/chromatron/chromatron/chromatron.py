@@ -2366,7 +2366,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
             self.pos = 0
             self.bar = bar
 
-        def __call__(self, pos):
+        def __call__(self, pos, filename=None):
             updated_pos = pos - self.pos
 
             if updated_pos == 0:
@@ -2395,8 +2395,6 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
     else:
         click.echo(click.style("Bypassing confirmation prompts!!!", fg='white'))
 
-    firmwares = firmware_package.get_firmware(include_firmware_image=True, sort_fwid=True, release=release)
-
     # check if the yes option is enabled, and get a final confirmation
     if change_firmware and yes:
         click.echo('Firmware change requested!')
@@ -2408,10 +2406,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
         
         click.echo(click.style("Skip verification enabled!!!", fg='white'))
 
-    # we're going to manually run though the update sequence,
-    # since it is kind of messy to try to get the click progress bar
-    # into the Chromatron.load_firmware() method.
-
+    
     for ct in group.values():
         echo_name(ct)
 
@@ -2423,18 +2418,17 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
 
         # check if we are changing firmawre
         if change_firmware:
-            new_fwid = None
-            # look up firmware id
-            for info in firmwares.values():
-                if info['short_name'] == change_firmware:
-                    new_fwid = info['manifest']['fwid'].replace('-', '')
+            try:
+                fw = firmware_package.get_firmware_package(change_firmware, release=release)
 
-            if new_fwid == None:
+                new_fwid = fw.FWID.replace('-', '')
+
+            except firmware_package.FirmwarePackageNotFound:
                 click.echo("Matching firmware image not found!")
                 return
 
             old_name = ct.get_key('firmware_name')
-            click.echo("Changing firmware from: %s to %s" % (old_name, firmwares[new_fwid]['short_name']))
+            click.echo("Changing firmware from: %s to %s" % (old_name, fw.name))
 
             if not yes:
                 click.echo(click.style("BE AWARE: Loading incorrect firmware can brick hardware!", fg='red'))
@@ -2448,131 +2442,41 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
 
             click.echo("Proceeding with firmware change")
 
+        try:
+            fw = firmware_package.get_firmware_package(fw_id, release=release)
 
-        # check if we have the firmware ID we need
-        if fw_id not in firmwares:
+        except firmware_package.FirmwarePackageNotFound:
             click.echo("Matching firmware image not found!")
             click.echo("Skipping this device...")
             continue
 
-        ct_fw_version = firmwares[fw_id]['manifest']['version']
-        ct_fw_data = firmwares[fw_id]['image']['binary']
+        with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
+            ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
 
-        # check if device already has this version
-        if (fw_version == ct_fw_version) and (not force):
-            click.echo("Main firmware version already loaded")
+        click.echo('Waiting for device')
 
-        else:
-            firmware_loaded = True
-
-            # remove old firmware image
-            ct.delete_file('firmware.bin')
-
-            # load firmware
-            with click.progressbar(length=len(ct_fw_data), label='Loading main CPU firmware  ') as progress_bar:
-                ct.put_file('firmware.bin', ct_fw_data, progress=Progress(progress_bar))
-
-            if not skip_verify:
-                # verify
+        for i in range(100):
+            if i > 10:
+                # don't start trying to echo too soon,
+                # because the reboot command takes a few seconds
+                # to process.
                 try:
-                    click.echo("Verifying... ", nl=False)
+                    ct.echo()
 
-                    ct.check_file('firmware.bin', ct_fw_data)
+                    break
 
-                    click.echo("OK")
+                except DeviceUnreachableException:
+                    pass
 
-                except IOError:
-                    click.echo(click.style("Firmware verify fail!", fg='red'))
-                    return
+            click.echo('.', nl=False)
 
-        # get firmware version
-        wifi_md5 = ct.get_key('wifi_md5')
+            time.sleep(0.5)
 
-        if CHROMATRON_WIFI_FWID not in firmwares:
-            click.echo("Wifi firmware image not found!")
-            continue
-
-        ct_wifi_fw_md5 = firmwares[CHROMATRON_WIFI_FWID]['manifest']['md5']
-        ct_wifi_fw_data = firmwares[CHROMATRON_WIFI_FWID]['image']['binary']
-
-        # check if device already has this version
-        if (wifi_md5 == ct_wifi_fw_md5) and (not force):
-            click.echo("Wifi firmware version already loaded")
-
-        else:
-            firmware_loaded = True
-
-            # remove old wifi firmware
-            try:
-                ct.delete_file('wifi_firmware.bin')
-
-            except IOError: # file not found
-                pass
-
-            with click.progressbar(length=len(ct_wifi_fw_data), label='Loading wifi CPU firmware  ') as progress_bar:
-                ct.put_file('wifi_firmware.bin', ct_wifi_fw_data, progress=Progress(progress_bar))
-
-
-            # verify
-            if not skip_verify:
-                try:
-                    click.echo("Verifying... ", nl=False)
-
-                    ct.check_file('wifi_firmware.bin', ct_wifi_fw_data)
-
-                    click.echo("OK")
-
-                except IOError:
-                    click.echo(click.style("Firmware verify fail!", fg='red'))
-                    return
-
-            wifi_fw_len = len(ct_wifi_fw_data) - 16
-            ct.set_key('wifi_fw_len', wifi_fw_len)
-            ct.set_key('wifi_md5', ct_wifi_fw_md5)
-
-
-        if firmware_loaded:
-            click.echo('Rebooting...')
-
-            # reboot to loader
-            ct._device.reboot_and_load_fw()
-
-            click.echo('Waiting for device')
-
-            for i in range(100):
-                if i > 10:
-                    # don't start trying to echo too soon,
-                    # because the reboot command takes a few seconds
-                    # to process.
-                    try:
-                        ct.echo()
-
-                        break
-
-                    except DeviceUnreachableException:
-                        pass
-
-                click.echo('.', nl=False)
-
-                time.sleep(0.5)
-
-            click.echo('.')
+        click.echo('.')
 
         # make sure we're connected
         try:
             ct.echo()
-
-            # confirm firmware versions
-            fw_version = ct.get_key('firmware_version')
-            wifi_md5 = ct.get_key('wifi_md5')
-
-            if fw_version != ct_fw_version:
-                click.echo(click.style('Upgrade failed!  Main firmware version mismatch.', fg='red'))
-                return
-
-            elif wifi_md5 != ct_wifi_fw_md5:
-                click.echo(click.style('Upgrade failed!  Wifi firmware version mismatch.', fg='red'))
-                return
 
             click.echo(click.style('Upgrade complete', fg='green'))
 

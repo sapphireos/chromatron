@@ -473,11 +473,15 @@ class Device(object):
 
         return data
 
-    def put_file(self, filename, data, progress=None):    
-        data = self._client.write_file(filename, data, progress=progress)
+    def put_file(self, filename, data, progress=None, use_percent=False):    
+        data = self._client.write_file(filename, data, progress=progress, use_percent=use_percent)
 
         if progress:
-            progress(len(data), filename=filename)
+            if use_percent:
+                progress(100, filename=filename)
+
+            else:
+                progress(len(data), filename=filename)
 
     def list_files_raw(self):
         data = self.get_file("fileinfo")
@@ -497,13 +501,13 @@ class Device(object):
         if self._client.check_file(filename)['hash'] != filehash:
             raise IOError("Firmware image does not match!")
 
-    def load_firmware(self, firmware_id=None, progress=None, verify=True):
+    def load_firmware(self, firmware_id=None, progress=None, verify=True, release='build', use_percent=False):
         fw_info = self.get_firmware_info()  
 
         if firmware_id == None:
             firmware_id = fw_info.firmware_id
         
-        fw = firmware_package.get_firmware_package(firmware_id)
+        fw = firmware_package.get_firmware_package(firmware_id, release=release)
 
         if fw_info.board not in fw.manifest['targets']:
             # board not found, or board not listed (from 2.x firmware without that information)
@@ -525,7 +529,7 @@ class Device(object):
             filehash = catbus_string_hash(data)
             
             # load firmware image
-            self.put_file(filename, data, progress=progress)
+            self.put_file(filename, data, progress=progress, use_percent=use_percent)
         
             # if verify:
             self.check_file(filename, data)

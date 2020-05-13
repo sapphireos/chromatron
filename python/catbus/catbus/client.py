@@ -651,7 +651,7 @@ class Client(object):
 
         return file_data
 
-    def write_file(self, filename, file_data=None, progress=None, delete_existing=True):
+    def write_file(self, filename, file_data=None, progress=None, delete_existing=True, use_percent=False):
         if file_data is None:
             f = open(filename, 'r')
             file_data = f.read()
@@ -720,7 +720,10 @@ class Client(object):
                 raise InvalidMessageException("Invalid file offset")                
 
             if progress:
-                progress(offset)
+                if use_percent:
+                    progress((offset / len(file_data)) *100.0)
+                else:
+                    progress(offset)
 
         # close session
         msg = FileCloseMsg(session_id=session_id)
