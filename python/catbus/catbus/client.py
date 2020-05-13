@@ -439,11 +439,13 @@ class Client(object):
                     raise KeyError
 
                 for item in response.data:
+                    key = hashes[item.meta.hash]
+
                     if with_meta:
-                        answers[hashes[item.meta.hash]] = item
+                        answers[key] = item
 
                     else:
-                        answers[hashes[item.meta.hash]] = item.value
+                        answers[key] = item.value
 
                     del hashes[item.meta.hash]
 

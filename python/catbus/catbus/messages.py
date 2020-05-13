@@ -478,7 +478,7 @@ def deserialize(buf):
         raise UnknownMessageException(msg_id)
 
     except (struct.error, UnicodeDecodeError) as e:
-        raise InvalidMessageException(e)
+        raise InvalidMessageException(msg_id, len(buf), e)
 
 
 def serialize(msg):

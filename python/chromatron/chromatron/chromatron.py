@@ -72,8 +72,8 @@ BACKUP_SETTINGS = [
     'gfx_sub_dimmer',
     'gfx_sync_group',
     'gfx_transpose',
-    'gfx_virtual_array_length',
-    'gfx_virtual_array_start',
+    'gfx_varray_length',
+    'gfx_varray_start',
     'meta_tag_0',
     'meta_tag_1',
     'meta_tag_2',
@@ -91,7 +91,6 @@ BACKUP_SETTINGS = [
     'pix_size_x',
     'pix_size_y',
     'sntp_server',
-    'sntp_sync_interval',
     'vm_run',
     'vm_prog',
     'vm_run_1',
@@ -2290,13 +2289,6 @@ def manifest(ctx, release):
                 version_s = click.style('%s' % (image['version']), fg='cyan')
                 click.echo('        Image:%-24s Ver:%20s Length:%6d' % (f, version_s, image['length']))
 
-        # click.echo(name_s)
-        # if fw['image']['valid']:
-        #     click.echo('%32s Ver:%20s Built:%32s' % (fw.name, version_s, timestamp_s))
-
-        # else:
-        #     click.echo('    Ver:%20s %s' % (version_s, click.style('IMAGE CHECKSUM FAIL', fg='red')))
-
 @firmware.command()
 @click.pass_context
 def backup(ctx):
@@ -2318,9 +2310,11 @@ def backup(ctx):
         click.echo(click.style('Backing up settings', fg='white'))
         
         backup_data[ct.get_key('device_id')] = ct.get_keys(*BACKUP_SETTINGS)
+        # for key in BACKUP_SETTINGS:
+            # backup_data[ct.get_key('device_id')][key] = ct.get_key(key)
 
     with open(BACKUP_FILE, 'w+') as f:
-        f.write(json.dumps(backup_data))
+        f.write(json.dumps(backup_data, indent=4, separators=(',', ': ')))
 
 
 @firmware.command()
