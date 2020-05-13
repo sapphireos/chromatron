@@ -2450,6 +2450,14 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
             click.echo("Skipping this device...")
             continue
 
+        if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
+            click.echo(click.style("ESP8266 UPGRADE", fg='red'))
+            click.echo(click.style("THERE IS NO WAY TO DOWNGRADE FROM THIS UPDATE", fg='red'))
+
+            if not click.confirm(click.style("Are you sure you want to do this?", fg='red')):
+                click.echo("Firmware change cancelled")
+                return
+
         with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
             ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
 

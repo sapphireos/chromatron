@@ -1236,7 +1236,7 @@ class AppBuilder(HexBuilder):
 
         if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
             print("Special handling for ESP8266 upgrade on Chromatron Classic")
-            coproc_package = FirmwarePackage('coprocessor')
+            coproc_package = get_firmware_package('coprocessor')
 
             try:
                 coproc_image = coproc_package.images['coprocessor']['firmware.bin']
