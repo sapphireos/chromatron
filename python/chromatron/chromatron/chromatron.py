@@ -2244,7 +2244,7 @@ def update(ctx):
 def releases(ctx):
     """List available releases"""
 
-    releases = firmware_package.get_releases(use_date_for_key=True)
+    releases = firmware_package.list_releases(use_date_for_key=True)
 
     if len(releases) == 0:
         click.echo("No firmware releases found.  Try running 'chromatron firmware update' to update packages.")
@@ -2266,7 +2266,7 @@ def manifest(ctx, release):
     if release == None:
         release = firmware_package.get_most_recent_release()
 
-    release_date = firmware_package.get_releases()[release]
+    release_date = firmware_package.list_releases()[release]
     
     name_s = click.style('%s' % (release), fg='white')
     timestamp_s = click.style('%s' % (release_date), fg='magenta')
@@ -2275,19 +2275,27 @@ def manifest(ctx, release):
 
     click.echo('Contents:')   
 
-    firmwares = firmware_package.get_firmware(include_firmware_image=True, release=release)
+    firmwares = firmware_package.get_release(release=release)
 
-    for name, info in firmwares.items():
-        name_s = click.style('%s' % (info['manifest']['name']), fg='white')
-        version_s = click.style('%s' % (info['manifest']['version']), fg='cyan')
-        timestamp_s = click.style('%s' % (info['manifest']['timestamp']), fg='magenta')
+    for name, fw in firmwares.items():
+        name_s = click.style('%s' % (fw.name), fg='white')
+        timestamp_s = click.style('%s' % (fw.manifest['timestamp']), fg='magenta')
 
-        click.echo(name_s)
-        if info['image']['valid']:
-            click.echo('%32s Ver:%20s Built:%32s' % (info['short_name'], version_s, timestamp_s))
+        click.echo('%-24s Built:%32s' % (fw.name, timestamp_s))
 
-        else:
-            click.echo('    Ver:%20s %s' % (version_s, click.style('IMAGE CHECKSUM FAIL', fg='red')))
+        for target, info in fw.manifest['targets'].items():
+            click.echo('    Target:%-24s:' % (target))
+
+            for f, image in info.items():
+                version_s = click.style('%s' % (image['version']), fg='cyan')
+                click.echo('        Image:%-24s Ver:%20s Length:%6d' % (f, version_s, image['length']))
+
+        # click.echo(name_s)
+        # if fw['image']['valid']:
+        #     click.echo('%32s Ver:%20s Built:%32s' % (fw.name, version_s, timestamp_s))
+
+        # else:
+        #     click.echo('    Ver:%20s %s' % (version_s, click.style('IMAGE CHECKSUM FAIL', fg='red')))
 
 @firmware.command()
 @click.pass_context
@@ -2378,7 +2386,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
     if release == None:
         release = firmware_package.get_most_recent_release()
 
-    release_date = firmware_package.get_releases()[release]
+    release_date = firmware_package.list_releases()[release]
     
     name_s = click.style('%s' % (release), fg='white')
     timestamp_s = click.style('%s' % (release_date), fg='magenta')
