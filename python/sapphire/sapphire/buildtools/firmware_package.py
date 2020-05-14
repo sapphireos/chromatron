@@ -321,6 +321,9 @@ class FirmwarePackage(object):
         self.images[target][filename] = data
 
     def save(self):
+        self.filename = f"{self.name}.zip"
+        assert self.filename != "None.zip"
+
         # we only save to the build package
         self.filepath = os.path.join(get_build_package_dir(), self.filename)
 
@@ -336,9 +339,6 @@ class FirmwarePackage(object):
 
         except FileExistsError:
             pass
-
-        self.filename = f"{self.name}.zip"
-        assert self.filename != "None.zip"
 
         self.manifest['name'] = self.name
         self.manifest['FWID'] = self.FWID
