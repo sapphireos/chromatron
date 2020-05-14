@@ -92,65 +92,6 @@ def get_release(release='build', sort_fwid=False):
 
         firmwares[fw.name] = fw
 
-
-        #     try:
-        #         os.mkdir(filedir)
-
-        #     except OSError:
-        #         pass
-
-        #     zf = zipfile.ZipFile(filename)
-        #     zf.extractall(filedir)
-        #     zf.close()
-
-        #     os.chdir(filedir)
-
-        #     # open the manifest
-        #     manifest = open_manifest(os.getcwd())
-
-        #     key = filedir
-        #     if sort_fwid:
-        #         key = str(manifest['fwid']).replace('-', '')
-
-        #     firmwares[key] = {'manifest': manifest,
-        #                       'short_name': filedir}
-
-        #     if include_firmware_image:
-        #         # load binary
-        #         try:
-        #             with open('firmware.bin', 'rb') as f:
-        #                 image = f.read()
-
-        #         except IOError:
-        #             with open('wifi_firmware.bin', 'rb') as f:
-        #                 image = f.read()
-
-        #         firmwares[key]['image'] = {'binary': image}
-
-        #         # verify firmware
-        #         fw_sha256 = hashlib.sha256(image).hexdigest()
-        #         valid = (fw_sha256 == firmwares[key]['manifest']['sha256'])
-        #         firmwares[key]['image']['valid'] = valid
-
-        #         if not valid:
-        #             # if not valid, delete the binary image, so
-        #             # we can't accidentally load it
-        #             del firmwares[key]['image']['binary']
-
-
-        #     os.chdir('..')
-
-        #     # clean up directory
-        #     shutil.rmtree(filedir, True)
-
-
-        # except IOError:
-        #     pass
-
-        # except zipfile.BadZipfile:
-        #     pass
-
-
     # change back
     os.chdir(cwd)
 
