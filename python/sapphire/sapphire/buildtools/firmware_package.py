@@ -337,6 +337,9 @@ class FirmwarePackage(object):
         except FileExistsError:
             pass
 
+        self.filename = f"{self.name}.zip"
+        assert self.filename != "None.zip"
+
         self.manifest['name'] = self.name
         self.manifest['FWID'] = self.FWID
         self.manifest['timestamp'] = datetime.utcnow().isoformat()
