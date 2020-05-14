@@ -2459,7 +2459,8 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
                 return
 
             click.echo(click.style('Backing up settings', fg='white'))
-        
+            
+            backup_data = {}
             backup_data[ct.get_key('device_id')] = ct.get_keys(*BACKUP_SETTINGS)
             
             with open(BACKUP_FILE, 'w+') as f:
