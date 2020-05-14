@@ -147,7 +147,7 @@ def list_releases(use_date_for_key=False):
 
 def get_most_recent_release():
     releases = list_releases(use_date_for_key=True)
-    
+
     most_recent = sorted(releases.keys())[-1]
 
     return releases[most_recent]
@@ -348,6 +348,8 @@ class FirmwarePackage(object):
                 for filename in self.images[target]:
                     myzip.writestr(f"{target}_{filename}", self.images[target][filename])
 
+        with open(os.path.join(get_build_package_dir(), PUBLISHED_AT_FILENAME), 'w') as f:
+            f.write(util.now().isoformat())
 
 # if __name__ == "__main__":
 #     from pprint import pprint
