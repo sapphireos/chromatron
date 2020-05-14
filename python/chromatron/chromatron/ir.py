@@ -629,7 +629,7 @@ class irFunc(IR):
 
     def __str__(self):
         global source_code
-        print(source_code)
+        # print(source_code)
         params = params_to_string(self.params)
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
@@ -3034,8 +3034,8 @@ class Builder(object):
 
     def print_data_table(self):
         print("DATA: ")
-        for i in self.data_table:
-            print(type(i), i, i.addr)
+        # for i in self.data_table:
+        #     print(type(i), i, i.addr)
 
         for i in sorted(self.data_table, key=lambda d: d.addr):
             default_value = ''

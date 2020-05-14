@@ -832,6 +832,9 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Name(self, node):
         return cg1Var(node.id, lineno=node.lineno)
 
+    def visit_NameConstant(self, node):
+        return cg1Var(node.value, lineno=node.lineno)
+
     def visit_arg(self, node):
         return cg1Var(node.arg, lineno=node.lineno)
 
