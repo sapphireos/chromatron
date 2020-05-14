@@ -449,7 +449,7 @@ void flash25_v_read_device_info( flash25_device_info_t *info ){
 
     // trace_printf("Flash ID: 0x%x\r\n", id);
 
-    info->mfg_id = FLASH_MFG_WINBOND; // assume winbond
+    info->mfg_id = FLASH_MFG_ESP12; // override for ESP12
     info->dev_id_1 = ( id >> 8 ) & 0xff;
     info->dev_id_2 = ( id >> 16 ) & 0xff;
     #endif
