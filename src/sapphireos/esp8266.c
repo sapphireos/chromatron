@@ -113,6 +113,8 @@ static uint8_t wifi_version_major;
 static uint8_t wifi_version_minor;
 static uint8_t wifi_version_patch;
 
+static uint32_t wifi_flash_id;
+
 static uint8_t watchdog;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
@@ -170,6 +172,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_tx_rate,                     0,   "wifi_comm_rate_tx" },
     { SAPPHIRE_TYPE_UINT32,        0, 0, &comm_rx_rate,                     0,   "wifi_comm_rate_rx" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_flash_id,                    0,   "wifi_flash_id" },
 };
 
 void debug_strobe( void ){
@@ -692,6 +696,8 @@ static void get_info( void ){
 
     wifi_router                 = msg.wifi_router;
     wifi_channel                = msg.wifi_channel;
+
+    wifi_flash_id               = msg.flash_id;
 }
 
 

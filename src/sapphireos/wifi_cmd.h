@@ -113,6 +113,7 @@ typedef struct __attribute__((packed)){
     uint16_t mem_avg_time;
     int8_t wifi_router;
     int8_t wifi_channel;
+    uint32_t flash_id;
 } wifi_msg_info_t;
 #define WIFI_DATA_ID_INFO               0x13
 
