@@ -79,6 +79,12 @@ extern boot_data_t BOOTDATA boot_data;
 #error "ESP8266 bootloader not compatible with ENABLE_COPROCESSOR!"
 #endif
 
+
+#define INIT_DATA_ADDR 0x003fc000
+static uint8_t esp_init_data[] = {
+    #include "esp_init_data_default_v08.txt"
+};
+
 void main( void ){
 
     trace_printf("Welcome to Sapphire\n");
@@ -103,6 +109,16 @@ void main( void ){
 
     // initialize external flash
     flash25_v_init();
+
+    // check init data
+    uint8_t init = 0xff;
+    SPIRead( INIT_DATA_ADDR, (void *)&init, 1 );
+    if( init == 0xff ){
+
+        // need to write init data
+        SPIEraseSector( INIT_DATA_ADDR / 4096 );
+        SPIWrite( INIT_DATA_ADDR, esp_init_data, sizeof(esp_init_data) );   
+    }
 
     // check integrity of internal firmware
     uint16_t internal_crc = ldr_u16_get_internal_crc();
