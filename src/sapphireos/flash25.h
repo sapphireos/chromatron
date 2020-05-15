@@ -82,7 +82,7 @@ typedef struct __attribute__((packed)){
 #define FLASH_MFG_ATMEL					0x1F
 #define FLASH_MFG_SST					0xBF
 #define FLASH_MFG_WINBOND		 	    0xEF
-#define FLASH_MFG_ESP12	 	 	    	0x99
+#define FLASH_MFG_BERG                  0xE0
 
 #define FLASH_DEV_ID1_ATMEL             0x47
 #define FLASH_DEV_ID1_SST25             0x25

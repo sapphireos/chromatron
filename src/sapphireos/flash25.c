@@ -81,6 +81,7 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 			break;
 
         case FLASH_MFG_WINBOND:
+        case FLASH_MFG_BERG:
 
 			if( info.dev_id_1 == FLASH_DEV_ID1_WINBOND_x30 ){
 
@@ -118,10 +119,6 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
                 capacity = 2097152;
             }
 
-            break;
-
-        case FLASH_MFG_ESP12:
-            capacity = 4194304;
             break;
 
 		default:
