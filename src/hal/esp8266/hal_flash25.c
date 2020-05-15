@@ -119,7 +119,7 @@ void hal_flash25_v_init( void ){
     #ifndef BOOTLOADER
     max_address = flash25_u32_read_capacity_from_info();
 
-    if( max_address > ( 2 * 1048576 ) ){
+    if( max_address >= ( START_ADDRESS + ( 64 *1024 ) ) ){
         
         max_address -= START_ADDRESS;
         max_address -= ( 32 * 1024 ); // reserve space for SDK config area
