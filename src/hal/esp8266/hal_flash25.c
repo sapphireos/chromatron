@@ -443,6 +443,8 @@ void flash25_v_erase_chip( void ){
     }
 }
 
+#include "keyvalue.h"
+
 static uint32_t flash_id;
 
 KV_SECTION_META kv_meta_t temp_kv[] = {
