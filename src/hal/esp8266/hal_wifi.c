@@ -73,14 +73,14 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
 };
 
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
-    { SAPPHIRE_TYPE_MAC48,         0, 0, &wifi_mac,                         0,   "wifi_mac" },
-    { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_rssi,                        0,   "wifi_rssi" },
-    { SAPPHIRE_TYPE_INT8,          0, 0, &wifi_channel,                     0,   "wifi_channel" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_uptime,                      0,   "wifi_uptime" },
-    { SAPPHIRE_TYPE_UINT8,         0, 0, &wifi_connects,                    0,   "wifi_connects" },
+    { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY,   &wifi_mac,                         0,   "wifi_mac" },
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_rssi,                        0,   "wifi_rssi" },
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_channel,                     0,   "wifi_channel" },
+    { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,   &wifi_uptime,                      0,   "wifi_uptime" },
+    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_connects,                    0,   "wifi_connects" },
 
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_received,                0,   "wifi_udp_received" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0, &wifi_udp_sent,                    0,   "wifi_udp_sent" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
 };
 
 
@@ -487,7 +487,7 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     }
     
 
-    wifi_udp_send++;
+    wifi_udp_sent++;
 
     return NETMSG_TX_OK_RELEASE;
 }
