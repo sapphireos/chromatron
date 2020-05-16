@@ -237,6 +237,8 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
         return;
     }
 
+    wifi_udp_received++;
+
     list_v_insert_head( &rx_list, rx_netmsg );
 }
 
@@ -484,6 +486,9 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         return NETMSG_TX_ERR_RELEASE;   
     }
     
+
+    wifi_udp_send++;
+
     return NETMSG_TX_OK_RELEASE;
 }
 
