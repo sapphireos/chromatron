@@ -82,7 +82,7 @@ typedef struct __attribute__((packed)){
 #define FLASH_MFG_ATMEL					0x1F
 #define FLASH_MFG_SST					0xBF
 #define FLASH_MFG_WINBOND		 	    0xEF
-#define FLASH_MFG_BERG                  0xE0
+#define FLASH_MFG_BERG                  0xE0 // sometimes found in ESP12
 
 #define FLASH_DEV_ID1_ATMEL             0x47
 #define FLASH_DEV_ID1_SST25             0x25
@@ -99,7 +99,6 @@ typedef struct __attribute__((packed)){
 #define FLASH_DEV_ID2_CYPRESS_16MBIT    0x15
 #define FLASH_DEV_ID2_WINBOND_32MBIT    0x16
 #define FLASH_DEV_ID2_WINBOND_64MBIT    0x17
-#define FLASH_DEV_ID2_ESP12_32MBIT 	   	0x99
 
 
 #define BLOCK0_UNLOCK_CODE  0x1701
