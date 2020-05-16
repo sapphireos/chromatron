@@ -1,0 +1,178 @@
+
+{
+
+    "TOOLCHAIN": "ESP32",
+
+    "LOG_FILENAME": "build.log",
+
+    "C_FLAGS": [
+        "-elf-gcc",
+        "-DESP_PLATFORM",
+        "-DGCC_NOT_5_2_0=0",
+        "-DHAVE_CONFIG_H",
+        "-DIDF_VER=\\\"v3.3.2\\\"",
+        "-DMBEDTLS_CONFIG_FILE=\\\"mbedtls/esp_config.h\\\"",
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/,esp32/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/,config"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/log/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/heap/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,xtensa-debug-module/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/app_trace/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/freertos/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/vfs/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/newlib/,platform_include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/newlib/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,esp_ringbuf/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/driver/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/ethernet/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/mbedtls/,port/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/mbedtls/,mbedtls/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,esp32/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,tcpip_adapter/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/,include/apps"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/,include/apps/sntp"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/,src/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/,esp32/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/,esp32/include/arch"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/,include_compat"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/efuse/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/efuse/,esp32/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/micro-ecc/,micro-ecc"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,bootloader_support/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/app_update,/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/spi_flash/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/pthread/,include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,smartconfig_ack/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,wpa_supplicant/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,wpa_supplicant/port/include"
+        "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,espcoredump/include "
+        "-mlongcalls",
+        "-mlongcalls",
+        "-Og",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fstrict-volatile-bitfields",
+        "-nostdlib",
+        "-Wall",
+        "-Werror=all",
+        "-Wno-error=unused-function",
+        "-Wno-error=unused-but-set-variable",
+        "-Wno-error=unused-variable",
+        "-Wno-error=deprecated-declarations",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-ggdb",
+        "-std=gnu99",
+        "-Wno-old-style-declaration",
+    ],
+
+    "AR_FLAGS": [
+        "-rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "-mlongcalls ",
+        "-nostdlib CMakeFiles/idf_as_lib.elf.dir/main.c.obj ",
+        "-o idf_as_lib.elf",
+        "-Wl,--gc-sections",
+        "-Wl,--start-group esp-idf/soc/libsoc.a",
+        "esp-idf/log/liblog.a esp-idf/heap/libheap.a",
+        "esp-idf/xtensa-debug-module/libxtensa-debug-module.a esp-idf/app_trace/libapp_trace.a", 
+        "esp-idf/freertos/libfreertos.a esp-idf/vfs/libvfs.a",
+        "esp-idf/newlib/libnewlib.a", 
+        "esp-idf/esp_ringbuf/libesp_ringbuf.a",
+        "esp-idf/driver/libdriver.a",
+        "esp-idf/esp_event/libesp_event.a",
+        "esp-idf/ethernet/libethernet.a",
+        "esp-idf/mbedtls/libmbedtls.a",
+        "esp-idf/micro-ecc/libmicro-ecc.a",
+        "esp-idf/efuse/libefuse.a",
+        "esp-idf/bootloader_support/libbootloader_support.a",
+        "esp-idf/app_update/libapp_update.a",
+        "esp-idf/spi_flash/libspi_flash.a",
+        "esp-idf/nvs_flash/libnvs_flash.a",
+        "esp-idf/lwip/liblwip.a",
+        "esp-idf/tcpip_adapter/libtcpip_adapter.a",
+        "esp-idf/pthread/libpthread.a",
+        "esp-idf/smartconfig_ack/libsmartconfig_ack.a",
+        "esp-idf/wpa_supplicant/libwpa_supplicant.a",
+        "esp-idf/espcoredump/libespcoredump.a",
+        "esp-idf/esp32/libesp32.a",
+        "esp-idf/cxx/libcxx.a",
+        "-lgcov esp-idf/mbedtls/mbedtls/library/libmbedtls.a esp-idf/mbedtls/mbedtls/library/",
+        "libmbedx509.a",
+        "esp-idf/mbedtls/mbedtls/library/libmbedcrypto.a",
+        "esp-idf/soc/libsoc.a",
+        "esp-idf/log/liblog.a",
+        "esp-idf/heap/libheap.a",
+        "esp-idf/freertos/libfreertos.a",
+        "-Wl,--undefined=uxTopUsedPriority esp-idf/newlib/libnewlib.a",
+        "-L /home/jeremy/JEREMY/esp8266/esp-idf/components/newlib/lib",
+        "-lc",
+        "-lm esp-idf/esp32/libesp32.a",
+        "-L /home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/lib",
+        "-lcoexist",
+        "-lcore",
+        "-lespnow",
+        "-lmesh",
+        "-lnet80211",
+        "-lphy",
+        "-lpp",
+        "-lrtc",
+        "-lsmartconfig",
+        "-lwpa2",
+        "-lwpa",
+        "-lwps",
+        "-L /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp32",
+        "-T esp32_out.ld",
+        "-T /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp32/esp32.project.ld",
+        "-L /home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/ld",
+        "-T esp32.rom.ld",
+        "-T esp32.peripherals.ld",
+        "-T esp32.rom.libgcc.ld",
+        "-T esp32.rom.spiram_incompatible_fns.ld /home/jeremy/JEREMY/esp8266/esp-idf/components/,esp32/libhal.a",
+        "-lgcc",
+        "-u call_user_start_cpu0",
+        "-u ld_include_panic_highint_hdl esp-idf/cxx/libcxx.a",
+        "-lstdc++",
+        "-u __cxa_guard_dummy",
+        "-u __cxx_fatal_exception",
+        "-u esp_app_desc",
+    ],
+
+    "LINKER_SCRIPT": "esp32.project.ld",
+
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "OS_PROJECT": "sapphire",
+
+    "FW_INFO_ADDR": "0x00010000",
+    "FW_START_OFFSET": "0x00002000",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": ["hal_esp32"]
+}
