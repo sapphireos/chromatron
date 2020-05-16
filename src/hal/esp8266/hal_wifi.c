@@ -682,6 +682,9 @@ PT_BEGIN( pt );
         // station mode
         if( !ap_mode ){
 station_mode:            
+
+            wifi_set_opmode_current( STATION_MODE );
+
             // scan first
             wifi_router = -1;
             log_v_debug_P( PSTR("Scanning...") );
@@ -795,10 +798,17 @@ station_mode:
             log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
             // check if wifi settings were present
-            if( ap_ssid[0] != 0 ){        
+            if( ap_ssid[0] != 0 ){     
 
-                // wifi_i8_send_msg( WIFI_DATA_ID_AP_MODE, (uint8_t *)&ap_msg, sizeof(ap_msg) );
+                struct softap_config ap_config;
+                memset( &ap_config, 0, sizeof(ap_config) );
+                wifi_softap_get_config( &ap_config );
+                memcpy( (char *)ap_config.ssid, ap_ssid, sizeof(ap_ssid) );
+                memcpy( (char *)ap_config.password, ap_pass, sizeof(ap_pass) );
 
+                wifi_softap_set_config_current( &ap_config );
+                
+                wifi_set_opmode_current( SOFTAP_MODE );   
 
 
                 thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
