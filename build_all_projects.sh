@@ -8,7 +8,7 @@ sapphiremake -p pyramid
 sapphiremake -p printer
 sapphiremake -p gps
 sapphiremake -p air_quality
-sapphiremake -p radiation_lightningsubsub
+sapphiremake -p radiation_lightning
 
 sapphiremake -p stairway
 
