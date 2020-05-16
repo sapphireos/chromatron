@@ -19,8 +19,6 @@
     "_comment": "lib - build as a library",
  	"BUILD_TYPE": "lib",
 
-    "RECURSIVE_BUILD": "true",
-
     "_comment": "Additional libraries to include with the build",
     "LIBRARIES": [],
 

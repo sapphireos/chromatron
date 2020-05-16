@@ -720,7 +720,7 @@ class Builder(object):
             for flag in self.settings["C_FLAGS"]:
                 cmd += flag + ' '
 
-            if self.settings["TOOLCHAIN"] != "XTENSA":
+            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32"]:
                 cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
             cmd += '-o ' + '%(OBJ_DIR)/%(SOURCE_FNAME).o' + ' '
@@ -729,7 +729,7 @@ class Builder(object):
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
             cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
-            if self.settings["TOOLCHAIN"] != "XTENSA":
+            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32"]:
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
 
             # replace windows path separators with unix
