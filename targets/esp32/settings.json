@@ -50,7 +50,6 @@
         "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,wpa_supplicant/port/include",
         "-I/home/jeremy/JEREMY/esp8266/esp-idf/components/,espcoredump/include",
         "-mlongcalls",
-        "-mlongcalls",
         "-Og",
         "-ffunction-sections",
         "-fdata-sections",
