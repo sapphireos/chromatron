@@ -32,11 +32,6 @@
 #include "timers.h"
 #include "config.h"
 
-#ifdef ENABLE_COPROCESSOR
-#include "coprocessor.h"
-#endif
-
-
 static int8_t hal_adc_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -80,10 +75,6 @@ PT_END( pt );
 
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
-    #ifdef ENABLE_COPROCESSOR
-    return coproc_i32_call1( OPCODE_IO_READ_ADC, channel );
-    #endif
-
 	return 0;
 }
 
@@ -103,31 +94,16 @@ uint16_t adc_u16_read_raw( uint8_t channel ){
 
 uint16_t adc_u16_read_supply_voltage( void ){
 
-    #ifdef ENABLE_COPROCESSOR
-    uint16_t mv = adc_u16_read_mv( ADC_CHANNEL_VSUPPLY );
-
-    // divider ratio is 49.9 + 2.2) / 2.2 = 23.682
-
-    return ( mv * 23682 ) / 1000;
-    #endif
-
     return 0;
 }
 
 uint16_t adc_u16_read_vcc( void ){
 
-    #ifdef ENABLE_COPROCESSOR
-    return adc_u16_read_mv( ADC_CHANNEL_VCC ) * 10;
-    #endif
-
-	return ( system_get_vdd33() * 1000 ) / 1024;
+	// return ( system_get_vdd33() * 1000 ) / 1024;
+    return 0;
 }
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
-
-    #ifdef ENABLE_COPROCESSOR
-    return raw_value;
-    #endif
 
 	return 0;
 }

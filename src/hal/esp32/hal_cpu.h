@@ -24,8 +24,6 @@
 #ifndef _HAL_CPU_H	
 #define _HAL_CPU_H
 
-#include "user_interface.h"
-#include "osapi.h"
 #include "bool.h"
 #include "trace.h"
 // #define trace_printf(...)
@@ -72,9 +70,6 @@ static inline void store16( uint8_t *ptr, uint16_t val ){
 }
 #define STORE16(ptr, val) store16((uint8_t *)ptr, val)
 
-
-void hal_cpu_v_load_bootdata( void );
-void hal_cpu_v_store_bootdata( void );
 
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );

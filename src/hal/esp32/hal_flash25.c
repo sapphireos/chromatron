@@ -52,26 +52,18 @@ static cache_data_t cache_data;
 static uint32_t cache_address;
 static bool cache_dirty;
 
-static SpiFlashOpResult spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
+static int spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
 
-    #ifdef BOOTLOADER
-    return SPIRead( address, ptr, size );
-    #else
-    return spi_flash_read( address, ptr, size );
-    #endif
+    return 0;
 }
 
-static SpiFlashOpResult spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
+static int spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
     
-    #ifdef BOOTLOADER
-    return SPIWrite( address, ptr, size );
-    #else
-    return spi_flash_write( address, ptr, size );
-    #endif    
+    return 0;   
 }
 
 static void flush_cache( void ){
@@ -423,11 +415,11 @@ void flash25_v_erase_4k( uint32_t address ){
     address += START_ADDRESS;
 
     // trace_printf("Erase: 0x%x\r\n", address);
-    #ifdef BOOTLOADER
-    SPIEraseSector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-    #else
-    spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-    #endif
+    // #ifdef BOOTLOADER
+    // SPIEraseSector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    // #else
+    // spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    // #endif
 }
 
 // erase the entire array
@@ -452,18 +444,18 @@ KV_SECTION_META kv_meta_t flash_id_kv[] = {
 };
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
-    #ifndef BOOTLOADER
-    uint32_t id = spi_flash_get_id();
+    // #ifndef BOOTLOADER
+    // uint32_t id = spi_flash_get_id();
 
-    flash_id = id;
+    // flash_id = id;
 
-    // trace_printf("Flash ID: 0x%x\r\n", id);
+    // // trace_printf("Flash ID: 0x%x\r\n", id);
     
-    info->mfg_id = id & 0xff;
-    info->dev_id_1 = ( id >> 8 ) & 0xff;
-    info->dev_id_2 = ( id >> 16 ) & 0xff;
+    // info->mfg_id = id & 0xff;
+    // info->dev_id_1 = ( id >> 8 ) & 0xff;
+    // info->dev_id_2 = ( id >> 16 ) & 0xff;
     
-    #endif
+    // #endif
 }
 
 uint32_t flash25_u32_capacity( void ){

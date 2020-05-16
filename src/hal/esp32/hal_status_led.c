@@ -221,15 +221,7 @@ PT_END( pt );
 
 void reset_all( void ){
 
-    #ifdef ENABLE_COPROCESSOR
     
-    io_v_digital_write( IO_PIN_LED_RED, 1 );
-    io_v_digital_write( IO_PIN_LED_GREEN, 1 );
-    io_v_digital_write( IO_PIN_LED_BLUE, 1 );
-    
-    #else
-    GPIO_OUTPUT_SET(2, 0);
-    #endif
 }
 
 void status_led_v_init( void ){
@@ -267,64 +259,31 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_BLUE, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+            
             break;
 
         case STATUS_LED_GREEN:
-            #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_GREEN, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+            
             break;
 
         case STATUS_LED_RED:
-            #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_RED, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+            
             break;
 
         case STATUS_LED_YELLOW:
-        #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_RED, 0 );
-            io_v_digital_write( IO_PIN_LED_GREEN, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+        
             break;
 
         case STATUS_LED_PURPLE:
-            #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_RED, 0 );
-            io_v_digital_write( IO_PIN_LED_BLUE, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+            
             break;
 
         case STATUS_LED_TEAL:
-            #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_BLUE, 0 );
-            io_v_digital_write( IO_PIN_LED_GREEN, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+            
             break;
 
         case STATUS_LED_WHITE:
-            #ifdef ENABLE_COPROCESSOR
-            io_v_digital_write( IO_PIN_LED_RED, 0 );
-            io_v_digital_write( IO_PIN_LED_GREEN, 0 );
-            io_v_digital_write( IO_PIN_LED_BLUE, 0 );
-            #else
-            GPIO_OUTPUT_SET(2, 1);
-            #endif
+            
             break;
 
         default:

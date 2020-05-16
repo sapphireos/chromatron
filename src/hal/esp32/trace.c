@@ -23,7 +23,7 @@
 
 #include "trace.h"
 
-#include "osapi.h"
+
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -44,7 +44,7 @@ int trace_printf(const char* format, ...){
     {
       
       // Transfer the buffer to the device
-      ret = os_printf("%s", buf);
+      // ret = os_printf("%s", buf);
     }
 
   va_end (ap);

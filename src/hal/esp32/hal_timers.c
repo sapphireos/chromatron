@@ -30,8 +30,8 @@
 #include "hal_watchdog.h"
 #include "logging.h"
 
-static uint32_t last_sys_time;
-static uint32_t overflows;
+// static uint32_t last_sys_time;
+// static uint32_t overflows;
 
 void hal_timer_v_init( void ){
 
@@ -45,20 +45,22 @@ bool tmr_b_io_timers_running( void ){
 
 uint64_t tmr_u64_get_system_time_us( void ){
 
-    #ifndef BOOTLOADER
-	uint32_t now = system_get_time();
+    return 0;
+    
+ //    #ifndef BOOTLOADER
+	// uint32_t now = system_get_time();
 
-	if( now < last_sys_time ){
+	// if( now < last_sys_time ){
 
-        // log_v_debug_P( PSTR("%lu %lu %lu"), now, last_sys_time, overflows );
+ //        // log_v_debug_P( PSTR("%lu %lu %lu"), now, last_sys_time, overflows );
 
-		overflows++;
-	}
+	// 	overflows++;
+	// }
 
-	last_sys_time = now;
+	// last_sys_time = now;
 
-    return (uint64_t)overflows * 0x100000000 + now;
-    #endif
+ //    return (uint64_t)overflows * 0x100000000 + now;
+ //    #endif
 }
 
 

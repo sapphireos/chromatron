@@ -76,7 +76,7 @@
 
     char *itoa(long i, char* s, int dummy_radix);
 
-#elif defined(ARM) || defined(ESP8266)
+#elif defined(ARM) || defined(ESP8266) || defined(ESP32)
     #define ALIGN32
 
     #ifdef BOOTLOADER

@@ -28,17 +28,6 @@
 
 #include "hal_io.h"
 
-#ifdef ENABLE_COPROCESSOR
-
-#define ANALOG_CHANNEL_ADC0     IO_PIN_4_ADC0
-#define ANALOG_CHANNEL_ADC1     IO_PIN_5_ADC1
-#define ANALOG_CHANNEL_DAC0     IO_PIN_6_DAC0
-#define ANALOG_CHANNEL_DAC1     IO_PIN_7_DAC1
-
-#define ADC_CHANNEL_VCC         14 // VCC
-#define ADC_CHANNEL_VSUPPLY     3 // divided VIN measurement
-
-#endif
 
 // #define ADC_CHANNEL_VSUPPLY     (IO_PIN_ANALOG_COUNT) 	   // divided VIN measurement
 // #define ADC_CHANNEL_REF         (IO_PIN_ANALOG_COUNT + 1) // ADC reference

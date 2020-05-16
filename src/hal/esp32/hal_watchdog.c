@@ -30,21 +30,21 @@
 
 void wdg_v_reset( void ){
 
-    #ifndef BOOTLOADER
-    system_soft_wdt_feed();
-    #endif
+    // #ifndef BOOTLOADER
+    // system_soft_wdt_feed();
+    // #endif
 }
 
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
-    #ifndef BOOTLOADER
-    system_soft_wdt_restart();
-    #endif
+    // #ifndef BOOTLOADER
+    // system_soft_wdt_restart();
+    // #endif
 }
 
 void wdg_v_disable( void ){
 
-    #ifndef BOOTLOADER
-    system_soft_wdt_stop();
-    #endif
+    // #ifndef BOOTLOADER
+    // system_soft_wdt_stop();
+    // #endif
 }
