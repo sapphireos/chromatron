@@ -34,5 +34,12 @@
 		"defines":
 		[
 		]	
+	},
+	"esp32":
+	{
+		"target": "esp32",
+		"defines":
+		[
+		]	
 	}
 }
