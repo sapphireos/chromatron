@@ -332,6 +332,13 @@ class Builder(object):
             if "BINTOOLS" not in settings:
                 settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa', 'bin')
 
+        elif settings["TOOLCHAIN"] == "ESP32":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf', 'bin', 'xtensa-esp32-elf-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf', 'bin')
+
         else:
             raise SettingsParseException("Unknown toolchain")
 
@@ -975,6 +982,11 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
             # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+
+        elif self.settings["TOOLCHAIN"] == "ESP32":
+            runcmd(os.path.join(bintools, 'xtensa-esp32-elf-size -B main.elf'))
+            runcmd(os.path.join(bintools, 'xtensa-esp32-elf-nm -n main.elf'), tofile='main.sym')            
+            # runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             
         else:
             raise Exception("Unsupported toolchain")
