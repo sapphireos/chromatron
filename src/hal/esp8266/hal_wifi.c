@@ -136,6 +136,16 @@ void wifi_v_init( void ){
 
 	wifi_get_macaddr( 0, wifi_mac );
 
+    uint64_t current_device_id = 0;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
+    uint64_t device_id = 0;
+    memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
+
+    if( current_device_id != device_id ){
+
+        cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
+    }
+
     #ifdef DEFAULT_WIFI
     char ssid[32];
     char pass[32];
