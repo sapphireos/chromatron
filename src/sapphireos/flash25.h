@@ -100,6 +100,13 @@ typedef struct __attribute__((packed)){
 #define FLASH_DEV_ID2_WINBOND_32MBIT    0x16
 #define FLASH_DEV_ID2_WINBOND_64MBIT    0x17
 
+/*
+ESP-12 Flash IDs:
+1327328 = 0x1440E0 // Berg 8 Mbit
+1458400 = 0x1640E0 // Berg 32 Mbit
+1458415 = 0x1640EF // Winbond 32 Mbit
+*/
+
 
 #define BLOCK0_UNLOCK_CODE  0x1701
 #define EEPROM_UNLOCK_CODE  0x2893 // USS Stargazer
