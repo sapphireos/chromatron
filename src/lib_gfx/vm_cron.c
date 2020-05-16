@@ -33,15 +33,13 @@
 
 #include "vm_core.h"
 #include "vm_cron.h"
-#include "vm_wifi_cmd.h"
+
 
 #ifdef ENABLE_TIME_SYNC
 
 static datetime_t cron_now;
 static uint32_t cron_seconds;
 static list_t cron_list;
-
-extern int8_t vm_i8_run_vm( uint8_t vm_id, uint8_t data_id, uint16_t func_addr, wifi_msg_vm_info_t *info );
 
 
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
