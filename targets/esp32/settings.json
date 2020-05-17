@@ -6,7 +6,6 @@
     "LOG_FILENAME": "build.log",
 
     "C_FLAGS": [
-        "-elf-gcc",
         "-DESP32",
         "-DESP_PLATFORM",
         "-DGCC_NOT_5_2_0=0",
@@ -81,6 +80,8 @@
     ],
 
     "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
         "-mlongcalls",
         "-nostdlib",
         "-Wl,--gc-sections",
