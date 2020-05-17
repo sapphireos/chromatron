@@ -64,6 +64,7 @@
         "-Wno-error=deprecated-declarations",
         "-Wno-missing-field-initializers",
         "-Wno-unused-but-set-variable",
+        "-Wimplicit-fallthrough=0",
         "-Wextra",
         "-Wno-unused-parameter",
         "-Wno-sign-compare",
