@@ -911,7 +911,7 @@ class HexBuilder(Builder):
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
 
-        if self.settings["TOOLCHAIN"] != "XTENSA":
+        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32"]:
             cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
         # save working dir
@@ -947,7 +947,7 @@ class HexBuilder(Builder):
             cmd += flag + ' '
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
-        if self.settings["TOOLCHAIN"] != "XTENSA":
+        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32"]:
             cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
