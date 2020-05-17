@@ -28,20 +28,13 @@
 // modules
 #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
-#define ENABLE_USB_UDP_TRANSPORT
 #define ENABLE_WIFI
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
 // #define ENABLE_POWER
+// #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
-// #define ENABLE_WIFI_USB_LOADER
-// #define ENABLE_COPROCESSOR // this will be defined in target settings.json
-// #define ESP8266_UPGRADE  // this will be defined in target settings.json
-
-#ifdef BOOTLOADER
-#undef ENABLE_COPROCESSOR
-#endif
 
 // wifi
 #define WIFI_MAX_PORTS          16
@@ -50,16 +43,11 @@
 // pixel config
 #define FADER_RATE              20
 
-#ifdef ENABLE_COPROCESSOR
-    #define MAX_PIXELS              320
-#else
-    #define MAX_PIXELS              128
-#endif
+#define MAX_PIXELS              128
 
 #define N_PIXEL_OUTPUTS         1
 
 // VM config
-// #define VM_TARGET_ESP
 #define VM_ENABLE_GFX
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
