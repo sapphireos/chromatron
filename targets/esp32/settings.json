@@ -143,6 +143,7 @@
         "-T %(BASE_DIR)/src/hal/esp32/esp-idf/components/esp32/ld/esp32.peripherals.ld",
         "-T %(BASE_DIR)/src/hal/esp32/esp-idf/components/esp32/ld/esp32.rom.libgcc.ld",
         "-T %(BASE_DIR)/src/hal/esp32/esp-idf/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld",
+        "-T %(LINKER_SCRIPT)",
         "%(BASE_DIR)/src/hal/esp32/esp-idf/components/esp32/libhal.a",
         "-lgcc",
         "-u call_user_start_cpu0",
