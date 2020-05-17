@@ -817,7 +817,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
     // search for a matching socket
     socket_t sock = sockets.head;
-    sock_state_dgram_t *dgram;
+    sock_state_dgram_t *dgram = 0;
 
     while( sock >= 0 ){
 
