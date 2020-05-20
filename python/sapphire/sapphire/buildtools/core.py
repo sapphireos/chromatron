@@ -992,9 +992,13 @@ class HexBuilder(Builder):
             raise Exception("Unsupported toolchain")
 
         # convert to bin
-        if self.settings["TOOLCHAIN"] == "XTENSA":
-            # runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
-            # runcmd(os.path.join(bintools, 'esptool -eo main.elf -bo 0x00000000_firmware.bin -bm dio -bf 40 -bz 4M -bs .text -bs .data -bs .rodata -bc -ec -eo main.elf -es .irom0.text 0x00010000_firmware.bin -ec -v'))
+        if self.settings["TOOLCHAIN"] == "ESP32":
+            esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB --elf-sha256-offset 0xb0 -o main.bin main.elf'.split())
+            ih = IntelHex()
+            ih.loadbin('main.bin', offset=0x10000)
+            ih.write_hex_file('main.hex')
+
+        elif self.settings["TOOLCHAIN"] == "XTENSA":
             esptool.main('elf2image -o image -ff 40m -fm dio -fs 4MB main.elf'.split())
 
             # create binary image
