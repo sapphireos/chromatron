@@ -26,7 +26,8 @@
 
 
 
-#define EVENT_ID_LOG_INIT                       __KV__log_init
+#define EVENT_ID_EVT_LOG_INIT                   __KV__evt_log_init
+#define EVENT_ID_EVT_LOG_RECORD                 __KV__evt_log_record
 #define EVENT_ID_LOG_RECORD                     __KV__log_record
 
 #define EVENT_ID_SYS_ASSERT                     __KV__sys_assert
