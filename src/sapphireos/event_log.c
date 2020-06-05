@@ -86,7 +86,7 @@ void event_v_init( void ){
 
 #ifdef ENABLE_EVENT_LOG
 
-void event_v_log( uint16_t event_id, uint16_t param ){
+void event_v_log( catbus_hash_t32 event_id, uint32_t param ){
 
     ATOMIC;
 

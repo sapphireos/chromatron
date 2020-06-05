@@ -26,40 +26,16 @@
 
 
 
-#define EVENT_ID_NONE                           0
-#define EVENT_ID_LOG_INIT                       1
-#define EVENT_ID_LOG_RECORD                     2
+#define EVENT_ID_LOG_INIT                       __KV__log_init
+#define EVENT_ID_LOG_RECORD                     __KV__log_record
 
-#define EVENT_ID_SYS_ASSERT                     10
-#define EVENT_ID_SIGNAL                         11
-#define EVENT_ID_WATCHDOG_KICK                  12
+#define EVENT_ID_SYS_ASSERT                     __KV__sys_assert
+#define EVENT_ID_SIGNAL                         __KV__signal
+#define EVENT_ID_WATCHDOG_KICK                  __KV__watchdog_kick
 
-#define EVENT_ID_DEBUG_0                        20
-#define EVENT_ID_DEBUG_1                        21
-#define EVENT_ID_DEBUG_2                        22
-#define EVENT_ID_DEBUG_3                        23
-#define EVENT_ID_DEBUG_4                        24
-#define EVENT_ID_DEBUG_5                        25
-#define EVENT_ID_DEBUG_6                        26
-#define EVENT_ID_DEBUG_7                        27
+#define EVENT_ID_FFS_GARBAGE_COLLECT            __KV__ffs_garbage_collect
+#define EVENT_ID_FFS_WEAR_LEVEL                 __KV__ffs_wear_level
 
-#define EVENT_ID_CPU_SLEEP                      200
-#define EVENT_ID_CPU_WAKE                       201
-
-#define EVENT_ID_FFS_GARBAGE_COLLECT            400
-#define EVENT_ID_FFS_WEAR_LEVEL                 401
-
-#define EVENT_ID_TIMER_ALARM_MISS               500
-
-#define EVENT_ID_MEM_DEFRAG                     600
-
-#define EVENT_ID_CMD_START                      700
-#define EVENT_ID_CMD_TIMEOUT                    701
-#define EVENT_ID_CMD_CRC_ERROR                  702
-
-#define EVENT_ID_THREAD_ID                      800
-#define EVENT_ID_FUNC_ENTER                     801
-#define EVENT_ID_FUNC_EXIT                      802
-#define EVENT_ID_STACK_POINTER                  803
+#define EVENT_ID_MEM_DEFRAG                     __KV__mem_defrag
 
 #endif
