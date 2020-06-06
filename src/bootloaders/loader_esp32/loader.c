@@ -76,7 +76,7 @@ void ldr_v_copy_partition_to_internal( void ){
 		wdg_v_reset();
 	}
 
-    io_v_set_esp_led( 0 );
+    // io_v_set_esp_led( 0 );
 	// trace_printf("Done\n");
 }
 

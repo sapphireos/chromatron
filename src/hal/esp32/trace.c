@@ -28,13 +28,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#ifdef BOOTLOADER
-int trace_printf(const char* format, ...){
-
-  return 0;
-}
-#else
-
+#ifndef BOOTLOADER
 int trace_printf(const char* format, ...){
   int ret;
   va_list ap;

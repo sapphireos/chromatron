@@ -149,7 +149,10 @@ typedef uint32_t sys_warnings_t;
 #else
 	#define ASSERT(expr)
 	#define ASSERT_MSG(expr, str)
+
+    #ifndef ESP32
     #define assert(str_expr, file, line)
+    #endif
 #endif
 
 void sys_v_init( void );

@@ -27,7 +27,8 @@
 #define TRACE_BUF_SIZE 256
 int trace_printf(const char* format, ...);
 #else
-int trace_printf(const char* format, ...);
+#include "rom/ets_sys.h"
+#define trace_printf ets_printf
 #endif
 
 #endif
