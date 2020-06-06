@@ -27,7 +27,7 @@
 #define TRACE_BUF_SIZE 256
 int trace_printf(const char* format, ...);
 #else
-#define trace_printf ets_printf
+int trace_printf(const char* format, ...);
 #endif
 
 #endif

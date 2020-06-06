@@ -39,7 +39,7 @@
 
 #include "loader.h"
 
-#include "rom_functions.h"
+#include <esp_spi_flash.h>
 
 #include <string.h>
 
@@ -51,7 +51,7 @@ void ldr_v_erase_app( void ){
 
 	for( uint32_t i = 0; i < FLASH_FS_FIRMWARE_0_N_BLOCKS; i++ ){
 
-		SPIEraseSector( i + offset );
+		// SPIEraseSector( i + offset );
 	}
 	// trace_printf("Done\n");
 }
@@ -70,7 +70,7 @@ void ldr_v_copy_partition_to_internal( void ){
 		uint8_t data[4] __attribute__((aligned(4)));
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
-		SPIWrite( i + FW_START_OFFSET, (const uint8_t *)&data, sizeof(data) );
+		// SPIWrite( i + FW_START_OFFSET, (const uint8_t *)&data, sizeof(data) );
 
 		// reset watchdog timer
 		wdg_v_reset();
@@ -88,7 +88,7 @@ void ldr_run_app( void ){
     // scan for firmware image
     esp_image_header_t image_header;
     uint32_t addr = FW_START_OFFSET;
-    SPIRead( addr, &image_header, sizeof(image_header) );
+    spi_flash_read( addr, &image_header, sizeof(image_header) );
 
     // trace_printf("image: %x %u %x %x %x\n",
     // 	image_header.magic,
@@ -107,7 +107,7 @@ void ldr_run_app( void ){
     for( uint8_t i = 0; i < image_header.segment_count; i++ ){
 
     	esp_section_header_t section_header;
-    	SPIRead( addr, &section_header, sizeof(section_header) );
+    	spi_flash_read( addr, &section_header, sizeof(section_header) );
 
     	addr += sizeof(section_header);	
 
@@ -117,7 +117,7 @@ void ldr_run_app( void ){
     		  ( section_header.addr < 0x40108000 ) ) ){
 
     		trace_printf("Load: 0x%08x %u bytes\n", section_header.addr, section_header.length);
-    		SPIRead( addr, (void *)section_header.addr, section_header.length );
+    		spi_flash_read( addr, (void *)section_header.addr, section_header.length );
     	}
     	
     	addr += section_header.length;
@@ -162,7 +162,7 @@ uint32_t ldr_u32_read_internal_length( void ){
 
 	uint32_t addr = FW_START_OFFSET + FW_LENGTH_ADDRESS;
 
-	SPIRead( addr, &internal_length, sizeof(internal_length) );
+	spi_flash_read( addr, &internal_length, sizeof(internal_length) );
 
 	internal_length += sizeof(uint16_t);
 
@@ -180,7 +180,7 @@ uint16_t ldr_u16_get_internal_crc( void ){
 	for( uint32_t i = 0; i < length; i += 4 ){
 
 		uint32_t temp;
-		SPIRead( i + FW_START_OFFSET, &temp, sizeof(temp) );
+		spi_flash_read( i + FW_START_OFFSET, &temp, sizeof(temp) );
 		
 		crc = crc_u16_byte( crc, ( temp >>  0 ) & 0xff );
 		crc = crc_u16_byte( crc, ( temp >>  8 ) & 0xff );

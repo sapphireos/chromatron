@@ -28,7 +28,12 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#ifndef BOOTLOADER
+#ifdef BOOTLOADER
+int trace_printf(const char* format, ...){
+
+  return 0;
+}
+#else
 
 int trace_printf(const char* format, ...){
   int ret;

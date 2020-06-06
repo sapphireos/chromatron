@@ -41,5 +41,9 @@
 		"defines":
 		[
 		]	
+	},
+	"esp32_loader":
+	{
+		"target": "esp32_boot"
 	}
 }

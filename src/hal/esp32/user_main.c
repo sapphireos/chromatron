@@ -12,8 +12,13 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
+
 void app_main()
 {
+    #ifdef BOOTLOADER
+
+    #else
+
     printf("SapphireOS ESP32 HAL\n");
     printf("This is just a demo!\n");
 
@@ -37,4 +42,5 @@ void app_main()
     printf("Restarting now.\n");
     fflush(stdout);
     esp_restart();
+    #endif
 }

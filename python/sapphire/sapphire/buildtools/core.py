@@ -180,6 +180,7 @@ def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, **kwa
              "loader": LoaderBuilder, 
              "arm_loader": ARMLoaderBuilder, 
              "esp8266_loader": ESP8266LoaderBuilder,
+             "esp32_loader": ESP32LoaderBuilder,
              "app": AppBuilder, 
              "lib": LibBuilder, 
              "exe": ExeBuilder}
@@ -1321,6 +1322,10 @@ class ARMLoaderBuilder(HexBuilder):
 class ESP8266LoaderBuilder(ARMLoaderBuilder):
     def __init__(self, *args, **kwargs):
         super(ESP8266LoaderBuilder, self).__init__(*args, **kwargs)
+
+class ESP32LoaderBuilder(ARMLoaderBuilder):
+    def __init__(self, *args, **kwargs):
+        super(ESP32LoaderBuilder, self).__init__(*args, **kwargs)
 
 class ExeBuilder(Builder):
     def __init__(self, *args, **kwargs):
