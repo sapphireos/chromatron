@@ -1069,7 +1069,7 @@ class AppBuilder(HexBuilder):
         # get KV meta start
         kv_meta_addr = fw_info_addr + struct.calcsize(fw_info_fmt)
 
-        if self.settings['TOOLCHAIN'] == 'ARM' or self.settings['TOOLCHAIN'] == 'XTENSA':
+        if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
             kv_meta_len = KVMetaFieldWidePtr().size()
 
         else:
@@ -1082,7 +1082,7 @@ class AppBuilder(HexBuilder):
         while True:
             kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
 
-            if self.settings['TOOLCHAIN'] == 'ARM' or self.settings['TOOLCHAIN'] == 'XTENSA':
+            if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
                 kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
 
             else:
