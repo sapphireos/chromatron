@@ -14,7 +14,8 @@
 
 void app_main()
 {
-    printf("Hello world!\n");
+    printf("SapphireOS ESP32 HAL\n");
+    printf("This is just a demo!\n");
 
     /* Print chip information */
     esp_chip_info_t chip_info;
