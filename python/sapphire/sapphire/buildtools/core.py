@@ -995,7 +995,7 @@ class HexBuilder(Builder):
         if self.settings["TOOLCHAIN"] == "ESP32":
             esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB --elf-sha256-offset 0xb0 -o main.bin main.elf'.split())
             ih = IntelHex()
-            ih.loadbin('main.bin', offset=0x10000)
+            ih.loadbin('main.bin', offset=0x00000)
             ih.write_hex_file('main.hex')
 
         elif self.settings["TOOLCHAIN"] == "XTENSA":
@@ -1080,7 +1080,8 @@ class AppBuilder(HexBuilder):
         kv_meta_data = []
         
         while True:
-            kv_meta_s = bindata[(kv_meta_addr - starting_offset):(kv_meta_addr - starting_offset) + kv_meta_len]
+            addr = kv_meta_addr - starting_offset
+            kv_meta_s = bindata[addr:addr + kv_meta_len]
 
             if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
                 kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
