@@ -29,15 +29,6 @@
 #include "target.h"
 #include "system.h"
 
-typedef struct{
-	uint8_t magic;
-	uint8_t segment_count;
-	uint8_t flash_mode;
-	uint8_t flash_info;
-	uint32_t entry_addr;
-} esp_image_header_t;
-#define ESP_IMAGE_MAGIC 0xE9
-
 #define ESP_FLASH_INTF_QIO 		0
 #define ESP_FLASH_INTF_QOUT 	1
 #define ESP_FLASH_INTF_DIO 		2

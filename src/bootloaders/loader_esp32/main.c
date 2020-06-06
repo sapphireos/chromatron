@@ -72,9 +72,12 @@ Generic mode:
 #include "hal_status_led.h"
 #include "watchdog.h"
 
+#include "bootloader_config.h"
+#include "bootloader_init.h"
+#include "bootloader_utility.h"
+
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
-
 
 // #define INIT_DATA_ADDR 0x003fc000
 // static uint8_t esp_init_data[] = {
@@ -92,7 +95,11 @@ void main( void ){
     trace_printf("Welcome to Sapphire\n");
     trace_printf("ESP32 Bootloader\n");
 
+    ldr_run_app();
+
     // hal_cpu_v_load_bootdata();
+
+    while(1);
 
     // init CRC
     crc_v_init();
@@ -241,10 +248,10 @@ fatal_error:
 
 void __attribute__((noreturn)) call_start_cpu0()
 {
-    // // 1. Hardware initialization
-    // if (bootloader_init() != ESP_OK) {
-    //     bootloader_reset();
-    // }
+    // 1. Hardware initialization
+    if (bootloader_init() != ESP_OK) {
+        bootloader_reset();
+    }
 
     // // 2. Select the number of boot partition
     // bootloader_state_t bs = { 0 };
@@ -255,7 +262,10 @@ void __attribute__((noreturn)) call_start_cpu0()
 
     // // 3. Load the app image for booting
     // bootloader_utility_load_boot_image(&bs, boot_index);
+
+
     main();
 
     while(1);
 }
+

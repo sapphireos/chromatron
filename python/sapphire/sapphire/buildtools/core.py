@@ -998,7 +998,8 @@ class HexBuilder(Builder):
 
         # convert to bin
         if self.settings["TOOLCHAIN"] == "ESP32":
-            esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB --elf-sha256-offset 0xb0 -o main.bin main.elf'.split())
+            # esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB --elf-sha256-offset 0xb0 -o main.bin main.elf'.split())
+            esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB -o main.bin main.elf'.split())
             ih = IntelHex()
             ih.loadbin('main.bin', offset=0x00000)
             ih.write_hex_file('main.hex')

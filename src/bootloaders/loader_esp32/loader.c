@@ -39,7 +39,8 @@
 
 #include "loader.h"
 
-#include <esp_spi_flash.h>
+#include "esp_image_format.h"
+#include "esp_spi_flash.h"
 
 #include <string.h>
 
@@ -90,13 +91,13 @@ void ldr_run_app( void ){
     uint32_t addr = FW_START_OFFSET;
     spi_flash_read( addr, &image_header, sizeof(image_header) );
 
-    // trace_printf("image: %x %u %x %x %x\n",
-    // 	image_header.magic,
-    // 	image_header.segment_count,
-    // 	image_header.flash_mode,
-    // 	image_header.flash_info);
+    trace_printf("image: %x %u %x %x %x\n",
+    	image_header.magic,
+    	image_header.segment_count,
+    	image_header.spi_mode,
+    	image_header.spi_size);
 
-   	if( image_header.magic != ESP_IMAGE_MAGIC ){
+   	if( image_header.magic != ESP_IMAGE_HEADER_MAGIC ){
 
    		trace_printf("Bad image header!\n");
    		return;
