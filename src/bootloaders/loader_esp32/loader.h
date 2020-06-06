@@ -62,11 +62,6 @@
 #define ESP_MEM_IROM0_ADDR		0x40218000
 #define ESP_MEM_IROM0_SIZE		0x5C000
 
-typedef struct{
-	uint32_t addr;
-	uint32_t length;
-} esp_section_header_t;
-
 #define LDR_VERSION_MAJOR   '1'
 #define LDR_VERSION_MINOR   '0'
 
