@@ -184,6 +184,10 @@ def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, **kwa
              "lib": LibBuilder, 
              "exe": ExeBuilder}
 
+    if builder.settings["BUILD_TYPE"] not in modes:
+        raise Exception("Unknown build type: %s" % (builder.settings["BUILD_TYPE"]))
+
+
     return modes[builder.settings["BUILD_TYPE"]](target_dir, board_type, build_loader=build_loader, fnv_hash=fnv_hash)
 
 class Builder(object):
