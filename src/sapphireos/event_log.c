@@ -79,14 +79,14 @@ void event_v_init( void ){
 
     #endif
 
-    EVENT( EVENT_ID_LOG_INIT, 0 );
+    EVENT( EVENT_ID_EVT_LOG_INIT, 0 );
 }
 
 
 
 #ifdef ENABLE_EVENT_LOG
 
-void event_v_log( uint16_t event_id, uint16_t param ){
+void event_v_log( catbus_hash_t32 event_id, uint32_t param ){
 
     ATOMIC;
 
@@ -170,7 +170,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, buf_size < EVENT_LOG_RECORD_INTERVAL );
 
-        EVENT( EVENT_ID_LOG_RECORD, 0 );
+        EVENT( EVENT_ID_EVT_LOG_RECORD, 0 );
 
         event_t temp_buf[EVENT_LOG_RECORD_INTERVAL];
 
@@ -201,7 +201,7 @@ PT_BEGIN( pt );
             log_v_error_P( PSTR("Error writing to event log") );
         }
 
-        EVENT( EVENT_ID_LOG_RECORD, 1 );
+        EVENT( EVENT_ID_EVT_LOG_RECORD, 1 );
 
         // prevent runaway thread
         THREAD_YIELD( pt );

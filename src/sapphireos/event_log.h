@@ -1,3 +1,4 @@
+
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -27,6 +28,8 @@
 
 #include "events.h"
 
+#include "catbus_common.h"
+
 
 // #define ENABLE_EVENT_LOG
 
@@ -41,8 +44,8 @@
 
 
 typedef struct{
-    uint16_t event_id;
-    uint16_t param;
+    catbus_hash_t32 event_id;
+    uint32_t param;
     uint32_t timestamp;
 } event_t;
 
@@ -58,7 +61,7 @@ void event_v_init( void );
 
 #ifdef ENABLE_EVENT_LOG
 
-    void event_v_log( uint16_t event_id, uint16_t param );
+    void event_v_log( catbus_hash_t32 event_id, uint32_t param );
     void event_v_flush( void );
 
 #else
