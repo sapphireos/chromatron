@@ -111,8 +111,7 @@ void ldr_run_app( void ){
    	}
 
    	addr += sizeof(image_header);
-    trace_printf("0x%x\n", addr);
-
+    
     for( uint8_t i = 0; i < image_header.segment_count; i++ ){
 
     	esp_image_segment_header_t section_header;
@@ -121,20 +120,21 @@ void ldr_run_app( void ){
     	addr += sizeof(section_header);	
 
     	// check if valid address range we can load to
-    	if( ( section_header.load_addr < 0x40000000 ) ||
-    		( ( section_header.load_addr >= 0x40100000 ) &&
-    		  ( section_header.load_addr < 0x40108000 ) ) ){
+    	if( ( section_header.load_addr >= 0x3ff00000 ) &&
+    		( section_header.load_addr < 0x40000000 ) ){
 
     		trace_printf("Load: 0x%08x %u bytes\n", section_header.load_addr, section_header.data_len);
     		spi_flash_read( addr, (void *)section_header.load_addr, section_header.data_len );
     	}
+        else{
+
+            trace_printf("Skip: 0x%08x %u bytes\n", section_header.load_addr, section_header.data_len);
+        }
     	
     	addr += section_header.data_len;
     }
 
     trace_printf("Entry: 0x%08x\n", image_header.entry_addr);
-
-    while(1);
 
  	app_func_t* app_start = (app_func_t*)image_header.entry_addr;
  	app_start();
