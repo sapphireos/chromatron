@@ -120,8 +120,10 @@ void ldr_run_app( void ){
     	addr += sizeof(section_header);	
 
     	// check if valid address range we can load to
-    	if( ( section_header.load_addr >= 0x3ff00000 ) &&
-    		( section_header.load_addr < 0x40000000 ) ){
+    	if( ( ( section_header.load_addr >= 0x3ff00000 ) &&
+    		  ( section_header.load_addr < 0x40000000 ) ) ||
+            ( ( section_header.load_addr >= 0x40070000 ) &&
+              ( section_header.load_addr < 0x400C0000 ) ) ){
 
     		trace_printf("Load: 0x%08x %u bytes\n", section_header.load_addr, section_header.data_len);
     		spi_flash_read( addr, (void *)section_header.load_addr, section_header.data_len );
