@@ -97,7 +97,8 @@ void ldr_run_app( void ){
     uint32_t addr = FW_START_OFFSET;
     spi_flash_read( addr, &image_header, sizeof(image_header) );
 
-    trace_printf("image: %x %u %x %x %x\n",
+    trace_printf("image header @ 0x%x: %x %u %x %x %x\n",
+        addr,
     	image_header.magic,
     	image_header.segment_count,
     	image_header.spi_mode,
