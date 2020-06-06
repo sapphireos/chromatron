@@ -738,7 +738,7 @@ class Builder(object):
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
 
             # replace windows path separators with unix
-            cmd = cmd.replace('\\', '/')
+            # cmd = cmd.replace('\\', '/')
 
             if multicore:
                 pool.apply_async(runcmd, args = (cmd, ))

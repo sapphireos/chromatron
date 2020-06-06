@@ -84,12 +84,6 @@ extern boot_data_t BOOTDATA boot_data;
 //     #include "esp_init_data_default_v08.txt"
 // };
 
-void __assert_func(const char *file, int line, const char *func, const char *expr)
-{
-    while(1) {}
-}
-
-
 void main( void ){
 
     trace_printf("Welcome to Sapphire\n");
