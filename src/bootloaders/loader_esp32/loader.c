@@ -211,10 +211,20 @@ void ldr_run_app( void ){
 
     trace_printf("Entry: 0x%08x\n", image_header.entry_addr);
 
+    uint32_t* ptr = (uint32_t*)image_header.entry_addr;
+    trace_printf("Instr: 0x%08x\n", *ptr);
+
     // while(1);
 
- 	app_func_t* app_start = (app_func_t*)image_header.entry_addr;
- 	app_start();
+ 	// app_func_t* app_start = (app_func_t*)image_header.entry_addr;
+ 	// app_start();
+
+    typedef void (*entry_t)(void) __attribute__((noreturn));
+    entry_t entry = ((entry_t) image_header.entry_addr);
+
+    // TODO: we have used quite a bit of stack at this point.
+    // use "movsp" instruction to reset stack back to where ROM stack starts.
+    (*entry)();
 }
 
 
