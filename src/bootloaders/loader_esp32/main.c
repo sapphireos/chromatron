@@ -86,8 +86,6 @@ void main( void ){
 
     // hal_cpu_v_load_bootdata();
 
-    goto run_app;
-
     // init CRC
     crc_v_init();
 
@@ -198,14 +196,13 @@ void main( void ){
         }
     }
 
-    if( flash25_u8_read_byte( BOOTLOADER_INFO_BLOCK ) != 0xff ){
+    // if( flash25_u8_read_byte( BOOTLOADER_INFO_BLOCK ) != 0xff ){
 
-        // erase stored bootdata
-        flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
-    }
+    //     // erase stored bootdata
+    //     flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
+    // }
 
 
-run_app:
     // clear loader command
     boot_data.loader_command = LDR_CMD_NONE;
 

@@ -123,7 +123,7 @@ uint32_t ldr_u32_read_partition_length( void ){
 // return the application length
 uint32_t ldr_u32_read_internal_length( void ){
 
-	uint32_t internal_length;
+	uint32_t internal_length = 0;
 
 	uint32_t addr = FW_START_OFFSET + FW_LENGTH_ADDRESS;
 
