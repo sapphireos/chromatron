@@ -80,21 +80,13 @@ Generic mode:
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
-// #define INIT_DATA_ADDR 0x003fc000
-// static uint8_t esp_init_data[] = {
-//     #include "esp_init_data_default_v08.txt"
-// };
-
 void main( void ){
 
-    trace_printf("Welcome to Sapphire\n");
-    trace_printf("ESP32 Bootloader\n");
-
-    ldr_run_app();
+    trace_printf("Welcome to Sapphire ESP32 Bootloader\n");
 
     // hal_cpu_v_load_bootdata();
 
-    while(1);
+    goto run_app;
 
     // init CRC
     crc_v_init();
@@ -113,16 +105,6 @@ void main( void ){
 
     // initialize external flash
     flash25_v_init();
-
-    // // check init data
-    // uint8_t init = 0xff;
-    // SPIRead( INIT_DATA_ADDR, (void *)&init, 1 );
-    // if( init == 0xff ){
-
-    //     // need to write init data
-    //     SPIEraseSector( INIT_DATA_ADDR / 4096 );
-    //     SPIWrite( INIT_DATA_ADDR, esp_init_data, sizeof(esp_init_data) );   
-    // }
 
     // check integrity of internal firmware
     uint16_t internal_crc = ldr_u16_get_internal_crc();
@@ -222,13 +204,17 @@ void main( void ){
         flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
     }
 
+
+run_app:
     // clear loader command
     boot_data.loader_command = LDR_CMD_NONE;
 
     // run application
     ldr_v_clear_yellow_led();
 
-    ldr_run_app();
+    // ldr_run_app();
+    trace_printf("Starting main app...\n");
+    return;
 
 
 fatal_error:
@@ -314,6 +300,10 @@ void __attribute__((noreturn)) call_start_cpu0()
         bootloader_reset();
     }
 
+    // run Sapphire bootloader
+    main();
+    // after we exit, we let the ESP bootloader take over and load the app
+
     // 2. Select the number of boot partition
     bootloader_state_t bs = { 0 };
     int boot_index = select_partition_number(&bs);
@@ -324,8 +314,6 @@ void __attribute__((noreturn)) call_start_cpu0()
     // 3. Load the app image for booting
     bootloader_utility_load_boot_image(&bs, boot_index);
 
-
-    main();
 
     while(1);
 }
