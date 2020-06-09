@@ -1189,6 +1189,54 @@ class AppBuilder(HexBuilder):
         ih.write_hex_file('main.hex')
         ih.tobinfile('firmware.bin')
 
+        if self.settings["TOOLCHAIN"] == "ESP32":
+            with open("firmware.bin", 'rb') as f:
+                firmware_image = bytearray(f.read())
+
+            # iterate segment headers
+            # image header at offsset 0
+            # offset 1 contains segment count
+            # first starts at offset 24
+            segment_count = firmware_image[1]
+            offset = 24
+
+            final_segment_offset = None
+            final_segment_length = None
+
+            while segment_count > 0:
+                final_segment_offset = offset
+                segment_count -= 1
+                segment_header = struct.unpack('<LL', firmware_image[offset:offset + 8])
+                offset += 8
+                segment_length = segment_header[1]
+                # print(hex(segment_length))
+                offset += segment_length
+                final_segment_length = segment_length
+
+            print(hex(final_segment_offset))
+            print(hex(segment_length))
+
+
+            # need to pad to 16 bytes
+            firmware_image += bytes((16 - (len(firmware_image) % 16)) * [0xff])
+
+            ESP_ROM_CHECKSUM_INITIAL = 0xEF
+
+            # compute checksum for ESP32 bootloader
+            end_index = len(firmware_image) - 1
+
+            checksum = ESP_ROM_CHECKSUM_INITIAL
+            for i in range(len(firmware_image)):
+                checksum += firmware_image[i]
+
+            checksum &= 0xff
+            firmware_image[end_index] = checksum
+
+            logging.info("ESP32 checksum: 0x%02x" % (checksum))
+
+            with open("firmware.bin", 'wb') as f:
+                f.write(firmware_image)
+
         # get loader info
         try:
             loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type)
