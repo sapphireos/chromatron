@@ -1219,9 +1219,13 @@ class AppBuilder(HexBuilder):
             checksum_location += 16 - checksum_location % 16
             checksum_location -= 1
 
-            # now ask esptool for the correct checksum, since the actual algorithm isn't documented and I
-            # don't feel like reverse engineering it.
+            # disable SHA256 hash check in bootloader
+            firmware_image[0x17] = 0
 
+
+            # now ask esptool for the correct checksum, since the actual algorithm isn't documented and I
+            # don't feel like reverse engineering it.            
+            
             # redirect stdout
             backup_stdout = sys.stdout
             sys.stdout = StringIO()
@@ -1237,6 +1241,7 @@ class AppBuilder(HexBuilder):
 
             # print(image_info)
 
+            # get checksum
             for line in image_info.split('\n'):
                 if not line.startswith('Checksum'):
                     continue
