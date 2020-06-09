@@ -44,6 +44,7 @@ from pprint import pprint
 from . import firmware_package
 from .firmware_package import FirmwarePackage, get_build_package_dir, get_firmware_package, FirmwarePackageNotFound
 from . import esptool
+from io import StringIO
 
 from . import settings
 
@@ -1169,22 +1170,24 @@ class AppBuilder(HexBuilder):
         # compute crc
         crc_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
 
-        crc = crc_func(ih.tobinstr())
+        if self.settings["TOOLCHAIN"] != "ESP32":
+            crc = crc_func(ih.tobinstr())
+            ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
         logging.info("size: %d" % (size))
         logging.info("fwid: %s" % (fwid))
         logging.info("fwinfo: %x" % (fw_info_addr))
         logging.info("kv index len: %d" % (len(kv_index)))
-        logging.info("crc: 0x%x" % (crc))
         logging.info("os name: %s" % (os_project.proj_name))
         logging.info("os version: %s" % (os_project.version))
         logging.info("app name: %s" % (self.settings['PROJ_NAME']))
         logging.info("app version: %s" % (self.version))
 
-        ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
+        if self.settings["TOOLCHAIN"] != "ESP32":
+            logging.info("crc: 0x%x" % (crc))
 
-        size = ih.maxaddr() - ih.minaddr() + 1
-        assert size % 4 == 0
+            size = ih.maxaddr() - ih.minaddr() + 1
+            assert size % 4 == 0
 
         ih.write_hex_file('main.hex')
         ih.tobinfile('firmware.bin')
@@ -1209,30 +1212,47 @@ class AppBuilder(HexBuilder):
                 segment_header = struct.unpack('<LL', firmware_image[offset:offset + 8])
                 offset += 8
                 segment_length = segment_header[1]
-                # print(hex(segment_length))
                 offset += segment_length
                 final_segment_length = segment_length
 
-            print(hex(final_segment_offset))
-            print(hex(segment_length))
+            checksum_location = final_segment_offset + final_segment_length
+            checksum_location += 16 - checksum_location % 16
+            checksum_location -= 1
 
+            # now ask esptool for the correct checksum, since the actual algorithm isn't documented and I
+            # don't feel like reverse engineering it.
 
-            # need to pad to 16 bytes
-            firmware_image += bytes((16 - (len(firmware_image) % 16)) * [0xff])
+            # redirect stdout
+            backup_stdout = sys.stdout
+            sys.stdout = StringIO()
 
-            ESP_ROM_CHECKSUM_INITIAL = 0xEF
+            # run esptool to get image info
+            esptool.main('--chip esp32 image_info firmware.bin'.split())
 
-            # compute checksum for ESP32 bootloader
-            end_index = len(firmware_image) - 1
+            # capture stdout
+            image_info = sys.stdout.getvalue()
+                
+            # restore stdout
+            sys.stdout = backup_stdout
 
-            checksum = ESP_ROM_CHECKSUM_INITIAL
-            for i in range(len(firmware_image)):
-                checksum += firmware_image[i]
+            # print(image_info)
 
-            checksum &= 0xff
-            firmware_image[end_index] = checksum
+            for line in image_info.split('\n'):
+                if not line.startswith('Checksum'):
+                    continue
+
+                line = line.replace('(', '')
+                line = line.replace(')', '')
+                checksum = int(line.split()[5], 16)
+                break
+
+            firmware_image[checksum_location] = checksum
 
             logging.info("ESP32 checksum: 0x%02x" % (checksum))
+
+            crc = crc_func(firmware_image)
+            logging.info("crc: 0x%x" % (crc))
+            firmware_image += bytes(struct.pack('>H', crc))
 
             with open("firmware.bin", 'wb') as f:
                 f.write(firmware_image)
