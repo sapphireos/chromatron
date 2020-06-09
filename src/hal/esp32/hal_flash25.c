@@ -26,8 +26,17 @@
 #include "flash25.h"
 #include "hal_flash25.h"
 #include "hal_io.h"
+#include "keyvalue.h"
+
+#include "rom/spi_flash.h"
 
 #ifdef ENABLE_FFS
+
+static uint32_t flash_id;
+
+KV_SECTION_META kv_meta_t flash_id_kv[] = {
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
+};
 
 
 // FW_START_OFFSET offsets from the end of the bootloader section.
@@ -108,7 +117,7 @@ static void invalidate_cache( void ){
 void hal_flash25_v_init( void ){
 
     // read max address
-    #ifndef BOOTLOADER
+    // #ifndef BOOTLOADER
     max_address = flash25_u32_read_capacity_from_info();
 
     if( max_address >= ( START_ADDRESS + ( 64 *1024 ) ) ){
@@ -123,9 +132,9 @@ void hal_flash25_v_init( void ){
         // invalid flash
         max_address = 0;
     }
-    #else
-    max_address = 1048576;
-    #endif
+    // #else
+    // max_address = 1048576;
+    // #endif
 
     trace_printf("Flash capacity: %d\r\n", max_address);
     
@@ -435,27 +444,15 @@ void flash25_v_erase_chip( void ){
     }
 }
 
-#include "keyvalue.h"
-
-static uint32_t flash_id;
-
-KV_SECTION_META kv_meta_t flash_id_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
-};
-
 void flash25_v_read_device_info( flash25_device_info_t *info ){
-    // #ifndef BOOTLOADER
-    // uint32_t id = spi_flash_get_id();
-
-    // flash_id = id;
-
-    // // trace_printf("Flash ID: 0x%x\r\n", id);
     
-    // info->mfg_id = id & 0xff;
-    // info->dev_id_1 = ( id >> 8 ) & 0xff;
-    // info->dev_id_2 = ( id >> 16 ) & 0xff;
+    flash_id = g_rom_flashchip.device_id;
+
+    trace_printf("Flash ID: 0x%x\r\n", flash_id);
     
-    // #endif
+    info->dev_id_2 = flash_id & 0xff;
+    info->dev_id_1 = ( flash_id >> 8 ) & 0xff;
+    info->mfg_id   = ( flash_id >> 16 ) & 0xff;
 }
 
 uint32_t flash25_u32_capacity( void ){

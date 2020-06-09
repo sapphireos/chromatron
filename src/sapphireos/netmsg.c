@@ -527,7 +527,7 @@ void *_netmsg_vp_get_state( netmsg_t netmsg, FLASH_STRING_T file, int line ){
     // from the caller.
     if( mem2_b_verify_handle( netmsg ) == FALSE ){
 
-        assert( 0, file, line );
+        sos_assert( 0, file, line );
     }
 
 #else

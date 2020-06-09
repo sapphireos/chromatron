@@ -535,7 +535,7 @@ int8_t _mem2_i8_realloc( mem_handle_t handle, uint16_t size, FLASH_STRING_T file
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        sos_assert( 0, file, line );
     }
 
 #else
@@ -623,7 +623,7 @@ void _mem2_v_free( mem_handle_t handle, FLASH_STRING_T file, int line ){
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        sos_assert( 0, file, line );
     }
 
 #else
@@ -678,7 +678,7 @@ uint16_t _mem2_u16_get_size( mem_handle_t handle, FLASH_STRING_T file, int line 
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        sos_assert( 0, file, line );
     }
 
 #else
@@ -726,7 +726,7 @@ void *_mem2_vp_get_ptr( mem_handle_t handle, FLASH_STRING_T file, int line ){
     // from the caller.
     if( mem2_b_verify_handle( handle ) == FALSE ){
 
-        assert( 0, file, line );
+        sos_assert( 0, file, line );
     }
 
 #else

@@ -82,6 +82,7 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 
         case FLASH_MFG_WINBOND:
         case FLASH_MFG_BERG:
+        case FLASH_MFG_GIGADEVICE:
 
 			if( info.dev_id_1 == FLASH_DEV_ID1_WINBOND_x30 ){
 

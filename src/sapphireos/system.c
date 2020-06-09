@@ -563,7 +563,7 @@ bool sys_b_shutdown( void ){
 // rebooting into the bootloader.  it will pass the assertion information
 // to the bootloader so it can report the error.
 #ifdef INCLUDE_ASSERTS
-void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
+void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
 
 #ifndef BOOTLOADER
 

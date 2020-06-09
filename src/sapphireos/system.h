@@ -137,15 +137,15 @@ typedef uint32_t sys_warnings_t;
 #ifdef INCLUDE_ASSERTS
 	#ifdef INCLUDE_ASSERT_TEXT
 
-		#define ASSERT(expr)  if( !(expr) ){  assert( FLASH_STRING( #expr ), __SOURCE_FILE__, __LINE__); }
-		#define ASSERT_MSG(expr, str) if( !(expr) ){ assert( FLASH_STRING( #str ), __SOURCE_FILE__, __LINE__); }
+		#define ASSERT(expr)  if( !(expr) ){  sos_assert( FLASH_STRING( #expr ), __SOURCE_FILE__, __LINE__); }
+		#define ASSERT_MSG(expr, str) if( !(expr) ){ sos_assert( FLASH_STRING( #str ), __SOURCE_FILE__, __LINE__); }
 	#else
 
-		// #define ASSERT(expr)  if( !(expr) ){  assert( 0, FLASH_STRING( __FILE__ ), __LINE__); }
-        #define ASSERT(expr)  if( !(expr) ){  assert( 0, __SOURCE_FILE__, __LINE__); }
+		// #define ASSERT(expr)  if( !(expr) ){  sos_assert( 0, FLASH_STRING( __FILE__ ), __LINE__); }
+        #define ASSERT(expr)  if( !(expr) ){  sos_assert( 0, __SOURCE_FILE__, __LINE__); }
 		#define ASSERT_MSG(expr, str) ASSERT(expr)
 	#endif
-	void assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line);
+	void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line);
 #else
 	#define ASSERT(expr)
 	#define ASSERT_MSG(expr, str)
