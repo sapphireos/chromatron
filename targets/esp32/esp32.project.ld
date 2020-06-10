@@ -242,6 +242,8 @@ SECTIONS
     *libheap.a:multi_heap.*( .rodata  .rodata.*)
     *libgcov.a:( .rodata  .rodata.*)
 
+    *(.memory_heap)
+
     _data_end = ABSOLUTE(.);
     . = ALIGN(4);
   } > dram0_0_seg

@@ -63,9 +63,9 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         128
+#define MAX_MEM_HANDLES         256
 #define MEM_MAX_STACK           4096
-#define MEM_HEAP_SIZE			16384
+#define MEM_HEAP_SIZE			65535
 
 // flash fs
 // maximum number of blocks the FS can handle
