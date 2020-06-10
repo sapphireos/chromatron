@@ -1216,11 +1216,17 @@ class AppBuilder(HexBuilder):
                 final_segment_length = segment_length
 
             checksum_location = final_segment_offset + final_segment_length
-            checksum_location += 16 - checksum_location % 16
+            # print(hex(checksum_location))
+            checksum_location += (16 - checksum_location % 16) + 16
             checksum_location -= 1
+            # print(hex(checksum_location))
 
             # disable SHA256 hash check in bootloader
             firmware_image[0x17] = 0
+
+            # save file
+            with open("firmware.bin", 'wb') as f:
+                f.write(firmware_image)
 
 
             # now ask esptool for the correct checksum, since the actual algorithm isn't documented and I

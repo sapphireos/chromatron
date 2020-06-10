@@ -29,19 +29,20 @@ void app_main()
 
 
     // sapphireos init
-    if( sapphire_i8_init() == 0 ){
+    // if( sapphire_i8_init() == 0 ){
             
-        if( app_v_init != 0 ){            
+    //     if( app_v_init != 0 ){            
 
-            app_v_init();
-        }
+    //         app_v_init();
+    //     }
 
-        if( libs_v_init != 0 ){
+    //     if( libs_v_init != 0 ){
 
-            libs_v_init();
-        }
-    }
+    //         libs_v_init();
+    //     }
+    // }
 
+    while(1);
 
 
     #if 0
