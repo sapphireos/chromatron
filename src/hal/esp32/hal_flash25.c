@@ -29,6 +29,7 @@
 #include "keyvalue.h"
 
 #include "rom/spi_flash.h"
+#include "esp_spi_flash.h"
 
 #ifdef ENABLE_FFS
 
@@ -65,14 +66,14 @@ static int spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
 
-    return 0;
+    return spi_flash_read( address, ptr, size );
 }
 
 static int spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
-    
-    return 0;   
+
+    return spi_flash_write( address, ptr, size );
 }
 
 static void flush_cache( void ){
@@ -422,6 +423,8 @@ void flash25_v_erase_4k( uint32_t address ){
     BUSY_WAIT( flash25_b_busy() );
 
     address += START_ADDRESS;
+
+    spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
 
     // trace_printf("Erase: 0x%x\r\n", address);
     // #ifdef BOOTLOADER

@@ -23,7 +23,7 @@
 #ifndef _BOOL_H
 #define _BOOL_H
 
-#ifdef ARM
+#if defined(ARM) || defined(ESP32)
 #include <stdbool.h>
 
 #define TRUE true

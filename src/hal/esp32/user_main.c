@@ -12,16 +12,39 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
+#include "init.h"
+#include "sapphire.h"
+#include "threading.h"
+
+
+void app_v_init( void ) __attribute__((weak));
+void libs_v_init( void ) __attribute__((weak));
 
 void app_main()
 {
-    #ifdef BOOTLOADER
+    // printf("SapphireOS ESP32 HAL\n");
+    // printf("This is just a demo!\n");
 
-    #else
+    printf("\r\nESP32 SDK version:%s\r\n", esp_get_idf_version());
 
-    printf("SapphireOS ESP32 HAL\n");
-    printf("This is just a demo!\n");
 
+    // sapphireos init
+    if( sapphire_i8_init() == 0 ){
+            
+        if( app_v_init != 0 ){            
+
+            app_v_init();
+        }
+
+        if( libs_v_init != 0 ){
+
+            libs_v_init();
+        }
+    }
+
+
+
+    #if 0
     /* Print chip information */
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
