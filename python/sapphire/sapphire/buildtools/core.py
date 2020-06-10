@@ -1196,6 +1196,9 @@ class AppBuilder(HexBuilder):
             with open("firmware.bin", 'rb') as f:
                 firmware_image = bytearray(f.read())
 
+            with open("main.bin", 'rb') as f:
+                original_image = bytearray(f.read())
+
             # iterate segment headers
             # image header at offsset 0
             # offset 1 contains segment count
@@ -1215,9 +1218,18 @@ class AppBuilder(HexBuilder):
                 offset += segment_length
                 final_segment_length = segment_length
 
-            checksum_location = final_segment_offset + final_segment_length
+            checksum_location = (len(original_image) - 32) - 1
             # print(hex(checksum_location))
-            checksum_location += (16 - checksum_location % 16) + 16
+            offset = (16 - checksum_location % 16)
+            
+            if checksum_location == 0:
+                checksum_location += 16
+
+            else:
+                checksum_location += offset
+
+            assert checksum_location % 16 == 0
+
             checksum_location -= 1
             # print(hex(checksum_location))
 
