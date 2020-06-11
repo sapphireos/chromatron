@@ -212,7 +212,7 @@ int8_t ffs_fw_i8_init( void ){
             // read byte from internal flash
             for( uint16_t j = 0; j < block_len; j++ ){
 
-                buf[j] = pgm_read_byte_far( i + j + FLASH_START );
+                // buf[j] = pgm_read_byte_far( i + j + FLASH_START );
             }
 
             flash25_v_write( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, buf, block_len );

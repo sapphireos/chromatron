@@ -447,7 +447,6 @@ uint32_t sys_v_get_fw_length( void ){
     #ifdef __SIM__
         length = 100;
     #else
-        trace_printf("%u\n", FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fw_length));
         memcpy_P( &length, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fw_length), sizeof(length) );
     #endif
 
