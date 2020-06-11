@@ -423,7 +423,7 @@ void flash25_v_erase_4k( uint32_t address ){
     BUSY_WAIT( flash25_b_busy() );
 
     address += START_ADDRESS;
-
+        
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
 
     // trace_printf("Erase: 0x%x\r\n", address);
