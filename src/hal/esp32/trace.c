@@ -22,31 +22,3 @@
 
 
 #include "trace.h"
-
-
-
-#include <stdio.h>
-#include <stdarg.h>
-
-#ifndef BOOTLOADER
-int trace_printf(const char* format, ...){
-  int ret;
-  va_list ap;
-
-  va_start (ap, format);
-
-  static char buf[TRACE_BUF_SIZE];
-
-  // Print to the local buffer
-  ret = vsnprintf (buf, sizeof(buf), format, ap);
-  if (ret > 0)
-    {
-      
-      // Transfer the buffer to the device
-      // ret = os_printf("%s", buf);
-    }
-
-  va_end (ap);
-  return ret;
-}
-#endif

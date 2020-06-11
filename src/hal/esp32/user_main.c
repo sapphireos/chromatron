@@ -25,8 +25,7 @@ void app_main()
     // printf("SapphireOS ESP32 HAL\n");
     // printf("This is just a demo!\n");
 
-    printf("\r\nESP32 SDK version:%s\r\n", esp_get_idf_version());
-
+    trace_printf("\r\nESP32 SDK version:%s\r\n", esp_get_idf_version());
 
     // sapphireos init
     if( sapphire_i8_init() == 0 ){

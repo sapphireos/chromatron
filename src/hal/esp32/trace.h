@@ -24,8 +24,7 @@
 #define _TRACE_H
 
 #ifndef BOOTLOADER
-#define TRACE_BUF_SIZE 256
-int trace_printf(const char* format, ...);
+#define trace_printf printf
 #else
 #include "rom/ets_sys.h"
 #define trace_printf ets_printf
