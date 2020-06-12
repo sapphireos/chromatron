@@ -170,7 +170,8 @@ int8_t ffs_fw_i8_init( void ){
                     &ext_fw_length,
                     sizeof(ext_fw_length) );
 
-
+    ext_fw_length += sizeof(uint16_t); // adjust for CRC
+    
     // check for invalid ext firmware length
     if( ext_fw_length > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){
 
@@ -178,7 +179,7 @@ int8_t ffs_fw_i8_init( void ){
     }
     else{
 
-        fw_size = ext_fw_length + sizeof(uint16_t); // adjust for CRC
+        fw_size = ext_fw_length;
     }
 
     trace_printf("internal  len: %d\r\n", sys_fw_length);
@@ -191,8 +192,9 @@ int8_t ffs_fw_i8_init( void ){
         fw_size = 0;
     }
 
-    // check CRC
-    if( ffs_fw_u16_crc() != 0 ){
+    // check CRC or if partition length is bad
+    if( ( sys_fw_length != ext_fw_length ) ||
+        ( ffs_fw_u16_crc() != 0 ) ){
 
         // CRC is bad
 
