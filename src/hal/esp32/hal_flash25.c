@@ -66,14 +66,22 @@ static int spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
 
+    #ifdef BOOTLOADER
+    return 0;
+    #else
     return spi_flash_read( address, ptr, size );
+    #endif
 }
 
 static int spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
 
+    #ifdef BOOTLOADER
+    return 0;
+    #else
     return spi_flash_write( address, ptr, size );
+    #endif
 }
 
 static void flush_cache( void ){

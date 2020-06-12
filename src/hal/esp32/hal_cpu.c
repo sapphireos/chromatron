@@ -41,7 +41,9 @@ void cpu_v_init( void ){
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
-	
+    #ifdef BOOTLOADER
+    return 0;
+    #else
 	esp_reset_reason_t reason = esp_reset_reason();
 
 	if( reason == ESP_RST_POWERON ){
@@ -58,6 +60,7 @@ uint8_t cpu_u8_get_reset_source( void ){
 	}
 
 	return 0;
+    #endif
 }
 
 void cpu_v_clear_reset_source( void ){
