@@ -205,6 +205,8 @@ void wifi_v_init( void ){
     strcpy(pass, CONFIG_ESP_WIFI_PASSWORD);
     cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
     cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
+
+
     // #endif
 
  //    list_v_init( &conn_list );
@@ -562,7 +564,7 @@ static int8_t has_ssid( char *check_ssid ){
 	
 	memset( ssid, 0, sizeof(ssid) );
 	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-       
+
    	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
 
    		return 0;

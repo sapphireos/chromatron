@@ -133,6 +133,8 @@ void ee_v_init( void ){
 	}
 	else{
 
+		trace_printf("EE erase and initialize...l\r\n");
+
 		// erase and initialize
 		ffs_eeprom_v_erase( current_block );
 

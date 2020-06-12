@@ -254,6 +254,8 @@ void status_led_v_set( uint8_t state, uint8_t led ){
  
     if( state == 0 ){
 
+        trace_printf("status\n");
+
         return;
     }
 
