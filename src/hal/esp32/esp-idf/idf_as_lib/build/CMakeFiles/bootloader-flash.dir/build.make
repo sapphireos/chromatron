@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Utility rule file for bootloader-flash.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf
 include CMakeFiles/bootloader-flash.dir/progress.make
 
 CMakeFiles/bootloader-flash:
-	cd /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH="/home/jeremy/JEREMY/esp8266/esp-idf" -D ESPTOOLPY="python /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py/esptool/esptool.py --chip esp32" -D ESPTOOL_ARGS="write_flash @flash_bootloader_args" -D ESPTOOL_WORKING_DIR="/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build" -P /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py/run_esptool.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH="/home/jeremy/JEREMY/esp8266/esp-idf" -D ESPTOOLPY="/home/jeremy/.espressif/python_env/idf3.3_py2.7_env/bin/python /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py/esptool/esptool.py --chip esp32" -D ESPTOOL_ARGS="write_flash @flash_bootloader_args" -D ESPTOOL_WORKING_DIR="/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build" -P /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py/run_esptool.cmake
 
 bootloader-flash: CMakeFiles/bootloader-flash
 bootloader-flash: CMakeFiles/bootloader-flash.dir/build.make
@@ -71,6 +71,6 @@ CMakeFiles/bootloader-flash.dir/clean:
 .PHONY : CMakeFiles/bootloader-flash.dir/clean
 
 CMakeFiles/bootloader-flash.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles/bootloader-flash.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles/bootloader-flash.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/bootloader-flash.dir/depend
 

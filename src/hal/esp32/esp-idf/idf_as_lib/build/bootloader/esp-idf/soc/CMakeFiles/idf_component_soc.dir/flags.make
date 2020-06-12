@@ -6,7 +6,7 @@ C_FLAGS = -mlongcalls   -mlongcalls -Og -ffunction-sections -fdata-sections -fst
 
 C_DEFINES = -DBOOTLOADER_BUILD=1 -DESP_PLATFORM -DGCC_NOT_5_2_0=0 -DHAVE_CONFIG_H -DIDF_VER=\"v3.3.2\"
 
-C_INCLUDES = -I/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/esp32/include -I/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/include -I/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/config -I/home/jeremy/JEREMY/esp8266/esp-idf/components/log/include -I/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include 
+C_INCLUDES = -I/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/esp32/include -I/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/include -I/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/config -I/home/jeremy/JEREMY/esp8266/esp-idf/components/log/include -I/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include 
 
 # Custom flags: esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk.c.obj_FLAGS = -fno-jump-tables -fno-tree-switch-conversion
 

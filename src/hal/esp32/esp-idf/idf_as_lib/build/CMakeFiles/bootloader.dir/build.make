@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Utility rule file for bootloader.
 
@@ -64,51 +64,51 @@ CMakeFiles/bootloader-complete: bootloader-prefix/src/bootloader-stamp/bootloade
 CMakeFiles/bootloader-complete: bootloader-prefix/src/bootloader-stamp/bootloader-configure
 CMakeFiles/bootloader-complete: bootloader-prefix/src/bootloader-stamp/bootloader-build
 CMakeFiles/bootloader-complete: bootloader-prefix/src/bootloader-stamp/bootloader-install
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Completed 'bootloader'"
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles
-	/usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles/bootloader-complete
-	/usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-done
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Completed 'bootloader'"
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles
+	/usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles/bootloader-complete
+	/usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-done
 
 bootloader-prefix/src/bootloader-stamp/bootloader-install: bootloader-prefix/src/bootloader-stamp/bootloader-build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "No install step for 'bootloader'"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -E echo_append
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-install
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "No install step for 'bootloader'"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -E echo_append
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-install
 
 bootloader-prefix/src/bootloader-stamp/bootloader-mkdir:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Creating directories for 'bootloader'"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Creating directories for 'bootloader'"
 	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/tmp
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src
-	/usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/tmp
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src
+	/usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir
 
 bootloader-prefix/src/bootloader-stamp/bootloader-download: bootloader-prefix/src/bootloader-stamp/bootloader-mkdir
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "No download step for 'bootloader'"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "No download step for 'bootloader'"
 	/usr/bin/cmake -E echo_append
-	/usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-download
+	/usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-download
 
 bootloader-prefix/src/bootloader-stamp/bootloader-update: bootloader-prefix/src/bootloader-stamp/bootloader-download
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "No update step for 'bootloader'"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "No update step for 'bootloader'"
 	/usr/bin/cmake -E echo_append
-	/usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-update
+	/usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-update
 
 bootloader-prefix/src/bootloader-stamp/bootloader-patch: bootloader-prefix/src/bootloader-stamp/bootloader-download
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "No patch step for 'bootloader'"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "No patch step for 'bootloader'"
 	/usr/bin/cmake -E echo_append
-	/usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch
+	/usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch
 
 bootloader-prefix/src/bootloader-stamp/bootloader-configure: bootloader-prefix/tmp/bootloader-cfgcmd.txt
 bootloader-prefix/src/bootloader-stamp/bootloader-configure: bootloader-prefix/src/bootloader-stamp/bootloader-update
 bootloader-prefix/src/bootloader-stamp/bootloader-configure: bootloader-prefix/src/bootloader-stamp/bootloader-patch
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Performing configure step for 'bootloader'"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -DSDKCONFIG=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/sdkconfig -DIDF_PATH=/home/jeremy/JEREMY/esp8266/esp-idf -DSECURE_BOOT_SIGNING_KEY=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib -DEXTRA_COMPONENT_DIRS=/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader "-GUnix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Performing configure step for 'bootloader'"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -DSDKCONFIG=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/sdkconfig -DIDF_PATH=/home/jeremy/JEREMY/esp8266/esp-idf -DSECURE_BOOT_SIGNING_KEY=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib -DEXTRA_COMPONENT_DIRS=/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader "-GUnix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && /usr/bin/cmake -E touch /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure
 
 bootloader-prefix/src/bootloader-stamp/bootloader-build: bootloader-prefix/src/bootloader-stamp/bootloader-configure
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Performing build step for 'bootloader'"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Performing build step for 'bootloader'"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE)
 
 bootloader: CMakeFiles/bootloader
 bootloader: CMakeFiles/bootloader-complete
@@ -133,6 +133,6 @@ CMakeFiles/bootloader.dir/clean:
 .PHONY : CMakeFiles/bootloader.dir/clean
 
 CMakeFiles/bootloader.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles/bootloader.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles/bootloader.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/bootloader.dir/depend
 

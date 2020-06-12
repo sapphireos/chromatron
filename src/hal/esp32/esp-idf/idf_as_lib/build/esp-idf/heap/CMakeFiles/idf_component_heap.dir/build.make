@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Include any dependencies generated for this target.
 include esp-idf/heap/CMakeFiles/idf_component_heap.dir/depend.make
@@ -58,17 +58,17 @@ include esp-idf/heap/CMakeFiles/idf_component_heap.dir/progress.make
 include esp-idf/heap/CMakeFiles/idf_component_heap.dir/flags.make
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: esp-idf/heap/CMakeFiles/idf_component_heap.dir/flags.make
-esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/heap_caps.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../components/heap/heap_caps.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/heap_caps.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_heap.dir/heap_caps.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c > CMakeFiles/idf_component_heap.dir/heap_caps.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c > CMakeFiles/idf_component_heap.dir/heap_caps.c.i
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_heap.dir/heap_caps.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c -o CMakeFiles/idf_component_heap.dir/heap_caps.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps.c -o CMakeFiles/idf_component_heap.dir/heap_caps.c.s
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj.requires:
 
@@ -82,17 +82,17 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj.provides.build: e
 
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: esp-idf/heap/CMakeFiles/idf_component_heap.dir/flags.make
-esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../components/heap/heap_caps_init.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_heap.dir/heap_caps_init.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c > CMakeFiles/idf_component_heap.dir/heap_caps_init.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c > CMakeFiles/idf_component_heap.dir/heap_caps_init.c.i
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_heap.dir/heap_caps_init.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c -o CMakeFiles/idf_component_heap.dir/heap_caps_init.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_caps_init.c -o CMakeFiles/idf_component_heap.dir/heap_caps_init.c.s
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj.requires:
 
@@ -106,17 +106,17 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj.provides.bui
 
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: esp-idf/heap/CMakeFiles/idf_component_heap.dir/flags.make
-esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/heap_trace.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../components/heap/heap_trace.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/heap_trace.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_heap.dir/heap_trace.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c > CMakeFiles/idf_component_heap.dir/heap_trace.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c > CMakeFiles/idf_component_heap.dir/heap_trace.c.i
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_heap.dir/heap_trace.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c -o CMakeFiles/idf_component_heap.dir/heap_trace.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/heap_trace.c -o CMakeFiles/idf_component_heap.dir/heap_trace.c.s
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj.requires:
 
@@ -130,17 +130,17 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj.provides.build: 
 
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: esp-idf/heap/CMakeFiles/idf_component_heap.dir/flags.make
-esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/multi_heap.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../components/heap/multi_heap.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_heap.dir/multi_heap.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_heap.dir/multi_heap.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c > CMakeFiles/idf_component_heap.dir/multi_heap.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c > CMakeFiles/idf_component_heap.dir/multi_heap.c.i
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_heap.dir/multi_heap.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c -o CMakeFiles/idf_component_heap.dir/multi_heap.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/heap/multi_heap.c -o CMakeFiles/idf_component_heap.dir/multi_heap.c.s
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj.requires:
 
@@ -169,9 +169,9 @@ esp-idf/heap/libheap.a: esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trac
 esp-idf/heap/libheap.a: esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj
 esp-idf/heap/libheap.a: esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make
 esp-idf/heap/libheap.a: esp-idf/heap/CMakeFiles/idf_component_heap.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C static library libheap.a"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_heap.dir/cmake_clean_target.cmake
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_heap.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C static library libheap.a"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_heap.dir/cmake_clean_target.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_heap.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/build: esp-idf/heap/libheap.a
@@ -186,10 +186,10 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/requires: esp-idf/heap/CMakeFiles
 .PHONY : esp-idf/heap/CMakeFiles/idf_component_heap.dir/requires
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_heap.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_heap.dir/cmake_clean.cmake
 .PHONY : esp-idf/heap/CMakeFiles/idf_component_heap.dir/clean
 
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/heap /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap/CMakeFiles/idf_component_heap.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/heap /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap/CMakeFiles/idf_component_heap.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/heap/CMakeFiles/idf_component_heap.dir/depend
 

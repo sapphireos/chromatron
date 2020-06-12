@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/log/liblog.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/log/liblog.a:
 
 log.c.obj:     file format elf32-xtensa-le
 
@@ -44,51 +44,51 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  19 .iram1.15     0000001f  00000000  00000000  000005c0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 20 .iram1.16     00000058  00000000  00000000  000005e0  2**2
+ 20 .iram1.16     00000052  00000000  00000000  000005e0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 21 .text.esp_log_buffer_hex_internal 0000011a  00000000  00000000  00000638  2**2
+ 21 .text.esp_log_buffer_hex_internal 0000011a  00000000  00000000  00000634  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 22 .text.esp_log_buffer_char_internal 00000107  00000000  00000000  00000754  2**2
+ 22 .text.esp_log_buffer_char_internal 00000107  00000000  00000000  00000750  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 23 .text.esp_log_buffer_hexdump_internal 000001da  00000000  00000000  0000085c  2**2
+ 23 .text.esp_log_buffer_hexdump_internal 000001da  00000000  00000000  00000858  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 24 .bss.base$5574 00000004  00000000  00000000  00000a38  2**2
+ 24 .bss.base$5574 00000004  00000000  00000000  00000a34  2**2
                   ALLOC
- 25 .bss.s_log_mutex 00000004  00000000  00000000  00000a38  2**2
+ 25 .bss.s_log_mutex 00000004  00000000  00000000  00000a34  2**2
                   ALLOC
- 26 .data.s_log_print_func 00000004  00000000  00000000  00000a38  2**2
+ 26 .data.s_log_print_func 00000004  00000000  00000000  00000a34  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, DATA
- 27 .bss.s_log_cache_entry_count 00000004  00000000  00000000  00000a3c  2**2
+ 27 .bss.s_log_cache_entry_count 00000004  00000000  00000000  00000a38  2**2
                   ALLOC
- 28 .bss.s_log_cache_max_generation 00000004  00000000  00000000  00000a3c  2**2
+ 28 .bss.s_log_cache_max_generation 00000004  00000000  00000000  00000a38  2**2
                   ALLOC
- 29 .bss.s_log_cache 000000f8  00000000  00000000  00000a3c  2**2
+ 29 .bss.s_log_cache 000000f8  00000000  00000000  00000a38  2**2
                   ALLOC
- 30 .bss.s_log_tags 00000004  00000000  00000000  00000a3c  2**2
+ 30 .bss.s_log_tags 00000004  00000000  00000000  00000a38  2**2
                   ALLOC
- 31 .data.s_log_default_level 00000004  00000000  00000000  00000a3c  2**2
+ 31 .data.s_log_default_level 00000004  00000000  00000000  00000a38  2**2
                   CONTENTS, ALLOC, LOAD, DATA
- 32 .debug_frame  00000100  00000000  00000000  00000a40  2**2
+ 32 .debug_frame  00000100  00000000  00000000  00000a3c  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 33 .debug_info   00001208  00000000  00000000  00000b40  2**0
+ 33 .debug_info   00001206  00000000  00000000  00000b3c  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 34 .debug_abbrev 000003e3  00000000  00000000  00001d48  2**0
+ 34 .debug_abbrev 000003e3  00000000  00000000  00001d42  2**0
                   CONTENTS, READONLY, DEBUGGING
- 35 .debug_loc    000008af  00000000  00000000  0000212b  2**0
+ 35 .debug_loc    0000089c  00000000  00000000  00002125  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 36 .debug_aranges 00000068  00000000  00000000  000029da  2**0
+ 36 .debug_aranges 00000068  00000000  00000000  000029c1  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 37 .debug_ranges 00000058  00000000  00000000  00002a42  2**0
+ 37 .debug_ranges 00000058  00000000  00000000  00002a29  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 38 .debug_line   0000092a  00000000  00000000  00002a9a  2**0
+ 38 .debug_line   0000092a  00000000  00000000  00002a81  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 39 .debug_str    00000704  00000000  00000000  000033c4  2**0
+ 39 .debug_str    000006ea  00000000  00000000  000033ab  2**0
                   CONTENTS, READONLY, DEBUGGING
- 40 .comment      0000003b  00000000  00000000  00003ac8  2**0
+ 40 .comment      0000003b  00000000  00000000  00003a95  2**0
                   CONTENTS, READONLY
- 41 .xtensa.info  00000038  00000000  00000000  00003b03  2**0
+ 41 .xtensa.info  00000038  00000000  00000000  00003ad0  2**0
                   CONTENTS, READONLY
- 42 .xt.lit       00000050  00000000  00000000  00003b3b  2**0
+ 42 .xt.lit       00000050  00000000  00000000  00003b08  2**0
                   CONTENTS, RELOC, READONLY
- 43 .xt.prop      0000069c  00000000  00000000  00003b8b  2**0
+ 43 .xt.prop      0000069c  00000000  00000000  00003b58  2**0
                   CONTENTS, RELOC, READONLY

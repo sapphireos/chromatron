@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader
 
 # Utility rule file for confserver.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf
 include CMakeFiles/confserver.dir/progress.make
 
 CMakeFiles/confserver:
-	/usr/bin/cmake -E env "COMPONENT_KCONFIGS= /home/jeremy/JEREMY/esp8266/esp-idf/components/efuse/Kconfig /home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/Kconfig /home/jeremy/JEREMY/esp8266/esp-idf/components/log/Kconfig /home/jeremy/JEREMY/esp8266/esp-idf/components/spi_flash/Kconfig" "COMPONENT_KCONFIGS_PROJBUILD= /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/Kconfig.projbuild /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py/Kconfig.projbuild /home/jeremy/JEREMY/esp8266/esp-idf/components/partition_table/Kconfig.projbuild" python /home/jeremy/JEREMY/esp8266/esp-idf/tools/kconfig_new/confserver.py --kconfig /home/jeremy/JEREMY/esp8266/esp-idf/Kconfig --config /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/sdkconfig
+	/usr/bin/cmake -E env "COMPONENT_KCONFIGS= /home/jeremy/JEREMY/esp8266/esp-idf/components/efuse/Kconfig /home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/Kconfig /home/jeremy/JEREMY/esp8266/esp-idf/components/log/Kconfig /home/jeremy/JEREMY/esp8266/esp-idf/components/spi_flash/Kconfig" "COMPONENT_KCONFIGS_PROJBUILD= /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/Kconfig.projbuild /home/jeremy/JEREMY/esp8266/esp-idf/components/esptool_py/Kconfig.projbuild /home/jeremy/JEREMY/esp8266/esp-idf/components/partition_table/Kconfig.projbuild" /home/jeremy/.espressif/python_env/idf3.3_py2.7_env/bin/python /home/jeremy/JEREMY/esp8266/esp-idf/tools/kconfig_new/confserver.py --kconfig /home/jeremy/JEREMY/esp8266/esp-idf/Kconfig --config /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/sdkconfig
 
 confserver: CMakeFiles/confserver
 confserver: CMakeFiles/confserver.dir/build.make
@@ -71,6 +71,6 @@ CMakeFiles/confserver.dir/clean:
 .PHONY : CMakeFiles/confserver.dir/clean
 
 CMakeFiles/confserver.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/CMakeFiles/confserver.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/CMakeFiles/confserver.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/confserver.dir/depend
 

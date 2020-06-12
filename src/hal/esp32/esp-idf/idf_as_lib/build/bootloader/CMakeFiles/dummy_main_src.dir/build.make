@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader
 
 # Utility rule file for dummy_main_src.
 
@@ -57,7 +57,7 @@ CMakeFiles/dummy_main_src: dummy_main_src.c
 
 
 dummy_main_src.c:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating dummy_main_src.c"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating dummy_main_src.c"
 	/usr/bin/cmake -E touch dummy_main_src.c
 
 dummy_main_src: CMakeFiles/dummy_main_src
@@ -76,6 +76,6 @@ CMakeFiles/dummy_main_src.dir/clean:
 .PHONY : CMakeFiles/dummy_main_src.dir/clean
 
 CMakeFiles/dummy_main_src.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/CMakeFiles/dummy_main_src.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/CMakeFiles/dummy_main_src.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/dummy_main_src.dir/depend
 

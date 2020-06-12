@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/ethernet/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/ethernet/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/clean
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/rule
 .PHONY : esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/rule
 
 # Convenience name for target.
@@ -168,12 +168,12 @@ idf_component_ethernet_sections_info: esp-idf/ethernet/CMakeFiles/idf_component_
 
 # fast build rule for target.
 idf_component_ethernet_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet_sections_info.dir/build
 .PHONY : idf_component_ethernet_sections_info/fast
 
 # Convenience name for target.
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/rule
 .PHONY : esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/rule
 
 # Convenience name for target.
@@ -183,7 +183,7 @@ idf_component_ethernet: esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/r
 
 # fast build rule for target.
 idf_component_ethernet/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build
 .PHONY : idf_component_ethernet/fast
 
 emac_dev.obj: emac_dev.c.obj
@@ -192,7 +192,7 @@ emac_dev.obj: emac_dev.c.obj
 
 # target to build an object file
 emac_dev.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_dev.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_dev.c.obj
 .PHONY : emac_dev.c.obj
 
 emac_dev.i: emac_dev.c.i
@@ -201,7 +201,7 @@ emac_dev.i: emac_dev.c.i
 
 # target to preprocess a source file
 emac_dev.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_dev.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_dev.c.i
 .PHONY : emac_dev.c.i
 
 emac_dev.s: emac_dev.c.s
@@ -210,7 +210,7 @@ emac_dev.s: emac_dev.c.s
 
 # target to generate assembly for a file
 emac_dev.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_dev.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_dev.c.s
 .PHONY : emac_dev.c.s
 
 emac_main.obj: emac_main.c.obj
@@ -219,7 +219,7 @@ emac_main.obj: emac_main.c.obj
 
 # target to build an object file
 emac_main.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj
 .PHONY : emac_main.c.obj
 
 emac_main.i: emac_main.c.i
@@ -228,7 +228,7 @@ emac_main.i: emac_main.c.i
 
 # target to preprocess a source file
 emac_main.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.i
 .PHONY : emac_main.c.i
 
 emac_main.s: emac_main.c.s
@@ -237,7 +237,7 @@ emac_main.s: emac_main.c.s
 
 # target to generate assembly for a file
 emac_main.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.s
 .PHONY : emac_main.c.s
 
 eth_phy/phy_common.obj: eth_phy/phy_common.c.obj
@@ -246,7 +246,7 @@ eth_phy/phy_common.obj: eth_phy/phy_common.c.obj
 
 # target to build an object file
 eth_phy/phy_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_common.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_common.c.obj
 .PHONY : eth_phy/phy_common.c.obj
 
 eth_phy/phy_common.i: eth_phy/phy_common.c.i
@@ -255,7 +255,7 @@ eth_phy/phy_common.i: eth_phy/phy_common.c.i
 
 # target to preprocess a source file
 eth_phy/phy_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_common.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_common.c.i
 .PHONY : eth_phy/phy_common.c.i
 
 eth_phy/phy_common.s: eth_phy/phy_common.c.s
@@ -264,7 +264,7 @@ eth_phy/phy_common.s: eth_phy/phy_common.c.s
 
 # target to generate assembly for a file
 eth_phy/phy_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_common.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_common.c.s
 .PHONY : eth_phy/phy_common.c.s
 
 eth_phy/phy_ip101.obj: eth_phy/phy_ip101.c.obj
@@ -273,7 +273,7 @@ eth_phy/phy_ip101.obj: eth_phy/phy_ip101.c.obj
 
 # target to build an object file
 eth_phy/phy_ip101.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_ip101.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_ip101.c.obj
 .PHONY : eth_phy/phy_ip101.c.obj
 
 eth_phy/phy_ip101.i: eth_phy/phy_ip101.c.i
@@ -282,7 +282,7 @@ eth_phy/phy_ip101.i: eth_phy/phy_ip101.c.i
 
 # target to preprocess a source file
 eth_phy/phy_ip101.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_ip101.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_ip101.c.i
 .PHONY : eth_phy/phy_ip101.c.i
 
 eth_phy/phy_ip101.s: eth_phy/phy_ip101.c.s
@@ -291,7 +291,7 @@ eth_phy/phy_ip101.s: eth_phy/phy_ip101.c.s
 
 # target to generate assembly for a file
 eth_phy/phy_ip101.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_ip101.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_ip101.c.s
 .PHONY : eth_phy/phy_ip101.c.s
 
 eth_phy/phy_lan8720.obj: eth_phy/phy_lan8720.c.obj
@@ -300,7 +300,7 @@ eth_phy/phy_lan8720.obj: eth_phy/phy_lan8720.c.obj
 
 # target to build an object file
 eth_phy/phy_lan8720.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_lan8720.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_lan8720.c.obj
 .PHONY : eth_phy/phy_lan8720.c.obj
 
 eth_phy/phy_lan8720.i: eth_phy/phy_lan8720.c.i
@@ -309,7 +309,7 @@ eth_phy/phy_lan8720.i: eth_phy/phy_lan8720.c.i
 
 # target to preprocess a source file
 eth_phy/phy_lan8720.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_lan8720.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_lan8720.c.i
 .PHONY : eth_phy/phy_lan8720.c.i
 
 eth_phy/phy_lan8720.s: eth_phy/phy_lan8720.c.s
@@ -318,7 +318,7 @@ eth_phy/phy_lan8720.s: eth_phy/phy_lan8720.c.s
 
 # target to generate assembly for a file
 eth_phy/phy_lan8720.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_lan8720.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_lan8720.c.s
 .PHONY : eth_phy/phy_lan8720.c.s
 
 eth_phy/phy_tlk110.obj: eth_phy/phy_tlk110.c.obj
@@ -327,7 +327,7 @@ eth_phy/phy_tlk110.obj: eth_phy/phy_tlk110.c.obj
 
 # target to build an object file
 eth_phy/phy_tlk110.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_tlk110.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_tlk110.c.obj
 .PHONY : eth_phy/phy_tlk110.c.obj
 
 eth_phy/phy_tlk110.i: eth_phy/phy_tlk110.c.i
@@ -336,7 +336,7 @@ eth_phy/phy_tlk110.i: eth_phy/phy_tlk110.c.i
 
 # target to preprocess a source file
 eth_phy/phy_tlk110.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_tlk110.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_tlk110.c.i
 .PHONY : eth_phy/phy_tlk110.c.i
 
 eth_phy/phy_tlk110.s: eth_phy/phy_tlk110.c.s
@@ -345,7 +345,7 @@ eth_phy/phy_tlk110.s: eth_phy/phy_tlk110.c.s
 
 # target to generate assembly for a file
 eth_phy/phy_tlk110.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_tlk110.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/build.make esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/eth_phy/phy_tlk110.c.s
 .PHONY : eth_phy/phy_tlk110.c.s
 
 # Help Target
@@ -391,6 +391,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

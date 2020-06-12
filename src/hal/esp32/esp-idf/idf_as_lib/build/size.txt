@@ -1,0 +1,2 @@
+   text	   data	    bss	    dec	    hex	filename
+ 110942	  40044	   4128	 155114	  25dea	idf_as_lib.elf

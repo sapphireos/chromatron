@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Include any dependencies generated for this target.
 include esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/depend.make
@@ -58,17 +58,17 @@ include esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/progress.make
 include esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../components/lwip/apps/dhcpserver/dhcpserver.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c > CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c > CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c -o CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/dhcpserver/dhcpserver.c -o CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj.requires:
 
@@ -82,17 +82,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../components/lwip/apps/ping/esp_ping.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c > CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c > CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c -o CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/esp_ping.c -o CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj.requires:
 
@@ -106,17 +106,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj.provides
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../components/lwip/apps/ping/ping.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c > CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c > CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c -o CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/ping/ping.c -o CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj.requires:
 
@@ -130,17 +130,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj.provides.bui
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj: ../../components/lwip/apps/sntp/sntp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c > CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c > CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c -o CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/apps/sntp/sntp.c -o CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj.requires:
 
@@ -154,17 +154,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/sntp/sntp.c.obj.provides.bui
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../components/lwip/lwip/src/api/api_lib.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_lib.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj.requires:
 
@@ -178,17 +178,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj.provid
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../components/lwip/lwip/src/api/api_msg.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/api_msg.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj.requires:
 
@@ -202,17 +202,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj.provid
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../components/lwip/lwip/src/api/err.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/err.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj.requires:
 
@@ -226,17 +226,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj.provides.b
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../components/lwip/lwip/src/api/netbuf.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netbuf.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj.requires:
 
@@ -250,17 +250,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj.provide
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../components/lwip/lwip/src/api/netdb.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netdb.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj.requires:
 
@@ -274,17 +274,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj.provides
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../components/lwip/lwip/src/api/netifapi.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/netifapi.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj.requires:
 
@@ -298,17 +298,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj.provi
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../components/lwip/lwip/src/api/sockets.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/sockets.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj.requires:
 
@@ -322,17 +322,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj.provid
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../components/lwip/lwip/src/api/tcpip.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c > CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/api/tcpip.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj.requires:
 
@@ -346,17 +346,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj.provides
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../components/lwip/lwip/src/apps/sntp/sntp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/apps/sntp/sntp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj.requires:
 
@@ -370,17 +370,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../components/lwip/lwip/src/core/def.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/def.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj.requires:
 
@@ -394,17 +394,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../components/lwip/lwip/src/core/dns.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/dns.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj.requires:
 
@@ -418,17 +418,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../components/lwip/lwip/src/core/inet_chksum.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/inet_chksum.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj.requires:
 
@@ -442,17 +442,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../components/lwip/lwip/src/core/init.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/init.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj.requires:
 
@@ -466,17 +466,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj.provides
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../components/lwip/lwip/src/core/ip.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ip.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj.requires:
 
@@ -490,17 +490,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj.provides.b
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../components/lwip/lwip/src/core/mem.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/mem.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj.requires:
 
@@ -514,17 +514,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../components/lwip/lwip/src/core/memp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/memp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj.requires:
 
@@ -538,17 +538,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj.provides
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../components/lwip/lwip/src/core/netif.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/netif.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj.requires:
 
@@ -562,17 +562,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj.provide
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../components/lwip/lwip/src/core/pbuf.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/pbuf.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj.requires:
 
@@ -586,17 +586,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj.provides
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../components/lwip/lwip/src/core/raw.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/raw.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj.requires:
 
@@ -610,17 +610,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../components/lwip/lwip/src/core/stats.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/stats.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj.requires:
 
@@ -634,17 +634,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj.provide
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../components/lwip/lwip/src/core/sys.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/sys.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj.requires:
 
@@ -658,17 +658,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../components/lwip/lwip/src/core/tcp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj.requires:
 
@@ -682,17 +682,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../components/lwip/lwip/src/core/tcp_in.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_in.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj.requires:
 
@@ -706,17 +706,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj.provid
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../components/lwip/lwip/src/core/tcp_out.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/tcp_out.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj.requires:
 
@@ -730,17 +730,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj.provi
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../components/lwip/lwip/src/core/timeouts.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/timeouts.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj.requires:
 
@@ -754,17 +754,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../components/lwip/lwip/src/core/udp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/udp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj.requires:
 
@@ -778,17 +778,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj.provides.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../components/lwip/lwip/src/core/ipv4/autoip.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/autoip.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj.requires:
 
@@ -802,17 +802,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../components/lwip/lwip/src/core/ipv4/dhcp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/dhcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj.requires:
 
@@ -826,17 +826,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../components/lwip/lwip/src/core/ipv4/etharp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/etharp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj.requires:
 
@@ -850,17 +850,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../components/lwip/lwip/src/core/ipv4/icmp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/icmp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj.requires:
 
@@ -874,17 +874,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../components/lwip/lwip/src/core/ipv4/igmp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/igmp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj.requires:
 
@@ -898,17 +898,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../components/lwip/lwip/src/core/ipv4/ip4.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj.requires:
 
@@ -922,17 +922,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../components/lwip/lwip/src/core/ipv4/ip4_addr.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_addr.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj.requires:
 
@@ -946,17 +946,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../components/lwip/lwip/src/core/ipv4/ip4_frag.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv4/ip4_frag.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj.requires:
 
@@ -970,17 +970,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../components/lwip/lwip/src/core/ipv6/dhcp6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/dhcp6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj.requires:
 
@@ -994,17 +994,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../components/lwip/lwip/src/core/ipv6/ethip6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ethip6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj.requires:
 
@@ -1018,17 +1018,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../components/lwip/lwip/src/core/ipv6/icmp6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/icmp6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj.requires:
 
@@ -1042,17 +1042,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../components/lwip/lwip/src/core/ipv6/inet6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/inet6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj.requires:
 
@@ -1066,17 +1066,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../components/lwip/lwip/src/core/ipv6/ip6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj.requires:
 
@@ -1090,17 +1090,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../components/lwip/lwip/src/core/ipv6/ip6_addr.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_addr.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj.requires:
 
@@ -1114,17 +1114,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../components/lwip/lwip/src/core/ipv6/ip6_frag.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/ip6_frag.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj.requires:
 
@@ -1138,17 +1138,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../components/lwip/lwip/src/core/ipv6/mld6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/mld6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj.requires:
 
@@ -1162,17 +1162,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../components/lwip/lwip/src/core/ipv6/nd6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/core/ipv6/nd6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj.requires:
 
@@ -1186,17 +1186,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../components/lwip/lwip/src/netif/ethernet.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernet.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj.requires:
 
@@ -1210,17 +1210,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../components/lwip/lwip/src/netif/ethernetif.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ethernetif.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj.requires:
 
@@ -1234,17 +1234,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../components/lwip/lwip/src/netif/lowpan6.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/lowpan6.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj.requires:
 
@@ -1258,17 +1258,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../components/lwip/lwip/src/netif/slipif.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/slipif.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj.requires:
 
@@ -1282,17 +1282,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj.provi
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../components/lwip/lwip/src/netif/ppp/auth.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/auth.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj.requires:
 
@@ -1306,17 +1306,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../components/lwip/lwip/src/netif/ppp/ccp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ccp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj.requires:
 
@@ -1330,17 +1330,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../components/lwip/lwip/src/netif/ppp/chap-md5.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-md5.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj.requires:
 
@@ -1354,17 +1354,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../components/lwip/lwip/src/netif/ppp/chap-new.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap-new.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj.requires:
 
@@ -1378,17 +1378,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../components/lwip/lwip/src/netif/ppp/chap_ms.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/chap_ms.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj.requires:
 
@@ -1402,17 +1402,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj.
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../components/lwip/lwip/src/netif/ppp/demand.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/demand.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj.requires:
 
@@ -1426,17 +1426,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../components/lwip/lwip/src/netif/ppp/eap.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eap.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj.requires:
 
@@ -1450,17 +1450,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../components/lwip/lwip/src/netif/ppp/ecp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ecp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj.requires:
 
@@ -1474,17 +1474,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../components/lwip/lwip/src/netif/ppp/eui64.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/eui64.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj.requires:
 
@@ -1498,17 +1498,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../components/lwip/lwip/src/netif/ppp/fsm.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/fsm.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj.requires:
 
@@ -1522,17 +1522,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../components/lwip/lwip/src/netif/ppp/ipcp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj.requires:
 
@@ -1546,17 +1546,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_63) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../components/lwip/lwip/src/netif/ppp/ipv6cp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_63) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ipv6cp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj.requires:
 
@@ -1570,17 +1570,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_64) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../components/lwip/lwip/src/netif/ppp/lcp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_64) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/lcp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj.requires:
 
@@ -1594,17 +1594,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../components/lwip/lwip/src/netif/ppp/magic.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/magic.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj.requires:
 
@@ -1618,17 +1618,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_66) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../components/lwip/lwip/src/netif/ppp/mppe.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_66) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/mppe.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj.requires:
 
@@ -1642,17 +1642,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_67) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../components/lwip/lwip/src/netif/ppp/multilink.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_67) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/multilink.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj.requires:
 
@@ -1666,17 +1666,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.ob
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_68) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../components/lwip/lwip/src/netif/ppp/ppp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_68) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/ppp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj.requires:
 
@@ -1690,17 +1690,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj.prov
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_69) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../components/lwip/lwip/src/netif/ppp/pppapi.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_69) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppapi.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj.requires:
 
@@ -1714,17 +1714,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj.p
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_70) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../components/lwip/lwip/src/netif/ppp/pppcrypt.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_70) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppcrypt.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj.requires:
 
@@ -1738,17 +1738,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../components/lwip/lwip/src/netif/ppp/pppoe.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppoe.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj.requires:
 
@@ -1762,17 +1762,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_72) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../components/lwip/lwip/src/netif/ppp/pppol2tp.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_72) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppol2tp.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj.requires:
 
@@ -1786,17 +1786,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_73) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../components/lwip/lwip/src/netif/ppp/pppos.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_73) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/pppos.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj.requires:
 
@@ -1810,17 +1810,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_74) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../components/lwip/lwip/src/netif/ppp/upap.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_74) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/upap.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj.requires:
 
@@ -1834,17 +1834,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj.pro
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_75) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../components/lwip/lwip/src/netif/ppp/utils.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_75) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/utils.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj.requires:
 
@@ -1858,17 +1858,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj.pr
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_76) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../components/lwip/lwip/src/netif/ppp/vj.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_76) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c > CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/lwip/src/netif/ppp/vj.c -o CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj.requires:
 
@@ -1882,17 +1882,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj.provi
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_77) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../components/lwip/port/esp32/vfs_lwip.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_77) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c > CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c > CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/vfs_lwip.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj.requires:
 
@@ -1906,17 +1906,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj.provide
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_78) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../components/lwip/port/esp32/debug/lwip_debug.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_78) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c > CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c > CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/debug/lwip_debug.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj.requires:
 
@@ -1930,17 +1930,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_79) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../components/lwip/port/esp32/freertos/sys_arch.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_79) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c > CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c > CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/freertos/sys_arch.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj.requires:
 
@@ -1954,17 +1954,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.ob
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_80) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../components/lwip/port/esp32/netif/dhcp_state.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_80) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c > CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c > CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/dhcp_state.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj.requires:
 
@@ -1978,17 +1978,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_81) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../components/lwip/port/esp32/netif/ethernetif.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_81) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c > CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c > CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/ethernetif.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj.requires:
 
@@ -2002,17 +2002,17 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj
 
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/flags.make
-esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_82) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../components/lwip/port/esp32/netif/wlanif.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_82) "Building C object esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c > CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c > CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.i
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip/port/esp32/netif/wlanif.c -o CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.s
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj.requires:
 
@@ -2197,9 +2197,9 @@ esp-idf/lwip/liblwip.a: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp3
 esp-idf/lwip/liblwip.a: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj
 esp-idf/lwip/liblwip.a: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/build.make
 esp-idf/lwip/liblwip.a: esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_83) "Linking C static library liblwip.a"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_lwip.dir/cmake_clean_target.cmake
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_lwip.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_83) "Linking C static library liblwip.a"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_lwip.dir/cmake_clean_target.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_lwip.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/build: esp-idf/lwip/liblwip.a
@@ -2292,10 +2292,10 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/requires: esp-idf/lwip/CMakeFiles
 .PHONY : esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/requires
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_lwip.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_lwip.dir/cmake_clean.cmake
 .PHONY : esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/clean
 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/lwip /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/depend
 

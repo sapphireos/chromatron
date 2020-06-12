@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/heap/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/heap/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/clean
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/rule
 .PHONY : esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/rule
 
 # Convenience name for target.
@@ -168,12 +168,12 @@ idf_component_heap_sections_info: esp-idf/heap/CMakeFiles/idf_component_heap_sec
 
 # fast build rule for target.
 idf_component_heap_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap_sections_info.dir/build
 .PHONY : idf_component_heap_sections_info/fast
 
 # Convenience name for target.
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/CMakeFiles/idf_component_heap.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/heap/CMakeFiles/idf_component_heap.dir/rule
 .PHONY : esp-idf/heap/CMakeFiles/idf_component_heap.dir/rule
 
 # Convenience name for target.
@@ -183,7 +183,7 @@ idf_component_heap: esp-idf/heap/CMakeFiles/idf_component_heap.dir/rule
 
 # fast build rule for target.
 idf_component_heap/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/build
 .PHONY : idf_component_heap/fast
 
 heap_caps.obj: heap_caps.c.obj
@@ -192,7 +192,7 @@ heap_caps.obj: heap_caps.c.obj
 
 # target to build an object file
 heap_caps.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj
 .PHONY : heap_caps.c.obj
 
 heap_caps.i: heap_caps.c.i
@@ -201,7 +201,7 @@ heap_caps.i: heap_caps.c.i
 
 # target to preprocess a source file
 heap_caps.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.i
 .PHONY : heap_caps.c.i
 
 heap_caps.s: heap_caps.c.s
@@ -210,7 +210,7 @@ heap_caps.s: heap_caps.c.s
 
 # target to generate assembly for a file
 heap_caps.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.s
 .PHONY : heap_caps.c.s
 
 heap_caps_init.obj: heap_caps_init.c.obj
@@ -219,7 +219,7 @@ heap_caps_init.obj: heap_caps_init.c.obj
 
 # target to build an object file
 heap_caps_init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj
 .PHONY : heap_caps_init.c.obj
 
 heap_caps_init.i: heap_caps_init.c.i
@@ -228,7 +228,7 @@ heap_caps_init.i: heap_caps_init.c.i
 
 # target to preprocess a source file
 heap_caps_init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.i
 .PHONY : heap_caps_init.c.i
 
 heap_caps_init.s: heap_caps_init.c.s
@@ -237,7 +237,7 @@ heap_caps_init.s: heap_caps_init.c.s
 
 # target to generate assembly for a file
 heap_caps_init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.s
 .PHONY : heap_caps_init.c.s
 
 heap_trace.obj: heap_trace.c.obj
@@ -246,7 +246,7 @@ heap_trace.obj: heap_trace.c.obj
 
 # target to build an object file
 heap_trace.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj
 .PHONY : heap_trace.c.obj
 
 heap_trace.i: heap_trace.c.i
@@ -255,7 +255,7 @@ heap_trace.i: heap_trace.c.i
 
 # target to preprocess a source file
 heap_trace.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.i
 .PHONY : heap_trace.c.i
 
 heap_trace.s: heap_trace.c.s
@@ -264,7 +264,7 @@ heap_trace.s: heap_trace.c.s
 
 # target to generate assembly for a file
 heap_trace.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.s
 .PHONY : heap_trace.c.s
 
 multi_heap.obj: multi_heap.c.obj
@@ -273,7 +273,7 @@ multi_heap.obj: multi_heap.c.obj
 
 # target to build an object file
 multi_heap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj
 .PHONY : multi_heap.c.obj
 
 multi_heap.i: multi_heap.c.i
@@ -282,7 +282,7 @@ multi_heap.i: multi_heap.c.i
 
 # target to preprocess a source file
 multi_heap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.i
 .PHONY : multi_heap.c.i
 
 multi_heap.s: multi_heap.c.s
@@ -291,7 +291,7 @@ multi_heap.s: multi_heap.c.s
 
 # target to generate assembly for a file
 multi_heap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/heap/CMakeFiles/idf_component_heap.dir/build.make esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.s
 .PHONY : multi_heap.c.s
 
 # Help Target
@@ -331,6 +331,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

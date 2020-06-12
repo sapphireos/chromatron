@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Include any dependencies generated for this target.
 include esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/depend.make
@@ -58,17 +58,17 @@ include esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module
 include esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/flags.make
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj: esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/flags.make
-esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c
+esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj: ../../components/xtensa-debug-module/eri.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c > CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c > CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.i
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c -o CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/eri.c -o CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.s
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj.requires:
 
@@ -82,17 +82,17 @@ esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri
 
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj: esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/flags.make
-esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c
+esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj: ../../components/xtensa-debug-module/trax.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c > CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c > CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.i
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c -o CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module/trax.c -o CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.s
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj.requires:
 
@@ -117,9 +117,9 @@ esp-idf/xtensa-debug-module/libxtensa-debug-module.a: esp-idf/xtensa-debug-modul
 esp-idf/xtensa-debug-module/libxtensa-debug-module.a: esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj
 esp-idf/xtensa-debug-module/libxtensa-debug-module.a: esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make
 esp-idf/xtensa-debug-module/libxtensa-debug-module.a: esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C static library libxtensa-debug-module.a"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_xtensa-debug-module.dir/cmake_clean_target.cmake
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_xtensa-debug-module.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C static library libxtensa-debug-module.a"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_xtensa-debug-module.dir/cmake_clean_target.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_xtensa-debug-module.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build: esp-idf/xtensa-debug-module/libxtensa-debug-module.a
@@ -132,10 +132,10 @@ esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/req
 .PHONY : esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/requires
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_xtensa-debug-module.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_xtensa-debug-module.dir/cmake_clean.cmake
 .PHONY : esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/clean
 
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/xtensa-debug-module /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/depend
 

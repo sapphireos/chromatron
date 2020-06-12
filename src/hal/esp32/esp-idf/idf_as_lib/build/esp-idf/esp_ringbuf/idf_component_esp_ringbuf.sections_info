@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_ringbuf/libesp_ringbuf.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_ringbuf/libesp_ringbuf.a:
 
 ringbuf.c.obj:     file format elf32-xtensa-le
 
@@ -242,13 +242,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
 118 .debug_line   00001611  00000000  00000000  00006f91  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-119 .debug_str    00000b30  00000000  00000000  000085a2  2**0
+119 .debug_str    00000b16  00000000  00000000  000085a2  2**0
                   CONTENTS, READONLY, DEBUGGING
-120 .comment      0000003b  00000000  00000000  000090d2  2**0
+120 .comment      0000003b  00000000  00000000  000090b8  2**0
                   CONTENTS, READONLY
-121 .xtensa.info  00000038  00000000  00000000  0000910d  2**0
+121 .xtensa.info  00000038  00000000  00000000  000090f3  2**0
                   CONTENTS, READONLY
-122 .xt.lit       00000118  00000000  00000000  00009145  2**0
+122 .xt.lit       00000118  00000000  00000000  0000912b  2**0
                   CONTENTS, RELOC, READONLY
-123 .xt.prop      00001464  00000000  00000000  0000925d  2**0
+123 .xt.prop      00001464  00000000  00000000  00009243  2**0
                   CONTENTS, RELOC, READONLY

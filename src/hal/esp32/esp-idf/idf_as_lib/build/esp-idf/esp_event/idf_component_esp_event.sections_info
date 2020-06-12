@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event/libesp_event.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event/libesp_event.a:
 
 default_event_loop.c.obj:     file format elf32-xtensa-le
 
@@ -50,15 +50,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  22 .debug_line   00000397  00000000  00000000  00000846  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 23 .debug_str    00000422  00000000  00000000  00000bdd  2**0
+ 23 .debug_str    00000408  00000000  00000000  00000bdd  2**0
                   CONTENTS, READONLY, DEBUGGING
- 24 .comment      0000003b  00000000  00000000  00000fff  2**0
+ 24 .comment      0000003b  00000000  00000000  00000fe5  2**0
                   CONTENTS, READONLY
- 25 .xtensa.info  00000038  00000000  00000000  0000103a  2**0
+ 25 .xtensa.info  00000038  00000000  00000000  00001020  2**0
                   CONTENTS, READONLY
- 26 .xt.lit       00000028  00000000  00000000  00001072  2**0
+ 26 .xt.lit       00000028  00000000  00000000  00001058  2**0
                   CONTENTS, RELOC, READONLY
- 27 .xt.prop      000001b0  00000000  00000000  0000109a  2**0
+ 27 .xt.prop      000001b0  00000000  00000000  00001080  2**0
                   CONTENTS, RELOC, READONLY
 
 esp_event.c.obj:     file format elf32-xtensa-le
@@ -175,15 +175,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  54 .debug_line   000010fb  00000000  00000000  00004d6c  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 55 .debug_str    00000dd1  00000000  00000000  00005e67  2**0
+ 55 .debug_str    00000db7  00000000  00000000  00005e67  2**0
                   CONTENTS, READONLY, DEBUGGING
- 56 .comment      0000003b  00000000  00000000  00006c38  2**0
+ 56 .comment      0000003b  00000000  00000000  00006c1e  2**0
                   CONTENTS, READONLY
- 57 .xtensa.info  00000038  00000000  00000000  00006c73  2**0
+ 57 .xtensa.info  00000038  00000000  00000000  00006c59  2**0
                   CONTENTS, READONLY
- 58 .xt.lit       00000090  00000000  00000000  00006cab  2**0
+ 58 .xt.lit       00000090  00000000  00000000  00006c91  2**0
                   CONTENTS, RELOC, READONLY
- 59 .xt.prop      00000ce4  00000000  00000000  00006d3b  2**0
+ 59 .xt.prop      00000ce4  00000000  00000000  00006d21  2**0
                   CONTENTS, RELOC, READONLY
 
 esp_event_private.c.obj:     file format elf32-xtensa-le
@@ -214,13 +214,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  11 .debug_line   00000352  00000000  00000000  00000844  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 12 .debug_str    000004f0  00000000  00000000  00000b96  2**0
+ 12 .debug_str    000004d6  00000000  00000000  00000b96  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .comment      0000003b  00000000  00000000  00001086  2**0
+ 13 .comment      0000003b  00000000  00000000  0000106c  2**0
                   CONTENTS, READONLY
- 14 .xtensa.info  00000038  00000000  00000000  000010c1  2**0
+ 14 .xtensa.info  00000038  00000000  00000000  000010a7  2**0
                   CONTENTS, READONLY
- 15 .xt.lit       00000008  00000000  00000000  000010f9  2**0
+ 15 .xt.lit       00000008  00000000  00000000  000010df  2**0
                   CONTENTS, RELOC, READONLY
- 16 .xt.prop      00000138  00000000  00000000  00001101  2**0
+ 16 .xt.prop      00000138  00000000  00000000  000010e7  2**0
                   CONTENTS, RELOC, READONLY

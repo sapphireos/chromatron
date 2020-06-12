@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/tcpip_adapter/libtcpip_adapter.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/tcpip_adapter/libtcpip_adapter.a:
 
 tcpip_adapter_lwip.c.obj:     file format elf32-xtensa-le
 
@@ -278,13 +278,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
 136 .debug_line   000019c9  00000000  00000000  000074a0  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-137 .debug_str    000024d3  00000000  00000000  00008e69  2**0
+137 .debug_str    000024b9  00000000  00000000  00008e69  2**0
                   CONTENTS, READONLY, DEBUGGING
-138 .comment      0000003b  00000000  00000000  0000b33c  2**0
+138 .comment      0000003b  00000000  00000000  0000b322  2**0
                   CONTENTS, READONLY
-139 .xtensa.info  00000038  00000000  00000000  0000b377  2**0
+139 .xtensa.info  00000038  00000000  00000000  0000b35d  2**0
                   CONTENTS, READONLY
-140 .xt.lit       000001c0  00000000  00000000  0000b3af  2**0
+140 .xt.lit       000001c0  00000000  00000000  0000b395  2**0
                   CONTENTS, RELOC, READONLY
-141 .xt.prop      00001a34  00000000  00000000  0000b56f  2**0
+141 .xt.prop      00001a34  00000000  00000000  0000b555  2**0
                   CONTENTS, RELOC, READONLY

@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack/libsmartconfig_ack.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack/libsmartconfig_ack.a:
 
 smartconfig_ack.c.obj:     file format elf32-xtensa-le
 
@@ -24,35 +24,35 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   9 .rodata       00000008  00000000  00000000  00000268  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 10 .text.sc_ack_send_task 0000021b  00000000  00000000  00000270  2**2
+ 10 .text.sc_ack_send_task 00000220  00000000  00000000  00000270  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 11 .text.sc_ack_send 0000009a  00000000  00000000  0000048c  2**2
+ 11 .text.sc_ack_send 0000009a  00000000  00000000  00000490  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 12 .text.sc_ack_send_stop 0000000d  00000000  00000000  00000528  2**2
+ 12 .text.sc_ack_send_stop 0000000d  00000000  00000000  0000052c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 13 .bss.s_sc_ack_send 00000001  00000000  00000000  00000535  2**0
+ 13 .bss.s_sc_ack_send 00000001  00000000  00000000  00000539  2**0
                   ALLOC
- 14 .debug_frame  00000070  00000000  00000000  00000538  2**2
+ 14 .debug_frame  00000070  00000000  00000000  0000053c  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 15 .debug_info   00000e9d  00000000  00000000  000005a8  2**0
+ 15 .debug_info   00000ea0  00000000  00000000  000005ac  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 16 .debug_abbrev 000002b2  00000000  00000000  00001445  2**0
+ 16 .debug_abbrev 000002b2  00000000  00000000  0000144c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_loc    0000045b  00000000  00000000  000016f7  2**0
+ 17 .debug_loc    0000045b  00000000  00000000  000016fe  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 18 .debug_aranges 00000038  00000000  00000000  00001b52  2**0
+ 18 .debug_aranges 00000038  00000000  00000000  00001b59  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 19 .debug_ranges 00000028  00000000  00000000  00001b8a  2**0
+ 19 .debug_ranges 00000028  00000000  00000000  00001b91  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 20 .debug_line   000006f3  00000000  00000000  00001bb2  2**0
+ 20 .debug_line   000006f3  00000000  00000000  00001bb9  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 21 .debug_str    000007bc  00000000  00000000  000022a5  2**0
+ 21 .debug_str    000007a2  00000000  00000000  000022ac  2**0
                   CONTENTS, READONLY, DEBUGGING
- 22 .comment      0000003b  00000000  00000000  00002a61  2**0
+ 22 .comment      0000003b  00000000  00000000  00002a4e  2**0
                   CONTENTS, READONLY
- 23 .xtensa.info  00000038  00000000  00000000  00002a9c  2**0
+ 23 .xtensa.info  00000038  00000000  00000000  00002a89  2**0
                   CONTENTS, READONLY
- 24 .xt.lit       00000020  00000000  00000000  00002ad4  2**0
+ 24 .xt.lit       00000020  00000000  00000000  00002ac1  2**0
                   CONTENTS, RELOC, READONLY
- 25 .xt.prop      00000204  00000000  00000000  00002af4  2**0
+ 25 .xt.prop      00000204  00000000  00000000  00002ae1  2**0
                   CONTENTS, RELOC, READONLY

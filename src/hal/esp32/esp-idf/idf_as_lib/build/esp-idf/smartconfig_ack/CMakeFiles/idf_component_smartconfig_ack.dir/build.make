@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Include any dependencies generated for this target.
 include esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/depend.make
@@ -58,17 +58,17 @@ include esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/pro
 include esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/flags.make
 
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/flags.make
-esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c
+esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../components/smartconfig_ack/smartconfig_ack.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c
 
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c > CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c > CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.i
 
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c -o CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack/smartconfig_ack.c -o CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.s
 
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj.requires:
 
@@ -91,9 +91,9 @@ idf_component_smartconfig_ack_EXTERNAL_OBJECTS =
 esp-idf/smartconfig_ack/libsmartconfig_ack.a: esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj
 esp-idf/smartconfig_ack/libsmartconfig_ack.a: esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/build.make
 esp-idf/smartconfig_ack/libsmartconfig_ack.a: esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C static library libsmartconfig_ack.a"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_smartconfig_ack.dir/cmake_clean_target.cmake
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_smartconfig_ack.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C static library libsmartconfig_ack.a"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_smartconfig_ack.dir/cmake_clean_target.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_smartconfig_ack.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/build: esp-idf/smartconfig_ack/libsmartconfig_ack.a
@@ -105,10 +105,10 @@ esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/requires: e
 .PHONY : esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/requires
 
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_smartconfig_ack.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_smartconfig_ack.dir/cmake_clean.cmake
 .PHONY : esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/clean
 
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/smartconfig_ack /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/depend
 

@@ -1,0 +1,2 @@
+/home/jeremy/JEREMY/esp8266/esp-idf/build/CMakeFiles/rebuild_cache.dir
+/home/jeremy/JEREMY/esp8266/esp-idf/build/CMakeFiles/edit_cache.dir

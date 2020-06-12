@@ -1,4 +1,4 @@
---flash_mode dio --flash_freq 40m --flash_size 2MB 0x1000 bootloader/bootloader.bin
+--flash_mode dio --flash_freq 40m --flash_size 4MB 0x1000 bootloader/bootloader.bin
  partition_table/partition-table.bin
  
  

@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module/libxtensa-debug-module.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module/libxtensa-debug-module.a:
 
 eri.c.obj:     file format elf32-xtensa-le
 
@@ -75,13 +75,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  16 .debug_line   00000200  00000000  00000000  00000638  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 17 .debug_str    00000341  00000000  00000000  00000838  2**0
+ 17 .debug_str    00000327  00000000  00000000  00000838  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .comment      0000003b  00000000  00000000  00000b79  2**0
+ 18 .comment      0000003b  00000000  00000000  00000b5f  2**0
                   CONTENTS, READONLY
- 19 .xtensa.info  00000038  00000000  00000000  00000bb4  2**0
+ 19 .xtensa.info  00000038  00000000  00000000  00000b9a  2**0
                   CONTENTS, READONLY
- 20 .xt.lit       00000018  00000000  00000000  00000bec  2**0
+ 20 .xt.lit       00000018  00000000  00000000  00000bd2  2**0
                   CONTENTS, RELOC, READONLY
- 21 .xt.prop      00000090  00000000  00000000  00000c04  2**0
+ 21 .xt.prop      00000090  00000000  00000000  00000bea  2**0
                   CONTENTS, RELOC, READONLY

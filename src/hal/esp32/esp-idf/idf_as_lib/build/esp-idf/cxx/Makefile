@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/cxx/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/cxx/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/clean
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule
 .PHONY : esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule
 
 # Convenience name for target.
@@ -168,12 +168,12 @@ idf_component_cxx_sections_info: esp-idf/cxx/CMakeFiles/idf_component_cxx_sectio
 
 # fast build rule for target.
 idf_component_cxx_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/build
 .PHONY : idf_component_cxx_sections_info/fast
 
 # Convenience name for target.
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
 .PHONY : esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
 
 # Convenience name for target.
@@ -183,7 +183,7 @@ idf_component_cxx: esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
 
 # fast build rule for target.
 idf_component_cxx/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build
 .PHONY : idf_component_cxx/fast
 
 cxx_exception_stubs.obj: cxx_exception_stubs.cpp.obj
@@ -192,7 +192,7 @@ cxx_exception_stubs.obj: cxx_exception_stubs.cpp.obj
 
 # target to build an object file
 cxx_exception_stubs.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.obj
 .PHONY : cxx_exception_stubs.cpp.obj
 
 cxx_exception_stubs.i: cxx_exception_stubs.cpp.i
@@ -201,7 +201,7 @@ cxx_exception_stubs.i: cxx_exception_stubs.cpp.i
 
 # target to preprocess a source file
 cxx_exception_stubs.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.i
 .PHONY : cxx_exception_stubs.cpp.i
 
 cxx_exception_stubs.s: cxx_exception_stubs.cpp.s
@@ -210,7 +210,7 @@ cxx_exception_stubs.s: cxx_exception_stubs.cpp.s
 
 # target to generate assembly for a file
 cxx_exception_stubs.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.s
 .PHONY : cxx_exception_stubs.cpp.s
 
 cxx_guards.obj: cxx_guards.cpp.obj
@@ -219,7 +219,7 @@ cxx_guards.obj: cxx_guards.cpp.obj
 
 # target to build an object file
 cxx_guards.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj
 .PHONY : cxx_guards.cpp.obj
 
 cxx_guards.i: cxx_guards.cpp.i
@@ -228,7 +228,7 @@ cxx_guards.i: cxx_guards.cpp.i
 
 # target to preprocess a source file
 cxx_guards.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.i
 .PHONY : cxx_guards.cpp.i
 
 cxx_guards.s: cxx_guards.cpp.s
@@ -237,7 +237,7 @@ cxx_guards.s: cxx_guards.cpp.s
 
 # target to generate assembly for a file
 cxx_guards.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.s
 .PHONY : cxx_guards.cpp.s
 
 # Help Target
@@ -271,6 +271,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/cxx/libcxx.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/cxx/libcxx.a:
 
 cxx_exception_stubs.cpp.obj:     file format elf32-xtensa-le
 
@@ -46,15 +46,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  20 .debug_line   000003fd  00000000  00000000  00001716  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 21 .debug_str    00000b19  00000000  00000000  00001b13  2**0
+ 21 .debug_str    00000aff  00000000  00000000  00001b13  2**0
                   CONTENTS, READONLY, DEBUGGING
- 22 .comment      0000003b  00000000  00000000  0000262c  2**0
+ 22 .comment      0000003b  00000000  00000000  00002612  2**0
                   CONTENTS, READONLY
- 23 .xtensa.info  00000038  00000000  00000000  00002667  2**0
+ 23 .xtensa.info  00000038  00000000  00000000  0000264d  2**0
                   CONTENTS, READONLY
- 24 .xt.lit       00000028  00000000  00000000  0000269f  2**0
+ 24 .xt.lit       00000028  00000000  00000000  00002685  2**0
                   CONTENTS, RELOC, READONLY
- 25 .xt.prop      000000c0  00000000  00000000  000026c7  2**0
+ 25 .xt.prop      000000c0  00000000  00000000  000026ad  2**0
                   CONTENTS, RELOC, READONLY
 
 cxx_guards.cpp.obj:     file format elf32-xtensa-le
@@ -127,13 +127,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  32 .debug_line   00000a31  00000000  00000000  00003ff2  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 33 .debug_str    000027c0  00000000  00000000  00004a23  2**0
+ 33 .debug_str    000027a6  00000000  00000000  00004a23  2**0
                   CONTENTS, READONLY, DEBUGGING
- 34 .comment      0000003b  00000000  00000000  000071e3  2**0
+ 34 .comment      0000003b  00000000  00000000  000071c9  2**0
                   CONTENTS, READONLY
- 35 .xtensa.info  00000038  00000000  00000000  0000721e  2**0
+ 35 .xtensa.info  00000038  00000000  00000000  00007204  2**0
                   CONTENTS, READONLY
- 36 .xt.lit       00000030  00000000  00000000  00007256  2**0
+ 36 .xt.lit       00000030  00000000  00000000  0000723c  2**0
                   CONTENTS, RELOC, READONLY
- 37 .xt.prop      00000288  00000000  00000000  00007286  2**0
+ 37 .xt.prop      00000288  00000000  00000000  0000726c  2**0
                   CONTENTS, RELOC, READONLY

@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/xtensa-debug-module/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/clean
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/rule
 .PHONY : esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/rule
 
 # Convenience name for target.
@@ -168,12 +168,12 @@ idf_component_xtensa-debug-module_sections_info: esp-idf/xtensa-debug-module/CMa
 
 # fast build rule for target.
 idf_component_xtensa-debug-module_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module_sections_info.dir/build
 .PHONY : idf_component_xtensa-debug-module_sections_info/fast
 
 # Convenience name for target.
 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/rule
 .PHONY : esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/rule
 
 # Convenience name for target.
@@ -183,7 +183,7 @@ idf_component_xtensa-debug-module: esp-idf/xtensa-debug-module/CMakeFiles/idf_co
 
 # fast build rule for target.
 idf_component_xtensa-debug-module/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build
 .PHONY : idf_component_xtensa-debug-module/fast
 
 eri.obj: eri.c.obj
@@ -192,7 +192,7 @@ eri.obj: eri.c.obj
 
 # target to build an object file
 eri.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.obj
 .PHONY : eri.c.obj
 
 eri.i: eri.c.i
@@ -201,7 +201,7 @@ eri.i: eri.c.i
 
 # target to preprocess a source file
 eri.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.i
 .PHONY : eri.c.i
 
 eri.s: eri.c.s
@@ -210,7 +210,7 @@ eri.s: eri.c.s
 
 # target to generate assembly for a file
 eri.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/eri.c.s
 .PHONY : eri.c.s
 
 trax.obj: trax.c.obj
@@ -219,7 +219,7 @@ trax.obj: trax.c.obj
 
 # target to build an object file
 trax.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.obj
 .PHONY : trax.c.obj
 
 trax.i: trax.c.i
@@ -228,7 +228,7 @@ trax.i: trax.c.i
 
 # target to preprocess a source file
 trax.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.i
 .PHONY : trax.c.i
 
 trax.s: trax.c.s
@@ -237,7 +237,7 @@ trax.s: trax.c.s
 
 # target to generate assembly for a file
 trax.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/build.make esp-idf/xtensa-debug-module/CMakeFiles/idf_component_xtensa-debug-module.dir/trax.c.s
 .PHONY : trax.c.s
 
 # Help Target
@@ -271,6 +271,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

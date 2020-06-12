@@ -51,7 +51,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,14 +80,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/CMakeFiles 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/CMakeFiles /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/clean
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/clean
 .PHONY : clean
 
 # The main clean target
@@ -97,22 +97,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/main/CMakeFiles/idf_component_main.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/idf_component_main.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/idf_component_main.dir/rule
 .PHONY : esp-idf/main/CMakeFiles/idf_component_main.dir/rule
 
 # Convenience name for target.
@@ -122,12 +122,12 @@ idf_component_main: esp-idf/main/CMakeFiles/idf_component_main.dir/rule
 
 # fast build rule for target.
 idf_component_main/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/build
 .PHONY : idf_component_main/fast
 
 # Convenience name for target.
 esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule
 .PHONY : esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule
 
 # Convenience name for target.
@@ -137,7 +137,7 @@ idf_component_main_sections_info: esp-idf/main/CMakeFiles/idf_component_main_sec
 
 # fast build rule for target.
 idf_component_main_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build.make esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build.make esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build
 .PHONY : idf_component_main_sections_info/fast
 
 bootloader_start.obj: bootloader_start.c.obj
@@ -146,7 +146,7 @@ bootloader_start.obj: bootloader_start.c.obj
 
 # target to build an object file
 bootloader_start.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.obj
 .PHONY : bootloader_start.c.obj
 
 bootloader_start.i: bootloader_start.c.i
@@ -155,7 +155,7 @@ bootloader_start.i: bootloader_start.c.i
 
 # target to preprocess a source file
 bootloader_start.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.i
 .PHONY : bootloader_start.c.i
 
 bootloader_start.s: bootloader_start.c.s
@@ -164,7 +164,7 @@ bootloader_start.s: bootloader_start.c.s
 
 # target to generate assembly for a file
 bootloader_start.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.s
 .PHONY : bootloader_start.c.s
 
 # Help Target
@@ -191,6 +191,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

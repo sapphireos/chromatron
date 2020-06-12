@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/spi_flash/libspi_flash.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/spi_flash/libspi_flash.a:
 
 cache_utils.c.obj:     file format elf32-xtensa-le
 
@@ -86,15 +86,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  40 .debug_line   000005f6  00000000  00000000  000018b9  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 41 .debug_str    0000055c  00000000  00000000  00001eaf  2**0
+ 41 .debug_str    00000542  00000000  00000000  00001eaf  2**0
                   CONTENTS, READONLY, DEBUGGING
- 42 .comment      0000003b  00000000  00000000  0000240b  2**0
+ 42 .comment      0000003b  00000000  00000000  000023f1  2**0
                   CONTENTS, READONLY
- 43 .xtensa.info  00000038  00000000  00000000  00002446  2**0
+ 43 .xtensa.info  00000038  00000000  00000000  0000242c  2**0
                   CONTENTS, READONLY
- 44 .xt.lit       00000058  00000000  00000000  0000247e  2**0
+ 44 .xt.lit       00000058  00000000  00000000  00002464  2**0
                   CONTENTS, RELOC, READONLY
- 45 .xt.prop      00000354  00000000  00000000  000024d6  2**0
+ 45 .xt.prop      00000354  00000000  00000000  000024bc  2**0
                   CONTENTS, RELOC, READONLY
 
 flash_mmap.c.obj:     file format elf32-xtensa-le
@@ -185,15 +185,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  41 .debug_line   00000c4b  00000000  00000000  00002e9a  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 42 .debug_str    00000753  00000000  00000000  00003ae5  2**0
+ 42 .debug_str    00000739  00000000  00000000  00003ae5  2**0
                   CONTENTS, READONLY, DEBUGGING
- 43 .comment      0000003b  00000000  00000000  00004238  2**0
+ 43 .comment      0000003b  00000000  00000000  0000421e  2**0
                   CONTENTS, READONLY
- 44 .xtensa.info  00000038  00000000  00000000  00004273  2**0
+ 44 .xtensa.info  00000038  00000000  00000000  00004259  2**0
                   CONTENTS, READONLY
- 45 .xt.lit       00000068  00000000  00000000  000042ab  2**0
+ 45 .xt.lit       00000068  00000000  00000000  00004291  2**0
                   CONTENTS, RELOC, READONLY
- 46 .xt.prop      000006fc  00000000  00000000  00004313  2**0
+ 46 .xt.prop      000006fc  00000000  00000000  000042f9  2**0
                   CONTENTS, RELOC, READONLY
 
 flash_ops.c.obj:     file format elf32-xtensa-le
@@ -284,15 +284,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  41 .debug_line   00000c35  00000000  00000000  000031e3  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 42 .debug_str    00000d66  00000000  00000000  00003e18  2**0
+ 42 .debug_str    00000d4c  00000000  00000000  00003e18  2**0
                   CONTENTS, READONLY, DEBUGGING
- 43 .comment      0000003b  00000000  00000000  00004b7e  2**0
+ 43 .comment      0000003b  00000000  00000000  00004b64  2**0
                   CONTENTS, READONLY
- 44 .xtensa.info  00000038  00000000  00000000  00004bb9  2**0
+ 44 .xtensa.info  00000038  00000000  00000000  00004b9f  2**0
                   CONTENTS, READONLY
- 45 .xt.lit       00000070  00000000  00000000  00004bf1  2**0
+ 45 .xt.lit       00000070  00000000  00000000  00004bd7  2**0
                   CONTENTS, RELOC, READONLY
- 46 .xt.prop      00000744  00000000  00000000  00004c61  2**0
+ 46 .xt.prop      00000744  00000000  00000000  00004c47  2**0
                   CONTENTS, RELOC, READONLY
 
 partition.c.obj:     file format elf32-xtensa-le
@@ -395,15 +395,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  47 .debug_line   0000088f  00000000  00000000  0000229f  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 48 .debug_str    00000b00  00000000  00000000  00002b2e  2**0
+ 48 .debug_str    00000ae6  00000000  00000000  00002b2e  2**0
                   CONTENTS, READONLY, DEBUGGING
- 49 .comment      0000003b  00000000  00000000  0000362e  2**0
+ 49 .comment      0000003b  00000000  00000000  00003614  2**0
                   CONTENTS, READONLY
- 50 .xtensa.info  00000038  00000000  00000000  00003669  2**0
+ 50 .xtensa.info  00000038  00000000  00000000  0000364f  2**0
                   CONTENTS, READONLY
- 51 .xt.lit       00000070  00000000  00000000  000036a1  2**0
+ 51 .xt.lit       00000070  00000000  00000000  00003687  2**0
                   CONTENTS, RELOC, READONLY
- 52 .xt.prop      00000678  00000000  00000000  00003711  2**0
+ 52 .xt.prop      00000678  00000000  00000000  000036f7  2**0
                   CONTENTS, RELOC, READONLY
 
 spi_flash_rom_patch.c.obj:     file format elf32-xtensa-le

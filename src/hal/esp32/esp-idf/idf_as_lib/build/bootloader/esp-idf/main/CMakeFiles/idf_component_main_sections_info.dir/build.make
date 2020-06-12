@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader
 
 # Utility rule file for idf_component_main_sections_info.
 
@@ -57,8 +57,8 @@ esp-idf/main/CMakeFiles/idf_component_main_sections_info: esp-idf/main/idf_compo
 
 
 esp-idf/main/idf_component_main.sections_info: esp-idf/main/libmain.a
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating idf_component_main.sections_info"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/libmain.a -h > /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/idf_component_main.sections_info
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating idf_component_main.sections_info"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/libmain.a -h > /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/idf_component_main.sections_info
 
 idf_component_main_sections_info: esp-idf/main/CMakeFiles/idf_component_main_sections_info
 idf_component_main_sections_info: esp-idf/main/idf_component_main.sections_info
@@ -72,10 +72,10 @@ esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build: idf_componen
 .PHONY : esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build
 
 esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_main_sections_info.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_main_sections_info.dir/cmake_clean.cmake
 .PHONY : esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/clean
 
 esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject/main /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader/subproject/main /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/depend
 

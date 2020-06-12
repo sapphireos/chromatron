@@ -43,18 +43,18 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Utility rule file for read_otadata.
 
 # Include the progress variables for this target.
 include esp-idf/app_update/CMakeFiles/read_otadata.dir/progress.make
 
-esp-idf/app_update/CMakeFiles/read_otadata: /home/jeremy/JEREMY/esp8266/esp-idf/components/partition_table/partitions_singleapp.csv
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/app_update && python /home/jeremy/JEREMY/esp8266/esp-idf/components/app_update/otatool.py --partition-table-file /home/jeremy/JEREMY/esp8266/esp-idf/components/partition_table/partitions_singleapp.csv read_otadata
+esp-idf/app_update/CMakeFiles/read_otadata: ../../components/partition_table/partitions_singleapp.csv
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/app_update && /home/jeremy/.espressif/python_env/idf3.3_py2.7_env/bin/python /home/jeremy/JEREMY/esp8266/esp-idf/components/app_update/otatool.py --partition-table-file /home/jeremy/JEREMY/esp8266/esp-idf/components/partition_table/partitions_singleapp.csv read_otadata
 
 read_otadata: esp-idf/app_update/CMakeFiles/read_otadata
 read_otadata: esp-idf/app_update/CMakeFiles/read_otadata.dir/build.make
@@ -67,10 +67,10 @@ esp-idf/app_update/CMakeFiles/read_otadata.dir/build: read_otadata
 .PHONY : esp-idf/app_update/CMakeFiles/read_otadata.dir/build
 
 esp-idf/app_update/CMakeFiles/read_otadata.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/app_update && $(CMAKE_COMMAND) -P CMakeFiles/read_otadata.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/app_update && $(CMAKE_COMMAND) -P CMakeFiles/read_otadata.dir/cmake_clean.cmake
 .PHONY : esp-idf/app_update/CMakeFiles/read_otadata.dir/clean
 
 esp-idf/app_update/CMakeFiles/read_otadata.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/app_update /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/app_update /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/app_update/CMakeFiles/read_otadata.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/app_update /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/app_update /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/app_update/CMakeFiles/read_otadata.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/app_update/CMakeFiles/read_otadata.dir/depend
 

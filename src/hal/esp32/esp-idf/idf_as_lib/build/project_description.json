@@ -1,8 +1,8 @@
 {
     "project_name":       "idf_as_lib",
-    "project_path":       "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib",
-    "build_dir":          "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build",
-    "config_file":        "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/sdkconfig",
+    "project_path":       "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib",
+    "build_dir":          "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build",
+    "config_file":        "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/sdkconfig",
     "config_defaults":    "",
     "app_elf":            "idf_as_lib.elf",
     "app_bin":            "idf_as_lib.bin",

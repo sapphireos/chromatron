@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_ringbuf/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_ringbuf/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/clean
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/preinstall
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule
 .PHONY : esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule
 
 # Convenience name for target.
@@ -168,12 +168,12 @@ idf_component_esp_ringbuf: esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ring
 
 # fast build rule for target.
 idf_component_esp_ringbuf/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build
 .PHONY : idf_component_esp_ringbuf/fast
 
 # Convenience name for target.
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule
 .PHONY : esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule
 
 # Convenience name for target.
@@ -183,7 +183,7 @@ idf_component_esp_ringbuf_sections_info: esp-idf/esp_ringbuf/CMakeFiles/idf_comp
 
 # fast build rule for target.
 idf_component_esp_ringbuf_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/build
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/build
 .PHONY : idf_component_esp_ringbuf_sections_info/fast
 
 ringbuf.obj: ringbuf.c.obj
@@ -192,7 +192,7 @@ ringbuf.obj: ringbuf.c.obj
 
 # target to build an object file
 ringbuf.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj
 .PHONY : ringbuf.c.obj
 
 ringbuf.i: ringbuf.c.i
@@ -201,7 +201,7 @@ ringbuf.i: ringbuf.c.i
 
 # target to preprocess a source file
 ringbuf.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i
 .PHONY : ringbuf.c.i
 
 ringbuf.s: ringbuf.c.s
@@ -210,7 +210,7 @@ ringbuf.s: ringbuf.c.s
 
 # target to generate assembly for a file
 ringbuf.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s
 .PHONY : ringbuf.c.s
 
 # Help Target
@@ -241,6 +241,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

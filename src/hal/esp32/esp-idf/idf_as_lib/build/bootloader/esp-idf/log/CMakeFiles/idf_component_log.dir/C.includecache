@@ -6,41 +6,61 @@
 
 #IncludeRegexTransform: 
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/esp_assert.h
+../../../components/esp32/include/esp_assert.h
 assert.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/assert.h
+../../../components/esp32/include/assert.h
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/esp_attr.h
+../../../components/esp32/include/esp_attr.h
 sdkconfig.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/sdkconfig.h
+../../../components/esp32/include/sdkconfig.h
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/rom/ets_sys.h
+../../../components/esp32/include/rom/ets_sys.h
 stdint.h
 -
 stdbool.h
 -
 soc/soc.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/rom/soc/soc.h
+../../../components/esp32/include/rom/soc/soc.h
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/rom/queue.h
+../../../components/esp32/include/rom/queue.h
 sys/cdefs.h
 -
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/esp32/include/xtensa/hal.h
+../../../components/esp32/include/xtensa/hal.h
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/log/include/esp_log.h
+../../../components/log/include/esp_log.h
 stdint.h
 -
 stdarg.h
 -
 sdkconfig.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/log/include/sdkconfig.h
+../../../components/log/include/sdkconfig.h
 rom/ets_sys.h
 -
 esp_log_internal.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/log/include/esp_log_internal.h
+../../../components/log/include/esp_log_internal.h
 
-/home/jeremy/JEREMY/esp8266/esp-idf/components/log/include/esp_log_internal.h
+../../../components/log/include/esp_log_internal.h
+
+../../../components/soc/esp32/include/soc/soc.h
+stdint.h
+-
+esp_assert.h
+../../../components/soc/esp32/include/soc/esp_assert.h
+
+../../../components/soc/include/soc/soc_memory_layout.h
+stdlib.h
+-
+stdint.h
+-
+stdbool.h
+-
+soc/soc.h
+../../../components/soc/include/soc/soc/soc.h
+sdkconfig.h
+../../../components/soc/include/soc/sdkconfig.h
+esp_attr.h
+../../../components/soc/include/soc/esp_attr.h
 
 /home/jeremy/JEREMY/esp8266/esp-idf/components/log/log.c
 freertos/FreeRTOS.h
@@ -77,26 +97,6 @@ rom/queue.h
 /home/jeremy/JEREMY/esp8266/esp-idf/components/log/rom/queue.h
 soc/soc_memory_layout.h
 /home/jeremy/JEREMY/esp8266/esp-idf/components/log/soc/soc_memory_layout.h
-
-/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/esp32/include/soc/soc.h
-stdint.h
--
-esp_assert.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/esp32/include/soc/esp_assert.h
-
-/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/include/soc/soc_memory_layout.h
-stdlib.h
--
-stdint.h
--
-stdbool.h
--
-soc/soc.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/include/soc/soc/soc.h
-sdkconfig.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/include/soc/sdkconfig.h
-esp_attr.h
-/home/jeremy/JEREMY/esp8266/esp-idf/components/soc/include/soc/esp_attr.h
 
 config/sdkconfig.h
 

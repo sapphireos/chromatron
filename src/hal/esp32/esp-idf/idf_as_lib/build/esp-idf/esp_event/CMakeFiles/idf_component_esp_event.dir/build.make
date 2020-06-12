@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Include any dependencies generated for this target.
 include esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/depend.make
@@ -58,17 +58,17 @@ include esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/progress.make
 include esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/flags.make
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/flags.make
-esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c
+esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../components/esp_event/default_event_loop.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c > CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c > CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.i
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c -o CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/default_event_loop.c -o CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.s
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj.requires:
 
@@ -82,17 +82,17 @@ esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.ob
 
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/flags.make
-esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c
+esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../components/esp_event/esp_event.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_esp_event.dir/esp_event.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c > CMakeFiles/idf_component_esp_event.dir/esp_event.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c > CMakeFiles/idf_component_esp_event.dir/esp_event.c.i
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_esp_event.dir/esp_event.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c -o CMakeFiles/idf_component_esp_event.dir/esp_event.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event.c -o CMakeFiles/idf_component_esp_event.dir/esp_event.c.s
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj.requires:
 
@@ -106,17 +106,17 @@ esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj.provide
 
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/flags.make
-esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c
+esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../components/esp_event/esp_event_private.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj   -c /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c > CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c > CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.i
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c -o CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event/esp_event_private.c -o CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.s
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj.requires:
 
@@ -143,9 +143,9 @@ esp-idf/esp_event/libesp_event.a: esp-idf/esp_event/CMakeFiles/idf_component_esp
 esp-idf/esp_event/libesp_event.a: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj
 esp-idf/esp_event/libesp_event.a: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make
 esp-idf/esp_event/libesp_event.a: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C static library libesp_event.a"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_esp_event.dir/cmake_clean_target.cmake
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_esp_event.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C static library libesp_event.a"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_esp_event.dir/cmake_clean_target.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_esp_event.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build: esp-idf/esp_event/libesp_event.a
@@ -159,10 +159,10 @@ esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/requires: esp-idf/esp_e
 .PHONY : esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/requires
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_esp_event.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_esp_event.dir/cmake_clean.cmake
 .PHONY : esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/clean
 
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/depend
 

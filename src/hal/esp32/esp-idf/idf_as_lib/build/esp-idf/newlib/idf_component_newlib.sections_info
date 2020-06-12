@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib/libnewlib.a:
+In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib/libnewlib.a:
 
 locks.c.obj:     file format elf32-xtensa-le
 
@@ -80,15 +80,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  37 .debug_line   000004a8  00000000  00000000  000011a2  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 38 .debug_str    00000483  00000000  00000000  0000164a  2**0
+ 38 .debug_str    00000469  00000000  00000000  0000164a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 39 .comment      0000003b  00000000  00000000  00001acd  2**0
+ 39 .comment      0000003b  00000000  00000000  00001ab3  2**0
                   CONTENTS, READONLY
- 40 .xtensa.info  00000038  00000000  00000000  00001b08  2**0
+ 40 .xtensa.info  00000038  00000000  00000000  00001aee  2**0
                   CONTENTS, READONLY
- 41 .xt.lit       00000060  00000000  00000000  00001b40  2**0
+ 41 .xt.lit       00000060  00000000  00000000  00001b26  2**0
                   CONTENTS, RELOC, READONLY
- 42 .xt.prop      00000360  00000000  00000000  00001ba0  2**0
+ 42 .xt.prop      00000360  00000000  00000000  00001b86  2**0
                   CONTENTS, RELOC, READONLY
 
 pthread.c.obj:     file format elf32-xtensa-le
@@ -123,15 +123,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  13 .debug_line   0000010f  00000000  00000000  00000409  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 14 .debug_str    00000273  00000000  00000000  00000518  2**0
+ 14 .debug_str    00000259  00000000  00000000  00000518  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .comment      0000003b  00000000  00000000  0000078b  2**0
+ 15 .comment      0000003b  00000000  00000000  00000771  2**0
                   CONTENTS, READONLY
- 16 .xtensa.info  00000038  00000000  00000000  000007c6  2**0
+ 16 .xtensa.info  00000038  00000000  00000000  000007ac  2**0
                   CONTENTS, READONLY
- 17 .xt.lit       00000008  00000000  00000000  000007fe  2**0
+ 17 .xt.lit       00000008  00000000  00000000  000007e4  2**0
                   CONTENTS, RELOC, READONLY
- 18 .xt.prop      0000003c  00000000  00000000  00000806  2**0
+ 18 .xt.prop      0000003c  00000000  00000000  000007ec  2**0
                   CONTENTS, RELOC, READONLY
 
 random.c.obj:     file format elf32-xtensa-le
@@ -162,15 +162,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  11 .debug_line   00000218  00000000  00000000  00000350  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 12 .debug_str    0000023e  00000000  00000000  00000568  2**0
+ 12 .debug_str    00000224  00000000  00000000  00000568  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .comment      0000003b  00000000  00000000  000007a6  2**0
+ 13 .comment      0000003b  00000000  00000000  0000078c  2**0
                   CONTENTS, READONLY
- 14 .xtensa.info  00000038  00000000  00000000  000007e1  2**0
+ 14 .xtensa.info  00000038  00000000  00000000  000007c7  2**0
                   CONTENTS, READONLY
- 15 .xt.lit       00000008  00000000  00000000  00000819  2**0
+ 15 .xt.lit       00000008  00000000  00000000  000007ff  2**0
                   CONTENTS, RELOC, READONLY
- 16 .xt.prop      00000048  00000000  00000000  00000821  2**0
+ 16 .xt.prop      00000048  00000000  00000000  00000807  2**0
                   CONTENTS, RELOC, READONLY
 
 reent_init.c.obj:     file format elf32-xtensa-le
@@ -240,15 +240,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  11 .debug_line   0000011a  00000000  00000000  00000341  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 12 .debug_str    0000022a  00000000  00000000  0000045b  2**0
+ 12 .debug_str    00000210  00000000  00000000  0000045b  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .comment      0000003b  00000000  00000000  00000685  2**0
+ 13 .comment      0000003b  00000000  00000000  0000066b  2**0
                   CONTENTS, READONLY
- 14 .xtensa.info  00000038  00000000  00000000  000006c0  2**0
+ 14 .xtensa.info  00000038  00000000  00000000  000006a6  2**0
                   CONTENTS, READONLY
- 15 .xt.lit       00000008  00000000  00000000  000006f8  2**0
+ 15 .xt.lit       00000008  00000000  00000000  000006de  2**0
                   CONTENTS, RELOC, READONLY
- 16 .xt.prop      00000030  00000000  00000000  00000700  2**0
+ 16 .xt.prop      00000030  00000000  00000000  000006e6  2**0
                   CONTENTS, RELOC, READONLY
 
 poll.c.obj:     file format elf32-xtensa-le
@@ -279,15 +279,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  11 .debug_line   00000116  00000000  00000000  000002c1  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 12 .debug_str    000001de  00000000  00000000  000003d7  2**0
+ 12 .debug_str    000001c4  00000000  00000000  000003d7  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .comment      0000003b  00000000  00000000  000005b5  2**0
+ 13 .comment      0000003b  00000000  00000000  0000059b  2**0
                   CONTENTS, READONLY
- 14 .xtensa.info  00000038  00000000  00000000  000005f0  2**0
+ 14 .xtensa.info  00000038  00000000  00000000  000005d6  2**0
                   CONTENTS, READONLY
- 15 .xt.lit       00000008  00000000  00000000  00000628  2**0
+ 15 .xt.lit       00000008  00000000  00000000  0000060e  2**0
                   CONTENTS, RELOC, READONLY
- 16 .xt.prop      00000030  00000000  00000000  00000630  2**0
+ 16 .xt.prop      00000030  00000000  00000000  00000616  2**0
                   CONTENTS, RELOC, READONLY
 
 syscall_table.c.obj:     file format elf32-xtensa-le
@@ -324,15 +324,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  14 .debug_line   00000291  00000000  00000000  000012f6  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 15 .debug_str    0000091e  00000000  00000000  00001587  2**0
+ 15 .debug_str    00000904  00000000  00000000  00001587  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .comment      0000003b  00000000  00000000  00001ea5  2**0
+ 16 .comment      0000003b  00000000  00000000  00001e8b  2**0
                   CONTENTS, READONLY
- 17 .xtensa.info  00000038  00000000  00000000  00001ee0  2**0
+ 17 .xtensa.info  00000038  00000000  00000000  00001ec6  2**0
                   CONTENTS, READONLY
- 18 .xt.lit       00000010  00000000  00000000  00001f18  2**0
+ 18 .xt.lit       00000010  00000000  00000000  00001efe  2**0
                   CONTENTS, RELOC, READONLY
- 19 .xt.prop      00000078  00000000  00000000  00001f28  2**0
+ 19 .xt.prop      00000078  00000000  00000000  00001f0e  2**0
                   CONTENTS, RELOC, READONLY
 
 syscalls.c.obj:     file format elf32-xtensa-le
@@ -393,15 +393,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  26 .debug_line   00000313  00000000  00000000  000010d7  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 27 .debug_str    0000064f  00000000  00000000  000013ea  2**0
+ 27 .debug_str    00000635  00000000  00000000  000013ea  2**0
                   CONTENTS, READONLY, DEBUGGING
- 28 .comment      0000003b  00000000  00000000  00001a39  2**0
+ 28 .comment      0000003b  00000000  00000000  00001a1f  2**0
                   CONTENTS, READONLY
- 29 .xtensa.info  00000038  00000000  00000000  00001a74  2**0
+ 29 .xtensa.info  00000038  00000000  00000000  00001a5a  2**0
                   CONTENTS, READONLY
- 30 .xt.lit       00000038  00000000  00000000  00001aac  2**0
+ 30 .xt.lit       00000038  00000000  00000000  00001a92  2**0
                   CONTENTS, RELOC, READONLY
- 31 .xt.prop      000001b0  00000000  00000000  00001ae4  2**0
+ 31 .xt.prop      000001b0  00000000  00000000  00001aca  2**0
                   CONTENTS, RELOC, READONLY
 
 termios.c.obj:     file format elf32-xtensa-le
@@ -479,15 +479,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  11 .debug_line   00000165  00000000  00000000  000002ab  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 12 .debug_str    000001e0  00000000  00000000  00000410  2**0
+ 12 .debug_str    000001c6  00000000  00000000  00000410  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .comment      0000003b  00000000  00000000  000005f0  2**0
+ 13 .comment      0000003b  00000000  00000000  000005d6  2**0
                   CONTENTS, READONLY
- 14 .xtensa.info  00000038  00000000  00000000  0000062b  2**0
+ 14 .xtensa.info  00000038  00000000  00000000  00000611  2**0
                   CONTENTS, READONLY
- 15 .xt.lit       00000008  00000000  00000000  00000663  2**0
+ 15 .xt.lit       00000008  00000000  00000000  00000649  2**0
                   CONTENTS, RELOC, READONLY
- 16 .xt.prop      00000030  00000000  00000000  0000066b  2**0
+ 16 .xt.prop      00000030  00000000  00000000  00000651  2**0
                   CONTENTS, RELOC, READONLY
 
 time.c.obj:     file format elf32-xtensa-le
@@ -524,107 +524,107 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  14 .literal.settimeofday 00000010  00000000  00000000  00000140  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 15 .literal.usleep 00000010  00000000  00000000  00000150  2**2
+ 15 .literal.usleep 0000000c  00000000  00000000  00000150  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 16 .literal.sleep 00000008  00000000  00000000  00000160  2**2
+ 16 .literal.sleep 00000008  00000000  00000000  0000015c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 17 .literal.system_get_time 00000004  00000000  00000000  00000168  2**2
+ 17 .literal.system_get_time 00000004  00000000  00000000  00000164  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 18 .literal.system_relative_time 00000004  00000000  00000000  0000016c  2**2
+ 18 .literal.system_relative_time 00000004  00000000  00000000  00000168  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 19 .literal.system_get_rtc_time 00000004  00000000  00000000  00000170  2**2
+ 19 .literal.system_get_rtc_time 00000004  00000000  00000000  0000016c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 20 .literal.esp_sync_counters_rtc_and_frc 00000018  00000000  00000000  00000174  2**2
+ 20 .literal.esp_sync_counters_rtc_and_frc 00000018  00000000  00000000  00000170  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 21 .literal.clock_settime 00000010  00000000  00000000  0000018c  2**2
+ 21 .literal.clock_settime 00000010  00000000  00000000  00000188  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 22 .literal.clock_gettime 00000020  00000000  00000000  0000019c  2**2
+ 22 .literal.clock_gettime 00000020  00000000  00000000  00000198  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 23 .literal.clock_getres 00000004  00000000  00000000  000001bc  2**2
+ 23 .literal.clock_getres 00000004  00000000  00000000  000001b8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 24 .text         00000000  00000000  00000000  000001c0  2**0
+ 24 .text         00000000  00000000  00000000  000001bc  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 25 .data         00000000  00000000  00000000  000001c0  2**0
+ 25 .data         00000000  00000000  00000000  000001bc  2**0
                   CONTENTS, ALLOC, LOAD, DATA
- 26 .bss          00000000  00000000  00000000  000001c0  2**0
+ 26 .bss          00000000  00000000  00000000  000001bc  2**0
                   ALLOC
- 27 .text.get_boot_time 00000027  00000000  00000000  000001c0  2**2
+ 27 .text.get_boot_time 00000027  00000000  00000000  000001bc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 28 .text.set_boot_time 00000028  00000000  00000000  000001e8  2**2
+ 28 .text.set_boot_time 00000028  00000000  00000000  000001e4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 29 .text.get_time_since_boot 0000001f  00000000  00000000  00000210  2**2
+ 29 .text.get_time_since_boot 0000001f  00000000  00000000  0000020c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 30 .text.adjust_boot_time 0000013a  00000000  00000000  00000230  2**2
+ 30 .text.adjust_boot_time 0000013a  00000000  00000000  0000022c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 31 .text.get_adjusted_boot_time 00000026  00000000  00000000  0000036c  2**2
+ 31 .text.get_adjusted_boot_time 00000026  00000000  00000000  00000368  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 32 .text.adjtime_corr_stop 00000038  00000000  00000000  00000394  2**2
+ 32 .text.adjtime_corr_stop 00000038  00000000  00000000  00000390  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 33 .text.adjtime 000000e8  00000000  00000000  000003cc  2**2
+ 33 .text.adjtime 000000e8  00000000  00000000  000003c8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 34 .text.esp_clk_slowclk_cal_set 0000006e  00000000  00000000  000004b4  2**2
+ 34 .text.esp_clk_slowclk_cal_set 0000006e  00000000  00000000  000004b0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 35 .text.esp_clk_slowclk_cal_get 0000000d  00000000  00000000  00000524  2**2
+ 35 .text.esp_clk_slowclk_cal_get 0000000d  00000000  00000000  00000520  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 36 .text.get_rtc_time_us 00000047  00000000  00000000  00000534  2**2
+ 36 .text.get_rtc_time_us 00000047  00000000  00000000  00000530  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 37 .text.esp_set_time_from_rtc 0000002f  00000000  00000000  0000057c  2**2
+ 37 .text.esp_set_time_from_rtc 0000002f  00000000  00000000  00000578  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 38 .text.esp_clk_rtc_time 0000000f  00000000  00000000  000005ac  2**2
+ 38 .text.esp_clk_rtc_time 0000000f  00000000  00000000  000005a8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 39 .iram1.15     0000004a  00000000  00000000  000005bc  2**2
+ 39 .iram1.15     0000004a  00000000  00000000  000005b8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 40 .iram1.14     0000002c  00000000  00000000  00000608  2**2
+ 40 .iram1.14     00000025  00000000  00000000  00000604  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 41 .text.settimeofday 00000054  00000000  00000000  00000634  2**2
+ 41 .text.settimeofday 00000054  00000000  00000000  0000062c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 42 .text.usleep  0000002c  00000000  00000000  00000688  2**2
+ 42 .text.usleep  0000002c  00000000  00000000  00000680  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 43 .text.sleep   00000013  00000000  00000000  000006b4  2**2
+ 43 .text.sleep   00000013  00000000  00000000  000006ac  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 44 .text.system_get_time 0000000d  00000000  00000000  000006c8  2**2
+ 44 .text.system_get_time 0000000d  00000000  00000000  000006c0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 45 .text.system_relative_time 0000000e  00000000  00000000  000006d8  2**2
+ 45 .text.system_relative_time 0000000e  00000000  00000000  000006d0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 46 .text.system_get_rtc_time 0000000f  00000000  00000000  000006e8  2**2
+ 46 .text.system_get_rtc_time 0000000f  00000000  00000000  000006e0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 47 .text.esp_sync_counters_rtc_and_frc 0000005e  00000000  00000000  000006f8  2**2
+ 47 .text.esp_sync_counters_rtc_and_frc 0000005e  00000000  00000000  000006f0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 48 .text.clock_settime 0000004a  00000000  00000000  00000758  2**2
+ 48 .text.clock_settime 0000004a  00000000  00000000  00000750  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 49 .text.clock_gettime 0000008c  00000000  00000000  000007a4  2**2
+ 49 .text.clock_gettime 0000008c  00000000  00000000  0000079c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 50 .text.clock_getres 0000001f  00000000  00000000  00000830  2**2
+ 50 .text.clock_getres 0000001f  00000000  00000000  00000828  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 51 .bss.adjtime_total_correction 00000008  00000000  00000000  00000850  2**3
+ 51 .bss.adjtime_total_correction 00000008  00000000  00000000  00000848  2**3
                   ALLOC
- 52 .bss.adjtime_start 00000008  00000000  00000000  00000850  2**3
+ 52 .bss.adjtime_start 00000008  00000000  00000000  00000848  2**3
                   ALLOC
- 53 .bss.s_adjust_time_lock 00000004  00000000  00000000  00000850  2**2
+ 53 .bss.s_adjust_time_lock 00000004  00000000  00000000  00000848  2**2
                   ALLOC
- 54 .bss.s_boot_time_lock 00000004  00000000  00000000  00000850  2**2
+ 54 .bss.s_boot_time_lock 00000004  00000000  00000000  00000848  2**2
                   ALLOC
- 55 .debug_frame  00000250  00000000  00000000  00000850  2**2
+ 55 .debug_frame  00000250  00000000  00000000  00000848  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 56 .debug_info   00001346  00000000  00000000  00000aa0  2**0
+ 56 .debug_info   00001342  00000000  00000000  00000a98  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 57 .debug_abbrev 000003ee  00000000  00000000  00001de6  2**0
+ 57 .debug_abbrev 000003ee  00000000  00000000  00001dda  2**0
                   CONTENTS, READONLY, DEBUGGING
- 58 .debug_loc    0000058e  00000000  00000000  000021d4  2**0
+ 58 .debug_loc    0000058d  00000000  00000000  000021c8  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 59 .debug_aranges 000000d8  00000000  00000000  00002762  2**0
+ 59 .debug_aranges 000000d8  00000000  00000000  00002755  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 60 .debug_ranges 000000e0  00000000  00000000  0000283a  2**0
+ 60 .debug_ranges 000000e0  00000000  00000000  0000282d  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 61 .debug_line   00000889  00000000  00000000  0000291a  2**0
+ 61 .debug_line   00000889  00000000  00000000  0000290d  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 62 .debug_str    00000a8f  00000000  00000000  000031a3  2**0
+ 62 .debug_str    00000a75  00000000  00000000  00003196  2**0
                   CONTENTS, READONLY, DEBUGGING
- 63 .comment      0000003b  00000000  00000000  00003c32  2**0
+ 63 .comment      0000003b  00000000  00000000  00003c0b  2**0
                   CONTENTS, READONLY
- 64 .xtensa.info  00000038  00000000  00000000  00003c6d  2**0
+ 64 .xtensa.info  00000038  00000000  00000000  00003c46  2**0
                   CONTENTS, READONLY
- 65 .xt.lit       000000c0  00000000  00000000  00003ca5  2**0
+ 65 .xt.lit       000000c0  00000000  00000000  00003c7e  2**0
                   CONTENTS, RELOC, READONLY
- 66 .xt.prop      00000738  00000000  00000000  00003d65  2**0
+ 66 .xt.prop      00000738  00000000  00000000  00003d3e  2**0
                   CONTENTS, RELOC, READONLY

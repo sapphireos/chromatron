@@ -6,18 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/main.c
-stdio.h
--
-freertos/FreeRTOS.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/freertos/FreeRTOS.h
-freertos/task.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/freertos/task.h
-esp_system.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/esp_system.h
-esp_spi_flash.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/esp_spi_flash.h
-
 /home/jeremy/JEREMY/esp8266/esp-idf/components/driver/include/driver/gpio.h
 esp_err.h
 /home/jeremy/JEREMY/esp8266/esp-idf/components/driver/include/driver/esp_err.h
@@ -705,6 +693,18 @@ esp_err.h
 /home/jeremy/JEREMY/esp8266/esp-idf/components/spi_flash/include/esp_err.h
 sdkconfig.h
 /home/jeremy/JEREMY/esp8266/esp-idf/components/spi_flash/include/sdkconfig.h
+
+/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/main.c
+stdio.h
+-
+freertos/FreeRTOS.h
+/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/freertos/FreeRTOS.h
+freertos/task.h
+/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/freertos/task.h
+esp_system.h
+/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/esp_system.h
+esp_spi_flash.h
+/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/esp_spi_flash.h
 
 config/sdkconfig.h
 

@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Utility rule file for idf_component_newlib_sections_info.
 
@@ -57,8 +57,8 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info: esp-idf/newlib/idf
 
 
 esp-idf/newlib/idf_component_newlib.sections_info: esp-idf/newlib/libnewlib.a
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating idf_component_newlib.sections_info"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib/libnewlib.a -h > /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib/idf_component_newlib.sections_info
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating idf_component_newlib.sections_info"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib/libnewlib.a -h > /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib/idf_component_newlib.sections_info
 
 idf_component_newlib_sections_info: esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info
 idf_component_newlib_sections_info: esp-idf/newlib/idf_component_newlib.sections_info
@@ -72,10 +72,10 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/build: idf_comp
 .PHONY : esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/build
 
 esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_newlib_sections_info.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_newlib_sections_info.dir/cmake_clean.cmake
 .PHONY : esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/clean
 
 esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/newlib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/newlib /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/depend
 

@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build
 
 # Include any dependencies generated for this target.
 include esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/depend.make
@@ -58,17 +58,17 @@ include esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/progress.make
 include esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../components/nvs_flash/src/nvs_api.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_api.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj.requires:
 
@@ -82,17 +82,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj.pro
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj: ../../components/nvs_flash/src/nvs_encr.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_encr.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj.requires:
 
@@ -106,17 +106,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj.pr
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj: ../../components/nvs_flash/src/nvs_item_hash_list.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj.requires:
 
@@ -130,17 +130,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj: ../../components/nvs_flash/src/nvs_ops.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_ops.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj.requires:
 
@@ -154,17 +154,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj.pro
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj: ../../components/nvs_flash/src/nvs_page.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_page.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj.requires:
 
@@ -178,17 +178,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj.pr
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj: ../../components/nvs_flash/src/nvs_pagemanager.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_pagemanager.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj.requires:
 
@@ -202,17 +202,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj: ../../components/nvs_flash/src/nvs_storage.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_storage.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj.requires:
 
@@ -226,17 +226,17 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj
 
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/flags.make
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj: /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj: ../../components/nvs_flash/src/nvs_types.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj -c /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.i
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp > CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.i
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.s
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash/src/nvs_types.cpp -o CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.s
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj.requires:
 
@@ -273,9 +273,9 @@ esp-idf/nvs_flash/libnvs_flash.a: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs
 esp-idf/nvs_flash/libnvs_flash.a: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj
 esp-idf/nvs_flash/libnvs_flash.a: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make
 esp-idf/nvs_flash/libnvs_flash.a: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX static library libnvs_flash.a"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_nvs_flash.dir/cmake_clean_target.cmake
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_nvs_flash.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX static library libnvs_flash.a"
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_nvs_flash.dir/cmake_clean_target.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_component_nvs_flash.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build: esp-idf/nvs_flash/libnvs_flash.a
@@ -294,10 +294,10 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/requires: esp-idf/nvs_f
 .PHONY : esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/requires
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_nvs_flash.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash && $(CMAKE_COMMAND) -P CMakeFiles/idf_component_nvs_flash.dir/cmake_clean.cmake
 .PHONY : esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/clean
 
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib /home/jeremy/JEREMY/esp8266/esp-idf/components/nvs_flash /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/depend
 
