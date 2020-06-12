@@ -50,7 +50,7 @@
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/wpa_supplicant/port/include",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/espcoredump/include",
         "-mlongcalls",
-        "-Og",
+        "-Os",
         "-ffunction-sections",
         "-fdata-sections",
         "-fstrict-volatile-bitfields",
