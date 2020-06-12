@@ -37,6 +37,11 @@
 
 #include "ffs_fw.h"
 
+#ifdef ESP32
+#include "rom/spi_flash.h"
+#include "esp_spi_flash.h"
+#endif
+
 static uint32_t fw_size;
 #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
 static uint32_t fw_size1;
@@ -210,9 +215,24 @@ int8_t ffs_fw_i8_init( void ){
             }
 
             // read byte from internal flash
+            #ifdef ESP32
+            for( uint16_t j = 0; j < block_len; j += 4 ){
+            #else
             for( uint16_t j = 0; j < block_len; j++ ){
+            #endif
 
+                #ifdef ESP32
+                uint32_t temp;
+                spi_flash_read( i + j + FW_START_OFFSET, &temp, sizeof(temp) );
+
+                buf[j + 0] = ( temp >>  0 ) & 0xff;
+                buf[j + 1] = ( temp >>  8 ) & 0xff;
+                buf[j + 2] = ( temp >> 16 ) & 0xff;
+                buf[j + 3] = ( temp >> 24 ) & 0xff;
+
+                #else
                 buf[j] = pgm_read_byte_far( i + j + FLASH_START );
+                #endif
             }
 
             flash25_v_write( i + (uint32_t)FLASH_FS_FIRMWARE_0_PARTITION_START, buf, block_len );
@@ -311,9 +331,24 @@ uint16_t ffs_fw_u16_get_internal_crc( void ){
 
     uint32_t length = ffs_fw_u32_read_internal_length();
 
+    #ifdef ESP32
+    for( uint32_t i = 0; i < length; i += 4 ){
+    #else
     for( uint32_t i = 0; i < length; i++ ){
+    #endif
 
+        #ifdef ESP32
+        uint32_t temp;
+        spi_flash_read( i + FW_START_OFFSET, &temp, sizeof(temp) );
+
+        crc = crc_u16_byte( crc, ( temp >>  0 ) & 0xff );
+        crc = crc_u16_byte( crc, ( temp >>  8 ) & 0xff );
+        crc = crc_u16_byte( crc, ( temp >> 16 ) & 0xff );
+        crc = crc_u16_byte( crc, ( temp >> 24 ) & 0xff );
+
+        #else
         crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
+        #endif
 
         // reset watchdog timer
         sys_v_wdt_reset();

@@ -116,13 +116,13 @@
     #define vsnprintf_P vsnprintf
     #define printf_P printf
 
-    #if !defined(ESP32)
+    // #if !defined(ESP32)
     
     #define pgm_read_word(x) *(uint16_t *)(x)
     #define pgm_read_byte_far(x) *(uint8_t *)(x)
     #define pgm_read_byte(x) *(uint8_t *)(x)
 
-    #endif
+    // #endif
     
     #define wdt_reset()
     #define _delay_us(x) hal_cpu_v_delay_us(x)
