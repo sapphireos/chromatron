@@ -75,13 +75,4 @@
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );
 
-// uint16_t hal_cpu_u16_pgm_read_word( uint16_t *x );
-// uint8_t hal_cpu_u8_pgm_read_byte( uint8_t *x );
-
-// #define pgm_read_word(x) hal_cpu_u16_pgm_read_word( x )
-// #define pgm_read_byte(x) hal_cpu_u8_pgm_read_byte( x )
-
-// #define pgm_read_byte_far pgm_read_byte
-
-
 #endif

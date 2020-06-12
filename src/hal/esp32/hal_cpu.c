@@ -141,35 +141,3 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 		// os_delay_us( 1000 );
 	}
 }
-
-typedef union{
-    uint32_t i;
-    uint16_t words[2];
-} word_word_t;
-
-typedef union{
-    uint32_t i;
-    uint8_t bytes[4];
-} word_bytes_t;
-
-uint16_t hal_cpu_u16_pgm_read_word( uint16_t *x ){
-
-	uint32_t addr = (uint32_t)x;
-	uint32_t i_addr = addr & ( ~0x01 );
-    uint32_t word_addr = addr & (  0x01 );
-    word_word_t temp;
-    temp.i = *(uint32_t *)i_addr;
-
-    return temp.words[word_addr];
-}
-
-uint8_t hal_cpu_u8_pgm_read_byte( uint8_t *x ){
-
-	uint32_t addr = (uint32_t)x;
-	uint32_t i_addr = addr & ( ~0x03 );
-    uint32_t byte_addr = addr & (  0x03 );
-	word_bytes_t temp;
-    temp.i = *(uint32_t *)i_addr;
-
-    return temp.bytes[byte_addr];
-}
