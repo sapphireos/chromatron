@@ -163,10 +163,10 @@ int8_t ffs_fw_i8_init( void ){
 
 
     uint32_t sys_fw_length = sys_v_get_fw_length() + sizeof(uint16_t); // adjust for CRC
-    uint32_t ext_fw_length;
+    uint32_t ext_fw_length = 0;
 
     // read firmware info from external flash partition
-    flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_INFO_ADDRESS + offsetof(fw_info_t, fw_length),
+    flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_LENGTH_ADDRESS + offsetof(fw_info_t, fw_length),
                     &ext_fw_length,
                     sizeof(ext_fw_length) );
 
