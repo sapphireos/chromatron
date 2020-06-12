@@ -30,7 +30,7 @@ int8_t ffs_fw_i8_init( void );
 
 uint16_t ffs_fw_u16_crc( void );
 uint32_t ffs_fw_u32_read_internal_length( void );
-uint16_t ffs_fw_u16_get_internal_crc( void );
+// uint16_t ffs_fw_u16_get_internal_crc( void );
 uint32_t ffs_fw_u32_size( uint8_t partition );
 void ffs_fw_v_erase( uint8_t partition, bool immediate );
 int32_t ffs_fw_i32_read( uint8_t partition, uint32_t position, void *data, uint32_t len );

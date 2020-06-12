@@ -181,6 +181,7 @@ int8_t ffs_fw_i8_init( void ){
         fw_size = ext_fw_length + sizeof(uint16_t); // adjust for CRC
     }
 
+    trace_printf("internal  len: %d\r\n", sys_fw_length);
     trace_printf("partition len: %d\r\n", ext_fw_length);
 
     // bounds check
@@ -325,37 +326,37 @@ uint32_t ffs_fw_u32_read_internal_length( void ){
     return internal_length;
 }
 
-uint16_t ffs_fw_u16_get_internal_crc( void ){
+// uint16_t ffs_fw_u16_get_internal_crc( void ){
 
-    uint16_t crc = crc_u16_start();
+//     uint16_t crc = crc_u16_start();
 
-    uint32_t length = ffs_fw_u32_read_internal_length();
+//     uint32_t length = ffs_fw_u32_read_internal_length();
 
-    #ifdef ESP32
-    for( uint32_t i = 0; i < length; i += 4 ){
-    #else
-    for( uint32_t i = 0; i < length; i++ ){
-    #endif
+//     #ifdef ESP32
+//     for( uint32_t i = 0; i < length; i += 4 ){
+//     #else
+//     for( uint32_t i = 0; i < length; i++ ){
+//     #endif
 
-        #ifdef ESP32
-        uint32_t temp;
-        spi_flash_read( i + FW_START_OFFSET, &temp, sizeof(temp) );
+//         #ifdef ESP32
+//         uint32_t temp;
+//         spi_flash_read( i + FW_START_OFFSET, &temp, sizeof(temp) );
 
-        crc = crc_u16_byte( crc, ( temp >>  0 ) & 0xff );
-        crc = crc_u16_byte( crc, ( temp >>  8 ) & 0xff );
-        crc = crc_u16_byte( crc, ( temp >> 16 ) & 0xff );
-        crc = crc_u16_byte( crc, ( temp >> 24 ) & 0xff );
+//         crc = crc_u16_byte( crc, ( temp >>  0 ) & 0xff );
+//         crc = crc_u16_byte( crc, ( temp >>  8 ) & 0xff );
+//         crc = crc_u16_byte( crc, ( temp >> 16 ) & 0xff );
+//         crc = crc_u16_byte( crc, ( temp >> 24 ) & 0xff );
 
-        #else
-        crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
-        #endif
+//         #else
+//         crc = crc_u16_byte( crc, pgm_read_byte_far( i + FLASH_START ) );
+//         #endif
 
-        // reset watchdog timer
-        sys_v_wdt_reset();
-    }
+//         // reset watchdog timer
+//         sys_v_wdt_reset();
+//     }
 
-    return crc_u16_finish( crc );
-}
+//     return crc_u16_finish( crc );
+// }
 
 
 uint32_t ffs_fw_u32_size( uint8_t partition ){
