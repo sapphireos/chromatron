@@ -1059,14 +1059,38 @@ class AppBuilder(HexBuilder):
 
         fw_info_fmt = '<I16s128s16s128s16s32s'
 
-        fw_info_addr = int(self.settings["FW_INFO_ADDR"], 16)
-
         # save original dir
         cwd = os.getcwd()
 
         # change to target dir
         os.chdir(self.target_dir)
     
+
+        if self.settings["TOOLCHAIN"] == "ESP32":
+            with open("main.bin", 'rb') as f:
+                original_image = bytearray(f.read())
+
+            # iterate segment headers
+            # image header at offsset 0
+            # offset 1 contains segment count
+            # first starts at offset 24
+            segment_count = original_image[1]
+            offset = 24
+
+            while segment_count > 0:
+                segment_count -= 1
+                segment_header = struct.unpack('<LL', original_image[offset:offset + 8])
+                offset += 8
+                segment_length = segment_header[1]
+
+                if segment_header[0] == int(self.settings["FW_INFO_ADDR"], 16):
+                    fw_info_addr = offset
+
+                offset += segment_length
+
+        else:
+            fw_info_addr = int(self.settings["FW_INFO_ADDR"], 16)
+
         ih = IntelHex('main.hex')
 
         starting_offset = ih.minaddr()
@@ -1090,11 +1114,16 @@ class AppBuilder(HexBuilder):
             addr = kv_meta_addr - starting_offset
             kv_meta_s = bindata[addr:addr + kv_meta_len]
 
-            if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
-                kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
+            try:
+                if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
+                    kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
 
-            else:
-                kv_meta = KVMetaField().unpack(kv_meta_s)
+                else:
+                    kv_meta = KVMetaField().unpack(kv_meta_s)
+
+            except UnicodeDecodeError:
+                logging.error("KV unpacking failed at: 0x%0x" % (addr))
+                raise
 
             # compute hash and repack into binary
             kv_meta.hash = catbus_string_hash(str(kv_meta.param_name))
@@ -1195,28 +1224,6 @@ class AppBuilder(HexBuilder):
         if self.settings["TOOLCHAIN"] == "ESP32":
             with open("firmware.bin", 'rb') as f:
                 firmware_image = bytearray(f.read())
-
-            with open("main.bin", 'rb') as f:
-                original_image = bytearray(f.read())
-
-            # iterate segment headers
-            # image header at offsset 0
-            # offset 1 contains segment count
-            # first starts at offset 24
-            segment_count = firmware_image[1]
-            offset = 24
-
-            final_segment_offset = None
-            final_segment_length = None
-
-            while segment_count > 0:
-                final_segment_offset = offset
-                segment_count -= 1
-                segment_header = struct.unpack('<LL', firmware_image[offset:offset + 8])
-                offset += 8
-                segment_length = segment_header[1]
-                offset += segment_length
-                final_segment_length = segment_length
 
             checksum_location = (len(original_image) - 32) - 1
             # print(hex(checksum_location))
