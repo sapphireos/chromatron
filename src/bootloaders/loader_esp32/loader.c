@@ -142,16 +142,27 @@ uint16_t ldr_u16_get_internal_crc( void ){
 
 	trace_printf("Internal len: %u\n", length);
 
-	for( uint32_t i = 0; i < length; i += 4 ){
+    uint32_t remaining = length;
 
-		uint32_t temp;
-		spi_flash_read( i + FW_START_OFFSET, &temp, sizeof(temp) );
+	for( uint32_t i = 0; i < length; i += 256 ){
+
+        uint8_t buf[256];
+        uint16_t copy_len = sizeof(buf);
+
+        if( copy_len > remaining ){
+
+            copy_len = remaining;
+        }
+
+        remaining -= copy_len;
+
+		spi_flash_read( i + FW_START_OFFSET, buf, copy_len );
+
+        for( uint32_t j = 0; j < copy_len; j++ ){
+
+            crc = crc_u16_byte( crc, buf[j] );    
+        }
 		
-		crc = crc_u16_byte( crc, ( temp >>  0 ) & 0xff );
-		crc = crc_u16_byte( crc, ( temp >>  8 ) & 0xff );
-		crc = crc_u16_byte( crc, ( temp >> 16 ) & 0xff );
-		crc = crc_u16_byte( crc, ( temp >> 24 ) & 0xff );
-
 		// reset watchdog timer
 		wdg_v_reset();
 	}
