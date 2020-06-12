@@ -54,13 +54,10 @@ void app_main()
     }
 
     wifi_init_sta();
-
-    while(1){
-
-        // vTaskDelay(1);
-    }
-
-
+    
+    
+    sapphire_run();
+    
     #if 0
     /* Print chip information */
     esp_chip_info_t chip_info;
