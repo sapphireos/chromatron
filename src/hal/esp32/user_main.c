@@ -55,7 +55,10 @@ void app_main()
 
     wifi_init_sta();
 
-    while(1);
+    while(1){
+
+        // vTaskDelay(1);
+    }
 
 
     #if 0
