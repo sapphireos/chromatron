@@ -33,8 +33,14 @@
 
 #include "hal_arp.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/event_groups.h"
 #include "esp_wifi.h"
+#include "esp_event_loop.h"
+#include "esp_log.h"
 
+#include "wifi_config.txt"
 
 #ifdef ENABLE_WIFI
 
@@ -47,7 +53,7 @@ static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
-// static bool default_ap_mode;
+static bool default_ap_mode;
 
 static bool connected;
 
@@ -87,70 +93,119 @@ PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
+static const char *TAG = "wifi station";
+/* FreeRTOS event group to signal when we are connected*/
+static EventGroupHandle_t s_wifi_event_group;
+static int s_retry_num = 0;
+/* The event group allows multiple bits for each event, but we only care about one event 
+ * - are we connected to the AP with an IP? */
+const int WIFI_CONNECTED_BIT = BIT0;
+
+
 
 // static list_t conn_list;
 // static list_t rx_list;
 
+static esp_err_t event_handler(void *ctx, system_event_t *event)
+{
+    switch(event->event_id) {
+    case SYSTEM_EVENT_STA_START:
+        esp_wifi_connect();
+        break;
+    case SYSTEM_EVENT_STA_GOT_IP:
+        ESP_LOGI(TAG, "got ip:%s",
+                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        s_retry_num = 0;
+        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+        break;
+    case SYSTEM_EVENT_STA_DISCONNECTED:
+        {
+            // if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
+            //     esp_wifi_connect();
+            //     xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+            //     s_retry_num++;
+            //     ESP_LOGI(TAG,"retry to connect to the AP");
+            // }
+            ESP_LOGI(TAG,"connect to the AP fail\n");
+            break;
+        }
+    case SYSTEM_EVENT_SCAN_DONE:
+        trace_printf("SCAN DONE\n");
+        break;
+    default:
+        break;
+    }
+    return ESP_OK;
+}
+
 
 void wifi_v_init( void ){
+
+    s_wifi_event_group = xEventGroupCreate();
+
+    tcpip_adapter_init();
+    ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 	
-	// wifi_station_disconnect();
+    esp_read_mac( wifi_mac, ESP_MAC_WIFI_STA );
 
-	// // set opmode without saving to flash (since we always set this)
-	// wifi_set_opmode_current( STATION_MODE );
+    uint64_t current_device_id = 0;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
+    uint64_t device_id = 0;
+    memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
 
-	// thread_t_create_critical( 
- //                 wifi_connection_manager_thread,
- //                 PSTR("wifi_connection_manager"),
- //                 0,
- //                 0 );
+    if( current_device_id != device_id ){
 
- //    thread_t_create_critical( 
- //                 wifi_rx_process_thread,
- //                 PSTR("wifi_rx_processor"),
- //                 0,
- //                 0 );
+        cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
+    }
 
- //    thread_t_create_critical( 
- //                wifi_status_thread,
- //                PSTR("wifi_status"),
- //                0,
- //                0 );
 
- //    thread_t_create_critical( 
- //                wifi_arp_thread,
- //                PSTR("wifi_arp"),
- //                0,
- //                0 );
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
- //    thread_t_create_critical( 
- //                wifi_echo_thread,
- //                PSTR("wifi_echo"),
- //                0,
- //                0 );
 
-	// wifi_get_macaddr( 0, wifi_mac );
+	thread_t_create_critical( 
+                 wifi_connection_manager_thread,
+                 PSTR("wifi_connection_manager"),
+                 0,
+                 0 );
 
- //    uint64_t current_device_id = 0;
- //    cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
- //    uint64_t device_id = 0;
- //    memcpy( &device_id, wifi_mac, sizeof(wifi_mac) );
+    thread_t_create_critical( 
+                 wifi_rx_process_thread,
+                 PSTR("wifi_rx_processor"),
+                 0,
+                 0 );
 
- //    if( current_device_id != device_id ){
+    thread_t_create_critical( 
+                wifi_status_thread,
+                PSTR("wifi_status"),
+                0,
+                0 );
 
- //        cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
- //    }
+    thread_t_create_critical( 
+                wifi_arp_thread,
+                PSTR("wifi_arp"),
+                0,
+                0 );
 
- //    #ifdef DEFAULT_WIFI
- //    char ssid[32];
- //    char pass[32];
- //    memset( ssid, 0, 32 );
- //    memset( pass, 0, 32 );
- //    strcpy(ssid, SSID);
- //    strcpy(pass, PASSWORD);
- //    cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
- //    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
- //    #endif
+    thread_t_create_critical( 
+                wifi_echo_thread,
+                PSTR("wifi_echo"),
+                0,
+                0 );
+
+
+    // #ifdef DEFAULT_WIFI
+    char ssid[32];
+    char pass[32];
+    memset( ssid, 0, 32 );
+    memset( pass, 0, 32 );
+    strcpy(ssid, CONFIG_ESP_WIFI_SSID);
+    strcpy(pass, CONFIG_ESP_WIFI_PASSWORD);
+    cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
+    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
+    // #endif
 
  //    list_v_init( &conn_list );
  //    list_v_init( &rx_list );
@@ -487,82 +542,82 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     return NETMSG_TX_OK_RELEASE;
 }
 
-// static bool _wifi_b_ap_mode_enabled( void ){
+static bool _wifi_b_ap_mode_enabled( void ){
 
-//     if( default_ap_mode ){
+    if( default_ap_mode ){
 
-//         return TRUE;
-//     }
+        return TRUE;
+    }
 
-//     bool wifi_enable_ap = FALSE;
-//     cfg_i8_get( CFG_PARAM_WIFI_ENABLE_AP, &wifi_enable_ap );
+    bool wifi_enable_ap = FALSE;
+    cfg_i8_get( CFG_PARAM_WIFI_ENABLE_AP, &wifi_enable_ap );
     
-//     return wifi_enable_ap;    
-// }
+    return wifi_enable_ap;    
+}
 
 
-// static int8_t has_ssid( char *check_ssid ){
+static int8_t has_ssid( char *check_ssid ){
 
-// 	char ssid[WIFI_SSID_LEN];
+	char ssid[WIFI_SSID_LEN];
 	
-// 	memset( ssid, 0, sizeof(ssid) );
-// 	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+	memset( ssid, 0, sizeof(ssid) );
+	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
        
-//    	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
 
-//    		return 0;
-//    	}
+   		return 0;
+   	}
 
-//    	memset( ssid, 0, sizeof(ssid) );
-//    	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
        
-//    	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
 
-//    		return 1;
-//    	}
+   		return 1;
+   	}
 
-//    	memset( ssid, 0, sizeof(ssid) );
-//    	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
        
-//    	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
 
-//    		return 2;
-//    	}
+   		return 2;
+   	}
 
-//    	memset( ssid, 0, sizeof(ssid) );
-//    	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
        
-//    	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
+   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
 
-//    		return 3;
-//    	}
+   		return 3;
+   	}
 
-//    	return -1;
-// }
+   	return -1;
+}
 
 
 
-// static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
+static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 
-// 	memset( pass, 0, WIFI_PASS_LEN );
+	memset( pass, 0, WIFI_PASS_LEN );
 
-// 	if( router == 0 ){
+	if( router == 0 ){
 
-// 		cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, pass );
-// 	}
-//     else if( router == 1 ){
+		cfg_i8_get( CFG_PARAM_WIFI_PASSWORD, pass );
+	}
+    else if( router == 1 ){
 	   	
-// 	   	kv_i8_get( __KV__wifi_ssid2, pass, WIFI_PASS_LEN );
-// 	}
-// 	else if( router == 2 ){
+	   	kv_i8_get( __KV__wifi_ssid2, pass, WIFI_PASS_LEN );
+	}
+	else if( router == 2 ){
 	   	
-// 	   	kv_i8_get( __KV__wifi_ssid3, pass, WIFI_PASS_LEN );
-// 	}
-// 	else if( router == 3 ){
+	   	kv_i8_get( __KV__wifi_ssid3, pass, WIFI_PASS_LEN );
+	}
+	else if( router == 3 ){
 	   	
-// 	   	kv_i8_get( __KV__wifi_ssid4, pass, WIFI_PASS_LEN );
-// 	}
-// }
+	   	kv_i8_get( __KV__wifi_ssid4, pass, WIFI_PASS_LEN );
+	}
+}
 
 // void scan_cb( void *result, STATUS status ){
 
@@ -610,243 +665,239 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 // 	wifi_channel = best_channel;
 // }
 
-// static bool is_ssid_configured( void ){
+static bool is_ssid_configured( void ){
 
-// 	char ssid[WIFI_SSID_LEN];
+	char ssid[WIFI_SSID_LEN];
 	
-// 	memset( ssid, 0, sizeof(ssid) );
-// 	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
+	memset( ssid, 0, sizeof(ssid) );
+	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
        
-//    	if( ssid[0] != 0 ){
+   	if( ssid[0] != 0 ){
 
-//    		return TRUE;
-//    	}
+   		return TRUE;
+   	}
 
-//    	memset( ssid, 0, sizeof(ssid) );
-//    	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
        
-//    	if( ssid[0] != 0 ){
+   	if( ssid[0] != 0 ){
 
-//    		return TRUE;
-//    	}
+   		return TRUE;
+   	}
 
-//    	memset( ssid, 0, sizeof(ssid) );
-//    	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
        
-//    	if( ssid[0] != 0 ){
+   	if( ssid[0] != 0 ){
 
-//    		return TRUE;
-//    	}
+   		return TRUE;
+   	}
 
-//    	memset( ssid, 0, sizeof(ssid) );
-//    	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
+   	memset( ssid, 0, sizeof(ssid) );
+   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
        
-//    	if( ssid[0] != 0 ){
+   	if( ssid[0] != 0 ){
 
-//    		return TRUE;
-//    	}
+   		return TRUE;
+   	}
 
-//    	return FALSE;
-// }
+   	return FALSE;
+}
 
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-//     static uint8_t scan_timeout;
+    static uint8_t scan_timeout;
 
-//     connected = FALSE;
+    connected = FALSE;
     
-//     // check if we are connected
-//     while( !wifi_b_connected() ){
+    // check if we are connected
+    while( !wifi_b_connected() ){
 
-//         wifi_rssi = -127;
+        wifi_rssi = -127;
         
-//         bool ap_mode = _wifi_b_ap_mode_enabled();
+        bool ap_mode = _wifi_b_ap_mode_enabled();
 
-//         // check if no APs are configured
-//         if( !is_ssid_configured() ){
+        // check if no APs are configured
+        if( !is_ssid_configured() ){
 
-//             // no SSIDs are configured
+            // no SSIDs are configured
 
-//             // switch to AP mode
-//             ap_mode = TRUE;
-//         }
+            log_v_debug_P( PSTR("AP mode") );
+
+            // switch to AP mode
+            ap_mode = TRUE;
+        }
  
-//         // station mode
-//         if( !ap_mode ){
+        // station mode
+        if( !ap_mode ){
 // station_mode:            
 
-//             wifi_set_opmode_current( STATION_MODE );
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
-//             // scan first
-//             wifi_router = -1;
-//             log_v_debug_P( PSTR("Scanning...") );
+            // scan first
+            wifi_router = -1;
+            log_v_debug_P( PSTR("Scanning...") );
             
-//             struct scan_config scan_config;
-//             memset( &scan_config, 0, sizeof(scan_config) );
+            esp_wifi_disconnect();
+            ESP_ERROR_CHECK(esp_wifi_start());
             
-//             // light LED while scanning since the CPU will freeze
-//             io_v_set_esp_led( 1 );
+            if( esp_wifi_scan_start(NULL, true) != 0 ){
 
-//             wifi_station_disconnect();
-//             if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
+            	log_v_error_P( PSTR("Scan error") );
+            }
 
-//             	log_v_error_P( PSTR("Scan error") );
-//             }
+            scan_timeout = 200;
+            while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
 
-//             scan_timeout = 200;
-//             while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
+                scan_timeout--;
 
-//                 scan_timeout--;
+                TMR_WAIT( pt, 50 );
+            }
 
-//                 TMR_WAIT( pt, 50 );
-//             }
+            if( wifi_router < 0 ){
 
-//             io_v_set_esp_led( 0 );
+                goto end;
+            }
 
-//             if( wifi_router < 0 ){
-
-//                 goto end;
-//             }
-
-//             log_v_debug_P( PSTR("Connecting...") );
+            log_v_debug_P( PSTR("Connecting...") );
             
-// 			struct station_config sta_config;
-// 			memset( &sta_config, 0, sizeof(sta_config) );
-// 			memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
-// 			sta_config.bssid_set = 1;
-// 			sta_config.channel = wifi_channel;
-// 			wifi_v_get_ssid( (char *)sta_config.ssid );
-// 			get_pass( wifi_router, (char *)sta_config.password );
+			// struct station_config sta_config;
+			// memset( &sta_config, 0, sizeof(sta_config) );
+			// memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
+			// sta_config.bssid_set = 1;
+			// sta_config.channel = wifi_channel;
+			// wifi_v_get_ssid( (char *)sta_config.ssid );
+			// get_pass( wifi_router, (char *)sta_config.password );
 
-// 			wifi_station_set_config_current( &sta_config );
-// 			wifi_station_connect();
+			// wifi_station_set_config_current( &sta_config );
+			// wifi_station_connect();
 
-//             thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-//             THREAD_WAIT_WHILE( pt, ( wifi_station_get_connect_status() != STATION_GOT_IP ) &&
-//                                    ( thread_b_alarm_set() ) );
+   //          thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
+   //          THREAD_WAIT_WHILE( pt, ( wifi_station_get_connect_status() != STATION_GOT_IP ) &&
+   //                                 ( thread_b_alarm_set() ) );
 
-//            	// check if we're connected
-//            	if( wifi_station_get_connect_status() == STATION_GOT_IP ){
+   //         	// check if we're connected
+   //         	if( wifi_station_get_connect_status() == STATION_GOT_IP ){
 
-//            		connected = TRUE;
+   //         		connected = TRUE;
 
-//            		// get IP info
-//            		struct ip_info info;
-//            		memset( &info, 0, sizeof(info) );
-//            		wifi_get_ip_info( STATION_IF, &info );
+   //         		// get IP info
+   //         		struct ip_info info;
+   //         		memset( &info, 0, sizeof(info) );
+   //         		wifi_get_ip_info( STATION_IF, &info );
 
-// 				cfg_v_set( CFG_PARAM_IP_ADDRESS, &info.ip );
-// 			    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
-//                 cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
+			// 	cfg_v_set( CFG_PARAM_IP_ADDRESS, &info.ip );
+			//     cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
+   //              cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
 
-//                 ip_addr_t dns_ip = espconn_dns_getserver( 0 );
-// 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
-//            	}
-//         }
-//         // AP mode
-//         else{
-//             // should have gotten the MAC by now
-//             ASSERT( wifi_mac[0] != 0 );
+   //              ip_addr_t dns_ip = espconn_dns_getserver( 0 );
+			//     cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
+   //         	}
+        }
+        // AP mode
+        // else{
+        //     // should have gotten the MAC by now
+        //     ASSERT( wifi_mac[0] != 0 );
 
-//             // AP mode
-//             char ap_ssid[WIFI_SSID_LEN];
-//             char ap_pass[WIFI_PASS_LEN];
+        //     // AP mode
+        //     char ap_ssid[WIFI_SSID_LEN];
+        //     char ap_pass[WIFI_PASS_LEN];
 
-//             cfg_i8_get( CFG_PARAM_WIFI_AP_SSID, ap_ssid );
-//             cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_pass );
+        //     cfg_i8_get( CFG_PARAM_WIFI_AP_SSID, ap_ssid );
+        //     cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_pass );
 
-//             // check if AP mode SSID is set:
-//             if( ( ap_ssid[0] == 0 ) || ( default_ap_mode ) ){
+        //     // check if AP mode SSID is set:
+        //     if( ( ap_ssid[0] == 0 ) || ( default_ap_mode ) ){
 
-//                 // set up default AP
-//                 memset( ap_ssid, 0, sizeof(ap_ssid) );
-//                 memset( ap_pass, 0, sizeof(ap_pass) );
+        //         // set up default AP
+        //         memset( ap_ssid, 0, sizeof(ap_ssid) );
+        //         memset( ap_pass, 0, sizeof(ap_pass) );
 
-//                 strlcpy_P( ap_ssid, PSTR("Chromatron_"), sizeof(ap_ssid) );
+        //         strlcpy_P( ap_ssid, PSTR("Chromatron_"), sizeof(ap_ssid) );
 
-//                 char mac[16];
-//                 memset( mac, 0, sizeof(mac) );
-//                 snprintf_P( &mac[0], 3, PSTR("%02x"), wifi_mac[3] );
-//                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
-//                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
+        //         char mac[16];
+        //         memset( mac, 0, sizeof(mac) );
+        //         snprintf_P( &mac[0], 3, PSTR("%02x"), wifi_mac[3] );
+        //         snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
+        //         snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-//                 strncat( ap_ssid, mac, sizeof(ap_ssid) );
+        //         strncat( ap_ssid, mac, sizeof(ap_ssid) );
 
-//                 strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
+        //         strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
-//                 default_ap_mode = TRUE;
-//             }
-//             else if( strnlen( ap_pass, sizeof(ap_pass) ) < WIFI_AP_MIN_PASS_LEN ){
+        //         default_ap_mode = TRUE;
+        //     }
+        //     else if( strnlen( ap_pass, sizeof(ap_pass) ) < WIFI_AP_MIN_PASS_LEN ){
 
-//                 log_v_warn_P( PSTR("AP mode password must be at least 8 characters.") );
+        //         log_v_warn_P( PSTR("AP mode password must be at least 8 characters.") );
 
-//                 // disable ap mode
-//                 bool temp = FALSE;
-//                 cfg_v_set( CFG_PARAM_WIFI_ENABLE_AP, &temp );
+        //         // disable ap mode
+        //         bool temp = FALSE;
+        //         cfg_v_set( CFG_PARAM_WIFI_ENABLE_AP, &temp );
 
-//                 goto end;
-//             }
+        //         goto end;
+        //     }
 
-//             log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
+        //     log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
-//             // check if wifi settings were present
-//             if( ap_ssid[0] != 0 ){     
+        //     // check if wifi settings were present
+        //     if( ap_ssid[0] != 0 ){     
 
-//                 struct softap_config ap_config;
-//                 memset( &ap_config, 0, sizeof(ap_config) );
-//                 wifi_softap_get_config( &ap_config );
-//                 memcpy( (char *)ap_config.ssid, ap_ssid, sizeof(ap_ssid) );
-//                 memcpy( (char *)ap_config.password, ap_pass, sizeof(ap_pass) );
+        //         struct softap_config ap_config;
+        //         memset( &ap_config, 0, sizeof(ap_config) );
+        //         wifi_softap_get_config( &ap_config );
+        //         memcpy( (char *)ap_config.ssid, ap_ssid, sizeof(ap_ssid) );
+        //         memcpy( (char *)ap_config.password, ap_pass, sizeof(ap_pass) );
 
-//                 wifi_softap_set_config_current( &ap_config );
+        //         wifi_softap_set_config_current( &ap_config );
                 
-//                 wifi_set_opmode_current( SOFTAP_MODE );   
+        //         wifi_set_opmode_current( SOFTAP_MODE );   
 
 
-//                 thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-//                 THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
-//                                        ( thread_b_alarm_set() ) );
+        //         thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
+        //         THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
+        //                                ( thread_b_alarm_set() ) );
 
-//                 if( !wifi_b_connected() ){
+        //         if( !wifi_b_connected() ){
 
-//                     log_v_warn_P( PSTR("AP mode failed.") );
+        //             log_v_warn_P( PSTR("AP mode failed.") );
 
-//                     goto station_mode;
-//                 }
-//             }
-//         }
+        //             goto station_mode;
+        //         }
+        //     }
+        // }
 
-// end:
-//         if( !wifi_b_connected() ){
+end:
+        if( !wifi_b_connected() ){
 
-//             TMR_WAIT( pt, 500 );
-//         }
-//     }
+            TMR_WAIT( pt, 500 );
+        }
+    }
 
-//     if( wifi_b_connected() ){
+    if( wifi_b_connected() ){
 
-//         if( !_wifi_b_ap_mode_enabled() ){
+        if( !_wifi_b_ap_mode_enabled() ){
 
-//             wifi_connects++;
+            wifi_connects++;
 
-//             char ssid[WIFI_SSID_LEN];
-//             wifi_v_get_ssid( ssid );
-//             log_v_debug_P( PSTR("Wifi connected to: %s"), ssid );
-//         }
-//         else{
+            char ssid[WIFI_SSID_LEN];
+            wifi_v_get_ssid( ssid );
+            log_v_debug_P( PSTR("Wifi connected to: %s"), ssid );
+        }
+        else{
 
-//             log_v_debug_P( PSTR("Wifi soft AP up") );    
-//         }
-//     }
+            log_v_debug_P( PSTR("Wifi soft AP up") );    
+        }
+    }
 
-//     THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected() );
     
-//     log_v_debug_P( PSTR("Wifi disconnected") );
+    log_v_debug_P( PSTR("Wifi disconnected") );
 
-//     THREAD_RESTART( pt );
+    THREAD_RESTART( pt );
 
 PT_END( pt );
 }

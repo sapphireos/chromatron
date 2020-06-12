@@ -53,7 +53,7 @@ void app_main()
         }
     }
 
-    wifi_init_sta();
+    // wifi_init_sta();
     
     
     sapphire_run();
