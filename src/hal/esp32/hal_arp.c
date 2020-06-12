@@ -25,10 +25,13 @@
 
 #include "hal_arp.h"
 
+#include "lwip/netif.h"
+#include "lwip/etharp.h"
+
 void hal_arp_v_gratuitous_arp( void ){
 
-    // for (struct netif* interface = netif_list; interface != 0; interface = interface->next){
+    for (struct netif* interface = netif_list; interface != 0; interface = interface->next){
 
-    //     etharp_gratuitous(interface);
-    // }
+        etharp_gratuitous(interface);
+    }
 }
