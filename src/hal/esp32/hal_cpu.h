@@ -44,36 +44,44 @@
 #define MEMORY_HEAP __attribute__ ((section (".memory_heap"), aligned(4)))
 
 // helper to load from unaligned pointers
-static inline uint32_t load32( uint8_t *ptr ){
+// static inline uint32_t load32( uint8_t *ptr ){
 
-    return (((uint32_t)ptr[3] << 24) | ((uint32_t)ptr[2] << 16) | ((uint32_t)ptr[1] << 8) | ((uint32_t)ptr[0] << 0));
-}
-#define LOAD32(ptr) load32((uint8_t *)ptr)
+//     return (((uint32_t)ptr[3] << 24) | ((uint32_t)ptr[2] << 16) | ((uint32_t)ptr[1] << 8) | ((uint32_t)ptr[0] << 0));
+// }
+// #define LOAD32(ptr) load32((uint8_t *)ptr)
 
-static inline uint16_t load16( uint8_t *ptr ){
+// static inline uint16_t load16( uint8_t *ptr ){
 
-    return (((uint32_t)ptr[1] << 8) | ((uint32_t)ptr[0] << 0));
-}
-#define LOAD16(ptr) load16((uint8_t *)ptr)
+//     return (((uint32_t)ptr[1] << 8) | ((uint32_t)ptr[0] << 0));
+// }
+// #define LOAD16(ptr) load16((uint8_t *)ptr)
 
-static inline void store32( uint8_t *ptr, uint32_t val ){
+// static inline void store32( uint8_t *ptr, uint32_t val ){
 
-    ptr[0] = ( val >> 0 ) & 0xff;
-    ptr[1] = ( val >> 8 ) & 0xff;
-    ptr[2] = ( val >> 16 ) & 0xff;
-    ptr[3] = ( val >> 24 ) & 0xff;
-}
-#define STORE32(ptr, val) store32((uint8_t *)ptr, val)
+//     ptr[0] = ( val >> 0 ) & 0xff;
+//     ptr[1] = ( val >> 8 ) & 0xff;
+//     ptr[2] = ( val >> 16 ) & 0xff;
+//     ptr[3] = ( val >> 24 ) & 0xff;
+// }
+// #define STORE32(ptr, val) store32((uint8_t *)ptr, val)
 
-static inline void store16( uint8_t *ptr, uint16_t val ){
+// static inline void store16( uint8_t *ptr, uint16_t val ){
 
-    ptr[0] = ( val >> 0 ) & 0xff;
-    ptr[1] = ( val >> 8 ) & 0xff;
-}
-#define STORE16(ptr, val) store16((uint8_t *)ptr, val)
-
+//     ptr[0] = ( val >> 0 ) & 0xff;
+//     ptr[1] = ( val >> 8 ) & 0xff;
+// }
+// #define STORE16(ptr, val) store16((uint8_t *)ptr, val)
 
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );
+
+uint16_t hal_cpu_u16_pgm_read_word( uint16_t *x );
+uint8_t hal_cpu_u8_pgm_read_byte( uint8_t *x );
+
+#define pgm_read_word(x) hal_cpu_u16_pgm_read_word( (uint16_t *)(x) )
+#define pgm_read_byte(x) hal_cpu_u8_pgm_read_byte( (uint8_t *)(x) )
+
+#define pgm_read_byte_far pgm_read_byte
+
 
 #endif
