@@ -131,19 +131,19 @@ int8_t sapphire_i8_init( void ){
         // init logging module
         log_v_init();
     }
-
+trace_printf("event\n");
     // init event log
     event_v_init();
-
+trace_printf("kv\n");
     // init key value service
     kv_v_init();
-
+trace_printf("kvdb\n");
     // init key value DB
     kvdb_v_init();
-
+trace_printf("ee\n");
     // init EEPROM
     ee_v_init();
-
+trace_printf("cfg\n");
 	// init config manager
 	cfg_v_init();
 
@@ -162,7 +162,7 @@ int8_t sapphire_i8_init( void ){
     // init IP module
     ip_v_init();
     #endif
-
+trace_printf("sock\n");
     #ifdef ENABLE_NETWORK
     // init sockets
     sock_v_init();
@@ -171,10 +171,10 @@ int8_t sapphire_i8_init( void ){
     netmsg_v_init();
 
     #endif
-
+trace_printf("rnd\n");
     // init random number generator
     rnd_v_init();
-
+trace_printf("date\n");
     // init timekeeping
     datetime_v_init();
 
@@ -182,17 +182,20 @@ int8_t sapphire_i8_init( void ){
     // init power module
     pwr_v_init();
     #endif
-
+trace_printf("status\n");
     // initialize status LED
     status_led_v_init();
 
     #ifdef ENABLE_WIFI
+trace_printf("wifi\n");
     wifi_v_init();
     #endif
 
+trace_printf("catbus\n");
     catbus_v_init();
 
     #ifdef ENABLE_TIME_SYNC
+trace_printf("time\n");
     time_v_init();
     sntp_v_init();
     #endif
