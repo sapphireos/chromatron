@@ -27,6 +27,8 @@
 #include "flash25.h"
 #include "system.h"
 
+#include "esp_system.h"
+#include "rom/ets_sys.h"
 
 extern boot_data_t BOOTDATA boot_data;
 
@@ -40,60 +42,22 @@ void cpu_v_init( void ){
 
 uint8_t cpu_u8_get_reset_source( void ){
 	
+	esp_reset_reason_t reason = esp_reset_reason();
+
+	if( reason == ESP_RST_POWERON ){
+
+		return RESET_SOURCE_POWER_ON;
+	}
+	else if( reason == ESP_RST_EXT ){
+
+		return RESET_SOURCE_EXTERNAL;
+	}
+	else if( reason == ESP_RST_BROWNOUT ){
+
+		return RESET_SOURCE_BROWNOUT;
+	}
+
 	return 0;
-
- //    #ifdef BOOTLOADER
- //    int reason = rtc_get_reset_reason();
-
- //    if( reason == 1 ){ // power on
-
- //        return RESET_SOURCE_POWER_ON; 
- //    }
- //    else if( reason == 2 ){ // external reset or deep sleep
-
- //        return RESET_SOURCE_EXTERNAL;       
- //    }
- //    else if( reason == 4 ){ // hardware wdt
-
- //        return 0;       
- //    }
-
- //    return 0;
-
- //    #else
-	// struct rst_info *info = system_get_rst_info();
-
-	// if( info->reason == REASON_DEFAULT_RST ){
-
-	// 	return RESET_SOURCE_POWER_ON; 
-	// }
-	// else if( info->reason == REASON_WDT_RST ){
-
-		
-	// }
-	// else if( info->reason == REASON_EXCEPTION_RST ){
-
-		
-	// }
-	// else if( info->reason == REASON_SOFT_WDT_RST ){
-
-		
-	// }
-	// else if( info->reason == REASON_SOFT_RESTART ){
-
-		
-	// }
-	// else if( info->reason == REASON_DEEP_SLEEP_AWAKE ){
-
-		
-	// }
-	// else if( info->reason == REASON_EXT_SYS_RST ){
-
-	// 	return RESET_SOURCE_EXTERNAL;		
-	// }
-
-    return 0;
- //    #endif
 }
 
 void cpu_v_clear_reset_source( void ){
@@ -115,29 +79,25 @@ bool cpu_b_osc_fail( void ){
 
 uint32_t cpu_u32_get_clock_speed( void ){
 
-    // return system_get_cpu_freq() * 1000000;
-    return 0;
+    return ets_get_cpu_frequency() * 1000000;
 }
 
 void cpu_reboot( void ){
 
-// #ifndef BOOTLOADER
-
-//     wdg_v_disable();
-//     system_restart();
-//     while(1);
-// #endif
+    wdg_v_disable();
+    esp_restart();
+    while(1);
 }
 
 void hal_cpu_v_delay_us( uint16_t us ){
 	
-	// os_delay_us( us );
+	ets_delay_us( us );
 }
 
 void hal_cpu_v_delay_ms( uint16_t ms ){
 	
 	for( uint32_t i = 0; i < ms; i++ ){
 		
-		// os_delay_us( 1000 );
+		hal_cpu_v_delay_us( 1000 );
 	}
 }

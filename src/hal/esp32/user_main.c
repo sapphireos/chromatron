@@ -20,6 +20,8 @@
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
+void wifi_init_sta();
+
 void app_main()
 {
     // printf("SapphireOS ESP32 HAL\n");
@@ -40,6 +42,8 @@ void app_main()
             libs_v_init();
         }
     }
+
+    wifi_init_sta();
 
     while(1);
 

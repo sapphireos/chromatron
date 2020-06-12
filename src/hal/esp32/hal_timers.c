@@ -23,18 +23,30 @@
 #include "system.h"
 
 #include "hal_cpu.h"
-#include "os_irq.h"
 #include "timers.h"
-#include "power.h"
 #include "hal_timers.h"
-#include "hal_watchdog.h"
-#include "logging.h"
+#include "driver/timer.h"
 
-// static uint32_t last_sys_time;
-// static uint32_t overflows;
+#define TICKS_TO_US(a) (a / 40000000)
+
 
 void hal_timer_v_init( void ){
+    // APB clock is 80 MHz
+    // divider = 2
+    // HAL timer is 40 MHz
 
+    timer_config_t config = {
+        FALSE,
+        FALSE,
+        0,
+        TIMER_COUNT_UP,
+        TRUE, // auto reload
+        2 // divider = 2
+    };
+
+    timer_init( HAL_TIMER_GROUP, HAL_TIMER_INDEX, &config );
+    timer_set_counter_value(HAL_TIMER_GROUP, HAL_TIMER_INDEX, 0);
+    timer_start( HAL_TIMER_GROUP, HAL_TIMER_INDEX );
 }
 
 bool tmr_b_io_timers_running( void ){
@@ -45,22 +57,11 @@ bool tmr_b_io_timers_running( void ){
 
 uint64_t tmr_u64_get_system_time_us( void ){
 
-    return 0;
-    
- //    #ifndef BOOTLOADER
-	// uint32_t now = system_get_time();
+    uint64_t ticks = 0;
 
-	// if( now < last_sys_time ){
+    timer_get_counter_value( HAL_TIMER_GROUP, HAL_TIMER_INDEX, &ticks );
 
- //        // log_v_debug_P( PSTR("%lu %lu %lu"), now, last_sys_time, overflows );
-
-	// 	overflows++;
-	// }
-
-	// last_sys_time = now;
-
- //    return (uint64_t)overflows * 0x100000000 + now;
- //    #endif
+    return TICKS_TO_US(ticks);
 }
 
 

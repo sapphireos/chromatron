@@ -193,8 +193,9 @@ int8_t ffs_fw_i8_init( void ){
     }
 
     // check CRC or if partition length is bad
-    if( ( sys_fw_length != ext_fw_length ) ||
-        ( ffs_fw_u16_crc() != 0 ) ){
+    if( ffs_fw_u16_crc() != 0 ){
+    // if( ( sys_fw_length != ext_fw_length ) ||
+    //     ( ffs_fw_u16_crc() != 0 ) ){
 
         // CRC is bad
 

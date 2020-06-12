@@ -33,6 +33,8 @@
 
 #include "hal_arp.h"
 
+#include "esp_wifi.h"
+
 
 #ifdef ENABLE_WIFI
 
