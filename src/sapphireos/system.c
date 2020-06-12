@@ -290,6 +290,7 @@ void sys_v_check_recovery_mode( void ){
     if( sys_b_is_recovery_mode() ){
 
         #ifndef DISABLE_SAFE_MODE
+        trace_printf("Recovery safe mode activated\n");
         sys_mode = SYS_MODE_SAFE;
         #endif    
     }   
