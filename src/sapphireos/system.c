@@ -69,8 +69,6 @@ static sys_warnings_t warnings;
 static uint8_t reboot_delay;
 static bool is_rebooting;
 
-static bool interrupts_enabled = FALSE;
-
 
 #ifndef BOOTLOADER
 FW_INFO_SECTION fw_info_t fw_info;
@@ -754,13 +752,5 @@ PT_END( pt );
 
 void sys_v_enable_interrupts( void ){
 
-    interrupts_enabled = TRUE;
     ENABLE_INTERRUPTS;
 }
-
-void sys_v_disable_interrupts( void ){
-
-    DISABLE_INTERRUPTS;
-    interrupts_enabled = FALSE;
-}
-

@@ -198,6 +198,5 @@ void sys_v_set_warnings( sys_warnings_t flags );
 sys_warnings_t sys_u32_get_warnings( void );
 
 void sys_v_enable_interrupts( void );
-void sys_v_disable_interrupts( void );
 
 #endif

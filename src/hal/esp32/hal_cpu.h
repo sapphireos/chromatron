@@ -28,13 +28,15 @@
 
 #include "bool.h"
 #include "trace.h"
-// #define trace_printf(...)
+#include "freertos/FreeRTOS.h"
+#include "freertos/portmacro.h"
 
+// we don't have manual control of interrupts on the ESP32 (at least, not easily)
 #define ENABLE_INTERRUPTS 
 #define DISABLE_INTERRUPTS
 
-#define ATOMIC 
-#define END_ATOMIC 
+#define ATOMIC unsigned __atomic_state = portENTER_CRITICAL_NESTED()
+#define END_ATOMIC portEXIT_CRITICAL_NESTED(__atomic_state)
 
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*
