@@ -40,6 +40,10 @@
 #include "keyvalue.h"
 
 
+#ifdef ESP32
+#include "esp_spi_flash.h"
+#endif
+
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
 static int32_t kv_test_array[4];
@@ -167,9 +171,16 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // get address of hash index
+    #ifdef ESP32
+    uint32_t kv_index_start = FW_START_OFFSET + 0x10000 + 
+                                ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
+                                ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
+    trace_printf("index: 0x%0x 0x%0x %d\n", kv_index_start, FW_START_OFFSET, ffs_fw_u32_read_internal_length());
+    #else
     uint32_t kv_index_start = FLASH_START +
                               ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
                               ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
+    #endif
     int16_t first = 0;
     int16_t last = _kv_u16_fixed_count() - 1;
     int16_t middle = ( first + last ) / 2;
@@ -182,6 +193,8 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         #ifdef AVR
         memcpy_PF( &index_entry, addr, sizeof(index_entry) );
+        #elif defined(ESP32)
+        spi_flash_read( addr, &index_entry, sizeof(index_entry) );
         #else
         memcpy_PF( &index_entry, (void *)addr, sizeof(index_entry) );
         #endif

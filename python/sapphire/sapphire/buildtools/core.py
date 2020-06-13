@@ -1173,7 +1173,8 @@ class AppBuilder(HexBuilder):
         ih.puts(ih.maxaddr() + 1, '\0' * padding)
                 
         # write index to end of hex file
-        ih.puts(ih.maxaddr() + 1, kv_index)
+        kv_index_addr = ih.maxaddr() + 1
+        ih.puts(kv_index_addr, kv_index)
 
         size = ih.maxaddr() - ih.minaddr() + 1
 
@@ -1207,6 +1208,7 @@ class AppBuilder(HexBuilder):
         logging.info("fwid: %s" % (fwid))
         logging.info("fwinfo: %x" % (fw_info_addr))
         logging.info("kv index len: %d" % (len(kv_index)))
+        logging.info("kv index addr: 0x%0x" % (kv_index_addr))
         logging.info("os name: %s" % (os_project.proj_name))
         logging.info("os version: %s" % (os_project.version))
         logging.info("app name: %s" % (self.settings['PROJ_NAME']))
