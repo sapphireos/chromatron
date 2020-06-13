@@ -30,4 +30,15 @@
 
 #include "udp.h"
 
+#include "driver/gpio.h"
+
+#define HAL_CMD_UART UART_NUM_0
+
+#define HAL_CMD_RX_BUF_SIZE 256
+
+#define HAL_CMD_TXD GPIO_NUM_1
+#define HAL_CMD_RXD GPIO_NUM_3
+
+void hal_cmd_usart_v_init( void );
+
 #endif

@@ -27,6 +27,10 @@
 
 #include "cmd_usart.h"
 
+#include "hal_cmd_usart.h"
+
+#include "driver/uart.h"
+
 
 void cmd_usart_v_set_baud( baud_t baud ){
 
@@ -87,3 +91,21 @@ void cmd_usart_v_flush( void ){
 
 }
 
+
+void hal_cmd_usart_v_init( void ){
+
+    uart_config_t uart_config = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+    };
+    uart_param_config(HAL_CMD_UART, &uart_config);
+    uart_set_pin(HAL_CMD_UART, HAL_CMD_TXD, HAL_CMD_RXD, -1, -1);
+    uart_driver_install(HAL_CMD_UART, HAL_CMD_RX_BUF_SIZE, 0, 0, NULL, 0);
+}
+
+
+
+    

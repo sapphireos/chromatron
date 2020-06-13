@@ -35,6 +35,7 @@
 #include "logging.h"
 
 #include "cmd_usart.h"
+#include "hal_cmd_usart.h"
 
 
 #ifdef PRINTF_SUPPORT
@@ -118,6 +119,9 @@ ROUTING_TABLE routing_table_entry_t cmd_usart_route = {
 void cmd_usart_v_init( void ){
 
     #ifdef ENABLE_USB_UDP_TRANSPORT
+    
+    hal_cmd_usart_v_init();
+
     // create serial thread
     thread_t_create( serial_udp_thread,
                      PSTR("serial_udp"),

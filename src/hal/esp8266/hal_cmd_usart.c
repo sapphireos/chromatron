@@ -113,3 +113,8 @@ void cmd_usart_v_flush( void ){
     #endif
 }
 
+void hal_cmd_usart_v_init( void ){
+
+    
+}
+

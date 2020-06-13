@@ -30,4 +30,6 @@
 
 #include "udp.h"
 
+void hal_cmd_usart_v_init( void );
+
 #endif
