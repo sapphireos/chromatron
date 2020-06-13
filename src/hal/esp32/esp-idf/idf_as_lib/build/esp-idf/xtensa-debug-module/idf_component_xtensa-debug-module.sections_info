@@ -41,47 +41,37 @@ trax.c.obj:     file format elf32-xtensa-le
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .literal.trax_enable 00000010  00000000  00000000  00000034  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  1 .literal.trax_start_trace 00000010  00000000  00000000  00000044  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  2 .literal.trax_trigger_traceend_after_delay 00000010  00000000  00000000  00000054  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  3 .text         00000000  00000000  00000000  00000064  2**0
+  0 .text         00000000  00000000  00000000  00000034  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  4 .data         00000000  00000000  00000000  00000064  2**0
+  1 .data         00000000  00000000  00000000  00000034  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  5 .bss          00000000  00000000  00000000  00000064  2**0
+  2 .bss          00000000  00000000  00000000  00000034  2**0
                   ALLOC
-  6 .rodata.str1.4 00000111  00000000  00000000  00000064  2**2
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .text.trax_enable 00000021  00000000  00000000  00000178  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  8 .text.trax_start_trace 00000021  00000000  00000000  0000019c  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  9 .text.trax_trigger_traceend_after_delay 00000021  00000000  00000000  000001c0  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 10 .debug_frame  00000058  00000000  00000000  000001e4  2**2
+  3 .text.trax_enable 00000008  00000000  00000000  00000034  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  4 .text.trax_start_trace 00000008  00000000  00000000  0000003c  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  5 .text.trax_trigger_traceend_after_delay 00000008  00000000  00000000  00000044  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  6 .debug_frame  00000058  00000000  00000000  0000004c  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 11 .debug_info   00000270  00000000  00000000  0000023c  2**0
+  7 .debug_info   000001c5  00000000  00000000  000000a4  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 12 .debug_abbrev 000000d9  00000000  00000000  000004ac  2**0
+  8 .debug_abbrev 000000ad  00000000  00000000  00000269  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_loc    00000063  00000000  00000000  00000585  2**0
+  9 .debug_loc    00000063  00000000  00000000  00000316  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 14 .debug_aranges 00000030  00000000  00000000  000005e8  2**0
+ 10 .debug_aranges 00000030  00000000  00000000  00000379  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 15 .debug_ranges 00000020  00000000  00000000  00000618  2**0
+ 11 .debug_ranges 00000020  00000000  00000000  000003a9  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 16 .debug_line   00000200  00000000  00000000  00000638  2**0
+ 12 .debug_line   000001ee  00000000  00000000  000003c9  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 17 .debug_str    00000327  00000000  00000000  00000838  2**0
+ 13 .debug_str    00000307  00000000  00000000  000005b7  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .comment      0000003b  00000000  00000000  00000b5f  2**0
+ 14 .comment      0000003b  00000000  00000000  000008be  2**0
                   CONTENTS, READONLY
- 19 .xtensa.info  00000038  00000000  00000000  00000b9a  2**0
+ 15 .xtensa.info  00000038  00000000  00000000  000008f9  2**0
                   CONTENTS, READONLY
- 20 .xt.lit       00000018  00000000  00000000  00000bd2  2**0
-                  CONTENTS, RELOC, READONLY
- 21 .xt.prop      00000090  00000000  00000000  00000bea  2**0
+ 16 .xt.prop      0000006c  00000000  00000000  00000931  2**0
                   CONTENTS, RELOC, READONLY

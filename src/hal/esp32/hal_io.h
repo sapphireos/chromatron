@@ -29,8 +29,6 @@
 #include "io_intf.h"
 #include "cpu.h"
 
-#ifdef ENABLE_COPROCESSOR
-
 #define IO_PIN_0_GPIO       0 // PA4
 #define IO_PIN_1_XCK        1 // PC5
 #define IO_PIN_2_TXD        2 // PC7
@@ -49,8 +47,6 @@
 #define IO_PIN_LED_BLUE     14 // PD4
 
 #define IO_PIN_COUNT        15
-
-#endif
 
 void io_v_set_esp_led( bool state );
 
