@@ -36,6 +36,8 @@
 // #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
 
+//#define ENABLE_TRACE
+
 // wifi
 #define WIFI_MAX_PORTS          16
 #define WIFI_MAX_RX_NETMSGS		16

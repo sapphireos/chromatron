@@ -23,8 +23,14 @@
 #ifndef _TRACE_H	
 #define _TRACE_H
 
+int dummy_printf(const char* format, ...);
+
 #ifndef BOOTLOADER
+#ifdef ENABLE_TRACE
 #define trace_printf printf
+#else
+#define trace_printf dummy_printf
+#endif
 #else
 #include "rom/ets_sys.h"
 #define trace_printf ets_printf
