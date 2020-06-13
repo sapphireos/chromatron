@@ -167,175 +167,177 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  39 .literal.emac_ioctl 00000034  00000000  00000000  000003e0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 40 .literal.esp_eth_enable 0000001c  00000000  00000000  00000414  2**2
+ 40 .literal.esp_eth_enable 00000034  00000000  00000000  00000414  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 41 .literal.esp_eth_disable 00000008  00000000  00000000  00000430  2**2
+ 41 .literal.esp_eth_disable 00000014  00000000  00000000  00000448  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 42 .iram1.19.literal 00000024  00000000  00000000  00000438  2**2
+ 42 .iram1.19.literal 00000024  00000000  00000000  0000045c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 43 .literal.esp_eth_init_internal 000000d8  00000000  00000000  0000045c  2**2
+ 43 .literal.esp_eth_init_internal 000000d8  00000000  00000000  00000480  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 44 .literal.esp_eth_init 00000008  00000000  00000000  00000534  2**2
+ 44 .literal.esp_eth_init 00000008  00000000  00000000  00000558  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 45 .literal.esp_eth_deinit 00000060  00000000  00000000  0000053c  2**2
+ 45 .literal.esp_eth_deinit 00000060  00000000  00000000  00000560  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 46 .text         00000000  00000000  00000000  0000059c  2**0
+ 46 .text         00000000  00000000  00000000  000005c0  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 47 .data         00000000  00000000  00000000  0000059c  2**0
+ 47 .data         00000000  00000000  00000000  000005c0  2**0
                   CONTENTS, ALLOC, LOAD, DATA
- 48 .bss          00000000  00000000  00000000  0000059c  2**0
+ 48 .bss          00000000  00000000  00000000  000005c0  2**0
                   ALLOC
- 49 .text.emac_setup_tx_desc 0000000f  00000000  00000000  0000059c  2**2
+ 49 .text.emac_setup_tx_desc 0000000f  00000000  00000000  000005c0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 50 .text.emac_clean_tx_desc 0000000b  00000000  00000000  000005ac  2**2
+ 50 .text.emac_clean_tx_desc 0000000b  00000000  00000000  000005d0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 51 .text.emac_clean_rx_desc 00000014  00000000  00000000  000005b8  2**2
+ 51 .text.emac_clean_rx_desc 00000014  00000000  00000000  000005dc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 52 .text.emac_set_tx_base_reg 00000012  00000000  00000000  000005cc  2**2
+ 52 .text.emac_set_tx_base_reg 00000012  00000000  00000000  000005f0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 53 .text.emac_set_rx_base_reg 00000012  00000000  00000000  000005e0  2**2
+ 53 .text.emac_set_rx_base_reg 00000012  00000000  00000000  00000604  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 54 .text.emac_reset_dma_chain 00000016  00000000  00000000  000005f4  2**2
+ 54 .text.emac_reset_dma_chain 00000016  00000000  00000000  00000618  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 55 .text.emac_init_dma_chain 000000a5  00000000  00000000  0000060c  2**2
+ 55 .text.emac_init_dma_chain 000000a5  00000000  00000000  00000630  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 56 .text.emac_set_user_config_data 00000052  00000000  00000000  000006b4  2**2
+ 56 .text.emac_set_user_config_data 00000052  00000000  00000000  000006d8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 57 .text.emac_enable_intr 00000010  00000000  00000000  00000708  2**2
+ 57 .text.emac_enable_intr 00000010  00000000  00000000  0000072c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 58 .text.emac_disable_intr 0000000f  00000000  00000000  00000718  2**2
+ 58 .text.emac_disable_intr 0000000f  00000000  00000000  0000073c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 59 .iram1.18     00000023  00000000  00000000  00000728  2**2
+ 59 .iram1.18     00000023  00000000  00000000  0000074c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 60 .text.emac_process_rx 00000080  00000000  00000000  0000074c  2**2
+ 60 .text.emac_process_rx 00000080  00000000  00000000  00000770  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 61 .text.emac_process_rx_unavail 00000096  00000000  00000000  000007cc  2**2
+ 61 .text.emac_process_rx_unavail 00000096  00000000  00000000  000007f0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 62 .text.emac_set_macaddr_reg 00000050  00000000  00000000  00000864  2**2
+ 62 .text.emac_set_macaddr_reg 00000050  00000000  00000000  00000888  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 63 .text.emac_hw_init 0000000b  00000000  00000000  000008b4  2**2
+ 63 .text.emac_hw_init 0000000b  00000000  00000000  000008d8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 64 .rodata.str1.4 00000482  00000000  00000000  000008c0  2**2
+ 64 .rodata.str1.4 0000048e  00000000  00000000  000008e4  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 65 .text.emac_verify_args 000001c0  00000000  00000000  00000d44  2**2
+ 65 .text.emac_verify_args 000001c0  00000000  00000000  00000d74  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 66 .text.emac_process_tx 0000008c  00000000  00000000  00000f04  2**2
+ 66 .text.emac_process_tx 0000008c  00000000  00000000  00000f34  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 67 .text.emac_check_phy_init 0000008a  00000000  00000000  00000f90  2**2
+ 67 .text.emac_check_phy_init 0000008a  00000000  00000000  00000fc0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 68 .text.emac_process_link_updown 00000053  00000000  00000000  0000101c  2**2
+ 68 .text.emac_process_link_updown 00000053  00000000  00000000  0000104c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 69 .text.emac_link_check_timer_init 00000028  00000000  00000000  00001070  2**2
+ 69 .text.emac_link_check_timer_init 00000028  00000000  00000000  000010a0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 70 .text.emac_link_check_timer_start 0000002b  00000000  00000000  00001098  2**2
+ 70 .text.emac_link_check_timer_start 0000002b  00000000  00000000  000010c8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 71 .text.emac_link_check_timer_delete 0000001e  00000000  00000000  000010c4  2**2
+ 71 .text.emac_link_check_timer_delete 0000001e  00000000  00000000  000010f4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 72 .text.emac_link_check_timer_stop 00000024  00000000  00000000  000010e4  2**2
+ 72 .text.emac_link_check_timer_stop 00000024  00000000  00000000  00001114  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 73 .text.emac_stop 00000052  00000000  00000000  00001108  2**2
+ 73 .text.emac_stop 00000052  00000000  00000000  00001138  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 74 .text.emac_init_default_data 00000013  00000000  00000000  0000115c  2**2
+ 74 .text.emac_init_default_data 00000013  00000000  00000000  0000118c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 75 .text.emac_macaddr_init 00000010  00000000  00000000  00001170  2**2
+ 75 .text.emac_macaddr_init 00000010  00000000  00000000  000011a0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 76 .text.esp_eth_get_mac 00000012  00000000  00000000  00001180  2**2
+ 76 .text.esp_eth_get_mac 00000012  00000000  00000000  000011b0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 77 .text.esp_eth_set_mac 00000021  00000000  00000000  00001194  2**2
+ 77 .text.esp_eth_set_mac 00000021  00000000  00000000  000011c4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 78 .text.esp_eth_get_speed 00000010  00000000  00000000  000011b8  2**2
+ 78 .text.esp_eth_get_speed 00000010  00000000  00000000  000011e8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 79 .text.esp_eth_smi_write 00000049  00000000  00000000  000011c8  2**2
+ 79 .text.esp_eth_smi_write 00000049  00000000  00000000  000011f8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 80 .text.esp_eth_smi_read 00000048  00000000  00000000  00001214  2**2
+ 80 .text.esp_eth_smi_read 00000048  00000000  00000000  00001244  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 81 .text.esp_eth_smi_wait_value 00000069  00000000  00000000  0000125c  2**2
+ 81 .text.esp_eth_smi_wait_value 00000069  00000000  00000000  0000128c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 82 .text.emac_reset 000000b0  00000000  00000000  000012c8  2**2
+ 82 .text.emac_reset 000000b0  00000000  00000000  000012f8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 83 .text.emac_start 000000a6  00000000  00000000  00001378  2**2
+ 83 .text.emac_start 000000a6  00000000  00000000  000013a8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 84 .text.esp_eth_free_rx_buf 000000bf  00000000  00000000  00001420  2**2
+ 84 .text.esp_eth_free_rx_buf 000000bf  00000000  00000000  00001450  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 85 .text.esp_eth_tx 000000b0  00000000  00000000  000014e0  2**2
+ 85 .text.esp_eth_tx 000000b0  00000000  00000000  00001510  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 86 .text.emac_process_link_check 0000003a  00000000  00000000  00001590  2**2
+ 86 .text.emac_process_link_check 0000003a  00000000  00000000  000015c0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 87 .text.emac_task 000000a7  00000000  00000000  000015cc  2**2
+ 87 .text.emac_task 000000a7  00000000  00000000  000015fc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 88 .rodata.emac_task 00000018  00000000  00000000  00001674  2**2
+ 88 .rodata.emac_task 00000018  00000000  00000000  000016a4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, DATA
- 89 .iram1.20     00000090  00000000  00000000  0000168c  2**2
+ 89 .iram1.20     00000090  00000000  00000000  000016bc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 90 .text.emac_link_check_func 0000000f  00000000  00000000  0000171c  2**2
+ 90 .text.emac_link_check_func 0000000f  00000000  00000000  0000174c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 91 .text.emac_ioctl 000000a0  00000000  00000000  0000172c  2**2
+ 91 .text.emac_ioctl 000000a0  00000000  00000000  0000175c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 92 .text.esp_eth_enable 00000072  00000000  00000000  000017cc  2**2
+ 92 .text.esp_eth_enable 000000b1  00000000  00000000  000017fc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 93 .text.esp_eth_disable 0000003d  00000000  00000000  00001840  2**2
+ 93 .text.esp_eth_disable 00000059  00000000  00000000  000018b0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 94 .iram1.19     00000093  00000000  00000000  00001880  2**2
+ 94 .iram1.19     00000093  00000000  00000000  0000190c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 95 .text.esp_eth_init_internal 000002ec  00000000  00000000  00001914  2**2
+ 95 .text.esp_eth_init_internal 000002e8  00000000  00000000  000019a0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 96 .text.esp_eth_init 00000015  00000000  00000000  00001c00  2**2
+ 96 .text.esp_eth_init 00000015  00000000  00000000  00001c88  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 97 .text.esp_eth_deinit 000000e5  00000000  00000000  00001c18  2**2
+ 97 .text.esp_eth_deinit 000000e5  00000000  00000000  00001ca0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 98 .bss.pause_send 00000001  00000000  00000000  00001cfd  2**0
+ 98 .bss.s_pm_lock 00000004  00000000  00000000  00001d88  2**2
                   ALLOC
- 99 .bss.eth_intr_handle 00000004  00000000  00000000  00001d00  2**2
+ 99 .bss.pause_send 00000001  00000000  00000000  00001d88  2**0
                   ALLOC
-100 .bss.emac_tx_xMutex 00000004  00000000  00000000  00001d00  2**2
+100 .bss.eth_intr_handle 00000004  00000000  00000000  00001d88  2**2
                   ALLOC
-101 .bss.emac_rx_xMutex 00000004  00000000  00000000  00001d00  2**2
+101 .bss.emac_tx_xMutex 00000004  00000000  00000000  00001d88  2**2
                   ALLOC
-102 .bss.emac_timer 00000004  00000000  00000000  00001d00  2**2
+102 .bss.emac_rx_xMutex 00000004  00000000  00000000  00001d88  2**2
                   ALLOC
-103 .bss.emac_sig_cnt 00000032  00000000  00000000  00001d00  2**2
+103 .bss.emac_timer 00000004  00000000  00000000  00001d88  2**2
                   ALLOC
-104 .bss.emac_xqueue 00000004  00000000  00000000  00001d00  2**2
+104 .bss.emac_sig_cnt 00000032  00000000  00000000  00001d88  2**2
                   ALLOC
-105 .bss.emac_task_hdl 00000004  00000000  00000000  00001d00  2**2
+105 .bss.emac_xqueue 00000004  00000000  00000000  00001d88  2**2
                   ALLOC
-106 .data.g_emac_mux 00000008  00000000  00000000  00001d00  2**2
+106 .bss.emac_task_hdl 00000004  00000000  00000000  00001d88  2**2
+                  ALLOC
+107 .data.g_emac_mux 00000008  00000000  00000000  00001d88  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-107 .bss.emac_g_sem 00000004  00000000  00000000  00001d08  2**2
+108 .bss.emac_g_sem 00000004  00000000  00000000  00001d90  2**2
                   ALLOC
-108 .bss.emac_dma_tx_buf 00000028  00000000  00000000  00001d08  2**2
+109 .bss.emac_dma_tx_buf 00000028  00000000  00000000  00001d90  2**2
                   ALLOC
-109 .bss.emac_dma_rx_buf 00000028  00000000  00000000  00001d08  2**2
+110 .bss.emac_dma_rx_buf 00000028  00000000  00000000  00001d90  2**2
                   ALLOC
-110 .bss.emac_dma_tx_chain_buf 00000004  00000000  00000000  00001d08  2**2
+111 .bss.emac_dma_tx_chain_buf 00000004  00000000  00000000  00001d90  2**2
                   ALLOC
-111 .bss.emac_dma_rx_chain_buf 00000004  00000000  00000000  00001d08  2**2
+112 .bss.emac_dma_rx_chain_buf 00000004  00000000  00000000  00001d90  2**2
                   ALLOC
-112 .bss.emac_config 00000070  00000000  00000000  00001d08  2**2
+113 .bss.emac_config 00000070  00000000  00000000  00001d90  2**2
                   ALLOC
-113 .debug_frame  00000478  00000000  00000000  00001d08  2**2
+114 .debug_frame  00000478  00000000  00000000  00001d90  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
-114 .debug_info   00002d52  00000000  00000000  00002180  2**0
+115 .debug_info   00002e2f  00000000  00000000  00002208  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-115 .debug_abbrev 000004b7  00000000  00000000  00004ed2  2**0
+116 .debug_abbrev 000004b7  00000000  00000000  00005037  2**0
                   CONTENTS, READONLY, DEBUGGING
-116 .debug_loc    0000099f  00000000  00000000  00005389  2**0
+117 .debug_loc    000009bd  00000000  00000000  000054ee  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-117 .debug_aranges 00000190  00000000  00000000  00005d28  2**0
+118 .debug_aranges 00000190  00000000  00000000  00005eab  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-118 .debug_ranges 00000198  00000000  00000000  00005eb8  2**0
+119 .debug_ranges 00000198  00000000  00000000  0000603b  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-119 .debug_line   000015a2  00000000  00000000  00006050  2**0
+120 .debug_line   000015ea  00000000  00000000  000061d3  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-120 .debug_str    00001da0  00000000  00000000  000075f2  2**0
+121 .debug_str    00001e57  00000000  00000000  000077bd  2**0
                   CONTENTS, READONLY, DEBUGGING
-121 .comment      0000003b  00000000  00000000  00009392  2**0
+122 .comment      0000003b  00000000  00000000  00009614  2**0
                   CONTENTS, READONLY
-122 .xtensa.info  00000038  00000000  00000000  000093cd  2**0
+123 .xtensa.info  00000038  00000000  00000000  0000964f  2**0
                   CONTENTS, READONLY
-123 .xt.lit       00000170  00000000  00000000  00009405  2**0
+124 .xt.lit       00000170  00000000  00000000  00009687  2**0
                   CONTENTS, RELOC, READONLY
-124 .xt.prop      000010e0  00000000  00000000  00009575  2**0
+125 .xt.prop      00001104  00000000  00000000  000097f7  2**0
                   CONTENTS, RELOC, READONLY
 
 phy_common.c.obj:     file format elf32-xtensa-le
