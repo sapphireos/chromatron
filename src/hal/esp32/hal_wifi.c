@@ -393,7 +393,7 @@ void wifi_v_shutdown( void ){
 }
 
 bool wifi_b_connected( void ){
-
+    
 	return connected;
 }
 
@@ -714,7 +714,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         {
-            ESP_LOGI(TAG,"connect to the AP fail\n");
+            ESP_LOGI(TAG,"disconnect\n");
             break;
         }
     case SYSTEM_EVENT_SCAN_DONE:

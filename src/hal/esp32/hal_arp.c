@@ -31,6 +31,11 @@
 void hal_arp_v_gratuitous_arp( void ){
 
     for (struct netif* interface = netif_list; interface != 0; interface = interface->next){
+        
+        if( interface->hwaddr_len != ETH_HWADDR_LEN ){
+
+            continue;
+        }
 
         etharp_gratuitous(interface);
     }
