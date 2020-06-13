@@ -243,6 +243,8 @@ static void write_block( uint16_t block_number, const cfg_block_t *block ){
     // write everything except the ID
     ee_v_write_block( addr + 1, data + 1, sizeof(cfg_block_t) - 1 );
 
+    trace_printf("write block\n");
+
     // write ID
     ee_v_write_byte_blocking( addr, block->id );
 }
@@ -364,6 +366,8 @@ static void write_param( catbus_hash_t32 parameter, void *value ){
     // parameter not found
     if( type < 0 ){
 
+        trace_printf("PARAM NOT FOUND\n");
+
         // bail out
         return;
     }
@@ -417,6 +421,8 @@ static void write_param( catbus_hash_t32 parameter, void *value ){
 
         // no blocks available, that's sad
         if( free_block < 0 ){
+
+            trace_printf("SYS_WARN_CONFIG_FULL\n");
 
             sys_v_set_warnings( SYS_WARN_CONFIG_FULL );
 

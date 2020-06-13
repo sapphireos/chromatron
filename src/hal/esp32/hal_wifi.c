@@ -674,6 +674,8 @@ static bool is_ssid_configured( void ){
 	memset( ssid, 0, sizeof(ssid) );
 	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
 
+    trace_printf("meow: %s\n", ssid);
+
    	if( ssid[0] != 0 ){
 
    		return TRUE;
