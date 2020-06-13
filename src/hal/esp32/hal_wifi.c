@@ -289,12 +289,6 @@ static bool is_rx( void ){
             continue;
         }
 
-        // struct sockaddr_in sourceAddr; // Large enough for both IPv4 or IPv6
-        // socklen_t socklen = sizeof(sourceAddr);
-
-        // uint8_t temp;
-
-        // int s = recvfrom( esp_conn[i].sock, &temp, 1, MSG_DONTWAIT | MSG_PEEK, (struct sockaddr *)&sourceAddr, &socklen );
         int s = 0;
         int rc = ioctl( esp_conn[i].sock, FIONREAD, &s );
 
