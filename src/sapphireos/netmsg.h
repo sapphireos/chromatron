@@ -77,7 +77,7 @@ typedef int8_t ( *route_i8_get_route )( ip_addr4_t *subnet, ip_addr4_t *subnet_m
 typedef int8_t ( *route_i8_transmit_msg )( netmsg_t msg );
 typedef void ( *route_v_open_close_port )( uint8_t protocol, uint16_t port, bool open );
 
-typedef struct{
+typedef struct __attribute__((aligned(4))){
     route_i8_get_route get_route;
     route_i8_transmit_msg tx_func;
     route_v_open_close_port open_close_port;
