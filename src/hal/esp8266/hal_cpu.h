@@ -28,13 +28,19 @@
 #include "osapi.h"
 #include "bool.h"
 #include "trace.h"
-// #define trace_printf(...)
 
-#define ENABLE_INTERRUPTS 
-#define DISABLE_INTERRUPTS
+// borrowed from Arduino.h
+#ifndef __STRINGIFY
+#define __STRINGIFY(a) #a
+#endif
+#define xt_rsil(level) (__extension__({uint32_t state; __asm__ __volatile__("rsil %0," __STRINGIFY(level) : "=a" (state)); state;}))
+#define xt_wsr_ps(state)  __asm__ __volatile__("wsr %0,ps; isync" :: "a" (state) : "memory")
 
-#define ATOMIC 
-#define END_ATOMIC 
+#define ENABLE_INTERRUPTS xt_rsil(0)
+#define DISABLE_INTERRUPTS xt_rsil(15)
+
+#define ATOMIC int __atomic_state = xt_rsil(15)
+#define END_ATOMIC xt_wsr_ps(__atomic_state)
 
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*
