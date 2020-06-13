@@ -273,30 +273,90 @@ void wifi_v_init( void ){
 //     list_v_insert_head( &rx_list, rx_netmsg );
 // }
 
-
-
-PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    // while(1){
-
-        // THREAD_WAIT_WHILE( pt, list_u8_count( &rx_list ) == 0 );
-        // THREAD_WAIT_WHILE( pt, sock_b_rx_pending() ); // wait while sockets are busy
-
-        // netmsg_t rx_netmsg = list_ln_remove_tail( &rx_list );
-        // netmsg_v_receive( rx_netmsg );
-    // }   
-
-PT_END( pt );
-}
-
 typedef struct{
     int sock;
     uint16_t lport;
 } esp_conn_t;
 
 static esp_conn_t esp_conn[WIFI_MAX_PORTS];
+
+
+PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+        THREAD_YIELD( pt );
+        THREAD_WAIT_WHILE( pt, sock_b_rx_pending() ); // wait while sockets are busy
+
+        
+        for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
+            
+            if( esp_conn[i].lport == 0 ){
+
+                continue;
+            }
+
+            uint8_t buf[MAX_IP_PACKET_SIZE];
+            struct sockaddr_in sourceAddr; // Large enough for both IPv4 or IPv6
+            socklen_t socklen = sizeof(sourceAddr);
+
+            int s = recvfrom( esp_conn[i].sock, buf, sizeof(buf), MSG_DONTWAIT, (struct sockaddr *)&sourceAddr, &socklen );
+
+            if( s >= 0 ){
+
+                uint16_t len = s;
+
+                trace_printf("recv %d @ %d from 0x%x:%d\n", s, esp_conn[i].lport, sourceAddr.sin_addr.s_addr, htons(sourceAddr.sin_port));
+
+                netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
+
+                if( rx_netmsg < 0 ){
+
+                    log_v_debug_P( PSTR("rx udp alloc fail") );     
+
+                    break;
+                }
+                
+                netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
+
+                // set up addressing info
+                state->laddr.port       = esp_conn[i].lport;
+                state->raddr.port       = htons(sourceAddr.sin_port);
+                state->raddr.ipaddr.ip3 = sourceAddr.sin_addr.s_addr >> 0;
+                state->raddr.ipaddr.ip2 = sourceAddr.sin_addr.s_addr >> 8;
+                state->raddr.ipaddr.ip1 = sourceAddr.sin_addr.s_addr >> 16;
+                state->raddr.ipaddr.ip0 = sourceAddr.sin_addr.s_addr >> 24;
+
+                // allocate data buffer
+                state->data_handle = mem2_h_alloc2( len, MEM_TYPE_SOCKET_BUFFER );
+
+                if( state->data_handle < 0 ){
+
+                    log_v_error_P( PSTR("rx udp no handle") );     
+
+                    netmsg_v_release( rx_netmsg );
+
+                    break;
+                }      
+
+                // we can get a fast ptr because we've already verified the handle
+                uint8_t *data = mem2_vp_get_ptr_fast( state->data_handle );
+                memcpy( data, buf, len );
+
+                wifi_udp_received++;
+
+                netmsg_v_receive( rx_netmsg );
+            }
+        }
+    }   
+
+PT_END( pt );
+}
+
 
 esp_conn_t* get_conn( uint16_t lport ){
 
@@ -511,7 +571,7 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     uint32_t dest_ip = 0;
     memcpy( &dest_ip, &netmsg_state->raddr.ipaddr, sizeof(dest_ip) );
 
-    // trace_printf("sendto: 0x%lx %d.%d.%d.%d:%u\n", dest_ip, netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
+    trace_printf("sendto: 0x%lx %d.%d.%d.%d:%u\n", dest_ip, netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
 
     struct sockaddr_in destAddr;
     destAddr.sin_addr.s_addr = dest_ip;
