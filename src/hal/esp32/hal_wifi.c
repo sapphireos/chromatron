@@ -106,7 +106,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event);
 static bool scan_done;
 static bool connect_done;
 
-static list_t conn_list;
+// static list_t conn_list;
 // static list_t rx_list;
 
 
@@ -461,70 +461,74 @@ uint32_t wifi_u32_get_received( void ){
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
-	// int8_t status = 0;
+    if( !wifi_b_connected() ){
 
- //    if( !wifi_b_connected() ){
+        return NETMSG_TX_ERR_RELEASE;
+    }
 
- //        return NETMSG_TX_ERR_RELEASE;
- //    }
+    netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
 
- //    netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
+    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
 
- //    ASSERT( netmsg_state->type == NETMSG_TYPE_UDP );
+    uint16_t data_len = 0;
 
- //    uint16_t data_len = 0;
+    uint8_t *data = 0;
+    uint8_t *h2 = 0;
+    uint16_t h2_len = 0;
 
- //    uint8_t *data = 0;
- //    uint8_t *h2 = 0;
- //    uint16_t h2_len = 0;
+    if( netmsg_state->data_handle > 0 ){
 
- //    if( netmsg_state->data_handle > 0 ){
+        data = mem2_vp_get_ptr( netmsg_state->data_handle );
+        data_len = mem2_u16_get_size( netmsg_state->data_handle );
+    }
 
- //        data = mem2_vp_get_ptr( netmsg_state->data_handle );
- //        data_len = mem2_u16_get_size( netmsg_state->data_handle );
- //    }
+    // header 2, if present
+    if( netmsg_state->header_2_handle > 0 ){
 
- //    // header 2, if present
- //    if( netmsg_state->header_2_handle > 0 ){
+        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
+        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
+    }
 
- //        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
- //        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
- //    }
+    // get esp conn
+    esp_conn_t* conn = get_conn( netmsg_state->laddr.port );
 
- //    // get esp conn
- //    struct espconn* conn = get_conn( netmsg_state->laddr.port );
+    // check if general broadcast
+    if( ip_b_check_broadcast( netmsg_state->raddr.ipaddr ) ){
 
- //    // check if general broadcast
- //    if( ip_b_check_broadcast( netmsg_state->raddr.ipaddr ) ){
+        // change to subnet
+        ip_addr4_t subnet;
+        cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, &subnet );
+        ip_addr4_t gw;
+        cfg_i8_get( CFG_PARAM_INTERNET_GATEWAY, &gw );
 
- //        // change to subnet
- //        ip_addr4_t subnet;
- //        cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, &subnet );
- //        ip_addr4_t gw;
- //        cfg_i8_get( CFG_PARAM_INTERNET_GATEWAY, &gw );
+        netmsg_state->raddr.ipaddr.ip3 = ~subnet.ip3 | gw.ip3;
+        netmsg_state->raddr.ipaddr.ip2 = ~subnet.ip2 | gw.ip2;
+        netmsg_state->raddr.ipaddr.ip1 = ~subnet.ip1 | gw.ip1;
+        netmsg_state->raddr.ipaddr.ip0 = ~subnet.ip0 | gw.ip0;
+    }
 
- //        netmsg_state->raddr.ipaddr.ip3 = ~subnet.ip3 | gw.ip3;
- //        netmsg_state->raddr.ipaddr.ip2 = ~subnet.ip2 | gw.ip2;
- //        netmsg_state->raddr.ipaddr.ip1 = ~subnet.ip1 | gw.ip1;
- //        netmsg_state->raddr.ipaddr.ip0 = ~subnet.ip0 | gw.ip0;
- //    }
 
- //    conn->proto.udp->remote_ip[0] = netmsg_state->raddr.ipaddr.ip3;
- //    conn->proto.udp->remote_ip[1] = netmsg_state->raddr.ipaddr.ip2;
- //    conn->proto.udp->remote_ip[2] = netmsg_state->raddr.ipaddr.ip1;
- //    conn->proto.udp->remote_ip[3] = netmsg_state->raddr.ipaddr.ip0;
- //    conn->proto.udp->remote_port = netmsg_state->raddr.port;
+    uint32_t dest_ip = 0;
+    memcpy( &dest_ip, &netmsg_state->raddr.ipaddr, sizeof(dest_ip) );
 
- //    // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
- //    if( espconn_sendto( conn, data, data_len ) != 0 ){
+    // trace_printf("sendto: 0x%lx %d.%d.%d.%d:%u\n", dest_ip, netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
 
- //        log_v_debug_P( PSTR("msg failed") );
+    struct sockaddr_in destAddr;
+    destAddr.sin_addr.s_addr = dest_ip;
+    destAddr.sin_family = AF_INET;
+    destAddr.sin_port = htons(netmsg_state->raddr.port);
 
- //        return NETMSG_TX_ERR_RELEASE;   
- //    }
+    int status = sendto( conn->sock, data, data_len, 0, (struct sockaddr *)&destAddr, sizeof(destAddr) );
+
+    if( status < 0 ){
+
+        log_v_debug_P( PSTR("msg failed %d"), status );
+
+        return NETMSG_TX_ERR_RELEASE;   
+    }
     
 
- //    wifi_udp_sent++;
+    wifi_udp_sent++;
 
     return NETMSG_TX_OK_RELEASE;
 }
