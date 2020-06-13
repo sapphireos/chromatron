@@ -43,10 +43,10 @@ PT_BEGIN( pt );
 
     while(1){
 
-        while(1){
-            TMR_WAIT( pt, 1000 );
-            trace_printf("status\n");
-        }
+        // while(1){
+        //     TMR_WAIT( pt, 1000 );
+        //     trace_printf("status\n");
+        // }
 
 
         THREAD_WAIT_WHILE( pt, !enabled );
