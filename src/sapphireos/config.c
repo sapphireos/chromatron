@@ -130,13 +130,22 @@ static uint16_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr
     return len;
 }
 
+
+#ifdef ESP32
+#include "esp_spi_flash.h"
+#endif
+
 static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
 
         case FS_VFILE_OP_READ:
+            #if defined(ESP32)
+            spi_flash_read( FW_LENGTH_ADDRESS, ptr, len );
+            #else
             memcpy_P( ptr, (void *)FW_INFO_ADDRESS + pos + FLASH_START, len );
+            #endif
             break;
 
         case FS_VFILE_OP_SIZE:
