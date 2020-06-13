@@ -24,7 +24,7 @@
 #define _HAL_TIMERS_H
 
 #define HAL_TIMER_GROUP TIMER_GROUP_0
-#define HAL_TIMER_INDEX 0
+#define HAL_TIMER_INDEX TIMER_0
 
 void hal_timer_v_init( void );
 

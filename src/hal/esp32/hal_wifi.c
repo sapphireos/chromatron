@@ -673,7 +673,7 @@ static bool is_ssid_configured( void ){
 	
 	memset( ssid, 0, sizeof(ssid) );
 	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-       
+
    	if( ssid[0] != 0 ){
 
    		return TRUE;
@@ -726,8 +726,6 @@ PT_BEGIN( pt );
         if( !is_ssid_configured() ){
 
             // no SSIDs are configured
-
-            log_v_debug_P( PSTR("AP mode") );
 
             // switch to AP mode
             ap_mode = TRUE;

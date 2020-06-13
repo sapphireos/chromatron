@@ -43,6 +43,12 @@ PT_BEGIN( pt );
 
     while(1){
 
+        while(1){
+            TMR_WAIT( pt, 1000 );
+            trace_printf("status\n");
+        }
+
+
         THREAD_WAIT_WHILE( pt, !enabled );
 
         if( sys_u32_get_warnings() & SYS_WARN_FLASHFS_FAIL ){
@@ -253,8 +259,6 @@ void status_led_v_set( uint8_t state, uint8_t led ){
     reset_all();
  
     if( state == 0 ){
-
-        trace_printf("status\n");
 
         return;
     }

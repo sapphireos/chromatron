@@ -26,9 +26,18 @@
 #include "timers.h"
 #include "hal_timers.h"
 #include "driver/timer.h"
+#include "esp_timer.h"
 
 #define TICKS_TO_US(a) (a / 40000000)
 
+uint64_t get_ticks( void ){
+
+    uint64_t ticks = 0;
+
+    timer_get_counter_value( HAL_TIMER_GROUP, HAL_TIMER_INDEX, &ticks );
+    
+    return ticks;    
+}
 
 void hal_timer_v_init( void ){
     // APB clock is 80 MHz
@@ -36,17 +45,35 @@ void hal_timer_v_init( void ){
     // HAL timer is 40 MHz
 
     timer_config_t config = {
-        FALSE,
-        FALSE,
-        0,
+        TIMER_ALARM_DIS,
+        TIMER_PAUSE,
+        TIMER_INTR_LEVEL,
         TIMER_COUNT_UP,
-        TRUE, // auto reload
+        TIMER_AUTORELOAD_DIS,
         2 // divider = 2
     };
 
-    timer_init( HAL_TIMER_GROUP, HAL_TIMER_INDEX, &config );
-    timer_set_counter_value(HAL_TIMER_GROUP, HAL_TIMER_INDEX, 0);
-    timer_start( HAL_TIMER_GROUP, HAL_TIMER_INDEX );
+    esp_err_t err;
+    err = timer_init( HAL_TIMER_GROUP, HAL_TIMER_INDEX, &config );
+    trace_printf("err: %d\n", err);
+    err = timer_set_counter_value(HAL_TIMER_GROUP, HAL_TIMER_INDEX, 0);
+    trace_printf("err: %d\n", err);
+    err = timer_start( HAL_TIMER_GROUP, HAL_TIMER_INDEX );
+    trace_printf("err: %d\n", err);
+
+    trace_printf("%lu\n", get_ticks());
+    hal_cpu_v_delay_us(100);
+    trace_printf("%lu\n", get_ticks());
+    trace_printf("%lu\n", get_ticks());
+    hal_cpu_v_delay_us(100);
+    trace_printf("%lu\n", get_ticks());
+    trace_printf("%lu\n", get_ticks());
+    hal_cpu_v_delay_us(100);
+    trace_printf("%lu\n", get_ticks());
+    trace_printf("%lu\n", get_ticks());
+    hal_cpu_v_delay_us(100);
+    trace_printf("%lu\n", get_ticks());
+    
 }
 
 bool tmr_b_io_timers_running( void ){
@@ -57,11 +84,8 @@ bool tmr_b_io_timers_running( void ){
 
 uint64_t tmr_u64_get_system_time_us( void ){
 
-    uint64_t ticks = 0;
-
-    timer_get_counter_value( HAL_TIMER_GROUP, HAL_TIMER_INDEX, &ticks );
-
-    return TICKS_TO_US(ticks);
+    // return TICKS_TO_US(get_ticks());
+    return esp_timer_get_time();
 }
 
 
