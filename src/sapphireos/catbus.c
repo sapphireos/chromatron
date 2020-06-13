@@ -1414,7 +1414,7 @@ PT_BEGIN( pt );
 
 
     // create socket
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
 
     ASSERT( sock >= 0 );
 

@@ -46,10 +46,10 @@ typedef list_node_t socket_t;
 typedef int8_t sock_type_t8;
 //#define SOCK_RAW          0x01   // directly over IP - unsupported
 //#define SOCK_STREAM       0x02  // TCP not supported
-#define SOCK_DGRAM          0x04  // uses UDP
+#define SOS_SOCK_DGRAM          0x04  // uses UDP
 
 
-#define SOCK_IS_DGRAM(type) ( type & SOCK_DGRAM )
+#define SOCK_IS_DGRAM(type) ( type & SOS_SOCK_DGRAM )
 
 // UDP states
 #define SOCK_UDP_STATE_IDLE             0

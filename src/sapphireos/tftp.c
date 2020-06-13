@@ -135,7 +135,7 @@ PT_BEGIN( pt );
 	static socket_t sock;
 
 	// create socket
-	sock = sock_s_create( SOCK_DGRAM );
+	sock = sock_s_create( SOS_SOCK_DGRAM );
 
 	ASSERT( sock >= 0 );
 
@@ -213,7 +213,7 @@ PT_THREAD( tftp_read_thread( pt_t *pt, tftp_read_state_t *state ) )
 PT_BEGIN( pt );
 
     // create socket
-    state->sock = sock_s_create( SOCK_DGRAM );
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
 
     // if socket creation fails, kill thread.  client will have to retry
     if( state->sock < 0 ){
@@ -341,7 +341,7 @@ PT_THREAD( tftp_write_thread( pt_t *pt, tftp_write_state_t *state ) )
 PT_BEGIN( pt );
 
     // create socket
-    state->sock = sock_s_create( SOCK_DGRAM );
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
 
     // if socket creation fails, kill thread.  client will have to retry
     if( state->sock < 0 ){

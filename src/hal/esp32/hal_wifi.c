@@ -38,7 +38,9 @@
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
 #include "esp_log.h"
-
+#include "lwip/err.h"
+#include "lwip/sockets.h"
+#include "lwip/sys.h"
 #include "wifi_config.txt"
 
 #ifdef ENABLE_WIFI
@@ -104,7 +106,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event);
 static bool scan_done;
 static bool connect_done;
 
-// static list_t conn_list;
+static list_t conn_list;
 // static list_t rx_list;
 
 
@@ -289,79 +291,85 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+typedef struct{
+    int sock;
+    uint16_t lport;
+} esp_conn_t;
 
-// struct espconn* get_conn( uint16_t lport ){
+static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 
-// 	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
+esp_conn_t* get_conn( uint16_t lport ){
 
-// 		if( esp_conn[i].type == ESPCONN_INVALID ){
+	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
 
-// 			continue;
-// 		}
+		if( esp_conn[i].lport == 0 ){
 
-// 		if( esp_conn[i].proto.udp->local_port == lport ){
+			continue;
+		}
 
-// 			return &esp_conn[i];
-// 		}
-// 	}
+		if( esp_conn[i].lport == lport ){
 
-// 	return 0;
-// }
+			return &esp_conn[i];
+		}
+	}
+
+	return 0;
+}
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
-   //  if( protocol == IP_PROTO_UDP ){
+    if( protocol == IP_PROTO_UDP ){
 
-   //      if( open ){
+        if( open ){
 
-   //      	// trace_printf("Open port: %u\n", port);
+        	// trace_printf("Open port: %u\n", port);
 
-   //      	int8_t index = -1;
-   //      	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
+        	int8_t index = -1;
+        	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
 
-   //      		if( esp_conn[i].type == ESPCONN_INVALID ){
+        		if( esp_conn[i].lport == 0 ){
 
-   //      			index = i;
-   //      			break;
-   //      		}
-   //      	}
+        			index = i;
+        			break;
+        		}
+        	}
 
-   //      	if( index < 0 ){
+        	if( index < 0 ){
 
-   //      		ASSERT( FALSE );
+        		ASSERT( FALSE );
 
-   //      		return;
-   //      	}
+        		return;
+        	}
 
-   //      	memset( &esp_conn[index], 0, sizeof(esp_conn[index]) );
-   //      	memset( &udp_conn[index], 0, sizeof(udp_conn[index]) );
+        	memset( &esp_conn[index], 0, sizeof(esp_conn[index]) );
 
-   //          esp_conn[index].type 			= ESPCONN_UDP;
-			// esp_conn[index].state 			= ESPCONN_NONE; 
-			// esp_conn[index].proto.udp 		= &udp_conn[index];
-			// esp_conn[index].recv_callback 	= udp_recv_callback;
-			// esp_conn[index].sent_callback 	= 0;
-			// esp_conn[index].link_cnt 		= 0;
-			// esp_conn[index].reverse 		= 0;
+            esp_conn[index].lport = port;
+            esp_conn[index].sock  = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );	
 
-			// udp_conn[index].remote_port 	= 0;
-			// udp_conn[index].local_port 		= port;
- 
-			// espconn_create( &esp_conn[index] );
-   //      }
-   //      else{
+            ASSERT( esp_conn[index].sock >= 0 );
+            
+            struct sockaddr_in destAddr;
+            destAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            destAddr.sin_family = AF_INET;
+            destAddr.sin_port = htons(port);
 
-   //      	// trace_printf("Close port: %u\n", port);
+            bind( esp_conn[index].sock, (struct sockaddr *)&destAddr, sizeof(destAddr) );
+        }
+        else{
+
+        	// trace_printf("Close port: %u\n", port);
 			
-			// struct espconn* conn = get_conn( port );
+			esp_conn_t* conn = get_conn( port );
 
-			// if( conn != 0 ){
+			if( conn != 0 ){
 
-			// 	espconn_delete( conn );
-			// 	conn->type = ESPCONN_INVALID;	
-			// }
-   //      }
-   //  }
+				conn->lport = 0;
+
+                shutdown( conn->sock, 0 );
+                close( conn->sock );
+			}
+        }
+    }
 }
 
 int8_t get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
@@ -393,7 +401,7 @@ void wifi_v_shutdown( void ){
 }
 
 bool wifi_b_connected( void ){
-    
+
 	return connected;
 }
 
@@ -993,7 +1001,7 @@ PT_BEGIN( pt );
 
     static socket_t sock;
 
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
     sock_v_bind( sock, 7 );
 
     while(1){

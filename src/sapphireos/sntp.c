@@ -289,7 +289,7 @@ PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
 
     // check socket creation
     if( sock < 0 ){

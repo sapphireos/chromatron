@@ -226,7 +226,7 @@ socket_t sock_s_create( sock_type_t8 type ){
     uint16_t state_size = 0;
 
     // check state size based on type
-    if( type == SOCK_DGRAM ){
+    if( type == SOS_SOCK_DGRAM ){
 
         state_size = sizeof(sock_state_dgram_t);
     }

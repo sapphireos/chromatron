@@ -138,7 +138,7 @@ void time_v_init( void ){
 
     sync_state = STATE_WAIT;
 
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
 
     sock_v_bind( sock, TIME_SERVER_PORT );
 

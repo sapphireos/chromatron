@@ -30,7 +30,7 @@ static socket_t sock;
 
 void influx_v_init( void ){
 
-	sock = sock_s_create( SOCK_DGRAM );
+	sock = sock_s_create( SOS_SOCK_DGRAM );
 }
 
 // myMeasurement,tag1=value1,tag2=value2 fieldKey="fieldValue" 1241543ms

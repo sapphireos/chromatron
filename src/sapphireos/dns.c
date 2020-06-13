@@ -252,7 +252,7 @@ PT_THREAD( resolver_thread( pt_t *pt, resolver_state_t *state ) )
 PT_BEGIN( pt );
 
     // create socket
-    state->sock = sock_s_create( SOCK_DGRAM );
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
 
     // check creation
     if( state->sock < 0 ){

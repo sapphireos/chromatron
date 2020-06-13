@@ -57,7 +57,7 @@ PT_BEGIN( pt );
     
     // create socket
 	static socket_t sock;
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
     
     // assert if socket was not created
     ASSERT( sock >= 0 );
