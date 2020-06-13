@@ -440,6 +440,11 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
             destAddr.sin_port = htons(port);
 
             bind( esp_conn[index].sock, (struct sockaddr *)&destAddr, sizeof(destAddr) );
+                
+            // enable broadcast receive on socket.
+            // note REUSEADDR also needs to be enabled for broadcasts to receive.
+            int val = 1;
+            setsockopt( esp_conn[index].sock, SOL_SOCKET, SO_BROADCAST | SO_REUSEADDR, &val, sizeof(val) );
         }
         else{
 
