@@ -148,6 +148,14 @@ void wifi_v_init( void ){
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = {0},
+            .password = {0}
+        },
+    };
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
 	
     esp_read_mac( wifi_mac, ESP_MAC_WIFI_STA );
 
@@ -744,7 +752,7 @@ PT_BEGIN( pt );
             esp_wifi_disconnect();
             ESP_ERROR_CHECK(esp_wifi_start());
             
-            if( esp_wifi_scan_start(NULL, true) != 0 ){
+            if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
 
             	log_v_error_P( PSTR("Scan error") );
             }
