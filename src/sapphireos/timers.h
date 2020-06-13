@@ -49,10 +49,6 @@ uint32_t tmr_u32_elapsed_time_us( uint32_t start_time );
 int8_t tmr_i8_compare_time( uint32_t time );
 int8_t tmr_i8_compare_times( uint32_t time1, uint32_t time2 );
 
-int8_t tmr_i8_set_alarm_microseconds( int64_t alarm );
-void tmr_v_cancel_alarm( void );
-bool tmr_b_alarm_armed( void );
-
 #define TMR_WAIT( pt, time ) \
     thread_v_set_alarm( ((uint32_t)time) + tmr_u32_get_system_time_ms() ); \
     THREAD_SLEEP( pt );

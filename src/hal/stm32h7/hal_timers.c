@@ -151,22 +151,6 @@ uint64_t tmr_u64_get_system_time_us( void ){
 }
 
 
-int8_t tmr_i8_set_alarm_microseconds( int64_t alarm ){
-
-    return 0;
-}
-
-void tmr_v_cancel_alarm( void ){
-
-    
-}
-
-// return true if alarm is armed
-bool tmr_b_alarm_armed( void ){
-
-    return 0;
-}
-
 
 ISR(TIM2_IRQHandler){
     	
@@ -179,30 +163,6 @@ ISR(TIM2_IRQHandler){
     __HAL_TIM_CLEAR_FLAG( &system_timer, TIM_IT_UPDATE );
 
 	microseconds += OVERFLOW_MICROSECONDS;
-
-    // // check if we need to arm the alarm
-    // if( alarm_microseconds > 0 ){
-
-    //     if( alarm_microseconds >= OVERFLOW_MICROSECONDS ){
-
-    //         alarm_microseconds -= OVERFLOW_MICROSECONDS;
-
-    //         // check if alarm is very very soon
-    //         if( alarm_microseconds < 32 ){
-
-    //             // alarm now
-    //             alarm();
-    //         }
-    //         else{
-
-    //             // arm timer compare for alarm
-    //             TCC1.CCA = TCC1.CNT + MICROSECONDS_TO_TIMER_TICKS( alarm_microseconds );
-
-    //             arm_alarm();    
-    //         }
-    //     }
-
-    // }
 
     hal_wdg_v_kick();
 }

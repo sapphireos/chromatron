@@ -44,7 +44,6 @@ On overflow: increment microseconds counter by 131072.
 #define OVERFLOW_MICROSECONDS ( 65536 * 2 )
 
 static volatile uint64_t microseconds;
-static volatile uint32_t alarm_microseconds;
 
 
 void hal_timer_v_init( void ){
@@ -148,85 +147,6 @@ uint64_t tmr_u64_get_system_time_us( void ){
 }
 
 
-static void disarm_alarm( void ){
-
-    TCC1.INTCTRLB &= ~TC1_CCAINTLVL_gm;
-}
-
-static void arm_alarm( void ){
-
-    TCC1.INTCTRLB |= TC_CCAINTLVL_HI_gc;
-}
-
-
-int8_t tmr_i8_set_alarm_microseconds( int64_t alarm ){
-
-    int64_t now = tmr_u64_get_system_time_us();
-
-    int64_t time_to_alarm = alarm - now;
-
-    // check if alarm has already passed, or it is too soon
-    // to set the alarm (128 us)
-    if( time_to_alarm <= 128 ){
-
-        return -1;
-    }
-    // check if alarm is too long (1 minute)
-    else if( time_to_alarm > 60000000 ){
-
-        time_to_alarm = 60000000;
-    }
-
-    ATOMIC;
-
-    disarm_alarm();
-
-    // set alarm
-    alarm_microseconds = time_to_alarm;
-
-    // check if within current timer range
-    if( alarm_microseconds < OVERFLOW_MICROSECONDS ){
-
-        // set alarm
-        TCC1.CCA = TCC1.CNT + MICROSECONDS_TO_TIMER_TICKS( alarm_microseconds );
-
-        arm_alarm();    
-    }
-
-    END_ATOMIC;
-
-    return 0;
-}
-
-void tmr_v_cancel_alarm( void ){
-
-    ATOMIC;
-    disarm_alarm();
-
-    alarm_microseconds = 0;
-    END_ATOMIC;
-}
-
-// return true if alarm is armed
-bool tmr_b_alarm_armed( void ){
-
-    ATOMIC;
-    bool armed = alarm_microseconds == 0;
-    END_ATOMIC;
-
-    return armed;
-}
-
-
-static void alarm( void ){
-
-    tmr_v_cancel_alarm();
-
-    #ifdef ENABLE_POWER
-    pwr_v_wake();
-    #endif
-}
-
 ISR(TCC1_OVF_vect){
 // OS_IRQ_BEGIN(TCC1_OVF_vect);
 // ^^^ Do not use the OS_IRQ macros in this interrupt.
@@ -236,38 +156,6 @@ ISR(TCC1_OVF_vect){
 
     microseconds += OVERFLOW_MICROSECONDS;
 
-    // check if we need to arm the alarm
-    if( alarm_microseconds > 0 ){
-
-        if( alarm_microseconds >= OVERFLOW_MICROSECONDS ){
-
-            alarm_microseconds -= OVERFLOW_MICROSECONDS;
-
-            // check if alarm is very very soon
-            if( alarm_microseconds < 32 ){
-
-                // alarm now
-                alarm();
-            }
-            else{
-
-                // arm timer compare for alarm
-                TCC1.CCA = TCC1.CNT + MICROSECONDS_TO_TIMER_TICKS( alarm_microseconds );
-
-                arm_alarm();    
-            }
-        }
-
-    }
-
 // OS_IRQ_END();
 }
 
-
-ISR(TCC1_CCA_vect){
-OS_IRQ_BEGIN(TCC1_CCA_vect);
-
-   alarm();
-
-OS_IRQ_END();
-}

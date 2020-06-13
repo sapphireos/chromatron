@@ -81,18 +81,3 @@ uint64_t tmr_u64_get_system_time_us( void ){
     return esp_timer_get_time();
 }
 
-
-int8_t tmr_i8_set_alarm_microseconds( int64_t alarm ){
-
-    return 0;
-}
-
-void tmr_v_cancel_alarm( void ){
-
-}
-
-// return true if alarm is armed
-bool tmr_b_alarm_armed( void ){
-
-    return 0;
-}
