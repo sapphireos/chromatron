@@ -35,7 +35,6 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/event_groups.h"
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
 #include "esp_log.h"
@@ -46,7 +45,7 @@
 
 static uint8_t wifi_mac[6];
 static int8_t wifi_rssi;
-// static uint8_t wifi_bssid[6];
+static uint8_t wifi_bssid[6];
 static int8_t wifi_router;
 static int8_t wifi_channel;
 static uint32_t wifi_uptime;
@@ -95,53 +94,23 @@ PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
 static const char *TAG = "wifi station";
 /* FreeRTOS event group to signal when we are connected*/
-static EventGroupHandle_t s_wifi_event_group;
-static int s_retry_num = 0;
+// static EventGroupHandle_t s_wifi_event_group;
+// static int s_retry_num = 0;
 /* The event group allows multiple bits for each event, but we only care about one event 
  * - are we connected to the AP with an IP? */
-const int WIFI_CONNECTED_BIT = BIT0;
+// const int WIFI_CONNECTED_BIT = BIT0;
 
-
+static esp_err_t event_handler(void *ctx, system_event_t *event);
+static bool scan_done;
+static bool connect_done;
 
 // static list_t conn_list;
 // static list_t rx_list;
 
-static esp_err_t event_handler(void *ctx, system_event_t *event)
-{
-    switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        esp_wifi_connect();
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        ESP_LOGI(TAG, "got ip:%s",
-                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-        s_retry_num = 0;
-        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        {
-            // if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
-            //     esp_wifi_connect();
-            //     xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
-            //     s_retry_num++;
-            //     ESP_LOGI(TAG,"retry to connect to the AP");
-            // }
-            ESP_LOGI(TAG,"connect to the AP fail\n");
-            break;
-        }
-    case SYSTEM_EVENT_SCAN_DONE:
-        trace_printf("SCAN DONE\n");
-        break;
-    default:
-        break;
-    }
-    return ESP_OK;
-}
-
 
 void wifi_v_init( void ){
 
-    s_wifi_event_group = xEventGroupCreate();
+    // s_wifi_event_group = xEventGroupCreate();
 
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
@@ -629,51 +598,6 @@ static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 	}
 }
 
-// void scan_cb( void *result, STATUS status ){
-
-// 	struct bss_info* info = (struct bss_info*)result;
-
-// 	trace_printf("scan: %d\n", status);
-
-// 	int8_t best_rssi = -127;
-// 	uint8_t best_channel = 0;
-// 	uint8_t *best_bssid = 0;
-// 	int8_t best_router = -1;
-
-// 	while( info != 0 ){
-
-// 		trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
-
-// 		int8_t router = has_ssid( (char *)info->ssid );
-// 		if( router < 0 ){
-
-// 			goto end;
-// 		}
-
-// 		if( info->rssi > best_rssi ){
-
-// 			best_bssid 		= info->bssid;
-// 			best_rssi 		= info->rssi;
-// 			best_channel 	= info->channel;
-// 			best_router 	= router;
-// 		}
-
-// 	end:
-// 		info = info->next.stqe_next;
-// 	}
-
-// 	if( best_rssi == -127 ){
-
-// 		return;
-// 	}
-
-// 	trace_printf("router: %d\n", best_router);
-
-// 	// select router
-// 	wifi_router = best_router;
-// 	memcpy( wifi_bssid, best_bssid, sizeof(wifi_bssid) );
-// 	wifi_channel = best_channel;
-// }
 
 static bool is_ssid_configured( void ){
 
@@ -715,6 +639,94 @@ static bool is_ssid_configured( void ){
 }
 
 
+#define SCAN_LIST_SIZE      32
+
+static void scan_cb( void ){
+
+    scan_done = FALSE;
+
+    uint16_t ap_record_list_size = SCAN_LIST_SIZE;
+
+    mem_handle_t h = mem2_h_alloc( ap_record_list_size * sizeof(wifi_ap_record_t) );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    wifi_ap_record_t *ap_info = mem2_vp_get_ptr_fast( h );
+    uint16_t ap_count = 0;
+    memset(ap_info, 0, ap_record_list_size * sizeof(wifi_ap_record_t));
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_record_list_size, ap_info));
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+    ESP_LOGI(TAG, "Total APs scanned = %u", ap_count);
+
+    int8_t best_rssi = -127;
+    uint8_t best_channel = 0;
+    uint8_t *best_bssid = 0;
+    int8_t best_router = -1;
+
+    for( uint32_t i = 0; i < ap_count; i++ ){
+
+        trace_printf("%s %u %d\n", ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi);
+
+        int8_t router = has_ssid( (char *)ap_info[i].ssid );
+        if( router < 0 ){
+
+            continue;
+        }
+
+        if( ap_info[i].rssi > best_rssi ){
+
+            best_bssid      = ap_info[i].bssid;
+            best_rssi       = ap_info[i].rssi;
+            best_channel    = ap_info[i].primary;
+            best_router     = router;
+        }
+    }
+
+    mem2_v_free( h );
+
+    if( best_rssi == -127 ){
+
+        return;
+    }
+
+    trace_printf("router: %d\n", best_router);
+
+    // select router
+    wifi_router = best_router;
+    memcpy( wifi_bssid, best_bssid, sizeof(wifi_bssid) );
+    wifi_channel = best_channel;
+}
+
+
+static esp_err_t event_handler(void *ctx, system_event_t *event)
+{
+    switch(event->event_id) {
+    case SYSTEM_EVENT_STA_START:
+        esp_wifi_connect();
+        break;
+    case SYSTEM_EVENT_STA_GOT_IP:
+        ESP_LOGI(TAG, "got ip:%s",
+                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        connect_done = TRUE;
+        break;
+    case SYSTEM_EVENT_STA_DISCONNECTED:
+        {
+            ESP_LOGI(TAG,"connect to the AP fail\n");
+            break;
+        }
+    case SYSTEM_EVENT_SCAN_DONE:
+        scan_done = TRUE;
+        break;
+    default:
+        break;
+    }
+    return ESP_OK;
+}
+
+
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -751,6 +763,7 @@ PT_BEGIN( pt );
             
             esp_wifi_disconnect();
             ESP_ERROR_CHECK(esp_wifi_start());
+            scan_done = FALSE;
             
             if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
 
@@ -758,11 +771,16 @@ PT_BEGIN( pt );
             }
 
             scan_timeout = 200;
-            while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
+            while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
                 scan_timeout--;
 
                 TMR_WAIT( pt, 50 );
+            }
+
+            if( scan_done ){
+
+                scan_cb();
             }
 
             if( wifi_router < 0 ){
@@ -770,40 +788,42 @@ PT_BEGIN( pt );
                 goto end;
             }
 
+            connect_done = FALSE;
             log_v_debug_P( PSTR("Connecting...") );
+
+            wifi_config_t wifi_config = {0};
+            wifi_config.sta.bssid_set = 1;
+            memcpy( wifi_config.sta.bssid, wifi_bssid, sizeof(wifi_config.sta.bssid) );
+            wifi_config.sta.channel = wifi_channel;
+            wifi_v_get_ssid( (char *)wifi_config.sta.ssid );
+            get_pass( wifi_router, (char *)wifi_config.sta.password );
+
+            ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
             
-			// struct station_config sta_config;
-			// memset( &sta_config, 0, sizeof(sta_config) );
-			// memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
-			// sta_config.bssid_set = 1;
-			// sta_config.channel = wifi_channel;
-			// wifi_v_get_ssid( (char *)sta_config.ssid );
-			// get_pass( wifi_router, (char *)sta_config.password );
+            esp_wifi_connect();
 
-			// wifi_station_set_config_current( &sta_config );
-			// wifi_station_connect();
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
+            THREAD_WAIT_WHILE( pt, ( !connect_done ) &&
+                                   ( thread_b_alarm_set() ) );
 
-   //          thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-   //          THREAD_WAIT_WHILE( pt, ( wifi_station_get_connect_status() != STATION_GOT_IP ) &&
-   //                                 ( thread_b_alarm_set() ) );
+           	// check if we're connected
+           	if( connect_done ){
 
-   //         	// check if we're connected
-   //         	if( wifi_station_get_connect_status() == STATION_GOT_IP ){
+                connected = TRUE;
 
-   //         		connected = TRUE;
+           		// get IP info
+           		tcpip_adapter_ip_info_t info;
+           		memset( &info, 0, sizeof(info) );
+           		tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
 
-   //         		// get IP info
-   //         		struct ip_info info;
-   //         		memset( &info, 0, sizeof(info) );
-   //         		wifi_get_ip_info( STATION_IF, &info );
+				cfg_v_set( CFG_PARAM_IP_ADDRESS, &info.ip );
+			    cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
+                cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
 
-			// 	cfg_v_set( CFG_PARAM_IP_ADDRESS, &info.ip );
-			//     cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &info.netmask );
-   //              cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
-
-   //              ip_addr_t dns_ip = espconn_dns_getserver( 0 );
-			//     cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
-   //         	}
+                tcpip_adapter_dns_info_t dns_info;
+                tcpip_adapter_get_dns_info( TCPIP_ADAPTER_IF_STA, TCPIP_ADAPTER_DNS_MAIN, &dns_info );
+			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_info.ip );
+           	}
         }
         // AP mode
         // else{
