@@ -142,6 +142,9 @@ void wifi_v_init( void ){
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
+    // set tx power
+    esp_wifi_set_max_tx_power( tx_power * 4 );
+
 
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
