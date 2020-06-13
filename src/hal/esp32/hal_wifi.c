@@ -41,6 +41,7 @@
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
+
 #include "wifi_config.txt"
 
 #ifdef ENABLE_WIFI
@@ -94,25 +95,23 @@ PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
+// debug: 
 static const char *TAG = "wifi station";
-/* FreeRTOS event group to signal when we are connected*/
-// static EventGroupHandle_t s_wifi_event_group;
-// static int s_retry_num = 0;
-/* The event group allows multiple bits for each event, but we only care about one event 
- * - are we connected to the AP with an IP? */
-// const int WIFI_CONNECTED_BIT = BIT0;
 
 static esp_err_t event_handler(void *ctx, system_event_t *event);
 static bool scan_done;
 static bool connect_done;
 
-// static list_t conn_list;
-// static list_t rx_list;
+typedef struct{
+    int sock;
+    uint16_t lport;
+} esp_conn_t;
+
+static esp_conn_t esp_conn[WIFI_MAX_PORTS];
+
 
 
 void wifi_v_init( void ){
-
-    // s_wifi_event_group = xEventGroupCreate();
 
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
@@ -184,101 +183,7 @@ void wifi_v_init( void ){
     strcpy(pass, CONFIG_ESP_WIFI_PASSWORD);
     cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
     cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
-
-
-    // #endif
-
- //    list_v_init( &conn_list );
- //    list_v_init( &rx_list );
-
- //    // set tx power
- //    system_phy_set_max_tpw( tx_power * 4 );
-
- //    struct station_config config = {0};
- //    strcpy( &config.ssid, ssid );
- //    strcpy( &config.password, password );
-
- //    wifi_station_set_config( &config );
-
- //    wifi_station_connect();
 }
-
-
-// void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
-
-// 	struct espconn* conn = (struct espconn*)arg;
-
-// 	remot_info *remote_info = 0;
-   
-//     espconn_get_connection_info( conn, &remote_info, 0 );
-
-//  //    if(remote_info->remote_port != 44632){
-// 	// trace_printf("RX: %d bytes from %d.%d.%d.%d:%u -> %u\n", 
-// 	// 	len, 
-// 	// 	remote_info->remote_ip[0],
-// 	// 	remote_info->remote_ip[1],
-// 	// 	remote_info->remote_ip[2],
-// 	// 	remote_info->remote_ip[3],
-// 	// 	remote_info->remote_port,
-//  //        conn->proto.udp->local_port);
-//  //    }
-
-//     netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
-
-//     if( rx_netmsg < 0 ){
-
-//         log_v_debug_P( PSTR("rx udp alloc fail") );     
-
-//         return;
-//     }
-    
-//     netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
-
-//     // set up addressing info
-//     state->laddr.port       = conn->proto.udp->local_port;
-//     state->raddr.port       = remote_info->remote_port;
-//     state->raddr.ipaddr.ip3 = remote_info->remote_ip[0];
-//     state->raddr.ipaddr.ip2 = remote_info->remote_ip[1];
-//     state->raddr.ipaddr.ip1 = remote_info->remote_ip[2];
-//     state->raddr.ipaddr.ip0 = remote_info->remote_ip[3];
-
-//     // allocate data buffer
-//     state->data_handle = mem2_h_alloc2( len, MEM_TYPE_SOCKET_BUFFER );
-
-//     if( state->data_handle < 0 ){
-
-//         log_v_error_P( PSTR("rx udp no handle") );     
-
-//         netmsg_v_release( rx_netmsg );
-
-//         return;
-//     }      
-
-//     // we can get a fast ptr because we've already verified the handle
-//     uint8_t *data = mem2_vp_get_ptr_fast( state->data_handle );
-//     memcpy( data, pdata, len );
-
-//     // post to rx Q
-//     if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
-
-//         log_v_warn_P( PSTR("rx q full") );     
-
-//         netmsg_v_release( rx_netmsg );
-
-//         return;
-//     }
-
-//     wifi_udp_received++;
-
-//     list_v_insert_head( &rx_list, rx_netmsg );
-// }
-
-typedef struct{
-    int sock;
-    uint16_t lport;
-} esp_conn_t;
-
-static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 
 static bool is_rx( void ){
 
@@ -336,7 +241,7 @@ PT_BEGIN( pt );
 
                 uint16_t len = s;
 
-                trace_printf("recv %d @ %d from 0x%x:%d\n", s, esp_conn[i].lport, sourceAddr.sin_addr.s_addr, htons(sourceAddr.sin_port));
+                // trace_printf("recv %d @ %d from 0x%x:%d\n", s, esp_conn[i].lport, sourceAddr.sin_addr.s_addr, htons(sourceAddr.sin_port));
 
                 netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
 
@@ -602,7 +507,7 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     uint32_t dest_ip = 0;
     memcpy( &dest_ip, &netmsg_state->raddr.ipaddr, sizeof(dest_ip) );
 
-    trace_printf("sendto: 0x%lx %d.%d.%d.%d:%u\n", dest_ip, netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
+    // trace_printf("sendto: 0x%lx %d.%d.%d.%d:%u\n", dest_ip, netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
 
     struct sockaddr_in destAddr;
     destAddr.sin_addr.s_addr = dest_ip;
@@ -1037,26 +942,29 @@ PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // while(1){
+    while(1){
 
-    //     thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-    //     THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-    //     THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+        if( wifi_b_connected() ){
 
-    //     if( wifi_station_get_connect_status() == STATION_GOT_IP ){
+            wifi_uptime++;
+            connected = TRUE;
 
-    //         wifi_uptime++;
-    //         connected = TRUE;
-    //     }
-    //     else{
+            wifi_ap_record_t wifi_info;
+            if( esp_wifi_sta_get_ap_info( &wifi_info ) == 0 ){
 
-    //         wifi_uptime = 0;
-    //         connected = FALSE;
-    //     }
+                wifi_rssi = wifi_info.rssi;
+            }
+        }
+        else{
 
-    //     wifi_rssi = wifi_station_get_rssi();
-    // }
+            wifi_uptime = 0;
+            connected = FALSE;
+            wifi_rssi = -127;
+        }
+    }
 
 PT_END( pt );
 }
