@@ -280,6 +280,38 @@ typedef struct{
 
 static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 
+static bool is_rx( void ){
+
+    for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
+        
+        if( esp_conn[i].lport == 0 ){
+
+            continue;
+        }
+
+        // struct sockaddr_in sourceAddr; // Large enough for both IPv4 or IPv6
+        // socklen_t socklen = sizeof(sourceAddr);
+
+        // uint8_t temp;
+
+        // int s = recvfrom( esp_conn[i].sock, &temp, 1, MSG_DONTWAIT | MSG_PEEK, (struct sockaddr *)&sourceAddr, &socklen );
+        int s = 0;
+        int rc = ioctl( esp_conn[i].sock, FIONREAD, &s );
+
+        if( rc < 0 ){
+
+            trace_printf("err %d\n", rc);
+        }
+
+        if( s > 0 ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
 {
@@ -290,9 +322,9 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
         THREAD_YIELD( pt );
+        THREAD_WAIT_WHILE( pt, !is_rx() );
         THREAD_WAIT_WHILE( pt, sock_b_rx_pending() ); // wait while sockets are busy
 
-        
         for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
             
             if( esp_conn[i].lport == 0 ){
