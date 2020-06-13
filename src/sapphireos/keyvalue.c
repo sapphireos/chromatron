@@ -172,10 +172,8 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     // get address of hash index
     #ifdef ESP32
-    uint32_t kv_index_start = FW_START_OFFSET + 0x10000 + 
-                                ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
-                                ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-    trace_printf("index: 0x%0x 0x%0x %d\n", kv_index_start, FW_START_OFFSET, ffs_fw_u32_read_internal_length());
+    uint32_t kv_index_start = FW_START_OFFSET + sys_v_get_fw_length() -
+                               ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
     #else
     uint32_t kv_index_start = FLASH_START +
                               ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -

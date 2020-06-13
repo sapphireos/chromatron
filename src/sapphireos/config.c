@@ -366,7 +366,7 @@ static void write_param( catbus_hash_t32 parameter, void *value ){
     // parameter not found
     if( type < 0 ){
 
-        trace_printf("PARAM NOT FOUND\n");
+        trace_printf("PARAM NOT FOUND: 0x%0x (write)\n", parameter);
 
         // bail out
         return;
@@ -469,6 +469,8 @@ static int8_t read_param( catbus_hash_t32 parameter, void *value ){
 
     // parameter not found
     if( len < 0 ){
+
+        trace_printf("PARAM NOT FOUND: 0x%0x (read)\n", parameter);
 
         return -1;
     }
