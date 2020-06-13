@@ -28,7 +28,11 @@
 #include "system.h"
 
 #include "esp_system.h"
+#include "esp_pm.h"
+#include "esp_clk.h"
 #include "rom/ets_sys.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 extern boot_data_t BOOTDATA boot_data;
 
@@ -37,7 +41,17 @@ void cpu_v_init( void ){
 
     DISABLE_INTERRUPTS;
 
+    esp_pm_config_esp32_t pm_config = { 0 };
+    pm_config.max_freq_mhz = 240;
+    pm_config.min_freq_mhz = 240;
+    pm_config.light_sleep_enable = FALSE;
     
+    esp_pm_configure( &pm_config );
+    trace_printf("Waiting for frequency to be set to %d MHz...\n", 240);
+    while (esp_clk_cpu_freq() / 1000000 != 240) {
+        vTaskDelay(10);
+    }
+    trace_printf("Frequency is set to %d MHz\n", 240);
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
@@ -82,7 +96,7 @@ bool cpu_b_osc_fail( void ){
 
 uint32_t cpu_u32_get_clock_speed( void ){
 
-    return ets_get_cpu_frequency() * 1000000;
+    return esp_clk_cpu_freq() * 1000000;
 }
 
 void cpu_reboot( void ){

@@ -25,6 +25,8 @@
 #include "hal_info.h"
 #include "cpu.h"
 
+#include "esp_system.h"
+
 static int8_t hal_info_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -46,8 +48,7 @@ static int8_t hal_info_kv_handler(
     	}
         else if( hash == __KV__esp_heap_free ){
 
-            // STORE32(data, system_get_free_heap_size());
-            STORE32(data, 0);
+            STORE32(data, esp_get_free_heap_size());
         }
         else if( hash == __KV__vm_max_image_size ){
 
