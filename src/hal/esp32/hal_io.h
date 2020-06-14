@@ -27,28 +27,32 @@
 
 #include "system.h"
 #include "io_intf.h"
-#include "cpu.h"
+#include "driver/gpio.h"
 
-#define IO_PIN_0_GPIO       0 // PA4
-#define IO_PIN_1_XCK        1 // PC5
-#define IO_PIN_2_TXD        2 // PC7
-#define IO_PIN_3_RXD        3 // PC6
-#define IO_PIN_4_ADC0       4 // PA1
-#define IO_PIN_5_ADC1       5 // PA0
-#define IO_PIN_6_DAC0       6 // PB2
-#define IO_PIN_7_DAC1       7 // PB3
-#define IO_PIN_PWM_0        8 // PC0
-#define IO_PIN_PWM_1        9 // PC1
-#define IO_PIN_PWM_2        10 // PC2
-#define IO_PIN_PWM_3        11 // PC3
 
-#define IO_PIN_LED_RED      12 // PC4
-#define IO_PIN_LED_GREEN    13 // PD5
-#define IO_PIN_LED_BLUE     14 // PD4
-
-#define IO_PIN_COUNT        15
-
-void io_v_set_esp_led( bool state );
+// Adafruit ESP32 Feather
+#define IO_PIN_13_A12		0
+#define IO_PIN_12_A11		1
+#define IO_PIN_27_A10		2
+#define IO_PIN_33_A9		3
+#define IO_PIN_15_A8		4
+#define IO_PIN_32_A7		5
+#define IO_PIN_14_A6		6
+#define IO_PIN_22_SCL		7
+#define IO_PIN_23_SDA		8
+#define IO_PIN_21			9
+#define IO_PIN_17_TX		10
+#define IO_PIN_16_RX		11
+#define IO_PIN_19_MISO		12
+#define IO_PIN_18_MOSI		13
+#define IO_PIN_5_SCK 		14
+#define IO_PIN_4_A5 		15
+#define IO_PIN_36_A4 		16
+#define IO_PIN_39_A3 		17
+#define IO_PIN_34_A2 		18
+#define IO_PIN_25_A1 		19
+#define IO_PIN_26_A0 		20
+#define IO_PIN_COUNT        21
 
 #endif
 
