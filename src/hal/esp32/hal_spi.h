@@ -26,7 +26,16 @@
 #ifndef _HAL_SPI_H
 #define _HAL_SPI_H
 
+#include "hal_io.h"
+
 #define N_SPI_PORTS 1
+
+#define HAL_SPI_PORT 	HSPI_HOST
+
+
+#define HAL_SPI_MISO IO_PIN_19_MISO
+#define HAL_SPI_MOSI IO_PIN_18_MOSI
+#define HAL_SPI_SCK  IO_PIN_5_SCK
 
 
 
