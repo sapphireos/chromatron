@@ -75,6 +75,9 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 
     gpio_num_t gpio = gpios[pin];
 	
+    // need to reset pin first to initialize it.
+    gpio_reset_pin( gpio );
+
     if( mode == IO_MODE_INPUT ){
 
         gpio_set_direction( gpio, GPIO_MODE_INPUT );
@@ -154,5 +157,6 @@ void io_v_disable_interrupt( uint8_t int_number )
 
 void hal_io_v_set_esp_led( bool state ){
 
+    io_v_set_mode( IO_PIN_LED, IO_MODE_OUTPUT );
     io_v_digital_write( IO_PIN_LED, state );
 }

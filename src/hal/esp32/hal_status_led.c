@@ -202,7 +202,6 @@ void status_led_v_init( void ){
 
     reset_all();
 
-
     thread_t_create( status_led_thread,
                      PSTR("status_led"),
                      0,
