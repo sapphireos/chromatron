@@ -54,6 +54,10 @@
 #define IO_PIN_26_A0 		20
 #define IO_PIN_COUNT        21
 
+#define IO_PIN_LED			IO_PIN_13_A12
+
+void hal_io_v_set_esp_led( bool state );
+
 #endif
 
 

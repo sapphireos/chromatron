@@ -28,6 +28,8 @@
 #include "hal_spi.h"
 #include "hal_io.h"
 
+#include "driver/spi_master.h"
+
 
 void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 

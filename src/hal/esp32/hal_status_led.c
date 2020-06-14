@@ -43,12 +43,6 @@ PT_BEGIN( pt );
 
     while(1){
 
-        // while(1){
-        //     TMR_WAIT( pt, 1000 );
-        //     trace_printf("status\n");
-        // }
-
-
         THREAD_WAIT_WHILE( pt, !enabled );
 
         if( sys_u32_get_warnings() & SYS_WARN_FLASHFS_FAIL ){
@@ -152,33 +146,6 @@ PT_BEGIN( pt );
         #endif
         else{
 
-            #ifdef ENABLE_COPROCESSOR
-
-            status_led_v_set( 0, STATUS_LED_GREEN );
-
-            TMR_WAIT( pt, 500 );
-
-            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
-                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
-
-                status_led_v_set( 1, STATUS_LED_GREEN );
-            }
-
-            TMR_WAIT( pt, 500 );
-
-            if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
-            
-                status_led_v_set( 0, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-
-                status_led_v_set( 1, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-            }
-
-            #else
-
             status_led_v_set( 0, STATUS_LED_GREEN );
 
             TMR_WAIT( pt, 200 );
@@ -203,7 +170,6 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 1000 );
 
-            #endif
 
             #ifdef ENABLE_WIFI
             if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
@@ -227,7 +193,7 @@ PT_END( pt );
 
 void reset_all( void ){
 
-    
+    hal_io_v_set_esp_led( FALSE ); 
 }
 
 void status_led_v_init( void ){
@@ -265,31 +231,31 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         case STATUS_LED_GREEN:
-            
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         case STATUS_LED_RED:
-            
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         case STATUS_LED_YELLOW:
-        
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         case STATUS_LED_PURPLE:
-            
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         case STATUS_LED_TEAL:
-            
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         case STATUS_LED_WHITE:
-            
+            hal_io_v_set_esp_led( TRUE );
             break;
 
         default:

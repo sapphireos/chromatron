@@ -152,3 +152,7 @@ void io_v_disable_interrupt( uint8_t int_number )
 
 }
 
+void hal_io_v_set_esp_led( bool state ){
+
+    io_v_digital_write( IO_PIN_LED, state );
+}
