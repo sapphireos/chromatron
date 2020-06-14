@@ -40,10 +40,6 @@ from queue import Queue
 
 MFG_NAME = "Sapphire Open Systems"
 
-# legacy serial protocol:
-ATMEL_VID = 0x03eb
-ATMEL_PID = 0x2404
-
 SERIAL_SOF = 0xfd
 SERIAL_ACK = 0xa1
 SERIAL_NAK = 0x1b
@@ -57,9 +53,11 @@ CMD_USART_UDP_SOF = 0x85
 CMD_USART_UDP_ACK = 0x97
 CMD_USART_UDP_NAK = 0x14
 
-
 CHROMATRON_VID = 0xF055
 CHROMATRON_PID = 0x73D5
+
+CP2104_VID = 0x10C4
+CP2104_PID = 0xEA60
 
 CMD2_UDP_PORT = 16386
 
@@ -614,23 +612,31 @@ def createSerialChannel(host, port=None):
         # scan ports
         ports = list(serial.tools.list_ports.comports())
 
+        # look for chromatron
         for port in ports:
             if port.vid == CHROMATRON_VID and port.pid == CHROMATRON_PID:
-                    comport = port.device
-                    break
+                comport = port.device
+                ch = USBUDPChannel(comport)
+
+                try:
+                    ch.test()
+
+                    return ch
+
+                except ChannelErrorException:
+                    ch.close()
+
 
         if comport == None:
-            raise ChannelInvalidHostException("Could not find attached device")
+            # try to find CP2104
+            for port in ports:
+                if port.vid == CP2104_VID and port.pid == CP2104_PID:
+                    comport = port.device
 
-        ch = USBUDPChannel(comport)
+                    return SerialUDPChannel(comport)
 
-        try:
-            ch.test()
-
-            return ch
-
-        except ChannelErrorException:
-            ch.close()
+            if comport == None:
+                raise ChannelInvalidHostException("Could not find attached device")
 
     try:
         socket.inet_aton(host)
