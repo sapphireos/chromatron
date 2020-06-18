@@ -81,6 +81,55 @@ void gfx_v_set_sync0( uint16_t frame, uint32_t ts ){
     #endif
 }
 
+/*
+    if( vm_sync_b_is_synced() ){
+
+            net_time = time_u32_get_network_aligned( gfx_frame_rate );
+            THREAD_WAIT_WHILE( pt, !update_frame_rate && ( time_i8_compare_network_time( net_time ) > 0 )  );
+
+            // log_v_debug_P( PSTR("%6u %12lu"), vm0_frame_number, time_u32_get_network_time() );
+        }
+        else{
+
+            thread_v_set_alarm( thread_u32_get_alarm() + gfx_frame_rate );
+            THREAD_WAIT_WHILE( pt, !update_frame_rate && thread_b_alarm_set() );
+        }
+
+        // check if shutting down
+        if( wifi_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
+
+        if( update_frame_rate ){
+
+            update_frame_rate = FALSE;
+            THREAD_RESTART( pt );            
+        }
+
+        if( vm_i8_run_loops() < 0 ){
+
+            // comm fail
+
+            // let's delay
+            TMR_WAIT( pt, 100 );
+
+            THREAD_RESTART( pt );            
+        }
+
+        vm0_frame_ts = time_u32_get_network_time();
+        vm0_frame_number++;
+
+        vm_sync_v_frame_trigger();
+
+        uint16_t rate = SYNC_RATE / gfx_frame_rate;
+
+        if( ( vm0_frame_number % rate ) == 0 ){
+
+            vm_sync_v_trigger();
+        }
+*/
+
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
