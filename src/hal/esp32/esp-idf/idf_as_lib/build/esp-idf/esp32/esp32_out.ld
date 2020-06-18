@@ -46,6 +46,9 @@ MEMORY
   */
   dram0_0_seg (RW) : org = 0x3FFB0000 + 0,
                                      len = 0x2c200 - 0
+  
+  dram0_boot_seg (RW) :              org = 0x3FFFFFFF - 16,
+                                     len = 16                                     
   /* Flash mapped constant data */
   drom0_0_seg (R) : org = 0x3F400018, len = 0x400000-0x18
   /* (See iram0_2_seg for meaning of 0x18 offset in the above.) */

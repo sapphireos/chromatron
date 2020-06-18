@@ -210,7 +210,7 @@ SECTIONS
 
     . = ALIGN(4);
     _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >dram0_0_seg
+  } > dram0_boot_seg
 
   .dram0.data :
   {

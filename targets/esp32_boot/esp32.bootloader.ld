@@ -23,6 +23,8 @@ MEMORY
   iram_seg (RWX) :                  org = 0x40080400, len = 0xfc000
   /* 64k at the end of DRAM, after ROM bootloader stack */
   dram_seg (RW) :                  	org = 0x3FFF0000, len = 0x10000
+  dram0_boot_seg (RW) :              org = 0x3FFFFFFF - 16,
+                                     len = 16
 }
 
 /*  Default entry point:  */
@@ -78,7 +80,7 @@ SECTIONS
 
     . = ALIGN(4);
     _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >dram_seg
+  } >dram0_boot_seg
 
   /* Shared RAM */
   .dram0.bss (NOLOAD) :
