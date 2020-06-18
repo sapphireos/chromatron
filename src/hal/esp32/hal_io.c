@@ -30,6 +30,7 @@
 
 #include "hal_io.h"
 
+#ifndef BOOTLOADER
 static io_mode_t8 io_modes[IO_PIN_COUNT];
 
 static const gpio_num_t gpios[IO_PIN_COUNT] = {
@@ -55,6 +56,7 @@ static const gpio_num_t gpios[IO_PIN_COUNT] = {
     GPIO_NUM_25, // IO_PIN_25_A1  
     GPIO_NUM_26, // IO_PIN_26_A0  
 };
+#endif
 
 void io_v_init( void ){
 
@@ -68,6 +70,8 @@ uint8_t io_u8_get_board_rev( void ){
 
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
+
+    #ifndef BOOTLOADER
 
     ASSERT( pin < IO_PIN_COUNT );
 
@@ -105,32 +109,45 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 
         ASSERT( FALSE );
     }
+
+    #endif
 }
 
 
 io_mode_t8 io_u8_get_mode( uint8_t pin ){
 	
+    #ifndef BOOTLOADER
     ASSERT( pin < IO_PIN_COUNT );
     
     return io_modes[pin];	
+
+    #else
+    return 0;
+    #endif
 }
 
 void io_v_digital_write( uint8_t pin, bool state ){
 
+    #ifndef BOOTLOADER
     ASSERT( pin < IO_PIN_COUNT );
 
     gpio_num_t gpio = gpios[pin];
     
     gpio_set_level( gpio, state );	
+    #endif
 }
 
 bool io_b_digital_read( uint8_t pin ){
     
+    #ifndef BOOTLOADER
     ASSERT( pin < IO_PIN_COUNT );
 
     gpio_num_t gpio = gpios[pin];
     
     return gpio_get_level( gpio );
+    #else
+    return FALSE;
+    #endif
 }
 
 bool io_b_button_down( void ){
