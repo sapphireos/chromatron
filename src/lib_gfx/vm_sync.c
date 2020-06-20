@@ -24,6 +24,7 @@
 
 #ifdef ENABLE_TIME_SYNC
 
+#if 0
 
 
 // #define SYNC_DEBUG
@@ -823,4 +824,5 @@ PT_END( pt );
 }
 
 
+#endif
 #endif
