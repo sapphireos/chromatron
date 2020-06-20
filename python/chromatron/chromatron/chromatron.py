@@ -2344,7 +2344,9 @@ def restore(ctx):
             click.echo(click.style('No backup data found', fg=ERROR_COLOR))
             return
 
-        ct.set_keys(**device_data)
+        for k, v in device_data.items():
+            click.echo(click.style('Set: %s to %s' % (k, str(v))))
+            ct.set_key(k, v)
 
 
 @firmware.command()
