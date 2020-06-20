@@ -1974,6 +1974,13 @@ PT_BEGIN( pt );
 
             if( update ){
 
+                if( ( (uint32_t)&msg->data.data & 3 ) != 0 ){
+
+                    log_v_debug_P( PSTR("bad link data offset 0x%0lx"), &msg->data.data );
+
+                    goto end;
+                }
+
                 int8_t status = _catbus_i8_internal_set( 
                                     msg->dest_hash, 
                                     msg->data.meta.type, 
