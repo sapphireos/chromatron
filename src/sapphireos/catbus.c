@@ -797,7 +797,7 @@ int8_t _catbus_i8_internal_set(
 
     bool changed = FALSE;
 
-    uint8_t buf[CATBUS_CONVERT_BUF_LEN];
+    uint8_t buf[CATBUS_CONVERT_BUF_LEN] __attribute__((aligned(4)));
 
     for( uint16_t i = 0; i < count; i++ ){
 
@@ -1973,13 +1973,6 @@ PT_BEGIN( pt );
             }   
 
             if( update ){
-
-                if( ( (uint32_t)&msg->data.data & 3 ) != 0 ){
-
-                    log_v_debug_P( PSTR("bad link data offset 0x%0lx"), &msg->data.data );
-
-                    goto end;
-                }
 
                 int8_t status = _catbus_i8_internal_set( 
                                     msg->dest_hash, 
