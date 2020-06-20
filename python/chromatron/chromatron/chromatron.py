@@ -2458,6 +2458,18 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
                 click.echo("Firmware change cancelled")
                 return
 
+            try:
+                flash_id = ct.get_key('wifi_flash_id')
+
+                if flash_id < 0x160000:
+                    click.echo(click.style("Incorrect flash chip present! Must update to 4MB chip.", fg='red'))    
+                    return
+
+
+            except KeyError:
+                click.echo(click.style("wifi_flash_id must be present!", fg='red'))
+                return
+
             click.echo(click.style('Backing up settings', fg='white'))
             
             backup_data = {}
