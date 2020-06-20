@@ -95,18 +95,35 @@ void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
     // send data
     i2c_master_write( handle, (uint8_t *)src, len, CHECK_ACK );
 
+    i2c_master_stop( handle );
+
     i2c_cmd_link_delete( handle );
 }
 
 void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 
+    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+
+    i2c_master_start( handle );
+
+    // send address
+    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
+    
+    // read data
+    i2c_master_read( handle, dst, len, CHECK_ACK );
+
+    i2c_master_stop( handle );
+
+    i2c_cmd_link_delete( handle );
 }
 
 void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
 
+    ASSERT( FALSE );
 }
 
 void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
 
-    
+    ASSERT( FALSE );   
 }
+
