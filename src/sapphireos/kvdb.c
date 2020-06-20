@@ -39,11 +39,7 @@
 #include "hash.h"
 #endif
 
-#if defined(ESP8266) && !defined(CHROMATRON_ESP8266)
-#include "comm_printf.h"
-#else
 #include "logging.h"
-#endif
 
 
 static list_t db_list;
@@ -675,16 +671,6 @@ void kvdb_v_delete( catbus_hash_t32 hash ){
     _kvdb_v_reset_cache();
 
     kv_v_reset_cache();
-}
-
-int8_t kvdb_i8_publish( catbus_hash_t32 hash ){
-
-    if( kvdb_i8_handle_publish == 0 ){
-
-        return KVDB_STATUS_OK;
-    }
-
-    return kvdb_i8_handle_publish( hash );
 }
 
 #ifdef KVDB_ENABLE_NAME_LOOKUP
