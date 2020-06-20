@@ -24,7 +24,6 @@
 #ifndef __I2C_H__
 #define __I2C_H__
 
-
 typedef uint8_t i2c_baud_t8;
 #define I2C_BAUD_100K       0
 #define I2C_BAUD_200K       1

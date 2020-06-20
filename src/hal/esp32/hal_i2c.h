@@ -25,6 +25,8 @@
 #ifndef _HAL_I2C_H
 #define _HAL_I2C_H
 
+#define I2C_MASTER_PORT 	I2C_NUM_0
+
 #define I2C_TIMEOUT 100
 
 #endif

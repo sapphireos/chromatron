@@ -56,6 +56,8 @@
 
 #define IO_PIN_LED			IO_PIN_13_A12
 
+int32_t hal_io_i32_get_gpio_num( uint8_t pin );
+
 void hal_io_v_set_esp_led( bool state );
 
 #endif

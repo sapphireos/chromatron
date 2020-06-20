@@ -58,6 +58,13 @@ static const gpio_num_t gpios[IO_PIN_COUNT] = {
 };
 #endif
 
+int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
+
+    ASSERT( pin < IO_PIN_COUNT );
+
+    return gpios[pin];
+}
+
 void io_v_init( void ){
 
 

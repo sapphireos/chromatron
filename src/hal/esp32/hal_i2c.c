@@ -22,110 +22,91 @@
 // </license>
  */
 
-#include "hal_io.h"
+#include "system.h"
 
+#include "hal_io.h"
 #include "hal_i2c.h"
 
 #include "i2c.h"
+#include "driver/i2c.h"
 
+// feather defaults
+static gpio_num_t gpio_sda = GPIO_NUM_23;
+static gpio_num_t gpio_scl = GPIO_NUM_22;
 
-#ifdef ENABLE_COPROCESSOR
-#include "coprocessor.h"
-#endif
+static i2c_baud_t8 i2c_baud;
 
+#define CHECK_ACK   TRUE
+#define NO_ACK      FALSE
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
-	#ifdef ENABLE_COPROCESSOR
-    
-    coproc_i32_call1( OPCODE_IO_I2C_INIT, baud );
-    
-    #else
+    i2c_baud = baud;
 
-    #endif
+    i2c_config_t conf = {0};
+
+    conf.mode               = I2C_MODE_MASTER;
+    conf.sda_io_num         = gpio_sda;
+    conf.sda_pullup_en      = GPIO_PULLUP_ENABLE;
+    conf.scl_io_num         = gpio_scl;
+    conf.scl_pullup_en      = GPIO_PULLUP_ENABLE;
+
+    if( i2c_baud == I2C_BAUD_100K ){
+
+        conf.master.clk_speed = 100000;        
+    }
+    else if( i2c_baud == I2C_BAUD_200K ){
+
+        conf.master.clk_speed = 200000;        
+    }
+    else if( i2c_baud == I2C_BAUD_300K ){
+
+        conf.master.clk_speed = 300000;        
+    }
+    else if( i2c_baud == I2C_BAUD_400K ){
+
+        conf.master.clk_speed = 400000;        
+    }
+    else if( i2c_baud == I2C_BAUD_1000K ){
+
+        conf.master.clk_speed = 1000000;        
+    }
+
+    i2c_param_config( I2C_MASTER_PORT, &conf );
+
+    i2c_driver_install( I2C_MASTER_PORT, conf.mode, 0, 0, 0 );
 }
 
 void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 	
-	#ifdef ENABLE_COPROCESSOR
-    
-    coproc_i32_call2( OPCODE_IO_I2C_SET_PINS, clock, data );
-    
-    #else
-
-    #endif
+    gpio_sda = hal_io_i32_get_gpio_num( data );
+    gpio_scl = hal_io_i32_get_gpio_num( clock );
 }
 
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
-	#ifdef ENABLE_COPROCESSOR
+    i2c_cmd_handle_t handle = i2c_cmd_link_create();
 
-	i2c_setup_t setup = {
-		.dev_addr = dev_addr,
-		.len = len,
-	};
-    
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
-    coproc_i32_callv( OPCODE_IO_I2C_WRITE, src, len );
-    
-    #else
+    i2c_master_start( handle );
 
-    #endif	
+    // send address
+    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
+    
+    // send data
+    i2c_master_write( handle, (uint8_t *)src, len, CHECK_ACK );
+
+    i2c_cmd_link_delete( handle );
 }
 
 void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 
-	#ifdef ENABLE_COPROCESSOR
-    
-    i2c_setup_t setup = {
-		.dev_addr 	= dev_addr,
-		.len 		= len,
-	};
-    
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
-    coproc_i32_callp( OPCODE_IO_I2C_READ, dst, len );
-    
-    #else
-
-    #endif
 }
 
 void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
 
-    #ifdef ENABLE_COPROCESSOR
-    
-    i2c_setup_t setup = {
-		.dev_addr 	= dev_addr,
-		.len 		= len,
-		.mem_addr 	= mem_addr,
-		.addr_size  = addr_size,
-		.delay_ms   = delay_ms,
-	};
-    
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
-    coproc_i32_callv( OPCODE_IO_I2C_MEM_WRITE, src, len );
-    
-    #else
-
-    #endif
 }
 
 void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
 
-    #ifdef ENABLE_COPROCESSOR
     
-    i2c_setup_t setup = {
-		.dev_addr 	= dev_addr,
-		.len 		= len,
-		.mem_addr 	= mem_addr,
-		.addr_size  = addr_size,
-		.delay_ms   = delay_ms,
-	};
-    
-    coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
-    coproc_i32_callv( OPCODE_IO_I2C_MEM_READ, dst, len );
-    
-    #else
-
-    #endif
 }
