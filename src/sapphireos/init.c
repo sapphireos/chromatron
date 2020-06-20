@@ -48,6 +48,7 @@
 #ifdef ENABLE_NETWORK
 #include "netmsg.h"
 #include "sockets.h"
+#include "election.h"
 #endif
 
 #include "flash25.h"
@@ -195,6 +196,10 @@ int8_t sapphire_i8_init( void ){
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
     sntp_v_init();
+    #endif
+
+    #ifdef ENABLE_NETWORK
+    election_v_init();
     #endif
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
