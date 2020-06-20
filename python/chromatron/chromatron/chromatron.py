@@ -58,6 +58,7 @@ except pkg_resources.DistributionNotFound:
 BACKUP_FILE = 'backup.json'
 
 BACKUP_SETTINGS = [
+    'datetime_tz_offset',
     'enable_led_quiet',
     'enable_time_sync',
     'max_log_size',
@@ -2345,8 +2346,12 @@ def restore(ctx):
             return
 
         for k, v in device_data.items():
-            click.echo(click.style('Set: %s to %s' % (k, str(v))))
-            ct.set_key(k, v)
+            try:
+                click.echo(click.style('Set: %s to %s' % (k, str(v))))
+                ct.set_key(k, v)
+
+            except KeyError:
+                click.echo(click.style('Key: %s not present! Skipping...' % (k), fg='red'))
 
 
 @firmware.command()
