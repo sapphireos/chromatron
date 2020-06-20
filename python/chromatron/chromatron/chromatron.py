@@ -58,6 +58,7 @@ except pkg_resources.DistributionNotFound:
 BACKUP_FILE = 'backup.json'
 
 BACKUP_SETTINGS = [
+    'datetime_tz_offset',
     'enable_led_quiet',
     'enable_time_sync',
     'max_log_size',
@@ -2344,7 +2345,13 @@ def restore(ctx):
             click.echo(click.style('No backup data found', fg=ERROR_COLOR))
             return
 
-        ct.set_keys(**device_data)
+        for k, v in device_data.items():
+            try:
+                click.echo(click.style('Set: %s to %s' % (k, str(v))))
+                ct.set_key(k, v)
+
+            except KeyError:
+                click.echo(click.style('Key: %s not present! Skipping...' % (k), fg='red'))
 
 
 @firmware.command()
@@ -2458,12 +2465,30 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
                 click.echo("Firmware change cancelled")
                 return
 
+            try:
+                flash_id = ct.get_key('wifi_flash_id')
+
+                if flash_id < 0x160000:
+                    click.echo(click.style("Incorrect flash chip present! Must update to 4MB chip.", fg='red'))    
+                    return
+
+
+            except KeyError:
+                click.echo(click.style("wifi_flash_id must be present!", fg='red'))
+                return
+
             click.echo(click.style('Backing up settings', fg='white'))
             
+            # load backup data
             backup_data = {}
-            with open(BACKUP_FILE, 'r') as f:
-                backup_data = json.loads(f.read())
+            try:
+                with open(BACKUP_FILE, 'r') as f:
+                    backup_data = json.loads(f.read())
 
+            except FileNotFoundError:
+                pass
+
+            # backup settings
             backup_data[ct.get_key('device_id')] = ct.get_keys(*BACKUP_SETTINGS)
             
             with open(BACKUP_FILE, 'w+') as f:

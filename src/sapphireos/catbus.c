@@ -797,7 +797,7 @@ int8_t _catbus_i8_internal_set(
 
     bool changed = FALSE;
 
-    uint8_t buf[CATBUS_CONVERT_BUF_LEN];
+    uint8_t buf[CATBUS_CONVERT_BUF_LEN] __attribute__((aligned(4)));
 
     for( uint16_t i = 0; i < count; i++ ){
 

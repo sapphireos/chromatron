@@ -67,7 +67,6 @@ void *kvdb_vp_get_ptr( catbus_hash_t32 hash );
 
 void kvdb_v_delete( catbus_hash_t32 hash );
 
-int8_t kvdb_i8_publish( catbus_hash_t32 hash );
 #ifdef KVDB_ENABLE_NAME_LOOKUP
 int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );
 #endif
@@ -83,7 +82,6 @@ int16_t kvdb_i16_get_index_for_hash( catbus_hash_t32 hash );
 // bool kvdb_b_read( catbus_hash_t32 hash );
 
 extern void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const void *data ) __attribute__((weak));
-extern int8_t kvdb_i8_handle_publish( catbus_hash_t32 hash ) __attribute__((weak));
 
 #define KVDB_STATUS_OK                  0
 #define KVDB_STATUS_NOT_FOUND           -1

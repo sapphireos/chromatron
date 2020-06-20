@@ -64,7 +64,7 @@ int8_t vm_i8_kv_handler(
 
         if( hash == __KV__gfx_frame_rate ){
 
-            gfx_v_set_vm_frame_rate( *(uint16_t *)data );
+            gfx_v_set_vm_frame_rate( LOAD16(data) );
 
             update_frame_rate = TRUE;
         }
@@ -77,7 +77,7 @@ int8_t vm_i8_kv_handler(
         }
         else if( hash == __KV__gfx_frame_rate ){
 
-            *(uint16_t *)data = gfx_u16_get_vm_frame_rate();
+            STORE16(data, gfx_u16_get_vm_frame_rate());
         }
     }
 

@@ -30,6 +30,20 @@ int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
     int64_t i64_data = 0;
     uint64_t u64_data = 0;
 
+    uint8_t buf[8] __attribute__((aligned(4)));
+
+    // align to 32 bits
+    uint16_t len = type_u16_size( type );
+
+    if( len > 8 ){
+
+        return -1;
+    }
+
+    memcpy( buf, data, len );
+
+    data = buf;
+
     switch( type ){
         case CATBUS_TYPE_BOOL:
             i64_data = *(bool *)data;
