@@ -160,7 +160,45 @@ PT_BEGIN( pt );
 
 	while(1){
 
+		THREAD_WAIT_WHILE( pt, list_u8_count( &elections_list ) == 0 );
+
 		TMR_WAIT( pt, 1000 );
+
+		uint16_t len = sizeof(election_header_t) + 
+						( sizeof(election_pkt_t) * list_u8_count( &elections_list ) );
+
+		mem_handle_t h = mem2_h_alloc( len );
+
+		if( h < 0 ){
+
+			continue;
+		}
+
+		election_header_t *header = mem2_vp_get_ptr_fast( h );
+
+		init_header( header );
+
+		election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
+
+		list_node_t ln = elections_list.head;
+
+		while( ln > 0 ){
+
+			election_t *election = (election_t *)list_vp_get_data( ln );
+
+			pkt->service 	= election->service;
+			pkt->priority 	= election->priority;
+			pkt->port 		= election->port;
+
+			pkt++;
+			ln = list_ln_next( ln );
+		}
+
+		sock_addr_t raddr;
+		raddr.ipaddr = ip_a_addr(255,255,255,255);
+		raddr.port 	 = ELECTION_PORT;
+
+		sock_i16_sendto_m( sock, h, &raddr );
 
 		THREAD_YIELD( pt );
 	}    
