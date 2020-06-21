@@ -25,14 +25,31 @@
 #ifndef __ELECTION_H
 #define __ELECTION_H
 
-#define ELECTION_PORT 	32036
-#define ELECTION_MAGIC	0x45544f56 // 'VOTE'
+#define ELECTION_PORT 		32036
+#define ELECTION_MAGIC		0x45544f56 // 'VOTE'
+#define ELECTION_VERSION	1
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
-} election_msg_t;
+    uint8_t version;
+    uint8_t flags;
+    uint8_t count;
+    uint8_t padding;
+    uint64_t device_id;
+    uint64_t uptime;
+} election_header_t;
+
+typedef struct __attribute__((packed)){
+	uint32_t service;
+	uint16_t priority;
+	uint16_t port;
+} election_pkt_t;
 
 
 void election_v_init( void );
 
+void election_v_create( uint32_t service, uint16_t priority, uint16_t port );
+void election_v_cancel( uint32_t service );
+
 #endif
+
