@@ -39,6 +39,7 @@ typedef struct{
 	uint32_t service;
 	uint16_t priority;
 	uint16_t port;
+	ip_addr4_t leader_ip;
 } election_t;
 
 static list_t elections_list;
@@ -96,7 +97,7 @@ static election_t* get_election( uint32_t service ){
 	return 0;
 }
 
-void election_v_create( uint32_t service, uint16_t priority, uint16_t port ){
+void election_v_join( uint32_t service, uint16_t priority, uint16_t port ){
 
 	// check if election already exists
 	if( get_election( service ) != 0 ){
@@ -104,11 +105,10 @@ void election_v_create( uint32_t service, uint16_t priority, uint16_t port ){
 		return;
 	}
 
-	election_t election = {
-		service,
-		priority,
-		port
-	};
+	election_t election = {0};
+	election.service 	= service;
+	election.priority 	= priority;
+	election.port 		= port;
 
 	list_node_t ln = list_ln_create_node( &election, sizeof(election) );
 
@@ -141,6 +141,31 @@ void election_v_cancel( uint32_t service ){
 		ln = next_ln;
 	}
 }
+
+bool election_b_leader_found( uint32_t service ){
+
+	election_t *election = get_election( service );
+
+	return !ip_b_is_zeroes( election->leader_ip );
+}
+
+sock_addr_t election_a_get_leader( uint32_t service ){
+
+	sock_addr_t addr = {0};
+
+	election_t *election = get_election( service );
+
+	if( election == 0 ){
+	
+		return addr;
+	}
+
+	addr.ipaddr = election->leader_ip;
+	addr.port 	= election->port;
+
+	return addr;
+}
+
 
 static void init_header( election_header_t *header ){
 

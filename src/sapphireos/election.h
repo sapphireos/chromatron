@@ -25,6 +25,8 @@
 #ifndef __ELECTION_H
 #define __ELECTION_H
 
+#include "sockets.h"
+
 #define ELECTION_PORT 		32036
 #define ELECTION_MAGIC		0x45544f56 // 'VOTE'
 #define ELECTION_VERSION	1
@@ -48,8 +50,13 @@ typedef struct __attribute__((packed)){
 
 void election_v_init( void );
 
-void election_v_create( uint32_t service, uint16_t priority, uint16_t port );
+void election_v_join( uint32_t service, uint16_t priority, uint16_t port );
 void election_v_cancel( uint32_t service );
 
+bool election_b_leader_found( uint32_t service );
+sock_addr_t election_a_get_leader( uint32_t service );
+
+
 #endif
+
 
