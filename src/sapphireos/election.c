@@ -84,6 +84,57 @@ void election_v_init( void ){
                      0 );
 }
 
+static uint8_t elections_count( void ){
+
+    return list_u8_count( &elections_list );
+}
+
+// elections for which we can become leader
+static uint8_t leader_elections_count( void ){
+
+    uint8_t count = 0;
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( election->priority != ELECTION_PRIORITY_CANDIDATE_ONLY ){
+
+            count++;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
+// elections for which we have not elected a leader
+static uint8_t campaigns_count( void ){
+
+    uint8_t count = 0;
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( ( election->state == STATE_IDLE ) ||
+            ( election->state == STATE_CANDIDATE ) ){
+
+            count++;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
+
 static election_t* get_election( uint32_t service ){
 
     list_node_t ln = elections_list.head;
@@ -191,14 +242,18 @@ PT_THREAD( election_sender_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    // startup delay
+    TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 5 ) ); // 4 to 6 seconds
+    
+        
     while(1){
 
-        THREAD_WAIT_WHILE( pt, list_u8_count( &elections_list ) == 0 );
+        THREAD_WAIT_WHILE( pt, campaigns_count() == 0 );
 
         TMR_WAIT( pt, 1000 );
 
         uint16_t len = sizeof(election_header_t) + 
-                        ( sizeof(election_pkt_t) * list_u8_count( &elections_list ) );
+                        ( sizeof(election_pkt_t) * leader_elections_count() );
 
         mem_handle_t h = mem2_h_alloc( len );
 
@@ -219,6 +274,11 @@ PT_BEGIN( pt );
 
             election_t *election = (election_t *)list_vp_get_data( ln );
 
+            if( election->priority == ELECTION_PRIORITY_CANDIDATE_ONLY ){
+
+                goto next;
+            }
+
             pkt->service    = election->service;
             pkt->group      = election->group;
             pkt->priority   = election->priority;
@@ -227,6 +287,8 @@ PT_BEGIN( pt );
             header->count++;
 
             pkt++;
+
+        next:
             ln = list_ln_next( ln );
         }
 
@@ -287,7 +349,7 @@ PT_THREAD( election_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    THREAD_WAIT_WHILE( pt, list_u8_count( &elections_list ) == 0 );
+    THREAD_WAIT_WHILE( pt, elections_count() == 0 );
 
     // create socket
     sock = sock_s_create( SOCK_DGRAM );

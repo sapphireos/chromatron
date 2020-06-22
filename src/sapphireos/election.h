@@ -31,6 +31,10 @@
 #define ELECTION_MAGIC      0x45544f56 // 'VOTE'
 #define ELECTION_VERSION    1
 
+
+#define ELECTION_PRIORITY_CANDIDATE_ONLY    0xffff
+
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
