@@ -142,7 +142,7 @@ static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, 
 
         case FS_VFILE_OP_READ:
             #if defined(ESP32)
-            spi_flash_read( FW_LENGTH_ADDRESS, ptr, len );
+            spi_flash_read( FW_LENGTH_ADDRESS + pos, ptr, len );
             #else
             memcpy_P( ptr, (void *)FW_INFO_ADDRESS + pos + FLASH_START, len );
             #endif
