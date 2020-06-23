@@ -126,7 +126,7 @@
     
     #define wdt_reset()
     #define _delay_us(x) hal_cpu_v_delay_us(x)
-    #ifdef ESP8266
+    #if defined(ESP8266) || defined(ESP32)
     #define _delay_ms(x) hal_cpu_v_delay_ms(x)
     #else
     #define _delay_ms(x) HAL_Delay(x)
