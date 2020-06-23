@@ -10,6 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
+#include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "nvs_flash.h"
 
@@ -38,6 +39,9 @@ void app_main()
     
 
     trace_printf("\r\nESP32 SDK version:%s\r\n", esp_get_idf_version());
+
+    // set run time logging
+    esp_log_level_set("*", ESP_LOG_DEBUG);
 
     // sapphireos init
     if( sapphire_i8_init() == 0 ){

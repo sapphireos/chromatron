@@ -5275,7 +5275,7 @@
                         "id": "TCPIP_TASK_STACK_SIZE", 
                         "name": "TCPIP_TASK_STACK_SIZE", 
                         "range": [
-                            2048, 
+                            2560, 
                             65536
                         ], 
                         "title": "TCP/IP Task Stack Size", 
