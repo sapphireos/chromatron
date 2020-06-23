@@ -72,6 +72,9 @@ void i2c_v_init( i2c_baud_t8 baud ){
         conf.master.clk_speed = 1000000;        
     }
 
+    gpio_set_direction( gpio_sda, GPIO_MODE_OUTPUT_OD );
+    gpio_set_direction( gpio_scl, GPIO_MODE_OUTPUT_OD );
+
     i2c_param_config( I2C_MASTER_PORT, &conf );
 
     i2c_driver_install( I2C_MASTER_PORT, conf.mode, 0, 0, 0 );
@@ -97,6 +100,9 @@ void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
     i2c_master_stop( handle );
 
+    // run the command sequence
+    i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
+
     i2c_cmd_link_delete( handle );
 }
 
@@ -107,12 +113,15 @@ void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
     i2c_master_start( handle );
 
     // send address
-    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
+    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_READ, CHECK_ACK );
     
     // read data
     i2c_master_read( handle, dst, len, CHECK_ACK );
 
     i2c_master_stop( handle );
+
+    // run the command sequence
+    i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
 
     i2c_cmd_link_delete( handle );
 }
