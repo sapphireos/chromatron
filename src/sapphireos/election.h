@@ -32,7 +32,7 @@
 #define ELECTION_VERSION    1
 
 
-#define ELECTION_PRIORITY_CANDIDATE_ONLY    0xffff
+#define ELECTION_PRIORITY_FOLLOWER_ONLY    0
 
 
 typedef struct __attribute__((packed)){
@@ -50,7 +50,6 @@ typedef struct __attribute__((packed)){
     uint32_t group;
     uint16_t priority;
     uint16_t port;
-    ip_addr4_t leader_ip;
 } election_pkt_t;
 
 

@@ -101,7 +101,7 @@ static uint8_t leader_elections_count( void ){
 
         election_t *election = (election_t *)list_vp_get_data( ln );
 
-        if( election->priority != ELECTION_PRIORITY_CANDIDATE_ONLY ){
+        if( election->priority != ELECTION_PRIORITY_FOLLOWER_ONLY ){
 
             count++;
         }
@@ -158,7 +158,15 @@ static election_t* get_election( uint32_t service ){
 void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint16_t port ){
 
     // check if election already exists
-    if( get_election( service ) != 0 ){
+    election_t *election_ptr = get_election( service );
+    
+    if( election_ptr != 0 ){
+
+        // update priority
+        election_ptr->priority   = priority;
+
+        // reset state
+        election_ptr->state      = STATE_CANDIDATE;
 
         return;
     }
@@ -168,7 +176,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     election.group      = group;
     election.priority   = priority;
     election.port       = port;
-    election.state      = STATE_IDLE;
+    election.state      = STATE_CANDIDATE;
 
     list_node_t ln = list_ln_create_node( &election, sizeof(election) );
 
@@ -243,16 +251,12 @@ PT_THREAD( election_sender_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    // startup delay
-    TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 5 ) ); // 4 to 6 seconds
-    
-        
     while(1){
 
         THREAD_WAIT_WHILE( pt, campaigns_count() == 0 );
 
-        TMR_WAIT( pt, 1000 );
-
+        TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 5 ) ); // 4 to 6 seconds
+    
         uint16_t len = sizeof(election_header_t) + 
                         ( sizeof(election_pkt_t) * leader_elections_count() );
 
@@ -275,7 +279,7 @@ PT_BEGIN( pt );
 
             election_t *election = (election_t *)list_vp_get_data( ln );
 
-            if( election->priority == ELECTION_PRIORITY_CANDIDATE_ONLY ){
+            if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
 
                 goto next;
             }
@@ -284,8 +288,7 @@ PT_BEGIN( pt );
             pkt->group      = election->group;
             pkt->priority   = election->priority;
             pkt->port       = election->port;
-            pkt->leader_ip  = election->leader_ip;
-
+            
             header->count++;
 
             pkt++;
@@ -306,6 +309,42 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+// true if pkt is better than current election
+static bool change_leader( election_t *election, election_header_t *header, election_pkt_t *pkt ){
+
+    // if message priority is lower, we're done, don't change
+    if( pkt->priority < election->priority ){
+
+        return FALSE;
+    }
+    // message priority is higher, select new leader
+    else if( pkt->priority > election->priority ){
+
+        return TRUE;
+    }
+
+    // priority is the same
+
+    // check if message has a longer uptime
+    if( header->uptime < election->leader_uptime ){
+
+        return FALSE;
+    }
+    else if( header->uptime > election->leader_uptime ){
+
+        return TRUE;
+    }
+
+    // uptime is the same
+
+    // check device ID
+    if( header->device_id < election->leader_device_id ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 static void process_pkt( election_header_t *header, election_pkt_t *pkt ){
 
