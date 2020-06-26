@@ -50,6 +50,7 @@ typedef struct __attribute__((packed)){
     uint32_t group;
     uint16_t priority;
     uint16_t port;
+    uint32_t reserved;
 } election_pkt_t;
 
 
