@@ -184,9 +184,9 @@ uint16_t ldr_u16_get_partition_crc( void ){
 	while( length > 0 ){
 
         uint8_t buf[4] __attribute__((aligned(4)));
-        uint16_t copy_len = sizeof(buf);
+        uint32_t copy_len = sizeof(buf);
 
-        if( (uint32_t)copy_len > length ){
+        if( copy_len > length ){
 
             copy_len = length;
         }
@@ -198,7 +198,10 @@ uint16_t ldr_u16_get_partition_crc( void ){
         address += copy_len;
         length -= copy_len;
 
-		crc = crc_u16_partial_block( crc, buf, copy_len );
+		for( uint32_t j = 0; j < copy_len; j++ ){
+
+            crc = crc_u16_byte( crc, buf[j] );    
+        }
 
 		// reset watchdog timer
 		wdg_v_reset();
