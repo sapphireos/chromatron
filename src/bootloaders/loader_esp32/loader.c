@@ -203,10 +203,7 @@ uint16_t ldr_u16_get_partition_crc( void ){
         address += copy_len;
         length -= copy_len;
 
-		for( uint32_t j = 0; j < copy_len; j++ ){
-
-            crc = crc_u16_byte( crc, buf[j] );    
-        }
+        crc = crc_u16_partial_block( crc, buf, copy_len );
 
 		// reset watchdog timer
 		wdg_v_reset();
