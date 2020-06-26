@@ -66,11 +66,7 @@ static int spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
     address += START_ADDRESS;
 
-    #ifdef BOOTLOADER
-    return 0;
-    #else
     return spi_flash_read( address, ptr, size );
-    #endif
 }
 
 static int spi_write( uint32_t address, uint32_t *ptr, uint32_t size ){
@@ -126,7 +122,6 @@ static void invalidate_cache( void ){
 void hal_flash25_v_init( void ){
 
     // read max address
-    // #ifndef BOOTLOADER
     max_address = flash25_u32_read_capacity_from_info();
 
     if( max_address >= ( START_ADDRESS + ( 64 *1024 ) ) ){
@@ -141,10 +136,7 @@ void hal_flash25_v_init( void ){
         // invalid flash
         max_address = 0;
     }
-    // #else
-    // max_address = 1048576;
-    // #endif
-
+    
     trace_printf("Flash capacity: %d\r\n", max_address);
     
 
@@ -433,13 +425,6 @@ void flash25_v_erase_4k( uint32_t address ){
     address += START_ADDRESS;
         
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-
-    // trace_printf("Erase: 0x%x\r\n", address);
-    // #ifdef BOOTLOADER
-    // SPIEraseSector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-    // #else
-    // spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-    // #endif
 }
 
 // erase the entire array

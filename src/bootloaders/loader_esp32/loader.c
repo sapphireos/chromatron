@@ -105,9 +105,9 @@ void ldr_v_read_partition_data( uint32_t offset, uint8_t *dest, uint16_t length 
 uint32_t ldr_u32_read_partition_length( void ){
 
 	uint32_t partition_length;
-	uint32_t start_address = FLASH_FS_FIRMWARE_0_PARTITION_START;
+	uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START + FW_LENGTH_ADDRESS;
 
-	flash25_v_read( FW_LENGTH_ADDRESS + start_address, &partition_length, sizeof(partition_length) );
+	flash25_v_read( address, &partition_length, sizeof(partition_length) );
 	
     partition_length += sizeof(uint16_t);
 
