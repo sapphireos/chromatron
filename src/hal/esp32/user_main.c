@@ -41,7 +41,7 @@ void app_main()
     trace_printf("\r\nESP32 SDK version:%s\r\n", esp_get_idf_version());
 
     // set run time logging
-    esp_log_level_set("*", ESP_LOG_INFO);
+    // esp_log_level_set("*", ESP_LOG_INFO);
 
     // sapphireos init
     if( sapphire_i8_init() == 0 ){
