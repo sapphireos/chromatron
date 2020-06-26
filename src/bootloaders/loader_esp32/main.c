@@ -76,6 +76,7 @@ Generic mode:
 #include "bootloader_init.h"
 #include "bootloader_utility.h"
 #include "rom/rtc.h"
+#include "soc/rtc_wdt.h"
 
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
@@ -88,6 +89,8 @@ void main( void ){
 
     // init CRC
     crc_v_init();
+
+    rtc_wdt_disable();
 
     ldr_v_set_yellow_led();
 

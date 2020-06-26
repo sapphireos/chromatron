@@ -57,11 +57,11 @@ void ldr_v_erase_app( void ){
 
 	uint32_t offset = FW_START_OFFSET / 4096;
 
-	trace_printf("Erasing firmware");
+	trace_printf("Erasing firmware\n");
 
 	for( uint32_t i = 0; i < FLASH_FS_FIRMWARE_0_N_BLOCKS; i++ ){
 
-		// SPIEraseSector( i + offset );
+        bootloader_flash_erase_sector( i + offset );
 	}
 	// trace_printf("Done\n");
 }
@@ -72,21 +72,20 @@ void ldr_v_copy_partition_to_internal( void ){
 
     uint32_t length = ldr_u32_read_partition_length();
 	
-	trace_printf("Writing firmware");
+	trace_printf("Writing firmware\n");
 
-	for( uint32_t i = 0; i < length; i += 4 ){
+	for( uint32_t i = 0; i < length; i += 256 ){
 
 		// load page data
-		uint8_t data[4] __attribute__((aligned(4)));
+		uint8_t data[256] __attribute__((aligned(4)));
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
-		// SPIWrite( i + FW_START_OFFSET, (const uint8_t *)&data, sizeof(data) );
+		bootloader_flash_write( i + FW_START_OFFSET, data, sizeof(data), FALSE );
 
 		// reset watchdog timer
 		wdg_v_reset();
 	}
 
-    // io_v_set_esp_led( 0 );
 	// trace_printf("Done\n");
 }
 
@@ -141,6 +140,12 @@ uint16_t ldr_u16_get_internal_crc( void ){
 	uint32_t length = ldr_u32_read_internal_length();
 
 	trace_printf("Internal len: %u\n", length);
+
+    if( length < 4 ){
+
+        // obviously bad length
+        return 0xffff;
+    }
 
     uint32_t remaining = length;
 
