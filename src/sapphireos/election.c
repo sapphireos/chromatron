@@ -58,6 +58,7 @@ typedef struct{
     uint16_t leader_priority;
     uint16_t leader_port;   
     ip_addr4_t leader_ip;
+    uint16_t leader_timeout; // if 0, leader has timed out or is not confirmed.
 
     election_state_t state;
 } election_t;
@@ -283,6 +284,7 @@ PT_BEGIN( pt );
             pkt->group      = election->group;
             pkt->priority   = election->priority;
             pkt->port       = election->port;
+            pkt->leader_ip  = election->leader_ip;
 
             header->count++;
 
