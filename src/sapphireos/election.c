@@ -90,28 +90,6 @@ static uint8_t elections_count( void ){
     return list_u8_count( &elections_list );
 }
 
-// elections for which we can become leader
-static uint8_t leader_elections_count( void ){
-
-    uint8_t count = 0;
-
-    list_node_t ln = elections_list.head;
-
-    while( ln > 0 ){
-
-        election_t *election = (election_t *)list_vp_get_data( ln );
-
-        if( election->priority != ELECTION_PRIORITY_FOLLOWER_ONLY ){
-
-            count++;
-        }
-
-        ln = list_ln_next( ln );
-    }
-
-    return count;
-}
-
 // elections for which we have not elected a leader
 static uint8_t campaigns_count( void ){
 
@@ -247,6 +225,37 @@ static void init_header( election_header_t *header ){
 }
 
 
+// elections for which we can become leader
+static uint8_t transmit_count( void ){
+
+    uint8_t count = 0;
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
+
+            goto next;
+        }
+        else if( ( election->state == STATE_IDLE ) ||
+                 ( election->state == STATE_FOLLOWER ) ){
+
+            goto next;
+        }
+
+        count++;
+
+next:
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
+
 PT_THREAD( election_sender_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -258,7 +267,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 5 ) ); // 4 to 6 seconds
     
         uint16_t len = sizeof(election_header_t) + 
-                        ( sizeof(election_pkt_t) * leader_elections_count() );
+                        ( sizeof(election_pkt_t) * transmit_count() );
 
         mem_handle_t h = mem2_h_alloc( len );
 
@@ -283,6 +292,13 @@ PT_BEGIN( pt );
 
                 goto next;
             }
+
+            if( ( election->state == STATE_IDLE ) ||
+                ( election->state == STATE_FOLLOWER ) ){
+
+                goto next;
+            }
+
 
             pkt->service    = election->service;
             pkt->group      = election->group;
@@ -360,6 +376,9 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt ){
 
         return;
     }
+
+    
+
 
     // matching election
     if( election->state == STATE_IDLE ){
