@@ -94,7 +94,13 @@ void main( void ){
     // check reset source
     uint8_t reset_source = cpu_u8_get_reset_source();
 
-    trace_printf("Reset source: %d\n", reset_source);
+    // check for power on reset (or brown out, or external reset...)
+    if( reset_source != 0 ){
+
+        boot_data.loader_command = LDR_CMD_NONE; // init loader command
+    }
+
+    trace_printf("Reset source: %d\n", reset_source );
 
     boot_data.loader_version_major = LDR_VERSION_MAJOR;
     boot_data.loader_version_minor = LDR_VERSION_MINOR;

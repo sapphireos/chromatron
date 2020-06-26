@@ -31,6 +31,7 @@
 #include "esp_pm.h"
 #include "esp_clk.h"
 #include "rom/ets_sys.h"
+#include "rom/rtc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -56,7 +57,24 @@ void cpu_v_init( void ){
 
 uint8_t cpu_u8_get_reset_source( void ){
     #ifdef BOOTLOADER
+    
+    RESET_REASON reason = rtc_get_reset_reason( 0 );
+
+    if( reason == POWERON_RESET ){
+
+        return RESET_SOURCE_POWER_ON;
+    }
+    else if( reason == RTCWDT_RTC_RESET ){
+
+        return RESET_SOURCE_EXTERNAL;        
+    }
+    else if( reason == RTCWDT_BROWN_OUT_RESET ){
+
+        return RESET_SOURCE_BROWNOUT;        
+    }
+
     return 0;
+
     #else
 	esp_reset_reason_t reason = esp_reset_reason();
 
