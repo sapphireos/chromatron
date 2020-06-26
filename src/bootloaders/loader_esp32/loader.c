@@ -183,7 +183,7 @@ uint16_t ldr_u16_get_partition_crc( void ){
 
 	while( length > 0 ){
 
-        uint8_t buf[4] __attribute__((aligned(4)));
+        uint8_t buf[256] __attribute__((aligned(4)));
         uint32_t copy_len = sizeof(buf);
 
         if( copy_len > length ){
