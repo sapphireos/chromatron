@@ -145,6 +145,9 @@ void wifi_v_init( void ){
     // set tx power
     esp_wifi_set_max_tx_power( tx_power * 4 );
 
+    // set power state
+    esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+    // esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
 
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
