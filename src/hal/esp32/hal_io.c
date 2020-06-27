@@ -51,8 +51,8 @@ static const gpio_num_t gpios[IO_PIN_COUNT] = {
     GPIO_NUM_5,  // IO_PIN_5_SCK  
     GPIO_NUM_4,  // IO_PIN_4_A5   
     GPIO_NUM_36, // IO_PIN_36_A4  
-    GPIO_NUM_36, // IO_PIN_39_A3  
-    GPIO_NUM_36, // IO_PIN_34_A2  
+    GPIO_NUM_39, // IO_PIN_39_A3  
+    GPIO_NUM_34, // IO_PIN_34_A2  
     GPIO_NUM_25, // IO_PIN_25_A1  
     GPIO_NUM_26, // IO_PIN_26_A0  
 };
