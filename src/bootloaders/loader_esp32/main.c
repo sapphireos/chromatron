@@ -85,8 +85,6 @@ void main( void ){
 
     trace_printf("Welcome to Sapphire ESP32 Bootloader\n");
 
-    // hal_cpu_v_load_bootdata();
-
     // init CRC
     crc_v_init();
 
@@ -102,8 +100,6 @@ void main( void ){
 
         boot_data.loader_command = LDR_CMD_NONE; // init loader command
     }
-
-    boot_data.loader_command = LDR_CMD_LOAD_FW;
 
     trace_printf("Reset source: %d\n", reset_source );
 
@@ -206,13 +202,6 @@ void main( void ){
             boot_data.loader_status = LDR_STATUS_PARTITION_CRC_BAD;
         }
     }
-
-    // if( flash25_u8_read_byte( BOOTLOADER_INFO_BLOCK ) != 0xff ){
-
-    //     // erase stored bootdata
-    //     flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
-    // }
-
 
     // clear loader command
     boot_data.loader_command = LDR_CMD_NONE;

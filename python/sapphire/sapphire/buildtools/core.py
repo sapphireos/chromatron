@@ -1373,7 +1373,11 @@ class AppBuilder(HexBuilder):
             package.add_image('firmware.bin', coproc_image, self.board_type, coproc_version)
 
         else:
-            package.add_image('firmware.bin', ih.tobinstr(), self.board_type, self.version)
+            # open firmware.bin from filesystem
+            with open("firmware.bin", 'rb') as f:
+                firmware_image = bytearray(f.read())
+
+            package.add_image('firmware.bin',firmware_image, self.board_type, self.version)
             
         if 'extra_files' in self.board:
             for file in self.board['extra_files']:

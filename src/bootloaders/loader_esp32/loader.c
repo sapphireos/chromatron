@@ -74,10 +74,11 @@ void ldr_v_copy_partition_to_internal( void ){
 	
 	trace_printf("Writing firmware\n");
 
-	for( uint32_t i = 0; i < length; i += 256 ){
+    uint8_t data[256] __attribute__((aligned(4)));
+
+	for( uint32_t i = 0; i < length; i += sizeof(data) ){
 
 		// load page data
-		uint8_t data[256] __attribute__((aligned(4)));
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
 		bootloader_flash_write( i + FW_START_OFFSET, data, sizeof(data), FALSE );
@@ -149,9 +150,10 @@ uint16_t ldr_u16_get_internal_crc( void ){
 
     uint32_t remaining = length;
 
-	for( uint32_t i = 0; i < length; i += 256 ){
+    uint8_t buf[256] __attribute__((aligned(4)));
 
-        uint8_t buf[256];
+	for( uint32_t i = 0; i < length; i += sizeof(buf) ){
+
         uint16_t copy_len = sizeof(buf);
 
         if( copy_len > remaining ){
