@@ -50,9 +50,9 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 	io_v_set_mode( HAL_SPI_SCK, IO_MODE_OUTPUT );
 
 	spi_bus_config_t buscfg = {
-        .miso_io_num 		= HAL_SPI_MISO,
-        .mosi_io_num 		= HAL_SPI_MOSI,
-        .sclk_io_num 		= HAL_SPI_SCK,
+        .miso_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_MISO ),
+        .mosi_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_MOSI ),
+        .sclk_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_SCK ),
         .quadwp_io_num 		= -1,
         .quadhd_io_num 		= -1,
         .max_transfer_sz 	= 0, // sets default
