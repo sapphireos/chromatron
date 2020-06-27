@@ -31,8 +31,7 @@
 #include "driver/spi_master.h"
 
 static spi_device_handle_t spi;
-
-static uint8_t spi_mode;
+static spi_device_interface_config_t devcfg;
 
 void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
@@ -41,8 +40,6 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
     io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
     io_v_set_mode( HAL_SPI_MOSI, IO_MODE_OUTPUT );
     io_v_set_mode( HAL_SPI_SCK, IO_MODE_OUTPUT );
-
-    spi_mode = mode;
 
 	if( spi != 0 ){
 
@@ -63,12 +60,11 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
 	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 1 )); // DMA channel 1
 
-	spi_device_interface_config_t devcfg = {
-        .clock_speed_hz = freq,
-        .mode = spi_mode,                            
-        .spics_io_num = -1,
-        .queue_size = 1,                          
-    };
+	
+    devcfg.clock_speed_hz   = freq;
+    devcfg.mode             = mode;                            
+    devcfg.spics_io_num     = -1;
+    devcfg.queue_size       = 1;                          
 
     ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
 }
@@ -83,12 +79,7 @@ void spi_v_set_freq( uint8_t channel, uint32_t freq ){
         spi = 0;
     }
 
-    spi_device_interface_config_t devcfg = {
-        .clock_speed_hz = freq,
-        .mode = spi_mode,                            
-        .spics_io_num = -1,
-        .queue_size = 1,                          
-    };
+    devcfg.clock_speed_hz = freq;
 
     ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
 }
@@ -97,7 +88,20 @@ uint32_t spi_u32_get_freq( uint8_t channel ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
-	return 0;
+	return devcfg.clock_speed_hz;
+}
+
+void spi_v_set_mode( uint8_t channel, uint8_t mode ){
+
+    if( spi != 0 ){
+
+        spi_bus_remove_device( spi );
+        spi = 0;
+    }
+
+    devcfg.mode = mode;
+
+    ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
 }
 
 uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
