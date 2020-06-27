@@ -45,9 +45,9 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
 	spi_bus_free( HAL_SPI_PORT );
 
-	io_v_set_mode( IO_MODE_INPUT, HAL_SPI_MISO );
-	io_v_set_mode( IO_MODE_OUTPUT, HAL_SPI_MOSI );
-	io_v_set_mode( IO_MODE_OUTPUT, HAL_SPI_SCK );
+	io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
+	io_v_set_mode( HAL_SPI_MOSI, IO_MODE_OUTPUT );
+	io_v_set_mode( HAL_SPI_SCK, IO_MODE_OUTPUT );
 
 	spi_bus_config_t buscfg = {
         .miso_io_num 		= HAL_SPI_MISO,
@@ -58,7 +58,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
         .max_transfer_sz 	= 0, // sets default
     };
 
-	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 1 ));
+	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 0 ));
 
 	spi_device_interface_config_t devcfg = {
         .clock_speed_hz = freq,
@@ -89,7 +89,7 @@ uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
 	transaction.tx_buffer = &data;
 	transaction.rx_buffer = &rx_data;
 
-	spi_device_transmit( spi, &transaction );
+	spi_device_polling_transmit( spi, &transaction );
 
 	return rx_data;
 }
@@ -104,7 +104,7 @@ void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
 	transaction.tx_buffer = data;
 	transaction.rx_buffer = 0;
 
-	spi_device_transmit( spi, &transaction );
+	spi_device_polling_transmit( spi, &transaction );
 }
 
 void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
@@ -117,6 +117,6 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 	transaction.tx_buffer = 0;
 	transaction.rx_buffer = data;
 
-	spi_device_transmit( spi, &transaction );
+	spi_device_polling_transmit( spi, &transaction );
 }
 

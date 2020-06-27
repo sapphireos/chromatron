@@ -75,13 +75,37 @@ PT_BEGIN( pt );
         }
         else if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
+            // status_led_v_set( 0, STATUS_LED_RED );
+
+            // TMR_WAIT( pt, 500 );
+
+            // status_led_v_set( 1, STATUS_LED_RED );
+
+            // TMR_WAIT( pt, 500 );
+
             status_led_v_set( 0, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 500 );
+            TMR_WAIT( pt, 100 );
 
             status_led_v_set( 1, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 500 );
+            TMR_WAIT( pt, 100 );
+
+            status_led_v_set( 0, STATUS_LED_RED );
+
+            TMR_WAIT( pt, 100 );
+
+            status_led_v_set( 1, STATUS_LED_RED );
+
+            TMR_WAIT( pt, 100 );
+
+            status_led_v_set( 0, STATUS_LED_RED );
+
+            TMR_WAIT( pt, 100 );
+
+            status_led_v_set( 1, STATUS_LED_RED );
+
+            TMR_WAIT( pt, 1000 );
         }
         #ifdef ENABLE_WIFI
         else if( wifi_b_connected() ){
