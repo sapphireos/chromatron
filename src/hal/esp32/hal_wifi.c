@@ -837,6 +837,13 @@ PT_BEGIN( pt );
                 tcpip_adapter_dns_info_t dns_info;
                 tcpip_adapter_get_dns_info( TCPIP_ADAPTER_IF_STA, TCPIP_ADAPTER_DNS_MAIN, &dns_info );
 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_info.ip );
+
+                // get RSSI
+                wifi_ap_record_t wifi_info;
+                if( esp_wifi_sta_get_ap_info( &wifi_info ) == 0 ){
+
+                    wifi_rssi = wifi_info.rssi;
+                }
            	}
         }
         // AP mode
