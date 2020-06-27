@@ -58,7 +58,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
         .max_transfer_sz 	= 0, // sets default
     };
 
-	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 0 ));
+	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 1 )); // DMA channel 1
 
 	spi_device_interface_config_t devcfg = {
         .clock_speed_hz = freq,
@@ -84,8 +84,8 @@ uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
 	uint8_t rx_data = 0;
 
 	spi_transaction_t transaction = { 0 };
-	transaction.length = 1;
-	transaction.rxlength = 1;
+	transaction.length = 8; // note lengths are in bits, not bytes!
+	transaction.rxlength = 8;
 	transaction.tx_buffer = &data;
 	transaction.rx_buffer = &rx_data;
 
@@ -99,7 +99,7 @@ void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
 	ASSERT( channel < N_SPI_PORTS );
 
 	spi_transaction_t transaction = { 0 };
-	transaction.length = length;
+	transaction.length = (uint32_t)length * 8;
 	transaction.rxlength = 0;
 	transaction.tx_buffer = data;
 	transaction.rx_buffer = 0;
@@ -113,7 +113,7 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 	
 	spi_transaction_t transaction = { 0 };
 	transaction.length = 0;
-	transaction.rxlength = length;
+	transaction.rxlength = (uint32_t)length * 8;
 	transaction.tx_buffer = 0;
 	transaction.rx_buffer = data;
 
