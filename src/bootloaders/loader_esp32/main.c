@@ -99,6 +99,8 @@ void main( void ){
     if( reset_source != 0 ){
 
         boot_data.loader_command = LDR_CMD_NONE; // init loader command
+        boot_data.reboots = 0; // initialize reboot counter
+        boot_data.boot_mode = BOOT_MODE_REBOOT; // signal so app doesn't go into safe mode
     }
 
     trace_printf("Reset source: %d\n", reset_source );
