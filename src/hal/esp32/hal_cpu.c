@@ -62,16 +62,16 @@ void cpu_v_init( void ){
     spi_read( addr, (uint32_t *)&header, sizeof(header) );
     addr += sizeof(header);
 
-    trace_printf("Segments: %d\n", header.segment_count);
+    trace_printf("Image info\nSegments: %d\n", header.segment_count);
 
     for( uint8_t i = 0; i < header.segment_count; i++ ){
 
         esp_image_segment_header_t seg_header;
         spi_read( addr, (uint32_t *)&seg_header, sizeof(seg_header) );
 
-        trace_printf("Segment load: 0x%0x len: %u\n", seg_header.load_addr, seg_header.data_len);
+        trace_printf("Segment load: 0x%0x len: %u offset: 0x%0x\n", seg_header.load_addr, seg_header.data_len, addr);
 
-        addr += sizeof(header);
+        addr += sizeof(seg_header);
         addr += seg_header.data_len;
     }
 
