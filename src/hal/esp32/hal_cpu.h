@@ -31,6 +31,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 
+// extern uint32_t FW_INFO_ADDRESS;
+
 // we don't have manual control of interrupts on the ESP32 (at least, not easily)
 #define ENABLE_INTERRUPTS 
 #define DISABLE_INTERRUPTS

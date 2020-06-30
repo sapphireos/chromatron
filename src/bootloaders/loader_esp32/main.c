@@ -85,6 +85,8 @@ void main( void ){
 
     trace_printf("Welcome to Sapphire ESP32 Bootloader\n");
 
+    cpu_v_init();
+
     // init CRC
     crc_v_init();
 

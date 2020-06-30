@@ -27,6 +27,14 @@
 #include "flash25.h"
 #include "system.h"
 
+#include "esp_image_format.h"
+
+#ifdef BOOTLOADER
+#include "bootloader_flash.h"
+#else
+#include "esp_spi_flash.h"
+#endif
+
 #include "esp_system.h"
 #include "esp_pm.h"
 #include "esp_clk.h"
@@ -36,10 +44,38 @@
 #include "freertos/task.h"
 
 extern boot_data_t BOOTDATA boot_data;
+// uint32_t FW_INFO_ADDRESS;
 
+static void spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
+
+    #ifdef BOOTLOADER
+    bootloader_flash_read( address, ptr, size, false );
+    #else
+    spi_flash_read( address, ptr, size );
+    #endif
+}
 
 void cpu_v_init( void ){
 
+    esp_image_header_t header;
+    uint32_t addr = FW_START_OFFSET;
+    spi_read( addr, (uint32_t *)&header, sizeof(header) );
+    addr += sizeof(header);
+
+    trace_printf("Segments: %d\n", header.segment_count);
+
+    for( uint8_t i = 0; i < header.segment_count; i++ ){
+
+        esp_image_segment_header_t seg_header;
+        spi_read( addr, (uint32_t *)&seg_header, sizeof(seg_header) );
+
+        trace_printf("Segment load: 0x%0x len: %u\n", seg_header.load_addr, seg_header.data_len);
+
+        addr += sizeof(header);
+        addr += seg_header.data_len;
+    }
+
+    #ifndef BOOTLOADER
     DISABLE_INTERRUPTS;
 
     esp_pm_config_esp32_t pm_config = { 0 };
@@ -53,6 +89,7 @@ void cpu_v_init( void ){
         vTaskDelay(10);
     }
     trace_printf("Frequency is set to %d MHz\n", 240);
+    #endif
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
