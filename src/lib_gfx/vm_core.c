@@ -432,7 +432,7 @@ static int8_t _vm_i8_run_stream(
     #endif
 
 
-    #if defined(ESP8266) || defined(ARM)
+    #if !defined(AVR)
         #define DISPATCH cycles--; \
                          if( cycles == 0 ){ \
                             return VM_STATUS_ERR_MAX_CYCLES; \
@@ -455,7 +455,7 @@ static int8_t _vm_i8_run_stream(
 
             opcode = *pc++;
 
-        #if defined(ESP8266) || defined(ARM)
+        #if !defined(AVR)
             goto *opcode_table[opcode];
         #else
             void *target = (void*)pgm_read_word( &opcode_table[opcode] );
