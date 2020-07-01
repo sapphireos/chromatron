@@ -40,8 +40,8 @@ KV_SECTION_META kv_meta_t flash_id_kv[] = {
 };
 
 
-// FW_START_OFFSET offsets from the end of the bootloader section.
-#define START_ADDRESS ( FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_START_OFFSET )
+// FW_SPI_START_OFFSET offsets from the end of the bootloader section.
+#define START_ADDRESS ( FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_SPI_START_OFFSET )
 
 extern uint16_t block0_unlock;
 extern uint16_t eeprom_erase_unlock;

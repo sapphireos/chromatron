@@ -55,7 +55,7 @@ esp_err_t spi_flash_read( size_t src, void *dest, size_t size ){
 
 void ldr_v_erase_app( void ){
 
-	uint32_t offset = FW_START_OFFSET / 4096;
+	uint32_t offset = FW_SPI_START_OFFSET / 4096;
 
 	trace_printf("Erasing firmware\n");
 
@@ -81,7 +81,7 @@ void ldr_v_copy_partition_to_internal( void ){
 		// load page data
 		ldr_v_read_partition_data( i, (void *)&data, sizeof(data) );
 
-		bootloader_flash_write( i + FW_START_OFFSET, data, sizeof(data), FALSE );
+		bootloader_flash_write( i + FW_SPI_START_OFFSET, data, sizeof(data), FALSE );
 
 		// reset watchdog timer
 		wdg_v_reset();
@@ -105,7 +105,7 @@ void ldr_v_read_partition_data( uint32_t offset, uint8_t *dest, uint16_t length 
 uint32_t ldr_u32_read_partition_length( void ){
 
 	uint32_t partition_length;
-	uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START + FW_LENGTH_ADDRESS;
+	uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START + FW_START_OFFSET - FW_SPI_START_OFFSET;
 
 	flash25_v_read( address, &partition_length, sizeof(partition_length) );
 	
@@ -125,7 +125,7 @@ uint32_t ldr_u32_read_internal_length( void ){
 
 	uint32_t internal_length = 0;
 
-	uint32_t addr = FW_START_OFFSET + FW_LENGTH_ADDRESS;
+	uint32_t addr = FW_START_OFFSET;
 
 	spi_flash_read( addr, &internal_length, sizeof(internal_length) );
 
@@ -163,7 +163,7 @@ uint16_t ldr_u16_get_internal_crc( void ){
 
         remaining -= copy_len;
 
-		spi_flash_read( i + FW_START_OFFSET, buf, copy_len );
+		spi_flash_read( i + FW_SPI_START_OFFSET, buf, copy_len );
 
         for( uint32_t j = 0; j < copy_len; j++ ){
 

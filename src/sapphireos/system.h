@@ -169,7 +169,7 @@ void sys_v_get_fw_id( uint8_t id[FW_ID_LENGTH] );
 void sys_v_get_os_version( char ver[OS_VER_LEN] );
 void sys_v_get_fw_version( char ver[FW_VER_LEN] );
 void sys_v_get_fw_info( fw_info_t *fw_info );
-uint32_t sys_v_get_fw_length( void );
+uint32_t sys_u32_get_fw_length( void );
 
 void sys_reboot( void ) __attribute__((noreturn));
 void sys_v_load_fw( void );

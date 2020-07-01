@@ -179,7 +179,6 @@
     "OS_PROJECT": "sapphire",
 
     "FW_INFO_ADDR": "0x400d0018",
-    "FW_START_OFFSET": "0x00002000",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 

@@ -25,6 +25,8 @@
 
 int dummy_printf(const char* format, ...);
 
+#include "target.h"
+
 #ifndef BOOTLOADER
 #ifdef ENABLE_TRACE
 #define trace_printf printf

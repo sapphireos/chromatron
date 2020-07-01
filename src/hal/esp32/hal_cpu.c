@@ -44,7 +44,7 @@
 #include "freertos/task.h"
 
 extern boot_data_t BOOTDATA boot_data;
-// uint32_t FW_INFO_ADDRESS;
+uint32_t FW_START_OFFSET;
 
 static void spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
@@ -57,8 +57,10 @@ static void spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
 
 void cpu_v_init( void ){
 
+    trace_printf("CPU init...\n");
+
     esp_image_header_t header;
-    uint32_t addr = FW_START_OFFSET;
+    uint32_t addr = FW_SPI_START_OFFSET;
     spi_read( addr, (uint32_t *)&header, sizeof(header) );
     addr += sizeof(header);
 
@@ -70,6 +72,12 @@ void cpu_v_init( void ){
         spi_read( addr, (uint32_t *)&seg_header, sizeof(seg_header) );
 
         trace_printf("Segment load: 0x%0x len: %u offset: 0x%0x\n", seg_header.load_addr, seg_header.data_len, addr);
+
+        if( seg_header.load_addr == FW_LOAD_ADDR ){
+
+            FW_START_OFFSET = addr + sizeof(seg_header);
+            trace_printf("FW_START_OFFSET: 0x%0x\n", FW_START_OFFSET);
+        }
 
         addr += sizeof(seg_header);
         addr += seg_header.data_len;
@@ -84,11 +92,10 @@ void cpu_v_init( void ){
     pm_config.light_sleep_enable = FALSE;
     
     esp_pm_configure( &pm_config );
-    trace_printf("Waiting for frequency to be set to %d MHz...\n", 240);
-    while (esp_clk_cpu_freq() / 1000000 != 240) {
+    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
+    while (esp_clk_cpu_freq() / 1000000 != pm_config.max_freq_mhz) {
         vTaskDelay(10);
     }
-    trace_printf("Frequency is set to %d MHz\n", 240);
     #endif
 }
 

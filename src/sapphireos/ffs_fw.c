@@ -162,13 +162,19 @@ int8_t ffs_fw_i8_init( void ){
     #endif
 
 
-    uint32_t sys_fw_length = sys_v_get_fw_length() + sizeof(uint16_t); // adjust for CRC
+    uint32_t sys_fw_length = sys_u32_get_fw_length() + sizeof(uint16_t); // adjust for CRC
     uint32_t ext_fw_length = 0;
 
     // read firmware info from external flash partition
-    flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_LENGTH_ADDRESS + offsetof(fw_info_t, fw_length),
+    #ifdef ESP32
+    flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_START_OFFSET - FW_SPI_START_OFFSET,
                     &ext_fw_length,
                     sizeof(ext_fw_length) );
+    #else
+    flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_LENGTH_ADDRESS,
+                    &ext_fw_length,
+                    sizeof(ext_fw_length) );
+    #endif
 
     ext_fw_length += sizeof(uint16_t); // adjust for CRC
     
@@ -227,7 +233,7 @@ int8_t ffs_fw_i8_init( void ){
 
                 #ifdef ESP32
                 uint32_t temp;
-                spi_flash_read( i + j + FW_START_OFFSET, &temp, sizeof(temp) );
+                spi_flash_read( i + j + FW_SPI_START_OFFSET, &temp, sizeof(temp) );
 
                 buf[j + 0] = ( temp >>  0 ) & 0xff;
                 buf[j + 1] = ( temp >>  8 ) & 0xff;
@@ -313,9 +319,7 @@ uint16_t ffs_fw_u16_crc( void ){
 // return the application length
 uint32_t ffs_fw_u32_read_internal_length( void ){
 
-    uint32_t internal_length;
-
-    memcpy_P( &internal_length, (void *)( FW_LENGTH_ADDRESS + FLASH_START ), sizeof(internal_length) );
+    uint32_t internal_length = sys_u32_get_fw_length();
 
     internal_length += sizeof(uint16_t);
 

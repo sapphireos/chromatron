@@ -439,7 +439,7 @@ void sys_v_get_fw_info( fw_info_t *fw_info ){
     #endif
 }
 
-uint32_t sys_v_get_fw_length( void ){
+uint32_t sys_u32_get_fw_length( void ){
 
     uint32_t length;
 
