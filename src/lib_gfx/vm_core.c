@@ -45,7 +45,7 @@
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
-#if defined(ESP8266) || defined(ARM) // very slight speed boost using 32 bit numbers on Xtensa
+#if !defined(AVR) // very slight speed boost using 32 bit numbers on Xtensa
 static uint32_t cycles;
 #else
 static uint16_t cycles;
