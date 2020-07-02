@@ -447,6 +447,13 @@ PT_BEGIN( pt );
                 goto next;
             }
 
+            // update leader uptime
+            if( !ip_b_is_zeroes( election->leader_ip ) ){
+
+                election->leader_uptime = tmr_u32_elapsed_time_us( election->tracking_timestamp );
+                election->tracking_timestamp = tmr_u32_get_system_time_us();
+            }
+
             // TIMEOUT STATE MACHINE
 
             if( election->state == STATE_IDLE ){
