@@ -137,22 +137,11 @@ static election_t* get_election( uint32_t service ){
 static void reset_state( election_t *election ){
 
     log_v_debug_P( PSTR("Reset to IDLE") );
-    // if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
+
+    memset( election, 0, sizeof(election_t) );
 
     election->state      = STATE_IDLE;    
-
-    election->leader_uptime     = 0;
-    election->leader_device_id  = 0;
-    election->leader_priority   = 0;
-    election->leader_port       = 0;
-    election->leader_ip         = ip_a_addr(0,0,0,0);
-    election->timeout           = IDLE_TIMEOUT;
-
-    // }
-    // else{
-
-    // election->state      = STATE_CANDIDATE;    
-    // }
+    election->timeout    = IDLE_TIMEOUT;
 }
 
 void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint16_t port ){
@@ -233,6 +222,358 @@ sock_addr_t election_a_get_leader( uint32_t service ){
 
     return addr;
 }
+
+// true if we are better than tracked leader
+static bool compare_self( election_t *election ){
+
+    // check if a leader is being tracked.
+    // if none, we win by default.
+    if( ip_b_is_zeroes( election->leader_ip ) ){
+
+        return TRUE;
+    }
+    
+    // check if tracked leader's priority is better than ours
+    if( election->priority < election->leader_priority ){
+
+        return FALSE;
+    } 
+    // our priority is bettere
+    else if( election->priority > election->leader_priority ){
+
+        return TRUE;
+    }
+
+    // priorities are the same
+    // check uptime
+    uint64_t uptime = tmr_u64_get_system_time_us();
+
+    if( uptime < election->leader_uptime ){
+
+        return FALSE;
+    }
+    else if( uptime > election->leader_uptime ){
+
+        return TRUE;
+    }
+
+    // uptime is the same
+
+    // check device ID
+    if( cfg_u64_get_device_id() < election->leader_device_id ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+// true if pkt is better than current election
+static bool compare_leader( election_t *election, election_header_t *header, election_pkt_t *pkt ){
+
+    // if message priority is lower, we're done, don't change
+    if( pkt->priority < election->leader_priority ){
+
+        return FALSE;
+    }
+    // message priority is higher, select new leader
+    else if( pkt->priority > election->leader_priority ){
+
+        return TRUE;
+    }
+
+    // priority is the same
+
+    // check if message has a longer uptime
+    if( header->uptime < election->leader_uptime ){
+
+        return FALSE;
+    }
+    else if( header->uptime > election->leader_uptime ){
+
+        return TRUE;
+    }
+
+    // uptime is the same
+
+    // check device ID
+    if( header->device_id < election->leader_device_id ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void track_leader( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
+
+    log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+    election->leader_uptime     = header->uptime;
+    election->leader_device_id  = header->device_id;
+    election->leader_priority   = pkt->priority;
+    election->leader_port       = pkt->port;
+    election->leader_ip         = *ip;
+    election->timeout           = LEADER_TIMEOUT;
+}
+
+static void follow( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
+
+    log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+    election->state = STATE_FOLLOWER;
+
+    track_leader( election, header, pkt, ip );
+}
+
+static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
+
+    // look up matching election
+    election_t *election = get_election( pkt->service );
+
+    if( election == 0 ){
+
+        return;
+    }
+
+    if( election->group != pkt-> group ){
+
+        return;
+    }
+
+    log_v_debug_P( PSTR("recv pkt") );
+
+    // PACKET STATE MACHINE
+
+    // matching election
+    if( election->state == STATE_IDLE ){
+
+        log_v_debug_P( PSTR("state: IDLE") );
+
+        // if packet indicates it is a leader
+        if( pkt->leader ){
+
+            // check if we're better
+            
+            
+            
+
+            follow( election, header, pkt, ip );
+        }
+    }
+    else if( election->state == STATE_CANDIDATE ){
+
+        log_v_debug_P( PSTR("state: CANDIDATE") );
+
+        if( compare_leader( election, header, pkt ) ){
+
+            track_leader( election, header, pkt, ip );    
+            election->timeout = CANDIDATE_TIMEOUT;
+        }        
+    }
+    else if( election->state == STATE_FOLLOWER ){
+
+        log_v_debug_P( PSTR("state: FOLLOWER") );
+
+        
+    }
+    else if( election->state == STATE_LEADER ){
+
+        log_v_debug_P( PSTR("state: LEADER") );
+
+        
+    }
+    else{
+
+        // invalid state
+        ASSERT( FALSE );
+    }
+}
+
+PT_THREAD( election_timer_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, elections_count() == 0 );
+
+        TMR_WAIT( pt, 1000 );
+    
+        list_node_t ln = elections_list.head;
+
+        while( ln > 0 ){
+
+            election_t *election = (election_t *)list_vp_get_data( ln );
+
+            if( election->timeout == 0 ){
+
+                goto next;
+            }
+
+            election->timeout--;
+
+            if( election->timeout > 0 ){
+
+                goto next;
+            }
+
+            // TIMEOUT STATE MACHINE
+
+            if( election->state == STATE_IDLE ){
+
+                log_v_debug_P( PSTR("Idle timeout") );
+
+                // check if can only be a follower
+                if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
+
+                    // do we have a leader?
+                    if( !ip_b_is_zeroes( election->leader_ip ) ){
+
+                        log_v_debug_P( PSTR("-> FOLLOWER") );
+                        election->state = STATE_FOLLOWER;                        
+                    }
+                    else{
+
+                        // no leader, reset
+                        reset_state( election );
+                    }
+                }
+                else{
+
+                    // compare us to best leader we've seen
+                    if( compare_self( election ) ){
+
+                        // switch to candidate so we inform other nodes
+                        log_v_debug_P( PSTR("-> CANDIDATE") );
+                        election->state = STATE_CANDIDATE;
+                    }
+                    else{
+
+                        // sanity check - remove after debug
+                        if( ip_b_is_zeroes( election->leader_ip ) ){
+
+                            log_v_error_P( PSTR("STATE CHANGE FAIL") );    
+                        }
+
+                        // found a leader
+                        log_v_debug_P( PSTR("-> FOLLOWER") );
+                        election->state = STATE_FOLLOWER;                        
+                    }
+                }
+            }
+            else if( election->state == STATE_CANDIDATE ){
+
+                log_v_debug_P( PSTR("Candidate timeout") );
+
+                // compare us to best leader we've seen
+                if( compare_self( election ) ){
+
+                    log_v_debug_P( PSTR("No leader found -> elect ourselves") );
+                    election->state = STATE_LEADER;
+                }
+                else{
+
+                    // sanity check - remove after debug
+                    if( ip_b_is_zeroes( election->leader_ip ) ){
+
+                        log_v_error_P( PSTR("STATE CHANGE FAIL") );    
+                    }
+
+                    log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
+                    election->state = STATE_FOLLOWER;
+                }
+            }
+            else if( election->state == STATE_FOLLOWER ){                    
+
+                log_v_debug_P( PSTR("Follower timeout: lost leader") );
+
+                reset_state( election );
+            }
+            
+next:
+            ln = list_ln_next( ln );
+        }
+    }    
+    
+PT_END( pt );
+}
+
+
+PT_THREAD( election_server_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, elections_count() == 0 );
+
+    // create socket
+    sock = sock_s_create( SOCK_DGRAM );
+
+    ASSERT( sock >= 0 );
+
+    sock_v_bind( sock, ELECTION_PORT );
+
+    sock_v_set_timeout( sock, 1 );
+
+
+    // start sender
+    thread_t_create( election_sender_thread,
+                     PSTR("election_sender"),
+                     0,
+                     0 );
+
+    thread_t_create( election_timer_thread,
+                     PSTR("election_timer"),
+                     0,
+                     0 );
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            continue;
+        }
+
+        election_header_t *header = sock_vp_get_data( sock );
+
+        if( header->magic != ELECTION_MAGIC ){
+
+            log_v_debug_P( PSTR("bad magic") );
+            continue;
+        }
+
+        if( header->version != ELECTION_VERSION ){
+
+            log_v_debug_P( PSTR("bad version") );
+            continue;
+        }
+
+        if( sock_i16_get_bytes_read( sock ) != 
+            ( sizeof(election_header_t) + header->count * sizeof(election_pkt_t) ) ){
+
+            log_v_debug_P( PSTR("bad size") );
+            continue;
+        }
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
+        election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
+
+        while( header->count > 0 ){
+
+            process_pkt( header, pkt, &raddr.ipaddr );
+
+            pkt++;
+            header->count--;
+        }
+
+        THREAD_YIELD( pt );
+    }    
+    
+PT_END( pt );
+}
+
 
 
 static void init_header( election_header_t *header ){
@@ -351,263 +692,6 @@ PT_BEGIN( pt );
         sock_i16_sendto_m( sock, h, &raddr );
 
         THREAD_YIELD( pt );
-    }    
-    
-PT_END( pt );
-}
-
-// true if pkt is better than current election
-static bool change_leader( election_t *election, election_header_t *header, election_pkt_t *pkt ){
-
-    // if message priority is lower, we're done, don't change
-    if( pkt->priority < election->priority ){
-
-        return FALSE;
-    }
-    // message priority is higher, select new leader
-    else if( pkt->priority > election->priority ){
-
-        return TRUE;
-    }
-
-    // priority is the same
-
-    // check if message has a longer uptime
-    if( header->uptime < election->leader_uptime ){
-
-        return FALSE;
-    }
-    else if( header->uptime > election->leader_uptime ){
-
-        return TRUE;
-    }
-
-    // uptime is the same
-
-    // check device ID
-    if( header->device_id < election->leader_device_id ){
-
-        return TRUE;
-    }
-
-    return FALSE;
-}
-
-static void track_leader( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
-
-    log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
-    election->leader_uptime     = header->uptime;
-    election->leader_device_id  = header->device_id;
-    election->leader_priority   = pkt->priority;
-    election->leader_port       = pkt->port;
-    election->leader_ip         = *ip;
-    election->timeout           = LEADER_TIMEOUT;
-}
-
-static void follow( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
-
-    log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
-    election->state = STATE_FOLLOWER;
-
-    track_leader( election, header, pkt, ip );
-}
-
-static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
-
-    // look up matching election
-    election_t *election = get_election( pkt->service );
-
-    if( election == 0 ){
-
-        return;
-    }
-
-    if( election->group != pkt-> group ){
-
-        return;
-    }
-
-    log_v_debug_P( PSTR("recv pkt") );
-
-
-    // matching election
-    if( election->state == STATE_IDLE ){
-
-        log_v_debug_P( PSTR("state: IDLE") );
-
-        // if packet indicates it is a leader
-        if( pkt->leader ){
-
-            // check if we're better
-            
-            
-            
-
-            follow( election, header, pkt, ip );
-        }
-    }
-    else if( election->state == STATE_CANDIDATE ){
-
-        log_v_debug_P( PSTR("state: CANDIDATE") );
-
-        if( change_leader( election, header, pkt ) ){
-
-            track_leader( election, header, pkt, ip );    
-            election->timeout = CANDIDATE_TIMEOUT;
-        }        
-    }
-    else if( election->state == STATE_FOLLOWER ){
-
-        log_v_debug_P( PSTR("state: FOLLOWER") );
-
-        
-    }
-    else if( election->state == STATE_LEADER ){
-
-        log_v_debug_P( PSTR("state: LEADER") );
-
-        
-    }
-    else{
-
-        // invalid state
-        ASSERT( FALSE );
-    }
-}
-
-
-PT_THREAD( election_server_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    THREAD_WAIT_WHILE( pt, elections_count() == 0 );
-
-    // create socket
-    sock = sock_s_create( SOCK_DGRAM );
-
-    ASSERT( sock >= 0 );
-
-    sock_v_bind( sock, ELECTION_PORT );
-
-    sock_v_set_timeout( sock, 1 );
-
-
-    // start sender
-    thread_t_create( election_sender_thread,
-                     PSTR("election_sender"),
-                     0,
-                     0 );
-
-    thread_t_create( election_timer_thread,
-                     PSTR("election_timer"),
-                     0,
-                     0 );
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-            continue;
-        }
-
-        election_header_t *header = sock_vp_get_data( sock );
-
-        if( header->magic != ELECTION_MAGIC ){
-
-            log_v_debug_P( PSTR("bad magic") );
-            continue;
-        }
-
-        if( header->version != ELECTION_VERSION ){
-
-            log_v_debug_P( PSTR("bad version") );
-            continue;
-        }
-
-        if( sock_i16_get_bytes_read( sock ) != 
-            ( sizeof(election_header_t) + header->count * sizeof(election_pkt_t) ) ){
-
-            log_v_debug_P( PSTR("bad size") );
-            continue;
-        }
-
-        sock_addr_t raddr;
-        sock_v_get_raddr( sock, &raddr );
-
-        election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
-
-        while( header->count > 0 ){
-
-            process_pkt( header, pkt, &raddr.ipaddr );
-
-            pkt++;
-            header->count--;
-        }
-
-        THREAD_YIELD( pt );
-    }    
-    
-PT_END( pt );
-}
-
-
-PT_THREAD( election_timer_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, elections_count() == 0 );
-
-        TMR_WAIT( pt, 1000 );
-    
-        list_node_t ln = elections_list.head;
-
-        while( ln > 0 ){
-
-            election_t *election = (election_t *)list_vp_get_data( ln );
-
-            if( election->timeout > 0 ){
-
-                election->timeout--;
-
-                if( election->timeout == 0 ){
-
-                    if( election->state == STATE_FOLLOWER ){                    
-
-                        log_v_debug_P( PSTR("Leader timeout") );
-                        reset_state( election );
-                    }
-                    else if( election->state == STATE_CANDIDATE ){
-
-                        log_v_debug_P( PSTR("Candidate timeout") );
-
-                        if( !ip_b_is_zeroes( election->leader_ip ) ){
-
-                            log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-                            election->state = STATE_FOLLOWER;
-                        }
-                        else{
-
-                            log_v_debug_P( PSTR("No leader found -> elect ourselves") );
-                            election->state = STATE_LEADER;
-                        }
-                    }
-                    else if( election->state == STATE_IDLE ){
-
-                        if( election->priority != ELECTION_PRIORITY_FOLLOWER_ONLY ){
-
-                            log_v_debug_P( PSTR("-> CANDIDATE") );
-                            election->state = STATE_CANDIDATE;
-                        }
-                    }
-                }
-            }
-
-            ln = list_ln_next( ln );
-        }
     }    
     
 PT_END( pt );
