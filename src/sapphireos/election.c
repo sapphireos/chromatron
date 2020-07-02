@@ -85,6 +85,9 @@ void election_v_init( void ){
                      PSTR("election_server"),
                      0,
                      0 );
+
+    // debug: test election
+    election_v_join( 0x1234, 0, 1, 9090 );
 }
 
 static uint8_t elections_count( void ){
@@ -174,6 +177,8 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
 
         return;
     }
+
+    log_v_debug_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
 
     list_v_insert_tail( &elections_list, ln );  
 }
