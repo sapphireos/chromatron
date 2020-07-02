@@ -70,11 +70,11 @@ static list_t elections_list;
 
 void election_v_init( void ){
 
+    list_v_init( &elections_list );
+
     #if !defined(ENABLE_NETWORK) || !defined(ENABLE_WIFI)
     return;
     #endif
-
-    list_v_init( &elections_list );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
