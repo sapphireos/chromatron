@@ -53,8 +53,7 @@ typedef struct __attribute__((packed)){
     uint32_t group;
     uint16_t priority;
     uint16_t port;
-    bool leader;
-    uint8_t reserved[3];
+    uint8_t reserved[4];
 } election_pkt_t;
 
 
