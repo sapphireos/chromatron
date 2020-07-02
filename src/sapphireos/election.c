@@ -54,6 +54,7 @@ typedef struct{
     uint16_t port;
 
     // current leader information
+    uint32_t tracking_timestamp;
     uint64_t leader_uptime;
     uint64_t leader_device_id;
     uint16_t leader_priority;
@@ -320,6 +321,8 @@ static void track_leader( election_t *election, election_header_t *header, elect
     election->leader_priority   = pkt->priority;
     election->leader_port       = pkt->port;
     election->leader_ip         = *ip;
+
+    election->tracking_timestamp = tmr_u32_get_system_time_us();
 }
 
 
@@ -339,6 +342,13 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
     }
 
     log_v_debug_P( PSTR("recv pkt") );
+
+    // update leader uptime
+    if( !ip_b_is_zeroes( election->leader_ip ) ){
+
+        election->leader_uptime = tmr_u32_elapsed_time_us( election->tracking_timestamp );
+        election->tracking_timestamp = tmr_u32_get_system_time_us();
+    }
 
     // PACKET STATE MACHINE
 
@@ -378,7 +388,7 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
         }
         // check if packet is a better leader than current tracking
         else if( compare_leader( election, header, pkt ) ){
-            
+
             // we reset back to idle
             reset_state( election );
         }
