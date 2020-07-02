@@ -31,7 +31,7 @@
 #define ELECTION_MAGIC      0x45544f56 // 'VOTE'
 #define ELECTION_VERSION    1
 
-#define LEADER_TIMEOUT      32
+#define FOLLOWER_TIMEOUT    32
 #define CANDIDATE_TIMEOUT   6
 #define IDLE_TIMEOUT        4
 

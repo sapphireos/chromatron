@@ -320,7 +320,6 @@ static void track_leader( election_t *election, election_header_t *header, elect
     election->leader_priority   = pkt->priority;
     election->leader_port       = pkt->port;
     election->leader_ip         = *ip;
-    election->timeout           = LEADER_TIMEOUT;
 }
 
 
@@ -373,6 +372,15 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
 
             // update tracking
             track_leader( election, header, pkt, ip );
+
+            // reset timeout
+            election->timeout   = FOLLOWER_TIMEOUT;
+        }
+        // check if packet is a better leader than current tracking
+        else if( compare_leader( election, header, pkt ) ){
+            
+            // we reset back to idle
+            reset_state( election );
         }
     }
     else if( election->state == STATE_LEADER ){
@@ -393,7 +401,6 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
                 reset_state( election );
             }
         }
-
     }
     else{
 
@@ -443,7 +450,8 @@ PT_BEGIN( pt );
                     if( !ip_b_is_zeroes( election->leader_ip ) ){
 
                         log_v_debug_P( PSTR("-> FOLLOWER") );
-                        election->state = STATE_FOLLOWER;                        
+                        election->state     = STATE_FOLLOWER;   
+                        election->timeout   = FOLLOWER_TIMEOUT;                     
                     }
                     else{
 
@@ -459,6 +467,7 @@ PT_BEGIN( pt );
                         // switch to candidate so we inform other nodes
                         log_v_debug_P( PSTR("-> CANDIDATE") );
                         election->state = STATE_CANDIDATE;
+                        election->timeout = CANDIDATE_TIMEOUT;
                     }
                     else{
 
@@ -470,7 +479,8 @@ PT_BEGIN( pt );
 
                         // found a leader
                         log_v_debug_P( PSTR("-> FOLLOWER") );
-                        election->state = STATE_FOLLOWER;                        
+                        election->state     = STATE_FOLLOWER;
+                        election->timeout   = FOLLOWER_TIMEOUT;                
                     }
                 }
             }
@@ -481,7 +491,7 @@ PT_BEGIN( pt );
                 // compare us to best leader we've seen
                 if( compare_self( election ) ){
 
-                    log_v_debug_P( PSTR("No leader found -> elect ourselves") );
+                    log_v_debug_P( PSTR("No leader found -> elect ourselves LEADER") );
                     election->state = STATE_LEADER;
                 }
                 else{
@@ -493,7 +503,8 @@ PT_BEGIN( pt );
                     }
 
                     log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-                    election->state = STATE_FOLLOWER;
+                    election->state     = STATE_FOLLOWER;
+                    election->timeout   = FOLLOWER_TIMEOUT;
                 }
             }
             else if( election->state == STATE_FOLLOWER ){                    
