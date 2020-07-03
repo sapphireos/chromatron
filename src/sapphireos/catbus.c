@@ -1676,7 +1676,7 @@ PT_BEGIN( pt );
                 }       
                 else{
 
-                    log_v_debug_P( PSTR("%lu not found"), hash );
+                    log_v_debug_P( PSTR("%lu not found from: %d.%d.%d.%d"), hash, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
                 }         
 
                 hash++;
