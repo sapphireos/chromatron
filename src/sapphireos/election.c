@@ -436,6 +436,7 @@ PT_BEGIN( pt );
 
             // increment cycle count
             election->cycles++;
+            election->leader_cycles++;
 
             if( election->timeout == 0 ){
 
