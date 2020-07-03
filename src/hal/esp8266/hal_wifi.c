@@ -164,6 +164,9 @@ void wifi_v_init( void ){
     // set tx power
     system_phy_set_max_tpw( tx_power * 4 );
 
+    // set sleep mode
+    wifi_set_sleep_type( NONE_SLEEP_T );
+
     // set up hostname
     char mac_str[16];
     memset( mac_str, 0, sizeof(mac_str) );
@@ -677,7 +680,7 @@ PT_BEGIN( pt );
     static uint8_t scan_timeout;
 
     connected = FALSE;
-    
+
     // check if we are connected
     while( !wifi_b_connected() ){
 
