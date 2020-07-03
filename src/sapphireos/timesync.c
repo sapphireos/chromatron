@@ -159,6 +159,11 @@ void time_v_init( void ){
                     0 );    
 }
 
+void time_v_handle_shutdown( ip_addr4_t ip ){
+
+    
+}
+
 bool time_b_is_local_sync( void ){
 
     return is_sync;

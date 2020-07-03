@@ -28,6 +28,7 @@
 #include "hash.h"
 #include "catbus.h"
 #include "random.h"
+#include "election.h"
 #include "influx.h"
 #include "timesync.h"
 
@@ -1506,6 +1507,14 @@ PT_BEGIN( pt );
             // delete cache entries for link system
             _catbus_v_delete_send_entry( &raddr );
             _catbus_v_delete_rx_entry( &raddr );
+            #endif
+
+            // send shutdown notifications
+            election_v_handle_shutdown( raddr.ipaddr );
+
+            #ifdef ENABLE_TIME_SYNC
+            time_v_handle_shutdown( raddr.ipaddr );
+            // vm_sync_v_handle_shutdown( raddr.ipaddr );
             #endif
         }
 

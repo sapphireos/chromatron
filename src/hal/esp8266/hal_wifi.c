@@ -96,6 +96,7 @@ static esp_udp udp_conn[WIFI_MAX_PORTS];
 static list_t conn_list;
 static list_t rx_list;
 
+static char hostname[32];
 
 void wifi_v_init( void ){
 	
@@ -162,6 +163,23 @@ void wifi_v_init( void ){
 
     // set tx power
     system_phy_set_max_tpw( tx_power * 4 );
+
+    // set sleep mode
+    wifi_set_sleep_type( NONE_SLEEP_T );
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    wifi_station_set_hostname( hostname );
 
  //    struct station_config config = {0};
  //    strcpy( &config.ssid, ssid );
@@ -662,7 +680,7 @@ PT_BEGIN( pt );
     static uint8_t scan_timeout;
 
     connected = FALSE;
-    
+
     // check if we are connected
     while( !wifi_b_connected() ){
 

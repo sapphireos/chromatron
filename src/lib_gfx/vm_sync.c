@@ -178,6 +178,10 @@ void vm_sync_v_init( void ){
                     0 );    
 }
 
+void vm_sync_v_handle_shutdown( ip_addr4_t ip ){
+
+}
+
 void vm_sync_v_reset( void ){
 
     sync_state = STATE_IDLE;
