@@ -91,6 +91,8 @@ typedef struct __attribute__((packed)){
 
 
 void time_v_init( void );
+void time_v_handle_shutdown( ip_addr4_t ip );
+
 bool time_b_is_local_sync( void );
 bool time_b_is_ntp_sync( void );
 uint32_t time_u32_get_network_time( void );

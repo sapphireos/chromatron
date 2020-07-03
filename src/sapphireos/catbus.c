@@ -1511,6 +1511,11 @@ PT_BEGIN( pt );
 
             // send shutdown notifications
             election_v_handle_shutdown( raddr.ipaddr );
+
+            #ifdef ENABLE_TIME_SYNC
+            time_v_handle_shutdown( raddr.ipaddr );
+            // vm_sync_v_handle_shutdown( raddr.ipaddr );
+            #endif
         }
 
         // DATABASE ACCESS MESSAGES
