@@ -151,7 +151,12 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     election.group      = group;
     election.priority   = priority;
     election.port       = port;
-    election.random     = rnd_u32_get_int();
+
+    do{
+
+        election.random     = rnd_u32_get_int();
+
+    } while( ( election.random == 0 ) || ( election.random == 0xffffffff ) );
     
     reset_state( &election );
     
@@ -343,43 +348,45 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
         return;
     }
 
-    log_v_debug_P( PSTR("recv pkt") );
+    // log_v_debug_P( PSTR("recv pkt") );
 
     // PACKET STATE MACHINE
 
     // matching election
     if( election->state == STATE_IDLE ){
 
-        log_v_debug_P( PSTR("state: IDLE") );
-
         // check if leader in packet is better than current tracking
         if( compare_leader( election, header, pkt ) ){
+
+            log_v_debug_P( PSTR("state: IDLE") );
 
             track_leader( election, header, pkt, ip );    
         }
     }
     else if( election->state == STATE_CANDIDATE ){
 
-        log_v_debug_P( PSTR("state: CANDIDATE") );
-
         // check if leader in packet is better than current tracking
         if( compare_leader( election, header, pkt ) ){
+
+            log_v_debug_P( PSTR("state: CANDIDATE") );
 
             track_leader( election, header, pkt, ip );
         }        
     }
     else if( election->state == STATE_FOLLOWER ){
 
-        log_v_debug_P( PSTR("state: FOLLOWER") );
-
         // check if packet is a better leader than current tracking
         if( compare_leader( election, header, pkt ) ){
+            
+            log_v_debug_P( PSTR("state: FOLLOWER") );
 
             // we reset back to idle
             reset_state( election );
         }
         // check if this packet is from our current leader
         else if( ip_b_addr_compare( *ip, election->leader_ip ) ){
+
+            log_v_debug_P( PSTR("state: FOLLOWER") );
 
             // update tracking
             track_leader( election, header, pkt, ip );
@@ -390,10 +397,10 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
     }
     else if( election->state == STATE_LEADER ){
 
-        log_v_debug_P( PSTR("state: LEADER") );
-
         // check if this packet is better than current tracking
         if( compare_leader( election, header, pkt ) ){
+
+            log_v_debug_P( PSTR("state: LEADER") );
 
             track_leader( election, header, pkt, ip );
 
