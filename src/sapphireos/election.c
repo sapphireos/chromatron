@@ -37,15 +37,13 @@ PT_THREAD( election_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( election_timer_thread( pt_t *pt, void *state ) );
 
 
-typedef enum{
-    STATE_IDLE          = 0,
-    STATE_CANDIDATE,
-    STATE_FOLLOWER,
-    STATE_LEADER,
-} election_state_t;
+#define STATE_IDLE      0
+#define STATE_CANDIDATE 1
+#define STATE_FOLLOWER  2
+#define STATE_LEADER    3
 
 
-typedef struct{
+typedef struct  __attribute__((packed)){
     uint32_t service;
     uint32_t group;
 
@@ -55,18 +53,39 @@ typedef struct{
     uint32_t cycles;
 
     // current leader information
-    uint32_t tracking_timestamp;
     uint64_t leader_device_id;
     uint16_t leader_priority;
     uint32_t leader_cycles;
     uint16_t leader_port;   
     ip_addr4_t leader_ip;
-    uint8_t timeout;
 
-    election_state_t state;
+    uint8_t timeout;
+    uint8_t state;
 } election_t;
 
 static list_t elections_list;
+
+
+static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &elections_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &elections_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
 
 
 void election_v_init( void ){
@@ -87,6 +106,9 @@ void election_v_init( void ){
                      0,
                      0 );
 
+    // create vfile
+    fs_f_create_virtual( PSTR("electioninfo"), vfile );
+
     // debug: test election
     election_v_join( 0x1234, 0, 1, 9090 );
 }
@@ -100,7 +122,6 @@ static void reset_state( election_t *election ){
     election->cycles     = 0;  
     election->timeout    = IDLE_TIMEOUT;
 
-    election->tracking_timestamp    = 0;
     election->leader_device_id      = 0;
     election->leader_priority       = 0;
     election->leader_cycles         = 0;
@@ -347,8 +368,6 @@ static void track_leader( election_t *election, election_header_t *header, elect
     election->leader_cycles     = pkt->cycles;
     election->leader_port       = pkt->port;
     election->leader_ip         = *ip;
-
-    election->tracking_timestamp = tmr_u32_get_system_time_us();
 }
 
 
