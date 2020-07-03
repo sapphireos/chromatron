@@ -37,7 +37,7 @@
 #include "logging.h"
 
 #ifdef ENABLE_CATBUS_LINK
-typedef struct{
+typedef struct __attribute__((packed)){
     catbus_hash_t32 tag;
     uint8_t flags;
     catbus_hash_t32 source_hash;
@@ -59,7 +59,7 @@ typedef struct{
 #define CATBUS_LINK_FILE_MAGIC          0x4b4e494c // 'LINK'
 #define CATBUS_LINK_FILE_VERSION        1
 
-typedef struct{
+typedef struct __attribute__((packed)){
     sock_addr_t raddr;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
@@ -70,7 +70,7 @@ typedef struct{
 } catbus_send_data_entry_t;
 #define SEND_ENTRY_FLAGS_PUBLISH        0x01
 
-typedef struct{
+typedef struct __attribute__((packed)){
     sock_addr_t raddr;
     catbus_hash_t32 dest_hash;
     uint16_t sequence;
