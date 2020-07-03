@@ -52,12 +52,13 @@ typedef struct{
     // our priority and port
     uint16_t priority;
     uint16_t port;
+    uint16_t random;
 
     // current leader information
     uint32_t tracking_timestamp;
-    uint64_t leader_uptime;
     uint64_t leader_device_id;
     uint16_t leader_priority;
+    uint16_t leader_random;
     uint16_t leader_port;   
     ip_addr4_t leader_ip;
     uint8_t timeout;
@@ -123,7 +124,6 @@ static void reset_state( election_t *election ){
     election->timeout    = IDLE_TIMEOUT;
 
     election->tracking_timestamp    = 0;
-    election->leader_uptime         = 0;
     election->leader_device_id      = 0;
     election->leader_priority       = 0;
     election->leader_port           = 0;
@@ -150,6 +150,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     election.group      = group;
     election.priority   = priority;
     election.port       = port;
+    election.random     = rnd_u16_get_int();
     
     reset_state( &election );
     
@@ -160,7 +161,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
         return;
     }
 
-    log_v_debug_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
+    log_v_debug_P( PSTR("create election: service: %lu group: %lu priority: %u random: %u"), service, group, priority, election.random );
 
     list_v_insert_tail( &elections_list, ln );  
 }
@@ -237,16 +238,17 @@ static bool compare_self( election_t *election ){
     }
 
     // priorities are the same
-    // check uptime
-    uint64_t uptime = tmr_u64_get_system_time_us();
+    
+    // check random value
+    int8_t compare = util_i8_compare_sequence_u16( election->random, election->leader_random );
 
-    if( uptime < election->leader_uptime ){
+    if( compare < 0 ){
 
         return FALSE;
     }
-    else if( uptime > election->leader_uptime ){
+    else if( compare > 0 ){
 
-        log_v_debug_P( PSTR("uptime") );
+        log_v_debug_P( PSTR("random: %u %u"), election->random, election->leader_random );
 
         return TRUE;
     }
@@ -285,14 +287,18 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
         return TRUE;
     }
 
-    // priority is the same
+    // priorities are the same
+    
+    // check random value
+    int8_t compare = util_i8_compare_sequence_u16( pkt->random, election->leader_random );
 
-    // check if message has a longer uptime
-    if( header->uptime < election->leader_uptime ){
+    if( compare < 0 ){
 
         return FALSE;
     }
-    else if( header->uptime > election->leader_uptime ){
+    else if( compare > 0 ){
+
+        log_v_debug_P( PSTR("random: %u %u"), pkt->random, election->leader_random );
 
         return TRUE;
     }
@@ -315,9 +321,9 @@ static void track_leader( election_t *election, election_header_t *header, elect
         log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );    
     }
     
-    election->leader_uptime     = header->uptime;
     election->leader_device_id  = header->device_id;
     election->leader_priority   = pkt->priority;
+    election->leader_random     = pkt->random;
     election->leader_port       = pkt->port;
     election->leader_ip         = *ip;
 
@@ -341,13 +347,6 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
     }
 
     log_v_debug_P( PSTR("recv pkt") );
-
-    // update leader uptime
-    if( !ip_b_is_zeroes( election->leader_ip ) ){
-
-        election->leader_uptime += tmr_u32_elapsed_time_us( election->tracking_timestamp );
-        election->tracking_timestamp = tmr_u32_get_system_time_us();
-    }
 
     // PACKET STATE MACHINE
 
@@ -446,13 +445,6 @@ PT_BEGIN( pt );
             if( election->timeout > 0 ){
 
                 goto next;
-            }
-
-            // update leader uptime
-            if( !ip_b_is_zeroes( election->leader_ip ) ){
-
-                election->leader_uptime += tmr_u32_elapsed_time_us( election->tracking_timestamp );
-                election->tracking_timestamp = tmr_u32_get_system_time_us();
             }
 
             // TIMEOUT STATE MACHINE
@@ -628,7 +620,6 @@ static void init_header( election_header_t *header ){
     header->count       = 0;
     header->padding     = 0;
     header->device_id   = cfg_u64_get_device_id();
-    header->uptime      = tmr_u64_get_system_time_us();
 }
 
 
@@ -714,6 +705,7 @@ PT_BEGIN( pt );
             pkt->group      = election->group;
             pkt->priority   = election->priority;
             pkt->port       = election->port;
+            pkt->random     = election->random;
             
             header->count++;
 
