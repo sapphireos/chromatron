@@ -506,6 +506,11 @@ static bool _catbus_b_compare_queries( catbus_query_t *query1, catbus_query_t *q
 #ifdef ENABLE_NETWORK
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
+    if( sys_b_shutdown() ){
+
+        return;
+    }
+
     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_announce_t) );
 
     if( h < 0 ){
