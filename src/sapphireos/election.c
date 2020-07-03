@@ -310,7 +310,11 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
 
 static void track_leader( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
 
-    log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+    if( !ip_b_addr_compare( election->leader_ip, *ip ) ){
+
+        log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );    
+    }
+    
     election->leader_uptime     = header->uptime;
     election->leader_device_id  = header->device_id;
     election->leader_priority   = pkt->priority;
@@ -372,20 +376,20 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
 
         log_v_debug_P( PSTR("state: FOLLOWER") );
 
+        // check if packet is a better leader than current tracking
+        if( compare_leader( election, header, pkt ) ){
+
+            // we reset back to idle
+            reset_state( election );
+        }
         // check if this packet is from our current leader
-        if( ip_b_addr_compare( *ip, election->leader_ip ) ){
+        else if( ip_b_addr_compare( *ip, election->leader_ip ) ){
 
             // update tracking
             track_leader( election, header, pkt, ip );
 
             // reset timeout
             election->timeout   = FOLLOWER_TIMEOUT;
-        }
-        // check if packet is a better leader than current tracking
-        else if( compare_leader( election, header, pkt ) ){
-
-            // we reset back to idle
-            reset_state( election );
         }
     }
     else if( election->state == STATE_LEADER ){
