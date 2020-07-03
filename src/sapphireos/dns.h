@@ -33,7 +33,7 @@
 #define DNS_QUERY_TIMEOUT       5
 #define DNS_QUERY_ATTEMPTS      5
 
-typedef struct __attribute__((packed(4))){
+typedef struct __attribute__((packed)){
     uint8_t status;
     ip_addr4_t ip;
     uint32_t ttl;
