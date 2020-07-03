@@ -52,13 +52,13 @@ typedef struct{
     // our priority and port
     uint16_t priority;
     uint16_t port;
-    uint32_t random;
+    uint32_t cycles;
 
     // current leader information
     uint32_t tracking_timestamp;
     uint64_t leader_device_id;
     uint16_t leader_priority;
-    uint32_t leader_random;
+    uint32_t leader_cycles;
     uint16_t leader_port;   
     ip_addr4_t leader_ip;
     uint8_t timeout;
@@ -120,13 +120,14 @@ static void reset_state( election_t *election ){
 
     log_v_debug_P( PSTR("Reset to IDLE") );
 
-    election->state      = STATE_IDLE;    
+    election->state      = STATE_IDLE;  
+    election->cycles     = 0;  
     election->timeout    = IDLE_TIMEOUT;
 
     election->tracking_timestamp    = 0;
     election->leader_device_id      = 0;
     election->leader_priority       = 0;
-    election->leader_random         = 0;
+    election->leader_cycles         = 0;
     election->leader_port           = 0;
     election->leader_ip             = ip_a_addr(0,0,0,0);
 }
@@ -151,13 +152,8 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     election.group      = group;
     election.priority   = priority;
     election.port       = port;
+    election.cycles     = 0;
 
-    do{
-
-        election.random     = rnd_u32_get_int();
-
-    } while( ( election.random == 0 ) || ( election.random == 0xffffffff ) );
-    
     reset_state( &election );
     
     list_node_t ln = list_ln_create_node( &election, sizeof(election) );
@@ -167,7 +163,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
         return;
     }
 
-    log_v_debug_P( PSTR("create election: service: %lu group: %lu priority: %u random: %u"), service, group, priority, election.random );
+    log_v_debug_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
 
     list_v_insert_tail( &elections_list, ln );  
 }
@@ -245,14 +241,14 @@ static bool compare_self( election_t *election ){
 
     // priorities are the same
     
-    // check random value
-    if( election->random < election->leader_random ){
+    // check cycle count
+    if( election->cycles < election->leader_cycles ){
 
         return FALSE;
     }
-    else if( election->random > election->leader_random ){
+    else if( election->cycles > election->leader_cycles ){
 
-        log_v_debug_P( PSTR("random: %u %u"), election->random, election->leader_random );
+        log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
         return TRUE;
     }
@@ -293,14 +289,14 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
 
     // priorities are the same
     
-    // check random value
-    if( pkt->random < election->leader_random ){
+    // check cycle count
+    if( pkt->cycles < election->leader_cycles ){
 
         return FALSE;
     }
-    else if( pkt->random > election->leader_random ){
+    else if( pkt->cycles > election->leader_cycles ){
 
-        log_v_debug_P( PSTR("random: %u %u"), pkt->random, election->leader_random );
+        log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)pkt->cycles, (uint32_t)election->leader_cycles );
 
         return TRUE;
     }
@@ -325,7 +321,7 @@ static void track_leader( election_t *election, election_header_t *header, elect
     
     election->leader_device_id  = header->device_id;
     election->leader_priority   = pkt->priority;
-    election->leader_random     = pkt->random;
+    election->leader_cycles     = pkt->cycles;
     election->leader_port       = pkt->port;
     election->leader_ip         = *ip;
 
@@ -347,8 +343,6 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
 
         return;
     }
-
-    // log_v_debug_P( PSTR("recv pkt") );
 
     // PACKET STATE MACHINE
 
@@ -438,6 +432,9 @@ PT_BEGIN( pt );
         while( ln > 0 ){
 
             election_t *election = (election_t *)list_vp_get_data( ln );
+
+            // increment cycle count
+            election->cycles++;
 
             if( election->timeout == 0 ){
 
@@ -709,7 +706,7 @@ PT_BEGIN( pt );
             pkt->group      = election->group;
             pkt->priority   = election->priority;
             pkt->port       = election->port;
-            pkt->random     = election->random;
+            pkt->cycles     = election->cycles;
             
             header->count++;
 
