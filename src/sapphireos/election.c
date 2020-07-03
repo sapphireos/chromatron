@@ -52,13 +52,13 @@ typedef struct{
     // our priority and port
     uint16_t priority;
     uint16_t port;
-    uint16_t random;
+    uint32_t random;
 
     // current leader information
     uint32_t tracking_timestamp;
     uint64_t leader_device_id;
     uint16_t leader_priority;
-    uint16_t leader_random;
+    uint32_t leader_random;
     uint16_t leader_port;   
     ip_addr4_t leader_ip;
     uint8_t timeout;
@@ -126,6 +126,7 @@ static void reset_state( election_t *election ){
     election->tracking_timestamp    = 0;
     election->leader_device_id      = 0;
     election->leader_priority       = 0;
+    election->leader_random         = 0;
     election->leader_port           = 0;
     election->leader_ip             = ip_a_addr(0,0,0,0);
 }
@@ -150,7 +151,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     election.group      = group;
     election.priority   = priority;
     election.port       = port;
-    election.random     = rnd_u16_get_int();
+    election.random     = rnd_u32_get_int();
     
     reset_state( &election );
     
@@ -240,13 +241,11 @@ static bool compare_self( election_t *election ){
     // priorities are the same
     
     // check random value
-    int8_t compare = util_i8_compare_sequence_u16( election->random, election->leader_random );
-
-    if( compare < 0 ){
+    if( election->random < election->leader_random ){
 
         return FALSE;
     }
-    else if( compare > 0 ){
+    else if( election->random > election->leader_random ){
 
         log_v_debug_P( PSTR("random: %u %u"), election->random, election->leader_random );
 
@@ -290,13 +289,11 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
     // priorities are the same
     
     // check random value
-    int8_t compare = util_i8_compare_sequence_u16( pkt->random, election->leader_random );
-
-    if( compare < 0 ){
+    if( pkt->random < election->leader_random ){
 
         return FALSE;
     }
-    else if( compare > 0 ){
+    else if( pkt->random > election->leader_random ){
 
         log_v_debug_P( PSTR("random: %u %u"), pkt->random, election->leader_random );
 
@@ -459,7 +456,7 @@ PT_BEGIN( pt );
                     // do we have a leader?
                     if( !ip_b_is_zeroes( election->leader_ip ) ){
 
-                        log_v_debug_P( PSTR("-> FOLLOWER") );
+                        log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;   
                         election->timeout   = FOLLOWER_TIMEOUT;                     
                     }
@@ -488,7 +485,7 @@ PT_BEGIN( pt );
                         }
 
                         // found a leader
-                        log_v_debug_P( PSTR("-> FOLLOWER") );
+                        log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;
                         election->timeout   = FOLLOWER_TIMEOUT;                
                     }

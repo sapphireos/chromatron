@@ -29,7 +29,7 @@
 
 #define ELECTION_PORT       32036
 #define ELECTION_MAGIC      0x45544f56 // 'VOTE'
-#define ELECTION_VERSION    0
+#define ELECTION_VERSION    1
 
 #define FOLLOWER_TIMEOUT    32
 #define CANDIDATE_TIMEOUT   6
@@ -52,7 +52,7 @@ typedef struct __attribute__((packed)){
     uint32_t group;
     uint16_t priority;
     uint16_t port;
-    uint16_t random;
+    uint32_t random;
     uint8_t reserved[4];
 } election_pkt_t;
 
