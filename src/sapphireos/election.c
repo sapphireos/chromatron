@@ -698,6 +698,12 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, transmit_count() == 0 );
 
         TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 6 ) ); // 1 to 2 seconds
+
+        // check if shutting down
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
     
         uint16_t len = sizeof(election_header_t) + 
                         ( sizeof(election_pkt_t) * transmit_count() );
