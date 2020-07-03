@@ -91,11 +91,50 @@ void election_v_init( void ){
     election_v_join( 0x1234, 0, 1, 9090 );
 }
 
+
+static void reset_state( election_t *election ){
+
+    log_v_debug_P( PSTR("Reset to IDLE") );
+
+    election->state      = STATE_IDLE;  
+    election->cycles     = 0;  
+    election->timeout    = IDLE_TIMEOUT;
+
+    election->tracking_timestamp    = 0;
+    election->leader_device_id      = 0;
+    election->leader_priority       = 0;
+    election->leader_cycles         = 0;
+    election->leader_port           = 0;
+    election->leader_ip             = ip_a_addr(0,0,0,0);
+}
+
+void election_v_handle_shutdown( ip_addr4_t ip ){
+
+    // look for any elections with this IP as a leader, and reset them
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( election->leader_ip, ip ) ){
+
+            log_v_debug_P( PSTR("leader shutdown") );
+
+            reset_state( election );
+        }
+
+        ln = next_ln;
+    }
+}
+
 static uint8_t elections_count( void ){
 
     return list_u8_count( &elections_list );
 }
-
 
 static election_t* get_election( uint32_t service ){
 
@@ -114,22 +153,6 @@ static election_t* get_election( uint32_t service ){
     }
 
     return 0;
-}
-
-static void reset_state( election_t *election ){
-
-    log_v_debug_P( PSTR("Reset to IDLE") );
-
-    election->state      = STATE_IDLE;  
-    election->cycles     = 0;  
-    election->timeout    = IDLE_TIMEOUT;
-
-    election->tracking_timestamp    = 0;
-    election->leader_device_id      = 0;
-    election->leader_priority       = 0;
-    election->leader_cycles         = 0;
-    election->leader_port           = 0;
-    election->leader_ip             = ip_a_addr(0,0,0,0);
 }
 
 void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint16_t port ){

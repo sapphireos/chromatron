@@ -58,6 +58,7 @@ typedef struct __attribute__((packed)){
 
 
 void election_v_init( void );
+void election_v_handle_shutdown( ip_addr4_t ip );
 
 void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint16_t port );
 void election_v_cancel( uint32_t service );
