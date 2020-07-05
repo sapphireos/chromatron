@@ -279,7 +279,7 @@ PT_END( pt );
 }
 
 
-struct espconn* get_conn( uint16_t lport ){
+struct espconn* get_conn( uint8_t protocol, uint16_t lport ){
 
 	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
 
@@ -287,6 +287,18 @@ struct espconn* get_conn( uint16_t lport ){
 
 			continue;
 		}
+
+        if( protocol == IP_PROTO_UDP ){
+
+            if( esp_conn[i].type != ESPCONN_UDP ){
+
+                continue;
+            }
+        }
+        else{
+
+            ASSERT( FALSE );
+        }
 
 		if( esp_conn[i].proto.udp->local_port == lport ){
 
@@ -299,56 +311,61 @@ struct espconn* get_conn( uint16_t lport ){
 
 void open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
-    if( protocol == IP_PROTO_UDP ){
+    if( open ){
 
-        if( open ){
+        // trace_printf("Open port: %u\n", port);
 
-        	// trace_printf("Open port: %u\n", port);
+        int8_t index = -1;
+        for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
 
-        	int8_t index = -1;
-        	for( uint8_t i = 0; i < cnt_of_array(esp_conn); i++ ){
+            if( esp_conn[i].type == ESPCONN_INVALID ){
 
-        		if( esp_conn[i].type == ESPCONN_INVALID ){
+                index = i;
+                break;
+            }
+        }
 
-        			index = i;
-        			break;
-        		}
-        	}
+        if( index < 0 ){
 
-        	if( index < 0 ){
+            ASSERT( FALSE );
 
-        		ASSERT( FALSE );
+            return;
+        }
 
-        		return;
-        	}
+        memset( &esp_conn[index], 0, sizeof(esp_conn[index]) );
+        memset( &udp_conn[index], 0, sizeof(udp_conn[index]) );
 
-        	memset( &esp_conn[index], 0, sizeof(esp_conn[index]) );
-        	memset( &udp_conn[index], 0, sizeof(udp_conn[index]) );
+        if( protocol == IP_PROTO_UDP ){
 
-            esp_conn[index].type 			= ESPCONN_UDP;
-			esp_conn[index].state 			= ESPCONN_NONE; 
-			esp_conn[index].proto.udp 		= &udp_conn[index];
-			esp_conn[index].recv_callback 	= udp_recv_callback;
-			esp_conn[index].sent_callback 	= 0;
-			esp_conn[index].link_cnt 		= 0;
-			esp_conn[index].reverse 		= 0;
-
-			udp_conn[index].remote_port 	= 0;
-			udp_conn[index].local_port 		= port;
- 
-			espconn_create( &esp_conn[index] );
+            esp_conn[index].type            = ESPCONN_UDP;
+            esp_conn[index].proto.udp       = &udp_conn[index];
+            esp_conn[index].recv_callback   = udp_recv_callback;
+            esp_conn[index].sent_callback   = 0;
         }
         else{
 
-        	// trace_printf("Close port: %u\n", port);
-			
-			struct espconn* conn = get_conn( port );
+            ASSERT( FALSE );
+        }
+        
+        esp_conn[index].state           = ESPCONN_NONE; 
+        esp_conn[index].link_cnt        = 0;
+        esp_conn[index].reverse         = 0;
 
-			if( conn != 0 ){
+        udp_conn[index].remote_port     = 0;
+        udp_conn[index].local_port      = port;
 
-				espconn_delete( conn );
-				conn->type = ESPCONN_INVALID;	
-			}
+        espconn_create( &esp_conn[index] );
+    }
+    else{
+
+        // trace_printf("Close port: %u\n", port);
+        
+        struct espconn* conn = get_conn( protocol, port );
+
+        if( conn != 0 ){
+
+            espconn_delete( conn );
+            conn->type = ESPCONN_INVALID;   
         }
     }
 }
@@ -461,8 +478,10 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         data_len = mem2_u16_get_size( netmsg_state->data_handle );
     }
 
+    uint8_t protocol = IP_PROTO_UDP;
+
     // get esp conn
-    struct espconn* conn = get_conn( netmsg_state->laddr.port );
+    struct espconn* conn = get_conn( protocol, netmsg_state->laddr.port );
 
     // check if general broadcast
     if( ip_b_check_broadcast( netmsg_state->raddr.ipaddr ) ){
