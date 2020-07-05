@@ -442,8 +442,6 @@ uint32_t wifi_u32_get_received( void ){
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
-	int8_t status = 0;
-
     if( !wifi_b_connected() ){
 
         return NETMSG_TX_ERR_RELEASE;
@@ -456,20 +454,11 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     uint16_t data_len = 0;
 
     uint8_t *data = 0;
-    uint8_t *h2 = 0;
-    uint16_t h2_len = 0;
-
+    
     if( netmsg_state->data_handle > 0 ){
 
         data = mem2_vp_get_ptr( netmsg_state->data_handle );
         data_len = mem2_u16_get_size( netmsg_state->data_handle );
-    }
-
-    // header 2, if present
-    if( netmsg_state->header_2_handle > 0 ){
-
-        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
     }
 
     // get esp conn

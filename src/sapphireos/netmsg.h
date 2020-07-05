@@ -55,9 +55,6 @@ typedef struct{
 typedef struct{
     netmsg_type_t   type;
     netmsg_flags_t  flags;
-    mem_handle_t    header_0_handle;
-    mem_handle_t    header_1_handle;
-    mem_handle_t    header_2_handle;
     uint8_t         header_len; // length of headers in data_handle
     mem_handle_t    data_handle;
     uint8_t         ttl;
