@@ -22,10 +22,12 @@
 
 from setuptools import setup
 
+from chromatron import VERSION
+
 setup(
     name='chromatron',
 
-    version='1.0.5',
+    version=VERSION,
 
     packages=['chromatron',
               'chromatron.midi',
