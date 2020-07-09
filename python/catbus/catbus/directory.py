@@ -250,7 +250,7 @@ def main():
     try:
         LOG_FILE_PATH = sys.argv[1]
     except IndexError:
-        pass
+        LOG_FILE_PATH = "catbus_directory.log"
 
     util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
 
