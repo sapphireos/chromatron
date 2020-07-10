@@ -30,6 +30,8 @@ setup(
     packages=['sapphire',
               'sapphire.common',
               'sapphire.devices',
+              'sapphire.services',
+              'sapphire.protocols',
               'sapphire.buildtools',
               ],
 
