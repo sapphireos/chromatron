@@ -24,6 +24,7 @@
 
 #include "sapphire.h"
 
+#include "msgflow.h"
 #include "background.h"
 
 PT_THREAD( background_thread( pt_t *pt, void *state ) );
@@ -47,6 +48,10 @@ PT_BEGIN( pt );
         
         #ifdef ENABLE_NETWORK
         sock_v_process_timeouts();
+        #endif
+
+        #ifdef ENABLE_MSGFLOW
+        msgflow_v_process_timeouts();
         #endif
 	}
 

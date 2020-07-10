@@ -47,7 +47,6 @@ typedef int8_t sock_type_t8;
 //#define SOCK_RAW          0x01   // directly over IP - unsupported
 //#define SOCK_STREAM       0x02  // TCP not supported
 #define SOCK_DGRAM          0x04  // uses UDP
-#define SOCK_MSGFLOW        0x14  // non-standard
 
 
 #define SOCK_IS_DGRAM(type) ( type & SOCK_DGRAM )

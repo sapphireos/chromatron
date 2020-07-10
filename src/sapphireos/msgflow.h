@@ -26,13 +26,74 @@
 #define __MSGFLOW_H
 
 #include "system.h"
+#include "memory.h"
+#include "catbus_common.h"
+
+#define MSGFLOW_LISTEN_PORT             32039
+#define MSGFLOW_TIMEOUT                 16
 
 #ifdef ENABLE_MSGFLOW
 
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+    uint8_t type;
+} msgflow_header_t;
+
+#define MSGFLOW_FLAGS_VERSION           0
+#define MSGFLOW_FLAGS_VERSION_MASK      0x0F
+
+#define MSGFLOW_CODE_INVALID            0
+#define MSGFLOW_CODE_NONE               1
+#define MSGFLOW_CODE_ARQ                2
+
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 service;
+    uint8_t codebook[8]; // list of supported codes
+} msgflow_msg_sink_t;
+#define MSGFLOW_TYPE_SINK               1
+
+typedef struct __attribute__((packed)){
+    uint16_t sequence;
+    uint8_t codebook;
+    uint8_t reserved;
+} msgflow_msg_reset_t;
+#define MSGFLOW_TYPE_RESET              2
+
+typedef struct __attribute__((packed)){
+    uint16_t sequence;
+    uint8_t codebook;
+    uint8_t reserved;
+} msgflow_msg_ready_t;
+#define MSGFLOW_TYPE_READY              3
+
+typedef struct __attribute__((packed)){
+    uint16_t sequence;
+    uint8_t reserved[14];
+} msgflow_msg_status_t;
+#define MSGFLOW_TYPE_STATUS             4
+
+typedef struct __attribute__((packed)){
+    uint16_t sequence;
+    // data follows
+} msgflow_msg_data_t;
+#define MSGFLOW_TYPE_DATA               5
+
+// empty message
+#define MSGFLOW_TYPE_STOP               6
+
+
+typedef mem_handle_t msgflow_t;
+
 void msgflow_v_init( void );
 
+msgflow_t msgflow_m_listen( catbus_hash_t32 service );
+bool msgflow_b_connected( msgflow_t msgflow );
+bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len );
+void msgflow_v_close( msgflow_t msgflow );
 
+void msgflow_v_process_timeouts( void );
 
 #endif
 
 #endif
+
