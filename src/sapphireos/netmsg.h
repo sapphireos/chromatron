@@ -31,8 +31,6 @@
 
 typedef list_node_t netmsg_t;
 
-#include "udp.h"
-
 typedef uint8_t netmsg_flags_t;
 #define NETMSG_FLAGS_WCOM_SECURITY_DISABLE  0x01
 #define NETMSG_FLAGS_NO_WCOM                0x02
