@@ -26,7 +26,7 @@ import time
 import threading
 import select
 from .client import Client
-from .broadcast import send_udp_broadcast
+from sapphire.common.broadcast import send_udp_broadcast
 
 from .messages import *
 from .catbustypes import *

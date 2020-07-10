@@ -24,7 +24,7 @@ import socket
 from .data_structures import *
 from .messages import *
 from .options import *
-from .broadcast import send_udp_broadcast
+from sapphire.common.broadcast import send_udp_broadcast
 import time
 import os
 import json
