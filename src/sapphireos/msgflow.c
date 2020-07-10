@@ -41,6 +41,7 @@ typedef struct{
     socket_t sock;
     sock_addr_t raddr;
     uint8_t code;
+    uint16_t max_msg_size;
     bool shutdown;
     list_node_t ln;
     uint8_t timeout;
@@ -58,7 +59,7 @@ void msgflow_v_init( void ){
     list_v_init( &msgflow_list );
 }
 
-msgflow_t msgflow_m_listen( catbus_hash_t32 service ){
+msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_msg_size ){
 
     // check if listener is running
     if( listener_sock < 0 ){
@@ -81,10 +82,11 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service ){
     }
 
     msgflow_state_t state = {0};
-    state.service   = service;
-    state.sock      = sock_s_create( SOCK_DGRAM );
-    state.code      = MSGFLOW_CODE_INVALID;
-    state.shutdown  = FALSE;
+    state.service       = service;
+    state.sock          = sock_s_create( SOCK_DGRAM );
+    state.code          = code;
+    state.max_msg_size  = max_msg_size;
+    state.shutdown      = FALSE;
 
     thread_t t = 
         thread_t_create( THREAD_CAST(msgflow_thread),

@@ -43,8 +43,16 @@ typedef struct __attribute__((packed)){
 #define MSGFLOW_FLAGS_VERSION_MASK      0x0F
 
 #define MSGFLOW_CODE_INVALID            0
-#define MSGFLOW_CODE_NONE               1
-#define MSGFLOW_CODE_ARQ                2
+#define MSGFLOW_CODE_NONE               1 // just hope it gets there
+#define MSGFLOW_CODE_ARQ                2 // ARQ
+#define MSGFLOW_CODE_TRIPLE             3 // 3x repetition
+#define MSGFLOW_CODE_SMALLBUF           4 // rolling buffer to full packet size
+#define MSGFLOW_CODE_1_OF_4_PARITY      5 // corrects 1 missing blocks of 4.  3 data, 1 parity
+#define MSGFLOW_CODE_2_OF_7_PARITY      6 // corrects 2 missing blocks of 7.  4 data, 3 parity
+
+
+#define MSGFLOW_CODE_ANY                0xff // special value to allow the driver to select the code
+
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 service;
@@ -54,6 +62,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint16_t sequence;
+    uint16_t max_data_len; // set maximum data for each message.  useful to limit mem usage for parity.
     uint8_t codebook;
     uint8_t reserved;
 } msgflow_msg_reset_t;
@@ -86,7 +95,7 @@ typedef mem_handle_t msgflow_t;
 
 void msgflow_v_init( void );
 
-msgflow_t msgflow_m_listen( catbus_hash_t32 service );
+msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_msg_size );
 bool msgflow_b_connected( msgflow_t msgflow );
 bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len );
 void msgflow_v_close( msgflow_t msgflow );
