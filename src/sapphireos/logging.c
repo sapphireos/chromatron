@@ -41,12 +41,6 @@
 
 #ifdef LOG_ENABLE
 
-static bool enable_network_logging;
-
-KV_SECTION_META kv_meta_t logging_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST,  &enable_network_logging, 0,      "enable_network_logging" },
-};
-
 static char buf[LOG_STR_BUF_SIZE];
 static file_t f = -1;
 static uint32_t max_log_size;
