@@ -39,6 +39,7 @@
 // #define ENABLE_COPROCESSOR // this will be defined in target settings.json
 // #define ESP8266_UPGRADE  // this will be defined in target settings.json
 // #define ENABLE_EVENT_LOG
+#define ENABLE_MSGFLOW
 
 #ifdef BOOTLOADER
 #undef ENABLE_COPROCESSOR

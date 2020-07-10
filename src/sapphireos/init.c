@@ -70,6 +70,10 @@
 #include "timesync.h"
 #endif
 
+#ifdef ENABLE_MSGFLOW
+#include "msgflow.h"
+#endif
+
 #include "init.h"
 
 
@@ -200,6 +204,10 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_NETWORK
     election_v_init();
+    #endif
+
+    #ifdef ENABLE_MSGFLOW
+    msgflow_v_init();
     #endif
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
