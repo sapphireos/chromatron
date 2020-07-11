@@ -144,6 +144,11 @@ bool msgflow_b_connected( msgflow_t msgflow ){
 
     msgflow_state_t *state = thread_vp_get_data( msgflow );
 
+    if( state->sock <= 0 ){
+
+        return FALSE;
+    }
+
     return !ip_b_is_zeroes( state->raddr.ipaddr );
 }
 

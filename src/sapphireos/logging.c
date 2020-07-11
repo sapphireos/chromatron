@@ -71,7 +71,7 @@ void log_v_init( void ){
     }
 
     #ifdef ENABLE_MSGFLOW
-    // msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
     #endif
 }
 
