@@ -325,7 +325,7 @@ PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
 {
 PT_BEGIN( pt );
 
-    log_v_debug_P( PSTR("msgflow") );
+    log_v_debug_P( PSTR("msgflow init") );
     
     sock_v_set_timeout( state->sock, 1 );
 
@@ -418,6 +418,12 @@ PT_BEGIN( pt );
             
             // reset timeout
             state->timeout = MSGFLOW_TIMEOUT;      
+        }
+        else if( header->type == MSGFLOW_TYPE_STOP ){
+
+            log_v_debug_P( PSTR("msgflow stopped by receiver") );
+
+            THREAD_RESTART( pt );
         }
     }   
 

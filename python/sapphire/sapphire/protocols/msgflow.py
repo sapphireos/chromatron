@@ -54,6 +54,7 @@ MSGFLOW_TYPE_DATA                   = 5
 MSGFLOW_TYPE_STOP                   = 6
 
 
+CONNECTION_TIMEOUT                  = 32.0
 ANNOUNCE_INTERVAL                   = 2.0
 
 class UnknownMessageException(Exception):
@@ -181,15 +182,24 @@ class MsgFlowReceiver(Ribbon):
             MsgFlowMsgReset: self._handle_reset,
         }
 
+        self._connections = {}
+
         self._last_announce = time.time() - 10.0
 
     def clean_up(self):
-        # self._send_shutdown()
-        # time.sleep(0.1)
-        # self._send_shutdown()
-        # time.sleep(0.1)
-        # self._send_shutdown()
-        pass
+        print("CLEAN")
+        for host in self._connections:
+            self._send_stop(host)
+
+        time.sleep(0.1)
+
+        for host in self._connections:
+            self._send_stop(host)
+
+        time.sleep(0.1)
+
+        for host in self._connections:
+            self._send_stop(host)
 
     def _send_msg(self, msg, host):
         s = self.__service_sock
@@ -218,12 +228,18 @@ class MsgFlowReceiver(Ribbon):
 
         self._send_msg(msg, host)
 
+    def _send_stop(self, host):
+        msg = MsgFlowMsgStop()
+                
+        self._send_msg(msg, host)
+
     def _handle_sink(self, msg, host):
         pass
 
     def _handle_reset(self, msg, host):
         print(msg)
-
+        
+        self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
         self._send_ready(host, sequence=msg.sequence, codebook=msg.codebook)
 
     def _process_msg(self, msg, host):        
