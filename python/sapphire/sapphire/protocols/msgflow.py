@@ -55,7 +55,7 @@ MSGFLOW_TYPE_STOP                   = 6
 
 
 CONNECTION_TIMEOUT                  = 32.0
-ANNOUNCE_INTERVAL                   = 2.0
+ANNOUNCE_INTERVAL                   = 4.0
 STATUS_INTERVAL                     = 4.0
 
 class UnknownMessageException(Exception):
