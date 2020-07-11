@@ -43,7 +43,21 @@
 #include "msgflow.h"
 
 static msgflow_t msgflow;
+
+PT_THREAD( msgflow_init_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    if( msgflow <= 0 ){
+
+        msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    }
+ 
+PT_END( pt );
+}
+
 #endif
+
 
 
 static char buf[LOG_STR_BUF_SIZE];
@@ -71,11 +85,10 @@ void log_v_init( void ){
     }
 
     #ifdef ENABLE_MSGFLOW
-    if( msgflow <= 0 ){
-        
-        // logging can reinit, so we check if we've already initialized the msgflow
-        msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
-    }
+    thread_t_create( msgflow_init_thread,
+                     PSTR("msgflow_init_thread"),
+                     0,
+                     0 );
     #endif
 }
 

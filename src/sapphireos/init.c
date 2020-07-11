@@ -130,10 +130,6 @@ int8_t sapphire_i8_init( void ){
     // init user file system
     fs_v_init();
 
-    #ifdef ENABLE_MSGFLOW
-    msgflow_v_init();
-    #endif
-
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
@@ -208,6 +204,10 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_NETWORK
     election_v_init();
+    #endif
+
+    #ifdef ENABLE_MSGFLOW
+    msgflow_v_init();
     #endif
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
