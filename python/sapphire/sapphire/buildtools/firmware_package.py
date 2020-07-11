@@ -272,6 +272,9 @@ class FirmwarePackage(object):
     def __str__(self):
         return f"FirmwarePackage:{self.name} FWID:{self.FWID}"
 
+    def get_version_for_target(self, target):
+        return self.manifest['targets'][target]['firmware.bin']['version']
+
     def load(self):
         with zipfile.ZipFile(self.filepath) as myzip:
             if MANIFEST_FILENAME not in myzip.namelist():

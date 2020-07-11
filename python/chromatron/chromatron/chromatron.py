@@ -2415,13 +2415,15 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
     updates = {}
 
     for device_id, ct in group.items():
-        echo_name(ct)
+        echo_name(ct, nl=False)
+        click.echo(': ', nl=False)
 
         updates[device_id] = {}
 
         # get firmware version
-        fw_version = ct.get_key('firmware_version')
-        fw_id = ct.get_key('firmware_id')
+        fw_info = ct._device.get_firmware_info()
+        fw_version = fw_info.firmware_version
+        fw_id = fw_info.firmware_id
 
         # check if we are changing firmawre
         if change_firmware:
@@ -2503,7 +2505,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 f.write(json.dumps(backup_data, indent=4, separators=(',', ': ')))
 
         if not parallel:
-            click.echo("Updating ")
+            click.echo(f"Updating from {fw_version} to {fw.get_version_for_target(fw_info.board)}")
 
             with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
                 ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
