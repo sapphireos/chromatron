@@ -261,11 +261,15 @@ class MsgFlowReceiver(Ribbon):
     def _handle_stop(self, msg, host):
         if host in self._connections:
             logging.info(f"Removing: {host}")
-            del self._connections
+            del self._connections[host]
 
     def _handle_reset(self, msg, host):
-        print(msg)
-        
+        if host not in self._connections:
+            logging.info(f"Connection from: {host}")
+
+        elif msg.sequence != self._connections[host]['sequence']:
+            logging.info(f"Reconnection from: {host}")
+
         self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
         self._send_ready(host, sequence=msg.sequence, codebook=msg.codebook)
 
@@ -323,12 +327,14 @@ class MsgFlowReceiver(Ribbon):
 
         if time.time() - self._last_status > STATUS_INTERVAL:
             self._last_status = time.time()
+
+            print(self._connections)
                 
             for host in self._connections:
                 # process timeouts
                 self._connections[host]['timeout'] -= STATUS_INTERVAL
 
-                if self._connections[host]['timeout'] < 0:
+                if self._connections[host]['timeout'] <= 0.0:
 
                     logging.info(f"Timed out: {host}")
 
@@ -336,7 +342,7 @@ class MsgFlowReceiver(Ribbon):
 
                 self._send_status(host)
 
-            self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0}
+            self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
 
 def main():
     util.setup_basic_logging(console=True)
