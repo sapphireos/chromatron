@@ -187,7 +187,6 @@ class MsgFlowReceiver(Ribbon):
         self._last_announce = time.time() - 10.0
 
     def clean_up(self):
-        print("CLEAN")
         for host in self._connections:
             self._send_stop(host)
 

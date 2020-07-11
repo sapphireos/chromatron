@@ -59,6 +59,11 @@ void msgflow_v_init( void ){
 
     list_v_init( &msgflow_list );
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     msgflow_m_listen( 0x1234, MSGFLOW_CODE_ANY, 512 );
 }
 
@@ -86,7 +91,7 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
 
     msgflow_state_t state = {0};
     state.service       = service;
-    state.sock          = sock_s_create( SOCK_DGRAM );
+    state.sock          = 0;
     state.code          = code;
     state.max_msg_size  = max_msg_size;
     state.shutdown      = FALSE;
@@ -101,12 +106,7 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
 
     list_node_t ln = list_ln_create_node( &t, sizeof(t) );
 
-    if( ( state.sock < 0 ) || ( t < 0 ) || ( ln < 0 ) ){
-
-        if( state.sock > 0 ){
-
-            sock_v_release( state.sock );
-        }
+    if( ( t < 0 ) || ( ln < 0 ) ){
 
         if( t > 0 ){
 
@@ -332,6 +332,13 @@ PT_BEGIN( pt );
     // reset/ready sequence
     while( !state->shutdown ){
 
+        if( state->sock > 0 ){
+
+            sock_v_release( state->sock );
+            state->sock = 0;
+        }
+
+
         memset( &state->raddr, 0, sizeof(state->raddr) );
 
         THREAD_WAIT_WHILE( pt, ip_b_is_zeroes( state->raddr.ipaddr ) && !state->shutdown );
@@ -339,6 +346,15 @@ PT_BEGIN( pt );
         if( state->shutdown ){
 
             goto shutdown;   
+        }
+
+        state->sock = sock_s_create( SOCK_DGRAM );
+
+        if( state->sock < 0 ){
+
+            log_v_debug_P( PSTR("socket fail") );    
+
+            THREAD_EXIT( pt );
         }
 
         // got an address
@@ -429,18 +445,21 @@ PT_BEGIN( pt );
 
 
 shutdown:
-    
-    // send stop message
 
-    // we send 3 times to make sure it makes it
-    send_stop( state );
-    TMR_WAIT( pt, 50 );
-    send_stop( state );
-    TMR_WAIT( pt, 50 );
-    send_stop( state );
-    TMR_WAIT( pt, 50 );
+    if( state->sock > 0 ){
 
-    sock_v_release( state->sock );
+        // send stop message
+
+        // we send 3 times to make sure it makes it
+        send_stop( state );
+        TMR_WAIT( pt, 50 );
+        send_stop( state );
+        TMR_WAIT( pt, 50 );
+        send_stop( state );
+        TMR_WAIT( pt, 50 );
+
+        sock_v_release( state->sock );    
+    }
 
     log_v_debug_P( PSTR("msgflow ended") );
     
