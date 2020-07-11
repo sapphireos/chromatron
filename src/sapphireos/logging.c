@@ -71,7 +71,11 @@ void log_v_init( void ){
     }
 
     #ifdef ENABLE_MSGFLOW
-    msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    if( msgflow <= 0 ){
+        
+        // logging can reinit, so we check if we've already initialized the msgflow
+        msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    }
     #endif
 }
 

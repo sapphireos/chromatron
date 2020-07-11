@@ -253,7 +253,7 @@ class MsgFlowReceiver(Ribbon):
 
     def _handle_data(self, msg, host):
         if host not in self._connections:
-            logging.warn(f"Host: {host} not found")
+            logging.warning(f"Host: {host} not found")
             return
 
         if len(msg.data) == 0:
@@ -261,7 +261,8 @@ class MsgFlowReceiver(Ribbon):
 
         else:
             # data!
-            print(msg.data)
+            data = bytes(msg.data.toBasic())
+            print(data)
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
