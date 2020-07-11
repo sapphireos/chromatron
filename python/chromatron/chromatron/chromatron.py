@@ -193,6 +193,7 @@ PIXEL_SETTINGS = [
 
 QUERY_FILENAME = os.path.join(firmware_package.data_dir(), 'chromatron_last_query.db')
 
+MAX_UPDATE_THREADS = 4
 
 def get_package_fx_script(fname):
     return pkg_resources.resource_filename('chromatron', fname)
@@ -2557,8 +2558,32 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
             echo_name(ct, nl=False)
             click.echo(f": {updates[device_id]['fw_info'].firmware_version} to {updates[device_id]['fw'].get_version_for_target(updates[device_id]['fw_info'].board)}")
 
-        if not click.confirm(click.style("Are these the updates you intend to apply?", fg='white')):
-            return
+        if not yes:
+            if not click.confirm(click.style("Are these the updates you intend to apply?", fg='white')):
+                return
+
+
+        # run parallel updates
+        def parallel_update(ct, semaphore):
+            print(ct)
+            time.sleep(5.0)
+            semaphore.release()
+
+        threads = []
+        sem = threading.Semaphore(MAX_UPDATE_THREADS)
+
+        for device_id, ct in group.items():
+            sem.acquire()
+            t = threading.Thread(target=parallel_update, args=[ct, sem], daemon=True)
+            t.start()
+
+            threads.append(t)
+
+        # wait for threads to finish
+        for t in threads:
+            t.join()        
+
+
 
 
 @firmware.command()
