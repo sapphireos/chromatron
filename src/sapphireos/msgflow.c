@@ -326,8 +326,6 @@ PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
 PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("msgflow init") );
-    
-    sock_v_set_timeout( state->sock, 1 );
 
     // reset/ready sequence
     while( !state->shutdown ){
@@ -356,6 +354,8 @@ PT_BEGIN( pt );
 
             THREAD_EXIT( pt );
         }
+
+        sock_v_set_timeout( state->sock, 1 );
 
         // got an address
         // send series of resets
