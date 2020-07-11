@@ -57,6 +57,8 @@ static socket_t listener_sock = -1;
 void msgflow_v_init( void ){
 
     list_v_init( &msgflow_list );
+
+    msgflow_m_listen( __KV__meow, MSGFLOW_CODE_ANY, 512 );
 }
 
 msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_msg_size ){
