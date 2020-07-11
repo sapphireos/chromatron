@@ -47,15 +47,23 @@ code_book = {
 }
 
 MSGFLOW_TYPE_SINK                   = 1
+MSGFLOW_TYPE_RESET                   = 2
+MSGFLOW_TYPE_READY                   = 3
+MSGFLOW_TYPE_STATUS                   = 4
+MSGFLOW_TYPE_DATA                   = 5
+MSGFLOW_TYPE_STOP                   = 6
 
+
+ANNOUNCE_INTERVAL                   = 4.0
 
 class MsgFlowHeader(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
-                  Uint8Field(_name="type")]
+        fields = [Uint8Field(_name="type"),
+                  Uint8Field(_name="flags")]
 
-        super(MsgFlowHeader, self).__init__(_name="msg_flow_header", _fields=fields, **kwargs)
+        super(MsgFlowHeader, self).__init__(_fields=fields, **kwargs)
 
+        self.flags = MSGFLOW_FLAGS_VERSION
 
 class MsgFlowMsgSink(StructField):
     def __init__(self, **kwargs):
@@ -67,6 +75,45 @@ class MsgFlowMsgSink(StructField):
 
         self.header.msg_type = MSGFLOW_TYPE_SINK
 
+class MsgFlowMsgReset(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header"),
+                  Uint16Field(_name="sequence"),
+                  Uint16Field(_name="max_data_len"),
+                  Uint8Field(_name="codebook"),
+                  Uint8Field(_name="reserved")]
+
+        super(MsgFlowMsgReset, self).__init__(_name="msg_flow_msg_reset", _fields=fields, **kwargs)
+
+        self.header.msg_type = MSGFLOW_TYPE_RESET
+
+class MsgFlowMsgReady(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header"),
+                  Uint16Field(_name="sequence"),
+                  Uint8Field(_name="codebook"),
+                  Uint8Field(_name="reserved")]
+
+        super(MsgFlowMsgReady, self).__init__(_name="msg_flow_msg_ready", _fields=fields, **kwargs)
+
+        self.header.msg_type = MSGFLOW_TYPE_READY
+
+messages = {
+    MSGFLOW_TYPE_SINK:      MsgFlowMsgSink,
+
+}
+
+def deserialize(buf):
+    msg_id = int(buf[0])
+
+    try:
+        return messages[msg_id]().unpack(buf)
+
+    except KeyError:
+        raise UnknownMessageException(msg_id)
+
+    except (struct.error, UnicodeDecodeError) as e:
+        raise InvalidMessageException(msg_id, len(buf), e)
 
 
 class MsgFlowReceiver(Ribbon):
@@ -89,8 +136,10 @@ class MsgFlowReceiver(Ribbon):
         self._inputs = [self.__service_sock]
         
         self._msg_handlers = {
-            # ErrorMsg: self._handle_error,
+            MsgFlowMsgSink: self._handle_sink,
         }
+
+        self._last_announce = time.time() - 10.0
 
     def clean_up(self):
         # self._send_shutdown()
@@ -100,30 +149,29 @@ class MsgFlowReceiver(Ribbon):
         # self._send_shutdown()
         pass
 
-    def _send_data_msg(self, msg, host):
-        msg.header.origin_id = self._origin_id
-        s = self.__data_sock
+    def _send_msg(self, msg, host):
+        s = self.__service_sock
 
         try:
             if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], serialize(msg))
+                send_udp_broadcast(s, host[1], msg.pack())
 
             else:
-                s.sendto(serialize(msg), host)
+                s.sendto(msg.pack(), host)
 
         except socket.error:
             pass
 
-    def _send_announce(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT), discovery_id=None):
+    def _send_sink(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT)):
+        msg = MsgFlowMsgSink(
+                service=0x1234,
+                codebook=[0,0,0,0,0,0,0,0])
+
+        self._send_msg(msg, host)
+
+
+    def _handle_sink(self, msg, host):
         pass
-        # msg = AnnounceMsg(
-        #         data_port=self._data_port,
-        #         query=self._database.get_query())
-
-        # if discovery_id:
-        #     msg.header.transaction_id = discovery_id
-
-        # self._send_data_msg(msg, host)
 
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)
@@ -139,6 +187,7 @@ class MsgFlowReceiver(Ribbon):
             return None, None
 
         return tokens[0], tokens[1]
+
 
     def loop(self):
         try:
@@ -166,7 +215,7 @@ class MsgFlowReceiver(Ribbon):
                     
                     if response:
                         response.header.transaction_id = msg.header.transaction_id
-                        self._send_data_msg(response, host)
+                        self._send_msg(response, host)
 
                 except UnknownMessageException as e:
                     pass
@@ -181,6 +230,11 @@ class MsgFlowReceiver(Ribbon):
         except Exception as e:
             logging.exception(e)
 
+
+        if time.time() - self._last_announce > ANNOUNCE_INTERVAL:
+            self._last_announce = time.time()
+            
+            self._send_sink()
 
 
 def main():

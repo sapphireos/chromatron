@@ -58,7 +58,7 @@ void msgflow_v_init( void ){
 
     list_v_init( &msgflow_list );
 
-    msgflow_m_listen( __KV__meow, MSGFLOW_CODE_ANY, 512 );
+    msgflow_m_listen( 0x1234, MSGFLOW_CODE_ANY, 512 );
 }
 
 msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_msg_size ){
@@ -256,6 +256,8 @@ PT_BEGIN( pt );
 
         THREAD_EXIT( pt );
     }
+
+    sock_v_bind( listener_sock, MSGFLOW_LISTEN_PORT );
 
     while(1){
 
