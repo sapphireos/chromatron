@@ -71,7 +71,7 @@ void log_v_init( void ){
     }
 
     #ifdef ENABLE_MSGFLOW
-    msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    // msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
     #endif
 }
 
@@ -89,7 +89,10 @@ static void append_log( char *buf ){
     int str_len = strnlen( buf, LOG_STR_BUF_SIZE );
 
     #ifdef ENABLE_MSGFLOW
-    msgflow_b_send( msgflow, buf, str_len );
+    if( msgflow > 0 ){
+        
+        msgflow_b_send( msgflow, buf, str_len );
+    }
     #endif
     
     // check if file is not open
