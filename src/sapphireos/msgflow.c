@@ -238,6 +238,11 @@ bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
         return FALSE;
     }
 
+    if( sys_b_shutdown() ){
+
+        return FALSE;
+    }
+
     // ensure we are connected
     if( !msgflow_b_connected( msgflow ) ){
 

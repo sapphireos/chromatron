@@ -262,7 +262,7 @@ class MsgFlowReceiver(Ribbon):
         else:
             # data!
             data = bytes(msg.data.toBasic())
-            print(data)
+            print(host, data)
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
