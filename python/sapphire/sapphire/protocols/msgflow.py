@@ -56,6 +56,7 @@ MSGFLOW_TYPE_STOP                   = 6
 
 CONNECTION_TIMEOUT                  = 32.0
 ANNOUNCE_INTERVAL                   = 2.0
+STATUS_INTERVAL                     = 4.0
 
 class UnknownMessageException(Exception):
     pass
@@ -183,11 +184,14 @@ class MsgFlowReceiver(Ribbon):
         self._msg_handlers = {
             MsgFlowMsgSink: self._handle_sink,
             MsgFlowMsgReset: self._handle_reset,
+            MsgFlowMsgData: self._handle_data,
+            MsgFlowMsgStop: self._handle_stop,
         }
 
         self._connections = {}
 
         self._last_announce = time.time() - 10.0
+        self._last_status = time.time() - 10.0
 
     def clean_up(self):
         for host in self._connections:
@@ -223,6 +227,12 @@ class MsgFlowReceiver(Ribbon):
 
         self._send_msg(msg, host)
 
+    def _send_status(self, host):
+        msg = MsgFlowMsgStatus(
+                sequence=self._connections[host]['sequence'])
+
+        self._send_msg(msg, host)
+
     def _send_ready(self, host, sequence=None, codebook=0):
         msg = MsgFlowMsgReady(
                 sequence=sequence,
@@ -237,6 +247,21 @@ class MsgFlowReceiver(Ribbon):
 
     def _handle_sink(self, msg, host):
         pass
+
+    def _handle_data(self, msg, host):
+        if host not in self._connections:
+            logging.warn(f"Host: {host} not found")
+            return
+
+        if len(msg.data) == 0:
+            logging.debug(f"Keepalive from: {host}")
+
+        self._connections[host]['timeout'] = CONNECTION_TIMEOUT
+
+    def _handle_stop(self, msg, host):
+        if host in self._connections:
+            logging.info(f"Removing: {host}")
+            del self._connections
 
     def _handle_reset(self, msg, host):
         print(msg)
@@ -295,6 +320,12 @@ class MsgFlowReceiver(Ribbon):
             self._last_announce = time.time()
             
             self._send_sink()
+
+        if time.time() - self._last_status > STATUS_INTERVAL:
+            self._last_status = time.time()
+                
+            for host in self._connections:
+                self._send_status(host)
 
 
 def main():
