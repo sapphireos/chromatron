@@ -34,7 +34,7 @@
 
 #ifdef ENABLE_MSGFLOW
 
-typedef struct __attribute__((packed)){
+typedef struct __attribute__((packed, aligned(4))){
     uint8_t type;
     uint8_t flags;
 } msgflow_header_t;

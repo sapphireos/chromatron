@@ -31,6 +31,7 @@
 #include "list.h"
 #include "msgflow.h"
 
+// #define NO_LOGGING
 #include "logging.h"
 
 #ifdef ENABLE_MSGFLOW
@@ -277,6 +278,8 @@ PT_BEGIN( pt );
             continue;
         }
 
+        log_v_debug_P( PSTR("msg") );
+
         msgflow_msg_sink_t *sink = (msgflow_msg_sink_t *)( header + 1 );
 
         // search for service
@@ -288,6 +291,8 @@ PT_BEGIN( pt );
             msgflow_state_t *mstate = thread_vp_get_data( *m );
 
             if( mstate->service == sink->service ){
+
+                log_v_debug_P( PSTR("%x"), sink->service );
 
                 // check if flow hasn't been initialized
                 if( ip_b_is_zeroes( mstate->raddr.ipaddr ) ){
@@ -315,6 +320,8 @@ PT_END( pt );
 PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
 {
 PT_BEGIN( pt );
+
+    log_v_debug_P( PSTR("msgflow") );
     
     sock_v_set_timeout( state->sock, 1 );
 
@@ -331,6 +338,7 @@ PT_BEGIN( pt );
 
         // got an address
         // send series of resets
+        log_v_debug_P( PSTR("msgflow reset") );
 
         // we send 3 times to make sure it makes it
         send_reset( state );
