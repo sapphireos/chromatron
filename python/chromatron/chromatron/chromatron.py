@@ -38,6 +38,7 @@ from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
 import json
 from datetime import datetime, timedelta
+from queue import Queue
 
 from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOCH, NotASapphireDevice
 from elysianfields import *
@@ -2562,11 +2563,83 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
             if not click.confirm(click.style("Are these the updates you intend to apply?", fg='white')):
                 return
 
-
         # run parallel updates
-        def parallel_update(ct, semaphore):
-            print(ct)
-            time.sleep(5.0)
+        
+        def display(q, total_devices):
+            updates = {}
+            completed = 0
+
+            while True:
+                msg = q.get()
+
+                if msg is None:
+                    return
+
+                ct = msg[0]
+                progress = msg[1]
+                updates[ct.device_id] = {
+                    'ct': ct,
+                    'progress': progress
+                }
+
+                if progress == 'Done':
+                    completed += 1
+
+                # format line
+                s = f"{completed:3} / {total_devices:3} | "
+                for update in updates.values():     
+                    if isinstance(update['progress'], int):
+                        s += f"{update['ct'].host:15}: {update['progress']:8}%   "
+
+                    else:
+                        s += f"{update['ct'].host:15}: {update['progress']:8}    "
+                    
+                sys.stdout.write('\r')
+                sys.stdout.write(s)
+                sys.stdout.flush()
+
+                if progress in ['Done', 'Error']:
+                    del updates[ct.device_id]
+
+
+        display_queue = Queue()
+        display_thread = threading.Thread(target=display, args=[display_queue, len(updates)], daemon=True)
+        display_thread.start()
+
+
+        def parallel_update(ct, semaphore, q):
+            def progress(value, filename=''):
+                q.put((ct, int(value)))
+                
+            ct._device.load_firmware(fw_id, release=release, progress=progress, verify=not skip_verify, use_percent=True)
+
+            q.put((ct, "Loading"))
+
+            # wait for device
+            for i in range(100):
+                if i > 10:
+                    # don't start trying to echo too soon,
+                    # because the reboot command takes a few seconds
+                    # to process.
+                    try:
+                        ct.echo()
+                        break
+
+                    except DeviceUnreachableException:
+                        pass
+
+                time.sleep(0.5)
+
+            try:
+                ct.echo()
+                q.put((ct, "Done"))
+
+            except DeviceUnreachableException:
+                q.put((ct, "Error"))
+
+                time.sleep(2.0)
+                sys.exit(-1)
+            
             semaphore.release()
 
         threads = []
@@ -2574,7 +2647,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
 
         for device_id, ct in group.items():
             sem.acquire()
-            t = threading.Thread(target=parallel_update, args=[ct, sem], daemon=True)
+            t = threading.Thread(target=parallel_update, args=[ct, sem, display_queue], daemon=True)
             t.start()
 
             threads.append(t)
@@ -2583,7 +2656,15 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
         for t in threads:
             t.join()        
 
+        display_queue.put(None) # signals display thread to terminate
 
+        click.echo('')
+
+        click.echo('Updates complete.')
+        
+        for device_id, ct in group.items():
+            echo_name(ct, nl=False)
+            click.echo(f": {ct._device.get_firmware_info().firmware_version}")        
 
 
 @firmware.command()
