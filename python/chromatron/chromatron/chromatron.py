@@ -2420,8 +2420,9 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
     updates = {}
 
     for device_id, ct in group.items():
-        echo_name(ct, nl=False)
-        click.echo(': ', nl=False)
+        if not parallel:
+            echo_name(ct, nl=False)
+            click.echo(': ', nl=False)
 
         updates[device_id] = {}
 
@@ -2549,8 +2550,9 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 return
 
         else:
-            # print newline
-            click.echo('')
+            if not parallel:
+                # print newline
+                click.echo('')
 
     if parallel:
         click.echo('Updating:')
@@ -2657,6 +2659,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
             t.join()        
 
         display_queue.put(None) # signals display thread to terminate
+        display_thread.join()
 
         click.echo('')
 
