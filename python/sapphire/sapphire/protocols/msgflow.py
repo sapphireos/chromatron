@@ -211,12 +211,20 @@ class MsgFlowReceiver(Ribbon):
 
         self._send_msg(msg, host)
 
+    def _send_ready(self, host, sequence=None, codebook=0):
+        msg = MsgFlowMsgReady(
+                sequence=sequence,
+                codebook=codebook)
+
+        self._send_msg(msg, host)
 
     def _handle_sink(self, msg, host):
         pass
 
     def _handle_reset(self, msg, host):
         print(msg)
+
+        self._send_ready(host, sequence=msg.sequence, codebook=msg.codebook)
 
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)

@@ -199,7 +199,8 @@ static void send_reset( msgflow_state_t *state ){
     msgflow_msg_reset_t reset = {
         state->sequence,            
         state->code,
-        0
+        0,
+        0,
     };
 
     if( !send_msg( state, MSGFLOW_TYPE_RESET, &reset, sizeof(reset) ) ){
@@ -328,6 +329,7 @@ PT_BEGIN( pt );
     
     sock_v_set_timeout( state->sock, 1 );
 
+    // reset/ready sequence
     while( !state->shutdown ){
 
         memset( &state->raddr, 0, sizeof(state->raddr) );
@@ -343,6 +345,8 @@ PT_BEGIN( pt );
         // send series of resets
         log_v_debug_P( PSTR("msgflow reset") );
 
+        state->sequence = rnd_u16_get_int();
+
         // we send 3 times to make sure it makes it
         send_reset( state );
         TMR_WAIT( pt, 50 );
@@ -350,14 +354,14 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 50 );
         send_reset( state );
 
-        // listen for message.
-        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( state->sock ) < 0 );
-        
-        if( sock_i16_get_bytes_read( state->sock ) == 0 ){
+        // listen for message
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+
+        if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 
             continue;
         }
-
+        
         // get message
         msgflow_header_t *header = sock_vp_get_data( state->sock );
 
@@ -386,9 +390,36 @@ PT_BEGIN( pt );
         // we are now connected!
         log_v_debug_P( PSTR("msgflow ready") );        
 
-
-
+        break;
     }
+
+    // data
+    while( !state->shutdown ){
+
+        // listen for message
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+
+        if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
+
+            continue;
+        }
+
+        // get message
+        msgflow_header_t *header = sock_vp_get_data( state->sock );
+
+        if( !validate_header( header ) ){
+
+            continue;
+        }
+
+        if( header->type == MSGFLOW_TYPE_STATUS ){
+
+            // msgflow_msg_status_t *msg = (msgflow_msg_status_t *)( header + 1 );
+            
+            // reset timeout
+            state->timeout = MSGFLOW_TIMEOUT;      
+        }
+    }   
 
 
 shutdown:
