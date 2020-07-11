@@ -60,6 +60,9 @@ ANNOUNCE_INTERVAL                   = 2.0
 class UnknownMessageException(Exception):
     pass
 
+class InvalidMessageException(Exception):
+    pass
+
 class MsgFlowHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="type"),

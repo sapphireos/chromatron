@@ -46,6 +46,7 @@ typedef struct{
     bool shutdown;
     list_node_t ln;
     uint8_t timeout;
+    uint8_t keepalive;
 } msgflow_state_t;
 
 
@@ -136,27 +137,6 @@ bool msgflow_b_connected( msgflow_t msgflow ){
     return !ip_b_is_zeroes( state->raddr.ipaddr );
 }
 
-bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
-
-    return TRUE;
-}
-
-void msgflow_v_close( msgflow_t msgflow ){
-
-    msgflow_state_t *state = thread_vp_get_data( msgflow );
-
-    state->shutdown = TRUE;
-}
-
-static bool validate_header( msgflow_header_t *header ){
-
-    if( ( header->flags & MSGFLOW_FLAGS_VERSION_MASK ) != MSGFLOW_FLAGS_VERSION ){
-
-        return FALSE;
-    }
-
-    return TRUE;
-}
 
 static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t len ){
 
@@ -187,6 +167,83 @@ static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t
     memcpy( ptr, data, len );
 
     if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
+static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t len ){
+
+    uint16_t mem_len = len + sizeof(msgflow_header_t) + sizeof(msgflow_msg_data_t);
+
+    mem_handle_t h = mem2_h_alloc( mem_len );
+
+    if( h < 0 ){
+
+        return FALSE;
+    }
+
+    void *ptr = mem2_vp_get_ptr_fast( h );
+
+    msgflow_header_t header = {
+        .type = type,
+        .flags = MSGFLOW_FLAGS_VERSION,
+    };
+
+    memcpy( ptr, &header, sizeof(header) );
+    ptr += sizeof(header);
+
+    msgflow_msg_data_t data_msg = {
+        .sequence = state->sequence,
+    };
+    
+    memcpy( ptr, &data_msg, sizeof(data_msg) );
+    ptr += sizeof(data_msg);    
+
+    memcpy( ptr, data, len );
+
+    if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+
+        return FALSE;
+    }
+
+    state->sequence++;
+
+    return TRUE;
+}
+
+
+bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
+
+    // ensure we are connected
+    if( !msgflow_b_connected( msgflow ) ){
+
+        return FALSE;
+    }
+
+    msgflow_state_t *state = thread_vp_get_data( msgflow );
+
+    // reset keep alive timer
+    state->keepalive = MSGFLOW_KEEPALIVE;
+
+    return send_data_msg( state, MSGFLOW_TYPE_DATA, data, len );
+
+    // return TRUE;
+}
+
+void msgflow_v_close( msgflow_t msgflow ){
+
+    msgflow_state_t *state = thread_vp_get_data( msgflow );
+
+    state->shutdown = TRUE;
+}
+
+static bool validate_header( msgflow_header_t *header ){
+
+    if( ( header->flags & MSGFLOW_FLAGS_VERSION_MASK ) != MSGFLOW_FLAGS_VERSION ){
 
         return FALSE;
     }
@@ -240,6 +297,19 @@ void msgflow_v_process_timeouts( void ){
 
                 // restart the thread
                 thread_v_restart( *m );
+            }
+
+            // check if keepalive is expired
+            if( mstate->keepalive > 0 ){
+
+                mstate->keepalive--;
+            }
+
+            // check for keepalive
+            if( mstate->keepalive == 0 ){
+
+                // send empty data message
+                msgflow_b_send( *m, 0, 0 );
             }
         }
 
@@ -362,6 +432,7 @@ PT_BEGIN( pt );
         log_v_debug_P( PSTR("msgflow reset") );
 
         state->sequence = rnd_u16_get_int();
+        state->keepalive = MSGFLOW_KEEPALIVE;
 
         // we send 3 times to make sure it makes it
         send_reset( state );

@@ -31,6 +31,7 @@
 
 #define MSGFLOW_LISTEN_PORT             32039
 #define MSGFLOW_TIMEOUT                 16
+#define MSGFLOW_KEEPALIVE               4
 
 #ifdef ENABLE_MSGFLOW
 
