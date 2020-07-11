@@ -249,10 +249,27 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
     memcpy( data, pdata, len );
 
     // post to rx Q
-    if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
+    if( list_u8_count( &rx_list ) == ( WIFI_MAX_RX_NETMSGS - 1 ) ){
 
-        log_v_warn_P( PSTR("rx q full") );     
+        if( sock_b_rx_pending() ){
 
+            log_v_error_P( PSTR("rx q almost full, dropping pending socket") );     
+
+            // clear pending data on whatever socket is blocking.
+            sock_v_clear_rx_pending();
+        }
+    }
+    else if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
+
+        log_v_warn_P( PSTR("rx q full: lport: %u rport: %d.%d.%d.%d:%u"), state->laddr.port, state->raddr.ipaddr.ip3, state->raddr.ipaddr.ip2, state->raddr.ipaddr.ip1, state->raddr.ipaddr.ip0, state->raddr.port );     
+
+        if( sock_b_rx_pending() ){
+
+            // clear pending data on whatever socket is blocking.
+            sock_v_clear_rx_pending();
+        }
+
+        // drop this message
         netmsg_v_release( rx_netmsg );
 
         return;
