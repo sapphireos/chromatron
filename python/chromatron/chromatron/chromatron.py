@@ -2513,7 +2513,8 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 f.write(json.dumps(backup_data, indent=4, separators=(',', ': ')))
 
         if not parallel:
-            click.echo(f"Updating from {fw_version} to {fw.get_version_for_target(fw_info.board)}")
+            if fw_info.board != 'chromatron_classic_upgrade':
+                click.echo(f"Updating from {fw_version} to {fw.get_version_for_target(fw_info.board)}")
 
             with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
                 ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
