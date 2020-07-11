@@ -47,14 +47,17 @@ code_book = {
 }
 
 MSGFLOW_TYPE_SINK                   = 1
-MSGFLOW_TYPE_RESET                   = 2
-MSGFLOW_TYPE_READY                   = 3
-MSGFLOW_TYPE_STATUS                   = 4
+MSGFLOW_TYPE_RESET                  = 2
+MSGFLOW_TYPE_READY                  = 3
+MSGFLOW_TYPE_STATUS                 = 4
 MSGFLOW_TYPE_DATA                   = 5
 MSGFLOW_TYPE_STOP                   = 6
 
 
-ANNOUNCE_INTERVAL                   = 4.0
+ANNOUNCE_INTERVAL                   = 2.0
+
+class UnknownMessageException(Exception):
+    pass
 
 class MsgFlowHeader(StructField):
     def __init__(self, **kwargs):
@@ -99,9 +102,42 @@ class MsgFlowMsgReady(StructField):
 
         self.header.type = MSGFLOW_TYPE_READY
 
+class MsgFlowMsgStatus(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header"),
+                  Uint16Field(_name="sequence"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=14)]
+
+        super(MsgFlowMsgStatus, self).__init__(_name="msg_flow_msg_statis", _fields=fields, **kwargs)
+
+        self.header.type = MSGFLOW_TYPE_STATUS
+
+class MsgFlowMsgData(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header"),
+                  Uint16Field(_name="sequence"),
+                  ArrayField(_name="data", _field=Uint8Field)]
+
+        super(MsgFlowMsgData, self).__init__(_name="msg_flow_msg_data", _fields=fields, **kwargs)
+
+        self.header.type = MSGFLOW_TYPE_DATA
+
+class MsgFlowMsgStop(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header")]
+
+        super(MsgFlowMsgStop, self).__init__(_name="msg_flow_msg_stop", _fields=fields, **kwargs)
+
+        self.header.type = MSGFLOW_TYPE_STOP
+
+
 messages = {
     MSGFLOW_TYPE_SINK:      MsgFlowMsgSink,
-
+    MSGFLOW_TYPE_RESET:     MsgFlowMsgReset,
+    MSGFLOW_TYPE_READY:     MsgFlowMsgReady,
+    MSGFLOW_TYPE_STATUS:    MsgFlowMsgStatus,
+    MSGFLOW_TYPE_DATA:      MsgFlowMsgData,
+    MSGFLOW_TYPE_STOP:      MsgFlowMsgStop,
 }
 
 def deserialize(buf):
@@ -122,6 +158,10 @@ class MsgFlowReceiver(Ribbon):
         self.name = name
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # debug
+        self.__service_sock.bind(('0.0.0.0', 12345))
+
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -138,6 +178,7 @@ class MsgFlowReceiver(Ribbon):
         
         self._msg_handlers = {
             MsgFlowMsgSink: self._handle_sink,
+            MsgFlowMsgReset: self._handle_reset,
         }
 
         self._last_announce = time.time() - 10.0
@@ -174,6 +215,9 @@ class MsgFlowReceiver(Ribbon):
     def _handle_sink(self, msg, host):
         pass
 
+    def _handle_reset(self, msg, host):
+        print(msg)
+
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)
 
@@ -201,17 +245,6 @@ class MsgFlowReceiver(Ribbon):
                     msg = deserialize(data)
                     response = None                    
 
-                    # filter our own messages
-                    try:
-                        if msg.header.origin_id == self._origin_id:
-                            continue
-
-                        if host[1] == self._data_port:
-                            continue
-
-                    except KeyError:
-                        pass
-
                     response, host = self._process_msg(msg, host)
                     
                     if response:
@@ -219,7 +252,7 @@ class MsgFlowReceiver(Ribbon):
                         self._send_msg(response, host)
 
                 except UnknownMessageException as e:
-                    pass
+                    raise
 
                 except Exception as e:
                     logging.exception(e)

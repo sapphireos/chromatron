@@ -178,8 +178,8 @@ static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t
     void *ptr = mem2_vp_get_ptr_fast( h );
 
     msgflow_header_t header = {
-        MSGFLOW_FLAGS_VERSION,
-        type
+        .type = type,
+        .flags = MSGFLOW_FLAGS_VERSION,
     };
 
     memcpy( ptr, &header, sizeof(header) );
@@ -275,21 +275,15 @@ PT_BEGIN( pt );
         // get message
         msgflow_header_t *header = sock_vp_get_data( listener_sock );
 
-        log_v_debug_P( PSTR("msg") );
-
         if( !validate_header( header ) ){
 
             continue;
         }
 
-        log_v_debug_P( PSTR("header") );
-
         if( header->type != MSGFLOW_TYPE_SINK ){
 
             continue;
         }
-
-        log_v_debug_P( PSTR("sink") );
 
         msgflow_msg_sink_t *sink = (msgflow_msg_sink_t *)( header + 1 );
 
@@ -303,8 +297,6 @@ PT_BEGIN( pt );
 
             if( mstate->service == sink->service ){
 
-                log_v_debug_P( PSTR("%x"), sink->service );
-
                 // check if flow hasn't been initialized
                 if( ip_b_is_zeroes( mstate->raddr.ipaddr ) ){
 
@@ -314,7 +306,7 @@ PT_BEGIN( pt );
                     // set address
                     sock_v_get_raddr( listener_sock, &mstate->raddr );
                 
-                    log_v_debug_P( PSTR("got sink %d.%d.%d.%d"), mstate->raddr.ipaddr.ip3, mstate->raddr.ipaddr.ip2, mstate->raddr.ipaddr.ip1, mstate->raddr.ipaddr.ip0 );
+                    log_v_debug_P( PSTR("got sink %d.%d.%d.%d:%u"), mstate->raddr.ipaddr.ip3, mstate->raddr.ipaddr.ip2, mstate->raddr.ipaddr.ip1, mstate->raddr.ipaddr.ip0, mstate->raddr.port );
                 }
 
                 // we don't break here.
