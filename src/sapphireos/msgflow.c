@@ -568,6 +568,11 @@ shutdown:
     }
 
     log_v_debug_P( PSTR("msgflow ended") );
+
+    // block while system is shutting down.
+    // this prevents crashes from the message flow state being freed 
+    // while open handles are still present.
+    THREAD_WAIT_WHILE( pt, sys_b_shutdown() );
     
 PT_END( pt );
 }
