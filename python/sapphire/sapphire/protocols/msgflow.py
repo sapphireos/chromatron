@@ -188,6 +188,9 @@ class MsgFlowReceiver(Ribbon):
             MsgFlowMsgStop: self._handle_stop,
         }
 
+        self._service = 0x51f2b156 # logserver
+        # self._service = 0x1234
+
         self._connections = {}
 
         self._last_announce = time.time() - 10.0
@@ -222,7 +225,7 @@ class MsgFlowReceiver(Ribbon):
 
     def _send_sink(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT)):
         msg = MsgFlowMsgSink(
-                service=0x1234,
+                service=self._service,
                 codebook=[0,0,0,0,0,0,0,0])
 
         self._send_msg(msg, host)
@@ -256,6 +259,10 @@ class MsgFlowReceiver(Ribbon):
         if len(msg.data) == 0:
             logging.debug(f"Keepalive from: {host}")
 
+        else:
+            # data!
+            print(msg.data)
+
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
     def _handle_stop(self, msg, host):
@@ -265,7 +272,7 @@ class MsgFlowReceiver(Ribbon):
 
     def _handle_reset(self, msg, host):
         if host not in self._connections:
-            logging.info(f"Connection from: {host}")
+            logging.info(f"Connection from: {host} sequence: {msg.sequence} max_len: {msg.max_data_len}")
 
         elif msg.sequence != self._connections[host]['sequence']:
             logging.info(f"Reconnection from: {host}")
@@ -328,8 +335,6 @@ class MsgFlowReceiver(Ribbon):
         if time.time() - self._last_status > STATUS_INTERVAL:
             self._last_status = time.time()
 
-            print(self._connections)
-                
             for host in self._connections:
                 # process timeouts
                 self._connections[host]['timeout'] -= STATUS_INTERVAL

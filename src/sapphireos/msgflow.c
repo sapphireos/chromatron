@@ -65,10 +65,15 @@ void msgflow_v_init( void ){
         return;
     }
 
-    msgflow_m_listen( 0x1234, MSGFLOW_CODE_ANY, 512 );
+    // msgflow_m_listen( 0x1234, MSGFLOW_CODE_ANY, 512 );
 }
 
 msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_msg_size ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return -1;
+    }
 
     // check if listener is running
     if( listener_sock < 0 ){
@@ -131,6 +136,11 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
 }
 
 bool msgflow_b_connected( msgflow_t msgflow ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return FALSE;
+    }
 
     msgflow_state_t *state = thread_vp_get_data( msgflow );
 
@@ -218,6 +228,11 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
 
 bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return FALSE;
+    }
+
     // ensure we are connected
     if( !msgflow_b_connected( msgflow ) ){
 
@@ -235,6 +250,11 @@ bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 }
 
 void msgflow_v_close( msgflow_t msgflow ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
 
     msgflow_state_t *state = thread_vp_get_data( msgflow );
 

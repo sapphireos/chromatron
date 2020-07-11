@@ -31,15 +31,20 @@
 #include "ip.h"
 #include "timers.h"
 #include "fs.h"
-#include "os_irq.h"
 
 #include "logging.h"
 
 #define NO_EVENT_LOGGING
 #include "event_log.h"
 
-
 #ifdef LOG_ENABLE
+
+#ifdef ENABLE_MSGFLOW
+#include "msgflow.h"
+
+static msgflow_t msgflow;
+#endif
+
 
 static char buf[LOG_STR_BUF_SIZE];
 static file_t f = -1;
@@ -64,7 +69,12 @@ void log_v_init( void ){
         max_log_size = LOG_MAX_SIZE;
         cfg_v_set( CFG_PARAM_MAX_LOG_SIZE, &max_log_size );
     }
+
+    #ifdef ENABLE_MSGFLOW
+    msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    #endif
 }
+
 
 static void append_log( char *buf ){
 
@@ -74,6 +84,12 @@ static void append_log( char *buf ){
     #else
     trace_printf("%s", buf); // log prints already have newlines
     #endif
+    #endif
+
+    int str_len = strnlen( buf, LOG_STR_BUF_SIZE );
+
+    #ifdef ENABLE_MSGFLOW
+    msgflow_b_send( msgflow, buf, str_len );
     #endif
     
     // check if file is not open
@@ -98,7 +114,7 @@ static void append_log( char *buf ){
     }
 
     // write to file
-    if( fs_i16_write( f, buf, strnlen( buf, LOG_STR_BUF_SIZE ) ) < 0 ){
+    if( fs_i16_write( f, buf, str_len ) < 0 ){
     
         goto cleanup;
     }
