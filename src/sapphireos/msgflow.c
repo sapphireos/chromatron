@@ -338,6 +338,11 @@ PT_BEGIN( pt );
         // listen for sink
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( listener_sock ) < 0 );
 
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
+
         if( sock_i16_get_bytes_read( listener_sock ) <= 0 ){
 
             continue;
@@ -484,7 +489,12 @@ PT_BEGIN( pt );
     while( !state->shutdown ){
 
         // listen for message
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && ( !sys_b_shutdown() ) );
+
+        if( sys_b_shutdown() ){
+
+            goto shutdown;
+        }
 
         if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 

@@ -325,8 +325,18 @@ class MsgFlowReceiver(Ribbon):
             self._last_status = time.time()
                 
             for host in self._connections:
+                # process timeouts
+                self._connections[host]['timeout'] -= STATUS_INTERVAL
+
+                if self._connections[host]['timeout'] < 0:
+
+                    logging.info(f"Timed out: {host}")
+
+                    continue
+
                 self._send_status(host)
 
+            self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0}
 
 def main():
     util.setup_basic_logging(console=True)
