@@ -131,6 +131,11 @@ static void reset_state( election_t *election ){
 
 void election_v_handle_shutdown( ip_addr4_t ip ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     // look for any elections with this IP as a leader, and reset them
 
     list_node_t ln = elections_list.head;
@@ -159,6 +164,11 @@ static uint8_t elections_count( void ){
 
 static election_t* get_election( uint32_t service ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
     list_node_t ln = elections_list.head;
 
     while( ln > 0 ){
@@ -177,6 +187,11 @@ static election_t* get_election( uint32_t service ){
 }
 
 void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint16_t port ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
 
     // check if election already exists
     election_t *election_ptr = get_election( service );
@@ -214,6 +229,11 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
 
 void election_v_cancel( uint32_t service ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     list_node_t ln = elections_list.head;
 
     while( ln > 0 ){
@@ -237,6 +257,11 @@ void election_v_cancel( uint32_t service ){
 bool election_b_leader_found( uint32_t service ){
 
     election_t *election = get_election( service );
+
+    if( election == 0 ){
+
+        return FALSE;
+    }
 
     return !ip_b_is_zeroes( election->leader_ip );
 }
