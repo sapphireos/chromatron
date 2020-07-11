@@ -59,7 +59,8 @@ ANNOUNCE_INTERVAL                   = 4.0
 class MsgFlowHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="type"),
-                  Uint8Field(_name="flags")]
+                  Uint8Field(_name="flags"),
+                  Uint16Field(_name="reserved")]
 
         super(MsgFlowHeader, self).__init__(_fields=fields, **kwargs)
 
@@ -73,7 +74,7 @@ class MsgFlowMsgSink(StructField):
 
         super(MsgFlowMsgSink, self).__init__(_name="msg_flow_msg_sink", _fields=fields, **kwargs)
 
-        self.header.msg_type = MSGFLOW_TYPE_SINK
+        self.header.type = MSGFLOW_TYPE_SINK
 
 class MsgFlowMsgReset(StructField):
     def __init__(self, **kwargs):
@@ -85,7 +86,7 @@ class MsgFlowMsgReset(StructField):
 
         super(MsgFlowMsgReset, self).__init__(_name="msg_flow_msg_reset", _fields=fields, **kwargs)
 
-        self.header.msg_type = MSGFLOW_TYPE_RESET
+        self.header.type = MSGFLOW_TYPE_RESET
 
 class MsgFlowMsgReady(StructField):
     def __init__(self, **kwargs):
@@ -96,7 +97,7 @@ class MsgFlowMsgReady(StructField):
 
         super(MsgFlowMsgReady, self).__init__(_name="msg_flow_msg_ready", _fields=fields, **kwargs)
 
-        self.header.msg_type = MSGFLOW_TYPE_READY
+        self.header.type = MSGFLOW_TYPE_READY
 
 messages = {
     MSGFLOW_TYPE_SINK:      MsgFlowMsgSink,

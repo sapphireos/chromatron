@@ -262,23 +262,34 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_YIELD( pt );
+
         // listen for sink
-        THREAD_WAIT_WHILE( pt, sock_i16_get_bytes_read( listener_sock ) < 0 );
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( listener_sock ) < 0 );
+
+        if( sock_i16_get_bytes_read( listener_sock ) <= 0 ){
+
+            continue;
+        }
 
         // get message
         msgflow_header_t *header = sock_vp_get_data( listener_sock );
+
+        log_v_debug_P( PSTR("msg") );
 
         if( !validate_header( header ) ){
 
             continue;
         }
 
+        log_v_debug_P( PSTR("header") );
+
         if( header->type != MSGFLOW_TYPE_SINK ){
 
             continue;
         }
 
-        log_v_debug_P( PSTR("msg") );
+        log_v_debug_P( PSTR("sink") );
 
         msgflow_msg_sink_t *sink = (msgflow_msg_sink_t *)( header + 1 );
 

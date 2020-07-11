@@ -37,6 +37,7 @@
 typedef struct __attribute__((packed, aligned(4))){
     uint8_t type;
     uint8_t flags;
+    uint16_t reserved;
 } msgflow_header_t;
 
 #define MSGFLOW_FLAGS_VERSION           0
