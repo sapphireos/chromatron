@@ -2393,6 +2393,9 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
 
     click.echo('\nRelease: %-32s Published :%32s\n' % (name_s, timestamp_s))   
 
+    if parallel:
+        click.echo('Parallel update mode')
+
     if not yes:
         if not click.confirm(click.style("Is this the release you intend to use?", fg='white')):
             click.echo("Firmware upgrade cancelled")
@@ -2424,6 +2427,8 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
         fw_info = ct._device.get_firmware_info()
         fw_version = fw_info.firmware_version
         fw_id = fw_info.firmware_id
+
+        updates[device_id]['fw_info'] = fw_info
 
         # check if we are changing firmawre
         if change_firmware:
@@ -2541,9 +2546,19 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 click.echo(click.style('Failed to connect to device!', fg='red'))
                 return
 
-    if parallel:
+        else:
+            # print newline
+            click.echo('')
 
-        print(updates)
+    if parallel:
+        click.echo('Updating:')
+        
+        for device_id, ct in group.items():
+            echo_name(ct, nl=False)
+            click.echo(f": {updates[device_id]['fw_info'].firmware_version} to {updates[device_id]['fw'].get_version_for_target(updates[device_id]['fw_info'].board)}")
+
+        if not click.confirm(click.style("Are these the updates you intend to apply?", fg='white')):
+            return
 
 
 @firmware.command()
