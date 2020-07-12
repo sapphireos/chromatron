@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['entrypoint.py'],
-             pathex=['/Users/jeremy/JEREMY/SAPPHIRE/chromatron/python/chromatron'],
+a = Analysis(['logserver_main.py'],
+             pathex=['/Users/jeremy/JEREMY/SAPPHIRE/chromatron/python/sapphire'],
              binaries=[],
              datas=[],
              hiddenimports=['pkg_resources.py2_warn'],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='chromatron',
+          name='logserver',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
