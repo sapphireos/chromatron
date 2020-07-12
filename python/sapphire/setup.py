@@ -58,6 +58,7 @@ setup(
         "netifaces==0.10.9",
         "fnvhash==0.1.0",
         "zeroconf==0.24.4",
+        "python-logging-loki==0.3.1",
     ],
 
     entry_points='''

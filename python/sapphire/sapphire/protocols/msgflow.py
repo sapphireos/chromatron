@@ -22,6 +22,7 @@
 # </license>
 #
 
+import sys
 import time
 import socket
 import select
@@ -172,8 +173,7 @@ class MsgFlowReceiver(Ribbon):
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        # debug
-        self.__service_sock.bind(('0.0.0.0', 12345))
+        self.__service_sock.bind(('0.0.0.0', 0))
 
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -184,6 +184,10 @@ class MsgFlowReceiver(Ribbon):
 
         except AttributeError:
             pass
+
+        self._port = self.__service_sock.getsockname()[1]
+
+        logging.info(f"MsgFlowReceiver on port: {self._port}")
 
         self.__service_sock.setblocking(0)
 
@@ -283,7 +287,8 @@ class MsgFlowReceiver(Ribbon):
             return
 
         if len(msg.data) == 0:
-            logging.debug(f"Keepalive from: {host}")
+            # logging.debug(f"Keepalive from: {host}")
+            pass
 
         else:
             # data!

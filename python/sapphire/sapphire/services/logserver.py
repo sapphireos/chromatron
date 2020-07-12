@@ -28,7 +28,46 @@ from catbus import CatbusService
 from ..common.ribbon import wait_for_signal
 from ..protocols.msgflow import MsgFlowReceiver
 from ..protocols.zeroconf_service import ZeroconfService
-from ..common import util
+from ..common import util, Ribbon
+
+import logging
+import logging_loki
+
+LOKI_SERVER = "http://localhost:3100"
+
+class LokiHandler(Ribbon):
+    def initialize(self, settings={}):
+        super().initialize()
+        self.name = 'lokihandler'
+        self.settings = settings
+
+        loki_handler = logging_loki.LokiHandler(
+            url=f"{LOKI_SERVER}/loki/api/v1/push", 
+            tags={"application": "chromatron-logserver"},
+            # auth=("username", "password"),
+            version="1",
+        )
+
+        self.logger = logging.getLogger('loki')
+        self.logger.addHandler(loki_handler)
+
+        self.logger.info("Loki handler started")
+
+        # for reference:
+        # self.logger.info(
+        #     "Loki handler started", 
+        #     extra={"tags": {"service": "lokihandler"}},
+        # )
+    
+    def loop(self):
+        msg = self.recv_msg()
+
+        print(msg)
+
+    def clean_up(self):
+        super().clean_up()        
+
+        self.logger.info("Loki handler stopped")
 
 
 class LogServer(MsgFlowReceiver):
@@ -51,6 +90,12 @@ class LogServer(MsgFlowReceiver):
         print(host, data)
 
 
+    def on_connect(self, host, device_id=None):
+        print("connect", host, device_id)
+
+    def on_disconnect(self, host):
+        print("disconnect", host)
+
 
 def main():
     util.setup_basic_logging(console=True)
@@ -63,12 +108,17 @@ def main():
     except FileNotFoundError:
         pass
 
-    l = LogServer(settings=settings)
+    logserver = LogServer(settings=settings)
+    loki = LokiHandler(settings=settings)
 
     wait_for_signal()
 
-    l.stop()
-    l.join(timeout=None)
+    logserver.stop()
+    loki.stop()
+
+    logserver.join()
+    loki.join()
+
 
 
 if __name__ == '__main__':
