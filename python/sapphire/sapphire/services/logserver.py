@@ -45,6 +45,10 @@ LOG_LEVEL = {
 DIRECTORY_UPDATE_INTERVAL = 8.0
 
 LOKI_SERVER = "http://localhost:3100"
+LOGSERVER_PORT = None
+
+# LOKI_SERVER = "http://loki:3100"
+# LOGSERVER_PORT = 30001
 
 class LokiHandler(Ribbon):
     def initialize(self, settings={}):
@@ -125,7 +129,7 @@ class LokiHandler(Ribbon):
 
 class LogServer(MsgFlowReceiver):
     def initialize(self, settings={}):
-        super().initialize(name='logserver', service='logserver')
+        super().initialize(name='logserver', service='logserver', port=LOGSERVER_PORT)
         self.settings = settings
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])

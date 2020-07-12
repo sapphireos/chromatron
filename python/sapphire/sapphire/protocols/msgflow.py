@@ -165,6 +165,7 @@ class MsgFlowReceiver(Ribbon):
     def initialize(self, 
                    name='msgflow_receiver', 
                    service=None, 
+                   port=None,
                    on_receive=None,
                    on_connect=None,
                    on_disconnect=None):
@@ -173,7 +174,11 @@ class MsgFlowReceiver(Ribbon):
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.__service_sock.bind(('0.0.0.0', 0))
+        if port is None:
+            self.__service_sock.bind(('0.0.0.0', 0))
+            
+        else:
+            self.__service_sock.bind(('0.0.0.0', port))
 
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
