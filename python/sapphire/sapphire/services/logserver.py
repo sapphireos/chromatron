@@ -54,7 +54,7 @@ class LokiHandler(Ribbon):
 
         loki_handler = logging_loki.LokiHandler(
             url=f"{LOKI_SERVER}/loki/api/v1/push", 
-            tags={"application": "chromatron-logserver", "service": "handler"},
+            tags={"application": "chromatron-logserver"},
             # auth=("username", "password"),
             version="1",
         )
@@ -64,15 +64,9 @@ class LokiHandler(Ribbon):
 
         self.logger.info("Loki handler started")
 
-        # for reference:
-        # self.logger.info(
-        #     "Loki handler started", 
-        #     extra={"tags": {"service": "lokihandler"}},
-        # )
-
         device_handler = logging_loki.LokiHandler(
             url=f"{LOKI_SERVER}/loki/api/v1/push", 
-            tags={"application": "chromatron-logserver", "service": "chromatron"},
+            tags={"application": "chromatron-logserver"},
             # auth=("username", "password"),
             version="1",
         )
@@ -111,6 +105,7 @@ class LokiHandler(Ribbon):
         tags = {
             'device_id':    info['device_id'],
             'name':         info['name'],
+            'host':         host[0],
             'location':     location,
             'sys_time':     sys_time,
             'level':        level,
