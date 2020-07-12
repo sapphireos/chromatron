@@ -26,7 +26,7 @@
 """
 
 from elysianfields import *
-from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, catbus_string_hash, NoResponseFromHost, ProtocolErrorException
+from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, NoResponseFromHost, ProtocolErrorException
 
 from . import sapphiredata
 from . import channel

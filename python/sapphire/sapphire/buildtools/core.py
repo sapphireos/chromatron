@@ -50,8 +50,7 @@ from . import settings
 from intelhex import IntelHex
 
 from sapphire.devices.sapphiredata import KVMetaField, KVMetaFieldWidePtr
-from sapphire.common import util
-from catbus import catbus_string_hash
+from sapphire.common import util, catbus_string_hash
 from fnvhash import fnv1a_32
 
 
