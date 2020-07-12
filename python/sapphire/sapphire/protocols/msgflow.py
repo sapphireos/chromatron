@@ -262,10 +262,10 @@ class MsgFlowReceiver(Ribbon):
 
         self._send_msg(msg, host)
 
-    def _send_ready(self, host, sequence=None, codebook=0):
+    def _send_ready(self, host, sequence=None, code=0):
         msg = MsgFlowMsgReady(
                 sequence=sequence,
-                codebook=codebook)
+                code=code)
 
         self._send_msg(msg, host)
 
@@ -308,7 +308,7 @@ class MsgFlowReceiver(Ribbon):
             logging.info(f"Reconnection from: {host}")
 
         self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
-        self._send_ready(host, sequence=msg.sequence, codebook=msg.codebook)
+        self._send_ready(host, sequence=msg.sequence, code=msg.code)
 
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)
