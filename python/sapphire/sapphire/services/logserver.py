@@ -12,10 +12,8 @@ class LogServer(MsgFlowReceiver):
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])
 
-    def loop(self):
-        self.wait(1.0)
-
     def clean_up(self):
+        super().clean_up()
         self.kv.stop()
         self.kv.wait()
 
