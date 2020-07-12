@@ -17,6 +17,9 @@ class LogServer(MsgFlowReceiver):
         self.kv.stop()
         self.kv.wait()
 
+    def on_receive(self, host, data):
+        print(host, data)
+
 def main():
     util.setup_basic_logging(console=True)
 

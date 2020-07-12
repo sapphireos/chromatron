@@ -90,8 +90,9 @@ class MsgFlowMsgReset(StructField):
         fields = [MsgFlowHeader(_name="header"),
                   Uint16Field(_name="sequence"),
                   Uint16Field(_name="max_data_len"),
-                  Uint8Field(_name="codebook"),
-                  Uint8Field(_name="reserved")]
+                  Uint8Field(_name="code"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=3),
+                  Uint64Field(_name="device_id")]
 
         super(MsgFlowMsgReset, self).__init__(_name="msg_flow_msg_reset", _fields=fields, **kwargs)
 
@@ -101,7 +102,7 @@ class MsgFlowMsgReady(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
                   Uint16Field(_name="sequence"),
-                  Uint8Field(_name="codebook"),
+                  Uint8Field(_name="code"),
                   Uint8Field(_name="reserved")]
 
         super(MsgFlowMsgReady, self).__init__(_name="msg_flow_msg_ready", _fields=fields, **kwargs)
@@ -160,7 +161,13 @@ def deserialize(buf):
 
 
 class MsgFlowReceiver(Ribbon):
-    def initialize(self, name='msgflow_receiver', service=None, on_receive=None):
+    def initialize(self, 
+                   name='msgflow_receiver', 
+                   service=None, 
+                   on_receive=None,
+                   on_connect=None,
+                   on_disconnect=None):
+
         self.name = name
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -191,7 +198,7 @@ class MsgFlowReceiver(Ribbon):
 
         self.service = service
         self._service_hash = catbus_string_hash(service)
-        
+
         self._connections = {}
 
         self._last_announce = time.time() - 10.0
@@ -199,6 +206,18 @@ class MsgFlowReceiver(Ribbon):
 
         if on_receive is not None:
             self.on_receive = on_receive
+
+        if on_connect is not None:
+            self.on_connect = on_connect
+
+        if on_disconnect is not None:
+            self.on_disconnect = on_disconnect
+
+    def on_connect(self, host, device_id=None):
+        pass
+
+    def on_disconnect(self, host):
+        pass
 
     def on_receive(self, host, data):
         pass
@@ -277,10 +296,13 @@ class MsgFlowReceiver(Ribbon):
         if host in self._connections:
             logging.info(f"Removing: {host}")
             del self._connections[host]
+            self.on_disconnect(host)
 
     def _handle_reset(self, msg, host):
         if host not in self._connections:
             logging.info(f"Connection from: {host} sequence: {msg.sequence} max_len: {msg.max_data_len}")
+
+            self.on_connect(host, msg.device_id)
 
         elif msg.sequence != self._connections[host]['sequence']:
             logging.info(f"Reconnection from: {host}")
@@ -350,12 +372,14 @@ class MsgFlowReceiver(Ribbon):
                 if self._connections[host]['timeout'] <= 0.0:
 
                     logging.info(f"Timed out: {host}")
+                    self.on_disconnect(host)
 
                     continue
 
                 self._send_status(host)
 
             self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
+
 
 def main():
     util.setup_basic_logging(console=True)

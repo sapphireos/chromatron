@@ -29,6 +29,8 @@
 #include "keyvalue.h"
 #include "random.h"
 #include "list.h"
+#include "config.h"
+
 #include "msgflow.h"
 
 // #define NO_LOGGING
@@ -283,12 +285,11 @@ static bool validate_header( msgflow_header_t *header ){
 
 static void send_reset( msgflow_state_t *state ){
 
-    msgflow_msg_reset_t reset = {
-        state->sequence,            
-        state->code,
-        0,
-        0,
-    };
+    msgflow_msg_reset_t reset = { 0 };
+
+    reset.sequence      = state->sequence;
+    reset.code          = state->code;
+    reset.device_id     = cfg_u64_get_device_id();
 
     if( !send_msg( state, MSGFLOW_TYPE_RESET, &reset, sizeof(reset) ) ){
 
