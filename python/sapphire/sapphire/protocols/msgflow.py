@@ -159,7 +159,7 @@ def deserialize(buf):
 
 
 class MsgFlowReceiver(Ribbon):
-    def initialize(self, name='msgflow_receiver'):
+    def initialize(self, name='msgflow_receiver', service=None, on_receive=None):
         self.name = name
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -195,6 +195,12 @@ class MsgFlowReceiver(Ribbon):
 
         self._last_announce = time.time() - 10.0
         self._last_status = time.time() - 10.0
+
+        if on_receive is not None:
+            self.on_receive = on_receive
+
+    def on_receive(self, host, data):
+        pass
 
     def clean_up(self):
         for host in self._connections:
@@ -262,7 +268,7 @@ class MsgFlowReceiver(Ribbon):
         else:
             # data!
             data = bytes(msg.data.toBasic())
-            print(host, data)
+            self.on_receive(host, data)
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
