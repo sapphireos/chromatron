@@ -1,11 +1,13 @@
 import sys
 import time
 from catbus import CatbusService
-from sapphire.common.ribbon import wait_for_signal, Ribbon
+from ..common.ribbon import wait_for_signal
+from ..protocols.msgflow import MsgFlowReceiver
+from ..common import util
 
-class LogServer(Ribbon):
+class LogServer(MsgFlowReceiver):
     def initialize(self, settings={}):
-        self.name = 'logserver'
+        super().initialize(name='logserver')
         self.settings = settings
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])
@@ -17,17 +19,24 @@ class LogServer(Ribbon):
         self.kv.stop()
         self.kv.wait()
 
-settings = {}
-try:
-    with open('settings.json', 'r') as f:
-        settings = json.loads(f.read())
+def main():
+    util.setup_basic_logging(console=True)
 
-except FileNotFoundError:
-    pass
+    settings = {}
+    try:
+        with open('settings.json', 'r') as f:
+            settings = json.loads(f.read())
 
-l = LogServer(settings=settings)
+    except FileNotFoundError:
+        pass
 
-wait_for_signal()
+    l = LogServer(settings=settings)
 
-l.stop()
-l.join()
+    wait_for_signal()
+
+    l.stop()
+    l.join()
+
+
+if __name__ == '__main__':
+    main()

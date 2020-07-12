@@ -24,5 +24,4 @@
 
 from .ribbon import *
 from .fnmatch2 import *
-from . import util
-from string_hash import catbus_string_hash
+from .string_hash import catbus_string_hash

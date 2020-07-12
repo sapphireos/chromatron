@@ -27,8 +27,9 @@ import socket
 import select
 import logging
 from elysianfields import *
-from sapphire.common.broadcast import send_udp_broadcast
-from sapphire.common import Ribbon, MsgQueueEmptyException, util
+from ..common.broadcast import send_udp_broadcast
+from ..common import Ribbon, util, catbus_string_hash
+
 
 MSGFLOW_LISTEN_PORT             = 32039
 
@@ -188,9 +189,9 @@ class MsgFlowReceiver(Ribbon):
             MsgFlowMsgStop: self._handle_stop,
         }
 
-        self._service = 0x51f2b156 # logserver
-        # self._service = 0x1234
-
+        self.service = service
+        self._service_hash = catbus_string_hash(service)
+        
         self._connections = {}
 
         self._last_announce = time.time() - 10.0
@@ -231,7 +232,7 @@ class MsgFlowReceiver(Ribbon):
 
     def _send_sink(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT)):
         msg = MsgFlowMsgSink(
-                service=self._service,
+                service=self._service_hash,
                 codebook=[0,0,0,0,0,0,0,0])
 
         self._send_msg(msg, host)
@@ -359,7 +360,7 @@ class MsgFlowReceiver(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    m = MsgFlowReceiver()
+    m = MsgFlowReceiver(service='logserver')
 
     try:
         while True:
