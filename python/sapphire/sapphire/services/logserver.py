@@ -7,7 +7,7 @@ from ..common import util
 
 class LogServer(MsgFlowReceiver):
     def initialize(self, settings={}):
-        super().initialize(name='logserver')
+        super().initialize(name='logserver', service='logserver')
         self.settings = settings
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])
