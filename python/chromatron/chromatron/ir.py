@@ -22,6 +22,7 @@
 
 from .instructions import *
 
+from sapphire.common import catbus_string_hash
 from elysianfields import *
 from catbus import *
 from copy import deepcopy, copy

@@ -56,7 +56,7 @@ setup(
         "intelhex == 2.1",
         "elysianfields >= 1.0.5",
         "netifaces==0.10.9",
-        "fnvhash",
+        "fnvhash==0.1.0",
     ],
 
     entry_points='''

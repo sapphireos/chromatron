@@ -21,6 +21,7 @@
 # </license>
 
 from catbus import *
+from sapphire.common import catbus_string_hash
 
 import random
 

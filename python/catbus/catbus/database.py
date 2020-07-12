@@ -27,6 +27,7 @@ import random
 import time
 import logging
 
+from sapphire.common import catbus_string_hash
 
 from .data_structures import *
 

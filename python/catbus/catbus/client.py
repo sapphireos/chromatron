@@ -24,6 +24,7 @@ import socket
 from .data_structures import *
 from .messages import *
 from .options import *
+from sapphire.common import catbus_string_hash
 from sapphire.common.broadcast import send_udp_broadcast
 import time
 import os

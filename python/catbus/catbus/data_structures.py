@@ -23,7 +23,6 @@
 
 from elysianfields import *
 from .catbustypes import *
-from fnvhash import fnv1a_32
 
 
 CATBUS_QUERY_TAG_LEN                    = 8
@@ -193,23 +192,6 @@ def query_compare(tags0, tags1):
             return False
 
     return True
-
-
-from sapphire.common import util
-
-
-@util.memoize
-def catbus_string_hash(s):
-    try:
-        s = s.encode()
-    except AttributeError:
-        pass
-
-    if len(s) == 0:
-        return 0
-
-    return fnv1a_32(s)
-
 
 
 CATBUS_FLAGS_READ_ONLY                  = 0x0001
