@@ -1,3 +1,3 @@
-from sapphire.services.logserver import main
+from catbus.services.logserver import main
 
 main()
