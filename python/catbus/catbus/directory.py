@@ -148,7 +148,7 @@ class Directory(Ribbon):
                 name = c.get_key(META_TAG_NAME)
                 location = c.get_key(META_TAG_LOC)
 
-                info = {'host': host,
+                info = {'host': tuple(host),
                         'name': name,
                         'location': location,
                         'query': resolved_query,

@@ -284,7 +284,13 @@ class Client(object):
         while len(buf) < length:
             buf += sock.recv(1024)
 
-        return json.loads(buf)
+        directory = json.loads(buf)
+
+        # convert host from list to tuple for convience in socket functions
+        for key, device in directory.items():
+            directory[key]['host'] = tuple(device['host'])
+
+        return directory
 
     def discover(self, *args, **kwargs):
         """Discover KV nodes on the network"""

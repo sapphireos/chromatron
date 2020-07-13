@@ -40,8 +40,6 @@ class TimeZoneService(Ribbon):
     def loop(self):
         self.directory = self.client.get_directory()
 
-        print(self.directory)
-
         if self.directory == None:
             self.wait(10.0)
             return
