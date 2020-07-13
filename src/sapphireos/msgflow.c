@@ -43,7 +43,7 @@ static uint16_t q_drops;
 
 KV_SECTION_META kv_meta_t msgflow_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_max_q_size" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_q_drops" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &q_drops,     0,     "msgflow_q_drops" },
 };
 
 typedef struct{
