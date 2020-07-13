@@ -57,6 +57,7 @@ setup(
         "netifaces==0.10.9",
         "fnvhash==0.1.0",
         "zeroconf==0.24.4",
+        "colorlog==4.1.0",
     ],
 
     entry_points='''

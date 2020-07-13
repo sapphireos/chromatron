@@ -25,6 +25,7 @@ import logging
 import logging.handlers
 import socket
 import os
+import colorlog
 
 
 EPOCH = datetime.utcfromtimestamp(0)
@@ -196,13 +197,21 @@ def setup_basic_logging(console=True, filename=None):
 
     dt_format = '%Y-%m-%dT%H:%M:%S'
 
-    root = logging.getLogger('')
+    root = colorlog.getLogger('')
     root.setLevel(logging.DEBUG)
 
     if console:
-        handler = logging.StreamHandler()
+        handler = colorlog.StreamHandler()
         handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(levelname)s %(asctime)s.%(msecs)03d %(threadName)s %(message)s', datefmt=dt_format)
+        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(threadName)s %(white)s%(message)s', 
+                                                datefmt=dt_format,
+                                                log_colors={
+                                                    'DEBUG':    'cyan',
+                                                    'INFO':     'green',
+                                                    'WARNING':  'yellow',
+                                                    'ERROR':    'red',
+                                                    'CRITICAL': 'red,bg_white',
+                                                })
         handler.setFormatter(formatter)
         root.addHandler(handler)
 
