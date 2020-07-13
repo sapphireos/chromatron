@@ -25,7 +25,7 @@
 import sys
 import time
 from catbus import CatbusService, Client
-from sapphire.common.ribbon import wait_for_signal, Ribbon
+from sapphire.common import util, wait_for_signal, Ribbon
 
 class TimeZoneService(Ribbon):
     def initialize(self, settings={}):
@@ -34,20 +34,32 @@ class TimeZoneService(Ribbon):
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])
 
-        self.directory = client.get_directory()
+        self.client = Client()
+        self.directory = {}
 
     def loop(self):
+        self.directory = self.client.get_directory()
+
+        print(self.directory)
+
+        if self.directory == None:
+            self.wait(10.0)
+            return
+
+        for device in self.directory.values():
+            self.client.connect(device['host'])
+            
+            print(self.client.get_key('datetime_tz_offset'))
+
         self.wait(600.0)
-        self.directory = client.get_directory()
-
-
 
     def clean_up(self):
         self.kv.stop()
-        self.kv.wait()
 
 
 def main():
+    util.setup_basic_logging(console=True)
+
     settings = {}
     try:
         with open('settings.json', 'r') as f:
@@ -62,3 +74,6 @@ def main():
 
     tz_service.stop()
     tz_service.join()
+
+if __name__ == '__main__':
+    main()

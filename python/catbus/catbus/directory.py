@@ -146,7 +146,7 @@ class Directory(Ribbon):
                 c = Client()
                 c.connect(host)
                 name = c.get_key(META_TAG_NAME)
-                location = c.get_key(META_TAG_LOCATION)
+                location = c.get_key(META_TAG_LOC)
 
                 info = {'host': host,
                         'name': name,
