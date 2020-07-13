@@ -26,10 +26,10 @@ import sys
 import time
 from datetime import datetime
 from catbus import CatbusService, Client
-from ..common.ribbon import wait_for_signal
-from ..protocols.msgflow import MsgFlowReceiver
-from ..protocols.zeroconf_service import ZeroconfService
-from ..common import util, Ribbon
+from sapphire.common.ribbon import wait_for_signal
+from sapphire.protocols.msgflow import MsgFlowReceiver
+from sapphire.protocols.zeroconf_service import ZeroconfService
+from sapphire.common import util, Ribbon
 
 import logging
 import logging_loki
