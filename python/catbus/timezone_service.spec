@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['logserver_main.py'],
+a = Analysis(['timezone_service_main.py'],
              pathex=['/Users/jeremy/JEREMY/SAPPHIRE/chromatron/python/catbus'],
              binaries=[],
              datas=[],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='logserver',
+          name='timezone_service',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
