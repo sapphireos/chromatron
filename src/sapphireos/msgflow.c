@@ -55,10 +55,13 @@ typedef struct{
     uint16_t max_msg_size;
     bool shutdown;
     list_node_t ln;
-    uint16_t q_size;
-    list_t tx_q;
     uint8_t timeout;
     uint8_t keepalive;
+
+    list_t tx_q;
+    uint16_t q_size;
+    mem_handle_t h;
+    uint32_t rx_sequence;
 } msgflow_state_t;
 
 
@@ -628,8 +631,10 @@ reset:
 
         if( header->type == MSGFLOW_TYPE_STATUS ){
 
-            // msgflow_msg_status_t *msg = (msgflow_msg_status_t *)( header + 1 );
+            msgflow_msg_status_t *msg = (msgflow_msg_status_t *)( header + 1 );
             
+            state->rx_sequence = msg->sequence;
+
             // reset timeout
             state->timeout = MSGFLOW_TIMEOUT;      
         }
@@ -692,21 +697,25 @@ PT_BEGIN( pt );
         // check transmit q
         if( list_u8_count( &state->tx_q ) > 0 ){
 
-            mem_handle_t *h = list_vp_get_data( state->tx_q.tail );
+            state->h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
 
-            if( sock_i16_sendto_m( state->sock,*h, &state->raddr ) >= 0 ){
-
-                state->q_size -= mem2_u16_get_size( *h );
-
-                // socket send success
-                // remove from q
-                list_ln_remove_tail( &state->tx_q );
-            }
-            else{
+            if( sock_i16_sendto_m( state->sock,state->h, &state->raddr ) < 0 ){
 
                 // transmit failed
-                TMR_WAIT( pt, 500 );
+                TMR_WAIT( pt, 500 ); 
+
+                continue;
             }
+
+            // transmit successful, wait for response
+            
+
+
+            state->q_size -= mem2_u16_get_size( state->h );
+
+            // socket send success
+            // remove from q
+            list_ln_remove_tail( &state->tx_q );
         }
     }
     
