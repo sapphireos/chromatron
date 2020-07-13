@@ -101,6 +101,10 @@
 #define LOG_MAX_BUFFER_SIZE     2048
 #define ENABLE_LOG_TO_TRACE_PRINT
 
+// msgflow
+#define MSGFLOW_MAX_Q_SIZE		1024
+
+
 // leave one block at end for bootloader information
 #define FW_MAX_SIZE ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024  - FLASH_FS_ERASE_BLOCK_SIZE )
 

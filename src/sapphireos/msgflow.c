@@ -38,6 +38,14 @@
 
 #ifdef ENABLE_MSGFLOW
 
+static uint16_t max_q_size;
+static uint16_t q_drops;
+
+KV_SECTION_META kv_meta_t msgflow_info_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_max_q_size" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_q_drops" },
+};
+
 typedef struct{
     catbus_hash_t32 service;
     uint32_t sequence;
@@ -47,6 +55,8 @@ typedef struct{
     uint16_t max_msg_size;
     bool shutdown;
     list_node_t ln;
+    uint16_t q_size;
+    list_t tx_q;
     uint8_t timeout;
     uint8_t keepalive;
 } msgflow_state_t;
@@ -103,6 +113,8 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
     state.code          = code;
     state.max_msg_size  = max_msg_size;
     state.shutdown      = FALSE;
+
+    list_v_init( &state.tx_q );
 
     thread_t t = 
         thread_t_create( THREAD_CAST(msgflow_thread),
@@ -191,18 +203,54 @@ static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t
     return TRUE;
 }
 
-
+// DO NOT LOG IN THIS FUNCTION
 static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t len ){
 
     uint16_t mem_len = len + sizeof(msgflow_header_t) + sizeof(msgflow_msg_data_t);
+
+    // check q size
+    if( ( state->q_size + mem_len ) > MSGFLOW_MAX_Q_SIZE ){
+
+        q_drops++;
+
+        return FALSE;
+    }
 
     mem_handle_t h = mem2_h_alloc( mem_len );
 
     if( h < 0 ){
 
+        q_drops++;
+
         return FALSE;
     }
 
+    // if not using "fire and forget", add to tx q
+    if( state->code != MSGFLOW_CODE_NONE ){
+
+        // enqueue handle on transmit q
+        list_node_t ln = list_ln_create_node( &h, sizeof(h) );
+
+        if( ln < 0 ){
+
+            mem2_v_free( h );
+
+            q_drops++;
+
+            return FALSE;
+        }
+
+        state->q_size += mem_len;
+        
+        if( state->q_size > max_q_size ){
+
+            max_q_size = state->q_size;
+        }
+
+        list_v_insert_head( &state->tx_q, ln );
+    }
+
+    // set up data
     void *ptr = mem2_vp_get_ptr_fast( h );
 
     msgflow_header_t header = {
@@ -224,15 +272,22 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
 
     memcpy( ptr, data, len );
 
-    if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+    // reset keep alive timer
+    state->keepalive = MSGFLOW_KEEPALIVE;
 
-        return FALSE;
+    // if fire and forget, transmit immediately
+    if( state->code == MSGFLOW_CODE_NONE ){
+        
+        if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+
+            return FALSE;
+        }
     }
 
     return TRUE;
 }
 
-
+// DO NOT LOG IN THIS FUNCTION
 bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -253,12 +308,7 @@ bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 
     msgflow_state_t *state = thread_vp_get_data( msgflow );
 
-    // reset keep alive timer
-    state->keepalive = MSGFLOW_KEEPALIVE;
-
     return send_data_msg( state, MSGFLOW_TYPE_DATA, data, len );
-
-    // return TRUE;
 }
 
 void msgflow_v_close( msgflow_t msgflow ){
@@ -520,20 +570,50 @@ reset:
     // data
     while( !state->shutdown ){
 
-        // listen for message
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && ( !sys_b_shutdown() ) );
+        THREAD_YIELD( pt );
 
+        // listen for message
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && 
+                               ( !sys_b_shutdown() ) &&
+                               ( list_u8_count( &state->tx_q ) == 0 ) );
+
+        // are we shutting down?
         if( sys_b_shutdown() ){
 
             goto shutdown;
         }
 
+        // TRANSMIT
+
+        // check transmit q
+        if( list_u8_count( &state->tx_q ) > 0 ){
+
+            mem_handle_t *h = list_vp_get_data( state->tx_q.tail );
+
+            if( sock_i16_sendto_m( state->sock,*h, &state->raddr ) >= 0 ){
+
+                state->q_size -= mem2_u16_get_size( *h );
+
+                // socket send success
+                // remove from q
+                list_ln_remove_tail( &state->tx_q );
+            }
+        }
+
+
+        // SEQUENCE HOUSEKEEPING
+
         // 2^32 - 1048576:
         // reset state machine
-        if( state->sequence > 4293918720 ){
+        // if( state->sequence > 4293918720 ){
+        if( state->sequence > 1024 ){ // for testing
+
+            log_v_debug_P( PSTR("sequence rollover") );
 
             goto reset; // not happy about this... but it'll do for now.
         }
+
+        // RECEIVE
 
         if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 
