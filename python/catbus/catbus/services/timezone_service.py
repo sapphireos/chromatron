@@ -24,6 +24,7 @@
 
 import sys
 import time
+import logging
 from catbus import CatbusService, Client
 from sapphire.common import util, wait_for_signal, Ribbon
 
@@ -44,10 +45,20 @@ class TimeZoneService(Ribbon):
             self.wait(10.0)
             return
 
-        for device in self.directory.values():
+        current_tz_offset = time.localtime().tm_gmtoff / 60
+
+        for device_id, device in self.directory.items():
             self.client.connect(device['host'])
             
-            print(self.client.get_key('datetime_tz_offset'))
+            try:
+                tz_offset = self.client.get_key('datetime_tz_offset')
+
+            except KeyError:
+                continue
+            
+            if tz_offset != current_tz_offset:
+                logging.info(f"Setting datetime_tz_offset on {device_id}@{device['host']} from {tz_offset} to {current_tz_offset}")            
+                self.client.set_key('datetime_tz_offset', current_tz_offset)
 
         self.wait(600.0)
 
