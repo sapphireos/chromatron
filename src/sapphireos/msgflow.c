@@ -64,6 +64,7 @@ typedef struct{
 
 PT_THREAD( listener_thread( pt_t *pt, void *state ) );
 PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) );
+PT_THREAD( msgflow_arq_thread( pt_t *pt, msgflow_t *m ) );
 
 static list_t msgflow_list;
 static socket_t listener_sock = -1;
@@ -477,11 +478,27 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
 PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
 {
 PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("msgflow init") );
+
+    if( state->code == MSGFLOW_CODE_ARQ ){
+
+        thread_t t = thread_t_get_current_thread();
+
+        if( thread_t_create( THREAD_CAST(msgflow_arq_thread),
+                             PSTR("msgflow_arq"),
+                             &t,
+                             sizeof(t) ) < 0 ){
+
+            TMR_WAIT( pt, 1000 );
+
+            THREAD_RESTART( pt );
+        }
+    }
 
     // reset/ready sequence
     while( !state->shutdown ){
@@ -574,32 +591,13 @@ reset:
 
         // listen for message
         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && 
-                               ( !sys_b_shutdown() ) &&
-                               ( list_u8_count( &state->tx_q ) == 0 ) );
+                               ( !sys_b_shutdown() ) );
 
         // are we shutting down?
         if( sys_b_shutdown() ){
 
             goto shutdown;
         }
-
-        // TRANSMIT
-
-        // check transmit q
-        if( list_u8_count( &state->tx_q ) > 0 ){
-
-            mem_handle_t *h = list_vp_get_data( state->tx_q.tail );
-
-            if( sock_i16_sendto_m( state->sock,*h, &state->raddr ) >= 0 ){
-
-                state->q_size -= mem2_u16_get_size( *h );
-
-                // socket send success
-                // remove from q
-                list_ln_remove_tail( &state->tx_q );
-            }
-        }
-
 
         // SEQUENCE HOUSEKEEPING
 
@@ -667,6 +665,50 @@ shutdown:
     // this prevents crashes from the message flow state being freed 
     // while open handles are still present.
     THREAD_WAIT_WHILE( pt, sys_b_shutdown() );
+    
+PT_END( pt );
+}
+
+
+PT_THREAD( msgflow_arq_thread( pt_t *pt, msgflow_t *m ) )
+{
+
+msgflow_state_t *state = thread_vp_get_data( *m );
+
+PT_BEGIN( pt );
+    
+    while( !state->shutdown ){
+
+        THREAD_YIELD( pt );
+
+        THREAD_WAIT_WHILE( pt, list_u8_count( &state->tx_q ) == 0 );
+
+        // are we shutting down?
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
+
+        // check transmit q
+        if( list_u8_count( &state->tx_q ) > 0 ){
+
+            mem_handle_t *h = list_vp_get_data( state->tx_q.tail );
+
+            if( sock_i16_sendto_m( state->sock,*h, &state->raddr ) >= 0 ){
+
+                state->q_size -= mem2_u16_get_size( *h );
+
+                // socket send success
+                // remove from q
+                list_ln_remove_tail( &state->tx_q );
+            }
+            else{
+
+                // transmit failed
+                TMR_WAIT( pt, 500 );
+            }
+        }
+    }
     
 PT_END( pt );
 }

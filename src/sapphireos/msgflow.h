@@ -27,6 +27,7 @@
 
 #include "system.h"
 #include "memory.h"
+#include "threading.h"
 #include "catbus_common.h"
 
 #define MSGFLOW_LISTEN_PORT             32039
@@ -94,7 +95,7 @@ typedef struct __attribute__((packed)){
 #define MSGFLOW_TYPE_STOP               6
 
 
-typedef mem_handle_t msgflow_t;
+typedef thread_t msgflow_t;
 
 void msgflow_v_init( void );
 
