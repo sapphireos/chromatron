@@ -89,10 +89,10 @@ class MsgFlowMsgSink(StructField):
 class MsgFlowMsgReset(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint16Field(_name="sequence"),
+                  Uint32Field(_name="sequence"),
                   Uint16Field(_name="max_data_len"),
                   Uint8Field(_name="code"),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=3),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=1),
                   Uint64Field(_name="device_id")]
 
         super(MsgFlowMsgReset, self).__init__(_name="msg_flow_msg_reset", _fields=fields, **kwargs)
@@ -102,7 +102,7 @@ class MsgFlowMsgReset(StructField):
 class MsgFlowMsgReady(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint16Field(_name="sequence"),
+                  Uint32Field(_name="sequence"),
                   Uint8Field(_name="code"),
                   Uint8Field(_name="reserved")]
 
@@ -113,8 +113,8 @@ class MsgFlowMsgReady(StructField):
 class MsgFlowMsgStatus(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint16Field(_name="sequence"),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=14)]
+                  Uint32Field(_name="sequence"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=12)]
 
         super(MsgFlowMsgStatus, self).__init__(_name="msg_flow_msg_statis", _fields=fields, **kwargs)
 
@@ -123,7 +123,7 @@ class MsgFlowMsgStatus(StructField):
 class MsgFlowMsgData(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint16Field(_name="sequence"),
+                  Uint32Field(_name="sequence"),
                   ArrayField(_name="data", _field=Uint8Field)]
 
         super(MsgFlowMsgData, self).__init__(_name="msg_flow_msg_data", _fields=fields, **kwargs)
@@ -296,9 +296,12 @@ class MsgFlowReceiver(Ribbon):
             pass
 
         else:
-            # data!
-            data = bytes(msg.data.toBasic())
-            self.on_receive(host, data)
+            # check sequence
+            if msg.sequence > self._connections[host]['sequence']:
+                self._connections[host]['sequence'] = msg.sequence
+                # data!
+                data = bytes(msg.data.toBasic())
+                self.on_receive(host, data)
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 

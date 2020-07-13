@@ -40,7 +40,7 @@
 
 typedef struct{
     catbus_hash_t32 service;
-    uint16_t sequence;
+    uint32_t sequence;
     socket_t sock;
     sock_addr_t raddr;
     uint8_t code;
@@ -212,6 +212,8 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
 
     memcpy( ptr, &header, sizeof(header) );
     ptr += sizeof(header);
+    
+    state->sequence++;
 
     msgflow_msg_data_t data_msg = {
         .sequence = state->sequence,
@@ -226,8 +228,6 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
 
         return FALSE;
     }
-
-    state->sequence++;
 
     return TRUE;
 }
@@ -461,13 +461,14 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
+reset:
         sock_v_set_timeout( state->sock, 1 );
 
         // got an address
         // send series of resets
         log_v_debug_P( PSTR("msgflow reset") );
 
-        state->sequence = rnd_u16_get_int();
+        state->sequence = 0;
         state->keepalive = MSGFLOW_KEEPALIVE;
 
         // we send 3 times to make sure it makes it
@@ -525,6 +526,13 @@ PT_BEGIN( pt );
         if( sys_b_shutdown() ){
 
             goto shutdown;
+        }
+
+        // 2^32 - 1048576:
+        // reset state machine
+        if( state->sequence > 4293918720 ){
+
+            goto reset; // not happy about this... but it'll do for now.
         }
 
         if( sock_i16_get_bytes_read( state->sock ) <= 0 ){

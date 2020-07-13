@@ -63,29 +63,29 @@ typedef struct __attribute__((packed)){
 #define MSGFLOW_TYPE_SINK               1
 
 typedef struct __attribute__((packed)){
-    uint16_t sequence;
+    uint32_t sequence;
     uint16_t max_data_len; // set maximum data for each message.  useful to limit mem usage for parity.
     uint8_t code;
-    uint8_t reserved[3];
+    uint8_t reserved[1];
     uint64_t device_id;
 } msgflow_msg_reset_t;
 #define MSGFLOW_TYPE_RESET              2
 
 typedef struct __attribute__((packed)){
-    uint16_t sequence;
+    uint32_t sequence;
     uint8_t code;
-    uint8_t reserved;
+    uint8_t reserved[3];
 } msgflow_msg_ready_t;
 #define MSGFLOW_TYPE_READY              3
 
 typedef struct __attribute__((packed)){
-    uint16_t sequence;
-    uint8_t reserved[14];
+    uint32_t sequence;
+    uint8_t reserved[12];
 } msgflow_msg_status_t;
 #define MSGFLOW_TYPE_STATUS             4
 
 typedef struct __attribute__((packed)){
-    uint16_t sequence;
+    uint32_t sequence;
     // data follows
 } msgflow_msg_data_t;
 #define MSGFLOW_TYPE_DATA               5
