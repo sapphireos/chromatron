@@ -30,6 +30,7 @@ from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, NoResponseFromH
 
 from . import sapphiredata
 from . import channel
+from ..common import catbus_string_hash
 
 import time
 import sys
