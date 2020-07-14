@@ -58,6 +58,7 @@ typedef struct{
     uint8_t timeout;
     uint8_t keepalive;
 
+    thread_t tx_thread;
     list_t tx_q;
     uint16_t q_size;
     mem_handle_t h;
@@ -497,10 +498,17 @@ PT_BEGIN( pt );
 
         thread_t t = thread_t_get_current_thread();
 
-        if( thread_t_create( THREAD_CAST(msgflow_arq_thread),
-                             PSTR("msgflow_arq"),
-                             &t,
-                             sizeof(t) ) < 0 ){
+        if( state->tx_thread > 0 ){
+
+            thread_v_kill( state->tx_thread );
+        }
+
+        state->tx_thread = thread_t_create( THREAD_CAST(msgflow_arq_thread),
+                                             PSTR("msgflow_arq"),
+                                             &t,
+                                             sizeof(t) );
+
+        if( state->tx_thread < 0 ){
 
             TMR_WAIT( pt, 1000 );
 
