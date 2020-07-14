@@ -494,26 +494,9 @@ PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("msgflow init") );
 
-    if( state->code == MSGFLOW_CODE_ARQ ){
+    if( state->tx_thread > 0 ){
 
-        thread_t t = thread_t_get_current_thread();
-
-        if( state->tx_thread > 0 ){
-
-            thread_v_kill( state->tx_thread );
-        }
-
-        state->tx_thread = thread_t_create( THREAD_CAST(msgflow_arq_thread),
-                                             PSTR("msgflow_arq"),
-                                             &t,
-                                             sizeof(t) );
-
-        if( state->tx_thread < 0 ){
-
-            TMR_WAIT( pt, 1000 );
-
-            THREAD_RESTART( pt );
-        }
+        thread_v_kill( state->tx_thread );
     }
 
     // reset/ready sequence
@@ -595,12 +578,34 @@ reset:
 
         // ***********************************************************8
         // we are now connected!
-        log_v_debug_P( PSTR("msgflow ready") );        
 
         break;
     }
 
-    // data
+
+    log_v_debug_P( PSTR("msgflow ready") );        
+
+
+    // init transmitter
+    if( state->code == MSGFLOW_CODE_ARQ ){
+
+        thread_t t = thread_t_get_current_thread();
+
+        state->tx_thread = thread_t_create( THREAD_CAST(msgflow_arq_thread),
+                                             PSTR("msgflow_arq"),
+                                             &t,
+                                             sizeof(t) );
+
+        if( state->tx_thread < 0 ){
+
+            TMR_WAIT( pt, 1000 );
+
+            THREAD_RESTART( pt );
+        }
+    }
+
+
+    // server
     while( !state->shutdown ){
 
         THREAD_YIELD( pt );
@@ -674,7 +679,12 @@ shutdown:
         send_stop( state );
         TMR_WAIT( pt, 50 );
 
-        sock_v_release( state->sock );    
+        sock_v_release( state->sock );
+    }
+
+    if( state->tx_thread > 0 ){
+        
+        thread_v_kill( state->tx_thread );        
     }
 
     log_v_debug_P( PSTR("msgflow ended") );
@@ -715,7 +725,7 @@ PT_BEGIN( pt );
             uint16_t mem_size = mem2_u16_get_size( state->h );
 
             // remember that a successful send will clear the handle!
-            if( sock_i16_sendto_m( state->sock,state->h, &state->raddr ) < 0 ){
+            if( sock_i16_sendto_m( state->sock, state->h, &state->raddr ) < 0 ){
 
                 // transmit failed
                 TMR_WAIT( pt, 500 ); 
