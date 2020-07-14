@@ -91,6 +91,11 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
         return -1;
     }
 
+    if( code == MSGFLOW_CODE_ANY ){
+
+        code = MSGFLOW_CODE_DEFAULT;
+    }
+
     // check if listener is running
     if( listener_sock < 0 ){
 
@@ -699,6 +704,9 @@ PT_BEGIN( pt );
 
             state->h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
 
+            uint16_t mem_size = mem2_u16_get_size( state->h );
+
+            // remember that a successful send will clear the handle!
             if( sock_i16_sendto_m( state->sock,state->h, &state->raddr ) < 0 ){
 
                 // transmit failed
@@ -710,8 +718,7 @@ PT_BEGIN( pt );
             // transmit successful, wait for response
             
 
-
-            state->q_size -= mem2_u16_get_size( state->h );
+            state->q_size -= mem_size;
 
             // socket send success
             // remove from q

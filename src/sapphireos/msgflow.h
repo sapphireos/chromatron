@@ -42,7 +42,7 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t reserved;
 } msgflow_header_t;
 
-#define MSGFLOW_FLAGS_VERSION           0
+#define MSGFLOW_FLAGS_VERSION           1
 #define MSGFLOW_FLAGS_VERSION_MASK      0x0F
 
 #define MSGFLOW_CODE_INVALID            0
@@ -53,8 +53,9 @@ typedef struct __attribute__((packed, aligned(4))){
 #define MSGFLOW_CODE_1_OF_4_PARITY      5 // corrects 1 missing blocks of 4.  3 data, 1 parity
 #define MSGFLOW_CODE_2_OF_7_PARITY      6 // corrects 2 missing blocks of 7.  4 data, 3 parity
 
-
 #define MSGFLOW_CODE_ANY                0xff // special value to allow the driver to select the code
+
+#define MSGFLOW_CODE_DEFAULT            MSGFLOW_CODE_ARQ
 
 
 typedef struct __attribute__((packed)){

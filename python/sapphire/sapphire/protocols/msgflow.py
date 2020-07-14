@@ -34,7 +34,7 @@ from ..common import Ribbon, util, catbus_string_hash
 
 MSGFLOW_LISTEN_PORT             = 32039
 
-MSGFLOW_FLAGS_VERSION           = 0
+MSGFLOW_FLAGS_VERSION           = 1
 MSGFLOW_FLAGS_VERSION_MASK      = 0x0F
 
 code_book = {
@@ -301,7 +301,7 @@ class MsgFlowReceiver(Ribbon):
                 self._connections[host]['sequence'] = msg.sequence
                 # data!
                 data = bytes(msg.data.toBasic())
-                self.on_receive(host, data)
+                self.on_receive(self, host, data)
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
@@ -397,7 +397,10 @@ class MsgFlowReceiver(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    m = MsgFlowReceiver(service='logserver')
+    def on_receive(self, host, data):
+        print(data)
+
+    m = MsgFlowReceiver(service='logserver', on_receive=on_receive)
 
     try:
         while True:
