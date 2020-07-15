@@ -307,7 +307,7 @@ class MsgFlowReceiver(Ribbon):
 
                 # data!
                 data = bytes(msg.data.toBasic())
-                self.on_receive(self, host, data)
+                self.on_receive(host, data)
 
             elif msg.sequence <= self._connections[host]['sequence']:
                 # TODO assuming ARQ!
@@ -410,10 +410,10 @@ class MsgFlowReceiver(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    def on_receive(self, host, data):
-        print(data)
+    # def on_receive(self, host, data):
+        # print(data)
 
-    m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
+    m = MsgFlowReceiver(port=12345, service='test')
 
     try:
         while True:

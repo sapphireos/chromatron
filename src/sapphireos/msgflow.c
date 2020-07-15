@@ -61,7 +61,6 @@ typedef struct{
     thread_t tx_thread;
     list_t tx_q;
     uint16_t q_size;
-    mem_handle_t h;
     uint32_t rx_sequence;
     uint8_t tries;
 } msgflow_state_t;
@@ -514,6 +513,21 @@ PT_END( pt );
 }
 
 
+static void clear_tx_q( msgflow_state_t *state ){
+
+    list_node_t ln = state->tx_q.head;
+
+    while( ln > 0 ){
+
+        mem_handle_t h = *(mem_handle_t *)list_vp_get_data( ln );
+        mem2_v_free( h );
+                   
+        ln = list_ln_next( ln );
+    }
+
+    list_v_destroy( &state->tx_q );
+}
+
 PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
 {
 PT_BEGIN( pt );
@@ -524,6 +538,8 @@ PT_BEGIN( pt );
 
         thread_v_kill( state->tx_thread );
     }
+
+    clear_tx_q( state );
 
     // reset/ready sequence
     while( !state->shutdown ){
@@ -717,6 +733,9 @@ shutdown:
         thread_v_kill( state->tx_thread );        
     }
 
+
+    clear_tx_q( state );
+
     log_v_debug_P( PSTR("msgflow ended") );
 
     // block while system is shutting down.
@@ -750,19 +769,19 @@ PT_BEGIN( pt );
         // check transmit q
         if( list_u8_count( &state->tx_q ) > 0 ){
 
-            state->h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
-
             state->tries = MSGFLOW_ARQ_TRIES;
 
             while( state->tries > 0 ){
 
                 state->tries--;
 
+                mem_handle_t h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
+
                 // do NOT use the sendto_m function!
                 // we need to create a copy of the data!
                 if( sock_i16_sendto( state->sock, 
-                                     mem2_vp_get_ptr( state->h ), 
-                                     mem2_u16_get_size( state->h ), 
+                                     mem2_vp_get_ptr( h ), 
+                                     mem2_u16_get_size( h ), 
                                      &state->raddr ) < 0 ){
 
                     // transmit failed
@@ -792,11 +811,22 @@ PT_BEGIN( pt );
                 }
             }
 
-            state->q_size -= mem2_u16_get_size( state->h );
+            if( state->tx_q.tail > 0 ){
+
+                state->q_size -= mem2_u16_get_size( state->tx_q.tail );
+
+                mem_handle_t h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
+                mem2_v_free( h );
+            }
 
             // socket send success. or fail. either way we are moving on.
             // remove from q
-            list_ln_remove_tail( &state->tx_q );
+            list_node_t ln = list_ln_remove_tail( &state->tx_q );
+
+            if( ln > 0 ){
+            
+                list_v_release_node( ln );
+            }
         }
     }
     
