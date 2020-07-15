@@ -63,6 +63,7 @@ typedef struct{
     uint16_t q_size;
     mem_handle_t h;
     uint32_t rx_sequence;
+    uint8_t tries;
 } msgflow_state_t;
 
 
@@ -73,6 +74,28 @@ PT_THREAD( msgflow_arq_thread( pt_t *pt, msgflow_t *m ) );
 static list_t msgflow_list;
 static socket_t listener_sock = -1;
 
+
+PT_THREAD( demo( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+        
+    static msgflow_t m;
+    m = msgflow_m_listen( __KV__test, MSGFLOW_CODE_ANY, 512 );
+
+    while( 1 ){
+
+        TMR_WAIT( pt, 1000 );
+
+        uint8_t temp;
+
+        msgflow_b_send( m, &temp, 1 );
+    }
+    
+PT_END( pt );
+}
+
+
+
 void msgflow_v_init( void ){
 
     list_v_init( &msgflow_list );
@@ -81,6 +104,8 @@ void msgflow_v_init( void ){
 
         return;
     }
+
+    thread_t_create( demo, PSTR("test"), 0, 0 );
 
     // msgflow_m_listen( 0x1234, MSGFLOW_CODE_ANY, 512 );
 }
@@ -271,6 +296,7 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
     memcpy( ptr, &header, sizeof(header) );
     ptr += sizeof(header);
     
+    // increment sequence before attaching to message    
     state->sequence++;
 
     msgflow_msg_data_t data_msg = {
@@ -535,6 +561,7 @@ reset:
         log_v_debug_P( PSTR("msgflow reset") );
 
         state->sequence = 0;
+        state->rx_sequence = 0;
         state->keepalive = MSGFLOW_KEEPALIVE;
 
         // we send 3 times to make sure it makes it
@@ -650,8 +677,11 @@ reset:
         if( header->type == MSGFLOW_TYPE_STATUS ){
 
             msgflow_msg_status_t *msg = (msgflow_msg_status_t *)( header + 1 );
-            
-            state->rx_sequence = msg->sequence;
+    
+            if(  msg->sequence > state->rx_sequence ){             
+                
+                state->rx_sequence = msg->sequence;
+            }
 
             // reset timeout
             state->timeout = MSGFLOW_TIMEOUT;      
@@ -722,23 +752,49 @@ PT_BEGIN( pt );
 
             state->h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
 
-            uint16_t mem_size = mem2_u16_get_size( state->h );
+            state->tries = MSGFLOW_ARQ_TRIES;
 
-            // remember that a successful send will clear the handle!
-            if( sock_i16_sendto_m( state->sock, state->h, &state->raddr ) < 0 ){
+            while( state->tries > 0 ){
 
-                // transmit failed
-                TMR_WAIT( pt, 500 ); 
+                state->tries--;
 
-                continue;
+                // do NOT use the sendto_m function!
+                // we need to create a copy of the data!
+                if( sock_i16_sendto( state->sock, 
+                                     mem2_vp_get_ptr( state->h ), 
+                                     mem2_u16_get_size( state->h ), 
+                                     &state->raddr ) < 0 ){
+
+                    // transmit failed
+                    TMR_WAIT( pt, 500 ); 
+
+                    continue;
+                }
+
+                // transmit successful, wait for response
+                thread_v_set_alarm( tmr_u32_get_system_time_ms() + 10000 );
+                THREAD_WAIT_WHILE( pt, ( state->rx_sequence < state->sequence ) &&
+                                        thread_b_alarm_set() );           
+
+                if( state->rx_sequence == state->sequence ){
+                    
+                    // message confirmed!
+                    break;
+                }
+                else if( state->rx_sequence > state->sequence ){
+                    
+                    // this means the protocol is broken
+                    log_v_error_P( PSTR("fatal protocol error") );
+                }
+                else{
+
+                    // timeout!
+                }
             }
 
-            // transmit successful, wait for response
-            
+            state->q_size -= mem2_u16_get_size( state->h );
 
-            state->q_size -= mem_size;
-
-            // socket send success
+            // socket send success. or fail. either way we are moving on.
             // remove from q
             list_ln_remove_tail( &state->tx_q );
         }

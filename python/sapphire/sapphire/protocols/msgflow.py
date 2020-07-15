@@ -287,6 +287,8 @@ class MsgFlowReceiver(Ribbon):
         pass
 
     def _handle_data(self, msg, host):
+        print(msg.sequence)
+
         if host not in self._connections:
             logging.warning(f"Host: {host} not found")
             return
@@ -299,9 +301,20 @@ class MsgFlowReceiver(Ribbon):
             # check sequence
             if msg.sequence > self._connections[host]['sequence']:
                 self._connections[host]['sequence'] = msg.sequence
+                    
+                # TODO assuming ARQ!
+                self._send_status(host)
+
                 # data!
                 data = bytes(msg.data.toBasic())
                 self.on_receive(self, host, data)
+
+            elif msg.sequence <= self._connections[host]['sequence']:
+                # TODO assuming ARQ!
+                # got a duplicate data message, resend status
+                self._send_status(host)
+
+                logging.info(f"Dup {msg.sequence}")
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
@@ -400,7 +413,7 @@ def main():
     def on_receive(self, host, data):
         print(data)
 
-    m = MsgFlowReceiver(service='logserver', on_receive=on_receive)
+    m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
 
     try:
         while True:

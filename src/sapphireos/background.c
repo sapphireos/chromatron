@@ -31,7 +31,7 @@ PT_THREAD( background_thread( pt_t *pt, void *state ) );
 
 void background_v_init( void ){
 
-	thread_t_create( background_thread, PSTR("background"), 0, 0 );
+    thread_t_create( background_thread, PSTR("background"), 0, 0 );
 }
 
 
@@ -39,10 +39,10 @@ PT_THREAD( background_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	while(1){
+    while(1){
 
-		thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         sys_v_wdt_reset();
         
@@ -53,7 +53,7 @@ PT_BEGIN( pt );
         #ifdef ENABLE_MSGFLOW
         msgflow_v_process_timeouts();
         #endif
-	}
+    }
 
 PT_END( pt );
 }

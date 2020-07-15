@@ -58,6 +58,9 @@ typedef struct __attribute__((packed, aligned(4))){
 #define MSGFLOW_CODE_DEFAULT            MSGFLOW_CODE_ARQ
 
 
+#define MSGFLOW_ARQ_TRIES               8
+
+
 typedef struct __attribute__((packed)){
     catbus_hash_t32 service;
     uint8_t codebook[8]; // list of supported codes

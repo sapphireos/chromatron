@@ -50,7 +50,7 @@ PT_BEGIN( pt );
     
     if( msgflow <= 0 ){
 
-        msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+        // msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
     }
  
 PT_END( pt );
