@@ -526,6 +526,8 @@ static void clear_tx_q( msgflow_state_t *state ){
     }
 
     list_v_destroy( &state->tx_q );
+
+    state->q_size = 0;
 }
 
 PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
@@ -809,9 +811,9 @@ PT_BEGIN( pt );
 
             if( state->tx_q.tail > 0 ){
 
-                state->q_size -= mem2_u16_get_size( state->tx_q.tail );
-
+                // release message and adjust queue size
                 mem_handle_t h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
+                state->q_size -= mem2_u16_get_size( h );
                 mem2_v_free( h );
             }
 
