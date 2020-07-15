@@ -791,7 +791,7 @@ PT_BEGIN( pt );
                 }
 
                 // transmit successful, wait for response
-                thread_v_set_alarm( tmr_u32_get_system_time_ms() + 10000 );
+                thread_v_set_alarm( tmr_u32_get_system_time_ms() + 100 );
                 THREAD_WAIT_WHILE( pt, ( state->rx_sequence < state->sequence ) &&
                                         thread_b_alarm_set() );           
 
@@ -808,6 +808,7 @@ PT_BEGIN( pt );
                 else{
 
                     // timeout!
+                    log_v_debug_P( PSTR("timeout") );
                 }
             }
 
