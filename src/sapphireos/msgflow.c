@@ -83,7 +83,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 100 );
 
         uint8_t temp;
 
@@ -534,20 +534,21 @@ PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("msgflow init") );
 
-    if( state->tx_thread > 0 ){
-
-        thread_v_kill( state->tx_thread );
-    }
-
-    clear_tx_q( state );
-
     // reset/ready sequence
     while( !state->shutdown ){
+
+        if( state->tx_thread > 0 ){
+
+            thread_v_kill( state->tx_thread );
+            state->tx_thread = -1;
+        }
+
+        clear_tx_q( state );
 
         if( state->sock > 0 ){
 
             sock_v_release( state->sock );
-            state->sock = 0;
+            state->sock = -1;
         }
 
 
@@ -612,12 +613,6 @@ reset:
         }
 
         msgflow_msg_ready_t *ready = (msgflow_msg_ready_t *)( header + 1 );
-
-        // confirm ready matches sequence
-        if( ready->sequence != state->sequence ){
-
-            continue;
-        }
 
         // ***********************************************************8
         // we are now connected!
@@ -730,9 +725,9 @@ shutdown:
 
     if( state->tx_thread > 0 ){
         
-        thread_v_kill( state->tx_thread );        
+        thread_v_kill( state->tx_thread ); 
+        state->tx_thread = -1;       
     }
-
 
     clear_tx_q( state );
 
