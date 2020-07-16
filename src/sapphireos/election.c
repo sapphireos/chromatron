@@ -110,7 +110,7 @@ void election_v_init( void ){
     fs_f_create_virtual( PSTR("electioninfo"), vfile );
 
     // debug: test election
-    election_v_join( 0x1234, 0, 1, 9090 );
+    // election_v_join( 0x1234, 0, 1, 9090 );
 }
 
 

@@ -240,23 +240,24 @@ static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t
 // DO NOT LOG IN THIS FUNCTION
 static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t len ){
 
+    if( list_u8_count( &state->tx_q ) >= MSGFLOW_MAX_Q_MSGS ){
+
+        goto drop;        
+    }
+
     uint16_t mem_len = len + sizeof(msgflow_header_t) + sizeof(msgflow_msg_data_t);
 
     // check q size
     if( ( state->q_size + mem_len ) > MSGFLOW_MAX_Q_SIZE ){
 
-        q_drops++;
-
-        return FALSE;
+        goto drop;
     }
 
     mem_handle_t h = mem2_h_alloc( mem_len );
 
     if( h < 0 ){
 
-        q_drops++;
-
-        return FALSE;
+        goto drop;
     }
 
     // if not using "fire and forget", add to tx q
@@ -269,9 +270,7 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
 
             mem2_v_free( h );
 
-            q_drops++;
-
-            return FALSE;
+            goto drop;
         }
 
         state->q_size += mem_len;
@@ -320,6 +319,12 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
     }
 
     return TRUE;
+
+
+drop:
+    q_drops++;
+
+    return FALSE;        
 }
 
 // DO NOT LOG IN THIS FUNCTION
@@ -629,18 +634,21 @@ reset:
     // init transmitter
     if( state->code == MSGFLOW_CODE_ARQ ){
 
-        thread_t t = thread_t_get_current_thread();
+        if( state->tx_thread <= 0 ){
 
-        state->tx_thread = thread_t_create( THREAD_CAST(msgflow_arq_thread),
-                                             PSTR("msgflow_arq"),
-                                             &t,
-                                             sizeof(t) );
+            thread_t t = thread_t_get_current_thread();
 
-        if( state->tx_thread < 0 ){
+            state->tx_thread = thread_t_create( THREAD_CAST(msgflow_arq_thread),
+                                                 PSTR("msgflow_arq"),
+                                                 &t,
+                                                 sizeof(t) );
 
-            TMR_WAIT( pt, 1000 );
+            if( state->tx_thread < 0 ){
 
-            THREAD_RESTART( pt );
+                TMR_WAIT( pt, 1000 );
+
+                THREAD_RESTART( pt );
+            }
         }
     }
 

@@ -77,7 +77,7 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         128
+#define MAX_MEM_HANDLES         255
 #define MEM_MAX_STACK           4096
 #define MEM_HEAP_SIZE			16384
 
@@ -103,6 +103,7 @@
 
 // msgflow
 #define MSGFLOW_MAX_Q_SIZE		1024
+#define MSGFLOW_MAX_Q_MSGS      32
 
 
 // leave one block at end for bootloader information

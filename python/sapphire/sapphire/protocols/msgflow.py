@@ -287,8 +287,6 @@ class MsgFlowReceiver(Ribbon):
         pass
 
     def _handle_data(self, msg, host):
-        print(msg.sequence)
-
         if host not in self._connections:
             logging.warning(f"Host: {host} not found")
             return
@@ -307,7 +305,7 @@ class MsgFlowReceiver(Ribbon):
 
                 # data!
                 data = bytes(msg.data.toBasic())
-                self.on_receive(host, data)
+                self.on_receive(host, data, sequence=msg.sequence)
 
             elif msg.sequence <= self._connections[host]['sequence']:
                 # TODO assuming ARQ!
@@ -410,10 +408,10 @@ class MsgFlowReceiver(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    # def on_receive(self, host, data):
-        # print(data)
+    def on_receive(self, host, data, sequence=None):
+        print(sequence)
 
-    m = MsgFlowReceiver(port=12345, service='test')
+    m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
 
     try:
         while True:
