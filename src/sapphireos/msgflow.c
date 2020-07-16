@@ -82,7 +82,7 @@ PT_THREAD( demo( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
         
     static msgflow_t m;
-    m = msgflow_m_listen( __KV__test, MSGFLOW_CODE_ANY, 548 );
+    m = msgflow_m_listen( __KV__test, MSGFLOW_CODE_ANY, MSGFLOW_MAX_LEN );
 
     while( 1 ){
 
@@ -90,7 +90,7 @@ PT_BEGIN( pt );
 
         uint8_t temp;
 
-        msgflow_b_send( m, &temp, 520 );
+        msgflow_b_send( m, &temp, MSGFLOW_MAX_LEN );
     }
     
 PT_END( pt );
@@ -333,7 +333,7 @@ drop:
 // DO NOT LOG IN THIS FUNCTION
 bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 
-    ASSERT( len <= UDP_MAX_LEN );
+    ASSERT( len <= MSGFLOW_MAX_LEN );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 

@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "threading.h"
 #include "catbus_common.h"
+#include "udp.h"
 
 #define MSGFLOW_LISTEN_PORT             32039
 #define MSGFLOW_TIMEOUT                 16
@@ -95,6 +96,9 @@ typedef struct __attribute__((packed)){
 
 // empty message
 #define MSGFLOW_TYPE_STOP               6
+
+
+#define MSGFLOW_MAX_LEN                 ( UDP_MAX_LEN - ( sizeof(msgflow_header_t) + sizeof(msgflow_msg_data_t) ) )
 
 
 typedef thread_t msgflow_t;
