@@ -71,10 +71,11 @@ typedef struct __attribute__((packed)){
     uint32_t sequence;
     uint16_t max_data_len; // set maximum data for each message.  useful to limit mem usage for parity.
     uint8_t code;
-    uint8_t reserved[1];
+    uint8_t flags;
     uint64_t device_id;
 } msgflow_msg_reset_t;
 #define MSGFLOW_TYPE_RESET              2
+#define MSGFLOW_MSG_RESET_FLAGS_RESET_SEQ   0x01
 
 typedef struct __attribute__((packed)){
     uint32_t sequence;

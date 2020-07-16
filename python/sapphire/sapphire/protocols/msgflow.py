@@ -56,6 +56,8 @@ MSGFLOW_TYPE_DATA                   = 5
 MSGFLOW_TYPE_STOP                   = 6
 
 
+MSGFLOW_MSG_RESET_FLAGS_RESET_SEQ   = 0x01
+
 CONNECTION_TIMEOUT                  = 32.0
 ANNOUNCE_INTERVAL                   = 4.0
 STATUS_INTERVAL                     = 4.0
@@ -92,7 +94,7 @@ class MsgFlowMsgReset(StructField):
                   Uint32Field(_name="sequence"),
                   Uint16Field(_name="max_data_len"),
                   Uint8Field(_name="code"),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=1),
+                  Uint8Field(_name="flags"),
                   Uint64Field(_name="device_id")]
 
         super(MsgFlowMsgReset, self).__init__(_name="msg_flow_msg_reset", _fields=fields, **kwargs)
@@ -330,11 +332,12 @@ class MsgFlowReceiver(Ribbon):
             logging.info(f"Connection from: {host} sequence: {msg.sequence} max_len: {msg.max_data_len}")
 
             self.on_connect(host, msg.device_id)
+            self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
 
-        elif msg.sequence != self._connections[host]['sequence']:
-            logging.info(f"Reconnection from: {host}")
+        elif msg.flags & MSGFLOW_MSG_RESET_FLAGS_RESET_SEQ:
+            logging.info(f"Sequence reset from: {host}")
+            self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
 
-        self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
         self._send_ready(host, sequence=msg.sequence, code=msg.code)
 
     def _process_msg(self, msg, host):        
