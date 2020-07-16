@@ -50,7 +50,7 @@ KV_SECTION_META kv_meta_t msgflow_info_kv[] = {
 
 typedef struct{
     catbus_hash_t32 service;
-    uint32_t sequence;
+    uint64_t sequence;
     socket_t sock;
     sock_addr_t raddr;
     uint8_t code;
@@ -63,8 +63,8 @@ typedef struct{
     thread_t tx_thread;
     list_t tx_q;
     uint16_t q_size;
-    uint32_t tx_sequence;
-    uint32_t rx_sequence;
+    uint64_t tx_sequence;
+    uint64_t rx_sequence;
     uint8_t tries;
 } msgflow_state_t;
 
@@ -380,7 +380,6 @@ static void send_reset( msgflow_state_t *state ){
 
     msgflow_msg_reset_t reset = { 0 };
 
-    reset.sequence      = state->sequence;
     reset.code          = state->code;
     reset.device_id     = cfg_u64_get_device_id();
 
@@ -580,7 +579,6 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-reset:
         sock_v_set_timeout( state->sock, 1 );
 
         // got an address
@@ -669,18 +667,6 @@ reset:
         if( sys_b_shutdown() ){
 
             goto shutdown;
-        }
-
-        // SEQUENCE HOUSEKEEPING
-
-        // 2^32 - 1048576:
-        // reset state machine
-        // if( state->sequence > 4293918720 ){
-        if( state->sequence > 1024 ){ // for testing
-
-            log_v_debug_P( PSTR("sequence rollover") );
-
-            goto reset; // not happy about this... but it'll do for now.
         }
 
         // RECEIVE

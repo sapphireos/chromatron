@@ -91,7 +91,6 @@ class MsgFlowMsgSink(StructField):
 class MsgFlowMsgReset(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint32Field(_name="sequence"),
                   Uint16Field(_name="max_data_len"),
                   Uint8Field(_name="code"),
                   Uint8Field(_name="flags"),
@@ -104,7 +103,6 @@ class MsgFlowMsgReset(StructField):
 class MsgFlowMsgReady(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint32Field(_name="sequence"),
                   Uint8Field(_name="code"),
                   Uint8Field(_name="reserved")]
 
@@ -115,7 +113,7 @@ class MsgFlowMsgReady(StructField):
 class MsgFlowMsgStatus(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint32Field(_name="sequence"),
+                  Uint64Field(_name="sequence"),
                   ArrayField(_name="reserved", _field=Uint8Field, _length=12)]
 
         super(MsgFlowMsgStatus, self).__init__(_name="msg_flow_msg_statis", _fields=fields, **kwargs)
@@ -125,7 +123,7 @@ class MsgFlowMsgStatus(StructField):
 class MsgFlowMsgData(StructField):
     def __init__(self, **kwargs):
         fields = [MsgFlowHeader(_name="header"),
-                  Uint32Field(_name="sequence"),
+                  Uint64Field(_name="sequence"),
                   ArrayField(_name="data", _field=Uint8Field)]
 
         super(MsgFlowMsgData, self).__init__(_name="msg_flow_msg_data", _fields=fields, **kwargs)
@@ -275,7 +273,6 @@ class MsgFlowReceiver(Ribbon):
 
     def _send_ready(self, host, sequence=None, code=0):
         msg = MsgFlowMsgReady(
-                sequence=sequence,
                 code=code)
 
         self._send_msg(msg, host)
@@ -329,16 +326,12 @@ class MsgFlowReceiver(Ribbon):
 
     def _handle_reset(self, msg, host):
         if host not in self._connections:
-            logging.info(f"Connection from: {host} sequence: {msg.sequence} max_len: {msg.max_data_len}")
+            logging.info(f"Connection from: {host} max_len: {msg.max_data_len}")
 
             self.on_connect(host, msg.device_id)
-            self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
+            self._connections[host] = {'sequence': 0, 'timeout': CONNECTION_TIMEOUT}
 
-        elif msg.flags & MSGFLOW_MSG_RESET_FLAGS_RESET_SEQ:
-            logging.info(f"Sequence reset from: {host}")
-            self._connections[host] = {'sequence': msg.sequence, 'timeout': CONNECTION_TIMEOUT}
-
-        self._send_ready(host, sequence=msg.sequence, code=msg.code)
+        self._send_ready(host, code=msg.code)
 
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)
