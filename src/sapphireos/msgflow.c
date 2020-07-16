@@ -86,7 +86,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 20 );
+        TMR_WAIT( pt, 50 );
 
         uint8_t temp;
 
