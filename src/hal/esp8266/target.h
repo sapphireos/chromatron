@@ -102,7 +102,7 @@
 #define ENABLE_LOG_TO_TRACE_PRINT
 
 // msgflow
-#define MSGFLOW_MAX_Q_SIZE		1024
+#define MSGFLOW_MAX_Q_SIZE		2048
 #define MSGFLOW_MAX_Q_MSGS      32
 
 
