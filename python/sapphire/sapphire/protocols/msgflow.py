@@ -307,7 +307,7 @@ class MsgFlowReceiver(Ribbon):
                 data = bytes(msg.data.toBasic())
                 self.on_receive(host, data)
 
-                logging.info(f"Msg {msg.sequence} prev: {prev_seq}")
+                logging.info(f"Msg {msg.sequence} len: {len(msg.data)}")
 
             elif msg.sequence <= self._connections[host]['sequence']:
                 # TODO assuming ARQ!

@@ -63,7 +63,7 @@ typedef struct{
 	uint8_t ip0;
 } ip_addr4_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
 	uint8_t vhl; // version and header length
 	uint8_t ds; // differentiated services (unused)
 	uint16_t total_length; // total length of IP packet

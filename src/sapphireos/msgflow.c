@@ -82,15 +82,15 @@ PT_THREAD( demo( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
         
     static msgflow_t m;
-    m = msgflow_m_listen( __KV__test, MSGFLOW_CODE_ANY, 512 );
+    m = msgflow_m_listen( __KV__test, MSGFLOW_CODE_ANY, 548 );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 10 );
+        TMR_WAIT( pt, 20 );
 
         uint8_t temp;
 
-        msgflow_b_send( m, &temp, 1 );
+        msgflow_b_send( m, &temp, 520 );
     }
     
 PT_END( pt );
@@ -332,6 +332,8 @@ drop:
 
 // DO NOT LOG IN THIS FUNCTION
 bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
+
+    ASSERT( len <= UDP_MAX_LEN );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -808,7 +810,7 @@ PT_BEGIN( pt );
                 else{
 
                     // timeout!
-                    // log_v_debug_P( PSTR("timeout: %d / %d"),  state->tx_sequence, state->rx_sequence );
+                    // log_v_debug_P( PSTR("timeout: %lu / %lu"),  (uint32_t)state->tx_sequence, (uint32_t)state->rx_sequence );
 
                     if( state->tries == 0 ){
 

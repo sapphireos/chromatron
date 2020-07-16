@@ -29,6 +29,7 @@
 #include "list.h"
 #include "memory.h"
 #include "netmsg.h"
+#include "udp.h"
 
 #define SOCK_SINGLE_BUF
 

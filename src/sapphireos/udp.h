@@ -29,13 +29,16 @@
 
 #include "target.h"
 #include "netmsg.h"
+#include "ip.h"
 
-typedef struct{
+typedef struct __attribute__((packed)){
 	uint16_t source_port;
 	uint16_t dest_port;
 	uint16_t length;
 	uint16_t checksum;
 } udp_header_t;
+
+#define UDP_MAX_LEN ( MAX_IP_PACKET_SIZE - MIN_IP_PACKET_SIZE - sizeof(udp_header_t) )
 
 #ifdef ENABLE_IP
 
