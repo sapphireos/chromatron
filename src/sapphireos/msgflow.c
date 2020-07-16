@@ -40,10 +40,12 @@
 
 static uint16_t max_q_size;
 static uint16_t q_drops;
+static uint16_t net_drops;
 
 KV_SECTION_META kv_meta_t msgflow_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_max_q_size" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &q_drops,     0,     "msgflow_q_drops" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &net_drops,   0,     "msgflow_net_drops" },
 };
 
 typedef struct{
@@ -61,6 +63,7 @@ typedef struct{
     thread_t tx_thread;
     list_t tx_q;
     uint16_t q_size;
+    uint32_t tx_sequence;
     uint32_t rx_sequence;
     uint8_t tries;
 } msgflow_state_t;
@@ -83,7 +86,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 100 );
+        TMR_WAIT( pt, 10 );
 
         uint8_t temp;
 
@@ -795,17 +798,23 @@ PT_BEGIN( pt );
                     continue;
                 }
 
+                msgflow_header_t *header = (msgflow_header_t *)mem2_vp_get_ptr_fast( h );
+                msgflow_msg_data_t *msg = (msgflow_msg_data_t *)( header + 1 );
+
+                // set tx sequence
+                state->tx_sequence = msg->sequence;
+
                 // transmit successful, wait for response
                 thread_v_set_alarm( tmr_u32_get_system_time_ms() + 100 );
-                THREAD_WAIT_WHILE( pt, ( state->rx_sequence < state->sequence ) &&
+                THREAD_WAIT_WHILE( pt, ( state->rx_sequence < state->tx_sequence ) &&
                                         thread_b_alarm_set() );           
 
-                if( state->rx_sequence == state->sequence ){
+                if( state->rx_sequence == state->tx_sequence ){
                     
                     // message confirmed!
                     break;
                 }
-                else if( state->rx_sequence > state->sequence ){
+                else if( state->rx_sequence > state->tx_sequence ){
                     
                     // this means the protocol is broken
                     log_v_error_P( PSTR("fatal protocol error") );
@@ -813,7 +822,12 @@ PT_BEGIN( pt );
                 else{
 
                     // timeout!
-                    log_v_debug_P( PSTR("timeout") );
+                    // log_v_debug_P( PSTR("timeout: %d / %d"),  state->tx_sequence, state->rx_sequence );
+
+                    if( state->tries == 0 ){
+
+                        net_drops++;
+                    }
                 }
             }
 

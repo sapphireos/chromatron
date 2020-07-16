@@ -298,6 +298,7 @@ class MsgFlowReceiver(Ribbon):
         else:
             # check sequence
             if msg.sequence > self._connections[host]['sequence']:
+                prev_seq = self._connections[host]['sequence']
                 self._connections[host]['sequence'] = msg.sequence
                     
                 # TODO assuming ARQ!
@@ -305,14 +306,16 @@ class MsgFlowReceiver(Ribbon):
 
                 # data!
                 data = bytes(msg.data.toBasic())
-                self.on_receive(host, data, sequence=msg.sequence)
+                self.on_receive(host, data)
+
+                logging.info(f"Msg {msg.sequence} prev: {prev_seq}")
 
             elif msg.sequence <= self._connections[host]['sequence']:
                 # TODO assuming ARQ!
                 # got a duplicate data message, resend status
                 self._send_status(host)
 
-                logging.info(f"Dup {msg.sequence}")
+                logging.warning(f"Dup {msg.sequence} status: {self._connections[host]['sequence']}")
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
@@ -408,8 +411,9 @@ class MsgFlowReceiver(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    def on_receive(self, host, data, sequence=None):
-        print(sequence)
+    def on_receive(host, data):
+        # print(sequence)
+        pass
 
     m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
 
