@@ -137,11 +137,11 @@ uint32_t hal_flash25_u32_get_partition_start( void ){
         esp_image_segment_header_t seg_header;
         spi_read( addr, (uint32_t *)&seg_header, sizeof(seg_header) );
 
-        trace_printf("Segment load: 0x%0x len: %u offset: 0x%0x\n", seg_header.load_addr, seg_header.data_len, addr);
+        trace_printf("Segment load: 0x%0x len: %u offset: 0x%0x\n", seg_header.load_addr, seg_header.data_len, addr - FLASH_FS_FIRMWARE_0_PARTITION_START);
 
         if( seg_header.load_addr == FW_LOAD_ADDR ){
 
-            start = addr + sizeof(seg_header);
+            start = addr + sizeof(seg_header) - FLASH_FS_FIRMWARE_0_PARTITION_START;
         }
 
         addr += sizeof(seg_header);
