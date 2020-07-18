@@ -31,6 +31,7 @@
 #include "crc.h"
 #include "eeprom.h"
 #include "flash25.h"
+#include "hal_flash25.h"
 #include "flash_fs_partitions.h"
 #include "spi.h"
 #include "watchdog.h"
@@ -105,7 +106,11 @@ void ldr_v_read_partition_data( uint32_t offset, uint8_t *dest, uint16_t length 
 uint32_t ldr_u32_read_partition_length( void ){
 
 	uint32_t partition_length;
-	uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START + FW_START_OFFSET - FW_SPI_START_OFFSET;
+    
+    uint32_t fw_start_offset = hal_flash25_u32_get_partition_start();
+    trace_printf("Partition FW_START_OFFSET 0x%0x\n", fw_start_offset);
+
+	uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START + fw_start_offset - FW_SPI_START_OFFSET;
 
 	flash25_v_read( address, &partition_length, sizeof(partition_length) );
 	

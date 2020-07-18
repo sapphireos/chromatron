@@ -25,6 +25,6 @@
 
 
 void hal_flash25_v_init( void );
-
+uint32_t hal_flash25_u32_get_partition_start( void );
 
 #endif

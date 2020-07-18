@@ -55,7 +55,7 @@ static void spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
     #endif
 }
 
-uint32_t hal_cpu_32_get_internal_start( void ){
+uint32_t hal_cpu_u32_get_internal_start( void ){
 
     esp_image_header_t header;
     uint32_t addr = FW_SPI_START_OFFSET;
@@ -64,7 +64,7 @@ uint32_t hal_cpu_32_get_internal_start( void ){
 
     uint32_t start = 0;
 
-    trace_printf("Image info\nSegments: %d\n", header.segment_count);
+    trace_printf("INTERNAL Image info\nSegments: %d\n", header.segment_count);
 
     for( uint8_t i = 0; i < header.segment_count; i++ ){
 
@@ -89,7 +89,7 @@ void cpu_v_init( void ){
 
     trace_printf("CPU init...\n");
 
-    FW_START_OFFSET = hal_cpu_32_get_internal_start();
+    FW_START_OFFSET = hal_cpu_u32_get_internal_start();
 
     trace_printf("FW_START_OFFSET: 0x%0x\n", FW_START_OFFSET);
     

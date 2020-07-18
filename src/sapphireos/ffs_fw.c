@@ -40,6 +40,7 @@
 #ifdef ESP32
 #include "rom/spi_flash.h"
 #include "esp_spi_flash.h"
+#include "hal_flash25.h"
 #endif
 
 static uint32_t fw_size;
@@ -167,6 +168,9 @@ int8_t ffs_fw_i8_init( void ){
 
     // read firmware info from external flash partition
     #ifdef ESP32
+    uint32_t fw_start_offset = hal_flash25_u32_get_partition_start();
+    trace_printf("Partition FW_START_OFFSET 0x%0x\n", fw_start_offset);
+
     flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_START_OFFSET - FW_SPI_START_OFFSET,
                     &ext_fw_length,
                     sizeof(ext_fw_length) );

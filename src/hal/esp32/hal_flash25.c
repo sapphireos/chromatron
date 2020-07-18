@@ -30,6 +30,7 @@
 
 #include "rom/spi_flash.h"
 #include "esp_spi_flash.h"
+#include "esp_image_format.h"
 
 #ifdef ENABLE_FFS
 
@@ -118,6 +119,38 @@ static void invalidate_cache( void ){
     flush_cache();
     cache_address = CACHE_ADDR_INVALID;
 }
+
+
+uint32_t hal_flash25_u32_get_partition_start( void ){
+
+    esp_image_header_t header;
+    uint32_t addr = FLASH_FS_FIRMWARE_0_PARTITION_START;
+    spi_read( addr, (uint32_t *)&header, sizeof(header) );
+    addr += sizeof(header);
+
+    uint32_t start = 0;
+
+    trace_printf("PARTITION Image info\nSegments: %d\n", header.segment_count);
+
+    for( uint8_t i = 0; i < header.segment_count; i++ ){
+
+        esp_image_segment_header_t seg_header;
+        spi_read( addr, (uint32_t *)&seg_header, sizeof(seg_header) );
+
+        trace_printf("Segment load: 0x%0x len: %u offset: 0x%0x\n", seg_header.load_addr, seg_header.data_len, addr);
+
+        if( seg_header.load_addr == FW_LOAD_ADDR ){
+
+            start = addr + sizeof(seg_header);
+        }
+
+        addr += sizeof(seg_header);
+        addr += seg_header.data_len;
+    }
+
+    return start;
+}
+
 
 void hal_flash25_v_init( void ){
 
