@@ -37,7 +37,7 @@
 #include "logging.h"
 
 #ifdef ENABLE_CATBUS_LINK
-typedef struct{
+typedef struct __attribute__((packed)){
     catbus_hash_t32 tag;
     uint8_t flags;
     catbus_hash_t32 source_hash;
@@ -59,7 +59,7 @@ typedef struct{
 #define CATBUS_LINK_FILE_MAGIC          0x4b4e494c // 'LINK'
 #define CATBUS_LINK_FILE_VERSION        1
 
-typedef struct{
+typedef struct __attribute__((packed)){
     sock_addr_t raddr;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
@@ -70,7 +70,7 @@ typedef struct{
 } catbus_send_data_entry_t;
 #define SEND_ENTRY_FLAGS_PUBLISH        0x01
 
-typedef struct{
+typedef struct __attribute__((packed)){
     sock_addr_t raddr;
     catbus_hash_t32 dest_hash;
     uint16_t sequence;
@@ -505,6 +505,11 @@ static bool _catbus_b_compare_queries( catbus_query_t *query1, catbus_query_t *q
 
 #ifdef ENABLE_NETWORK
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
+
+    if( sys_b_shutdown() ){
+
+        return;
+    }
 
     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_announce_t) );
 
@@ -1671,7 +1676,7 @@ PT_BEGIN( pt );
                 }       
                 else{
 
-                    log_v_debug_P( PSTR("%lu not found"), hash );
+                    log_v_debug_P( PSTR("%lu not found from: %d.%d.%d.%d"), hash, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
                 }         
 
                 hash++;

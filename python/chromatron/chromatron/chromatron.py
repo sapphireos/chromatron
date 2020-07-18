@@ -43,17 +43,13 @@ from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOC
 from elysianfields import *
 from sapphire.common.util import now
 
+from .version import VERSION
 from . import streamer
 
 import catbus
 from . import code_gen
 
 import click
-
-try:
-    VERSION = pkg_resources.get_distribution('chromatron').version
-except pkg_resources.DistributionNotFound:
-    VERSION = 'dev'
 
 BACKUP_FILE = 'backup.json'
 

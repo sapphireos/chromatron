@@ -127,9 +127,6 @@ netmsg_t netmsg_nm_create( netmsg_type_t type ){
     // init flags
     msg->flags = 0;
     msg->type = type;
-    msg->header_0_handle = -1;
-    msg->header_1_handle = -1;
-    msg->header_2_handle = -1;
     msg->header_len = 0;
     msg->data_handle = -1;
     msg->ttl = 0;
@@ -142,21 +139,6 @@ netmsg_t netmsg_nm_create( netmsg_type_t type ){
 void netmsg_v_release( netmsg_t netmsg ){
 
     netmsg_state_t *state = netmsg_vp_get_state( netmsg );
-
-    if( state->header_0_handle >= 0 ){
-
-        mem2_v_free( state->header_0_handle );
-    }
-
-    if( state->header_1_handle >= 0 ){
-
-        mem2_v_free( state->header_1_handle );
-    }
-
-    if( state->header_2_handle >= 0 ){
-
-        mem2_v_free( state->header_2_handle );
-    }
 
     if( state->data_handle >= 0 ){
 
@@ -400,83 +382,83 @@ int8_t netmsg_i8_send( netmsg_t netmsg ){
 
     if( state->type == NETMSG_TYPE_ICMP ){
 
-        #ifdef ENABLE_IP
+        // #ifdef ENABLE_IP
 
-        // allocate header 1
-        mem_handle_t ip_hdr_handle = mem2_h_alloc( sizeof(ip_hdr_t) );
+        // // allocate header 1
+        // mem_handle_t ip_hdr_handle = mem2_h_alloc( sizeof(ip_hdr_t) );
 
-        if( ip_hdr_handle < 0 ){
+        // if( ip_hdr_handle < 0 ){
 
-            goto clean_up;
-        }
+        //     goto clean_up;
+        // }
 
-        state->header_1_handle = ip_hdr_handle;
+        // state->header_1_handle = ip_hdr_handle;
 
-        uint16_t data_size = mem2_u16_get_size( state->data_handle );
+        // uint16_t data_size = mem2_u16_get_size( state->data_handle );
 
-        ip_hdr_t *ip_hdr = mem2_vp_get_ptr( ip_hdr_handle );
+        // ip_hdr_t *ip_hdr = mem2_vp_get_ptr( ip_hdr_handle );
 
-        ip_v_init_header( ip_hdr,
-                          state->raddr.ipaddr,
-                          IP_PROTO_ICMP,
-                          0,
-                          data_size );
+        // ip_v_init_header( ip_hdr,
+        //                   state->raddr.ipaddr,
+        //                   IP_PROTO_ICMP,
+        //                   0,
+        //                   data_size );
 
-        #endif
+        // #endif
     }
     else if( state->type == NETMSG_TYPE_UDP ){
 
         // for now, extra header processing selected based on
         // compiler tokens.  eventually should do this based on interface.
 
-        #ifdef ENABLE_IP
+        // #ifdef ENABLE_IP
 
-        mem_handle_t ip_udp_hdr_handle = mem2_h_alloc( sizeof(ip_hdr_t) + sizeof(udp_header_t) );
+        // mem_handle_t ip_udp_hdr_handle = mem2_h_alloc( sizeof(ip_hdr_t) + sizeof(udp_header_t) );
 
-        if( ip_udp_hdr_handle < 0 ){
+        // if( ip_udp_hdr_handle < 0 ){
 
-            goto clean_up;
-        }
+        //     goto clean_up;
+        // }
 
-        state->header_1_handle = ip_udp_hdr_handle;
+        // state->header_1_handle = ip_udp_hdr_handle;
 
-        ip_hdr_t *ip_hdr = mem2_vp_get_ptr( ip_udp_hdr_handle );
+        // ip_hdr_t *ip_hdr = mem2_vp_get_ptr( ip_udp_hdr_handle );
 
-        uint16_t data_size = mem2_u16_get_size( state->data_handle );
+        // uint16_t data_size = mem2_u16_get_size( state->data_handle );
 
-        // check if header2 has any data
-        if( state->header_2_handle > 0 ){
+        // // check if header2 has any data
+        // if( state->header_2_handle > 0 ){
 
-            data_size += mem2_u16_get_size( state->header_2_handle );
-        }
+        //     data_size += mem2_u16_get_size( state->header_2_handle );
+        // }
 
-        ip_v_init_header( ip_hdr,
-                          state->raddr.ipaddr,
-                          IP_PROTO_UDP,
-                          state->ttl,
-                          data_size + sizeof(udp_header_t) );
+        // ip_v_init_header( ip_hdr,
+        //                   state->raddr.ipaddr,
+        //                   IP_PROTO_UDP,
+        //                   state->ttl,
+        //                   data_size + sizeof(udp_header_t) );
 
-        udp_header_t *udp_hdr = (udp_header_t *)( ip_hdr + 1 );
+        // udp_header_t *udp_hdr = (udp_header_t *)( ip_hdr + 1 );
 
-        udp_v_init_header( udp_hdr,
-                           state->laddr.port,
-                           state->raddr.port,
-                           data_size );
+        // udp_v_init_header( udp_hdr,
+        //                    state->laddr.port,
+        //                    state->raddr.port,
+        //                    data_size );
 
 
 
-        // TODO!!!! Need to create a checksum routine that works on memory buffers
-        // ASSERT( 0 );
+        // // TODO!!!! Need to create a checksum routine that works on memory buffers
+        // // ASSERT( 0 );
 
-        // compute checksum
-        // udp_hdr->checksum = HTONS(udp_u16_checksum_netmsg( netmsg ));
-        udp_hdr->checksum = 0;
+        // // compute checksum
+        // // udp_hdr->checksum = HTONS(udp_u16_checksum_netmsg( netmsg ));
+        // udp_hdr->checksum = 0;
 
-        #else
+        // #else
 
-        // non-IP, easy mode!
+        // // non-IP, easy mode!
 
-        #endif
+        // #endif
 
         netmsg_udp_sent++;
     }

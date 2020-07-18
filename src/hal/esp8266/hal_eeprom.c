@@ -269,7 +269,7 @@ PT_BEGIN( pt );
 
     	commit_to_flash();
 
-    	log_v_debug_P( PSTR("EE commit block %u total_writes: %lu"), current_block, total_block_writes );
+    	// log_v_debug_P( PSTR("EE commit block %u total_writes: %lu"), current_block, total_block_writes );
     }
 
 PT_END( pt );

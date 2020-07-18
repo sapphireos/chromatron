@@ -623,6 +623,13 @@ class Device(object):
 
         return info
 
+    def get_election_info(self):
+        data = self.get_file("electioninfo")
+        info = sapphiredata.ElectionInfoArray()
+        info.unpack(data)
+
+        return info
+
     def get_event_log(self):
         data = self.get_file("event_log")
         info = sapphiredata.EventArray()
@@ -1034,6 +1041,34 @@ class Device(object):
                  status,
                  d.ttl,
                  d.query)
+
+        return s
+
+    def cli_electioninfo(self, line):
+        electioninfo = self.get_election_info()
+
+        states = {
+                0: 'idle',
+                1: 'candidate',
+                2: 'follower',
+                3: 'leader',
+            }
+        
+        s = "\nService  Group    Priority   Cycles | Tracking:  IP Priority Cycles Port Timeout | State\n"
+
+        # iterate over election cache entries
+        for e in electioninfo:
+            s += "%8d %8d %5d    %8d %15s %5d %8d %5d    %3d    %-10s\n" % \
+                (e.service,
+                 e.group,
+                 e.priority,
+                 e.cycles,
+                 e.leader_ip,
+                 e.leader_priority,
+                 e.leader_cycles,
+                 e.leader_port,
+                 e.timeout,
+                 states[e.state])
 
         return s
 

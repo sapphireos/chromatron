@@ -31,8 +31,6 @@
 
 typedef list_node_t netmsg_t;
 
-#include "udp.h"
-
 typedef uint8_t netmsg_flags_t;
 #define NETMSG_FLAGS_WCOM_SECURITY_DISABLE  0x01
 #define NETMSG_FLAGS_NO_WCOM                0x02
@@ -55,9 +53,6 @@ typedef struct{
 typedef struct{
     netmsg_type_t   type;
     netmsg_flags_t  flags;
-    mem_handle_t    header_0_handle;
-    mem_handle_t    header_1_handle;
-    mem_handle_t    header_2_handle;
     uint8_t         header_len; // length of headers in data_handle
     mem_handle_t    data_handle;
     uint8_t         ttl;

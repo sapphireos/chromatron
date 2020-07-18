@@ -32,7 +32,7 @@
 
 #define SOCK_SINGLE_BUF
 
-#define SOCK_MEM_BUSY_THRESHOLD         640
+#define SOCK_MEM_BUSY_THRESHOLD         1024
 
 #define SOCK_EPHEMERAL_PORT_LOW         49152
 #define SOCK_EPHEMERAL_PORT_HIGH        65535
