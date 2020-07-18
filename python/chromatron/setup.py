@@ -49,7 +49,7 @@ setup(
     install_requires=[
         "catbus >= 1.0.4",
         "crcmod == 1.7",
-        "click == 7.1.1",
+        "click == 7.1.2",
         "sapphire >= 1.0.4",
         "elysianfields >= 1.0.5",
     ],
