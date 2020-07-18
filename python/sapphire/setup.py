@@ -48,7 +48,7 @@ setup(
         "setuptools == 34.2.0",
         "pyserial == 3.4.0",
         "cmd2 == 0.6.9",
-        "click >= 6.6",
+        "click == 7.1.2",
         "crcmod == 1.7",
         "pyparsing == 2.2.0",
         "intelhex == 2.1",
