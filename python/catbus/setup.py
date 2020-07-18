@@ -41,7 +41,7 @@ setup(
 
     install_requires=[
         "sapphire >= 1.0.4",
-        "click == 7.1.1",
+        "click == 7.1.2",
         "elysianfields >= 1.0.5",
         "fnvhash==0.1.0",
         "crcmod==1.7",
