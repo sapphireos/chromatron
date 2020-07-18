@@ -27,15 +27,15 @@ int dummy_printf(const char* format, ...);
 
 #include "target.h"
 
-#ifndef BOOTLOADER
-#ifdef ENABLE_TRACE
-#define trace_printf printf
+#ifdef BOOTLOADER
+    #include "rom/ets_sys.h"
+    #define trace_printf ets_printf
 #else
-#define trace_printf dummy_printf
-#endif
-#else
-#include "rom/ets_sys.h"
-#define trace_printf ets_printf
+    #ifdef ENABLE_TRACE
+    #define trace_printf printf
+    #else
+    #define trace_printf dummy_printf
+    #endif
 #endif
 
 #endif

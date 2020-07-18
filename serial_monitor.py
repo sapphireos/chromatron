@@ -15,7 +15,7 @@ try:
 
 except IndexError:
     for port in serial.tools.list_ports.comports():
-        print port
+        print(port)
 
     sys.exit(-1)
 
@@ -35,26 +35,30 @@ try:
     buf = ''
 
     while True:
-        char = port.read(1)
+        try:
+            char = port.read(1).decode('utf-8')[0]
 
-        if char in ['\r', '\n']:
-            # check if buffer is empty
-            if len(buf) == 0:
-                continue
+            if char in ['\r', '\n']:
+                # check if buffer is empty
+                if len(buf) == 0:
+                    continue
 
-            now = time.time()
-            if start == None:
-                elapsed = 0.0
+                now = time.time()
+                if start == None:
+                    elapsed = 0.0
+
+                else:
+                    elapsed = now - start                   
+                
+                start = now
+                print("%5d" % (elapsed * 1000), buf)
+                buf = ''
 
             else:
-                elapsed = now - start                   
-            
-            start = now
-            print "%5d" % (elapsed * 1000), buf
-            buf = ''
+                buf += char
 
-        else:
-            buf += char
+        except UnicodeDecodeError:
+            pass
 
 
 except KeyboardInterrupt:
