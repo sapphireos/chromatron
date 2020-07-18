@@ -32,6 +32,7 @@
 #include "freertos/portmacro.h"
 
 extern uint32_t FW_START_OFFSET;
+uint32_t hal_cpu_32_get_internal_start( void );
 
 // we don't have manual control of interrupts on the ESP32 (at least, not easily)
 #define ENABLE_INTERRUPTS 
