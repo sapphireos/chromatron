@@ -45,7 +45,6 @@ setup(
         "elysianfields >= 1.0.5",
         "fnvhash==0.1.0",
         "crcmod==1.7",
-        "python-logging-loki==0.3.1",
     ],
 
     entry_points='''
