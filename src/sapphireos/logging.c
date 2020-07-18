@@ -157,12 +157,6 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
      *
      */
 
-    // do not run in an interrupt
-    // if( osirq_b_is_irq() ){
-
-    //     return;
-    // }
-
     // check log level
     if( (int8_t)level < LOG_LEVEL ){
 
@@ -173,17 +167,6 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
 
         return;
     }
-
-    // mem_handle_t h = mem2_h_alloc( LOG_STR_BUF_SIZE );
-    //
-    // if( h < 0 ){
-    //
-    //     return;
-    // }
-    //
-    // char *buf = mem2_vp_get_ptr( h );
-
-    // ATOMIC;
 
     EVENT( EVENT_ID_LOG_RECORD, 0 );
 
@@ -242,17 +225,11 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
     append_log( buf );
 
     EVENT( EVENT_ID_LOG_RECORD, 1 );
-
-    // mem2_v_free( h );
-
-    // END_ATOMIC;
 }
 
 void _log_v_icmp( netmsg_t netmsg, PGM_P file, uint16_t line ){
 
     #ifdef LOG_ICMP
-
-    // ATOMIC;
 
     // get the ip header
     ip_hdr_t *ip_hdr = (ip_hdr_t *)netmsg_vp_get_data( netmsg );
@@ -276,9 +253,6 @@ void _log_v_icmp( netmsg_t netmsg, PGM_P file, uint16_t line ){
                         ip_hdr->dest_addr.ip0 );
 
     }
-
-    // END_ATOMIC;
-
     #endif
 }
 
