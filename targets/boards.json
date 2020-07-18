@@ -4,7 +4,8 @@
 		"target": "esp8266",
 		"defines":
 		[
-			"ENABLE_COPROCESSOR"
+			"ENABLE_COPROCESSOR",
+			"NO_STRERROR"
 		]
 	},
 	"chromatron_classic_upgrade":
