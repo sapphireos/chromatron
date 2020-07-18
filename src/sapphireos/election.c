@@ -22,10 +22,15 @@
 // </license>
  */
 
-
-#include "sapphire.h"
+#include "system.h"
+#include "wifi.h"
 #include "config.h"
+#include "timers.h"
+#include "threading.h"
+#include "random.h"
+
 #include "election.h"
+
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -586,7 +591,7 @@ PT_BEGIN( pt );
     THREAD_WAIT_WHILE( pt, elections_count() == 0 );
 
     // create socket
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
 
     ASSERT( sock >= 0 );
 
