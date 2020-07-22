@@ -62,6 +62,13 @@ uint32_t hal_cpu_u32_get_internal_start( void ){
     spi_read( addr, (uint32_t *)&header, sizeof(header) );
     addr += sizeof(header);
 
+    if( header.segment_count == 0xff ){
+
+        trace_printf("INTERNAL Image invalid!\n");        
+
+        return 0xffffffff;
+    }
+
     uint32_t start = 0;
 
     trace_printf("INTERNAL Image info\nSegments: %d\n", header.segment_count);

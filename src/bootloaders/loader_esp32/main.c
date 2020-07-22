@@ -115,6 +115,11 @@ void main( void ){
     // initialize external flash
     flash25_v_init();
 
+    if( FW_START_OFFSET == 0xffffffff ){
+
+        trace_printf("Internal image fail\n");
+    }
+
     // check integrity of internal firmware
     uint16_t internal_crc = ldr_u16_get_internal_crc();
     trace_printf("Internal crc: 0x%04x\n", internal_crc);

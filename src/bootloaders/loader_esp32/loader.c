@@ -108,6 +108,12 @@ uint32_t ldr_u32_read_partition_length( void ){
 	uint32_t partition_length;
     
     uint32_t fw_start_offset = hal_flash25_u32_get_partition_start();
+
+    if( fw_start_offset == 0xffffffff ){
+
+        return 0;
+    }
+
     // trace_printf("Partition FW_START_OFFSET 0x%0x\n", fw_start_offset);
 
     uint32_t address = FLASH_FS_FIRMWARE_0_PARTITION_START + fw_start_offset;
@@ -133,6 +139,11 @@ uint32_t ldr_u32_read_internal_length( void ){
 	uint32_t internal_length = 0;
 
 	uint32_t addr = FW_START_OFFSET;
+
+    if( addr == 0xffffffff ){
+
+        return 0;
+    }
 
 	spi_flash_read( addr, &internal_length, sizeof(internal_length) );
 
