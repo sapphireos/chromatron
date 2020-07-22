@@ -125,7 +125,7 @@ void wifi_v_init( void ){
             .password = {0}
         },
     };
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
 	
     esp_read_mac( wifi_mac, ESP_MAC_WIFI_STA );
 
