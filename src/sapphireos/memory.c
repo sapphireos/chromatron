@@ -67,9 +67,11 @@ Memory overhead is 6 bytes per handle used
 
 static void *handles[MAX_MEM_HANDLES];
 
-#if defined(__SIM__) || defined(ARM) || defined(CHROMATRON_ESP8266) || defined(ESP32)
+#if defined(__SIM__) || defined(ARM) || defined(CHROMATRON_ESP8266)
     static uint8_t _heap[MEM_HEAP_SIZE] MEMORY_HEAP;
     static uint8_t *heap = _heap;
+#elif defined(ESP32)
+    static uint8_t *heap;
 #else
     static uint8_t *heap;
 #endif
@@ -298,8 +300,11 @@ static void verify_handle( mem_handle_t handle ){
 
 void mem2_v_init( void ){
 
-    #if defined(__SIM__) || defined(ARM) || defined(CHROMATRON_ESP8266) || defined(ESP32)
+    #if defined(__SIM__) || defined(ARM) || defined(CHROMATRON_ESP8266)
     uint16_t heap_size = cnt_of_array(_heap);
+    #elif defined(ESP32)
+    uint16_t heap_size = MEM_HEAP_SIZE;
+    heap = malloc( heap_size );
     #elif defined(AVR)
     uint16_t heap_start = (uintptr_t)&__heap_start;
     uint16_t stack_end = (uintptr_t)&__stack - ( MEM_MAX_STACK + MEM_STACK_HEAP_GUARD );
