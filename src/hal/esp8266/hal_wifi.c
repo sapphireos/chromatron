@@ -452,6 +452,11 @@ int8_t wifi_i8_get_status( void ){
     return 0;
 }
 
+int8_t wifi_i8_get_channel( void ){
+
+    return wifi_channel;
+}
+
 uint32_t wifi_u32_get_received( void ){
 
     return 0;
