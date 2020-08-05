@@ -31,8 +31,7 @@ from sapphire.common.broadcast import send_udp_broadcast
 from .messages import *
 from .catbustypes import *
 
-from sapphire.common import catbus_string_hash
-from sapphire.common import Ribbon, MsgQueueEmptyException
+from sapphire.common import catbus_string_hash, util, Ribbon, MsgQueueEmptyException
 
 
 class Link(object):
@@ -449,7 +448,8 @@ class Server(Ribbon):
         pass
     
     def _handle_get_key_meta(self, msg, host):
-        keys = sorted(self._database.keys())
+        keys = sorted(self._database.hashes())
+        
         key_count = len(keys)
         index = msg.page * CATBUS_MAX_KEY_META
         page_count = (key_count / CATBUS_MAX_KEY_META ) + 1
