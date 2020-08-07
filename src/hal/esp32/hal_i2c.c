@@ -116,7 +116,7 @@ void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
     i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_READ, CHECK_ACK );
     
     // read data
-    i2c_master_read( handle, dst, len, CHECK_ACK );
+    i2c_master_read( handle, dst, len, I2C_MASTER_ACK );
 
     i2c_master_stop( handle );
 
