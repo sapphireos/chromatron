@@ -31,21 +31,34 @@
 #include "ip.h"
 #include "timers.h"
 #include "fs.h"
-#include "os_irq.h"
 
 #include "logging.h"
 
 #define NO_EVENT_LOGGING
 #include "event_log.h"
 
-
 #ifdef LOG_ENABLE
 
-static bool enable_network_logging;
+#ifdef ENABLE_MSGFLOW
+#include "msgflow.h"
 
-KV_SECTION_META kv_meta_t logging_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST,  &enable_network_logging, 0,      "enable_network_logging" },
-};
+static msgflow_t msgflow;
+
+PT_THREAD( msgflow_init_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    if( msgflow <= 0 ){
+
+        // msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+    }
+ 
+PT_END( pt );
+}
+
+#endif
+
+
 
 static char buf[LOG_STR_BUF_SIZE];
 static file_t f = -1;
@@ -70,7 +83,15 @@ void log_v_init( void ){
         max_log_size = LOG_MAX_SIZE;
         cfg_v_set( CFG_PARAM_MAX_LOG_SIZE, &max_log_size );
     }
+
+    #ifdef ENABLE_MSGFLOW
+    thread_t_create( msgflow_init_thread,
+                     PSTR("msgflow_init_thread"),
+                     0,
+                     0 );
+    #endif
 }
+
 
 static void append_log( char *buf ){
 
@@ -80,6 +101,15 @@ static void append_log( char *buf ){
     #else
     trace_printf("%s", buf); // log prints already have newlines
     #endif
+    #endif
+
+    int str_len = strnlen( buf, LOG_STR_BUF_SIZE );
+
+    #ifdef ENABLE_MSGFLOW
+    if( msgflow > 0 ){
+        
+        msgflow_b_send( msgflow, buf, str_len );
+    }
     #endif
     
     // check if file is not open
@@ -104,7 +134,7 @@ static void append_log( char *buf ){
     }
 
     // write to file
-    if( fs_i16_write( f, buf, strnlen( buf, LOG_STR_BUF_SIZE ) ) < 0 ){
+    if( fs_i16_write( f, buf, str_len ) < 0 ){
     
         goto cleanup;
     }
@@ -127,12 +157,6 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
      *
      */
 
-    // do not run in an interrupt
-    // if( osirq_b_is_irq() ){
-
-    //     return;
-    // }
-
     // check log level
     if( (int8_t)level < LOG_LEVEL ){
 
@@ -143,17 +167,6 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
 
         return;
     }
-
-    // mem_handle_t h = mem2_h_alloc( LOG_STR_BUF_SIZE );
-    //
-    // if( h < 0 ){
-    //
-    //     return;
-    // }
-    //
-    // char *buf = mem2_vp_get_ptr( h );
-
-    // ATOMIC;
 
     EVENT( EVENT_ID_LOG_RECORD, 0 );
 
@@ -212,17 +225,11 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
     append_log( buf );
 
     EVENT( EVENT_ID_LOG_RECORD, 1 );
-
-    // mem2_v_free( h );
-
-    // END_ATOMIC;
 }
 
 void _log_v_icmp( netmsg_t netmsg, PGM_P file, uint16_t line ){
 
     #ifdef LOG_ICMP
-
-    // ATOMIC;
 
     // get the ip header
     ip_hdr_t *ip_hdr = (ip_hdr_t *)netmsg_vp_get_data( netmsg );
@@ -246,9 +253,6 @@ void _log_v_icmp( netmsg_t netmsg, PGM_P file, uint16_t line ){
                         ip_hdr->dest_addr.ip0 );
 
     }
-
-    // END_ATOMIC;
-
     #endif
 }
 

@@ -38,6 +38,7 @@ from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
 import json
 from datetime import datetime, timedelta
+from queue import Queue
 
 from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOCH, NotASapphireDevice
 from elysianfields import *
@@ -193,6 +194,7 @@ PIXEL_SETTINGS = [
 
 QUERY_FILENAME = os.path.join(firmware_package.data_dir(), 'chromatron_last_query.db')
 
+MAX_UPDATE_THREADS = 4
 
 def get_package_fx_script(fname):
     return pkg_resources.resource_filename('chromatron', fname)
@@ -233,6 +235,12 @@ class Chromatron(object):
         if init_scan:
             self.init_scan()
 
+    def get_formatted_name(self, left_align=True):
+        if left_align:
+            return '%32s @ %20s' % (click.style('%s' % (self.name), fg=NAME_COLOR), click.style('%s' % (self.host), fg=HOST_COLOR))
+
+        else:
+            return '%32s @ %20s' % (click.style('%s' % (self.name), fg=NAME_COLOR), click.style('%s' % (self.host), fg=HOST_COLOR))
 
     def init_scan(self):
         try:
@@ -823,12 +831,8 @@ class DeviceGroup(UserDict):
 
 
 def echo_name(ct, left_align=True, nl=True):
-    if left_align:
-        name_s = '%-32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
-
-    else:
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
-
+    name_s = ct.get_formatted_name(left_align=left_align)
+    
     click.echo(name_s, nl=nl)
 
 def echo_group(group):
@@ -1249,7 +1253,7 @@ def show(ctx):
         tag_0 = keys['meta_tag_0']
         tag_1 = keys['meta_tag_1']
         
-        name_s = '%32s @ %20s' % (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
 
         rssi_s = click.style('%2d  ' % (rssi), fg=VAL_COLOR)
         uptime_s = click.style('%8d ' % (uptime), fg=VAL_COLOR)
@@ -1308,7 +1312,7 @@ def ping(ctx):
         ct.echo()
         elapsed = int((time.time() - start) * 1000)
 
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         val_s = click.style('%3d ms' % (elapsed), fg=VAL_COLOR)
 
         s = '%s %s' % (name_s, val_s)
@@ -1341,7 +1345,7 @@ def identify(ctx):
     marked = {}
 
     for ct in group.values():
-        name_s = '%-32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name(left_align=True)
 
         click.echo('%s %s' % (name_s, ''), nl=False)
 
@@ -1366,7 +1370,7 @@ def identify(ctx):
         for ct in marked.values():
             ct.set_all_hsv(h=0.333, s=1.0, v=1.0)
 
-            name_s = '%-32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+            name_s = ct.get_formatted_name(left_align=True)
             click.echo('%s %s' % (name_s, 'marked'))
 
         click.echo("All marked devices set to GREEN.")
@@ -2357,7 +2361,8 @@ def restore(ctx):
 @click.option('--change_firmware', default=None, help='Change firmware on device.')
 @click.option('--yes', default=False, is_flag=True, help='Answer yes to all firmware change confirmation prompts.')
 @click.option('--skip_verify', default=False, is_flag=True, help='Skip verification.  Do not use this unless you have a really good reason.')
-def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
+@click.option('--parallel', '-p', default=False, is_flag=True, help='Run upgrade in parallel')
+def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
     """Upgrade firmware on selected devices"""
     # this weirdness is to deal with the difference in how Click handles progress updates
     # vs the device driver.
@@ -2390,6 +2395,9 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
 
     click.echo('\nRelease: %-32s Published :%32s\n' % (name_s, timestamp_s))   
 
+    if parallel:
+        click.echo('Parallel update mode')
+
     if not yes:
         if not click.confirm(click.style("Is this the release you intend to use?", fg='white')):
             click.echo("Firmware upgrade cancelled")
@@ -2409,15 +2417,21 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
         
         click.echo(click.style("Skip verification enabled!!!", fg='white'))
 
-    
-    for ct in group.values():
-        echo_name(ct)
+    updates = {}
 
-        firmware_loaded = False
+    for device_id, ct in group.items():
+        if not parallel:
+            echo_name(ct, nl=False)
+            click.echo(': ', nl=False)
+
+        updates[device_id] = {}
 
         # get firmware version
-        fw_version = ct.get_key('firmware_version')
-        fw_id = ct.get_key('firmware_id')
+        fw_info = ct._device.get_firmware_info()
+        fw_version = fw_info.firmware_version
+        fw_id = fw_info.firmware_id
+
+        updates[device_id]['fw_info'] = fw_info
 
         # check if we are changing firmawre
         if change_firmware:
@@ -2453,8 +2467,16 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
             click.echo("Skipping this device...")
             continue
 
+        # record firmware package for update
+        updates[device_id]['fw'] = fw
+
         if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
             click.echo(click.style("ESP8266 UPGRADE", fg='red'))
+
+            if parallel:
+                click.echo(click.style("This update is not available in parallel mode!", fg='red'))
+                return
+
             click.echo(click.style("THERE IS NO WAY TO DOWNGRADE FROM THIS UPDATE", fg='red'))
 
             if not click.confirm(click.style("Are you sure you want to do this?", fg='red')):
@@ -2490,40 +2512,163 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify):
             with open(BACKUP_FILE, 'w+') as f:
                 f.write(json.dumps(backup_data, indent=4, separators=(',', ': ')))
 
+        if not parallel:
+            if fw_info.board != 'chromatron_classic_upgrade':
+                click.echo(f"Updating from {fw_version} to {fw.get_version_for_target(fw_info.board)}")
 
-        with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
-            ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
+            with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
+                ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
 
-        click.echo('Waiting for device')
+            click.echo('Waiting for device')
 
-        for i in range(100):
-            if i > 10:
-                # don't start trying to echo too soon,
-                # because the reboot command takes a few seconds
-                # to process.
-                try:
-                    ct.echo()
+            for i in range(100):
+                if i > 10:
+                    # don't start trying to echo too soon,
+                    # because the reboot command takes a few seconds
+                    # to process.
+                    try:
+                        ct.echo()
 
-                    break
+                        break
 
-                except DeviceUnreachableException:
-                    pass
+                    except DeviceUnreachableException:
+                        pass
 
-            click.echo('.', nl=False)
+                click.echo('.', nl=False)
 
-            time.sleep(0.5)
+                time.sleep(0.5)
 
-        click.echo('.')
+            click.echo('.')
 
-        # make sure we're connected
-        try:
-            ct.echo()
+            # make sure we're connected
+            try:
+                ct.echo()
 
-            click.echo(click.style('Upgrade complete', fg='green'))
+                click.echo(click.style('Upgrade complete', fg='green'))
 
-        except DeviceUnreachableException:
-            click.echo(click.style('Failed to connect to device!', fg='red'))
-            return
+            except DeviceUnreachableException:
+                click.echo(click.style('Failed to connect to device!', fg='red'))
+                return
+
+        else:
+            if not parallel:
+                # print newline
+                click.echo('')
+
+    if parallel:
+        click.echo('Updating:')
+        
+        for device_id, ct in group.items():
+            echo_name(ct, nl=False)
+            click.echo(f": {updates[device_id]['fw_info'].firmware_version} to {updates[device_id]['fw'].get_version_for_target(updates[device_id]['fw_info'].board)}")
+
+        if not yes:
+            if not click.confirm(click.style("Are these the updates you intend to apply?", fg='white')):
+                return
+
+        # run parallel updates
+        
+        def display(q, total_devices):
+            updates = {}
+            completed = 0
+
+            while True:
+                msg = q.get()
+
+                if msg is None:
+                    return
+
+                ct = msg[0]
+                progress = msg[1]
+                updates[ct.device_id] = {
+                    'ct': ct,
+                    'progress': progress
+                }
+
+                if progress == 'Done':
+                    completed += 1
+
+                # format line
+                s = f"{completed:3} / {total_devices:3} | "
+                for update in updates.values():     
+                    if isinstance(update['progress'], int):
+                        s += f"{update['ct'].host:15}: {update['progress']:8}%   "
+
+                    else:
+                        s += f"{update['ct'].host:15}: {update['progress']:8}    "
+                    
+                sys.stdout.write('\r')
+                sys.stdout.write(s)
+                sys.stdout.flush()
+
+                if progress in ['Done', 'Error']:
+                    del updates[ct.device_id]
+
+
+        display_queue = Queue()
+        display_thread = threading.Thread(target=display, args=[display_queue, len(updates)], daemon=True)
+        display_thread.start()
+
+
+        def parallel_update(ct, semaphore, q):
+            def progress(value, filename=''):
+                q.put((ct, int(value)))
+                
+            ct._device.load_firmware(fw_id, release=release, progress=progress, verify=not skip_verify, use_percent=True)
+
+            q.put((ct, "Loading"))
+
+            # wait for device
+            for i in range(100):
+                if i > 10:
+                    # don't start trying to echo too soon,
+                    # because the reboot command takes a few seconds
+                    # to process.
+                    try:
+                        ct.echo()
+                        break
+
+                    except DeviceUnreachableException:
+                        pass
+
+                time.sleep(0.5)
+
+            try:
+                ct.echo()
+                q.put((ct, "Done"))
+
+            except DeviceUnreachableException:
+                q.put((ct, "Error"))
+
+                time.sleep(2.0)
+                sys.exit(-1)
+            
+            semaphore.release()
+
+        threads = []
+        sem = threading.Semaphore(MAX_UPDATE_THREADS)
+
+        for device_id, ct in group.items():
+            sem.acquire()
+            t = threading.Thread(target=parallel_update, args=[ct, sem, display_queue], daemon=True)
+            t.start()
+
+            threads.append(t)
+
+        # wait for threads to finish
+        for t in threads:
+            t.join()        
+
+        display_queue.put(None) # signals display thread to terminate
+        display_thread.join()
+
+        click.echo('')
+
+        click.echo('Updates complete.')
+        
+        for device_id, ct in group.items():
+            echo_name(ct, nl=False)
+            click.echo(f": {ct._device.get_firmware_info().firmware_version}")        
 
 
 @firmware.command()
@@ -2536,7 +2681,7 @@ def version(ctx):
         main_version, wifi_firmware_version = ct.get_version()
         fw_name = ct.get_key('firmware_name')
 
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         val_s = '%32s Main: %s Wifi: %s' % (click.style(fw_name, fg='white'), click.style(main_version, fg='cyan'), click.style(wifi_firmware_version, fg='cyan'))
 
         s = '%s %s' % (name_s, val_s)
@@ -2555,7 +2700,7 @@ def link_show(ctx):
     group = ctx.obj['GROUP']()
 
     for ct in group.values():
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         click.echo(name_s)
 
         links = ct.client.get_links()
@@ -2590,7 +2735,7 @@ def link_send(ctx, source, dest, target):
     group = ctx.obj['GROUP']()
 
     for ct in group.values():
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         click.echo(name_s)
 
         ct.client.add_link(True, source, dest, target, 'manual')
@@ -2610,7 +2755,7 @@ def link_receive(ctx, source, dest, target):
     source = False
 
     for ct in group.values():
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         click.echo(name_s)
 
         ct.client.add_link(False, source, dest, target, 'manual')
@@ -2624,7 +2769,7 @@ def link_delete(ctx, tag):
     group = ctx.obj['GROUP']()
 
     for ct in group.values():
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         click.echo(name_s)
 
         ct.client.delete_link(tag)
@@ -2645,7 +2790,7 @@ def time_get(ctx):
         ntp_seconds = ct.get_key("ntp_seconds")
         ntp_now = timedelta(seconds=ntp_seconds) + NTP_EPOCH
 
-        name_s = '%32s @ %20s' % (click.style('%s' % (ct.name), fg=NAME_COLOR), click.style('%s' % (ct.host), fg=HOST_COLOR))
+        name_s = ct.get_formatted_name()
         val_s = '%32s' % (click.style(ntp_now.isoformat(), fg='white'))
 
         s = '%s %s' % (name_s, val_s)

@@ -30,6 +30,7 @@ setup(
     packages=['sapphire',
               'sapphire.common',
               'sapphire.devices',
+              'sapphire.protocols',
               'sapphire.buildtools',
               ],
 
@@ -45,7 +46,7 @@ setup(
         "catbus",
         "appdirs==1.4.3",
         "requests==2.22.0",
-        "setuptools == 34.2.0",
+        "setuptools >= 49.2.0",
         "pyserial == 3.4.0",
         "cmd2 == 0.6.9",
         "click == 7.1.2",
@@ -53,7 +54,9 @@ setup(
         "pyparsing == 2.2.0",
         "intelhex == 2.1",
         "elysianfields >= 1.0.5",
-        "fnvhash",
+        "fnvhash==0.1.0",
+        "zeroconf==0.24.4",
+        "colorlog==4.1.0",
     ],
 
     entry_points='''

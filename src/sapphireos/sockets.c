@@ -195,6 +195,22 @@ bool sock_b_rx_pending( void ){
     return FALSE;
 }
 
+
+void sock_v_clear_rx_pending( void ){
+
+    #ifdef SOCK_SINGLE_BUF
+    if( rx_handle > 0 ){
+
+        // free the receive buffer
+        mem2_v_free( rx_handle );
+
+        // mark handle as empty
+        rx_handle = -1;
+        rx_port = 0;
+    }
+    #endif
+}
+
 // this function gets a local port that is between the given bounds and is
 // guaranteed to not be in use by any other port.
 static uint16_t get_lport( void ){

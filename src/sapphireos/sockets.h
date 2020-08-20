@@ -29,6 +29,7 @@
 #include "list.h"
 #include "memory.h"
 #include "netmsg.h"
+#include "udp.h"
 
 #define SOCK_SINGLE_BUF
 
@@ -86,6 +87,7 @@ mem_handle_t sock_h_get_data_handle( socket_t sock );
 bool sock_b_port_in_use( uint16_t port );
 bool sock_b_port_busy( uint16_t port );
 bool sock_b_rx_pending( void );
+void sock_v_clear_rx_pending( void );
 
 bool sock_b_busy( socket_t sock );
 

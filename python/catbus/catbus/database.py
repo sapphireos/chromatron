@@ -27,6 +27,7 @@ import random
 import time
 import logging
 
+from sapphire.common import catbus_string_hash
 
 from .data_structures import *
 
@@ -39,7 +40,6 @@ class Database(UserDict):
     def __init__(self, name=None, location=None, tags=[], datafile='data'):
         super(Database, self).__init__()
 
-        self._kv_items = {}
         self._hashes = {}
         self._lock = threading.RLock()
         self._datafile = datafile
@@ -81,7 +81,7 @@ class Database(UserDict):
             array = CatbusDataArray().unpack(f.read())
 
             for item in array:  
-                self._kv_items[item.key] = item.data
+                self.data[item.key] = item.data
                 self._hashes[catbus_string_hash(item.key)] = item.key
 
     def _persist(self):
@@ -96,11 +96,27 @@ class Database(UserDict):
         # with open(self._datafile + DATAFILE_EXT, 'wb+') as f:
         #     f.write(array.pack())
 
+    def __contains__(self, other):
+        with self._lock:
+            if other in self.data.keys():
+                return True
+
+            if other in self._hashes.keys():
+                return True
+
+            return False
+
     def keys(self):
         """Return list of keys"""
         with self._lock:
-            keys = list(self._kv_items.keys())
+            # keys = list(self._kv_items.keys())
+            keys = list(self.data.keys())
             keys.extend(list(self._hashes.keys()))
+            return keys
+
+    def hashes(self):
+        with self._lock:
+            keys = list(self._hashes.keys())
             return keys
 
     def get_query(self):
@@ -179,7 +195,7 @@ class Database(UserDict):
 
         with self._lock:
             # check if key is already in database
-            if key in self._kv_items:
+            if key in self.data:
                 raise KeyError('Key already present')
 
             # add new item
@@ -187,7 +203,7 @@ class Database(UserDict):
             meta = CatbusMeta(hash=hashed_key, flags=flags, type=data_type, array_len=count - 1)
 
             kv_item = CatbusData(meta=meta, value=value)
-            self._kv_items[key] = kv_item
+            self.data[key] = kv_item
             self._hashes[hashed_key] = key
 
         # notify subclass
@@ -198,10 +214,10 @@ class Database(UserDict):
 
     def _get_item_no_lock(self, key):
         try:
-            return self._kv_items[key]
+            return self.data[key]
 
         except KeyError:
-            return self._kv_items[self._hashes[key]]
+            return self.data[self._hashes[key]]
 
     def get_item(self, key):
         with self._lock:
@@ -224,18 +240,18 @@ class Database(UserDict):
             if key in self._hashes:
                 key = self._hashes[key]
 
-            found = key in self._kv_items
+            found = key in self.data
 
         # can set from key or hash
         if found:
             with self._lock:
                 try:
-                    self._kv_items[key].value = value
+                    self.data[key].value = value
 
                 except TypeError:
-                    self._kv_items[key].value = value._value
+                    self.data[key].value = value._value
 
-                if self._kv_items[key].meta.flags & CATBUS_FLAGS_PERSIST:
+                if self.data[key].meta.flags & CATBUS_FLAGS_PERSIST:
                     self._persist()
 
             # publish

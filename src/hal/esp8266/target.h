@@ -39,6 +39,7 @@
 // #define ENABLE_COPROCESSOR // this will be defined in target settings.json
 // #define ESP8266_UPGRADE  // this will be defined in target settings.json
 // #define ENABLE_EVENT_LOG
+#define ENABLE_MSGFLOW
 
 #ifdef BOOTLOADER
 #undef ENABLE_COPROCESSOR
@@ -76,7 +77,7 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         128
+#define MAX_MEM_HANDLES         255
 #define MEM_MAX_STACK           4096
 #define MEM_HEAP_SIZE			16384
 
@@ -99,6 +100,11 @@
 // logging
 #define LOG_MAX_BUFFER_SIZE     2048
 #define ENABLE_LOG_TO_TRACE_PRINT
+
+// msgflow
+#define MSGFLOW_MAX_Q_SIZE		2048
+#define MSGFLOW_MAX_Q_MSGS      32
+
 
 // leave one block at end for bootloader information
 #define FW_MAX_SIZE ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024  - FLASH_FS_ERASE_BLOCK_SIZE )

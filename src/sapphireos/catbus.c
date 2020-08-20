@@ -29,7 +29,6 @@
 #include "catbus.h"
 #include "random.h"
 #include "election.h"
-#include "influx.h"
 #include "timesync.h"
 
 
@@ -322,6 +321,9 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+    list_v_init( &send_list );
+    list_v_init( &receive_cache );
+
     #ifdef ENABLE_CATBUS_LINK
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -330,9 +332,6 @@ void catbus_v_init( void ){
     else{
 
         link_enable = TRUE;
-
-        list_v_init( &send_list );
-        list_v_init( &receive_cache );
 
         file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -1244,8 +1243,6 @@ int8_t catbus_i8_publish( catbus_hash_t32 hash ){
     
         kv_v_notify_hash_set( hash );
     }
-
-    influx_v_transmit( hash );
 
     #ifdef ENABLE_TIME_SYNC
     ntp_ts_t ntp_timestamp = time_t_now();

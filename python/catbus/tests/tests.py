@@ -2,7 +2,7 @@ import unittest
 
 from catbus import *
 from catbus.database import Database
-from catbus.data_structures import catbus_string_hash
+from sapphire.common import catbus_string_hash
 from catbus.options import CATBUS_DISCOVERY_PORT
 
 

@@ -69,6 +69,7 @@ static sys_warnings_t warnings;
 static uint8_t reboot_delay;
 static bool is_rebooting;
 
+static bool shutting_down;
 
 #ifndef BOOTLOADER
 FW_INFO_SECTION fw_info_t fw_info;
@@ -551,7 +552,7 @@ void reboot( void ){
 // return TRUE if system is about to shut down
 bool sys_b_shutdown( void ){
 
-    return reboot_delay > 0;
+    return shutting_down;
 }
 
 
@@ -717,6 +718,8 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    shutting_down = TRUE;
+
     catbus_v_shutdown();
     kv_v_shutdown();
     
@@ -754,3 +757,9 @@ void sys_v_enable_interrupts( void ){
 
     ENABLE_INTERRUPTS;
 }
+
+void sys_v_disable_interrupts( void ){
+
+    DISABLE_INTERRUPTS;
+}
+

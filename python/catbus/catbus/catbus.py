@@ -45,6 +45,7 @@ import time
 import sys
 import os
 
+from sapphire.common import catbus_string_hash
 from .database import *
 from .server import *
 from .client import *

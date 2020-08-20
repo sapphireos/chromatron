@@ -44,7 +44,7 @@
 static uint8_t wifi_mac[6];
 static int8_t wifi_rssi;
 static uint8_t wifi_bssid[6];
-static int8_t wifi_router;
+static int8_t wifi_router = -1;
 static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
@@ -75,9 +75,12 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY,   &wifi_mac,                         0,   "wifi_mac" },
     { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_rssi,                        0,   "wifi_rssi" },
-    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_channel,                     0,   "wifi_channel" },
     { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,   &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_connects,                    0,   "wifi_connects" },
+
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_channel,  0,   "wifi_channel" },
+    { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_bssid,    0,   "wifi_bssid" },
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_router,   0,   "wifi_router" },
 
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
@@ -246,10 +249,27 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
     memcpy( data, pdata, len );
 
     // post to rx Q
-    if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
+    if( list_u8_count( &rx_list ) == ( WIFI_MAX_RX_NETMSGS - 1 ) ){
 
-        log_v_warn_P( PSTR("rx q full") );     
+        if( sock_b_rx_pending() ){
 
+            log_v_error_P( PSTR("rx q almost full, dropping pending socket") );     
+
+            // clear pending data on whatever socket is blocking.
+            sock_v_clear_rx_pending();
+        }
+    }
+    else if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
+
+        log_v_warn_P( PSTR("rx q full: lport: %u rport: %d.%d.%d.%d:%u"), state->laddr.port, state->raddr.ipaddr.ip3, state->raddr.ipaddr.ip2, state->raddr.ipaddr.ip1, state->raddr.ipaddr.ip0, state->raddr.port );     
+
+        if( sock_b_rx_pending() ){
+
+            // clear pending data on whatever socket is blocking.
+            sock_v_clear_rx_pending();
+        }
+
+        // drop this message
         netmsg_v_release( rx_netmsg );
 
         return;
@@ -716,39 +736,47 @@ station_mode:
 
             wifi_set_opmode_current( STATION_MODE );
 
-            // scan first
-            wifi_router = -1;
-            log_v_debug_P( PSTR("Scanning...") );
-            
-            struct scan_config scan_config;
-            memset( &scan_config, 0, sizeof(scan_config) );
-            
-            // light LED while scanning since the CPU will freeze
-            io_v_set_esp_led( 1 );
+            // check if we can try a fast connect with the last connected router
+            if( wifi_router >= 0 ){
 
-            wifi_station_disconnect();
-            if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
-
-            	log_v_error_P( PSTR("Scan error") );
+                log_v_debug_P( PSTR("Fast connect...") );
             }
+            else{
 
-            scan_timeout = 200;
-            while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
+                // scan first
+                wifi_router = -1;
+                log_v_debug_P( PSTR("Scanning...") );
+                
+                struct scan_config scan_config;
+                memset( &scan_config, 0, sizeof(scan_config) );
+                
+                // light LED while scanning since the CPU will freeze
+                io_v_set_esp_led( 1 );
 
-                scan_timeout--;
+                wifi_station_disconnect();
+                if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
 
-                TMR_WAIT( pt, 50 );
+                	log_v_error_P( PSTR("Scan error") );
+                }
+
+                scan_timeout = 200;
+                while( ( wifi_router < 0 ) && ( scan_timeout > 0 ) ){
+
+                    scan_timeout--;
+
+                    TMR_WAIT( pt, 50 );
+                }
+
+                io_v_set_esp_led( 0 );
+
+                if( wifi_router < 0 ){
+
+                    goto end;
+                }
+
+                log_v_debug_P( PSTR("Connecting...") );
             }
-
-            io_v_set_esp_led( 0 );
-
-            if( wifi_router < 0 ){
-
-                goto end;
-            }
-
-            log_v_debug_P( PSTR("Connecting...") );
-            
+    
 			struct station_config sta_config;
 			memset( &sta_config, 0, sizeof(sta_config) );
 			memcpy( sta_config.bssid, wifi_bssid, sizeof(sta_config.bssid) );
@@ -781,6 +809,17 @@ station_mode:
                 ip_addr_t dns_ip = espconn_dns_getserver( 0 );
 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_ip );
            	}
+            else{
+
+                // connection failed
+                wifi_router = -1;
+                wifi_channel = -1;
+                memset( wifi_bssid, 0, sizeof(wifi_bssid) );
+            }
+
+            kv_i8_persist( __KV__wifi_channel );
+            kv_i8_persist( __KV__wifi_bssid );
+            kv_i8_persist( __KV__wifi_router );
         }
         // AP mode
         else{

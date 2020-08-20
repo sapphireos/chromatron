@@ -146,9 +146,11 @@ class Directory(Ribbon):
                 c = Client()
                 c.connect(host)
                 name = c.get_key(META_TAG_NAME)
+                location = c.get_key(META_TAG_LOC)
 
-                info = {'host': host,
+                info = {'host': tuple(host),
                         'name': name,
+                        'location': location,
                         'query': resolved_query,
                         'tags': [t for t in msg.query if t != 0],
                         'data_port': msg.data_port,
