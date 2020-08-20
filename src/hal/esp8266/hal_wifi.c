@@ -989,7 +989,7 @@ PT_BEGIN( pt );
 
     static socket_t sock;
 
-    sock = sock_s_create( SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
     sock_v_bind( sock, 7 );
 
     while(1){

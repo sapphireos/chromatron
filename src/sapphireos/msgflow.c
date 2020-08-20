@@ -447,7 +447,7 @@ PT_THREAD( listener_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    listener_sock = sock_s_create( SOCK_DGRAM );
+    listener_sock = sock_s_create( SOS_SOCK_DGRAM );
 
     if( listener_sock < 0 ){
 
@@ -572,7 +572,7 @@ PT_BEGIN( pt );
             goto shutdown;   
         }
 
-        state->sock = sock_s_create( SOCK_DGRAM );
+        state->sock = sock_s_create( SOS_SOCK_DGRAM );
 
         if( state->sock < 0 ){
 
@@ -622,7 +622,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        msgflow_msg_ready_t *ready = (msgflow_msg_ready_t *)( header + 1 );
+        // msgflow_msg_ready_t *ready = (msgflow_msg_ready_t *)( header + 1 );
 
         // ***********************************************************8
         // we are now connected!
