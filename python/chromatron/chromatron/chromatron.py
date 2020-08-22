@@ -419,16 +419,20 @@ class Chromatron(object):
         self._device.reboot_and_load_fw()
 
     def get_version(self):
-        main_ver = self._device.get_firmware_info().firmware.version
-        raw_wifi_ver = self.get_key('wifi_version')
+        fw_info = self._device.get_firmware_info()
+        try:
+            raw_wifi_ver = self.get_key('wifi_version')
 
-        major = (raw_wifi_ver >> 12) & 0x0f
-        minor = (raw_wifi_ver >> 7) & 0x1f
-        patch = (raw_wifi_ver >> 0) & 0x7f
+            major = (raw_wifi_ver >> 12) & 0x0f
+            minor = (raw_wifi_ver >> 7) & 0x1f
+            patch = (raw_wifi_ver >> 0) & 0x7f
 
-        wifi_ver = '%d.%d.%d' % (major, minor, patch)
+            wifi_ver = '%d.%d.%d' % (major, minor, patch)
 
-        return main_ver, wifi_ver
+        except KeyError:
+            wifi_ver = None
+
+        return fw_info.firmware_version, fw_info.os_version, wifi_ver
 
     def echo(self):
         self._device.echo()
@@ -2678,11 +2682,14 @@ def version(ctx):
     group = ctx.obj['GROUP']()
 
     for ct in group.values():
-        main_version, wifi_firmware_version = ct.get_version()
+        app_version, os_version, wifi_firmware_version = ct.get_version()
         fw_name = ct.get_key('firmware_name')
 
         name_s = ct.get_formatted_name()
-        val_s = '%32s Main: %s Wifi: %s' % (click.style(fw_name, fg='white'), click.style(main_version, fg='cyan'), click.style(wifi_firmware_version, fg='cyan'))
+        if wifi_firmware_version is not None:
+            val_s = '%32s App: %s OS: %s Wifi: %s' % (click.style(fw_name, fg='white'), click.style(app_version, fg='cyan'), click.style(os_version, fg='cyan'),click.style(wifi_firmware_version, fg='cyan'))
+        else:
+            val_s = '%32s App: %s OS: %s' % (click.style(fw_name, fg='white'), click.style(app_version, fg='cyan'), click.style(os_version, fg='cyan'))
 
         s = '%s %s' % (name_s, val_s)
 
