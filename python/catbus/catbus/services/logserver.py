@@ -25,7 +25,7 @@
 import sys
 import time
 from datetime import datetime
-from catbus import CatbusService, Client
+from catbus import CatbusService, Directory
 from sapphire.common.ribbon import wait_for_signal
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.protocols.zeroconf_service import ZeroconfService
@@ -140,11 +140,13 @@ class LogServer(MsgFlowReceiver):
 
         self.loki = LokiHandler(settings=settings)
 
+        # run local catbus directory
+        self._catbus_directory = Directory()
+
         self.update_directory()
 
     def update_directory(self):
-        client = Client()
-        self.directory = client.get_directory()
+        self.directory = self._catbus_directory.get_directory()
 
         self._last_directory_update = time.time()
 
