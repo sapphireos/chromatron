@@ -47,8 +47,6 @@ DIRECTORY_UPDATE_INTERVAL = 8.0
 LOKI_SERVER = "http://localhost:3100"
 LOGSERVER_PORT = None
 
-# LOKI_SERVER = "http://loki:3100"
-# LOGSERVER_PORT = 30001
 
 class LokiHandler(Ribbon):
     def initialize(self, settings={}):
@@ -106,8 +104,13 @@ class LokiHandler(Ribbon):
         if 'location' in info:
             location = info['location']
 
+
+        # !!! NOTE
+        # all Loki tags must be strings!
+        # if you get an error 400, check for that!
+
         tags = {
-            'device_id':    info['device_id'],
+            'device_id':    str(info['device_id']),
             'name':         info['name'],
             'host':         host[0],
             'location':     location,
@@ -118,8 +121,6 @@ class LokiHandler(Ribbon):
         }
 
         full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
-
-        print(full_log_msg, tags)
 
         self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
 
