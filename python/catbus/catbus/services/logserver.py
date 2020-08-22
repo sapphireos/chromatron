@@ -118,6 +118,9 @@ class LokiHandler(Ribbon):
         }
 
         full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
+
+        print(full_log_msg, tags)
+
         self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
 
 
