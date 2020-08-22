@@ -432,7 +432,7 @@ class Chromatron(object):
         except KeyError:
             wifi_ver = None
 
-        return fw_info.firmware_version, fw_info.os_version, wifi_ver
+        return fw_info.firmware_version, fw_info.os_version, fw_info.board, wifi_ver
 
     def echo(self):
         self._device.echo()
@@ -2682,14 +2682,14 @@ def version(ctx):
     group = ctx.obj['GROUP']()
 
     for ct in group.values():
-        app_version, os_version, wifi_firmware_version = ct.get_version()
+        app_version, os_version, board, wifi_firmware_version = ct.get_version()
         fw_name = ct.get_key('firmware_name')
 
         name_s = ct.get_formatted_name()
         if wifi_firmware_version is not None:
-            val_s = '%32s App: %s OS: %s Wifi: %s' % (click.style(fw_name, fg='white'), click.style(app_version, fg='cyan'), click.style(os_version, fg='cyan'),click.style(wifi_firmware_version, fg='cyan'))
+            val_s = '%32s App: %s OS: %s Board: %s Wifi: %s' % (click.style(fw_name, fg='white'), click.style(app_version, fg='cyan'), click.style(os_version, fg='cyan'), click.style(board, fg='cyan'), click.style(wifi_firmware_version, fg='cyan'))
         else:
-            val_s = '%32s App: %s OS: %s' % (click.style(fw_name, fg='white'), click.style(app_version, fg='cyan'), click.style(os_version, fg='cyan'))
+            val_s = '%32s App: %s OS: %s Board: %s' % (click.style(fw_name, fg='white'), click.style(app_version, fg='cyan'), click.style(os_version, fg='cyan'), click.style(board, fg='cyan'))
 
         s = '%s %s' % (name_s, val_s)
 
