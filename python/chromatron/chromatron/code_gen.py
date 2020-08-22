@@ -819,16 +819,20 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_AugAssign(self, node):
         return cg1AugAssign(self.visit(node.op), self.visit(node.target), self.visit(node.value), lineno=node.lineno)
 
-    def visit_Num(self, node):
-        if isinstance(node.n, int):
-            return cg1ConstInt32(node.n, lineno=node.lineno)
 
-        elif isinstance(node.n, float):
-            return cg1ConstFixed16(node.n, lineno=node.lineno)
+    def get_const(self, value, node):
+        if isinstance(value, int):
+            return cg1ConstInt32(value, lineno=node.lineno)
+
+        elif isinstance(value, float):
+            return cg1ConstFixed16(value, lineno=node.lineno)
 
         else:
             raise NotImplementedError(node)    
-    
+
+    def visit_Num(self, node):
+        return self.get_const(node.n, node)
+        
     def visit_Name(self, node):
         return cg1Var(node.id, lineno=node.lineno)
 
@@ -855,6 +859,13 @@ class CodeGenPass1(ast.NodeVisitor):
         return result
 
     def visit_UnaryOp(self, node):
+        if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant):
+            # this can happen if we have a constant which is negative.
+            # thanks, Python 3, for making this unncessarily complicated.
+
+            # get constant, with negation
+            return self.get_const(-1 * node.operand.value, node)
+
         assert isinstance(node.op, ast.Not)
 
         return cg1UnaryNot(self.visit(node.operand), lineno=node.lineno)
