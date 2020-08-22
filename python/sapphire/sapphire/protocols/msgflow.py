@@ -305,7 +305,11 @@ class MsgFlowReceiver(Ribbon):
 
                 # data!
                 data = bytes(msg.data.toBasic())
-                self.on_receive(host, data)
+                try:
+                    self.on_receive(host, data)
+
+                except Exception as e:
+                    logging.exception(e)
 
                 logging.info(f"Msg {msg.sequence} len: {len(msg.data)} host: {host}")
 
@@ -314,7 +318,7 @@ class MsgFlowReceiver(Ribbon):
                 # got a duplicate data message, resend status
                 self._send_status(host)
 
-                logging.warning(f"Dup {msg.sequence} status: {self._connections[host]['sequence']}")
+                logging.warning(f"Dup {msg.sequence} sequence: {self._connections[host]['sequence']}")
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 
@@ -322,13 +326,21 @@ class MsgFlowReceiver(Ribbon):
         if host in self._connections:
             logging.info(f"Removing: {host}")
             del self._connections[host]
-            self.on_disconnect(host)
+
+            try:
+                self.on_disconnect(host)
+            except Exception as e:
+                logging.exception(e)
 
     def _handle_reset(self, msg, host):
         if host not in self._connections:
             logging.info(f"Connection from: {host} max_len: {msg.max_data_len}")
+            try:
+                self.on_connect(host, msg.device_id)
 
-            self.on_connect(host, msg.device_id)
+            except Exception as e:
+                logging.exception(e)
+
             self._connections[host] = {'sequence': 0, 'timeout': CONNECTION_TIMEOUT}
 
         self._send_ready(host, code=msg.code)

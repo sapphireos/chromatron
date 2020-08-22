@@ -88,6 +88,8 @@ class LokiHandler(Ribbon):
         if msg is None:
             return
 
+        return
+
         host    = msg[0]
         info    = msg[1]
         now     = msg[2]
@@ -174,13 +176,13 @@ class LogServer(MsgFlowReceiver):
         self.loki.post_msg((host, info, now, log))
 
 
-    def on_connect(self, host, device_id=None):
-        self.update_directory()
+    # def on_connect(self, host, device_id=None):
+    #     self.update_directory()
 
-        self.loki.logger.info(f"Connected: {host[0]}:{host[1]} from {device_id}")
+    #     self.loki.logger.info(f"Connected: {host[0]}:{host[1]} from {device_id}")
         
-    def on_disconnect(self, host):
-        self.loki.logger.info(f"Disconnected: {host[0]}:{host[1]}")
+    # def on_disconnect(self, host):
+    #     self.loki.logger.info(f"Disconnected: {host[0]}:{host[1]}")
 
     def loop(self):
         super().loop()

@@ -107,7 +107,7 @@ void msgflow_v_init( void ){
         return;
     }
 
-    thread_t_create( demo, PSTR("test"), 0, 0 );
+    // thread_t_create( demo, PSTR("msgflow_test"), 0, 0 );
 
     // msgflow_m_listen( 0x1234, MSGFLOW_CODE_ANY, 512 );
 }
@@ -588,6 +588,7 @@ PT_BEGIN( pt );
         log_v_debug_P( PSTR("msgflow reset") );
 
         state->sequence = 0;
+        state->tx_sequence = 0;
         state->rx_sequence = 0;
         state->keepalive = MSGFLOW_KEEPALIVE;
 
@@ -630,10 +631,6 @@ PT_BEGIN( pt );
         break;
     }
 
-
-    log_v_debug_P( PSTR("msgflow ready") );        
-
-
     // init transmitter
     if( state->code == MSGFLOW_CODE_ARQ ){
 
@@ -654,6 +651,8 @@ PT_BEGIN( pt );
             }
         }
     }
+
+    log_v_debug_P( PSTR("msgflow ready") );        
 
 
     // server
