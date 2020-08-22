@@ -173,6 +173,10 @@ class LogServer(MsgFlowReceiver):
         log = data.decode('ascii')
         info = self.lookup_by_host(host)
 
+        if info is None:
+            logging.warning(f"Directory information not available for host: {host}")
+            return
+
         self.loki.post_msg((host, info, now, log))
 
 
