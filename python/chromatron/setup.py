@@ -22,7 +22,7 @@
 
 from setuptools import setup
 
-from chromatron import VERSION
+from chromatron.version import VERSION
 
 setup(
     name='chromatron',
