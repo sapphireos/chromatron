@@ -321,8 +321,10 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+    #ifdef ENABLE_NETWORK
     list_v_init( &send_list );
     list_v_init( &receive_cache );
+    #endif
 
     #ifdef ENABLE_CATBUS_LINK
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){

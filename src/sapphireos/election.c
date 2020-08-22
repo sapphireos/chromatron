@@ -31,6 +31,7 @@
 
 #include "election.h"
 
+#ifdef ENABLE_NETWORK
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -807,3 +808,5 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
+
+#endif
