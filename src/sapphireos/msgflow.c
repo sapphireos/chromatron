@@ -554,6 +554,12 @@ PT_BEGIN( pt );
             state->tx_thread = -1;
         }
 
+        // reset sequences
+        state->sequence = 0;
+        state->tx_sequence = 0;
+        state->rx_sequence = 0;
+        state->keepalive = MSGFLOW_KEEPALIVE;
+
         clear_tx_q( state );
 
         if( state->sock > 0 ){
@@ -586,11 +592,6 @@ PT_BEGIN( pt );
         // got an address
         // send series of resets
         log_v_debug_P( PSTR("msgflow reset") );
-
-        state->sequence = 0;
-        state->tx_sequence = 0;
-        state->rx_sequence = 0;
-        state->keepalive = MSGFLOW_KEEPALIVE;
 
         // we send 3 times to make sure it makes it
         send_reset( state );
