@@ -88,8 +88,6 @@ class LokiHandler(Ribbon):
         if msg is None:
             return
 
-        return
-
         host    = msg[0]
         info    = msg[1]
         now     = msg[2]
