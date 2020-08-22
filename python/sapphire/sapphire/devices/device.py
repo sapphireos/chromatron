@@ -254,12 +254,14 @@ class KVMeta(UserDict):
 class Device(object):
     def __init__(self,
                  host=None,
+                 port=CATBUS_DISCOVERY_PORT,
                  device_id=None,
                  comm_channel=None):
 
         super(Device, self).__init__()
 
         self.host = host
+        self.port = port
         self.firmware_id = None
         self.firmware_name = ""
         self.os_name = ""
@@ -297,7 +299,7 @@ class Device(object):
 
         if self.channel_type == 'network':
             self._client = Client()
-            self._client.connect(self.host)
+            self._client.connect((self.host, self.port))
 
         elif self.channel_type == 'serial_udp':
             self._client = Client()
