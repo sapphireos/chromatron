@@ -203,7 +203,7 @@ def get_package_fx_script(fname):
 # note - this is just a convenience wrapper around the
 # underlying Device object.
 class Chromatron(object):
-    def __init__(self, host, port=None, init_scan=True, force_network=False):
+    def __init__(self, host, port=catbus.CATBUS_DISCOVERY_PORT, init_scan=True, force_network=False):
         if (host == None) or (host == 'usb'):
             host = 'usb'
 
@@ -655,7 +655,7 @@ class DeviceGroup(UserDict):
                 ct = Chromatron(host=host, init_scan=False)
                 ct.echo()
 
-                self.matches[0] = {'host': (ct.host, 0)}
+                self.matches[0] = {'host': (ct.host, catbus.CATBUS_DISCOVERY_PORT)}
 
             except (socket.error, TypeError):
                 raise
