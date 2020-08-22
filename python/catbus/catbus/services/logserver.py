@@ -114,10 +114,10 @@ class LokiHandler(Ribbon):
             'name':         info['name'],
             'host':         host[0],
             'location':     location,
-            'sys_time':     sys_time,
+            # 'sys_time':     sys_time,
             'level':        level,
             'source_file':  source_file,
-            'source_line':  source_line,
+            # 'source_line':  source_line,
         }
 
         full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
