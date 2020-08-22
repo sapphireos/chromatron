@@ -115,13 +115,13 @@ void election_v_init( void ){
     fs_f_create_virtual( PSTR("electioninfo"), vfile );
 
     // debug: test election
-    // election_v_join( 0x1234, 0, 1, 9090 );
+    election_v_join( 0x1234, 0, 1, 9090 );
 }
 
 
 static void reset_state( election_t *election ){
 
-    log_v_debug_P( PSTR("Reset to IDLE") );
+    log_v_info_P( PSTR("Reset to IDLE") );
 
     election->state      = STATE_IDLE;  
     election->cycles     = 0;  
@@ -227,7 +227,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
         return;
     }
 
-    log_v_debug_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
+    log_v_info_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
 
     list_v_insert_tail( &elections_list, ln );  
 }
@@ -534,7 +534,7 @@ PT_BEGIN( pt );
                     // do we have a leader?
                     if( !ip_b_is_zeroes( election->leader_ip ) ){
 
-                        log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
+                        log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;   
                         election->timeout   = FOLLOWER_TIMEOUT;                     
                     }
@@ -550,7 +550,7 @@ PT_BEGIN( pt );
                     if( compare_self( election ) ){
 
                         // switch to candidate so we inform other nodes
-                        log_v_debug_P( PSTR("-> CANDIDATE") );
+                        log_v_info_P( PSTR("-> CANDIDATE") );
                         election->state = STATE_CANDIDATE;
                         election->timeout = CANDIDATE_TIMEOUT;
                     }
@@ -563,7 +563,7 @@ PT_BEGIN( pt );
                         }
 
                         // found a leader
-                        log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
+                        log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;
                         election->timeout   = FOLLOWER_TIMEOUT;                
                     }
@@ -577,7 +577,7 @@ PT_BEGIN( pt );
                 if( compare_self( election ) ){
 
                     log_v_debug_P( PSTR("No leader found -> elect ourselves LEADER") );
-                    log_v_debug_P( PSTR("-> LEADER") );
+                    log_v_info_P( PSTR("-> LEADER") );
                     election->state = STATE_LEADER;
                 }
                 else{
@@ -588,14 +588,14 @@ PT_BEGIN( pt );
                         log_v_error_P( PSTR("STATE CHANGE FAIL") );    
                     }
 
-                    log_v_debug_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
+                    log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                     election->state     = STATE_FOLLOWER;
                     election->timeout   = FOLLOWER_TIMEOUT;
                 }
             }
             else if( election->state == STATE_FOLLOWER ){                    
 
-                log_v_debug_P( PSTR("FOLLOWER timeout: lost leader") );
+                log_v_info_P( PSTR("FOLLOWER timeout: lost leader") );
 
                 reset_state( election );
             }
