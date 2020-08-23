@@ -1,4 +1,7 @@
+from __future__ import print_function
 
+from builtins import chr
+from builtins import map
 import os
 import hashlib
 import zipfile
@@ -22,7 +25,7 @@ def build():
 
         f.write("#include <stdint.h>\n")
 
-        for k, v in hashes.iteritems():
+        for k, v in hashes.items():
             f.write("#define %s (uint32_t)%s\n" % (k, v))
 
         f.write("#endif\n")
@@ -58,7 +61,7 @@ def create_firmware_image():
 
     # verify first byte (quick sanity check)
     if data_bytes[0] != 0xE9:
-        print "Invalid firmware image!"
+        print("Invalid firmware image!")
         return
 
     # we override bytes 2 and 3 in the ESP8266 image
@@ -168,9 +171,9 @@ if __name__ == '__main__':
     version = read_version()
     md5, sha256 = create_firmware_image()
 
-    print version
-    print md5.hexdigest()
-    print sha256.hexdigest()
+    print(version)
+    print(md5.hexdigest())
+    print(sha256.hexdigest())
 
     make_manifest(version, md5, sha256)
 
