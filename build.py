@@ -7,10 +7,10 @@ import json
 projects = [
     'sapphire',
     'hal_xmega128a4u',
-    'lib_chromatron',
-    'lib_gfx',
+    # 'lib_chromatron',
+    # 'lib_gfx',
     # 'lib_fixmath',
-    'chromatron',
+    'chromatron_no_led',
     #'chromatron_recovery',
 ]
 
@@ -27,7 +27,7 @@ def clean():
 
 def build():
     for proj in projects:
-        os.system('sapphiremake -p %s -t chromatron' % (proj))
+        os.system('sapphiremake -p %s -t chromatron_legacy' % (proj))
 
 
 if __name__ == '__main__':

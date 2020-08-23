@@ -205,7 +205,7 @@ trace_printf("time\n");
     sntp_v_init();
     #endif
 
-    #ifdef ENABLE_NETWORK
+    #ifdef ENABLE_ELECTION
     election_v_init();
     #endif
 

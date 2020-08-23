@@ -528,8 +528,6 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     uint16_t data_len = 0;
 
     uint8_t *data = 0;
-    uint8_t *h2 = 0;
-    uint16_t h2_len = 0;
 
     if( netmsg_state->data_handle > 0 ){
 
@@ -537,19 +535,12 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         data_len = mem2_u16_get_size( netmsg_state->data_handle );
     }
 
-    // header 2, if present
-    if( netmsg_state->header_2_handle > 0 ){
-
-        h2 = mem2_vp_get_ptr( netmsg_state->header_2_handle );
-        h2_len = mem2_u16_get_size( netmsg_state->header_2_handle );
-    }
-
     // setup header
     wifi_msg_udp_header_t udp_header;
     udp_header.addr = netmsg_state->raddr.ipaddr;
     udp_header.lport = netmsg_state->laddr.port;
     udp_header.rport = netmsg_state->raddr.port;
-    udp_header.len = data_len + h2_len;
+    udp_header.len = data_len;
     
     uint8_t tries = WIFI_COMM_TRIES;
 
@@ -558,7 +549,7 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
         tries--;
 
         // bail out of header fails, it is already tried multiple times
-        if( _wifi_i8_send_header( WIFI_DATA_ID_SEND_UDP, sizeof(wifi_msg_udp_header_t) + data_len + h2_len ) < 0 ){
+        if( _wifi_i8_send_header( WIFI_DATA_ID_SEND_UDP, sizeof(wifi_msg_udp_header_t) + data_len ) < 0 ){
 
             break;
         }
@@ -567,17 +558,6 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
         uint16_t len = sizeof(wifi_msg_udp_header_t);
         uint8_t *send_data = (uint8_t *)&udp_header;
-        while( len > 0 ){
-
-            hal_wifi_v_usart_send_char( *send_data );
-            crc = crc_u16_byte( crc, *send_data );
-
-            send_data++;
-            len--;
-        }
-
-        len = h2_len;
-        send_data = h2;
         while( len > 0 ){
 
             hal_wifi_v_usart_send_char( *send_data );

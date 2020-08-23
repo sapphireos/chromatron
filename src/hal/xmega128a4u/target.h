@@ -40,10 +40,12 @@
 // #define ENABLE_FFS
 // #define ENABLE_IP
 // #define ENABLE_POWER
-#define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
-#define ENABLE_ESP_UPGRADE_LOADER
-#define ENABLE_COPROCESSOR
+// #define ENABLE_ESP_UPGRADE_LOADER
+// #define ENABLE_COPROCESSOR
+
+
+#define ENABLE_USB
 
 // #define DISABLE_SAFE_MODE
 

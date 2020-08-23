@@ -31,7 +31,7 @@
 
 #include "election.h"
 
-#ifdef ENABLE_NETWORK
+#if defined(ENABLE_NETWORK) && defined(ENABLE_ELECTION)
 
 // #define NO_LOGGING
 #include "logging.h"

@@ -106,3 +106,8 @@ void cmd_usart_v_flush( void ){
     usb_v_flush();
     #endif
 }
+
+
+void hal_cmd_usart_v_init( void ){
+
+}

@@ -16,7 +16,7 @@ def build_wifi():
 
     os.chdir('src/chromatron_wifi')
 
-    os.system('python make_esp_firmware.py')
+    os.system('python3 make_esp_firmware.py')
 
     shutil.copy('chromatron_wifi_fw.zip', cwd)
 
@@ -24,7 +24,7 @@ def build_wifi():
 
 
 def build_main():
-    os.system('python build.py')
+    os.system('python3 build.py')
 
 if __name__ == '__main__':
     clean()

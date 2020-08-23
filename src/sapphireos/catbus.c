@@ -321,12 +321,10 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
-    #ifdef ENABLE_NETWORK
+    #ifdef ENABLE_CATBUS_LINK
     list_v_init( &send_list );
     list_v_init( &receive_cache );
-    #endif
-
-    #ifdef ENABLE_CATBUS_LINK
+    
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         link_enable = FALSE;
@@ -1513,8 +1511,10 @@ PT_BEGIN( pt );
             _catbus_v_delete_rx_entry( &raddr );
             #endif
 
+            #ifdef ENABLE_ELECTION
             // send shutdown notifications
             election_v_handle_shutdown( raddr.ipaddr );
+            #endif
 
             #ifdef ENABLE_TIME_SYNC
             time_v_handle_shutdown( raddr.ipaddr );
