@@ -181,5 +181,5 @@ if __name__ == '__main__':
     shutil.copy('chromatron_wifi_fw.zip', package_dir)
 
 
-    shutil.copy('wifi_firmware.bin', '../chromatron')
+    shutil.copy('wifi_firmware.bin', '../chromatron_no_led')
 

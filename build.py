@@ -3,6 +3,7 @@ import hashlib
 import zipfile
 from datetime import datetime
 import json
+import shutil
 
 projects = [
     'sapphire',
@@ -34,6 +35,9 @@ if __name__ == '__main__':
     cwd = os.getcwd()
 
     clean()
+
+    shutil.copy('src/chromatron_wifi/wifi_firmware.bin', 'src/chromatron_no_led')
+
     build()
 
     os.chdir(cwd)

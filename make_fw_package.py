@@ -28,5 +28,5 @@ def build_main():
 
 if __name__ == '__main__':
     clean()
-    build_main()
     build_wifi()
+    build_main()
