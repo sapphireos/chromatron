@@ -198,15 +198,23 @@ class Builder(object):
 
         self.build_loader = build_loader
 
-        with open(BOARDS_FILE, 'r') as f:
-            boards = json.loads(f.read())
+        try:
+            with open(BOARDS_FILE, 'r') as f:
+                boards = json.loads(f.read())
 
-        self.board = boards[self.board_type]
+        except FileNotFoundError:
+            boards = {}
+
+        try:
+            self.board = boards[self.board_type]
+
+        except KeyError:
+            self.board = {}
 
         try:
             self.settings = self.get_settings()
 
-        except AttributeError:
+        except (AttributeError, FileNotFoundError):
             self.settings = {}
 
         try:
@@ -298,7 +306,11 @@ class Builder(object):
         if "TARGET" in app_settings:
             self.board_type = app_settings["TARGET"]
 
-        self.settings_dir = os.path.join(TARGETS_DIR, self.board["target"])
+        try:
+            self.settings_dir = os.path.join(TARGETS_DIR, self.board["target"])
+
+        except KeyError:
+            self.settings_dir = self.target_dir
 
         settings = self._get_default_settings()
 

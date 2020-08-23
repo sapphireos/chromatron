@@ -14,7 +14,7 @@ from chromatron import CHROMATRON_WIFI_FWID
 
 
 def build():
-    b = core.Builder(os.path.join(os.getcwd(), 'src'))
+    b = core.Builder(os.path.join(os.getcwd(), 'src'), 'legacy_wifi')
     hashes = b.create_kv_hashes()
 
     with open('__kv_hashes.h', 'w+') as f:
@@ -51,13 +51,13 @@ def build():
 def create_firmware_image():
     try:
         with open('.pioenvs/esp12e/firmware.bin', 'rb') as f:
-            data = f.read()
+            data_bytes = f.read()
 
     except IOError:
         with open('.pio/build/esp12e/firmware.bin', 'rb') as f:
-            data = f.read()
+            data_bytes = f.read()
 
-    data_bytes = [ord(c) for c in data]
+    data_bytes = bytearray(data_bytes)
 
     # verify first byte (quick sanity check)
     if data_bytes[0] != 0xE9:
@@ -68,19 +68,16 @@ def create_firmware_image():
     data_bytes[2] = 0
     data_bytes[3] = 0
 
-    # convert back to string
-    data = ''.join(map(chr, data_bytes))
-
     # need to pad to sector length
-    padding_len = 4096 - (len(data) % 4096)
-    data += (chr(0xff) * padding_len)
+    padding_len = 4096 - (len(data_bytes) % 4096)
+    data_bytes += (chr(0xff) * padding_len).encode()
 
-    md5 = hashlib.md5(data)
-    data += md5.digest()
-    sha256 = hashlib.sha256(data)
+    md5 = hashlib.md5(data_bytes)
+    data_bytes += md5.digest()
+    sha256 = hashlib.sha256(data_bytes)
 
     with open('wifi_firmware.bin', 'wb') as f:
-        f.write(data)
+        f.write(data_bytes)
 
     return md5, sha256
 
