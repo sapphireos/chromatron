@@ -11,7 +11,7 @@ projects = [
     # 'lib_chromatron',
     # 'lib_gfx',
     # 'lib_fixmath',
-    'chromatron_no_led',
+    'chromatron_legacy',
     #'chromatron_recovery',
 ]
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     clean()
 
-    shutil.copy('src/chromatron_wifi/wifi_firmware.bin', 'src/chromatron_no_led')
+    shutil.copy('src/chromatron_wifi/wifi_firmware.bin', 'src/chromatron_legacy')
 
     build()
 
