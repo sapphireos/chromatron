@@ -27,16 +27,18 @@
 
 #include "sockets.h"
 
-#define ELECTION_PORT       32036
-#define ELECTION_MAGIC      0x45544f56 // 'VOTE'
-#define ELECTION_VERSION    1
+#define ELECTION_PORT               32036
+#define ELECTION_MAGIC              0x45544f56 // 'VOTE'
+#define ELECTION_VERSION            1
 
-#define FOLLOWER_TIMEOUT    32
-#define CANDIDATE_TIMEOUT   6
-#define IDLE_TIMEOUT        4
+#define FOLLOWER_TIMEOUT            64
+#define FOLLOWER_QUERY_TIMEOUT      32
+#define CANDIDATE_TIMEOUT           6
+#define IDLE_TIMEOUT                4
 
 #define ELECTION_PRIORITY_FOLLOWER_ONLY    0
 
+#define ELECTION_FLAGS_QUERY        0x01
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -55,6 +57,11 @@ typedef struct __attribute__((packed)){
     uint32_t cycles;
     uint8_t reserved[4];
 } election_pkt_t;
+
+typedef struct __attribute__((packed)){
+    uint32_t service;
+    uint32_t group;
+} election_query_t;
 
 
 void election_v_init( void );
