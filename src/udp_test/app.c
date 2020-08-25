@@ -26,10 +26,12 @@
 
 static uint32_t packets_sent;
 static uint32_t packets_received;
+static uint32_t max_loss_streak;
 
 KV_SECTION_META kv_meta_t app_kv[] = {
     { SAPPHIRE_TYPE_UINT32,     0, 0, &packets_sent,  		0, "packets_sent" },
     { SAPPHIRE_TYPE_UINT32,     0, 0, &packets_received,  	0, "packets_received" },
+    { SAPPHIRE_TYPE_UINT32,     0, 0, &max_loss_streak,  	0, "packets_lost_streak" },
 };
 
 PT_THREAD( client_thread( pt_t *pt, void *state ) )
@@ -47,6 +49,9 @@ PT_BEGIN( pt );
 
 		uint8_t buf[UDP_MAX_LEN];
 		memset( buf, 0, sizeof(buf) );
+
+		uint32_t *ptr = (uint32_t *)buf;
+		*ptr = packets_sent + 1;
 
 		sock_addr_t raddr;
 		raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
@@ -69,6 +74,9 @@ PT_BEGIN( pt );
 	static socket_t sock;
 	sock = sock_s_create( SOS_SOCK_DGRAM );
 	sock_v_bind( sock, TEST_PORT );
+
+	static uint32_t last_rx;
+	last_rx = 1;
 	
 	while(1){
 
@@ -76,6 +84,20 @@ PT_BEGIN( pt );
 
 		packets_received++;
 
+		uint32_t *ptr = sock_vp_get_data( sock );
+
+		if( *ptr > last_rx ){
+
+			uint32_t delta = *ptr - last_rx;
+
+			if( delta > max_loss_streak ){
+
+				max_loss_streak = delta;				
+			}
+		}
+
+		last_rx = *ptr;
+		
 		THREAD_YIELD( pt );
 	}
 
