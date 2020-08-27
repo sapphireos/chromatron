@@ -806,7 +806,9 @@ PT_BEGIN( pt );
                     
                     // this means the protocol is broken
                     log_v_error_P( PSTR("fatal protocol error") );
-                    clear_tx_q();
+                    clear_tx_q( state );
+
+                    break;
                 }
                 else{
 

@@ -283,6 +283,10 @@ void netmsg_v_receive( netmsg_t netmsg ){
 
         netmsg_udp_recv++;
     }
+    else{
+
+        ASSERT( FALSE );
+    }
 
 
 #ifdef ENABLE_IP
