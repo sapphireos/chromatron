@@ -39,7 +39,7 @@ void wdg_v_reset( void ){
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
     #ifndef BOOTLOADER
-    esp_task_wdt_init( 4, FALSE );
+    esp_task_wdt_init( 2, TRUE );
     esp_task_wdt_add( NULL );
     #endif
 }
