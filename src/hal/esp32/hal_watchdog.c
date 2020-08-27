@@ -26,25 +26,27 @@
 #include "os_irq.h"
 #include "hal_watchdog.h"
 #include "watchdog.h"
+#include "esp_task_wdt.h"
 
 
 void wdg_v_reset( void ){
 
-    // #ifndef BOOTLOADER
-    // system_soft_wdt_feed();
-    // #endif
+    #ifndef BOOTLOADER
+    esp_task_wdt_reset();
+    #endif
 }
 
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
-    // #ifndef BOOTLOADER
-    // system_soft_wdt_restart();
-    // #endif
+    #ifndef BOOTLOADER
+    esp_task_wdt_init( 4, FALSE );
+    esp_task_wdt_add( NULL );
+    #endif
 }
 
 void wdg_v_disable( void ){
 
-    // #ifndef BOOTLOADER
-    // system_soft_wdt_stop();
-    // #endif
+    #ifndef BOOTLOADER
+    esp_task_wdt_delete( NULL );
+    #endif
 }
