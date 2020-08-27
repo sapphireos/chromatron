@@ -113,7 +113,7 @@ void msgflow_v_init( void ){
 }
 
 msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_msg_size ){
-
+return -1;
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return -1;
@@ -187,6 +187,11 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
 }
 
 bool msgflow_b_connected( msgflow_t msgflow ){
+
+    if( msgflow <= 0 ){
+
+        return FALSE;
+    }
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -333,6 +338,11 @@ drop:
 // DO NOT LOG IN THIS FUNCTION
 bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 
+    if( msgflow <= 0 ){
+
+        return FALSE;
+    }
+
     ASSERT( len <= MSGFLOW_MAX_LEN );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -357,6 +367,11 @@ bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
 }
 
 void msgflow_v_close( msgflow_t msgflow ){
+
+    if( msgflow <= 0 ){
+
+        return;
+    }
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
