@@ -52,7 +52,11 @@ PT_BEGIN( pt );
 
         msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
     }
- 
+    
+    THREAD_WAIT_WHILE( pt, !msgflow_b_connected( msgflow ) );
+
+    log_v_info_P( PSTR("Msgflow logging connected") );
+
 PT_END( pt );
 }
 

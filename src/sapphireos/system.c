@@ -722,6 +722,7 @@ PT_BEGIN( pt );
 
     catbus_v_shutdown();
     kv_v_shutdown();
+    log_v_info_P( PSTR("Shutting down...") );
     
     // notify boot mode
     kv_i8_publish( __KV__boot_mode );
