@@ -34,7 +34,6 @@ typedef list_node_t netmsg_t;
 typedef uint8_t netmsg_flags_t;
 #define NETMSG_FLAGS_WCOM_SECURITY_DISABLE  0x01
 #define NETMSG_FLAGS_NO_WCOM                0x02
-#define NETMSG_FLAGS_RETAIN_DATA            0x04
 
 typedef int8_t netmsg_type_t;
 #define NETMSG_TYPE_IP                      0x01
