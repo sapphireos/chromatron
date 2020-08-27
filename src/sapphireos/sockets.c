@@ -937,6 +937,18 @@ void sock_v_recv( netmsg_t netmsg ){
     #endif
 
     #ifdef SOCK_SINGLE_BUF
+
+    // check if rx handle is already allocated
+    if( rx_handle > 0 ){
+
+        // we have a double receive.
+        // this shouldn't happen (there's probably something wrong with the underlying interface driver)
+        // but we will drop this packet so we don't leak memory
+
+        log_v_debug_P( PSTR("rx_handle was pending, dropped to: %u from %u"), dgram->lport, state->raddr.port );
+
+        return;
+    }   
     
     rx_header_len   = state->header_len;
     rx_handle       = state->data_handle;
