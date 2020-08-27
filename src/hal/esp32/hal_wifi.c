@@ -290,6 +290,10 @@ PT_BEGIN( pt );
             wifi_udp_received++;
 
             netmsg_v_receive( rx_netmsg );
+
+            #ifdef SOCK_SINGLE_BUF
+            break; // we can only receive one at a time in single buf mode
+            #endif
         }
     }   
 
