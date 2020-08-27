@@ -51,6 +51,12 @@ PT_BEGIN( pt );
     if( msgflow <= 0 ){
 
         msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
+
+        // msgflow creation failed
+        if( msgflow <= 0 ){
+
+            THREAD_EXIT( pt );
+        }
     }
     
     THREAD_WAIT_WHILE( pt, !msgflow_b_connected( msgflow ) );
