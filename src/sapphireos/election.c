@@ -387,7 +387,7 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
     return FALSE;
 }
 
-static void track_leader( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
+static void track_node( election_t *election, election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
 
     if( !ip_b_addr_compare( election->leader_ip, *ip ) ){
 
@@ -402,7 +402,181 @@ static void track_leader( election_t *election, election_header_t *header, elect
 }
 
 
-static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
+static void init_header( election_header_t *header ){
+
+    header->magic       = ELECTION_MAGIC;
+    header->version     = ELECTION_VERSION;
+    header->flags       = 0;
+    header->count       = 0;
+    header->padding     = 0;
+    header->device_id   = cfg_u64_get_device_id();
+}
+
+
+static bool should_transmit( election_t *election ){
+
+    if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
+
+        return FALSE;
+    }
+    else if( ( election->state == STATE_IDLE ) ||
+             ( election->state == STATE_FOLLOWER ) ){
+
+        return FALSE;
+    }    
+
+    return TRUE;
+}
+
+// elections for which we can become leader
+static uint8_t transmit_count( void ){
+
+    uint8_t count = 0;
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( should_transmit( election ) ){
+
+            count++;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
+static void transmit_election( election_t *election, ip_addr4_t *ip ){
+
+    uint16_t count = 1;
+
+    // send all
+    if( election == 0 ){
+
+        count = transmit_count();
+    }
+
+    if( count == 0 ){
+
+        return;
+    }
+
+    uint16_t len = sizeof(election_header_t) + 
+                        ( sizeof(election_pkt_t) * transmit_count() );
+
+    mem_handle_t h = mem2_h_alloc( len );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    election_header_t *header = mem2_vp_get_ptr_fast( h );
+    memset( header, 0, len );
+
+    init_header( header );
+    
+    election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
+
+    // send all
+    if( election == 0 ){
+
+        list_node_t ln = elections_list.head;
+
+        while( ln > 0 ){
+
+            election_t *election = (election_t *)list_vp_get_data( ln );
+
+            if( !should_transmit( election ) ){
+
+                goto next;
+            }
+
+            pkt->service    = election->service;
+            pkt->group      = election->group;
+            pkt->priority   = election->priority;
+            pkt->port       = election->port;
+            pkt->cycles     = election->cycles;
+
+            if( election->state == STATE_LEADER ){
+            
+                pkt->flags |= ELECTION_PKT_FLAGS_LEADER;
+            }
+            
+            header->count++;
+
+            pkt++;
+
+        next:
+            ln = list_ln_next( ln );
+        }
+    }
+    else{
+
+        pkt->service    = election->service;
+        pkt->group      = election->group;
+        pkt->priority   = election->priority;
+        pkt->port       = election->port;
+        pkt->cycles     = election->cycles;
+
+        if( election->state == STATE_LEADER ){
+        
+            pkt->flags |= ELECTION_PKT_FLAGS_LEADER;
+        }
+        
+        header->count++;
+    }
+
+    sock_addr_t raddr;
+    
+    if( ip == 0 ){
+    
+        raddr.ipaddr = ip_a_addr(255,255,255,255);    
+    }
+    else{
+
+        raddr.ipaddr = *ip;
+    }
+    
+    raddr.port   = ELECTION_PORT;
+
+    sock_i16_sendto_m( sock, h, &raddr );
+}
+
+static void transmit_query( election_t *election ){
+
+    uint16_t len = sizeof(election_header_t) + sizeof(election_query_t );
+
+    mem_handle_t h = mem2_h_alloc( len );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    election_header_t *header = mem2_vp_get_ptr_fast( h );
+    memset( header, 0, len );
+
+    init_header( header );
+    header->count = 1;
+    
+    election_query_t *pkt = (election_query_t *)( header + 1 );
+
+    pkt->service  = election->service;
+    pkt->group    = election->group;
+
+    sock_addr_t raddr;
+    raddr.ipaddr = election->leader_ip;
+    raddr.port   = ELECTION_PORT;
+
+    sock_i16_sendto_m( sock, h, &raddr );
+}
+
+static void process_election_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr4_t *ip ){
 
     // look up matching election
     election_t *election = get_election( pkt->service );
@@ -427,7 +601,7 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
 
             log_v_debug_P( PSTR("state: IDLE") );
 
-            track_leader( election, header, pkt, ip );    
+            track_node( election, header, pkt, ip );    
         }
     }
     else if( election->state == STATE_CANDIDATE ){
@@ -437,7 +611,7 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
 
             log_v_debug_P( PSTR("state: CANDIDATE") );
 
-            track_leader( election, header, pkt, ip );
+            track_node( election, header, pkt, ip );
         }        
     }
     else if( election->state == STATE_FOLLOWER ){
@@ -457,7 +631,7 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
             // log_v_debug_P( PSTR("state: FOLLOWER") );
 
             // update tracking
-            track_leader( election, header, pkt, ip );
+            track_node( election, header, pkt, ip );
 
             // reset timeout
             election->timeout   = FOLLOWER_TIMEOUT;
@@ -468,7 +642,7 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
         // check if this packet is better than current tracking
         if( compare_leader( election, header, pkt ) ){
 
-            track_leader( election, header, pkt, ip );
+            track_node( election, header, pkt, ip );
 
             // now that we've updated tracking
             // check if the tracked leader is better than us
@@ -486,6 +660,30 @@ static void process_pkt( election_header_t *header, election_pkt_t *pkt, ip_addr
 
         // invalid state
         ASSERT( FALSE );
+    }
+}
+
+static void process_election_query( election_header_t *header, election_query_t *pkt, ip_addr4_t *ip ){
+    
+    while( header->count > 0 ){
+
+        // look up matching election
+        election_t *election = get_election( pkt->service );
+
+        if( election == 0 ){
+
+            continue;
+        }
+
+        if( election->group != pkt->group ){
+
+            continue;
+        }
+
+        transmit_election( election, ip );
+
+        header->count--;
+        pkt++;
     }
 }
 
@@ -517,6 +715,15 @@ PT_BEGIN( pt );
             }
 
             election->timeout--;
+
+            // check for query cycle
+            if( ( election->timeout > 0 ) && 
+                ( ( election->timeout % FOLLOWER_QUERY_TIMEOUT ) == 0 ) &&
+                ( election->state == STATE_FOLLOWER ) ){
+
+                log_v_info_P( PSTR("query") );
+                transmit_query( election );
+            }
 
             if( election->timeout > 0 ){
 
@@ -670,14 +877,30 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
+        if( ( header->flags & ELECTION_HDR_FLAGS_QUERY ) == 0 ){
 
-        while( header->count > 0 ){
+            election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
 
-            process_pkt( header, pkt, &raddr.ipaddr );
+            while( header->count > 0 ){
 
-            pkt++;
-            header->count--;
+                process_election_pkt( header, pkt, &raddr.ipaddr );
+
+                pkt++;
+                header->count--;
+            }
+        }
+        else{
+
+            // query
+            election_query_t *pkt = (election_query_t *)( header + 1 );
+
+            while( header->count > 0 ){
+
+                process_election_query( header, pkt, &raddr.ipaddr );
+
+                pkt++;
+                header->count--;
+            }
         }
 
         THREAD_YIELD( pt );
@@ -685,57 +908,6 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
-
-
-
-static void init_header( election_header_t *header ){
-
-    header->magic       = ELECTION_MAGIC;
-    header->version     = ELECTION_VERSION;
-    header->flags       = 0;
-    header->count       = 0;
-    header->padding     = 0;
-    header->device_id   = cfg_u64_get_device_id();
-}
-
-
-static bool should_transmit( election_t *election ){
-
-    if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
-
-        return FALSE;
-    }
-    else if( ( election->state == STATE_IDLE ) ||
-             ( election->state == STATE_FOLLOWER ) ){
-
-        return FALSE;
-    }    
-
-    return TRUE;
-}
-
-// elections for which we can become leader
-static uint8_t transmit_count( void ){
-
-    uint8_t count = 0;
-
-    list_node_t ln = elections_list.head;
-
-    while( ln > 0 ){
-
-        election_t *election = (election_t *)list_vp_get_data( ln );
-
-        if( should_transmit( election ) ){
-
-            count++;
-        }
-
-        ln = list_ln_next( ln );
-    }
-
-    return count;
-}
-
 
 PT_THREAD( election_sender_thread( pt_t *pt, void *state ) )
 {
@@ -754,54 +926,8 @@ PT_BEGIN( pt );
 
             THREAD_EXIT( pt );
         }
-    
-        uint16_t len = sizeof(election_header_t) + 
-                        ( sizeof(election_pkt_t) * transmit_count() );
 
-        mem_handle_t h = mem2_h_alloc( len );
-
-        if( h < 0 ){
-
-            continue;
-        }
-
-        election_header_t *header = mem2_vp_get_ptr_fast( h );
-        memset( header, 0, len );
-
-        init_header( header );
-
-        election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
-
-        list_node_t ln = elections_list.head;
-
-        while( ln > 0 ){
-
-            election_t *election = (election_t *)list_vp_get_data( ln );
-
-            if( !should_transmit( election ) ){
-
-                goto next;
-            }
-
-            pkt->service    = election->service;
-            pkt->group      = election->group;
-            pkt->priority   = election->priority;
-            pkt->port       = election->port;
-            pkt->cycles     = election->cycles;
-            
-            header->count++;
-
-            pkt++;
-
-        next:
-            ln = list_ln_next( ln );
-        }
-
-        sock_addr_t raddr;
-        raddr.ipaddr = ip_a_addr(255,255,255,255);
-        raddr.port   = ELECTION_PORT;
-
-        sock_i16_sendto_m( sock, h, &raddr );
+        transmit_election( 0, 0 );
 
         THREAD_YIELD( pt );
     }    

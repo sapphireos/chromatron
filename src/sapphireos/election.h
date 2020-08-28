@@ -29,16 +29,16 @@
 
 #define ELECTION_PORT               32036
 #define ELECTION_MAGIC              0x45544f56 // 'VOTE'
-#define ELECTION_VERSION            1
+#define ELECTION_VERSION            2
 
 #define FOLLOWER_TIMEOUT            64
-#define FOLLOWER_QUERY_TIMEOUT      32
+#define FOLLOWER_QUERY_TIMEOUT      8
 #define CANDIDATE_TIMEOUT           6
 #define IDLE_TIMEOUT                4
 
 #define ELECTION_PRIORITY_FOLLOWER_ONLY    0
 
-#define ELECTION_FLAGS_QUERY        0x01
+#define ELECTION_HDR_FLAGS_QUERY        0x01
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -55,8 +55,12 @@ typedef struct __attribute__((packed)){
     uint16_t priority;
     uint16_t port;
     uint32_t cycles;
-    uint8_t reserved[4];
+    uint8_t flags;
+    uint8_t reserved[3];
 } election_pkt_t;
+
+#define ELECTION_PKT_FLAGS_LEADER       0x80
+
 
 typedef struct __attribute__((packed)){
     uint32_t service;
