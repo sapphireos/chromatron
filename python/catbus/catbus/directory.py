@@ -141,8 +141,8 @@ class Directory(Ribbon):
             return
 
         with self.__lock:
-            # check if we have this node already
-            if msg.header.origin_id not in self._directory:
+
+            def update_info(msg, host):
                 c = Client()
                 c.connect(host)
                 name = c.get_key(META_TAG_NAME)
@@ -151,6 +151,7 @@ class Directory(Ribbon):
                 info = {'host': tuple(host),
                         'name': name,
                         'location': location,
+                        'hashes': msg.query,
                         'query': resolved_query,
                         'tags': [t for t in msg.query if t != 0],
                         'data_port': msg.data_port,
@@ -158,11 +159,25 @@ class Directory(Ribbon):
                         'universe': msg.header.universe,
                         'ttl': TTL}
 
-                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
-
                 self._directory[msg.header.origin_id] = info
 
+                return info
+
+            # check if we have this node already
+            if msg.header.origin_id not in self._directory:
+                info = update_info(msg, host)
+
+                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
+
             else:
+                info = self._directory[msg.header.origin_id]
+
+                # check if query tags have changed
+                if msg.query != info['hashes']:
+                    update_info(msg, host)
+
+                    logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
+
                 # reset ttl
                 self._directory[msg.header.origin_id]['ttl'] = TTL
 

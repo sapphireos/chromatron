@@ -20,33 +20,12 @@
 // 
 // </license>
 
+#ifndef _APP_H_
+#define _APP_H_
 
-#include "system.h"
-#include "hal_cpu.h"
-#include "os_irq.h"
-#include "hal_watchdog.h"
-#include "watchdog.h"
-#include "esp_task_wdt.h"
+#define TEST_PORT 12345
+
+void app_v_init( void );
 
 
-void wdg_v_reset( void ){
-
-    #ifndef BOOTLOADER
-    esp_task_wdt_reset();
-    #endif
-}
-
-void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
-
-    #ifndef BOOTLOADER
-    esp_task_wdt_init( 2, TRUE );
-    esp_task_wdt_add( NULL );
-    #endif
-}
-
-void wdg_v_disable( void ){
-
-    #ifndef BOOTLOADER
-    esp_task_wdt_delete( NULL );
-    #endif
-}
+#endif

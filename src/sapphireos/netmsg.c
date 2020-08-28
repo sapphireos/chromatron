@@ -142,10 +142,7 @@ void netmsg_v_release( netmsg_t netmsg ){
 
     if( state->data_handle >= 0 ){
 
-        if( ( state->flags & NETMSG_FLAGS_RETAIN_DATA ) == 0 ){
-
-            mem2_v_free( state->data_handle );
-        }
+        mem2_v_free( state->data_handle );
     }
 
     list_v_release_node( netmsg );
@@ -282,6 +279,10 @@ void netmsg_v_receive( netmsg_t netmsg ){
         #endif
 
         netmsg_udp_recv++;
+    }
+    else{
+
+        ASSERT( FALSE );
     }
 
 
