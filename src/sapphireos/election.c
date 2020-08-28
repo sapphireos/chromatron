@@ -450,7 +450,7 @@ static uint8_t transmit_count( void ){
     return count;
 }
 
-static void transmit_election( election_t *election, ip_addr4_t *ip ){
+static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t flags ){
 
     uint16_t count = 1;
 
@@ -479,6 +479,8 @@ static void transmit_election( election_t *election, ip_addr4_t *ip ){
     memset( header, 0, len );
 
     init_header( header );
+
+    header->flags |= flags;
     
     election_pkt_t *pkt = (election_pkt_t *)( header + 1 );
 
@@ -563,6 +565,7 @@ static void transmit_query( election_t *election ){
 
     init_header( header );
     header->count = 1;
+    header->flags |= ELECTION_HDR_FLAGS_QUERY;
     
     election_query_t *pkt = (election_query_t *)( header + 1 );
 
@@ -633,8 +636,11 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
             // update tracking
             track_node( election, header, pkt, ip );
 
-            // reset timeout
+            if( ( header->flags & ELECTION_HDR_FLAGS_RESPONSE ) != 0 ){
+                // reset timeout
             election->timeout   = FOLLOWER_TIMEOUT;
+            }
+            
         }
     }
     else if( election->state == STATE_LEADER ){
@@ -665,26 +671,20 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
 
 static void process_election_query( election_header_t *header, election_query_t *pkt, ip_addr4_t *ip ){
     
-    while( header->count > 0 ){
+    // look up matching election
+    election_t *election = get_election( pkt->service );
 
-        // look up matching election
-        election_t *election = get_election( pkt->service );
+    if( election == 0 ){
 
-        if( election == 0 ){
-
-            continue;
-        }
-
-        if( election->group != pkt->group ){
-
-            continue;
-        }
-
-        transmit_election( election, ip );
-
-        header->count--;
-        pkt++;
+        return;
     }
+
+    if( election->group != pkt->group ){
+
+        return;
+    }
+
+    transmit_election( election, ip, ELECTION_HDR_FLAGS_RESPONSE );
 }
 
 PT_THREAD( election_timer_thread( pt_t *pt, void *state ) )
@@ -727,7 +727,7 @@ PT_BEGIN( pt );
                 // broadcast.  this mechanism is a useful backup if the broadcasts aren't 
                 // being received.
 
-                log_v_info_P( PSTR("query") );
+                log_v_info_P( PSTR("query: %d"), election->timeout );
                 transmit_query( election );
             }
 
@@ -873,11 +873,23 @@ PT_BEGIN( pt );
             continue;
         }
 
-        if( sock_i16_get_bytes_read( sock ) != 
-            ( sizeof(election_header_t) + header->count * sizeof(election_pkt_t) ) ){
+        if( ( header->flags & ELECTION_HDR_FLAGS_QUERY ) == 0 ){
 
-            log_v_debug_P( PSTR("bad size") );
-            continue;
+            if( sock_i16_get_bytes_read( sock ) != 
+                ( sizeof(election_header_t) + header->count * sizeof(election_pkt_t) ) ){
+
+                log_v_debug_P( PSTR("bad size") );
+                continue;
+            }
+        }
+        else{
+
+            if( sock_i16_get_bytes_read( sock ) != 
+                ( sizeof(election_header_t) + header->count * sizeof(election_query_t) ) ){
+
+                log_v_debug_P( PSTR("bad size") );
+                continue;
+            }
         }
 
         sock_addr_t raddr;
@@ -933,7 +945,7 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        transmit_election( 0, 0 );
+        transmit_election( 0, 0, 0 );
 
         THREAD_YIELD( pt );
     }    

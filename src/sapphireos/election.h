@@ -40,6 +40,7 @@
 #define ELECTION_PRIORITY_FOLLOWER_ONLY    0
 
 #define ELECTION_HDR_FLAGS_QUERY        0x01
+#define ELECTION_HDR_FLAGS_RESPONSE     0x02
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
