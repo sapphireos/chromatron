@@ -721,6 +721,12 @@ PT_BEGIN( pt );
                 ( ( election->timeout % FOLLOWER_QUERY_TIMEOUT ) == 0 ) &&
                 ( election->state == STATE_FOLLOWER ) ){
 
+                // NOTE
+                // if the follower query timeout is longer than the election broadcast interval,
+                // this code path won't run very often, as the timeout will be reset by the
+                // broadcast.  this mechanism is a useful backup if the broadcasts aren't 
+                // being received.
+
                 log_v_info_P( PSTR("query") );
                 transmit_query( election );
             }
@@ -863,7 +869,7 @@ PT_BEGIN( pt );
 
         if( header->version != ELECTION_VERSION ){
 
-            log_v_debug_P( PSTR("bad version") );
+            // log_v_debug_P( PSTR("bad version") ); // this message will be noisy on version changes
             continue;
         }
 
