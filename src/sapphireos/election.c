@@ -636,11 +636,8 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
             // update tracking
             track_node( election, header, pkt, ip );
 
-            if( ( header->flags & ELECTION_HDR_FLAGS_RESPONSE ) != 0 ){
-                // reset timeout
+            // reset timeout
             election->timeout   = FOLLOWER_TIMEOUT;
-            }
-            
         }
     }
     else if( election->state == STATE_LEADER ){
