@@ -274,7 +274,8 @@ bool election_b_leader_found( uint32_t service ){
 
 sock_addr_t election_a_get_leader( uint32_t service ){
 
-    sock_addr_t addr = {0};
+    sock_addr_t addr;
+    memset( &addr, 0, sizeof(addr) );
 
     election_t *election = get_election( service );
 
