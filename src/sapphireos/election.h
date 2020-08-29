@@ -27,8 +27,7 @@
 
 #include "sockets.h"
 
-// #define ELECTION_PORT               32036
-#define ELECTION_PORT               10001
+#define ELECTION_PORT               32036
 #define ELECTION_MAGIC              0x45544f56 // 'VOTE'
 #define ELECTION_VERSION            2
 
