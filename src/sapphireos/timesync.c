@@ -818,15 +818,15 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, delay );
             // TMR_WAIT( pt, 1000 );
 
-            if( get_best_local_source() > master_source ){
+            // if( get_best_local_source() > master_source ){
 
-                // elect ourselves as master
-                // sync_state = STATE_MASTER;
-                // master_uptime = 0;
+            //     // elect ourselves as master
+            //     // sync_state = STATE_MASTER;
+            //     // master_uptime = 0;
 
-                log_v_debug_P( PSTR("we are master (local source)") );
-                master_ip = ip_a_addr(0,0,0,0);
-            } 
+            //     log_v_debug_P( PSTR("we are master (local source)") );
+            //     master_ip = ip_a_addr(0,0,0,0);
+            // } 
 
 
             // check state
@@ -864,6 +864,8 @@ PT_BEGIN( pt );
     thread_v_set_alarm( last_clock_update );
 
     while( 1 ){
+
+        master_ip = election_a_get_leader_ip( TIME_ELECTION_SERVICE );
     
         // update election parameters (in case our source changes)        
         election_v_join( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );

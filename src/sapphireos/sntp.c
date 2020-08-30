@@ -70,7 +70,7 @@ static thread_t thread = -1;
 
 KV_SECTION_META kv_meta_t sntp_cfg_kv[] = {
     { SAPPHIRE_TYPE_STRING64,     0, 0,  0,                  cfg_i8_kv_handler,  "sntp_server" },
-    { SAPPHIRE_TYPE_UINT8,        0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
+    { SAPPHIRE_TYPE_INT8,         0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
 };
 
 

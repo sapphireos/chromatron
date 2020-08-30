@@ -285,10 +285,7 @@ bool election_b_is_leader( uint32_t service ){
         return FALSE;
     }
 
-    ip_addr4_t ip;
-    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
-
-    return ip_b_addr_compare( ip, election->leader_ip );
+    return election->state == STATE_LEADER;
 }
 
 sock_addr_t election_a_get_leader( uint32_t service ){
@@ -315,7 +312,7 @@ ip_addr4_t election_a_get_leader_ip( uint32_t service ){
 
     if( election == 0 ){
     
-        return addr;
+        return ip_a_addr(0,0,0,0);
     }
 
     return election->leader_ip;
