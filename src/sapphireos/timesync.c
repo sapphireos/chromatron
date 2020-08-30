@@ -559,11 +559,14 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
+        log_v_debug_P( PSTR("master clock RESET") );
         master_ip = ip_a_addr(0,0,0,0);
-
 
         // wait for election to resolve
         THREAD_WAIT_WHILE( pt, !election_b_leader_found( TIME_ELECTION_SERVICE ) );
+
+        log_v_debug_P( PSTR("master clock found") );
+        master_ip = election_a_get_leader_ip( TIME_ELECTION_SERVICE );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 2000 + ( rnd_u16_get_int() >> 3 ) );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
@@ -605,6 +608,8 @@ PT_BEGIN( pt );
             is_sync = FALSE;
 
             sntp_v_stop();
+
+            log_v_debug_P( PSTR("follower, reset sync") );
 
             TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
         }

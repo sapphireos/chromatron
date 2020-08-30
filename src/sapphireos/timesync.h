@@ -25,12 +25,9 @@
 
 #include "target.h"
 
-
 #ifdef ENABLE_TIME_SYNC
 
 #include "ntp.h"
-
-#include "wifi_cmd.h"
 
 #define TIME_SERVER_PORT                32037
 
@@ -47,27 +44,8 @@
 
 #define TIME_MASTER_SYNC_RATE           4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
-//#define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds // unused
 
 #define TIME_ELECTION_SERVICE           __KV__timesync
-
-// typedef struct __attribute__((packed)){
-//     uint32_t magic;
-//     uint8_t version;
-//     uint8_t type;
-//     uint8_t flags;
-//     uint8_t source;
-//     uint32_t net_time;
-//     uint64_t uptime;
-// } time_msg_master_t;
-// #define TIME_MSG_MASTER             1
-
-// typedef struct __attribute__((packed)){
-//     uint32_t magic;
-//     uint8_t version;
-//     uint8_t type;
-// } time_msg_not_master_t;
-// #define TIME_MSG_NOT_MASTER         2
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
