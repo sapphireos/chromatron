@@ -562,6 +562,12 @@ class Device(object):
         self.os_name            = fw_info.os_name
         self.os_version         = fw_info.os_version
 
+        # check board ID
+        if fw_info.board == '':
+            hw_type = self.get_key('hw_type')
+            if hw_type in ['Chromatron']:
+                fw_info.board = 'chromatron_legacy'
+
         return fw_info
 
     def get_gc_info(self):
