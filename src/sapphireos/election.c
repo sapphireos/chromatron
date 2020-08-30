@@ -119,6 +119,14 @@ void election_v_init( void ){
     // election_v_join( 0x1234, 0, 1, 9090 );
 }
 
+static void clear_tracking( election_t *election ){
+
+    election->leader_device_id      = 0;
+    election->leader_priority       = 0;
+    election->leader_cycles         = 0;
+    election->leader_port           = 0;
+    election->leader_ip             = ip_a_addr(0,0,0,0);
+}
 
 static void reset_state( election_t *election ){
 
@@ -128,11 +136,7 @@ static void reset_state( election_t *election ){
     election->cycles     = 0;  
     election->timeout    = IDLE_TIMEOUT;
 
-    election->leader_device_id      = 0;
-    election->leader_priority       = 0;
-    election->leader_cycles         = 0;
-    election->leader_port           = 0;
-    election->leader_ip             = ip_a_addr(0,0,0,0);
+    clear_tracking( election );
 }
 
 void election_v_handle_shutdown( ip_addr4_t ip ){
@@ -495,7 +499,7 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
     }
 
     uint16_t len = sizeof(election_header_t) + 
-                        ( sizeof(election_pkt_t) * transmit_count() );
+                        ( sizeof(election_pkt_t) * count );
 
     mem_handle_t h = mem2_h_alloc( len );
 
@@ -545,6 +549,8 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
         next:
             ln = list_ln_next( ln );
         }
+
+        log_v_debug_P( PSTR("tx election all") );
     }
     else{
 
@@ -560,6 +566,8 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
         }
         
         header->count++;
+
+        log_v_debug_P( PSTR("tx election 1") );
     }
 
     sock_addr_t raddr;
@@ -604,6 +612,8 @@ static void transmit_query( election_t *election ){
     sock_addr_t raddr;
     raddr.ipaddr = election->leader_ip;
     raddr.port   = ELECTION_PORT;
+
+    log_v_debug_P( PSTR("tx query") );
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
@@ -838,6 +848,11 @@ PT_BEGIN( pt );
                 log_v_info_P( PSTR("FOLLOWER timeout: lost leader") );
 
                 reset_state( election );
+            }
+            else if( election->state == STATE_LEADER ){                    
+
+                // clear tracking info
+                clear_tracking( election );           
             }
             
 next:

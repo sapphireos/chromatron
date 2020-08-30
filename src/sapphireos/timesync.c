@@ -41,6 +41,7 @@ static socket_t sock;
 static ip_addr4_t master_ip;
 // static uint64_t master_uptime;
 static uint8_t master_source;
+static uint8_t local_source;
 static bool is_sync;
 static bool ntp_valid;
 
@@ -107,6 +108,7 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
     // { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &sync_state,       0,                      "net_time_state" },
     { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &local_source,     0,                      "net_time_local_source" },
     // { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
     { SAPPHIRE_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
@@ -710,6 +712,11 @@ PT_BEGIN( pt );
     while( TRUE ){
 
         master_ip = ip_a_addr(0,0,0,0);
+
+
+        // wait for election to resolve
+        THREAD_WAIT_WHILE( pt, election_b_leader_found( TIME_ELECTION_SERVICE ) );
+
         // sync_state = STATE_WAIT;
 
         // THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() || !wifi_b_connected() );
@@ -800,7 +807,7 @@ PT_BEGIN( pt );
             // }
         }
 
-        if( !is_leader() ){
+        if( !is_leader() && election_b_leader_found( TIME_ELECTION_SERVICE ) ){
 
             // reset sync
             is_sync = FALSE;
@@ -811,7 +818,7 @@ PT_BEGIN( pt );
             request_sync();
         }
 
-        while( !is_leader() ){
+        while( !is_leader() && election_b_leader_found( TIME_ELECTION_SERVICE ) ){
 
             // random delay
             uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
@@ -866,9 +873,10 @@ PT_BEGIN( pt );
     while( 1 ){
 
         master_ip = election_a_get_leader_ip( TIME_ELECTION_SERVICE );
+        local_source = get_best_local_source();
     
         // update election parameters (in case our source changes)        
-        election_v_join( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );
+        election_v_join( TIME_ELECTION_SERVICE, 0, local_source, TIME_SERVER_PORT );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
@@ -945,8 +953,6 @@ PT_BEGIN( pt );
 
         last_clock_update = now;
     }
-
-    THREAD_RESTART( pt );
 
 PT_END( pt );
 }
