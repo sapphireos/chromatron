@@ -321,7 +321,6 @@ void time_v_set_ntp_master_clock(
     uint32_t local_system_time,
     uint8_t source ){
 
-    // if( sync_state == STATE_SLAVE ){
     if( !is_leader() ){
 
         // our source isn't as good as the master, don't do anything.
@@ -450,7 +449,6 @@ PT_BEGIN( pt );
                 msg.version         = TIME_PROTOCOL_VERSION;
                 msg.type            = TIME_MSG_SYNC;
                 msg.net_time        = time_u32_get_network_time_from_local( now );
-                // msg.uptime          = master_uptime;
                 msg.flags           = 0;
                 msg.ntp_time        = time_t_from_system_time( now );
                 msg.source          = master_source;
