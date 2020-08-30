@@ -550,7 +550,7 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
             ln = list_ln_next( ln );
         }
 
-        log_v_debug_P( PSTR("tx election all") );
+        // log_v_debug_P( PSTR("tx election all") );
     }
     else{
 
@@ -567,7 +567,7 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
         
         header->count++;
 
-        log_v_debug_P( PSTR("tx election 1") );
+        // log_v_debug_P( PSTR("tx election 1") );
     }
 
     sock_addr_t raddr;
@@ -691,7 +691,7 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
             // check if the tracked leader is better than us
             if( !compare_self( election ) ){
 
-                log_v_debug_P( PSTR("state: LEADER") );
+                log_v_debug_P( PSTR("state:L EADER") );
 
                 // tracked leader is better
                 // we reset back to idle

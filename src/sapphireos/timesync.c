@@ -253,6 +253,11 @@ static bool is_leader( void ){
     return election_b_is_leader( TIME_ELECTION_SERVICE );
 }
 
+static bool is_follower( void ){
+
+    return !is_leader() && election_b_leader_found( TIME_ELECTION_SERVICE );
+}
+
 static void time_v_set_ntp_master_clock_internal( 
     ntp_ts_t source_ts, 
     uint32_t source_net_time,
@@ -807,7 +812,7 @@ PT_BEGIN( pt );
             // }
         }
 
-        if( !is_leader() && election_b_leader_found( TIME_ELECTION_SERVICE ) ){
+        if( is_follower() ){
 
             // reset sync
             is_sync = FALSE;
@@ -818,7 +823,7 @@ PT_BEGIN( pt );
             request_sync();
         }
 
-        while( !is_leader() && election_b_leader_found( TIME_ELECTION_SERVICE ) ){
+        while( is_follower() ){
 
             // random delay
             uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
