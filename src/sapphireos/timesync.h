@@ -35,38 +35,39 @@
 #define TIME_SERVER_PORT                32037
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION           5
+#define TIME_PROTOCOL_VERSION           6
 
 #define TIME_SOURCE_GPS                 64
 #define TIME_SOURCE_NTP                 32
 #define TIME_SOURCE_RTC                 16
 #define TIME_SOURCE_INTERNAL_NTP_SYNC   9 // any source above this level is assumed to have a valid NTP sync
 #define TIME_SOURCE_INTERNAL            8
-#define TIME_SOURCE_NONE                0
+#define TIME_SOURCE_NONE                1
 
 
 #define TIME_MASTER_SYNC_RATE           4 // in seconds
 #define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
 //#define TIME_SLAVE_SYNC_RATE_MAX        32 // in seconds // unused
 
+#define TIME_ELECTION_SERVICE           __KV__timesync
 
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint8_t flags;
-    uint8_t source;
-    uint32_t net_time;
-    uint64_t uptime;
-} time_msg_master_t;
-#define TIME_MSG_MASTER             1
+// typedef struct __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+//     uint8_t flags;
+//     uint8_t source;
+//     uint32_t net_time;
+//     uint64_t uptime;
+// } time_msg_master_t;
+// #define TIME_MSG_MASTER             1
 
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-} time_msg_not_master_t;
-#define TIME_MSG_NOT_MASTER         2
+// typedef struct __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+// } time_msg_not_master_t;
+// #define TIME_MSG_NOT_MASTER         2
 
 typedef struct __attribute__((packed)){
     uint32_t magic;

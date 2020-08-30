@@ -30,7 +30,7 @@
 #include "hash.h"
 #include "sntp.h"
 #include "util.h"
-#include "esp8266.h"
+#include "election.h"
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
@@ -39,7 +39,7 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 static socket_t sock;
 
 static ip_addr4_t master_ip;
-static uint64_t master_uptime;
+// static uint64_t master_uptime;
 static uint8_t master_source;
 static bool is_sync;
 static bool ntp_valid;
@@ -54,10 +54,10 @@ static int32_t master_sync_difference;
 
 static bool gps_sync;
 
-static uint8_t sync_state;
-#define STATE_WAIT              0
-#define STATE_MASTER            1
-#define STATE_SLAVE             2
+// static uint8_t sync_state;
+// #define STATE_WAIT              0
+// #define STATE_MASTER            1
+// #define STATE_SLAVE             2
 
 static uint8_t sync_id;
 static uint32_t rtt_start;
@@ -104,10 +104,10 @@ static int8_t ntp_kv_handler(
 KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &sync_state,       0,                      "net_time_state" },
+    // { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &sync_state,       0,                      "net_time_state" },
     { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
-    { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
+    // { SAPPHIRE_TYPE_UINT64,     0, KV_FLAGS_READ_ONLY, &master_uptime,    0,                      "net_time_master_uptime" },
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
     { SAPPHIRE_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
 
@@ -136,7 +136,7 @@ void time_v_init( void ){
         return;
     }
 
-    sync_state = STATE_WAIT;
+    // sync_state = STATE_WAIT;
 
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
@@ -246,6 +246,11 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
     return ntp_ts_from_u64( now ); 
 }
 
+static bool is_leader( void ){
+
+    return election_b_is_leader( TIME_ELECTION_SERVICE );
+}
+
 static void time_v_set_ntp_master_clock_internal( 
     ntp_ts_t source_ts, 
     uint32_t source_net_time,
@@ -318,7 +323,8 @@ void time_v_set_ntp_master_clock(
     uint32_t local_system_time,
     uint8_t source ){
 
-    if( sync_state == STATE_SLAVE ){
+    // if( sync_state == STATE_SLAVE ){
+    if( !is_leader() ){
 
         // our source isn't as good as the master, don't do anything.
         if( source <= master_source ){
@@ -327,9 +333,9 @@ void time_v_set_ntp_master_clock(
         }
 
         // our source is better, we are master now
-        sync_state = STATE_MASTER;
-        master_ip = ip_a_addr(0,0,0,0);
-        log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
+        // sync_state = STATE_MASTER;
+        // master_ip = ip_a_addr(0,0,0,0);
+        // log_v_debug_P( PSTR("we are master (local source master update) %d"), source );
     }
 
     time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source, 0 );
@@ -399,19 +405,19 @@ static uint8_t get_best_local_source( void ){
     return TIME_SOURCE_NONE;
 }
 
-static void send_not_master( ip_addr4_t ip ){
+// static void send_not_master( ip_addr4_t ip ){
 
-    time_msg_not_master_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_NOT_MASTER;
+//     time_msg_not_master_t msg;
+//     msg.magic           = TIME_PROTOCOL_MAGIC;
+//     msg.version         = TIME_PROTOCOL_VERSION;
+//     msg.type            = TIME_MSG_NOT_MASTER;
 
-    sock_addr_t raddr;
-    raddr.ipaddr = ip;
-    raddr.port = TIME_SERVER_PORT;
+//     sock_addr_t raddr;
+//     raddr.ipaddr = ip;
+//     raddr.port = TIME_SERVER_PORT;
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
-}
+//     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+// }
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
@@ -419,7 +425,7 @@ PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     // set timeout (in seconds)
-    sock_v_set_timeout( sock, 32 );
+    // sock_v_set_timeout( sock, 32 );
     
     while(1){
 
@@ -449,101 +455,102 @@ PT_BEGIN( pt );
             sock_addr_t raddr;
             sock_v_get_raddr( sock, &raddr );
 
-            if( *type == TIME_MSG_MASTER ){
+            // if( *type == TIME_MSG_MASTER ){
 
-                time_msg_master_t *msg = (time_msg_master_t *)magic;
+            //     time_msg_master_t *msg = (time_msg_master_t *)magic;
 
-                if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_master_t) ){
+            //     if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_master_t) ){
 
-                    log_v_debug_P( PSTR("invalid len") );
-                }
+            //         log_v_debug_P( PSTR("invalid len") );
+            //     }
 
-                if( sync_state == STATE_WAIT ){
+            //     if( sync_state == STATE_WAIT ){
 
-                    // select master
-                    master_ip = raddr.ipaddr;
-                    master_uptime = msg->uptime;
-                    master_source = msg->source;
+            //         // select master
+            //         master_ip = raddr.ipaddr;
+            //         master_uptime = msg->uptime;
+            //         master_source = msg->source;
 
-                    filtered_rtt = 0;
+            //         filtered_rtt = 0;
 
-                    sync_state = STATE_SLAVE;
+            //         sync_state = STATE_SLAVE;
 
-                    log_v_debug_P( PSTR("assigning master: %d.%d.%d.%d"), 
-                        master_ip.ip3, 
-                        master_ip.ip2, 
-                        master_ip.ip1, 
-                        master_ip.ip0 );                    
-                }
-                else if( sync_state == STATE_SLAVE ){
+            //         log_v_debug_P( PSTR("assigning master: %d.%d.%d.%d"), 
+            //             master_ip.ip3, 
+            //             master_ip.ip2, 
+            //             master_ip.ip1, 
+            //             master_ip.ip0 );                    
+            //     }
+            //     else if( sync_state == STATE_SLAVE ){
 
-                    // check if this master is better
-                    if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) && 
-                         is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
+            //         // check if this master is better
+            //         if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) && 
+            //              is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
 
-                        // select master
-                        master_ip = raddr.ipaddr;
-                        master_uptime = msg->uptime;
-                        master_source = msg->source;
+            //             // select master
+            //             master_ip = raddr.ipaddr;
+            //             master_uptime = msg->uptime;
+            //             master_source = msg->source;
 
-                        filtered_rtt = 0;
+            //             filtered_rtt = 0;
                     
-                        sync_state = STATE_SLAVE;
+            //             sync_state = STATE_SLAVE;
 
-                        log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
-                            master_ip.ip3, 
-                            master_ip.ip2, 
-                            master_ip.ip1, 
-                            master_ip.ip0 );       
-                    }
-                }
-                else if( sync_state == STATE_MASTER ){
+            //             log_v_debug_P( PSTR("assigning new master: %d.%d.%d.%d"), 
+            //                 master_ip.ip3, 
+            //                 master_ip.ip2, 
+            //                 master_ip.ip1, 
+            //                 master_ip.ip0 );       
+            //         }
+            //     }
+            //     else if( sync_state == STATE_MASTER ){
 
-                    log_v_debug_P( PSTR("rx sync while master") );
+            //         log_v_debug_P( PSTR("rx sync while master") );
 
-                    // update our master uptime
-                    master_uptime = tmr_u64_get_system_time_us();
+            //         // update our master uptime
+            //         master_uptime = tmr_u64_get_system_time_us();
 
-                    // check if this master is better
-                    if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
+            //         // check if this master is better
+            //         if( is_master_better( msg->uptime, msg->source, master_uptime, master_source ) ){
 
-                        // select master
-                        master_ip = raddr.ipaddr;
-                        master_uptime = msg->uptime;
-                        master_source = msg->source;
+            //             // select master
+            //             master_ip = raddr.ipaddr;
+            //             master_uptime = msg->uptime;
+            //             master_source = msg->source;
 
-                        filtered_rtt = 0;
+            //             filtered_rtt = 0;
                     
-                        sync_state = STATE_SLAVE;
+            //             sync_state = STATE_SLAVE;
 
-                        log_v_debug_P( PSTR("assigning new master and switching to slave mode: %d.%d.%d.%d"), 
-                            master_ip.ip3, 
-                            master_ip.ip2, 
-                            master_ip.ip1, 
-                            master_ip.ip0 );                    
+            //             log_v_debug_P( PSTR("assigning new master and switching to slave mode: %d.%d.%d.%d"), 
+            //                 master_ip.ip3, 
+            //                 master_ip.ip2, 
+            //                 master_ip.ip1, 
+            //                 master_ip.ip0 );                    
 
-                        // stop sntp
-                        sntp_v_stop();
-                    }
-                } 
-            }
-            else if( *type == TIME_MSG_NOT_MASTER ){
+            //             // stop sntp
+            //             sntp_v_stop();
+            //         }
+            //     } 
+            // }
+            // else if( *type == TIME_MSG_NOT_MASTER ){
 
-                // check if that was master.
-                if( ip_b_addr_compare( raddr.ipaddr, master_ip ) ){
+            //     // check if that was master.
+            //     if( ip_b_addr_compare( raddr.ipaddr, master_ip ) ){
 
-                    // ruh roh.  master rebooted or something.
-                    sync_state = STATE_WAIT;
+            //         // ruh roh.  master rebooted or something.
+            //         sync_state = STATE_WAIT;
 
-                    log_v_debug_P( PSTR("lost master, resetting state") );
+            //         log_v_debug_P( PSTR("lost master, resetting state") );
 
-                    // stop sntp
-                    sntp_v_stop();
-                }
-            }
-            else if( *type == TIME_MSG_REQUEST_SYNC ){
+            //         // stop sntp
+            //         sntp_v_stop();
+            //     }
+            // }
+            // else if( *type == TIME_MSG_REQUEST_SYNC ){
+            if( *type == TIME_MSG_REQUEST_SYNC ){
 
-                if( sync_state != STATE_MASTER ){
+                if( !is_leader() ){
 
                     continue;
                 }
@@ -560,7 +567,7 @@ PT_BEGIN( pt );
                 msg.version         = TIME_PROTOCOL_VERSION;
                 msg.type            = TIME_MSG_SYNC;
                 msg.net_time        = time_u32_get_network_time_from_local( now );
-                msg.uptime          = master_uptime;
+                // msg.uptime          = master_uptime;
                 msg.flags           = 0;
                 msg.ntp_time        = time_t_from_system_time( now );
                 msg.source          = master_source;
@@ -570,9 +577,9 @@ PT_BEGIN( pt );
             }
             else if( *type == TIME_MSG_SYNC ){
 
-                if( sync_state == STATE_MASTER ){
+                if( is_leader() ){
 
-                    send_not_master( raddr.ipaddr );
+                    // send_not_master( raddr.ipaddr );
 
                     continue;
                 }
@@ -591,7 +598,7 @@ PT_BEGIN( pt );
                     continue;
                 }
 
-                master_uptime = msg->uptime;
+                // master_uptime = msg->uptime;
                 // uint32_t est_net_time = time_u32_get_network_time();
                 
                 uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
@@ -641,40 +648,40 @@ PT_BEGIN( pt );
             }
         }
         // socket timeout
-        else{
+        // else{
 
-            if( sync_state != STATE_MASTER ){
+        //     if( sync_state != STATE_MASTER ){
 
-                log_v_debug_P( PSTR("timed out, resetting state") );
+        //         log_v_debug_P( PSTR("timed out, resetting state") );
 
-                master_source = 0;
-                sync_state = STATE_WAIT;
-            }
-        }
+        //         master_source = 0;
+        //         sync_state = STATE_WAIT;
+        //     }
+        // }
     }
 
 
 PT_END( pt );
 }
 
-static void send_master( void ){
+// static void send_master( void ){
 
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
+//     // set up broadcast address
+//     sock_addr_t raddr;
+//     raddr.port = TIME_SERVER_PORT;
+//     raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-    time_msg_master_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_MASTER;
-    msg.net_time        = master_net_time;
-    msg.uptime          = master_uptime;
-    msg.flags           = 0;
-    msg.source          = master_source;
+//     time_msg_master_t msg;
+//     msg.magic           = TIME_PROTOCOL_MAGIC;
+//     msg.version         = TIME_PROTOCOL_VERSION;
+//     msg.type            = TIME_MSG_MASTER;
+//     msg.net_time        = master_net_time;
+//     msg.uptime          = master_uptime;
+//     msg.flags           = 0;
+//     msg.source          = master_source;
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
-}
+//     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+// }
 
 static void request_sync( void ){
 
@@ -703,9 +710,9 @@ PT_BEGIN( pt );
     while( TRUE ){
 
         master_ip = ip_a_addr(0,0,0,0);
-        sync_state = STATE_WAIT;
+        // sync_state = STATE_WAIT;
 
-        THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() || !wifi_b_connected() );
+        // THREAD_WAIT_WHILE( pt, !cfg_b_ip_configured() || !wifi_b_connected() );
 
         // random delay, see if other masters show up
     
@@ -714,29 +721,31 @@ PT_BEGIN( pt );
         // we'll tell everyone else we aren't the master, so someone else will jump in
         // (with the current network time).
 
-        send_not_master( ip_a_addr(255,255,255,255) );
-        TMR_WAIT( pt, 200 );
-        send_not_master( ip_a_addr(255,255,255,255) );
-        TMR_WAIT( pt, 200 );
-        send_not_master( ip_a_addr(255,255,255,255) );
+        // send_not_master( ip_a_addr(255,255,255,255) );
+        // TMR_WAIT( pt, 200 );
+        // send_not_master( ip_a_addr(255,255,255,255) );
+        // TMR_WAIT( pt, 200 );
+        // send_not_master( ip_a_addr(255,255,255,255) );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 2000 + ( rnd_u16_get_int() >> 3 ) );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_WAIT ) );
+        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_WAIT ) );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // check if we are still waiting or we have a GPS sync
-        if( ( sync_state == STATE_WAIT ) || ( gps_sync ) ){
+        // if( ( sync_state == STATE_WAIT ) || ( gps_sync ) ){
 
-            // elect ourselves as master.
-            // even if we don't have an NTP reference, we can at least sync the local net clock.
-            sync_state = STATE_MASTER;
-            master_uptime = 0;
-            master_ip = ip_a_addr(0,0,0,0);
-            is_sync = TRUE;
+        //     // elect ourselves as master.
+        //     // even if we don't have an NTP reference, we can at least sync the local net clock.
+        //     sync_state = STATE_MASTER;
+        //     master_uptime = 0;
+        //     master_ip = ip_a_addr(0,0,0,0);
+        //     is_sync = TRUE;
 
-            log_v_debug_P( PSTR("we are master") );
-        }
+        //     log_v_debug_P( PSTR("we are master") );
+        // }
 
-        while( sync_state == STATE_MASTER ){
+        // while( sync_state == STATE_MASTER ){
+        while( is_leader() ){
 
             // default sync source to internal clock
             master_source = TIME_SOURCE_INTERNAL;
@@ -763,34 +772,35 @@ PT_BEGIN( pt );
                 }
             }
 
-            master_uptime = tmr_u64_get_system_time_us();
+            // master_uptime = tmr_u64_get_system_time_us();
 
-            send_master();
+            // send_master();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() +  TIME_MASTER_SYNC_RATE * 1000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-            THREAD_WAIT_WHILE( pt, 
-                thread_b_alarm_set() && 
-                ( !sys_b_shutdown() ) &&
-                ( wifi_b_connected() ) );
+            // THREAD_WAIT_WHILE( pt, 
+            //     thread_b_alarm_set() && 
+            //     ( !sys_b_shutdown() ) &&
+            //     ( wifi_b_connected() ) );
 
-            if( sys_b_shutdown() ){
+            // if( sys_b_shutdown() ){
 
-                send_not_master( ip_a_addr(255,255,255,255) );
-                TMR_WAIT( pt, 200 );
-                send_not_master( ip_a_addr(255,255,255,255) );
-                TMR_WAIT( pt, 200 );
-                send_not_master( ip_a_addr(255,255,255,255) );   
+            //     send_not_master( ip_a_addr(255,255,255,255) );
+            //     TMR_WAIT( pt, 200 );
+            //     send_not_master( ip_a_addr(255,255,255,255) );
+            //     TMR_WAIT( pt, 200 );
+            //     send_not_master( ip_a_addr(255,255,255,255) );   
 
-                THREAD_EXIT( pt );
-            }
-            else if( !wifi_b_connected() ){
+            //     THREAD_EXIT( pt );
+            // }
+            // else if( !wifi_b_connected() ){
 
-                THREAD_RESTART( pt );
-            }
+            //     THREAD_RESTART( pt );
+            // }
         }
 
-        if( sync_state == STATE_SLAVE ){
+        if( !is_leader() ){
 
             // reset sync
             is_sync = FALSE;
@@ -801,7 +811,7 @@ PT_BEGIN( pt );
             request_sync();
         }
 
-        while( sync_state == STATE_SLAVE ){
+        while( !is_leader() ){
 
             // random delay
             uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
@@ -811,8 +821,8 @@ PT_BEGIN( pt );
             if( get_best_local_source() > master_source ){
 
                 // elect ourselves as master
-                sync_state = STATE_MASTER;
-                master_uptime = 0;
+                // sync_state = STATE_MASTER;
+                // master_uptime = 0;
 
                 log_v_debug_P( PSTR("we are master (local source)") );
                 master_ip = ip_a_addr(0,0,0,0);
@@ -820,18 +830,18 @@ PT_BEGIN( pt );
 
 
             // check state
-            if( sync_state != STATE_SLAVE ){
+            // if( sync_state != STATE_SLAVE ){
 
-                // no longer master
-                log_v_debug_P( PSTR("no longer slave") );
+            //     // no longer master
+            //     log_v_debug_P( PSTR("no longer slave") );
 
-                break;
-            }
+            //     break;
+            // }
 
-            if( !wifi_b_connected() ){
+            // if( !wifi_b_connected() ){
 
-                THREAD_RESTART( pt );
-            }
+            //     THREAD_RESTART( pt );
+            // }
 
             request_sync();
         }
@@ -844,15 +854,20 @@ PT_END( pt );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    election_v_join( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );
 
-
-    THREAD_WAIT_WHILE( pt, sync_state == STATE_WAIT );
+    // wait until we resolve the election
+    THREAD_WAIT_WHILE( pt, !election_b_leader_found( TIME_ELECTION_SERVICE ) );
 
     last_clock_update = tmr_u32_get_system_time_ms();
     thread_v_set_alarm( last_clock_update );
 
-    while( sync_state != STATE_WAIT ){
+    while( 1 ){
     
+        // update election parameters (in case our source changes)        
+        election_v_join( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );
+
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 

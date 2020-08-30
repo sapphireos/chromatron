@@ -76,6 +76,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
 void election_v_cancel( uint32_t service );
 
 bool election_b_leader_found( uint32_t service );
+bool election_b_is_leader( uint32_t service );
 sock_addr_t election_a_get_leader( uint32_t service );
 
 

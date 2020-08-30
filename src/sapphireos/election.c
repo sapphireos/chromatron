@@ -272,6 +272,21 @@ bool election_b_leader_found( uint32_t service ){
     return !ip_b_is_zeroes( election->leader_ip );
 }
 
+bool election_b_is_leader( uint32_t service ){
+
+    election_t *election = get_election( service );
+
+    if( election == 0 ){
+
+        return FALSE;
+    }
+
+    ip_addr4_t ip;
+    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+
+    return ip_b_addr_compare( ip, election->leader_ip );
+}
+
 sock_addr_t election_a_get_leader( uint32_t service ){
 
     sock_addr_t addr;
