@@ -713,7 +713,7 @@ static void request_sync( void ){
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
     while( TRUE ){
 
         master_ip = ip_a_addr(0,0,0,0);
@@ -820,14 +820,10 @@ PT_BEGIN( pt );
             sntp_v_stop();
 
             TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
-            request_sync();
         }
 
         while( is_follower() ){
 
-            // random delay
-            uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
-            TMR_WAIT( pt, delay );
             // TMR_WAIT( pt, 1000 );
 
             // if( get_best_local_source() > master_source ){
@@ -856,6 +852,10 @@ PT_BEGIN( pt );
             // }
 
             request_sync();
+
+            // random delay
+            uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+            TMR_WAIT( pt, delay );
         }
     }
     

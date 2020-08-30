@@ -208,14 +208,15 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     
     if( election_ptr != 0 ){
 
-        // check if priority changed, if so, reset election state
-        if( priority != election_ptr->priority ){
+        // check if priority dropped, if so, reset election state
+        // if( priority != election_ptr->priority ){
 
-            reset_state( election_ptr );    
-        }
+        //     reset_state( election_ptr );    
+        // }
 
-        // update priority
+        // update priority and group
         election_ptr->priority = priority;
+        election_ptr->group    = group;
         
         return;
     }
@@ -275,6 +276,11 @@ bool election_b_leader_found( uint32_t service ){
     if( election == 0 ){
 
         return FALSE;
+    }
+
+    if( election->state == STATE_LEADER ){
+
+        return TRUE;
     }
 
     return !ip_b_is_zeroes( election->leader_ip );
@@ -677,6 +683,13 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
 
             // reset timeout
             election->timeout   = FOLLOWER_TIMEOUT;
+
+            // check if leader is still better than we are
+            if( compare_self( election ) ){
+
+                // hmm, let's re-run the election
+                reset_state( election );
+            }
         }
     }
     else if( election->state == STATE_LEADER ){
@@ -691,7 +704,7 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
             // check if the tracked leader is better than us
             if( !compare_self( election ) ){
 
-                log_v_debug_P( PSTR("state:L EADER") );
+                log_v_debug_P( PSTR("state: LEADER") );
 
                 // tracked leader is better
                 // we reset back to idle
@@ -747,6 +760,12 @@ PT_BEGIN( pt );
             election->leader_cycles++;
 
             if( election->timeout == 0 ){
+
+                if( election->state == STATE_LEADER ){                    
+
+                    // clear tracking info
+                    clear_tracking( election );           
+                }
 
                 goto next;
             }
@@ -849,11 +868,6 @@ PT_BEGIN( pt );
                 log_v_info_P( PSTR("FOLLOWER timeout: lost leader") );
 
                 reset_state( election );
-            }
-            else if( election->state == STATE_LEADER ){                    
-
-                // clear tracking info
-                clear_tracking( election );           
             }
             
 next:
