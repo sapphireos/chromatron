@@ -715,7 +715,7 @@ PT_BEGIN( pt );
 
 
         // wait for election to resolve
-        THREAD_WAIT_WHILE( pt, election_b_leader_found( TIME_ELECTION_SERVICE ) );
+        THREAD_WAIT_WHILE( pt, !election_b_leader_found( TIME_ELECTION_SERVICE ) );
 
         // sync_state = STATE_WAIT;
 

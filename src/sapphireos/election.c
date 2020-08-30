@@ -685,6 +685,7 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
         if( compare_leader( election, header, pkt ) ){
 
             track_node( election, header, pkt, ip );
+            election->timeout   = CANDIDATE_TIMEOUT;
 
             // now that we've updated tracking
             // check if the tracked leader is better than us
