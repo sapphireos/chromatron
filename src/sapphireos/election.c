@@ -278,12 +278,13 @@ bool election_b_leader_found( uint32_t service ){
         return FALSE;
     }
 
-    if( election->state == STATE_LEADER ){
+    if( ( election->state == STATE_LEADER ) ||
+        ( election->state == STATE_FOLLOWER ) ){
 
         return TRUE;
     }
 
-    return !ip_b_is_zeroes( election->leader_ip );
+    return FALSE;
 }
 
 bool election_b_is_leader( uint32_t service ){
@@ -345,7 +346,7 @@ static bool compare_self( election_t *election ){
 
         return FALSE;
     } 
-    // our priority is bettere
+    // our priority is better
     else if( election->priority > election->leader_priority ){
 
         log_v_debug_P( PSTR("priority win") );
