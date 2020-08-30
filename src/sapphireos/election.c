@@ -116,7 +116,7 @@ void election_v_init( void ){
     fs_f_create_virtual( PSTR("electioninfo"), vfile );
 
     // debug: test election
-    election_v_join( 0x1234, 0, 1, 9090 );
+    // election_v_join( 0x1234, 0, 1, 9090 );
 }
 
 
@@ -204,10 +204,14 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
     
     if( election_ptr != 0 ){
 
-        // update priority
-        election_ptr->priority   = priority;
+        // check if priority changed, if so, reset election state
+        if( priority != election_ptr->priority ){
 
-        reset_state( election_ptr );
+            reset_state( election_ptr );    
+        }
+
+        // update priority
+        election_ptr->priority = priority;
         
         return;
     }
@@ -303,6 +307,18 @@ sock_addr_t election_a_get_leader( uint32_t service ){
     addr.port   = election->port;
 
     return addr;
+}
+
+ip_addr4_t election_a_get_leader_ip( uint32_t service ){
+
+    election_t *election = get_election( service );
+
+    if( election == 0 ){
+    
+        return addr;
+    }
+
+    return election->leader_ip;
 }
 
 // true if we are better than tracked leader
