@@ -58,8 +58,6 @@ typedef struct{
     char svc_name[32];
 } kv_svc_name_t;
 
-#define KV_SIGNAL                   SIGNAL_SYS_2
-
 
 typedef uint8_t kv_op_t8;
 #define KV_OP_SET                   1

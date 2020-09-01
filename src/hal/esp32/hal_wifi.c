@@ -55,6 +55,7 @@ static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
+static uint32_t wifi_udp_dropped;
 static bool default_ap_mode;
 
 static bool connected;
@@ -86,6 +87,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
 };
 
 
@@ -258,6 +260,8 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("rx udp alloc fail") );     
 
+                wifi_udp_dropped++;
+
                 break;
             }
             
@@ -279,6 +283,8 @@ PT_BEGIN( pt );
                 log_v_error_P( PSTR("rx udp no handle") );     
 
                 netmsg_v_release( rx_netmsg );
+
+                wifi_udp_dropped++;
 
                 break;
             }      

@@ -50,6 +50,7 @@ static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
+static uint32_t wifi_udp_dropped;
 static bool default_ap_mode;
 
 static bool connected;
@@ -84,7 +85,11 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
 };
+
+
+#define RX_SIGNAL SIGNAL_SYS_6
 
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
@@ -213,13 +218,19 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
  //        conn->proto.udp->local_port);
  //    }
 
+    // check rx size
+    if( list_u16_size( &rx_list ) > WIFI_MAX_RX_SIZE ){
+
+        goto drop;
+    }
+
     netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
 
     if( rx_netmsg < 0 ){
 
         log_v_debug_P( PSTR("rx udp alloc fail") );     
 
-        return;
+        goto drop;
     }
     
     netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
@@ -241,7 +252,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
         netmsg_v_release( rx_netmsg );
 
-        return;
+        goto drop;
     }      
 
     // we can get a fast ptr because we've already verified the handle
@@ -261,7 +272,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
     }
     else if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
 
-        log_v_warn_P( PSTR("rx q full: lport: %u rport: %d.%d.%d.%d:%u"), state->laddr.port, state->raddr.ipaddr.ip3, state->raddr.ipaddr.ip2, state->raddr.ipaddr.ip1, state->raddr.ipaddr.ip0, state->raddr.port );     
+        log_v_warn_P( PSTR("rx q full: len: %d lport: %u rport: %d.%d.%d.%d:%u"), len, state->laddr.port, state->raddr.ipaddr.ip3, state->raddr.ipaddr.ip2, state->raddr.ipaddr.ip1, state->raddr.ipaddr.ip0, state->raddr.port );     
 
         if( sock_b_rx_pending() ){
 
@@ -272,14 +283,23 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
         // drop this message
         netmsg_v_release( rx_netmsg );
 
-        return;
+        goto drop;
     }
 
     wifi_udp_received++;
 
     list_v_insert_head( &rx_list, rx_netmsg );
-}
 
+
+    thread_v_signal( RX_SIGNAL );
+
+    return;
+
+
+drop:
+
+    wifi_udp_dropped++;
+}
 
 
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
@@ -288,11 +308,18 @@ PT_BEGIN( pt );
     
     while(1){
 
+        if( list_u8_count( &rx_list ) == 0 ){
+
+            THREAD_WAIT_SIGNAL( pt, RX_SIGNAL );    
+        }
+
         THREAD_WAIT_WHILE( pt, list_u8_count( &rx_list ) == 0 );
         THREAD_WAIT_WHILE( pt, sock_b_rx_pending() ); // wait while sockets are busy
 
         netmsg_t rx_netmsg = list_ln_remove_tail( &rx_list );
         netmsg_v_receive( rx_netmsg );
+
+        THREAD_YIELD( pt );
     }   
 
 PT_END( pt );
