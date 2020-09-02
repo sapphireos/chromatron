@@ -717,7 +717,7 @@ PT_BEGIN( pt );
 
             // Did VM that was not running just get told to start?
             // This will also occur if we've triggered a reset
-            if( vm_run[i] && !is_vm_running( i ) ){
+            if( vm_run[i] && !is_vm_running( i ) && ( vm_threads[i] <= 0 ) ){
 
                 vm_thread_state_t thread_state;
                 memset( &thread_state, 0, sizeof(thread_state) );
