@@ -599,6 +599,9 @@ exit:
 
     // reset VM data
     reset_published_data( state->vm_id );
+
+    // clear thread handle
+    vm_threads[state->vm_id] = -1;
     
 PT_END( pt );
 }
