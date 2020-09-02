@@ -352,26 +352,6 @@ ntp_ts_t time_t_local_now( void ){
     return ntp;
 }
 
-// return TRUE if 1 is better than 2
-static bool is_master_better( uint64_t uptime1, uint8_t source1, uint64_t uptime2, uint8_t source2 ){
-
-    // check if sources are the same
-    if( source1 == source2 ){
-
-        // priority by uptime
-        if( uptime1 >= uptime2 ){
-
-            return TRUE;
-        }
-    }
-    else if( source1 > source2 ){
-
-        return TRUE;
-    }
-
-    return FALSE;
-}
-
 static uint8_t get_best_local_source( void ){
 
     if( gps_sync ){
