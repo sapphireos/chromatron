@@ -671,8 +671,13 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
             
             log_v_debug_P( PSTR("state: FOLLOWER") );
 
-            // we reset back to idle
-            reset_state( election );
+            track_node( election, header, pkt, ip );
+
+            if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) != 0 ){
+
+                // we reset back to idle
+                reset_state( election );
+            }
         }
         // check if this packet is from our current leader
         else if( ip_b_addr_compare( *ip, election->leader_ip ) ){
@@ -687,6 +692,8 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
 
             // check if leader is still better than we are
             if( compare_self( election ) ){
+
+                // no, we are better
 
                 // hmm, let's re-run the election
                 reset_state( election );
