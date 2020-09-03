@@ -357,11 +357,14 @@ static bool compare_self( election_t *election ){
     // priorities are the same
     
     // check cycle count
-    if( election->cycles < election->leader_cycles ){
+    int64_t diff = (int64_t)election->cycles - (int64_t)election->leader_cycles;
+    diff -= ELECTION_CYCLE_MIN_DIFF;
+
+    if( diff <= 0 ){
 
         return FALSE;
     }
-    else if( election->cycles > election->leader_cycles ){
+    else if( diff > 0 ){
 
         log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
@@ -405,13 +408,16 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
     // priorities are the same
     
     // check cycle count
-    if( pkt->cycles < election->leader_cycles ){
+    int64_t diff = (int64_t)pkt->cycles - (int64_t)election->leader_cycles;
+    diff -= ELECTION_CYCLE_MIN_DIFF;
+
+    if( diff <= 0 ){
 
         return FALSE;
     }
-    else if( pkt->cycles > election->leader_cycles ){
+    else if( diff > 0 ){
 
-        log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)pkt->cycles, (uint32_t)election->leader_cycles );
+        log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
         return TRUE;
     }
@@ -620,7 +626,7 @@ static void transmit_query( election_t *election ){
     raddr.ipaddr = election->leader_ip;
     raddr.port   = ELECTION_PORT;
 
-    log_v_debug_P( PSTR("tx query") );
+    // log_v_debug_P( PSTR("tx query") );
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
