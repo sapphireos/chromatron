@@ -805,7 +805,7 @@ PT_BEGIN( pt );
                 // broadcast.  this mechanism is a useful backup if the broadcasts aren't 
                 // being received.
 
-                log_v_info_P( PSTR("query: %d"), election->timeout );
+                log_v_debug_P( PSTR("query: %d"), election->timeout );
                 transmit_query( election );
             }
 
@@ -861,7 +861,7 @@ PT_BEGIN( pt );
                         election->timeout   = FOLLOWER_TIMEOUT;                
                     }
                     else{
-                        
+
                         // no leader, reset
                         reset_state( election );
                     }
