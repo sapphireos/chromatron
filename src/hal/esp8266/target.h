@@ -48,7 +48,7 @@
 
 // wifi
 #define WIFI_MAX_PORTS          16
-#define WIFI_MAX_RX_NETMSGS		32
+#define WIFI_MAX_RX_NETMSGS		64
 #define WIFI_MAX_RX_SIZE        2048
 
 // pixel config
