@@ -593,7 +593,7 @@ PT_BEGIN( pt );
             request_sync();
 
             // random delay
-            uint16_t delay = ( TIME_SLAVE_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+            uint16_t delay = ( TIME_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
             TMR_WAIT( pt, delay );
         }
     }

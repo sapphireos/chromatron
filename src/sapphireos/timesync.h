@@ -41,9 +41,7 @@
 #define TIME_SOURCE_INTERNAL            8
 #define TIME_SOURCE_NONE                1
 
-
-#define TIME_MASTER_SYNC_RATE           4 // in seconds
-#define TIME_SLAVE_SYNC_RATE_BASE       4 // in seconds
+#define TIME_SYNC_RATE_BASE             4 // in seconds
 
 #define TIME_ELECTION_SERVICE           __KV__timesync
 
