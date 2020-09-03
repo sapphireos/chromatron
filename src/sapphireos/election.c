@@ -62,8 +62,9 @@ typedef struct  __attribute__((packed)){
     uint64_t leader_device_id;
     uint16_t leader_priority;
     uint32_t leader_cycles;
-    uint16_t leader_port;   
+    uint16_t leader_port;
     ip_addr4_t leader_ip;
+    bool is_leader;
 
     uint8_t timeout;
     uint8_t state;
@@ -445,6 +446,12 @@ static void track_node( election_t *election, election_header_t *header, electio
     election->leader_cycles     = pkt->cycles;
     election->leader_port       = pkt->port;
     election->leader_ip         = *ip;
+    election->is_leader         = FALSE;
+
+    if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) != 0 ){
+
+        election->is_leader      = TRUE;
+    }
 }
 
 
@@ -679,7 +686,8 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
 
             track_node( election, header, pkt, ip );
 
-            if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) != 0 ){
+            // if tracking is a leader
+            if( election->is_leader ){
 
                 // we reset back to idle
                 reset_state( election );
@@ -838,7 +846,8 @@ PT_BEGIN( pt );
                         election->state = STATE_CANDIDATE;
                         election->timeout = CANDIDATE_TIMEOUT;
                     }
-                    else{
+                    // if tracking a leader
+                    else if( election->is_leader ){
 
                         // sanity check - remove after debug
                         if( ip_b_is_zeroes( election->leader_ip ) ){

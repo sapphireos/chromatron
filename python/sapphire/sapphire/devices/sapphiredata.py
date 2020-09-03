@@ -348,6 +348,7 @@ class ElectionInfo(StructField):
                   Uint32Field(_name="leader_cycles"),
                   Uint16Field(_name="leader_port"),
                   Ipv4Field(_name="leader_ip"),
+                  BooleanField(_name="is_leader"),
                   Uint8Field(_name="timeout"),
                   Uint8Field(_name="state")]
 

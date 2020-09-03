@@ -33,8 +33,8 @@
 
 #define FOLLOWER_TIMEOUT            64
 #define FOLLOWER_QUERY_TIMEOUT      8
-#define CANDIDATE_TIMEOUT           6
-#define IDLE_TIMEOUT                4
+#define CANDIDATE_TIMEOUT           12
+#define IDLE_TIMEOUT                8
 
 #define ELECTION_PRIORITY_FOLLOWER_ONLY    0
 
