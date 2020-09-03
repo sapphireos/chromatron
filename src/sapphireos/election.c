@@ -365,7 +365,7 @@ static bool compare_self( election_t *election ){
 
         return FALSE;
     }
-    else if( diff > 0 ){
+    else{
 
         log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
@@ -416,7 +416,7 @@ static bool compare_leader( election_t *election, election_header_t *header, ele
 
         return FALSE;
     }
-    else if( diff > 0 ){
+    else{
 
         log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
@@ -544,7 +544,7 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
 
         while( ln > 0 ){
 
-            election_t *election = (election_t *)list_vp_get_data( ln );
+            election = (election_t *)list_vp_get_data( ln );
 
             if( !should_transmit( election ) ){
 
