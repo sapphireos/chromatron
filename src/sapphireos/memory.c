@@ -198,6 +198,7 @@ KV_SECTION_META kv_meta_t mem_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.heap_size,     0,  "mem_heap_size" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.free_space,    0,  "mem_free_space" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.peak_usage,    0,  "mem_peak_usage" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.peak_handles,  0,  "mem_peak_handles" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.used_space,    0,  "mem_used" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.dirty_space,   0,  "mem_dirty" },
     { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &mem_allocs,                0,  "mem_allocs" },
@@ -433,6 +434,11 @@ static mem_handle_t alloc( uint16_t size, mem_type_t8 type ){
         if( handles[handle] == 0 ){
 
             mem_rt_data.handles_used++;
+
+            if( mem_rt_data.handles_used > mem_rt_data.peak_handles ){
+
+                mem_rt_data.peak_handles = mem_rt_data.handles_used;
+            }
 
             break;
         }

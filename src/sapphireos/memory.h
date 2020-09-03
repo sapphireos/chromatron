@@ -80,6 +80,7 @@ typedef struct{
 	uint16_t dirty_space;
 	uint16_t data_space;
 	uint16_t peak_usage;
+    uint16_t peak_handles;
 } mem_rt_data_t;
 
 typedef struct __attribute__((packed)){
