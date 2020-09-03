@@ -860,6 +860,11 @@ PT_BEGIN( pt );
                         election->state     = STATE_FOLLOWER;
                         election->timeout   = FOLLOWER_TIMEOUT;                
                     }
+                    else{
+                        
+                        // no leader, reset
+                        reset_state( election );
+                    }
                 }
             }
             else if( election->state == STATE_CANDIDATE ){
