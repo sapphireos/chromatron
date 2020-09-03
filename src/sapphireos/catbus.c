@@ -622,9 +622,16 @@ static void _catbus_v_delete_send_entry( sock_addr_t *raddr ){
 
             log_v_debug_P( PSTR("Remove %d.%d.%d.%d from send list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
 
+            // kill ttl and set publisher to run.
+            // the publisher will delete the entry.
+            entry->ttl = -1;
+            run_publish = TRUE;
+
+            // We can't delete here, we can get a race condition 
+            // with the publisher and crash:
             // delete entry
-            list_v_remove( &send_list, ln );
-            list_v_release_node( ln );
+            // list_v_remove( &send_list, ln );
+            // list_v_release_node( ln );
         }
 
         ln = next_ln;
@@ -1106,6 +1113,9 @@ PT_BEGIN( pt );
 
 
             TMR_WAIT( pt, 10 );
+            // NOTE!
+            // if anything deleted items from the send list while we yielded,
+            // we can crash here when we get the next list entry.
 
     next:
             sender_ln = list_ln_next( sender_ln );
