@@ -48,9 +48,13 @@ static int8_t wifi_router = -1;
 static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
+
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static uint32_t wifi_udp_dropped;
+static uint32_t wifi_udp_high_load;
+static uint32_t wifi_max_rx_size;
+
 static bool default_ap_mode;
 
 static bool connected;
@@ -86,6 +90,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_high_load,               0,   "wifi_udp_high_load" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_max_rx_size,                 0,   "wifi_max_rx_size" },
 };
 
 
@@ -272,7 +278,14 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
     }
     else if( list_u8_count( &rx_list ) >= WIFI_MAX_RX_NETMSGS ){
 
-        log_v_warn_P( PSTR("rx q full: len: %d lport: %u rport: %d.%d.%d.%d:%u"), len, state->laddr.port, state->raddr.ipaddr.ip3, state->raddr.ipaddr.ip2, state->raddr.ipaddr.ip1, state->raddr.ipaddr.ip0, state->raddr.port );     
+        log_v_warn_P( PSTR("rx q full: len: %d lport: %u rport: %d.%d.%d.%d:%u"), 
+            len, 
+            state->laddr.port, 
+            state->raddr.ipaddr.ip3, 
+            state->raddr.ipaddr.ip2, 
+            state->raddr.ipaddr.ip1, 
+            state->raddr.ipaddr.ip0, 
+            state->raddr.port );     
 
         if( sock_b_rx_pending() ){
 
@@ -285,11 +298,24 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
         goto drop;
     }
+    else if( list_u8_count( &rx_list ) == (WIFI_MAX_RX_NETMSGS * 0.75 ) ){
+
+        log_v_warn_P( PSTR("rx q 75%%") );     
+    }
+    else if( list_u8_count( &rx_list ) > (WIFI_MAX_RX_NETMSGS * 0.75 ) ){
+
+        wifi_udp_high_load++;
+    }
 
     wifi_udp_received++;
 
     list_v_insert_head( &rx_list, rx_netmsg );
 
+    uint16_t q_size = list_u16_size( &rx_list );
+    if( q_size > wifi_max_rx_size ){
+
+        wifi_max_rx_size = q_size;
+    }
 
     thread_v_signal( RX_SIGNAL );
 
