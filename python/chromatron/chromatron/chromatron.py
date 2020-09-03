@@ -2596,10 +2596,10 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 s = f"{completed:3} / {total_devices:3} | "
                 for update in updates.values():     
                     if isinstance(update['progress'], int):
-                        s += f"{update['ct'].host:13}: {update['progress']:8}%   "
+                        s += f"{update['ct'].host:12}: {update['progress']:8}%   "
 
                     else:
-                        s += f"{update['ct'].host:13}: {update['progress']:8}    "
+                        s += f"{update['ct'].host:12}: {update['progress']:8}    "
                     
                 sys.stdout.write('\r')
                 sys.stdout.write(s)
