@@ -18,12 +18,6 @@ class WeatherService(Ribbon):
 
         self.kv['station'] = self.station
 
-        self.kv.send('weather_temperature',         'weather_temperature', ['datalog'])
-        self.kv.send('weather_wind_direction',      'weather_wind_direction', ['datalog'])
-        self.kv.send('weather_wind_speed',          'weather_wind_speed', ['datalog'])
-        self.kv.send('weather_relative_humidity',   'weather_relative_humidity', ['datalog'])
-        self.kv.send('weather_pressure',            'weather_pressure', ['datalog'])
-
     def loop(self):
         result = requests.get(f"https://api.weather.gov/stations/{self.station}/observations/latest").json()
         
