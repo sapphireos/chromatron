@@ -42,6 +42,7 @@
 #define TIME_SOURCE_NONE                1
 
 #define TIME_SYNC_RATE_BASE             4 // in seconds
+#define TIME_SYNC_RATE_MAX              16 // in seconds
 
 #define TIME_ELECTION_SERVICE           __KV__timesync
 

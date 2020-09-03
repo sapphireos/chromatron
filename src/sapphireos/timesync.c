@@ -61,6 +61,7 @@ static uint16_t filtered_rtt;
 #define RTT_FILTER              32
 #define RTT_QUALITY_LIMIT       10
 #define RTT_RELAX               4
+static uint8_t sync_delay;
 
 // NOTE!
 // tz_offset is in MINUTES, because not all timezones
@@ -470,7 +471,7 @@ PT_BEGIN( pt );
                 if( elapsed_rtt > 500 ){
 
                     // a 0.5 second RTT is clearly ridiculous.
-                    // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+                    log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
 
                     continue;
                 }
@@ -502,6 +503,12 @@ PT_BEGIN( pt );
                     uint16_t delay = elapsed_rtt / 2;
 
                     time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
+
+                    // each time we get a valid sync, we bump the sync delay up until the max
+                    if( is_sync && ( sync_delay < TIME_SYNC_RATE_MAX ) ){
+                
+                       sync_delay++;
+                    }
                 }
             }
         }
@@ -585,6 +592,8 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("follower, reset sync") );
 
+            sync_delay = TIME_SYNC_RATE_BASE;
+
             TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
         }
 
@@ -592,8 +601,8 @@ PT_BEGIN( pt );
 
             request_sync();
 
-            // random delay
-            uint16_t delay = ( TIME_SYNC_RATE_BASE * 1000 ) + ( rnd_u16_get_int() >> 3 );
+            // random delay + base sync delay
+            uint16_t delay = ( sync_delay * 1000 ) + ( rnd_u16_get_int() >> 5 );
             TMR_WAIT( pt, delay );
         }
     }
