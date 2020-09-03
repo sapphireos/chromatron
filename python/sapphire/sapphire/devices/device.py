@@ -26,7 +26,7 @@
 """
 
 from elysianfields import *
-from catbus import get_type_name, Client, CATBUS_DISCOVERY_PORT, NoResponseFromHost, ProtocolErrorException
+from catbus import get_type_name, Client, CATBUS_MAIN_PORT, NoResponseFromHost, ProtocolErrorException
 
 from . import sapphiredata
 from . import channel
@@ -254,7 +254,7 @@ class KVMeta(UserDict):
 class Device(object):
     def __init__(self,
                  host=None,
-                 port=CATBUS_DISCOVERY_PORT,
+                 port=CATBUS_MAIN_PORT,
                  device_id=None,
                  comm_channel=None):
 
@@ -305,7 +305,7 @@ class Device(object):
             self._client = Client()
             # set window to 1, so messages will ping pong over the bridge.
             self._client.set_window(1, 1)
-            self._bridge = channel.UDPSerialBridge(self._channel, CATBUS_DISCOVERY_PORT)
+            self._bridge = channel.UDPSerialBridge(self._channel, CATBUS_MAIN_PORT)
     
             self._client.connect(('localhost', self._bridge.port))
 

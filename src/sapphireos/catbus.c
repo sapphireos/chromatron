@@ -532,7 +532,7 @@ static void _catbus_v_broadcast_announce( void ){
 
     sock_addr_t raddr;
     raddr.ipaddr = ip_a_addr(255,255,255,255);
-    raddr.port = CATBUS_DISCOVERY_PORT;
+    raddr.port = CATBUS_MAIN_PORT;
 
     _catbus_v_send_announce( &raddr, 0 );
 }
@@ -552,7 +552,7 @@ static void _catbus_v_send_shutdown( void ){
     msg->flags = 0;
         
     sock_addr_t raddr;
-    raddr.port = CATBUS_DISCOVERY_PORT;
+    raddr.port = CATBUS_MAIN_PORT;
     raddr.ipaddr = ip_a_addr(255,255,255,255);
 
     sock_i16_sendto_m( sock, h, &raddr );
@@ -1215,7 +1215,7 @@ PT_BEGIN( pt );
 
         sock_addr_t raddr;
         raddr.ipaddr    = ip_a_addr(255,255,255,255);
-        raddr.port      = CATBUS_DISCOVERY_PORT;
+        raddr.port      = CATBUS_MAIN_PORT;
 
         // broadcast to network
         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
@@ -1415,12 +1415,12 @@ PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    uint16_t data_port = CATBUS_DISCOVERY_PORT;
+    uint16_t data_port = CATBUS_MAIN_PORT;
     // cfg_i8_get( CFG_PARAM_CATBUS_DATA_PORT, &data_port );
 
     // if( data_port == 0 ){
 
-        // data_port = CATBUS_DISCOVERY_PORT;
+        // data_port = CATBUS_MAIN_PORT;
 
         cfg_v_set( CFG_PARAM_CATBUS_DATA_PORT, &data_port );
     // }
@@ -2536,7 +2536,7 @@ PT_BEGIN( pt );
 
         sock_addr_t raddr;
         raddr.ipaddr = ip_a_addr(255,255,255,255);
-        raddr.port = CATBUS_DISCOVERY_PORT;
+        raddr.port = CATBUS_MAIN_PORT;
 
         _catbus_v_broadcast_announce();
         TMR_WAIT( pt, 100 );

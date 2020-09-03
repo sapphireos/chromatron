@@ -3,7 +3,7 @@ import unittest
 from catbus import *
 from catbus.database import Database
 from sapphire.common import catbus_string_hash
-from catbus.options import CATBUS_DISCOVERY_PORT
+from catbus.options import CATBUS_MAIN_PORT
 
 
 class DatabaseTests(unittest.TestCase):
@@ -84,6 +84,6 @@ class ProtocolTestsRemote(unittest.TestCase, ProtocolTestBase):
 
     def setUp(self):
         self.client = Client()
-        self.client.connect(('10.0.0.117', CATBUS_DISCOVERY_PORT))
+        self.client.connect(('10.0.0.117', CATBUS_MAIN_PORT))
 
 

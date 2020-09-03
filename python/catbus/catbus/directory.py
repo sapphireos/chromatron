@@ -62,7 +62,7 @@ class Directory(Ribbon):
             pass
 
         self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_DISCOVERY_PORT))
+        self.__announce_sock.bind(('', CATBUS_MAIN_PORT))
 
         self._inputs = [self.__announce_sock]
 

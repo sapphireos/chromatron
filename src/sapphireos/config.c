@@ -862,7 +862,7 @@ void cfg_v_default_all( void ){
 
     cfg_v_set_mac64( CFG_PARAM_DEVICE_ID, zeroes );
 
-    cfg_v_set_u16( CFG_PARAM_CATBUS_DATA_PORT, CATBUS_DISCOVERY_PORT );
+    cfg_v_set_u16( CFG_PARAM_CATBUS_DATA_PORT, CATBUS_MAIN_PORT );
     cfg_v_set_u16( CFG_PARAM_MAX_LOG_SIZE, 65535 );
 
     cfg_v_set_u16( CFG_PARAM_VERSION, CFG_VERSION );

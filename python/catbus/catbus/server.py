@@ -203,7 +203,7 @@ class Server(Ribbon):
             pass
 
         self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_DISCOVERY_PORT))
+        self.__announce_sock.bind(('', CATBUS_MAIN_PORT))
 
         self.__data_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__data_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -393,7 +393,7 @@ class Server(Ribbon):
         except socket.error:
             pass
 
-    # def _send_announce_msg(self, msg, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
+    # def _send_announce_msg(self, msg, host=('<broadcast>', CATBUS_MAIN_PORT)):
     #     msg.header.origin_id = self._origin_id
     #     s = self.__announce_sock
 
@@ -403,7 +403,7 @@ class Server(Ribbon):
     #     except socket.error:
     #         pass
 
-    def _send_announce(self, host=('<broadcast>', CATBUS_DISCOVERY_PORT), discovery_id=None):
+    def _send_announce(self, host=('<broadcast>', CATBUS_MAIN_PORT), discovery_id=None):
         msg = AnnounceMsg(
                 data_port=self._data_port,
                 query=self._database.get_query())
@@ -413,7 +413,7 @@ class Server(Ribbon):
 
         self._send_data_msg(msg, host)
 
-    def _send_shutdown(self, host=('<broadcast>', CATBUS_DISCOVERY_PORT)):
+    def _send_shutdown(self, host=('<broadcast>', CATBUS_MAIN_PORT)):
         msg = ShutdownMsg()
 
         self._send_data_msg(msg, host)
@@ -755,7 +755,7 @@ class Server(Ribbon):
                             dest_hash=link.dest_hash,
                             query=query)
                     
-                    self._send_data_msg(msg, ('<broadcast>', CATBUS_DISCOVERY_PORT))
+                    self._send_data_msg(msg, ('<broadcast>', CATBUS_MAIN_PORT))
 
                 # prune senders
                 for a in self._send_list:

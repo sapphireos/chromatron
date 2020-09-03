@@ -129,7 +129,7 @@ class Client(object):
     def connect(self, host):
         if isinstance(host, str):
             # if no port is specified, set default
-            host = (host, CATBUS_DISCOVERY_PORT)
+            host = (host, CATBUS_MAIN_PORT)
 
         self._connected_host = host
 
@@ -322,7 +322,7 @@ class Client(object):
             discover_sock.settimeout(DISCOVERY_TIMEOUT)
 
             for i in range(3):
-                send_udp_broadcast(discover_sock, CATBUS_DISCOVERY_PORT, msg.pack())
+                send_udp_broadcast(discover_sock, CATBUS_MAIN_PORT, msg.pack())
 
                 start = time.time()
 
