@@ -45,5 +45,9 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_SUBSCRIBED_KEYS    19
 #define MEM_TYPE_VM_DATA            20
 #define MEM_TYPE_CRON_JOB           21
+#define MEM_TYPE_ELECTION           22
+#define MEM_TYPE_DNS_QUERY          23
+#define MEM_TYPE_MSGFLOW            24
+#define MEM_TYPE_MSGFLOW_ARQ_BUF    25
 
 #endif

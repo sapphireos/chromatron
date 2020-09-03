@@ -995,6 +995,10 @@ class Device(object):
             19: "subscribed_keys",
             20: "vm_data",
             21: "cron_job",
+            22: "election",
+            23: "dns_query",
+            24: "msgflow",
+            25: "msgflow_arq_buf",
         }
 
         total_size = 0

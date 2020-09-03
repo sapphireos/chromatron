@@ -230,7 +230,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
 
     reset_state( &election );
     
-    list_node_t ln = list_ln_create_node( &election, sizeof(election) );
+    list_node_t ln = list_ln_create_node2( &election, sizeof(election), MEM_TYPE_ELECTION );
 
     if( ln < 0 ){
 

@@ -161,7 +161,7 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
 
     msgflow_t msgflow = t;
 
-    list_node_t ln = list_ln_create_node( &t, sizeof(t) );
+    list_node_t ln = list_ln_create_node2( &t, sizeof(t), MEM_TYPE_MSGFLOW );
 
     if( ( t < 0 ) || ( ln < 0 ) ){
 
@@ -272,7 +272,7 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
     if( state->code != MSGFLOW_CODE_NONE ){
 
         // enqueue handle on transmit q
-        list_node_t ln = list_ln_create_node( &h, sizeof(h) );
+        list_node_t ln = list_ln_create_node2( &h, sizeof(h), MEM_TYPE_MSGFLOW_ARQ_BUF );
 
         if( ln < 0 ){
 

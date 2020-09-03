@@ -136,7 +136,7 @@ int8_t dns_i8_add_entry( char *name ){
     }
 
     // create new query
-    ln = list_ln_create_node( 0, sizeof(dns_query_t) + strlen( name ) );
+    ln = list_ln_create_node2( 0, sizeof(dns_query_t) + strlen( name ), MEM_TYPE_DNS_QUERY );
 
     // check creation
     if( ln < 0 ){
