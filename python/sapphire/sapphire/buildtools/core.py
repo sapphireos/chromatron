@@ -1767,6 +1767,7 @@ def main():
     parser.add_argument("--fwid", action="store_true", help="create a firmware ID")
     parser.add_argument("--make_release", action="store_true", help="make current build a release package")
     parser.add_argument("--install_build_tools", action="store_true", help="install build tools")
+    parser.add_argument("--load_esp32", action="store_true", help="Load to ESP32")
 
     args = vars(parser.parse_args())
 
@@ -1894,6 +1895,35 @@ def main():
     # check if unlinking a new project
     if args["unlink"]:
         remove_project_info(args["unlink"])
+        return
+
+    # check if loading to an ESP32
+    if args["load_esp32"]:
+        # check if project is given
+        if not args["project"]:
+            print("Must specify project to load!")
+            return
+
+        proj = args["project"][0]
+
+        try:
+            package = get_firmware_package(proj)
+        except FirmwarePackageNotFound:
+            print(f"Could not find package for {proj}")
+
+            return
+
+        # extract firmware image and write to file
+        image = package.images['esp32']['firmware.bin']
+        temp_filename = '__temp_firmware.bin'
+        with open(temp_filename, 'wb') as f:
+            f.write(image)
+
+        esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x10000 {temp_filename}'.split())
+
+        # remove temp file
+        os.remove(temp_filename)
+        
         return
 
     # check if setting target
