@@ -341,7 +341,7 @@ class MsgFlowReceiver(Ribbon):
             except Exception as e:
                 logging.exception(e)
 
-            self._connections[host] = {'sequence': 0, 'timeout': CONNECTION_TIMEOUT}
+        self._connections[host] = {'sequence': 0, 'timeout': CONNECTION_TIMEOUT}
 
         self._send_ready(host, code=msg.code)
 
