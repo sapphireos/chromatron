@@ -820,7 +820,7 @@ PT_BEGIN( pt );
                 else if( state->rx_sequence > state->tx_sequence ){
                     
                     // this means the protocol is broken
-                    log_v_error_P( PSTR("fatal protocol error") );
+                    log_v_error_P( PSTR("fatal protocol error: rx: %u tx: %u"), (uint32_t)state->rx_sequence, (uint32_t)state->tx_sequence );
                     clear_tx_q( state );
 
                     break;
