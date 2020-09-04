@@ -229,7 +229,7 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
     // ASSERT( elapsed_ms < 4000000000 );
     if( elapsed_ms > 4000000000 ){
 
-        log_v_debug_P( PSTR("elapsed time out of range: %lu"), elapsed_ms ); 
+        log_v_debug_P( PSTR("elapsed time out of range: %lu base: %lu end: %lu"), elapsed_ms, base_system_time, end_time ); 
     }
 
     uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
