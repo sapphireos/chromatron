@@ -63,6 +63,9 @@ static uint16_t filtered_rtt;
 #define RTT_RELAX               4
 static uint8_t sync_delay;
 
+static uint32_t good_syncs;
+static uint32_t rejected_syncs;
+
 // NOTE!
 // tz_offset is in MINUTES, because not all timezones
 // are aligned on the hour.
@@ -108,7 +111,10 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
     { SAPPHIRE_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
 
-    { SAPPHIRE_TYPE_INT32,     0, KV_FLAGS_READ_ONLY, &master_sync_difference,                 0,         "net_master_sync_diff" },
+    { SAPPHIRE_TYPE_INT32,      0, KV_FLAGS_READ_ONLY, &master_sync_difference,          0,       "net_master_sync_diff" },
+
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &good_syncs,       0,                      "net_time_good_syncs" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &rejected_syncs,   0,                      "net_time_rejected_syncs" },
 };
 
 
@@ -224,19 +230,36 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
         return ntp_ts_from_u64( 0 );    
     }
 
-    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
+    int32_t elapsed_ms = 0;
 
-    // ASSERT( elapsed_ms < 4000000000 );
-    if( elapsed_ms > 4000000000 ){
+    if( end_time > base_system_time ){
 
-        log_v_debug_P( PSTR("elapsed time out of range: %lu base: %lu end: %lu"), elapsed_ms, base_system_time, end_time ); 
+        elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
     }
+    else{
+
+        // end_time is BEFORE base_system_time.
+        // this can happen if the base_system_time increments in the clock thread
+        // and we are computing from a timestamp with a negative offset applied (such as an RTT)
+        // in this case, we can allow negative values for elapsed time.
+        uint32_t temp = tmr_u32_elapsed_times( base_system_time, end_time );
+
+        // value is, or should be, negative
+        if( temp > ( UINT32_MAX / 2 ) ){
+
+            elapsed_ms = ( UINT32_MAX - temp ) * -1;
+
+            log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
+        }
+    }
+
+    
 
     uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
 
     // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
 
-    now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 ); 
+    now += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
     
     return ntp_ts_from_u64( now ); 
 }
@@ -456,6 +479,8 @@ PT_BEGIN( pt );
                 if( msg->id != sync_id ){
 
                     log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+
+                    rejected_syncs++;
                     continue;
                 }
 
@@ -472,7 +497,9 @@ PT_BEGIN( pt );
                 if( elapsed_rtt > 500 ){
 
                     // a 0.5 second RTT is clearly ridiculous.
-                    log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+                    // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+
+                    rejected_syncs++;
 
                     continue;
                 }
@@ -487,6 +514,8 @@ PT_BEGIN( pt );
                         
                     filtered_rtt += RTT_RELAX;
 
+                    rejected_syncs++;
+
                     continue;
                 }
                 else{
@@ -495,6 +524,7 @@ PT_BEGIN( pt );
                     filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
                 }
 
+                good_syncs++;
 
                 // check sync
                 if( msg->source != TIME_SOURCE_NONE ){
