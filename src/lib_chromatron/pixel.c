@@ -112,11 +112,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        #ifdef ENABLE_COPROCESSOR
-        
         uint16_t pix_count = gfx_u16_get_pix_count();
-
-        // coproc_i32_call1( OPCODE_PIX_SET_COUNT, pix_count );
 
         if( pix_mode == PIX_MODE_ANALOG ){
 
@@ -169,9 +165,13 @@ PT_BEGIN( pt );
                 data2 = 0xff;
             }
 
+            #ifdef ENABLE_COPROCESSOR
             coproc_i32_call2( OPCODE_IO_WRITE_PWM, 0, data0 );
             coproc_i32_call2( OPCODE_IO_WRITE_PWM, 1, data1 );
             coproc_i32_call2( OPCODE_IO_WRITE_PWM, 2, data2 );
+            #else
+
+            #endif
         }        
         else{
 
@@ -180,6 +180,8 @@ PT_BEGIN( pt );
             uint8_t *b = gfx_u8p_get_blue();
             uint8_t *d = gfx_u8p_get_dither();
 
+
+            #ifdef ENABLE_COPROCESSOR
             coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
 
             while( pix_count > 0 ){
@@ -197,14 +199,16 @@ PT_BEGIN( pt );
                     usart_i16_get_byte( UART_CHANNEL );                
                 }
             }
+
+            #else
+
+            #endif
         }
 
         if( sys_b_shutdown() ){
             
             THREAD_EXIT( pt );
         }
-        
-        #endif        
     }
 
 PT_END( pt );
