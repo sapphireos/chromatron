@@ -62,9 +62,23 @@ class Directory(Ribbon):
             pass
 
         self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_MAIN_PORT))
+        self.__announce_sock.bind(('', CATBUS_ANNOUNCE_PORT))
 
-        self._inputs = [self.__announce_sock]
+        self.__main_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            # this option may fail on some platforms
+            self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        self.__main_sock.setblocking(0)
+        self.__main_sock.bind(('', CATBUS_MAIN_PORT))
+
+        self._inputs = [self.__announce_sock, self.__main_sock]
 
         self._hash_lookup = {}
         self._directory = {}
