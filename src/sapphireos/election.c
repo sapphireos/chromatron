@@ -72,6 +72,8 @@ typedef struct  __attribute__((packed)){
 
 static list_t elections_list;
 
+static uint8_t rate_boost;
+
 
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
@@ -503,6 +505,27 @@ static uint8_t transmit_count( void ){
     return count;
 }
 
+static uint8_t candidate_count( void ){
+
+    uint8_t count = 0;
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( election->state == STATE_CANDIDATE ){
+
+            count++;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
 static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t flags ){
 
     uint16_t count = 1;
@@ -731,6 +754,17 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
                 // tracked leader is better
                 // we reset back to idle
                 reset_state( election );
+            }
+        }
+
+        // if we are still leader
+        if( election->state == STATE_LEADER ){
+
+            // is this packet a candidate?
+            if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) == 0 ){
+
+                // boost our broadcast rate
+                rate_boost = ELECTION_RATE_BOOST;
             }
         }
     }
@@ -1021,7 +1055,31 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, transmit_count() == 0 );
 
-        TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 6 ) ); // 1 to 2 seconds
+        // set rate
+        uint16_t rate = ELECTION_RATE_LOW;
+
+        if( rate_boost > 0 ){
+
+            rate_boost--;
+
+            rate = ELECTION_RATE_HIGH;
+        }
+        else if( candidate_count() > 0 ){
+
+            rate = ELECTION_RATE_HIGH;
+        }
+
+        static uint8_t delay;
+        delay = rate;
+
+        while( delay > 0 ){
+
+            delay--;
+
+            TMR_WAIT( pt, 1000 );
+        }
+
+        TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
         // check if shutting down
         if( sys_b_shutdown() ){

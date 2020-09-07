@@ -31,10 +31,14 @@
 #define ELECTION_MAGIC              0x45544f56 // 'VOTE'
 #define ELECTION_VERSION            2
 
-#define FOLLOWER_TIMEOUT            64
-#define FOLLOWER_QUERY_TIMEOUT      8
+#define FOLLOWER_TIMEOUT            128
+#define FOLLOWER_QUERY_TIMEOUT      32
 #define CANDIDATE_TIMEOUT           12
-#define IDLE_TIMEOUT                8
+#define IDLE_TIMEOUT                12
+
+#define ELECTION_RATE_HIGH          1
+#define ELECTION_RATE_LOW           8
+#define ELECTION_RATE_BOOST         16
 
 #define ELECTION_PRIORITY_FOLLOWER_ONLY    0
 
