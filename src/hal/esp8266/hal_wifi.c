@@ -583,9 +583,10 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     conn->proto.udp->remote_port = netmsg_state->raddr.port;
 
     // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
-    if( espconn_sendto( conn, data, data_len ) != 0 ){
+    int16_t status = espconn_sendto( conn, data, data_len );
+    if( status != 0 ){
 
-        log_v_debug_P( PSTR("msg failed") );
+        log_v_debug_P( PSTR("msg failed: %d"), status );
 
         return NETMSG_TX_ERR_RELEASE;   
     }
