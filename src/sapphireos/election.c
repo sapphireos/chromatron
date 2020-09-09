@@ -839,7 +839,7 @@ PT_BEGIN( pt );
                 // broadcast.  this mechanism is a useful backup if the broadcasts aren't 
                 // being received.
 
-                log_v_debug_P( PSTR("query: %d"), election->timeout );
+                // log_v_debug_P( PSTR("query: %d"), election->timeout );
                 transmit_query( election );
             }
 
