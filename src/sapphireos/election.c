@@ -1027,6 +1027,8 @@ PT_BEGIN( pt );
         }
         else{
 
+            log_v_debug_P( PSTR("query from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
             // query
             election_query_t *pkt = (election_query_t *)( header + 1 );
 
