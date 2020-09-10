@@ -55,6 +55,9 @@ static uint32_t wifi_udp_dropped;
 static uint32_t wifi_udp_high_load;
 static uint32_t wifi_max_rx_size;
 
+static uint32_t wifi_arp_hits;
+static uint32_t wifi_arp_misses;
+
 static bool default_ap_mode;
 
 static bool connected;
@@ -92,6 +95,9 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_high_load,               0,   "wifi_udp_high_load" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_max_rx_size,                 0,   "wifi_max_rx_size" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 };
 
 
@@ -582,11 +588,33 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     conn->proto.udp->remote_ip[3] = netmsg_state->raddr.ipaddr.ip0;
     conn->proto.udp->remote_port = netmsg_state->raddr.port;
 
-    // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
-    int16_t status = espconn_sendto( conn, data, data_len );
-    if( status != 0 ){
+    // int8_t arp_status = etharp_find_addr
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-        log_v_debug_P( PSTR("msg failed: %d"), status );
+        if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+
+            wifi_arp_misses++;
+
+            // log_v_debug_P( PSTR("ARP not in cache: %d.%d.%d.%d"), netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0 );            
+
+            int8_t arp_status = hal_arp_i8_query( netmsg_state->raddr.ipaddr );
+
+            if( arp_status < 0 ){
+
+                log_v_warn_P( PSTR("ARP query fail: %d"), arp_status );            
+            }
+        }
+        else{
+
+            wifi_arp_hits++;
+        }
+    }
+
+    // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
+    int16_t send_status = espconn_sendto( conn, data, data_len );
+    if( send_status != 0 ){
+
+        log_v_warn_P( PSTR("msg failed: %d"), send_status );
 
         return NETMSG_TX_ERR_RELEASE;   
     }
