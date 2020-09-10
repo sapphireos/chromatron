@@ -613,20 +613,22 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
             // log_v_debug_P( PSTR("ARP not in cache: %d.%d.%d.%d"), netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0 );            
 
-            int8_t arp_status = hal_arp_i8_query( netmsg_state->raddr.ipaddr );
+            // int8_t arp_status = hal_arp_i8_query( netmsg_state->raddr.ipaddr );
 
-            if( arp_status < 0 ){
+            // if( arp_status < 0 ){
 
-                log_v_warn_P( PSTR("ARP query fail: %d"), arp_status );            
-            }
+            //     log_v_warn_P( PSTR("ARP query fail: %d"), arp_status );            
+            // }
 
+            // we will manually try the ARP on the sender q thread
             if( list_u8_count( &arp_q_list ) < 4 ){
 
                 list_v_insert_head( &arp_q_list, netmsg );
 
-                // we will manually try the ARP
+                // don't release netmsg
                 return NETMSG_TX_OK_NORELEASE; 
             }
+            
             // q was full, just try and transmit anyway
         }
         else{
@@ -1096,6 +1098,8 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_YIELD( pt );
+
         THREAD_WAIT_WHILE( pt, list_u8_count( &arp_q_list ) == 0 );
 
         // peek at message and check ARP table
@@ -1110,6 +1114,10 @@ PT_BEGIN( pt );
             if( ( status == NETMSG_TX_OK_RELEASE ) || ( status == NETMSG_TX_OK_NORELEASE ) ){
 
                 wifi_arp_msg_recovered++;
+            }
+            else{
+
+                wifi_arp_msg_fails++;
             }
 
             // regardless of outcome, we're freeing this packet

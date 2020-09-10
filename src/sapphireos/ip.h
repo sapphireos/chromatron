@@ -101,6 +101,7 @@ bool ip_b_check_broadcast( ip_addr4_t dest_addr );
 bool ip_b_check_dest( ip_addr4_t dest_addr );
 bool ip_b_check_loopback( ip_addr4_t dest_addr );
 bool ip_b_check_link_local( ip_addr4_t dest_addr );
+bool ip_b_check_subnet( ip_addr4_t dest_addr );
 uint32_t ip_u32_to_int( ip_addr4_t ip );
 ip_addr4_t ip_a_from_int( uint32_t i );
 

@@ -30,9 +30,9 @@
 
 bool hal_arp_b_find( ip_addr4_t ip ){
 
-	if( ip_b_check_broadcast( ip ) ){
+	if( ip_b_check_broadcast( ip ) || !ip_b_check_subnet( ip ) ){
 
-		// report true for broadcasts.
+		// report true for broadcasts and for IPs not on the subnet (since they'll route through a gateway)
 		// they aren't in the ARP table, but they don't use ARP.
 
 		return TRUE;
