@@ -1056,7 +1056,7 @@ PT_BEGIN( pt );
 
         while( wifi_b_connected() ){
 
-            TMR_WAIT( pt, 16000 );
+            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
 
             hal_arp_v_gratuitous_arp();
         }
