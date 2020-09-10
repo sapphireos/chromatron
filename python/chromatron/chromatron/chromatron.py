@@ -2596,10 +2596,10 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 s = f"{completed:3} / {total_devices:3} | "
                 for update in updates.values():     
                     if isinstance(update['progress'], int):
-                        s += f"{update['ct'].host:12}: {update['progress']:8}%   "
+                        s += f"{update['ct'].host:12}: {update['progress']:4}%   "
 
                     else:
-                        s += f"{update['ct'].host:12}: {update['progress']:8}    "
+                        s += f"{update['ct'].host:12}: {update['progress']:4}    "
                     
                 sys.stdout.write('\r')
                 sys.stdout.write(s)
@@ -2620,7 +2620,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 
             ct._device.load_firmware(fw_id, release=release, progress=progress, verify=not skip_verify, use_percent=True)
 
-            q.put((ct, "Loading"))
+            q.put((ct, "Load"))
 
             # wait for device
             for i in range(100):
@@ -2642,7 +2642,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 q.put((ct, "Done"))
 
             except DeviceUnreachableException:
-                q.put((ct, "Error"))
+                q.put((ct, "Err"))
 
                 time.sleep(2.0)
                 sys.exit(-1)
