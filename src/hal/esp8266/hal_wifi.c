@@ -1094,6 +1094,14 @@ PT_END( pt );
 
 PT_THREAD( wifi_arp_sender_thread( pt_t *pt, void *state ) )
 {
+    netmsg_t netmsg = arp_q_list.tail;
+    netmsg_state_t *netmsg_state = 0;
+
+    if( netmsg > 0 ){
+
+        netmsg_state = netmsg_vp_get_state( netmsg );
+    }
+
 PT_BEGIN( pt );
 
     while(1){
@@ -1101,10 +1109,6 @@ PT_BEGIN( pt );
         THREAD_YIELD( pt );
 
         THREAD_WAIT_WHILE( pt, list_u8_count( &arp_q_list ) == 0 );
-
-        // peek at message and check ARP table
-        netmsg_t netmsg = arp_q_list.tail;
-        netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
 
         // check ARP table
         if( hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
@@ -1135,12 +1139,10 @@ PT_BEGIN( pt );
                 log_v_warn_P( PSTR("ARP query fail: %d"), arp_status );            
             }
 
-            TMR_WAIT( pt, 20 ); // 20 ms should be an eternity for ARP
-
-
-            // don't forget, we trash the stack between OS calls!
-            netmsg_t netmsg = arp_q_list.tail;
-            netmsg_state_t *netmsg_state = netmsg_vp_get_state( netmsg );
+            #define ARP_WAIT_TIME 20 // 20 ms should be an eternity for ARP
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + ARP_WAIT_TIME );
+            THREAD_WAIT_WHILE( pt, ( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ) &&
+                                   ( thread_b_alarm_set() ) );
 
             if( hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
 
