@@ -828,22 +828,23 @@ PT_BEGIN( pt );
 
             election->timeout--;
 
-            // check for query cycle
-            if( ( election->timeout > 0 ) && 
-                ( ( election->timeout % FOLLOWER_QUERY_TIMEOUT ) == 0 ) &&
-                ( election->state == STATE_FOLLOWER ) ){
-
-                // NOTE
-                // if the follower query timeout is longer than the election broadcast interval,
-                // this code path won't run very often, as the timeout will be reset by the
-                // broadcast.  this mechanism is a useful backup if the broadcasts aren't 
-                // being received.
-
-                // log_v_debug_P( PSTR("query: %d"), election->timeout );
-                transmit_query( election );
-            }
-
+            // timeout not expired
             if( election->timeout > 0 ){
+
+                // PRE-TIMEOUT LOGIC
+
+                // check if we need to query our leader
+                if( ( election->state == STATE_FOLLOWER ) && 
+                    ( election->timeout < ( FOLLOWER_TIMEOUT - FOLLOWER_QUERY_TIMEOUT ) ) ){
+
+                    // transmit query to leader.
+
+                    // this will repeat on the timer interval until we get a response
+                    // or time out.
+                    transmit_query( election );
+                }
+
+                // DONE with further processing for now.
 
                 goto next;
             }
