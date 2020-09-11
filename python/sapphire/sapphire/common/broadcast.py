@@ -22,28 +22,23 @@
 
 import socket
 
-try:
-    import netifaces
-
-except ImportError:
-    print("Skipping import for netifaces")
-
 def get_broadcast_addresses():
-    addrs = []
-    for interface in netifaces.interfaces():
-        try:
-            for addr in netifaces.ifaddresses(interface)[socket.AF_INET]:
-                try:
-                    addrs.append(addr['broadcast'])
+    # addrs = []
+    # for interface in netifaces.interfaces():
+    #     try:
+    #         for addr in netifaces.ifaddresses(interface)[socket.AF_INET]:
+    #             try:
+    #                 addrs.append(addr['broadcast'])
 
-                except KeyError:
-                    pass
+    #             except KeyError:
+    #                 pass
 
-        except KeyError:
-            pass
+    #     except KeyError:
+    #         pass
 
 
-    return addrs
+    # return addrs
+    raise NameError
 
 
 def send_udp_broadcast(sock, port, data):
