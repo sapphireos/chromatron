@@ -2624,6 +2624,14 @@ PT_BEGIN( pt );
     
     _catbus_v_send_shutdown();
 
+    TMR_WAIT( pt, 50 );
+
+    _catbus_v_send_shutdown();
+
+    TMR_WAIT( pt, 50 );
+
+    _catbus_v_send_shutdown();
+
     TMR_WAIT( pt, 100 );
 
     _catbus_v_send_shutdown();
