@@ -1058,7 +1058,11 @@ class Device(object):
         return s
 
     def cli_electioninfo(self, line):
-        electioninfo = self.get_election_info()
+        try:
+            electioninfo = self.get_election_info()
+
+        except IOError:
+            return "No elections found"
 
         states = {
                 0: 'idle',
