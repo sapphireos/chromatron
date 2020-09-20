@@ -361,20 +361,19 @@ static bool compare_self( election_t *election ){
     
     // check cycle count
     int64_t diff = (int64_t)election->cycles - (int64_t)election->leader_cycles;
-    diff -= ELECTION_CYCLE_MIN_DIFF;
 
-    if( diff <= 0 ){
-
-        return FALSE;
-    }
-    else{
+    if( ( diff - ELECTION_CYCLE_MIN_DIFF ) > 0 ){
 
         log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
         return TRUE;
     }
+    else if( diff < 0 ){
 
-    // uptime is the same
+        return FALSE;
+    }
+
+    // uptime is the same (within ELECTION_CYCLE_MIN_DIFF)
 
     // check device ID
     if( cfg_u64_get_device_id() < election->leader_device_id ){
@@ -626,7 +625,7 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
     
     raddr.port   = ELECTION_PORT;
 
-    log_v_debug_P( PSTR("election to %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+    // log_v_debug_P( PSTR("election to %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
