@@ -630,7 +630,17 @@ int8_t sock_i8_recvfrom( socket_t sock ){
         else if( dgram->state == SOCK_UDP_STATE_RX_DATA_PENDING ){
 
             #ifdef SOCK_SINGLE_BUF
-            ASSERT( rx_handle > 0 );
+            // check if there is data in our handle.
+            // if not, possibly we had a buffer overload and cleared it.
+            // in that case, we will reset our state machine and indicate
+            // no data on the socket.
+            if( rx_handle <= 0 ){
+
+                dgram->state = SOCK_UDP_STATE_IDLE;
+
+                return -1;
+            }
+
             #else
             ASSERT( dgram->handle > 0 );
             #endif
