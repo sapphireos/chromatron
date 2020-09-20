@@ -626,6 +626,8 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
     
     raddr.port   = ELECTION_PORT;
 
+    log_v_debug_P( PSTR("election to %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
     sock_i16_sendto_m( sock, h, &raddr );
 }
 
