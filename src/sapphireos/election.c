@@ -792,6 +792,12 @@ static void process_election_query( election_header_t *header, election_query_t 
         return;
     }
 
+    // we only respond if we are a leader!
+    if( !election->is_leader ){
+
+        return;
+    }
+
     transmit_election( election, ip, ELECTION_HDR_FLAGS_RESPONSE );
 }
 
@@ -836,7 +842,8 @@ PT_BEGIN( pt );
                 // PRE-TIMEOUT LOGIC
 
                 // check if we need to query our leader
-                if( ( election->state == STATE_FOLLOWER ) && 
+                if( ( election->is_leader ) &&
+                    ( election->state == STATE_FOLLOWER ) && 
                     ( election->timeout < ( FOLLOWER_TIMEOUT - FOLLOWER_QUERY_TIMEOUT ) ) ){
 
                     // transmit query to leader.
@@ -861,7 +868,7 @@ PT_BEGIN( pt );
                 if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
 
                     // do we have a leader?
-                    if( !ip_b_is_zeroes( election->leader_ip ) ){
+                    if( election->is_leader && !ip_b_is_zeroes( election->leader_ip ) ){
 
                         log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;   
@@ -917,15 +924,21 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    // sanity check - remove after debug
+                    // sanity check
                     if( ip_b_is_zeroes( election->leader_ip ) ){
 
-                        log_v_error_P( PSTR("STATE CHANGE FAIL") );    
+                        reset_state( election );
+
+                        goto next;
                     }
 
-                    log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-                    election->state     = STATE_FOLLOWER;
-                    election->timeout   = FOLLOWER_TIMEOUT;
+                    // check if leader
+                    if( election->is_leader ){
+
+                        log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
+                        election->state     = STATE_FOLLOWER;
+                        election->timeout   = FOLLOWER_TIMEOUT;
+                    }
                 }
             }
             else if( election->state == STATE_FOLLOWER ){                    
