@@ -829,6 +829,11 @@ PT_BEGIN( pt );
                     // clear tracking info
                     clear_tracking( election );           
                 }
+                else if( election->state != STATE_IDLE ){
+
+                    // the only state that can have a time out of 0 is LEADER and IDLE.
+                    reset_state( election );
+                }
 
                 goto next;
             }
@@ -937,6 +942,10 @@ PT_BEGIN( pt );
                         log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;
                         election->timeout   = FOLLOWER_TIMEOUT;
+                    }
+                    else{
+
+                        reset_state( election );
                     }
                 }
             }
