@@ -203,6 +203,10 @@ void wifi_v_init( void ){
     // set sleep mode
     wifi_set_sleep_type( NONE_SLEEP_T );
 
+    // disable auto reconnect (we will manage this)
+    wifi_station_set_auto_connect( FALSE );
+    wifi_station_set_reconnect_policy( FALSE );
+
     // set up hostname
     char mac_str[16];
     memset( mac_str, 0, sizeof(mac_str) );
@@ -1046,12 +1050,20 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
-        if( wifi_station_get_connect_status() == STATION_GOT_IP ){
+        uint8_t status = wifi_station_get_connect_status();
+
+        if( status == STATION_GOT_IP ){
 
             wifi_uptime++;
             connected = TRUE;
         }
         else{
+
+            if( connected ){
+
+                // if previously connected, log status
+                log_v_debug_P( PSTR("lost connection: %d"), status );
+            }
 
             wifi_uptime = 0;
             connected = FALSE;

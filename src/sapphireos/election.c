@@ -978,7 +978,7 @@ PT_BEGIN( pt );
 
     sock_v_bind( sock, ELECTION_PORT );
 
-    sock_v_set_timeout( sock, 1 );
+    // sock_v_set_timeout( sock, 1 );
 
 
     // start sender
