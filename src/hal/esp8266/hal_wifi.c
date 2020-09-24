@@ -124,6 +124,55 @@ static list_t arp_q_list;
 
 static char hostname[32];
 
+void wifi_handle_event_cb(System_Event_t *evt)
+{
+    switch (evt->event) {
+        case EVENT_STAMODE_CONNECTED:
+            // os_printf("connect to ssid %s, channel %d\n",
+            // evt->event_info.connected.ssid,
+            // evt->event_info.connected.channel);
+            break;
+        
+        case EVENT_STAMODE_DISCONNECTED:
+            /*os_printf("disconnect from ssid %s, reason %d\n",
+            evt->event_info.disconnected.ssid,
+            evt->event_info.disconnected.reason);*/
+
+            connected = FALSE;
+            log_v_debug_P( PSTR("wifi disconnected") );
+            break;
+        
+        case EVENT_STAMODE_AUTHMODE_CHANGE:
+            // os_printf("mode: %d -> %d\n",
+            // evt->event_info.auth_change.old_mode,
+            // evt->event_info.auth_change.new_mode);
+            break;
+        
+        case EVENT_STAMODE_GOT_IP:
+            // os_printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR,
+            // IP2STR(&evt->event_info.got_ip.ip),
+            // IP2STR(&evt->event_info.got_ip.mask),
+            // IP2STR(&evt->event_info.got_ip.gw));
+            // os_printf("\n");
+            break;
+        
+        case EVENT_SOFTAPMODE_STACONNECTED:
+            // os_printf("station: " MACSTR "join, AID = %d\n",
+            // MAC2STR(evt->event_info.sta_connected.mac),
+            // evt->event_info.sta_connected.aid);
+            break;
+        
+        case EVENT_SOFTAPMODE_STADISCONNECTED:
+            // os_printf("station: " MACSTR "leave, AID = %d\n",
+            // MAC2STR(evt->event_info.sta_disconnected.mac),
+            // evt->event_info.sta_disconnected.aid);
+            break;
+
+        default:
+            break;
+    }
+}
+
 void wifi_v_init( void ){
 	
 	wifi_station_disconnect();
@@ -206,6 +255,9 @@ void wifi_v_init( void ){
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
     wifi_station_set_reconnect_policy( FALSE );
+
+    // MUST set a callback to detect connection loss!
+    wifi_set_event_handler_cb( wifi_handle_event_cb );
 
     // set up hostname
     char mac_str[16];
