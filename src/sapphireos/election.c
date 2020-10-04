@@ -72,6 +72,8 @@ typedef struct  __attribute__((packed)){
 
 static list_t elections_list;
 
+static uint8_t rate_boost;
+
 
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
@@ -359,20 +361,19 @@ static bool compare_self( election_t *election ){
     
     // check cycle count
     int64_t diff = (int64_t)election->cycles - (int64_t)election->leader_cycles;
-    diff -= ELECTION_CYCLE_MIN_DIFF;
 
-    if( diff <= 0 ){
-
-        return FALSE;
-    }
-    else{
+    if( ( diff - ELECTION_CYCLE_MIN_DIFF ) > 0 ){
 
         log_v_debug_P( PSTR("cycles: %lu %lu"), (uint32_t)election->cycles, (uint32_t)election->leader_cycles );
 
         return TRUE;
     }
+    else if( diff < 0 ){
 
-    // uptime is the same
+        return FALSE;
+    }
+
+    // uptime is the same (within ELECTION_CYCLE_MIN_DIFF)
 
     // check device ID
     if( cfg_u64_get_device_id() < election->leader_device_id ){
@@ -503,6 +504,27 @@ static uint8_t transmit_count( void ){
     return count;
 }
 
+static uint8_t candidate_count( void ){
+
+    uint8_t count = 0;
+
+    list_node_t ln = elections_list.head;
+
+    while( ln > 0 ){
+
+        election_t *election = (election_t *)list_vp_get_data( ln );
+
+        if( election->state == STATE_CANDIDATE ){
+
+            count++;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
 static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t flags ){
 
     uint16_t count = 1;
@@ -602,6 +624,8 @@ static void transmit_election( election_t *election, ip_addr4_t *ip, uint8_t fla
     }
     
     raddr.port   = ELECTION_PORT;
+
+    // log_v_debug_P( PSTR("election to %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
@@ -733,6 +757,17 @@ static void process_election_pkt( election_header_t *header, election_pkt_t *pkt
                 reset_state( election );
             }
         }
+
+        // if we are still leader
+        if( election->state == STATE_LEADER ){
+
+            // is this packet a candidate?
+            if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) == 0 ){
+
+                // boost our broadcast rate
+                rate_boost = ELECTION_RATE_BOOST;
+            }
+        }
     }
     else{
 
@@ -752,6 +787,12 @@ static void process_election_query( election_header_t *header, election_query_t 
     }
 
     if( election->group != pkt->group ){
+
+        return;
+    }
+
+    // we only respond if we are a leader!
+    if( !election->is_leader ){
 
         return;
     }
@@ -788,28 +829,35 @@ PT_BEGIN( pt );
                     // clear tracking info
                     clear_tracking( election );           
                 }
+                else if( election->state != STATE_IDLE ){
+
+                    // the only state that can have a time out of 0 is LEADER and IDLE.
+                    reset_state( election );
+                }
 
                 goto next;
             }
 
             election->timeout--;
 
-            // check for query cycle
-            if( ( election->timeout > 0 ) && 
-                ( ( election->timeout % FOLLOWER_QUERY_TIMEOUT ) == 0 ) &&
-                ( election->state == STATE_FOLLOWER ) ){
-
-                // NOTE
-                // if the follower query timeout is longer than the election broadcast interval,
-                // this code path won't run very often, as the timeout will be reset by the
-                // broadcast.  this mechanism is a useful backup if the broadcasts aren't 
-                // being received.
-
-                log_v_debug_P( PSTR("query: %d"), election->timeout );
-                transmit_query( election );
-            }
-
+            // timeout not expired
             if( election->timeout > 0 ){
+
+                // PRE-TIMEOUT LOGIC
+
+                // check if we need to query our leader
+                if( ( election->is_leader ) &&
+                    ( election->state == STATE_FOLLOWER ) && 
+                    ( election->timeout < ( FOLLOWER_TIMEOUT - FOLLOWER_QUERY_TIMEOUT ) ) ){
+
+                    // transmit query to leader.
+
+                    // this will repeat on the timer interval until we get a response
+                    // or time out.
+                    transmit_query( election );
+                }
+
+                // DONE with further processing for now.
 
                 goto next;
             }
@@ -824,7 +872,7 @@ PT_BEGIN( pt );
                 if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
 
                     // do we have a leader?
-                    if( !ip_b_is_zeroes( election->leader_ip ) ){
+                    if( election->is_leader && !ip_b_is_zeroes( election->leader_ip ) ){
 
                         log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
                         election->state     = STATE_FOLLOWER;   
@@ -880,15 +928,25 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    // sanity check - remove after debug
+                    // sanity check
                     if( ip_b_is_zeroes( election->leader_ip ) ){
 
-                        log_v_error_P( PSTR("STATE CHANGE FAIL") );    
+                        reset_state( election );
+
+                        goto next;
                     }
 
-                    log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-                    election->state     = STATE_FOLLOWER;
-                    election->timeout   = FOLLOWER_TIMEOUT;
+                    // check if leader
+                    if( election->is_leader ){
+
+                        log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
+                        election->state     = STATE_FOLLOWER;
+                        election->timeout   = FOLLOWER_TIMEOUT;
+                    }
+                    else{
+
+                        reset_state( election );
+                    }
                 }
             }
             else if( election->state == STATE_FOLLOWER ){                    
@@ -920,7 +978,7 @@ PT_BEGIN( pt );
 
     sock_v_bind( sock, ELECTION_PORT );
 
-    sock_v_set_timeout( sock, 1 );
+    // sock_v_set_timeout( sock, 1 );
 
 
     // start sender
@@ -993,6 +1051,8 @@ PT_BEGIN( pt );
         }
         else{
 
+            log_v_debug_P( PSTR("query from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
             // query
             election_query_t *pkt = (election_query_t *)( header + 1 );
 
@@ -1021,7 +1081,31 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, transmit_count() == 0 );
 
-        TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 6 ) ); // 1 to 2 seconds
+        // set rate
+        uint16_t rate = ELECTION_RATE_LOW;
+
+        if( rate_boost > 0 ){
+
+            rate_boost--;
+
+            rate = ELECTION_RATE_HIGH;
+        }
+        else if( candidate_count() > 0 ){
+
+            rate = ELECTION_RATE_HIGH;
+        }
+
+        static uint8_t delay;
+        delay = rate;
+
+        while( delay > 0 ){
+
+            delay--;
+
+            TMR_WAIT( pt, 1000 );
+        }
+
+        TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
         // check if shutting down
         if( sys_b_shutdown() ){

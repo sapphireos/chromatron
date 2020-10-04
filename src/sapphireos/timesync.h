@@ -32,7 +32,7 @@
 #define TIME_SERVER_PORT                32037
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION           6
+#define TIME_PROTOCOL_VERSION           7
 
 #define TIME_SOURCE_GPS                 64
 #define TIME_SOURCE_NTP                 32
@@ -42,9 +42,23 @@
 #define TIME_SOURCE_NONE                1
 
 #define TIME_SYNC_RATE_BASE             4 // in seconds
-#define TIME_SYNC_RATE_MAX              16 // in seconds
+#define TIME_SYNC_RATE_MAX              64 // in seconds
 
 #define TIME_ELECTION_SERVICE           __KV__timesync
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_ping_t;
+#define TIME_MSG_PING               1
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} time_msg_ping_response_t;
+#define TIME_MSG_PING_RESPONSE      2
 
 typedef struct __attribute__((packed)){
     uint32_t magic;

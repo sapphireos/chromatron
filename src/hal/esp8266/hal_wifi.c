@@ -55,6 +55,11 @@ static uint32_t wifi_udp_dropped;
 static uint32_t wifi_udp_high_load;
 static uint32_t wifi_max_rx_size;
 
+static uint32_t wifi_arp_hits;
+static uint32_t wifi_arp_misses;
+static uint32_t wifi_arp_msg_recovered;
+static uint32_t wifi_arp_msg_fails;
+
 static bool default_ap_mode;
 
 static bool connected;
@@ -92,6 +97,11 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_high_load,               0,   "wifi_udp_high_load" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_max_rx_size,                 0,   "wifi_max_rx_size" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_recovered,           0,   "wifi_arp_msg_recovered" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_fails,               0,   "wifi_arp_msg_fails" },
 };
 
 
@@ -102,6 +112,7 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
+PT_THREAD( wifi_arp_sender_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
 static struct espconn esp_conn[WIFI_MAX_PORTS];
@@ -109,8 +120,58 @@ static esp_udp udp_conn[WIFI_MAX_PORTS];
 
 static list_t conn_list;
 static list_t rx_list;
+static list_t arp_q_list;
 
 static char hostname[32];
+
+void wifi_handle_event_cb(System_Event_t *evt)
+{
+    switch (evt->event) {
+        case EVENT_STAMODE_CONNECTED:
+            // os_printf("connect to ssid %s, channel %d\n",
+            // evt->event_info.connected.ssid,
+            // evt->event_info.connected.channel);
+            break;
+        
+        case EVENT_STAMODE_DISCONNECTED:
+            /*os_printf("disconnect from ssid %s, reason %d\n",
+            evt->event_info.disconnected.ssid,
+            evt->event_info.disconnected.reason);*/
+
+            connected = FALSE;
+            log_v_debug_P( PSTR("wifi disconnected") );
+            break;
+        
+        case EVENT_STAMODE_AUTHMODE_CHANGE:
+            // os_printf("mode: %d -> %d\n",
+            // evt->event_info.auth_change.old_mode,
+            // evt->event_info.auth_change.new_mode);
+            break;
+        
+        case EVENT_STAMODE_GOT_IP:
+            // os_printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR,
+            // IP2STR(&evt->event_info.got_ip.ip),
+            // IP2STR(&evt->event_info.got_ip.mask),
+            // IP2STR(&evt->event_info.got_ip.gw));
+            // os_printf("\n");
+            break;
+        
+        case EVENT_SOFTAPMODE_STACONNECTED:
+            // os_printf("station: " MACSTR "join, AID = %d\n",
+            // MAC2STR(evt->event_info.sta_connected.mac),
+            // evt->event_info.sta_connected.aid);
+            break;
+        
+        case EVENT_SOFTAPMODE_STADISCONNECTED:
+            // os_printf("station: " MACSTR "leave, AID = %d\n",
+            // MAC2STR(evt->event_info.sta_disconnected.mac),
+            // evt->event_info.sta_disconnected.aid);
+            break;
+
+        default:
+            break;
+    }
+}
 
 void wifi_v_init( void ){
 	
@@ -143,6 +204,15 @@ void wifi_v_init( void ){
                 0,
                 0 );
 
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+        
+        thread_t_create_critical( 
+                    wifi_arp_sender_thread,
+                    PSTR("wifi_arp_tx_q"),
+                    0,
+                    0 );
+    }
+
     thread_t_create_critical( 
                 wifi_echo_thread,
                 PSTR("wifi_echo"),
@@ -174,12 +244,20 @@ void wifi_v_init( void ){
 
     list_v_init( &conn_list );
     list_v_init( &rx_list );
+    list_v_init( &arp_q_list );
 
     // set tx power
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
     wifi_set_sleep_type( NONE_SLEEP_T );
+
+    // disable auto reconnect (we will manage this)
+    wifi_station_set_auto_connect( FALSE );
+    wifi_station_set_reconnect_policy( FALSE );
+
+    // MUST set a callback to detect connection loss!
+    wifi_set_event_handler_cb( wifi_handle_event_cb );
 
     // set up hostname
     char mac_str[16];
@@ -582,10 +660,44 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     conn->proto.udp->remote_ip[3] = netmsg_state->raddr.ipaddr.ip0;
     conn->proto.udp->remote_port = netmsg_state->raddr.port;
 
-    // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
-    if( espconn_sendto( conn, data, data_len ) != 0 ){
+    // int8_t arp_status = etharp_find_addr
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-        log_v_debug_P( PSTR("msg failed") );
+        if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+
+            wifi_arp_misses++;
+
+            // log_v_debug_P( PSTR("ARP not in cache: %d.%d.%d.%d"), netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0 );            
+
+            // int8_t arp_status = hal_arp_i8_query( netmsg_state->raddr.ipaddr );
+
+            // if( arp_status < 0 ){
+
+            //     log_v_warn_P( PSTR("ARP query fail: %d"), arp_status );            
+            // }
+
+            // we will manually try the ARP on the sender q thread
+            if( list_u8_count( &arp_q_list ) < 4 ){
+
+                list_v_insert_head( &arp_q_list, netmsg );
+
+                // don't release netmsg
+                return NETMSG_TX_OK_NORELEASE; 
+            }
+            
+            // q was full, just try and transmit anyway
+        }
+        else{
+
+            wifi_arp_hits++;
+        }
+    }
+
+    // trace_printf("sendto: %d.%d.%d.%d:%u\n", netmsg_state->raddr.ipaddr.ip3,netmsg_state->raddr.ipaddr.ip2,netmsg_state->raddr.ipaddr.ip1,netmsg_state->raddr.ipaddr.ip0, netmsg_state->raddr.port);
+    int16_t send_status = espconn_sendto( conn, data, data_len );
+    if( send_status != 0 ){
+
+        log_v_warn_P( PSTR("msg failed: %d"), send_status );
 
         return NETMSG_TX_ERR_RELEASE;   
     }
@@ -990,12 +1102,20 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
-        if( wifi_station_get_connect_status() == STATION_GOT_IP ){
+        uint8_t status = wifi_station_get_connect_status();
+
+        if( status == STATION_GOT_IP ){
 
             wifi_uptime++;
             connected = TRUE;
         }
         else{
+
+            if( connected ){
+
+                // if previously connected, log status
+                log_v_debug_P( PSTR("lost connection: %d"), status );
+            }
 
             wifi_uptime = 0;
             connected = FALSE;
@@ -1027,9 +1147,84 @@ PT_BEGIN( pt );
 
         while( wifi_b_connected() ){
 
-            TMR_WAIT( pt, 16000 );
+            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
 
             hal_arp_v_gratuitous_arp();
+        }
+    }
+
+PT_END( pt );
+}
+
+PT_THREAD( wifi_arp_sender_thread( pt_t *pt, void *state ) )
+{
+    netmsg_t netmsg = arp_q_list.tail;
+    netmsg_state_t *netmsg_state = 0;
+
+    if( netmsg > 0 ){
+
+        netmsg_state = netmsg_vp_get_state( netmsg );
+    }
+
+PT_BEGIN( pt );
+
+    while(1){
+
+        THREAD_YIELD( pt );
+
+        THREAD_WAIT_WHILE( pt, list_u8_count( &arp_q_list ) == 0 );
+
+        // check ARP table
+        if( hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+
+            // entry found, great!
+            int8_t status = wifi_i8_send_udp( netmsg );
+            if( ( status == NETMSG_TX_OK_RELEASE ) || ( status == NETMSG_TX_OK_NORELEASE ) ){
+
+                wifi_arp_msg_recovered++;
+            }
+            else{
+
+                wifi_arp_msg_fails++;
+            }
+
+            // regardless of outcome, we're freeing this packet
+            list_ln_remove_tail( &arp_q_list );
+            netmsg_v_release( netmsg );
+        }
+        else{
+
+            // no ARP entry, let's send a request, delay, and re-loop
+
+            int8_t arp_status = hal_arp_i8_query( netmsg_state->raddr.ipaddr );
+
+            if( arp_status < 0 ){
+
+                log_v_warn_P( PSTR("ARP query fail: %d"), arp_status );            
+            }
+
+            #define ARP_WAIT_TIME 20 // 20 ms should be an eternity for ARP
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + ARP_WAIT_TIME );
+            THREAD_WAIT_WHILE( pt, ( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ) &&
+                                   ( thread_b_alarm_set() ) );
+
+            if( hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+
+                // entry found.
+
+                // bounce back to top of loop so we transmit.
+
+                continue;
+            }
+
+            // ARP failed!
+
+            // bummer.  drop packet.
+
+            list_ln_remove_tail( &arp_q_list );
+            netmsg_v_release( netmsg );
+
+            wifi_arp_msg_fails++;
         }
     }
 

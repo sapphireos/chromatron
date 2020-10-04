@@ -39,13 +39,15 @@
 #ifdef ENABLE_MSGFLOW
 
 static uint16_t max_q_size;
-static uint16_t q_drops;
-static uint16_t net_drops;
+static uint32_t q_drops;
+static uint32_t net_drops;
+static uint32_t confirmed;
 
 KV_SECTION_META kv_meta_t msgflow_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_max_q_size" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &q_drops,     0,     "msgflow_q_drops" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &net_drops,   0,     "msgflow_net_drops" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &q_drops,     0,     "msgflow_q_drops" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_drops,   0,     "msgflow_net_drops" },
+    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &confirmed,   0,     "msgflow_confirmed" },
 };
 
 typedef struct{
@@ -815,6 +817,8 @@ PT_BEGIN( pt );
                 if( state->rx_sequence == state->tx_sequence ){
                     
                     // message confirmed!
+                    confirmed++;
+                    
                     break;
                 }
                 else if( state->rx_sequence > state->tx_sequence ){
@@ -826,6 +830,9 @@ PT_BEGIN( pt );
                     break;
                 }
                 else{
+
+                    // SOMETHING IS WRONG HERE!
+
 
                     // timeout!
                     // log_v_debug_P( PSTR("timeout: %lu / %lu"),  (uint32_t)state->tx_sequence, (uint32_t)state->rx_sequence );

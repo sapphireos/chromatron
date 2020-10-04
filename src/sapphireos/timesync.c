@@ -403,6 +403,47 @@ static uint8_t get_best_local_source( void ){
 }
 
 
+static void transmit_ping( void ){
+
+    time_msg_ping_t msg;
+    msg.magic           = TIME_PROTOCOL_MAGIC;
+    msg.version         = TIME_PROTOCOL_VERSION;
+    msg.type            = TIME_MSG_PING;
+    
+    sock_addr_t raddr;
+    raddr.port = TIME_SERVER_PORT;
+    raddr.ipaddr = master_ip;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+}
+
+static void transmit_sync_request( void ){
+
+    sync_id++;
+
+    time_msg_request_sync_t msg;
+    msg.magic           = TIME_PROTOCOL_MAGIC;
+    msg.version         = TIME_PROTOCOL_VERSION;
+    msg.type            = TIME_MSG_REQUEST_SYNC;
+    msg.id              = sync_id;
+    
+    sock_addr_t raddr;
+    raddr.port = TIME_SERVER_PORT;
+    raddr.ipaddr = master_ip;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+
+    rtt_start = tmr_u32_get_system_time_ms();
+}
+
+static void request_sync( void ){
+
+    // transmit a ping first.
+    // this ensures the server will have an ARP entry ready when
+    // when we send the sync request
+    transmit_ping();
+}
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -460,6 +501,29 @@ PT_BEGIN( pt );
                 msg.id              = req->id;
 
                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+            }
+            else if( *type == TIME_MSG_PING ){
+
+                if( !is_leader() ){
+
+                    continue;
+                }
+
+                time_msg_ping_response_t msg;
+                msg.magic           = TIME_PROTOCOL_MAGIC;
+                msg.version         = TIME_PROTOCOL_VERSION;
+                msg.type            = TIME_MSG_PING_RESPONSE;
+                
+                sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+            }
+            else if( *type == TIME_MSG_PING_RESPONSE ){
+
+                if( is_leader() ){
+
+                    continue;
+                }
+
+                transmit_sync_request();
             }
             else if( *type == TIME_MSG_SYNC ){
 
@@ -547,25 +611,6 @@ PT_BEGIN( pt );
 
 
 PT_END( pt );
-}
-
-static void request_sync( void ){
-
-    sync_id++;
-
-    time_msg_request_sync_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_REQUEST_SYNC;
-    msg.id              = sync_id;
-    
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = master_ip;
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
-
-    rtt_start = tmr_u32_get_system_time_ms();
 }
 
 

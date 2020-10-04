@@ -53,10 +53,15 @@ static uint32_t netmsg_udp_recv;
     #define ROUTING_TABLE_END         __attribute__ ((section (".routing_end"), used))
 #endif
 
+#include "timers.h"
+static uint32_t last_rx_ts;
+static uint32_t longest_rx_delta;
 
 KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_sent,    0,   "netmsg_udp_sent" },
     { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_recv,    0,   "netmsg_udp_recv" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
 };
 
 
@@ -273,6 +278,28 @@ void netmsg_v_receive( netmsg_t netmsg ){
         #else
 
         // easy mode!
+
+        if( last_rx_ts == 0 ){
+
+            last_rx_ts = tmr_u32_get_system_time_ms();
+        }
+        else{
+
+            uint32_t delta = tmr_u32_elapsed_time_ms( last_rx_ts );
+            last_rx_ts = tmr_u32_get_system_time_ms();   
+
+            if( delta > longest_rx_delta ){
+
+                longest_rx_delta = delta;
+
+                if( longest_rx_delta > 8000 ){
+
+                    log_v_debug_P( PSTR("longest delta: %lu"), longest_rx_delta );
+                }
+            }
+        }
+
+        
 
         sock_v_recv( netmsg );
 

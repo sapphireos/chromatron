@@ -107,6 +107,8 @@
 #define MSGFLOW_MAX_Q_SIZE		2048
 #define MSGFLOW_MAX_Q_MSGS      32
 
+// ARP
+#define ARP_GRATUITOUS_INTERVAL 16
 
 // leave one block at end for bootloader information
 #define FW_MAX_SIZE ( FLASH_FS_FIRMWARE_0_SIZE_KB * 1024  - FLASH_FS_ERASE_BLOCK_SIZE )

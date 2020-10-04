@@ -348,6 +348,21 @@ bool ip_b_check_link_local( ip_addr4_t dest_addr ){
 	return FALSE;
 }
 
+bool ip_b_check_subnet( ip_addr4_t dest_addr ){
+
+    ip_addr4_t my_addr;
+    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &my_addr );
+    ip_addr4_t subnet;
+    cfg_i8_get( CFG_PARAM_IP_SUBNET_MASK, &subnet );
+
+    if( ip_b_mask_compare( my_addr, subnet, dest_addr ) == TRUE ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 uint32_t ip_u32_to_int( ip_addr4_t ip ){
 
    return ( (uint32_t)ip.ip3 << 24 ) + ( (uint32_t)ip.ip2 << 16 ) + ( ip.ip1 << 8 ) +( ip.ip0 );
