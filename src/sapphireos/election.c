@@ -1005,7 +1005,6 @@ PT_BEGIN( pt );
 
         if( header->magic != ELECTION_MAGIC ){
 
-            log_v_debug_P( PSTR("bad magic") );
             continue;
         }
 

@@ -902,11 +902,11 @@ station_mode:
             wifi_set_opmode_current( STATION_MODE );
 
             // check if we can try a fast connect with the last connected router
-            if( wifi_router >= 0 ){
+            // if( wifi_router >= 0 ){
 
-                log_v_debug_P( PSTR("Fast connect...") );
-            }
-            else{
+            //     log_v_debug_P( PSTR("Fast connect...") );
+            // }
+            // else{
 
                 // scan first
                 wifi_router = -1;
@@ -940,7 +940,7 @@ station_mode:
                 }
 
                 log_v_debug_P( PSTR("Connecting...") );
-            }
+            // }
     
 			struct station_config sta_config;
 			memset( &sta_config, 0, sizeof(sta_config) );
@@ -1074,7 +1074,7 @@ end:
 
             char ssid[WIFI_SSID_LEN];
             wifi_v_get_ssid( ssid );
-            log_v_debug_P( PSTR("Wifi connected to: %s"), ssid );
+            log_v_debug_P( PSTR("Wifi connected to: %s ch: %d"), ssid, wifi_channel );
         }
         else{
 
@@ -1084,7 +1084,7 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() );
     
-    log_v_debug_P( PSTR("Wifi disconnected") );
+    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d"), wifi_rssi );
 
     THREAD_RESTART( pt );
 
@@ -1121,7 +1121,10 @@ PT_BEGIN( pt );
             connected = FALSE;
         }
 
-        wifi_rssi = wifi_station_get_rssi();
+        if( connected ){
+
+            wifi_rssi = wifi_station_get_rssi();
+        }
     }
 
 PT_END( pt );
