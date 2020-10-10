@@ -139,7 +139,7 @@ void wifi_handle_event_cb(System_Event_t *evt)
             evt->event_info.disconnected.reason);*/
 
             connected = FALSE;
-            log_v_debug_P( PSTR("wifi disconnected") );
+            // log_v_debug_P( PSTR("wifi disconnected") );
             break;
         
         case EVENT_STAMODE_AUTHMODE_CHANGE:
@@ -1084,7 +1084,7 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() );
     
-    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d"), wifi_rssi );
+    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
 
     THREAD_RESTART( pt );
 
