@@ -25,7 +25,7 @@
 #include "bool.h"
 #include "catbus_common.h"
 #include "random.h"
-
+#include "cnt_of_array.h"
 #include "vm_lib.h"
 
 int8_t vm_lib_i8_libcall_built_in( 

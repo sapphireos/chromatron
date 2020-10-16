@@ -26,7 +26,10 @@
 #ifndef _CNT_OF_ARRAY_H_
 #define _CNT_OF_ARRAY_H_
 
-// Count of array macro
-#define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
+
+#ifndef cnt_of_array
+	// Count of array macro
+	#define cnt_of_array( array ) ( sizeof( array ) / sizeof( array[0] ) )
+#endif
 
 #endif
