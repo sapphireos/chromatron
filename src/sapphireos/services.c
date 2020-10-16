@@ -28,6 +28,7 @@
 #include "timers.h"
 #include "threading.h"
 #include "random.h"
+#include "list.h"
 
 #include "services.h"
 
@@ -36,10 +37,105 @@
 // #define NO_LOGGING
 #include "logging.h"
 
+#define STATE_LISTEN        0
+#define STATE_CONNECTED     1
+#define STATE_SERVER        2
+#define STATE_CANDIDATE     3
+
+typedef struct __attribute__((packed)){
+    uint32_t service;
+    uint32_t group;    
+    uint16_t priority;
+    uint16_t port;
+} service_offer_t;
+
+typedef struct __attribute__((packed)){
+    uint32_t service;
+    uint32_t group;   
+
+    uint16_t server_priority;
+    uint16_t server_port;
+    ip_addr4_t server_ip;
+
+    bool is_team;
+    uint8_t state;
+    uint8_t timeout;
+} service_state_t;
+
+typedef struct __attribute__((packed)){
+    service_state_t service;
+
+    // additional local information
+    uint16_t local_priority;
+    uint16_t local_port;
+    uint32_t local_cycles;
+
+    // additional leader information (main information is in service)
+    uint64_t leader_device_id;
+    uint32_t leader_cycles;
+} team_state_t;
+
+
+static list_t offers_list;
+static list_t available_list;
+
 
 void services_v_init( void ){
 
+    list_v_init( &offers_list );
+    list_v_init( &available_list );
 
+    #if !defined(ENABLE_NETWORK) || !defined(ENABLE_WIFI)
+    return;
+    #endif
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+
+
+}
+
+void services_v_listen( uint32_t id, uint32_t group ){
+
+}
+
+void services_v_offer( uint32_t id, uint32_t group, uint16_t priority, uint16_t port ){
+
+}
+
+void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint16_t port ){
+
+}
+
+void services_v_cancel( uint32_t id, uint32_t group ){
+
+}
+
+bool services_b_is_available( uint32_t id, uint32_t group ){
+
+    return FALSE;
+}
+
+bool services_b_is_leader( uint32_t id, uint32_t group ){
+
+    return FALSE;
+}
+
+sock_addr_t services_a_get( uint32_t service, uint32_t group ){
+
+    sock_addr_t addr;
+    memset( &addr, 0, sizeof(addr) );
+
+
+    return addr;
+}
+
+ip_addr4_t services_a_get_ip( uint32_t service, uint32_t group ){
+
+    return ip_a_addr(0,0,0,0);
 }
 
 #endif

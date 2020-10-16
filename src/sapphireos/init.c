@@ -49,6 +49,7 @@
 #include "netmsg.h"
 #include "sockets.h"
 #include "election.h"
+#include "services.h"
 #endif
 
 #include "flash25.h"
@@ -207,6 +208,10 @@ trace_printf("time\n");
 
     #ifdef ENABLE_ELECTION
     election_v_init();
+    #endif
+
+    #ifdef ENABLE_SERVICES
+    services_v_init();
     #endif
 
     #ifdef ENABLE_MSGFLOW
