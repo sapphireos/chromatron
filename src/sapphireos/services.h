@@ -31,6 +31,8 @@
 #define SERVICES_MAGIC              0x56524553 // 'SERV'
 #define SERVICES_VERSION            1
 
+#define SERVICE_RATE                8000
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
@@ -48,7 +50,7 @@ typedef struct __attribute__((packed)){
 } service_msg_offer_hdr_t;
 
 typedef struct __attribute__((packed)){
-    uint32_t service;
+    uint32_t id;
     uint32_t group;
     uint16_t priority;
     uint16_t port;
@@ -57,10 +59,11 @@ typedef struct __attribute__((packed)){
     uint8_t reserved[3];
 } service_msg_offer_t;
 #define SERVICE_OFFER_FLAGS_TEAM    0x01
+#define SERVICE_OFFER_FLAGS_SERVER  0x02
 
 #define SERVICE_MSG_TYPE_QUERY      2
 typedef struct __attribute__((packed)){
-    uint32_t service;
+    uint32_t id;
     uint32_t group;
 } service_msg_query_t;
 
@@ -68,7 +71,7 @@ typedef struct __attribute__((packed)){
 void services_v_init( void );
 
 void services_v_listen( uint32_t id, uint32_t group );
-void services_v_offer( uint32_t id, uint32_t group, uint16_t priority, uint16_t port );
+// void services_v_offer( uint32_t id, uint32_t group, uint16_t priority, uint16_t port );
 void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint16_t port );
 void services_v_cancel( uint32_t id, uint32_t group );
 
