@@ -32,9 +32,38 @@
 #define SERVICES_VERSION            1
 
 typedef struct __attribute__((packed)){
-    uint32_t id;
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+    uint8_t flags;
+    uint8_t reserved;
+} service_msg_header_t;
+
+
+#define SERVICE_MSG_TYPE_OFFERS     1
+typedef struct __attribute__((packed)){
+    uint64_t device_id;
+    uint8_t count;
+    uint8_t reserved[3];
+} service_msg_offer_hdr_t;
+
+typedef struct __attribute__((packed)){
+    uint32_t service;
     uint32_t group;
-} service_t;
+    uint16_t priority;
+    uint16_t port;
+    uint32_t uptime;
+    uint8_t flags;
+    uint8_t reserved[3];
+} service_msg_offer_t;
+#define SERVICE_OFFER_FLAGS_TEAM    0x01
+
+#define SERVICE_MSG_TYPE_QUERY      2
+typedef struct __attribute__((packed)){
+    uint32_t service;
+    uint32_t group;
+} service_msg_query_t;
+
 
 void services_v_init( void );
 

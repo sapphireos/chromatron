@@ -47,6 +47,7 @@ typedef struct __attribute__((packed)){
     uint32_t group;    
     uint16_t priority;
     uint16_t port;
+    uint32_t uptime;
 } service_offer_t;
 
 typedef struct __attribute__((packed)){
@@ -68,11 +69,11 @@ typedef struct __attribute__((packed)){
     // additional local information
     uint16_t local_priority;
     uint16_t local_port;
-    uint32_t local_cycles;
+    uint32_t local_uptime;
 
     // additional leader information (main information is in service)
     uint64_t leader_device_id;
-    uint32_t leader_cycles;
+    uint32_t leader_uptime;
 } team_state_t;
 
 
