@@ -50,6 +50,7 @@ typedef struct __attribute__((packed)){
     uint32_t server_uptime;
     uint16_t server_port;
     ip_addr4_t server_ip;
+    bool server_valid;
 
     uint16_t local_priority;
     uint16_t local_port;
@@ -417,6 +418,61 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+// true if we are better than tracked leader
+static bool compare_self( service_state_t *service ){
+
+    // check if a server is being tracked.
+    // if none, we win by default.
+    if( ip_b_is_zeroes( service->server_ip ) ){
+
+        log_v_debug_P( PSTR("no ip") );
+
+        return TRUE;
+    }
+    
+    // check if tracked leader's priority is better than ours
+    if( service->local_priority < service->server_priority ){
+
+        return FALSE;
+    } 
+    // our priority is better
+    else if( service->local_priority > service->server_priority ){
+
+        log_v_debug_P( PSTR("priority win") );
+
+        return TRUE;
+    }
+
+    // priorities are the same
+    
+    // check uptime
+    int64_t diff = (int64_t)service->local_uptime - (int64_t)service->server_uptime;
+
+    if( ( diff - SERVICE_UPTIME_MIN_DIFF ) > 0 ){
+
+        log_v_debug_P( PSTR("uptime: %lu %lu"), (uint32_t)service->local_uptime, (uint32_t)service->server_uptime );
+
+        return TRUE;
+    }
+    else if( diff < 0 ){
+
+        return FALSE;
+    }
+
+    // uptime is the same (within SERVICE_UPTIME_MIN_DIFF)
+
+    // compare IP addresses
+    ip_addr4_t our_addr;
+    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &our_addr );
+
+    if( ip_u32_to_int( our_addr ) < ip_u32_to_int( service->server_ip ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 // true if pkt is better than current leader
 static bool compare_leader( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
 
@@ -747,33 +803,31 @@ PT_BEGIN( pt );
 
             service_state_t *service = (service_state_t *)list_vp_get_data( ln );
 
+            // increment uptimes
+            if( service->state == STATE_SERVER ){
+                
+                service->local_uptime++;
+            }
 
+            service->server_uptime++;
 
+            // ensure certain timeout states occur
+            if( service->timeout == 0 ){
 
+                if( service->state == STATE_SERVER ){                    
 
+                    // clear tracking info
+                    clear_tracking( service );           
+                }
+                else if( service->state != STATE_LISTEN ){
 
+                    reset_state( service );
+                }
 
-            // // increment cycle count
-            // election->cycles++;
-            // election->leader_cycles++;
+                goto next;
+            }
 
-            // if( election->timeout == 0 ){
-
-            //     if( election->state == STATE_LEADER ){                    
-
-            //         // clear tracking info
-            //         clear_tracking( election );           
-            //     }
-            //     else if( election->state != STATE_IDLE ){
-
-            //         // the only state that can have a time out of 0 is LEADER and IDLE.
-            //         reset_state( election );
-            //     }
-
-            //     goto next;
-            // }
-
-            // election->timeout--;
+            service->timeout--;
 
             // // timeout not expired
             // if( election->timeout > 0 ){
@@ -797,59 +851,54 @@ PT_BEGIN( pt );
             //     goto next;
             // }
 
-            // // TIMEOUT STATE MACHINE
+            // TIMEOUT STATE MACHINE
 
-            // if( election->state == STATE_IDLE ){
+            if( service->state == STATE_LISTEN ){
 
-            //     log_v_debug_P( PSTR("IDLE timeout") );
+                log_v_debug_P( PSTR("LISTEN timeout") );
 
-            //     // check if can only be a follower
-            //     if( election->priority == ELECTION_PRIORITY_FOLLOWER_ONLY ){
+                // check if we can only be a follower
+                if( service->local_priority == SERVICE_PRIORITY_FOLLOWER_ONLY ){
 
-            //         // do we have a leader?
-            //         if( election->is_leader && !ip_b_is_zeroes( election->leader_ip ) ){
+                    // do we have a leader?
+                    if( service->server_valid && !ip_b_is_zeroes( service->server_ip ) ){
 
-            //             log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-            //             election->state     = STATE_FOLLOWER;   
-            //             election->timeout   = FOLLOWER_TIMEOUT;                     
-            //         }
-            //         else{
+                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        service->state     = STATE_CONNECTED;   
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;                     
+                    }
+                    else{
 
-            //             // no leader, reset
-            //             reset_state( election );
-            //         }
-            //     }
-            //     else{
+                        // no server, reset
+                        reset_state( service );
+                    }
+                }
+                // elible to become server
+                else{
 
-            //         // compare us to best leader we've seen
-            //         if( compare_self( election ) ){
+                    // compare us to best server we've seen
+                    if( compare_self( service ) ){
 
-            //             // switch to candidate so we inform other nodes
-            //             log_v_info_P( PSTR("-> CANDIDATE") );
-            //             election->state = STATE_CANDIDATE;
-            //             election->timeout = CANDIDATE_TIMEOUT;
-            //         }
-            //         // if tracking a leader
-            //         else if( election->is_leader ){
+                        // switch to candidate so we inform other nodes
+                        log_v_info_P( PSTR("-> CANDIDATE") );
+                        service->state = STATE_CANDIDATE;
+                        service->timeout = SERVICE_CANDIDATE_TIMEOUT;
+                    }
+                    // if tracking a leader
+                    else if( service->server_valid ){
 
-            //             // sanity check - remove after debug
-            //             if( ip_b_is_zeroes( election->leader_ip ) ){
+                        // found a leader
+                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        service->state     = STATE_CONNECTED;
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;                
+                    }
+                    else{
 
-            //                 log_v_error_P( PSTR("STATE CHANGE FAIL") );    
-            //             }
-
-            //             // found a leader
-            //             log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-            //             election->state     = STATE_FOLLOWER;
-            //             election->timeout   = FOLLOWER_TIMEOUT;                
-            //         }
-            //         else{
-
-            //             // no leader, reset
-            //             reset_state( election );
-            //         }
-            //     }
-            // }
+                        // no leader, reset
+                        reset_state( service );
+                    }
+                }
+            }
             // else if( election->state == STATE_CANDIDATE ){
 
             //     log_v_debug_P( PSTR("CANDIDATE timeout") );

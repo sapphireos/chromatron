@@ -35,6 +35,10 @@
 #define SERVICE_UPTIME_MIN_DIFF     10
 
 #define SERVICE_LISTEN_TIMEOUT      16
+#define SERVICE_CANDIDATE_TIMEOUT   16
+#define SERVICE_CONNECTED_TIMEOUT   64
+
+#define SERVICE_PRIORITY_FOLLOWER_ONLY    0
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
