@@ -423,7 +423,7 @@ PT_BEGIN( pt );
         
         TMR_WAIT( pt, SERVICE_RATE );
 
-        THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) && ( transmit_count() == 0 ) );
+        THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( transmit_count() == 0 ) );
 
         TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
@@ -791,7 +791,7 @@ PT_BEGIN( pt );
     
     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) && ( service_count() == 0 ) );
+        THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( service_count() == 0 ) );
 
         TMR_WAIT( pt, 1000 );
     
@@ -827,8 +827,8 @@ PT_BEGIN( pt );
 
             service->timeout--;
 
-            // // timeout not expired
-            // if( election->timeout > 0 ){
+            // timeout not expired
+            if( service->timeout > 0 ){
 
             //     // PRE-TIMEOUT LOGIC
 
@@ -844,10 +844,10 @@ PT_BEGIN( pt );
             //         transmit_query( election );
             //     }
 
-            //     // DONE with further processing for now.
+                // DONE with further processing for now.
 
-            //     goto next;
-            // }
+                goto next;
+            }
 
             // TIMEOUT STATE MACHINE
 
