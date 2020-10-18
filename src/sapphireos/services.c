@@ -689,7 +689,12 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 if( service->server_valid ){
 
                     // we reset back to idle
-                    reset_state( service );
+                    // reset_state( service );
+
+                    log_v_debug_P( PSTR("hop to better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+
+                    // reset timeout
+                    service->timeout   = SERVICE_CONNECTED_TIMEOUT;
                 }
             }
             // check if this packet is from our current server
@@ -710,7 +715,10 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                     log_v_debug_P( PSTR("we are a better server") );
 
                     // hmm, let's re-run the service
-                    reset_state( service );
+                    // reset_state( service );
+
+                    log_v_info_P( PSTR("-> SERVER") );
+                    service->state = STATE_SERVER;
                 }
             }
         }
