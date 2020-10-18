@@ -749,7 +749,7 @@ PT_BEGIN( pt );
         if( header->type == SERVICE_MSG_TYPE_OFFERS ){
 
             service_msg_offer_hdr_t *offer_hdr = (service_msg_offer_hdr_t *)( header + 1 );
-            service_msg_offer_t *offer = (service_msg_offer_t *)offer_hdr;
+            service_msg_offer_t *offer = (service_msg_offer_t *)( offer_hdr + 1 );
 
             // check packet length
             uint16_t len = sizeof(service_msg_header_t) + 
