@@ -267,12 +267,16 @@ static void init_header( service_msg_header_t *header, uint8_t type ){
 
 static bool should_transmit( service_state_t *service ){
 
-    if( ( service->state == STATE_LISTEN ) ||
-        ( service->state == STATE_CONNECTED ) ){
+    if( service->state == STATE_CONNECTED ){
 
         return FALSE;
-    }   
-    
+    }
+
+    if( ( service->state == STATE_LISTEN ) && ( !service->is_team ) ){
+
+        return FALSE;
+    }
+
     return TRUE;
 }
 
@@ -466,22 +470,26 @@ static bool compare_self( service_state_t *service ){
     }
 
     // priorities are the same
-    
-    // check uptime
-    int64_t diff = (int64_t)service->local_uptime - (int64_t)service->server_uptime;
 
-    if( ( diff - SERVICE_UPTIME_MIN_DIFF ) > 0 ){
+    // only check uptime if the server is valid
+    if( service->server_valid ){
+        
+        // check uptime
+        int64_t diff = (int64_t)service->local_uptime - (int64_t)service->server_uptime;
 
-        log_v_debug_P( PSTR("uptime: %lu %lu"), (uint32_t)service->local_uptime, (uint32_t)service->server_uptime );
+        if( ( diff - SERVICE_UPTIME_MIN_DIFF ) > 0 ){
 
-        return TRUE;
+            log_v_debug_P( PSTR("uptime: %lu %lu"), (uint32_t)service->local_uptime, (uint32_t)service->server_uptime );
+
+            return TRUE;
+        }
+        else if( diff < 0 ){
+
+            return FALSE;
+        }
     }
-    else if( diff < 0 ){
 
-        return FALSE;
-    }
-
-    // uptime is the same (within SERVICE_UPTIME_MIN_DIFF)
+    // uptime is the same (within SERVICE_UPTIME_MIN_DIFF) or server is not valid
 
     // compare IP addresses
     ip_addr4_t our_addr;
@@ -546,21 +554,24 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
 static void track_node( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
 
+    if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
+
+        service->server_valid = TRUE;
+    }
+    else{
+
+        service->server_valid = FALSE;
+    }
+
     if( !ip_b_addr_compare( service->server_ip, *ip ) ){
 
-        log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );    
+        log_v_debug_P( PSTR("tracking %d.%d.%d.%d valid: %d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->server_valid );    
     }
-    
     
     service->server_priority   = offer->priority;
     service->server_uptime     = offer->uptime;
     service->server_port       = offer->port;
     service->server_ip         = *ip;
-
-    if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
-
-        service->server_valid = TRUE;
-    }
 }
 
 static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip ){
