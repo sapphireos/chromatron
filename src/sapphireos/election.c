@@ -33,7 +33,7 @@
 
 #if defined(ENABLE_NETWORK) && defined(ENABLE_ELECTION)
 
-// #define NO_LOGGING
+#define NO_LOGGING
 #include "logging.h"
 
 static socket_t sock;
