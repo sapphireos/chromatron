@@ -33,7 +33,7 @@
 
 #if defined(ENABLE_NETWORK) && defined(ENABLE_ELECTION)
 
-#define NO_LOGGING
+// #define NO_LOGGING
 #include "logging.h"
 
 static socket_t sock;
@@ -105,6 +105,9 @@ void election_v_init( void ){
     return;
     #endif
 
+
+return;
+
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
@@ -133,7 +136,7 @@ static void clear_tracking( election_t *election ){
 
 static void reset_state( election_t *election ){
 
-    log_v_info_P( PSTR("Reset to IDLE") );
+    // log_v_info_P( PSTR("Reset to IDLE") );
 
     election->state      = STATE_IDLE;  
     election->cycles     = 0;  
@@ -240,7 +243,7 @@ void election_v_join( uint32_t service, uint32_t group, uint16_t priority, uint1
         return;
     }
 
-    log_v_info_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
+    // log_v_info_P( PSTR("create election: service: %lu group: %lu priority: %u"), service, group, priority );
 
     list_v_insert_tail( &elections_list, ln );  
 }

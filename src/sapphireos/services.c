@@ -70,6 +70,25 @@ PT_THREAD( service_sender_thread( pt_t *pt, void *state ) );
 PT_THREAD( service_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( service_timer_thread( pt_t *pt, void *state ) );
 
+static void clear_tracking( service_state_t *service ){
+
+    service->server_priority       = 0;
+    service->server_uptime         = 0;
+    service->server_port           = 0;
+    service->server_ip             = ip_a_addr(0,0,0,0);
+}
+
+static void reset_state( service_state_t *service ){
+
+    log_v_info_P( PSTR("Reset to LISTEN") );
+
+    service->state          = STATE_LISTEN;  
+    service->timeout        = SERVICE_LISTEN_TIMEOUT;
+    service->local_uptime   = 0;
+
+    clear_tracking( service );
+}
+
 static service_state_t* get_service( uint32_t id, uint32_t group ){
 
     list_node_t ln = service_list.head;
@@ -168,6 +187,8 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     service.is_team             = TRUE;
     service.local_priority      = priority;
     service.local_port          = port;
+
+    reset_state( &service );
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
@@ -540,25 +561,6 @@ static void track_node( service_state_t *service, service_msg_offer_hdr_t *heade
     // if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
     // }
-}
-
-static void clear_tracking( service_state_t *service ){
-
-    service->server_priority       = 0;
-    service->server_uptime         = 0;
-    service->server_port           = 0;
-    service->server_ip             = ip_a_addr(0,0,0,0);
-}
-
-static void reset_state( service_state_t *service ){
-
-    log_v_info_P( PSTR("Reset to LISTEN") );
-
-    service->state          = STATE_LISTEN;  
-    service->timeout        = SERVICE_LISTEN_TIMEOUT;
-    service->local_uptime   = 0;
-
-    clear_tracking( service );
 }
 
 static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip ){
