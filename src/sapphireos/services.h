@@ -47,7 +47,6 @@ typedef struct __attribute__((packed)){
 
 #define SERVICE_MSG_TYPE_OFFERS     1
 typedef struct __attribute__((packed)){
-    uint64_t device_id;
     uint8_t count;
     uint8_t reserved[3];
 } service_msg_offer_hdr_t;
