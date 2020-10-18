@@ -27,7 +27,7 @@
 
 // modules
 #define ENABLE_CATBUS_LINK
-#define ENABLE_TIME_SYNC
+// #define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
 #define ENABLE_WIFI
 #define ENABLE_FFS
@@ -39,8 +39,8 @@
 // #define ENABLE_COPROCESSOR // this will be defined in target settings.json
 // #define ESP8266_UPGRADE  // this will be defined in target settings.json
 // #define ENABLE_EVENT_LOG
-#define ENABLE_ELECTION
-#define ENABLE_MSGFLOW
+// #define ENABLE_ELECTION
+// #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
 
 

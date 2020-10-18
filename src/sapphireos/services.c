@@ -497,8 +497,6 @@ static bool compare_self( service_state_t *service ){
 // true if pkt is better than current leader
 static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
 
-    ASSERT( service->is_team );
-
     // check if a leader is being tracked.
     // if none, the packet wins by default.
     if( ip_b_is_zeroes( service->server_ip ) ){
@@ -653,8 +651,6 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 // now that we've updated tracking
                 // check if the tracked server is better than us
                 if( !compare_self( service ) ){
-
-                    log_v_debug_P( PSTR("state: SERVER") );
 
                     // tracked server is better
                     // we reset back to idle
