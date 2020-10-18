@@ -902,8 +902,11 @@ PT_BEGIN( pt );
                 service->local_uptime++;
             }
 
-            service->server_uptime++;
+            if( !ip_b_is_zeroes( service->server_ip ) ){
 
+                service->server_uptime++;    
+            }
+            
             // ensure certain timeout states occur
             if( service->timeout == 0 ){
 
