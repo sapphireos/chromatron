@@ -728,15 +728,28 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             if( compare_server( service, header, pkt, ip ) ){
 
                 track_node( service, header, pkt, ip );
-                service->timeout   = SERVICE_CANDIDATE_TIMEOUT;
+                // service->timeout   = SERVICE_CANDIDATE_TIMEOUT;
 
                 // now that we've updated tracking
                 // check if the tracked server is better than us
                 if( !compare_self( service ) ){
 
-                    // tracked server is better
-                    // we reset back to idle
-                    reset_state( service );
+                    if( service->server_valid ){
+
+                        // tracked server is better
+                        log_v_debug_P( PSTR("found a better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+
+                        log_v_info_P( PSTR("-> CONNECTED") );
+
+                        // reset timeout
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+                        service->state     = STATE_CONNECTED;
+                    }
+                    else{
+
+                        // we reset back to idle
+                        reset_state( service );
+                    }
                 }
             }
 
