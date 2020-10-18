@@ -419,10 +419,70 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
     sock_i16_sendto_m( sock, h, &raddr );
 }
 
+static void transmit_query( service_state_t *service ){
+
+    uint16_t len = sizeof(service_msg_header_t) + sizeof(service_msg_query_t );
+
+    mem_handle_t h = mem2_h_alloc( len );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    service_msg_header_t *header = mem2_vp_get_ptr_fast( h );
+    memset( header, 0, len );
+
+    init_header( header, SERVICE_MSG_TYPE_QUERY );
+
+    service_msg_query_t *pkt = (service_msg_query_t *)( header + 1 );
+
+    pkt->id      = service->id;
+    pkt->group   = service->group;
+
+    sock_addr_t raddr;
+
+    if( ip_b_is_zeroes( service->server_ip ) ){
+
+        // no server IP, broadcast
+
+        raddr.ipaddr = ip_a_addr(255,255,255,255);
+    }
+    else{
+
+        raddr.ipaddr = service->server_ip;
+    }
+
+    raddr.port   = SERVICES_PORT;
+
+    // log_v_debug_P( PSTR("tx query") );
+
+    sock_i16_sendto_m( sock, h, &raddr );
+}
+
 
 PT_THREAD( service_sender_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( transmit_count() == 0 ) );
+
+    TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
+
+    // initial broadcast query
+
+    list_node_t ln = service_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        service_state_t *service = (service_state_t *)list_vp_get_data( ln );
+
+        transmit_query( service );
+
+        ln = next_ln;
+    }
     
     while(1){
         
@@ -647,6 +707,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 if( compare_self( service ) ){
 
                     // no, we are better
+                    log_v_debug_P( PSTR("we are a better server") );
 
                     // hmm, let's re-run the service
                     reset_state( service );
