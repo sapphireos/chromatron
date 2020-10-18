@@ -474,7 +474,7 @@ static bool compare_self( service_state_t *service ){
 }
 
 // true if pkt is better than current leader
-static bool compare_leader( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
+static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
 
     ASSERT( service->is_team );
 
@@ -584,98 +584,98 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
         if( service->state == STATE_LISTEN ){
 
-            // check if leader in packet is better than current tracking
-            if( compare_leader( service, header, pkt, ip ) ){
+            // check if server in packet is better than current tracking
+            if( compare_server( service, header, pkt, ip ) ){
 
                 log_v_debug_P( PSTR("state: LISTEN") );
 
                 track_node( service, header, pkt, ip );    
             }
         }
-        // else if( service->state == STATE_CANDIDATE ){
+        else if( service->state == STATE_CANDIDATE ){
 
-        //     // check if leader in packet is better than current tracking
-        //     if( compare_leader( service, header, pkt ) ){
+            // check if server in packet is better than current tracking
+            if( compare_server( service, header, pkt, ip ) ){
 
-        //         log_v_debug_P( PSTR("state: CANDIDATE") );
+                log_v_debug_P( PSTR("state: CANDIDATE") );
 
-        //         track_node( service, header, pkt, ip );
-        //     }        
-        // }
-        // else if( service->state == STATE_FOLLOWER ){
+                track_node( service, header, pkt, ip );
+            }        
+        }
+        else if( service->state == STATE_CONNECTED ){
 
-        //     // check if packet is a better leader than current tracking (and this packet is not from the current leader)
-        //     if( !ip_b_addr_compare( *ip, service->leader_ip ) && 
-        //         compare_leader( service, header, pkt ) ){
+            // check if packet is a better server than current tracking (and this packet is not from the current server)
+            if( !ip_b_addr_compare( *ip, service->server_ip ) && 
+                compare_server( service, header, pkt, ip ) ){
                 
-        //         log_v_debug_P( PSTR("state: FOLLOWER") );
+                log_v_debug_P( PSTR("state: CONNECTED") );
 
-        //         track_node( service, header, pkt, ip );
+                track_node( service, header, pkt, ip );
 
-        //         // if tracking is a leader
-        //         if( service->is_leader ){
+                // if tracking is a server
+                if( service->server_valid ){
 
-        //             // we reset back to idle
-        //             reset_state( service );
-        //         }
-        //     }
-        //     // check if this packet is from our current leader
-        //     else if( ip_b_addr_compare( *ip, service->leader_ip ) ){
+                    // we reset back to idle
+                    reset_state( service );
+                }
+            }
+            // check if this packet is from our current server
+            else if( ip_b_addr_compare( *ip, service->server_ip ) ){
 
-        //         // log_v_debug_P( PSTR("state: FOLLOWER") );
+                // log_v_debug_P( PSTR("state: CONNECTED") );
 
-        //         // update tracking
-        //         track_node( service, header, pkt, ip );
+                // update tracking
+                track_node( service, header, pkt, ip );
 
-        //         // reset timeout
-        //         service->timeout   = FOLLOWER_TIMEOUT;
+                // reset timeout
+                service->timeout   = SERVICE_CONNECTED_TIMEOUT;
 
-        //         // check if leader is still better than we are
-        //         if( compare_self( service ) ){
+                // check if server is still better than we are
+                if( compare_self( service ) ){
 
-        //             // no, we are better
+                    // no, we are better
 
-        //             // hmm, let's re-run the service
-        //             reset_state( service );
-        //         }
-        //     }
-        // }
-        // else if( service->state == STATE_LEADER ){
+                    // hmm, let's re-run the service
+                    reset_state( service );
+                }
+            }
+        }
+        else if( service->state == STATE_SERVER ){
 
-        //     // check if this packet is better than current tracking
-        //     if( compare_leader( service, header, pkt ) ){
+            // check if this packet is better than current tracking
+            if( compare_server( service, header, pkt, ip ) ){
 
-        //         track_node( service, header, pkt, ip );
-        //         service->timeout   = CANDIDATE_TIMEOUT;
+                track_node( service, header, pkt, ip );
+                service->timeout   = SERVICE_CANDIDATE_TIMEOUT;
 
-        //         // now that we've updated tracking
-        //         // check if the tracked leader is better than us
-        //         if( !compare_self( service ) ){
+                // now that we've updated tracking
+                // check if the tracked server is better than us
+                if( !compare_self( service ) ){
 
-        //             log_v_debug_P( PSTR("state: LEADER") );
+                    log_v_debug_P( PSTR("state: SERVER") );
 
-        //             // tracked leader is better
-        //             // we reset back to idle
-        //             reset_state( service );
-        //         }
-        //     }
+                    // tracked server is better
+                    // we reset back to idle
+                    reset_state( service );
+                }
+            }
 
-        //     // if we are still leader
-        //     if( service->state == STATE_LEADER ){
+            // if we are still server
+            if( service->state == STATE_SERVER ){
 
-        //         // is this packet a candidate?
-        //         if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) == 0 ){
+                // is this packet a candidate?
+                // if( ( pkt->flags & ELECTION_PKT_FLAGS_LEADER ) == 0 ){
 
-        //             // boost our broadcast rate
-        //             rate_boost = ELECTION_RATE_BOOST;
-        //         }
-        //     }
-        // }
-        // else{
+                //     // boost our broadcast rate
+                //     rate_boost = ELECTION_RATE_BOOST;
+                // }
+            }
+        }
+        else{
 
-        //     // invalid state
-        //     ASSERT( FALSE );
-        // }
+            // invalid state
+            ASSERT( FALSE );
+        }
     }
 }
 
@@ -899,46 +899,46 @@ PT_BEGIN( pt );
                     }
                 }
             }
-            // else if( election->state == STATE_CANDIDATE ){
+            else if( service->state == STATE_CANDIDATE ){
 
-            //     log_v_debug_P( PSTR("CANDIDATE timeout") );
+                log_v_debug_P( PSTR("CANDIDATE timeout") );
 
-            //     // compare us to best leader we've seen
-            //     if( compare_self( election ) ){
+                // compare us to best leader we've seen
+                if( compare_self( service ) ){
 
-            //         log_v_debug_P( PSTR("No leader found -> elect ourselves LEADER") );
-            //         log_v_info_P( PSTR("-> LEADER") );
-            //         election->state = STATE_LEADER;
-            //     }
-            //     else{
+                    log_v_debug_P( PSTR("No server found -> select ourselves") );
+                    log_v_info_P( PSTR("-> SERVER") );
+                    service->state = STATE_SERVER;
+                }
+                else{
 
-            //         // sanity check
-            //         if( ip_b_is_zeroes( election->leader_ip ) ){
+                    // sanity check
+                    if( ip_b_is_zeroes( service->server_ip ) ){
 
-            //             reset_state( election );
+                        reset_state( service );
 
-            //             goto next;
-            //         }
+                        goto next;
+                    }
 
-            //         // check if leader
-            //         if( election->is_leader ){
+                    // check if leader
+                    if( service->server_valid ){
 
-            //             log_v_info_P( PSTR("-> FOLLOWER of: %d.%d.%d.%d"), election->leader_ip.ip3, election->leader_ip.ip2, election->leader_ip.ip1, election->leader_ip.ip0 );
-            //             election->state     = STATE_FOLLOWER;
-            //             election->timeout   = FOLLOWER_TIMEOUT;
-            //         }
-            //         else{
+                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        service->state     = STATE_CONNECTED;
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+                    }
+                    else{
 
-            //             reset_state( election );
-            //         }
-            //     }
-            // }
-            // else if( election->state == STATE_FOLLOWER ){                    
+                        reset_state( service );
+                    }
+                }
+            }
+            else if( service->state == STATE_CONNECTED ){                    
 
-            //     log_v_info_P( PSTR("FOLLOWER timeout: lost leader") );
+                log_v_info_P( PSTR("CONNECTED timeout: lost server") );
 
-            //     reset_state( election );
-            // }
+                reset_state( service );
+            }
             
 next:
             ln = list_ln_next( ln );
