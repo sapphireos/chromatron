@@ -32,6 +32,9 @@
 #define SERVICES_VERSION            1
 
 #define SERVICE_RATE                8000
+#define SERVICE_UPTIME_MIN_DIFF     10
+
+#define SERVICE_LISTEN_TIMEOUT      16
 
 typedef struct __attribute__((packed)){
     uint32_t magic;

@@ -47,6 +47,7 @@ typedef struct __attribute__((packed)){
     uint32_t group;   
 
     uint16_t server_priority;
+    uint32_t server_uptime;
     uint16_t server_port;
     ip_addr4_t server_ip;
 
@@ -64,8 +65,7 @@ typedef struct __attribute__((packed)){
     uint32_t local_uptime;
 
     // additional leader information (main information is in service)
-    uint64_t leader_device_id;
-    uint32_t leader_uptime;
+    uint64_t server_device_id;
 } team_state_t;
 
 
@@ -133,7 +133,8 @@ void services_v_init( void ){
                      0,
                      0 );
 
-
+    
+    services_v_join_team( 0x1234, 0, 10, 1000 );
 
 }
 
@@ -187,9 +188,12 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     }
 
     team_state_t team = {0};
-    team.service.id      = id;
-    team.service.group   = group;
-    team.service.is_team = TRUE;
+    team.service.id         = id;
+    team.service.group      = group;
+    team.service.is_team    = TRUE;
+
+    team.local_priority     = priority;
+    team.local_port         = port;
 
     list_node_t ln = list_ln_create_node2( &team, sizeof(team), MEM_TYPE_SERVICE );
 
@@ -446,6 +450,113 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+// true if pkt is better than current leader
+static bool compare_leader( team_state_t *team, service_msg_offer_hdr_t *header, service_msg_offer_t *offer ){
+
+    ASSERT( team->service.is_team );
+
+    // check if a leader is being tracked.
+    // if none, the packet wins by default.
+    if( ip_b_is_zeroes( team->service.server_ip ) ){
+
+        return TRUE;
+    }
+
+    // if message priority is lower, we're done, don't change
+    if( offer->priority < team->service.server_priority ){
+
+        return FALSE;
+    }
+    // message priority is higher, select new leader
+    else if( offer->priority > team->service.server_priority ){
+
+        return TRUE;
+    }
+
+    // priorities are the same
+    
+    // check cycle count
+    int64_t diff = (int64_t)offer->uptime - (int64_t)team->service.server_uptime;
+    diff -= SERVICE_UPTIME_MIN_DIFF;
+
+    if( diff <= 0 ){
+
+        return FALSE;
+    }
+    else{
+
+        log_v_debug_P( PSTR("uptime: %lu %lu"), (uint32_t)team->service.server_uptime, (uint32_t)offer->uptime );
+
+        return TRUE;
+    }
+
+    // uptime is the same
+
+    // check device ID
+    if( header->device_id < team->server_device_id ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void track_node( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
+
+    if( !ip_b_addr_compare( service->server_ip, *ip ) ){
+
+        log_v_debug_P( PSTR("tracking %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );    
+    }
+    
+    
+    service->server_priority   = offer->priority;
+    service->server_uptime     = offer->uptime;
+    service->server_port       = offer->port;
+    service->server_ip         = *ip;
+
+    if( service->is_team ){
+
+        team_state_t *team = (team_state_t *)service;
+
+        team->server_device_id = header->device_id;
+    }
+
+    // if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
+
+    // }
+}
+
+static void clear_tracking( service_state_t *service ){
+
+    service->server_priority       = 0;
+    service->server_uptime         = 0;
+    service->server_port           = 0;
+    service->server_ip             = ip_a_addr(0,0,0,0);
+
+    if( service->is_team ){
+
+        team_state_t *team = (team_state_t *)service;
+
+        team->server_device_id     = 0;
+    }
+}
+
+static void reset_state( service_state_t *service ){
+
+    log_v_info_P( PSTR("Reset to LISTEN") );
+
+    service->state      = STATE_LISTEN;  
+    service->timeout    = SERVICE_LISTEN_TIMEOUT;
+
+    if( service->is_team ){
+
+        team_state_t *team = (team_state_t *)service;
+
+        team->local_uptime = 0;
+    }
+
+    clear_tracking( service );
+}
 
 static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip ){
 
@@ -459,24 +570,27 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
     // PACKET STATE MACHINE
 
-
+    // SERVICE
     if( !service->is_team ){
 
 
 
     }
+    // TEAM
     else{
 
-        // if( service->state == STATE_IDLE ){
+        team_state_t *team = (team_state_t *)service;
 
-        //     // check if leader in packet is better than current tracking
-        //     if( compare_leader( service, header, pkt ) ){
+        if( service->state == STATE_LISTEN ){
 
-        //         log_v_debug_P( PSTR("state: IDLE") );
+            // check if leader in packet is better than current tracking
+            if( compare_leader( team, header, pkt ) ){
 
-        //         track_node( service, header, pkt, ip );    
-        //     }
-        // }
+                log_v_debug_P( PSTR("state: LISTEN") );
+
+                track_node( service, header, pkt, ip );    
+            }
+        }
         // else if( service->state == STATE_CANDIDATE ){
 
         //     // check if leader in packet is better than current tracking
@@ -564,6 +678,25 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     }
 }
 
+static void process_query( service_msg_query_t *query, ip_addr4_t *ip ){
+    
+    // look up matching election
+    service_state_t *service = get_service( query->id, query->group );
+
+    if( service == 0 ){
+
+        return;
+    }
+
+    // check state
+    if( service->state != STATE_SERVER ){
+
+        return;
+    }
+
+    transmit_service( service, ip );
+}
+
 
 PT_THREAD( service_server_thread( pt_t *pt, void *state ) )
 {
@@ -611,25 +744,6 @@ PT_BEGIN( pt );
             continue;
         }
 
-        // if( ( header->flags & ELECTION_HDR_FLAGS_QUERY ) == 0 ){
-
-        //     if( sock_i16_get_bytes_read( sock ) != 
-        //         ( sizeof(election_header_t) + header->count * sizeof(election_pkt_t) ) ){
-
-        //         log_v_debug_P( PSTR("bad size") );
-        //         continue;
-        //     }
-        // }
-        // else{
-
-        //     if( sock_i16_get_bytes_read( sock ) != 
-        //         ( sizeof(election_header_t) + header->count * sizeof(election_query_t) ) ){
-
-        //         log_v_debug_P( PSTR("bad size") );
-        //         continue;
-        //     }
-        // }
-
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
@@ -637,6 +751,17 @@ PT_BEGIN( pt );
 
             service_msg_offer_hdr_t *offer_hdr = (service_msg_offer_hdr_t *)( header + 1 );
             service_msg_offer_t *offer = (service_msg_offer_t *)offer_hdr;
+
+            // check packet length
+            uint16_t len = sizeof(service_msg_header_t) + 
+                   sizeof(service_msg_offer_hdr_t) + 
+                   ( sizeof(service_msg_offer_t) * offer_hdr->count );
+
+            if( sock_i16_get_bytes_read( sock ) != len ){
+
+                log_v_debug_P( PSTR("bad size") );
+                continue;
+            }
 
             while( offer_hdr->count > 0 ){
 
@@ -648,18 +773,11 @@ PT_BEGIN( pt );
         }
         else if( header->type == SERVICE_MSG_TYPE_QUERY ){
 
-            // log_v_debug_P( PSTR("query from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+            log_v_debug_P( PSTR("query from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
-            // query
-            // election_query_t *pkt = (election_query_t *)( header + 1 );
+            service_msg_query_t *query = (service_msg_query_t *)( header + 1 );
 
-            // while( header->count > 0 ){
-
-            //     process_election_query( header, pkt, &raddr.ipaddr );
-
-            //     pkt++;
-            //     header->count--;
-            // }
+            process_query( query,&raddr.ipaddr );
         }
 
         THREAD_YIELD( pt );
