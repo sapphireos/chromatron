@@ -902,11 +902,11 @@ station_mode:
             wifi_set_opmode_current( STATION_MODE );
 
             // check if we can try a fast connect with the last connected router
-            // if( wifi_router >= 0 ){
+            if( wifi_router >= 0 ){
 
-            //     log_v_debug_P( PSTR("Fast connect...") );
-            // }
-            // else{
+                log_v_debug_P( PSTR("Fast connect...") );
+            }
+            else{
 
                 // scan first
                 wifi_router = -1;
@@ -937,10 +937,8 @@ station_mode:
                 if( wifi_router < 0 ){
 
                     goto end;
-                }
-
-                log_v_debug_P( PSTR("Connecting...") );
-            // }
+                }            
+            }
     
 			struct station_config sta_config;
 			memset( &sta_config, 0, sizeof(sta_config) );
@@ -949,6 +947,8 @@ station_mode:
 			sta_config.channel = wifi_channel;
 			wifi_v_get_ssid( (char *)sta_config.ssid );
 			get_pass( wifi_router, (char *)sta_config.password );
+
+            log_v_debug_P( PSTR("Connecting to %s ch: %d"), (char *)sta_config.ssid, wifi_channel );
 
 			wifi_station_set_config_current( &sta_config );
 			wifi_station_connect();
