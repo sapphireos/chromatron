@@ -82,16 +82,6 @@ static bool job_ready( datetime_t *now, cron_job_t *job ){
     return match;
 }
 
-void vm_cron_v_init( void ){
-
-    list_v_init( &cron_list );
-
-    thread_t_create( cron_thread,
-             PSTR("cron"),
-             0,
-             0 );
-}
-
 void vm_cron_v_unload( uint8_t vm_id ){
 
     list_node_t ln = cron_list.head;
@@ -190,6 +180,21 @@ PT_END( pt );
 }
 
 #endif
+
+
+void vm_cron_v_init( void ){
+
+    #ifdef ENABLE_TIME_SYNC
+
+    list_v_init( &cron_list );
+
+    thread_t_create( cron_thread,
+             PSTR("cron"),
+             0,
+             0 );
+
+    #endif
+}
 
 void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
 
