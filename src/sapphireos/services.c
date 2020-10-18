@@ -40,7 +40,7 @@
 #define STATE_LISTEN        0
 #define STATE_CONNECTED     1
 #define STATE_SERVER        2
-#define STATE_CANDIDATE     3
+// #define STATE_CANDIDATE     3
 
 typedef struct __attribute__((packed)){
     uint32_t id;
@@ -76,6 +76,7 @@ static void clear_tracking( service_state_t *service ){
     service->server_uptime         = 0;
     service->server_port           = 0;
     service->server_ip             = ip_a_addr(0,0,0,0);
+    service->server_valid          = FALSE;
 }
 
 static void reset_state( service_state_t *service ){
@@ -556,9 +557,10 @@ static void track_node( service_state_t *service, service_msg_offer_hdr_t *heade
     service->server_port       = offer->port;
     service->server_ip         = *ip;
 
-    // if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
+    if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
-    // }
+        service->server_valid = TRUE;
+    }
 }
 
 static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip ){
@@ -592,16 +594,16 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 track_node( service, header, pkt, ip );    
             }
         }
-        else if( service->state == STATE_CANDIDATE ){
+        // else if( service->state == STATE_CANDIDATE ){
 
-            // check if server in packet is better than current tracking
-            if( compare_server( service, header, pkt, ip ) ){
+        //     // check if server in packet is better than current tracking
+        //     if( compare_server( service, header, pkt, ip ) ){
 
-                log_v_debug_P( PSTR("state: CANDIDATE") );
+        //         log_v_debug_P( PSTR("state: CANDIDATE") );
 
-                track_node( service, header, pkt, ip );
-            }        
-        }
+        //         track_node( service, header, pkt, ip );
+        //     }        
+        // }
         else if( service->state == STATE_CONNECTED ){
 
             // check if packet is a better server than current tracking (and this packet is not from the current server)
@@ -878,9 +880,12 @@ PT_BEGIN( pt );
                     if( compare_self( service ) ){
 
                         // switch to candidate so we inform other nodes
-                        log_v_info_P( PSTR("-> CANDIDATE") );
-                        service->state = STATE_CANDIDATE;
-                        service->timeout = SERVICE_CANDIDATE_TIMEOUT;
+                        // log_v_info_P( PSTR("-> CANDIDATE") );
+                        // service->state = STATE_CANDIDATE;
+                        // service->timeout = SERVICE_CANDIDATE_TIMEOUT;
+
+                        log_v_info_P( PSTR("-> SERVER") );
+                        service->state = STATE_SERVER;
                     }
                     // if tracking a leader
                     else if( service->server_valid ){
@@ -897,40 +902,40 @@ PT_BEGIN( pt );
                     }
                 }
             }
-            else if( service->state == STATE_CANDIDATE ){
+            // else if( service->state == STATE_CANDIDATE ){
 
-                log_v_debug_P( PSTR("CANDIDATE timeout") );
+            //     log_v_debug_P( PSTR("CANDIDATE timeout") );
 
-                // compare us to best leader we've seen
-                if( compare_self( service ) ){
+            //     // compare us to best leader we've seen
+            //     if( compare_self( service ) ){
 
-                    log_v_debug_P( PSTR("No server found -> select ourselves") );
-                    log_v_info_P( PSTR("-> SERVER") );
-                    service->state = STATE_SERVER;
-                }
-                else{
+            //         log_v_debug_P( PSTR("No server found -> select ourselves") );
+            //         log_v_info_P( PSTR("-> SERVER") );
+            //         service->state = STATE_SERVER;
+            //     }
+            //     else{
 
-                    // sanity check
-                    if( ip_b_is_zeroes( service->server_ip ) ){
+            //         // sanity check
+            //         if( ip_b_is_zeroes( service->server_ip ) ){
 
-                        reset_state( service );
+            //             reset_state( service );
 
-                        goto next;
-                    }
+            //             goto next;
+            //         }
 
-                    // check if leader
-                    if( service->server_valid ){
+            //         // check if leader
+            //         if( service->server_valid ){
 
-                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
-                        service->state     = STATE_CONNECTED;
-                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
-                    }
-                    else{
+            //             log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+            //             service->state     = STATE_CONNECTED;
+            //             service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+            //         }
+            //         else{
 
-                        reset_state( service );
-                    }
-                }
-            }
+            //             reset_state( service );
+            //         }
+            //     }
+            // }
             else if( service->state == STATE_CONNECTED ){                    
 
                 log_v_info_P( PSTR("CONNECTED timeout: lost server") );
