@@ -40,7 +40,7 @@
 // #define ESP8266_UPGRADE  // this will be defined in target settings.json
 // #define ENABLE_EVENT_LOG
 // #define ENABLE_ELECTION
-// #define ENABLE_MSGFLOW
+#define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
 
 

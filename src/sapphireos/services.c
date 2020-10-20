@@ -1107,13 +1107,21 @@ void service_v_handle_shutdown( ip_addr4_t ip ){
 
         service_state_t *service = (service_state_t *)list_vp_get_data( ln );
 
+        // if we are server, then obviously we are not shutting down
+        // this routine is for other nodes sending their shutdown message
+        if( service->state == STATE_SERVER ){
+
+            goto next;
+        }
+
         if( ip_b_addr_compare( service->server_ip, ip ) ){
 
-            log_v_debug_P( PSTR("server shutdown") );
+            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
 
             reset_state( service );
         }
 
+next:
         ln = next_ln;
     }
 }
