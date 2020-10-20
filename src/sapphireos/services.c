@@ -1021,8 +1021,11 @@ PT_BEGIN( pt );
                     }
                     else{
 
-                        // no leader, reset timeout (but do not reset state or tracking)
-                        service->timeout   = SERVICE_LISTEN_TIMEOUT;
+                        // no leader, reset state
+                        reset_state( service );
+
+                        // we completely reset the state including tracking.
+                        // this is in case the tracked node disappears.
                     }
                 }
             }
