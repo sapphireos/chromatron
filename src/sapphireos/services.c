@@ -565,6 +565,8 @@ static bool compare_self( service_state_t *service ){
 
     if( ip_u32_to_int( our_addr ) < ip_u32_to_int( service->server_ip ) ){
 
+        log_v_debug_P( PSTR("ip priority") );
+
         return TRUE;
     }
 
@@ -614,6 +616,8 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
     // compare IP addresses
     if( ip_u32_to_int( *ip ) < ip_u32_to_int( service->server_ip ) ){
+
+        log_v_debug_P( PSTR("ip priority") );
 
         return TRUE;
     }
@@ -667,6 +671,26 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     else if( ip_b_addr_compare( *ip, service->server_ip ) ){
 
         track_node( service, header, pkt, ip );
+
+        // are we connected to this node?
+        if( service->state == STATE_CONNECTED ){
+
+            // reset timeout
+            service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+            // check if server is still better than we are
+            if( compare_self( service ) ){
+
+                // no, we are better
+                log_v_debug_P( PSTR("we are a better server") );
+
+                // hmm, let's re-run the service
+                // reset_state( service );
+
+                log_v_info_P( PSTR("-> SERVER") );
+                service->state = STATE_SERVER;
+            }
+        }
     }
     // TEAM state machine
     else{
@@ -713,30 +737,6 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
-                }
-            }
-            // check if this packet is from our current server
-            else if( ip_b_addr_compare( *ip, service->server_ip ) ){
-
-                // log_v_debug_P( PSTR("state: CONNECTED") );
-
-                // update tracking
-                track_node( service, header, pkt, ip );
-
-                // reset timeout
-                service->timeout   = SERVICE_CONNECTED_TIMEOUT;
-
-                // check if server is still better than we are
-                if( compare_self( service ) ){
-
-                    // no, we are better
-                    log_v_debug_P( PSTR("we are a better server") );
-
-                    // hmm, let's re-run the service
-                    // reset_state( service );
-
-                    log_v_info_P( PSTR("-> SERVER") );
-                    service->state = STATE_SERVER;
                 }
             }
         }
@@ -931,7 +931,7 @@ PT_BEGIN( pt );
                 if( service->state == STATE_SERVER ){                    
 
                     // clear tracking info
-                    clear_tracking( service );           
+                    // clear_tracking( service );           
                 }
                 else if( service->state != STATE_LISTEN ){
 
