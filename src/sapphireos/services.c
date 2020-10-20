@@ -660,7 +660,14 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
 
     }
-    // TEAM
+    // TEAM:
+    // are we already tracking this node?
+    // if so, just update the tracking info
+    else if( ip_b_addr_compare( *ip, service->server_ip ) ){
+
+        track_node( service, header, pkt, ip );
+    }
+    // TEAM state machine
     else{
 
         log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags );
