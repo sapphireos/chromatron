@@ -543,13 +543,15 @@ static bool compare_self( service_state_t *service ){
         // check uptime
         int64_t diff = (int64_t)service->local_uptime - (int64_t)service->server_uptime;
 
-        if( ( diff - SERVICE_UPTIME_MIN_DIFF ) > 0 ){
+        if( diff > SERVICE_UPTIME_MIN_DIFF ){
 
-            log_v_debug_P( PSTR("uptime: %lu %lu"), (uint32_t)service->local_uptime, (uint32_t)service->server_uptime );
+            log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
 
             return TRUE;
         }
-        else if( diff < 0 ){
+        else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
+
+            log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
 
             return FALSE;
         }
@@ -594,19 +596,18 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     
     // check cycle count
     int64_t diff = (int64_t)offer->uptime - (int64_t)service->server_uptime;
-    diff -= SERVICE_UPTIME_MIN_DIFF;
 
-    if( diff <= 0 ){
+    if( diff > SERVICE_UPTIME_MIN_DIFF ){
 
-log_v_debug_P( PSTR("false: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
-
-        return FALSE;
-    }
-    else{
-
-        log_v_debug_P( PSTR("uptime: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
+        log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
 
         return TRUE;
+    }
+    else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
+
+        log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
+
+        return FALSE;
     }
 
     // uptime is the same
