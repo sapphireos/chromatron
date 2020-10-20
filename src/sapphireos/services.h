@@ -32,7 +32,7 @@
 #define SERVICES_VERSION            1
 
 #define SERVICE_RATE                4000
-#define SERVICE_UPTIME_MIN_DIFF     10
+#define SERVICE_UPTIME_MIN_DIFF     5
 
 #define SERVICE_LISTEN_TIMEOUT      10
 // #define SERVICE_CANDIDATE_TIMEOUT   16
