@@ -469,6 +469,11 @@ PT_BEGIN( pt );
 
     TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
+    // initial broadcast offer
+    transmit_service( 0, 0 );
+
+    TMR_WAIT( pt, 500 );
+    
     // initial broadcast query
 
     list_node_t ln = service_list.head;
@@ -483,7 +488,8 @@ PT_BEGIN( pt );
 
         ln = next_ln;
     }
-    
+
+
     while(1){
         
         TMR_WAIT( pt, SERVICE_RATE );
@@ -592,6 +598,8 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
     if( diff <= 0 ){
 
+log_v_debug_P( PSTR("false: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
+
         return FALSE;
     }
     else{
@@ -654,6 +662,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     }
     // TEAM
     else{
+
+        log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags );
 
         if( service->state == STATE_LISTEN ){
 
