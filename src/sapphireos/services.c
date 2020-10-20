@@ -1014,8 +1014,8 @@ PT_BEGIN( pt );
                     }
                     else{
 
-                        // no leader, reset
-                        reset_state( service );
+                        // no leader, reset timeout (but do not reset state or tracking)
+                        service->timeout   = SERVICE_LISTEN_TIMEOUT;
                     }
                 }
             }
