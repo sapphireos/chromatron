@@ -551,7 +551,10 @@ static bool compare_self( service_state_t *service ){
         }
         else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
 
-            log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
+            if( service->local_uptime > 0 ){
+
+                log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
+            }
 
             return FALSE;
         }
