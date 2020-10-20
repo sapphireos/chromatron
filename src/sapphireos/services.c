@@ -673,7 +673,14 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     // if so, just update the tracking info
     else if( ip_b_addr_compare( *ip, service->server_ip ) ){
 
+        bool valid = service->server_valid;
+
         track_node( service, header, pkt, ip );
+
+        if( !valid && service->server_valid ){
+
+            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );            
+        }
 
         // are we connected to this node?
         if( service->state == STATE_CONNECTED ){
