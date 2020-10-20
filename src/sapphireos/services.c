@@ -688,8 +688,19 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             // reset timeout
             service->timeout   = SERVICE_CONNECTED_TIMEOUT;
 
+            // did the server reboot and we didn't notice?
+            // OR did the server change to invalid?
+            if( ( service->server_uptime > pkt->uptime ) ||
+                ( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) == 0 ) ){
+
+                // reset, maybe there is a better server available
+
+                log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+
+                reset_state( service );
+            }
             // check if server is still better than we are
-            if( compare_self( service ) ){
+            else if( compare_self( service ) ){
 
                 // no, we are better
                 log_v_debug_P( PSTR("we are a better server") );
@@ -1079,37 +1090,32 @@ PT_END( pt );
 }
 
 
+void service_v_handle_shutdown( ip_addr4_t ip ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
+        return;
+    }
 
+    // look for any elections with this IP as a leader, and reset them
 
+    list_node_t ln = service_list.head;
 
+    while( ln > 0 ){
 
+        list_node_t next_ln = list_ln_next( ln );
 
+        service_state_t *service = (service_state_t *)list_vp_get_data( ln );
 
+        if( ip_b_addr_compare( service->server_ip, ip ) ){
 
+            log_v_debug_P( PSTR("server shutdown") );
 
+            reset_state( service );
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        ln = next_ln;
+    }
+}
 
 #endif

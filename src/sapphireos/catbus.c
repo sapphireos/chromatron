@@ -30,7 +30,7 @@
 #include "random.h"
 #include "election.h"
 #include "timesync.h"
-
+#include "services.h"
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -1524,6 +1524,11 @@ PT_BEGIN( pt );
             #ifdef ENABLE_ELECTION
             // send shutdown notifications
             election_v_handle_shutdown( raddr.ipaddr );
+            #endif
+
+            #ifdef ENABLE_SERVICES
+            // send shutdown notifications
+            service_v_handle_shutdown( raddr.ipaddr );
             #endif
 
             #ifdef ENABLE_TIME_SYNC
