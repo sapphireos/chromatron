@@ -272,9 +272,19 @@ static bool should_transmit( service_state_t *service ){
         return FALSE;
     }
 
-    if( ( service->state == STATE_LISTEN ) && ( !service->is_team ) ){
+    if( service->state == STATE_LISTEN ){
 
-        return FALSE;
+        if( service->is_team ){
+
+            if( service->local_priority == SERVICE_PRIORITY_FOLLOWER_ONLY ){
+
+                return FALSE;
+            }
+        }
+        else{
+
+            return FALSE;
+        }
     }
 
     return TRUE;
