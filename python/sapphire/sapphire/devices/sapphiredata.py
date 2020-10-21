@@ -360,8 +360,38 @@ class ElectionInfoArray(ArrayField):
 
         super(ElectionInfoArray, self).__init__(_field=field, **kwargs)
 
-raw_events = """
 
+
+class ServiceInfo(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="id"),
+                  Uint32Field(_name="group"),
+                  
+                  Uint16Field(_name="server_priority"),
+                  Uint32Field(_name="server_uptime"),
+                  Uint16Field(_name="server_port"),
+                  Ipv4Field(_name="server_ip"),
+                  BooleanField(_name="server_valid"),
+
+                  Uint16Field(_name="local_priority"),
+                  Uint32Field(_name="local_uptime"),
+                  Uint16Field(_name="local_port"),
+
+                  BooleanField(_name="is_team"),
+                  Uint8Field(_name="timeout"),
+                  Uint8Field(_name="state")]
+
+        super(ServiceInfo, self).__init__(_fields=fields, **kwargs)
+
+class ServiceInfoArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = ServiceInfo
+
+        super(ServiceInfoArray, self).__init__(_field=field, **kwargs)
+
+
+
+raw_events = """
 
 #define EVENT_ID_NONE                           0
 #define EVENT_ID_LOG_INIT                       1

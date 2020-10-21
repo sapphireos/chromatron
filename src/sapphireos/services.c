@@ -109,6 +109,27 @@ static service_state_t* get_service( uint32_t id, uint32_t group ){
     return 0;
 }
 
+static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &service_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &service_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
 void services_v_init( void ){
 
     list_v_init( &service_list );
@@ -127,9 +148,10 @@ void services_v_init( void ){
                      0,
                      0 );
 
+    // create vfile
+    fs_f_create_virtual( PSTR("serviceinfo"), vfile );
     
     services_v_join_team( 0x1234, 0, 10, 1000 );
-
 }
 
 void services_v_listen( uint32_t id, uint32_t group ){

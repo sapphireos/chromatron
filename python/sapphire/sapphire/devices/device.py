@@ -639,6 +639,13 @@ class Device(object):
 
         return info
 
+    def get_service_info(self):
+        data = self.get_file("serviceinfo")
+        info = sapphiredata.ServiceInfoArray()
+        info.unpack(data)
+
+        return info
+
     def get_event_log(self):
         data = self.get_file("event_log")
         info = sapphiredata.EventArray()
@@ -1084,6 +1091,33 @@ class Device(object):
                  e.leader_priority,
                  e.leader_cycles,
                  e.leader_port,
+                 e.timeout,
+                 states[e.state])
+
+        return s
+
+    def cli_serviceinfo(self, line):
+        try:
+            serviceinfo = self.get_service_info()
+
+        except IOError:
+            return "No services found"
+
+        states = {
+                0: 'listen',
+                1: 'connected',
+                2: 'server',
+            }
+        
+        s = "\nService  Group  IP  Port   Timeout | State\n"
+
+        # iterate over service cache entries
+        for e in serviceinfo:
+            s += "%8d %8d %15s %5d %3d    %-10s\n" % \
+                (e.service,
+                 e.group,
+                 e.server_ip,
+                 e.server_port,
                  e.timeout,
                  states[e.state])
 
