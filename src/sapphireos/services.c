@@ -781,13 +781,15 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             // check if this packet is better than current tracking
             if( compare_server( service, header, pkt, ip ) ){
 
-                track_node( service, header, pkt, ip );
+                // check if server is valid - we will only consider
+                // other valid servers, not candidates
+                if( service->server_valid ){
 
-                // now that we've updated tracking
-                // check if the tracked server is better than us
-                if( !compare_self( service ) ){
+                    track_node( service, header, pkt, ip );
 
-                    if( service->server_valid ){
+                    // now that we've updated tracking
+                    // check if the tracked server is better than us
+                    if( !compare_self( service ) ){
 
                         // tracked server is better
                         log_v_debug_P( PSTR("found a better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
@@ -797,11 +799,6 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                         // reset timeout
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
                         service->state     = STATE_CONNECTED;
-                    }
-                    else{
-
-                        // we reset back to idle
-                        reset_state( service );
                     }
                 }
             }
@@ -940,16 +937,21 @@ PT_BEGIN( pt );
 
             // increment uptimes
             if( service->state == STATE_SERVER ){
-                
+                    
+                service->timeout = 0;
                 service->local_uptime++;
-            }
 
-            if( !ip_b_is_zeroes( service->server_ip ) ){
+                clear_tracking( service );
+            }
+            else if( !ip_b_is_zeroes( service->server_ip ) ){
 
                 service->server_uptime++;    
             }
             
-            service->timeout--;
+            if( service->state != STATE_SERVER ){
+
+                service->timeout--;
+            }
 
             // PRE-TIMEOUT LOGIC
             if( service->timeout > 0 ){
