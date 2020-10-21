@@ -1109,12 +1109,12 @@ class Device(object):
                 2: 'server',
             }
         
-        s = "\nService  Group  IP  Port   Timeout | State\n"
+        s = "\nService     Group      IP          Port  Timeout | State\n"
 
         # iterate over service cache entries
         for e in serviceinfo:
-            s += "%8d %8d %15s %5d %3d    %-10s\n" % \
-                (e.service,
+            s += "%8d %8d %15s %5d %3d        %-10s\n" % \
+                (e.id,
                  e.group,
                  e.server_ip,
                  e.server_port,

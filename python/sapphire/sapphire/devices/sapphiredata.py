@@ -374,12 +374,12 @@ class ServiceInfo(StructField):
                   BooleanField(_name="server_valid"),
 
                   Uint16Field(_name="local_priority"),
-                  Uint32Field(_name="local_uptime"),
                   Uint16Field(_name="local_port"),
-
+                  Uint32Field(_name="local_uptime"),
+                  
                   BooleanField(_name="is_team"),
-                  Uint8Field(_name="timeout"),
-                  Uint8Field(_name="state")]
+                  Uint8Field(_name="state"),
+                  Uint8Field(_name="timeout")]
 
         super(ServiceInfo, self).__init__(_fields=fields, **kwargs)
 
