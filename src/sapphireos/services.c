@@ -78,9 +78,7 @@ static void clear_tracking( service_state_t *service ){
     service->server_valid          = FALSE;
 }
 
-static void reset_state( service_state_t *service ){
-
-    log_v_info_P( PSTR("Reset to LISTEN") );
+static void _reset_state( service_state_t *service ){
 
     service->state          = STATE_LISTEN;  
     service->timeout        = SERVICE_LISTEN_TIMEOUT;
@@ -88,6 +86,8 @@ static void reset_state( service_state_t *service ){
 
     clear_tracking( service );
 }
+
+#define reset_state(a) log_v_info_P( PSTR("Reset to LISTEN") ); _reset_state( a )
 
 static service_state_t* get_service( uint32_t id, uint32_t group ){
 
@@ -714,9 +714,6 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 // no, we are better
                 log_v_debug_P( PSTR("we are a better server") );
 
-                // hmm, let's re-run the service
-                // reset_state( service );
-
                 log_v_info_P( PSTR("-> SERVER") );
                 service->state = STATE_SERVER;
             }
@@ -930,17 +927,6 @@ PT_BEGIN( pt );
                 service->server_uptime++;    
             }
             
-            // ensure certain timeout states occur
-            if( service->timeout == 0 ){
-
-                if( service->state != STATE_LISTEN ){
-
-                    reset_state( service );
-                }
-
-                goto next;
-            }
-
             service->timeout--;
 
             // PRE-TIMEOUT LOGIC
