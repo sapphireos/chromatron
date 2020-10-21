@@ -943,31 +943,21 @@ PT_BEGIN( pt );
 
             service->timeout--;
 
-            // timeout not expired
+            // PRE-TIMEOUT LOGIC
             if( service->timeout > 0 ){
 
-            //     // PRE-TIMEOUT LOGIC
+                // check if we are connected
+                if( service->state == STATE_CONNECTED ){
 
-            //     // check if we need to query our leader
-            //     if( ( election->is_leader ) &&
-            //         ( election->state == STATE_FOLLOWER ) && 
-            //         ( election->timeout < ( FOLLOWER_TIMEOUT - FOLLOWER_QUERY_TIMEOUT ) ) ){
+                    // check timeout and see if we need to ping
+                    if( service->timeout < SERVICE_CONNECTED_PING_THRESHOLD ){
 
-            //         // transmit query to leader.
-
-            //         // this will repeat on the timer interval until we get a response
-            //         // or time out.
-            //         transmit_query( election );
-            //     }
-
-                // DONE with further processing for now.
-
-                goto next;
+                        transmit_query( service );
+                    }
+                }
             }
-
             // TIMEOUT STATE MACHINE
-
-            if( service->state == STATE_LISTEN ){
+            else if( service->state == STATE_LISTEN ){
 
                 log_v_debug_P( PSTR("LISTEN timeout") );
 

@@ -27,17 +27,18 @@
 
 #include "sockets.h"
 
-#define SERVICES_PORT               32040
-#define SERVICES_MAGIC              0x56524553 // 'SERV'
-#define SERVICES_VERSION            1
+#define SERVICES_PORT                       32040
+#define SERVICES_MAGIC                      0x56524553 // 'SERV'
+#define SERVICES_VERSION                    1
 
-#define SERVICE_RATE                4000
-#define SERVICE_UPTIME_MIN_DIFF     5
+#define SERVICE_RATE                        4000
+#define SERVICE_UPTIME_MIN_DIFF             5
 
-#define SERVICE_LISTEN_TIMEOUT      10
-#define SERVICE_CONNECTED_TIMEOUT   64
+#define SERVICE_LISTEN_TIMEOUT              10
+#define SERVICE_CONNECTED_TIMEOUT           64
+#define SERVICE_CONNECTED_PING_THRESHOLD    48
 
-#define SERVICE_PRIORITY_FOLLOWER_ONLY    0
+#define SERVICE_PRIORITY_FOLLOWER_ONLY      0
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
