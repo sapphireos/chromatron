@@ -87,7 +87,8 @@ static void _reset_state( service_state_t *service ){
     clear_tracking( service );
 }
 
-#define reset_state(a) log_v_info_P( PSTR("Reset to LISTEN") ); _reset_state( a )
+// #define reset_state(a) log_v_info_P( PSTR("Reset to LISTEN") ); _reset_state( a )
+#define reset_state(a) _reset_state( a )
 
 static service_state_t* get_service( uint32_t id, uint32_t group ){
 
@@ -151,6 +152,7 @@ void services_v_init( void ){
     // create vfile
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
     
+    services_v_listen( 0x5678, 0 );
     services_v_join_team( 0x1234, 0, 10, 1000 );
 }
 
@@ -170,6 +172,8 @@ void services_v_listen( uint32_t id, uint32_t group ){
     service_state_t service = {0};
     service.id      = id;
     service.group   = group;
+
+    reset_state( &service );
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
@@ -696,8 +700,27 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     // SERVICE
     if( !service->is_team ){
 
+        if( ( service->state == STATE_LISTEN ) ||
+            ( service->state == STATE_CONNECTED ) ){
 
+            // ensure packet indicates server, and also is not a team
+            if( pkt->flags != SERVICE_OFFER_FLAGS_SERVER ){
 
+                return;
+            }
+
+            // check if connected to this server
+            if( ( service->state == STATE_CONNECTED ) &&
+                ( ip_b_addr_compare( *ip, service->server_ip ) ) ){
+
+                service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+            }
+            // check priorities
+            else if( compare_server( service, header, pkt, ip ) ){
+
+                track_node( service, header, pkt, ip );
+            }
+        }
     }
     // TEAM:
     // are we already tracking this node?
@@ -969,7 +992,7 @@ PT_BEGIN( pt );
             // TIMEOUT STATE MACHINE
             else if( service->state == STATE_LISTEN ){
 
-                log_v_debug_P( PSTR("LISTEN timeout") );
+                // log_v_debug_P( PSTR("LISTEN timeout") );
 
                 // check if we can only be a follower
                 if( service->local_priority == SERVICE_PRIORITY_FOLLOWER_ONLY ){

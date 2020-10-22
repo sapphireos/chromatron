@@ -105,9 +105,6 @@ void election_v_init( void ){
     return;
     #endif
 
-
-return;
-
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
