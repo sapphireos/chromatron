@@ -486,7 +486,7 @@ static void transmit_query( service_state_t *service ){
 
     raddr.port   = SERVICES_PORT;
 
-    // log_v_debug_P( PSTR("tx query") );
+    log_v_debug_P( PSTR("tx query %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
@@ -1021,7 +1021,6 @@ PT_BEGIN( pt );
                 reset_state( service );
             }
             
-next:
             ln = list_ln_next( ln );
         }
     }    

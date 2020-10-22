@@ -37,6 +37,7 @@
 // #define ENABLE_USB
 #define ENABLE_ELECTION
 #define ENABLE_MSGFLOW
+#define ENABLE_SERVICES
 
 #define ENABLE_TRACE
 
