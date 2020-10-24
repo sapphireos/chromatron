@@ -898,7 +898,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                 // check if server is valid - we will only consider
                 // other valid servers, not candidates
-                if( service->server_valid ){
+                if( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
                     track_node( service, header, pkt, ip );
 
@@ -916,6 +916,14 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                         service->state     = STATE_CONNECTED;
                     }
                 }
+            }
+            else{
+
+                // received server is not as good as we are.
+                // possibly it is missing our broadcasts (this can happen)
+
+                // unicast our offer directly to it
+                transmit_service( service, ip );
             }
         }
         else{
