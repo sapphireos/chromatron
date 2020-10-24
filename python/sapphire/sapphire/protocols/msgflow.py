@@ -290,9 +290,14 @@ class MsgFlowReceiver(Ribbon):
             logging.warning(f"Host: {host} not found")
             return
 
-        if len(msg.data) == 0:
-            # logging.debug(f"Keepalive from: {host}")
-            pass
+        if len(msg.data) == 0: # this is a keepalive message
+            logging.debug(f"Keepalive from: {host}")
+
+            # update sequence!
+            self._connections[host]['sequence'] = msg.sequence
+            
+            # send status to confirm
+            self._send_status(host) 
 
         else:
             # check sequence
