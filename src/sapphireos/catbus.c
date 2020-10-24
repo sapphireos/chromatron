@@ -1520,11 +1520,6 @@ PT_BEGIN( pt );
             _catbus_v_delete_rx_entry( &raddr );
             #endif
 
-            #ifdef ENABLE_ELECTION
-            // send shutdown notifications
-            election_v_handle_shutdown( raddr.ipaddr );
-            #endif
-
             #ifdef ENABLE_SERVICES
             // send shutdown notifications
             service_v_handle_shutdown( raddr.ipaddr );

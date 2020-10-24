@@ -151,9 +151,10 @@ void services_v_init( void ){
 
     // create vfile
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
-    
-    services_v_listen( 0x5678, 0 );
-    services_v_join_team( 0x1234, 0, 10, 1000 );
+        
+    // debug
+    // services_v_listen( 0x5678, 0 );
+    // services_v_join_team( 0x1234, 0, 10, 1000 );
 }
 
 void services_v_listen( uint32_t id, uint32_t group ){
