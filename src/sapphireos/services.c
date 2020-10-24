@@ -726,18 +726,28 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
     // priorities are the same
     
+    // check uptimes
+
+    uint32_t our_uptime = service->server_uptime;
+
+    // if we are a server, use our local uptime, not the tracked server uptime
+    if( service->state == STATE_SERVER ){
+
+        our_uptime = service->local_uptime;
+    }
+
     // check cycle count
-    int64_t diff = (int64_t)offer->uptime - (int64_t)service->server_uptime;
+    int64_t diff = (int64_t)offer->uptime - (int64_t)our_uptime;
 
     if( diff > SERVICE_UPTIME_MIN_DIFF ){
 
-        log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
+        log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
 
         return TRUE;
     }
     else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
 
-        log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)offer->uptime );
+        log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
 
         return FALSE;
     }
