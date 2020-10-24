@@ -69,6 +69,8 @@ PT_THREAD( service_sender_thread( pt_t *pt, void *state ) );
 PT_THREAD( service_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( service_timer_thread( pt_t *pt, void *state ) );
 
+static bool compare_self( service_state_t *service );
+
 static void clear_tracking( service_state_t *service ){
 
     service->server_priority       = 0;
@@ -204,18 +206,42 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
 
     service_state_t *svc_ptr = get_service( id, group );
 
+    // log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
+
     // check if service already registered
     if( svc_ptr != 0 ){
 
-        // is priority or port changing?    
-        if( ( priority == svc_ptr->local_priority ) &&
-            ( port     == svc_ptr->local_port ) ){
+        // is port changing?
+        if( port != svc_ptr->local_port ){
 
-            // NOPE
+            // reset entire service in this case (fall through)
+        }
+        // is priority changing?
+        else if( priority != svc_ptr->local_priority ){
+
+            // update priority
+            svc_ptr->local_priority = priority;
+
+            // if we are connected to a server, compare and see if we make a better server
+            if( svc_ptr->state == STATE_CONNECTED ){
+
+                if( compare_self( svc_ptr ) ){
+
+                    log_v_debug_P( PSTR("switch to server, better priority") );
+
+                    log_v_info_P( PSTR("-> SERVER") );
+                    svc_ptr->state = STATE_SERVER;
+                }
+
+                return;
+            }
+        }
+        else{
+
+            // neither are changing
             return;
         }
 
-        // priority or port ARE changing
         // reset service (falling out of this if case)
         services_v_cancel( id, group );
     }
@@ -833,7 +859,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     // TEAM state machine
     else{
 
-        log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags );
+        log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x pri: %d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags, pkt->priority );
 
         if( service->state == STATE_LISTEN ){
 
