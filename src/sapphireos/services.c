@@ -869,7 +869,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     // TEAM state machine
     else{
 
-        log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x pri: %d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags, pkt->priority );
+        // log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x pri: %d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags, pkt->priority );
 
         if( service->state == STATE_LISTEN ){
 
