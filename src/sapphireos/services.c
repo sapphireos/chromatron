@@ -827,7 +827,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     // TEAM:
     // are we already tracking this node?
     // if so, just update the tracking info
-    else if( ip_b_addr_compare( *ip, service->server_ip ) ){
+    else if( ( service->state != STATE_SERVER ) &&
+             ip_b_addr_compare( *ip, service->server_ip ) ){
 
         bool valid = service->server_valid;
 
