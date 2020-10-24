@@ -256,29 +256,82 @@ void services_v_cancel( uint32_t id, uint32_t group ){
 
 bool services_b_is_available( uint32_t id, uint32_t group ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return FALSE;
+    }
+
+    service_state_t *service = get_service( id, group );
+
+    if( service == 0 ){
+
+        return FALSE;
+    }
+
+    if( service->state == STATE_CONNECTED ){
+
+        return TRUE;
+    }
+
     return FALSE;
 }
 
-bool services_b_is_leader( uint32_t id, uint32_t group ){
+bool services_b_is_server( uint32_t id, uint32_t group ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return FALSE;
+    }
+
+    service_state_t *service = get_service( id, group );
+
+    if( service == 0 ){
+
+        return FALSE;
+    }
+
+    if( service->state == STATE_SERVER ){
+
+        return TRUE;
+    }
 
     return FALSE;
 }
 
-sock_addr_t services_a_get( uint32_t service, uint32_t group ){
+sock_addr_t services_a_get( uint32_t id, uint32_t group ){
 
     sock_addr_t addr;
     memset( &addr, 0, sizeof(addr) );
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return addr;
+    }
+
+    service_state_t *service = get_service( id, group );
+
+    if( service == 0 ){
+
+        return addr;
+    }
+
+    if( service->state == STATE_LISTEN ){
+
+        return addr;
+    }
+
+    addr.ipaddr = service->server_ip;
+    addr.port = service->server_port;
 
     return addr;
 }
 
-ip_addr4_t services_a_get_ip( uint32_t service, uint32_t group ){
+ip_addr4_t services_a_get_ip( uint32_t id, uint32_t group ){
 
-    return ip_a_addr(0,0,0,0);
+    sock_addr_t addr = services_a_get( id, group );
+
+    return addr.ipaddr;
 }
-
-
 
 
 static void init_header( service_msg_header_t *header, uint8_t type ){
