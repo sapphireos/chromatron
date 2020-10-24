@@ -925,6 +925,14 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
                         service->state     = STATE_CONNECTED;
                     }
+                    else{
+
+                        // we are the better server.
+                        // possibly the other server is missing our broadcasts (this can happen)
+
+                        // unicast our offer directly to it
+                        transmit_service( service, ip );
+                    }
                 }
             }
             else{
