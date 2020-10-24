@@ -637,7 +637,7 @@ class DeviceGroup(UserDict):
 
         elif (len(args) > 0) or (host == 'all'):
 
-            if host == 'all':
+            if host == 'all' or 'all' in args:
                 # need empty list for an all query
                 args = []
 
