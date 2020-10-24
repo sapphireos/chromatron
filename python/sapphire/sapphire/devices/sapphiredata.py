@@ -336,32 +336,6 @@ class KVRequestArray(ArrayField):
         return sum([request.statusSize() for request in self._fields])
 
 
-class ElectionInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="service"),
-                  Uint32Field(_name="group"),
-                  Uint16Field(_name="priority"),
-                  Uint16Field(_name="port"),
-                  Uint32Field(_name="cycles"),
-                  Uint64Field(_name="leader_device_id"),
-                  Uint16Field(_name="leader_priority"),
-                  Uint32Field(_name="leader_cycles"),
-                  Uint16Field(_name="leader_port"),
-                  Ipv4Field(_name="leader_ip"),
-                  BooleanField(_name="is_leader"),
-                  Uint8Field(_name="timeout"),
-                  Uint8Field(_name="state")]
-
-        super(ElectionInfo, self).__init__(_fields=fields, **kwargs)
-
-class ElectionInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = ElectionInfo
-
-        super(ElectionInfoArray, self).__init__(_field=field, **kwargs)
-
-
-
 class ServiceInfo(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="id"),
