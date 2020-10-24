@@ -2465,10 +2465,18 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
 
         try:
             fw = firmware_package.get_firmware_package(fw_id, release=release)
+            try:
+                # make sure we have the board we need
+                fw.get_version_for_target(fw_info.board)
+
+            except KeyError:
+                raise firmware_package.FirmwarePackageNotFound                
 
         except firmware_package.FirmwarePackageNotFound:
-            click.echo("Matching firmware image not found!")
-            click.echo("Skipping this device...")
+            click.echo(f"Matching firmware image not found! Skipping device: {ct.name} @ {ct.host}")
+
+            # remove device from updates
+            del updates[device_id]
             continue
 
         # record firmware package for update
@@ -2561,8 +2569,10 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
 
     if parallel:
         click.echo('Updating:')
+
+        update_group = {device_id: ct for device_id, ct in group.items() if device_id in updates}
         
-        for device_id, ct in group.items():
+        for device_id, ct in update_group.items():
             echo_name(ct, nl=False)
             click.echo(f": {updates[device_id]['fw_info'].firmware_version} to {updates[device_id]['fw'].get_version_for_target(updates[device_id]['fw_info'].board)}")
 
@@ -2652,7 +2662,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
         threads = []
         sem = threading.Semaphore(MAX_UPDATE_THREADS)
 
-        for device_id, ct in group.items():
+        for device_id, ct in update_group.items():
             sem.acquire()
             t = threading.Thread(target=parallel_update, args=[ct, sem, display_queue], daemon=True)
             t.start()
@@ -2670,7 +2680,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
 
         click.echo('Updates complete.')
         
-        for device_id, ct in group.items():
+        for device_id, ct in update_group.items():
             echo_name(ct, nl=False)
             click.echo(f": {ct._device.get_firmware_info().firmware_version}")        
 
