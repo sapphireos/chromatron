@@ -28,7 +28,6 @@
 #include "hash.h"
 #include "catbus.h"
 #include "random.h"
-#include "election.h"
 #include "timesync.h"
 #include "services.h"
 

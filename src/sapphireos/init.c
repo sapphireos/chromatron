@@ -48,7 +48,6 @@
 #ifdef ENABLE_NETWORK
 #include "netmsg.h"
 #include "sockets.h"
-#include "election.h"
 #include "services.h"
 #endif
 
@@ -204,10 +203,6 @@ trace_printf("catbus\n");
 trace_printf("time\n");
     time_v_init();
     sntp_v_init();
-    #endif
-
-    #ifdef ENABLE_ELECTION
-    election_v_init();
     #endif
 
     #ifdef ENABLE_SERVICES

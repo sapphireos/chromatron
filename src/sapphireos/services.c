@@ -201,10 +201,22 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
         return;
     }
 
-    // check if service already registered
-    if( get_service( id, group ) != 0 ){
+    service_state_t *svc_ptr = get_service( id, group );
 
-        return;
+    // check if service already registered
+    if( svc_ptr != 0 ){
+
+        // is priority or port changing?    
+        if( ( priority == svc_ptr->local_priority ) &&
+            ( port     == svc_ptr->local_port ) ){
+
+            // NOPE
+            return;
+        }
+
+        // priority or port ARE changing
+        // reset service (falling out of this if case)
+        services_v_cancel( id, group );
     }
 
     service_state_t service = {0};
@@ -268,7 +280,7 @@ bool services_b_is_available( uint32_t id, uint32_t group ){
         return FALSE;
     }
 
-    if( service->state == STATE_CONNECTED ){
+    if( service->state != STATE_LISTEN ){
 
         return TRUE;
     }

@@ -30,7 +30,7 @@
 #include "hash.h"
 #include "sntp.h"
 #include "util.h"
-#include "election.h"
+#include "services.h"
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
@@ -266,12 +266,12 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
 static bool is_leader( void ){
 
-    return election_b_is_leader( TIME_ELECTION_SERVICE );
+    return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
 }
 
 static bool is_follower( void ){
 
-    return !is_leader() && election_b_leader_found( TIME_ELECTION_SERVICE );
+    return !is_leader() && services_b_is_available( TIME_ELECTION_SERVICE, 0 );
 }
 
 static void time_v_set_ntp_master_clock_internal( 
@@ -623,11 +623,11 @@ PT_BEGIN( pt );
         log_v_debug_P( PSTR("master clock RESET") );
         master_ip = ip_a_addr(0,0,0,0);
 
-        // wait for election to resolve
-        THREAD_WAIT_WHILE( pt, !election_b_leader_found( TIME_ELECTION_SERVICE ) );
+        // wait for service to resolve
+        THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
 
         log_v_debug_P( PSTR("master clock found") );
-        master_ip = election_a_get_leader_ip( TIME_ELECTION_SERVICE );
+        master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
 
         while( is_leader() ){
 
@@ -691,21 +691,21 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    election_v_join( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );
+    services_v_join_team( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );
 
     // wait until we resolve the election
-    THREAD_WAIT_WHILE( pt, !election_b_leader_found( TIME_ELECTION_SERVICE ) );
+    THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
 
     last_clock_update = tmr_u32_get_system_time_ms();
     thread_v_set_alarm( last_clock_update );
 
     while( 1 ){
 
-        master_ip = election_a_get_leader_ip( TIME_ELECTION_SERVICE );
+        master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
         local_source = get_best_local_source();
     
         // update election parameters (in case our source changes)        
-        election_v_join( TIME_ELECTION_SERVICE, 0, local_source, TIME_SERVER_PORT );
+        services_v_join_team( TIME_ELECTION_SERVICE, 0, local_source, TIME_SERVER_PORT );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
