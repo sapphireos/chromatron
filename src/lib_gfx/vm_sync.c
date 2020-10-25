@@ -24,8 +24,6 @@
 
 #ifdef ENABLE_TIME_SYNC
 
-#if 0
-
 
 // #define SYNC_DEBUG
 
@@ -34,11 +32,9 @@
 #include "vm_sync.h"
 #include "vm.h"
 #include "hash.h"
-#include "esp8266.h"
-#include "vm_wifi_cmd.h"
 #include "graphics.h"
 #include "config.h"
-
+#include "services.h"
 #include "logging.h"
 
 static uint32_t sync_group_hash;
@@ -828,5 +824,4 @@ PT_END( pt );
 }
 
 
-#endif
 #endif
