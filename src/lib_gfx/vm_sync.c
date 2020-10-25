@@ -47,13 +47,13 @@ static uint8_t sync_state;
 #define STATE_SLAVE_SYNC 	3
 
 
-static ip_addr_t master_ip;
-static uint64_t master_uptime;
+// static ip_addr_t master_ip;
+// static uint64_t master_uptime;
 
-static uint16_t slave_offset;
-static uint16_t slave_frame;
-static ip_addr_t pending_slave;
-static uint32_t slave_net_time;
+// static uint16_t slave_offset;
+// static uint16_t slave_frame;
+// static ip_addr_t pending_slave;
+// static uint32_t slave_net_time;
 
 
 int8_t vmsync_i8_kv_handler(
@@ -76,7 +76,6 @@ int8_t vmsync_i8_kv_handler(
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
-    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,      "vm_sync_master_ip" },
 };
 
 
@@ -214,206 +213,206 @@ static bool vm_sync_wait( void ){
 }
 
 
-static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
+// static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
-	if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, 0, 0 ) < 0 ){
+	// if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, 0, 0 ) < 0 ){
 
-        return -1;
-    }
+ //        return -1;
+ //    }
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
+ //    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
 
-        return -2;
-    }
+ //        return -2;
+ //    }
 
-    return 0;
-}
-
-
-static int8_t set_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
-
-        return -1;
-    }
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0, 0 ) < 0 ){
-
-        return -2;
-    }
-
-    return 0;
-}
+    // return 0;
+// }
 
 
-static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
+// static int8_t set_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
 
-    msg->offset = offset;
+    // if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
 
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) ) < 0 ){
+    //     return -1;
+    // }
 
-        return -1;
-    }
+    // if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0, 0 ) < 0 ){
 
-    uint16_t bytes_read;
+    //     return -2;
+    // }
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
-
-        return -2;
-    }
-
-    return bytes_read;
-}
+    // return 0;
+// }
 
 
-static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
+// static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
 
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
+//     msg->offset = offset;
 
-        return -1;
-    }
+//     if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) ) < 0 ){
 
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
+//         return -1;
+//     }
 
-        return -2;
-    }
+//     uint16_t bytes_read;
 
-    return 0;
-}
+//     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
 
-static void send_sync_0( wifi_msg_vm_frame_sync_t *sync, sock_addr_t *raddr ){
+//         return -2;
+//     }
 
-    vm_sync_msg_sync_0_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SYNC_0;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
+//     return bytes_read;
+// }
 
-    msg.uptime              = tmr_u64_get_system_time_us();
-    msg.program_name_hash   = sync->program_name_hash;
-    msg.frame_number        = sync->frame_number;
-    msg.data_len            = sync->data_len;
-    msg.rng_seed            = sync->rng_seed;
-    msg.net_time            = time_u32_get_network_time();
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
-}
+// static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
 
-static void send_sync_n( uint16_t offset, uint16_t frame_number, uint8_t *data, uint16_t len, sock_addr_t *raddr ){
+//     if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
 
-    // note on large VM programs this is going to cause us to run out of 
-    // memory
-    mem_handle_t h = mem2_h_alloc( len + sizeof(vm_sync_msg_sync_n_t) );
+//         return -1;
+//     }
 
-    if( h < 0 ){
+//     if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
 
-        return;
-    }
+//         return -2;
+//     }
 
-    vm_sync_msg_sync_n_t *msg = mem2_vp_get_ptr( h );
-    uint8_t *msg_data = (uint8_t *)( msg + 1 );
-    memcpy( msg_data, data, len );
+//     return 0;
+// }
 
-    msg->header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg->header.version          = SYNC_PROTOCOL_VERSION;
-    msg->header.type             = VM_SYNC_MSG_SYNC_N;
-    msg->header.flags            = 0;
-    msg->header.sync_group_hash  = sync_group_hash;
+// static void send_sync_0( wifi_msg_vm_frame_sync_t *sync, sock_addr_t *raddr ){
 
-    msg->offset         = offset;
-    msg->frame_number   = frame_number;
+    // vm_sync_msg_sync_0_t msg;
+    // msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    // msg.header.version          = SYNC_PROTOCOL_VERSION;
+    // msg.header.type             = VM_SYNC_MSG_SYNC_0;
+    // msg.header.flags            = 0;
+    // msg.header.sync_group_hash  = sync_group_hash;
 
-    raddr->port = SYNC_SERVER_PORT;
+    // msg.uptime              = tmr_u64_get_system_time_us();
+    // msg.program_name_hash   = sync->program_name_hash;
+    // msg.frame_number        = sync->frame_number;
+    // msg.data_len            = sync->data_len;
+    // msg.rng_seed            = sync->rng_seed;
+    // msg.net_time            = time_u32_get_network_time();
+
+    // sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
+// }
+
+// static void send_sync_n( uint16_t offset, uint16_t frame_number, uint8_t *data, uint16_t len, sock_addr_t *raddr ){
+
+    // // note on large VM programs this is going to cause us to run out of 
+    // // memory
+    // mem_handle_t h = mem2_h_alloc( len + sizeof(vm_sync_msg_sync_n_t) );
+
+    // if( h < 0 ){
+
+    //     return;
+    // }
+
+    // vm_sync_msg_sync_n_t *msg = mem2_vp_get_ptr( h );
+    // uint8_t *msg_data = (uint8_t *)( msg + 1 );
+    // memcpy( msg_data, data, len );
+
+    // msg->header.magic            = SYNC_PROTOCOL_MAGIC;
+    // msg->header.version          = SYNC_PROTOCOL_VERSION;
+    // msg->header.type             = VM_SYNC_MSG_SYNC_N;
+    // msg->header.flags            = 0;
+    // msg->header.sync_group_hash  = sync_group_hash;
+
+    // msg->offset         = offset;
+    // msg->frame_number   = frame_number;
+
+    // raddr->port = SYNC_SERVER_PORT;
     
-    sock_i16_sendto_m( sock, h, raddr );   
-}
+    // sock_i16_sendto_m( sock, h, raddr );   
+// }
 
 static void send_request( void ){
 
-    vm_sync_msg_sync_req_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
+    // vm_sync_msg_sync_req_t msg;
+    // msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    // msg.header.version          = SYNC_PROTOCOL_VERSION;
+    // msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
+    // msg.header.flags            = 0;
+    // msg.header.sync_group_hash  = sync_group_hash;
 
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = master_ip;
+    // // set up broadcast address
+    // sock_addr_t raddr;
+    // raddr.port = SYNC_SERVER_PORT;
+    // raddr.ipaddr = master_ip;
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+    // sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
 static void send_shutdown( ip_addr_t *addr ){
 
-    vm_sync_msg_shutdown_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SHUTDOWN;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
+    // vm_sync_msg_shutdown_t msg;
+    // msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    // msg.header.version          = SYNC_PROTOCOL_VERSION;
+    // msg.header.type             = VM_SYNC_MSG_SHUTDOWN;
+    // msg.header.flags            = 0;
+    // msg.header.sync_group_hash  = sync_group_hash;
 
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
+    // // set up broadcast address
+    // sock_addr_t raddr;
+    // raddr.port = SYNC_SERVER_PORT;
 
-    if( addr == 0 ){
+    // if( addr == 0 ){
 
-        raddr.ipaddr = ip_a_addr(255,255,255,255);    
-    }
-    else{
+    //     raddr.ipaddr = ip_a_addr(255,255,255,255);    
+    // }
+    // else{
 
-        raddr.ipaddr = *addr;
-    }
+    //     raddr.ipaddr = *addr;
+    // }
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+    // sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
 }
 
 static void send_sync_to_slave( sock_addr_t *raddr ){
 
-    if( sync_state != STATE_MASTER ){
+    // if( sync_state != STATE_MASTER ){
 
-        return;
-    }
+    //     return;
+    // }
 
-    // thread_v_signal( SYNC_SIGNAL );
+    // // thread_v_signal( SYNC_SIGNAL );
 
-    wifi_msg_vm_frame_sync_t sync;
-    if( get_frame_sync( &sync ) < 0 ){
+    // wifi_msg_vm_frame_sync_t sync;
+    // if( get_frame_sync( &sync ) < 0 ){
 
-        return;
-    }
+    //     return;
+    // }
 
-    send_sync_0( &sync, raddr );
+    // send_sync_0( &sync, raddr );
 
-    log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
+    // log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
 
-    uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-    uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
+    // uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+    // uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
 
-    for( uint16_t i = 0; i < sync.data_len; ){
+    // for( uint16_t i = 0; i < sync.data_len; ){
 
-        int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
-        if( bytes_read < 0 ){
+    //     int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
+    //     if( bytes_read < 0 ){
 
-            return;
-        }
+    //         return;
+    //     }
 
-        bytes_read -= sizeof(wifi_msg_vm_sync_data_t); // subtract header from bytes read
+    //     bytes_read -= sizeof(wifi_msg_vm_sync_data_t); // subtract header from bytes read
 
-        // uint32_t *reg = (uint32_t *)data;
-        // for( uint8_t j = 0; j < bytes_read / 4; j++ ){
+    //     // uint32_t *reg = (uint32_t *)data;
+    //     // for( uint8_t j = 0; j < bytes_read / 4; j++ ){
 
-        //     log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
-        //     reg++;
-        // }
+    //     //     log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
+    //     //     reg++;
+    //     // }
 
-        send_sync_n( i, sync.frame_number, data, bytes_read, raddr );
+    //     send_sync_n( i, sync.frame_number, data, bytes_read, raddr );
 
-        i += WIFI_MAX_SYNC_DATA;
-    }    
+    //     i += WIFI_MAX_SYNC_DATA;
+    // }    
 }
 
 void vm_sync_v_trigger( void ){
@@ -425,18 +424,18 @@ void vm_sync_v_trigger( void ){
 
     // thread_v_signal( SYNC_SIGNAL );
 
-    wifi_msg_vm_frame_sync_t sync;
-    if( get_frame_sync( &sync ) < 0 ){
+    // wifi_msg_vm_frame_sync_t sync;
+    // if( get_frame_sync( &sync ) < 0 ){
 
-        return;
-    }
+    //     return;
+    // }
 
     // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
+    // sock_addr_t raddr;
+    // raddr.port = SYNC_SERVER_PORT;
+    // raddr.ipaddr = ip_a_addr(255,255,255,255);
 
-    send_sync_0( &sync, &raddr );
+    // send_sync_0( &sync, &raddr );
 
     // log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
 }
@@ -449,16 +448,16 @@ void vm_sync_v_frame_trigger( void ){
         return;
     }
 
-    if( !ip_b_is_zeroes( pending_slave ) ){
+    // if( !ip_b_is_zeroes( pending_slave ) ){
 
-        sock_addr_t raddr;
-        raddr.port = SYNC_SERVER_PORT;
-        raddr.ipaddr = pending_slave;
+    //     sock_addr_t raddr;
+    //     raddr.port = SYNC_SERVER_PORT;
+    //     raddr.ipaddr = pending_slave;
 
-        send_sync_to_slave( &raddr );
+    //     send_sync_to_slave( &raddr );
 
-        pending_slave = ip_a_addr(0,0,0,0);
-    }
+    //     pending_slave = ip_a_addr(0,0,0,0);
+    // }
 
 }
 
@@ -468,9 +467,9 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
-    sock = sock_s_create( SOCK_DGRAM ); 
+    sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
-    sock_v_bind( sock, SYNC_SERVER_PORT );
+    // sock_v_bind( sock, SYNC_SERVER_PORT );
     sock_v_set_timeout( sock, 32 );
 
     thread_t_create( vm_sync_thread,
@@ -491,15 +490,15 @@ PT_BEGIN( pt );
     	// check if shutting down
     	if( sys_b_shutdown() ){
 
-    		// if we're a master, signal that we are shutting down
-    		if( sync_state == STATE_MASTER ){
+    		// // if we're a master, signal that we are shutting down
+    		// if( sync_state == STATE_MASTER ){
 
-	    		send_shutdown( 0 );
-	    		TMR_WAIT( pt, 200 );
-	    		send_shutdown( 0 );
-	    		TMR_WAIT( pt, 200 );
-	    		send_shutdown( 0 );
-	    	}
+	    	// 	send_shutdown( 0 );
+	    	// 	TMR_WAIT( pt, 200 );
+	    	// 	send_shutdown( 0 );
+	    	// 	TMR_WAIT( pt, 200 );
+	    	// 	send_shutdown( 0 );
+	    	// }
 
     		THREAD_EXIT( pt );
     	}
@@ -557,184 +556,184 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        if( header->type == VM_SYNC_MSG_SYNC_0 ){
+        // if( header->type == VM_SYNC_MSG_SYNC_0 ){
 
-        	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)header;
+        // 	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)header;
         	
-        	if( sync_state == STATE_IDLE ){
+        // 	if( sync_state == STATE_IDLE ){
 
-        		master_ip = raddr.ipaddr;
-                master_uptime = msg->uptime;
+        // 		master_ip = raddr.ipaddr;
+        //         master_uptime = msg->uptime;
 
-        		log_v_debug_P( PSTR("assigning vm sync master: %d.%d.%d.%d"), 
-                        master_ip.ip3, 
-                        master_ip.ip2, 
-                        master_ip.ip1, 
-                        master_ip.ip0 );
+        // 		log_v_debug_P( PSTR("assigning vm sync master: %d.%d.%d.%d"), 
+        //                 master_ip.ip3, 
+        //                 master_ip.ip2, 
+        //                 master_ip.ip1, 
+        //                 master_ip.ip0 );
 
-        		sync_state = STATE_SLAVE;
+        // 		sync_state = STATE_SLAVE;
 
-                // done processing
-                continue;
-        	}
-            else if( sync_state == STATE_SLAVE ){
+        //         // done processing
+        //         continue;
+        // 	}
+        //     else if( sync_state == STATE_SLAVE ){
 
-                // slave, not synced 
-                slave_offset    = 0;
-                slave_frame     = msg->frame_number;
-                // slave_net_time  = msg->net_time;
-                // slave_net_time  = msg->uptime / 1000;
+        //         // slave, not synced 
+        //         slave_offset    = 0;
+        //         slave_frame     = msg->frame_number;
+        //         // slave_net_time  = msg->net_time;
+        //         // slave_net_time  = msg->uptime / 1000;
 
-                log_v_debug_P( PSTR("starting slave sync, frame: %u len: %u"), msg->frame_number, msg->data_len );
+        //         log_v_debug_P( PSTR("starting slave sync, frame: %u len: %u"), msg->frame_number, msg->data_len );
 
-                wifi_msg_vm_frame_sync_t sync;
-                sync.program_name_hash  = msg->program_name_hash;
-                sync.frame_number       = msg->frame_number;
-                sync.data_len           = msg->data_len;
-                sync.rng_seed           = msg->rng_seed;
+        //         wifi_msg_vm_frame_sync_t sync;
+        //         sync.program_name_hash  = msg->program_name_hash;
+        //         sync.frame_number       = msg->frame_number;
+        //         sync.data_len           = msg->data_len;
+        //         sync.rng_seed           = msg->rng_seed;
 
-                set_frame_sync( &sync );                
+        //         set_frame_sync( &sync );                
 
-                continue;
-            }
+        //         continue;
+        //     }
 
-        	uint64_t temp_master_uptime = master_uptime;
+        // 	uint64_t temp_master_uptime = master_uptime;
 
-        	// are we a master?
-        	if( sync_state == STATE_MASTER ){
+        // 	// are we a master?
+        // 	if( sync_state == STATE_MASTER ){
 
-        		// use our current uptime
-        		temp_master_uptime = tmr_u64_get_system_time_us();
-        	}
+        // 		// use our current uptime
+        // 		temp_master_uptime = tmr_u64_get_system_time_us();
+        // 	}
 
-        	// compare uptimes - longest uptime wins election
-        	if( msg->uptime > temp_master_uptime ){
+        // 	// compare uptimes - longest uptime wins election
+        // 	if( msg->uptime > temp_master_uptime ){
 
-                master_uptime = msg->uptime;
+        //         master_uptime = msg->uptime;
 
-                if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
+        //         if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
 
-        		    // set new master
-                    master_ip = raddr.ipaddr;
+        // 		    // set new master
+        //             master_ip = raddr.ipaddr;
                     
 
-            		log_v_debug_P( PSTR("assigning NEW vm sync master: %d.%d.%d.%d"), 
-                        master_ip.ip3, 
-                        master_ip.ip2, 
-                        master_ip.ip1, 
-                        master_ip.ip0 );      
+        //     		log_v_debug_P( PSTR("assigning NEW vm sync master: %d.%d.%d.%d"), 
+        //                 master_ip.ip3, 
+        //                 master_ip.ip2, 
+        //                 master_ip.ip1, 
+        //                 master_ip.ip0 );      
 
-        		    sync_state = STATE_SLAVE;
+        // 		    sync_state = STATE_SLAVE;
 
-                    // slave, not synced 
-                    slave_offset    = 0;
-                    slave_frame     = msg->frame_number;
-                    slave_net_time  = msg->net_time;
+        //             // slave, not synced 
+        //             slave_offset    = 0;
+        //             slave_frame     = msg->frame_number;
+        //             slave_net_time  = msg->net_time;
 
-                    sync_state = STATE_SLAVE;
+        //             sync_state = STATE_SLAVE;
 
-                    continue;
-                }
-        	}
+        //             continue;
+        //         }
+        // 	}
 
-            if( sync_state == STATE_SLAVE_SYNC ){
+        //     if( sync_state == STATE_SLAVE_SYNC ){
 
-                // uint32_t rate = slave_frame - msg->frame_number;
-                // slave_frame = msg->frame_number;
+        //         // uint32_t rate = slave_frame - msg->frame_number;
+        //         // slave_frame = msg->frame_number;
 
-                // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
+        //         // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
                                 
 
 
                                 
-                // slave_frame     = msg->frame_number;
-                // slave_net_time  = msg->net_time;
-                // gfx_v_set_sync( slave_frame, slave_net_time );
-            }
-        }
-        else if( header->type == VM_SYNC_MSG_SYNC_N ){
+        //         // slave_frame     = msg->frame_number;
+        //         // slave_net_time  = msg->net_time;
+        //         // gfx_v_set_sync( slave_frame, slave_net_time );
+        //     }
+        // }
+        // else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
-            if( sync_state == STATE_SLAVE ){
+        //     if( sync_state == STATE_SLAVE ){
 
-            	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
+        //     	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
 
-                int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
+        //         int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
 
-                if( ( data_len > (int16_t)WIFI_MAX_SYNC_DATA ) || ( data_len <= 0 ) ){
+        //         if( ( data_len > (int16_t)WIFI_MAX_SYNC_DATA ) || ( data_len <= 0 ) ){
 
-                    log_v_debug_P( PSTR("invalid len") );
-                    continue;
-                }
-            	log_v_debug_P( PSTR("received sync offset: %u frame: %u len: %d"), msg->offset, msg->frame_number, data_len );
+        //             log_v_debug_P( PSTR("invalid len") );
+        //             continue;
+        //         }
+        //     	log_v_debug_P( PSTR("received sync offset: %u frame: %u len: %d"), msg->offset, msg->frame_number, data_len );
 
-                uint8_t *msg_data = (uint8_t *)( msg + 1 );
+        //         uint8_t *msg_data = (uint8_t *)( msg + 1 );
 
-                uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-                wifi_msg_vm_sync_data_t *sync   = (wifi_msg_vm_sync_data_t *)buf;
+        //         uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
+        //         wifi_msg_vm_sync_data_t *sync   = (wifi_msg_vm_sync_data_t *)buf;
                 
-                sync->offset = msg->offset;
+        //         sync->offset = msg->offset;
 
-                memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
+        //         memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
 
-                // uint32_t *reg = (uint32_t *)&buf[sizeof(wifi_msg_vm_sync_data_t)];
-                // for( uint8_t j = 0; j < data_len / 4; j++ ){
+        //         // uint32_t *reg = (uint32_t *)&buf[sizeof(wifi_msg_vm_sync_data_t)];
+        //         // for( uint8_t j = 0; j < data_len / 4; j++ ){
 
-                //     log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
-                //     reg++;
-                // }
+        //         //     log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
+        //         //     reg++;
+        //         // }
 
-                if( set_frame_data( sync, data_len ) < 0 ){
+        //         if( set_frame_data( sync, data_len ) < 0 ){
 
-                    log_v_debug_P( PSTR("error") );    
-                }
+        //             log_v_debug_P( PSTR("error") );    
+        //         }
 
-                // check if sync is finished
-                if( msg->offset == slave_offset ){
+        //         // check if sync is finished
+        //         if( msg->offset == slave_offset ){
 
-                    slave_offset += data_len;
+        //             slave_offset += data_len;
 
-                    if( data_len < (int16_t)WIFI_MAX_SYNC_DATA ){
+        //             if( data_len < (int16_t)WIFI_MAX_SYNC_DATA ){
 
-                        sync_state = STATE_SLAVE_SYNC;
+        //                 sync_state = STATE_SLAVE_SYNC;
 
-                        log_v_debug_P( PSTR("finished sync data") );
-                        gfx_v_set_sync0( slave_frame, slave_net_time );
-                    }
-                }
-            }
-        }
-        else if( header->type == VM_SYNC_MSG_SHUTDOWN ){
+        //                 log_v_debug_P( PSTR("finished sync data") );
+        //                 gfx_v_set_sync0( slave_frame, slave_net_time );
+        //             }
+        //         }
+        //     }
+        // }
+        // else if( header->type == VM_SYNC_MSG_SHUTDOWN ){
 
-            // check if message is from master
-            if( ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
+        //     // check if message is from master
+        //     if( ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
 
-                if( sync_state != STATE_IDLE ){
+        //         if( sync_state != STATE_IDLE ){
 
-                    log_v_debug_P( PSTR("sync master shutting down") );
-                    vm_sync_v_reset();
-                }
-            }
-        }
-        else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
+        //             log_v_debug_P( PSTR("sync master shutting down") );
+        //             vm_sync_v_reset();
+        //         }
+        //     }
+        // }
+        // else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-        	if( sync_state != STATE_MASTER ){
-        		// this message can only be processed by a master
+        // 	if( sync_state != STATE_MASTER ){
+        // 		// this message can only be processed by a master
 
-                // since we aren't one, inform the requester
-                send_shutdown( &raddr.ipaddr );
+        //         // since we aren't one, inform the requester
+        //         send_shutdown( &raddr.ipaddr );
 
-        		continue;
-        	}
+        // 		continue;
+        // 	}
 
-        	// vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
+        // 	// vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
-        	log_v_debug_P( PSTR("sync requested") );
+        // 	log_v_debug_P( PSTR("sync requested") );
 
-            if( ip_b_is_zeroes( pending_slave ) ){
+        //     // if( ip_b_is_zeroes( pending_slave ) ){
 
-                pending_slave = raddr.ipaddr;
-            }
-        }
+        //     //     pending_slave = raddr.ipaddr;
+        //     // }
+        // }
     }
 
 PT_END( pt );
@@ -753,71 +752,71 @@ PT_BEGIN( pt );
         // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_IDLE ) );
 
         // no masters, elect ourselves
-        if( sync_state == STATE_IDLE ){
+     //    if( sync_state == STATE_IDLE ){
 
-            sync_state = STATE_MASTER;
-            master_uptime = 0;
-            master_ip = ip_a_addr(0,0,0,0);
+     //        sync_state = STATE_MASTER;
+     //        master_uptime = 0;
+     //        master_ip = ip_a_addr(0,0,0,0);
 
-            log_v_debug_P( PSTR("we are sync master") );
-        }
+     //        log_v_debug_P( PSTR("we are sync master") );
+     //    }
 
-        if( sync_state == STATE_MASTER ){
+     //    if( sync_state == STATE_MASTER ){
 
-        	while( ( sync_state == STATE_MASTER ) && !vm_sync_wait() ){
+     //    	while( ( sync_state == STATE_MASTER ) && !vm_sync_wait() ){
 
-        		if( sys_b_shutdown() ){
+     //    		if( sys_b_shutdown() ){
 
-        			THREAD_EXIT( pt );
-        		}
+     //    			THREAD_EXIT( pt );
+     //    		}
 
-                TMR_WAIT( pt, 500 );
-        	}
+     //            TMR_WAIT( pt, 500 );
+     //    	}
 
-            // no longer master
-            // notify any clients
-            send_shutdown( 0 );
-            TMR_WAIT( pt, 200 );
-            send_shutdown( 0 );
-            TMR_WAIT( pt, 200 );
-            send_shutdown( 0 );
-        }
+     //        // no longer master
+     //        // notify any clients
+     //        send_shutdown( 0 );
+     //        TMR_WAIT( pt, 200 );
+     //        send_shutdown( 0 );
+     //        TMR_WAIT( pt, 200 );
+     //        send_shutdown( 0 );
+     //    }
 
-        while( ( sync_state == STATE_SLAVE ) && !vm_sync_wait() ){
+     //    while( ( sync_state == STATE_SLAVE ) && !vm_sync_wait() ){
 
-            // random wait a bit so we don't all transmit to master at the same time
-            TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
+     //        // random wait a bit so we don't all transmit to master at the same time
+     //        TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
 
-            log_v_debug_P( PSTR("request slave sync") );
-            send_request();
+     //        log_v_debug_P( PSTR("request slave sync") );
+     //        send_request();
 
-            // wait some time
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
-            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state != STATE_SLAVE_SYNC ) );
+     //        // wait some time
+     //        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
+     //        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state != STATE_SLAVE_SYNC ) );
 
-            // check if we got a sync
-            if( sync_state != STATE_SLAVE ){
+     //        // check if we got a sync
+     //        if( sync_state != STATE_SLAVE ){
 
-                break;
-            }
+     //            break;
+     //        }
 
-            // wait some time before trying again
-            TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 4 ) );
-        }
+     //        // wait some time before trying again
+     //        TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 4 ) );
+     //    }
 
-    	if( sync_state == STATE_SLAVE_SYNC ){
+    	// if( sync_state == STATE_SLAVE_SYNC ){
 
-    		log_v_debug_P( PSTR("vm sync!") );
+    	// 	log_v_debug_P( PSTR("vm sync!") );
 
-            while( ( sync_state == STATE_SLAVE_SYNC ) && !vm_sync_wait() ){
+     //        while( ( sync_state == STATE_SLAVE_SYNC ) && !vm_sync_wait() ){
 
-                TMR_WAIT( pt, 1 * 1000 );
-            }
-    	}
-        else{
+     //            TMR_WAIT( pt, 1 * 1000 );
+     //        }
+    	// }
+     //    else{
 
-            TMR_WAIT( pt, 8000 );
-        }
+     //        TMR_WAIT( pt, 8000 );
+     //    }
     }
 
 PT_END( pt );

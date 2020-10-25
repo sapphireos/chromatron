@@ -36,6 +36,7 @@
 #include "graphics.h"
 #include "vm.h"
 #include "timesync.h"
+#include "vm_sync.h"
 #include "kvdb.h"
 #include "hash.h"
 
@@ -59,6 +60,8 @@ void gfx_v_init( void ){
     gfxlib_v_init();
 
     pixel_v_init();
+
+    vm_sync_v_init();
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),

@@ -27,8 +27,6 @@
 
 #ifdef ENABLE_TIME_SYNC
 
-#define SYNC_SERVER_PORT                	32038
-
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	2
 
@@ -65,11 +63,6 @@ typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
 } vm_sync_msg_sync_req_t;
 #define VM_SYNC_MSG_SYNC_REQ                    3
-
-typedef struct __attribute__((packed)){
-    vm_sync_msg_header_t header;
-} vm_sync_msg_shutdown_t;
-#define VM_SYNC_MSG_SHUTDOWN                    10
 
 
 uint32_t vm_sync_u32_get_sync_group_hash( void );
