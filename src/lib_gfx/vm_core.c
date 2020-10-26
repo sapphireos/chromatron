@@ -2714,6 +2714,36 @@ int8_t vm_i8_run_threads(
     return VM_STATUS_OK;
 }
 
+uint32_t vm_u32_get_thread_delay(
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    int32_t shortest_delay = 0xffffffff;
+
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        // check thread delay
+        int32_t thread_delay = state->threads[i].delay;
+
+        if( thread_delay <= 0 ){
+
+            continue;
+        }
+
+        if( thread_delay < shortest_delay ){
+
+            shortest_delay = thread_delay;
+        }
+    }
+
+    return shortest_delay;
+}
+
 int32_t vm_i32_get_data( 
     uint8_t *stream,
     vm_state_t *state,

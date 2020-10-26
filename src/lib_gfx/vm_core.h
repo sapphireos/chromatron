@@ -220,6 +220,10 @@ int8_t vm_i8_run_threads(
     uint8_t *stream,
     vm_state_t *state );
 
+uint32_t vm_u32_get_thread_delay(
+    uint8_t *stream,
+    vm_state_t *state );
+
 int32_t vm_i32_get_data( 
     uint8_t *stream,
     vm_state_t *state,
