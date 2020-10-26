@@ -27,13 +27,6 @@
 
 #include "status_led.h"
 
-
-// #define LED_RED_PORT    LED0_GPIO_Port
-// #define LED_RED_PIN     LED0_Pin
-// #define LED_GREEN_PORT  LED2_GPIO_Port
-// #define LED_GREEN_PIN   LED2_Pin
-// #define LED_BLUE_PORT   LED1_GPIO_Port
-// #define LED_BLUE_PIN    LED1_Pin
-
+#define LED_TIME_SYNC_INTERVAL 512
 
 #endif
