@@ -42,9 +42,7 @@ static socket_t sock = -1;
 
 static uint8_t sync_state;
 #define STATE_IDLE 			0
-#define STATE_MASTER 		1
-#define STATE_SLAVE 		2
-#define STATE_SLAVE_SYNC 	3
+#define STATE_SYNC 	        1
 
 
 // static ip_addr_t master_ip;
@@ -68,6 +66,8 @@ int8_t vmsync_i8_kv_handler(
         if( hash == __KV__gfx_sync_group ){
 
             sync_group_hash = hash_u32_string( data );    
+
+            vm_sync_v_reset();
         }
     }
 
@@ -160,12 +160,7 @@ void vm_sync_v_init( void ){
         return;
     }
 
-	// init sync group hash
-	char buf[32];
-	memset( buf, 0, sizeof(buf) );
-	kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
-
-	sync_group_hash = hash_u32_string( buf );    
+    vm_sync_v_reset();
 
     thread_t_create( vm_sync_server_thread,
                     PSTR("vm_sync_server"),
@@ -179,28 +174,46 @@ void vm_sync_v_handle_shutdown( ip_addr4_t ip ){
 
 void vm_sync_v_reset( void ){
 
+    services_v_cancel( SYNC_SERVICE, sync_group_hash );
+
+    // init sync group hash
+    char buf[32];
+    memset( buf, 0, sizeof(buf) );
+    kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
+
+    sync_group_hash = hash_u32_string( buf );    
+
+    // sync not initialized
+    if( sock <= 0 ){
+
+        return;
+    }
+
     sync_state = STATE_IDLE;
+    services_v_join_team( SYNC_SERVICE, sync_group_hash, 1, sock_u16_get_lport( sock ) );
+
+    log_v_debug_P( PSTR("sync reset") );
 }
 
-bool vm_sync_b_is_master( void ){
+// bool vm_sync_b_is_master( void ){
 
-    return sync_state == STATE_MASTER;
-}
+//     return sync_state == STATE_MASTER;
+// }
 
-bool vm_sync_b_is_slave( void ){
+// bool vm_sync_b_is_slave( void ){
  
-    return sync_state == STATE_SLAVE;
-}
+//     return sync_state == STATE_SLAVE;
+// }
 
-bool vm_sync_b_is_slave_synced( void ){
+// bool vm_sync_b_is_slave_synced( void ){
 
-    return sync_state == STATE_SLAVE_SYNC;
-}
+//     return sync_state == STATE_SLAVE_SYNC;
+// }
 
-bool vm_sync_b_is_synced( void ){
+// bool vm_sync_b_is_synced( void ){
 
-    return ( sync_state == STATE_MASTER ) || ( sync_state == STATE_SLAVE_SYNC );
-}
+//     return ( sync_state == STATE_MASTER ) || ( sync_state == STATE_SLAVE_SYNC );
+// }
 
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
@@ -417,10 +430,10 @@ static void send_sync_to_slave( sock_addr_t *raddr ){
 
 void vm_sync_v_trigger( void ){
 
-    if( sync_state != STATE_MASTER ){
+    // if( sync_state != STATE_MASTER ){
 
-        return;
-    }
+    //     return;
+    // }
 
     // thread_v_signal( SYNC_SIGNAL );
 
@@ -443,10 +456,10 @@ void vm_sync_v_trigger( void ){
 
 void vm_sync_v_frame_trigger( void ){
 
-    if( sync_state != STATE_MASTER ){
+    // if( sync_state != STATE_MASTER ){
 
-        return;
-    }
+    //     return;
+    // }
 
     // if( !ip_b_is_zeroes( pending_slave ) ){
 
@@ -470,7 +483,7 @@ PT_BEGIN( pt );
     sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
     // sock_v_bind( sock, SYNC_SERVER_PORT );
-    sock_v_set_timeout( sock, 32 );
+    // sock_v_set_timeout( sock, 32 );
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),
@@ -490,16 +503,6 @@ PT_BEGIN( pt );
     	// check if shutting down
     	if( sys_b_shutdown() ){
 
-    		// // if we're a master, signal that we are shutting down
-    		// if( sync_state == STATE_MASTER ){
-
-	    	// 	send_shutdown( 0 );
-	    	// 	TMR_WAIT( pt, 200 );
-	    	// 	send_shutdown( 0 );
-	    	// 	TMR_WAIT( pt, 200 );
-	    	// 	send_shutdown( 0 );
-	    	// }
-
     		THREAD_EXIT( pt );
     	}
 
@@ -516,20 +519,20 @@ PT_BEGIN( pt );
         }
 
 		// check if data received
-        int16_t sock_data_len = sock_i16_get_bytes_read( sock );
-        if( sock_data_len <= 0 ){
+        // int16_t sock_data_len = sock_i16_get_bytes_read( sock );
+        // if( sock_data_len <= 0 ){
 
-        	// socket timeout
+        // 	// socket timeout
 
-        	if( ( sync_state != STATE_MASTER ) && ( sync_state != STATE_IDLE ) ){
+        // 	if( ( sync_state != STATE_MASTER ) && ( sync_state != STATE_IDLE ) ){
 
-                log_v_debug_P( PSTR("vm sync timed out, resetting state") );
+        //         log_v_debug_P( PSTR("vm sync timed out, resetting state") );
 
-                sync_state = STATE_IDLE;
-            }
+        //         sync_state = STATE_IDLE;
+        //     }
 
-        	continue;
-        }
+        // 	continue;
+        // }
 
         if( vm_sync_wait() ){
 
@@ -551,6 +554,12 @@ PT_BEGIN( pt );
         if( header->sync_group_hash != sync_group_hash ){
 
         	continue;
+        }
+
+        // check if NOT team leader
+        if( !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+            continue;
         }
 
         sock_addr_t raddr;
@@ -746,6 +755,40 @@ PT_BEGIN( pt );
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+
+        vm_sync_v_reset();        
+
+        // wait for team
+        THREAD_WAIT_WHILE( pt, vm_sync_wait() &&
+                               !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
+
+        // if service not found
+        if( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
+
+            TMR_WAIT( pt, 1000 );
+
+            continue;
+        }
+
+        if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+            sync_state = STATE_SYNC;
+        }
+        
+        // while( ( sync_state == STATE_SYNC ) && !vm_sync_wait() ){
+
+        //     if( sys_b_shutdown() ){
+
+        //         THREAD_EXIT( pt );
+        //     }
+
+        //     TMR_WAIT( pt, 500 );
+        // }
+
+            
+
+
+
 
         // random delay, see if other masters show up
         // thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
