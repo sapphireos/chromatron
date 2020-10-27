@@ -176,7 +176,6 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     vm_thread_t threads[VM_MAX_THREADS];
     uint32_t yield;
 
-    uint32_t tick_rate;
     int32_t current_thread;
     uint32_t max_cycles;
 
