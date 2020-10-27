@@ -2644,6 +2644,13 @@ int8_t vm_i8_run_init(
     return vm_i8_run( stream, state->init_start, 0, state );
 }
 
+int8_t vm_i8_tick(
+    uint8_t *stream,
+    vm_state_t *state,
+    int32_t ticks ){
+
+    return -1;
+}
 
 int8_t vm_i8_run_loop(
     uint8_t *stream,
@@ -2714,11 +2721,11 @@ int8_t vm_i8_run_threads(
     return VM_STATUS_OK;
 }
 
-uint32_t vm_u32_get_thread_delay(
+int32_t vm_i32_get_thread_delay(
     uint8_t *stream,
     vm_state_t *state ){
 
-    int32_t shortest_delay = 0xffffffff;
+    int32_t shortest_delay = INT32_MAX;
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
