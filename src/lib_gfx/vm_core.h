@@ -212,18 +212,14 @@ int8_t vm_i8_run_init(
     uint8_t *stream,
     vm_state_t *state );
 
-int8_t vm_i8_tick(
-    uint8_t *stream,
-    vm_state_t *state,
-    int32_t ticks );
-
 int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state );
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state );
+    vm_state_t *state,
+    int32_t delta_ticks );
 
 int32_t vm_i32_get_thread_delay(
     uint8_t *stream,

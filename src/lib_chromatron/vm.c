@@ -47,8 +47,8 @@ static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 
-// #define VM_FLAG_RUN_LOOP            0x01
-// #define VM_FLAG_RUN_THREADS         0x02
+#define VM_FLAG_RUN_LOOP            0x01
+#define VM_FLAG_RUN_THREADS         0x02
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
 
@@ -483,7 +483,7 @@ typedef struct{
     char program_fname[FFS_FILENAME_LEN];
     mem_handle_t handle;
     int8_t vm_return;
-    int32_t ticks;
+    int32_t delta_ticks;
     vm_state_t vm_state;
 } vm_thread_state_t;
 
@@ -557,27 +557,45 @@ PT_BEGIN( pt );
 
         // THREAD_WAIT_WHILE( pt, vm_run_flags[state->vm_id] == 0 );
 
-        uint32_t start = tmr_u32_get_system_time_us();
+        uint32_t start = 0;
+        uint32_t elapsed = 0;
 
-        // run VM ticks
-        state->vm_return = vm_i8_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, state->ticks );
+        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_THREADS ){
+            
+            start = tmr_u32_get_system_time_us();
 
-        // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
+            // run VM threads with current tick
+            state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state, state->ticks );
+            
+            elapsed = tmr_u32_elapsed_time_us( start );
 
-        //     state->vm_return = vm_i8_run_loop( mem2_vp_get_ptr( state->handle ), &state->vm_state );
-        // }
+            vm_thread_time[state->vm_id] = elapsed;
+        }
+
+        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
+
+            start = tmr_u32_get_system_time_us();
+
+            state->vm_return = vm_i8_run_loop( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+            elapsed = tmr_u32_elapsed_time_us( start );
+
+            vm_loop_time[state->vm_id] = elapsed;
+        }
+        
 
         // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_THREADS ){
 
         //     state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state );
         // }
 
-        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        
         // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
             
         //     vm_loop_time[state->vm_id] = elapsed;
         // }
 
+        // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
 
         if( state->vm_return == VM_STATUS_HALT ){
@@ -602,9 +620,16 @@ PT_BEGIN( pt );
         // subtract elapsed time from frame rate so it stays constant
         frame_rate -= ( elapsed / 1000 );
 
-        if( frame_rate < thread_delay ){
+        if( frame_rate <= thread_delay ){
 
             thread_delay = frame_rate;
+
+            // next iteration will run loop
+            vm_run_flags[state->vm_id] |= VM_FLAG_RUN_LOOP;
+        }
+        else{
+
+            vm_run_flags[state->vm_id] |= VM_FLAG_RUN_THREADS;
         }
         
         // if delay is 0 (or less, so we're running behind) -
@@ -622,8 +647,8 @@ PT_BEGIN( pt );
             // set alarm
             thread_v_set_alarm( thread_u32_get_alarm() + thread_delay );
           
-            // update tick counter for VM for next update
-            state->ticks += thread_delay;
+            // update tick delay for VM for next update
+            state->delta_ticks = thread_delay;
 
             // wait, along with a check for an update frame rate
             THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );

@@ -2640,16 +2640,9 @@ int8_t vm_i8_run_init(
     vm_state_t *state ){
 
     state->frame_number = 0;
+    state->tick = 0;
 
     return vm_i8_run( stream, state->init_start, 0, state );
-}
-
-int8_t vm_i8_tick(
-    uint8_t *stream,
-    vm_state_t *state,
-    int32_t ticks ){
-
-    return -1;
 }
 
 int8_t vm_i8_run_loop(
@@ -2663,7 +2656,8 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state ){
+    vm_state_t *state,
+    int32_t delta_ticks ){
 
     bool threads_running = FALSE;
 
