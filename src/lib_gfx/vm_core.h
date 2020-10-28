@@ -166,8 +166,11 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t data_count;
     uint16_t init_start;
     uint16_t loop_start;
+
     uint16_t frame_number;
     uint32_t tick;
+    uint32_t last_elapsed_us;
+    int32_t loop_delay;
 
     uint32_t program_name_hash;
 
@@ -208,6 +211,11 @@ int8_t vm_i8_run(
     uint16_t pc_offset,
     vm_state_t *state );
 
+int8_t vm_i8_run_tick(
+    uint8_t *stream,
+    vm_state_t *state,
+    int32_t delta_ticks );
+
 int8_t vm_i8_run_init(
     uint8_t *stream,
     vm_state_t *state );
@@ -221,7 +229,7 @@ int8_t vm_i8_run_threads(
     vm_state_t *state,
     int32_t delta_ticks );
 
-int32_t vm_i32_get_thread_delay(
+int32_t vm_i32_get_delay(
     uint8_t *stream,
     vm_state_t *state );
 

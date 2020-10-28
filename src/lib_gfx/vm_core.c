@@ -32,6 +32,7 @@
 #include "catbus.h"
 #include "datetime.h"
 #include "logging.h"
+#include "timers.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -2545,6 +2546,8 @@ int8_t vm_i8_run(
     uint16_t pc_offset,
     vm_state_t *state ){
 
+    uint32_t start_time = tmr_u32_get_system_time_us();
+
     cycles = VM_MAX_CYCLES;
 
     int32_t *data = (int32_t *)( stream + state->data_start );
@@ -2631,9 +2634,60 @@ int8_t vm_i8_run(
 
     state->current_thread = -1;
 
+    // record run time
+    uint32_t elapsed = tmr_u32_elapsed_time_us( start_time );
+    state->last_elapsed_us = elapsed;
+
     return status;
 }
 
+int8_t vm_i8_run_tick(
+    uint8_t *stream,
+    vm_state_t *state,
+    int32_t delta_ticks ){
+
+    uint32_t elapsed_us = 0;
+
+    int8_t status = VM_STATUS_ERROR;
+
+    if( ( state->loop_delay - delta_ticks ) <= 0 ){
+
+        // run loop
+        status = vm_i8_run_loop( stream, state );
+
+        // add frame rate to next loop delay
+        state->loop_delay += gfx_u16_get_vm_frame_rate();
+
+        elapsed_us += state->last_elapsed_us;
+
+        if( status != VM_STATUS_OK ){
+
+            goto exit;
+        }
+
+        // include loop time in elapsed milliseconds
+        delta_ticks += ( state->last_elapsed_us / 1000 );
+    }
+
+    status = vm_i8_run_threads( stream, state, delta_ticks );
+
+    elapsed_us += state->last_elapsed_us;
+
+    // include thread time in elapsed milliseconds
+    delta_ticks += ( state->last_elapsed_us / 1000 );
+
+
+exit:
+    state->tick += delta_ticks;
+    
+    // adjust loop delay for total elapsed time
+    state->loop_delay -= delta_ticks;
+
+    // update total elapsed time
+    state->last_elapsed_us = elapsed_us;
+
+    return status;
+}
 
 int8_t vm_i8_run_init(
     uint8_t *stream,
@@ -2661,6 +2715,10 @@ int8_t vm_i8_run_threads(
 
     bool threads_running = FALSE;
 
+    uint32_t elapsed_us = 0;
+
+    int8_t status = VM_STATUS_ERROR;
+
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
         if( state->threads[i].func_addr == 0xffff ){
@@ -2672,7 +2730,7 @@ int8_t vm_i8_run_threads(
         if( state->threads[i].delay > 0 ){
 
             // decrement
-            state->threads[i].delay--;
+            state->threads[i].delay -= delta_ticks;
 
             if( state->threads[i].delay > 0 ){            
 
@@ -2681,9 +2739,13 @@ int8_t vm_i8_run_threads(
         }
 
         state->current_thread = i;
+        status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
 
-        int8_t status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
+        elapsed_us += state->last_elapsed_us;
 
+        // add elapsed time for this thread to delta ticks so the other thread delays are properly tracked
+        delta_ticks += ( state->last_elapsed_us / 1000 );
+        
         threads_running = TRUE;
 
         state->current_thread = -1;
@@ -2699,27 +2761,36 @@ int8_t vm_i8_run_threads(
         }
         else if( status == VM_STATUS_HALT ){
 
-            return status;
+            goto exit;
         }
         else{
 
-            return status;
+            goto exit;
         }
     }
 
     if( !threads_running ){
 
-        return VM_STATUS_NO_THREADS;
+        status = VM_STATUS_NO_THREADS;
     } 
+    else{
 
-    return VM_STATUS_OK;
+        status = VM_STATUS_OK;
+    }
+
+exit:
+        
+    // set total elapsed time
+    state->last_elapsed_us = elapsed_us;
+
+    return status;
 }
 
-int32_t vm_i32_get_thread_delay(
+int32_t vm_i32_get_delay(
     uint8_t *stream,
     vm_state_t *state ){
 
-    int32_t shortest_delay = INT32_MAX;
+    int32_t shortest_delay = state->loop_delay;
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
@@ -2731,7 +2802,7 @@ int32_t vm_i32_get_thread_delay(
         // check thread delay
         int32_t thread_delay = state->threads[i].delay;
 
-        if( thread_delay <= 0 ){
+        if( thread_delay < 0 ){
 
             continue;
         }
@@ -2973,7 +3044,9 @@ int8_t vm_i8_load_program(
     // init RNG seed
     state->rng_seed = 1;
 
+    state->tick = 0;
     state->frame_number = 0;
+    state->loop_delay = 0;
 
     return VM_STATUS_OK;
 }
