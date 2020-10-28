@@ -2716,6 +2716,7 @@ int8_t vm_i8_run_threads(
     bool threads_running = FALSE;
 
     uint32_t elapsed_us = 0;
+    uint32_t thread_delays[VM_MAX_THREADS] = {0};
 
     int8_t status = VM_STATUS_ERROR;
 
@@ -2745,7 +2746,7 @@ int8_t vm_i8_run_threads(
 
         // add elapsed time for this thread to delta ticks so the other thread delays are properly tracked
         delta_ticks += ( state->last_elapsed_us / 1000 );
-        
+
         threads_running = TRUE;
 
         state->current_thread = -1;
