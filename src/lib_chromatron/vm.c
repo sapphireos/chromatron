@@ -553,7 +553,49 @@ PT_BEGIN( pt );
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
     
-    do{
+    // do{
+    while( vm_status[state->vm_id] == VM_STATUS_OK ){
+
+        int32_t vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+        // if delay is 0 (or less, so we're running behind) -
+        // yield a couple of times so we don't starve the other threads.
+        // we cannot guarantee VM timing with this load.
+        if( vm_delay <= 0 ){
+
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+        }        
+        else{
+
+            // set alarm
+            thread_v_set_alarm( thread_u32_get_alarm() + vm_delay );
+          
+            // update tick delay for VM for next update
+            state->delta_ticks = vm_delay;
+
+            // wait, along with a check for an update frame rate
+            THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );
+
+            if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
+
+                // frame rate update
+
+                // clear flags
+                vm_run_flags[state->vm_id] &= ~VM_FLAG_UPDATE_FRAME_RATE;
+
+                // just let the VM loop run.  The timing for this frame will be off, but
+                // the next one will be correct.
+                // This is will screw up the VM time sync across nodes, they will
+                // have to resynchronize.
+            } 
+        }
+
+        uint32_t delay = tmr_u32_get_system_time_ms() - thread_u32_get_alarm();
+
+        state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
 
         // THREAD_WAIT_WHILE( pt, vm_run_flags[state->vm_id] == 0 );
 
@@ -596,7 +638,7 @@ PT_BEGIN( pt );
         // }
 
         // clear all run flags
-        vm_run_flags[state->vm_id] = 0;        
+        // vm_run_flags[state->vm_id] = 0;        
 
         if( state->vm_return == VM_STATUS_HALT ){
 
@@ -614,59 +656,60 @@ PT_BEGIN( pt );
         vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
 
         // get shortest delay before next VM event
-        int32_t frame_rate = gfx_u16_get_vm_frame_rate();
-        int32_t vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        // int32_t frame_rate = gfx_u16_get_vm_frame_rate();
+        // int32_t vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
 
         // subtract elapsed time from frame rate so it stays constant
         // frame_rate -= ( elapsed / 1000 );
 
-        if( frame_rate <= vm_delay ){
+        // if( frame_rate <= vm_delay ){
 
-            vm_delay = frame_rate;
+        //     vm_delay = frame_rate;
 
-            // next iteration will run loop
-            vm_run_flags[state->vm_id] |= VM_FLAG_RUN_LOOP;
-        }
-        else{
+        //     // next iteration will run loop
+        //     vm_run_flags[state->vm_id] |= VM_FLAG_RUN_LOOP;
+        // }
+        // else{
 
-            vm_run_flags[state->vm_id] |= VM_FLAG_RUN_THREADS;
-        }
+        //     vm_run_flags[state->vm_id] |= VM_FLAG_RUN_THREADS;
+        // }
         
         // if delay is 0 (or less, so we're running behind) -
         // yield a couple of times so we don't starve the other threads.
         // we cannot guarantee VM timing with this load.
-        if( vm_delay <= 0 ){
+        // if( vm_delay <= 0 ){
 
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-            THREAD_YIELD( pt );
-        }        
-        else{
+        //     THREAD_YIELD( pt );
+        //     THREAD_YIELD( pt );
+        //     THREAD_YIELD( pt );
+        //     THREAD_YIELD( pt );
+        // }        
+        // else{
 
-            // set alarm
-            thread_v_set_alarm( thread_u32_get_alarm() + vm_delay );
+        //     // set alarm
+        //     thread_v_set_alarm( thread_u32_get_alarm() + vm_delay );
           
-            // update tick delay for VM for next update
-            state->delta_ticks = vm_delay;
+        //     // update tick delay for VM for next update
+        //     state->delta_ticks = vm_delay;
 
-            // wait, along with a check for an update frame rate
-            THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );
+        //     // wait, along with a check for an update frame rate
+        //     THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );
 
-            if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
+        //     if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
-                // frame rate update
+        //         // frame rate update
 
-                // clear flags
-                vm_run_flags[state->vm_id] &= ~VM_FLAG_UPDATE_FRAME_RATE;
+        //         // clear flags
+        //         vm_run_flags[state->vm_id] &= ~VM_FLAG_UPDATE_FRAME_RATE;
 
-                // just let the VM loop run.  The timing for this frame will be off, but
-                // the next one will be correct.
-                // This is will screw up the VM time sync across nodes, they will
-                // have to resynchronize.
-            } 
-        }
-    } while( vm_status[state->vm_id] == VM_STATUS_OK ); 
+        //         // just let the VM loop run.  The timing for this frame will be off, but
+        //         // the next one will be correct.
+        //         // This is will screw up the VM time sync across nodes, they will
+        //         // have to resynchronize.
+        //     } 
+        // }
+    }
+    // } while( vm_status[state->vm_id] == VM_STATUS_OK ); 
 
 exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
