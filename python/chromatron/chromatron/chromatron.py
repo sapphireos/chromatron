@@ -2529,7 +2529,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
                 click.echo(f"Updating from {fw_version} to {fw.get_version_for_target(fw_info.board)}")
 
             with click.progressbar(length=100, label='Loading firmware  ') as progress_bar:
-                ct._device.load_firmware(fw_id, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
+                ct._device.load_firmware(updates[ct._device.device_id]['fw'].FWID, release=release, progress=Progress(progress_bar), verify=not skip_verify, use_percent=True)
 
             click.echo('Waiting for device')
 
@@ -2628,7 +2628,7 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
             def progress(value, filename=''):
                 q.put((ct, int(value)))
                 
-            ct._device.load_firmware(fw_id, release=release, progress=progress, verify=not skip_verify, use_percent=True)
+            ct._device.load_firmware(updates[ct._device.device_id]['fw'].FWID, release=release, progress=progress, verify=not skip_verify, use_percent=True)
 
             q.put((ct, "Load"))
 
