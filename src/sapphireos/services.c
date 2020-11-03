@@ -582,7 +582,7 @@ static void transmit_query( service_state_t *service ){
 
     raddr.port   = SERVICES_PORT;
 
-    log_v_debug_P( PSTR("tx query %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+    // log_v_debug_P( PSTR("tx query %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
     sock_i16_sendto_m( sock, h, &raddr );
 }
@@ -960,11 +960,15 @@ static void process_query( service_msg_query_t *query, ip_addr4_t *ip ){
 
     if( service == 0 ){
 
+        log_v_error_P( PSTR("service not found") );
+
         return;
     }
 
     // check state
     if( service->state != STATE_SERVER ){
+
+        log_v_error_P( PSTR("not server") );
 
         return;
     }
@@ -1048,7 +1052,7 @@ PT_BEGIN( pt );
         }
         else if( header->type == SERVICE_MSG_TYPE_QUERY ){
 
-            log_v_debug_P( PSTR("query from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+            // log_v_debug_P( PSTR("query from %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
             service_msg_query_t *query = (service_msg_query_t *)( header + 1 );
 
@@ -1105,6 +1109,11 @@ PT_BEGIN( pt );
                     if( service->timeout < SERVICE_CONNECTED_PING_THRESHOLD ){
 
                         transmit_query( service );
+                    }
+
+                    if( service->timeout == SERVICE_CONNECTED_WARN_THRESHOLD ){
+
+                        log_v_warn_P( PSTR("server unresponsive") );
                     }
                 }
             }
