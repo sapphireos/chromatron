@@ -43,7 +43,7 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader/subproject
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader
@@ -90,11 +90,11 @@ bootloader.elf: esp-idf/micro-ecc/libmicro-ecc.a
 bootloader.elf: esp-idf/efuse/libefuse.a
 bootloader.elf: esp-idf/bootloader_support/libbootloader_support.a
 bootloader.elf: esp-idf/main/libmain.a
-bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader/subproject/main/esp32.bootloader.ld
-bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader/subproject/main/esp32.bootloader.rom.ld
-bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.rom.ld
-bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld
-bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.peripherals.ld
+bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject/main/esp32.bootloader.ld
+bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject/main/esp32.bootloader.rom.ld
+bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.rom.ld
+bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld
+bootloader.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.peripherals.ld
 bootloader.elf: CMakeFiles/bootloader.elf.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C executable bootloader.elf"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/bootloader.elf.dir/link.txt --verbose=$(VERBOSE)
@@ -109,6 +109,6 @@ CMakeFiles/bootloader.elf.dir/clean:
 .PHONY : CMakeFiles/bootloader.elf.dir/clean
 
 CMakeFiles/bootloader.elf.dir/depend: dummy_main_src.c
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/CMakeFiles/bootloader.elf.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/CMakeFiles/bootloader.elf.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/bootloader.elf.dir/depend
 

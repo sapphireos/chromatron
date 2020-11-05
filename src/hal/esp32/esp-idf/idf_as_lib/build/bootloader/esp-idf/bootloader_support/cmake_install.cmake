@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 include esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/progress.make
 
 esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc:
-	cd /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/mbedtls/mbedtls/doxygen && doxygen mbedtls.doxyfile
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/doxygen && doxygen mbedtls.doxyfile
 
 apidoc: esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc
 apidoc: esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/build.make
@@ -71,6 +71,6 @@ esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/clean:
 .PHONY : esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/clean
 
 esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/mbedtls/mbedtls /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/mbedtls /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/mbedtls /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc.dir/depend
 

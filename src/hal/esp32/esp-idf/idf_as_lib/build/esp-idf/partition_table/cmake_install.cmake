@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/partition_table
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

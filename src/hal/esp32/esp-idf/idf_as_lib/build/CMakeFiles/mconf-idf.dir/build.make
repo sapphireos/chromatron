@@ -76,7 +76,7 @@ mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-install: mconf-idf-prefix/src/mco
 
 mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-mkdir:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Creating directories for 'mconf-idf'"
-	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig
+	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig
 	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/kconfig_bin
 	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/mconf-idf-prefix
 	/usr/bin/cmake -E make_directory /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/mconf-idf-prefix/tmp
@@ -108,22 +108,22 @@ mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-configure: mconf-idf-prefix/src/m
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/kconfig_bin && /usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-configure
 
 mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-configure
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/conf.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/confdata.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/expr.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/gconf.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/images.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/kxgettext.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/mconf.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/menu.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/nconf.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/nconf.gui.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/symbol.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/util.c
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/Makefile
-mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/cmake/kconfig.cmake
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/conf.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/confdata.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/expr.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/gconf.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/images.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/kxgettext.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/mconf.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/menu.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/nconf.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/nconf.gui.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/symbol.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/util.c
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/Makefile
+mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/cmake/kconfig.cmake
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Performing build step for 'mconf-idf'"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/kconfig_bin && make -f /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/tools/kconfig/Makefile mconf-idf
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/kconfig_bin && make -f /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig/Makefile mconf-idf
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/kconfig_bin && /usr/bin/cmake -E touch /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/mconf-idf-prefix/src/mconf-idf-stamp/mconf-idf-build
 
 mconf-idf: CMakeFiles/mconf-idf

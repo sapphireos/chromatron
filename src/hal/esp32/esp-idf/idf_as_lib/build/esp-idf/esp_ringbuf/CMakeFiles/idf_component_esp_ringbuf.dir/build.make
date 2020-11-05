@@ -58,17 +58,17 @@ include esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/progress.ma
 include esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/flags.make
 
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/flags.make
-esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_ringbuf/ringbuf.c
+esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp_ringbuf/ringbuf.c
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj   -c /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_ringbuf/ringbuf.c
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj   -c /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf/ringbuf.c
 
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_ringbuf/ringbuf.c > CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf/ringbuf.c > CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i
 
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_ringbuf/ringbuf.c -o CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf && /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf/ringbuf.c -o CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s
 
 # Object files for target idf_component_esp_ringbuf
 idf_component_esp_ringbuf_OBJECTS = \
@@ -94,6 +94,6 @@ esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/clean:
 .PHONY : esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/clean
 
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_ringbuf /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/depend
 

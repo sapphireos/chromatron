@@ -115,14 +115,14 @@ idf_as_lib.elf: esp-idf/heap/libheap.a
 idf_as_lib.elf: esp-idf/freertos/libfreertos.a
 idf_as_lib.elf: esp-idf/newlib/libnewlib.a
 idf_as_lib.elf: esp-idf/esp32/libesp32.a
-idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/libhal.a
+idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/libhal.a
 idf_as_lib.elf: esp-idf/cxx/libcxx.a
 idf_as_lib.elf: esp-idf/esp32/esp32.project.ld
 idf_as_lib.elf: esp-idf/esp32/esp32_out.ld
-idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.rom.ld
-idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.peripherals.ld
-idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.rom.libgcc.ld
-idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld
+idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.rom.ld
+idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.peripherals.ld
+idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.rom.libgcc.ld
+idf_as_lib.elf: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld
 idf_as_lib.elf: CMakeFiles/idf_as_lib.elf.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable idf_as_lib.elf"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/idf_as_lib.elf.dir/link.txt --verbose=$(VERBOSE)

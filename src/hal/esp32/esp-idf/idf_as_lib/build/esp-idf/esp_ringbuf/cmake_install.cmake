@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_ringbuf
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

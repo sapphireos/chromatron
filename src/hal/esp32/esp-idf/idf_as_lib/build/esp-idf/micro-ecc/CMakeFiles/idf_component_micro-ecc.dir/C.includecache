@@ -6,99 +6,41 @@
 
 #IncludeRegexTransform: 
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/include/xtensa/config/core-isa.h
+../../../../../components/esp32/include/xtensa/config/core-isa.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_arm.inc
-asm_arm_mult_square_umaal.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square_umaal.inc
-asm_arm_mult_square.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square_umaal.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_avr.inc
-asm_avr_mult_square.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_avr_mult_square.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_avr_mult_square.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/curve-specific.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/platform-specific.inc
-types.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/types.h
-windows.h
--
-wincrypt.h
--
-sys/types.h
--
-fcntl.h
--
-unistd.h
--
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/types.h
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/uECC.c
-uECC.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/uECC.h
-uECC_vli.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/uECC_vli.h
-platform-specific.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/platform-specific.inc
-asm_arm.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_arm.inc
-asm_avr.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/asm_avr.inc
-curve-specific.inc
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/curve-specific.inc
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/uECC.h
-stdint.h
--
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/uECC_vli.h
-uECC.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/uECC.h
-types.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc/types.h
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/_ansi.h
+../../../../../components/newlib/include/_ansi.h
 newlib.h
 -
 sys/config.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/fcntl.h
+../../../../../components/newlib/include/fcntl.h
 sys/fcntl.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/machine/_default_types.h
+../../../../../components/newlib/include/machine/_default_types.h
 sys/features.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/machine/_types.h
+../../../../../components/newlib/include/machine/_types.h
 machine/_default_types.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/machine/ieeefp.h
+../../../../../components/newlib/include/machine/ieeefp.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/machine/types.h
+../../../../../components/newlib/include/machine/types.h
 machine/_types.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/newlib.h
+../../../../../components/newlib/include/newlib.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/stdint.h
+../../../../../components/newlib/include/stdint.h
 machine/_default_types.h
 -
 sys/_intsup.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/_default_fcntl.h
+../../../../../components/newlib/include/sys/_default_fcntl.h
 _ansi.h
 -
 sys/cdefs.h
@@ -110,11 +52,11 @@ sys/stat.h
 sys/time.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/_intsup.h
+../../../../../components/newlib/include/sys/_intsup.h
 sys/features.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/_types.h
+../../../../../components/newlib/include/sys/_types.h
 machine/_types.h
 -
 sys/lock.h
@@ -122,7 +64,7 @@ sys/lock.h
 stddef.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/cdefs.h
+../../../../../components/newlib/include/sys/cdefs.h
 machine/_default_types.h
 -
 sys/features.h
@@ -130,7 +72,7 @@ sys/features.h
 stddef.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/config.h
+../../../../../components/newlib/include/sys/config.h
 machine/ieeefp.h
 -
 sys/features.h
@@ -140,19 +82,19 @@ xtensa/config/core-isa.h
 cygwin/config.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/fcntl.h
+../../../../../components/newlib/include/sys/fcntl.h
 sys/_default_fcntl.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/features.h
+../../../../../components/newlib/include/sys/features.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/lock.h
+../../../../../components/newlib/include/sys/lock.h
 _ansi.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/sched.h
+../../../../../components/newlib/include/sys/sched.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/stat.h
+../../../../../components/newlib/include/sys/stat.h
 _ansi.h
 -
 time.h
@@ -164,7 +106,7 @@ sys/types.h
 cygwin/stat.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/time.h
+../../../../../components/newlib/include/sys/time.h
 _ansi.h
 -
 sys/types.h
@@ -172,7 +114,7 @@ sys/types.h
 cygwin/sys_time.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/sys/types.h
+../../../../../components/newlib/include/sys/types.h
 _ansi.h
 -
 machine/_types.h
@@ -192,11 +134,69 @@ sys/cpuset.h
 cygwin/types.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/include/unistd.h
+../../../../../components/newlib/include/unistd.h
 sys/unistd.h
 -
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/platform_include/sys/unistd.h
+../../../../../components/newlib/platform_include/sys/unistd.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/newlib/platform_include/time.h
+../../../../../components/newlib/platform_include/time.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_arm.inc
+asm_arm_mult_square_umaal.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square_umaal.inc
+asm_arm_mult_square.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_arm_mult_square_umaal.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_avr.inc
+asm_avr_mult_square.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_avr_mult_square.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_avr_mult_square.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/curve-specific.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/platform-specific.inc
+types.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/types.h
+windows.h
+-
+wincrypt.h
+-
+sys/types.h
+-
+fcntl.h
+-
+unistd.h
+-
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/types.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/uECC.c
+uECC.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/uECC.h
+uECC_vli.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/uECC_vli.h
+platform-specific.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/platform-specific.inc
+asm_arm.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_arm.inc
+asm_avr.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/asm_avr.inc
+curve-specific.inc
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/curve-specific.inc
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/uECC.h
+stdint.h
+-
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/uECC_vli.h
+uECC.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/uECC.h
+types.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/micro-ecc/micro-ecc/types.h
 

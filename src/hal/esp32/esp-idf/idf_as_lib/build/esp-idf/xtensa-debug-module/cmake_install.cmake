@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/xtensa-debug-module
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa-debug-module
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -4,10 +4,10 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/esp32/esp_efuse_table.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/esp32/esp_efuse_table.c.obj"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/src/esp_efuse_api.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_api.c.obj"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/src/esp_efuse_fields.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.obj"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/src/esp_efuse_utility.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/esp32/esp_efuse_table.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/esp32/esp_efuse_table.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/esp_efuse_api.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_api.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/esp_efuse_fields.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/esp_efuse_utility.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
@@ -17,20 +17,20 @@ set(CMAKE_TARGET_DEFINITIONS_C
   "ESP_PLATFORM"
   "GCC_NOT_5_2_0=0"
   "HAVE_CONFIG_H"
-  "IDF_VER=\"v3.3.2\""
+  "IDF_VER=\"v3.3.2-12-ga3a5fe81f\""
   )
 
 # The include file search paths:
 set(CMAKE_C_TARGET_INCLUDE_PATH
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/include"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/esp32/include"
+  "../../../../../../components/efuse/include"
+  "../../../../../../components/efuse/esp32/include"
   "config"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/include"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/include_bootloader"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/log/include"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/include"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/esp32/include"
-  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/include"
+  "../../../../../../components/bootloader_support/include"
+  "../../../../../../components/bootloader_support/include_bootloader"
+  "../../../../../../components/log/include"
+  "../../../../../../components/esp32/include"
+  "../../../../../../components/soc/esp32/include"
+  "../../../../../../components/soc/include"
   )
 
 # Targets to which this target links.
