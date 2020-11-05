@@ -34,6 +34,8 @@
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION           7
 
+#define TIME_SOURCE_ESP32_PRIORITY      512
+
 #define TIME_SOURCE_GPS                 64
 #define TIME_SOURCE_NTP                 32
 #define TIME_SOURCE_RTC                 16
