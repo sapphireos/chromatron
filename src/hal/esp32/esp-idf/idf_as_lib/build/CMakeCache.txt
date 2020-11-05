@@ -14,9 +14,6 @@
 # EXTERNAL cache entries
 ########################
 
-//No help, variable specified on the command line.
-ARP_TABLE_SIZE:UNINITIALIZED=64
-
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-addr2line
 

@@ -46,6 +46,8 @@
 #include "sntp.h"
 #include "netif/dhcp_state.h"
 
+#define ARP_TABLE_SIZE 64
+
 /* Enable all Espressif-only options */
 
 /*
