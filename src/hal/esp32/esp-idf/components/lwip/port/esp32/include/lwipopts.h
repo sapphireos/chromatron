@@ -47,6 +47,8 @@
 #include "netif/dhcp_state.h"
 
 #define ARP_TABLE_SIZE 64
+#define ARP_QUEUEING 1
+#define ARP_QUEUE_LEN 4
 
 /* Enable all Espressif-only options */
 
