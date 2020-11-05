@@ -60,8 +60,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/mbedcrypto.dir/version.c.obj"
   "CMakeFiles/mbedcrypto.dir/version_features.c.obj"
   "CMakeFiles/mbedcrypto.dir/xtea.c.obj"
-  "libmbedcrypto.pdb"
   "libmbedcrypto.a"
+  "libmbedcrypto.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

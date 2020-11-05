@@ -747,7 +747,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     }
     else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
 
-        log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
+        // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
 
         return FALSE;
     }
@@ -960,7 +960,7 @@ static void process_query( service_msg_query_t *query, ip_addr4_t *ip ){
 
     if( service == 0 ){
 
-        log_v_error_P( PSTR("service not found") );
+        // log_v_error_P( PSTR("service not found") );
 
         return;
     }
@@ -968,7 +968,7 @@ static void process_query( service_msg_query_t *query, ip_addr4_t *ip ){
     // check state
     if( service->state != STATE_SERVER ){
 
-        log_v_error_P( PSTR("not server") );
+        // log_v_error_P( PSTR("not server") );
 
         return;
     }

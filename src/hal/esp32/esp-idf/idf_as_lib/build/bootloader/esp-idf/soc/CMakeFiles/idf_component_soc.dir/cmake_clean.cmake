@@ -14,8 +14,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_soc.dir/esp32/soc_memory_layout.c.obj"
   "CMakeFiles/idf_component_soc.dir/esp32/spi_periph.c.obj"
   "CMakeFiles/idf_component_soc.dir/src/memory_layout_utils.c.obj"
-  "libsoc.pdb"
   "libsoc.a"
+  "libsoc.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

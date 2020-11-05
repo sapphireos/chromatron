@@ -53,6 +53,10 @@ MEMORY
   dram0_0_seg (RW) :                 org = 0x3FFB0000 + CONFIG_BT_RESERVE_DRAM,
                                      len = 0x2c200 - CONFIG_BT_RESERVE_DRAM
 
+/* JGB - bootloader data */
+  dram0_boot_seg (RW) :              org = 0x3FFFFFFF - 16,
+                                     len = 16
+
   /* Flash mapped constant data */
   drom0_0_seg (R) :                  org = 0x3F400018, len = 0x400000-0x18
 

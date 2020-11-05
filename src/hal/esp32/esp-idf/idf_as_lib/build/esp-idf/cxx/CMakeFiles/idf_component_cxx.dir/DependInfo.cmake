@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/cxx/cxx_exception_stubs.cpp" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/cxx/cxx_guards.cpp" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/cxx/cxx_exception_stubs.cpp" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/cxx/cxx_guards.cpp" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -14,34 +14,34 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
   "ESP_PLATFORM"
   "GCC_NOT_5_2_0=0"
   "HAVE_CONFIG_H"
-  "IDF_VER=\"v3.3.2\""
+  "IDF_VER=\"v3.3.2-12-ga3a5fe81f\""
   )
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "config"
-  "../../components/esp32/include"
-  "../../components/driver/include"
-  "../../components/esp_ringbuf/include"
-  "../../components/tcpip_adapter/include"
-  "../../components/lwip/include/apps"
-  "../../components/lwip/include/apps/sntp"
-  "../../components/lwip/lwip/src/include"
-  "../../components/lwip/port/esp32/include"
-  "../../components/lwip/port/esp32/include/arch"
-  "../../components/lwip/include_compat"
-  "../../components/vfs/include"
-  "../../components/esp_event/include"
-  "../../components/log/include"
-  "../../components/efuse/include"
-  "../../components/efuse/esp32/include"
-  "../../components/newlib/platform_include"
-  "../../components/newlib/include"
-  "../../components/freertos/include"
-  "../../components/app_trace/include"
-  "../../components/heap/include"
-  "../../components/soc/esp32/include"
-  "../../components/soc/include"
+  "../../../../../components/esp32/include"
+  "../../../../../components/driver/include"
+  "../../../../../components/esp_ringbuf/include"
+  "../../../../../components/tcpip_adapter/include"
+  "../../../../../components/lwip/include/apps"
+  "../../../../../components/lwip/include/apps/sntp"
+  "../../../../../components/lwip/lwip/src/include"
+  "../../../../../components/lwip/port/esp32/include"
+  "../../../../../components/lwip/port/esp32/include/arch"
+  "../../../../../components/lwip/include_compat"
+  "../../../../../components/vfs/include"
+  "../../../../../components/esp_event/include"
+  "../../../../../components/log/include"
+  "../../../../../components/efuse/include"
+  "../../../../../components/efuse/esp32/include"
+  "../../../../../components/newlib/platform_include"
+  "../../../../../components/newlib/include"
+  "../../../../../components/freertos/include"
+  "../../../../../components/app_trace/include"
+  "../../../../../components/heap/include"
+  "../../../../../components/soc/esp32/include"
+  "../../../../../components/soc/include"
   )
 
 # Targets to which this target links.

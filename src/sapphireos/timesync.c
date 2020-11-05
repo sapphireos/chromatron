@@ -686,12 +686,25 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+static uint16_t get_priority( void ){
+
+    uint8_t source = get_best_local_source();
+
+    uint16_t priority = source;
+
+    #ifdef ESP32
+    priority += TIME_SOURCE_ESP32_PRIORITY;
+    #endif
+
+    return priority;
+}
+
 
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    services_v_join_team( TIME_ELECTION_SERVICE, 0, get_best_local_source(), TIME_SERVER_PORT );
+    services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
     // wait until we resolve the election
     THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
@@ -705,7 +718,7 @@ PT_BEGIN( pt );
         local_source = get_best_local_source();
     
         // update election parameters (in case our source changes)        
-        services_v_join_team( TIME_ELECTION_SERVICE, 0, local_source, TIME_SERVER_PORT );
+        services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );

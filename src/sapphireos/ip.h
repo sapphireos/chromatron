@@ -34,7 +34,7 @@
 
 #define IP_HEADER_LENGTH_BYTES ( IP_HEADER_LENGTH * 4 )
 
-#define IP_DEFAULT_TTL 64
+#define SOS_IP_DEFAULT_TTL 64
 
 #define MAX_IP_PACKET_SIZE 576 // this can be changed, but MUST be at least 576!
 

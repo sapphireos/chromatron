@@ -23,6 +23,9 @@
 #ifndef _HAL_ARP_H
 #define _HAL_ARP_H
 
+#include "ip.h"
+
+bool hal_arp_b_find( ip_addr4_t ip );
 void hal_arp_v_gratuitous_arp( void );
 
 #endif

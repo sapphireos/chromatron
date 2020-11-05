@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/idf_component_mbedtls.dir/mbedtls.c.obj"
-  "libmbedtls.pdb"
   "libmbedtls.a"
+  "libmbedtls.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

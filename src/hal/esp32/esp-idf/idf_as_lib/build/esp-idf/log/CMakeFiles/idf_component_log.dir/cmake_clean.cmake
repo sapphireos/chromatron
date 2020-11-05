@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/idf_component_log.dir/log.c.obj"
-  "liblog.pdb"
   "liblog.a"
+  "liblog.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

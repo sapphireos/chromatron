@@ -75,7 +75,7 @@ void ip_v_init_header( ip_hdr_t *ip_hdr,
 
     if( ttl == 0 ){
 
-        ip_hdr->ttl = IP_DEFAULT_TTL;
+        ip_hdr->ttl = SOS_IP_DEFAULT_TTL;
 	}
     else{
 

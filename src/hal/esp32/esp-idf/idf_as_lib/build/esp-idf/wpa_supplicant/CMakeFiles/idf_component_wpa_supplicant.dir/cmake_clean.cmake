@@ -7,11 +7,11 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-unwrap.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-wrap.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/bignum.c.obj"
-  "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-cipher.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-modexp.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-rsa.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal.c.obj"
+  "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/des-internal.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_group5.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_groups.c.obj"
@@ -73,8 +73,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_enrollee.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_registrar.c.obj"
   "CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_validate.c.obj"
-  "libwpa_supplicant.pdb"
   "libwpa_supplicant.a"
+  "libwpa_supplicant.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

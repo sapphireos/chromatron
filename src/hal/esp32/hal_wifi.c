@@ -58,6 +58,9 @@ static uint32_t wifi_udp_sent;
 static uint32_t wifi_udp_dropped;
 static bool default_ap_mode;
 
+static uint32_t wifi_arp_hits;
+static uint32_t wifi_arp_misses;
+
 static bool connected;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
@@ -88,6 +91,9 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
+
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
+    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 };
 
 
@@ -528,6 +534,18 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     destAddr.sin_family = AF_INET;
     destAddr.sin_port = htons(netmsg_state->raddr.port);
 
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+
+            wifi_arp_misses++;
+        }
+        else{
+
+            wifi_arp_hits++;
+        }
+    }
+
     int status = sendto( conn->sock, data, data_len, 0, (struct sockaddr *)&destAddr, sizeof(destAddr) );
 
     if( status < 0 ){
@@ -752,6 +770,8 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
     static uint8_t scan_timeout;
 

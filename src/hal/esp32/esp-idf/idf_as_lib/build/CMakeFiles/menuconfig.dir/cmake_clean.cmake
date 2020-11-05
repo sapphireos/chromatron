@@ -1,9 +1,9 @@
 file(REMOVE_RECURSE
-  "config/sdkconfig.h"
-  "config/sdkconfig.cmake"
-  "bootloader/bootloader.elf"
   "bootloader/bootloader.bin"
+  "bootloader/bootloader.elf"
   "bootloader/bootloader.map"
+  "config/sdkconfig.cmake"
+  "config/sdkconfig.h"
   "CMakeFiles/menuconfig"
 )
 

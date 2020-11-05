@@ -3,8 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj"
   "CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj"
   "CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj"
-  "libespcoredump.pdb"
   "libespcoredump.a"
+  "libespcoredump.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

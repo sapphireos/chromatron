@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/spi_flash/libspi_flash.a:
+In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/spi_flash/libspi_flash.a:
 
 cache_utils.c.obj:     file format elf32-xtensa-le
 
@@ -38,63 +38,63 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  16 .iram1.25     0000004e  00000000  00000000  00000240  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 17 .rodata.str1.1 0000010d  00000000  00000000  0000028e  2**0
+ 17 .rodata.str1.1 00000121  00000000  00000000  0000028e  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 18 .text.spi_flash_init_lock 00000026  00000000  00000000  0000039c  2**2
+ 18 .text.spi_flash_init_lock 00000026  00000000  00000000  000003b0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 19 .text.spi_flash_op_lock 00000012  00000000  00000000  000003c4  2**2
+ 19 .text.spi_flash_op_lock 00000012  00000000  00000000  000003d8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 20 .text.spi_flash_op_unlock 00000010  00000000  00000000  000003d8  2**2
+ 20 .text.spi_flash_op_unlock 00000010  00000000  00000000  000003ec  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 21 .iram1.26     000000ea  00000000  00000000  000003e8  2**2
+ 21 .iram1.26     000000ea  00000000  00000000  000003fc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 22 .iram1.27     0000009d  00000000  00000000  000004d4  2**2
+ 22 .iram1.27     0000009d  00000000  00000000  000004e8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 23 .iram1.28     0000002f  00000000  00000000  00000574  2**2
+ 23 .iram1.28     0000002f  00000000  00000000  00000588  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 24 .iram1.29     00000020  00000000  00000000  000005a4  2**2
+ 24 .iram1.29     00000020  00000000  00000000  000005b8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 25 .iram1.32     0000001f  00000000  00000000  000005c4  2**2
+ 25 .iram1.32     0000001f  00000000  00000000  000005d8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 26 .rodata.__func__$5728 00000031  00000000  00000000  000005e3  2**0
+ 26 .rodata.__func__$5728 00000031  00000000  00000000  000005f7  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 27 .rodata.__func__$5718 00000032  00000000  00000000  00000614  2**0
+ 27 .rodata.__func__$5718 00000032  00000000  00000000  00000628  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 28 .rodata.__func__$5702 00000014  00000000  00000000  00000646  2**0
+ 28 .rodata.__func__$5702 00000014  00000000  00000000  0000065a  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 29 .data.s_flash_op_cpu 00000004  00000000  00000000  0000065c  2**2
+ 29 .data.s_flash_op_cpu 00000004  00000000  00000000  00000670  2**2
                   CONTENTS, ALLOC, LOAD, DATA
- 30 .bss.s_flash_op_complete 00000001  00000000  00000000  00000660  2**0
+ 30 .bss.s_flash_op_complete 00000001  00000000  00000000  00000674  2**0
                   ALLOC
- 31 .bss.s_flash_op_can_start 00000001  00000000  00000000  00000660  2**0
+ 31 .bss.s_flash_op_can_start 00000001  00000000  00000000  00000674  2**0
                   ALLOC
- 32 .bss.s_flash_op_mutex 00000004  00000000  00000000  00000660  2**2
+ 32 .bss.s_flash_op_mutex 00000004  00000000  00000000  00000674  2**2
                   ALLOC
- 33 .bss.s_flash_op_cache_state 00000008  00000000  00000000  00000660  2**2
+ 33 .bss.s_flash_op_cache_state 00000008  00000000  00000000  00000674  2**2
                   ALLOC
- 34 .debug_frame  00000118  00000000  00000000  00000660  2**2
+ 34 .debug_frame  00000118  00000000  00000000  00000674  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 35 .debug_info   00000a1c  00000000  00000000  00000778  2**0
+ 35 .debug_info   00000a1c  00000000  00000000  0000078c  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 36 .debug_abbrev 000002ac  00000000  00000000  00001194  2**0
+ 36 .debug_abbrev 000002ac  00000000  00000000  000011a8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 37 .debug_loc    000002a2  00000000  00000000  00001440  2**0
+ 37 .debug_loc    000002a2  00000000  00000000  00001454  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 38 .debug_aranges 00000070  00000000  00000000  000016e2  2**0
+ 38 .debug_aranges 00000070  00000000  00000000  000016f6  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 39 .debug_ranges 000000a8  00000000  00000000  00001752  2**0
+ 39 .debug_ranges 000000a8  00000000  00000000  00001766  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 40 .debug_line   00000620  00000000  00000000  000017fa  2**0
+ 40 .debug_line   00000698  00000000  00000000  0000180e  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 41 .debug_str    00000542  00000000  00000000  00001e1a  2**0
+ 41 .debug_str    00000586  00000000  00000000  00001ea6  2**0
                   CONTENTS, READONLY, DEBUGGING
- 42 .comment      0000003b  00000000  00000000  0000235c  2**0
+ 42 .comment      0000003b  00000000  00000000  0000242c  2**0
                   CONTENTS, READONLY
- 43 .xtensa.info  00000038  00000000  00000000  00002397  2**0
+ 43 .xtensa.info  00000038  00000000  00000000  00002467  2**0
                   CONTENTS, READONLY
- 44 .xt.lit       00000058  00000000  00000000  000023cf  2**0
+ 44 .xt.lit       00000058  00000000  00000000  0000249f  2**0
                   CONTENTS, RELOC, READONLY
- 45 .xt.prop      00000348  00000000  00000000  00002427  2**0
+ 45 .xt.prop      00000348  00000000  00000000  000024f7  2**0
                   CONTENTS, RELOC, READONLY
 
 flash_mmap.c.obj:     file format elf32-xtensa-le
@@ -139,57 +139,57 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  18 .iram1.29     00000017  00000000  00000000  0000027c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 19 .rodata.str1.1 00000124  00000000  00000000  00000293  2**0
+ 19 .rodata.str1.1 00000138  00000000  00000000  00000293  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 20 .iram1.27     00000234  00000000  00000000  000003b8  2**2
+ 20 .iram1.27     00000234  00000000  00000000  000003cc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 21 .iram1.26     0000006a  00000000  00000000  000005ec  2**2
+ 21 .iram1.26     0000006a  00000000  00000000  00000600  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 22 .iram1.28     0000009e  00000000  00000000  00000658  2**2
+ 22 .iram1.28     0000009e  00000000  00000000  0000066c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 23 .text.spi_flash_mmap_dump 00000051  00000000  00000000  000006f8  2**2
+ 23 .text.spi_flash_mmap_dump 00000051  00000000  00000000  0000070c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 24 .iram1.31     00000065  00000000  00000000  0000074c  2**2
+ 24 .iram1.31     00000065  00000000  00000000  00000760  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 25 .text.spi_flash_cache2phys 0000004a  00000000  00000000  000007b4  2**2
+ 25 .text.spi_flash_cache2phys 0000004a  00000000  00000000  000007c8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 26 .iram1.32     0000007b  00000000  00000000  00000800  2**2
+ 26 .iram1.32     0000007b  00000000  00000000  00000814  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 27 .iram1.34     0000009c  00000000  00000000  0000087c  2**2
+ 27 .iram1.34     0000009c  00000000  00000000  00000890  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 28 .rodata.__func__$5827 00000011  00000000  00000000  00000918  2**0
+ 28 .rodata.__func__$5827 00000011  00000000  00000000  0000092c  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 29 .rodata.__func__$5818 00000015  00000000  00000000  00000929  2**0
+ 29 .rodata.__func__$5818 00000015  00000000  00000000  0000093d  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 30 .bss.s_mmap_last_handle 00000004  00000000  00000000  00000940  2**2
+ 30 .bss.s_mmap_last_handle 00000004  00000000  00000000  00000954  2**2
                   ALLOC
- 31 .bss.s_mmap_page_refcnt 00000100  00000000  00000000  00000940  2**0
+ 31 .bss.s_mmap_page_refcnt 00000100  00000000  00000000  00000954  2**0
                   ALLOC
- 32 .bss.s_mmap_entries_head 00000004  00000000  00000000  00000940  2**2
+ 32 .bss.s_mmap_entries_head 00000004  00000000  00000000  00000954  2**2
                   ALLOC
- 33 .debug_frame  00000130  00000000  00000000  00000940  2**2
+ 33 .debug_frame  00000130  00000000  00000000  00000954  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 34 .debug_info   0000118b  00000000  00000000  00000a70  2**0
+ 34 .debug_info   0000118b  00000000  00000000  00000a84  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 35 .debug_abbrev 00000410  00000000  00000000  00001bfb  2**0
+ 35 .debug_abbrev 00000410  00000000  00000000  00001c0f  2**0
                   CONTENTS, READONLY, DEBUGGING
- 36 .debug_loc    00000bbe  00000000  00000000  0000200b  2**0
+ 36 .debug_loc    00000bbe  00000000  00000000  0000201f  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 37 .debug_aranges 00000078  00000000  00000000  00002bc9  2**0
+ 37 .debug_aranges 00000078  00000000  00000000  00002bdd  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 38 .debug_ranges 00000148  00000000  00000000  00002c41  2**0
+ 38 .debug_ranges 00000148  00000000  00000000  00002c55  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 39 .debug_line   00000b3d  00000000  00000000  00002d89  2**0
+ 39 .debug_line   00000c05  00000000  00000000  00002d9d  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 40 .debug_str    00000739  00000000  00000000  000038c6  2**0
+ 40 .debug_str    0000077d  00000000  00000000  000039a2  2**0
                   CONTENTS, READONLY, DEBUGGING
- 41 .comment      0000003b  00000000  00000000  00003fff  2**0
+ 41 .comment      0000003b  00000000  00000000  0000411f  2**0
                   CONTENTS, READONLY
- 42 .xtensa.info  00000038  00000000  00000000  0000403a  2**0
+ 42 .xtensa.info  00000038  00000000  00000000  0000415a  2**0
                   CONTENTS, READONLY
- 43 .xt.lit       00000060  00000000  00000000  00004072  2**0
+ 43 .xt.lit       00000060  00000000  00000000  00004192  2**0
                   CONTENTS, RELOC, READONLY
- 44 .xt.prop      000005c4  00000000  00000000  000040d2  2**0
+ 44 .xt.prop      000005c4  00000000  00000000  000041f2  2**0
                   CONTENTS, RELOC, READONLY
 
 flash_ops.c.obj:     file format elf32-xtensa-le
@@ -282,17 +282,17 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  42 .debug_ranges 000000e0  00000000  00000000  0000357a  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 43 .debug_line   00000bcd  00000000  00000000  0000365a  2**0
+ 43 .debug_line   00000c81  00000000  00000000  0000365a  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 44 .debug_str    00000d53  00000000  00000000  00004227  2**0
+ 44 .debug_str    00000d97  00000000  00000000  000042db  2**0
                   CONTENTS, READONLY, DEBUGGING
- 45 .comment      0000003b  00000000  00000000  00004f7a  2**0
+ 45 .comment      0000003b  00000000  00000000  00005072  2**0
                   CONTENTS, READONLY
- 46 .xtensa.info  00000038  00000000  00000000  00004fb5  2**0
+ 46 .xtensa.info  00000038  00000000  00000000  000050ad  2**0
                   CONTENTS, READONLY
- 47 .xt.lit       00000078  00000000  00000000  00004fed  2**0
+ 47 .xt.lit       00000078  00000000  00000000  000050e5  2**0
                   CONTENTS, RELOC, READONLY
- 48 .xt.prop      000006b4  00000000  00000000  00005065  2**0
+ 48 .xt.prop      000006b4  00000000  00000000  0000515d  2**0
                   CONTENTS, RELOC, READONLY
 
 partition.c.obj:     file format elf32-xtensa-le
@@ -329,73 +329,73 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
  14 .bss          00000000  00000000  00000000  00000154  2**0
                   ALLOC
- 15 .rodata.str1.1 0000006b  00000000  00000000  00000154  2**0
+ 15 .rodata.str1.1 0000007f  00000000  00000000  00000154  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 16 .text.esp_partition_next 0000007a  00000000  00000000  000001c0  2**2
+ 16 .text.esp_partition_next 0000007a  00000000  00000000  000001d4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 17 .text.esp_partition_find 00000125  00000000  00000000  0000023c  2**2
+ 17 .text.esp_partition_find 00000125  00000000  00000000  00000250  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 18 .text.esp_partition_iterator_release 0000000e  00000000  00000000  00000364  2**2
+ 18 .text.esp_partition_iterator_release 0000000e  00000000  00000000  00000378  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 19 .text.esp_partition_get 0000001c  00000000  00000000  00000374  2**2
+ 19 .text.esp_partition_get 0000001c  00000000  00000000  00000388  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 20 .text.esp_partition_find_first 00000028  00000000  00000000  00000390  2**2
+ 20 .text.esp_partition_find_first 00000028  00000000  00000000  000003a4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 21 .text.esp_partition_verify 0000006e  00000000  00000000  000003b8  2**2
+ 21 .text.esp_partition_verify 0000006e  00000000  00000000  000003cc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 22 .text.esp_partition_write 0000004a  00000000  00000000  00000428  2**2
+ 22 .text.esp_partition_write 0000004a  00000000  00000000  0000043c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 23 .text.esp_partition_erase_range 00000044  00000000  00000000  00000474  2**2
+ 23 .text.esp_partition_erase_range 00000044  00000000  00000000  00000488  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 24 .text.esp_partition_mmap 00000050  00000000  00000000  000004b8  2**2
+ 24 .text.esp_partition_mmap 00000050  00000000  00000000  000004cc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 25 .text.esp_partition_read 00000070  00000000  00000000  00000508  2**2
+ 25 .text.esp_partition_read 00000070  00000000  00000000  0000051c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 26 .text.esp_partition_get_sha256 00000015  00000000  00000000  00000578  2**2
+ 26 .text.esp_partition_get_sha256 00000015  00000000  00000000  0000058c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 27 .text.esp_partition_check_identity 00000046  00000000  00000000  00000590  2**2
+ 27 .text.esp_partition_check_identity 00000046  00000000  00000000  000005a4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 28 .rodata.__func__$3735 00000013  00000000  00000000  000005d6  2**0
+ 28 .rodata.__func__$3735 00000013  00000000  00000000  000005ea  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 29 .rodata.__func__$3726 0000001a  00000000  00000000  000005e9  2**0
+ 29 .rodata.__func__$3726 0000001a  00000000  00000000  000005fd  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 30 .rodata.__func__$3720 00000014  00000000  00000000  00000603  2**0
+ 30 .rodata.__func__$3720 00000014  00000000  00000000  00000617  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 31 .rodata.__func__$3710 00000013  00000000  00000000  00000617  2**0
+ 31 .rodata.__func__$3710 00000013  00000000  00000000  0000062b  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 32 .rodata.__func__$3697 00000015  00000000  00000000  0000062a  2**0
+ 32 .rodata.__func__$3697 00000015  00000000  00000000  0000063e  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 33 .rodata.__func__$3693 00000012  00000000  00000000  0000063f  2**0
+ 33 .rodata.__func__$3693 00000012  00000000  00000000  00000653  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 34 .rodata.__func__$3656 00000013  00000000  00000000  00000651  2**0
+ 34 .rodata.__func__$3656 00000013  00000000  00000000  00000665  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 35 .bss.s_partition_list_lock 00000004  00000000  00000000  00000664  2**2
+ 35 .bss.s_partition_list_lock 00000004  00000000  00000000  00000678  2**2
                   ALLOC
- 36 .bss.s_partition_list 00000004  00000000  00000000  00000664  2**2
+ 36 .bss.s_partition_list 00000004  00000000  00000000  00000678  2**2
                   ALLOC
- 37 .debug_frame  00000130  00000000  00000000  00000664  2**2
+ 37 .debug_frame  00000130  00000000  00000000  00000678  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 38 .debug_info   00001171  00000000  00000000  00000794  2**0
+ 38 .debug_info   00001171  00000000  00000000  000007a8  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 39 .debug_abbrev 0000033f  00000000  00000000  00001905  2**0
+ 39 .debug_abbrev 0000033f  00000000  00000000  00001919  2**0
                   CONTENTS, READONLY, DEBUGGING
- 40 .debug_loc    0000056b  00000000  00000000  00001c44  2**0
+ 40 .debug_loc    0000056b  00000000  00000000  00001c58  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 41 .debug_aranges 00000078  00000000  00000000  000021af  2**0
+ 41 .debug_aranges 00000078  00000000  00000000  000021c3  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 42 .debug_ranges 000000b8  00000000  00000000  00002227  2**0
+ 42 .debug_ranges 000000b8  00000000  00000000  0000223b  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 43 .debug_line   00000858  00000000  00000000  000022df  2**0
+ 43 .debug_line   000008e4  00000000  00000000  000022f3  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 44 .debug_str    00000ae6  00000000  00000000  00002b37  2**0
+ 44 .debug_str    00000b2a  00000000  00000000  00002bd7  2**0
                   CONTENTS, READONLY, DEBUGGING
- 45 .comment      0000003b  00000000  00000000  0000361d  2**0
+ 45 .comment      0000003b  00000000  00000000  00003701  2**0
                   CONTENTS, READONLY
- 46 .xtensa.info  00000038  00000000  00000000  00003658  2**0
+ 46 .xtensa.info  00000038  00000000  00000000  0000373c  2**0
                   CONTENTS, READONLY
- 47 .xt.lit       00000060  00000000  00000000  00003690  2**0
+ 47 .xt.lit       00000060  00000000  00000000  00003774  2**0
                   CONTENTS, RELOC, READONLY
- 48 .xt.prop      00000438  00000000  00000000  000036f0  2**0
+ 48 .xt.prop      00000438  00000000  00000000  000037d4  2**0
                   CONTENTS, RELOC, READONLY
 
 spi_flash_rom_patch.c.obj:     file format elf32-xtensa-le
@@ -486,15 +486,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
  41 .debug_ranges 000000d8  00000000  00000000  00002867  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 42 .debug_line   00000a3c  00000000  00000000  0000293f  2**0
+ 42 .debug_line   00000a8c  00000000  00000000  0000293f  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 43 .debug_str    0000078a  00000000  00000000  0000337b  2**0
+ 43 .debug_str    0000079e  00000000  00000000  000033cb  2**0
                   CONTENTS, READONLY, DEBUGGING
- 44 .comment      0000003b  00000000  00000000  00003b05  2**0
+ 44 .comment      0000003b  00000000  00000000  00003b69  2**0
                   CONTENTS, READONLY
- 45 .xtensa.info  00000038  00000000  00000000  00003b40  2**0
+ 45 .xtensa.info  00000038  00000000  00000000  00003ba4  2**0
                   CONTENTS, READONLY
- 46 .xt.lit       00000080  00000000  00000000  00003b78  2**0
+ 46 .xt.lit       00000080  00000000  00000000  00003bdc  2**0
                   CONTENTS, RELOC, READONLY
- 47 .xt.prop      0000078c  00000000  00000000  00003bf8  2**0
+ 47 .xt.prop      0000078c  00000000  00000000  00003c5c  2**0
                   CONTENTS, RELOC, READONLY

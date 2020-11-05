@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/esp8266/esp-idf/components/mbedtls/mbedtls
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,8 +34,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
-  include("/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
+  include("/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
+  include("/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
 
 endif()
 

@@ -15,8 +15,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj"
   "CMakeFiles/idf_component_freertos.dir/xtensa_vector_defaults.S.obj"
   "CMakeFiles/idf_component_freertos.dir/xtensa_vectors.S.obj"
-  "libfreertos.pdb"
   "libfreertos.a"
+  "libfreertos.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

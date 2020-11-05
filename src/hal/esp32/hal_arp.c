@@ -23,10 +23,40 @@
 
 #include "system.h"
 
-#include "hal_arp.h"
-
 #include "lwip/netif.h"
 #include "lwip/etharp.h"
+
+#include "hal_arp.h"
+
+
+
+bool hal_arp_b_find( ip_addr4_t ip ){
+
+    if( ip_b_check_broadcast( ip ) || !ip_b_check_subnet( ip ) ){
+
+        // report true for broadcasts and for IPs not on the subnet (since they'll route through a gateway)
+        // they aren't in the ARP table, but they don't use ARP.
+
+        return TRUE;
+    }
+
+    ip4_addr_t ipaddr;
+    ipaddr.addr = HTONL( ip_u32_to_int( ip ) );
+
+    struct eth_addr *eth_ret;
+    const ip4_addr_t *ipaddr_ret;
+
+    for (struct netif* interface = netif_list; interface != 0; interface = interface->next){
+
+        if( etharp_find_addr( interface, &ipaddr, &eth_ret, &ipaddr_ret ) >= 0 ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 
 void hal_arp_v_gratuitous_arp( void ){
 

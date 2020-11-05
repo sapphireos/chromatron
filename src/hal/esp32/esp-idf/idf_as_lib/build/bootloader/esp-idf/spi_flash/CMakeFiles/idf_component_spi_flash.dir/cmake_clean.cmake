@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.obj"
-  "libspi_flash.pdb"
   "libspi_flash.a"
+  "libspi_flash.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

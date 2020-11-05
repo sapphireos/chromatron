@@ -46,10 +46,19 @@ MEMORY
   */
   dram0_0_seg (RW) : org = 0x3FFB0000 + 0,
                                      len = 0x2c200 - 0
-  
-  /* JGB - bootloader data */
+
+  /* JGB - bootloader data
+  This is a separate file, manually copied in.
+  It *looks* like the ESP-IDF build system is supposed to generate this file
+  from the esp32.ld in components/esp32.
+  HOWEVER it does not appear to actually do this?  If I make this modification in that
+  file, it will be erased.  No idea how that is happening.
+
+  We will just keep our own copy of the correct file and copy it manually.
+
+  */
   dram0_boot_seg (RW) :              org = 0x3FFFFFFF - 16,
-                                     len = 16
+                                     len = 16                                     
   
   /* Flash mapped constant data */
   drom0_0_seg (R) : org = 0x3F400018, len = 0x400000-0x18

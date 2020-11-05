@@ -29,6 +29,7 @@
 #include "io.h"
 #include "flash_fs.h"
 #include "wifi.h"
+#include "timesync.h"
 
 #include "hal_status_led.h"
 

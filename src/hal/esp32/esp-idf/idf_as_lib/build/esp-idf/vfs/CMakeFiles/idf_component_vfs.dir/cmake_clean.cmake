@@ -1,8 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/idf_component_vfs.dir/vfs.c.obj"
   "CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj"
-  "libvfs.pdb"
   "libvfs.a"
+  "libvfs.pdb"
 )
 
 # Per-language clean rules from dependency scanning.
