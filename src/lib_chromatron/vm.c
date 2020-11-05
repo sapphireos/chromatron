@@ -484,6 +484,7 @@ typedef struct{
     mem_handle_t handle;
     int8_t vm_return;
     int32_t delta_ticks;
+    uint32_t last_run;
     vm_state_t vm_state;
 } vm_thread_state_t;
 
@@ -549,9 +550,12 @@ PT_BEGIN( pt );
     }
 
     vm_status[state->vm_id] = VM_STATUS_OK;
+
+    uint32_t now = tmr_u32_get_system_time_ms();
+    state->last_run = now;
     
     // init alarm
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+    thread_v_set_alarm( now );
     
     // do{
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
@@ -593,9 +597,11 @@ PT_BEGIN( pt );
             } 
         }
 
-        uint32_t delay = tmr_u32_get_system_time_ms() - thread_u32_get_alarm();
+        uint32_t delay = tmr_u32_get_system_time_ms() - state->last_run;
 
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
+        state->last_run = tmr_u32_get_system_time_ms();
+
 
         // THREAD_WAIT_WHILE( pt, vm_run_flags[state->vm_id] == 0 );
 
