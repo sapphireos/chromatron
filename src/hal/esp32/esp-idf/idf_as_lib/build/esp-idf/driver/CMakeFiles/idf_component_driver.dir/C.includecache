@@ -796,14 +796,6 @@ driver/sdmmc_host.h
 sdmmc_private.h
 /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/driver/sdmmc_private.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/driver/sdspi_crc.c
-stdint.h
--
-rom/crc.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/driver/rom/crc.h
-sdspi_crc.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/driver/sdspi_crc.h
-
 /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/driver/sdspi_crc.h
 stdint.h
 -
@@ -1188,10 +1180,6 @@ stdint.h
 stdbool.h
 -
 stddef.h
--
-
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/include/rom/crc.h
-stdint.h
 -
 
 /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/include/rom/ets_sys.h

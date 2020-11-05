@@ -298,12 +298,6 @@ esp_assert.h
 soc.h
 /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/esp32/include/soc/soc.h
 
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/xtensa-debug-module/eri.c
-stdint.h
--
-eri.h
-/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/xtensa-debug-module/eri.h
-
 /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/xtensa-debug-module/include/eri.h
 stdint.h
 -
