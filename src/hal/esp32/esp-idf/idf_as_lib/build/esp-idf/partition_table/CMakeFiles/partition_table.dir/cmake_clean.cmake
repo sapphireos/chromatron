@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/partition_table"
   "../../partition_table/partition-table.bin"
+  "CMakeFiles/partition_table"
 )
 
 # Per-language clean rules from dependency scanning.

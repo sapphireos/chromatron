@@ -8,8 +8,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/mbedx509.dir/x509_csr.c.obj"
   "CMakeFiles/mbedx509.dir/x509write_crt.c.obj"
   "CMakeFiles/mbedx509.dir/x509write_csr.c.obj"
-  "libmbedx509.pdb"
   "libmbedx509.a"
+  "libmbedx509.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

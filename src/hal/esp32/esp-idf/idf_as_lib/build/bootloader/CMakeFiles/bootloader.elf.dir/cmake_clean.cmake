@@ -1,11 +1,11 @@
 file(REMOVE_RECURSE
   "bootloader.map"
-  "config/sdkconfig.h"
   "config/sdkconfig.cmake"
-  "dummy_main_src.c"
+  "config/sdkconfig.h"
   "CMakeFiles/bootloader.elf.dir/dummy_main_src.c.obj"
-  "bootloader.elf.pdb"
   "bootloader.elf"
+  "bootloader.elf.pdb"
+  "dummy_main_src.c"
 )
 
 # Per-language clean rules from dependency scanning.

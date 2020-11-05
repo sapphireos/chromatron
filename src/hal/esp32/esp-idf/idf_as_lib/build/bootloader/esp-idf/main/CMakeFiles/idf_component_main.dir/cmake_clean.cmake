@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/idf_component_main.dir/bootloader_start.c.obj"
-  "libmain.pdb"
   "libmain.a"
+  "libmain.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

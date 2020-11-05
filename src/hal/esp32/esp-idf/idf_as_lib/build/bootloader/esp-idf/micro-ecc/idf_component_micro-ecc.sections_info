@@ -1,4 +1,4 @@
-In archive /home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/micro-ecc/libmicro-ecc.a:
+In archive /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/micro-ecc/libmicro-ecc.a:
 
 uECC.c.obj:     file format elf32-xtensa-le
 
@@ -266,15 +266,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, RELOC, READONLY, DEBUGGING
 130 .debug_ranges 00000348  00000000  00000000  0000bc6c  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-131 .debug_line   0000218c  00000000  00000000  0000bfb4  2**0
+131 .debug_line   00002197  00000000  00000000  0000bfb4  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
-132 .debug_str    000009c2  00000000  00000000  0000e140  2**0
+132 .debug_str    000009cd  00000000  00000000  0000e14b  2**0
                   CONTENTS, READONLY, DEBUGGING
-133 .comment      0000003b  00000000  00000000  0000eb02  2**0
+133 .comment      0000003b  00000000  00000000  0000eb18  2**0
                   CONTENTS, READONLY
-134 .xtensa.info  00000038  00000000  00000000  0000eb3d  2**0
+134 .xtensa.info  00000038  00000000  00000000  0000eb53  2**0
                   CONTENTS, READONLY
-135 .xt.lit       00000190  00000000  00000000  0000eb75  2**0
+135 .xt.lit       00000190  00000000  00000000  0000eb8b  2**0
                   CONTENTS, RELOC, READONLY
-136 .xt.prop      000013c8  00000000  00000000  0000ed05  2**0
+136 .xt.prop      000013c8  00000000  00000000  0000ed1b  2**0
                   CONTENTS, RELOC, READONLY

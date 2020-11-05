@@ -2963,7 +2963,10 @@
                                 "help": "Timeout period configuration for the Task Watchdog Timer in seconds.\nThis is also configurable at run time (see Task Watchdog Timer API Reference)\n", 
                                 "id": "TASK_WDT_TIMEOUT_S", 
                                 "name": "TASK_WDT_TIMEOUT_S", 
-                                "range": null, 
+                                "range": [
+                                    1, 
+                                    60
+                                ], 
                                 "title": "Task Watchdog timeout period (seconds)", 
                                 "type": "int"
                             }, 

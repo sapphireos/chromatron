@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/esp8266/esp-idf/components/cxx
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/cxx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -3,8 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj"
   "CMakeFiles/idf_component_heap.dir/heap_trace.c.obj"
   "CMakeFiles/idf_component_heap.dir/multi_heap.c.obj"
-  "libheap.pdb"
   "libheap.a"
+  "libheap.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

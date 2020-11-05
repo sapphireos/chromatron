@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/log/log.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/log/log.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
@@ -19,11 +19,11 @@ set(CMAKE_TARGET_DEFINITIONS_C
 
 # The include file search paths:
 set(CMAKE_C_TARGET_INCLUDE_PATH
-  "../../../components/log/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/log/include"
   "config"
-  "../../../components/esp32/include"
-  "../../../components/soc/esp32/include"
-  "../../../components/soc/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/esp32/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/include"
   )
 
 # Targets to which this target links.

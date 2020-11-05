@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/idf_component_micro-ecc.dir/micro-ecc/uECC.c.obj"
-  "libmicro-ecc.pdb"
   "libmicro-ecc.a"
+  "libmicro-ecc.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

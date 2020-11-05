@@ -1,4 +1,4 @@
-# Install script for directory: /home/jeremy/JEREMY/esp8266/esp-idf/components/esp_event
+# Install script for directory: /home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp_event
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

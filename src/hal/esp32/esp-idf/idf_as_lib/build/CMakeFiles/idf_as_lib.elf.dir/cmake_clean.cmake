@@ -1,12 +1,12 @@
 file(REMOVE_RECURSE
-  "config/sdkconfig.h"
-  "config/sdkconfig.cmake"
-  "bootloader/bootloader.elf"
   "bootloader/bootloader.bin"
+  "bootloader/bootloader.elf"
   "bootloader/bootloader.map"
+  "config/sdkconfig.cmake"
+  "config/sdkconfig.h"
   "CMakeFiles/idf_as_lib.elf.dir/main.c.obj"
-  "idf_as_lib.elf.pdb"
   "idf_as_lib.elf"
+  "idf_as_lib.elf.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

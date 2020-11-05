@@ -4,20 +4,20 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_clock.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_clock.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_common.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_flash.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_flash_config.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash_config.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_init.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_init.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_random.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_sha.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_sha.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/bootloader_utility.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_utility.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/esp_image_format.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/esp_image_format.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/flash_encrypt.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_encrypt.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/flash_partitions.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_partitions.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/flash_qio_mode.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_qio_mode.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/secure_boot.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot.c.obj"
-  "/home/jeremy/JEREMY/esp8266/esp-idf/components/bootloader_support/src/secure_boot_signatures.c" "/home/jeremy/JEREMY/esp8266/esp-idf/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot_signatures.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_clock.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_clock.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_common.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_flash.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_flash_config.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash_config.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_init.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_init.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_random.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_sha.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_sha.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/bootloader_utility.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_utility.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/esp_image_format.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/esp_image_format.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/flash_encrypt.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_encrypt.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/flash_partitions.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_partitions.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/flash_qio_mode.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_qio_mode.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/secure_boot.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot.c.obj"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/src/secure_boot_signatures.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot_signatures.c.obj"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
@@ -32,17 +32,17 @@ set(CMAKE_TARGET_DEFINITIONS_C
 
 # The include file search paths:
 set(CMAKE_C_TARGET_INCLUDE_PATH
-  "../../../components/bootloader_support/include"
-  "../../../components/bootloader_support/include_bootloader"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/bootloader_support/include_bootloader"
   "config"
-  "../../../components/spi_flash/include"
-  "../../../components/micro-ecc/micro-ecc"
-  "../../../components/efuse/include"
-  "../../../components/efuse/esp32/include"
-  "../../../components/log/include"
-  "../../../components/esp32/include"
-  "../../../components/soc/esp32/include"
-  "../../../components/soc/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/spi_flash/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/micro-ecc/micro-ecc"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/efuse/esp32/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/log/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/esp32/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/esp32/include"
+  "/home/jeremy/JEREMY/SAPPHIRE/espressif/esp-idf/components/soc/include"
   )
 
 # Targets to which this target links.

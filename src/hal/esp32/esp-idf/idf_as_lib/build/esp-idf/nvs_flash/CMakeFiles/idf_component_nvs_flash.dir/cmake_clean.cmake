@@ -7,8 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj"
   "CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj"
   "CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj"
-  "libnvs_flash.pdb"
   "libnvs_flash.a"
+  "libnvs_flash.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

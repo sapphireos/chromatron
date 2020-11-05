@@ -3,8 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_efuse.dir/src/esp_efuse_api.c.obj"
   "CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.obj"
   "CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj"
-  "libefuse.pdb"
   "libefuse.a"
+  "libefuse.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

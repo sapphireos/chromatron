@@ -12,8 +12,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_bootloader_support.dir/src/flash_qio_mode.c.obj"
   "CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot.c.obj"
   "CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot_signatures.c.obj"
-  "libbootloader_support.pdb"
   "libbootloader_support.a"
+  "libbootloader_support.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

@@ -21,8 +21,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_driver.dir/spi_slave.c.obj"
   "CMakeFiles/idf_component_driver.dir/timer.c.obj"
   "CMakeFiles/idf_component_driver.dir/uart.c.obj"
-  "libdriver.pdb"
   "libdriver.a"
+  "libdriver.pdb"
 )
 
 # Per-language clean rules from dependency scanning.
