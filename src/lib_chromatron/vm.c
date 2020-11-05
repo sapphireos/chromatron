@@ -61,30 +61,30 @@ int8_t vm_i8_kv_handler(
     void *data,
     uint16_t len ){
 
-    if( op == KV_OP_SET ){
+    // if( op == KV_OP_SET ){
 
-        if( hash == __KV__gfx_frame_rate ){
+    //     if( hash == __KV__gfx_frame_rate ){
 
-            gfx_v_set_vm_frame_rate( LOAD16(data) );
+    //         gfx_v_set_vm_frame_rate( LOAD16(data) );
 
-            for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+            // for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
-                vm_run_flags[i] |= VM_FLAG_UPDATE_FRAME_RATE;
-            }
+            //     vm_run_flags[i] |= VM_FLAG_UPDATE_FRAME_RATE;
+            // }
 
             // update_frame_rate = TRUE;
-        }
-    }
-    else if( op == KV_OP_GET ){
+        // }
+    // }
+    if( op == KV_OP_GET ){
 
         if( hash == __KV__vm_isa ){
 
             *(uint8_t *)data = VM_ISA_VERSION;
         }
-        else if( hash == __KV__gfx_frame_rate ){
+        // else if( hash == __KV__gfx_frame_rate ){
 
-            STORE16(data, gfx_u16_get_vm_frame_rate());
-        }
+        //     STORE16(data, gfx_u16_get_vm_frame_rate());
+        // }
     }
 
     return 0;
@@ -131,8 +131,6 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #endif
 
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
-
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    0,                     vm_i8_kv_handler,   "gfx_frame_rate" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -998,6 +996,14 @@ bool vm_b_is_vm_running( uint8_t i ){
     ASSERT( i < VM_MAX_VMS );
 
     return is_vm_running( i );   
+}
+
+void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate ){
+
+    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        vm_run_flags[i] |= VM_FLAG_UPDATE_FRAME_RATE;
+    }
 }
 
 int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){

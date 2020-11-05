@@ -168,4 +168,7 @@ void gfx_v_delete_pixel_arrays( void );
 void gfx_v_init_noise( void );
 uint16_t gfx_u16_noise( uint16_t x );
 
+// implemented by VM to signal frame rate changes
+void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate );
+
 #endif

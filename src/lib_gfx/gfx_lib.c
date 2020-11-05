@@ -32,7 +32,7 @@
 #include "hsv_to_rgb.h"
 #include "keyvalue.h"
 #include "gfx_lib.h"
-
+#include "vm.h"
 
 static uint8_t array_red[MAX_PIXELS];
 static uint8_t array_green[MAX_PIXELS];
@@ -219,21 +219,57 @@ KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
 };
 
 
+int8_t gfx_i8_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len ){
+
+    if( op == KV_OP_SET ){
+
+        if( hash == __KV__gfx_frame_rate ){
+
+            param_error_check();   
+
+            // signal new frame rate to VM
+            gfx_vm_v_update_frame_rate( gfx_frame_rate );
+        }
+        else if( hash == __KV__gfx_hsfade ){
+
+            for( uint16_t i = 0; i < MAX_PIXELS; i++ ){
+
+                hs_fade[i] = global_hs_fade;   
+            }
+        }
+        else if( hash == __KV__gfx_vfade ){
+
+            for( uint16_t i = 0; i < MAX_PIXELS; i++ ){
+
+                v_fade[i] = global_v_fade;   
+            }
+        }
+    }
+
+    return 0;
+}
+
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,   "gfx_invert_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              0,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               0,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,   "gfx_dimmer_curve" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   0,   "gfx_sat_curve" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,                   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   0,                   "gfx_sat_curve" },
     
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,   "gfx_varray_length" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
+
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
 };
 
 static void compute_dimmer_lookup( void ){
