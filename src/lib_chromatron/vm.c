@@ -100,6 +100,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
 
+    #if VM_MAX_VMS >= 2
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
@@ -107,7 +108,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
+    #endif
 
+    #if VM_MAX_VMS >= 3
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
@@ -115,7 +118,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
+    #endif
 
+    #if VM_MAX_VMS >= 4
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
@@ -123,6 +128,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
+    #endif
 
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 
@@ -131,9 +137,18 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 
 static const char* vm_names[VM_MAX_VMS] = {
     "vm_0",
+
+    #if VM_MAX_VMS >= 2
     "vm_1",
+    #endif
+
+    #if VM_MAX_VMS >= 3
     "vm_2",
+    #endif
+
+    #if VM_MAX_VMS >= 4
     "vm_3",
+    #endif
 };
 
 // keys that we really don't want the VM be to be able to write to.
@@ -776,6 +791,23 @@ PT_END( pt );
 // PT_END( pt );
 // }
 
+static bool vm_loader_wait( void ){
+
+    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        if( ( ( !vm_run[i]  && !is_vm_running( i ) )  ||
+                ( vm_run[i]   && is_vm_running( i ) ) )    &&
+              ( !vm_reset[i] ) ){
+        }
+        else{
+
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 
 PT_THREAD( vm_loader( pt_t *pt, void *state ) )
 {
@@ -789,23 +821,25 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, 
-            ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||
-                ( vm_run[0]   && is_vm_running( 0 ) ) )    &&
-              ( !vm_reset[0] ) )
-            &&
-            ( ( ( !vm_run[1]  && !is_vm_running( 1 ) )  ||
-                ( vm_run[1]   && is_vm_running( 1 ) ) )    &&
-              ( !vm_reset[1] ) )
-            &&
-            ( ( ( !vm_run[2]  && !is_vm_running( 2 ) )  ||
-                ( vm_run[2]   && is_vm_running( 2 ) ) )    &&
-              ( !vm_reset[2] ) )
-            &&
-            ( ( ( !vm_run[3]  && !is_vm_running( 3 ) )  ||
-                ( vm_run[3]   && is_vm_running( 3 ) ) )    &&
-              ( !vm_reset[3] ) )
-        );
+        THREAD_WAIT_WHILE( pt, vm_loader_wait() );
+
+        // THREAD_WAIT_WHILE( pt, 
+        //     ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||
+        //         ( vm_run[0]   && is_vm_running( 0 ) ) )    &&
+        //       ( !vm_reset[0] ) )
+        //     &&
+        //     ( ( ( !vm_run[1]  && !is_vm_running( 1 ) )  ||
+        //         ( vm_run[1]   && is_vm_running( 1 ) ) )    &&
+        //       ( !vm_reset[1] ) )
+        //     &&
+        //     ( ( ( !vm_run[2]  && !is_vm_running( 2 ) )  ||
+        //         ( vm_run[2]   && is_vm_running( 2 ) ) )    &&
+        //       ( !vm_reset[2] ) )
+        //     &&
+        //     ( ( ( !vm_run[3]  && !is_vm_running( 3 ) )  ||
+        //         ( vm_run[3]   && is_vm_running( 3 ) ) )    &&
+        //       ( !vm_reset[3] ) )
+        // );
 
 
         // check what we're doing, and to what VM    
