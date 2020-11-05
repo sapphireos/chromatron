@@ -55,6 +55,7 @@
 #define IO_PIN_COUNT        21
 
 #define IO_PIN_LED			IO_PIN_13_A12
+#define IO_PIN_DEBUG        IO_PIN_26_A0
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin );
 

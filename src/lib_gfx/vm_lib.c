@@ -27,6 +27,7 @@
 #include "random.h"
 #include "cnt_of_array.h"
 #include "vm_lib.h"
+#include "io.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -263,6 +264,23 @@ int8_t vm_lib_i8_libcall_built_in(
                     break;
                 }
             }
+
+            break;
+
+        // perform a short strobe on the debug pin
+        // this should not be used unless debugging the VM.
+        // in some boards it may interfere with the pixel connections.
+        case __KV__debug_strobe:
+            if( param_len != 0 ){
+
+                break;
+            }
+
+            io_v_set_mode( IO_PIN_DEBUG, IO_MODE_OUTPUT );
+            
+            io_v_digital_write( IO_PIN_DEBUG, TRUE );
+            _delay_us( 100 );
+            io_v_digital_write( IO_PIN_DEBUG, FALSE );
 
             break;
 
