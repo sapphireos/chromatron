@@ -564,11 +564,8 @@ PT_BEGIN( pt );
 
     vm_status[state->vm_id] = VM_STATUS_OK;
 
-    uint32_t now = tmr_u32_get_system_time_ms();
-    state->last_run = now;
-    
-    // init alarm
-    thread_v_set_alarm( now );
+    state->last_run = tmr_u32_get_system_time_ms();
+
     
     // do{
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
@@ -588,7 +585,7 @@ PT_BEGIN( pt );
         else{
 
             // set alarm
-            thread_v_set_alarm( thread_u32_get_alarm() + vm_delay );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + vm_delay );
           
             // update tick delay for VM for next update
             state->delta_ticks = vm_delay;
@@ -607,6 +604,7 @@ PT_BEGIN( pt );
                 // the next one will be correct.
                 // This is will screw up the VM time sync across nodes, they will
                 // have to resynchronize.
+                state->vm_state.loop_delay = 0;
             } 
         }
 
