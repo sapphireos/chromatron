@@ -227,8 +227,8 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,   "gfx_interleave_x" },
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,   "gfx_invert_x" },
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hs_fade,                     0,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &v_fade,                      0,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              0,   "gfx_hsfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               0,   "gfx_vfade" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,   "gfx_dimmer_curve" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   0,   "gfx_sat_curve" },
     
