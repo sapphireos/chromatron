@@ -747,7 +747,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     }
     else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
 
-        log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
+        // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
 
         return FALSE;
     }
