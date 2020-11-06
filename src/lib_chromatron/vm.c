@@ -47,12 +47,10 @@ static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 
-#define VM_FLAG_RUN_LOOP            0x01
-#define VM_FLAG_RUN_THREADS         0x02
+// #define VM_FLAG_RUN_LOOP            0x01
+// #define VM_FLAG_RUN_THREADS         0x02
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
-
-// static bool update_frame_rate;
 
 
 int8_t vm_i8_kv_handler(
@@ -61,30 +59,12 @@ int8_t vm_i8_kv_handler(
     void *data,
     uint16_t len ){
 
-    // if( op == KV_OP_SET ){
-
-    //     if( hash == __KV__gfx_frame_rate ){
-
-    //         gfx_v_set_vm_frame_rate( LOAD16(data) );
-
-            // for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
-
-            //     vm_run_flags[i] |= VM_FLAG_UPDATE_FRAME_RATE;
-            // }
-
-            // update_frame_rate = TRUE;
-        // }
-    // }
     if( op == KV_OP_GET ){
 
         if( hash == __KV__vm_isa ){
 
             *(uint8_t *)data = VM_ISA_VERSION;
         }
-        // else if( hash == __KV__gfx_frame_rate ){
-
-        //     STORE16(data, gfx_u16_get_vm_frame_rate());
-        // }
     }
 
     return 0;
@@ -593,9 +573,6 @@ PT_BEGIN( pt );
 
                 // frame rate update
 
-                // clear flags
-                vm_run_flags[state->vm_id] &= ~VM_FLAG_UPDATE_FRAME_RATE;
-
                 // just let the VM loop run.  The timing for this frame will be off, but
                 // the next one will be correct.
                 // This is will screw up the VM time sync across nodes, they will
@@ -604,55 +581,22 @@ PT_BEGIN( pt );
             } 
         }
 
+        // get elapsed time between last run
         uint32_t delay = tmr_u32_get_system_time_ms() - state->last_run;
 
+        // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
+        
+        // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
-
-        // THREAD_WAIT_WHILE( pt, vm_run_flags[state->vm_id] == 0 );
-
-        // uint32_t start = 0;
-        // uint32_t elapsed = 0;
-
-        // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_THREADS ){
-            
-        //     start = tmr_u32_get_system_time_us();
-
-        //     // run VM threads with current tick
-        //     // state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state, state->ticks );
-            
-        //     elapsed = tmr_u32_elapsed_time_us( start );
-
-        //     vm_thread_time[state->vm_id] = elapsed;
-        // }
-
-        // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
-
-        //     start = tmr_u32_get_system_time_us();
-
-        //     state->vm_return = vm_i8_run_loop( mem2_vp_get_ptr( state->handle ), &state->vm_state );
-
-        //     elapsed = tmr_u32_elapsed_time_us( start );
-
-        //     vm_loop_time[state->vm_id] = elapsed;
-        // }
-        
-
-        // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_THREADS ){
-
-        //     state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state );
-        // }
-
-        
-        // if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
-            
-        //     vm_loop_time[state->vm_id] = elapsed;
-        // }
-
         // clear all run flags
-        // vm_run_flags[state->vm_id] = 0;        
+        vm_run_flags[state->vm_id] = 0;        
 
+        // update cycle count
+        vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
+
+        // check status
         if( state->vm_return == VM_STATUS_HALT ){
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
@@ -665,65 +609,8 @@ PT_BEGIN( pt );
             trace_printf( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
             goto exit;
         }
-
-        vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
-
-        // get shortest delay before next VM event
-        // int32_t frame_rate = gfx_u16_get_vm_frame_rate();
-        // int32_t vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
-
-        // subtract elapsed time from frame rate so it stays constant
-        // frame_rate -= ( elapsed / 1000 );
-
-        // if( frame_rate <= vm_delay ){
-
-        //     vm_delay = frame_rate;
-
-        //     // next iteration will run loop
-        //     vm_run_flags[state->vm_id] |= VM_FLAG_RUN_LOOP;
-        // }
-        // else{
-
-        //     vm_run_flags[state->vm_id] |= VM_FLAG_RUN_THREADS;
-        // }
-        
-        // if delay is 0 (or less, so we're running behind) -
-        // yield a couple of times so we don't starve the other threads.
-        // we cannot guarantee VM timing with this load.
-        // if( vm_delay <= 0 ){
-
-        //     THREAD_YIELD( pt );
-        //     THREAD_YIELD( pt );
-        //     THREAD_YIELD( pt );
-        //     THREAD_YIELD( pt );
-        // }        
-        // else{
-
-        //     // set alarm
-        //     thread_v_set_alarm( thread_u32_get_alarm() + vm_delay );
-          
-        //     // update tick delay for VM for next update
-        //     state->delta_ticks = vm_delay;
-
-        //     // wait, along with a check for an update frame rate
-        //     THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );
-
-        //     if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
-
-        //         // frame rate update
-
-        //         // clear flags
-        //         vm_run_flags[state->vm_id] &= ~VM_FLAG_UPDATE_FRAME_RATE;
-
-        //         // just let the VM loop run.  The timing for this frame will be off, but
-        //         // the next one will be correct.
-        //         // This is will screw up the VM time sync across nodes, they will
-        //         // have to resynchronize.
-        //     } 
-        // }
     }
-    // } while( vm_status[state->vm_id] == VM_STATUS_OK ); 
-
+    
 exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
 
@@ -740,48 +627,6 @@ exit:
     
 PT_END( pt );
 }
-
-// PT_THREAD( vm_loop_timing( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-
-//     while(1){
-
-//         thread_v_set_alarm( thread_u32_get_alarm() + gfx_u16_get_vm_frame_rate() );
-//         THREAD_WAIT_WHILE( pt, !update_frame_rate && thread_b_alarm_set() );
-
-//         if( update_frame_rate ){
-
-//             update_frame_rate = FALSE;
-//             continue;
-//         }
-
-//         for( uint32_t i = 0; i < cnt_of_array(vm_run_flags); i++ ){
-
-//             vm_run_flags[i] |= VM_FLAG_RUN_LOOP;
-//         }
-//     }
-
-// PT_END( pt );
-// }
-
-// PT_THREAD( vm_thread_timing( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-
-//     while(1){
-
-//         thread_v_set_alarm( thread_u32_get_alarm() + VM_THREAD_RATE );
-//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-//         for( uint32_t i = 0; i < cnt_of_array(vm_run_flags); i++ ){
-
-//             vm_run_flags[i] |= VM_FLAG_RUN_THREADS;
-//         }
-//     }
-
-// PT_END( pt );
-// }
 
 static bool vm_loader_wait( void ){
 
@@ -814,25 +659,6 @@ PT_BEGIN( pt );
     while(1){
 
         THREAD_WAIT_WHILE( pt, vm_loader_wait() );
-
-        // THREAD_WAIT_WHILE( pt, 
-        //     ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||
-        //         ( vm_run[0]   && is_vm_running( 0 ) ) )    &&
-        //       ( !vm_reset[0] ) )
-        //     &&
-        //     ( ( ( !vm_run[1]  && !is_vm_running( 1 ) )  ||
-        //         ( vm_run[1]   && is_vm_running( 1 ) ) )    &&
-        //       ( !vm_reset[1] ) )
-        //     &&
-        //     ( ( ( !vm_run[2]  && !is_vm_running( 2 ) )  ||
-        //         ( vm_run[2]   && is_vm_running( 2 ) ) )    &&
-        //       ( !vm_reset[2] ) )
-        //     &&
-        //     ( ( ( !vm_run[3]  && !is_vm_running( 3 ) )  ||
-        //         ( vm_run[3]   && is_vm_running( 3 ) ) )    &&
-        //       ( !vm_reset[3] ) )
-        // );
-
 
         // check what we're doing, and to what VM    
         for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
@@ -940,16 +766,6 @@ void vm_v_init( void ){
                      PSTR("vm_loader"),
                      0,
                      0 );
-
-    // thread_t_create( vm_loop_timing,
-    //                  PSTR("vm_loop_timing"),
-    //                  0,
-    //                  0 );
-
-    // thread_t_create( vm_thread_timing,
-    //                  PSTR("vm_thread_timing"),
-    //                  0,
-    //                  0 );
 
     vm_cron_v_init();
 }
