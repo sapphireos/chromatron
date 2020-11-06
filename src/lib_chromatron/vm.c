@@ -488,6 +488,7 @@ PT_BEGIN( pt );
     if( state->handle > 0 ){
 
         mem2_v_free( state->handle );
+        state->handle = -1;
     }
     
     vm_loop_time[state->vm_id]     = 0;
@@ -542,11 +543,10 @@ PT_BEGIN( pt );
     }
 
     vm_status[state->vm_id] = VM_STATUS_OK;
-
+    
     state->last_run = tmr_u32_get_system_time_ms();
 
-    
-    // do{
+    // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
         int32_t vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
