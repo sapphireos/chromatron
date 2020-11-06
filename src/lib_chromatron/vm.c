@@ -496,7 +496,6 @@ typedef struct{
     char program_fname[FFS_FILENAME_LEN];
     mem_handle_t handle;
     int8_t vm_return;
-    int32_t delta_ticks;
     uint32_t last_run;
     vm_state_t vm_state;
 } vm_thread_state_t;
@@ -587,9 +586,6 @@ PT_BEGIN( pt );
             // set alarm
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + vm_delay );
           
-            // update tick delay for VM for next update
-            state->delta_ticks = vm_delay;
-
             // wait, along with a check for an update frame rate
             THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );
 
