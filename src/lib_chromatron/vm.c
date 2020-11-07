@@ -46,6 +46,7 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
+static uint8_t vm_timing_status[VM_MAX_VMS];
 
 // #define VM_FLAG_RUN_LOOP            0x01
 // #define VM_FLAG_RUN_THREADS         0x02
@@ -79,6 +80,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
+    { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status[0],  0,                  "vm_timing" },
 
     #if VM_MAX_VMS >= 2
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
@@ -543,18 +545,25 @@ PT_BEGIN( pt );
     }
 
     vm_status[state->vm_id] = VM_STATUS_OK;
-    
+
     state->last_run = tmr_u32_get_system_time_ms();
 
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
+        static int32_t vm_delay;
+        vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
 
-        int32_t vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        // if this is the first run, we will start with a short delay
+        if( state->vm_state.tick == 0 ){
 
+            TMR_WAIT( pt, 10 );
+        }
         // if delay is 0 (or less, so we're running behind) -
         // yield a couple of times so we don't starve the other threads.
         // we cannot guarantee VM timing with this load.
-        if( vm_delay <= 0 ){
+        else if( vm_delay <= 0 ){
+
+            vm_timing_status[state->vm_id] = 1;
 
             THREAD_YIELD( pt );
             THREAD_YIELD( pt );
@@ -567,7 +576,16 @@ PT_BEGIN( pt );
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + vm_delay );
           
             // wait, along with a check for an update frame rate
-            THREAD_WAIT_WHILE( pt, ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && thread_b_alarm_set() );
+            THREAD_WAIT_WHILE( pt, 
+                ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && 
+                ( vm_status[state->vm_id] == VM_STATUS_OK ) &&
+                thread_b_alarm_set() );
+
+            // check if VM is stopping
+            if( vm_status[state->vm_id] != VM_STATUS_OK ){
+
+                goto exit;
+            }
 
             if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
@@ -589,6 +607,8 @@ PT_BEGIN( pt );
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
+
+        log_v_debug_P( PSTR("%lu %d %d %d %u"), (uint32_t)state->vm_state.tick, vm_delay, delay, state->vm_state.loop_delay, state->vm_state.last_elapsed_us );
 
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
