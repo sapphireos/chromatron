@@ -73,7 +73,7 @@
 #define VM_MIN_DELAY                10
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
-#define VM_MAX_THREADS              4
+#define VM_MAX_THREADS              8
 
 
 // list
