@@ -48,8 +48,6 @@ static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint8_t vm_timing_status[VM_MAX_VMS];
 
-// #define VM_FLAG_RUN_LOOP            0x01
-// #define VM_FLAG_RUN_THREADS         0x02
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
 
