@@ -31,6 +31,7 @@
 #include "hash.h"
 #include "kvdb.h"
 #include "config.h"
+#include "timesync.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -480,6 +481,10 @@ typedef struct{
     vm_state_t vm_state;
 } vm_thread_state_t;
 
+#ifdef ENABLE_TIME_SYNC
+static uint32_t vm0_frame_ts;
+static uint64_t vm0_frame_ticks;
+#endif
 
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
@@ -532,6 +537,13 @@ PT_BEGIN( pt );
     // init database
     vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
+    
+
+    THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
+    vm0_frame_ts = time_u32_get_network_time();
+
+    TMR_WAIT( pt, 200 );
+
     // run VM init
     state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
 
@@ -570,6 +582,50 @@ PT_BEGIN( pt );
         }        
         else{
 
+            // check if vm is synced
+            if( TRUE ){
+
+                uint32_t net_time = time_u32_get_network_time();
+                int32_t elapsed = (int64_t)net_time - (int64_t)vm0_frame_ts;
+                uint64_t current_vm_sync_tick = vm0_frame_ticks + elapsed;
+                int32_t sync_delta = state->vm_state.tick - current_vm_sync_tick;
+
+                int32_t delay_adjust = 0;
+
+                if( sync_delta > 10 ){
+
+                    delay_adjust = -10;
+                }
+                else if( sync_delta > 1 ){
+
+                    delay_adjust = -1;
+                }
+                else if( sync_delta < -10 ){
+
+                    delay_adjust = 10;
+                }
+                else if( sync_delta < -1 ){
+
+                    delay_adjust = 1;
+                }
+
+                // delay_adjust = 0;
+
+                // if( delay_adjust != 0 ){
+
+                //     vm_delay -= delay_adjust;
+
+                //     if( vm_delay <= 0 ){
+
+                //         vm_delay = 1;       
+                //     }
+                // }
+
+                state->vm_state.tick += delay_adjust;
+
+                log_v_debug_P( PSTR("%d -> %d / %d"), sync_delta, delay_adjust, vm_delay );    
+            }
+
             // set alarm
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + vm_delay );
           
@@ -606,7 +662,7 @@ PT_BEGIN( pt );
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
-        log_v_debug_P( PSTR("%lu %d %d %d %u"), (uint32_t)state->vm_state.tick, vm_delay, delay, state->vm_state.loop_delay, state->vm_state.last_elapsed_us );
+        // log_v_debug_P( PSTR("%lu %d %d %d %u"), (uint32_t)state->vm_state.tick, vm_delay, delay, state->vm_state.loop_delay, state->vm_state.last_elapsed_us );
 
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
