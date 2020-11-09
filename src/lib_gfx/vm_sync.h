@@ -28,7 +28,7 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	2
+#define SYNC_PROTOCOL_VERSION           	3
 
 #define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
 #define SYNC_RATE                           4000
@@ -45,26 +45,31 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-    uint64_t uptime;
     uint32_t program_name_hash;
-    uint16_t frame_number;
-    uint16_t data_len;
+    uint64_t tick;
     uint64_t rng_seed;
     uint32_t net_time;
-} vm_sync_msg_sync_0_t;
-#define VM_SYNC_MSG_SYNC_0                      1
-
-typedef struct __attribute__((packed)){
-    vm_sync_msg_header_t header;
-    uint16_t frame_number;
-    uint16_t offset;
-} vm_sync_msg_sync_n_t;
-#define VM_SYNC_MSG_SYNC_N                      2
+    uint16_t data_len;
+} vm_sync_msg_sync_t;
+#define VM_SYNC_MSG_SYNC                        1
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
 } vm_sync_msg_sync_req_t;
-#define VM_SYNC_MSG_SYNC_REQ                    3
+#define VM_SYNC_MSG_SYNC_REQ                    2
+
+typedef struct __attribute__((packed)){
+    vm_sync_msg_header_t header;
+    uint64_t tick;
+    uint16_t offset;
+    uint8_t data; // first data byte
+} vm_sync_msg_data_t;
+#define VM_SYNC_MSG_DATA                        3
+
+typedef struct __attribute__((packed)){
+    vm_sync_msg_header_t header;
+} vm_sync_msg_data_req_t;
+#define VM_SYNC_MSG_DATA_REQ                    4
 
 
 uint32_t vm_sync_u32_get_sync_group_hash( void );
