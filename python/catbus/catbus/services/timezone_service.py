@@ -25,7 +25,7 @@
 import sys
 import time
 import logging
-from catbus import CatbusService, Client
+from catbus import CatbusService, Client, NoResponseFromHost
 from sapphire.common import util, wait_for_signal, Ribbon
 
 class TimeZoneService(Ribbon):
@@ -47,6 +47,10 @@ class TimeZoneService(Ribbon):
 
         current_tz_offset = time.localtime().tm_gmtoff / 60
 
+        logging.info(f"Current TZ Offset: {current_tz_offset}")
+
+        sys.exit(1)
+
         for device_id, device in self.directory.items():
             self.client.connect(device['host'])
             
@@ -54,6 +58,10 @@ class TimeZoneService(Ribbon):
                 tz_offset = self.client.get_key('datetime_tz_offset')
 
             except KeyError:
+                continue
+
+            except NoResponseFromHost:
+                logging.warn(f"No response from host: {device['host']}")
                 continue
             
             if tz_offset != current_tz_offset:
