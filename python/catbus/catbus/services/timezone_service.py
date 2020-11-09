@@ -49,8 +49,6 @@ class TimeZoneService(Ribbon):
 
         logging.info(f"Current TZ Offset: {current_tz_offset}")
 
-        sys.exit(1)
-
         for device_id, device in self.directory.items():
             self.client.connect(device['host'])
             
