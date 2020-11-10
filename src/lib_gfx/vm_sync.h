@@ -55,6 +55,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
+    bool request_data;
 } vm_sync_msg_sync_req_t;
 #define VM_SYNC_MSG_SYNC_REQ                    2
 
@@ -65,11 +66,6 @@ typedef struct __attribute__((packed)){
     uint8_t data; // first data byte
 } vm_sync_msg_data_t;
 #define VM_SYNC_MSG_DATA                        3
-
-typedef struct __attribute__((packed)){
-    vm_sync_msg_header_t header;
-} vm_sync_msg_data_req_t;
-#define VM_SYNC_MSG_DATA_REQ                    4
 
 
 uint32_t vm_sync_u32_get_sync_group_hash( void );

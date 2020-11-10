@@ -24,10 +24,6 @@
 
 #ifdef ENABLE_TIME_SYNC
 
-
-// #define SYNC_DEBUG
-
-
 #include "timesync.h"
 #include "vm_sync.h"
 #include "vm.h"
@@ -82,62 +78,6 @@ KV_SECTION_META kv_meta_t vm_sync_kv[] = {
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
-
-#ifdef SYNC_DEBUG
-PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) );
-
-static void debug_strobe( void ){
-    io_v_digital_write( IO_PIN_PWM_1, TRUE );
-    _delay_us( 100 );
-    io_v_digital_write( IO_PIN_PWM_1, FALSE );
-} 
-
-PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-static uint32_t prev;
-
-    while( TRUE ){
-
-        // THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
-
-        static uint32_t net_time;
-        net_time = time_u32_get_network_aligned( 250 );
-
-        // uint32_t net = time_u32_get_network_time();
-        // log_v_debug_P( PSTR("%8lu %8lu"), net_time, net );
-
-        THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
-        // TMR_WAIT( pt, 100 );
-        // log_v_debug_P( PSTR("%lu"), tmr_u32_elapsed_time_ms( prev ) );
-        prev = tmr_u32_get_system_time_ms();
-
-        // debug_strobe();
-        io_v_digital_write( IO_PIN_PWM_1, TRUE );
-
-        net_time = time_u32_get_network_aligned( 250 );
-
-        THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
-        // TMR_WAIT( pt, 100 );
-        // log_v_debug_P( PSTR("%lu"), tmr_u32_elapsed_time_ms( prev ) );
-        prev = tmr_u32_get_system_time_ms();
-
-        io_v_digital_write( IO_PIN_PWM_1, FALSE );
-
-
-        // uint32_t net = time_u32_get_network_time();
-        // uint32_t delta = net - prev;
-        // prev = net;
-        // log_v_debug_P( PSTR("%5lu %10lu"), delta, net );
-    }
-
-PT_END( pt );
-}
-
-
-#endif
-
 void vm_sync_v_init( void ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -145,22 +85,11 @@ void vm_sync_v_init( void ){
         return;
     }
 
-    #ifdef SYNC_DEBUG
-    io_v_set_mode( IO_PIN_PWM_1, IO_MODE_OUTPUT );
-
-    thread_t_create( vm_sync_debug_thread,
-                    PSTR("vm_sync_debug"),
-                    0,
-                    0 );    
-    #endif
-
     // check if time sync is enabled
     if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
         return;
     }
-
-    vm_sync_v_reset();
 
     thread_t_create( vm_sync_server_thread,
                     PSTR("vm_sync_server"),
@@ -190,6 +119,12 @@ void vm_sync_v_reset( void ){
     }
 
     sync_state = STATE_IDLE;
+
+    if( sync_group_hash == 0 ){
+
+        return;
+    }
+
     services_v_join_team( SYNC_SERVICE, sync_group_hash, 1, sock_u16_get_lport( sock ) );
 
     log_v_debug_P( PSTR("sync reset") );
@@ -220,10 +155,10 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 	return sync_group_hash;
 }
 
-static bool vm_sync_wait( void ){
+// static bool vm_sync_wait( void ){
 
-	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_local_sync() );
-}
+// 	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_local_sync() );
+// }
 
 
 // static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
@@ -341,46 +276,42 @@ static bool vm_sync_wait( void ){
     // sock_i16_sendto_m( sock, h, raddr );   
 // }
 
-static void send_request( void ){
+static void send_sync( void ){
 
-    // vm_sync_msg_sync_req_t msg;
-    // msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    // msg.header.version          = SYNC_PROTOCOL_VERSION;
-    // msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
-    // msg.header.flags            = 0;
-    // msg.header.sync_group_hash  = sync_group_hash;
+    vm_sync_msg_sync_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SYNC;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
 
-    // // set up broadcast address
-    // sock_addr_t raddr;
-    // raddr.port = SYNC_SERVER_PORT;
-    // raddr.ipaddr = master_ip;
+    msg.program_name_hash       = vm_u32_get_prog_hash();
+    msg.tick                    = vm_u64_get_ticks();
+    msg.rng_seed                = vm_u64_get_rng_seed();
+    msg.net_time                = time_u32_get_network_time(); 
+    msg.data_len                = 0;
 
-    // sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+    sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
+    
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
-static void send_shutdown( ip_addr_t *addr ){
 
-    // vm_sync_msg_shutdown_t msg;
-    // msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    // msg.header.version          = SYNC_PROTOCOL_VERSION;
-    // msg.header.type             = VM_SYNC_MSG_SHUTDOWN;
-    // msg.header.flags            = 0;
-    // msg.header.sync_group_hash  = sync_group_hash;
+static void send_request( bool request_data ){
 
-    // // set up broadcast address
-    // sock_addr_t raddr;
-    // raddr.port = SYNC_SERVER_PORT;
+    vm_sync_msg_sync_req_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
 
-    // if( addr == 0 ){
+    msg.request_data            = request_data;
 
-    //     raddr.ipaddr = ip_a_addr(255,255,255,255);    
-    // }
-    // else{
 
-    //     raddr.ipaddr = *addr;
-    // }
-
-    // sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
+    sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
+    
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
 static void send_sync_to_slave( sock_addr_t *raddr ){
@@ -482,8 +413,7 @@ PT_BEGIN( pt );
 
     sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
-    // sock_v_bind( sock, SYNC_SERVER_PORT );
-    // sock_v_set_timeout( sock, 32 );
+    vm_sync_v_reset();
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),
@@ -493,51 +423,15 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-
     	THREAD_WAIT_WHILE( pt, 
             ( sock_i8_recvfrom( sock ) < 0 ) &&
-             ( !sys_b_shutdown() ) &&
-             ( wifi_b_connected() ) );
+             ( !sys_b_shutdown() ) );
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
 
     		THREAD_EXIT( pt );
     	}
-
-        // check if wifi is NOT connected
-        if( !wifi_b_connected() ){
-
-            if( sync_state != STATE_IDLE ){
-
-                log_v_debug_P( PSTR("wifi disconnected, resetting vm sync") );
-                sync_state = STATE_IDLE;    
-            }
-
-            continue;
-        }
-
-		// check if data received
-        // int16_t sock_data_len = sock_i16_get_bytes_read( sock );
-        // if( sock_data_len <= 0 ){
-
-        // 	// socket timeout
-
-        // 	if( ( sync_state != STATE_MASTER ) && ( sync_state != STATE_IDLE ) ){
-
-        //         log_v_debug_P( PSTR("vm sync timed out, resetting state") );
-
-        //         sync_state = STATE_IDLE;
-        //     }
-
-        // 	continue;
-        // }
-
-        if( vm_sync_wait() ){
-
-            continue;
-        }
 
         vm_sync_msg_header_t *header = sock_vp_get_data( sock );
 
@@ -565,6 +459,33 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        if( header->type == VM_SYNC_MSG_SYNC ){
+
+            vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
+
+            // sync VM
+            vm_v_sync( msg->net_time, msg->tick );
+
+        }
+        else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
+
+            vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
+            
+            // send sync
+            send_sync();
+
+            if( msg->request_data ){
+
+                // send data
+
+            }    
+        }
+        else if( header->type == VM_SYNC_MSG_DATA ){
+
+            vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
+                                    
+        }
+        
         // if( header->type == VM_SYNC_MSG_SYNC_0 ){
 
         // 	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)header;
@@ -754,26 +675,38 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-    	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+        THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
 
-        vm_sync_v_reset();        
+        while( state == STATE_IDLE ){
 
-        // wait for team
-        THREAD_WAIT_WHILE( pt, vm_sync_wait() &&
-                               !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
+            TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
-        // if service not found
-        if( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
-
-            TMR_WAIT( pt, 1000 );
-
-            continue;
+            send_request( TRUE );
         }
 
-        if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+        TMR_WAIT( pt, 1000 );
 
-            sync_state = STATE_SYNC;
-        }
+
+    	// THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+
+     //    vm_sync_v_reset();        
+
+     //    // wait for team
+     //    THREAD_WAIT_WHILE( pt, vm_sync_wait() &&
+     //                           !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
+
+     //    // if service not found
+     //    if( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
+
+     //        TMR_WAIT( pt, 1000 );
+
+     //        continue;
+     //    }
+
+     //    if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+     //        sync_state = STATE_SYNC;
+     //    }
         
         // while( ( sync_state == STATE_SYNC ) && !vm_sync_wait() ){
 

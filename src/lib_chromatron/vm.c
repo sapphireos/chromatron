@@ -482,9 +482,30 @@ typedef struct{
 } vm_thread_state_t;
 
 #ifdef ENABLE_TIME_SYNC
-static uint32_t vm0_frame_ts;
-static uint64_t vm0_frame_ticks;
+static uint32_t vm0_sync_ts;
+static uint64_t vm0_sync_ticks;
 #endif
+
+void vm_v_sync( uint32_t ts, uint64_t ticks ){
+
+    
+}
+
+uint32_t vm_u32_get_prog_hash( void ){
+
+    return 0;
+}
+
+uint64_t vm_u64_get_ticks( void ){
+
+    return 0;
+}
+
+uint64_t vm_u64_get_rng_seed( void ){
+
+    return 0;
+}
+
 
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
@@ -540,7 +561,7 @@ PT_BEGIN( pt );
     
 
     THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
-    vm0_frame_ts = time_u32_get_network_time();
+    vm0_sync_ts = time_u32_get_network_time();
 
     TMR_WAIT( pt, 200 );
 
@@ -586,8 +607,8 @@ PT_BEGIN( pt );
             if( TRUE ){
 
                 uint32_t net_time = time_u32_get_network_time();
-                int32_t elapsed = (int64_t)net_time - (int64_t)vm0_frame_ts;
-                uint64_t current_vm_sync_tick = vm0_frame_ticks + elapsed;
+                int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
+                uint64_t current_vm_sync_tick = vm0_sync_ticks + elapsed;
                 int32_t sync_delta = state->vm_state.tick - current_vm_sync_tick;
 
                 int32_t delay_adjust = 0;

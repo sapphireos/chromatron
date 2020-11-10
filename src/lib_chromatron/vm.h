@@ -35,4 +35,10 @@ void vm_v_reset( void );
 bool vm_b_running( void );
 bool vm_b_is_vm_running( uint8_t i );
 
+void vm_v_sync( uint32_t ts, uint64_t ticks );
+
+uint32_t vm_u32_get_prog_hash( void );
+uint64_t vm_u64_get_ticks( void );
+uint64_t vm_u64_get_rng_seed( void );
+
 #endif
