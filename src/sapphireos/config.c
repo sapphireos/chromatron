@@ -956,6 +956,7 @@ void cfg_v_init( void ){
     cfg_i8_get( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
     count++;
     cfg_v_set( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
+    ee_v_commit(); // commit in case we crash after this point
     #endif
 
     log_v_debug_P( PSTR("Cfg size:%d free:%d eeprom:%d"), cfg_u16_total_blocks(), cfg_u16_free_blocks(), CFG_FILE_MAIN_SIZE );
