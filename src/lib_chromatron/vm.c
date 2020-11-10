@@ -32,6 +32,7 @@
 #include "kvdb.h"
 #include "config.h"
 #include "timesync.h"
+#include "vm_sync.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -488,22 +489,46 @@ static uint64_t vm0_sync_ticks;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
-    
+    log_v_debug_P( PSTR("vm sync: %u / %u"), ts, (uint32_t)ticks );
+
+    vm0_sync_ts = ts;
+    vm0_sync_ticks = ticks;    
 }
 
 uint32_t vm_u32_get_prog_hash( void ){
 
-    return 0;
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return state->vm_state.program_name_hash;
 }
 
 uint64_t vm_u64_get_ticks( void ){
 
-    return 0;
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return state->vm_state.tick;
 }
 
 uint64_t vm_u64_get_rng_seed( void ){
 
-    return 0;
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return state->vm_state.rng_seed;
 }
 
 
@@ -560,10 +585,10 @@ PT_BEGIN( pt );
 
     
 
-    THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
-    vm0_sync_ts = time_u32_get_network_time();
+    // THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
+    // vm0_sync_ts = time_u32_get_network_time();
 
-    TMR_WAIT( pt, 200 );
+    // TMR_WAIT( pt, 200 );
 
     // run VM init
     state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
@@ -603,8 +628,8 @@ PT_BEGIN( pt );
         }        
         else{
 
-            // check if vm is synced
-            if( TRUE ){
+            // check if vm is a synced follower
+            if( vm_sync_b_is_follower() ){
 
                 uint32_t net_time = time_u32_get_network_time();
                 int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
@@ -630,21 +655,9 @@ PT_BEGIN( pt );
                     delay_adjust = 1;
                 }
 
-                // delay_adjust = 0;
-
-                // if( delay_adjust != 0 ){
-
-                //     vm_delay -= delay_adjust;
-
-                //     if( vm_delay <= 0 ){
-
-                //         vm_delay = 1;       
-                //     }
-                // }
-
                 state->vm_state.tick += delay_adjust;
 
-                log_v_debug_P( PSTR("%d -> %d / %d"), sync_delta, delay_adjust, vm_delay );    
+                // log_v_debug_P( PSTR("%d -> %d / %d"), sync_delta, delay_adjust, vm_delay );    
             }
 
             // set alarm

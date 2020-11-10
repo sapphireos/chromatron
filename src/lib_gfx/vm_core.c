@@ -2693,7 +2693,6 @@ int8_t vm_i8_run_init(
     uint8_t *stream,
     vm_state_t *state ){
 
-    state->frame_number = 0;
     state->tick = 0;
 
     return vm_i8_run( stream, state->init_start, 0, state );
@@ -2702,8 +2701,6 @@ int8_t vm_i8_run_init(
 int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state ){
-
-    state->frame_number++;
 
     return vm_i8_run( stream, state->loop_start, 0, state );
 }
@@ -3064,7 +3061,6 @@ int8_t vm_i8_load_program(
     state->rng_seed = 1;
 
     state->tick = 0;
-    state->frame_number = 0;
     state->loop_delay = 0;
 
     return VM_STATUS_OK;

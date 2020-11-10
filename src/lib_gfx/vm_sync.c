@@ -49,6 +49,8 @@ static uint8_t sync_state;
 // static ip_addr_t pending_slave;
 // static uint32_t slave_net_time;
 
+static uint16_t sync_data_remaining;
+
 
 int8_t vmsync_i8_kv_handler(
     kv_op_t8 op,
@@ -79,6 +81,9 @@ PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
 void vm_sync_v_init( void ){
+
+
+    return;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -130,25 +135,36 @@ void vm_sync_v_reset( void ){
     log_v_debug_P( PSTR("sync reset") );
 }
 
-// bool vm_sync_b_is_master( void ){
+bool vm_sync_b_is_leader( void ){
 
-//     return sync_state == STATE_MASTER;
-// }
+    return services_b_is_server( SYNC_SERVICE, sync_group_hash );
+}
 
-// bool vm_sync_b_is_slave( void ){
- 
-//     return sync_state == STATE_SLAVE;
-// }
+bool vm_sync_b_is_follower( void ){
+
+    if( sync_state == STATE_IDLE ){
+
+        return FALSE;
+    }
+    
+    if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) &&
+        !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 // bool vm_sync_b_is_slave_synced( void ){
 
 //     return sync_state == STATE_SLAVE_SYNC;
 // }
 
-// bool vm_sync_b_is_synced( void ){
+bool vm_sync_b_is_synced( void ){
 
-//     return ( sync_state == STATE_MASTER ) || ( sync_state == STATE_SLAVE_SYNC );
-// }
+    return sync_state == STATE_SYNC;
+}
 
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
@@ -461,18 +477,31 @@ PT_BEGIN( pt );
 
         if( header->type == VM_SYNC_MSG_SYNC ){
 
+            // are we leader?
+            if( vm_sync_b_is_leader() ){
+
+                continue;
+            }
+
             vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
 
             // sync VM
             vm_v_sync( msg->net_time, msg->tick );
 
+            sync_data_remaining = msg->data_len;
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-            vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
+            // are we leader?
+            if( !vm_sync_b_is_leader() ){
+
+                continue;
+            }
             
             // send sync
             send_sync();
+
+            vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
             if( msg->request_data ){
 
@@ -481,6 +510,12 @@ PT_BEGIN( pt );
             }    
         }
         else if( header->type == VM_SYNC_MSG_DATA ){
+
+            // are we leader?
+            if( vm_sync_b_is_leader() ){
+
+                continue;
+            }
 
             vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
                                     
@@ -682,9 +717,11 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
             send_request( TRUE );
+
+            TMR_WAIT( pt, 10000 );
         }
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 10000 );
 
 
     	// THREAD_WAIT_WHILE( pt, vm_sync_wait() );
