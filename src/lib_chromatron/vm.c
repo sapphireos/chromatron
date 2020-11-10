@@ -763,6 +763,15 @@ PT_BEGIN( pt );
     kvdb_v_set_name_P( PSTR("vm_2") );
     kvdb_v_set_name_P( PSTR("vm_3") );
 
+    // alignment check
+    vm_state_t temp;
+    if( ( (uint32_t)&temp.rng_seed % 4 ) != 0 ){
+
+        log_v_critical_P( PSTR("VM state alignment failure!") );
+
+        THREAD_EXIT( pt );
+    }
+
 
     while(1){
 
