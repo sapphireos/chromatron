@@ -30,9 +30,6 @@
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	3
 
-#define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
-#define SYNC_RATE                           4000
-
 #define SYNC_SERVICE                        __KV__vmsync
 
 typedef struct __attribute__((packed)){
@@ -73,10 +70,6 @@ typedef struct __attribute__((packed)){
 uint32_t vm_sync_u32_get_sync_group_hash( void );
 
 void vm_sync_v_init( void );
-void vm_sync_v_handle_shutdown( ip_addr4_t ip );
-
-void vm_sync_v_trigger( void );
-void vm_sync_v_frame_trigger( void );
 
 bool vm_sync_b_is_leader( void );
 bool vm_sync_b_is_follower( void );
