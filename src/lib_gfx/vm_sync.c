@@ -80,6 +80,17 @@ KV_SECTION_META kv_meta_t vm_sync_kv[] = {
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
+static void init_group_hash( void ){
+
+    // init sync group hash
+    char buf[32];
+    memset( buf, 0, sizeof(buf) );
+    kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
+
+    sync_group_hash = hash_u32_string( buf );    
+}
+
+
 void vm_sync_v_init( void ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -92,6 +103,8 @@ void vm_sync_v_init( void ){
 
         return;
     }
+
+    init_group_hash();
 
     thread_t_create( vm_sync_server_thread,
                     PSTR("vm_sync_server"),
@@ -107,7 +120,7 @@ void vm_sync_v_reset( void ){
 
     services_v_cancel( SYNC_SERVICE, sync_group_hash );
 
-    // init sync group hash
+    init_group_hash();// init sync group hash
     char buf[32];
     memset( buf, 0, sizeof(buf) );
     kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
@@ -289,7 +302,7 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
     // sock_i16_sendto_m( sock, h, raddr );   
 // }
 
-static void send_sync( void ){
+static void send_sync( sock_addr_t *raddr ){
 
     vm_sync_msg_sync_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
@@ -304,9 +317,7 @@ static void send_sync( void ){
     msg.net_time                = time_u32_get_network_time(); 
     msg.data_len                = 0;
 
-    sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
-    
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
 
 
@@ -463,12 +474,6 @@ PT_BEGIN( pt );
         	continue;
         }
 
-        // check if NOT team leader
-        if( !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
-
-            continue;
-        }
-
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
@@ -496,7 +501,7 @@ PT_BEGIN( pt );
             }
             
             // send sync
-            send_sync();
+            send_sync( &raddr );
 
             vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
@@ -709,7 +714,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
 
-        while( state == STATE_IDLE ){
+        while( sync_state == STATE_IDLE ){
 
             TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 

@@ -489,7 +489,7 @@ static uint64_t vm0_sync_ticks;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
-    log_v_debug_P( PSTR("vm sync: %u / %u"), ts, (uint32_t)ticks );
+    log_v_debug_P( PSTR("vm sync: %u / %u -> %u"), ts, ts - vm0_sync_ts, (uint32_t)ticks );
 
     vm0_sync_ts = ts;
     vm0_sync_ticks = ticks;    
