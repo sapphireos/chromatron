@@ -41,6 +41,6 @@ uint16_t vm_u16_get_data_len( void );
 uint32_t vm_u32_get_prog_hash( void );
 uint64_t vm_u64_get_ticks( void );
 uint64_t vm_u64_get_rng_seed( void );
-uint8_t* vm_u8p_get_data( void ); 
+int32_t* vm_i32p_get_data( void ); 
 
 #endif

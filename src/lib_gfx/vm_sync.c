@@ -326,7 +326,7 @@ static void send_sync( sock_addr_t *raddr ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
 
-static void send_data( uint8_t *data, uint16_t len, uint64_t tick, uint16_t offset, sock_addr_t *raddr ){
+static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offset, sock_addr_t *raddr ){
 
     vm_sync_msg_data_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
@@ -543,7 +543,7 @@ PT_BEGIN( pt );
                     }
 
                     // fix params!
-                    uint8_t *data_ptr = vm_u8p_get_data();
+                    int32_t *data_ptr = vm_i32p_get_data();
 
                     send_data( data_ptr, chunk_size, vm_u64_get_ticks(), offset, &raddr );
 

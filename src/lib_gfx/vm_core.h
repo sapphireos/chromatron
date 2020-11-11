@@ -246,7 +246,7 @@ void vm_v_get_data_multi(
     uint16_t len,
     int32_t *dest );
 
-uint8_t* vm_u8p_get_data_ptr( 
+int32_t* vm_i32p_get_data_ptr( 
     uint8_t *stream,
     vm_state_t *state );
 

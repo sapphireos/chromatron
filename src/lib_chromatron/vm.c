@@ -543,7 +543,7 @@ uint64_t vm_u64_get_rng_seed( void ){
     return state->vm_state.rng_seed;
 }
 
-uint8_t* vm_u8p_get_data( void ){
+int32_t* vm_i32p_get_data( void ){
 
     if( vm_threads[0] <= 0 ){
 
@@ -552,7 +552,7 @@ uint8_t* vm_u8p_get_data( void ){
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
 
-    return vm_u8p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
+    return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
 }
 
 
