@@ -68,14 +68,13 @@ typedef struct __attribute__((packed)){
     uint8_t data; // first data byte
 } vm_sync_msg_data_t;
 #define VM_SYNC_MSG_DATA                        3
-#define VM_SYNC_MAX_DATA_LEN                    256
+#define VM_SYNC_MAX_DATA_LEN                    512
 
 uint32_t vm_sync_u32_get_sync_group_hash( void );
 
 void vm_sync_v_init( void );
 void vm_sync_v_handle_shutdown( ip_addr4_t ip );
 
-void vm_sync_v_reset( void );
 void vm_sync_v_trigger( void );
 void vm_sync_v_frame_trigger( void );
 
