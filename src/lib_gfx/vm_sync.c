@@ -545,7 +545,7 @@ PT_BEGIN( pt );
                     // fix params!
                     int32_t *data_ptr = vm_i32p_get_data();
 
-                    send_data( data_ptr, chunk_size, vm_u64_get_ticks(), offset, &raddr );
+                    // send_data( data_ptr, chunk_size, vm_u64_get_ticks(), offset, &raddr );
 
                     offset += chunk_size;
                 } 
@@ -755,6 +755,15 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
 
+        if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+            log_v_debug_P( PSTR("VM sync leader") );
+
+            sync_state = STATE_SYNC;
+
+            THREAD_WAIT_WHILE( pt, services_b_is_server( SYNC_SERVICE, sync_group_hash ) );
+        }
+
         if( sync_state == STATE_IDLE ){
 
             log_v_debug_P( PSTR("starting VM sync") );
@@ -764,7 +773,8 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
-                if( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
+                if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
+                    ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ){
                     
                     sync_state = STATE_IDLE;
                     THREAD_RESTART( pt );
@@ -775,11 +785,6 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 1000 );
             }
         }
-
-
-
-
-
 
 
 
