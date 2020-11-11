@@ -45,10 +45,18 @@ class ConnectionMonitor(Ribbon):
             self.wait(10.0)
             return
 
+        logging.info(f"Pinging {len(self.directory)} devices")
 
-        
+        for device_id, device in self.directory.items():
+            self.client.connect(device['host'])
 
+            try:
+                elapsed = self.client.ping()
 
+                logging.info(f"{device['name']} @ {device['host']}: {elapsed * 1000}")
+            
+            except NoResponseFromHost:
+                logging.warn(f"{device['name']} @ {device['host']}: no response")
 
         self.wait(30.0)
 
