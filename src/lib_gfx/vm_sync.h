@@ -40,6 +40,7 @@ typedef struct __attribute__((packed)){
     uint8_t version;
     uint8_t type;
     uint8_t flags;
+    uint8_t padding;
     uint32_t sync_group_hash;
 } vm_sync_msg_header_t;
 
@@ -63,10 +64,11 @@ typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
     uint64_t tick;
     uint16_t offset;
+    uint16_t padding;
     uint8_t data; // first data byte
 } vm_sync_msg_data_t;
 #define VM_SYNC_MSG_DATA                        3
-
+#define VM_SYNC_MAX_DATA_LEN                    256
 
 uint32_t vm_sync_u32_get_sync_group_hash( void );
 
@@ -79,6 +81,8 @@ void vm_sync_v_frame_trigger( void );
 
 bool vm_sync_b_is_leader( void );
 bool vm_sync_b_is_follower( void );
+bool vm_sync_b_in_progress( void );
+
 
 #endif
 

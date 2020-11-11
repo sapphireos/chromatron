@@ -2873,6 +2873,15 @@ void vm_v_get_data_multi(
     }
 }
 
+uint8_t* vm_u8p_get_data_ptr( 
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    int32_t *data_table = (int32_t *)( stream + state->data_start );
+    
+    return (uint8_t *)data_table;    
+}
+
 void vm_v_set_data( 
     uint8_t *stream,
     vm_state_t *state,

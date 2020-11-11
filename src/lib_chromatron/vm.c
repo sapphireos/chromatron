@@ -495,6 +495,18 @@ void vm_v_sync( uint32_t ts, uint64_t ticks ){
     vm0_sync_ticks = ticks;    
 }
 
+uint16_t vm_u16_get_data_len( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return state->vm_state.data_len;    
+}
+
 uint32_t vm_u32_get_prog_hash( void ){
 
     if( vm_threads[0] <= 0 ){
@@ -529,6 +541,18 @@ uint64_t vm_u64_get_rng_seed( void ){
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
 
     return state->vm_state.rng_seed;
+}
+
+uint8_t* vm_u8p_get_data( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return vm_u8p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
 }
 
 
@@ -626,8 +650,12 @@ PT_BEGIN( pt );
             THREAD_YIELD( pt );
             THREAD_YIELD( pt );
         }        
-        else{
+        // VM sync stuff, only for VM 0
+        else if( state->vm_id == 0 ){
 
+            // check if syncing VM and hold if so
+            THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
+            
             // check if vm is a synced follower
             if( vm_sync_b_is_follower() ){
 

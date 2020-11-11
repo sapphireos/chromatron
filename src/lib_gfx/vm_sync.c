@@ -38,7 +38,8 @@ static socket_t sock = -1;
 
 static uint8_t sync_state;
 #define STATE_IDLE 			0
-#define STATE_SYNC 	        1
+#define STATE_SYNCING       1
+#define STATE_SYNC 	        2
 
 
 // static ip_addr_t master_ip;
@@ -181,6 +182,11 @@ uint32_t vm_sync_u32_get_sync_group_hash( void ){
 	return sync_group_hash;
 }
 
+bool vm_sync_b_in_progress( void ){
+
+    return sync_state == STATE_SYNCING;
+}
+
 // static bool vm_sync_wait( void ){
 
 // 	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_local_sync() );
@@ -315,11 +321,28 @@ static void send_sync( sock_addr_t *raddr ){
     msg.tick                    = vm_u64_get_ticks();
     msg.rng_seed                = vm_u64_get_rng_seed();
     msg.net_time                = time_u32_get_network_time(); 
-    msg.data_len                = 0;
+    msg.data_len                = vm_u16_get_data_len();
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
 
+static void send_data( uint8_t *data, uint16_t len, uint64_t tick, uint16_t offset, sock_addr_t *raddr ){
+
+    vm_sync_msg_data_t msg;
+    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
+    msg.header.version          = SYNC_PROTOCOL_VERSION;
+    msg.header.type             = VM_SYNC_MSG_DATA;
+    msg.header.flags            = 0;
+    msg.header.sync_group_hash  = sync_group_hash;
+
+    msg.tick                    = tick;
+    msg.offset                  = offset;
+    msg.padding                 = 0;
+    
+    memcpy( &msg.data, data, len );
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
+}
 
 static void send_request( bool request_data ){
 
@@ -492,7 +515,7 @@ PT_BEGIN( pt );
 
             sync_data_remaining = msg->data_len;
         }
-        else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
+        else if( header->type == VM_SYNC_MSG_SYNC_REQ   ){
 
             // are we leader?
             if( !vm_sync_b_is_leader() ){
@@ -508,7 +531,24 @@ PT_BEGIN( pt );
             if( msg->request_data ){
 
                 // send data
+                uint16_t offset = 0;
+                uint16_t data_len = vm_u16_get_data_len();
+                while( offset < data_len ){
 
+                    uint16_t chunk_size = VM_SYNC_MAX_DATA_LEN;
+
+                    if( chunk_size > data_len ){
+
+                        chunk_size = data_len;
+                    }
+
+                    // fix params!
+                    uint8_t *data_ptr = vm_u8p_get_data();
+
+                    send_data( data_ptr, chunk_size, vm_u64_get_ticks(), offset, &raddr );
+
+                    offset += chunk_size;
+                } 
             }    
         }
         else if( header->type == VM_SYNC_MSG_DATA ){
@@ -520,7 +560,8 @@ PT_BEGIN( pt );
             }
 
             vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
-                                    
+            
+            log_v_debug_P( PSTR("rx data offset %d"), msg->offset );                           
         }
         
         // if( header->type == VM_SYNC_MSG_SYNC_0 ){
@@ -714,16 +755,39 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
 
-        while( sync_state == STATE_IDLE ){
+        if( sync_state == STATE_IDLE ){
 
-            TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+            log_v_debug_P( PSTR("starting VM sync") );
+            sync_state = STATE_SYNCING;
 
-            send_request( TRUE );
+            while( sync_state == STATE_SYNCING ){
 
-            TMR_WAIT( pt, 10000 );
+                TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
+                if( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
+                    
+                    sync_state = STATE_IDLE;
+                    THREAD_RESTART( pt );
+                }
+
+                send_request( TRUE );
+
+                TMR_WAIT( pt, 1000 );
+            }
         }
 
+
+
+
+
+
+
+
+
+
+
         TMR_WAIT( pt, 10000 );
+
 
 
     	// THREAD_WAIT_WHILE( pt, vm_sync_wait() );
