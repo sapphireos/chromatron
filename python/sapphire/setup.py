@@ -43,7 +43,6 @@ setup(
     long_description=open('README.txt').read(),
 
     install_requires=[
-        "catbus",
         "appdirs==1.4.3",
         "requests==2.22.0",
         "setuptools >= 49.2.0",
