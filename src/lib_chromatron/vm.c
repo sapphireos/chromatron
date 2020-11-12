@@ -726,10 +726,6 @@ PT_BEGIN( pt );
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
-        // if( vm_sync_b_is_follower() ){
-            // log_v_debug_P( PSTR("%lu %d %d %d %u"), (uint32_t)state->vm_state.tick, vm_delay, delay, state->vm_state.loop_delay, state->vm_state.last_elapsed_us );
-        // }
-
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
 
