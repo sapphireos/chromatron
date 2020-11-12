@@ -50,6 +50,8 @@ typedef struct __attribute__((packed)){
     uint64_t rng_seed;
     uint32_t net_time;
     uint16_t data_len;
+    uint8_t max_threads;
+    uint16_t thread_offsets[VM_MAX_THREADS];
 } vm_sync_msg_sync_t;
 #define VM_SYNC_MSG_SYNC                        1
 
