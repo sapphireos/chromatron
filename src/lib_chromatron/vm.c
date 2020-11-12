@@ -479,6 +479,8 @@ typedef struct{
     mem_handle_t handle;
     int8_t vm_return;
     uint32_t last_run;
+    int32_t delay_adjust;
+    int32_t vm_delay;
     vm_state_t vm_state;
 } vm_thread_state_t;
 
@@ -611,8 +613,10 @@ PT_BEGIN( pt );
 
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
-        static int32_t vm_delay;
-        vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+        state->delay_adjust = 0;
+
+        state->vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
 
         // if this is the first run, we will start with a short delay
         if( state->vm_state.tick == 0 ){
@@ -622,7 +626,7 @@ PT_BEGIN( pt );
         // if delay is 0 (or less, so we're running behind) -
         // yield a couple of times so we don't starve the other threads.
         // we cannot guarantee VM timing with this load.
-        else if( vm_delay <= 0 ){
+        else if( state->vm_delay <= 0 ){
 
             vm_timing_status[state->vm_id] = 1;
 
@@ -645,35 +649,42 @@ PT_BEGIN( pt );
                 uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
                 int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
 
-                int32_t delay_adjust = 0;
+                state->delay_adjust = 0;
 
-                if( sync_delta > 10 ){
+                if( sync_delta > 100 ){
 
-                    delay_adjust = -10;
+                    state->delay_adjust = -100;
+                }
+                else if( sync_delta > 10 ){
+
+                    state->delay_adjust = -10;
                 }
                 else if( sync_delta > 1 ){
 
-                    delay_adjust = -1;
+                    state->delay_adjust = -1;
+                }
+                else if( sync_delta < -100 ){
+
+                    state->delay_adjust = 100;
                 }
                 else if( sync_delta < -10 ){
 
-                    delay_adjust = 10;
+                    state->delay_adjust = 10;
                 }
                 else if( sync_delta < -1 ){
 
-                    delay_adjust = 1;
+                    state->delay_adjust = 1;
                 }
 
-                state->vm_state.tick += delay_adjust;
+                if( state->delay_adjust != 0 ){
 
-                if( delay_adjust != 0 ){
-
-                    log_v_debug_P( PSTR("%d -> %d / %d"), sync_delta, delay_adjust, vm_delay );        
+                    log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
                 }
             }
 
             // set alarm
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + vm_delay );
+
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + state->vm_delay );
           
             // wait, along with a check for an update frame rate
             THREAD_WAIT_WHILE( pt, 
@@ -700,7 +711,7 @@ PT_BEGIN( pt );
         }
 
         // get elapsed time between last run
-        uint32_t delay = tmr_u32_get_system_time_ms() - state->last_run;
+        uint32_t delay = tmr_u32_get_system_time_ms() - state->last_run + state->delay_adjust;
 
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
@@ -715,7 +726,9 @@ PT_BEGIN( pt );
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
-        // log_v_debug_P( PSTR("%lu %d %d %d %u"), (uint32_t)state->vm_state.tick, vm_delay, delay, state->vm_state.loop_delay, state->vm_state.last_elapsed_us );
+        // if( vm_sync_b_is_follower() ){
+            // log_v_debug_P( PSTR("%lu %d %d %d %u"), (uint32_t)state->vm_state.tick, vm_delay, delay, state->vm_state.loop_delay, state->vm_state.last_elapsed_us );
+        // }
 
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
