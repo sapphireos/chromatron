@@ -43,8 +43,6 @@ static uint8_t sync_state;
 
 static uint16_t sync_data_remaining;
 
-static void vm_sync_v_reset( void );
-
 int8_t vmsync_i8_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -142,19 +140,9 @@ bool vm_sync_b_is_follower( void ){
     return FALSE;
 }
 
-// bool vm_sync_b_is_slave_synced( void ){
-
-//     return sync_state == STATE_SLAVE_SYNC;
-// }
-
 bool vm_sync_b_is_synced( void ){
 
     return sync_state == STATE_SYNC;
-}
-
-uint32_t vm_sync_u32_get_sync_group_hash( void ){
-
-	return sync_group_hash;
 }
 
 bool vm_sync_b_in_progress( void ){
@@ -382,6 +370,8 @@ PT_BEGIN( pt );
         // wait until time sync
         THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
 
+        THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
+
         services_v_join_team( SYNC_SERVICE, sync_group_hash, 1, sock_u16_get_lport( sock ) );
 
         THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
@@ -392,7 +382,9 @@ PT_BEGIN( pt );
 
             sync_state = STATE_SYNC;
 
-            THREAD_WAIT_WHILE( pt, services_b_is_server( SYNC_SERVICE, sync_group_hash ) );
+            THREAD_WAIT_WHILE( pt, services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) );
+
+            THREAD_RESTART( pt );
         }
 
         if( sync_state == STATE_IDLE ){
@@ -418,12 +410,26 @@ PT_BEGIN( pt );
             }
         }
 
-        if( sync_state == STATE_SYNC ){
+        // periodic resync
+        while( sync_state == STATE_SYNC ){
 
-            THREAD_WAIT_WHILE( pt, services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + SYNC_INTERVAL );
+
+            THREAD_WAIT_WHILE( pt, 
+                ( services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) && 
+                thread_b_alarm_set() );
+
+            if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
+
+                send_request( FALSE );
+            }
+            else{
+
+                vm_sync_v_reset();
+            }
         }
 
-        TMR_WAIT( pt, 10000 );
+        TMR_WAIT( pt, 1000 );
     }
 
 PT_END( pt );

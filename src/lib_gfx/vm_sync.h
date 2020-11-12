@@ -32,6 +32,8 @@
 
 #define SYNC_SERVICE                        __KV__vmsync
 
+#define SYNC_INTERVAL                       8000
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
@@ -67,9 +69,8 @@ typedef struct __attribute__((packed)){
 #define VM_SYNC_MSG_DATA                        3
 #define VM_SYNC_MAX_DATA_LEN                    512
 
-uint32_t vm_sync_u32_get_sync_group_hash( void );
-
 void vm_sync_v_init( void );
+void vm_sync_v_reset( void );
 
 bool vm_sync_b_is_leader( void );
 bool vm_sync_b_is_follower( void );
