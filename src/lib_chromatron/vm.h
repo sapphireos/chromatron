@@ -37,10 +37,10 @@ bool vm_b_is_vm_running( uint8_t i );
 
 void vm_v_sync( uint32_t ts, uint64_t ticks );
 
+uint32_t vm_u32_get_sync_time( void );
+uint64_t vm_u64_get_sync_tick( void );
 uint16_t vm_u16_get_data_len( void );
-uint32_t vm_u32_get_prog_hash( void );
-uint64_t vm_u64_get_ticks( void );
-uint64_t vm_u64_get_rng_seed( void );
 int32_t* vm_i32p_get_data( void ); 
+vm_state_t* vm_p_get_state( void );
 
 #endif

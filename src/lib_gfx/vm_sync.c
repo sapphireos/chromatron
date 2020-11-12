@@ -171,11 +171,13 @@ static void send_sync( sock_addr_t *raddr ){
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
 
-    msg.program_name_hash       = vm_u32_get_prog_hash();
-    msg.tick                    = vm_u64_get_ticks();
-    msg.rng_seed                = vm_u64_get_rng_seed();
-    msg.net_time                = time_u32_get_network_time(); 
-    msg.data_len                = vm_u16_get_data_len();
+    vm_state_t *state = vm_p_get_state();
+
+    msg.program_name_hash       = state->program_name_hash;
+    msg.tick                    = vm_u64_get_sync_tick();
+    msg.rng_seed                = state->rng_seed;
+    msg.net_time                = vm_u32_get_sync_time();
+    msg.data_len                = state->data_len;
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
@@ -278,10 +280,28 @@ PT_BEGIN( pt );
 
             vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
 
+            vm_state_t *state = vm_p_get_state();
+
+            // confirm program name
+            if( msg->program_name_hash != state->program_name_hash ){
+
+                vm_sync_v_reset();
+
+                log_v_error_P( PSTR("program name mismatch") );
+
+                continue;
+            }
+
             // sync VM
             vm_v_sync( msg->net_time, msg->tick );
 
-            sync_data_remaining = msg->data_len;
+            if( sync_state == STATE_SYNCING ){
+
+                sync_data_remaining = msg->data_len;
+
+                state->tick         = msg->tick;
+                state->rng_seed     = msg->rng_seed;
+            }            
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
@@ -314,7 +334,7 @@ PT_BEGIN( pt );
                     // fix params!
                     int32_t *data_ptr = vm_i32p_get_data();
 
-                    send_data( data_ptr, chunk_size, vm_u64_get_ticks(), offset, &raddr );
+                    send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
                 } 
@@ -377,12 +397,13 @@ PT_BEGIN( pt );
 
         if( sync_state == STATE_IDLE ){
 
+            TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
             log_v_debug_P( PSTR("starting VM sync") );
+            
             sync_state = STATE_SYNCING;
 
             while( sync_state == STATE_SYNCING ){
-
-                TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
                 if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
                     ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ){

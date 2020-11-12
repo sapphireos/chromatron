@@ -495,6 +495,16 @@ void vm_v_sync( uint32_t ts, uint64_t ticks ){
     vm0_sync_ticks = ticks;    
 }
 
+uint32_t vm_u32_get_sync_time( void ){
+
+    return vm0_sync_ts;
+}
+
+uint64_t vm_u64_get_sync_tick( void ){
+
+    return vm0_sync_ticks;
+}
+
 uint16_t vm_u16_get_data_len( void ){
 
     if( vm_threads[0] <= 0 ){
@@ -502,45 +512,9 @@ uint16_t vm_u16_get_data_len( void ){
         return 0;
     }
 
-    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );    
 
-    return state->vm_state.data_len;    
-}
-
-uint32_t vm_u32_get_prog_hash( void ){
-
-    if( vm_threads[0] <= 0 ){
-
-        return 0;
-    }
-
-    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
-
-    return state->vm_state.program_name_hash;
-}
-
-uint64_t vm_u64_get_ticks( void ){
-
-    if( vm_threads[0] <= 0 ){
-
-        return 0;
-    }
-
-    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
-
-    return state->vm_state.tick;
-}
-
-uint64_t vm_u64_get_rng_seed( void ){
-
-    if( vm_threads[0] <= 0 ){
-
-        return 0;
-    }
-
-    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
-
-    return state->vm_state.rng_seed;
+    return state->vm_state.data_len;
 }
 
 int32_t* vm_i32p_get_data( void ){
@@ -553,6 +527,20 @@ int32_t* vm_i32p_get_data( void ){
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
 
     return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
+}
+
+// return state for VM 0.
+// Use with caution!
+vm_state_t* vm_p_get_state( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return &state->vm_state;
 }
 
 
@@ -607,13 +595,6 @@ PT_BEGIN( pt );
     // init database
     vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
-    
-
-    // THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
-    // vm0_sync_ts = time_u32_get_network_time();
-
-    // TMR_WAIT( pt, 200 );
-
     // run VM init
     state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
 
@@ -661,8 +642,8 @@ PT_BEGIN( pt );
 
                 uint32_t net_time = time_u32_get_network_time();
                 int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
-                uint64_t current_vm_sync_tick = vm0_sync_ticks + elapsed;
-                int32_t sync_delta = state->vm_state.tick - current_vm_sync_tick;
+                uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
+                int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
 
                 int32_t delay_adjust = 0;
 
@@ -685,7 +666,10 @@ PT_BEGIN( pt );
 
                 state->vm_state.tick += delay_adjust;
 
-                // log_v_debug_P( PSTR("%d -> %d / %d"), sync_delta, delay_adjust, vm_delay );    
+                if( delay_adjust != 0 ){
+
+                    log_v_debug_P( PSTR("%d -> %d / %d"), sync_delta, delay_adjust, vm_delay );        
+                }
             }
 
             // set alarm
@@ -720,6 +704,13 @@ PT_BEGIN( pt );
 
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
+
+        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
+
+            // record network timestamp and current VM tick
+            vm0_sync_ts = time_u32_get_network_time();
+            vm0_sync_ticks = state->vm_state.tick;   
+        }
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
