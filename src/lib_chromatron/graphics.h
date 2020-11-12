@@ -25,15 +25,9 @@
 
 #include "target.h"
 #include "gfx_lib.h"
-#include "wifi_cmd.h"
 #include "keyvalue.h"
-
 
 void gfx_v_init( void );
 bool gfx_b_running( void );
-uint16_t gfx_u16_get_frame_number( void );
-uint32_t gfx_u32_get_frame_ts( void );
-void gfx_v_set_frame_number( uint16_t frame );
-void gfx_v_set_sync0( uint16_t frame, uint32_t ts );
 
 #endif
