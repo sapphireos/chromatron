@@ -398,15 +398,15 @@ PT_BEGIN( pt );
             while( sync_state == STATE_SYNCING ){
 
                 if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
-                    ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ){
+                    ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ||
+                    ( !vm_b_is_vm_running( 0 ) ) ){
                     
-                    sync_state = STATE_IDLE;
                     THREAD_RESTART( pt );
                 }
 
                 send_request( TRUE );
 
-                TMR_WAIT( pt, 1000 );
+                TMR_WAIT( pt, 2000 );
             }
         }
 
@@ -416,16 +416,17 @@ PT_BEGIN( pt );
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + SYNC_INTERVAL );
 
             THREAD_WAIT_WHILE( pt, 
-                ( services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) && 
+                services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+                vm_b_is_vm_running( 0 ) &&
                 thread_b_alarm_set() );
 
-            if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) ){
+            if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
 
                 send_request( FALSE );
             }
             else{
 
-                vm_sync_v_reset();
+                break;
             }
         }
 
