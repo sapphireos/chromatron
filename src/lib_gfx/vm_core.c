@@ -2730,11 +2730,11 @@ int8_t vm_i8_run_threads(
 
             // decrement
             state->threads[i].delay -= delta_ticks;
+        }
 
-            if( state->threads[i].delay > 0 ){            
+        if( state->threads[i].delay > 0 ){            
 
-                continue;
-            }
+            continue;
         }
 
         state->current_thread = i;
