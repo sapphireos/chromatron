@@ -2713,9 +2713,7 @@ int8_t vm_i8_run_threads(
     bool threads_running = FALSE;
 
     uint32_t elapsed_us = 0;
-    // uint32_t additional_elapsed[VM_MAX_THREADS];
-    // memset( additional_elapsed, 0, sizeof(additional_elapsed) );
-
+    
     int8_t status = VM_STATUS_ERROR;
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
@@ -2741,12 +2739,6 @@ int8_t vm_i8_run_threads(
         status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
 
         state->threads[i].delay -= ( state->last_elapsed_us / 1000 );
-
-        // update all previous thread delays to account for the time spent in this thread
-        // for( uint8_t j = 0; j < i; j++ ){
-
-        //     additional_elapsed[j] += state->last_elapsed_us;
-        // }
 
         elapsed_us += state->last_elapsed_us;
 
@@ -2783,9 +2775,6 @@ int8_t vm_i8_run_threads(
 
             continue;
         }
-
-        // state->threads[i].delay -= ( additional_elapsed[i] / 1000 );
-
     }
 
     if( !threads_running ){
