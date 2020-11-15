@@ -22,16 +22,20 @@
 
 from setuptools import setup
 
-from chromatron.version import VERSION
-
 setup(
     name='chromatron',
 
-    version=VERSION,
+    version='1.0.7',
 
     packages=['chromatron',
               'chromatron.midi',
               'chromatron.osc',
+              'sapphire',
+              'sapphire.common',
+              'sapphire.devices',
+              'sapphire.protocols',
+              'sapphire.buildtools',
+
             ],
             
     py_modules=['chromatron'],
@@ -47,15 +51,30 @@ setup(
     long_description=open('README.txt').read(),
 
     install_requires=[
-        "catbus >= 1.0.4",
         "crcmod == 1.7",
         "click == 7.1.2",
-        "sapphire >= 1.0.4",
         "elysianfields >= 1.0.5",
+        "appdirs==1.4.3",
+        "requests==2.22.0",
+        "setuptools >= 49.2.0",
+        "pyserial == 3.4.0",
+        "cmd2 == 0.6.9",
+        "click == 7.1.2",
+        "crcmod == 1.7",
+        "pyparsing == 2.2.0",
+        "intelhex == 2.1",
+        "fnvhash==0.1.0",
+        "zeroconf==0.24.4",
+        "colorlog==4.1.0",
+        "python-logging-loki==0.3.1",
     ],
 
     entry_points='''
         [console_scripts]
         chromatron=chromatron.__main__:main
+        sapphiremake=sapphire.buildtools.core:main
+        sapphireconsole=sapphire.devices.sapphireconsole:main
+        catbus=catbus.__main__:main
+        catbus_directory=catbus.directory:main
     ''',
 )
