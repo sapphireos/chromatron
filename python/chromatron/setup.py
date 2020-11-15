@@ -57,7 +57,7 @@ setup(
         "elysianfields >= 1.0.5",
         "appdirs==1.4.3",
         "requests==2.22.0",
-        "setuptools >= 49.2.0",
+        "setuptools >= 50.3.2",
         "pyserial == 3.4.0",
         "cmd2 == 0.6.9",
         "click == 7.1.2",

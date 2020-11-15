@@ -847,7 +847,7 @@ def echo_group(group):
 @click.pass_context
 @click.option('--host', '-h', default=None, help='Name or IP address of target.  Can also specify USB for local connection.')
 @click.option('--query', '-q', default=None, multiple=True, help="Query for matching tags.")
-@click.version_option(message='v%(version)s')
+@click.version_option('FIX VERSION LATER', message='v%(version)s')
 def cli(ctx, host, query):
     """Chromatron Command Line Interface
 
