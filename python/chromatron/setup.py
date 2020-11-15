@@ -30,6 +30,7 @@ setup(
     packages=['chromatron',
               'chromatron.midi',
               'chromatron.osc',
+              'catbus',
               'sapphire',
               'sapphire.common',
               'sapphire.devices',
