@@ -31,6 +31,7 @@ setup(
               'chromatron.midi',
               'chromatron.osc',
               'catbus',
+              'elysianfields',
               'sapphire',
               'sapphire.common',
               'sapphire.devices',
@@ -54,7 +55,6 @@ setup(
     install_requires=[
         "crcmod == 1.7",
         "click == 7.1.2",
-        "elysianfields >= 1.0.5",
         "appdirs==1.4.3",
         "requests==2.22.0",
         "setuptools >= 50.3.2",
