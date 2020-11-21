@@ -148,7 +148,7 @@ PT_BEGIN( pt );
 
             gfx_v_shutdown_graphic();
             
-            thread_v_signal( PIX_SIGNAL_0 );        
+            pixel_v_signal();        
 
             THREAD_EXIT( pt );
         }
@@ -158,7 +158,7 @@ PT_BEGIN( pt );
             gfx_v_process_faders();
             gfx_v_sync_array();
 
-            thread_v_signal( PIX_SIGNAL_0 );
+            pixel_v_signal();
         }
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );

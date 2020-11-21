@@ -28,9 +28,12 @@
 #include "hal_pixel.h"
 #include "os_irq.h"
 
+#include "pixel.h"
+#include "pixel_vars.h"
+#include "graphics.h"
+
 #include "logging.h"
 
-#ifdef ENABLE_COPROCESSOR
 
 void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
     
@@ -43,17 +46,7 @@ void hal_pixel_v_init( void ){
 
 }
 
+void hal_pixel_v_configure( void ){
 
-#else
-
-void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
-    
-   
+	
 }
-
-
-void hal_pixel_v_init( void ){
-
-}
-
-#endif

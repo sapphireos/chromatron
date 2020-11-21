@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2020  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -20,13 +20,13 @@
 // 
 // </license>
 
-#ifndef _HAL_PIXEL_H
-#define _HAL_PIXEL_H
+#ifndef _PIXEL_VARS_H_
+#define _PIXEL_VARS_H_
 
-void hal_pixel_v_init( void );
-void hal_pixel_v_configure( void );
-
-void hal_pixel_v_transfer_complete_callback( uint8_t driver ) __attribute__((weak));
-void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len );
+extern bool pix_dither;
+extern uint8_t pix_mode;
+extern uint32_t pix_clock;
+extern uint8_t pix_rgb_order;
+extern uint8_t pix_apa102_dimmer;
 
 #endif
