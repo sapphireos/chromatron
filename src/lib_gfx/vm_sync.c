@@ -84,6 +84,8 @@ static void init_group_hash( void ){
 
 void vm_sync_v_init( void ){
 
+    COMPILER_ASSERT( SYNC_MAX_THREADS >= VM_MAX_THREADS );
+
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
@@ -166,6 +168,14 @@ static void send_sync( sock_addr_t *raddr ){
     msg.rng_seed                = state->rng_seed;
     msg.net_time                = vm_u32_get_sync_time();
     msg.data_len                = state->data_len;
+    msg.max_threads             = VM_MAX_THREADS;
+
+    memset( msg.threads, 0, sizeof(msg.threads) );
+
+    for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
+
+        msg.threads[i] = state->threads[i];
+    }
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
@@ -268,16 +278,25 @@ PT_BEGIN( pt );
 
             vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
 
-            vm_state_t *state = vm_p_get_state();
+            vm_state_t *vm_state = vm_p_get_state();
 
             // confirm program name
-            if( msg->program_name_hash != state->program_name_hash ){
+            if( msg->program_name_hash != vm_state->program_name_hash ){
 
                 vm_sync_v_reset();
 
                 log_v_error_P( PSTR("program name mismatch") );
 
                 continue;
+            }
+
+            if( msg->max_threads > VM_MAX_THREADS ) {
+
+                vm_sync_v_reset();
+
+                log_v_error_P( PSTR("too many VM threads") );
+
+                continue;                
             }
 
             // sync VM
@@ -287,8 +306,18 @@ PT_BEGIN( pt );
 
                 sync_data_remaining = msg->data_len;
 
-                state->tick         = msg->tick;
-                state->rng_seed     = msg->rng_seed;
+                vm_state->tick         = msg->tick;
+                vm_state->rng_seed     = msg->rng_seed;
+
+                uint8_t thread_count = VM_MAX_THREADS;
+
+                if( thread_count > msg->max_threads ){
+
+                    thread_count = msg->max_threads;
+                }
+
+                // sync threads
+                memcpy( vm_state->threads, msg->threads, thread_count );
             }            
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){

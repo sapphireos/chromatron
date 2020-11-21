@@ -24,6 +24,7 @@
 #define _VM_SYNC_H_
 
 #include "target.h"
+#include "vm_core.h"
 
 #ifdef ENABLE_TIME_SYNC
 
@@ -33,6 +34,8 @@
 #define SYNC_SERVICE                        __KV__vmsync
 
 #define SYNC_INTERVAL                       8000
+
+#define SYNC_MAX_THREADS                    16
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -51,7 +54,7 @@ typedef struct __attribute__((packed)){
     uint32_t net_time;
     uint16_t data_len;
     uint8_t max_threads;
-    uint16_t thread_offsets[VM_MAX_THREADS];
+    vm_thread_t threads[SYNC_MAX_THREADS];
 } vm_sync_msg_sync_t;
 #define VM_SYNC_MSG_SYNC                        1
 
