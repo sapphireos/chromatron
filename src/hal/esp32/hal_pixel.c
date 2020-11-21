@@ -48,31 +48,31 @@
 
 #ifdef PIXEL_USE_MALLOC
 
-static uint8_t *array_r;
-static uint8_t *array_g;
-static uint8_t *array_b;
+static uint8_t *array_r __attribute__((aligned(4)));
+static uint8_t *array_g __attribute__((aligned(4)));
+static uint8_t *array_b __attribute__((aligned(4)));
 static union{
-    uint8_t *dither;
-    uint8_t *white;
+    uint8_t *dither __attribute__((aligned(4)));
+    uint8_t *white __attribute__((aligned(4)));
 } array_misc;
-static uint8_t *outputs;
+static uint8_t *outputs __attribute__((aligned(4)));
 
 #else
 
-static uint8_t array_r[MAX_PIXELS];
-static uint8_t array_g[MAX_PIXELS];
-static uint8_t array_b[MAX_PIXELS];
+static uint8_t array_r[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_g[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_b[MAX_PIXELS] __attribute__((aligned(4)));
 static union{
-    uint8_t dither[MAX_PIXELS];
-    uint8_t white[MAX_PIXELS];
+    uint8_t dither[MAX_PIXELS] __attribute__((aligned(4)));
+    uint8_t white[MAX_PIXELS] __attribute__((aligned(4)));
 } array_misc;
-static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING];
+static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING] __attribute__((aligned(4)));
 
 #endif
 
 static uint8_t dither_cycle;
 
-static const uint8_t ws2811_lookup[256][4] = {
+static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
     #include "ws2811_lookup.txt"
 };
 
