@@ -93,3 +93,22 @@ void pixel_v_signal( void ){
 
     thread_v_signal( PIX_SIGNAL_0 );   
 }
+
+uint8_t pixel_u8_bytes_per_pixel( uint8_t mode ){
+
+    if( mode == PIX_MODE_APA102 ){
+
+        return 4; // APA102
+    }
+    else if( mode == PIX_MODE_WS2811 ){
+
+        return 12; // WS2811
+    }
+    else if( mode == PIX_MODE_SK6812_RGBW ){
+
+        return 16; // SK6812 RGBW
+    }
+
+    return 3; // WS2801 and others
+}
+

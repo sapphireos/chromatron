@@ -46,7 +46,7 @@
 // pixel config
 #define FADER_RATE              20
 
-#define MAX_PIXELS              128
+#define MAX_PIXELS              1024
 
 #define N_PIXEL_OUTPUTS         1
 

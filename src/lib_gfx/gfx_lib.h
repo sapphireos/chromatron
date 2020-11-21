@@ -29,6 +29,7 @@
 #include "bool.h"
 #include "catbus_common.h"
 #include "target.h"
+#include "hsv_to_rgb.h"
 
 #define GFX_VERSION             2
 
