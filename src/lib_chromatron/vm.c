@@ -616,7 +616,8 @@ PT_BEGIN( pt );
 
         state->delay_adjust = 0;
 
-        state->vm_delay = vm_i32_get_delay( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        state->vm_delay = 0;
 
         // if this is the first run, we will start with a short delay
         if( state->vm_state.tick == 0 ){
@@ -706,7 +707,7 @@ PT_BEGIN( pt );
                 // the next one will be correct.
                 // This is will screw up the VM time sync across nodes, they will
                 // have to resynchronize.
-                state->vm_state.loop_delay = 0;
+                state->vm_state.loop_tick = state->vm_state.tick;
             } 
         }
 

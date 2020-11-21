@@ -2646,17 +2646,19 @@ int8_t vm_i8_run_tick(
     vm_state_t *state,
     int32_t delta_ticks ){
 
+    state->tick += delta_ticks;
+
     uint32_t elapsed_us = 0;
 
     int8_t status = VM_STATUS_ERROR;
 
-    if( ( state->loop_delay - delta_ticks ) <= 0 ){
+    if( ( state->loop_tick <= state->tick ) <= 0 ){
 
         // run loop
         status = vm_i8_run_loop( stream, state );
 
         // add frame rate to next loop delay
-        state->loop_delay += gfx_u16_get_vm_frame_rate();
+        state->loop_tick += gfx_u16_get_vm_frame_rate();
 
         elapsed_us += state->last_elapsed_us;
 
@@ -2664,25 +2666,14 @@ int8_t vm_i8_run_tick(
 
             goto exit;
         }
-
-        // include loop time in elapsed milliseconds
-        delta_ticks += ( state->last_elapsed_us / 1000 );
     }
 
-    status = vm_i8_run_threads( stream, state, delta_ticks );
+    status = vm_i8_run_threads( stream, state );
 
     elapsed_us += state->last_elapsed_us;
 
-    // include thread time in elapsed milliseconds
-    delta_ticks += ( state->last_elapsed_us / 1000 );
-
-
-exit:
-    state->tick += delta_ticks;
+exit:    
     
-    // adjust loop delay for total elapsed time
-    state->loop_delay -= delta_ticks;
-
     // update total elapsed time
     state->last_elapsed_us = elapsed_us;
 
@@ -2707,8 +2698,7 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state,
-    int32_t delta_ticks ){
+    vm_state_t *state ){
 
     bool threads_running = FALSE;
 
@@ -2723,27 +2713,17 @@ int8_t vm_i8_run_threads(
             continue;
         }
 
-        // check thread delay
-        if( state->threads[i].delay > 0 ){
-
-            // decrement
-            state->threads[i].delay -= delta_ticks;
-        }
-
-        if( state->threads[i].delay > 0 ){            
+        // check thread tick
+        if( state->threads[i].tick > state->tick ){
 
             continue;
         }
 
         state->current_thread = i;
+        state->threads[i].tick = 0; // mark thread as run
         status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
 
-        state->threads[i].delay -= ( state->last_elapsed_us / 1000 );
-
         elapsed_us += state->last_elapsed_us;
-
-        // add elapsed time for this thread to delta ticks so the other thread delays are properly tracked
-        delta_ticks += ( state->last_elapsed_us / 1000 );
 
         threads_running = TRUE;
 
@@ -2768,15 +2748,6 @@ int8_t vm_i8_run_threads(
         }
     }
 
-    // update all threads with final delays accumulated from executing successive threads
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
-
-        if( state->threads[i].func_addr == 0xffff ){
-
-            continue;
-        }
-    }
-
     if( !threads_running ){
 
         status = VM_STATUS_NO_THREADS;
@@ -2794,11 +2765,18 @@ exit:
     return status;
 }
 
-int32_t vm_i32_get_delay(
+uint64_t vm_u64_get_next_tick(
     uint8_t *stream,
     vm_state_t *state ){
 
-    int32_t shortest_delay = state->loop_delay;
+    uint64_t current_tick = state->tick;
+    uint64_t next_tick = state->loop_tick;
+
+    if( next_tick < current_tick ){
+
+        // loop already ran
+        next_tick = 0;
+    }
 
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
@@ -2807,21 +2785,34 @@ int32_t vm_i32_get_delay(
             continue;
         }
 
-        // check thread delay
-        int32_t thread_delay = state->threads[i].delay;
+        // check thread tick
+        uint64_t thread_tick = state->threads[i].tick;
 
-        if( thread_delay < 0 ){
+        if( thread_tick == 0 ){
+            // thread is not running
 
             continue;
         }
 
-        if( thread_delay < shortest_delay ){
+        // check if next tick is uninitialized
+        if( next_tick == 0 ){
 
-            shortest_delay = thread_delay;
+            next_tick = thread_tick;
+        }
+        // check if thread tick is sooner than last one we checked
+        else if( thread_tick < next_tick ){
+
+            next_tick = thread_tick;
         }
     }
 
-    return shortest_delay;
+    // check if nothing is ready to run
+    if( next_tick < current_tick ){
+
+        next_tick = 0;
+    }
+
+    return next_tick;
 }
 
 int32_t vm_i32_get_data( 
@@ -2901,7 +2892,7 @@ int8_t vm_i8_load_program(
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
         state->threads[i].func_addr = 0xffff;
-        state->threads[i].delay     = -1;
+        state->threads[i].tick      = 0;
     }
 
     state->current_thread = -1;
@@ -3060,7 +3051,7 @@ int8_t vm_i8_load_program(
     state->rng_seed = 1;
 
     state->tick = 0;
-    state->loop_delay = 0;
+    state->loop_tick = 10; // start loop tick with a slight delay
 
     return VM_STATUS_OK;
 }

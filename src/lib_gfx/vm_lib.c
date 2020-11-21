@@ -196,7 +196,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             // set up delay
-            state->threads[state->current_thread].delay += temp0;
+            state->threads[state->current_thread].tick = state->tick + temp0;
 
             // delay also yields
             state->yield = 1;
@@ -240,7 +240,6 @@ int8_t vm_lib_i8_libcall_built_in(
                 if( state->threads[i].func_addr == params[0] ){
 
                     state->threads[i].func_addr = 0xffff;
-                    state->threads[i].delay     = -1;
 
                     break;
                 }

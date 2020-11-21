@@ -149,7 +149,7 @@ typedef struct __attribute__((packed)){
 typedef struct{
     uint16_t func_addr;
     uint16_t pc_offset;
-    int32_t delay;
+    uint64_t tick;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -171,7 +171,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
 
     uint64_t tick;
     uint32_t last_elapsed_us;
-    int32_t loop_delay;
+    uint64_t loop_tick;
 
     uint32_t program_name_hash;
 
@@ -227,10 +227,9 @@ int8_t vm_i8_run_loop(
 
 int8_t vm_i8_run_threads(
     uint8_t *stream,
-    vm_state_t *state,
-    int32_t delta_ticks );
+    vm_state_t *state );
 
-int32_t vm_i32_get_delay(
+uint64_t vm_u64_get_next_tick(
     uint8_t *stream,
     vm_state_t *state );
 
