@@ -49,10 +49,16 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
     uint32_t program_name_hash;
-    uint64_t tick;
-    uint64_t rng_seed;
+    
+    uint64_t sync_tick;
     uint32_t net_time;
+
+    uint64_t tick;
+    uint64_t loop_tick;
+    uint64_t rng_seed;
+    
     uint16_t data_len;
+
     uint8_t max_threads;
     vm_thread_t threads[SYNC_MAX_THREADS];
 } vm_sync_msg_sync_t;

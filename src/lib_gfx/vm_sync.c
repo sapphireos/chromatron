@@ -164,9 +164,13 @@ static void send_sync( sock_addr_t *raddr ){
     vm_state_t *state = vm_p_get_state();
 
     msg.program_name_hash       = state->program_name_hash;
-    msg.tick                    = vm_u64_get_sync_tick();
-    msg.rng_seed                = state->rng_seed;
+    msg.sync_tick               = vm_u64_get_sync_tick();
     msg.net_time                = vm_u32_get_sync_time();
+
+    msg.tick                    = state->tick;
+    msg.loop_tick               = state->loop_tick;
+    msg.rng_seed                = state->rng_seed;
+    
     msg.data_len                = state->data_len;
     msg.max_threads             = VM_MAX_THREADS;
 
@@ -300,13 +304,14 @@ PT_BEGIN( pt );
             }
 
             // sync VM
-            vm_v_sync( msg->net_time, msg->tick );
+            vm_v_sync( msg->net_time, msg->sync_tick );
 
             if( sync_state == STATE_SYNCING ){
 
                 sync_data_remaining = msg->data_len;
 
                 vm_state->tick         = msg->tick;
+                vm_state->loop_tick    = msg->loop_tick;
                 vm_state->rng_seed     = msg->rng_seed;
 
                 uint8_t thread_count = VM_MAX_THREADS;
