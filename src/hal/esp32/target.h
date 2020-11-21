@@ -45,10 +45,9 @@
 
 // pixel config
 #define FADER_RATE              20
-
 #define MAX_PIXELS              1024
-
 #define N_PIXEL_OUTPUTS         1
+#define PIXEL_SPI_CHANNEL		0
 
 // VM config
 #define VM_ENABLE_GFX

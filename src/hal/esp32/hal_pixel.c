@@ -27,6 +27,7 @@
 #include "hal_io.h"
 #include "hal_pixel.h"
 #include "os_irq.h"
+#include "spi.h"
 
 #include "pixel.h"
 #include "pixel_vars.h"
@@ -272,11 +273,11 @@ PT_BEGIN( pt );
             }
         }
 
-        // uint16_t data_length = setup_pixel_buffer();
-
-
+        uint16_t data_length = setup_pixel_buffer();
+        
         // initiate SPI transfer
-
+        // this is blocking!
+        spi_v_write_block( PIXEL_SPI_CHANNEL, outputs, data_length );
 
         THREAD_YIELD( pt );
     }
@@ -290,8 +291,12 @@ void hal_pixel_v_init( void ){
                      PSTR("pixel"),
                      0,
                      0 );
+
+	hal_pixel_v_configure();
 }
 
 void hal_pixel_v_configure( void ){
 
+	spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
 }
+
