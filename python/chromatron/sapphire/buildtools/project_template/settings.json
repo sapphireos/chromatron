@@ -1,0 +1,31 @@
+{
+	"_comment": "This is the project name.",
+    "_comment": "The project name is used by the build system",
+    "_comment": "to identify and search for projects",
+    "PROJ_NAME": "%(PROJ_NAME)",
+
+    "_comment": "Project version",
+    "PROJ_VERSION": "0.1",
+
+    "_comment": "Firmware ID",
+    "_comment": "This is automatically generated",
+    "_comment": "and should not be modified",
+    "FWID": "%(FWID)",
+
+    "_comment": "Select build type:",
+    "_comment": "app - builds as a standalone application",
+    "_comment": "os - build as operating system library",
+    "_comment": "loader - build as boot loader application",
+    "_comment": "lib - build as a library",
+ 	"BUILD_TYPE": "app",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": [],
+
+    "_comment": "The following options are only used for libraries:",
+    "_comment": "Init function for library",
+    "LIB_INIT": "",
+
+    "_comment": "Includes for library",
+    "LIB_INCLUDES": []
+}

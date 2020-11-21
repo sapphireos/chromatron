@@ -1,8 +1,0 @@
-Catbus
-======
-
-Contents
---------
-
-License Information
--------------------

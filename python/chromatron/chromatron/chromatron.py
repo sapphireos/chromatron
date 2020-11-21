@@ -44,7 +44,6 @@ from sapphire.devices.device import Device, DeviceUnreachableException, NTP_EPOC
 from elysianfields import *
 from sapphire.common.util import now
 
-from .version import VERSION
 from . import streamer
 
 import catbus
@@ -848,7 +847,7 @@ def echo_group(group):
 @click.pass_context
 @click.option('--host', '-h', default=None, help='Name or IP address of target.  Can also specify USB for local connection.')
 @click.option('--query', '-q', default=None, multiple=True, help="Query for matching tags.")
-@click.version_option(VERSION, message='v%(version)s')
+@click.version_option('FIX VERSION LATER', message='v%(version)s')
 def cli(ctx, host, query):
     """Chromatron Command Line Interface
 
