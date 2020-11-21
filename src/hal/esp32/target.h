@@ -49,6 +49,9 @@
 #define N_PIXEL_OUTPUTS         1
 #define PIXEL_SPI_CHANNEL		0
 
+// if defined, places pixel buffers in malloc region
+#define PIXEL_USE_MALLOC
+
 // VM config
 #define VM_ENABLE_GFX
 #define VM_ENABLE_KV

@@ -46,6 +46,18 @@
 #define TRAILER_LENGTH      32
 #define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
+#ifdef PIXEL_USE_MALLOC
+
+static uint8_t *array_r;
+static uint8_t *array_g;
+static uint8_t *array_b;
+static union{
+    uint8_t *dither;
+    uint8_t *white;
+} array_misc;
+static uint8_t *outputs;
+
+#else
 
 static uint8_t array_r[MAX_PIXELS];
 static uint8_t array_g[MAX_PIXELS];
@@ -54,11 +66,11 @@ static union{
     uint8_t dither[MAX_PIXELS];
     uint8_t white[MAX_PIXELS];
 } array_misc;
-
-static uint8_t dither_cycle;
-
 static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING];
 
+#endif
+
+static uint8_t dither_cycle;
 
 static const uint8_t ws2811_lookup[256][4] = {
     #include "ws2811_lookup.txt"
@@ -286,6 +298,23 @@ PT_END( pt );
 }
 
 void hal_pixel_v_init( void ){
+
+    #ifdef PIXEL_USE_MALLOC
+
+    array_r = malloc( MAX_PIXELS );
+    array_g = malloc( MAX_PIXELS );
+    array_b = malloc( MAX_PIXELS );
+    array_misc.white = malloc( MAX_PIXELS );
+
+    outputs = malloc( MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING );
+    
+    ASSERT( array_r != 0 );
+    ASSERT( array_g != 0 );
+    ASSERT( array_b != 0 );
+    ASSERT( array_misc.white != 0 );
+    ASSERT( outputs != 0 );
+
+    #endif
 
 	thread_t_create( pixel_thread,
                      PSTR("pixel"),
