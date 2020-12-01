@@ -36,6 +36,7 @@ static spi_device_interface_config_t devcfg;
 void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
 	ASSERT( channel < N_SPI_PORTS );
+	ASSERT( freq > 0 );
 
     io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
     io_v_set_mode( HAL_SPI_MOSI, IO_MODE_OUTPUT );
@@ -64,7 +65,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
     devcfg.clock_speed_hz   = freq;
     devcfg.mode             = mode;                            
     devcfg.spics_io_num     = -1;
-    devcfg.queue_size       = 1;                          
+    devcfg.queue_size       = 1;       
 
     ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
 }

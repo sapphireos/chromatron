@@ -326,6 +326,11 @@ void hal_pixel_v_init( void ){
 
 void hal_pixel_v_configure( void ){
 
+    if( pix_mode == PIX_MODE_OFF ){
+
+        return;
+    }
+
 	spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
 }
 
