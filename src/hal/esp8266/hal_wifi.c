@@ -778,15 +778,15 @@ static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 	}
     else if( router == 1 ){
 	   	
-	   	kv_i8_get( __KV__wifi_ssid2, pass, WIFI_PASS_LEN );
+	   	kv_i8_get( __KV__wifi_password2, pass, WIFI_PASS_LEN );
 	}
 	else if( router == 2 ){
 	   	
-	   	kv_i8_get( __KV__wifi_ssid3, pass, WIFI_PASS_LEN );
+	   	kv_i8_get( __KV__wifi_password3, pass, WIFI_PASS_LEN );
 	}
 	else if( router == 3 ){
 	   	
-	   	kv_i8_get( __KV__wifi_ssid4, pass, WIFI_PASS_LEN );
+	   	kv_i8_get( __KV__wifi_password4, pass, WIFI_PASS_LEN );
 	}
 }
 
