@@ -271,20 +271,20 @@ PT_BEGIN( pt );
                 break;
             }
             
-            netmsg_state_t *state = netmsg_vp_get_state( rx_netmsg );
+            netmsg_state_t *nm_state = netmsg_vp_get_state( rx_netmsg );
 
             // set up addressing info
-            state->laddr.port       = esp_conn[i].lport;
-            state->raddr.port       = htons(sourceAddr.sin_port);
-            state->raddr.ipaddr.ip3 = sourceAddr.sin_addr.s_addr >> 0;
-            state->raddr.ipaddr.ip2 = sourceAddr.sin_addr.s_addr >> 8;
-            state->raddr.ipaddr.ip1 = sourceAddr.sin_addr.s_addr >> 16;
-            state->raddr.ipaddr.ip0 = sourceAddr.sin_addr.s_addr >> 24;
+            nm_state->laddr.port       = esp_conn[i].lport;
+            nm_state->raddr.port       = htons(sourceAddr.sin_port);
+            nm_state->raddr.ipaddr.ip3 = sourceAddr.sin_addr.s_addr >> 0;
+            nm_state->raddr.ipaddr.ip2 = sourceAddr.sin_addr.s_addr >> 8;
+            nm_state->raddr.ipaddr.ip1 = sourceAddr.sin_addr.s_addr >> 16;
+            nm_state->raddr.ipaddr.ip0 = sourceAddr.sin_addr.s_addr >> 24;
 
             // allocate data buffer
-            state->data_handle = mem2_h_alloc2( len, MEM_TYPE_SOCKET_BUFFER );
+            nm_state->data_handle = mem2_h_alloc2( len, MEM_TYPE_SOCKET_BUFFER );
 
-            if( state->data_handle < 0 ){
+            if( nm_state->data_handle < 0 ){
 
                 log_v_error_P( PSTR("rx udp no handle") );     
 
@@ -296,7 +296,7 @@ PT_BEGIN( pt );
             }      
 
             // we can get a fast ptr because we've already verified the handle
-            uint8_t *data = mem2_vp_get_ptr_fast( state->data_handle );
+            uint8_t *data = mem2_vp_get_ptr_fast( nm_state->data_handle );
             memcpy( data, buf, len );
 
             wifi_udp_received++;
