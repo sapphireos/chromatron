@@ -254,6 +254,14 @@ void sys_v_init( void ){
     trace_printf( "SapphireOS booting...\r\n" );
     trace_printf( "Reset source: %d sys_mode: %d boot_mode: %d\r\n", reset_source, sys_mode, boot_data.boot_mode );
 
+    #ifdef DISABLE_RECOVERY_MODE
+    trace_printf("DISABLE_RECOVERY_MODE\r\n");
+    #endif
+
+    #ifdef HALT_ON_ASSERT
+    trace_printf("HALT_ON_ASSERT\r\n");
+    #endif
+
     // set boot mode to normal
     boot_data.boot_mode = BOOT_MODE_NORMAL;
 
@@ -672,7 +680,12 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     // dangerous, see above.
     thread_v_dump();
 
+    #ifdef HALT_ON_ASSERT
+    while(1){
 
+        wdg_v_reset();
+    }
+    #endif
     // reboot
     reboot();
 #endif
