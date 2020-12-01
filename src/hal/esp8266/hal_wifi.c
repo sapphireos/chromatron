@@ -1060,17 +1060,6 @@ PT_BEGIN( pt );
                 wifi_softap_dhcps_start();
 
                 connected = TRUE;
-
-                // thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-                // THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
-                //                        ( thread_b_alarm_set() ) );
-
-                // if( !wifi_b_connected() ){
-
-                //     log_v_warn_P( PSTR("AP mode failed.") );
-
-                //     goto station_mode;
-                // }
             }
         }
 
