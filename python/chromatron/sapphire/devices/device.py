@@ -534,8 +534,8 @@ class Device(object):
             # load firmware image
             self.put_file(filename, data, progress=progress, use_percent=use_percent)
         
-            # if verify:
-            self.check_file(filename, data)
+            if verify:
+                self.check_file(filename, data)
 
         # reboot to loader
         self.reboot_and_load_fw()

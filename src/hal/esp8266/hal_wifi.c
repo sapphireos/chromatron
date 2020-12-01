@@ -590,6 +590,11 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
 
 bool wifi_b_ap_mode( void ){
 
+    if( wifi_get_opmode() == SOFTAP_MODE ){
+
+        return TRUE;
+    }
+
 	return FALSE;
 }
 
@@ -773,15 +778,15 @@ static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 	}
     else if( router == 1 ){
 	   	
-	   	kv_i8_get( __KV__wifi_ssid2, pass, WIFI_PASS_LEN );
+	   	kv_i8_get( __KV__wifi_password2, pass, WIFI_PASS_LEN );
 	}
 	else if( router == 2 ){
 	   	
-	   	kv_i8_get( __KV__wifi_ssid3, pass, WIFI_PASS_LEN );
+	   	kv_i8_get( __KV__wifi_password3, pass, WIFI_PASS_LEN );
 	}
 	else if( router == 3 ){
 	   	
-	   	kv_i8_get( __KV__wifi_ssid4, pass, WIFI_PASS_LEN );
+	   	kv_i8_get( __KV__wifi_password4, pass, WIFI_PASS_LEN );
 	}
 }
 
@@ -897,7 +902,7 @@ PT_BEGIN( pt );
  
         // station mode
         if( !ap_mode ){
-station_mode:            
+// station_mode:            
 
             wifi_set_opmode_current( STATION_MODE );
 
@@ -980,6 +985,8 @@ station_mode:
                 wifi_router = -1;
                 wifi_channel = -1;
                 memset( wifi_bssid, 0, sizeof(wifi_bssid) );
+
+                log_v_debug_P( PSTR("Connection failed: %d"), wifi_station_get_connect_status() );
             }
 
             kv_i8_persist( __KV__wifi_channel );
@@ -1037,25 +1044,24 @@ station_mode:
 
                 struct softap_config ap_config;
                 memset( &ap_config, 0, sizeof(ap_config) );
-                wifi_softap_get_config( &ap_config );
+                // wifi_softap_get_config( &ap_config );
                 memcpy( (char *)ap_config.ssid, ap_ssid, sizeof(ap_ssid) );
                 memcpy( (char *)ap_config.password, ap_pass, sizeof(ap_pass) );
 
+                ap_config.ssid_len          = strlen(ap_ssid);
+                ap_config.channel           = 0;
+                ap_config.authmode          = AUTH_WPA2_PSK;
+                ap_config.ssid_hidden       = 0;
+                ap_config.max_connection    = 4;
+                ap_config.beacon_interval   = 100;
+
+                wifi_set_opmode_current( SOFTAP_MODE );
+
                 wifi_softap_set_config_current( &ap_config );
                 
-                wifi_set_opmode_current( SOFTAP_MODE );   
+                wifi_softap_dhcps_start();
 
-
-                thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-                THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
-                                       ( thread_b_alarm_set() ) );
-
-                if( !wifi_b_connected() ){
-
-                    log_v_warn_P( PSTR("AP mode failed.") );
-
-                    goto station_mode;
-                }
+                connected = TRUE;
             }
         }
 
@@ -1101,10 +1107,11 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
 
         uint8_t status = wifi_station_get_connect_status();
 
-        if( status == STATION_GOT_IP ){
+        if( ( status == STATION_GOT_IP ) || wifi_b_ap_mode() ){
 
             wifi_uptime++;
             connected = TRUE;
