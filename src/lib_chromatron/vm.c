@@ -614,6 +614,12 @@ PT_BEGIN( pt );
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
+        if( state->vm_id == 0 ){
+
+            // check if syncing VM and hold if so
+            THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
+        }
+
         state->delay_adjust = 0;
 
         uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
@@ -622,7 +628,7 @@ PT_BEGIN( pt );
         // if this is the first run, we will start with a short delay
         if( state->vm_state.tick == 0 ){
 
-            TMR_WAIT( pt, 10 );
+            state->vm_delay = 10;
         }
         // if delay is 0 (or less, so we're running behind) -
         // yield a couple of times so we don't starve the other threads.
@@ -638,9 +644,6 @@ PT_BEGIN( pt );
         }        
         // VM sync stuff, only for VM 0
         else if( state->vm_id == 0 ){
-
-            // check if syncing VM and hold if so
-            THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
             
             // check if vm is a synced follower
             if( vm_sync_b_is_follower() ){
