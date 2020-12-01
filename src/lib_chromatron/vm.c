@@ -617,7 +617,7 @@ PT_BEGIN( pt );
         state->delay_adjust = 0;
 
         uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
-        state->vm_delay = 0;
+        state->vm_delay = (int64_t)next_tick - (int64_t)state->vm_state.tick;
 
         // if this is the first run, we will start with a short delay
         if( state->vm_state.tick == 0 ){

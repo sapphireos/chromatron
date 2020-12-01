@@ -680,7 +680,7 @@ static bool compare_self( service_state_t *service ){
 
             if( service->local_uptime > 0 ){
 
-                log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
+                // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
             }
 
             return FALSE;
