@@ -985,6 +985,8 @@ PT_BEGIN( pt );
                 wifi_router = -1;
                 wifi_channel = -1;
                 memset( wifi_bssid, 0, sizeof(wifi_bssid) );
+
+                log_v_debug_P( PSTR("Connection failed: %d"), wifi_station_get_connect_status() );
             }
 
             kv_i8_persist( __KV__wifi_channel );
@@ -1048,7 +1050,7 @@ PT_BEGIN( pt );
 
                 ap_config.ssid_len          = strlen(ap_ssid);
                 ap_config.channel           = 0;
-                ap_config.authmode          = AUTH_WPA_PSK;
+                ap_config.authmode          = AUTH_WPA2_PSK;
                 ap_config.ssid_hidden       = 0;
                 ap_config.max_connection    = 4;
                 ap_config.beacon_interval   = 100;
