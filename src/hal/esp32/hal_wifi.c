@@ -796,7 +796,7 @@ PT_BEGIN( pt );
  
         // station mode
         if( !ap_mode ){
-// station_mode:            
+station_mode:            
 
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
@@ -876,77 +876,83 @@ PT_BEGIN( pt );
            	}
         }
         // AP mode
-        // else{
-        //     // should have gotten the MAC by now
-        //     ASSERT( wifi_mac[0] != 0 );
+        else{
+            // should have gotten the MAC by now
+            ASSERT( wifi_mac[0] != 0 );
 
-        //     // AP mode
-        //     char ap_ssid[WIFI_SSID_LEN];
-        //     char ap_pass[WIFI_PASS_LEN];
+            // AP mode
+            char ap_ssid[WIFI_SSID_LEN];
+            char ap_pass[WIFI_PASS_LEN];
 
-        //     cfg_i8_get( CFG_PARAM_WIFI_AP_SSID, ap_ssid );
-        //     cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_pass );
+            cfg_i8_get( CFG_PARAM_WIFI_AP_SSID, ap_ssid );
+            cfg_i8_get( CFG_PARAM_WIFI_AP_PASSWORD, ap_pass );
 
-        //     // check if AP mode SSID is set:
-        //     if( ( ap_ssid[0] == 0 ) || ( default_ap_mode ) ){
+            // check if AP mode SSID is set:
+            if( ( ap_ssid[0] == 0 ) || ( default_ap_mode ) ){
 
-        //         // set up default AP
-        //         memset( ap_ssid, 0, sizeof(ap_ssid) );
-        //         memset( ap_pass, 0, sizeof(ap_pass) );
+                // set up default AP
+                memset( ap_ssid, 0, sizeof(ap_ssid) );
+                memset( ap_pass, 0, sizeof(ap_pass) );
 
-        //         strlcpy_P( ap_ssid, PSTR("Chromatron_"), sizeof(ap_ssid) );
+                strlcpy_P( ap_ssid, PSTR("Chromatron_"), sizeof(ap_ssid) );
 
-        //         char mac[16];
-        //         memset( mac, 0, sizeof(mac) );
-        //         snprintf_P( &mac[0], 3, PSTR("%02x"), wifi_mac[3] );
-        //         snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
-        //         snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
+                char mac[16];
+                memset( mac, 0, sizeof(mac) );
+                snprintf_P( &mac[0], 3, PSTR("%02x"), wifi_mac[3] );
+                snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
+                snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-        //         strncat( ap_ssid, mac, sizeof(ap_ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) );
 
-        //         strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
+                strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
-        //         default_ap_mode = TRUE;
-        //     }
-        //     else if( strnlen( ap_pass, sizeof(ap_pass) ) < WIFI_AP_MIN_PASS_LEN ){
+                default_ap_mode = TRUE;
+            }
+            else if( strnlen( ap_pass, sizeof(ap_pass) ) < WIFI_AP_MIN_PASS_LEN ){
 
-        //         log_v_warn_P( PSTR("AP mode password must be at least 8 characters.") );
+                log_v_warn_P( PSTR("AP mode password must be at least 8 characters.") );
 
-        //         // disable ap mode
-        //         bool temp = FALSE;
-        //         cfg_v_set( CFG_PARAM_WIFI_ENABLE_AP, &temp );
+                // disable ap mode
+                bool temp = FALSE;
+                cfg_v_set( CFG_PARAM_WIFI_ENABLE_AP, &temp );
 
-        //         goto end;
-        //     }
+                goto end;
+            }
 
-        //     log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
 
-        //     // check if wifi settings were present
-        //     if( ap_ssid[0] != 0 ){     
+            esp_wifi_disconnect();
 
-        //         struct softap_config ap_config;
-        //         memset( &ap_config, 0, sizeof(ap_config) );
-        //         wifi_softap_get_config( &ap_config );
-        //         memcpy( (char *)ap_config.ssid, ap_ssid, sizeof(ap_ssid) );
-        //         memcpy( (char *)ap_config.password, ap_pass, sizeof(ap_pass) );
+            log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
-        //         wifi_softap_set_config_current( &ap_config );
-                
-        //         wifi_set_opmode_current( SOFTAP_MODE );   
+            // check if wifi settings were present
+            if( ap_ssid[0] != 0 ){     
 
+                wifi_config_t ap_config = {
+                    .ap = {
+                        .channel = 0,
+                        .authmode = WIFI_AUTH_WPA2_PSK,
+                        .ssid_hidden = 0,
+                        .max_connection = 8,
+                        .beacon_interval = 100
+                    }
+                };
 
-        //         thread_v_set_alarm( tmr_u32_get_system_time_ms() + WIFI_CONNECT_TIMEOUT );    
-        //         THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) &&
-        //                                ( thread_b_alarm_set() ) );
+                memcpy( ap_config.ap.ssid, ap_ssid, sizeof(ap_ssid) );
+                memcpy( ap_config.ap.password, ap_pass, sizeof(ap_pass) );
+ 
+                ESP_ERROR_CHECK(esp_wifi_set_config( WIFI_IF_AP, &ap_config ));
 
-        //         if( !wifi_b_connected() ){
+                if( esp_wifi_start() != ESP_OK ){
 
-        //             log_v_warn_P( PSTR("AP mode failed.") );
+                    log_v_warn_P( PSTR("AP mode failed") );
 
-        //             goto station_mode;
-        //         }
-        //     }
-        // }
+                    goto station_mode;
+                }
+
+                connected = TRUE;
+            }
+        }
 
 end:
         if( !wifi_b_connected() ){
