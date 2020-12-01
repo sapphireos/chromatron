@@ -338,10 +338,10 @@ class FirmwarePackage(object):
 
         # make sure package dir exists
         try:
-            os.mkdir(get_build_package_dir())
+            os.makedirs(get_build_package_dir())
 
         except FileExistsError:
-            pass
+            pass    
 
         self.manifest['name'] = self.name
         self.manifest['FWID'] = self.FWID
