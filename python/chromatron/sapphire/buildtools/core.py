@@ -1768,6 +1768,7 @@ def main():
     parser.add_argument("--make_release", action="store_true", help="make current build a release package")
     parser.add_argument("--install_build_tools", action="store_true", help="install build tools")
     parser.add_argument("--load_esp32", action="store_true", help="Load to ESP32")
+    parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
 
     args = vars(parser.parse_args())
 
@@ -1924,6 +1925,18 @@ def main():
         # remove temp file
         os.remove(temp_filename)
         
+        return
+
+    elif args["load_esp32_loader"]:
+        proj = 'loader_esp32'
+
+        builder = get_project_builder(proj, build_loader=True, target='esp32_loader')
+
+        os.chdir(builder.target_dir)
+
+        esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x8000 partition-table.espbin'.split())
+        esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x1000 main.bin'.split())
+
         return
 
     # check if setting target
