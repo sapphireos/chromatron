@@ -461,28 +461,32 @@ class Builder(object):
             return {}
 
     def get_buildnumber(self):
-        try:
-            f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'r')
-            build_number = f.read()
-            f.close()
+        # try:
+        #     f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'r')
+        #     build_number = f.read()
+        #     f.close()
 
-        except IOError:
-            f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'w')
-            build_number = "0"
-            f.write(build_number)
-            f.close()
+        # except IOError:
+        #     f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'w')
+        #     build_number = "0"
+        #     f.write(build_number)
+        #     f.close()
 
-        return int(build_number)
+        # return int(build_number)
+    
+        return runcmd('git rev-parse --short HEAD', tolog=False)
+
 
     def set_buildnumber(self, value):
-        f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'w')
-        f.write("%d" % (value))
-        f.close()
+        pass
+        # f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'w')
+        # f.write("%d" % (value))
+        # f.close()
 
     buildnumber = property(get_buildnumber, set_buildnumber)
 
     def get_version(self):
-        s = "%s.%04d" % (str(self.settings["PROJ_VERSION"]), self.buildnumber)
+        s = "%s.%s" % (str(self.settings["PROJ_VERSION"]), self.buildnumber)
         return s
 
     version = property(get_version)
@@ -614,7 +618,7 @@ class Builder(object):
 
     def pre_process(self):
         # inc build number
-        self.buildnumber += 1
+        # self.buildnumber += 1
             
         # get KV hashes and add to defines
         hashes = self.create_kv_hashes()
