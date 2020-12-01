@@ -925,6 +925,9 @@ station_mode:
 
             log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
+            // set bandwidth to 20 MHz
+            esp_wifi_set_bandwidth( WIFI_IF_AP, WIFI_BW_HT20 );
+
             // check if wifi settings were present
             if( ap_ssid[0] != 0 ){     
 
