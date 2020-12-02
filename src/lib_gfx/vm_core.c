@@ -2818,7 +2818,7 @@ uint64_t vm_u64_get_next_tick(
 int32_t vm_i32_get_data( 
     uint8_t *stream,
     vm_state_t *state,
-    uint8_t addr ){
+    uint16_t addr ){
 
     // bounds check
     if( addr >= state->data_count ){
@@ -2834,7 +2834,7 @@ int32_t vm_i32_get_data(
 void vm_v_get_data_multi( 
     uint8_t *stream,
     vm_state_t *state,
-    uint8_t addr, 
+    uint16_t addr, 
     uint16_t len,
     int32_t *dest ){
 
@@ -2866,7 +2866,7 @@ int32_t* vm_i32p_get_data_ptr(
 void vm_v_set_data( 
     uint8_t *stream,
     vm_state_t *state,
-    uint8_t addr, 
+    uint16_t addr, 
     int32_t data ){
 
     // bounds check
