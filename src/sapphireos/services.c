@@ -60,6 +60,13 @@ typedef struct __attribute__((packed)){
     uint8_t timeout;
 } service_state_t;
 
+#define SERVICE_FILE "services"
+
+typedef struct __attribute__((packed)){
+    uint32_t id;
+    uint32_t group;
+    sock_addr_t addr;
+} service_cache_entry_t;
 
 static socket_t sock;
 
@@ -110,6 +117,87 @@ static service_state_t* get_service( uint32_t id, uint32_t group ){
     }
 
     return 0;
+}
+
+static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_addr_t *raddr ){
+    
+    ASSERT( f > 0 );
+
+    service_cache_entry_t entry;
+
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.id != id ){
+
+            continue;
+        }
+
+        if( entry.group != group ){
+
+            continue;
+        }
+
+        // match!
+
+        if( raddr != 0 ){
+
+            *raddr = entry.addr;
+        }
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static bool get_cached_service( uint32_t id, uint32_t group, sock_addr_t *raddr ){
+
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return FALSE;
+    }
+
+    bool found = search_cached_service( f, id, group, raddr );
+
+    f = fs_f_close( f );
+
+    return found;
+}
+
+static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t port ){
+
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    // setup entry
+    sock_addr_t raddr = {
+        ip,
+        port
+    };
+
+    service_cache_entry_t entry = {
+        id,
+        group,
+        raddr,
+    };
+
+    if( search_cached_service( f, id, group, 0 ) ){
+
+        // update existing entry
+
+        // rewind file pointer
+        fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+    }
+
+    fs_i16_write( f, &entry, sizeof(entry) );
+
+    f = fs_f_close( f );
 }
 
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
@@ -254,6 +342,15 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     service.local_port          = port;
 
     reset_state( &service );
+
+    sock_addr_t raddr;
+    if( get_cached_service( id, group, &raddr ) ){
+
+        service.server_ip = raddr.ipaddr;
+        service.server_port = raddr.port;
+
+        service.timeout = SERVICE_CONNECTED_PING_THRESHOLD;
+    }
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
@@ -899,6 +996,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+                    cache_service( service->id, service->group, service->server_ip, service->server_port );
                 }
             }
         }
@@ -925,6 +1024,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                         // reset timeout
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
                         service->state     = STATE_CONNECTED;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );
                     }
                     else{
 
@@ -1130,7 +1231,9 @@ PT_BEGIN( pt );
 
                         log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;   
-                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;                     
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );                    
                     }
                     else{
 
@@ -1153,7 +1256,9 @@ PT_BEGIN( pt );
                         // found a leader
                         log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;
-                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;                
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );                
                     }
                     else{
 
