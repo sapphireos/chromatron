@@ -720,6 +720,15 @@ PT_BEGIN( pt );
             goto exit;
         }
 
+        // check if syncing
+        if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
+
+            // go back to top of loop so we wait for the sync
+            // if we ran now we could corrupt the VM data.
+
+            continue;
+        }
+
         if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
             // frame rate update
