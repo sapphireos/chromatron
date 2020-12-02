@@ -609,6 +609,8 @@ PT_BEGIN( pt );
 
     vm_status[state->vm_id] = VM_STATUS_OK;
 
+    THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
+
     state->last_run = tmr_u32_get_system_time_ms();
 
     // main VM timing loop
@@ -729,6 +731,8 @@ PT_BEGIN( pt );
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
+
+        log_v_debug_P( PSTR("%d @ %d"), (int32_t)state->vm_state.tick, time_u32_get_network_time() );
 
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
