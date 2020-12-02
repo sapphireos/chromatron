@@ -174,9 +174,14 @@ static void send_sync( sock_addr_t *raddr ){
     msg.data_len                = state->data_len;
     msg.max_threads             = VM_MAX_THREADS;
 
+    if( msg.max_threads > SYNC_MAX_THREADS ){
+
+        msg.max_threads = SYNC_MAX_THREADS;
+    }
+
     memset( msg.threads, 0, sizeof(msg.threads) );
 
-    for( uint8_t i = 0; i < VM_MAX_THREADS; i++ ){
+    for( uint8_t i = 0; i < msg.max_threads; i++ ){
 
         msg.threads[i] = state->threads[i];
     }
