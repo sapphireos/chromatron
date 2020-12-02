@@ -219,6 +219,7 @@ int8_t vm_lib_i8_libcall_built_in(
                     memset( &state->threads[i], 0, sizeof(state->threads[i]) );
 
                     state->threads[i].func_addr = params[0];
+                    state->threads[i].tick = state->tick;
 
                     break;
                 }

@@ -702,35 +702,35 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
                 }
             }
-
-            // set alarm
-
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + state->vm_delay );
-          
-            // wait, along with a check for an update frame rate
-            THREAD_WAIT_WHILE( pt, 
-                ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && 
-                ( vm_status[state->vm_id] == VM_STATUS_OK ) &&
-                thread_b_alarm_set() );
-
-            // check if VM is stopping
-            if( vm_status[state->vm_id] != VM_STATUS_OK ){
-
-                goto exit;
-            }
-
-            if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
-
-                // frame rate update
-
-                // just let the VM loop run.  The timing for this frame will be off, but
-                // the next one will be correct.
-                // This is will screw up the VM time sync across nodes, they will
-                // have to resynchronize.
-                state->vm_state.loop_tick = state->vm_state.tick;
-            } 
         }
 
+        // set alarm
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + state->vm_delay );
+      
+        // wait, along with a check for an update frame rate
+        THREAD_WAIT_WHILE( pt, 
+            ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && 
+            ( vm_status[state->vm_id] == VM_STATUS_OK ) &&
+            thread_b_alarm_set() );
+
+        // check if VM is stopping
+        if( vm_status[state->vm_id] != VM_STATUS_OK ){
+
+            goto exit;
+        }
+
+        if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
+
+            // frame rate update
+
+            // just let the VM loop run.  The timing for this frame will be off, but
+            // the next one will be correct.
+            // This is will screw up the VM time sync across nodes, they will
+            // have to resynchronize.
+            state->vm_state.loop_tick = state->vm_state.tick;
+        } 
+    
         // get elapsed time between last run
         uint32_t delay = tmr_u32_get_system_time_ms() - state->last_run + state->delay_adjust;
 
