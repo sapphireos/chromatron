@@ -2652,7 +2652,7 @@ int8_t vm_i8_run_tick(
 
     int8_t status = VM_STATUS_ERROR;
 
-    if( ( state->loop_tick <= state->tick ) <= 0 ){
+    if( state->loop_tick <= state->tick ){
 
         // run loop
         status = vm_i8_run_loop( stream, state );
