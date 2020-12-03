@@ -85,6 +85,7 @@ void vm_sync_v_reset( void );
 
 bool vm_sync_b_is_leader( void );
 bool vm_sync_b_is_follower( void );
+bool vm_sync_b_is_synced( void );
 bool vm_sync_b_in_progress( void );
 
 

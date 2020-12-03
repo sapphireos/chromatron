@@ -617,20 +617,15 @@ PT_BEGIN( pt );
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
         state->delay_adjust = 0;
-        // bool new_sync = FALSE;
-
+        
         if( state->vm_id == 0 ){
 
             // check if syncing VM and hold if so
             if( vm_sync_b_in_progress() ){
 
                 THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
-
-                log_v_debug_P( PSTR("SYNC net: %d tick: %d next: %d cur: %d"), time_u32_get_network_time(), (int32_t)state->vm_state.tick, (int32_t)vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state ), vm_i32_get_data( mem2_vp_get_ptr( state->handle ), &state->vm_state, 25 ) );
-
                 // our synced frame is already behind, so instead of computing a delay,
                 // we will run immediately.
-                // new_sync = TRUE;
             }
         }
 
@@ -642,11 +637,6 @@ PT_BEGIN( pt );
 
             state->vm_delay = 10;
         }
-        // else if( new_sync ){
-
-        //     state->vm_delay = 0;
-        //     state->last_run = tmr_u32_get_system_time_ms();
-        // }
         // if delay is 0 (or less, so we're running behind) -
         // yield a couple of times so we don't starve the other threads.
         // we cannot guarantee VM timing with this load.
@@ -756,7 +746,16 @@ PT_BEGIN( pt );
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
-        log_v_debug_P( PSTR("net: %d delay: %d tick: %d next: %d cur: %d"), time_u32_get_network_time(), delay, (int32_t)state->vm_state.tick, (int32_t)vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state ), vm_i32_get_data( mem2_vp_get_ptr( state->handle ), &state->vm_state, 25 ) );
+        // log_v_debug_P( PSTR("net: %d delay: %d tick: %d next: %d cur: %d loop: %d thread: %d thread2: %d"), 
+        //     time_u32_get_network_time(), 
+        //     delay,
+        //     (int32_t)state->vm_state.tick, 
+        //     (int32_t)vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state ), 
+        //     vm_i32_get_data( mem2_vp_get_ptr( state->handle ), &state->vm_state, 25 ),
+        //     (int32_t)state->vm_state.loop_tick, 
+        //     (int32_t)state->vm_state.threads[0].tick, 
+        //     (int32_t)state->vm_state.threads[1].tick );
+
 
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
