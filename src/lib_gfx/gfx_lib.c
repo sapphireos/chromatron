@@ -89,7 +89,7 @@ static uint8_t dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 static uint8_t sat_curve = GFX_SAT_CURVE_DEFAULT;
 
 static uint16_t red_boost = 6553;
-
+static uint8_t channel_mask;
 
 #define DIMMER_LOOKUP_SIZE 256
 static uint16_t dimmer_lookup[DIMMER_LOOKUP_SIZE];
@@ -282,6 +282,8 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     #ifdef ENABLE_RED_BOOST
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &red_boost,                   gfx_i8_kv_handler,   "gfx_red_boost" },
     #endif
+
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
 };
 
 static void compute_dimmer_lookup( void ){
@@ -1936,6 +1938,26 @@ void gfx_v_sync_array( void ){
             array_blue[i] = b;
             array_misc[i] = dither;
         }
+    }
+
+    if( channel_mask & 1 ){
+
+        memset( array_red, 0, sizeof(array_red) );
+    }
+
+    if( channel_mask & 2 ){
+
+        memset( array_green, 0, sizeof(array_green) );
+    }
+
+    if( channel_mask & 4 ){
+
+        memset( array_blue, 0, sizeof(array_blue) );
+    }
+
+    if( channel_mask & 8 ){
+
+        memset( array_misc, 0, sizeof(array_misc) );
     }
 }
 
