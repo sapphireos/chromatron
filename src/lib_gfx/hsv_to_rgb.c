@@ -23,6 +23,9 @@
 #include <stdint.h>
 #include "gfx_lib.h"
 #include "hsv_to_rgb.h"
+#include "keyvalue.h"
+
+// #undef ENABLE_RED_BOOST
 
 #ifdef ENABLE_RED_BOOST
 static uint16_t red_boost;
@@ -30,6 +33,14 @@ static uint16_t red_boost_offset_low;
 static uint16_t red_boost_offset_high;
 static uint32_t red_top;
 #endif
+
+static uint16_t green_cal = 65535;
+static uint16_t blue_cal = 65535;
+
+KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
+};
 
 void gfx_v_set_red_boost( uint16_t boost ){
 
@@ -104,6 +115,10 @@ void gfx_v_hsv_to_rgb(
         temp_b = temp_s;
     }
 
+    // apply cal
+    temp_g = ( temp_g * green_cal ) / 65536;
+    temp_b = ( temp_b * blue_cal ) / 65536;
+
     // apply brightness
     *r = ( (uint32_t)temp_r * v ) / 65536;
     *g = ( (uint32_t)temp_g * v ) / 65536;
@@ -172,6 +187,10 @@ void gfx_v_hsv_to_rgbw(
         temp_r = ( (uint32_t)temp_r * s ) / 65536;
         temp_b = ( (uint32_t)temp_b * s ) / 65536;
     }
+
+    // apply cal
+    temp_g = ( temp_g * green_cal ) / 65536;
+    temp_b = ( temp_b * blue_cal ) / 65536;
 
     // apply brightness
     *r = ( (uint32_t)temp_r * v ) / 65536;
