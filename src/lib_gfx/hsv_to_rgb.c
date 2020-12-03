@@ -35,6 +35,29 @@ KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
 };
 #endif
 
+static inline void hsv_to_rgb_core(
+    uint16_t h,
+    uint16_t *r,
+    uint16_t *g,
+    uint16_t *b ){
+
+    if( h <= 21845 ){
+        
+        *r = ( 21845 - h ) * 3;
+        *g = 65535 - ( 21845 - h ) * 3;
+    }
+    else if( h <= 43690 ){
+    
+        *g = ( 43690 - h ) * 3;
+        *b = 65535 - *g;
+    }
+    else{
+    
+        *b = ( 65535 - h ) * 3;  
+        *r = 65535 - *b;
+    }
+}
+
 void gfx_v_hsv_to_rgb(
     uint16_t h,
     uint16_t s,
@@ -48,23 +71,9 @@ void gfx_v_hsv_to_rgb(
     temp_g = 0;
     temp_b = 0;
 
-    temp_s = 65535 - s;
+    hsv_to_rgb_core( h, &temp_r, &temp_g, &temp_b );
 
-    if( h <= 21845 ){
-        
-        temp_r = ( 21845 - h ) * 3;
-        temp_g = 65535 - ( 21845 - h ) * 3;
-    }
-    else if( h <= 43690 ){
-    
-        temp_g = ( 43690 - h ) * 3;
-        temp_b = 65535 - temp_g;
-    }
-    else{
-    
-        temp_b = ( 65535 - h ) * 3;  
-        temp_r = 65535 - temp_b;
-    }
+    temp_s = 65535 - s;
 
     // floor saturation
     if( temp_r < temp_s ){
@@ -109,34 +118,13 @@ void gfx_v_hsv_to_rgbw(
     temp_b = 0;
 
     temp_s = 65535 - s;
-
-    if( h <= 21845 ){
     
-        temp_r = ( 21845 - h ) * 3;
-        temp_g = 65535 - ( 21845 - h ) * 3;
+    hsv_to_rgb_core( h, &temp_r, &temp_g, &temp_b );
 
-        // apply saturation to RGB
-        temp_r = ( (uint32_t)temp_r * s ) / 65536;
-        temp_g = ( (uint32_t)temp_g * s ) / 65536;
-    }
-    else if( h <= 43690 ){
-    
-        temp_g = ( 43690 - h ) * 3;
-        temp_b = 65535 - temp_g;
-
-        // apply saturation to RGB
-        temp_g = ( (uint32_t)temp_g * s ) / 65536;
-        temp_b = ( (uint32_t)temp_b * s ) / 65536;
-    }
-    else{
-    
-        temp_b = ( 65535 - h ) * 3;  
-        temp_r = 65535 - temp_b;
-
-        // apply saturation to RGB
-        temp_r = ( (uint32_t)temp_r * s ) / 65536;
-        temp_b = ( (uint32_t)temp_b * s ) / 65536;
-    }
+    // apply saturation to RGB
+    temp_r = ( (uint32_t)temp_r * s ) / 65536;
+    temp_g = ( (uint32_t)temp_g * s ) / 65536;
+    temp_b = ( (uint32_t)temp_b * s ) / 65536;
 
     #ifdef ENABLE_BG_CAL
     // apply cal
