@@ -34,6 +34,7 @@ static uint16_t red_boost_offset_high;
 static uint32_t red_top;
 #endif
 
+#ifdef ENABLE_BG_CAL
 static uint16_t green_cal = 65535;
 static uint16_t blue_cal = 65535;
 
@@ -41,6 +42,7 @@ KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
 };
+#endif
 
 void gfx_v_set_red_boost( uint16_t boost ){
 
@@ -115,9 +117,11 @@ void gfx_v_hsv_to_rgb(
         temp_b = temp_s;
     }
 
+    #ifdef ENABLE_BG_CAL
     // apply cal
     temp_g = ( temp_g * green_cal ) / 65536;
     temp_b = ( temp_b * blue_cal ) / 65536;
+    #endif
 
     // apply brightness
     *r = ( (uint32_t)temp_r * v ) / 65536;
@@ -188,9 +192,11 @@ void gfx_v_hsv_to_rgbw(
         temp_b = ( (uint32_t)temp_b * s ) / 65536;
     }
 
+    #ifdef ENABLE_BG_CAL
     // apply cal
     temp_g = ( temp_g * green_cal ) / 65536;
     temp_b = ( temp_b * blue_cal ) / 65536;
+    #endif
 
     // apply brightness
     *r = ( (uint32_t)temp_r * v ) / 65536;
