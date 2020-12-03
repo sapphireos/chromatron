@@ -88,7 +88,6 @@ static uint16_t gfx_frame_rate = 100;
 static uint8_t dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 static uint8_t sat_curve = GFX_SAT_CURVE_DEFAULT;
 
-static uint16_t red_boost = 6553;
 static uint8_t channel_mask;
 
 #define DIMMER_LOOKUP_SIZE 256
@@ -250,12 +249,6 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i] = global_v_fade;   
             }
         }
-        #ifdef ENABLE_RED_BOOST
-        else if( hash == __KV__gfx_red_boost ){
-
-            gfx_v_set_red_boost( red_boost );            
-        }
-        #endif
     }
 
     return 0;
@@ -278,10 +271,6 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
 
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
-
-    #ifdef ENABLE_RED_BOOST
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &red_boost,                   gfx_i8_kv_handler,   "gfx_red_boost" },
-    #endif
 
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
 };
@@ -1845,9 +1834,6 @@ void gfxlib_v_init( void ){
     gfx_v_reset();
 
     update_master_fader();
-
-    // DEBUG
-    gfx_v_set_red_boost( 6553 );
 }
 
 // convert all HSV to RGB

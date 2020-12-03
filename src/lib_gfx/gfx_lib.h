@@ -30,7 +30,6 @@
 #include "catbus_common.h"
 #include "target.h"
 
-// #define ENABLE_RED_BOOST
 // #define ENABLE_BG_CAL
 
 #define GFX_VERSION             2

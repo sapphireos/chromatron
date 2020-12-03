@@ -25,15 +25,6 @@
 #include "hsv_to_rgb.h"
 #include "keyvalue.h"
 
-// #undef ENABLE_RED_BOOST
-
-#ifdef ENABLE_RED_BOOST
-static uint16_t red_boost;
-static uint16_t red_boost_offset_low;
-static uint16_t red_boost_offset_high;
-static uint32_t red_top;
-#endif
-
 #ifdef ENABLE_BG_CAL
 static uint16_t green_cal = 65535;
 static uint16_t blue_cal = 65535;
@@ -44,16 +35,6 @@ KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
 };
 #endif
 
-void gfx_v_set_red_boost( uint16_t boost ){
-
-    #ifdef ENABLE_RED_BOOST
-    red_boost = boost;
-    red_boost_offset_low = 21845 - red_boost;
-    red_boost_offset_high = 65535 - red_boost;
-    red_top = ( ( red_boost_offset_high - ( 43690 - red_boost ) ) * 65535 ) / red_boost_offset_low;
-    #endif
-}
-
 void gfx_v_hsv_to_rgb(
     uint16_t h,
     uint16_t s,
@@ -62,8 +43,7 @@ void gfx_v_hsv_to_rgb(
     uint16_t *g,
     uint16_t *b ){
 
-    uint16_t temp_g, temp_b, temp_s;
-    uint32_t temp_r;
+    uint16_t temp_r, temp_g, temp_b, temp_s;
     temp_r = 0;
     temp_g = 0;
     temp_b = 0;
@@ -72,11 +52,7 @@ void gfx_v_hsv_to_rgb(
 
     if( h <= 21845 ){
         
-        #ifdef ENABLE_RED_BOOST
-        temp_r = ( ( red_boost_offset_low - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low;
-        #else
         temp_r = ( 21845 - h ) * 3;
-        #endif
         temp_g = 65535 - ( 21845 - h ) * 3;
     }
     else if( h <= 43690 ){
@@ -87,19 +63,8 @@ void gfx_v_hsv_to_rgb(
     else{
     
         temp_b = ( 65535 - h ) * 3;  
-        #ifdef ENABLE_RED_BOOST
-        temp_r = red_top - ( ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low );
-        #else
         temp_r = 65535 - temp_b;
-        #endif
     }
-
-    #ifdef ENABLE_RED_BOOST
-    if( temp_r > 65535 ){
-
-        temp_r = 65535;
-    }
-    #endif
 
     // floor saturation
     if( temp_r < temp_s ){
@@ -138,8 +103,7 @@ void gfx_v_hsv_to_rgbw(
     uint16_t *b,
     uint16_t *w ){
 
-    uint16_t temp_g, temp_b, temp_s;
-    uint32_t temp_r;
+    uint16_t temp_r, temp_g, temp_b, temp_s;
     temp_r = 0;
     temp_g = 0;
     temp_b = 0;
@@ -148,16 +112,7 @@ void gfx_v_hsv_to_rgbw(
 
     if( h <= 21845 ){
     
-        #ifdef ENABLE_RED_BOOST
-        temp_r = ( ( red_boost_offset_low - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low;
-        
-        if( temp_r > 65535 ){
-
-            temp_r = 65535;
-        }
-        #else
         temp_r = ( 21845 - h ) * 3;
-        #endif
         temp_g = 65535 - ( 21845 - h ) * 3;
 
         // apply saturation to RGB
@@ -176,16 +131,7 @@ void gfx_v_hsv_to_rgbw(
     else{
     
         temp_b = ( 65535 - h ) * 3;  
-        #ifdef ENABLE_RED_BOOST
-        temp_r = red_top - ( ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low );
-
-        if( temp_r > 65535 ){
-
-            temp_r = 65535;
-        }
-        #else
         temp_r = 65535 - temp_b;
-        #endif
 
         // apply saturation to RGB
         temp_r = ( (uint32_t)temp_r * s ) / 65536;
