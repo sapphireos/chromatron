@@ -81,10 +81,12 @@ void gfx_v_hsv_to_rgb(
         #endif
     }
 
+    #ifdef ENABLE_RED_BOOST
     if( temp_r > 65535 ){
 
         temp_r = 65535;
     }
+    #endif
 
     // floor saturation
     if( temp_r < temp_s ){
