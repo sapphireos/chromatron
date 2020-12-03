@@ -30,6 +30,8 @@
 #include "catbus_common.h"
 #include "target.h"
 
+#define ENABLE_RED_BOOST
+
 #define GFX_VERSION             2
 
 typedef struct  __attribute__((packed)){
