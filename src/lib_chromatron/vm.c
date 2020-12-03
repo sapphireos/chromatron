@@ -609,8 +609,6 @@ PT_BEGIN( pt );
 
     vm_status[state->vm_id] = VM_STATUS_OK;
 
-    THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
-
     state->last_run = tmr_u32_get_system_time_ms();
 
     // main VM timing loop
