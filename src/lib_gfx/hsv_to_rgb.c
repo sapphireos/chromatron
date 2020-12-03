@@ -35,12 +35,15 @@ KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
 };
 #endif
 
+#define HUE_CURVE_ADVANCED
+
 static inline void hsv_to_rgb_core(
     uint16_t h,
     uint16_t *r,
     uint16_t *g,
     uint16_t *b ){
 
+    #ifndef HUE_CURVE_ADVANCED
     if( h <= 21845 ){
         
         *r = ( 21845 - h ) * 3;
@@ -56,6 +59,42 @@ static inline void hsv_to_rgb_core(
         *b = ( 65535 - h ) * 3;  
         *r = 65535 - *b;
     }
+
+    #else
+
+    if( h <= 8191 ){        // red
+
+        *r = ( (uint32_t)( 8191 - h ) * 32768 / 8192 ) + 32768;
+        *g = 8191 - ( 8191 - h );
+    }
+    else if( h <= 16383 ){  // orange
+
+        *r = 32768;
+        *g = 16383 - ( 16383 - h );
+    }
+    else if( h <= 24575 ){  // yellow
+
+        *r = ( (uint32_t)( 24575 - h ) * 32768 / 8192 ) + 0;
+        *g = 24575 - ( 24575 - h );
+    }
+    else if( h <= 32767 ){  // green
+
+        
+    }
+    else if( h <= 40689 ){  // cyan
+
+    }
+    else if( h <= 49151 ){  // blue
+
+    }
+    else if( h <= 57343 ){  // purple
+
+    }
+    else{                   // magenta
+
+    }
+
+    #endif
 }
 
 void gfx_v_hsv_to_rgb(
