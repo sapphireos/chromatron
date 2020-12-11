@@ -62,7 +62,7 @@ static inline void hsv_to_rgb_core(
 
     #else
 
-    #define MAP(h, h1, h2, v1, v2) ( ( ( (int32_t)v2 - (int32_t)v1 ) / ( h2 - h1 ) ) * ( h - h1 ) + v1 )
+    #define MAP(h, h1, h2, v1, v2) ( ( ( (int32_t)v2 - (int32_t)v1 ) * ( h - h1 ) ) / ( h2 - h1 ) + v1 )
     
     if( h <= 8191 ){        // red to orange
 
