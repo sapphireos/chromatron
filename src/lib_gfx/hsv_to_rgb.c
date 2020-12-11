@@ -21,11 +21,11 @@
 // </license>
 
 #include <stdint.h>
-#include "gfx_lib.h"
 #include "hsv_to_rgb.h"
-#include "keyvalue.h"
 
 #ifdef ENABLE_BG_CAL
+#include "keyvalue.h"
+
 static uint16_t green_cal = 65535;
 static uint16_t blue_cal = 65535;
 
@@ -62,46 +62,97 @@ static inline void hsv_to_rgb_core(
 
     #else
 
+    #define MAP(h, h1, h2, v1, v2) ( ( ( (int32_t)v2 - (int32_t)v1 ) / ( h2 - h1 ) ) * ( h - h1 ) + v1 )
+    
     if( h <= 8191 ){        // red to orange
 
-        *r = ( (uint32_t)( 8191 - h ) * 32768 / 8192 ) + 32767;
-        *g = 8191 - ( 8191 - h );
+        *r = MAP( h, 0,     8191,   65535, 43690 );
+        *g = MAP( h, 0,     8191,   0,     21845 );
     }
     else if( h <= 16383 ){  // orange to yellow
 
-        *r = 32768;
-        *g = 16383 - ( 16383 - h );
+        *r = MAP( h, 8191,  16383,  43690, 43690 );
+        *g = MAP( h, 8191,  16383,  21845, 43690 );   
     }
     else if( h <= 24575 ){  // yellow to green
 
-        *r = ( (uint32_t)( 24575 - h ) * 32768 / 8192 ) + 0;
-        *g = 24575 - ( 24575 - h );
+        *r = MAP( h, 16383, 24575,  43690, 0 );
+        *g = MAP( h, 16383, 24575,  43690, 65535 );   
     }
     else if( h <= 32767 ){  // green to cyan
 
-        *g = ( (uint32_t)( 32767 - h ) * 32768 / 8192 ) + 32767;
-        *b = 32767 - ( 32767 - h );
+        *g = MAP( h, 24575, 32767,  65535, 43690 );   
+        *b = MAP( h, 24575, 32767,  0,     21845 );   
     }
     else if( h <= 40689 ){  // cyan to blue
 
-        *g = ( (uint32_t)( 40689 - h ) * 32768 / 8192 ) + 0;
-        *b = 40689 - ( 40689 - h );
+        *g = MAP( h, 32767, 40690,  43690, 0 );   
+        *b = MAP( h, 32767, 40690,  21845, 65535 );   
     }
     else if( h <= 49151 ){  // blue to purple
 
-        *b = ( (uint32_t)( 49151 - h ) * 32768 / 8192 ) + 32767;
-        *r = 49151 - ( 49151 - h );
+        *b = MAP( h, 40690, 49151,  65535, 43690 );   
+        *r = MAP( h, 40690, 49151,  0,     21845 );   
     }
     else if( h <= 57343 ){  // purple to magenta
 
-        *b = ( (uint32_t)( 57343 - h ) * 32768 / 8192 ) + 32767;
-        *r = 57343 - ( 57343 - h );
+        *b = MAP( h, 49151, 57343,  43690, 21845 );   
+        *r = MAP( h, 49151, 57343,  21845, 43690 );      
     }
     else{                   // magenta to red
 
-        *b = ( (uint32_t)( 65535 - h ) * 32768 / 8192 ) + 32767;
-        *r = 65535 - ( 65535 - h );
+        *b = MAP( h, 57343, 65535,  21845, 0 );   
+        *r = MAP( h, 57343, 65535,  43690, 65535 );      
     }
+
+
+    // if( h <= 8191 ){        // red to orange
+
+    //     fraction = 8191 - h;
+    //     // ( fraction * range ) / 8192 + offset
+
+    //     // *r = fraction * 32768 / 8192 + 32767;
+    //     *r = MAP( fraction, 32768, 32767 );
+
+    //     *g = 8191 - fraction;
+    // }
+    // else if( h <= 16383 ){  // orange to yellow
+
+    //     fraction = 16383 - h;
+
+    //     *r = 32768;
+    //     *g = 16383 - ( fraction );
+    // }
+    // else if( h <= 24575 ){  // yellow to green
+
+    //     *r = ( (uint32_t)( 24575 - h ) * 32768 / 8192 ) + 0;
+    //     *g = 24575 - ( 24575 - h );
+    // }
+    // else if( h <= 32767 ){  // green to cyan
+
+    //     *g = ( (uint32_t)( 32767 - h ) * 32768 / 8192 ) + 32767;
+    //     *b = 32767 - ( 32767 - h );
+    // }
+    // else if( h <= 40689 ){  // cyan to blue
+
+    //     *g = ( (uint32_t)( 40689 - h ) * 32768 / 8192 ) + 0;
+    //     *b = 40689 - ( 40689 - h );
+    // }
+    // else if( h <= 49151 ){  // blue to purple
+
+    //     *b = ( (uint32_t)( 49151 - h ) * 32768 / 8192 ) + 32767;
+    //     *r = 49151 - ( 49151 - h );
+    // }
+    // else if( h <= 57343 ){  // purple to magenta
+
+    //     *b = ( (uint32_t)( 57343 - h ) * 32768 / 8192 ) + 32767;
+    //     *r = 57343 - ( 57343 - h );
+    // }
+    // else{                   // magenta to red
+
+    //     *b = ( (uint32_t)( 65535 - h ) * 32768 / 8192 ) + 32767;
+    //     *r = 65535 - ( 65535 - h );
+    // }
 
     #endif
 }

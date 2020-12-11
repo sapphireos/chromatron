@@ -30,8 +30,6 @@
 #include "catbus_common.h"
 #include "target.h"
 
-// #define ENABLE_BG_CAL
-
 #define GFX_VERSION             2
 
 typedef struct  __attribute__((packed)){
