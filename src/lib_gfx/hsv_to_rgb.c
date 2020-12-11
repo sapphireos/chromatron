@@ -105,55 +105,6 @@ static inline void hsv_to_rgb_core(
         *r = MAP( h, 57343, 65535,  43690, 65535 );      
     }
 
-
-    // if( h <= 8191 ){        // red to orange
-
-    //     fraction = 8191 - h;
-    //     // ( fraction * range ) / 8192 + offset
-
-    //     // *r = fraction * 32768 / 8192 + 32767;
-    //     *r = MAP( fraction, 32768, 32767 );
-
-    //     *g = 8191 - fraction;
-    // }
-    // else if( h <= 16383 ){  // orange to yellow
-
-    //     fraction = 16383 - h;
-
-    //     *r = 32768;
-    //     *g = 16383 - ( fraction );
-    // }
-    // else if( h <= 24575 ){  // yellow to green
-
-    //     *r = ( (uint32_t)( 24575 - h ) * 32768 / 8192 ) + 0;
-    //     *g = 24575 - ( 24575 - h );
-    // }
-    // else if( h <= 32767 ){  // green to cyan
-
-    //     *g = ( (uint32_t)( 32767 - h ) * 32768 / 8192 ) + 32767;
-    //     *b = 32767 - ( 32767 - h );
-    // }
-    // else if( h <= 40689 ){  // cyan to blue
-
-    //     *g = ( (uint32_t)( 40689 - h ) * 32768 / 8192 ) + 0;
-    //     *b = 40689 - ( 40689 - h );
-    // }
-    // else if( h <= 49151 ){  // blue to purple
-
-    //     *b = ( (uint32_t)( 49151 - h ) * 32768 / 8192 ) + 32767;
-    //     *r = 49151 - ( 49151 - h );
-    // }
-    // else if( h <= 57343 ){  // purple to magenta
-
-    //     *b = ( (uint32_t)( 57343 - h ) * 32768 / 8192 ) + 32767;
-    //     *r = 57343 - ( 57343 - h );
-    // }
-    // else{                   // magenta to red
-
-    //     *b = ( (uint32_t)( 65535 - h ) * 32768 / 8192 ) + 32767;
-    //     *r = 65535 - ( 65535 - h );
-    // }
-
     #endif
 }
 
