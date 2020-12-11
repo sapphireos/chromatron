@@ -265,3 +265,37 @@ void gfx_v_hsv_to_rgbw(
 //     *w = ( (uint32_t)temp_s * v ) / 65536;
 // }
 
+
+#ifdef GEN_HUE_CURVE
+
+#include <stdio.h>
+
+int main( void ){
+
+    printf( "Generating hue curve...\n" );
+
+    uint16_t r, g, b;
+
+    FILE* f = fopen("hue_curve.csv", "w" );
+
+    fprintf( f, "hue, red, green, blue\n" );
+
+    for( uint16_t h = 0; h < 65535; h++ ){
+
+        r = 0;
+        g = 0;
+        b = 0;
+
+        hsv_to_rgb_core( h, &r, &g, &b );
+
+        fprintf( f, "%d, %d, %d, %d\n", h, r, g, b );
+    }
+
+    fclose( f );
+
+    printf( "Done!\n" );
+
+    return 0;
+}
+
+#endif
