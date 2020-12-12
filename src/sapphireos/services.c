@@ -349,7 +349,22 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
         service.server_ip = raddr.ipaddr;
         service.server_port = raddr.port;
 
-        service.timeout = SERVICE_CONNECTED_PING_THRESHOLD;
+        ip_addr4_t ip;
+        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+
+        if( ip_b_addr_compare( ip, service.server_ip ) ){
+
+            service.state = STATE_SERVER;
+
+            log_v_debug_P( PSTR("loaded cached service: SERVER") );
+        }
+        else{
+
+            service.state = STATE_CONNECTED;
+            service.timeout = SERVICE_CONNECTED_PING_THRESHOLD;
+
+            log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
+        }
     }
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
