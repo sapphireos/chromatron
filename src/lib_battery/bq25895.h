@@ -144,7 +144,7 @@
 #define BQ25895_CHARGE_STATUS_CHARGE_DONE   3
 
 
-void bq25895_v_init( void );
+int8_t bq25895_i8_init( void );
 
 uint8_t bq25895_u8_read_reg( uint8_t addr );
 void bq25895_v_write_reg( uint8_t addr, uint8_t data );

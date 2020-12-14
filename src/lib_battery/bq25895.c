@@ -73,7 +73,7 @@ static uint8_t calc_batt_soc( uint16_t volts ){
     return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 100 );
 }
 
-void bq25895_v_init( void ){
+int8_t bq25895_i8_init( void ){
 
     i2c_v_init( I2C_BAUD_400K );
 
@@ -82,7 +82,7 @@ void bq25895_v_init( void ){
 
         log_v_debug_P( PSTR("batt controller not found") );
 
-        return;
+        return -1;
     }
 
     batt_volts = bq25895_u16_get_batt_voltage();
@@ -93,6 +93,8 @@ void bq25895_v_init( void ){
                      PSTR("bat_mon"),
                      0,
                      0 );
+
+    return 0;
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){

@@ -87,7 +87,10 @@ void batt_v_init( void ){
         return;
     }
 
-    bq25895_v_init();
+    if( bq25895_i8_init() < 0 ){
+
+        return;
+    }
 
     io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );
 
