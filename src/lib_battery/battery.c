@@ -24,17 +24,20 @@
 
 #include "sapphire.h"
 
-#include "bq25895.h"
 #include "gfx_lib.h"
-#include "ui.h"
 #include "vm.h"
 
-static bool ui_enable;
-static int8_t ui_status;
+#include "battery.h"
+
+#include "bq25895.h"
+
+
+static bool batt_enable;
+static int8_t batt_ui_state;
 
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST, &ui_enable, 0,            "ui_enable" },
-    { SAPPHIRE_TYPE_INT8,   0, 0,                &ui_status, 0,            "ui_status" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST, &batt_enable, 0,            "batt_enable" },
+    { SAPPHIRE_TYPE_INT8,   0, 0,                &batt_ui_state, 0,        "batt_ui_state" },
 };
 
 
@@ -77,15 +80,14 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 
 
-void ui_v_init( void ){
+void batt_v_init( void ){
 
-    bq25895_v_init();
-
-    if( !ui_enable ){
+    if( !batt_enable ){
 
         return;
     }
 
+    bq25895_v_init();
 
     io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );
 
@@ -152,9 +154,9 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Low batt, shutting down: %u"), bq25895_u16_get_batt_voltage() );
 
-                ui_status = -2;
+                batt_ui_state = -2;
 
-                catbus_i8_publish( __KV__ui_status );
+                catbus_i8_publish( __KV__batt_ui_state );
 
                 TMR_WAIT( pt, 5000 );
 
@@ -175,8 +177,8 @@ PT_BEGIN( pt );
                 if( button_hold_duration >= BUTTON_SHUTDOWN_TIME ){
 
                     // vm_v_shutdown();
-                    ui_status = -1;
-                    catbus_i8_publish( __KV__ui_status );
+                    batt_ui_state = -1;
+                    catbus_i8_publish( __KV__batt_ui_state );
 
                     TMR_WAIT( pt, 5000 );
 

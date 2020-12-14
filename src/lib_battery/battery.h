@@ -22,13 +22,13 @@
 // </license>
 */
 
-#ifndef _UI_H
-#define _UI_H
+#ifndef _BATTERY_H
+#define _BATTERY_H
 
 #include "sapphire.h"
 
 #define UI_BUTTON   IO_PIN_6_DAC0
 
-void ui_v_init( void );
+void batt_v_init( void );
 
 #endif

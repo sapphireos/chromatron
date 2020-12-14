@@ -515,10 +515,11 @@ PT_BEGIN( pt );
         addr++;
     }
 
+    static uint8_t status;
 
     while(1){
 
-        uint8_t status = bq25895_u8_get_charge_status();
+        status = bq25895_u8_get_charge_status();
         batt_volts = bq25895_u16_get_batt_voltage();
         batt_charge_current = bq25895_u16_get_charge_current();
         batt_fault = bq25895_u8_get_faults();
