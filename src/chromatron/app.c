@@ -26,12 +26,11 @@
 
 #include "app.h"
 #include "pixel.h"
-// #include "server.h"
 #include "graphics.h"
 #include "vm.h"
 #include "energy.h"
 // #include "io_kv.h"
-// #include "vm_sync.h"
+#include "battery.h"
 
 #ifdef ESP8266_UPGRADE
 #error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
@@ -48,9 +47,7 @@ void app_v_init( void ){
 
     vm_v_init();
 
-    #ifdef ENABLE_TIME_SYNC
-    // vm_sync_v_init();
-    #endif
+    batt_v_init();
 
     // svr_v_init();
 }
