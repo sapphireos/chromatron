@@ -23,16 +23,37 @@
 #include <stdint.h>
 #include "hsv_to_rgb.h"
 
-#ifdef ENABLE_BG_CAL
+
+// #define HSV_DEBUG
+
+#ifndef GEN_HUE_CURVE
 #include "keyvalue.h"
+
+#ifdef ENABLE_BG_CAL
 
 static uint16_t green_cal = 65535;
 static uint16_t blue_cal = 65535;
 
-KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
+KV_SECTION_META kv_meta_t bg_cal_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
 };
+#endif
+
+#ifdef HSV_DEBUG
+static uint16_t hsv_debug_hue;
+static uint16_t hsv_debug_r;
+static uint16_t hsv_debug_g;
+static uint16_t hsv_debug_b;
+
+KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_hue,              0,                   "hsv_debug_hue" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_r,                0,                   "hsv_debug_r" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_g,                0,                   "hsv_debug_g" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_b,                0,                   "hsv_debug_b" },
+};
+#endif
+
 #endif
 
 #define HUE_CURVE_ADVANCED
@@ -105,6 +126,13 @@ static inline void hsv_to_rgb_core(
         *r = MAP( h, 57343, 65535,  43690, 65535 );      
     }
 
+    #endif
+
+    #ifdef HSV_DEBUG
+    hsv_debug_hue = h;
+    hsv_debug_r = *r;
+    hsv_debug_g = *g;
+    hsv_debug_b = *b;
     #endif
 }
 
