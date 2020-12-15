@@ -60,6 +60,13 @@ typedef struct __attribute__((packed)){
     uint8_t timeout;
 } service_state_t;
 
+#define SERVICE_FILE "services"
+
+typedef struct __attribute__((packed)){
+    uint32_t id;
+    uint32_t group;
+    sock_addr_t addr;
+} service_cache_entry_t;
 
 static socket_t sock;
 
@@ -110,6 +117,157 @@ static service_state_t* get_service( uint32_t id, uint32_t group ){
     }
 
     return 0;
+}
+
+static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_addr_t *raddr ){
+    
+    ASSERT( f > 0 );
+
+    service_cache_entry_t entry;
+
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.id != id ){
+
+            continue;
+        }
+
+        if( entry.group != group ){
+
+            continue;
+        }
+
+        // match!
+
+        if( raddr != 0 ){
+
+            *raddr = entry.addr;
+        }
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static bool get_cached_service( uint32_t id, uint32_t group, sock_addr_t *raddr ){
+
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return FALSE;
+    }
+
+    bool found = search_cached_service( f, id, group, raddr );
+
+    f = fs_f_close( f );
+
+    return found;
+}
+
+static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t port ){
+
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    if( ip_b_is_zeroes( ip ) ){
+
+        // use our IP address
+        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+    }
+
+    // setup entry
+    sock_addr_t raddr = {
+        ip,
+        port
+    };
+
+    service_cache_entry_t entry = {
+        id,
+        group,
+        raddr,
+    };
+
+    if( search_cached_service( f, id, group, 0 ) ){
+
+        // update existing entry
+
+        // rewind file pointer
+        fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+
+        fs_i16_write( f, &entry, sizeof(entry) );
+    }
+    else{
+
+        // search for empty entry
+        fs_v_seek( f, 0 );
+
+        if( search_cached_service( f, 0, 0, 0 ) ){
+
+            // rewind and overwrite
+            fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+
+            fs_i16_write( f, &entry, sizeof(entry) );
+        }
+        else{
+
+            // no empty slots, write to end of file
+            fs_i16_write( f, &entry, sizeof(entry) );
+        }
+    }
+
+    f = fs_f_close( f );
+
+    log_v_debug_P( PSTR( "cached service") );
+}
+
+static void delete_cached_service( uint32_t id, uint32_t group ){
+
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    service_cache_entry_t entry;
+
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.id != id ){
+
+            continue;
+        }
+
+        if( entry.group != group ){
+
+            continue;
+        }
+
+        // match!
+
+        memset( &entry, 0, sizeof(entry) );
+
+        // rewind file
+        fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+
+        // overwrite with 0s
+        fs_i16_write( f, &entry, sizeof(entry) );
+
+        log_v_debug_P( PSTR("deleting cached service") );
+
+        break;
+    }
+
+    
+    f = fs_f_close( f );
+
+    return;
 }
 
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
@@ -206,8 +364,6 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
 
     service_state_t *svc_ptr = get_service( id, group );
 
-    // log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
-
     // check if service already registered
     if( svc_ptr != 0 ){
 
@@ -245,6 +401,10 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
         // reset service (falling out of this if case)
         services_v_cancel( id, group );
     }
+    else{
+
+        log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
+    }
 
     service_state_t service = {0};
     service.id                  = id;
@@ -254,6 +414,30 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     service.local_port          = port;
 
     reset_state( &service );
+
+    sock_addr_t raddr;
+    if( get_cached_service( id, group, &raddr ) ){
+
+        service.server_ip = raddr.ipaddr;
+        service.server_port = raddr.port;
+
+        ip_addr4_t ip;
+        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+
+        if( ip_b_addr_compare( ip, service.server_ip ) ){
+
+            service.state = STATE_SERVER;
+
+            log_v_debug_P( PSTR("loaded cached service: SERVER") );
+        }
+        else{
+
+            service.state = STATE_CONNECTED;
+            service.timeout = SERVICE_CONNECTED_PING_THRESHOLD;
+
+            log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
+        }
+    }
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
@@ -286,6 +470,9 @@ void services_v_cancel( uint32_t id, uint32_t group ){
             list_v_remove( &service_list, ln );
             list_v_release_node( ln );
 
+            // note: don't delete the cached service here.  just because we
+            // are cancelling doesn't mean we won't re-enable this service later.
+
             return;
         }
 
@@ -296,6 +483,12 @@ void services_v_cancel( uint32_t id, uint32_t group ){
 bool services_b_is_available( uint32_t id, uint32_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return FALSE;
+    }
+
+    // check that wifi is connected
+    if( !wifi_b_connected() ){
 
         return FALSE;
     }
@@ -680,7 +873,7 @@ static bool compare_self( service_state_t *service ){
 
             if( service->local_uptime > 0 ){
 
-                log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
+                // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
             }
 
             return FALSE;
@@ -855,6 +1048,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
 
                 reset_state( service );
+
+                delete_cached_service( service->id, service->group );
             }
             // check if server is still better than we are
             else if( compare_self( service ) ){
@@ -864,6 +1059,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                 log_v_info_P( PSTR("-> SERVER") );
                 service->state = STATE_SERVER;
+
+                cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
             }
         }
     }
@@ -899,6 +1096,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+                    cache_service( service->id, service->group, service->server_ip, service->server_port );
                 }
             }
         }
@@ -925,6 +1124,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                         // reset timeout
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
                         service->state     = STATE_CONNECTED;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );
                     }
                     else{
 
@@ -980,6 +1181,22 @@ static void process_query( service_msg_query_t *query, ip_addr4_t *ip ){
 PT_THREAD( service_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    // check service file size
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f > 0 ){
+
+        if( fs_i32_get_size( f ) > SERVICE_MAX_FILE_SIZE ){
+
+            fs_v_delete( f );
+
+            log_v_info_P( PSTR("service cache size exceeded") );
+        }
+
+        f = fs_f_close( f );
+    }
+
 
     THREAD_WAIT_WHILE( pt, service_count() == 0 );
 
@@ -1106,7 +1323,7 @@ PT_BEGIN( pt );
                 if( service->state == STATE_CONNECTED ){
 
                     // check timeout and see if we need to ping
-                    if( service->timeout < SERVICE_CONNECTED_PING_THRESHOLD ){
+                    if( service->timeout <= SERVICE_CONNECTED_PING_THRESHOLD ){
 
                         transmit_query( service );
                     }
@@ -1130,7 +1347,9 @@ PT_BEGIN( pt );
 
                         log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;   
-                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;                     
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );                    
                     }
                     else{
 
@@ -1146,6 +1365,8 @@ PT_BEGIN( pt );
 
                         log_v_info_P( PSTR("-> SERVER") );
                         service->state = STATE_SERVER;
+
+                        cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
                     }
                     // if tracking a leader
                     else if( service->server_valid ){
@@ -1153,7 +1374,9 @@ PT_BEGIN( pt );
                         // found a leader
                         log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;
-                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;                
+                        service->timeout   = SERVICE_CONNECTED_TIMEOUT;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );                
                     }
                     else{
 
@@ -1162,6 +1385,8 @@ PT_BEGIN( pt );
 
                         // we completely reset the state including tracking.
                         // this is in case the tracked node disappears.
+
+                        delete_cached_service( service->id, service->group );
                     }
                 }
             }
@@ -1170,6 +1395,8 @@ PT_BEGIN( pt );
                 log_v_info_P( PSTR("CONNECTED timeout: lost server") );
 
                 reset_state( service );
+
+                delete_cached_service( service->id, service->group );
             }
             
             ln = list_ln_next( ln );

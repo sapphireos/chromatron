@@ -31,6 +31,8 @@
 #include "hash.h"
 #include "kvdb.h"
 #include "config.h"
+#include "timesync.h"
+#include "vm_sync.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -46,12 +48,10 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
+static uint8_t vm_timing_status[VM_MAX_VMS];
 
-#define VM_FLAG_RUN_LOOP        0x01
-#define VM_FLAG_RUN_THREADS     0x02
+#define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
-
-static bool update_frame_rate;
 
 
 int8_t vm_i8_kv_handler(
@@ -60,24 +60,11 @@ int8_t vm_i8_kv_handler(
     void *data,
     uint16_t len ){
 
-    if( op == KV_OP_SET ){
-
-        if( hash == __KV__gfx_frame_rate ){
-
-            gfx_v_set_vm_frame_rate( LOAD16(data) );
-
-            update_frame_rate = TRUE;
-        }
-    }
-    else if( op == KV_OP_GET ){
+    if( op == KV_OP_GET ){
 
         if( hash == __KV__vm_isa ){
 
             *(uint8_t *)data = VM_ISA_VERSION;
-        }
-        else if( hash == __KV__gfx_frame_rate ){
-
-            STORE16(data, gfx_u16_get_vm_frame_rate());
         }
     }
 
@@ -93,7 +80,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
+    { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status[0],  0,                  "vm_timing" },
 
+    #if VM_MAX_VMS >= 2
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
@@ -101,7 +90,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
+    #endif
 
+    #if VM_MAX_VMS >= 3
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
@@ -109,7 +100,9 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
+    #endif
 
+    #if VM_MAX_VMS >= 4
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
@@ -117,17 +110,25 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
+    #endif
 
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
-
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    0,                     vm_i8_kv_handler,   "gfx_frame_rate" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
     "vm_0",
+
+    #if VM_MAX_VMS >= 2
     "vm_1",
+    #endif
+
+    #if VM_MAX_VMS >= 3
     "vm_2",
+    #endif
+
+    #if VM_MAX_VMS >= 4
     "vm_3",
+    #endif
 };
 
 // keys that we really don't want the VM be to be able to write to.
@@ -477,8 +478,72 @@ typedef struct{
     char program_fname[FFS_FILENAME_LEN];
     mem_handle_t handle;
     int8_t vm_return;
+    uint32_t last_run;
+    int32_t delay_adjust;
+    int32_t vm_delay;
     vm_state_t vm_state;
 } vm_thread_state_t;
+
+#ifdef ENABLE_TIME_SYNC
+static uint32_t vm0_sync_ts;
+static uint64_t vm0_sync_ticks;
+#endif
+
+void vm_v_sync( uint32_t ts, uint64_t ticks ){
+
+    // log_v_debug_P( PSTR("vm sync: %u / %u -> %u"), ts, ts - vm0_sync_ts, (uint32_t)ticks );
+
+    vm0_sync_ts = ts;
+    vm0_sync_ticks = ticks;    
+}
+
+uint32_t vm_u32_get_sync_time( void ){
+
+    return vm0_sync_ts;
+}
+
+uint64_t vm_u64_get_sync_tick( void ){
+
+    return vm0_sync_ticks;
+}
+
+uint16_t vm_u16_get_data_len( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );    
+
+    return state->vm_state.data_len;
+}
+
+int32_t* vm_i32p_get_data( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
+}
+
+// return state for VM 0.
+// Use with caution!
+vm_state_t* vm_p_get_state( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    return &state->vm_state;
+}
 
 
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
@@ -488,6 +553,7 @@ PT_BEGIN( pt );
     if( state->handle > 0 ){
 
         mem2_v_free( state->handle );
+        state->handle = -1;
     }
     
     vm_loop_time[state->vm_id]     = 0;
@@ -528,9 +594,6 @@ PT_BEGIN( pt );
 
     state->vm_state.rng_seed = rng_seed;
 
-    // set thread tick
-    state->vm_state.tick_rate = VM_THREAD_RATE;
-
     // init database
     vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
@@ -545,32 +608,160 @@ PT_BEGIN( pt );
     }
 
     vm_status[state->vm_id] = VM_STATUS_OK;
-    
+
+    state->last_run = tmr_u32_get_system_time_ms();
+
+    // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
-        THREAD_WAIT_WHILE( pt, vm_run_flags[state->vm_id] == 0 );
+        state->delay_adjust = 0;
+        
+        if( state->vm_id == 0 ){
 
-        uint32_t start = tmr_u32_get_system_time_us();
+            // check if syncing VM and hold if so
+            if( vm_sync_b_in_progress() ){
 
-        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
-
-            state->vm_return = vm_i8_run_loop( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+                THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
+                // our synced frame is already behind, so instead of computing a delay,
+                // we will run immediately.
+            }
         }
 
-        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_THREADS ){
+        uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        state->vm_delay = (int64_t)next_tick - (int64_t)state->vm_state.tick;
 
-            state->vm_return = vm_i8_run_threads( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+        // if this is the first run, we will start with a short delay
+        if( state->vm_state.tick == 0 ){
+
+            state->vm_delay = 10;
         }
+        // if delay is 0 (or less, so we're running behind) -
+        // yield a couple of times so we don't starve the other threads.
+        // we cannot guarantee VM timing with this load.
+        else if( state->vm_delay <= 0 ){
 
-        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
-        if( vm_run_flags[state->vm_id] & VM_FLAG_RUN_LOOP ){
+            vm_timing_status[state->vm_id] = 1;
+
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+            THREAD_YIELD( pt );
+        }        
+        // VM sync stuff, only for VM 0
+        else if( state->vm_id == 0 ){
             
-            vm_loop_time[state->vm_id] = elapsed;
+            // check if vm is a synced follower
+            if( vm_sync_b_is_follower() ){
+
+                uint32_t net_time = time_u32_get_network_time();
+                int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
+                uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
+                int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
+
+                state->delay_adjust = 0;
+
+                if( sync_delta > 100 ){
+
+                    state->delay_adjust = -100;
+                }
+                else if( sync_delta > 10 ){
+
+                    state->delay_adjust = -10;
+                }
+                else if( sync_delta > 1 ){
+
+                    state->delay_adjust = -1;
+                }
+                else if( sync_delta < -100 ){
+
+                    state->delay_adjust = 100;
+                }
+                else if( sync_delta < -10 ){
+
+                    state->delay_adjust = 10;
+                }
+                else if( sync_delta < -1 ){
+
+                    state->delay_adjust = 1;
+                }
+
+                // if( state->delay_adjust != 0 ){
+
+                //     log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
+                // }
+            }
         }
 
+        // set alarm
 
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + state->vm_delay );
+      
+        // wait, along with a check for an update frame rate
+        THREAD_WAIT_WHILE( pt, 
+            ( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) == 0 ) && 
+            ( vm_status[state->vm_id] == VM_STATUS_OK ) &&
+            thread_b_alarm_set() );
+
+        // check if VM is stopping
+        if( vm_status[state->vm_id] != VM_STATUS_OK ){
+
+            goto exit;
+        }
+
+        // check if syncing
+        if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
+
+            // go back to top of loop so we wait for the sync
+            // if we ran now we could corrupt the VM data.
+
+            continue;
+        }
+
+        if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
+
+            // frame rate update
+
+            // just let the VM loop run.  The timing for this frame will be off, but
+            // the next one will be correct.
+            // This is will screw up the VM time sync across nodes, they will
+            // have to resynchronize.
+            state->vm_state.loop_tick = state->vm_state.tick;
+        } 
+    
+        // get elapsed time between last run
+        uint32_t delay = tmr_u32_get_system_time_ms() - state->last_run + state->delay_adjust;
+
+        // run VM
+        state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
+
+        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
+
+            // record network timestamp and current VM tick
+            vm0_sync_ts = time_u32_get_network_time();
+            vm0_sync_ticks = state->vm_state.tick;   
+        }
+        
+        // update timestamp
+        state->last_run = tmr_u32_get_system_time_ms();
+
+        // log_v_debug_P( PSTR("net: %d delay: %d tick: %d next: %d cur: %d loop: %d thread: %d thread2: %d"), 
+        //     time_u32_get_network_time(), 
+        //     delay,
+        //     (int32_t)state->vm_state.tick, 
+        //     (int32_t)vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state ), 
+        //     vm_i32_get_data( mem2_vp_get_ptr( state->handle ), &state->vm_state, 25 ),
+        //     (int32_t)state->vm_state.loop_tick, 
+        //     (int32_t)state->vm_state.threads[0].tick, 
+        //     (int32_t)state->vm_state.threads[1].tick );
+
+
+        // clear all run flags
         vm_run_flags[state->vm_id] = 0;        
 
+        // update cycle count
+        vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
+
+        // check status
         if( state->vm_return == VM_STATUS_HALT ){
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
@@ -583,12 +774,8 @@ PT_BEGIN( pt );
             trace_printf( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
             goto exit;
         }
-
-        vm_max_cycles[state->vm_id] = state->vm_state.max_cycles;
-
-        THREAD_YIELD( pt );
-    }    
-
+    }
+    
 exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
 
@@ -606,46 +793,21 @@ exit:
 PT_END( pt );
 }
 
-PT_THREAD( vm_loop_timing( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+static bool vm_loader_wait( void ){
 
-    while(1){
+    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + gfx_u16_get_vm_frame_rate() );
-        THREAD_WAIT_WHILE( pt, !update_frame_rate && thread_b_alarm_set() );
-
-        if( update_frame_rate ){
-
-            update_frame_rate = FALSE;
-            continue;
+        if( ( ( !vm_run[i]  && !is_vm_running( i ) )  ||
+                ( vm_run[i]   && is_vm_running( i ) ) )    &&
+              ( !vm_reset[i] ) ){
         }
+        else{
 
-        for( uint32_t i = 0; i < cnt_of_array(vm_run_flags); i++ ){
-
-            vm_run_flags[i] |= VM_FLAG_RUN_LOOP;
+            return FALSE;
         }
     }
 
-PT_END( pt );
-}
-
-PT_THREAD( vm_thread_timing( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    while(1){
-
-        thread_v_set_alarm( thread_u32_get_alarm() + VM_THREAD_RATE );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-        for( uint32_t i = 0; i < cnt_of_array(vm_run_flags); i++ ){
-
-            vm_run_flags[i] |= VM_FLAG_RUN_THREADS;
-        }
-    }
-
-PT_END( pt );
+    return TRUE;
 }
 
 
@@ -658,27 +820,19 @@ PT_BEGIN( pt );
     kvdb_v_set_name_P( PSTR("vm_2") );
     kvdb_v_set_name_P( PSTR("vm_3") );
 
+    // alignment check
+    vm_state_t temp;
+    if( ( (uint32_t)&temp.rng_seed % 4 ) != 0 ){
+
+        log_v_critical_P( PSTR("VM state alignment failure!") );
+
+        THREAD_EXIT( pt );
+    }
+
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, 
-            ( ( ( !vm_run[0]  && !is_vm_running( 0 ) )  ||
-                ( vm_run[0]   && is_vm_running( 0 ) ) )    &&
-              ( !vm_reset[0] ) )
-            &&
-            ( ( ( !vm_run[1]  && !is_vm_running( 1 ) )  ||
-                ( vm_run[1]   && is_vm_running( 1 ) ) )    &&
-              ( !vm_reset[1] ) )
-            &&
-            ( ( ( !vm_run[2]  && !is_vm_running( 2 ) )  ||
-                ( vm_run[2]   && is_vm_running( 2 ) ) )    &&
-              ( !vm_reset[2] ) )
-            &&
-            ( ( ( !vm_run[3]  && !is_vm_running( 3 ) )  ||
-                ( vm_run[3]   && is_vm_running( 3 ) ) )    &&
-              ( !vm_reset[3] ) )
-        );
-
+        THREAD_WAIT_WHILE( pt, vm_loader_wait() );
 
         // check what we're doing, and to what VM    
         for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
@@ -787,16 +941,6 @@ void vm_v_init( void ){
                      0,
                      0 );
 
-    thread_t_create( vm_loop_timing,
-                     PSTR("vm_loop_timing"),
-                     0,
-                     0 );
-
-    thread_t_create( vm_thread_timing,
-                     PSTR("vm_thread_timing"),
-                     0,
-                     0 );
-
     vm_cron_v_init();
 }
 
@@ -836,6 +980,14 @@ bool vm_b_is_vm_running( uint8_t i ){
     ASSERT( i < VM_MAX_VMS );
 
     return is_vm_running( i );   
+}
+
+void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate ){
+
+    for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+
+        vm_run_flags[i] |= VM_FLAG_UPDATE_FRAME_RATE;
+    }
 }
 
 int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){

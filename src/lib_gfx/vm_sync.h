@@ -24,70 +24,70 @@
 #define _VM_SYNC_H_
 
 #include "target.h"
+#include "vm_core.h"
 
 #ifdef ENABLE_TIME_SYNC
-#if 0
-#include "vm_wifi_cmd.h"
-
-#define SYNC_SERVER_PORT                	32038
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	2
+#define SYNC_PROTOCOL_VERSION           	3
 
-#define SYNC_MASTER_TIMEOUT                 32000 // in milliseconds
-#define SYNC_RATE                           4000
+#define SYNC_SERVICE                        __KV__vmsync
+
+#define SYNC_INTERVAL                       8000
+
+#define SYNC_MAX_THREADS                    16
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
     uint8_t flags;
+    uint8_t padding;
     uint32_t sync_group_hash;
 } vm_sync_msg_header_t;
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-    uint64_t uptime;
     uint32_t program_name_hash;
-    uint16_t frame_number;
-    uint16_t data_len;
-    uint64_t rng_seed;
+    
+    uint64_t sync_tick;
     uint32_t net_time;
-} vm_sync_msg_sync_0_t;
-#define VM_SYNC_MSG_SYNC_0                      1
+
+    uint64_t tick;
+    uint64_t loop_tick;
+    uint64_t rng_seed;
+    
+    uint16_t data_len;
+
+    uint8_t max_threads;
+    vm_thread_t threads[SYNC_MAX_THREADS];
+} vm_sync_msg_sync_t;
+#define VM_SYNC_MSG_SYNC                        1
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-    uint16_t frame_number;
-    uint16_t offset;
-} vm_sync_msg_sync_n_t;
-#define VM_SYNC_MSG_SYNC_N                      2
-
-typedef struct __attribute__((packed)){
-    vm_sync_msg_header_t header;
+    bool request_data;
 } vm_sync_msg_sync_req_t;
-#define VM_SYNC_MSG_SYNC_REQ                    3
+#define VM_SYNC_MSG_SYNC_REQ                    2
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-} vm_sync_msg_shutdown_t;
-#define VM_SYNC_MSG_SHUTDOWN                    10
-
-
-uint32_t vm_sync_u32_get_sync_group_hash( void );
+    uint64_t tick;
+    uint16_t offset;
+    uint16_t padding;
+    uint8_t data; // first data byte
+} vm_sync_msg_data_t;
+#define VM_SYNC_MSG_DATA                        3
+#define VM_SYNC_MAX_DATA_LEN                    512
 
 void vm_sync_v_init( void );
-void vm_sync_v_handle_shutdown( ip_addr4_t ip );
-
 void vm_sync_v_reset( void );
-void vm_sync_v_trigger( void );
-void vm_sync_v_frame_trigger( void );
 
-bool vm_sync_b_is_master( void );
-bool vm_sync_b_is_slave( void );
-bool vm_sync_b_is_slave_synced( void );
+bool vm_sync_b_is_leader( void );
+bool vm_sync_b_is_follower( void );
 bool vm_sync_b_is_synced( void );
-#endif
+bool vm_sync_b_in_progress( void );
+
 
 #endif
 
