@@ -364,7 +364,7 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
 
     service_state_t *svc_ptr = get_service( id, group );
 
-    // log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
+    log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
 
     // check if service already registered
     if( svc_ptr != 0 ){
@@ -468,7 +468,8 @@ void services_v_cancel( uint32_t id, uint32_t group ){
             list_v_remove( &service_list, ln );
             list_v_release_node( ln );
 
-            delete_cached_service( id, group );
+            // note: don't delete the cached service here.  just because we
+            // are cancelling doesn't mean we won't re-enable this service later.
 
             return;
         }
@@ -1178,6 +1179,22 @@ static void process_query( service_msg_query_t *query, ip_addr4_t *ip ){
 PT_THREAD( service_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    // check service file size
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f > 0 ){
+
+        if( fs_i32_get_size( f ) > SERVICE_MAX_FILE_SIZE ){
+
+            fs_v_delete( f );
+
+            log_v_info_P( PSTR("service cache size exceeded") );
+        }
+
+        f = fs_f_close( f );
+    }
+    
 
     THREAD_WAIT_WHILE( pt, service_count() == 0 );
 
