@@ -491,7 +491,7 @@ static uint64_t vm0_sync_ticks;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
-    log_v_debug_P( PSTR("vm sync: %u / %u -> %u"), ts, ts - vm0_sync_ts, (uint32_t)ticks );
+    // log_v_debug_P( PSTR("vm sync: %u / %u -> %u"), ts, ts - vm0_sync_ts, (uint32_t)ticks );
 
     vm0_sync_ts = ts;
     vm0_sync_ticks = ticks;    
@@ -685,10 +685,10 @@ PT_BEGIN( pt );
                     state->delay_adjust = 1;
                 }
 
-                if( state->delay_adjust != 0 ){
+                // if( state->delay_adjust != 0 ){
 
-                    log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
-                }
+                //     log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
+                // }
             }
         }
 
