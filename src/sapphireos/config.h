@@ -78,8 +78,6 @@
 #define CFG_PARAM_FIRMWARE_LOAD_COUNT           __KV__fw_load_count
 #define CFG_PARAM_MAX_LOG_SIZE                  __KV__max_log_size
 
-#define CFG_PARAM_CATBUS_DATA_PORT              __KV__catbus_data_port
-
 #define CFG_PARAM_MANUAL_IP_ADDRESS 		    __KV__manual_ip
 #define CFG_PARAM_MANUAL_SUBNET_MASK			__KV__manual_subnet
 #define CFG_PARAM_MANUAL_DNS_SERVER             __KV__manual_dns_server

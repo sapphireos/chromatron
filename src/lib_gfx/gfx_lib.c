@@ -88,7 +88,12 @@ static uint16_t gfx_frame_rate = 100;
 static uint8_t dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 static uint8_t sat_curve = GFX_SAT_CURVE_DEFAULT;
 
+#define ENABLE_CHANNEL_MASK
+
+#ifdef ENABLE_CHANNEL_MASK
 static uint8_t channel_mask;
+#endif
+
 
 #define DIMMER_LOOKUP_SIZE 256
 static uint16_t dimmer_lookup[DIMMER_LOOKUP_SIZE];
@@ -272,7 +277,10 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
 
+    
+    #ifdef ENABLE_CHANNEL_MASK
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
+    #endif
 };
 
 static void compute_dimmer_lookup( void ){
@@ -1925,7 +1933,8 @@ void gfx_v_sync_array( void ){
             array_misc[i] = dither;
         }
     }
-
+    
+    #ifdef ENABLE_CHANNEL_MASK
     if( channel_mask & 1 ){
 
         memset( array_red, 0, sizeof(array_red) );
@@ -1945,6 +1954,7 @@ void gfx_v_sync_array( void ){
 
         memset( array_misc, 0, sizeof(array_misc) );
     }
+    #endif
 }
 
 
