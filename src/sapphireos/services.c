@@ -175,6 +175,12 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
         return;
     }
 
+    if( ip_b_is_zeroes( ip ) ){
+
+        // use our IP address
+        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+    }
+
     // setup entry
     sock_addr_t raddr = {
         ip,
@@ -1051,7 +1057,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 log_v_info_P( PSTR("-> SERVER") );
                 service->state = STATE_SERVER;
 
-                cache_service( service->id, service->group, service->server_ip, service->server_port );
+                cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
             }
         }
     }
@@ -1341,7 +1347,7 @@ PT_BEGIN( pt );
                         log_v_info_P( PSTR("-> SERVER") );
                         service->state = STATE_SERVER;
 
-                        cache_service( service->id, service->group, service->server_ip, service->server_port );
+                        cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
                     }
                     // if tracking a leader
                     else if( service->server_valid ){
