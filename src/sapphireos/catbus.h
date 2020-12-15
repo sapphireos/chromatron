@@ -177,58 +177,58 @@ typedef struct __attribute__((packed)){
 
 
 // LINK
-#define CATBUS_MSG_DATA_FLAG_TIME_SYNC          0x01
+// #define CATBUS_MSG_DATA_FLAG_TIME_SYNC          0x01
 
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint8_t flags;
-    uint16_t data_port;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    catbus_query_t query;
-    catbus_hash_t32 tag;
-} catbus_msg_link_t;
-#define CATBUS_MSG_TYPE_LINK                    ( 1 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// typedef struct __attribute__((packed)){
+//     catbus_header_t header;
+//     uint8_t flags;
+//     uint16_t data_port;
+//     catbus_hash_t32 source_hash;
+//     catbus_hash_t32 dest_hash;
+//     catbus_query_t query;
+//     catbus_hash_t32 tag;
+// } catbus_msg_link_t;
+// #define CATBUS_MSG_TYPE_LINK                    ( 1 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint8_t flags;
-    ntp_ts_t ntp_timestamp;
-    catbus_query_t source_query;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    uint16_t sequence;
-    catbus_data_t data;
-} catbus_msg_link_data_t;
-#define CATBUS_MSG_TYPE_LINK_DATA               ( 2 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// typedef struct __attribute__((packed)){
+//     catbus_header_t header;
+//     uint8_t flags;
+//     ntp_ts_t ntp_timestamp;
+//     catbus_query_t source_query;
+//     catbus_hash_t32 source_hash;
+//     catbus_hash_t32 dest_hash;
+//     uint16_t sequence;
+//     catbus_data_t data;
+// } catbus_msg_link_data_t;
+// #define CATBUS_MSG_TYPE_LINK_DATA               ( 2 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint16_t index;
-} catbus_msg_link_get_t;
-#define CATBUS_MSG_TYPE_LINK_GET                ( 3 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// typedef struct __attribute__((packed)){
+//     catbus_header_t header;
+//     uint16_t index;
+// } catbus_msg_link_get_t;
+// #define CATBUS_MSG_TYPE_LINK_GET                ( 3 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-// same message as catbus_msg_link_t
-#define CATBUS_MSG_TYPE_LINK_META               ( 4 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// // same message as catbus_msg_link_t
+// #define CATBUS_MSG_TYPE_LINK_META               ( 4 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    catbus_hash_t32 tag;
-} catbus_msg_link_delete_t;
-#define CATBUS_MSG_TYPE_LINK_DELETE             ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// typedef struct __attribute__((packed)){
+//     catbus_header_t header;
+//     catbus_hash_t32 tag;
+// } catbus_msg_link_delete_t;
+// #define CATBUS_MSG_TYPE_LINK_DELETE             ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint8_t flags;
-    catbus_string_t source_key;
-    catbus_string_t dest_key;
-    catbus_string_t query[CATBUS_QUERY_LEN];
-    catbus_string_t tag;
-} catbus_msg_link_add_t;
-#define CATBUS_MSG_TYPE_LINK_ADD                ( 6 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// typedef struct __attribute__((packed)){
+//     catbus_header_t header;
+//     uint8_t flags;
+//     catbus_string_t source_key;
+//     catbus_string_t dest_key;
+//     catbus_string_t query[CATBUS_QUERY_LEN];
+//     catbus_string_t tag;
+// } catbus_msg_link_add_t;
+// #define CATBUS_MSG_TYPE_LINK_ADD                ( 6 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
-// empty message
-#define CATBUS_MSG_TYPE_LINK_OK                 ( 7 + CATBUS_MSG_LINK_GROUP_OFFSET )
+// // empty message
+// #define CATBUS_MSG_TYPE_LINK_OK                 ( 7 + CATBUS_MSG_LINK_GROUP_OFFSET )
 
 
 
