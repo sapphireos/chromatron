@@ -48,7 +48,7 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_loop_time[VM_MAX_VMS];
 static uint16_t vm_thread_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
-static uint8_t vm_timing_status[VM_MAX_VMS];
+static uint8_t vm_timing_status;
 
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
@@ -80,7 +80,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
-    { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status[0],  0,                  "vm_timing" },
+    { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status,     0,                  "vm_timing" },
 
     #if VM_MAX_VMS >= 2
     { SAPPHIRE_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
@@ -640,7 +640,13 @@ PT_BEGIN( pt );
         // we cannot guarantee VM timing with this load.
         else if( state->vm_delay <= 0 ){
 
-            vm_timing_status[state->vm_id] = 1;
+            if( state->vm_id == 0 ){
+
+                if( vm_timing_status < 255 ){
+
+                   vm_timing_status++;
+                }
+            }
 
             THREAD_YIELD( pt );
             THREAD_YIELD( pt );
@@ -691,6 +697,15 @@ PT_BEGIN( pt );
                 // }
             }
         }
+
+        if( state->vm_id == 0 ){
+
+            if( vm_timing_status > 0 ){
+
+                vm_timing_status--;
+            }
+        }
+
 
         // set alarm
 
