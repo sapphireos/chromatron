@@ -876,64 +876,46 @@ static bool is_ssid_configured( void ){
    	return FALSE;
 }
 
-static void start_mdns_igmp( void ){
+// static void start_mdns_igmp( void ){
 
-    struct ip_info sta_ip;
-    wifi_get_ip_info( STATION_IF, &sta_ip );
+//     struct ip_info sta_ip;
+//     wifi_get_ip_info( STATION_IF, &sta_ip );
 
-    ip_addr_t ip;
-    ip.addr = sta_ip.ip.addr;
+//     ip_addr_t ip;
+//     ip.addr = sta_ip.ip.addr;
 
-    ip_addr_t mcast_ip;
-    mcast_ip.addr = 0xe00000fb;
+//     ip_addr_t mcast_ip;
+//     mcast_ip.addr = 0xe00000fb;
 
-    espconn_igmp_join( &ip, &mcast_ip );
-}
+//     espconn_igmp_join( &ip, &mcast_ip );
+// }
 
-static void stop_mdns_igmp( void ){
+// static void stop_mdns_igmp( void ){
     
-    struct ip_info sta_ip;
-    wifi_get_ip_info( STATION_IF, &sta_ip );
+//     struct ip_info sta_ip;
+//     wifi_get_ip_info( STATION_IF, &sta_ip );
 
-    ip_addr_t ip;
-    ip.addr = sta_ip.ip.addr;
+//     ip_addr_t ip;
+//     ip.addr = sta_ip.ip.addr;
 
-    ip_addr_t mcast_ip;
-    mcast_ip.addr = 0xe00000fb;
+//     ip_addr_t mcast_ip;
+//     mcast_ip.addr = 0xe00000fb;
 
-    espconn_igmp_leave( &ip, &mcast_ip );
-}
+//     espconn_igmp_leave( &ip, &mcast_ip );
+// }
 
-static void start_mdns( void ){
+// static void start_mdns( void ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return;
-    }
+//         return;
+//     }
 
-    start_mdns_igmp();
-
-    // struct ip_info sta_ip;
-    // wifi_get_ip_info( STATION_IF, &sta_ip );
-    // struct mdns_info *info  = (struct mdns_info *)os_zalloc( sizeof(struct mdns_info) );
-
-    // if( info == 0 ){
-
-    //     return;
-    // }
-
-    // info->host_name         = "myesp8266"; // your device will be accessed using myesp8266.local
-    // info->ipAddr            = sta_ip.ip.addr; //ESP8266 station IP
-    // info->server_name       = "mywebserver";
-    // info->server_port       = 80;
-    // info->txt_data[0]       = "version = myesp8266_v1.0";
-
-    // espconn_mdns_init( info );
-    // espconn_mdns_server_register();
-    // espconn_mdns_enable();
-
-    // log_v_debug_P( PSTR("mdns started?") );
-}
+//     start_mdns_igmp();
+    
+    
+    
+// }
 
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
@@ -1147,7 +1129,7 @@ end:
             log_v_debug_P( PSTR("Wifi soft AP up") );    
         }
 
-        start_mdns();
+        // start_mdns();
     }
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() );
@@ -1168,12 +1150,12 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_shutdown() );
 
-        if( sys_b_shutdown() ){
+        // if( sys_b_shutdown() ){
 
-            stop_mdns_igmp();
+        //     stop_mdns_igmp();
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
         uint8_t status = wifi_station_get_connect_status();
 
