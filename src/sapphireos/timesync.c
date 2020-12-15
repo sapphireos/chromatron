@@ -704,6 +704,9 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    // wait for network
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+    
     services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
     // wait until we resolve the election
