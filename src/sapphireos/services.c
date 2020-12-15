@@ -200,6 +200,50 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
     f = fs_f_close( f );
 }
 
+static void delete_cached_service( uint32_t id, uint32_t group ){
+
+    file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    service_cache_entry_t entry;
+
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.id != id ){
+
+            continue;
+        }
+
+        if( entry.group != group ){
+
+            continue;
+        }
+
+        // match!
+
+        memset( &entry, 0, sizeof(entry) );
+
+        // rewind file
+        fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+
+        // overwrite with 0s
+        fs_i16_write( f, &entry, sizeof(entry) );
+
+        log_v_debug_P( PSTR("deleting cached service") );
+
+        break;
+    }
+
+    
+    f = fs_f_close( f );
+
+    return;
+}
+
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
@@ -397,6 +441,8 @@ void services_v_cancel( uint32_t id, uint32_t group ){
 
             list_v_remove( &service_list, ln );
             list_v_release_node( ln );
+
+            delete_cached_service( id, group );
 
             return;
         }
@@ -976,6 +1022,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                 log_v_info_P( PSTR("-> SERVER") );
                 service->state = STATE_SERVER;
+
+                cache_service( service->id, service->group, service->server_ip, service->server_port );
             }
         }
     }
@@ -1284,6 +1332,8 @@ PT_BEGIN( pt );
 
                         // we completely reset the state including tracking.
                         // this is in case the tracked node disappears.
+
+                        delete_cached_service( service->id, service->group );
                     }
                 }
             }
@@ -1292,6 +1342,8 @@ PT_BEGIN( pt );
                 log_v_info_P( PSTR("CONNECTED timeout: lost server") );
 
                 reset_state( service );
+
+                delete_cached_service( service->id, service->group );
             }
             
             ln = list_ln_next( ln );
