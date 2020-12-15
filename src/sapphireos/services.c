@@ -193,11 +193,31 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
 
         // rewind file pointer
         fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+
+        fs_i16_write( f, &entry, sizeof(entry) );
+    }
+    else{
+
+        // search for empty entry
+        fs_v_seek( f, 0 );
+
+        if( search_cached_service( f, 0, 0, 0 ) ){
+
+            // rewind and overwrite
+            fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+
+            fs_i16_write( f, &entry, sizeof(entry) );
+        }
+        else{
+
+            // no empty slots, write to end of file
+            fs_i16_write( f, &entry, sizeof(entry) );
+        }
     }
 
-    fs_i16_write( f, &entry, sizeof(entry) );
-
     f = fs_f_close( f );
+
+    log_v_debug_P( PSTR( "cached service") );
 }
 
 static void delete_cached_service( uint32_t id, uint32_t group ){
@@ -454,6 +474,12 @@ void services_v_cancel( uint32_t id, uint32_t group ){
 bool services_b_is_available( uint32_t id, uint32_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return FALSE;
+    }
+
+    // check that wifi is connected
+    if( !wifi_b_connected() ){
 
         return FALSE;
     }
@@ -1013,6 +1039,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
 
                 reset_state( service );
+
+                delete_cached_service( service->id, service->group );
             }
             // check if server is still better than we are
             else if( compare_self( service ) ){
@@ -1270,7 +1298,7 @@ PT_BEGIN( pt );
                 if( service->state == STATE_CONNECTED ){
 
                     // check timeout and see if we need to ping
-                    if( service->timeout < SERVICE_CONNECTED_PING_THRESHOLD ){
+                    if( service->timeout <= SERVICE_CONNECTED_PING_THRESHOLD ){
 
                         transmit_query( service );
                     }
