@@ -1414,23 +1414,12 @@ PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    uint16_t data_port = CATBUS_MAIN_PORT;
-    // cfg_i8_get( CFG_PARAM_CATBUS_DATA_PORT, &data_port );
-
-    // if( data_port == 0 ){
-
-        // data_port = CATBUS_MAIN_PORT;
-
-        cfg_v_set( CFG_PARAM_CATBUS_DATA_PORT, &data_port );
-    // }
-
-
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
     ASSERT( sock >= 0 );
 
-    sock_v_bind( sock, data_port );
+    sock_v_bind( sock, CATBUS_MAIN_PORT );
 
     sock_v_set_timeout( sock, 1 );
 

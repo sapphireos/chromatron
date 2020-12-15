@@ -65,8 +65,6 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
     { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_led_quiet" },
     { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
-    { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "catbus_data_port" },
-    // { SAPPHIRE_TYPE_BOOL,        0,                   0, cfg_i8_kv_handler,  "enable_cpu_sleep" },
     // { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
     // { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
     #ifndef DISABLE_RECOVERY_MODE
@@ -862,7 +860,6 @@ void cfg_v_default_all( void ){
 
     cfg_v_set_mac64( CFG_PARAM_DEVICE_ID, zeroes );
 
-    cfg_v_set_u16( CFG_PARAM_CATBUS_DATA_PORT, CATBUS_MAIN_PORT );
     cfg_v_set_u16( CFG_PARAM_MAX_LOG_SIZE, 65535 );
 
     cfg_v_set_u16( CFG_PARAM_VERSION, CFG_VERSION );
