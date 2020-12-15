@@ -1264,6 +1264,8 @@ PT_BEGIN( pt );
 
                         log_v_info_P( PSTR("-> SERVER") );
                         service->state = STATE_SERVER;
+
+                        cache_service( service->id, service->group, service->server_ip, service->server_port );
                     }
                     // if tracking a leader
                     else if( service->server_valid ){
