@@ -364,8 +364,6 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
 
     service_state_t *svc_ptr = get_service( id, group );
 
-    log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
-
     // check if service already registered
     if( svc_ptr != 0 ){
 
@@ -402,6 +400,10 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
 
         // reset service (falling out of this if case)
         services_v_cancel( id, group );
+    }
+    else{
+
+        log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
     }
 
     service_state_t service = {0};
@@ -1194,7 +1196,7 @@ PT_BEGIN( pt );
 
         f = fs_f_close( f );
     }
-    
+
 
     THREAD_WAIT_WHILE( pt, service_count() == 0 );
 
