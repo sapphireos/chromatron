@@ -149,7 +149,7 @@ typedef struct __attribute__((packed)){
 typedef struct{
     uint16_t func_addr;
     uint16_t pc_offset;
-    int32_t delay;
+    uint64_t tick;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -166,7 +166,12 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t data_count;
     uint16_t init_start;
     uint16_t loop_start;
-    uint16_t frame_number;
+
+    uint16_t padding;
+
+    uint64_t tick;
+    uint32_t last_elapsed_us;
+    uint64_t loop_tick;
 
     uint32_t program_name_hash;
 
@@ -176,7 +181,6 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     vm_thread_t threads[VM_MAX_THREADS];
     uint32_t yield;
 
-    uint32_t tick_rate;
     int32_t current_thread;
     uint32_t max_cycles;
 
@@ -208,6 +212,11 @@ int8_t vm_i8_run(
     uint16_t pc_offset,
     vm_state_t *state );
 
+int8_t vm_i8_run_tick(
+    uint8_t *stream,
+    vm_state_t *state,
+    int32_t delta_ticks );
+
 int8_t vm_i8_run_init(
     uint8_t *stream,
     vm_state_t *state );
@@ -220,22 +229,30 @@ int8_t vm_i8_run_threads(
     uint8_t *stream,
     vm_state_t *state );
 
+uint64_t vm_u64_get_next_tick(
+    uint8_t *stream,
+    vm_state_t *state );
+
 int32_t vm_i32_get_data( 
     uint8_t *stream,
     vm_state_t *state,
-    uint8_t addr );
+    uint16_t addr );
 
 void vm_v_get_data_multi( 
     uint8_t *stream,
     vm_state_t *state,
-    uint8_t addr, 
+    uint16_t addr, 
     uint16_t len,
     int32_t *dest );
+
+int32_t* vm_i32p_get_data_ptr( 
+    uint8_t *stream,
+    vm_state_t *state );
 
 void vm_v_set_data( 
     uint8_t *stream,
     vm_state_t *state,
-    uint8_t addr, 
+    uint16_t addr, 
     int32_t data );
 
 int8_t vm_i8_load_program(

@@ -474,7 +474,7 @@ class Builder(object):
 
         # return int(build_number)
     
-        return runcmd('git rev-parse --short HEAD', tolog=False)
+        return runcmd('git rev-parse --short HEAD', tolog=False).strip()
 
 
     def set_buildnumber(self, value):
