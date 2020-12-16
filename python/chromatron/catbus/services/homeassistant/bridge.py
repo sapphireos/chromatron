@@ -114,6 +114,8 @@ class MQTTChromatron(MQTTClient):
         topic = msg.topic
         payload = msg.payload.decode('utf8')
 
+        # print(topic, payload)
+
         if topic == self.command_topic:
             if payload == 'OFF':
                 self.ct.dimmer = 0.0
@@ -124,13 +126,16 @@ class MQTTChromatron(MQTTClient):
         elif topic == self.brightness_command_topic:
             self.ct.sub_dimmer = float(payload) / 65535.0
 
+        else:
+            return
+
         self.update_state()
 
     def loop(self):
         super().loop()
 
-        if time.time() - self.last_update > 4.0:
-            self.update_state()
+        # if time.time() - self.last_update > 4.0:
+            # self.update_state()
 
 class MQTTBridge(Ribbon):
     def initialize(self, settings={}):
@@ -163,8 +168,8 @@ class MQTTBridge(Ribbon):
                 ct = Chromatron(info['host'][0])
                 self.devices[device_id] = MQTTChromatron(ct=ct)
 
-        for device_id, device in self.devices.items():
-            device.update_state()
+        # for device_id, device in self.devices.items():
+            # device.update_state()
 
         # prune devices
         self.devices = {k: v for k, v in self.devices.items() if k in self.directory}
