@@ -69,9 +69,11 @@ class MQTTChromatron(MQTTClient):
                     'command_topic': self.command_topic,
                   }
 
-        return f'homeassistant/light/chromatron/{self.unique_id}/config', payload
+        return payload
     
     def update_state(self):
+        self.publish(f'homeassistant/light/chromatron/{self.unique_id}/config', json.dumps(self.mqtt_discovery))
+
         power_state = 'OFF'
         if self.ct.dimmer > 0.0:
             power_state = 'ON'
