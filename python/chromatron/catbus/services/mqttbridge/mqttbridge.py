@@ -25,6 +25,7 @@
 
 import sys
 import time
+import json
 
 from catbus import CatbusService, Directory
 from sapphire.common.ribbon import wait_for_signal
@@ -45,14 +46,17 @@ class MQTTBridge(Ribbon):
 
         self.mqtt = mqtt.Client()
 
+        self.mqtt.connect('omnomnom.local')
+
         self.mqtt.on_connect = self.on_connect
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
 
         # run local catbus directory
-        self._catbus_directory = Directory()
+        # self._catbus_directory = Directory()
 
-        self.update_directory()
+        # self.update_directory()
+
 
     def update_directory(self):
         self.directory = self._catbus_directory.get_directory()
@@ -64,7 +68,34 @@ class MQTTBridge(Ribbon):
 
         # Subscribing in on_connect() means that if we lose the connection and
         # reconnect then subscriptions will be renewed.
-        client.subscribe("$SYS/#")
+        # client.subscribe("$SYS/#")
+
+        payload = {
+            'state_topic': 'chromatron/node0/state',
+            'command_topic': 'chromatron/node0/command',
+            'name': 'jeremy_test2',
+            'unique_id': 124,
+            'brightness_command_topic': 'chromatron/node0/brightness',
+            'brightness_state_topic': 'chromatron/node0/brightness',
+            'hs_command_topic': 'chromatron/node0/hs',
+            'hs_state_topic': 'chromatron/node0/hs',
+        }
+
+        self.mqtt.subscribe(payload['state_topic'])
+        self.mqtt.subscribe(payload['command_topic'])
+        self.mqtt.subscribe(payload['brightness_command_topic'])
+        self.mqtt.subscribe(payload['brightness_state_topic'])
+        self.mqtt.subscribe(payload['hs_command_topic'])
+        self.mqtt.subscribe(payload['hs_state_topic'])
+
+
+        self.mqtt.publish('homeassistant/light/chromatron/node0/config', json.dumps(payload))
+
+        time.sleep(0.2)
+
+        # self.mqtt.publish('chromatron/node0/command', json.dumps('ON'))
+        self.mqtt.publish('chromatron/node0/state','ON')
+        # self.mqtt.publish('chromatron/node0/brightness', json.dumps(50))
 
     def on_disconnect(self, client, userdata, rc):
         if rc != 0:
@@ -72,6 +103,7 @@ class MQTTBridge(Ribbon):
 
     def on_message(self, client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
+
 
     def publish(self, topic, payload):
         self.mqtt.publish(topic, payload, qos=0, retain=False)
