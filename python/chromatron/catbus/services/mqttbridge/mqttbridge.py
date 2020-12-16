@@ -37,6 +37,56 @@ import logging
 import paho.mqtt.client as mqtt
 
 
+class MQTTChromatron(object):
+    def __init__(self, mqtt_client, device=None):
+        self.mqtt_client = mqtt_client
+        self.device = device
+
+        self.state = False
+
+    @property
+    def name(self):
+        return 'TEST'
+
+    @property
+    def unique_id(self):
+        return '256'
+
+    @property
+    def command_topic(self):
+        return 'chromatron/node0/command'
+
+    @property
+    def state_topic(self):
+        return 'chromatron/node0/state'
+
+    @property
+    def mqtt_discovery(self):
+        payload = {
+                    'name': self.name,
+                    'unique_id': self.unique_id,
+                    'state_topic': self.state_topic,
+                    'command_topic': self.command_topic,
+                  }
+
+        return f'homeassistant/light/chromatron/{self.unique_id}/config', payload
+        
+    def setup(self):
+        self.mqtt_client.publish(self.mqtt_discovery[0], json.dumps(self.mqtt_discovery[1]))
+
+        self.mqtt_client.subscribe(self.command_topic)
+
+        self.update()
+
+    def update(self):
+        if self.state:
+            self.mqtt_client.publish(self.state_topic, 'ON')
+            # print("on")
+
+        else:
+            self.mqtt_client.publish(self.state_topic, 'OFF')
+            # print("off")
+
 
 class MQTTBridge(Ribbon):
     def initialize(self, settings={}):
@@ -57,6 +107,7 @@ class MQTTBridge(Ribbon):
 
         # self.update_directory()
 
+        self.dev = MQTTChromatron(self.mqtt);
 
     def update_directory(self):
         self.directory = self._catbus_directory.get_directory()
@@ -70,31 +121,32 @@ class MQTTBridge(Ribbon):
         # reconnect then subscriptions will be renewed.
         # client.subscribe("$SYS/#")
 
-        payload = {
-            'state_topic': 'chromatron/node0/state',
-            'command_topic': 'chromatron/node0/command',
-            'name': 'jeremy_test2',
-            'unique_id': 124,
-            'brightness_command_topic': 'chromatron/node0/brightness',
-            'brightness_state_topic': 'chromatron/node0/brightness',
-            'hs_command_topic': 'chromatron/node0/hs',
-            'hs_state_topic': 'chromatron/node0/hs',
-        }
+        # payload = {
+        #     'name': self.dev
+        #     'unique_id': 124,
+        #     'state_topic': 'chromatron/node0/state',
+        #     'command_topic': 'chromatron/node0/command',
+        #     # 'brightness_command_topic': 'chromatron/node0/brightness',
+        #     # 'brightness_state_topic': 'chromatron/node0/brightness',
+        #     # 'hs_command_topic': 'chromatron/node0/hs',
+        #     # 'hs_state_topic': 'chromatron/node0/hs',
+        # }
 
-        self.mqtt.subscribe(payload['state_topic'])
-        self.mqtt.subscribe(payload['command_topic'])
-        self.mqtt.subscribe(payload['brightness_command_topic'])
-        self.mqtt.subscribe(payload['brightness_state_topic'])
-        self.mqtt.subscribe(payload['hs_command_topic'])
-        self.mqtt.subscribe(payload['hs_state_topic'])
+        # self.mqtt.subscribe(payload['state_topic'])
+        # self.mqtt.subscribe(payload['command_topic'])
+        # self.mqtt.subscribe(payload['brightness_command_topic'])
+        # self.mqtt.subscribe(payload['brightness_state_topic'])
+        # self.mqtt.subscribe(payload['hs_command_topic'])
+        # self.mqtt.subscribe(payload['hs_state_topic'])
 
+        self.dev.setup()
 
-        self.mqtt.publish('homeassistant/light/chromatron/node0/config', json.dumps(payload))
+        # self.mqtt.publish(self.dev.mqtt_discovery[0], json.dumps(self.dev.mqtt_discovery[1]))
 
-        time.sleep(0.2)
+        # time.sleep(0.2)
 
         # self.mqtt.publish('chromatron/node0/command', json.dumps('ON'))
-        self.mqtt.publish('chromatron/node0/state','ON')
+        # self.mqtt.publish('chromatron/node0/state','ON')
         # self.mqtt.publish('chromatron/node0/brightness', json.dumps(50))
 
     def on_disconnect(self, client, userdata, rc):
@@ -103,6 +155,17 @@ class MQTTBridge(Ribbon):
 
     def on_message(self, client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
+
+        if msg.topic == self.dev.command_topic:
+            payload = msg.payload.decode('utf-8')
+            print(payload)
+            if payload == 'ON':
+                self.dev.state = True
+
+            else:
+                self.dev.state = False
+
+            self.dev.update()
 
 
     def publish(self, topic, payload):
