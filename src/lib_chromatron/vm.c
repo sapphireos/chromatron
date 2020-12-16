@@ -232,9 +232,20 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     if( f < 0 ){
 
-        log_v_debug_P( PSTR("VM file not found") );
+        // try again, adding .fxb extension
+        char s[FFS_FILENAME_LEN];
+        memset( s, 0, sizeof(s) );
+        strlcpy( s, program_fname, sizeof(s) );
+        strlcat( s, ".fxb", sizeof(s) );
 
-        return -1;
+        f = fs_f_open( s, FS_MODE_READ_ONLY );
+
+        if( f < 0 ){
+
+            log_v_debug_P( PSTR("VM file not found") );
+
+            return -1;
+        }
     }
 
     log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
