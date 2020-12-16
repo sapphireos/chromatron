@@ -39,7 +39,7 @@ import paho.mqtt.client as mqtt
 class MQTTClient(Ribbon):
     def initialize(self, settings={}):
         super().initialize()
-        self.name = 'mqtt_client'
+
         self.settings = settings
 
         self.mqtt = mqtt.Client()
@@ -50,7 +50,7 @@ class MQTTClient(Ribbon):
 
         self.connect()
 
-    def connect(self, host=None):
+    def connect(self, host='omnomnom.local'):
         if host is None:
             try:
                 host = self.settings['host']   
