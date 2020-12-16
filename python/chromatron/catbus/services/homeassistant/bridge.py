@@ -43,7 +43,9 @@ class MQTTChromatron(MQTTClient):
         self.ct = ct
 
         super().initialize()
-    
+        
+        self.last_update = time.time()
+
     @property
     def device_name(self):
         return self.ct.name
@@ -61,27 +63,47 @@ class MQTTChromatron(MQTTClient):
         return f'chromatron/{self.unique_id}/state'
 
     @property
+    def brightness_command_topic(self):
+        return f'chromatron/{self.unique_id}/brightness/command'
+
+    @property
+    def brightness_state_topic(self):
+        return f'chromatron/{self.unique_id}/brightness/state'
+
+    @property
     def mqtt_discovery(self):
         payload = {
-                    'name': self.device_name,
-                    'unique_id': self.unique_id,
-                    'state_topic': self.state_topic,
-                    'command_topic': self.command_topic,
+                    'name':                         self.device_name,
+                    'unique_id':                    self.unique_id,
+                    'state_topic':                  self.state_topic,
+                    'command_topic':                self.command_topic,
+                    'brightness_state_topic':       self.brightness_state_topic,
+                    'brightness_command_topic':     self.brightness_command_topic,
+                    'brightness_scale':             65535,
+
                   }
 
         return payload
     
     def update_state(self):
+        self.last_update = time.time()
+
+        # publish discovery message
         self.publish(f'homeassistant/light/chromatron/{self.unique_id}/config', json.dumps(self.mqtt_discovery))
 
         power_state = 'OFF'
         if self.ct.dimmer > 0.0:
             power_state = 'ON'
 
+        # NOTE:
+        # after we add gfx on/off support, we can switch from the sub dimmer to master.
+
         self.publish(self.state_topic, power_state)
+        self.publish(self.brightness_state_topic, int(self.ct.sub_dimmer * 65535))
 
     def on_connect(self, client, userdata, flags, rc):
         self.subscribe(self.command_topic)
+        self.subscribe(self.brightness_command_topic)
 
         self.update_state()
 
@@ -99,8 +121,16 @@ class MQTTChromatron(MQTTClient):
             else:
                 self.ct.dimmer = 1.0
 
+        elif topic == self.brightness_command_topic:
+            self.ct.sub_dimmer = float(payload) / 65535.0
+
         self.update_state()
 
+    def loop(self):
+        super().loop()
+
+        if time.time() - self.last_update > 4.0:
+            self.update_state()
 
 class MQTTBridge(Ribbon):
     def initialize(self, settings={}):
@@ -127,7 +157,7 @@ class MQTTBridge(Ribbon):
 
         for device_id, info in self.directory.items():
             if device_id not in self.devices:
-                if info['name'] != 'geocube':
+                if info['name'] != 'quadrant':
                     continue
 
                 ct = Chromatron(info['host'][0])
