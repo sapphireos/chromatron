@@ -2519,7 +2519,11 @@ def upgrade(ctx, release, change_firmware, yes, skip_verify, parallel):
 
             except KeyError:
                 click.echo(click.style("wifi_flash_id must be present!", fg='red'))
-                return
+                if not click.confirm(click.style("Override?", fg='red')):
+                    return
+
+                if not click.confirm(click.style("Are you sure?  It will be VERY BAD if the wrong flash chip is installed!", fg='red')):
+                    return
 
             click.echo(click.style('Backing up settings', fg='white'))
             

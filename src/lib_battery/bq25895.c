@@ -85,14 +85,14 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
-    // batt_volts = bq25895_u16_get_batt_voltage();
-    // batt_soc = calc_batt_soc( batt_volts );
-    // batt_soc_startup = batt_soc;
+    batt_volts = bq25895_u16_get_batt_voltage();
+    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc_startup = batt_soc;
 
-    // thread_t_create( bat_mon_thread,
-    //                  PSTR("bat_mon"),
-    //                  0,
-    //                  0 );
+    thread_t_create( bat_mon_thread,
+                     PSTR("bat_mon"),
+                     0,
+                     0 );
 
     return 0;
 }
