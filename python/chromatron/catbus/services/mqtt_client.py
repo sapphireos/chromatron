@@ -25,8 +25,8 @@
 
 import sys
 import time
+import json
 
-from catbus import CatbusService, Directory
 from sapphire.common.ribbon import wait_for_signal
 
 from sapphire.common import util, Ribbon
@@ -36,11 +36,10 @@ import logging
 import paho.mqtt.client as mqtt
 
 
-
-class MQTTBridge(Ribbon):
+class MQTTClient(Ribbon):
     def initialize(self, settings={}):
         super().initialize()
-        self.name = 'mqtt_bridge'
+
         self.settings = settings
 
         self.mqtt = mqtt.Client()
@@ -49,22 +48,20 @@ class MQTTBridge(Ribbon):
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
 
-        # run local catbus directory
-        self._catbus_directory = Directory()
+        self.connect()
 
-        self.update_directory()
+    def connect(self, host='omnomnom.local'):
+        if host is None:
+            try:
+                host = self.settings['host']   
 
-    def update_directory(self):
-        self.directory = self._catbus_directory.get_directory()
+            except KeyError:
+                host = 'localhost'
 
-        self._last_directory_update = time.time()
+        self.mqtt.connect(host)
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
-
-        # Subscribing in on_connect() means that if we lose the connection and
-        # reconnect then subscriptions will be renewed.
-        client.subscribe("$SYS/#")
 
     def on_disconnect(self, client, userdata, rc):
         if rc != 0:
@@ -82,30 +79,6 @@ class MQTTBridge(Ribbon):
     def unsubscribe(self, topic):
         self.mqtt.unsubscribe(topic)
 
-
     def loop(self):
         self.mqtt.loop(timeout=1.0)
 
-
-
-
-def main():
-    util.setup_basic_logging(console=True)
-
-    settings = {}
-    try:
-        with open('settings.json', 'r') as f:
-            settings = json.loads(f.read())
-
-    except FileNotFoundError:
-        pass
-
-    bridge = MQTTBridge(settings=settings)
-
-    wait_for_signal()
-
-    bridge.stop()
-    bridge.join()   
-
-if __name__ == '__main__':
-    main()

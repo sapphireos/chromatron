@@ -37,6 +37,7 @@
 #include "test_ssid.h"
 #endif
 
+#include "mem.h"
 #include "espconn.h"
 
 #ifdef ENABLE_WIFI
@@ -875,6 +876,47 @@ static bool is_ssid_configured( void ){
    	return FALSE;
 }
 
+// static void start_mdns_igmp( void ){
+
+//     struct ip_info sta_ip;
+//     wifi_get_ip_info( STATION_IF, &sta_ip );
+
+//     ip_addr_t ip;
+//     ip.addr = sta_ip.ip.addr;
+
+//     ip_addr_t mcast_ip;
+//     mcast_ip.addr = 0xe00000fb;
+
+//     espconn_igmp_join( &ip, &mcast_ip );
+// }
+
+// static void stop_mdns_igmp( void ){
+    
+//     struct ip_info sta_ip;
+//     wifi_get_ip_info( STATION_IF, &sta_ip );
+
+//     ip_addr_t ip;
+//     ip.addr = sta_ip.ip.addr;
+
+//     ip_addr_t mcast_ip;
+//     mcast_ip.addr = 0xe00000fb;
+
+//     espconn_igmp_leave( &ip, &mcast_ip );
+// }
+
+// static void start_mdns( void ){
+
+//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+//         return;
+//     }
+
+//     start_mdns_igmp();
+    
+    
+    
+// }
+
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -1086,6 +1128,8 @@ end:
 
             log_v_debug_P( PSTR("Wifi soft AP up") );    
         }
+
+        // start_mdns();
     }
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() );
@@ -1104,10 +1148,14 @@ PT_BEGIN( pt );
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_shutdown() );
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
-        THREAD_WAIT_WHILE( pt, !wifi_b_attached() );
+        // if( sys_b_shutdown() ){
+
+        //     stop_mdns_igmp();
+
+        //     THREAD_EXIT( pt );
+        // }
 
         uint8_t status = wifi_station_get_connect_status();
 

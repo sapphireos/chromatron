@@ -250,9 +250,12 @@ class Chromatron(object):
 
         self._update_meta()
 
-        keys = self._device.get_kv('ip', 'catbus_data_port', 'pix_count')
+        keys = self._device.get_kv('ip', 'pix_count')
 
-        network_host = (keys['ip'], keys['catbus_data_port'])
+        ip = keys['ip']
+        data_port = catbus.CATBUS_MAIN_PORT
+
+        network_host = (ip, data_port)
 
         if ((network_host[0] != '0.0.0.0') and (self.host != 'usb')) or self.force_network:
             self.client.connect(network_host)
