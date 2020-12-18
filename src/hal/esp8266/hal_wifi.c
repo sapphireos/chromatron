@@ -1148,14 +1148,7 @@ PT_BEGIN( pt );
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_shutdown() );
-
-        // if( sys_b_shutdown() ){
-
-        //     stop_mdns_igmp();
-
-        //     THREAD_EXIT( pt );
-        // }
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         uint8_t status = wifi_station_get_connect_status();
 

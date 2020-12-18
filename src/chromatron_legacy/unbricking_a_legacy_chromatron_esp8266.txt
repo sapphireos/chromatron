@@ -1,0 +1,16 @@
+
+
+Build Chromatron Legacy:
+sapphiremake -p sapphire -p hal_xmega128a4u -p chromatron_no_led -c
+sapphiremake -p sapphire -p hal_xmega128a4u -p chromatron_no_led -t chromatron_legacy
+
+Load legacy firmware to the AVR:
+avrdude -p atxmega128a4u -P usb -c jtag2pdi -U flash:w:src/chromatron_no_led/firmware.bin:r -U fuse2:w:0xBE:m -U fuse5:w:0xE4:m
+
+
+Build ESP8266 upgrade firmware:
+./build_esp8266_upgrade.sh
+
+Load ESP8266 upgrade firmware via USB:
+chromatron --host usb firmware upgrade --skip_verify --change_firmware esp8266_upgrade
+
