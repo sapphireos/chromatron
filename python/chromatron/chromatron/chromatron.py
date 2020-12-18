@@ -2467,9 +2467,13 @@ def upgrade(ctx, release, change_firmware, yes, skip_verify, parallel):
         try:
             fw = firmware_package.get_firmware_package(fw_id, release=release)
             try:
+                # adjustments to make for upgrade firmwares
                 if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
                     if fw_info.board == 'chromatron_legacy':
                         fw_info.board = 'chromatron_classic_upgrade'
+
+                elif fw_info.board == 'chromatron_classic_upgrade':
+                    fw_info.board = 'chromatron_classic'
 
                 # make sure we have the board we need
                 fw.get_version_for_target(fw_info.board)
