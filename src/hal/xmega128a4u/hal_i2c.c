@@ -195,7 +195,7 @@ void i2c_v_init( i2c_baud_t8 baud ){
     // these are all hand timed.
     if( baud == I2C_BAUD_400K ){
 
-        delay_1 = 2;
+        delay_1 = 4;
         delay_2 = 1;
     }
     else if( baud == I2C_BAUD_300K ){
