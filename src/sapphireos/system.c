@@ -518,6 +518,12 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
     reboot_delay = 2;
 
+    if( sys_mode == SYS_MODE_SAFE ){
+
+        // in safe mode, reboot instantly
+        reboot();
+    }
+
     // the thread will perform a graceful reboot
     if( thread_t_create( THREAD_CAST(sys_reboot_thread),
                          PSTR("reboot"),
