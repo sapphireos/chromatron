@@ -37,7 +37,7 @@
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
-static uint8_t buffer[COPROC_BUF_SIZE];
+static uint8_t buffer[COPROC_BUF_SIZE] __attribute__((aligned(4)));
 
 static bool sync;
 
