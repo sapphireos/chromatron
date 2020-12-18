@@ -101,11 +101,11 @@ uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
     i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
 
-    // uint8_t data;
+    // uint8_t data = 0;
     // i2c_v_read( BQ25895_I2C_ADDR, &data, sizeof(data) );
 
     // return data;
-    // return 0;
+    return 0;
 }
 
 void bq25895_v_write_reg( uint8_t addr, uint8_t data ){

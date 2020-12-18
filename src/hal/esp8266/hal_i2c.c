@@ -33,6 +33,8 @@
 #include "coprocessor.h"
 #endif
 
+#include "logging.h"
+
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
@@ -66,6 +68,7 @@ void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 	};
     
     coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
+
     coproc_i32_callv( OPCODE_IO_I2C_WRITE, src, len );
     
     #else
