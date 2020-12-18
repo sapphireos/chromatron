@@ -1,8 +1,9 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2019  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -19,36 +20,15 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+*/
+
+#ifndef _BATTERY_H
+#define _BATTERY_H
 
 #include "sapphire.h"
 
-#include "config.h"
+#define UI_BUTTON   IO_PIN_6_DAC0
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-// #include "io_kv.h"
-#include "battery.h"
+void batt_v_init( void );
 
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
 #endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    // iokv_v_init();
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    // svr_v_init();
-}
-

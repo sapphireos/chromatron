@@ -33,6 +33,8 @@
 #include "coprocessor.h"
 #endif
 
+#include "logging.h"
+
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
