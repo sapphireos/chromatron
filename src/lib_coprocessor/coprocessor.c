@@ -165,12 +165,14 @@ uint8_t coproc_u8_issue(
 
 	coproc_v_send_block( (uint8_t *)&hdr );
 
-	while( len > 0 ){
+	int16_t send_len = len;
+
+	while( send_len > 0 ){
 
 		coproc_v_send_block( data );
 
 		data += COPROC_BLOCK_LEN;
-		len -= COPROC_BLOCK_LEN;
+		send_len -= COPROC_BLOCK_LEN;
 	}
 
 	memset( &hdr, 0, sizeof(hdr) );
