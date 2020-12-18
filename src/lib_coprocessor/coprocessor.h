@@ -92,12 +92,12 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_I2C_INIT			0x60
 #define OPCODE_IO_I2C_SET_PINS		0x61
 #define OPCODE_IO_I2C_SETUP			0x62
-#define OPCODE_IO_I2C_WRITE			0x62
-#define OPCODE_IO_I2C_READ			0x63
-#define OPCODE_IO_I2C_MEM_WRITE		0x64
-#define OPCODE_IO_I2C_MEM_READ		0x65
-#define OPCODE_IO_I2C_WRITE_REG8	0x66
-#define OPCODE_IO_I2C_READ_REG8		0x67
+#define OPCODE_IO_I2C_WRITE			0x63
+#define OPCODE_IO_I2C_READ			0x64
+#define OPCODE_IO_I2C_MEM_WRITE		0x65
+#define OPCODE_IO_I2C_MEM_READ		0x66
+#define OPCODE_IO_I2C_WRITE_REG8	0x67
+#define OPCODE_IO_I2C_READ_REG8		0x68
 
 typedef struct __attribute__((packed, aligned(4))){
 	uint32_t dev_addr;
