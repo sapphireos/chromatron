@@ -42,8 +42,6 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 
-#include "wifi_config.txt"
-
 #ifdef ENABLE_WIFI
 
 static uint8_t wifi_mac[6];
@@ -186,17 +184,6 @@ void wifi_v_init( void ){
                 PSTR("wifi_echo"),
                 0,
                 0 );
-
-
-    // #ifdef DEFAULT_WIFI
-    char ssid[32];
-    char pass[32];
-    memset( ssid, 0, 32 );
-    memset( pass, 0, 32 );
-    strcpy(ssid, CONFIG_ESP_WIFI_SSID);
-    strcpy(pass, CONFIG_ESP_WIFI_PASSWORD);
-    cfg_v_set( CFG_PARAM_WIFI_SSID, ssid );
-    cfg_v_set( CFG_PARAM_WIFI_PASSWORD, pass );
 }
 
 static bool is_rx( void ){
