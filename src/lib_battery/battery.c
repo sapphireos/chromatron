@@ -31,8 +31,6 @@
 
 #include "bq25895.h"
 
-#ifndef ESP32
-
 static bool batt_enable;
 static int8_t batt_ui_state;
 
@@ -234,10 +232,3 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-#else
-
-void batt_v_init( void ){
-
-}
-
-#endif
