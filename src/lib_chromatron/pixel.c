@@ -31,18 +31,11 @@
 #include "logging.h"
 #include "hal_pixel.h"
 
-#ifdef ENABLE_COPROCESSOR
-#include "coprocessor.h"
-#include "hal_usart.h"
-#endif
-
-static bool pix_dither;
-static uint8_t pix_mode;
-static uint32_t pix_clock;
-static uint8_t pix_rgb_order;
-
-static uint8_t pix_apa102_dimmer = 31;
-
+bool pix_dither;
+uint8_t pix_mode;
+uint32_t pix_clock;
+uint8_t pix_rgb_order;
+uint8_t pix_apa102_dimmer = 31;
 
 int8_t pix_i8_kv_handler(
     kv_op_t8 op,
@@ -68,20 +61,12 @@ int8_t pix_i8_kv_handler(
             pix_clock = 2400000;
         }
 
-        #ifdef ENABLE_COPROCESSOR
-        coproc_i32_call1( OPCODE_PIX_SET_RGB_ORDER, pix_rgb_order );
-        coproc_i32_call1( OPCODE_PIX_SET_CLOCK, pix_clock );
-        coproc_i32_call1( OPCODE_PIX_SET_DITHER, pix_dither );
-        coproc_i32_call1( OPCODE_PIX_SET_MODE, pix_mode );
-        coproc_i32_call1( OPCODE_PIX_SET_APA102_DIM, pix_apa102_dimmer );
-
         gfx_v_set_pix_mode( pix_mode );
-        #endif
+        hal_pixel_v_configure();
     }
 
     return 0;
 }
-
 
 KV_SECTION_META kv_meta_t pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_rgb_order,       pix_i8_kv_handler,    "pix_rgb_order" },
@@ -90,129 +75,6 @@ KV_SECTION_META kv_meta_t pixel_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
 };
-
-void hal_pixel_v_transfer_complete_callback( uint8_t driver ){
-
-}
-
-
-PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    coproc_i32_call1( OPCODE_PIX_SET_RGB_ORDER, pix_rgb_order );
-    coproc_i32_call1( OPCODE_PIX_SET_CLOCK, pix_clock );
-    coproc_i32_call1( OPCODE_PIX_SET_DITHER, pix_dither );
-    coproc_i32_call1( OPCODE_PIX_SET_MODE, pix_mode );
-    coproc_i32_call1( OPCODE_PIX_SET_APA102_DIM, pix_apa102_dimmer );
-
-    while(1){
-
-        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
-
-        THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
-
-        uint16_t pix_count = gfx_u16_get_pix_count();
-
-        if( pix_mode == PIX_MODE_ANALOG ){
-
-            uint16_t data0, data1, data2;
-            uint16_t r = gfx_u16_get_pix0_red();
-            uint16_t g = gfx_u16_get_pix0_green();
-            uint16_t b = gfx_u16_get_pix0_blue();
-
-            if( pix_rgb_order == PIX_ORDER_RGB ){
-
-                data0 = r;
-                data1 = g;
-                data2 = b;
-            }
-            else if( pix_rgb_order == PIX_ORDER_RBG ){
-
-                data0 = r;
-                data1 = b;
-                data2 = g;
-            }
-            else if( pix_rgb_order == PIX_ORDER_GRB ){
-
-                data0 = g;
-                data1 = r;
-                data2 = b;
-            }
-            else if( pix_rgb_order == PIX_ORDER_BGR ){
-
-                data0 = b;
-                data1 = g;
-                data2 = r;
-            }
-            else if( pix_rgb_order == PIX_ORDER_BRG ){
-
-                data0 = b;
-                data1 = r;
-                data2 = g;
-            }
-            else if( pix_rgb_order == PIX_ORDER_GBR ){
-
-                data0 = g;
-                data1 = b;
-                data2 = r;
-            }
-            else{
-
-                // should never get there
-                data0 = 0xff;
-                data1 = 0xff;
-                data2 = 0xff;
-            }
-
-            #ifdef ENABLE_COPROCESSOR
-            coproc_i32_call2( OPCODE_IO_WRITE_PWM, 0, data0 );
-            coproc_i32_call2( OPCODE_IO_WRITE_PWM, 1, data1 );
-            coproc_i32_call2( OPCODE_IO_WRITE_PWM, 2, data2 );
-            #else
-
-            #endif
-        }        
-        else{
-
-            uint8_t *r = gfx_u8p_get_red();
-            uint8_t *g = gfx_u8p_get_green();
-            uint8_t *b = gfx_u8p_get_blue();
-            uint8_t *d = gfx_u8p_get_dither();
-
-
-            #ifdef ENABLE_COPROCESSOR
-            coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
-
-            while( pix_count > 0 ){
-
-                usart_v_send_byte( UART_CHANNEL, *r++ );
-                usart_v_send_byte( UART_CHANNEL, *g++ );
-                usart_v_send_byte( UART_CHANNEL, *b++ );
-                usart_v_send_byte( UART_CHANNEL, *d++ );
-
-                pix_count--;
-
-                if( ( pix_count % COPROC_PIX_WAIT_COUNT ) == 0 ){
-
-                    while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
-                    usart_i16_get_byte( UART_CHANNEL );                
-                }
-            }
-
-            #else
-
-            #endif
-        }
-
-        if( sys_b_shutdown() ){
-            
-            THREAD_EXIT( pt );
-        }
-    }
-
-PT_END( pt );
-}
 
 void pixel_v_init( void ){
 
@@ -225,9 +87,28 @@ void pixel_v_init( void ){
     gfx_v_set_pix_mode( pix_mode );
 
     hal_pixel_v_init();
-
-    thread_t_create( pixel_thread,
-                     PSTR("pixel"),
-                     0,
-                     0 );
 }
+
+void pixel_v_signal( void ){
+
+    thread_v_signal( PIX_SIGNAL_0 );   
+}
+
+uint8_t pixel_u8_bytes_per_pixel( uint8_t mode ){
+
+    if( mode == PIX_MODE_APA102 ){
+
+        return 4; // APA102
+    }
+    else if( mode == PIX_MODE_WS2811 ){
+
+        return 12; // WS2811
+    }
+    else if( mode == PIX_MODE_SK6812_RGBW ){
+
+        return 16; // SK6812 RGBW
+    }
+
+    return 3; // WS2801 and others
+}
+

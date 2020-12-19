@@ -47,6 +47,7 @@ from . import esptool
 from io import StringIO
 
 from . import settings
+from . import serial_monitor
 
 from intelhex import IntelHex
 
@@ -1773,6 +1774,7 @@ def main():
     parser.add_argument("--install_build_tools", action="store_true", help="install build tools")
     parser.add_argument("--load_esp32", action="store_true", help="Load to ESP32")
     parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
+    parser.add_argument("--monitor", action="store_true", help="Run serial monitor")
 
     args = vars(parser.parse_args())
 
@@ -1929,7 +1931,8 @@ def main():
         # remove temp file
         os.remove(temp_filename)
         
-        return
+        if not args["monitor"]:
+            return
 
     elif args["load_esp32_loader"]:
         proj = 'loader_esp32'
@@ -1941,6 +1944,11 @@ def main():
         esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x8000 partition-table.espbin'.split())
         esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x1000 main.bin'.split())
 
+        if not args["monitor"]:
+            return
+
+    if args["monitor"]:
+        serial_monitor.monitor()
         return
 
     # check if setting target

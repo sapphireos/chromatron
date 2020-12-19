@@ -26,7 +26,7 @@
     "DEFINES": [],
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["lib_coprocessor"],
+    "LIBRARIES": ["lib_coprocessor", "lib_chromatron", "lib_gfx"],
 
     "_comment": "The following options are only used for libraries:",
     "_comment": "Init function for library",

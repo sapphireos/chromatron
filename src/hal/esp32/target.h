@@ -45,10 +45,12 @@
 
 // pixel config
 #define FADER_RATE              20
-
-#define MAX_PIXELS              128
-
+#define MAX_PIXELS              1024
 #define N_PIXEL_OUTPUTS         1
+#define PIXEL_SPI_CHANNEL		0
+
+// if defined, places pixel buffers in malloc region
+#define PIXEL_USE_MALLOC
 
 // VM config
 #define VM_ENABLE_GFX
@@ -115,5 +117,9 @@
 // comment this out to turn off run-time asserts
 #define INCLUDE_ASSERTS
 
+// recovery mode
+#define DISABLE_RECOVERY_MODE
+
+#define HALT_ON_ASSERT
 
 #endif
