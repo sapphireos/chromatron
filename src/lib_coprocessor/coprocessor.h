@@ -92,19 +92,19 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_I2C_INIT			0x60
 #define OPCODE_IO_I2C_SET_PINS		0x61
 #define OPCODE_IO_I2C_SETUP			0x62
-#define OPCODE_IO_I2C_WRITE			0x62
-#define OPCODE_IO_I2C_READ			0x63
-#define OPCODE_IO_I2C_MEM_WRITE		0x64
-#define OPCODE_IO_I2C_MEM_READ		0x65
-#define OPCODE_IO_I2C_WRITE_REG8	0x66
-#define OPCODE_IO_I2C_READ_REG8		0x67
+#define OPCODE_IO_I2C_WRITE			0x63
+#define OPCODE_IO_I2C_READ			0x64
+#define OPCODE_IO_I2C_MEM_WRITE		0x65
+#define OPCODE_IO_I2C_MEM_READ		0x66
+#define OPCODE_IO_I2C_WRITE_REG8	0x67
+#define OPCODE_IO_I2C_READ_REG8		0x68
 
-typedef struct{
-	uint8_t dev_addr;
-	uint8_t len;
-	uint8_t mem_addr;
-	uint8_t addr_size;
-	uint16_t delay_ms;
+typedef struct __attribute__((packed, aligned(4))){
+	uint32_t dev_addr;
+	uint32_t len;
+	uint32_t mem_addr;
+	uint32_t addr_size;
+	uint32_t delay_ms;
 } i2c_setup_t;
 
 #define COPROC_PIX_WAIT_COUNT		16
