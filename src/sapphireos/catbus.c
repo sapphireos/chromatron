@@ -34,55 +34,54 @@
 // #define NO_LOGGING
 #include "logging.h"
 
-#ifdef ENABLE_CATBUS_LINK
-typedef struct __attribute__((packed)){
-    catbus_hash_t32 tag;
-    uint8_t flags;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    catbus_query_t query;
-    uint8_t reserved[7];
-    uint32_t check_hash;
-} catbus_link_state_t;
-#define CATBUS_LINK_FLAGS_SEND          0x01
-#define CATBUS_LINK_FLAGS_RECEIVE       0x02
-#define CATBUS_LINK_FLAGS_DATA          0x04
-#define CATBUS_LINK_FLAGS_VALID         0x80
+// #ifdef ENABLE_CATBUS_LINK
+// typedef struct __attribute__((packed)){
+//     catbus_hash_t32 tag;
+//     uint8_t flags;
+//     catbus_hash_t32 source_hash;
+//     catbus_hash_t32 dest_hash;
+//     catbus_query_t query;
+//     uint8_t reserved[7];
+//     uint32_t check_hash;
+// } catbus_link_state_t;
+// #define CATBUS_LINK_FLAGS_SEND          0x01
+// #define CATBUS_LINK_FLAGS_RECEIVE       0x02
+// #define CATBUS_LINK_FLAGS_DATA          0x04
+// #define CATBUS_LINK_FLAGS_VALID         0x80
 
-typedef struct{
-    uint32_t magic;
-    uint8_t version;
-    uint8_t reserved[11];
-} catbus_link_file_header_t;
-#define CATBUS_LINK_FILE_MAGIC          0x4b4e494c // 'LINK'
-#define CATBUS_LINK_FILE_VERSION        1
+// typedef struct{
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t reserved[11];
+// } catbus_link_file_header_t;
+// #define CATBUS_LINK_FILE_MAGIC          0x4b4e494c // 'LINK'
+// #define CATBUS_LINK_FILE_VERSION        1
 
-typedef struct __attribute__((packed)){
-    sock_addr_t raddr;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    uint16_t sequence;
-    ntp_ts_t ntp_timestamp;
-    int8_t ttl;
-    uint8_t flags;
-} catbus_send_data_entry_t;
-#define SEND_ENTRY_FLAGS_PUBLISH        0x01
+// typedef struct __attribute__((packed)){
+//     sock_addr_t raddr;
+//     catbus_hash_t32 source_hash;
+//     catbus_hash_t32 dest_hash;
+//     uint16_t sequence;
+//     ntp_ts_t ntp_timestamp;
+//     int8_t ttl;
+//     uint8_t flags;
+// } catbus_send_data_entry_t;
+// #define SEND_ENTRY_FLAGS_PUBLISH        0x01
 
-typedef struct __attribute__((packed)){
-    sock_addr_t raddr;
-    catbus_hash_t32 dest_hash;
-    uint16_t sequence;
-    int8_t ttl;
-} catbus_receive_data_entry_t;
+// typedef struct __attribute__((packed)){
+//     sock_addr_t raddr;
+//     catbus_hash_t32 dest_hash;
+//     uint16_t sequence;
+//     int8_t ttl;
+// } catbus_receive_data_entry_t;
 
-static bool link_enable;
-static list_t send_list;
-static list_t receive_cache;
+// static list_t send_list;
+// static list_t receive_cache;
 
-static bool run_publish;
+// static bool run_publish;
 
-PT_THREAD( publish_thread( pt_t *pt, void *state ) );
-#endif
+// PT_THREAD( publish_thread( pt_t *pt, void *state ) );
+// #endif
 
 #ifdef ENABLE_NETWORK
 static uint64_t origin_id;
@@ -133,65 +132,65 @@ static const PROGMEM catbus_hash_t32 meta_tag_names[CATBUS_QUERY_LEN] = {
     CFG_PARAM_META_TAG_7,
 };
 
-#ifdef ENABLE_CATBUS_LINK
-static uint16_t sendlist_vfile_handler(
-    vfile_op_t8 op,
-    uint32_t pos,
-    void *ptr,
-    uint16_t len )
-{
+// #ifdef ENABLE_CATBUS_LINK
+// static uint16_t sendlist_vfile_handler(
+//     vfile_op_t8 op,
+//     uint32_t pos,
+//     void *ptr,
+//     uint16_t len )
+// {
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
 
-        case FS_VFILE_OP_READ:
-            list_u16_flatten( &send_list, pos, ptr, len );
-            break;
+//         case FS_VFILE_OP_READ:
+//             list_u16_flatten( &send_list, pos, ptr, len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &send_list );
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             len = list_u16_size( &send_list );
+//             break;
 
-        case FS_VFILE_OP_DELETE:
-            break;
+//         case FS_VFILE_OP_DELETE:
+//             break;
 
-        default:
-            len = 0;
-            break;
-    }
+//         default:
+//             len = 0;
+//             break;
+//     }
 
-    return len;
-}
+//     return len;
+// }
 
-static uint16_t receive_cache_vfile_handler(
-    vfile_op_t8 op,
-    uint32_t pos,
-    void *ptr,
-    uint16_t len )
-{
+// static uint16_t receive_cache_vfile_handler(
+//     vfile_op_t8 op,
+//     uint32_t pos,
+//     void *ptr,
+//     uint16_t len )
+// {
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
 
-        case FS_VFILE_OP_READ:
-            list_u16_flatten( &receive_cache, pos, ptr, len );
-            break;
+//         case FS_VFILE_OP_READ:
+//             list_u16_flatten( &receive_cache, pos, ptr, len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &receive_cache );
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             len = list_u16_size( &receive_cache );
+//             break;
 
-        case FS_VFILE_OP_DELETE:
-            break;
+//         case FS_VFILE_OP_DELETE:
+//             break;
 
-        default:
-            len = 0;
-            break;
-    }
+//         default:
+//             len = 0;
+//             break;
+//     }
 
-    return len;
-}
-#endif
+//     return len;
+// }
+// #endif
 
 static void _catbus_v_setup_tag_hashes( void ){
     
@@ -321,51 +320,50 @@ static int8_t _catbus_i8_meta_handler(
 void catbus_v_init( void ){
 
     #ifdef ENABLE_CATBUS_LINK
-    list_v_init( &send_list );
-    list_v_init( &receive_cache );
+    // list_v_init( &send_list );
+    // list_v_init( &receive_cache );
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        link_enable = FALSE;
     }
     else{
 
-        link_enable = TRUE;
+        link_v_init();
 
-        file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
+        // file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
 
-        if( f > 0 ){
+        // if( f > 0 ){
 
-            catbus_link_file_header_t header;
-            memset( &header, 0, sizeof(header) );
-            fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
+        //     catbus_link_file_header_t header;
+        //     memset( &header, 0, sizeof(header) );
+        //     fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
 
-            if( ( header.magic != CATBUS_LINK_FILE_MAGIC ) ||
-                ( header.version != CATBUS_LINK_FILE_VERSION ) ){
+        //     if( ( header.magic != CATBUS_LINK_FILE_MAGIC ) ||
+        //         ( header.version != CATBUS_LINK_FILE_VERSION ) ){
 
-                fs_v_delete( f );
-                fs_f_close( f );
+        //         fs_v_delete( f );
+        //         fs_f_close( f );
 
-                f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
+        //         f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
 
-                if( f > 0 ){
+        //         if( f > 0 ){
 
-                    header.magic = CATBUS_LINK_FILE_MAGIC;
-                    header.version = CATBUS_LINK_FILE_VERSION;
-                    memset( header.reserved, 0, sizeof(header.reserved) );
+        //             header.magic = CATBUS_LINK_FILE_MAGIC;
+        //             header.version = CATBUS_LINK_FILE_VERSION;
+        //             memset( header.reserved, 0, sizeof(header.reserved) );
 
-                    fs_i16_write( f, (uint8_t *)&header, sizeof(header) );
-                }
-            }
-        }
+        //             fs_i16_write( f, (uint8_t *)&header, sizeof(header) );
+        //         }
+        //     }
+        // }
 
-        if( f > 0 ){
+        // if( f > 0 ){
 
-            f = fs_f_close( f );
-        }
+        //     f = fs_f_close( f );
+        // }
 
-        fs_f_create_virtual( PSTR("kvrxcache"), receive_cache_vfile_handler );
-        fs_f_create_virtual( PSTR("kvsend"), sendlist_vfile_handler );
+        // fs_f_create_virtual( PSTR("kvrxcache"), receive_cache_vfile_handler );
+        // fs_f_create_virtual( PSTR("kvsend"), sendlist_vfile_handler );
 
         // thread_t_create( publish_thread,
         //                  PSTR("catbus_publish"),
@@ -391,16 +389,6 @@ void catbus_v_init( void ){
 
 void catbus_v_set_options( uint32_t options ){
 
-    #ifdef ENABLE_CATBUS_LINK
-    if( options & CATBUS_OPTION_LINK_DISABLE ){
-        
-        link_enable = FALSE;
-    }
-    else{
-
-        link_enable = TRUE;
-    }
-    #endif
 }
 
 #ifdef ENABLE_NETWORK
@@ -1240,53 +1228,53 @@ void catbus_v_purge_links( catbus_hash_t32 tag ){
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash ){
 
-    #ifdef ENABLE_CATBUS_LINK
-    if( !link_enable ){
+//     #ifdef ENABLE_CATBUS_LINK
+//     if( !link_enable ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    // check if safe mode
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){    
+//     // check if safe mode
+//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){    
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    if( kv_v_notify_hash_set != 0 ){ 
+//     if( kv_v_notify_hash_set != 0 ){ 
     
-        kv_v_notify_hash_set( hash );
-    }
+//         kv_v_notify_hash_set( hash );
+//     }
 
-    #ifdef ENABLE_TIME_SYNC
-    ntp_ts_t ntp_timestamp = time_t_now();
-    #else
-    ntp_ts_t ntp_timestamp;
-    memset( &ntp_timestamp, 0, sizeof(ntp_timestamp) );
-    #endif
+//     #ifdef ENABLE_TIME_SYNC
+//     ntp_ts_t ntp_timestamp = time_t_now();
+//     #else
+//     ntp_ts_t ntp_timestamp;
+//     memset( &ntp_timestamp, 0, sizeof(ntp_timestamp) );
+//     #endif
 
-    list_node_t sender_ln = send_list.head;    
+//     list_node_t sender_ln = send_list.head;    
 
-    while( sender_ln >= 0 ){
+//     while( sender_ln >= 0 ){
 
-        catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
+//         catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
 
-        if( send_state->source_hash != hash ){
+//         if( send_state->source_hash != hash ){
 
-            goto next;
-        }
+//             goto next;
+//         }
 
-        send_state->ntp_timestamp = ntp_timestamp;
+//         send_state->ntp_timestamp = ntp_timestamp;
 
-        send_state->sequence++;
-        send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
+//         send_state->sequence++;
+//         send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
 
-        run_publish = TRUE;
+//         run_publish = TRUE;
 
-next:
-        sender_ln = list_ln_next( sender_ln );
-    }
+// next:
+//         sender_ln = list_ln_next( sender_ln );
+//     }
 
-    #endif
+//     #endif
 
     return 0;   
 }
