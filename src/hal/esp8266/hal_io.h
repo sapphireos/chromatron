@@ -50,6 +50,8 @@
 
 #define IO_PIN_COUNT        15
 
+#define IO_PIN_DEBUG        IO_PIN_PWM_1
+
 #endif
 
 void io_v_set_esp_led( bool state );

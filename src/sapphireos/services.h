@@ -41,6 +41,8 @@
 
 #define SERVICE_PRIORITY_FOLLOWER_ONLY      0
 
+#define SERVICE_MAX_FILE_SIZE               512
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;

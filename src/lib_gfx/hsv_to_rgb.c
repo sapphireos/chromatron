@@ -21,20 +21,119 @@
 // </license>
 
 #include <stdint.h>
-#include "gfx_lib.h"
 #include "hsv_to_rgb.h"
 
-static uint16_t red_boost;
-static uint16_t red_boost_offset_low;
-static uint16_t red_boost_offset_high;
-static uint32_t red_top;
 
-void gfx_v_set_red_boost( uint16_t boost ){
+// #define HSV_DEBUG
 
-    red_boost = boost;
-    red_boost_offset_low = 21845 - red_boost;
-    red_boost_offset_high = 65535 - red_boost;
-    red_top = ( ( red_boost_offset_high - ( 43690 - red_boost ) ) * 65535 ) / red_boost_offset_low;
+#ifndef GEN_HUE_CURVE
+#include "keyvalue.h"
+
+#ifdef ENABLE_BG_CAL
+
+static uint16_t green_cal = 65535;
+static uint16_t blue_cal = 65535;
+
+KV_SECTION_META kv_meta_t bg_cal_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
+};
+#endif
+
+#ifdef HSV_DEBUG
+static uint16_t hsv_debug_hue;
+static uint16_t hsv_debug_r;
+static uint16_t hsv_debug_g;
+static uint16_t hsv_debug_b;
+
+KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_hue,              0,                   "hsv_debug_hue" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_r,                0,                   "hsv_debug_r" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_g,                0,                   "hsv_debug_g" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_b,                0,                   "hsv_debug_b" },
+};
+#endif
+
+#endif
+
+#define HUE_CURVE_ADVANCED
+
+static inline void hsv_to_rgb_core(
+    uint16_t h,
+    uint16_t *r,
+    uint16_t *g,
+    uint16_t *b ){
+
+    #ifndef HUE_CURVE_ADVANCED
+    if( h <= 21845 ){
+        
+        *r = ( 21845 - h ) * 3;
+        *g = 65535 - ( 21845 - h ) * 3;
+    }
+    else if( h <= 43690 ){
+    
+        *g = ( 43690 - h ) * 3;
+        *b = 65535 - *g;
+    }
+    else{
+    
+        *b = ( 65535 - h ) * 3;  
+        *r = 65535 - *b;
+    }
+
+    #else
+
+    #define MAP(h, h1, h2, v1, v2) ( ( ( (int32_t)v2 - (int32_t)v1 ) * ( h - h1 ) ) / ( h2 - h1 ) + v1 )
+    
+    if( h <= 8191 ){        // red to orange
+
+        *r = MAP( h, 0,     8191,   65535, 43690 );
+        *g = MAP( h, 0,     8191,   0,     21845 );
+    }
+    else if( h <= 16383 ){  // orange to yellow
+
+        *r = MAP( h, 8191,  16383,  43690, 43690 );
+        *g = MAP( h, 8191,  16383,  21845, 43690 );   
+    }
+    else if( h <= 24575 ){  // yellow to green
+
+        *r = MAP( h, 16383, 24575,  43690, 0 );
+        *g = MAP( h, 16383, 24575,  43690, 65535 );   
+    }
+    else if( h <= 32767 ){  // green to cyan
+
+        *g = MAP( h, 24575, 32767,  65535, 43690 );   
+        *b = MAP( h, 24575, 32767,  0,     21845 );   
+    }
+    else if( h <= 40689 ){  // cyan to blue
+
+        *g = MAP( h, 32767, 40690,  43690, 0 );   
+        *b = MAP( h, 32767, 40690,  21845, 65535 );   
+    }
+    else if( h <= 49151 ){  // blue to purple
+
+        *b = MAP( h, 40690, 49151,  65535, 43690 );   
+        *r = MAP( h, 40690, 49151,  0,     21845 );   
+    }
+    else if( h <= 57343 ){  // purple to magenta
+
+        *b = MAP( h, 49151, 57343,  43690, 21845 );   
+        *r = MAP( h, 49151, 57343,  21845, 43690 );      
+    }
+    else{                   // magenta to red
+
+        *b = MAP( h, 57343, 65535,  21845, 0 );   
+        *r = MAP( h, 57343, 65535,  43690, 65535 );      
+    }
+
+    #endif
+
+    #ifdef HSV_DEBUG
+    hsv_debug_hue = h;
+    hsv_debug_r = *r;
+    hsv_debug_g = *g;
+    hsv_debug_b = *b;
+    #endif
 }
 
 void gfx_v_hsv_to_rgb(
@@ -45,34 +144,14 @@ void gfx_v_hsv_to_rgb(
     uint16_t *g,
     uint16_t *b ){
 
-    uint16_t temp_g, temp_b, temp_s;
-    uint32_t temp_r;
+    uint16_t temp_r, temp_g, temp_b, temp_s;
     temp_r = 0;
     temp_g = 0;
     temp_b = 0;
 
+    hsv_to_rgb_core( h, &temp_r, &temp_g, &temp_b );
+
     temp_s = 65535 - s;
-
-    if( h <= 21845 ){
-    
-        temp_r = ( ( red_boost_offset_low - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low;
-        temp_g = 65535 - ( 21845 - h ) * 3;
-    }
-    else if( h <= 43690 ){
-    
-        temp_g = ( 43690 - h ) * 3;
-        temp_b = 65535 - temp_g;
-    }
-    else{
-    
-        temp_b = ( 65535 - h ) * 3;  
-        temp_r = red_top - ( ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low );
-    }
-
-    if( temp_r > 65535 ){
-
-        temp_r = 65535;
-    }
 
     // floor saturation
     if( temp_r < temp_s ){
@@ -90,6 +169,12 @@ void gfx_v_hsv_to_rgb(
         temp_b = temp_s;
     }
 
+    #ifdef ENABLE_BG_CAL
+    // apply cal
+    temp_g = ( temp_g * green_cal ) / 65536;
+    temp_b = ( temp_b * blue_cal ) / 65536;
+    #endif
+
     // apply brightness
     *r = ( (uint32_t)temp_r * v ) / 65536;
     *g = ( (uint32_t)temp_g * v ) / 65536;
@@ -105,51 +190,25 @@ void gfx_v_hsv_to_rgbw(
     uint16_t *b,
     uint16_t *w ){
 
-    uint16_t temp_g, temp_b, temp_s;
-    uint32_t temp_r;
+    uint16_t temp_r, temp_g, temp_b, temp_s;
     temp_r = 0;
     temp_g = 0;
     temp_b = 0;
 
     temp_s = 65535 - s;
-
-    if( h <= 21845 ){
     
-        temp_r = ( ( red_boost_offset_low - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low;
-        temp_g = 65535 - ( 21845 - h ) * 3;
+    hsv_to_rgb_core( h, &temp_r, &temp_g, &temp_b );
 
-        if( temp_r > 65535 ){
+    // apply saturation to RGB
+    temp_r = ( (uint32_t)temp_r * s ) / 65536;
+    temp_g = ( (uint32_t)temp_g * s ) / 65536;
+    temp_b = ( (uint32_t)temp_b * s ) / 65536;
 
-            temp_r = 65535;
-        }
-
-        // apply saturation to RGB
-        temp_r = ( (uint32_t)temp_r * s ) / 65536;
-        temp_g = ( (uint32_t)temp_g * s ) / 65536;
-    }
-    else if( h <= 43690 ){
-    
-        temp_g = ( 43690 - h ) * 3;
-        temp_b = 65535 - temp_g;
-
-        // apply saturation to RGB
-        temp_g = ( (uint32_t)temp_g * s ) / 65536;
-        temp_b = ( (uint32_t)temp_b * s ) / 65536;
-    }
-    else{
-    
-        temp_b = ( 65535 - h ) * 3;  
-        temp_r = red_top - ( ( ( red_boost_offset_high - ( h - red_boost ) ) * 65535 ) / red_boost_offset_low );
-
-        if( temp_r > 65535 ){
-
-            temp_r = 65535;
-        }
-
-        // apply saturation to RGB
-        temp_r = ( (uint32_t)temp_r * s ) / 65536;
-        temp_b = ( (uint32_t)temp_b * s ) / 65536;
-    }
+    #ifdef ENABLE_BG_CAL
+    // apply cal
+    temp_g = ( temp_g * green_cal ) / 65536;
+    temp_b = ( temp_b * blue_cal ) / 65536;
+    #endif
 
     // apply brightness
     *r = ( (uint32_t)temp_r * v ) / 65536;
@@ -185,3 +244,37 @@ void gfx_v_hsv_to_rgbw(
 //     *w = ( (uint32_t)temp_s * v ) / 65536;
 // }
 
+
+#ifdef GEN_HUE_CURVE
+
+#include <stdio.h>
+
+int main( void ){
+
+    printf( "Generating hue curve...\n" );
+
+    uint16_t r, g, b;
+
+    FILE* f = fopen("hue_curve.csv", "w" );
+
+    fprintf( f, "hue, red, green, blue\n" );
+
+    for( uint16_t h = 0; h < 65535; h++ ){
+
+        r = 0;
+        g = 0;
+        b = 0;
+
+        hsv_to_rgb_core( h, &r, &g, &b );
+
+        fprintf( f, "%d, %d, %d, %d\n", h, r, g, b );
+    }
+
+    fclose( f );
+
+    printf( "Done!\n" );
+
+    return 0;
+}
+
+#endif

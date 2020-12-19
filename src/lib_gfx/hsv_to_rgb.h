@@ -25,7 +25,7 @@
 #ifndef _HSV_TO_RGB_H
 #define _HSV_TO_RGB_H
 
-void gfx_v_set_red_boost( uint16_t boost );
+// #define ENABLE_BG_CAL
 
 void gfx_v_hsv_to_rgb(
     uint16_t h,

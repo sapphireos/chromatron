@@ -51,8 +51,8 @@
 #include <stddef.h>
 #include <string.h>
 
-static uint32_t slowest_time;
-static uint32_t slowest_id;
+// static uint32_t slowest_time;
+// static uint32_t slowest_id;
 
 KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "cfg_version" },
@@ -65,10 +65,8 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
     { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_led_quiet" },
     { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
-    { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "catbus_data_port" },
-    // { SAPPHIRE_TYPE_BOOL,        0,                   0, cfg_i8_kv_handler,  "enable_cpu_sleep" },
-    { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
-    { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
+    // { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
+    // { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
     #ifndef DISABLE_RECOVERY_MODE
     { SAPPHIRE_TYPE_UINT8,       0, 0,                   0, cfg_i8_kv_handler,  "cfg_recovery_boot_count" },
     #endif
@@ -578,7 +576,7 @@ int8_t cfg_i8_kv_handler(
 
 void cfg_v_set( catbus_hash_t32 parameter, void *value ){
 
-    uint32_t start = tmr_u32_get_system_time_us();
+    // uint32_t start = tmr_u32_get_system_time_us();
 
     // IP config params are in-memory only
     if( parameter == CFG_PARAM_IP_ADDRESS ){
@@ -602,13 +600,13 @@ void cfg_v_set( catbus_hash_t32 parameter, void *value ){
         write_param( parameter, value );
     }
 
-    uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+    // uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
-    if( elapsed > slowest_time ){
+    // if( elapsed > slowest_time ){
 
-        slowest_time = elapsed;
-        slowest_id = parameter;
-    }
+    //     slowest_time = elapsed;
+    //     slowest_id = parameter;
+    // }
 }
 
 int8_t cfg_i8_get( catbus_hash_t32 parameter, void *value ){
@@ -862,7 +860,6 @@ void cfg_v_default_all( void ){
 
     cfg_v_set_mac64( CFG_PARAM_DEVICE_ID, zeroes );
 
-    cfg_v_set_u16( CFG_PARAM_CATBUS_DATA_PORT, CATBUS_MAIN_PORT );
     cfg_v_set_u16( CFG_PARAM_MAX_LOG_SIZE, 65535 );
 
     cfg_v_set_u16( CFG_PARAM_VERSION, CFG_VERSION );

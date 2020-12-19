@@ -316,7 +316,7 @@ static void time_v_set_ntp_master_clock_internal(
         ( abs64( delta_ntp_seconds ) > 60 ) ||
         !is_sync ){
 
-        // log_v_debug_P( PSTR("HARD SYNC") );
+        log_v_debug_P( PSTR("clock synced") );
         
         // hard sync
         master_ntp_time         = source_ts;
@@ -703,6 +703,9 @@ static uint16_t get_priority( void ){
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    // wait for network
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
     
     services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 

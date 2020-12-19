@@ -24,21 +24,13 @@
 
 #ifdef ENABLE_TIME_SYNC
 
-#if 0
-
-
-// #define SYNC_DEBUG
-
-
 #include "timesync.h"
 #include "vm_sync.h"
 #include "vm.h"
 #include "hash.h"
-#include "esp8266.h"
-#include "vm_wifi_cmd.h"
 #include "graphics.h"
 #include "config.h"
-
+#include "services.h"
 #include "logging.h"
 
 static uint32_t sync_group_hash;
@@ -46,19 +38,10 @@ static socket_t sock = -1;
 
 static uint8_t sync_state;
 #define STATE_IDLE 			0
-#define STATE_MASTER 		1
-#define STATE_SLAVE 		2
-#define STATE_SLAVE_SYNC 	3
+#define STATE_SYNCING       1
+#define STATE_SYNC 	        2
 
-
-static ip_addr_t master_ip;
-static uint64_t master_uptime;
-
-static uint16_t slave_offset;
-static uint16_t slave_frame;
-static ip_addr_t pending_slave;
-static uint32_t slave_net_time;
-
+static uint16_t sync_data_remaining;
 
 int8_t vmsync_i8_kv_handler(
     kv_op_t8 op,
@@ -72,6 +55,8 @@ int8_t vmsync_i8_kv_handler(
         if( hash == __KV__gfx_sync_group ){
 
             sync_group_hash = hash_u32_string( data );    
+
+            vm_sync_v_reset();
         }
     }
 
@@ -80,84 +65,31 @@ int8_t vmsync_i8_kv_handler(
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
-    { SAPPHIRE_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,        0,      "vm_sync_master_ip" },
 };
 
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
 
+static void init_group_hash( void ){
 
-#ifdef SYNC_DEBUG
-PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) );
+    // init sync group hash
+    char buf[32];
+    memset( buf, 0, sizeof(buf) );
+    kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
 
-static void debug_strobe( void ){
-    io_v_digital_write( IO_PIN_PWM_1, TRUE );
-    _delay_us( 100 );
-    io_v_digital_write( IO_PIN_PWM_1, FALSE );
-} 
-
-PT_THREAD( vm_sync_debug_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-static uint32_t prev;
-
-    while( TRUE ){
-
-        // THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
-
-        static uint32_t net_time;
-        net_time = time_u32_get_network_aligned( 250 );
-
-        // uint32_t net = time_u32_get_network_time();
-        // log_v_debug_P( PSTR("%8lu %8lu"), net_time, net );
-
-        THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
-        // TMR_WAIT( pt, 100 );
-        // log_v_debug_P( PSTR("%lu"), tmr_u32_elapsed_time_ms( prev ) );
-        prev = tmr_u32_get_system_time_ms();
-
-        // debug_strobe();
-        io_v_digital_write( IO_PIN_PWM_1, TRUE );
-
-        net_time = time_u32_get_network_aligned( 250 );
-
-        THREAD_WAIT_WHILE( pt, time_i8_compare_network_time( net_time ) > 0 );
-        // TMR_WAIT( pt, 100 );
-        // log_v_debug_P( PSTR("%lu"), tmr_u32_elapsed_time_ms( prev ) );
-        prev = tmr_u32_get_system_time_ms();
-
-        io_v_digital_write( IO_PIN_PWM_1, FALSE );
-
-
-        // uint32_t net = time_u32_get_network_time();
-        // uint32_t delta = net - prev;
-        // prev = net;
-        // log_v_debug_P( PSTR("%5lu %10lu"), delta, net );
-    }
-
-PT_END( pt );
+    sync_group_hash = hash_u32_string( buf );    
 }
 
 
-#endif
-
 void vm_sync_v_init( void ){
+
+    COMPILER_ASSERT( SYNC_MAX_THREADS >= VM_MAX_THREADS );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
     }
-
-    #ifdef SYNC_DEBUG
-    io_v_set_mode( IO_PIN_PWM_1, IO_MODE_OUTPUT );
-
-    thread_t_create( vm_sync_debug_thread,
-                    PSTR("vm_sync_debug"),
-                    0,
-                    0 );    
-    #endif
 
     // check if time sync is enabled
     if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
@@ -165,12 +97,7 @@ void vm_sync_v_init( void ){
         return;
     }
 
-	// init sync group hash
-	char buf[32];
-	memset( buf, 0, sizeof(buf) );
-	kv_i8_get( __KV__gfx_sync_group, buf, sizeof(buf) );
-
-	sync_group_hash = hash_u32_string( buf );    
+    init_group_hash();
 
     thread_t_create( vm_sync_server_thread,
                     PSTR("vm_sync_server"),
@@ -178,162 +105,116 @@ void vm_sync_v_init( void ){
                     0 );    
 }
 
-void vm_sync_v_handle_shutdown( ip_addr4_t ip ){
-
-}
-
 void vm_sync_v_reset( void ){
 
     sync_state = STATE_IDLE;
+
+    services_v_cancel( SYNC_SERVICE, sync_group_hash );
+
+    init_group_hash();// init sync group hash    
+    
+    if( sync_group_hash == 0 ){
+
+        return;
+    }
+
+    log_v_debug_P( PSTR("sync reset") );
 }
 
-bool vm_sync_b_is_master( void ){
+bool vm_sync_b_is_leader( void ){
 
-    return sync_state == STATE_MASTER;
+    return services_b_is_server( SYNC_SERVICE, sync_group_hash );
 }
 
-bool vm_sync_b_is_slave( void ){
- 
-    return sync_state == STATE_SLAVE;
-}
+bool vm_sync_b_is_follower( void ){
 
-bool vm_sync_b_is_slave_synced( void ){
+    if( sync_state == STATE_IDLE ){
 
-    return sync_state == STATE_SLAVE_SYNC;
+        return FALSE;
+    }
+    
+    if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) &&
+        !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 bool vm_sync_b_is_synced( void ){
 
-    return ( sync_state == STATE_MASTER ) || ( sync_state == STATE_SLAVE_SYNC );
+    return sync_state == STATE_SYNC;
 }
 
-uint32_t vm_sync_u32_get_sync_group_hash( void ){
+bool vm_sync_b_in_progress( void ){
 
-	return sync_group_hash;
+    return sync_state == STATE_SYNCING;
 }
 
-static bool vm_sync_wait( void ){
+static void send_sync( sock_addr_t *raddr ){
 
-	return ( sync_group_hash == 0 ) || ( !vm_b_is_vm_running( 0 ) ) || ( !time_b_is_local_sync() );
-}
-
-
-static int8_t get_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
-
-	if( wifi_i8_send_msg( WIFI_DATA_ID_VM_FRAME_SYNC, 0, 0 ) < 0 ){
-
-        return -1;
-    }
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t), 0 ) < 0 ){
-
-        return -2;
-    }
-
-    return 0;
-}
-
-
-static int8_t set_frame_sync( wifi_msg_vm_frame_sync_t *msg ){
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, (uint8_t *)msg, sizeof(wifi_msg_vm_frame_sync_t) ) < 0 ){
-
-        return -1;
-    }
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_FRAME_SYNC, 0, 0, 0 ) < 0 ){
-
-        return -2;
-    }
-
-    return 0;
-}
-
-
-static int16_t get_frame_data( uint16_t offset, wifi_msg_vm_sync_data_t *msg ){
-
-    msg->offset = offset;
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) ) < 0 ){
-
-        return -1;
-    }
-
-    uint16_t bytes_read;
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SYNC_DATA, (uint8_t *)msg, WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t), &bytes_read ) < 0 ){
-
-        return -2;
-    }
-
-    return bytes_read;
-}
-
-
-static int16_t set_frame_data( wifi_msg_vm_sync_data_t *msg, uint16_t len ){
-
-    if( wifi_i8_send_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, (uint8_t *)msg, sizeof(wifi_msg_vm_sync_data_t) + len ) < 0 ){
-
-        return -1;
-    }
-
-    if( wifi_i8_receive_msg( WIFI_DATA_ID_VM_SET_SYNC_DATA, 0, 0, 0 ) < 0 ){
-
-        return -2;
-    }
-
-    return 0;
-}
-
-static void send_sync_0( wifi_msg_vm_frame_sync_t *sync, sock_addr_t *raddr ){
-
-    vm_sync_msg_sync_0_t msg;
+    vm_sync_msg_sync_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
     msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SYNC_0;
+    msg.header.type             = VM_SYNC_MSG_SYNC;
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
 
-    msg.uptime              = tmr_u64_get_system_time_us();
-    msg.program_name_hash   = sync->program_name_hash;
-    msg.frame_number        = sync->frame_number;
-    msg.data_len            = sync->data_len;
-    msg.rng_seed            = sync->rng_seed;
-    msg.net_time            = time_u32_get_network_time();
+    vm_state_t *state = vm_p_get_state();
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );   
+    msg.program_name_hash       = state->program_name_hash;
+    msg.sync_tick               = vm_u64_get_sync_tick();
+    msg.net_time                = vm_u32_get_sync_time();
+
+    msg.tick                    = state->tick;
+    msg.loop_tick               = state->loop_tick;
+    msg.rng_seed                = state->rng_seed;
+    
+    msg.data_len                = state->data_len;
+    msg.max_threads             = VM_MAX_THREADS;
+
+    if( msg.max_threads > SYNC_MAX_THREADS ){
+
+        msg.max_threads = SYNC_MAX_THREADS;
+    }
+
+    memset( msg.threads, 0, sizeof(msg.threads) );
+
+    for( uint8_t i = 0; i < msg.max_threads; i++ ){
+
+        msg.threads[i] = state->threads[i];
+    }
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
 
-static void send_sync_n( uint16_t offset, uint16_t frame_number, uint8_t *data, uint16_t len, sock_addr_t *raddr ){
+static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offset, sock_addr_t *raddr ){
 
-    // note on large VM programs this is going to cause us to run out of 
-    // memory
-    mem_handle_t h = mem2_h_alloc( len + sizeof(vm_sync_msg_sync_n_t) );
+    mem_handle_t h = mem2_h_alloc( sizeof(vm_sync_msg_data_t) - 1 + len );
 
     if( h < 0 ){
 
         return;
     }
 
-    vm_sync_msg_sync_n_t *msg = mem2_vp_get_ptr( h );
-    uint8_t *msg_data = (uint8_t *)( msg + 1 );
-    memcpy( msg_data, data, len );
-
+    vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)mem2_vp_get_ptr( h );
     msg->header.magic            = SYNC_PROTOCOL_MAGIC;
     msg->header.version          = SYNC_PROTOCOL_VERSION;
-    msg->header.type             = VM_SYNC_MSG_SYNC_N;
+    msg->header.type             = VM_SYNC_MSG_DATA;
     msg->header.flags            = 0;
     msg->header.sync_group_hash  = sync_group_hash;
 
-    msg->offset         = offset;
-    msg->frame_number   = frame_number;
+    msg->tick                    = tick;
+    msg->offset                  = offset;
+    msg->padding                 = 0;
 
-    raddr->port = SYNC_SERVER_PORT;
-    
-    sock_i16_sendto_m( sock, h, raddr );   
+    memcpy( &msg->data, data, len );
+
+    sock_i16_sendto_m( sock, h, raddr );
 }
 
-static void send_request( void ){
+static void send_request( bool request_data ){
 
     vm_sync_msg_sync_req_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
@@ -342,128 +223,12 @@ static void send_request( void ){
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
 
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = master_ip;
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
-}
-
-static void send_shutdown( ip_addr_t *addr ){
-
-    vm_sync_msg_shutdown_t msg;
-    msg.header.magic            = SYNC_PROTOCOL_MAGIC;
-    msg.header.version          = SYNC_PROTOCOL_VERSION;
-    msg.header.type             = VM_SYNC_MSG_SHUTDOWN;
-    msg.header.flags            = 0;
-    msg.header.sync_group_hash  = sync_group_hash;
-
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
-
-    if( addr == 0 ){
-
-        raddr.ipaddr = ip_a_addr(255,255,255,255);    
-    }
-    else{
-
-        raddr.ipaddr = *addr;
-    }
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );   
-}
-
-static void send_sync_to_slave( sock_addr_t *raddr ){
-
-    if( sync_state != STATE_MASTER ){
-
-        return;
-    }
-
-    // thread_v_signal( SYNC_SIGNAL );
-
-    wifi_msg_vm_frame_sync_t sync;
-    if( get_frame_sync( &sync ) < 0 ){
-
-        return;
-    }
-
-    send_sync_0( &sync, raddr );
-
-    log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
-
-    uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-    uint8_t *data = &buf[sizeof(wifi_msg_vm_sync_data_t)];
-
-    for( uint16_t i = 0; i < sync.data_len; ){
-
-        int16_t bytes_read = get_frame_data( i, (wifi_msg_vm_sync_data_t *)buf );
-        if( bytes_read < 0 ){
-
-            return;
-        }
-
-        bytes_read -= sizeof(wifi_msg_vm_sync_data_t); // subtract header from bytes read
-
-        // uint32_t *reg = (uint32_t *)data;
-        // for( uint8_t j = 0; j < bytes_read / 4; j++ ){
-
-        //     log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
-        //     reg++;
-        // }
-
-        send_sync_n( i, sync.frame_number, data, bytes_read, raddr );
-
-        i += WIFI_MAX_SYNC_DATA;
-    }    
-}
-
-void vm_sync_v_trigger( void ){
-
-    if( sync_state != STATE_MASTER ){
-
-        return;
-    }
-
-    // thread_v_signal( SYNC_SIGNAL );
-
-    wifi_msg_vm_frame_sync_t sync;
-    if( get_frame_sync( &sync ) < 0 ){
-
-        return;
-    }
-
-    // set up broadcast address
-    sock_addr_t raddr;
-    raddr.port = SYNC_SERVER_PORT;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
-
-    send_sync_0( &sync, &raddr );
-
-    // log_v_debug_P( PSTR("sync frame: %u"), sync.frame_number );
-}
+    msg.request_data            = request_data;
 
 
-void vm_sync_v_frame_trigger( void ){
-
-    if( sync_state != STATE_MASTER ){
-
-        return;
-    }
-
-    if( !ip_b_is_zeroes( pending_slave ) ){
-
-        sock_addr_t raddr;
-        raddr.port = SYNC_SERVER_PORT;
-        raddr.ipaddr = pending_slave;
-
-        send_sync_to_slave( &raddr );
-
-        pending_slave = ip_a_addr(0,0,0,0);
-    }
-
+    sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
+    
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
@@ -472,10 +237,7 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
-    sock = sock_s_create( SOCK_DGRAM ); 
-
-    sock_v_bind( sock, SYNC_SERVER_PORT );
-    sock_v_set_timeout( sock, 32 );
+    sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),
@@ -485,61 +247,15 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-
     	THREAD_WAIT_WHILE( pt, 
             ( sock_i8_recvfrom( sock ) < 0 ) &&
-             ( !sys_b_shutdown() ) &&
-             ( wifi_b_connected() ) );
+             ( !sys_b_shutdown() ) );
 
     	// check if shutting down
     	if( sys_b_shutdown() ){
 
-    		// if we're a master, signal that we are shutting down
-    		if( sync_state == STATE_MASTER ){
-
-	    		send_shutdown( 0 );
-	    		TMR_WAIT( pt, 200 );
-	    		send_shutdown( 0 );
-	    		TMR_WAIT( pt, 200 );
-	    		send_shutdown( 0 );
-	    	}
-
     		THREAD_EXIT( pt );
     	}
-
-        // check if wifi is NOT connected
-        if( !wifi_b_connected() ){
-
-            if( sync_state != STATE_IDLE ){
-
-                log_v_debug_P( PSTR("wifi disconnected, resetting vm sync") );
-                sync_state = STATE_IDLE;    
-            }
-
-            continue;
-        }
-
-		// check if data received
-        int16_t sock_data_len = sock_i16_get_bytes_read( sock );
-        if( sock_data_len <= 0 ){
-
-        	// socket timeout
-
-        	if( ( sync_state != STATE_MASTER ) && ( sync_state != STATE_IDLE ) ){
-
-                log_v_debug_P( PSTR("vm sync timed out, resetting state") );
-
-                sync_state = STATE_IDLE;
-            }
-
-        	continue;
-        }
-
-        if( vm_sync_wait() ){
-
-            continue;
-        }
 
         vm_sync_msg_header_t *header = sock_vp_get_data( sock );
 
@@ -561,182 +277,125 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        if( header->type == VM_SYNC_MSG_SYNC_0 ){
+        if( header->type == VM_SYNC_MSG_SYNC ){
 
-        	vm_sync_msg_sync_0_t *msg = (vm_sync_msg_sync_0_t *)header;
-        	
-        	if( sync_state == STATE_IDLE ){
-
-        		master_ip = raddr.ipaddr;
-                master_uptime = msg->uptime;
-
-        		log_v_debug_P( PSTR("assigning vm sync master: %d.%d.%d.%d"), 
-                        master_ip.ip3, 
-                        master_ip.ip2, 
-                        master_ip.ip1, 
-                        master_ip.ip0 );
-
-        		sync_state = STATE_SLAVE;
-
-                // done processing
-                continue;
-        	}
-            else if( sync_state == STATE_SLAVE ){
-
-                // slave, not synced 
-                slave_offset    = 0;
-                slave_frame     = msg->frame_number;
-                // slave_net_time  = msg->net_time;
-                // slave_net_time  = msg->uptime / 1000;
-
-                log_v_debug_P( PSTR("starting slave sync, frame: %u len: %u"), msg->frame_number, msg->data_len );
-
-                wifi_msg_vm_frame_sync_t sync;
-                sync.program_name_hash  = msg->program_name_hash;
-                sync.frame_number       = msg->frame_number;
-                sync.data_len           = msg->data_len;
-                sync.rng_seed           = msg->rng_seed;
-
-                set_frame_sync( &sync );                
+            // are we leader?
+            if( vm_sync_b_is_leader() ){
 
                 continue;
             }
 
-        	uint64_t temp_master_uptime = master_uptime;
+            vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
 
-        	// are we a master?
-        	if( sync_state == STATE_MASTER ){
+            vm_state_t *vm_state = vm_p_get_state();
 
-        		// use our current uptime
-        		temp_master_uptime = tmr_u64_get_system_time_us();
-        	}
+            // confirm program name
+            if( msg->program_name_hash != vm_state->program_name_hash ){
 
-        	// compare uptimes - longest uptime wins election
-        	if( msg->uptime > temp_master_uptime ){
+                vm_sync_v_reset();
 
-                master_uptime = msg->uptime;
+                log_v_error_P( PSTR("program name mismatch") );
 
-                if( !ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
-
-        		    // set new master
-                    master_ip = raddr.ipaddr;
-                    
-
-            		log_v_debug_P( PSTR("assigning NEW vm sync master: %d.%d.%d.%d"), 
-                        master_ip.ip3, 
-                        master_ip.ip2, 
-                        master_ip.ip1, 
-                        master_ip.ip0 );      
-
-        		    sync_state = STATE_SLAVE;
-
-                    // slave, not synced 
-                    slave_offset    = 0;
-                    slave_frame     = msg->frame_number;
-                    slave_net_time  = msg->net_time;
-
-                    sync_state = STATE_SLAVE;
-
-                    continue;
-                }
-        	}
-
-            if( sync_state == STATE_SLAVE_SYNC ){
-
-                // uint32_t rate = slave_frame - msg->frame_number;
-                // slave_frame = msg->frame_number;
-
-                // log_v_debug_P( PSTR("updating slave sync, frame: %u net: %lu"), msg->frame_number, now );
-                                
-
-
-                                
-                // slave_frame     = msg->frame_number;
-                // slave_net_time  = msg->net_time;
-                // gfx_v_set_sync( slave_frame, slave_net_time );
+                continue;
             }
-        }
-        else if( header->type == VM_SYNC_MSG_SYNC_N ){
 
-            if( sync_state == STATE_SLAVE ){
+            if( msg->max_threads > VM_MAX_THREADS ) {
 
-            	vm_sync_msg_sync_n_t *msg = (vm_sync_msg_sync_n_t *)header;
+                vm_sync_v_reset();
 
-                int16_t data_len = sock_data_len - sizeof(vm_sync_msg_sync_n_t);
+                log_v_error_P( PSTR("too many VM threads") );
 
-                if( ( data_len > (int16_t)WIFI_MAX_SYNC_DATA ) || ( data_len <= 0 ) ){
-
-                    log_v_debug_P( PSTR("invalid len") );
-                    continue;
-                }
-            	log_v_debug_P( PSTR("received sync offset: %u frame: %u len: %d"), msg->offset, msg->frame_number, data_len );
-
-                uint8_t *msg_data = (uint8_t *)( msg + 1 );
-
-                uint8_t buf[WIFI_MAX_SYNC_DATA + sizeof(wifi_msg_vm_sync_data_t)];
-                wifi_msg_vm_sync_data_t *sync   = (wifi_msg_vm_sync_data_t *)buf;
-                
-                sync->offset = msg->offset;
-
-                memcpy( &buf[sizeof(wifi_msg_vm_sync_data_t)], msg_data, data_len );
-
-                // uint32_t *reg = (uint32_t *)&buf[sizeof(wifi_msg_vm_sync_data_t)];
-                // for( uint8_t j = 0; j < data_len / 4; j++ ){
-
-                //     log_v_debug_P(PSTR("%2d 0x%0x"), j, *reg);
-                //     reg++;
-                // }
-
-                if( set_frame_data( sync, data_len ) < 0 ){
-
-                    log_v_debug_P( PSTR("error") );    
-                }
-
-                // check if sync is finished
-                if( msg->offset == slave_offset ){
-
-                    slave_offset += data_len;
-
-                    if( data_len < (int16_t)WIFI_MAX_SYNC_DATA ){
-
-                        sync_state = STATE_SLAVE_SYNC;
-
-                        log_v_debug_P( PSTR("finished sync data") );
-                        gfx_v_set_sync0( slave_frame, slave_net_time );
-                    }
-                }
+                continue;                
             }
-        }
-        else if( header->type == VM_SYNC_MSG_SHUTDOWN ){
 
-            // check if message is from master
-            if( ip_b_addr_compare( master_ip, raddr.ipaddr ) ){
+            // sync VM
+            vm_v_sync( msg->net_time, msg->sync_tick );
 
-                if( sync_state != STATE_IDLE ){
+            if( sync_state == STATE_SYNCING ){
 
-                    log_v_debug_P( PSTR("sync master shutting down") );
-                    vm_sync_v_reset();
+                sync_data_remaining = msg->data_len;
+
+                vm_state->tick         = msg->tick;
+                vm_state->loop_tick    = msg->loop_tick;
+                vm_state->rng_seed     = msg->rng_seed;
+
+                uint8_t thread_count = VM_MAX_THREADS;
+
+                if( thread_count > msg->max_threads ){
+
+                    thread_count = msg->max_threads;
                 }
-            }
+
+                // sync threads
+                for( uint8_t i = 0; i < thread_count; i++ ){
+
+                    vm_state->threads[i] = msg->threads[i];
+                }
+
+                // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
+            }            
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-        	if( sync_state != STATE_MASTER ){
-        		// this message can only be processed by a master
+            // are we leader?
+            if( !vm_sync_b_is_leader() ){
 
-                // since we aren't one, inform the requester
-                send_shutdown( &raddr.ipaddr );
+                continue;
+            }
+            
+            // send sync
+            send_sync( &raddr );
 
-        		continue;
-        	}
+            vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
-        	// vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
+            if( msg->request_data ){
 
-        	log_v_debug_P( PSTR("sync requested") );
+                // send data
+                uint16_t offset = 0;
+                uint16_t data_len = vm_u16_get_data_len();
 
-            if( ip_b_is_zeroes( pending_slave ) ){
+                while( offset < data_len ){
 
-                pending_slave = raddr.ipaddr;
+                    uint16_t chunk_size = VM_SYNC_MAX_DATA_LEN;
+
+                    if( chunk_size > data_len ){
+
+                        chunk_size = data_len;
+                    }
+
+                    // fix params!
+                    int32_t *data_ptr = vm_i32p_get_data();
+
+                    send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+
+                    offset += chunk_size;
+                } 
+            }    
+        }
+        else if( header->type == VM_SYNC_MSG_DATA ){
+
+            // are we leader?
+            if( vm_sync_b_is_leader() ){
+
+                continue;
+            }
+
+            vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
+            
+            int16_t data_len = sock_i16_get_bytes_read( sock ) - sizeof(vm_sync_msg_data_t) + 1;
+
+            log_v_debug_P( PSTR("rx data offset %d / %d"), msg->offset, sync_data_remaining );
+
+            int32_t *data_ptr = vm_i32p_get_data() + msg->offset;
+            memcpy( data_ptr, &msg->data, data_len );
+
+            sync_data_remaining -= data_len;
+
+            if( sync_data_remaining == 0 ){
+
+                log_v_debug_P( PSTR("sync complete") );
+
+                sync_state = STATE_SYNC;
             }
         }
     }
@@ -750,83 +409,76 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-    	THREAD_WAIT_WHILE( pt, vm_sync_wait() );
+        vm_sync_v_reset();
 
-        // random delay, see if other masters show up
-        // thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
-        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state == STATE_IDLE ) );
+        // wait until time sync
+        THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
 
-        // no masters, elect ourselves
+        THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
+
+        services_v_join_team( SYNC_SERVICE, sync_group_hash, 1, sock_u16_get_lport( sock ) );
+
+        THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
+
+        if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+            log_v_debug_P( PSTR("VM sync leader") );
+
+            sync_state = STATE_SYNC;
+
+            THREAD_WAIT_WHILE( pt, services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) );
+
+            THREAD_RESTART( pt );
+        }
+
         if( sync_state == STATE_IDLE ){
 
-            sync_state = STATE_MASTER;
-            master_uptime = 0;
-            master_ip = ip_a_addr(0,0,0,0);
+            TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
-            log_v_debug_P( PSTR("we are sync master") );
+            log_v_debug_P( PSTR("starting VM sync") );
+            
+            sync_state = STATE_SYNCING;
+
+            while( sync_state == STATE_SYNCING ){
+
+                if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
+                    ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ||
+                    ( !vm_b_is_vm_running( 0 ) ) ){
+                    
+                    THREAD_RESTART( pt );
+                }
+
+                send_request( TRUE );
+
+                TMR_WAIT( pt, 2000 );
+            }
         }
 
-        if( sync_state == STATE_MASTER ){
+        // periodic resync
+        while( sync_state == STATE_SYNC ){
 
-        	while( ( sync_state == STATE_MASTER ) && !vm_sync_wait() ){
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + SYNC_INTERVAL );
 
-        		if( sys_b_shutdown() ){
+            THREAD_WAIT_WHILE( pt, 
+                services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+                vm_b_is_vm_running( 0 ) &&
+                thread_b_alarm_set() );
 
-        			THREAD_EXIT( pt );
-        		}
+            if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
 
-                TMR_WAIT( pt, 500 );
-        	}
-
-            // no longer master
-            // notify any clients
-            send_shutdown( 0 );
-            TMR_WAIT( pt, 200 );
-            send_shutdown( 0 );
-            TMR_WAIT( pt, 200 );
-            send_shutdown( 0 );
-        }
-
-        while( ( sync_state == STATE_SLAVE ) && !vm_sync_wait() ){
-
-            // random wait a bit so we don't all transmit to master at the same time
-            TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
-
-            log_v_debug_P( PSTR("request slave sync") );
-            send_request();
-
-            // wait some time
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
-            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( sync_state != STATE_SLAVE_SYNC ) );
-
-            // check if we got a sync
-            if( sync_state != STATE_SLAVE ){
+                send_request( FALSE );
+            }
+            else{
 
                 break;
             }
-
-            // wait some time before trying again
-            TMR_WAIT( pt, 4000 + ( rnd_u16_get_int() >> 4 ) );
         }
 
-    	if( sync_state == STATE_SLAVE_SYNC ){
-
-    		log_v_debug_P( PSTR("vm sync!") );
-
-            while( ( sync_state == STATE_SLAVE_SYNC ) && !vm_sync_wait() ){
-
-                TMR_WAIT( pt, 1 * 1000 );
-            }
-    	}
-        else{
-
-            TMR_WAIT( pt, 8000 );
-        }
+        TMR_WAIT( pt, 1000 );
     }
 
 PT_END( pt );
 }
 
 
-#endif
 #endif

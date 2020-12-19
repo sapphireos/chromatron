@@ -250,9 +250,12 @@ class Chromatron(object):
 
         self._update_meta()
 
-        keys = self._device.get_kv('ip', 'catbus_data_port', 'pix_count')
+        keys = self._device.get_kv('ip', 'pix_count')
 
-        network_host = (keys['ip'], keys['catbus_data_port'])
+        ip = keys['ip']
+        data_port = catbus.CATBUS_MAIN_PORT
+
+        network_host = (ip, data_port)
 
         if ((network_host[0] != '0.0.0.0') and (self.host != 'usb')) or self.force_network:
             self.client.connect(network_host)
@@ -2360,12 +2363,11 @@ def restore(ctx):
 @firmware.command()
 @click.pass_context
 @click.option('--release', '-r', default=None, help='Name of release to load. Default is latest.')
-@click.option('--force', default=False, is_flag=True, help='Force firmware upgrade even if versions match.')
 @click.option('--change_firmware', default=None, help='Change firmware on device.')
 @click.option('--yes', default=False, is_flag=True, help='Answer yes to all firmware change confirmation prompts.')
 @click.option('--skip_verify', default=False, is_flag=True, help='Skip verification.  Do not use this unless you have a really good reason.')
 @click.option('--parallel', '-p', default=False, is_flag=True, help='Run upgrade in parallel')
-def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
+def upgrade(ctx, release, change_firmware, yes, skip_verify, parallel):
     """Upgrade firmware on selected devices"""
     # this weirdness is to deal with the difference in how Click handles progress updates
     # vs the device driver.
@@ -2465,6 +2467,14 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
         try:
             fw = firmware_package.get_firmware_package(fw_id, release=release)
             try:
+                # adjustments to make for upgrade firmwares
+                if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
+                    if fw_info.board == 'chromatron_legacy':
+                        fw_info.board = 'chromatron_classic_upgrade'
+
+                elif fw_info.board == 'chromatron_classic_upgrade':
+                    fw_info.board = 'chromatron_classic'
+
                 # make sure we have the board we need
                 fw.get_version_for_target(fw_info.board)
 
@@ -2497,14 +2507,23 @@ def upgrade(ctx, release, force, change_firmware, yes, skip_verify, parallel):
             try:
                 flash_id = ct.get_key('wifi_flash_id')
 
-                if flash_id < 0x160000:
-                    click.echo(click.style("Incorrect flash chip present! Must update to 4MB chip.", fg='red'))    
+                if flash_id == 0:
+                    click.echo(click.style("Could not autodetect flash chip!", fg='red'))
+                    if not click.confirm(click.style("Are you sure you want to do this?", fg='red')):
+                        return
+
+                elif flash_id < 0x160000:
+                    click.echo(click.style("Incorrect flash chip present! Must update to 4MB chip.", fg='red'))
                     return
 
 
             except KeyError:
                 click.echo(click.style("wifi_flash_id must be present!", fg='red'))
-                return
+                if not click.confirm(click.style("Override?", fg='red')):
+                    return
+
+                if not click.confirm(click.style("Are you sure?  It will be VERY BAD if the wrong flash chip is installed!", fg='red')):
+                    return
 
             click.echo(click.style('Backing up settings', fg='white'))
             

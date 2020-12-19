@@ -564,9 +564,13 @@ class Device(object):
 
         # check board ID
         if fw_info.board == '':
-            hw_type = self.get_key('hw_type')
-            if hw_type in ['Chromatron']:
-                fw_info.board = 'chromatron_legacy'
+            try:
+                hw_type = self.get_key('hw_type')
+                if hw_type in ['Chromatron']:
+                    fw_info.board = 'chromatron_legacy'
+
+            except KeyError:
+                fw_info.board = 'chromatron_classic_upgrade'
 
         return fw_info
 
