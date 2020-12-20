@@ -40,6 +40,7 @@ static bool vbus_connected;
 static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
+static bool dump_regs;
 
 #define KV_ID_ENERGY_TOTAL 3
 
@@ -55,6 +56,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_fault,           0,  "batt_fault" },
     { SAPPHIRE_TYPE_UINT8,   0, 0,                   &vbus_status,          0,  "batt_vbus_status" },
     { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_PERSIST,    0,                     0,  "batt_capacity" },
+
+    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
 #define SOC_MAX_VOLTS   4150
@@ -588,10 +591,6 @@ PT_BEGIN( pt );
             // re-enable charging
             bq25895_v_set_charger( TRUE );
 
-            _delay_ms( 500 );
-
-            bq25895_v_print_regs();
-
             vbus_connected = TRUE;
         }
         else if( vbus_connected ){ 
@@ -657,6 +656,14 @@ PT_BEGIN( pt );
         }
 
         counter++;
+
+
+        if( dump_regs ){
+
+            dump_regs = FALSE;
+
+            bq25895_v_print_regs();
+        }
 
     
         // update state of charge
