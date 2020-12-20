@@ -41,6 +41,9 @@
 #define BQ25895_REG_ADC                     0x02
 #define BQ25895_BIT_ADC_CONV_RATE           ( 1 << 6 )
 
+#define BQ25895_REG_ICO                     0x02
+#define BQ25895_BIT_ICO_EN                  ( 1 << 4 )
+
 #define BQ25895_REG_AUTO_DPDM               0x02
 #define BQ25895_BIT_AUTO_DPDM               ( 1 << 0 )
 
