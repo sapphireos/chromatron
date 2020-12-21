@@ -599,9 +599,12 @@ PT_BEGIN( pt );
 
             // vbus disconnected, but we were previously connected
 
-            // on really crappy USB sources, we might get spurious disconnects.
-            // delay, and then check again before resetting.
-            TMR_WAIT( pt, 3000 );
+            if( !bq25895_b_get_vbus_good() ){
+                
+                // on really crappy USB sources, we might get spurious disconnects.
+                // delay, and then check again before resetting.
+                TMR_WAIT( pt, 3000 );
+            }
 
             if( !bq25895_b_get_vbus_good() ){
 

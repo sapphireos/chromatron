@@ -110,7 +110,7 @@ void cpu_v_init( void ){
 
     // pm_config.max_freq_mhz = 240;
     // pm_config.min_freq_mhz = 240;
-    pm_config.light_sleep_enable = TRUE;
+    // pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );
     trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);

@@ -63,8 +63,8 @@ void app_main()
 
         thread_core();
 
+        
         // esp_sleep_enable_timer_wakeup( 10000 );
-
         // esp_light_sleep_start();    
     }
     
