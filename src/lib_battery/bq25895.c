@@ -42,7 +42,6 @@ static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
 
-#define KV_ID_ENERGY_TOTAL 3
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_soc,             0,  "batt_soc" },
@@ -557,12 +556,12 @@ PT_BEGIN( pt );
             // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
 
             // turn on auto dpdm
-            // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
             // turn OFF auto dpdm
-            bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            // bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
-            // bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+            bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
             // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
             // boost frequency can only be changed when OTG boost is turned off.
@@ -589,7 +588,7 @@ PT_BEGIN( pt );
             bq25895_v_set_inlim_pin( FALSE );
 
             // run auto DPDM (which can override the current limits)
-            // bq25895_v_force_dpdm();
+            bq25895_v_force_dpdm();
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
