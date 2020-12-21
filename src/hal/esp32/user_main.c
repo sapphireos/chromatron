@@ -38,7 +38,7 @@ void app_main()
     
     // set run time logging
     // esp_log_level_set("*", ESP_LOG_INFO);
-    esp_log_level_set("*", ESP_LOG_VERBOSE);
+    // esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
 
     // sapphireos init
