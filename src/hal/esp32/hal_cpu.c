@@ -107,13 +107,22 @@ void cpu_v_init( void ){
     pm_config.max_freq_mhz = 240;
     pm_config.min_freq_mhz = 240;
     pm_config.light_sleep_enable = FALSE;
-    
+
+    // pm_config.max_freq_mhz = 240;
+    // pm_config.min_freq_mhz = 240;
+    // pm_config.light_sleep_enable = TRUE;
+
     esp_pm_configure( &pm_config );
     trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
     while (esp_clk_cpu_freq() / 1000000 != pm_config.max_freq_mhz) {
         vTaskDelay(10);
     }
     #endif
+
+    esp_sleep_enable_timer_wakeup( 10000 );
+
+    esp_light_sleep_start();
+    
 }
 
 uint8_t cpu_u8_get_reset_source( void ){

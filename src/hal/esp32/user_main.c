@@ -38,7 +38,7 @@ void app_main()
     
     // set run time logging
     // esp_log_level_set("*", ESP_LOG_INFO);
-    // esp_log_level_set("*", ESP_LOG_VERBOSE);
+    esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
 
     // sapphireos init
@@ -57,8 +57,16 @@ void app_main()
 
     // wifi_init_sta();
     
-    
     sapphire_run();
+
+    while(1){
+
+        thread_core();
+
+        // esp_sleep_enable_timer_wakeup( 10000 );
+
+        // esp_light_sleep_start();    
+    }
     
     #if 0
     /* Print chip information */

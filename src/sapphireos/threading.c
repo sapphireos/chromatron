@@ -812,7 +812,9 @@ void thread_start( void ){
     fs_f_create_virtual( PSTR("threadinfo"), vfile );
 
 
-    #ifndef ESP8266
+    #if defined(ESP8266) || defined(ESP32)
+
+    #else
 	// infinite loop running the thread scheduler
 	while(1){
 

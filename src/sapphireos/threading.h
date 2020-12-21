@@ -149,13 +149,13 @@ bool thread_b_alarm_set( void );
 bool thread_b_alarm( void );
 int32_t thread_i32_get_next_alarm( void );
 
-#if defined(__SIM__) || defined(ESP8266)
+#if defined(__SIM__) || defined(ESP8266) || defined(ESP32)
     void thread_start( void );
 #else
     void thread_start( void ) __attribute__ ((noreturn));
 #endif
 
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
 void thread_core( void );
 #endif
 

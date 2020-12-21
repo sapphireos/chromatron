@@ -31,7 +31,7 @@
 
 int8_t sapphire_i8_init( void );
 
-#if defined(__SIM__) || defined(ESP8266)
+#if defined(__SIM__) || defined(ESP8266) || defined(ESP32)
     void sapphire_run( void );
 #else
     void sapphire_run( void ) __attribute__((noreturn));
