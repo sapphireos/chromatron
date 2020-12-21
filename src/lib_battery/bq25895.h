@@ -112,6 +112,9 @@
 
 #define BQ25895_REG_FAULT                   0x0C
 
+#define BQ25895_REG_VINDPM                  0x0D
+#define BQ25895_BIT_FORCE_VINDPM            ( 1 << 7 )
+
 #define BQ25895_REG_BATT_VOLTAGE            0x0E
 #define BQ25895_MASK_BATT_VOLTAGE           0x7F
 
