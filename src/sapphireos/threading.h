@@ -147,7 +147,8 @@ uint32_t thread_u32_get_alarm( void );
 void thread_v_clear_alarm( void );
 bool thread_b_alarm_set( void );
 bool thread_b_alarm( void );
-int32_t thread_i32_get_next_alarm( void );
+uint32_t thread_u32_get_next_alarm( void );
+uint32_t thread_u32_get_next_alarm_delta( void );
 
 #if defined(__SIM__) || defined(ESP8266) || defined(ESP32)
     void thread_start( void );
