@@ -27,8 +27,25 @@
 
 #include "catbus_common.h"
 
-void link_v_init( void );
+#define LINK_PORT                         44633
+#define LINK_VERSION                      1
+#define LINK_MAGIC                        0x4b4e494c // 'LINK'
 
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t msg_type;
+    uint8_t version;
+    uint8_t flags;
+    uint8_t reserved;
+    uint64_t origin_id;
+    catbus_hash_t32 universe;
+} link_header_t;
+
+
+void link_v_init( void );
+void link_v_handle_shutdown( ip_addr4_t ip );
+void link_v_shutdown( void );
 
 
 #endif

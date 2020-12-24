@@ -1495,11 +1495,12 @@ PT_BEGIN( pt );
 
             // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
 
-            // #ifdef ENABLE_CATBUS_LINK
+            #ifdef ENABLE_CATBUS_LINK
             // // delete cache entries for link system
             // _catbus_v_delete_send_entry( &raddr );
             // _catbus_v_delete_rx_entry( &raddr );
-            // #endif
+            link_v_handle_shutdown( raddr.ipaddr );    
+            #endif
 
             #ifdef ENABLE_SERVICES
             // send shutdown notifications
@@ -2629,10 +2630,22 @@ PT_END( pt );
 
 void catbus_v_shutdown( void ){
 
+    link_v_shutdown();
+
     // broadcast shutdown to network
     thread_t_create( THREAD_CAST(catbus_shutdown_thread),
                      PSTR("catbus_shutdown"),
                      0,
                      0 );
 
+}
+
+uint64_t catbus_u64_get_origin_id( void ){
+
+    return origin_id;
+}
+
+const catbus_hash_t32* catbus_hp_get_tag_hashes( void ){
+
+    return meta_tag_hashes;
 }

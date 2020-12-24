@@ -68,7 +68,7 @@ void app_main()
         // esp_sleep_enable_timer_wakeup( 10000 );
         // esp_light_sleep_start();    
     }
-    
+
     #if 0
     /* Print chip information */
     esp_chip_info_t chip_info;

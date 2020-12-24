@@ -372,6 +372,9 @@ void catbus_v_set_options( uint32_t options );
 
 void catbus_v_shutdown( void );
 
+uint64_t catbus_u64_get_origin_id( void );
+const catbus_hash_t32* catbus_hp_get_tag_hashes( void );
+
 #endif
 
 
