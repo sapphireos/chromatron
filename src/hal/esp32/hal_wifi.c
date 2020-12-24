@@ -128,7 +128,8 @@ void wifi_v_init( void ){
     wifi_config_t wifi_config = {
         .sta = {
             .ssid = {0},
-            .password = {0}
+            .password = {0},
+            .listen_interval = 3,
         },
     };
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
@@ -152,8 +153,9 @@ void wifi_v_init( void ){
     esp_wifi_set_max_tx_power( tx_power * 4 );
 
     // set power state
-    esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+    // esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
     // esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
+    esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
 
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,

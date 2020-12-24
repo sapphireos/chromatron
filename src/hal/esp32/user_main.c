@@ -57,8 +57,17 @@ void app_main()
 
     // wifi_init_sta();
     
-    
     sapphire_run();
+
+    while(1){
+
+        thread_core();
+
+        // trace_printf( "%u", thread_u32_get_next_alarm_delta() );
+
+        // esp_sleep_enable_timer_wakeup( 10000 );
+        // esp_light_sleep_start();    
+    }
     
     #if 0
     /* Print chip information */

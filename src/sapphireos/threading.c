@@ -499,9 +499,10 @@ bool thread_b_alarm( void ){
     return ( run_cause & THREAD_FLAGS_ALARM ) != 0;
 }
 
-int32_t thread_i32_get_next_alarm( void ){
+uint32_t thread_u32_get_next_alarm( void ){
 
-    int32_t next_alarm = INT32_MAX;
+    uint32_t next_alarm = 0;
+    bool init = FALSE;
 
     // iterate through thread list
     list_node_t ln = thread_list.head;
@@ -513,22 +514,41 @@ int32_t thread_i32_get_next_alarm( void ){
 
         if( ( state->flags & THREAD_FLAGS_ALARM ) != 0 ){
 
-            if( (int32_t)state->alarm < next_alarm ){
+            if( ( !init ) || tmr_i8_compare_times( state->alarm, next_alarm ) ){
 
-                next_alarm = state->alarm;
+                next_alarm = state->alarm;                
+                init = TRUE;
             }
         }
 
         ln = ln_state->next;
     }
 
-    if( next_alarm == INT32_MAX ){
-
-        return -1;
-    }
-
     return next_alarm;
 }
+
+uint32_t thread_u32_get_next_alarm_delta( void ){
+
+    uint32_t next_alarm = thread_u32_get_next_alarm();
+    uint32_t now = tmr_u32_get_system_time_ms();
+
+    if( tmr_i8_compare_times( now, next_alarm ) <= 0 ){
+
+        return 0;
+    }
+
+    uint32_t delta = tmr_u32_elapsed_times( now, next_alarm );
+
+    // clamp delta to a sane value.
+    // since the background thread runs at 1 second intervals, 1000 ms makes sense for a max alarm delta
+    if( delta > 1000 ){
+
+        delta = 1000;
+    }
+
+    return delta;
+}
+
 
 void run_thread( thread_t thread, thread_state_t *state ){
 
@@ -812,7 +832,9 @@ void thread_start( void ){
     fs_f_create_virtual( PSTR("threadinfo"), vfile );
 
 
-    #ifndef ESP8266
+    #if defined(ESP8266) || defined(ESP32)
+
+    #else
 	// infinite loop running the thread scheduler
 	while(1){
 

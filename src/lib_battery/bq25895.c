@@ -32,23 +32,31 @@
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
+static uint16_t vbus_volts;
+static uint16_t sys_volts;
 static uint16_t batt_charge_current;
 static bool batt_charging;
 static bool vbus_connected;
 static uint8_t batt_fault;
 static uint8_t vbus_status;
+static uint8_t charge_status;
+static bool dump_regs;
 
-#define KV_ID_ENERGY_TOTAL 3
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_soc,             0,  "batt_soc" },
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &batt_charging,        0,  "batt_charging" },
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &vbus_connected,       0,  "batt_external_power" },
     { SAPPHIRE_TYPE_UINT16,  0, 0,                   &batt_volts,           0,  "batt_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &vbus_volts,           0,  "batt_vbus_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &sys_volts,            0,  "batt_sys_volts" },
+    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &charge_status,        0,  "batt_charge_status" },
     { SAPPHIRE_TYPE_UINT16,  0, 0,                   &batt_charge_current,  0,  "batt_charge_current" },
     { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_fault,           0,  "batt_fault" },
     { SAPPHIRE_TYPE_UINT8,   0, 0,                   &vbus_status,          0,  "batt_vbus_status" },
     { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_PERSIST,    0,                     0,  "batt_capacity" },
+
+    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
 #define SOC_MAX_VOLTS   4150
@@ -415,6 +423,15 @@ uint16_t bq25895_u16_get_vbus_voltage( void ){
     return mv;
 }
 
+uint16_t bq25895_u16_get_sys_voltage( void ){
+
+    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
+
+    uint16_t mv = ( ( (uint32_t)data * ( 4848 - 2304 ) ) / 127 ) + 2304;
+
+    return mv;
+}
+
 uint16_t bq25895_u16_get_charge_current( void ){
 
     uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
@@ -475,11 +492,13 @@ uint8_t bq25895_u8_get_device_id( void ){
 
 void bq25895_v_print_regs( void ){
 
+    log_v_debug_P( PSTR("BQ25895:") );
+
     for( uint8_t addr = 0; addr < 0x15; addr++ ){
 
         uint8_t data = bq25895_u8_read_reg( addr );
 
-        log_v_debug_P( PSTR("%x = %x"), addr, data );
+        log_v_debug_P( PSTR("0x%02x = 0x%02x"), addr, data );
     }
 }
 
@@ -504,73 +523,75 @@ PT_BEGIN( pt );
     bq25895_v_set_boost_voltage( 5100 );
     bq25895_v_set_charger( FALSE );
 
-    static uint8_t addr;
-    addr = 0;
-
-    while( addr < 0x015 ){
-
-        uint8_t data = bq25895_u8_read_reg( addr );
-
-        log_v_debug_P( PSTR("0x%02x = 0x%02x"), addr, data );
-
-        TMR_WAIT( pt, 5 );
-
-        addr++;
-    }
-
-    static uint8_t status;
+    bq25895_v_print_regs();
 
     while(1){
 
-        status = bq25895_u8_get_charge_status();
+        charge_status = bq25895_u8_get_charge_status();
         batt_volts = bq25895_u16_get_batt_voltage();
+        vbus_volts = bq25895_u16_get_vbus_voltage();
+        sys_volts = bq25895_u16_get_sys_voltage();
         batt_charge_current = bq25895_u16_get_charge_current();
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
 
-        if( bq25895_b_get_vbus_good() ){
 
-            if( !vbus_connected ){
+        // set MINSYS to 3.0V for ADC accuracy.  VBAT must be greater than MINSYS.
 
-                log_v_debug_P( PSTR("VBUS OK - resetting config") );
+        if( bq25895_b_get_vbus_good() && !vbus_connected ){
 
-                // reset settings
-                bq25895_v_reset();
+            log_v_debug_P( PSTR("VBUS OK - resetting config") );
 
-                // turn off charger
-                bq25895_v_set_charger( FALSE );
+            // reset settings
+            bq25895_v_reset();
 
-                // turn off high voltage DCP, and maxcharge
-                bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
-                bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
+            // turn off charger
+            bq25895_v_set_charger( FALSE );
 
-                // turn on auto dpdm
-                bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            // turn off high voltage DCP, and maxcharge
+            bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
+            bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
 
-                // boost frequency can only be changed when OTG boost is turned off.
-                bq25895_v_set_boost_mode( FALSE );
-                bq25895_v_set_boost_1500khz();
-                bq25895_v_set_boost_mode( TRUE );
+            // bq25895_v_write_reg( BQ25895_REG_VINDPM, 0 );
+            // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
 
-                bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-                bq25895_v_enable_adc_continuous();
-                bq25895_v_set_boost_voltage( 5100 );
+            // turn on auto dpdm
+            bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
-                // charge config for NCR18650B
-                bq25895_v_set_inlim( 2000 );
-                // bq25895_v_set_inlim( 3000 );
-                bq25895_v_set_pre_charge_current( 160 );
-                bq25895_v_set_fast_charge_current( 1625 );
-                // bq25895_v_set_fast_charge_current( 3000 );
-                bq25895_v_set_termination_current( 65 );
-                bq25895_v_set_charge_voltage( 4200 );
+            // turn OFF auto dpdm
+            // bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
-                // run auto DPDM (which can override the current limits)
-                bq25895_v_force_dpdm();
+            bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+            // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
-                // re-enable charging
-                bq25895_v_set_charger( TRUE );
-            }
+            // boost frequency can only be changed when OTG boost is turned off.
+            bq25895_v_set_boost_mode( FALSE );
+            bq25895_v_set_boost_1500khz();
+            bq25895_v_set_boost_mode( TRUE );
+
+            bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+            bq25895_v_enable_adc_continuous();
+            bq25895_v_set_boost_voltage( 5100 );
+
+            // charge config for NCR18650B
+            bq25895_v_set_inlim( 2000 );
+            // bq25895_v_set_inlim( 3000 );
+            bq25895_v_set_pre_charge_current( 160 );
+            bq25895_v_set_fast_charge_current( 1625 );
+            // bq25895_v_set_fast_charge_current( 250 );
+            // bq25895_v_set_fast_charge_current( 3000 );
+            bq25895_v_set_termination_current( 65 );
+            bq25895_v_set_charge_voltage( 4200 );
+
+
+            // disable ILIM pin
+            bq25895_v_set_inlim_pin( FALSE );
+
+            // run auto DPDM (which can override the current limits)
+            bq25895_v_force_dpdm();
+
+            // re-enable charging
+            bq25895_v_set_charger( TRUE );
 
             vbus_connected = TRUE;
         }
@@ -578,9 +599,12 @@ PT_BEGIN( pt );
 
             // vbus disconnected, but we were previously connected
 
-            // on really crappy USB sources, we might get spurious disconnects.
-            // delay, and then check again before resetting.
-            TMR_WAIT( pt, 3000 );
+            if( !bq25895_b_get_vbus_good() ){
+                
+                // on really crappy USB sources, we might get spurious disconnects.
+                // delay, and then check again before resetting.
+                TMR_WAIT( pt, 3000 );
+            }
 
             if( !bq25895_b_get_vbus_good() ){
 
@@ -604,8 +628,8 @@ PT_BEGIN( pt );
 
         static uint8_t counter;
 
-        if( ( status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
 
             batt_charging = TRUE;
 
@@ -638,16 +662,15 @@ PT_BEGIN( pt );
 
         counter++;
 
-        //     // bq25895_v_print_regs();
-        // }
-        // else{
-        //
-        //     log_v_debug_P( PSTR("batt: %d"),
-        //         bq25895_u16_get_batt_voltage() );
-        // }
 
+        if( dump_regs ){
 
+            dump_regs = FALSE;
 
+            bq25895_v_print_regs();
+        }
+
+    
         // update state of charge
         // this is a simple linear fit
         uint8_t new_batt_soc = calc_batt_soc( batt_volts );

@@ -27,7 +27,11 @@
 
 #include "sapphire.h"
 
+#if defined(ESP8266)
 #define UI_BUTTON   IO_PIN_6_DAC0
+#elif defined(ESP32)
+#define UI_BUTTON   IO_PIN_21
+#endif
 
 void batt_v_init( void );
 
