@@ -25,6 +25,7 @@
 #ifndef __CATBUS_LINK_H
 #define __CATBUS_LINK_H
 
+#include "ip.h"
 #include "catbus_common.h"
 
 #define LINK_PORT                         44633
