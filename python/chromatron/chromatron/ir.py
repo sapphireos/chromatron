@@ -3095,6 +3095,12 @@ class Builder(object):
             print(func)
             print(cfg)
 
+    def print_func_addrs(self):
+        print("FUNCTION ADDRS: ")
+        
+        for func, addr in self.function_addrs.items():
+            print(f"    {addr:4} -> {func}")
+
     def remove_unreachable(self):
         if self.optimizations['remove_unreachable_code']:
             for func in list(self.funcs.values()):

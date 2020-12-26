@@ -998,10 +998,13 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if debug_print:
         builder.print_instructions()
         builder.print_data_table()
-        builder.print_control_flow()
+        # builder.print_control_flow()
 
     builder.assemble()
     builder.generate_binary()
+
+    if debug_print:
+        builder.print_func_addrs()
 
     if debug_print or summarize:
         print("VM ISA:  %d" % (VM_ISA_VERSION))
