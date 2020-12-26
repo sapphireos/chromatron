@@ -29,13 +29,30 @@
 #include "fs.h"
 #include "keyvalue.h"
 #include "catbus.h"
+#include "list.h"
 
 #include "catbus_link.h"
 
 #ifdef ENABLE_CATBUS_LINK
 
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 tag;
+    catbus_hash_t32 source_hash;
+    catbus_hash_t32 dest_hash;
+    catbus_query_t query;
+    link_mode_t8 mode;
+    link_aggregation_t8 aggregation;
+    link_filter_t16 filter;
+	
+	// uint8_t flags;
+    
+} catbus_link_state_t;
+
+
+
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
 
+static list_t link_list;
 static socket_t sock;
 
 void link_v_init( void ){
@@ -45,10 +62,25 @@ void link_v_init( void ){
 		return;
 	}
 
+	list_v_init( &link_list );
+
     thread_t_create( link_server_thread,
                  PSTR("link_server"),
                  0,
                  0 );
+}
+
+link_t link_l_create_link( 
+    link_mode_t8 mode, 
+    catbus_hash_t32 source_hash, 
+    catbus_hash_t32 dest_hash, 
+    catbus_query_t *query,
+    catbus_hash_t32 tag,
+    link_aggregation_t8 aggregation,
+    link_filter_t16 filter ){ 
+
+
+	return -1;
 }
 
 void link_v_handle_shutdown( ip_addr4_t ip ){
@@ -92,7 +124,7 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        link_header_t *header = sock_vp_get_data( sock );
+        link_msg_header_t *header = sock_vp_get_data( sock );
 
         // verify message
         if( header->magic != LINK_MAGIC ){

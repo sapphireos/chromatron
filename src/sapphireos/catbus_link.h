@@ -25,12 +25,30 @@
 #ifndef __CATBUS_LINK_H
 #define __CATBUS_LINK_H
 
+#include "memory.h"
 #include "ip.h"
 #include "catbus_common.h"
 
 #define LINK_PORT                         44633
 #define LINK_VERSION                      1
 #define LINK_MAGIC                        0x4b4e494c // 'LINK'
+
+
+typedef mem_handle_t link_t;
+
+typedef uint8_t link_aggregation_t8;
+#define LINK_AGG_ANY						0
+#define LINK_AGG_MIN						1
+#define LINK_AGG_MAX						2
+#define LINK_AGG_SUM						3
+#define LINK_AGG_AVG						4
+
+typedef uint8_t link_mode_t8;
+#define LINK_MODE_SEND						0
+#define LINK_MODE_RECV						1
+#define LINK_MODE_SYNC						2
+
+typedef uint16_t link_filter_t16;
 
 
 typedef struct __attribute__((packed)){
@@ -41,7 +59,7 @@ typedef struct __attribute__((packed)){
     uint8_t reserved;
     uint64_t origin_id;
     catbus_hash_t32 universe;
-} link_header_t;
+} link_msg_header_t;
 
 
 void link_v_init( void );
