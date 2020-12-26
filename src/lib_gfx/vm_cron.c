@@ -120,10 +120,14 @@ PT_BEGIN( pt );
         datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
         cron_seconds = ntp_local_now.seconds;
 
+        // init alarm
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
         while( time_b_is_ntp_sync() && !list_b_is_empty( &cron_list ) ){
 
-            TMR_WAIT( pt, 1000 );
-            
+            thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
             // update clock
             ntp_ts_t ntp_local_now = time_t_local_now();
 
