@@ -47,39 +47,37 @@ PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
 static bool job_ready( datetime_t *now, cron_job_t *job ){
 
-    bool match = TRUE;
-
     if( ( job->cron.seconds >= 0 ) && ( job->cron.seconds != now->seconds ) ){
 
-        match = FALSE;
+        return FALSE;
     }
 
     if( ( job->cron.minutes >= 0 ) && ( job->cron.minutes != now->minutes ) ){
 
-        match = FALSE;
+        return FALSE;
     }
 
     if( ( job->cron.hours >= 0 ) && ( job->cron.hours != now->hours ) ){
 
-        match = FALSE;
+        return FALSE;
     }
 
     if( ( job->cron.day_of_month >= 0 ) && ( job->cron.day_of_month != now->day ) ){
 
-        match = FALSE;
+        return FALSE;
     }
 
     if( ( job->cron.day_of_week >= 0 ) && ( job->cron.day_of_week != now->weekday ) ){
 
-        match = FALSE;
+        return FALSE;
     }
 
     if( ( job->cron.month >= 0 ) && ( job->cron.month != now->month ) ){
 
-        match = FALSE;
+        return FALSE;
     }
 
-    return match;
+    return TRUE;
 }
 
 void vm_cron_v_unload( uint8_t vm_id ){
@@ -122,10 +120,14 @@ PT_BEGIN( pt );
         datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
         cron_seconds = ntp_local_now.seconds;
 
+        // init alarm
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
         while( time_b_is_ntp_sync() && !list_b_is_empty( &cron_list ) ){
 
-            TMR_WAIT( pt, 1000 );
-            
+            thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
             // update clock
             ntp_ts_t ntp_local_now = time_t_local_now();
 
@@ -179,6 +181,69 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+typedef struct{
+    uint8_t vm_id;
+    uint32_t cron_seconds;
+    datetime_t cron_time;
+} replay_state_t;
+
+PT_THREAD( cron_replay_thread( pt_t *pt, replay_state_t *state ) )
+{
+PT_BEGIN( pt ); 
+
+    // init clock to 24 hours ago
+    ntp_ts_t ntp_now = time_t_local_now();
+    state->cron_seconds = ntp_now.seconds - ( 24 * 60 * 60 );
+    datetime_v_seconds_to_datetime( state->cron_seconds, &state->cron_time );
+
+    
+    while(1){
+
+        ntp_ts_t ntp_local_now = time_t_local_now();
+
+        for( uint16_t i = 0; i < 600; i++ ){
+
+            datetime_v_increment_seconds( &state->cron_time );
+            state->cron_seconds++;
+
+            // run through job list
+            list_node_t ln = cron_list.head;
+            list_node_t next_ln;
+
+            while( ln > 0 ){
+
+                next_ln = list_ln_next( ln );
+
+                cron_job_t *entry = list_vp_get_data( ln );
+
+                if( entry->vm_id != state->vm_id ){
+
+                    goto next;
+                }
+
+                if( job_ready( &state->cron_time, entry ) ){
+
+                    int8_t status = vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
+                   
+                    log_v_debug_P( PSTR("Replaying cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
+                }
+
+next:
+                ln = next_ln;
+            }   
+
+            if( state->cron_seconds >= ntp_local_now.seconds ){
+
+                THREAD_EXIT( pt );
+            }
+        }
+        
+        TMR_WAIT( pt, 20 );
+    }
+
+PT_END( pt );
+}
+
 #endif
 
 
@@ -222,47 +287,13 @@ void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
         list_v_insert_tail( &cron_list, ln );
     }
 
+    replay_state_t replay_state;
+    replay_state.vm_id = vm_id;
+
+    thread_t_create( THREAD_CAST(cron_replay_thread),
+             PSTR("cron_replay"),
+             &replay_state,
+             sizeof(replay_state) );
+
     #endif
 }
-
-
-// this code is unfinished
-// static void calc_deadline( uint32_t local_seconds, datetime_t *now, cron_job_t *job ){
-
-//     datetime_t datetime_cron = *now;
-    
-//     if( job->cron.month >= 0 ){
-
-//         datetime_cron.month = job->cron.month;
-//     }
-
-//     if( job->cron.day_of_week >= 0 ){
-
-//         datetime_cron.weekday = job->cron.day_of_week;
-//     }
-
-//     if( job->cron.day_of_month >= 0 ){
-
-//         datetime_cron.day = job->cron.day_of_month;
-//     }
-
-//     if( job->cron.hours >= 0 ){
-
-//         datetime_cron.hours = job->cron.hours;
-//     }
-
-//     if( job->cron.minutes >= 0 ){
-
-//         datetime_cron.minutes = job->cron.minutes;
-//     }
-
-//     if( job->cron.seconds >= 0 ){
-
-//         datetime_cron.seconds = job->cron.seconds;
-//     }
-
-//     uint32_t seconds = datetime_u32_datetime_to_seconds( &datetime_cron );
-
-//     int32_t delta = (int64_t)seconds - (int64_t)local_seconds;
-//     log_v_debug_P( PSTR("Next event: %lu delta: %ld"), seconds, delta );
-// }
