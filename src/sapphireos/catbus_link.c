@@ -62,6 +62,7 @@ link_state_t link_ls_assemble(
     catbus_hash_t32 dest_hash, 
     catbus_query_t *query,
     catbus_hash_t32 tag,
+    link_rate_t16 rate,
     link_aggregation_t8 aggregation,
     link_filter_t16 filter ){
 
@@ -71,6 +72,7 @@ link_state_t link_ls_assemble(
 		.dest_hash 			= dest_hash,
 		.query 				= *query,
 		.tag 				= tag,
+		.rate 			    = rate,
 		.aggregation 		= aggregation,
 		.filter 			= filter,
 	};
@@ -108,6 +110,7 @@ link_handle_t link_l_create(
     catbus_hash_t32 dest_hash, 
     catbus_query_t *query,
     catbus_hash_t32 tag,
+    link_rate_t16 rate,
     link_aggregation_t8 aggregation,
     link_filter_t16 filter ){ 
 
@@ -124,6 +127,7 @@ link_handle_t link_l_create(
 							dest_hash,
 							query,
 							tag,
+							rate,
 							aggregation,
 							filter );
 

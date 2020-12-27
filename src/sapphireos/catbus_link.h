@@ -50,6 +50,7 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_SYNC						2
 
 typedef uint16_t link_filter_t16;
+typedef uint16_t link_rate_t16;
 
 
 typedef struct __attribute__((packed)){
@@ -59,7 +60,8 @@ typedef struct __attribute__((packed)){
     catbus_query_t query;
     link_mode_t8 mode;
     link_aggregation_t8 aggregation;
-    link_filter_t16 filter;    
+    link_filter_t16 filter;
+    link_rate_t16 rate;    
 } link_state_t;
 
 
