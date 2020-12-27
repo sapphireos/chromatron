@@ -38,4 +38,15 @@ uint32_t hash_u32_start( void );
 uint32_t hash_u32_partial( uint32_t hash, uint8_t *data, uint16_t len );
 uint32_t hash_u32_single( uint32_t hash, uint8_t data );
 
+uint64_t hash_u64_data( uint8_t *data, uint16_t len );
+uint64_t hash_u64_string( char *src );
+
+#ifdef PGM_P
+uint64_t hash_u64_string_P( PGM_P src );
+#endif
+
+uint64_t hash_u64_start( void );
+uint64_t hash_u64_partial( uint64_t hash, uint8_t *data, uint16_t len );
+uint64_t hash_u64_single( uint64_t hash, uint8_t data );
+
 #endif
