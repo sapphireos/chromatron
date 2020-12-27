@@ -35,20 +35,6 @@
 
 #ifdef ENABLE_CATBUS_LINK
 
-typedef struct __attribute__((packed)){
-    catbus_hash_t32 tag;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    catbus_query_t query;
-    link_mode_t8 mode;
-    link_aggregation_t8 aggregation;
-    link_filter_t16 filter;
-	
-	// uint8_t flags;
-    
-} catbus_link_state_t;
-
-
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
 
@@ -57,12 +43,12 @@ static socket_t sock;
 
 void link_v_init( void ){
 
+	list_v_init( &link_list );
+
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
 		return;
 	}
-
-	list_v_init( &link_list );
 
     thread_t_create( link_server_thread,
                  PSTR("link_server"),
@@ -70,7 +56,53 @@ void link_v_init( void ){
                  0 );
 }
 
-link_t link_l_create_link( 
+link_state_t link_ls_assemble(
+	link_mode_t8 mode, 
+    catbus_hash_t32 source_hash, 
+    catbus_hash_t32 dest_hash, 
+    catbus_query_t *query,
+    catbus_hash_t32 tag,
+    link_aggregation_t8 aggregation,
+    link_filter_t16 filter ){
+
+	link_state_t state = {
+		.mode 				= mode,
+		.source_hash 		= source_hash,
+		.dest_hash 			= dest_hash,
+		.query 				= *query,
+		.tag 				= tag,
+		.aggregation 		= aggregation,
+		.filter 			= filter,
+	};
+
+	return state;
+}
+
+bool link_b_compare( link_state_t *link1, link_state_t *link2 ){
+ 
+	return memcmp( link1, link2, sizeof(link_state_t) ) == 0;
+}
+
+link_handle_t link_l_lookup( link_state_t *link ){
+
+	list_node_t ln = link_list.head;
+
+	while( ln >= 0 ){
+
+		link_state_t *state = list_vp_get_data( ln );
+
+		if( link_b_compare( link, state ) ){
+
+			return ln;
+		}
+
+		ln = list_ln_next( ln );
+	}
+
+	return -1;
+}
+
+link_handle_t link_l_create( 
     link_mode_t8 mode, 
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
@@ -79,8 +111,64 @@ link_t link_l_create_link(
     link_aggregation_t8 aggregation,
     link_filter_t16 filter ){ 
 
+	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-	return -1;
+		return -1;
+	}
+
+	ASSERT( tag != 0 );
+
+	link_state_t state = link_ls_assemble(
+							mode,
+							source_hash,
+							dest_hash,
+							query,
+							tag,
+							aggregation,
+							filter );
+
+	link_handle_t lh = link_l_lookup( &state );
+
+	if( lh > 0 ){
+
+		return lh;
+	}
+
+	if( list_u8_count( &link_list ) >= LINK_MAX_LINKS ){
+
+		return -1;
+	}
+
+	
+	list_node_t ln = list_ln_create_node2( &state, sizeof(state), MEM_TYPE_CATBUS_LINK );
+
+	if( ln < 0 ){
+
+		return -1;
+	}
+
+	list_v_insert_tail( &link_list, ln );
+
+	return ln;
+}
+
+void link_v_delete( catbus_hash_t32 tag ){
+	
+	list_node_t ln = link_list.head;
+
+	while( ln >= 0 ){
+
+		link_state_t *state = list_vp_get_data( ln );
+		list_node_t next_ln = list_ln_next( ln );
+
+		if( state->tag == tag ){
+
+			list_v_remove( &link_list, ln );
+			list_v_release_node( ln );
+		}
+
+		ln = next_ln;
+	}
 }
 
 void link_v_handle_shutdown( ip_addr4_t ip ){
@@ -164,13 +252,5 @@ end:
 PT_END( pt );
 }
 
-
-
-
-#else
-
-void link_v_init( void ){
-    
-}
 
 #endif
