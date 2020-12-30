@@ -30,6 +30,7 @@
 #include "keyvalue.h"
 #include "catbus.h"
 #include "list.h"
+#include "hash.h"
 
 #include "catbus_link.h"
 
@@ -83,6 +84,11 @@ link_state_t link_ls_assemble(
 bool link_b_compare( link_state_t *link1, link_state_t *link2 ){
  
 	return memcmp( link1, link2, sizeof(link_state_t) ) == 0;
+}
+
+uint64_t link_u64_hash( link_state_t *link ){
+
+	return hash_u64_data( (uint8_t *)link, sizeof(link_state_t) );	
 }
 
 link_handle_t link_l_lookup( link_state_t *link ){

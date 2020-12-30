@@ -75,6 +75,12 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 universe;
 } link_msg_header_t;
 
+// typedef struct __attribute__((packed)){
+//     link_msg_header_t header;
+    
+// } link_msg_link_t;
+// #define LINK_MSG_TYPE_LINK                1
+
 
 void link_v_init( void );
 void link_v_handle_shutdown( ip_addr4_t ip );
