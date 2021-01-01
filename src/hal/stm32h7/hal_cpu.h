@@ -30,8 +30,6 @@
 
 #include "Trace.h"
 
-#include "../board_types.h"
-
 #define STM32H7_REV_Z		0x1001
 #define STM32H7_REV_Y		0x1003
 #define STM32H7_REV_X		0x2001
