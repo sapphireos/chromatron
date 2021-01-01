@@ -493,8 +493,18 @@ class Builder(object):
     version = property(get_version)
 
     def scan_file_for_kv(self, filename):
-        with open(filename, 'r') as f:
-            data = f.read()
+        try:
+            with open(filename, 'r') as f:
+                data = f.read()
+
+        except UnicodeDecodeError:
+            try:
+                with open(filename, 'r', encoding='latin1') as f:
+                    data = f.read()
+
+            except UnicodeDecodeError:
+                print(filename)
+                raise
 
         hashes = {}
 
