@@ -210,7 +210,7 @@ class Builder(object):
             self.board = boards[self.board_type]
 
         except KeyError:
-            self.board = {}
+            raise
 
         try:
             self.settings = self.get_settings()
