@@ -43,14 +43,19 @@
 
 #define N_BLOCKS FLASH_FS_EEPROM_N_BLOCKS
 
+#define HWCONFIG_BLOCK_UNASSIGNED 255
+
+
 static uint8_t current_block;
 static uint32_t total_block_writes;
+static uint8_t hwconfig_block = HWCONFIG_BLOCK_UNASSIGNED;
 
 KV_SECTION_META kv_meta_t hal_eeprom_kv[] = {
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &total_block_writes, 0,  "eeprom_block_writes" },
 };
 
 
+static uint16_t hwconfig_unlock_code;
 static bool commit;
 
 static uint8_t ee_data[EE_ARRAY_SIZE] __attribute__((aligned(4)));
@@ -61,6 +66,7 @@ static uint8_t ee_data[EE_ARRAY_SIZE] __attribute__((aligned(4)));
 #define STATUS_VALID            0x0f
 #define STATUS_DIRTY            0x00
 
+#define STATUS_HWCONFIG         __KV__hwconfig
 
 typedef struct __attribute__((packed, aligned(4))){
     uint32_t status;
@@ -79,6 +85,8 @@ static void set_block_status( uint8_t block, uint32_t status ){
 
 
 void ee_v_init( void ){
+
+    hwconfig_unlock_code = 0;
 
     memset( ee_data, 0xff, sizeof(ee_data) );
 
@@ -103,10 +111,20 @@ void ee_v_init( void ){
             current_block = i;
             total_block_writes = header.total_writes;
         }
+        else if( header.status == STATUS_HWCONFIG ){
+
+           hwconfig_block = i;
+        }
     }
 
     // clean up any other blocks
     for( uint8_t i = 0; i < N_BLOCKS; i++ ){
+
+        // skip hwconfig
+        if( i == hwconfig_block ){
+
+            continue;
+        }
 
         // read block header
         ffs_eeprom_v_read( i, 0, (uint8_t *)&header, sizeof(header) );
@@ -116,6 +134,16 @@ void ee_v_init( void ){
 
             // erase block
             ffs_eeprom_v_erase( i );
+
+            header.status = STATUS_ERASED;
+        }
+
+        // check if a hw config block has been assigned
+        if( ( hwconfig_block == HWCONFIG_BLOCK_UNASSIGNED ) && 
+            ( header.status == STATUS_ERASED ) && 
+            ( i != current_block ) ){
+
+            hwconfig_block = i;
         }
     }
 
@@ -276,3 +304,59 @@ PT_END( pt );
 }
 
 
+int16_t ee_i16_write_hw_config_data( uint16_t address, const uint8_t *data, uint16_t len ){
+
+    if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
+
+        hwconfig_unlock_code = 0;
+
+        return -1;
+    }
+
+    return -1;
+}
+
+int16_t ee_i16_read_hw_config_data( uint16_t address, uint8_t *data, uint16_t len ){
+
+    if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
+
+        hwconfig_unlock_code = 0;
+
+        return -1;
+    }
+
+    return -1;
+}
+
+void ee_v_unlock_hw_config( uint16_t unlock_code ){
+
+    if( unlock_code != HWCONFIG_UNLOCK_CODE ){
+
+        hwconfig_unlock_code = 0;
+
+        return;
+    }
+
+    hwconfig_unlock_code = unlock_code;
+}
+
+void ee_v_erase_hw_config( void ){
+
+    if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
+
+        hwconfig_unlock_code = 0;
+
+        return;
+    }
+}
+
+void ee_v_commit_hw_config( void ){
+
+    if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
+
+        hwconfig_unlock_code = 0;
+
+        return;
+    }
+
+}

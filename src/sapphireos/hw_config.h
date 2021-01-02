@@ -23,26 +23,14 @@
  */
 
 
-#ifndef _EEPROM_H
-#define _EEPROM_H
+#ifndef _HW_CONFIG_H
+#define _HW_CONFIG_H
 
 #include "system.h"
 #include "target.h"
+#include "eeprom.h"
+#include "flash_fs_partitions"
 
-void ee_v_init( void );
-bool ee_b_busy( void );
-void ee_v_write_byte_blocking( uint16_t address, uint8_t data );
-void ee_v_write_block( uint16_t address, const uint8_t *data, uint16_t len );
-void ee_v_erase_block( uint16_t address, uint16_t len );
-uint8_t ee_u8_read_byte( uint16_t address );
-void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len );
-void ee_v_commit( void );
-
-// hw config section
-int16_t ee_i16_write_hw_config_data( uint16_t address, const uint8_t *data, uint16_t len );
-int16_t ee_i16_read_hw_config_data( uint16_t address, uint8_t *data, uint16_t len );
-void ee_v_unlock_hw_config( uint16_t unlock_code );
-void ee_v_erase_hw_config( void );
-void ee_v_commit_hw_config( void );
+#define HW_CONFIG_DATA_LEN FLASH_FS_ERASE_BLOCK_SIZE
 
 #endif
