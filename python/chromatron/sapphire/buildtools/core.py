@@ -210,7 +210,7 @@ class Builder(object):
             self.board = boards[self.board_type]
 
         except KeyError:
-            self.board = {}
+            raise
 
         try:
             self.settings = self.get_settings()
@@ -493,8 +493,18 @@ class Builder(object):
     version = property(get_version)
 
     def scan_file_for_kv(self, filename):
-        with open(filename, 'r') as f:
-            data = f.read()
+        try:
+            with open(filename, 'r') as f:
+                data = f.read()
+
+        except UnicodeDecodeError:
+            try:
+                with open(filename, 'r', encoding='latin1') as f:
+                    data = f.read()
+
+            except UnicodeDecodeError:
+                print(filename)
+                raise
 
         hashes = {}
 
@@ -1866,8 +1876,12 @@ def main():
             if SETTINGS_FILE in files:
                 # load settings file                
                 with open(os.path.join(root, SETTINGS_FILE)) as f:
-                    proj_settings = json.loads(f.read())
+                    try:
+                        proj_settings = json.loads(f.read())
 
+                    except json.decoder.JSONDecodeError:
+                        continue
+                        
                     if 'FWID' not in proj_settings:
                         continue
 

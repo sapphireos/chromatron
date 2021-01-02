@@ -66,5 +66,9 @@
 	"esp32_loader":
 	{
 		"target": "esp32_boot"
+	},
+	"stm32h7":
+	{
+		"target": "stm32h7"
 	}
 }
