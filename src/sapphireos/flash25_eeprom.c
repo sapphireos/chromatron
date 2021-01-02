@@ -306,6 +306,11 @@ PT_END( pt );
 
 int16_t ee_i16_write_hw_config_data( uint16_t address, const uint8_t *data, uint16_t len ){
 
+    if( ( sys_u8_get_mode() == SYS_MODE_SAFE ) || ( hwconfig_block == HWCONFIG_BLOCK_UNASSIGNED ) ){
+
+        return -1;
+    }
+
     if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
 
         hwconfig_unlock_code = 0;
@@ -317,6 +322,11 @@ int16_t ee_i16_write_hw_config_data( uint16_t address, const uint8_t *data, uint
 }
 
 int16_t ee_i16_read_hw_config_data( uint16_t address, uint8_t *data, uint16_t len ){
+
+    if( ( sys_u8_get_mode() == SYS_MODE_SAFE ) || ( hwconfig_block == HWCONFIG_BLOCK_UNASSIGNED ) ){
+
+        return -1;
+    }
 
     if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
 
@@ -330,6 +340,11 @@ int16_t ee_i16_read_hw_config_data( uint16_t address, uint8_t *data, uint16_t le
 
 void ee_v_unlock_hw_config( uint16_t unlock_code ){
 
+    if( ( sys_u8_get_mode() == SYS_MODE_SAFE ) || ( hwconfig_block == HWCONFIG_BLOCK_UNASSIGNED ) ){
+
+        return;
+    }
+
     if( unlock_code != HWCONFIG_UNLOCK_CODE ){
 
         hwconfig_unlock_code = 0;
@@ -342,6 +357,11 @@ void ee_v_unlock_hw_config( uint16_t unlock_code ){
 
 void ee_v_erase_hw_config( void ){
 
+    if( ( sys_u8_get_mode() == SYS_MODE_SAFE ) || ( hwconfig_block == HWCONFIG_BLOCK_UNASSIGNED ) ){
+
+        return;
+    }
+
     if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
 
         hwconfig_unlock_code = 0;
@@ -351,6 +371,11 @@ void ee_v_erase_hw_config( void ){
 }
 
 void ee_v_commit_hw_config( void ){
+
+    if( ( sys_u8_get_mode() == SYS_MODE_SAFE ) || ( hwconfig_block == HWCONFIG_BLOCK_UNASSIGNED ) ){
+
+        return;
+    }
 
     if( hwconfig_unlock_code != HWCONFIG_UNLOCK_CODE ){
 
