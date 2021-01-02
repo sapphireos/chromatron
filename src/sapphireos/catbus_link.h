@@ -29,11 +29,15 @@
 #include "ip.h"
 #include "catbus_common.h"
 
-#define LINK_PORT                         44633
-#define LINK_VERSION                      1
-#define LINK_MAGIC                        0x4b4e494c // 'LINK'
+#define LINK_PORT                           44633
+#define LINK_VERSION                        1
+#define LINK_MAGIC                          0x4b4e494c // 'LINK'
 
 #define LINK_MAX_LINKS						16
+
+#define LINK_SERVICE                        __KV__link
+
+#define LINK_BASE_PRIORITY                  256
 
 typedef list_node_t link_handle_t;
 
@@ -111,6 +115,8 @@ link_handle_t link_l_create(
     link_aggregation_t8 aggregation,
     link_filter_t16 filter );
 link_handle_t link_l_create2( link_state_t *state );
+
+uint8_t link_u8_count( void );
 
 void link_v_delete_by_tag( catbus_hash_t32 tag );
 void link_v_delete_by_hash( uint64_t hash );

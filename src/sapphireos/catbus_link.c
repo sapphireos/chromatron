@@ -194,9 +194,16 @@ link_handle_t link_l_create2( link_state_t *state ){
         return -1;
     }
 
-    list_v_insert_tail( &link_list, ln );
+    services_v_join_team( LINK_SERVICE, link_u64_hash( state ), LINK_BASE_PRIORITY - link_u8_count(), LINK_PORT );
+
+    list_v_insert_tail( &link_list, ln );    
 
     return ln;
+}
+
+uint8_t link_u8_count( void ){
+
+    return list_u8_count( &link_list );
 }
 
 void link_v_delete_by_tag( catbus_hash_t32 tag ){
@@ -209,6 +216,8 @@ void link_v_delete_by_tag( catbus_hash_t32 tag ){
 		list_node_t next_ln = list_ln_next( ln );
 
 		if( state->tag == tag ){
+
+            services_v_cancel( LINK_SERVICE, link_u64_hash( state ) );
 
 			list_v_remove( &link_list, ln );
 			list_v_release_node( ln );
@@ -228,6 +237,8 @@ void link_v_delete_by_hash( uint64_t hash ){
         list_node_t next_ln = list_ln_next( ln );
 
         if( link_u64_hash( state ) == hash ){
+
+            services_v_cancel( LINK_SERVICE, link_u64_hash( state ) );
 
             list_v_remove( &link_list, ln );
             list_v_release_node( ln );
