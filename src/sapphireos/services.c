@@ -412,7 +412,7 @@ void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint1
     }
     else{
 
-        log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
+        log_v_debug_P( PSTR("join: %x %llx priority: %d"), id, group, priority );
     }
 
     service_state_t service = {0};
