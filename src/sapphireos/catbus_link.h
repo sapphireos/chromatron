@@ -39,6 +39,8 @@
 
 #define LINK_BASE_PRIORITY                  256
 
+#define LINK_DISCOVER_RATE                  4000
+
 #define LINK_MIN_TICK_RATE                  1000
 #define LINK_MAX_TICK_RATE                  20
 
@@ -65,13 +67,16 @@ typedef uint16_t link_rate_t16;
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 tag;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
+    catbus_hash_t32 source_key;
+    catbus_hash_t32 dest_key;
     catbus_query_t query;
     link_mode_t8 mode;
     link_aggregation_t8 aggregation;
     link_filter_t16 filter;
-    link_rate_t16 rate;    
+    link_rate_t16 rate;
+
+
+    uint64_t hash; // must be last!
 } link_state_t;
 
 
@@ -85,19 +90,29 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 universe;
 } link_msg_header_t;
 
-// typedef struct __attribute__((packed)){
-//     link_msg_header_t header;
-    
-// } link_msg_link_t;
-// #define LINK_MSG_TYPE_LINK                1
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    catbus_hash_t32 key;
+    catbus_query_t query;
+    uint64_t hash;
+} link_msg_recv_query_t;
+#define LINK_MSG_TYPE_RECEIVE_QUERY        1
+
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    uint64_t hash;
+} link_msg_recv_match_t;
+#define LINK_MSG_TYPE_RECEIVE_MATCH        2
+
+
 
 
 void link_v_init( void );
 
 link_state_t link_ls_assemble(
     link_mode_t8 mode, 
-    catbus_hash_t32 source_hash, 
-    catbus_hash_t32 dest_hash, 
+    catbus_hash_t32 source_key, 
+    catbus_hash_t32 dest_key, 
     catbus_query_t *query,
     catbus_hash_t32 tag,
     link_rate_t16 rate,
@@ -113,8 +128,8 @@ link_handle_t link_l_lookup_by_hash( uint64_t hash );
 
 link_handle_t link_l_create( 
     link_mode_t8 mode, 
-    catbus_hash_t32 source_hash, 
-    catbus_hash_t32 dest_hash, 
+    catbus_hash_t32 source_key, 
+    catbus_hash_t32 dest_key, 
     catbus_query_t *query,
     catbus_hash_t32 tag,
     link_rate_t16 rate,

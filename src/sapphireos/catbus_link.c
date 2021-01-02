@@ -42,6 +42,7 @@ static uint16_t tick_rate = LINK_MIN_TICK_RATE;
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
+PT_THREAD( link_discovery_thread( pt_t *pt, void *state ) );
 
 static list_t link_list;
 static socket_t sock;
@@ -65,6 +66,11 @@ void link_v_init( void ){
                  0,
                  0 );
 
+    thread_t_create( link_discovery_thread,
+                 PSTR("link_discovery"),
+                 0,
+                 0 );
+
 
     catbus_query_t query = { 0 };
     query.tags[0] = __KV__link_test;
@@ -82,8 +88,8 @@ void link_v_init( void ){
 
 link_state_t link_ls_assemble(
 	link_mode_t8 mode, 
-    catbus_hash_t32 source_hash, 
-    catbus_hash_t32 dest_hash, 
+    catbus_hash_t32 source_key, 
+    catbus_hash_t32 dest_key, 
     catbus_query_t *query,
     catbus_hash_t32 tag,
     link_rate_t16 rate,
@@ -92,8 +98,8 @@ link_state_t link_ls_assemble(
 
 	link_state_t state = {
 		.mode 				= mode,
-		.source_hash 		= source_hash,
-		.dest_hash 			= dest_hash,
+		.source_key 		= source_key,
+		.dest_key 			= dest_key,
 		.query 				= *query,
 		.tag 				= tag,
 		.rate 			    = rate,
@@ -116,7 +122,7 @@ bool link_b_compare( link_state_t *link1, link_state_t *link2 ){
 
 uint64_t link_u64_hash( link_state_t *link ){
 
-	return hash_u64_data( (uint8_t *)link, sizeof(link_state_t) );	
+	return hash_u64_data( (uint8_t *)link, sizeof(link_state_t) - sizeof(uint64_t) );	
 }
 
 link_handle_t link_l_lookup( link_state_t *link ){
@@ -159,8 +165,8 @@ link_handle_t link_l_lookup_by_hash( uint64_t hash ){
 
 link_handle_t link_l_create( 
     link_mode_t8 mode, 
-    catbus_hash_t32 source_hash, 
-    catbus_hash_t32 dest_hash, 
+    catbus_hash_t32 source_key, 
+    catbus_hash_t32 dest_key, 
     catbus_query_t *query,
     catbus_hash_t32 tag,
     link_rate_t16 rate,
@@ -176,8 +182,8 @@ link_handle_t link_l_create(
 
 	link_state_t state = link_ls_assemble(
 							mode,
-							source_hash,
-							dest_hash,
+							source_key,
+							dest_key,
 							query,
 							tag,
 							rate,
@@ -224,7 +230,9 @@ link_handle_t link_l_create2( link_state_t *state ){
         return -1;
     }
 
-    services_v_join_team( LINK_SERVICE, link_u64_hash( state ), LINK_BASE_PRIORITY - link_u8_count(), LINK_PORT );
+    state->hash = link_u64_hash( state );
+
+    services_v_join_team( LINK_SERVICE, state->hash, LINK_BASE_PRIORITY - link_u8_count(), LINK_PORT );
 
     list_v_insert_tail( &link_list, ln );    
 
@@ -303,6 +311,57 @@ void link_v_shutdown( void ){
 }
 
 
+/***********************************************
+                LINK PROCESSING
+***********************************************/
+
+static void init_header( link_msg_header_t *header, uint8_t msg_type ){
+
+    header->magic       = LINK_MAGIC;
+    header->msg_type    = msg_type;
+    header->version     = LINK_VERSION;
+    header->flags       = 0;
+    header->reserved    = 0;
+    header->origin_id   = catbus_u64_get_origin_id();
+    header->universe    = 0;
+}
+
+static void transmit_receive_query( link_state_t *link ){
+
+    link_msg_recv_query_t msg;
+    init_header( &msg.header, LINK_MSG_TYPE_RECEIVE_QUERY );
+
+    sock_addr_t raddr = {
+        .ipaddr = ip_a_addr(255,255,255,255),
+        .port = LINK_PORT
+    };
+
+    ASSERT( link->mode == LINK_MODE_SEND );
+
+    msg.key     = link->dest_key;
+    msg.query   = link->query;
+    msg.hash    = link->hash;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+
+    trace_printf("__FUNCTION__\n");
+}
+
+static void transmit_receive_match( uint64_t hash ){
+
+    // this function assumes the destination is cached in the socket raddr
+
+    link_msg_recv_match_t msg;
+    init_header( &msg.header, LINK_MSG_TYPE_RECEIVE_MATCH );
+
+    msg.hash    = hash;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+
+    trace_printf("__FUNCTION__\n");
+}
+
+
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -349,10 +408,27 @@ PT_BEGIN( pt );
 
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
-        // if( header->msg_type == CATBUS_MSG_TYPE_ANNOUNCE ){
+        if( header->msg_type == LINK_MSG_TYPE_RECEIVE_QUERY ){
 
-            // no op
-        // }
+            link_msg_recv_query_t *msg = (link_msg_recv_query_t *)header;
+
+            // check query
+            if( !catbus_b_query_self( &msg->query ) ){
+
+                goto end;
+            }
+
+            // check key
+            if( kv_i16_search_hash( msg->key ) < 0 ){
+
+                goto end;
+            }
+
+            // we are a match
+            
+            // transmit response
+            transmit_receive_match( msg->hash );
+        }
 
         // const catbus_hash_t32 *tags = catbus_hp_get_tag_hashes();
  
@@ -365,10 +441,53 @@ end:
 PT_END( pt );
 }
 
+PT_THREAD( link_discovery_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, link_u8_count() == 0 );
+
+    while(1){
+
+        list_node_t ln = link_list.head;
+
+        while( ln >= 0 ){
+
+            link_state_t *link_state = list_vp_get_data( ln );
+            list_node_t next_ln = list_ln_next( ln );
+
+            if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
+
+                trace_printf("server\n");
+
+                if( link_state->mode == LINK_MODE_SEND ){
+
+                    transmit_receive_query( link_state );
+                }
+            }   
+            
+
+            ln = next_ln;
+        }        
+
+
+        TMR_WAIT( pt, LINK_DISCOVER_RATE );
+    }
+
+PT_END( pt );
+}
+
 
 static void process_link( link_state_t *link_state ){
 
+    if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
+
+    }
+    else{
+
+
+    }
 }
 
 

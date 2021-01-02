@@ -434,7 +434,9 @@ static bool _catbus_b_has_tag( catbus_hash_t32 hash ){
     return FALSE;
 }
 
-static bool _catbus_b_query_self( catbus_query_t *query ){
+#endif
+
+bool catbus_b_query_self( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
 
@@ -451,7 +453,6 @@ static bool _catbus_b_query_self( catbus_query_t *query ){
 
     return TRUE;
 }
-#endif
 
 // #ifdef ENABLE_CATBUS_LINK
 // static bool _catbus_b_hash_in_query( catbus_hash_t32 hash, catbus_query_t *query ){
@@ -1484,7 +1485,7 @@ PT_BEGIN( pt );
 
             // check query
             if( ( ( msg->flags & CATBUS_DISC_FLAG_QUERY_ALL ) == 0 ) &&
-                ( !_catbus_b_query_self( &msg->query ) ) ){
+                ( !catbus_b_query_self( &msg->query ) ) ){
 
                 goto end;
             }
@@ -1828,7 +1829,7 @@ PT_BEGIN( pt );
 
 
         //         // check if we match query
-        //         if( !_catbus_b_query_self( &msg->query ) ){
+        //         if( !catbus_b_query_self( &msg->query ) ){
 
         //             goto end;
         //         }
@@ -1867,7 +1868,7 @@ PT_BEGIN( pt );
         //         }
 
         //         // check if we match query
-        //         if( !_catbus_b_query_self( &msg->query ) ){
+        //         if( !catbus_b_query_self( &msg->query ) ){
 
         //             goto end;
         //         }
