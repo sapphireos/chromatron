@@ -38,8 +38,10 @@
 
 #ifdef ENABLE_CATBUS_LINK
 
+static uint16_t tick_rate = LINK_MIN_TICK_RATE;
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
 
 static list_t link_list;
 static socket_t sock;
@@ -57,6 +59,12 @@ void link_v_init( void ){
                  PSTR("link_server"),
                  0,
                  0 );
+
+    thread_t_create( link_processor_thread,
+                 PSTR("link_processor"),
+                 0,
+                 0 );
+
 
     catbus_query_t query = { 0 };
     query.tags[0] = __KV__link_test;
@@ -220,6 +228,12 @@ link_handle_t link_l_create2( link_state_t *state ){
 
     list_v_insert_tail( &link_list, ln );    
 
+    // update tick rate
+    if( state->rate < tick_rate ){
+
+        tick_rate = state->rate;
+    }
+
     return ln;
 }
 
@@ -350,6 +364,36 @@ end:
 
 PT_END( pt );
 }
+
+
+
+PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, link_u8_count() == 0 );
+
+    // init alarm
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
+    while(1){
+
+        if( tick_rate < LINK_MIN_TICK_RATE ){
+            
+            tick_rate = LINK_MIN_TICK_RATE;
+        }
+
+        thread_v_set_alarm( thread_u32_get_alarm() + tick_rate );
+        THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
+
+
+
+    }
+
+PT_END( pt );
+}
+
+
 
 
 #endif

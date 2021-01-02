@@ -39,6 +39,9 @@
 
 #define LINK_BASE_PRIORITY                  256
 
+#define LINK_MIN_TICK_RATE                  1000
+#define LINK_MAX_TICK_RATE                  20
+
 typedef list_node_t link_handle_t;
 
 typedef uint8_t link_aggregation_t8;
