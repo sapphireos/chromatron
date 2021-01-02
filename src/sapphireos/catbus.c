@@ -2459,7 +2459,10 @@ end:
         if( error != CATBUS_STATUS_OK ){
 
             if( ( error != CATBUS_ERROR_FILE_NOT_FOUND ) &&
-                ( error != CATBUS_ERROR_LINK_EOF ) ){
+                ( error != CATBUS_ERROR_LINK_EOF ) &&
+                ( ( header->msg_type < CATBUS_MSG_LINK_GROUP_OFFSET ) ||
+                  ( header->msg_type >= CATBUS_MSG_FILE_GROUP_OFFSET ) ) ){
+
                 // file not found is a normal condition, so lets not log it.
                 // also don't log unknown messages, it creates a lot of noise when
                 // this is a normal condition when adding new protocol features
