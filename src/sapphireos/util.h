@@ -40,6 +40,8 @@ uint16_t util_u16_linear_interp(
     uint16_t x1,
     uint16_t y1 );
 void util_v_bubble_sort_u16( uint16_t *array, uint8_t len );
+void util_v_bubble_sort_u32( uint32_t *array, uint8_t len );
+void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len );
 int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio );
 uint16_t util_u16_ewma( uint16_t new, uint16_t old, uint8_t ratio );
 uint8_t util_u8_average( uint8_t data[], uint8_t len );

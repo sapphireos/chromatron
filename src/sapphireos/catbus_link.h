@@ -54,7 +54,10 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_SYNC						2
 
 typedef uint16_t link_filter_t16;
+#define LINK_FILTER_OFF                     0
+
 typedef uint16_t link_rate_t16;
+#define LINK_RATE_1000ms                    1000
 
 
 typedef struct __attribute__((packed)){

@@ -32,6 +32,7 @@
 #include "list.h"
 #include "hash.h"
 #include "services.h"
+#include "util.h"
 
 #include "catbus_link.h"
 
@@ -56,6 +57,19 @@ void link_v_init( void ){
                  PSTR("link_server"),
                  0,
                  0 );
+
+    catbus_query_t query = { 0 };
+    query.tags[0] = __KV__link_test;
+
+    link_l_create( 
+        LINK_MODE_SEND, 
+        __KV__kv_test_key, 
+        __KV__kv_test_key,
+        &query,
+        __KV__my_tag,
+        LINK_RATE_1000ms,
+        LINK_AGG_ANY,
+        LINK_FILTER_OFF );
 }
 
 link_state_t link_ls_assemble(
@@ -186,6 +200,14 @@ link_handle_t link_l_create2( link_state_t *state ){
 
         return -1;
     }
+
+
+    // sort tags from highest to lowest.
+    // this is because the tags are an AND logic, so the order doesn't matter.
+    // however, when computing the hash, the order WILL matter, so this ensures
+    // we maintain the AND logic when constructing the link and that the hashes
+    // will match regardless of the order we input the tags.
+    util_v_bubble_sort_reversed_u32( state->query.tags, cnt_of_array(state->query.tags) );
 
     list_node_t ln = list_ln_create_node2( state, sizeof(link_state_t), MEM_TYPE_CATBUS_LINK );
 
