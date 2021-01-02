@@ -1074,7 +1074,7 @@ class Device(object):
                 2: 'server',
             }
         
-        s = "\nService     Group      IP          Port  Priority    Uptime   Timeout | State\n"
+        s = "\nService  Group               IP           Port  Priority    Uptime    Timeout | State\n"
 
         # iterate over service cache entries
         for e in serviceinfo:
@@ -1085,7 +1085,7 @@ class Device(object):
                 uptime = e.server_uptime
                 port = e.server_port
 
-            s += "%8x %8x %15s %5d %3d     %7d     %3d         %-10s\n" % \
+            s += "%8x %16x %15s %5d %3d     %7d     %3d         %-10s\n" % \
                 (e.id,
                  e.group,
                  e.server_ip,
