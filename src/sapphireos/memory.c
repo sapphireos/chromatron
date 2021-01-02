@@ -71,6 +71,7 @@ static void *handles[MAX_MEM_HANDLES];
     static uint8_t _heap[MEM_HEAP_SIZE] MEMORY_HEAP;
     static uint8_t *heap = _heap;
 #elif defined(ESP32)
+    #include "freertos/task.h"
     static uint8_t *heap;
 #else
     static uint8_t *heap;
@@ -1048,6 +1049,8 @@ uint16_t mem2_u16_stack_count( void ){
 
 #ifdef ESP32
 
-    return 0;
+    stack_usage = MEM_MAX_STACK - uxTaskGetStackHighWaterMark( NULL );
+
+    return stack_usage;
 #endif
 }
