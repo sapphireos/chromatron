@@ -83,6 +83,38 @@ typedef struct __attribute__((packed)){
 
 
 void link_v_init( void );
+
+link_state_t link_ls_assemble(
+    link_mode_t8 mode, 
+    catbus_hash_t32 source_hash, 
+    catbus_hash_t32 dest_hash, 
+    catbus_query_t *query,
+    catbus_hash_t32 tag,
+    link_rate_t16 rate,
+    link_aggregation_t8 aggregation,
+    link_filter_t16 filter );
+
+link_state_t* link_ls_get_data( link_handle_t link );
+
+bool link_b_compare( link_state_t *link1, link_state_t *link2 );
+uint64_t link_u64_hash( link_state_t *link );
+link_handle_t link_l_lookup( link_state_t *link );
+link_handle_t link_l_lookup_by_hash( uint64_t hash );
+
+link_handle_t link_l_create( 
+    link_mode_t8 mode, 
+    catbus_hash_t32 source_hash, 
+    catbus_hash_t32 dest_hash, 
+    catbus_query_t *query,
+    catbus_hash_t32 tag,
+    link_rate_t16 rate,
+    link_aggregation_t8 aggregation,
+    link_filter_t16 filter );
+link_handle_t link_l_create2( link_state_t *state );
+
+void link_v_delete_by_tag( catbus_hash_t32 tag );
+void link_v_delete_by_hash( uint64_t hash );
+
 void link_v_handle_shutdown( ip_addr4_t ip );
 void link_v_shutdown( void );
 
