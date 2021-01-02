@@ -740,8 +740,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         esp_wifi_connect();
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
-        ESP_LOGI(TAG, "got ip:%s",
-                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
         connect_done = TRUE;
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
