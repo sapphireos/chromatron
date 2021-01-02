@@ -48,6 +48,15 @@ static list_t link_list;
 static socket_t sock;
 
 
+typedef struct __attribute__((packed)){
+    ip_addr4_t ip;
+} producer_state_t;
+
+typedef struct __attribute__((packed)){
+    ip_addr4_t ip;
+} consumer_state_t;
+
+
 void link_v_init( void ){
 
 	list_v_init( &link_list );
@@ -329,8 +338,8 @@ static void init_header( link_msg_header_t *header, uint8_t msg_type ){
 
 static void transmit_receive_query( link_state_t *link ){
 
-    link_msg_recv_query_t msg;
-    init_header( &msg.header, LINK_MSG_TYPE_RECEIVE_QUERY );
+    link_msg_consumer_query_t msg;
+    init_header( &msg.header, LINK_MSG_TYPE_CONSUMER_QUERY );
 
     sock_addr_t raddr = {
         .ipaddr = ip_a_addr(255,255,255,255),
@@ -348,12 +357,33 @@ static void transmit_receive_query( link_state_t *link ){
     trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
+static void transmit_send_query( link_state_t *link ){
+
+    link_msg_producer_query_t msg;
+    init_header( &msg.header, LINK_MSG_TYPE_PRODUCER_QUERY );
+
+    sock_addr_t raddr = {
+        .ipaddr = ip_a_addr(255,255,255,255),
+        .port = LINK_PORT
+    };
+
+    ASSERT( link->mode == LINK_MODE_RECV );
+
+    msg.key     = link->source_key;
+    msg.query   = link->query;
+    msg.hash    = link->hash;
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+
+    trace_printf("LINK: %s()\n", __FUNCTION__);
+}
+
 static void transmit_receive_match( uint64_t hash ){
 
     // this function assumes the destination is cached in the socket raddr
 
-    link_msg_recv_match_t msg;
-    init_header( &msg.header, LINK_MSG_TYPE_RECEIVE_MATCH );
+    link_msg_consumer_match_t msg;
+    init_header( &msg.header, LINK_MSG_TYPE_CONSUMER_MATCH );
 
     msg.hash    = hash;
 
@@ -407,9 +437,9 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        if( header->msg_type == LINK_MSG_TYPE_RECEIVE_QUERY ){
+        if( header->msg_type == LINK_MSG_TYPE_CONSUMER_QUERY ){
 
-            link_msg_recv_query_t *msg = (link_msg_recv_query_t *)header;
+            link_msg_consumer_query_t *msg = (link_msg_consumer_query_t *)header;
 
             // check query
             if( !catbus_b_query_self( &msg->query ) ){
@@ -423,17 +453,37 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            // we are a match
+            // we are a consumer for this link
             
             // transmit response
             transmit_receive_match( msg->hash );
         }
-        else if( header->msg_type == LINK_MSG_TYPE_RECEIVE_MATCH ){
+        else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
 
-            link_msg_recv_match_t *msg = (link_msg_recv_match_t *)header;
+            link_msg_producer_query_t *msg = (link_msg_producer_query_t *)header;
+
+            // check query
+            if( !catbus_b_query_self( &msg->query ) ){
+
+                goto end;
+            }
+
+            // check key
+            if( kv_i16_search_hash( msg->key ) < 0 ){
+
+                goto end;
+            }
+
+            // we are a producer for this link
+            
+            trace_printf("LINK: %s() producer match\n", __FUNCTION__);
+        }
+        else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_MATCH ){
+
+            link_msg_consumer_match_t *msg = (link_msg_consumer_match_t *)header;
 
             // got receiver match
-            trace_printf("LINK: %s() receiver match\n", __FUNCTION__);
+            trace_printf("LINK: %s() consumer match\n", __FUNCTION__);
         }
 
 
@@ -464,6 +514,10 @@ PT_BEGIN( pt );
                 if( link_state->mode == LINK_MODE_SEND ){
 
                     transmit_receive_query( link_state );
+                }
+                else if( link_state->mode == LINK_MODE_RECV ){
+
+                    transmit_send_query( link_state );
                 }
             }   
             

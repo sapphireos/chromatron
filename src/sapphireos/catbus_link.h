@@ -95,15 +95,22 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     catbus_query_t query;
     uint64_t hash;
-} link_msg_recv_query_t;
-#define LINK_MSG_TYPE_RECEIVE_QUERY        1
+} link_msg_consumer_query_t;
+#define LINK_MSG_TYPE_CONSUMER_QUERY        1
 
 typedef struct __attribute__((packed)){
     link_msg_header_t header;
     uint64_t hash;
-} link_msg_recv_match_t;
-#define LINK_MSG_TYPE_RECEIVE_MATCH        2
+} link_msg_consumer_match_t;
+#define LINK_MSG_TYPE_CONSUMER_MATCH        2
 
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    catbus_hash_t32 key;
+    catbus_query_t query;
+    uint64_t hash;
+} link_msg_producer_query_t;
+#define LINK_MSG_TYPE_PRODUCER_QUERY         3
 
 
 
