@@ -48,13 +48,28 @@ static list_t link_list;
 static socket_t sock;
 
 
+// producer:
+// sends data to a link leader
+// producers don't necessarily have a copy of the link,
+// sender links automatically become producers.
+// receiver links query for producers.
 typedef struct __attribute__((packed)){
-    ip_addr4_t ip;
+    catbus_hash_t32 source_key;
+    uint64_t link_hash;
+    ip_addr4_t leader_ip;  // supplied via services (send mode) or via message (recv mode)
+    uint32_t data_hash;
+    link_rate_t16 rate;
+    uint16_t ticks;
 } producer_state_t;
 
+// leader:
+// state stored on link leader for transmission to consumers
+// a leader always has a copy of the link
 typedef struct __attribute__((packed)){
-    ip_addr4_t ip;
-} consumer_state_t;
+    link_state_t *link;
+    uint8_t consumer_count;
+    ip_addr4_t consumer_ips; // first entry, additional will follow up to consumer_count
+} leader_state_t;
 
 
 void link_v_init( void ){
