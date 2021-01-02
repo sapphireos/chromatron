@@ -339,7 +339,7 @@ class KVRequestArray(ArrayField):
 class ServiceInfo(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="id"),
-                  Uint32Field(_name="group"),
+                  Uint64Field(_name="group"),
                   
                   Uint16Field(_name="server_priority"),
                   Uint32Field(_name="server_uptime"),

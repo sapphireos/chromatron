@@ -29,7 +29,7 @@
 
 #define SERVICES_PORT                       32040
 #define SERVICES_MAGIC                      0x56524553 // 'SERV'
-#define SERVICES_VERSION                    1
+#define SERVICES_VERSION                    2
 
 #define SERVICE_RATE                        4000
 #define SERVICE_UPTIME_MIN_DIFF             5
@@ -60,7 +60,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint32_t id;
-    uint32_t group;
+    uint64_t group;
     uint16_t priority;
     uint16_t port;
     uint32_t uptime;
@@ -73,22 +73,22 @@ typedef struct __attribute__((packed)){
 #define SERVICE_MSG_TYPE_QUERY      2
 typedef struct __attribute__((packed)){
     uint32_t id;
-    uint32_t group;
+    uint64_t group;
 } service_msg_query_t;
 
 
 void services_v_init( void );
 
-void services_v_listen( uint32_t id, uint32_t group );
-// void services_v_offer( uint32_t id, uint32_t group, uint16_t priority, uint16_t port );
-void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint16_t port );
-void services_v_cancel( uint32_t id, uint32_t group );
+void services_v_listen( uint32_t id, uint64_t group );
+// void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port );
+void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint16_t port );
+void services_v_cancel( uint32_t id, uint64_t group );
 
-bool services_b_is_available( uint32_t id, uint32_t group );
-bool services_b_is_server( uint32_t id, uint32_t group );
+bool services_b_is_available( uint32_t id, uint64_t group );
+bool services_b_is_server( uint32_t id, uint64_t group );
 
-sock_addr_t services_a_get( uint32_t id, uint32_t group );
-ip_addr4_t services_a_get_ip( uint32_t id, uint32_t group );
+sock_addr_t services_a_get( uint32_t id, uint64_t group );
+ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group );
 
 void service_v_handle_shutdown( ip_addr4_t ip );
 

@@ -31,6 +31,7 @@
 #include "catbus.h"
 #include "list.h"
 #include "hash.h"
+#include "services.h"
 
 #include "catbus_link.h"
 

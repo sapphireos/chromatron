@@ -29,6 +29,7 @@
 #include "threading.h"
 #include "random.h"
 #include "list.h"
+#include "hash.h"
 
 #include "services.h"
 
@@ -43,7 +44,7 @@
 
 typedef struct __attribute__((packed)){
     uint32_t id;
-    uint32_t group;   
+    uint64_t group;   
 
     uint16_t server_priority;
     uint32_t server_uptime;
@@ -64,8 +65,9 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint32_t id;
-    uint32_t group;
+    uint64_t group;
     sock_addr_t addr;
+    uint32_t hash;
 } service_cache_entry_t;
 
 static socket_t sock;
@@ -99,7 +101,7 @@ static void _reset_state( service_state_t *service ){
 // #define reset_state(a) log_v_info_P( PSTR("Reset to LISTEN") ); _reset_state( a )
 #define reset_state(a) _reset_state( a )
 
-static service_state_t* get_service( uint32_t id, uint32_t group ){
+static service_state_t* get_service( uint32_t id, uint64_t group ){
 
     list_node_t ln = service_list.head;
 
@@ -119,7 +121,7 @@ static service_state_t* get_service( uint32_t id, uint32_t group ){
     return 0;
 }
 
-static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_addr_t *raddr ){
+static bool search_cached_service( file_t f, uint32_t id, uint64_t group, sock_addr_t *raddr ){
     
     ASSERT( f > 0 );
 
@@ -137,6 +139,11 @@ static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_a
             continue;
         }
 
+        if( entry.hash != hash_u32_data( (uint8_t *)&entry, sizeof(entry) - sizeof(uint32_t) ) ){
+
+            continue;
+        }
+
         // match!
 
         if( raddr != 0 ){
@@ -150,7 +157,7 @@ static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_a
     return FALSE;
 }
 
-static bool get_cached_service( uint32_t id, uint32_t group, sock_addr_t *raddr ){
+static bool get_cached_service( uint32_t id, uint64_t group, sock_addr_t *raddr ){
 
     file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -166,7 +173,7 @@ static bool get_cached_service( uint32_t id, uint32_t group, sock_addr_t *raddr 
     return found;
 }
 
-static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t port ){
+static void cache_service( uint32_t id, uint64_t group, ip_addr4_t ip, uint16_t port ){
 
     file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -192,6 +199,8 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
         group,
         raddr,
     };
+
+    entry.hash = hash_u32_data( (uint8_t *)&entry, sizeof(entry) - sizeof(uint32_t) );
 
     if( search_cached_service( f, id, group, 0 ) ){
 
@@ -226,7 +235,7 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
     log_v_debug_P( PSTR( "cached service") );
 }
 
-static void delete_cached_service( uint32_t id, uint32_t group ){
+static void delete_cached_service( uint32_t id, uint64_t group ){
 
     file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -317,7 +326,7 @@ void services_v_init( void ){
     // services_v_join_team( 0x1234, 0, 10, 1000 );
 }
 
-void services_v_listen( uint32_t id, uint32_t group ){
+void services_v_listen( uint32_t id, uint64_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -346,7 +355,7 @@ void services_v_listen( uint32_t id, uint32_t group ){
     list_v_insert_tail( &service_list, ln );    
 }
 
-// void services_v_offer( uint32_t id, uint32_t group, uint16_t priority, uint16_t port ){
+// void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
     
     // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -355,7 +364,7 @@ void services_v_listen( uint32_t id, uint32_t group ){
 
 // }
 
-void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint16_t port ){
+void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -449,7 +458,7 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     list_v_insert_tail( &service_list, ln );    
 }
 
-void services_v_cancel( uint32_t id, uint32_t group ){
+void services_v_cancel( uint32_t id, uint64_t group ){
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -480,7 +489,7 @@ void services_v_cancel( uint32_t id, uint32_t group ){
     }
 }
 
-bool services_b_is_available( uint32_t id, uint32_t group ){
+bool services_b_is_available( uint32_t id, uint64_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -508,7 +517,7 @@ bool services_b_is_available( uint32_t id, uint32_t group ){
     return FALSE;
 }
 
-bool services_b_is_server( uint32_t id, uint32_t group ){
+bool services_b_is_server( uint32_t id, uint64_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -530,7 +539,7 @@ bool services_b_is_server( uint32_t id, uint32_t group ){
     return FALSE;
 }
 
-sock_addr_t services_a_get( uint32_t id, uint32_t group ){
+sock_addr_t services_a_get( uint32_t id, uint64_t group ){
 
     sock_addr_t addr;
     memset( &addr, 0, sizeof(addr) );
@@ -558,7 +567,7 @@ sock_addr_t services_a_get( uint32_t id, uint32_t group ){
     return addr;
 }
 
-ip_addr4_t services_a_get_ip( uint32_t id, uint32_t group ){
+ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group ){
 
     sock_addr_t addr = services_a_get( id, group );
 
