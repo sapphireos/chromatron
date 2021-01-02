@@ -82,9 +82,12 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY,   &wifi_mac,                         0,   "wifi_mac" },
     { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_rssi,                        0,   "wifi_rssi" },
-    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_channel,                     0,   "wifi_channel" },
     { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,   &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_connects,                    0,   "wifi_connects" },
+
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_channel,  0,   "wifi_channel" },
+    { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_bssid,    0,   "wifi_bssid" },
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_router,   0,   "wifi_router" },
 
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
@@ -789,40 +792,50 @@ station_mode:
 
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
-            // scan first
-            wifi_router = -1;
-            log_v_debug_P( PSTR("Scanning...") );
-            
             esp_wifi_disconnect();
             ESP_ERROR_CHECK(esp_wifi_start());
-            scan_done = FALSE;
-            
-            if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
 
-            	log_v_error_P( PSTR("Scan error") );
+            // check if we can try a fast connect with the last connected router
+            if( wifi_router >= 0 ){
+
+                log_v_debug_P( PSTR("Fast connect...") );
             }
+            else{
 
-            scan_timeout = 200;
-            while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
+                // scan first
+                wifi_router = -1;
+                log_v_debug_P( PSTR("Scanning...") );
+                
+                scan_done = FALSE;
+                
+                if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
 
-                scan_timeout--;
+                	log_v_error_P( PSTR("Scan error") );
+                }
 
-                TMR_WAIT( pt, 50 );
-            }
+                scan_timeout = 200;
+                while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
-            if( scan_done ){
+                    scan_timeout--;
 
-                scan_cb();
-            }
+                    TMR_WAIT( pt, 50 );
+                }
 
-            if( wifi_router < 0 ){
+                if( scan_done ){
 
-                goto end;
+                    scan_cb();
+                }
+
+                if( wifi_router < 0 ){
+
+                    goto end;
+                }
+
+                log_v_debug_P( PSTR("Connecting...") );
             }
 
             connect_done = FALSE;
-            log_v_debug_P( PSTR("Connecting...") );
-
+            
             wifi_config_t wifi_config = {0};
             wifi_config.sta.bssid_set = 1;
             memcpy( wifi_config.sta.bssid, wifi_bssid, sizeof(wifi_config.sta.bssid) );
@@ -863,6 +876,19 @@ station_mode:
                     wifi_rssi = wifi_info.rssi;
                 }
            	}
+            else{
+
+                // connection failed
+                wifi_router = -1;
+                wifi_channel = -1;
+                memset( wifi_bssid, 0, sizeof(wifi_bssid) );
+
+                log_v_debug_P( PSTR("Connection failed") );
+            }
+
+            kv_i8_persist( __KV__wifi_channel );
+            kv_i8_persist( __KV__wifi_bssid );
+            kv_i8_persist( __KV__wifi_router );
         }
         // AP mode
         else{
