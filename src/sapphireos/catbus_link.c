@@ -223,14 +223,14 @@ link_handle_t link_l_create2( link_state_t *state ){
     // will match regardless of the order we input the tags.
     util_v_bubble_sort_reversed_u32( state->query.tags, cnt_of_array(state->query.tags) );
 
+    state->hash = link_u64_hash( state );
+
     list_node_t ln = list_ln_create_node2( state, sizeof(link_state_t), MEM_TYPE_CATBUS_LINK );
 
     if( ln < 0 ){
 
         return -1;
     }
-
-    state->hash = link_u64_hash( state );
 
     services_v_join_team( LINK_SERVICE, state->hash, LINK_BASE_PRIORITY - link_u8_count(), LINK_PORT );
 
@@ -344,7 +344,7 @@ static void transmit_receive_query( link_state_t *link ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-    trace_printf("__FUNCTION__\n");
+    trace_printf("LINK transmit_receive_query\n");
 }
 
 static void transmit_receive_match( uint64_t hash ){
@@ -358,7 +358,7 @@ static void transmit_receive_match( uint64_t hash ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
 
-    trace_printf("__FUNCTION__\n");
+    trace_printf("LINK transmit_receive_match\n");
 }
 
 
@@ -455,11 +455,7 @@ PT_BEGIN( pt );
 
             link_state_t *link_state = list_vp_get_data( ln );
 
-            trace_printf("link hash %llx\n", link_state->hash);
-
             if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
-
-                trace_printf("server\n");
 
                 if( link_state->mode == LINK_MODE_SEND ){
 
