@@ -286,7 +286,8 @@ PT_THREAD( ee_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    // log_v_debug_P( PSTR("EE block: %u total_writes: %lu"), current_block, total_block_writes );
+    log_v_debug_P( PSTR("EE block: %u total_writes: %lu"), current_block, total_block_writes );
+    log_v_debug_P( PSTR("HW config block: %u"), hwconfig_block );
 
     while(1){
 
