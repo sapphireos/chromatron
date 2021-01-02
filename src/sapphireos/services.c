@@ -279,6 +279,40 @@ static void delete_cached_service( uint32_t id, uint64_t group ){
     return;
 }
 
+
+static void load_cached_service( service_state_t *service ){
+
+    if( !wifi_b_connected() ){
+
+        return;
+    }
+
+    sock_addr_t raddr;
+    if( get_cached_service( service->id, service->group, &raddr ) ){
+
+        service->server_ip = raddr.ipaddr;
+        service->server_port = raddr.port;
+
+        ip_addr4_t ip;
+        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+
+        if( ip_b_addr_compare( ip, service->server_ip ) ){
+
+            service->state = STATE_SERVER;
+
+            log_v_debug_P( PSTR("loaded cached service: SERVER") );
+        }
+        else{
+
+            service->state = STATE_CONNECTED;
+            service->timeout = SERVICE_CONNECTED_PING_THRESHOLD;
+
+            log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
+        }
+    }
+}
+
+
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
@@ -424,29 +458,7 @@ void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint1
 
     reset_state( &service );
 
-    sock_addr_t raddr;
-    if( get_cached_service( id, group, &raddr ) ){
-
-        service.server_ip = raddr.ipaddr;
-        service.server_port = raddr.port;
-
-        ip_addr4_t ip;
-        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
-
-        if( ip_b_addr_compare( ip, service.server_ip ) ){
-
-            service.state = STATE_SERVER;
-
-            log_v_debug_P( PSTR("loaded cached service: SERVER") );
-        }
-        else{
-
-            service.state = STATE_CONNECTED;
-            service.timeout = SERVICE_CONNECTED_PING_THRESHOLD;
-
-            log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
-        }
-    }
+    load_cached_service( &service );
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
@@ -796,6 +808,20 @@ PT_BEGIN( pt );
     
     THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( transmit_count() == 0 ) );
 
+    // load cached services
+    list_node_t ln = service_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        service_state_t *service = (service_state_t *)list_vp_get_data( ln );
+
+        load_cached_service( service );
+
+        ln = next_ln;
+    }    
+
     TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
     // initial broadcast offer
@@ -805,7 +831,7 @@ PT_BEGIN( pt );
     
     // initial broadcast query
 
-    list_node_t ln = service_list.head;
+    ln = service_list.head;
 
     while( ln > 0 ){
 

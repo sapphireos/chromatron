@@ -454,7 +454,8 @@ PT_BEGIN( pt );
         while( ln >= 0 ){
 
             link_state_t *link_state = list_vp_get_data( ln );
-            list_node_t next_ln = list_ln_next( ln );
+
+            trace_printf("link hash %llx\n", link_state->hash);
 
             if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
@@ -467,7 +468,7 @@ PT_BEGIN( pt );
             }   
             
 
-            ln = next_ln;
+            ln = list_ln_next( ln );
         }        
 
 
