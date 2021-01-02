@@ -28,7 +28,6 @@
 #include "fs.h"
 #include "threading.h"
 #include "target.h"
-#include "hal_eeprom.h"
 #include "eeprom.h"
 #include "ip.h"
 #include "types.h"

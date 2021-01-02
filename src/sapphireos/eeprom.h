@@ -29,8 +29,6 @@
 #include "system.h"
 #include "target.h"
 
-#include "hal_eeprom.h"
-
 void ee_v_init( void );
 bool ee_b_busy( void );
 void ee_v_write_byte_blocking( uint16_t address, uint8_t data );

@@ -100,6 +100,9 @@
 #define FLASH_FS_FIRMWARE_2_SIZE_KB     0
 #define FLASH_FS_EEPROM_SIZE_KB     	128
 
+// EEPROM
+#define EE_ARRAY_SIZE 3072
+
 // logging
 #define LOG_MAX_BUFFER_SIZE     2048
 #define ENABLE_LOG_TO_TRACE_PRINT
