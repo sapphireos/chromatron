@@ -523,7 +523,7 @@ PT_BEGIN( pt );
     bq25895_v_set_boost_voltage( 5100 );
     bq25895_v_set_charger( FALSE );
 
-    bq25895_v_print_regs();
+    // bq25895_v_print_regs();
 
     while(1){
 
