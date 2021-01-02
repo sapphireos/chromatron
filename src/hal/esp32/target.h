@@ -25,6 +25,8 @@
 #ifndef _TARGET_H
 #define _TARGET_H
 
+#include "esp_task.h"
+
 // modules
 #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
@@ -69,7 +71,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           4096
+#define MEM_MAX_STACK           ESP_TASK_MAIN_STACK
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
