@@ -47,6 +47,7 @@ PT_THREAD( link_discovery_thread( pt_t *pt, void *state ) );
 static list_t link_list;
 static socket_t sock;
 
+
 void link_v_init( void ){
 
 	list_v_init( &link_list );
@@ -344,7 +345,7 @@ static void transmit_receive_query( link_state_t *link ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-    trace_printf("LINK transmit_receive_query\n");
+    trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
 static void transmit_receive_match( uint64_t hash ){
@@ -358,7 +359,7 @@ static void transmit_receive_match( uint64_t hash ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
 
-    trace_printf("LINK transmit_receive_match\n");
+    trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
 
@@ -406,8 +407,6 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        // log_v_debug_P( PSTR("%d"), header->msg_type );
-
         if( header->msg_type == LINK_MSG_TYPE_RECEIVE_QUERY ){
 
             link_msg_recv_query_t *msg = (link_msg_recv_query_t *)header;
@@ -429,9 +428,14 @@ PT_BEGIN( pt );
             // transmit response
             transmit_receive_match( msg->hash );
         }
+        else if( header->msg_type == LINK_MSG_TYPE_RECEIVE_MATCH ){
 
-        // const catbus_hash_t32 *tags = catbus_hp_get_tag_hashes();
- 
+            link_msg_recv_match_t *msg = (link_msg_recv_match_t *)header;
+
+            // got receiver match
+            trace_printf("LINK: %s() receiver match\n", __FUNCTION__);
+        }
+
 
 end:
     
