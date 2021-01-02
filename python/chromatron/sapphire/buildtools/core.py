@@ -1876,8 +1876,12 @@ def main():
             if SETTINGS_FILE in files:
                 # load settings file                
                 with open(os.path.join(root, SETTINGS_FILE)) as f:
-                    proj_settings = json.loads(f.read())
+                    try:
+                        proj_settings = json.loads(f.read())
 
+                    except json.decoder.JSONDecodeError:
+                        continue
+                        
                     if 'FWID' not in proj_settings:
                         continue
 
