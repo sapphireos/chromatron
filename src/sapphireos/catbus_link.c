@@ -366,6 +366,11 @@ PT_END( pt );
 }
 
 
+static void process_link( link_state_t *link_state ){
+
+
+}
+
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
@@ -379,15 +384,24 @@ PT_BEGIN( pt );
     while(1){
 
         if( tick_rate < LINK_MIN_TICK_RATE ){
-            
+
             tick_rate = LINK_MIN_TICK_RATE;
         }
 
         thread_v_set_alarm( thread_u32_get_alarm() + tick_rate );
         THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
 
+        list_node_t ln = link_list.head;
 
+        while( ln >= 0 ){
 
+            link_state_t *link_state = list_vp_get_data( ln );
+            list_node_t next_ln = list_ln_next( ln );
+
+            process_link( link_state );
+
+            ln = next_ln;
+        }
     }
 
 PT_END( pt );
