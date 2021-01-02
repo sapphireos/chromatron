@@ -196,6 +196,10 @@ trace_printf("wifi\n");
     wifi_v_init();
     #endif
 
+    #ifdef ENABLE_SERVICES
+    services_v_init();
+    #endif
+
 trace_printf("catbus\n");
     catbus_v_init();
 
@@ -203,10 +207,6 @@ trace_printf("catbus\n");
 trace_printf("time\n");
     time_v_init();
     sntp_v_init();
-    #endif
-
-    #ifdef ENABLE_SERVICES
-    services_v_init();
     #endif
 
     #ifdef ENABLE_MSGFLOW
