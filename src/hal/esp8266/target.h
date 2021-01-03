@@ -75,6 +75,8 @@
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              8
 
+// KV
+#define KV_CACHE_SIZE 16
 
 // list
 // #define ENABLE_LIST_ATOMIC

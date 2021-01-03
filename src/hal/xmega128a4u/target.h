@@ -76,6 +76,8 @@
 // software max power limiter - per platform power limit in dbm
 #define WIFI_MAX_SW_TX_POWER    17
 
+// KV
+#define KV_CACHE_SIZE 1
 
 // list
 // #define ENABLE_LIST_ATOMIC

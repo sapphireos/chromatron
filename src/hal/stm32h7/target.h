@@ -78,6 +78,8 @@
 #define VM_MAX_THREADS              4
 #define VM_MIN_DELAY				10
 
+// KV
+#define KV_CACHE_SIZE 16
 
 // list
 // #define ENABLE_LIST_ATOMIC
