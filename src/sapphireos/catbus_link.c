@@ -463,6 +463,13 @@ static void transmit_consumer_match( uint64_t hash ){
     trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
+static bool is_link_leader( link_handle_t link ){
+
+    link_state_t *link_state = list_vp_get_data( link );
+
+    return services_b_is_server( LINK_SERVICE, link_state->hash );
+}
+
 static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     
     list_node_t ln = consumer_list.head;
@@ -489,7 +496,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
 
         return;
         
-next:
+    next:
         ln = list_ln_next( ln );
     }
 
@@ -518,6 +525,108 @@ next:
     list_v_insert_tail( &consumer_list, ln );
 
     trace_printf("LINK: added consumer\n");
+}
+
+static void update_producer_from_link( link_state_t *link_state ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        producer_state_t *producer = list_vp_get_data( ln );
+        
+        if( link_state->hash != producer->link_hash ){
+
+            goto next;
+        }
+
+        // update state
+        producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
+        producer->timeout = LINK_PRODUCER_TIMEOUT;
+
+        trace_printf("LINK: refreshed SEND producer\n");
+
+        return;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    // producer was not found, create one
+
+    producer_state_t new_producer = {
+        link_state->source_key,
+        link_state->hash,
+        services_a_get_ip( LINK_SERVICE, link_state->hash ),
+        0,
+        link_state->rate,
+        LINK_PRODUCER_TIMEOUT
+    };
+
+
+    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &producer_list, ln );
+
+    trace_printf("LINK: became SEND producer\n");
+}
+
+static void process_consumer_timeouts( uint32_t elapsed_ms ){
+
+    list_node_t ln = consumer_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        consumer_state_t *consumer = list_vp_get_data( ln );
+
+        consumer->timeout -= elapsed_ms;
+
+        // if timeout expires, or we are not link leader
+        if( ( consumer->timeout < 0 ) || ( !is_link_leader( consumer->link ) ) ){
+
+            // remove consumer
+            list_v_remove( &consumer_list, ln );
+            list_v_release_node( ln );
+
+            trace_printf("LINK: pruned consumer for timeout\n");
+        }
+
+        ln = next_ln;
+    }
+}
+
+
+static void process_producer_timeouts( uint32_t elapsed_ms ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        producer_state_t *producer = list_vp_get_data( ln );
+
+        producer->timeout -= elapsed_ms;
+
+        // if timeout expires
+        if( producer->timeout < 0 ){
+
+            // remove producer
+            list_v_remove( &producer_list, ln );
+            list_v_release_node( ln );
+
+            trace_printf("LINK: pruned producer for timeout\n");
+        }
+
+        ln = next_ln;
+    }
 }
 
 
@@ -623,7 +732,7 @@ PT_BEGIN( pt );
 
             trace_printf("LINK: RX consumer DATA\n");
 
-            link_msg_data_t *msg = (link_msg_data_t *)header;
+            // link_msg_data_t *msg = (link_msg_data_t *)header;
 
             
         }
@@ -631,7 +740,7 @@ PT_BEGIN( pt );
 
             trace_printf("LINK: RX producer DATA\n");
 
-            link_msg_data_t *msg = (link_msg_data_t *)header;
+            // link_msg_data_t *msg = (link_msg_data_t *)header;
 
             
         }
@@ -681,21 +790,29 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
 
-static void process_link( link_state_t *link_state ){
-
+    // link leader
     if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
 
 
     }
+    // link follower
+    else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
+
+        // SEND link:
+        // we are a producer
+        if( link_state->mode == LINK_MODE_SEND ){
+
+            update_producer_from_link( link_state );
+        }
+    }
 }
 
-static bool is_link_leader( link_handle_t link ){
+static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
-    link_state_t *link_state = list_vp_get_data( link );
 
-    return services_b_is_server( LINK_SERVICE, link_state->hash );
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
@@ -726,34 +843,25 @@ PT_BEGIN( pt );
             link_state_t *link_state = list_vp_get_data( ln );
             list_node_t next_ln = list_ln_next( ln );
 
-            process_link( link_state );
+            process_link( link_state, elapsed_time );
 
             ln = next_ln;
         }
 
-
         // update timeouts
-        ln = consumer_list.head;
+        process_consumer_timeouts( elapsed_time );
+        process_producer_timeouts( elapsed_time );
+        
+
+        ln = producer_list.head;
 
         while( ln >= 0 ){
 
-            list_node_t next_ln = list_ln_next( ln );
-
-            consumer_state_t *consumer = list_vp_get_data( ln );
-
-            consumer->timeout -= elapsed_time;
-
-            // if timeout expires, or we are not link leader
-            if( ( consumer->timeout < 0 ) || ( !is_link_leader( consumer->link ) ) ){
-
-                // remove consumer
-                list_v_remove( &consumer_list, ln );
-                list_v_release_node( ln );
-
-                trace_printf("LINK: pruned consumer for timeout\n");
-            }
-
-            ln = next_ln;
+            producer_state_t *producer = list_vp_get_data( ln );
+            
+            process_producer( producer, elapsed_time );
+            
+            ln = list_ln_next( ln );
         }
     }
 
