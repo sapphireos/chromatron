@@ -351,7 +351,7 @@ static void init_header( link_msg_header_t *header, uint8_t msg_type ){
     header->universe    = 0;
 }
 
-static void transmit_receive_query( link_state_t *link ){
+static void transmit_consumer_query( link_state_t *link ){
 
     link_msg_consumer_query_t msg;
     init_header( &msg.header, LINK_MSG_TYPE_CONSUMER_QUERY );
@@ -372,7 +372,7 @@ static void transmit_receive_query( link_state_t *link ){
     trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
-static void transmit_send_query( link_state_t *link ){
+static void transmit_producer_query( link_state_t *link ){
 
     link_msg_producer_query_t msg;
     init_header( &msg.header, LINK_MSG_TYPE_PRODUCER_QUERY );
@@ -393,7 +393,7 @@ static void transmit_send_query( link_state_t *link ){
     trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
-static void transmit_receive_match( uint64_t hash ){
+static void transmit_consumer_match( uint64_t hash ){
 
     // this function assumes the destination is cached in the socket raddr
 
@@ -454,6 +454,8 @@ PT_BEGIN( pt );
 
         if( header->msg_type == LINK_MSG_TYPE_CONSUMER_QUERY ){
 
+            trace_printf("LINK: RX consumer query\n");
+
             link_msg_consumer_query_t *msg = (link_msg_consumer_query_t *)header;
 
             // check query
@@ -471,9 +473,11 @@ PT_BEGIN( pt );
             // we are a consumer for this link
             
             // transmit response
-            transmit_receive_match( msg->hash );
+            transmit_consumer_match( msg->hash );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
+
+            trace_printf("LINK: RX producer query\n");
 
             link_msg_producer_query_t *msg = (link_msg_producer_query_t *)header;
 
@@ -494,6 +498,8 @@ PT_BEGIN( pt );
             trace_printf("LINK: %s() producer match\n", __FUNCTION__);
         }
         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_MATCH ){
+
+            trace_printf("LINK: RX consumer match\n");
 
             link_msg_consumer_match_t *msg = (link_msg_consumer_match_t *)header;
 
@@ -528,11 +534,11 @@ PT_BEGIN( pt );
 
                 if( link_state->mode == LINK_MODE_SEND ){
 
-                    transmit_receive_query( link_state );
+                    transmit_consumer_query( link_state );
                 }
                 else if( link_state->mode == LINK_MODE_RECV ){
 
-                    transmit_send_query( link_state );
+                    transmit_producer_query( link_state );
                 }
             }   
             
