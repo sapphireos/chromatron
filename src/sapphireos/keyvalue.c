@@ -51,6 +51,10 @@ static int32_t kv_test_array[4];
 static int16_t cached_index = -1;
 static catbus_hash_t32 cached_hash;
 
+#define KV_CACHE_SIZE 4
+static uint8_t kv_cache_index;
+static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
+
 static const PROGMEM char kv_data_fname[] = "kv_data";
 
 #if defined(__SIM__) || defined(BOOTLOADER)
@@ -232,8 +236,37 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     return KV_ERR_STATUS_NOT_FOUND;
 }
 
+int16_t _kv_i16_search_cache( catbus_hash_t32 hash ){
+
+    for( uint8_t i = 0; i < cnt_of_array(kv_cache); i++ ){
+
+        if( kv_cache[i].hash == hash ){
+
+            return kv_cache[i].index;
+        }
+    }
+
+    return -1;
+}
+
+void _kv_v_add_to_cache( catbus_hash_t32 hash, int16_t index ){
+
+    kv_cache[kv_cache_index].hash = hash;
+    kv_cache[kv_cache_index].index = index;
+
+    kv_cache_index++;
+
+    if( kv_cache_index >= cnt_of_array(kv_cache) ){
+
+        kv_cache_index = 0;
+    }
+}
 
 int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash ){
+
+    uint32_t start, elapsed;
+    start = tmr_u32_get_system_time_us();
+    
 
     // check if hash exists
     if( hash == 0 ){
@@ -242,7 +275,12 @@ int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash ){
     }
 
     // check cache
-    if( cached_hash == hash ){
+    int16_t cached_index = _kv_i16_search_cache( hash );
+
+    if( cached_index >= 0 ){
+
+        elapsed = tmr_u32_elapsed_time_us( start );
+        trace_printf("KV: bin search cached %d\n", elapsed);
 
         return cached_index;
     }
@@ -260,9 +298,6 @@ int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash ){
     int16_t last = _kv_u16_fixed_count() - 1;
     int16_t middle = ( first + last ) / 2;
 
-    uint32_t start, elapsed;
-    start = tmr_u32_get_system_time_us();
-    // uint32_t i = 0;
     // binary search through hash index
     while( first <= last ){
 
@@ -272,16 +307,10 @@ int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash ){
         #ifdef AVR
         memcpy_PF( &index_entry, addr, sizeof(index_entry) );
         #elif defined(ESP32)
-        start = tmr_u32_get_system_time_us();
         spi_flash_read( addr, &index_entry, sizeof(index_entry) );
-        elapsed = tmr_u32_elapsed_time_us( start );
-            trace_printf("KV: spi_flash_read %d\n", elapsed);
         #else
         memcpy_PF( &index_entry, (void *)addr, sizeof(index_entry) );
         #endif
-
-        // trace_printf("KV: search %d\n", i);
-        // i++;
 
         if( index_entry.hash < hash ){
 
@@ -290,11 +319,10 @@ int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash ){
         else if( index_entry.hash == hash ){
 
             // update cache
-            cached_hash = hash;
-            cached_index = index_entry.index;
+            _kv_v_add_to_cache( index_entry.hash, index_entry.index );
 
-            // elapsed = tmr_u32_elapsed_time_us( start );
-            // trace_printf("KV: bin search %d\n", elapsed);
+            elapsed = tmr_u32_elapsed_time_us( start );
+            trace_printf("KV: bin search %d\n", elapsed);
 
             return cached_index;
         }
@@ -306,17 +334,13 @@ int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash ){
         middle = ( first + last ) / 2;
     }
 
-    elapsed = tmr_u32_elapsed_time_us( start );
-            trace_printf("KV: bin search fail %d\n", elapsed);
-
     // try lookup by hash    
     int16_t index = kvdb_i16_get_index_for_hash( hash );
 
     if( index >= 0 ){
 
         // update cache
-        cached_hash = hash;
-        cached_index = _kv_u16_fixed_count() + index;
+        _kv_v_add_to_cache( hash, _kv_u16_fixed_count() + index );
 
         return cached_index;
     }
