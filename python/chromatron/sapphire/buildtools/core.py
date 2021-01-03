@@ -1785,6 +1785,7 @@ def main():
     parser.add_argument("--load_esp32", action="store_true", help="Load to ESP32")
     parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
     parser.add_argument("--monitor", action="store_true", help="Run serial monitor")
+    parser.add_argument("--port", action="store", default=None, help="Set serial port")
 
     args = vars(parser.parse_args())
 
@@ -1940,7 +1941,12 @@ def main():
         with open(temp_filename, 'wb') as f:
             f.write(image)
 
-        esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x10000 {temp_filename}'.split())
+        esptool_cmd = f'--chip esp32 --baud 2000000 write_flash 0x10000 {temp_filename}'
+
+        if args['port'] is not None:
+            esptool_cmd = f'--port {args["port"]} ' + esptool_cmd
+
+        esptool.main(esptool_cmd.split())
 
         # remove temp file
         os.remove(temp_filename)
@@ -1962,7 +1968,7 @@ def main():
             return
 
     if args["monitor"]:
-        serial_monitor.monitor()
+        serial_monitor.monitor(portname=args['port'])
         return
 
     # check if setting target
