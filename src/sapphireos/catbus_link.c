@@ -684,6 +684,32 @@ static void process_producer_timeouts( uint32_t elapsed_ms ){
     }
 }
 
+static void process_remote_timeouts( uint32_t elapsed_ms ){
+
+    list_node_t ln = remote_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        remote_state_t *remote = list_vp_get_data( ln );
+
+        remote->timeout -= elapsed_ms;
+
+        // if timeout expires
+        if( remote->timeout < 0 ){
+
+            // remove remote
+            list_v_remove( &remote_list, ln );
+            list_v_release_node( ln );
+
+            trace_printf("LINK: pruned remote for timeout\n");
+        }
+
+        ln = next_ln;
+    }
+}
+
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
 {
@@ -1111,6 +1137,7 @@ PT_BEGIN( pt );
         // update timeouts
         process_consumer_timeouts( elapsed_time );
         process_producer_timeouts( elapsed_time );
+        process_remote_timeouts( elapsed_time );
         
 
         ln = producer_list.head;
