@@ -161,7 +161,7 @@ void link_v_init( void ){
             LINK_RATE_1000ms,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
-if( cfg_u64_get_device_id() == 93172270997720 ){
+if( cfg_u64_get_device_id() != 93172270997720 ){
         thread_t_create( test_thread,
                  PSTR("test_thread"),
                  0,
@@ -912,12 +912,58 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     // trace_printf("LINK: produce DATA, hash: %lx\n", data_hash);
 
-    if( data_hash != producer->data_hash ){
 
-        // trace_printf("LINK: data changed!\n");
+    if( data_hash == producer->data_hash ){
 
-        producer->data_hash = data_hash;
+        // data did not change
+
+        // if the interval between the last transmission and now is too short,
+        // we will skip transmission of data
+
+
+
+        return;   
     }
+
+    // data has either changed, or it has not but we are going to transmit anyway
+
+    // trace_printf("LINK: data changed!\n");
+
+    producer->data_hash = data_hash;
+
+    // check if we're the link leader.
+    // if so, we don't transmit a producer message (since they are coming to us)
+    if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
+
+        return;
+    }
+
+    // prepare data message
+    uint16_t msg_len = ( sizeof(link_msg_data_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
+
+    mem_handle_t h = mem2_h_alloc( msg_len );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    link_msg_data_t *msg = mem2_vp_get_ptr_fast( h );
+    init_header( &msg->header, LINK_MSG_TYPE_PRODUCER_DATA );
+
+    msg->hash = producer->link_hash;
+    msg->data.meta = meta;
+
+    memcpy( &msg->data.data, buf, data_len );
+
+    sock_addr_t raddr = {
+        producer->leader_ip,
+        LINK_PORT
+    };
+
+    sock_i16_sendto_m( sock, h, &raddr );
+
+    trace_printf("LINK: transmit producer data\n");
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
