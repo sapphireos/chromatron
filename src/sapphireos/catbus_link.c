@@ -38,6 +38,9 @@
 
 #include "catbus_link.h"
 
+// #define NO_LOGGING
+#include "logging.h"
+
 #ifdef ENABLE_CATBUS_LINK
 
 static uint16_t tick_rate = LINK_MIN_TICK_RATE;
@@ -94,6 +97,28 @@ typedef struct __attribute__((packed)){
 // } leader_state_t;
 
 
+static int32_t link_test_key;
+
+KV_SECTION_META kv_meta_t link_kv[] = {
+    { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key,        0,           "link_test_key" },
+};
+
+PT_THREAD( test_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        TMR_WAIT( pt, 2000 );
+
+        link_test_key++;
+    }
+
+PT_END( pt );
+}
+
+
+
 void link_v_init( void ){
 
 	list_v_init( &link_list );
@@ -129,14 +154,20 @@ void link_v_init( void ){
 
         link_l_create( 
             LINK_MODE_SEND, 
-            __KV__kv_test_key, 
+            __KV__link_test_key, 
             __KV__kv_test_key,
             &query,
             __KV__my_tag,
             LINK_RATE_1000ms,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
-    // }
+if( cfg_u64_get_device_id() == 93172270997720 ){
+        thread_t_create( test_thread,
+                 PSTR("test_thread"),
+                 0,
+                 0 );
+
+    }
 }
 
 link_state_t link_ls_assemble(
@@ -827,15 +858,15 @@ PT_END( pt );
 static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
 
     // link leader
-    if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
+    // if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
 
 
-    }
-    // link follower
-    else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
+    // }
+    // // link follower
+    // else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
 
-    }
+    // }
 
     // SEND link:
     // we are a producer
@@ -857,12 +888,36 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     // update ticks for next iteration
     producer->ticks += producer->rate;
 
+    // get meta data from database
+    catbus_meta_t meta;
+    if( kv_i8_get_meta( producer->source_key, &meta ) < 0 ){
 
+        log_v_error_P( PSTR("source key not found!") );
 
+        return;
+    }
 
+    uint16_t data_len = type_u16_size_meta( &meta );    
 
+    if( data_len > CATBUS_MAX_DATA ){
 
-    trace_printf("LINK: produce DATA\n");
+        return;
+    }
+
+    // get data
+    uint8_t buf[CATBUS_MAX_DATA];
+    kv_i8_array_get( producer->source_key, 0, 0, buf, sizeof(buf) );
+
+    uint32_t data_hash = hash_u32_data( buf, data_len );
+
+    trace_printf("LINK: produce DATA, hash: %lx\n", data_hash);
+
+    if( data_hash != producer->data_hash ){
+
+        trace_printf("LINK: data changed!\n");
+
+        producer->data_hash = data_hash;
+    }
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
