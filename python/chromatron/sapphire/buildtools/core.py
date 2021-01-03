@@ -1949,7 +1949,11 @@ def main():
         esptool.main(esptool_cmd.split())
 
         # remove temp file
-        os.remove(temp_filename)
+        try:
+            os.remove(temp_filename)
+
+        except FileNotFoundError:
+            pass
         
         if not args["monitor"]:
             return
