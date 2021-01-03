@@ -42,13 +42,6 @@
 #define CATBUS_MAX_FILE_SESSIONS            4
 #define CATBUS_LINK_TIMEOUT                 64            
 
-
-typedef struct __attribute__((packed)){
-    catbus_meta_t meta;
-    // variable length data follows
-    uint8_t data; // convenient dereferencing point to first byte
-} catbus_data_t;
-
 typedef int16_t catbus_link_t;
 
 typedef struct __attribute__((packed)){

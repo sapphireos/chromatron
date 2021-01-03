@@ -55,7 +55,6 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 tags[CATBUS_QUERY_LEN];
 } catbus_query_t;
 
-
 typedef struct __attribute__((packed)){
     catbus_hash_t32 hash;
     catbus_type_t8 type;
@@ -63,6 +62,12 @@ typedef struct __attribute__((packed)){
     catbus_flags_t8 flags;
     uint8_t reserved;
 } catbus_meta_t;
+
+typedef struct __attribute__((packed)){
+    catbus_meta_t meta;
+    // variable length data follows
+    uint8_t data; // convenient dereferencing point to first byte
+} catbus_data_t;
 
 typedef struct __attribute__((packed)){
     int32_t size;

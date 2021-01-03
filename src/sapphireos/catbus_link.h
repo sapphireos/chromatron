@@ -42,6 +42,7 @@
 #define LINK_DISCOVER_RATE                  4000
 
 #define LINK_CONSUMER_TIMEOUT               64000
+#define LINK_PRODUCER_TIMEOUT               64000
 
 #define LINK_MIN_TICK_RATE                  1000
 #define LINK_MAX_TICK_RATE                  20
@@ -112,8 +113,15 @@ typedef struct __attribute__((packed)){
     catbus_query_t query;
     uint64_t hash;
 } link_msg_producer_query_t;
-#define LINK_MSG_TYPE_PRODUCER_QUERY         3
+#define LINK_MSG_TYPE_PRODUCER_QUERY        3
 
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    uint64_t hash;
+    catbus_data_t data;
+} link_msg_data_t;
+#define LINK_MSG_TYPE_CONSUMER_DATA         10
+#define LINK_MSG_TYPE_PRODUCER_DATA         11
 
 
 void link_v_init( void );

@@ -49,6 +49,7 @@ PT_THREAD( link_discovery_thread( pt_t *pt, void *state ) );
 static list_t link_list;
 static list_t consumer_list;
 static list_t producer_list;
+static list_t remote_list;
 static socket_t sock;
 
 
@@ -62,9 +63,17 @@ typedef struct __attribute__((packed)){
     uint64_t link_hash;
     ip_addr4_t leader_ip;  // supplied via services (send mode) or via message (recv mode)
     uint32_t data_hash;
-    link_rate_t16 rate;
     uint16_t ticks;
+    int32_t timeout;
 } producer_state_t;
+
+// remote producer:
+// producer state tracked by the leader
+typedef struct __attribute__((packed)){
+    link_handle_t link;
+    ip_addr4_t ip;
+    int32_t timeout;
+} remote_producer_state_t;
 
 // consumer:
 // stored on leader, tracks consumers to transmit data to
@@ -89,6 +98,7 @@ void link_v_init( void ){
 	list_v_init( &link_list );
     list_v_init( &consumer_list );
     list_v_init( &producer_list );
+    list_v_init( &remote_list );
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -112,9 +122,9 @@ void link_v_init( void ){
 
 
     catbus_query_t query = { 0 };
-    query.tags[0] = __KV__link_test;
+    query.tags[0] = __KV__link_test2;
 
-    if( cfg_u64_get_device_id() == 93172270997720 ){
+    // if( cfg_u64_get_device_id() == 93172270997720 ){
 
         link_l_create( 
             LINK_MODE_SEND, 
@@ -125,7 +135,7 @@ void link_v_init( void ){
             LINK_RATE_1000ms,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
-    }
+    // }
 }
 
 link_state_t link_ls_assemble(
@@ -609,6 +619,22 @@ PT_BEGIN( pt );
             // received a match
             update_consumer( msg->hash, &raddr );
         }
+        else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_DATA ){
+
+            trace_printf("LINK: RX consumer DATA\n");
+
+            link_msg_data_t *msg = (link_msg_data_t *)header;
+
+            
+        }
+        else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
+
+            trace_printf("LINK: RX producer DATA\n");
+
+            link_msg_data_t *msg = (link_msg_data_t *)header;
+
+            
+        }
 
 
 end:
@@ -660,11 +686,17 @@ static void process_link( link_state_t *link_state ){
 
     if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
-        
+
 
     }
 }
 
+static bool is_link_leader( link_handle_t link ){
+
+    link_state_t *link_state = list_vp_get_data( link );
+
+    return services_b_is_server( LINK_SERVICE, link_state->hash );
+}
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
@@ -711,7 +743,8 @@ PT_BEGIN( pt );
 
             consumer->timeout -= elapsed_time;
 
-            if( consumer->timeout < 0 ){
+            // if timeout expires, or we are not link leader
+            if( ( consumer->timeout < 0 ) || ( !is_link_leader( consumer->link ) ) ){
 
                 // remove consumer
                 list_v_remove( &consumer_list, ln );
