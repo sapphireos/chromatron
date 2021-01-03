@@ -69,7 +69,7 @@ typedef struct __attribute__((packed)){
 // consumer:
 // stored on leader, tracks consumers to transmit data to
 typedef struct __attribute__((packed)){
-    link_state_t *link;
+    link_handle_t link;
     ip_addr4_t ip;
     int32_t timeout;
 } consumer_state_t;
@@ -299,6 +299,34 @@ uint8_t link_u8_count( void ){
     return list_u8_count( &link_list );
 }
 
+static void delete_link( link_handle_t link ){
+
+    link_state_t *state = list_vp_get_data( link );
+
+    services_v_cancel( LINK_SERVICE, link_u64_hash( state ) );
+    
+    list_node_t ln = consumer_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        consumer_state_t *consumer = list_vp_get_data( ln );
+
+        if( consumer->link == link ){
+
+            // remove consumer
+            list_v_remove( &consumer_list, ln );
+            list_v_release_node( ln );
+        }
+
+        ln = next_ln;
+    }    
+
+    list_v_remove( &link_list, link );
+    list_v_release_node( link );
+}
+
 void link_v_delete_by_tag( catbus_hash_t32 tag ){
 	
 	list_node_t ln = link_list.head;
@@ -310,10 +338,7 @@ void link_v_delete_by_tag( catbus_hash_t32 tag ){
 
 		if( state->tag == tag ){
 
-            services_v_cancel( LINK_SERVICE, link_u64_hash( state ) );
-
-			list_v_remove( &link_list, ln );
-			list_v_release_node( ln );
+            delete_link( ln );
 		}
 
 		ln = next_ln;
@@ -331,10 +356,7 @@ void link_v_delete_by_hash( uint64_t hash ){
 
         if( link_u64_hash( state ) == hash ){
 
-            services_v_cancel( LINK_SERVICE, link_u64_hash( state ) );
-
-            list_v_remove( &link_list, ln );
-            list_v_release_node( ln );
+            delete_link( ln );
         }
 
         ln = next_ln;
@@ -438,8 +460,9 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     while( ln >= 0 ){
 
         consumer_state_t *consumer = list_vp_get_data( ln );
+        link_state_t *link_state = link_ls_get_data( consumer->link );
 
-        if( consumer->link->hash != hash ){
+        if( link_state->hash != hash ){
 
             goto next;
         }
@@ -470,7 +493,7 @@ next:
     }
 
     consumer_state_t new_consumer = {
-        link_ls_get_data( link ),
+        link,
         raddr->ipaddr,
         LINK_CONSUMER_TIMEOUT
     };
@@ -637,10 +660,7 @@ static void process_link( link_state_t *link_state ){
 
     if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
-
-    }
-    else{
-
+        
 
     }
 }
