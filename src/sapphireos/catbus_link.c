@@ -69,6 +69,7 @@ typedef struct __attribute__((packed)){
     link_rate_t16 rate;
     int32_t ticks;
     int32_t timeout;
+    bool ready;
 } producer_state_t;
 
 // remote producer:
@@ -576,61 +577,6 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     trace_printf("LINK: added consumer\n");
 }
 
-static void update_producer_from_link( link_state_t *link_state ){
-
-    list_node_t ln = producer_list.head;
-
-    while( ln >= 0 ){
-
-        producer_state_t *producer = list_vp_get_data( ln );
-        
-        if( link_state->hash != producer->link_hash ){
-
-            goto next;
-        }
-
-        // update state
-        producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
-        producer->timeout = LINK_PRODUCER_TIMEOUT;
-
-        // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
-        //     producer->leader_ip.ip3,
-        //     producer->leader_ip.ip2,
-        //     producer->leader_ip.ip1,
-        //     producer->leader_ip.ip0
-        // );
-
-        return;
-        
-    next:
-        ln = list_ln_next( ln );
-    }
-
-    // producer was not found, create one
-
-    producer_state_t new_producer = {
-        link_state->source_key,
-        link_state->hash,
-        services_a_get_ip( LINK_SERVICE, link_state->hash ),
-        0,
-        link_state->rate,
-        link_state->rate,
-        LINK_PRODUCER_TIMEOUT
-    };
-
-
-    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
-
-    if( ln < 0 ){
-
-        return;
-    }
-
-    list_v_insert_tail( &producer_list, ln );
-
-    trace_printf("LINK: became SEND producer\n");
-}
-
 static void process_consumer_timeouts( uint32_t elapsed_ms ){
 
     list_node_t ln = consumer_list.head;
@@ -978,25 +924,121 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
+static void update_producer_from_link( link_state_t *link_state ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        producer_state_t *producer = list_vp_get_data( ln );
+        
+        if( link_state->hash != producer->link_hash ){
+
+            goto next;
+        }
+
+        // update state
+        producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
+        producer->timeout = LINK_PRODUCER_TIMEOUT;
+
+        // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
+        //     producer->leader_ip.ip3,
+        //     producer->leader_ip.ip2,
+        //     producer->leader_ip.ip1,
+        //     producer->leader_ip.ip0
+        // );
+
+        return;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    // producer was not found, create one
+
+    producer_state_t new_producer = {
+        link_state->source_key,
+        link_state->hash,
+        services_a_get_ip( LINK_SERVICE, link_state->hash ),
+        0,
+        link_state->rate,
+        link_state->rate,
+        LINK_PRODUCER_TIMEOUT
+    };
+
+
+    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &producer_list, ln );
+
+    trace_printf("LINK: became SEND producer\n");
+}
+
+static producer_state_t *get_producer( uint64_t link_hash ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        producer_state_t *producer = list_vp_get_data( ln );
+        
+        if(link_hash != producer->link_hash ){
+
+            goto next;
+        }
+
+        return producer;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    return 0;
+}
+
 static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
-
-    // link leader
-    // if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
-
-
-
-    // }
-    // // link follower
-    // else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
-
-    // }
 
     // SEND link:
     // we are a producer
     if( link_state->mode == LINK_MODE_SEND ){
 
         update_producer_from_link( link_state );
+
+        // link leader
+        if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
+            
+            // check local producers for matches with this link and see
+            // if it is ready for aggregation
+            producer_state_t *producer = get_producer( link_state->hash );
+
+            if( producer == 0 ){
+
+                log_v_critical_P( PSTR("send link leader should also be producer!") );
+
+                return;
+            }
+
+            if( producer->ready ){
+
+                producer->ready = FALSE;
+
+                trace_printf("LINK: producer READY\n");
+            }
+        }
+        // // link follower
+        // else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
+
+        // }
     }
+
+
+
 }
 
 static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
@@ -1035,6 +1077,18 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     // trace_printf("LINK: produce DATA, hash: %lx\n", data_hash);
 
+    // check if we're the link leader.
+    // if so, we don't transmit a producer message (since they are coming to us).
+    // we will also flag the link to indicate it is ready for aggregation
+    if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
+
+        producer->data_hash = data_hash;
+
+        producer->ready = TRUE;
+
+        return;
+    }
+
 
     if( data_hash == producer->data_hash ){
 
@@ -1054,11 +1108,8 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     producer->data_hash = data_hash;
 
-    // check if we're the link leader.
-    // if so, we don't transmit a producer message (since they are coming to us)
-    // also checks if leader IP is not available
-    if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ||
-        ip_b_is_zeroes( producer->leader_ip ) ){
+    // check if leader IP is not available
+    if( ip_b_is_zeroes( producer->leader_ip ) ){
 
         return;
     }
@@ -1122,7 +1173,27 @@ PT_BEGIN( pt );
 
         uint32_t elapsed_time = tmr_u32_elapsed_time_ms( prev_alarm );
 
-        list_node_t ln = link_list.head;
+        // update timeouts
+        process_consumer_timeouts( elapsed_time );
+        process_producer_timeouts( elapsed_time );
+        process_remote_timeouts( elapsed_time );
+        
+        list_node_t ln;
+
+        // process producers
+        ln = producer_list.head;
+
+        while( ln >= 0 ){
+
+            producer_state_t *producer = list_vp_get_data( ln );
+            
+            process_producer( producer, elapsed_time );
+            
+            ln = list_ln_next( ln );
+        }
+
+        // process links
+        ln = link_list.head;
 
         while( ln >= 0 ){
 
@@ -1134,22 +1205,6 @@ PT_BEGIN( pt );
             ln = next_ln;
         }
 
-        // update timeouts
-        process_consumer_timeouts( elapsed_time );
-        process_producer_timeouts( elapsed_time );
-        process_remote_timeouts( elapsed_time );
-        
-
-        ln = producer_list.head;
-
-        while( ln >= 0 ){
-
-            producer_state_t *producer = list_vp_get_data( ln );
-            
-            process_producer( producer, elapsed_time );
-            
-            ln = list_ln_next( ln );
-        }
     }
 
 PT_END( pt );
