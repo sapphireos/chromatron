@@ -63,7 +63,8 @@ typedef struct __attribute__((packed)){
     uint64_t link_hash;
     ip_addr4_t leader_ip;  // supplied via services (send mode) or via message (recv mode)
     uint32_t data_hash;
-    uint16_t ticks;
+    link_rate_t16 rate;
+    int32_t ticks;
     int32_t timeout;
 } producer_state_t;
 
@@ -565,6 +566,7 @@ static void update_producer_from_link( link_state_t *link_state ){
         services_a_get_ip( LINK_SERVICE, link_state->hash ),
         0,
         link_state->rate,
+        link_state->rate,
         LINK_PRODUCER_TIMEOUT
     };
 
@@ -818,12 +820,29 @@ static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
 
 static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
+    producer->ticks -= elapsed_ms;
 
+    if( producer->ticks > 0 ){
+
+        return;
+    }
+
+    // update ticks for next iteration
+    producer->ticks += producer->rate;
+
+    
+    
+
+
+
+    trace_printf("LINK: produce DATA\n");
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    static uint32_t prev_alarm;
 
     THREAD_WAIT_WHILE( pt, link_u8_count() == 0 );
 
@@ -837,10 +856,12 @@ PT_BEGIN( pt );
             tick_rate = LINK_MIN_TICK_RATE;
         }
 
-        thread_v_set_alarm( thread_u32_get_alarm() + tick_rate );
+        prev_alarm = thread_u32_get_alarm();
+
+        thread_v_set_alarm( prev_alarm + tick_rate );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        uint32_t elapsed_time = tmr_u32_elapsed_time_ms( thread_u32_get_alarm() );
+        uint32_t elapsed_time = tmr_u32_elapsed_time_ms( prev_alarm );
 
         list_node_t ln = link_list.head;
 
