@@ -268,6 +268,21 @@ link_handle_t link_l_create2( link_state_t *state ){
         return -1;
     }
 
+    // check if we have the required keys
+    if( state->mode == LINK_MODE_SEND ){
+        
+        if( kv_i16_search_hash( state->source_key ) < 0 ){
+
+            return -1;
+        }
+    }
+    else if( state->mode == LINK_MODE_RECV ){
+        
+        if( kv_i16_search_hash( state->dest_key ) < 0 ){
+
+            return -1;
+        }
+    }
 
     // sort tags from highest to lowest.
     // this is because the tags are an AND logic, so the order doesn't matter.
@@ -654,6 +669,12 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
+        // check if shutting down
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
+
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
             goto end;
@@ -792,6 +813,12 @@ PT_BEGIN( pt );
         }        
 
         TMR_WAIT( pt, LINK_DISCOVER_RATE + ( rnd_u16_get_int() >> 7 ) );
+
+        // check if shutting down
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
     }
 
 PT_END( pt );
@@ -830,8 +857,8 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     // update ticks for next iteration
     producer->ticks += producer->rate;
 
-    
-    
+
+
 
 
 
@@ -860,6 +887,12 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( prev_alarm + tick_rate );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        // check if shutting down
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
 
         uint32_t elapsed_time = tmr_u32_elapsed_time_ms( prev_alarm );
 
