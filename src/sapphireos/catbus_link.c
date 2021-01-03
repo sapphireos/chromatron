@@ -1062,7 +1062,7 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     sock_i16_sendto_m( sock, h, &raddr );
 
-    trace_printf("LINK: transmit producer data\n");
+    trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
