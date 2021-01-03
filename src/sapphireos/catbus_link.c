@@ -876,6 +876,8 @@ static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
     }
 }
 
+int16_t kv_i16_search_hash_DEBUG( catbus_hash_t32 hash );
+
 static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     producer->ticks -= elapsed_ms;
@@ -891,47 +893,51 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     uint32_t start = tmr_u32_get_system_time_us();
 
     // get meta data from database
-    catbus_meta_t meta;
-    if( kv_i8_get_meta( producer->source_key, &meta ) < 0 ){
+    // catbus_meta_t meta;
+    // if( kv_i8_get_meta( producer->source_key, &meta ) < 0 ){
 
-        log_v_error_P( PSTR("source key not found!") );
+    //     log_v_error_P( PSTR("source key not found!") );
 
-        return;
-    }
+    //     return;
+    // }
+
+    kv_i16_search_hash_DEBUG( producer->source_key );
 
     uint32_t elapsed = tmr_u32_elapsed_time_us( start );
-    trace_printf("LINK: kv lookup %d\n", elapsed);
+    // trace_printf("LINK: kv lookup %d\n", elapsed);
 
-    uint16_t data_len = type_u16_size_meta( &meta );    
+return;
 
-    if( data_len > CATBUS_MAX_DATA ){
+    // uint16_t data_len = type_u16_size_meta( &meta );    
 
-        return;
-    }
+    // if( data_len > CATBUS_MAX_DATA ){
 
-    start = tmr_u32_get_system_time_us();
-    // get data
-    uint8_t buf[CATBUS_MAX_DATA];
-    kv_i8_array_get( producer->source_key, 0, 0, buf, sizeof(buf) );
+    //     return;
+    // }
 
-    elapsed = tmr_u32_elapsed_time_us( start );
-    trace_printf("LINK: kv get %d\n", elapsed);
+    // start = tmr_u32_get_system_time_us();
+    // // get data
+    // uint8_t buf[CATBUS_MAX_DATA];
+    // kv_i8_array_get( producer->source_key, 0, 0, buf, sizeof(buf) );
 
-    start = tmr_u32_get_system_time_us();
+    // elapsed = tmr_u32_elapsed_time_us( start );
+    // trace_printf("LINK: kv get %d\n", elapsed);
 
-    uint32_t data_hash = hash_u32_data( buf, data_len );
+    // start = tmr_u32_get_system_time_us();
 
-    elapsed = tmr_u32_elapsed_time_us( start );
-    trace_printf("LINK: kv hash %d\n", elapsed);
+    // uint32_t data_hash = hash_u32_data( buf, data_len );
 
-    // trace_printf("LINK: produce DATA, hash: %lx\n", data_hash);
+    // elapsed = tmr_u32_elapsed_time_us( start );
+    // trace_printf("LINK: kv hash %d\n", elapsed);
 
-    if( data_hash != producer->data_hash ){
+    // // trace_printf("LINK: produce DATA, hash: %lx\n", data_hash);
 
-        // trace_printf("LINK: data changed!\n");
+    // if( data_hash != producer->data_hash ){
 
-        producer->data_hash = data_hash;
-    }
+    //     // trace_printf("LINK: data changed!\n");
+
+    //     producer->data_hash = data_hash;
+    // }
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
