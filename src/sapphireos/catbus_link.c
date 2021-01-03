@@ -77,7 +77,9 @@ typedef struct __attribute__((packed)){
     link_handle_t link;
     ip_addr4_t ip;
     int32_t timeout;
-} remote_producer_state_t;
+    catbus_data_t data;
+    // variable length data follows
+} remote_state_t;
 
 // consumer:
 // stored on leader, tracks consumers to transmit data to
@@ -799,8 +801,103 @@ PT_BEGIN( pt );
 
             trace_printf("LINK: RX producer DATA\n");
 
-            // link_msg_data_t *msg = (link_msg_data_t *)header;
+            link_msg_data_t *msg = (link_msg_data_t *)header;
 
+            // get link
+            link_handle_t link = link_l_lookup_by_hash( msg->hash );
+
+            if( link < 0 ){
+
+                log_v_error_P( PSTR("link not found!") );
+
+                goto end;
+            }
+
+            // are we leader?
+            if( !is_link_leader( link ) ){
+
+                log_v_error_P( PSTR("not a leader!") );
+
+                goto end;
+            }
+
+            link_state_t *link_state = link_ls_get_data( link );
+
+            // get meta data from database
+            catbus_meta_t meta;
+            if( kv_i8_get_meta( link_state->source_key, &meta ) < 0 ){
+
+                log_v_error_P( PSTR("source key not found!") );
+
+                goto end;
+            }
+
+            // compare meta data, all producers need to match the leader
+            if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
+
+                log_v_error_P( PSTR("meta data mismatch!") );
+
+                goto end;
+            }
+
+            uint16_t data_len = type_u16_size_meta( &meta );
+
+
+            list_node_t ln = remote_list.head;
+
+            while( ln >= 0 ){
+
+                remote_state_t *remote = list_vp_get_data( ln );
+                
+                if( remote->link != link ){
+
+                    goto next;
+                }
+
+                if( !ip_b_addr_compare( raddr.ipaddr, remote->ip ) ){
+
+                    goto next;
+                }
+
+                // update state
+                remote->timeout = LINK_REMOTE_TIMEOUT;
+
+                memcpy( &remote->data.data, &msg->data.data, data_len );
+
+                trace_printf("LINK: refreshed SEND remote: %d.%d.%d.%d\n",
+                    raddr.ipaddr.ip3,
+                    raddr.ipaddr.ip2,
+                    raddr.ipaddr.ip1,
+                    raddr.ipaddr.ip0
+                );
+
+                goto end;
+                
+            next:
+                ln = list_ln_next( ln );
+            }
+
+            // remote was not found, create one
+            uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
+
+            ln = list_ln_create_node2( 0, remote_len, MEM_TYPE_LINK_REMOTE );
+
+            if( ln < 0 ){
+
+                goto end;
+            }
+
+            remote_state_t *new_remote = list_vp_get_data( ln );
+                
+            new_remote->link        = link;
+            new_remote->ip          = raddr.ipaddr;
+            new_remote->timeout     = LINK_REMOTE_TIMEOUT;
+            new_remote->data.meta   = meta;
+            memcpy( &new_remote->data.data, &msg->data.data, data_len );
+
+            list_v_insert_tail( &remote_list, ln );
+
+            trace_printf("LINK: add SEND remote\n");
             
         }
 
@@ -933,7 +1030,9 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     // check if we're the link leader.
     // if so, we don't transmit a producer message (since they are coming to us)
-    if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
+    // also checks if leader IP is not available
+    if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ||
+        ip_b_is_zeroes( producer->leader_ip ) ){
 
         return;
     }
