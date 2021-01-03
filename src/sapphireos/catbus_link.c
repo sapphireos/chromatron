@@ -1002,7 +1002,19 @@ static producer_state_t *get_producer( uint64_t link_hash ){
     return 0;
 }
 
-static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
+static void aggregate( link_state_t *link_state, producer_state_t *producer ){
+
+
+}
+
+static void transmit_to_consumers( link_state_t *link_state, producer_state_t *producer ){
+
+
+}
+
+static void process_link( link_handle_t link, uint32_t elapsed_ms ){
+
+    link_state_t *link_state = link_ls_get_data( link );
 
     // SEND link:
     // we are a producer
@@ -1029,6 +1041,12 @@ static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
                 producer->ready = FALSE;
 
                 trace_printf("LINK: producer READY\n");
+
+                // run aggregation
+                aggregate( link_state, producer );
+
+                // transmit!
+                transmit_to_consumers( link_state, producer );
             }
         }
         // // link follower
@@ -1197,10 +1215,9 @@ PT_BEGIN( pt );
 
         while( ln >= 0 ){
 
-            link_state_t *link_state = list_vp_get_data( ln );
             list_node_t next_ln = list_ln_next( ln );
 
-            process_link( link_state, elapsed_time );
+            process_link( ln, elapsed_time );
 
             ln = next_ln;
         }
