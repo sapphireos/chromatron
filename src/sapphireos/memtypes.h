@@ -50,5 +50,6 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_MSGFLOW            24
 #define MEM_TYPE_MSGFLOW_ARQ_BUF    25
 #define MEM_TYPE_SERVICE            26
+#define MEM_TYPE_LINK_CONSUMER      27
 
 #endif

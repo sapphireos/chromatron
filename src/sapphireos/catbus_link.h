@@ -41,6 +41,8 @@
 
 #define LINK_DISCOVER_RATE                  4000
 
+#define LINK_CONSUMER_TIMEOUT               64000
+
 #define LINK_MIN_TICK_RATE                  1000
 #define LINK_MAX_TICK_RATE                  20
 

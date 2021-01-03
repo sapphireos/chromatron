@@ -33,6 +33,8 @@
 #include "hash.h"
 #include "services.h"
 #include "util.h"
+#include "config.h"
+#include "random.h"
 
 #include "catbus_link.h"
 
@@ -45,6 +47,8 @@ PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
 PT_THREAD( link_discovery_thread( pt_t *pt, void *state ) );
 
 static list_t link_list;
+static list_t consumer_list;
+static list_t producer_list;
 static socket_t sock;
 
 
@@ -62,19 +66,29 @@ typedef struct __attribute__((packed)){
     uint16_t ticks;
 } producer_state_t;
 
-// leader:
-// state stored on link leader for transmission to consumers
-// a leader always has a copy of the link
+// consumer:
+// stored on leader, tracks consumers to transmit data to
 typedef struct __attribute__((packed)){
     link_state_t *link;
-    uint8_t consumer_count;
-    ip_addr4_t consumer_ips; // first entry, additional will follow up to consumer_count
-} leader_state_t;
+    ip_addr4_t ip;
+    int32_t timeout;
+} consumer_state_t;
+
+// // leader:
+// // state stored on link leader for transmission to consumers
+// // a leader always has a copy of the link
+// typedef struct __attribute__((packed)){
+//     link_state_t *link;
+//     uint8_t consumer_count;
+//     ip_addr4_t consumer_ips; // first entry, additional will follow up to consumer_count
+// } leader_state_t;
 
 
 void link_v_init( void ){
 
 	list_v_init( &link_list );
+    list_v_init( &consumer_list );
+    list_v_init( &producer_list );
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -100,15 +114,18 @@ void link_v_init( void ){
     catbus_query_t query = { 0 };
     query.tags[0] = __KV__link_test;
 
-    link_l_create( 
-        LINK_MODE_SEND, 
-        __KV__kv_test_key, 
-        __KV__kv_test_key,
-        &query,
-        __KV__my_tag,
-        LINK_RATE_1000ms,
-        LINK_AGG_ANY,
-        LINK_FILTER_OFF );
+    if( cfg_u64_get_device_id() == 93172270997720 ){
+
+        link_l_create( 
+            LINK_MODE_SEND, 
+            __KV__kv_test_key, 
+            __KV__kv_test_key,
+            &query,
+            __KV__my_tag,
+            LINK_RATE_1000ms,
+            LINK_AGG_ANY,
+            LINK_FILTER_OFF );
+    }
 }
 
 link_state_t link_ls_assemble(
@@ -177,7 +194,7 @@ link_handle_t link_l_lookup_by_hash( uint64_t hash ){
 
         link_state_t *state = list_vp_get_data( ln );
 
-        if( link_u64_hash( state ) == hash ){
+        if( state->hash == hash ){
 
             return ln;
         }
@@ -265,6 +282,13 @@ link_handle_t link_l_create2( link_state_t *state ){
     if( state->rate < tick_rate ){
 
         tick_rate = state->rate;
+    }
+
+    if( state->mode == LINK_MODE_SEND ){
+        trace_printf("SEND LINK\n");
+    }
+    else if( state->mode == LINK_MODE_RECV ){
+        trace_printf("RECV LINK\n");
     }
 
     return ln;
@@ -407,6 +431,62 @@ static void transmit_consumer_match( uint64_t hash ){
     trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
+static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
+    
+    list_node_t ln = consumer_list.head;
+
+    while( ln >= 0 ){
+
+        consumer_state_t *consumer = list_vp_get_data( ln );
+
+        if( consumer->link->hash != hash ){
+
+            goto next;
+        }
+
+        if( !ip_b_addr_compare( raddr->ipaddr, consumer->ip ) ){
+
+            goto next;
+        }
+
+        trace_printf("LINK: refreshed consumer timeout\n");
+
+        // update timeout and return
+        consumer->timeout = LINK_CONSUMER_TIMEOUT;
+
+        return;
+        
+next:
+        ln = list_ln_next( ln );
+    }
+
+    // consumer was not found, create one
+    link_handle_t link = link_l_lookup_by_hash( hash );
+
+    // make sure link was found!
+    if( link < 0 ){
+
+        trace_printf("LINK: link not found!\n");
+    }
+
+    consumer_state_t new_consumer = {
+        link_ls_get_data( link ),
+        raddr->ipaddr,
+        LINK_CONSUMER_TIMEOUT
+    };
+
+    ln = list_ln_create_node2( &new_consumer, sizeof(new_consumer), MEM_TYPE_LINK_CONSUMER );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &consumer_list, ln );
+
+    trace_printf("LINK: added consumer\n");
+}
+
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
 {
@@ -503,8 +583,8 @@ PT_BEGIN( pt );
 
             link_msg_consumer_match_t *msg = (link_msg_consumer_match_t *)header;
 
-            // got receiver match
-            trace_printf("LINK: %s() consumer match\n", __FUNCTION__);
+            // received a match
+            update_consumer( msg->hash, &raddr );
         }
 
 
@@ -546,8 +626,7 @@ PT_BEGIN( pt );
             ln = list_ln_next( ln );
         }        
 
-
-        TMR_WAIT( pt, LINK_DISCOVER_RATE );
+        TMR_WAIT( pt, LINK_DISCOVER_RATE + ( rnd_u16_get_int() >> 7 ) );
     }
 
 PT_END( pt );
@@ -584,7 +663,9 @@ PT_BEGIN( pt );
         }
 
         thread_v_set_alarm( thread_u32_get_alarm() + tick_rate );
-        THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        uint32_t elapsed_time = tmr_u32_elapsed_time_ms( thread_u32_get_alarm() );
 
         list_node_t ln = link_list.head;
 
@@ -594,6 +675,30 @@ PT_BEGIN( pt );
             list_node_t next_ln = list_ln_next( ln );
 
             process_link( link_state );
+
+            ln = next_ln;
+        }
+
+
+        // update timeouts
+        ln = consumer_list.head;
+
+        while( ln >= 0 ){
+
+            list_node_t next_ln = list_ln_next( ln );
+
+            consumer_state_t *consumer = list_vp_get_data( ln );
+
+            consumer->timeout -= elapsed_time;
+
+            if( consumer->timeout < 0 ){
+
+                // remove consumer
+                list_v_remove( &consumer_list, ln );
+                list_v_release_node( ln );
+
+                trace_printf("LINK: pruned consumer for timeout\n");
+            }
 
             ln = next_ln;
         }
