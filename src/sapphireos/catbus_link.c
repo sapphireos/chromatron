@@ -544,7 +544,12 @@ static void update_producer_from_link( link_state_t *link_state ){
         producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
         producer->timeout = LINK_PRODUCER_TIMEOUT;
 
-        trace_printf("LINK: refreshed SEND producer\n");
+        trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
+            producer->leader_ip.ip3,
+            producer->leader_ip.ip2,
+            producer->leader_ip.ip1,
+            producer->leader_ip.ip0
+        );
 
         return;
         
@@ -801,12 +806,13 @@ static void process_link( link_state_t *link_state, uint32_t elapsed_ms ){
     // link follower
     else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
 
-        // SEND link:
-        // we are a producer
-        if( link_state->mode == LINK_MODE_SEND ){
+    }
 
-            update_producer_from_link( link_state );
-        }
+    // SEND link:
+    // we are a producer
+    if( link_state->mode == LINK_MODE_SEND ){
+
+        update_producer_from_link( link_state );
     }
 }
 
