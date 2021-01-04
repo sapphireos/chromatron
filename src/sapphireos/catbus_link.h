@@ -29,7 +29,7 @@
 #include "ip.h"
 #include "catbus_common.h"
 
-#define LINK_PORT                           44633
+#define LINK_PORT                           44634
 #define LINK_VERSION                        1
 #define LINK_MAGIC                          0x4b4e494c // 'LINK'
 
