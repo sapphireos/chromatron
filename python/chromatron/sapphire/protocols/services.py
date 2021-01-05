@@ -204,8 +204,7 @@ class Service(object):
 
     @property
     def _flags(self):
-        flags = SERVICE_OFFER_FLAGS_TEAM
-
+        flags = 0
         if self._state == STATE_SERVER:
             flags |= SERVICE_OFFER_FLAGS_SERVER
 
@@ -330,7 +329,13 @@ class Team(Service):
 
     def __str__(self):
         return f'Team: {self._service_id}:{self._group}'
+    
+    @property
+    def _flags(self):
+        flags = super()._flags
+        flags |= SERVICE_OFFER_FLAGS_TEAM
 
+        return flags
 
 class ServiceManager(Ribbon):
     def initialize(self, 
