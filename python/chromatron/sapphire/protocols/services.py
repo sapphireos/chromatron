@@ -35,11 +35,11 @@ SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
-
-SERVICE_LISTEN_TIMEOUT              = 10
-SERVICE_CONNECTED_TIMEOUT           = 64
-SERVICE_CONNECTED_PING_THRESHOLD    = 48
-SERVICE_CONNECTED_WARN_THRESHOLD    = 16
+SERVICE_RATE                        = 4.0
+SERVICE_LISTEN_TIMEOUT              = 10.0
+SERVICE_CONNECTED_TIMEOUT           = 64.0
+SERVICE_CONNECTED_PING_THRESHOLD    = 48.0
+SERVICE_CONNECTED_WARN_THRESHOLD    = 16.0
 
 
 class UnknownMessage(Exception):
@@ -228,6 +228,10 @@ class Service(object):
         return self._state != STATE_LISTEN
 
     @property
+    def is_server(self):
+        return self._state == STATE_SERVER
+
+    @property
     def server(self):
         if not self.connected:
             raise ServiceNotConnected
@@ -235,7 +239,34 @@ class Service(object):
         return self._best_host
 
     def _process_offer(self, offer, host):
-        if (self._best_offer is None) or (offer > self._best_offer):
+        # filter packet
+        if isinstance(self, Team):
+            if (offer.flags & SERVICE_OFFER_FLAGS_TEAM) == 0:
+                return
+        else:
+            if (offer.flags & SERVICE_OFFER_FLAGS_TEAM) != 0:
+                return
+
+        # SERVICE
+        if not isinstance(self, Team):
+            if self._state in [STATE_LISTEN, STATE_CONNECTED]:
+                # check if NOT a server
+                if (offer.flags & SERVICE_OFFER_FLAGS_SERVER) != 0:
+                    return
+
+                if host == self._best_host:
+                    # update timeout, we are connected to this server
+                    self._timeout = SERVICE_CONNECTED_TIMEOUT
+
+                # compare priorities
+                elif offer > self._best_offer:
+                    logging.debug(f"Service switched to: {host}")
+
+                    self._best_offer = offer
+                    self._best_host = host
+
+        # TEAM
+        elif (self._best_offer is None) or (offer > self._best_offer):
             if self._best_host != host:
                 logging.debug(f"Tracking host: {host}")
 
@@ -254,13 +285,29 @@ class Service(object):
 
         # timeout
         if self._state == STATE_LISTEN:
-            assert self._priority == 0
+            # are we follower only?
+            if self._priority == 0:
+                # check if we have a server available
+                if (self._best_offer is not None) and self._best_offer.server_valid:
+                    logging.debug(f"CONNECTED to: {self._best_host}")
+                    self._state = STATE_CONNECTED
+                    self._timeout = SERVICE_CONNECTED_TIMEOUT
 
-            # check if we have a server available
-            if (self._best_offer is not None) and self._best_offer.server_valid:
-                logging.debug(f"CONNECTED to: {self._best_host}")
-                self._state = STATE_CONNECTED
-                self._timeout = SERVICE_CONNECTED_TIMEOUT
+                else:
+                    self.reset()
+
+            else:
+                if (self._best_offer is None) or (self._best_offer < self._offer):
+                    logging.debug(f"SERVER")
+                    self._state = STATE_SERVER
+
+                elif (self._best_offer is not None) and self._best_offer.server_valid:
+                    logging.debug(f"CONNECTED to: {self._best_host}")
+                    self._state = STATE_CONNECTED
+                    self._timeout = SERVICE_CONNECTED_TIMEOUT
+
+                else:
+                    self.reset()
 
         elif self._state == STATE_CONNECTED:
             logging.debug(f"CONNECTED timeout: lost server")
@@ -270,6 +317,8 @@ class Service(object):
 class Team(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        assert self._priority == 0
 
     def __str__(self):
         return f'Team: {self.service_id}:{self.group}'
@@ -315,6 +364,7 @@ class ServiceManager(Ribbon):
         self._services = {}
         
         self._last_timer = time.time()
+        self._last_offers = time.time()
         
         
     def clean_up(self):
@@ -343,6 +393,8 @@ class ServiceManager(Ribbon):
         assert service.key not in self._services
         
         self._services[service.key] = service
+
+        self._send_query(service_id, group)
 
         return service
 
@@ -437,11 +489,24 @@ class ServiceManager(Ribbon):
             logging.exception(e)
 
         now = time.time()
+
+        # process timeouts
         elapsed = now - self._last_timer
         self._last_timer = now
         
         for svc in self._services.values():
             svc._process_timer(elapsed)
+
+        # process offer timer
+        elapsed = now - self._last_offers
+        
+        if elapsed >= SERVICE_RATE:
+            self._last_offers = now
+
+            servers = [svc for svc in self._services.values() if svc.is_server]
+
+            for server in servers:
+                print(server)
 
 def main():
     util.setup_basic_logging(console=True)
