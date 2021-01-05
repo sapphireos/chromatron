@@ -323,32 +323,32 @@ def set(ctx, key, value):
 
         click.echo('%s %s' % (name_s, val_s))
 
-@cli.command()
-@click.pass_context
-@click.argument('key')
-def listen(ctx, key):
-    """Stream updates from a key"""
-    client = ctx.obj['CLIENT']
-    matches = ctx.obj['MATCHES']
-    query = ctx.obj['QUERY']
+# @cli.command()
+# @click.pass_context
+# @click.argument('key')
+# def listen(ctx, key):
+#     """Stream updates from a key"""
+#     client = ctx.obj['CLIENT']
+#     matches = ctx.obj['MATCHES']
+#     query = ctx.obj['QUERY']
 
-    kv = CatbusService()
-    kv[key] = 0
+#     kv = CatbusService()
+#     kv[key] = 0
 
-    def callback(key, value, query, timestamp):
-        name = query[0]
-        location = query[1]
+#     def callback(key, value, query, timestamp):
+#         name = query[0]
+#         location = query[1]
 
-        click.echo('%s %24s %12d %24s @ %24s' % (timestamp, key, value, name, location))
+#         click.echo('%s %24s %12d %24s @ %24s' % (timestamp, key, value, name, location))
 
-    kv.receive(key, key, query, callback)
+#     kv.receive(key, key, query, callback)
 
-    try:
-        while True:
-            time.sleep(1.0)
+#     try:
+#         while True:
+#             time.sleep(1.0)
 
-    except KeyboardInterrupt:
-        pass
+#     except KeyboardInterrupt:
+#         pass
 
 
 @cli.command()
