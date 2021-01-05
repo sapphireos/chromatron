@@ -450,7 +450,6 @@ class ServiceManager(Ribbon):
                 offer_header=header,
                 offers=offers)
         
-        print(offers[0])
         self._send_msg(msg, host)
     
     def _handle_offers(self, msg, host):
