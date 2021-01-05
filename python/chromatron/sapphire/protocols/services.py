@@ -383,10 +383,17 @@ class ServiceManager(Ribbon):
     def clean_up(self):
         pass
 
+    def _convert_service_id(self, service_id):
+        if isinstance(service_id, str):
+            service_id = catbus_string_hash(service_id)
+
+        return service_id
 
     def join_team(self, service_id, group, port, priority=0):
         if priority != 0:
             raise NotImplementedError("Services only available as follower")
+
+        service_id = self._convert_service_id(service_id)
 
         team = Team(service_id, group, priority, port)
 
@@ -401,6 +408,8 @@ class ServiceManager(Ribbon):
     def offer(self, service_id, group, port, priority=1):
         assert priority != 0
 
+        service_id = self._convert_service_id(service_id)
+
         service = Service(service_id, group, priority, port)
 
         assert service.key not in self._services
@@ -412,6 +421,8 @@ class ServiceManager(Ribbon):
         return service
 
     def listen(self, service_id, group):
+        service_id = self._convert_service_id(service_id)
+
         service = Service(service_id, group)
 
         assert service.key not in self._services
