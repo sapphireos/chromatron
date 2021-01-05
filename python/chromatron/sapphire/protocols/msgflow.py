@@ -49,18 +49,18 @@ code_book = {
     'MSGFLOW_CODE_ANY'                :0xff,
 }
 
-MSGFLOW_TYPE_SINK                   = 1
 MSGFLOW_TYPE_RESET                  = 2
 MSGFLOW_TYPE_READY                  = 3
 MSGFLOW_TYPE_STATUS                 = 4
 MSGFLOW_TYPE_DATA                   = 5
 MSGFLOW_TYPE_STOP                   = 6
+MSGFLOW_TYPE_QUERY_CODEBOOK         = 7
+MSGFLOW_TYPE_CODEBOOK               = 8
 
 
 MSGFLOW_MSG_RESET_FLAGS_RESET_SEQ   = 0x01
 
 CONNECTION_TIMEOUT                  = 32.0
-ANNOUNCE_INTERVAL                   = 4.0
 STATUS_INTERVAL                     = 4.0
 
 class UnknownMessageException(Exception):
@@ -78,16 +78,6 @@ class MsgFlowHeader(StructField):
         super(MsgFlowHeader, self).__init__(_fields=fields, **kwargs)
 
         self.flags = MSGFLOW_FLAGS_VERSION
-
-class MsgFlowMsgSink(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgFlowHeader(_name="header"),
-                  Uint32Field(_name="service"),
-                  ArrayField(_name="codebook", _field=Uint8Field, _length=8)]
-
-        super(MsgFlowMsgSink, self).__init__(_name="msg_flow_msg_sink", _fields=fields, **kwargs)
-
-        self.header.type = MSGFLOW_TYPE_SINK
 
 class MsgFlowMsgReset(StructField):
     def __init__(self, **kwargs):
@@ -139,14 +129,31 @@ class MsgFlowMsgStop(StructField):
 
         self.header.type = MSGFLOW_TYPE_STOP
 
+class MsgFlowMsgQueryCodebook(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header")]
+
+        super(MsgFlowMsgQueryCodebook, self).__init__(_name="msg_flow_msg_query_codebook", _fields=fields, **kwargs)
+
+        self.header.type = MSGFLOW_TYPE_QUERY_CODEBOOK
+
+class MsgFlowMsgCodebook(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header"),
+                  ArrayField(_name="codebook", _field=Uint8Field, _length=8)]
+
+        super(MsgFlowMsgCodebook, self).__init__(_name="msg_flow_msg_codebook", _fields=fields, **kwargs)
+
+        self.header.type = MSGFLOW_TYPE_CODEBOOK
 
 messages = {
-    MSGFLOW_TYPE_SINK:      MsgFlowMsgSink,
     MSGFLOW_TYPE_RESET:     MsgFlowMsgReset,
     MSGFLOW_TYPE_READY:     MsgFlowMsgReady,
     MSGFLOW_TYPE_STATUS:    MsgFlowMsgStatus,
     MSGFLOW_TYPE_DATA:      MsgFlowMsgData,
     MSGFLOW_TYPE_STOP:      MsgFlowMsgStop,
+    MSGFLOW_TYPE_QUERY_CODEBOOK: MsgFlowMsgQueryCodebook,
+    MSGFLOW_TYPE_CODEBOOK:  MsgFlowMsgCodebook,   
 }
 
 def deserialize(buf):
@@ -200,7 +207,6 @@ class MsgFlowReceiver(Ribbon):
         self._inputs = [self.__service_sock]
         
         self._msg_handlers = {
-            MsgFlowMsgSink: self._handle_sink,
             MsgFlowMsgReset: self._handle_reset,
             MsgFlowMsgData: self._handle_data,
             MsgFlowMsgStop: self._handle_stop,
@@ -211,7 +217,6 @@ class MsgFlowReceiver(Ribbon):
 
         self._connections = {}
 
-        self._last_announce = time.time() - 10.0
         self._last_status = time.time() - 10.0
 
         if on_receive is not None:
@@ -222,6 +227,9 @@ class MsgFlowReceiver(Ribbon):
 
         if on_disconnect is not None:
             self.on_disconnect = on_disconnect
+
+        self.services_manager = ServiceManager()
+        self.services_manager.offer("msgflow", self.service)
 
     def on_connect(self, host, device_id=None):
         pass
@@ -259,13 +267,6 @@ class MsgFlowReceiver(Ribbon):
         except socket.error:
             pass
 
-    def _send_sink(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT)):
-        msg = MsgFlowMsgSink(
-                service=self._service_hash,
-                codebook=[0,0,0,0,0,0,0,0])
-
-        self._send_msg(msg, host)
-
     def _send_status(self, host):
         msg = MsgFlowMsgStatus(
                 sequence=self._connections[host]['sequence'])
@@ -282,9 +283,6 @@ class MsgFlowReceiver(Ribbon):
         msg = MsgFlowMsgStop()
                 
         self._send_msg(msg, host)
-
-    def _handle_sink(self, msg, host):
-        pass
 
     def _handle_data(self, msg, host):
         if host not in self._connections:
@@ -397,11 +395,6 @@ class MsgFlowReceiver(Ribbon):
         except Exception as e:
             logging.exception(e)
 
-
-        if time.time() - self._last_announce > ANNOUNCE_INTERVAL:
-            self._last_announce = time.time()
-            
-            self._send_sink()
 
         if time.time() - self._last_status > STATUS_INTERVAL:
             self._last_status = time.time()
