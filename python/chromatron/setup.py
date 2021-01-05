@@ -69,6 +69,7 @@ setup(
         "colorlog==4.1.0",
         "python-logging-loki==0.3.1",
         "paho-mqtt==1.5.1",
+        "ifaddr==0.1.6",
     ],
 
     entry_points='''

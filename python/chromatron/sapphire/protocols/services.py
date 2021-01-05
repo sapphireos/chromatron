@@ -289,6 +289,7 @@ class ServiceManager(Ribbon):
             pass
 
         self.__send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
         self._port = self.__service_sock.getsockname()[1]
 
@@ -423,8 +424,8 @@ def main():
 
     try:
         while True:
-            if team.connected:
-                print(team.server)
+            # if team.connected:
+            #     print(team.server)
 
             time.sleep(1.0)
 
@@ -437,4 +438,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    
