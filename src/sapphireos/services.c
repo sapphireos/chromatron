@@ -356,16 +356,19 @@ void services_v_init( void ){
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
         
     // debug
-    // services_v_listen( 0x5678, 0 );
-    // services_v_join_team( 0x1234, 0, 10, 1000 );
+    
 
-    if( cfg_u64_get_device_id() != 93172270997720 ){
+    if( cfg_u64_get_device_id() == 93172270997720 ){
 
-        services_v_offer(1234, 5678, 1, 0);
+        services_v_join_team( 0x1234, 0, 11, 1000 );
+
+        // services_v_offer(1234, 5678, 1, 0);
     }
     else{
 
-        services_v_listen(1234, 5678);
+        services_v_join_team( 0x1234, 0, 10, 1000 );
+
+        // services_v_listen(1234, 5678);
     }
 }
 
