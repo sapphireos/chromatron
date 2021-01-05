@@ -34,153 +34,153 @@ from .catbustypes import *
 from sapphire.common import catbus_string_hash, util, Ribbon, MsgQueueEmptyException
 
 
-class Link(object):
-    def __init__(self,
-                 source=False,
-                 source_key=None,
-                 source_hash=None,
-                 dest_key=None,
-                 dest_hash=None,
-                 query=None,
-                 tags=None,
-                 callback=None):
+# class Link(object):
+#     def __init__(self,
+#                  source=False,
+#                  source_key=None,
+#                  source_hash=None,
+#                  dest_key=None,
+#                  dest_hash=None,
+#                  query=None,
+#                  tags=None,
+#                  callback=None):
 
-        self.source = source
+#         self.source = source
 
-        self.source_key = source_key
-        if source_key:
-            self.source_hash = catbus_string_hash(source_key)
-        else:
-            self.source_hash = source_hash
+#         self.source_key = source_key
+#         if source_key:
+#             self.source_hash = catbus_string_hash(source_key)
+#         else:
+#             self.source_hash = source_hash
 
-        self.dest_key = dest_key
-        if dest_key:
-            self.dest_hash = catbus_string_hash(dest_key)
-        else:
-            self.dest_hash = dest_hash
+#         self.dest_key = dest_key
+#         if dest_key:
+#             self.dest_hash = catbus_string_hash(dest_key)
+#         else:
+#             self.dest_hash = dest_hash
 
-        self.query = query
-        if self.query != None:
-            self.tags = [catbus_string_hash(a) for a in query]
+#         self.query = query
+#         if self.query != None:
+#             self.tags = [catbus_string_hash(a) for a in query]
 
-        else:
-            self.tags = tags
+#         else:
+#             self.tags = tags
 
-        self.callback = callback
+#         self.callback = callback
 
-    def __str__(self):
-        s = "Link: "
+#     def __str__(self):
+#         s = "Link: "
 
-        s += '-'
+#         s += '-'
 
-        if self.source:
-            s += 'S '
+#         if self.source:
+#             s += 'S '
 
-        else:
-            s += '- '
+#         else:
+#             s += '- '
 
-        s += 'src:%12d ' % (self.source_hash)
-        s += 'dst:%12d ' % (self.dest_hash)
-        s += 'query: %s' % (str(self.tags))
-
-
-        return s
-
-    def to_dict(self):
-        d = {
-            'source': self.source,
-            'source_key': self.source_key,
-            'source_hash': self.source_hash,
-            'dest_key': self.dest_key,
-            'dest_hash': self.dest_hash,
-            'query': self.query,
-            'tags': self.tags,
-        }
-
-        return d
-
-    def from_dict(self, d):
-        self.source = d['source']
-        self.source_key = d['source_key']
-        self.source_hash = d['source_hash']
-        self.dest_key = d['dest_key']
-        self.dest_hash = d['dest_hash']
-        self.query = d['query']
-        self.tags = d['tags']
-
-        return self
-
-    def __eq__(self, other):
-        if self.source != other.source:
-            return False
-
-        if self.source_hash != other.source_hash:
-            return False
-
-        if self.dest_hash != other.dest_hash:
-            return False
-
-        if self.tags and other.tags:
-            if not query_compare(self.tags, other.tags):
-                return False
+#         s += 'src:%12d ' % (self.source_hash)
+#         s += 'dst:%12d ' % (self.dest_hash)
+#         s += 'query: %s' % (str(self.tags))
 
 
-        return True
+#         return s
+
+#     def to_dict(self):
+#         d = {
+#             'source': self.source,
+#             'source_key': self.source_key,
+#             'source_hash': self.source_hash,
+#             'dest_key': self.dest_key,
+#             'dest_hash': self.dest_hash,
+#             'query': self.query,
+#             'tags': self.tags,
+#         }
+
+#         return d
+
+#     def from_dict(self, d):
+#         self.source = d['source']
+#         self.source_key = d['source_key']
+#         self.source_hash = d['source_hash']
+#         self.dest_key = d['dest_key']
+#         self.dest_hash = d['dest_hash']
+#         self.query = d['query']
+#         self.tags = d['tags']
+
+#         return self
+
+#     def __eq__(self, other):
+#         if self.source != other.source:
+#             return False
+
+#         if self.source_hash != other.source_hash:
+#             return False
+
+#         if self.dest_hash != other.dest_hash:
+#             return False
+
+#         if self.tags and other.tags:
+#             if not query_compare(self.tags, other.tags):
+#                 return False
 
 
-class Publisher(Ribbon):
-    def initialize(self, server=None):
-        self._server = server
-        self.link_data_transmissions = {}
-        self.name = "Publisher"
+#         return True
 
-    def loop(self):
-        timeout = None
 
-        if len(self.link_data_transmissions) > 0:
-            timeout = 0.0
+# class Publisher(Ribbon):
+#     def initialize(self, server=None):
+#         self._server = server
+#         self.link_data_transmissions = {}
+#         self.name = "Publisher"
 
-        try:
-            msgs = self.recv_all_msgs(timeout=timeout)
+#     def loop(self):
+#         timeout = None
 
-        except MsgQueueEmptyException:
-            msgs = []
+#         if len(self.link_data_transmissions) > 0:
+#             timeout = 0.0
 
-        data_msgs = []
+#         try:
+#             msgs = self.recv_all_msgs(timeout=timeout)
 
-        # get data messages, and go ahead and send anything that isn't Link Data.
-        for msg in msgs:
-            if isinstance(msg[0], LinkDataMsg):
-                data_msgs.append(msg)
+#         except MsgQueueEmptyException:
+#             msgs = []
 
-            else:
-                self._server._send_data_msg(msg[0], msg[1])
+#         data_msgs = []
 
-        # sort messages by host and target key
-        for msg, host in data_msgs:
-            if host not in self.link_data_transmissions:
-                self.link_data_transmissions[host] = {}
+#         # get data messages, and go ahead and send anything that isn't Link Data.
+#         for msg in msgs:
+#             if isinstance(msg[0], LinkDataMsg):
+#                 data_msgs.append(msg)
 
-            self.link_data_transmissions[host][msg.dest_hash] = msg
+#             else:
+#                 self._server._send_data_msg(msg[0], msg[1])
 
-        # print self.link_data_transmissions
-        for host in list(self.link_data_transmissions.keys()):
-            msgs = self.link_data_transmissions[host]
+#         # sort messages by host and target key
+#         for msg, host in data_msgs:
+#             if host not in self.link_data_transmissions:
+#                 self.link_data_transmissions[host] = {}
 
-            # get a random message for this host and send it
-            target = random.choice(list(msgs.keys()))
-            msg = msgs[target]
+#             self.link_data_transmissions[host][msg.dest_hash] = msg
 
-            self._server._send_data_msg(msg, host)
+#         # print self.link_data_transmissions
+#         for host in list(self.link_data_transmissions.keys()):
+#             msgs = self.link_data_transmissions[host]
 
-            # don't forget to remove message!
-            del msgs[target]
+#             # get a random message for this host and send it
+#             target = random.choice(list(msgs.keys()))
+#             msg = msgs[target]
 
-            # check if there are any messages left
-            if len(msgs) == 0:
-                del self.link_data_transmissions[host]
+#             self._server._send_data_msg(msg, host)
 
-        self.wait(0.02)
+#             # don't forget to remove message!
+#             del msgs[target]
+
+#             # check if there are any messages left
+#             if len(msgs) == 0:
+#                 del self.link_data_transmissions[host]
+
+#         self.wait(0.02)
 
 
 class Server(Ribbon):
@@ -222,10 +222,10 @@ class Server(Ribbon):
 
         self._inputs = [self.__announce_sock, self.__data_sock]
 
-        self._links = []
-        self._send_list = []
-        self._receive_cache = {}
-        self._sequences = {}
+        # self._links = []
+        # self._send_list = []
+        # self._receive_cache = {}
+        # self._sequences = {}
         self._hash_lookup = {}
 
         self._database.add_item('uptime', 0, 'uint32', readonly=True)
@@ -239,14 +239,14 @@ class Server(Ribbon):
             GetKeyMetaMsg: self._handle_get_key_meta,
             GetKeysMsg: self._handle_get_keys,
             SetKeysMsg: self._handle_set_keys,
-            LinkMsg: self._handle_link,
-            LinkDataMsg: self._handle_link_data,
+            # LinkMsg: self._handle_link,
+            # LinkDataMsg: self._handle_link_data,
             ShutdownMsg: self._handle_shutdown,
         }
 
         self._last_announce = time.time() - 10.0
 
-        self._publisher = Publisher(server=self)
+        # self._publisher = Publisher(server=self)
 
         self._origin_id = self._database['device_id']
 
@@ -261,34 +261,34 @@ class Server(Ribbon):
         time.sleep(0.1)
         self._send_shutdown()
 
-    def send(self, source_key=None, dest_key=None, dest_query=[]):
-        link = Link(source=True,
-                    source_key=source_key,
-                    dest_key=dest_key,
-                    query=dest_query)
+    # def send(self, source_key=None, dest_key=None, dest_query=[]):
+    #     link = Link(source=True,
+    #                 source_key=source_key,
+    #                 dest_key=dest_key,
+    #                 query=dest_query)
 
-        with self.__lock:
-            if link not in self._links:
-                self._links.append(link)
+    #     with self.__lock:
+    #         if link not in self._links:
+    #             self._links.append(link)
 
-                # add link hashes to lookup cache
-                self._hash_lookup[link.source_hash] = link.source_key
-                self._hash_lookup[link.dest_hash] = link.dest_key
+    #             # add link hashes to lookup cache
+    #             self._hash_lookup[link.source_hash] = link.source_key
+    #             self._hash_lookup[link.dest_hash] = link.dest_key
 
-    def receive(self, dest_key=None, source_key=None, source_query=[], callback=None):
-        link = Link(source=False,
-                    source_key=source_key,
-                    dest_key=dest_key,
-                    query=source_query,
-                    callback=callback)
+    # def receive(self, dest_key=None, source_key=None, source_query=[], callback=None):
+    #     link = Link(source=False,
+    #                 source_key=source_key,
+    #                 dest_key=dest_key,
+    #                 query=source_query,
+    #                 callback=callback)
 
-        with self.__lock:
-            if link not in self._links:
-                self._links.append(link)
+    #     with self.__lock:
+    #         if link not in self._links:
+    #             self._links.append(link)
 
-                # add link hashes to lookup cache
-                self._hash_lookup[link.source_hash] = link.source_key
-                self._hash_lookup[link.dest_hash] = link.dest_key
+    #             # add link hashes to lookup cache
+    #             self._hash_lookup[link.source_hash] = link.source_key
+    #             self._hash_lookup[link.dest_hash] = link.dest_key
 
     def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
@@ -315,69 +315,69 @@ class Server(Ribbon):
                 else:
                     raise
 
-    def _publish(self, key, _lock=True, _inc_sequence=True):
-        if _lock:
-            self.__lock.acquire()
+    # def _publish(self, key, _lock=True, _inc_sequence=True):
+    #     if _lock:
+    #         self.__lock.acquire()
 
-        if isinstance(key, str):
-            key_hash = catbus_string_hash(key)
+    #     if isinstance(key, str):
+    #         key_hash = catbus_string_hash(key)
 
-        else:
-            key_hash = key
+    #     else:
+    #         key_hash = key
 
-        # check for source links
-        try:
-            # check if we have the source key
-            if key_hash not in self._database:
-                return
+    #     # check for source links
+    #     try:
+    #         # check if we have the source key
+    #         if key_hash not in self._database:
+    #             return
 
-            if key_hash not in self._sequences:
-                self._sequences[key_hash] = random.randint(0, 65535)
+    #         if key_hash not in self._sequences:
+    #             self._sequences[key_hash] = random.randint(0, 65535)
 
-            if _inc_sequence:
-                self._sequences[key_hash] += 1
-                self._sequences[key_hash] %= 65535
-
-
-            links = [link for link in self._links if
-                    link.source and
-                    link.source_hash == key_hash]
-
-            # setup timestamp
-            seconds, fraction = util.datetime_to_ntp(util.now())
-            ntp_timestamp = NTPTimestampField(seconds=seconds, fraction=fraction)
-
-            source_query = self._database.get_query()
-
-            # check send list
-            senders = [a for a in self._send_list if a['source_hash'] == key_hash]
-            # print senders
-            for sender in senders:
-                try:
-                    try:
-                        data = self._database._kv_items[key]
-
-                    except KeyError:
-                        data = self._database._kv_items[self._database.lookup_hash(key)]
+    #         if _inc_sequence:
+    #             self._sequences[key_hash] += 1
+    #             self._sequences[key_hash] %= 65535
 
 
-                    msg = LinkDataMsg(
-                            flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
-                            ntp_timestamp=ntp_timestamp,
-                            source_query=source_query,
-                            source_hash=key_hash,
-                            dest_hash=sender['dest_hash'],
-                            data=data,
-                            sequence=self._sequences[key_hash])
+    #         links = [link for link in self._links if
+    #                 link.source and
+    #                 link.source_hash == key_hash]
 
-                    self._publisher.post_msg((msg, sender['host']))
+    #         # setup timestamp
+    #         seconds, fraction = util.datetime_to_ntp(util.now())
+    #         ntp_timestamp = NTPTimestampField(seconds=seconds, fraction=fraction)
 
-                except KeyError:
-                    pass
+    #         source_query = self._database.get_query()
 
-        finally:
-            if _lock:
-                self.__lock.release()
+    #         # check send list
+    #         senders = [a for a in self._send_list if a['source_hash'] == key_hash]
+    #         # print senders
+    #         for sender in senders:
+    #             try:
+    #                 try:
+    #                     data = self._database._kv_items[key]
+
+    #                 except KeyError:
+    #                     data = self._database._kv_items[self._database.lookup_hash(key)]
+
+
+    #                 msg = LinkDataMsg(
+    #                         flags=CATBUS_MSG_DATA_FLAG_TIME_SYNC,
+    #                         ntp_timestamp=ntp_timestamp,
+    #                         source_query=source_query,
+    #                         source_hash=key_hash,
+    #                         dest_hash=sender['dest_hash'],
+    #                         data=data,
+    #                         sequence=self._sequences[key_hash])
+
+    #                 self._publisher.post_msg((msg, sender['host']))
+
+    #             except KeyError:
+    #                 pass
+
+    #     finally:
+    #         if _lock:
+    #             self.__lock.release()
 
     def _send_data_msg(self, msg, host):
         msg.header.origin_id = self._origin_id
@@ -512,157 +512,157 @@ class Server(Ribbon):
 
         return reply_msg, host
 
-    def _handle_link(self, msg, host):
-        # check link type
+    # def _handle_link(self, msg, host):
+    #     # check link type
         
 
-        # source link
-        if msg.flags & CATBUS_MSG_LINK_FLAGS_SEND:
-            # check if we have dest key OR a default callback
-            if (msg.dest_hash not in self._database) and (self._default_callback == None):
-                return
+    #     # source link
+    #     if msg.flags & CATBUS_MSG_LINK_FLAGS_SEND:
+    #         # check if we have dest key OR a default callback
+    #         if (msg.dest_hash not in self._database) and (self._default_callback == None):
+    #             return
 
-            # run query
-            if not self._database.query(*msg.query):    
-                return
+    #         # run query
+    #         if not self._database.query(*msg.query):    
+    #             return
 
-            # change link flags and echo message back to sender
-            reply_msg = LinkMsg(flags=CATBUS_MSG_LINK_FLAGS_DATA,
-                                data_port=self._data_port,
-                                source_hash=msg.source_hash,
-                                dest_hash=msg.dest_hash,
-                                query=msg.query)
-            reply_msg.header.transaction_id = msg.header.transaction_id
+    #         # change link flags and echo message back to sender
+    #         reply_msg = LinkMsg(flags=CATBUS_MSG_LINK_FLAGS_DATA,
+    #                             data_port=self._data_port,
+    #                             source_hash=msg.source_hash,
+    #                             dest_hash=msg.dest_hash,
+    #                             query=msg.query)
+    #         reply_msg.header.transaction_id = msg.header.transaction_id
 
-            # change host reply port to data port
-            host = (host[0], msg.data_port)
+    #         # change host reply port to data port
+    #         host = (host[0], msg.data_port)
 
-            return reply_msg, host
+    #         return reply_msg, host
 
-        # receiver link
-        elif msg.flags & CATBUS_MSG_LINK_FLAGS_RECEIVE:
+    #     # receiver link
+    #     elif msg.flags & CATBUS_MSG_LINK_FLAGS_RECEIVE:
 
-            # check if we have the source key
-            if msg.source_hash not in self._database:
-                return
+    #         # check if we have the source key
+    #         if msg.source_hash not in self._database:
+    #             return
 
-            # run query
-            if not self._database.query(*msg.query):    
-                return
+    #         # run query
+    #         if not self._database.query(*msg.query):    
+    #             return
             
-            # change host reply port to data port
-            host = (host[0], msg.data_port)
+    #         # change host reply port to data port
+    #         host = (host[0], msg.data_port)
 
-            # remove current entries for this host
-            self._send_list = [a for a in self._send_list if 
-                                (a['host'] != host) or
-                                (a['dest_hash'] != msg.dest_hash) or
-                                (a['source_hash'] != msg.source_hash)]
+    #         # remove current entries for this host
+    #         self._send_list = [a for a in self._send_list if 
+    #                             (a['host'] != host) or
+    #                             (a['dest_hash'] != msg.dest_hash) or
+    #                             (a['source_hash'] != msg.source_hash)]
             
-            # add to sender list
-            entry = {'host': host, 
-                     'dest_hash': msg.dest_hash, 
-                     'source_hash': msg.source_hash,
-                     'ttl': 32.0}
+    #         # add to sender list
+    #         entry = {'host': host, 
+    #                  'dest_hash': msg.dest_hash, 
+    #                  'source_hash': msg.source_hash,
+    #                  'ttl': 32.0}
 
-            self._send_list.append(entry)
+    #         self._send_list.append(entry)
 
-        elif msg.flags & CATBUS_MSG_LINK_FLAGS_DATA:
-            # check if we have the source key
-            if msg.source_hash not in self._database:
-                return
+    #     elif msg.flags & CATBUS_MSG_LINK_FLAGS_DATA:
+    #         # check if we have the source key
+    #         if msg.source_hash not in self._database:
+    #             return
             
-            # change host reply port to data port
-            host = (host[0], msg.data_port)
+    #         # change host reply port to data port
+    #         host = (host[0], msg.data_port)
 
-            # remove current entries for this host
-            self._send_list = [a for a in self._send_list if 
-                                (a['host'] != host) or
-                                (a['dest_hash'] != msg.dest_hash) or
-                                (a['source_hash'] != msg.source_hash)]
+    #         # remove current entries for this host
+    #         self._send_list = [a for a in self._send_list if 
+    #                             (a['host'] != host) or
+    #                             (a['dest_hash'] != msg.dest_hash) or
+    #                             (a['source_hash'] != msg.source_hash)]
             
-            # add to sender list
-            entry = {'host': host, 
-                     'dest_hash': msg.dest_hash, 
-                     'source_hash': msg.source_hash,
-                     'ttl': 32.0}
+    #         # add to sender list
+    #         entry = {'host': host, 
+    #                  'dest_hash': msg.dest_hash, 
+    #                  'source_hash': msg.source_hash,
+    #                  'ttl': 32.0}
 
-            self._send_list.append(entry)
+    #         self._send_list.append(entry)
 
-    def _handle_link_data(self, msg, host):
-        # setup timestamp
-        if (msg.flags & CATBUS_MSG_LINK_FLAGS_DATA) == 0:
-            timestamp = util.now()
-        else:
-            timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
+    # def _handle_link_data(self, msg, host):
+    #     # setup timestamp
+    #     if (msg.flags & CATBUS_MSG_LINK_FLAGS_DATA) == 0:
+    #         timestamp = util.now()
+    #     else:
+    #         timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
 
-        try:
-            item = self._database.get_item(msg.dest_hash)
+    #     try:
+    #         item = self._database.get_item(msg.dest_hash)
 
-        except KeyError:
-            # entry not in data base
+    #     except KeyError:
+    #         # entry not in data base
 
-            # check if we have a link requesting this item
-            found = False
-            with self.__lock:
-                for link in self._links:
-                    if link.dest_hash == msg.dest_hash:
-                        found = True
+    #         # check if we have a link requesting this item
+    #         found = False
+    #         with self.__lock:
+    #             for link in self._links:
+    #                 if link.dest_hash == msg.dest_hash:
+    #                     found = True
 
-            if found:
-                self._database.add_item(
-                            self.resolve_hash(msg.dest_hash),
-                            msg.data.value, 
-                            data_type=get_type_name(msg.data.meta.type),
-                            count=msg.data.meta.array_len + 1)
+    #         if found:
+    #             self._database.add_item(
+    #                         self.resolve_hash(msg.dest_hash),
+    #                         msg.data.value, 
+    #                         data_type=get_type_name(msg.data.meta.type),
+    #                         count=msg.data.meta.array_len + 1)
 
-                item = self._database.get_item(msg.dest_hash)
+    #             item = self._database.get_item(msg.dest_hash)
 
-            elif self._default_callback != None:
+    #         elif self._default_callback != None:
 
-                # resolve hashes
-                source_key = self.resolve_hash(msg.source_hash, host=host)
-                # dest_key = self.resolve_hash(msg.dest_hash, host=host)
-                source_query = [self.resolve_hash(a, host=host) for a in msg.source_query]
+    #             # resolve hashes
+    #             source_key = self.resolve_hash(msg.source_hash, host=host)
+    #             # dest_key = self.resolve_hash(msg.dest_hash, host=host)
+    #             source_query = [self.resolve_hash(a, host=host) for a in msg.source_query]
 
-                self._default_callback(source_key, msg.data.value, source_query, timestamp)
-                return
+    #             self._default_callback(source_key, msg.data.value, source_query, timestamp)
+    #             return
 
-        # check read only flag
-        if item.meta.flags & CATBUS_FLAGS_READ_ONLY:
-            return
+    #     # check read only flag
+    #     if item.meta.flags & CATBUS_FLAGS_READ_ONLY:
+    #         return
 
-        # check current receive cache
-        try:
-            if self._receive_cache[msg.dest_hash][host]['sequence'] != msg.sequence:
-                # set data
-                self._database[msg.dest_hash] = msg.data.value
+    #     # check current receive cache
+    #     try:
+    #         if self._receive_cache[msg.dest_hash][host]['sequence'] != msg.sequence:
+    #             # set data
+    #             self._database[msg.dest_hash] = msg.data.value
 
-        except KeyError:
-            # set data
-            self._database[msg.dest_hash] = msg.data.value
+    #     except KeyError:
+    #         # set data
+    #         self._database[msg.dest_hash] = msg.data.value
 
-        with self.__lock:
-            if msg.dest_hash not in self._receive_cache:
-                self._receive_cache[msg.dest_hash] = {}
+    #     with self.__lock:
+    #         if msg.dest_hash not in self._receive_cache:
+    #             self._receive_cache[msg.dest_hash] = {}
 
-            self._receive_cache[msg.dest_hash][host] = {
-                'ttl': 32,
-                'data': msg.data,
-                'sequence': msg.sequence
-            }
+    #         self._receive_cache[msg.dest_hash][host] = {
+    #             'ttl': 32,
+    #             'data': msg.data,
+    #             'sequence': msg.sequence
+    #         }
 
-        # get matching links
-        with self.__lock:
-            links = [l for l in self._links if l.source_hash == msg.source_hash and query_tags(l.tags, msg.source_query)]
+    #     # get matching links
+    #     with self.__lock:
+    #         links = [l for l in self._links if l.source_hash == msg.source_hash and query_tags(l.tags, msg.source_query)]
 
-        for link in links:
-            if link.callback:
-                source_query = []
-                for hashed_key in msg.source_query:
-                    source_query.append(self.resolve_hash(hashed_key, host))
+    #     for link in links:
+    #         if link.callback:
+    #             source_query = []
+    #             for hashed_key in msg.source_query:
+    #                 source_query.append(self.resolve_hash(hashed_key, host))
 
-                link.callback(link.source_key, msg.data.value, source_query, timestamp)
+    #             link.callback(link.source_key, msg.data.value, source_query, timestamp)
 
     def _handle_shutdown(self, msg, host):
         pass
@@ -733,54 +733,54 @@ class Server(Ribbon):
             if self.visible:
                 self._send_announce()
 
-            # broadcast links
-            with self.__lock:
-                for link in self._links:
-                    link_flags = 0
+            # # broadcast links
+            # with self.__lock:
+            #     for link in self._links:
+            #         link_flags = 0
 
-                    if link.source:
-                        link_flags = CATBUS_MSG_LINK_FLAGS_SEND
+            #         if link.source:
+            #             link_flags = CATBUS_MSG_LINK_FLAGS_SEND
 
-                    else:
-                        link_flags = CATBUS_MSG_LINK_FLAGS_RECEIVE
+            #         else:
+            #             link_flags = CATBUS_MSG_LINK_FLAGS_RECEIVE
                     
-                    query = CatbusQuery()
-                    query._value = link.tags
+            #         query = CatbusQuery()
+            #         query._value = link.tags
 
-                    msg = LinkMsg(
-                            msg_flags=0,
-                            flags=link_flags,
-                            data_port=self._data_port,
-                            source_hash=link.source_hash,
-                            dest_hash=link.dest_hash,
-                            query=query)
+            #         msg = LinkMsg(
+            #                 msg_flags=0,
+            #                 flags=link_flags,
+            #                 data_port=self._data_port,
+            #                 source_hash=link.source_hash,
+            #                 dest_hash=link.dest_hash,
+            #                 query=query)
                     
-                    self._send_data_msg(msg, ('<broadcast>', CATBUS_MAIN_PORT))
+            #         self._send_data_msg(msg, ('<broadcast>', CATBUS_MAIN_PORT))
 
-                # prune senders
-                for a in self._send_list:
-                    a['ttl'] -= 4.0
+            #     # prune senders
+            #     for a in self._send_list:
+            #         a['ttl'] -= 4.0
 
-                self._send_list = [a for a in self._send_list if a['ttl'] >= 0.0]
+            #     self._send_list = [a for a in self._send_list if a['ttl'] >= 0.0]
 
-                # auto publish all source data
-                for send in self._send_list:
-                    self._publish(send['source_hash'], _lock=False, _inc_sequence=False)
+            #     # auto publish all source data
+            #     for send in self._send_list:
+            #         self._publish(send['source_hash'], _lock=False, _inc_sequence=False)
 
-                # print util.now()
-                # for link in self._links:
-                #     print link
+            #     # print util.now()
+            #     # for link in self._links:
+            #     #     print link
 
-                for i in list(self._receive_cache.keys()):
-                    for j in list(self._receive_cache[i].keys()):
-                        self._receive_cache[i][j]['ttl'] -= 4
+            #     for i in list(self._receive_cache.keys()):
+            #         for j in list(self._receive_cache[i].keys()):
+            #             self._receive_cache[i][j]['ttl'] -= 4
 
-                        if self._receive_cache[i][j]['ttl'] <= 0:
-                            del self._receive_cache[i][j]
+            #             if self._receive_cache[i][j]['ttl'] <= 0:
+            #                 del self._receive_cache[i][j]
 
-                    if len(self._receive_cache[i]) == 0:
-                        del self._receive_cache[i]
+            #         if len(self._receive_cache[i]) == 0:
+            #             del self._receive_cache[i]
 
-                # pprint(self._receive_cache)
+            #     # pprint(self._receive_cache)
 
 
