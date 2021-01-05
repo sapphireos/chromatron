@@ -31,7 +31,7 @@ from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
 from ..common import Ribbon, util, catbus_string_hash
 
-SERVICES_PORT               = 32040
+SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
@@ -74,8 +74,8 @@ class ServiceMsgOfferHeader(StructField):
         self.type = SERVICE_MSG_TYPE_OFFERS
 
 STATE_LISTEN    = 0
-STATE_CONNECTED = 0
-STATE_SERVER    = 0
+STATE_CONNECTED = 1
+STATE_SERVER    = 2
 
 SERVICE_UPTIME_MIN_DIFF = 5
 
@@ -179,6 +179,7 @@ class Team(object):
         self.state = STATE_LISTEN
 
         self.best_offer = self.offer
+        self.best_host = None
 
     def __str__(self):
         return f'Team: {self.service_id}:{self.group}'
@@ -211,11 +212,17 @@ class Team(object):
         
         return offer
 
-    def _process_offer(self, offer):
+    def _process_offer(self, offer, host):
         if offer > self.best_offer:
-            print("received better offer")
+            print(self.best_offer.server_valid, offer.server_valid)
+            if self.best_host != host:
+                logging.debug(f"Tracking host: {host}")
+
+            if (not self.best_offer.server_valid) and offer.server_valid:
+                logging.debug(f"Server is valid: {host}")
 
             self.best_offer = offer
+            self.best_host = host
 
 
 class ServiceManager(Ribbon):
@@ -295,7 +302,7 @@ class ServiceManager(Ribbon):
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
             try:
-                self._teams[offer.key]._process_offer(offer)
+                self._teams[offer.key]._process_offer(offer, host)
 
             except KeyError:
                 continue
@@ -357,7 +364,7 @@ def main():
 
     s = ServiceManager()
 
-    s.join_team(232457833, 15608638596488529903, 0, 0)
+    s.join_team(0x1234, 0, 0, 0)
 
     try:
         while True:
