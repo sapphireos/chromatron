@@ -36,10 +36,13 @@ SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
 
-class UnknownMessageException(Exception):
+class UnknownMessage(Exception):
     pass
 
-class InvalidMessageException(Exception):
+class InvalidMessage(Exception):
+    pass
+
+class InvalidVersion(Exception):
     pass
 
 
@@ -109,16 +112,20 @@ messages = {
 }
 
 def deserialize(buf):
-    msg_id = int(buf[4])
+    version = int(buf[4])
+    msg_id = int(buf[5])
+
+    if version != SERVICES_VERSION:
+        raise InvalidVersion()
 
     try:
         return messages[msg_id]().unpack(buf)
 
     except KeyError:
-        raise UnknownMessageException(msg_id)
+        raise UnknownMessage(msg_id)
 
     except (struct.error, UnicodeDecodeError) as e:
-        raise InvalidMessageException(msg_id, len(buf), e)
+        raise InvalidMessage(msg_id, len(buf), e)
 
 
 
@@ -208,7 +215,7 @@ class ServiceManager(Ribbon):
 
                     msg = deserialize(data)
 
-                    print(msg.header.magic)
+                    print(msg)
 
                     response = None                    
 
@@ -218,7 +225,10 @@ class ServiceManager(Ribbon):
                         response.header.transaction_id = msg.header.transaction_id
                         self._send_msg(response, host)
 
-                except UnknownMessageException as e:
+                except InvalidVersion:
+                    pass
+
+                except UnknownMessage as e:
                     raise
 
                 except Exception as e:
