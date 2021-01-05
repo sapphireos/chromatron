@@ -229,7 +229,7 @@ class MsgFlowReceiver(Ribbon):
             self.on_disconnect = on_disconnect
 
         self.services_manager = ServiceManager()
-        self.services_manager.offer("msgflow", self.service)
+        self.services_manager.offer("msgflow", self.service, self._port)
 
     def on_connect(self, host, device_id=None):
         pass
