@@ -27,7 +27,7 @@
 
 #include "sockets.h"
 
-#define SERVICES_PORT                       32040
+#define SERVICES_PORT                       32041
 #define SERVICES_MAGIC                      0x56524553 // 'SERV'
 #define SERVICES_VERSION                    2
 
@@ -80,7 +80,7 @@ typedef struct __attribute__((packed)){
 void services_v_init( void );
 
 void services_v_listen( uint32_t id, uint64_t group );
-// void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port );
+void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port );
 void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint16_t port );
 void services_v_cancel( uint32_t id, uint64_t group );
 

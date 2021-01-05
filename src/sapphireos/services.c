@@ -358,6 +358,15 @@ void services_v_init( void ){
     // debug
     // services_v_listen( 0x5678, 0 );
     // services_v_join_team( 0x1234, 0, 10, 1000 );
+
+    if( cfg_u64_get_device_id() != 93172270997720 ){
+
+        services_v_offer(1234, 5678, 1, 0);
+    }
+    else{
+
+        services_v_listen(1234, 5678);
+    }
 }
 
 void services_v_listen( uint32_t id, uint64_t group ){
@@ -389,14 +398,34 @@ void services_v_listen( uint32_t id, uint64_t group ){
     list_v_insert_tail( &service_list, ln );    
 }
 
-// void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
+void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
     
-    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-    //     return;
-    // }
+        return;
+    }
 
-// }
+    services_v_cancel( id, group );
+
+    service_state_t service = {0};
+    service.id                  = id;
+    service.group               = group;
+    service.is_team             = FALSE;
+    service.local_priority      = priority;
+    service.local_port          = port;
+
+    reset_state( &service );
+
+    list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &service_list, ln );    
+
+}
 
 void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
 

@@ -237,13 +237,15 @@ class ServiceManager(Ribbon):
         except AttributeError:
             pass
 
+        self.__send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
         self._port = self.__service_sock.getsockname()[1]
 
         logging.info(f"ServiceManager on port: {self._port}")
 
         self.__service_sock.setblocking(0)
 
-        self._inputs = [self.__service_sock]
+        self._inputs = [self.__service_sock, self.__send_sock]
         
         self._msg_handlers = {
             ServiceMsgOffers: self._handle_offers,
@@ -267,10 +269,11 @@ class ServiceManager(Ribbon):
         assert team.key not in self._teams
         
         self._teams[team.key] = team
-        team._process_offer(team.offer)
+
+        self._send_query(service_id, group)
 
     def _send_msg(self, msg, host):
-        s = self.__service_sock
+        s = self.__send_sock
 
         try:
             if host[0] == '<broadcast>':
@@ -323,7 +326,7 @@ class ServiceManager(Ribbon):
             for s in readable:
                 try:
                     data, host = s.recvfrom(1024)
-
+                    
                     msg = deserialize(data)
 
                     response, host = self._process_msg(msg, host)

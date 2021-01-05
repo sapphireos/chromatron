@@ -134,6 +134,9 @@ void link_v_init( void ){
 		return;
 	}
 
+
+return;
+
     thread_t_create( link_server_thread,
                  PSTR("link_server"),
                  0,
