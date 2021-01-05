@@ -337,48 +337,18 @@ class Team(Service):
 
         return flags
 
-class ServiceManager(Ribbon):
-    def initialize(self, 
-                   name='service_manager'):
+class ServiceManager(RibbonServer):
+    NAME = 'service_manager'
+    PORT = SERVICES_PORT
 
-        self.name = name
-
-        self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__service_sock.bind(('0.0.0.0', SERVICES_PORT))
-
-
-        self.__send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-        self._port = self.__service_sock.getsockname()[1]
-
-        logging.info(f"ServiceManager on port: {self._port}")
-
-        self.__service_sock.setblocking(0)
-
-        self._inputs = [self.__service_sock, self.__send_sock]
-        
-        self._msg_handlers = {
-            ServiceMsgOffers: self._handle_offers,
-            ServiceMsgQuery: self._handle_query,
-        }
-
+    def initialize(self):
         self._services = {}
         
         self._last_timer = time.time()
         self._last_offers = time.time()
-        
+
+        self.register_message(ServiceMsgOffers, self._handle_offers)
+        self.register_message(ServiceMsgQuery, self._handle_query)
         
     def clean_up(self):
         pass
@@ -436,25 +406,12 @@ class ServiceManager(Ribbon):
 
         return service
 
-    def _send_msg(self, msg, host):
-        s = self.__send_sock
-
-        try:
-            if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], msg.pack())
-
-            else:
-                s.sendto(msg.pack(), host)
-
-        except socket.error:
-            pass
-
     def _send_query(self, service_id, group, host=('<broadcast>', SERVICES_PORT)):
         msg = ServiceMsgQuery(
                 id=service_id,
                 group=group)
         
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_offers(self, offers, host=('<broadcast>', SERVICES_PORT)):
         header = ServiceMsgOfferHeader(
@@ -464,7 +421,7 @@ class ServiceManager(Ribbon):
                 offer_header=header,
                 offers=offers)
         
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
     
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
@@ -477,54 +434,7 @@ class ServiceManager(Ribbon):
     def _handle_query(self, msg, host):
         pass
 
-    def _process_msg(self, msg, host):        
-        tokens = self._msg_handlers[type(msg)](msg, host)
-
-        # normally, you'd just try to access the tuple and
-        # handle the exception. However, that will raise a TypeError, 
-        # and if we handle a TypeError here, then any TypeError generated
-        # in the message handler will essentially get eaten.
-        if not isinstance(tokens, tuple):
-            return None, None
-
-        if len(tokens) < 2:
-            return None, None
-
-        return tokens[0], tokens[1]
-
-
     def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
-
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
-                    
-                    msg = deserialize(data)
-
-                    response, host = self._process_msg(msg, host)
-                    
-                    if response:
-                        response.header.transaction_id = msg.header.transaction_id
-                        self._send_msg(response, host)
-
-                except InvalidVersion:
-                    pass
-
-                except UnknownMessage as e:
-                    raise
-
-                except Exception as e:
-                    logging.exception(e)
-
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-
         now = time.time()
 
         # process timeouts
@@ -550,26 +460,26 @@ class ServiceManager(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    r = RibbonServer(port=SERVICES_PORT)
-    r.register_message(ServiceMsgOffers, None)
-    r.register_message(ServiceMsgQuery, None)
+    # r = RibbonServer(port=SERVICES_PORT)
+    # r.register_message(ServiceMsgOffers, None)
+    # r.register_message(ServiceMsgQuery, None)
 
 
-    try:
-        while True:
-            # if team.connected:
-            #     print(team.server)
+    # try:
+    #     while True:
+    #         # if team.connected:
+    #         #     print(team.server)
 
-            time.sleep(1.0)
+    #         time.sleep(1.0)
 
 
-    except KeyboardInterrupt:
-        pass
+    # except KeyboardInterrupt:
+    #     pass
 
-    r.stop()
-    r.join()
+    # r.stop()
+    # r.join()
 
-    return
+    # return
 
     
 

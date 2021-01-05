@@ -84,6 +84,13 @@ class Ribbon(threading.Thread):
         if name:
             self.name = name
 
+        else:
+            try:
+                self.name = self.NAME
+                
+            except AttributeError:
+                pass
+
         self._stop_event = threading.Event()
 
         if initialize_func:
@@ -130,7 +137,7 @@ class Ribbon(threading.Thread):
                 if k in method_kwargs:
                     method_kwargs[k] = v
 
-            self.initialize(**method_kwargs)
+            self._initialize(**method_kwargs)
 
             if auto_start:
                 self.start()
@@ -141,6 +148,9 @@ class Ribbon(threading.Thread):
 
     def start(self):
         super(Ribbon, self).start()
+
+    def _initialize(self, **kwargs):
+        self.initialize(**kwargs)
 
     def initialize(self, **kwargs):
         pass
@@ -249,6 +259,7 @@ class InvalidVersion(Exception):
 
 import socket
 import select
+from .broadcast import send_udp_broadcast
 
 class RibbonServer(Ribbon):
     def __init__(self, *args, port=None, **kwargs):
@@ -259,6 +270,7 @@ class RibbonServer(Ribbon):
 
         kwargs['auto_start'] = False
         super().__init__(*args, **kwargs)
+        del kwargs['auto_start']
         
         self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -270,6 +282,13 @@ class RibbonServer(Ribbon):
 
         except AttributeError:
             pass
+
+        if port is None:
+            try:
+                port = self.PORT
+
+            except AttributeError:
+                pass
 
         if port is None:
             self.__server_sock.bind(('0.0.0.0', 0))
@@ -289,8 +308,13 @@ class RibbonServer(Ribbon):
         self._protocol_version = None
         self._protocol_version_offset = None
 
+        self.initialize(**kwargs)
+
         if auto_start:
             self.start()
+
+    def _initialize(self, **kwargs):
+        pass
 
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
