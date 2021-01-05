@@ -498,7 +498,6 @@ typedef struct{
 #ifdef ENABLE_TIME_SYNC
 static uint32_t vm0_sync_ts;
 static uint64_t vm0_sync_ticks;
-#endif
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
@@ -517,6 +516,7 @@ uint64_t vm_u64_get_sync_tick( void ){
 
     return vm0_sync_ticks;
 }
+#endif
 
 uint16_t vm_u16_get_data_len( void ){
 
@@ -627,6 +627,7 @@ PT_BEGIN( pt );
 
         state->delay_adjust = 0;
         
+        #ifdef ENABLE_TIME_SYNC
         if( state->vm_id == 0 ){
 
             // check if syncing VM and hold if so
@@ -637,6 +638,7 @@ PT_BEGIN( pt );
                 // we will run immediately.
             }
         }
+        #endif
 
         uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
         state->vm_delay = (int64_t)next_tick - (int64_t)state->vm_state.tick;
@@ -666,7 +668,7 @@ PT_BEGIN( pt );
         }        
         // VM sync stuff, only for VM 0
         else if( state->vm_id == 0 ){
-            
+            #ifdef ENABLE_TIME_SYNC
             // check if vm is a synced follower
             if( vm_sync_b_is_follower() ){
 
@@ -707,6 +709,7 @@ PT_BEGIN( pt );
                 //     log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
                 // }
             }
+            #endif
         }
 
         if( state->vm_id == 0 ){
@@ -734,6 +737,7 @@ PT_BEGIN( pt );
             goto exit;
         }
 
+        #ifdef ENABLE_TIME_SYNC
         // check if syncing
         if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
 
@@ -742,6 +746,7 @@ PT_BEGIN( pt );
 
             continue;
         }
+        #endif
 
         if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
@@ -760,12 +765,14 @@ PT_BEGIN( pt );
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
 
+        #ifdef ENABLE_TIME_SYNC
         if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
 
             // record network timestamp and current VM tick
             vm0_sync_ts = time_u32_get_network_time();
             vm0_sync_ticks = state->vm_state.tick;   
         }
+        #endif
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
