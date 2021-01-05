@@ -175,8 +175,9 @@ def deserialize(buf):
         raise InvalidMessage(msg_id, len(buf), e)
 
 
-class Team(object):
-    def __init__(self, service_id, group, priority, port):
+
+class Service(object):
+    def __init__(self, service_id, group, priority=0, port=0):
         self._service_id = service_id
         self._group = group
         self._port = port
@@ -185,7 +186,7 @@ class Team(object):
         self._reset()
 
     def __str__(self):
-        return f'Team: {self.service_id}:{self.group}'
+        return f'Service: {self.service_id}:{self.group}'
 
     def __eq__(self, other):
         return self.key == other.key
@@ -265,8 +266,13 @@ class Team(object):
             logging.debug(f"CONNECTED timeout: lost server")
             self._reset()
 
-        else:
-            assert False
+        
+class Team(Service):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def __str__(self):
+        return f'Team: {self.service_id}:{self.group}'
 
 
 class ServiceManager(Ribbon):
@@ -288,7 +294,7 @@ class ServiceManager(Ribbon):
             pass
 
         self.__service_sock.bind(('0.0.0.0', SERVICES_PORT))
-        
+
 
         self.__send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -306,9 +312,7 @@ class ServiceManager(Ribbon):
             ServiceMsgQuery: self._handle_query,
         }
 
-        self._offers = []
-        self._teams = {}
-        self._services = []
+        self._services = {}
         
         self._last_timer = time.time()
         
@@ -323,13 +327,35 @@ class ServiceManager(Ribbon):
 
         team = Team(service_id, group, priority, port)
 
-        assert team.key not in self._teams
+        assert team.key not in self._services
         
-        self._teams[team.key] = team
+        self._services[team.key] = team
 
         self._send_query(service_id, group)
 
         return team
+
+    def offer(self, service_id, group, port, priority=1):
+        assert priority != 0
+
+        service = Service(service_id, group, priority, port)
+
+        assert service.key not in self._services
+        
+        self._services[service.key] = service
+
+        return service
+
+    def listen(self, service_id, group):
+        service = Service(service_id, group)
+
+        assert service.key not in self._services
+        
+        self._services[service.key] = service
+
+        self._send_query(service_id, group)
+
+        return service
 
     def _send_msg(self, msg, host):
         s = self.__send_sock
@@ -354,7 +380,7 @@ class ServiceManager(Ribbon):
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
             try:
-                self._teams[offer.key]._process_offer(offer, host)
+                self._services[offer.key]._process_offer(offer, host)
 
             except KeyError:
                 continue
@@ -414,15 +440,17 @@ class ServiceManager(Ribbon):
         elapsed = now - self._last_timer
         self._last_timer = now
         
-        for team in self._teams.values():
-            team._process_timer(elapsed)
+        for svc in self._services.values():
+            svc._process_timer(elapsed)
 
 def main():
     util.setup_basic_logging(console=True)
 
     s = ServiceManager()
 
-    team = s.join_team(0x1234, 0, 0, 0)
+    # team = s.join_team(0x1234, 0, 0, 0)
+    # svc = s.listen(1234, 5678)
+    svc = s.offer(1234, 5678, 1000, priority=99)
 
     try:
         while True:
