@@ -79,7 +79,7 @@ class ServiceMsgOfferHeader(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
-        self.type = SERVICE_MSG_TYPE_OFFERS
+        self.header.type = SERVICE_MSG_TYPE_OFFERS
 
 STATE_LISTEN    = 0
 STATE_CONNECTED = 1
@@ -150,7 +150,7 @@ class ServiceMsgQuery(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
-        self.type = SERVICE_MSG_TYPE_QUERY
+        self.header.type = SERVICE_MSG_TYPE_QUERY
 
 
 messages = {
@@ -276,8 +276,7 @@ class ServiceManager(Ribbon):
         self.name = name
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__service_sock.bind(('0.0.0.0', SERVICES_PORT))
-
+        
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -287,6 +286,9 @@ class ServiceManager(Ribbon):
 
         except AttributeError:
             pass
+
+        self.__service_sock.bind(('0.0.0.0', SERVICES_PORT))
+        
 
         self.__send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
