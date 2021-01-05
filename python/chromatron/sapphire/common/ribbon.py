@@ -148,6 +148,9 @@ class Ribbon(threading.Thread):
     def clean_up(self):
         pass
 
+    def _loop(self):
+        self.loop()
+
     def loop(self):
         time.sleep(1.0)
 
@@ -159,7 +162,7 @@ class Ribbon(threading.Thread):
 
         while not self._stop_event.is_set():
             try:
-                self.loop()
+                self._loop()
 
             except Exception as e:
                 logging.exception("Ribbon: %s unexpected exception: %s" % (self.name, e))
@@ -231,6 +234,162 @@ class Ribbon(threading.Thread):
             msgs.append(self.queue.get())
 
         return msgs
+
+
+
+class UnknownMessage(Exception):
+    pass
+
+class InvalidMessage(Exception):
+    pass
+
+class InvalidVersion(Exception):
+    pass
+
+
+import socket
+import select
+
+class RibbonServer(Ribbon):
+    def __init__(self, *args, port=None, **kwargs):
+
+        auto_start = True
+        if 'auto_start' in kwargs:
+            auto_start = kwargs['auto_start']
+
+        kwargs['auto_start'] = False
+        super().__init__(*args, **kwargs)
+        
+        self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            # this option may fail on some platforms
+            self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        if port is None:
+            self.__server_sock.bind(('0.0.0.0', 0))
+            
+        else:
+            self.__server_sock.bind(('0.0.0.0', port))
+
+        self._port = self.__server_sock.getsockname()[1]
+
+        self.__server_sock.setblocking(0)
+
+        self._inputs = [self.__server_sock]
+
+        self._messages = {}
+        self._handlers = {}
+        self._msg_type_offset = None
+        self._protocol_version = None
+        self._protocol_version_offset = None
+
+        if auto_start:
+            self.start()
+
+    def default_handler(self, msg, host):
+        logging.debug(f"Unhandled message: {type(msg)} from {host}")        
+
+    def register_message(self, msg, handler=None):
+        if handler is None:
+            handler = self.default_handler
+
+        header = msg().header
+
+        if self._msg_type_offset is None:
+            self._msg_type_offset = header.offset('type')
+
+        if self._protocol_version is None:
+            try:
+                self._protocol_version_offset = header.offset('version')
+                self._protocol_version = header.version
+
+            except KeyError:
+                pass
+
+        msg_type = header.type
+        self._messages[msg_type] = msg
+        self._handlers[msg] = handler
+
+    def _deserialize(self, buf):
+        msg_id = int(buf[self._msg_type_offset])
+
+        try:
+            return self._messages[msg_id]().unpack(buf)
+
+        except KeyError:
+            raise UnknownMessage(msg_id)
+
+        except (struct.error, UnicodeDecodeError) as e:
+            raise InvalidMessage(msg_id, len(buf), e)
+
+        
+    def transmit(self, msg, host):
+        s = self.__server_sock
+
+        try:
+            if host[0] == '<broadcast>':
+                send_udp_broadcast(s, host[1], msg.pack())
+
+            else:
+                s.sendto(msg.pack(), host)
+
+        except socket.error:
+            pass
+
+    def _process_msg(self, msg, host):        
+        tokens = self._handlers[type(msg)](msg, host)
+
+        # normally, you'd just try to access the tuple and
+        # handle the exception. However, that will raise a TypeError, 
+        # and if we handle a TypeError here, then any TypeError generated
+        # in the message handler will essentially get eaten.
+        if not isinstance(tokens, tuple):
+            return None, None
+
+        if len(tokens) < 2:
+            return None, None
+
+        return tokens[0], tokens[1]
+
+
+    def _loop(self):
+        try:
+            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+
+            for s in readable:
+                try:
+                    data, host = s.recvfrom(1024)
+
+                    msg = self._deserialize(data)
+                    response = None                    
+
+                    response, host = self._process_msg(msg, host)
+                    
+                    if response:
+                        response.header.transaction_id = msg.header.transaction_id
+                        self._send_msg(response, host)
+
+                except UnknownMessage as e:
+                    raise
+
+                except Exception as e:
+                    logging.exception(e)
+
+
+        except select.error as e:
+            logging.exception(e)
+
+        except Exception as e:
+            logging.exception(e)
+
+        self.loop()
+
 
 def wait_for_signal():
     try:

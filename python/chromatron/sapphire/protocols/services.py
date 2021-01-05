@@ -29,7 +29,7 @@ import select
 import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, util, catbus_string_hash
+from ..common import Ribbon, RibbonServer, util, catbus_string_hash
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -73,13 +73,10 @@ class ServiceMsgHeader(StructField):
 
 class ServiceMsgOfferHeader(StructField):
     def __init__(self, **kwargs):
-        fields = [ServiceMsgHeader(_name="header"),
-                  Uint8Field(_name="count"),
+        fields = [Uint8Field(_name="count"),
                   ArrayField(_name="reserved", _field=Uint8Field, _length=3)]
 
         super().__init__(_fields=fields, **kwargs)
-
-        self.header.type = SERVICE_MSG_TYPE_OFFERS
 
 STATE_LISTEN    = 0
 STATE_CONNECTED = 1
@@ -137,10 +134,13 @@ class ServiceOffer(StructField):
 
 class ServiceMsgOffers(StructField):
     def __init__(self, **kwargs):
-        fields = [ServiceMsgOfferHeader(_name="offer_header"),
+        fields = [ServiceMsgHeader(_name="header"),
+                  ServiceMsgOfferHeader(_name="offer_header"),
                   ArrayField(_name="offers", _field=ServiceOffer)]
 
         super().__init__(_fields=fields, **kwargs)
+
+        self.header.type = SERVICE_MSG_TYPE_OFFERS
 
 class ServiceMsgQuery(StructField):
     def __init__(self, **kwargs):
@@ -549,6 +549,29 @@ class ServiceManager(Ribbon):
 
 def main():
     util.setup_basic_logging(console=True)
+
+    r = RibbonServer(port=SERVICES_PORT)
+    r.register_message(ServiceMsgOffers, None)
+    r.register_message(ServiceMsgQuery, None)
+
+
+    try:
+        while True:
+            # if team.connected:
+            #     print(team.server)
+
+            time.sleep(1.0)
+
+
+    except KeyboardInterrupt:
+        pass
+
+    r.stop()
+    r.join()
+
+    return
+
+    
 
     s = ServiceManager()
 
