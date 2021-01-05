@@ -73,6 +73,15 @@ class ServiceMsgOfferHeader(StructField):
 
         self.type = SERVICE_MSG_TYPE_OFFERS
 
+STATE_LISTEN    = 0
+STATE_CONNECTED = 0
+STATE_SERVER    = 0
+
+SERVICE_UPTIME_MIN_DIFF = 5
+
+SERVICE_OFFER_FLAGS_TEAM    = 0x01
+SERVICE_OFFER_FLAGS_SERVER  = 0x02
+
 class ServiceOffer(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="id"),
@@ -85,15 +94,45 @@ class ServiceOffer(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
+    @property
+    def key(self):
+        return (self.id << 64) + self.group
+
+    @property
+    def server_valid(self):
+        return (self.flags & SERVICE_OFFER_FLAGS_SERVER) != 0
+
+    def __gt__(self, other):
+        if other.priority > self.priority:
+            return False # other is better
+
+        if other.priority < self.priority:
+            return True # we are better
+
+        diff = other.uptime - self.uptime
+
+        if diff > SERVICE_UPTIME_MIN_DIFF:
+            # other is better
+            return False
+
+        if diff < (-1 * SERVICE_UPTIME_MIN_DIFF):
+            # we are better
+            return True
+
+
+        # IP address priority is not supported for now.
+        # this is hard to do on a Python system since we might
+        # have multiple IP addresses.
+        # We are assuming our services are always talking to hardware
+        # which will have priority.
+        return False
+
 class ServiceMsgOffers(StructField):
     def __init__(self, **kwargs):
         fields = [ServiceMsgOfferHeader(_name="offer_header"),
-                  ArrayField(_name="reserved", _field=ServiceOffer)]
+                  ArrayField(_name="offers", _field=ServiceOffer)]
 
         super().__init__(_fields=fields, **kwargs)
-
-SERVICE_OFFER_FLAGS_TEAM    = 0x01
-SERVICE_OFFER_FLAGS_SERVER  = 0x02
 
 class ServiceMsgQuery(StructField):
     def __init__(self, **kwargs):
@@ -128,6 +167,55 @@ def deserialize(buf):
         raise InvalidMessage(msg_id, len(buf), e)
 
 
+class Team(object):
+    def __init__(self, service_id, group, priority, port):
+        self.service_id = service_id
+        self.group = group
+        self.port = port
+        self.priority = priority
+
+        self.uptime = 0
+
+        self.state = STATE_LISTEN
+
+        self.best_offer = self.offer
+
+    def __str__(self):
+        return f'Team: {self.service_id}:{self.group}'
+
+    def __eq__(self, other):
+        return self.key == other.key
+
+    @property
+    def key(self):
+        return (self.service_id << 64) + self.group
+
+    @property
+    def flags(self):
+        flags = SERVICE_OFFER_FLAGS_TEAM
+
+        if self.state == STATE_SERVER:
+            flags |= SERVICE_OFFER_FLAGS_SERVER
+
+        return flags
+
+    @property
+    def offer(self):
+        offer = ServiceOffer(
+            id=self.service_id,
+            group=self.group,
+            priority=self.priority,
+            port=self.port,
+            uptime=self.uptime,
+            flags=self.flags)
+        
+        return offer
+
+    def _process_offer(self, offer):
+        if offer > self.best_offer:
+            print("received better offer")
+
+            self.best_offer = offer
 
 
 class ServiceManager(Ribbon):
@@ -162,12 +250,24 @@ class ServiceManager(Ribbon):
             ServiceMsgQuery: self._handle_query,
         }
 
+        self._offers = []
+        self._teams = {}
+        self._services = []
         
         # self._last_announce = time.time() - 10.0
         
         
     def clean_up(self):
         pass
+
+
+    def join_team(self, service_id, group, port, priority=0):
+        team = Team(service_id, group, priority, port)
+
+        assert team.key not in self._teams
+        
+        self._teams[team.key] = team
+        team._process_offer(team.offer)
 
     def _send_msg(self, msg, host):
         s = self.__service_sock
@@ -182,9 +282,20 @@ class ServiceManager(Ribbon):
         except socket.error:
             pass
 
+    def _send_query(self, service_id, group, host=('<broadcast>', SERVICES_PORT)):
+        msg = ServiceMsgQuery(
+                id=service_id,
+                group=group)
+        
+        self._send_msg(msg, host)
     
     def _handle_offers(self, msg, host):
-        pass
+        for offer in msg.offers:
+            try:
+                self._teams[offer.key]._process_offer(offer)
+
+            except KeyError:
+                continue
 
     def _handle_query(self, msg, host):
         pass
@@ -215,10 +326,6 @@ class ServiceManager(Ribbon):
 
                     msg = deserialize(data)
 
-                    print(msg)
-
-                    response = None                    
-
                     response, host = self._process_msg(msg, host)
                     
                     if response:
@@ -246,6 +353,8 @@ def main():
     util.setup_basic_logging(console=True)
 
     s = ServiceManager()
+
+    s.join_team(232457833, 15608638596488529903, 0, 0)
 
     try:
         while True:
