@@ -186,7 +186,7 @@ class Service(object):
         self._reset()
 
     def __str__(self):
-        return f'Service: {self.service_id}:{self.group}'
+        return f'Service: {self._service_id}:{self._group}'
 
     def __eq__(self, other):
         return self.key == other.key
@@ -277,10 +277,18 @@ class Service(object):
             self._best_host = host
 
     def _process_timer(self, elapsed):
-        self._timeout -= elapsed
+        if self._state == STATE_SERVER:
+            self._uptime += elapsed
+
+        elif self._best_offer is not None:
+            self._best_offer._uptime += elapsed
+
+        if self._state != STATE_SERVER:
+            self._timeout -= elapsed
 
         if self._timeout > 0.0:
             # pre-timeout
+
             return
 
         # timeout
@@ -321,7 +329,7 @@ class Team(Service):
         assert self._priority == 0
 
     def __str__(self):
-        return f'Team: {self.service_id}:{self.group}'
+        return f'Team: {self._service_id}:{self._group}'
 
 
 class ServiceManager(Ribbon):
@@ -428,6 +436,17 @@ class ServiceManager(Ribbon):
                 group=group)
         
         self._send_msg(msg, host)
+
+    def _send_offers(self, offers, host=('<broadcast>', SERVICES_PORT)):
+        header = ServiceMsgOfferHeader(
+            count=len(offers))
+
+        msg = ServiceMsgOffers(
+                offer_header=header,
+                offers=offers)
+        
+        print(offers[0])
+        self._send_msg(msg, host)
     
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
@@ -504,9 +523,11 @@ class ServiceManager(Ribbon):
             self._last_offers = now
 
             servers = [svc for svc in self._services.values() if svc.is_server]
+            offers = [svc._offer for svc in servers]
 
-            for server in servers:
-                print(server)
+            if len(offers) > 0:
+                self._send_offers(offers)
+
 
 def main():
     util.setup_basic_logging(console=True)
