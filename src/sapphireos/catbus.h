@@ -37,8 +37,8 @@
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
 
 #define CATBUS_ANNOUNCE_INTERVAL            24
-#define CATBUS_MAX_RECEIVE_LINKS            16
-#define CATBUS_MAX_SEND_LINKS               16
+// #define CATBUS_MAX_RECEIVE_LINKS            16
+// #define CATBUS_MAX_SEND_LINKS               16
 #define CATBUS_MAX_FILE_SESSIONS            4
 #define CATBUS_LINK_TIMEOUT                 64            
 
@@ -320,18 +320,18 @@ typedef struct __attribute__((packed)){
 
 void catbus_v_init( void );
 
-catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, 
-                             catbus_hash_t32 dest_hash, 
-                             catbus_query_t *dest_query,
-                             catbus_hash_t32 tag,
-                             uint8_t flags );
-catbus_link_t catbus_l_recv( catbus_hash_t32 dest_hash, 
-                             catbus_hash_t32 source_hash, 
-                             catbus_query_t *source_query,
-                             catbus_hash_t32 tag,
-                             uint8_t flags );
+// catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, 
+//                              catbus_hash_t32 dest_hash, 
+//                              catbus_query_t *dest_query,
+//                              catbus_hash_t32 tag,
+//                              uint8_t flags );
+// catbus_link_t catbus_l_recv( catbus_hash_t32 dest_hash, 
+//                              catbus_hash_t32 source_hash, 
+//                              catbus_query_t *source_query,
+//                              catbus_hash_t32 tag,
+//                              uint8_t flags );
 
-void catbus_v_purge_links( catbus_hash_t32 tag );
+// void catbus_v_purge_links( catbus_hash_t32 tag );
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,

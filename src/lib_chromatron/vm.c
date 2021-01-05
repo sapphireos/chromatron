@@ -147,39 +147,39 @@ static const PROGMEM uint32_t restricted_keys[] = {
     __KV__catbus_data_port,    
 };
 
-static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
+// static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
-    catbus_hash_t32 link_tag = 0;
+//     catbus_hash_t32 link_tag = 0;
 
-    if( vm_id == 0 ){
+//     if( vm_id == 0 ){
 
-        link_tag = __KV__vm_0;
-    }
-    else if( vm_id == 1 ){
+//         link_tag = __KV__vm_0;
+//     }
+//     else if( vm_id == 1 ){
 
-        link_tag = __KV__vm_1;
-    }
-    else if( vm_id == 2 ){
+//         link_tag = __KV__vm_1;
+//     }
+//     else if( vm_id == 2 ){
 
-        link_tag = __KV__vm_2;
-    }
-    else if( vm_id == 3 ){
+//         link_tag = __KV__vm_2;
+//     }
+//     else if( vm_id == 3 ){
 
-        link_tag = __KV__vm_3;
-    }
-    else{
+//         link_tag = __KV__vm_3;
+//     }
+//     else{
 
-        ASSERT( FALSE );
-    }
+//         ASSERT( FALSE );
+//     }
 
-    return link_tag;
-}
+//     return link_tag;
+// }
 
 
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
-    catbus_v_purge_links( get_link_tag( vm_id ) );
+    // catbus_v_purge_links( get_link_tag( vm_id ) );
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -222,7 +222,7 @@ static bool is_vm_running( uint8_t vm_id ){
 static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle ){
 
     uint32_t start_time = tmr_u32_get_system_time_ms();
-    catbus_hash_t32 link_tag = get_link_tag( vm_id );
+    // catbus_hash_t32 link_tag = get_link_tag( vm_id );
 
     *handle = -1;
     
@@ -448,14 +448,14 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
         fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
 
-        if( link.send ){
+        // if( link.send ){
 
-            catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag, 0 );
-        }
-        else{
+        //     catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag, 0 );
+        // }
+        // else{
 
-            catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag, 0 );
-        }
+        //     catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag, 0 );
+        // }
     }
 
     // load cron jobs
