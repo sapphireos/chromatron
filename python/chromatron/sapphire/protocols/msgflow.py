@@ -30,6 +30,7 @@ import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
 from ..common import Ribbon, util, catbus_string_hash
+from .services import ServiceManager
 
 
 MSGFLOW_LISTEN_PORT             = 32039
