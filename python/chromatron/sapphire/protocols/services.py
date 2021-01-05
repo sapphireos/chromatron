@@ -36,6 +36,12 @@ SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
 
+SERVICE_LISTEN_TIMEOUT              = 10
+SERVICE_CONNECTED_TIMEOUT           = 64
+SERVICE_CONNECTED_PING_THRESHOLD    = 48
+SERVICE_CONNECTED_WARN_THRESHOLD    = 16
+
+
 class UnknownMessage(Exception):
     pass
 
@@ -45,6 +51,8 @@ class InvalidMessage(Exception):
 class InvalidVersion(Exception):
     pass
 
+class ServiceNotConnected(Exception):
+    pass
 
 SERVICE_MSG_TYPE_OFFERS     = 1
 SERVICE_MSG_TYPE_QUERY      = 2
@@ -169,17 +177,12 @@ def deserialize(buf):
 
 class Team(object):
     def __init__(self, service_id, group, priority, port):
-        self.service_id = service_id
-        self.group = group
-        self.port = port
-        self.priority = priority
+        self._service_id = service_id
+        self._group = group
+        self._port = port
+        self._priority = priority
 
-        self.uptime = 0
-
-        self.state = STATE_LISTEN
-
-        self.best_offer = self.offer
-        self.best_host = None
+        self._reset()
 
     def __str__(self):
         return f'Team: {self.service_id}:{self.group}'
@@ -187,42 +190,83 @@ class Team(object):
     def __eq__(self, other):
         return self.key == other.key
 
+    def _reset(self):
+        self._uptime = 0
+        self._state = STATE_LISTEN
+        self._best_offer = None
+        self._best_host = None
+        self._timeout = SERVICE_LISTEN_TIMEOUT
+
     @property
     def key(self):
-        return (self.service_id << 64) + self.group
+        return (self._service_id << 64) + self._group
 
     @property
-    def flags(self):
+    def _flags(self):
         flags = SERVICE_OFFER_FLAGS_TEAM
 
-        if self.state == STATE_SERVER:
+        if self._state == STATE_SERVER:
             flags |= SERVICE_OFFER_FLAGS_SERVER
 
         return flags
 
     @property
-    def offer(self):
+    def _offer(self):
         offer = ServiceOffer(
-            id=self.service_id,
-            group=self.group,
-            priority=self.priority,
-            port=self.port,
-            uptime=self.uptime,
-            flags=self.flags)
+            id=self._service_id,
+            group=self._group,
+            priority=self._priority,
+            port=self._port,
+            uptime=self._uptime,
+            flags=self._flags)
         
         return offer
 
+    @property
+    def connected(self):
+        return self._state != STATE_LISTEN
+
+    @property
+    def server(self):
+        if not self.connected:
+            raise ServiceNotConnected
+
+        return self._best_host
+
     def _process_offer(self, offer, host):
-        if offer > self.best_offer:
-            print(self.best_offer.server_valid, offer.server_valid)
-            if self.best_host != host:
+        if (self._best_offer is None) or (offer > self._best_offer):
+            if self._best_host != host:
                 logging.debug(f"Tracking host: {host}")
 
-            if (not self.best_offer.server_valid) and offer.server_valid:
+            if ((self._best_offer is None) or not self._best_offer.server_valid) and offer.server_valid:
                 logging.debug(f"Server is valid: {host}")
 
-            self.best_offer = offer
-            self.best_host = host
+            self._best_offer = offer
+            self._best_host = host
+
+    def _process_timer(self, elapsed):
+        self._timeout -= elapsed
+
+        if self._timeout > 0.0:
+            # pre-timeout
+            return
+
+        # timeout
+        if self._state == STATE_LISTEN:
+            assert self._priority == 0
+
+            # check if we have a server available
+            if (self._best_offer is not None) and self._best_offer.server_valid:
+                logging.debug(f"CONNECTED to: {self._best_host}")
+                self._state = STATE_CONNECTED
+                self._timeout = SERVICE_CONNECTED_TIMEOUT
+
+        elif self._state == STATE_CONNECTED:
+            logging.debug(f"CONNECTED timeout: lost server")
+            self._reset()
+
+        else:
+            assert False
 
 
 class ServiceManager(Ribbon):
@@ -263,7 +307,7 @@ class ServiceManager(Ribbon):
         self._teams = {}
         self._services = []
         
-        # self._last_announce = time.time() - 10.0
+        self._last_timer = time.time()
         
         
     def clean_up(self):
@@ -271,6 +315,9 @@ class ServiceManager(Ribbon):
 
 
     def join_team(self, service_id, group, port, priority=0):
+        if priority != 0:
+            raise NotImplementedError("Services only available as follower")
+
         team = Team(service_id, group, priority, port)
 
         assert team.key not in self._teams
@@ -278,6 +325,8 @@ class ServiceManager(Ribbon):
         self._teams[team.key] = team
 
         self._send_query(service_id, group)
+
+        return team
 
     def _send_msg(self, msg, host):
         s = self.__send_sock
@@ -358,17 +407,27 @@ class ServiceManager(Ribbon):
         except Exception as e:
             logging.exception(e)
 
+        now = time.time()
+        elapsed = now - self._last_timer
+        self._last_timer = now
+        
+        for team in self._teams.values():
+            team._process_timer(elapsed)
 
 def main():
     util.setup_basic_logging(console=True)
 
     s = ServiceManager()
 
-    s.join_team(0x1234, 0, 0, 0)
+    team = s.join_team(0x1234, 0, 0, 0)
 
     try:
         while True:
+            if team.connected:
+                print(team.server)
+
             time.sleep(1.0)
+
 
     except KeyboardInterrupt:
         pass
