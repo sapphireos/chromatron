@@ -1078,6 +1078,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             else if( compare_server( service, header, pkt, ip ) ){
 
                 track_node( service, header, pkt, ip );
+
+                log_v_debug_P( PSTR("service switched to %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
             }
         }
     }
