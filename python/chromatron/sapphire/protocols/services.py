@@ -33,7 +33,7 @@ from ..common import Ribbon, util, catbus_string_hash
 
 SERVICES_PORT               = 32040
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
-SERVICES_VERSION            = 1
+SERVICES_VERSION            = 2
 
 
 class UnknownMessageException(Exception):
@@ -55,7 +55,7 @@ class ServiceMsgHeader(StructField):
                   Uint8Field(_name="flags"),
                   Uint8Field(_name="reserved")]
 
-        super(self).__init__(_fields=fields, **kwargs)
+        super().__init__(_fields=fields, **kwargs)
 
         self.magic          = SERVICES_MAGIC
         self.version        = SERVICES_VERSION
@@ -66,28 +66,28 @@ class ServiceMsgOfferHeader(StructField):
                   Uint8Field(_name="count"),
                   ArrayField(_name="reserved", _field=Uint8Field, _length=3)]
 
-        super(self).__init__(_fields=fields, **kwargs)
+        super().__init__(_fields=fields, **kwargs)
 
         self.type = SERVICE_MSG_TYPE_OFFERS
 
 class ServiceOffer(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="id"),
-                  Uint32Field(_name="group"),
+                  Uint64Field(_name="group"),
                   Uint16Field(_name="priority"),
                   Uint16Field(_name="port"),
                   Uint32Field(_name="uptime"),
                   Uint8Field(_name="flags"),
                   ArrayField(_name="reserved", _field=Uint8Field, _length=3)]
 
-        super(self).__init__(_fields=fields, **kwargs)
+        super().__init__(_fields=fields, **kwargs)
 
 class ServiceMsgOffers(StructField):
     def __init__(self, **kwargs):
         fields = [ServiceMsgOfferHeader(_name="offer_header"),
                   ArrayField(_name="reserved", _field=ServiceOffer)]
 
-        super(self).__init__(_fields=fields, **kwargs)
+        super().__init__(_fields=fields, **kwargs)
 
 SERVICE_OFFER_FLAGS_TEAM    = 0x01
 SERVICE_OFFER_FLAGS_SERVER  = 0x02
@@ -96,9 +96,9 @@ class ServiceMsgQuery(StructField):
     def __init__(self, **kwargs):
         fields = [ServiceMsgHeader(_name="header"),
                   Uint32Field(_name="id"),
-                  Uint32Field(_name="group")]
+                  Uint64Field(_name="group")]
 
-        super(self).__init__(_fields=fields, **kwargs)
+        super().__init__(_fields=fields, **kwargs)
 
         self.type = SERVICE_MSG_TYPE_QUERY
 
@@ -109,7 +109,7 @@ messages = {
 }
 
 def deserialize(buf):
-    msg_id = int(buf[0])
+    msg_id = int(buf[4])
 
     try:
         return messages[msg_id]().unpack(buf)
@@ -125,23 +125,12 @@ def deserialize(buf):
 
 class ServiceManager(Ribbon):
     def initialize(self, 
-                   name='service_manager', 
-                   service=None, 
-                   group=None,
-                   port=None,
-                   on_receive=None,
-                   on_connect=None,
-                   on_disconnect=None):
+                   name='service_manager'):
 
         self.name = name
 
         self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        if port is None:
-            self.__service_sock.bind(('0.0.0.0', 0))
-            
-        else:
-            self.__service_sock.bind(('0.0.0.0', port))
+        self.__service_sock.bind(('0.0.0.0', SERVICES_PORT))
 
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -166,47 +155,12 @@ class ServiceManager(Ribbon):
             ServiceMsgQuery: self._handle_query,
         }
 
-        self.service = service
-        self.group = group
-        self.port = port
-        self._service_hash = catbus_string_hash(service)
-
-        self._connections = {}
-
-        self._last_announce = time.time() - 10.0
-        self._last_status = time.time() - 10.0
-
-        if on_receive is not None:
-            self.on_receive = on_receive
-
-        if on_connect is not None:
-            self.on_connect = on_connect
-
-        if on_disconnect is not None:
-            self.on_disconnect = on_disconnect
-
-    def on_connect(self, host, device_id=None):
-        pass
-
-    def on_disconnect(self, host):
-        pass
-
-    def on_receive(self, host, data):
-        pass
-
+        
+        # self._last_announce = time.time() - 10.0
+        
+        
     def clean_up(self):
-        for host in self._connections:
-            self._send_stop(host)
-
-        time.sleep(0.1)
-
-        for host in self._connections:
-            self._send_stop(host)
-
-        time.sleep(0.1)
-
-        for host in self._connections:
-            self._send_stop(host)
+        pass
 
     def _send_msg(self, msg, host):
         s = self.__service_sock
@@ -221,92 +175,12 @@ class ServiceManager(Ribbon):
         except socket.error:
             pass
 
-    def _send_sink(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT)):
-        msg = MsgFlowMsgSink(
-                service=self._service_hash,
-                codebook=[0,0,0,0,0,0,0,0])
-
-        self._send_msg(msg, host)
-
-    def _send_status(self, host):
-        msg = MsgFlowMsgStatus(
-                sequence=self._connections[host]['sequence'])
-
-        self._send_msg(msg, host)
-
-    def _send_ready(self, host, sequence=None, code=0):
-        msg = MsgFlowMsgReady(
-                code=code)
-
-        self._send_msg(msg, host)
-
-    def _send_stop(self, host):
-        msg = MsgFlowMsgStop()
-                
-        self._send_msg(msg, host)
-
-    def _handle_sink(self, msg, host):
+    
+    def _handle_offers(self, msg, host):
         pass
 
-    def _handle_data(self, msg, host):
-        if host not in self._connections:
-            logging.warning(f"Host: {host} not found")
-            return
-
-        if len(msg.data) == 0:
-            # logging.debug(f"Keepalive from: {host}")
-            pass
-
-        else:
-            # check sequence
-            if msg.sequence > self._connections[host]['sequence']:
-                prev_seq = self._connections[host]['sequence']
-                self._connections[host]['sequence'] = msg.sequence
-                    
-                # TODO assuming ARQ!
-                self._send_status(host)
-
-                # data!
-                data = bytes(msg.data.toBasic())
-                try:
-                    self.on_receive(host, data)
-
-                except Exception as e:
-                    logging.exception(e)
-
-                logging.info(f"Msg {msg.sequence} len: {len(msg.data)} host: {host}")
-
-            elif msg.sequence <= self._connections[host]['sequence']:
-                # TODO assuming ARQ!
-                # got a duplicate data message, resend status
-                self._send_status(host)
-
-                logging.warning(f"Dup {msg.sequence} sequence: {self._connections[host]['sequence']}")
-
-        self._connections[host]['timeout'] = CONNECTION_TIMEOUT
-
-    def _handle_stop(self, msg, host):
-        if host in self._connections:
-            logging.info(f"Removing: {host}")
-            del self._connections[host]
-
-            try:
-                self.on_disconnect(host)
-            except Exception as e:
-                logging.exception(e)
-
-    def _handle_reset(self, msg, host):
-        if host not in self._connections:
-            logging.info(f"Connection from: {host} max_len: {msg.max_data_len}")
-            try:
-                self.on_connect(host, msg.device_id)
-
-            except Exception as e:
-                logging.exception(e)
-
-        self._connections[host] = {'sequence': 0, 'timeout': CONNECTION_TIMEOUT}
-
-        self._send_ready(host, code=msg.code)
+    def _handle_query(self, msg, host):
+        pass
 
     def _process_msg(self, msg, host):        
         tokens = self._msg_handlers[type(msg)](msg, host)
@@ -333,6 +207,9 @@ class ServiceManager(Ribbon):
                     data, host = s.recvfrom(1024)
 
                     msg = deserialize(data)
+
+                    print(msg.header.magic)
+
                     response = None                    
 
                     response, host = self._process_msg(msg, host)
@@ -355,38 +232,10 @@ class ServiceManager(Ribbon):
             logging.exception(e)
 
 
-        if time.time() - self._last_announce > ANNOUNCE_INTERVAL:
-            self._last_announce = time.time()
-            
-            self._send_sink()
-
-        if time.time() - self._last_status > STATUS_INTERVAL:
-            self._last_status = time.time()
-
-            for host in self._connections:
-                # process timeouts
-                self._connections[host]['timeout'] -= STATUS_INTERVAL
-
-                if self._connections[host]['timeout'] <= 0.0:
-
-                    logging.info(f"Timed out: {host}")
-                    self.on_disconnect(host)
-
-                    continue
-
-                self._send_status(host)
-
-            self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
-
-
 def main():
     util.setup_basic_logging(console=True)
 
-    def on_receive(host, data):
-        # print(sequence)
-        pass
-
-    m = ServiceManager(port=12345, service='test', on_receive=on_receive)
+    s = ServiceManager()
 
     try:
         while True:
@@ -395,8 +244,8 @@ def main():
     except KeyboardInterrupt:
         pass
 
-    m.stop()
-    m.join()
+    s.stop()
+    s.join()
 
 if __name__ == '__main__':
     main()
