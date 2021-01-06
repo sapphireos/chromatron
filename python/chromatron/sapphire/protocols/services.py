@@ -268,7 +268,7 @@ class Service(object):
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 else:
-                    self.reset()
+                    self._reset()
 
             else:
                 if (self._best_offer is None) or (self._best_offer < self._offer):
@@ -281,7 +281,7 @@ class Service(object):
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 else:
-                    self.reset()
+                    self._reset()
 
         elif self._state == STATE_CONNECTED:
             logging.debug(f"CONNECTED timeout: lost server")
