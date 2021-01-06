@@ -29,7 +29,7 @@ import select
 import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, RibbonServer, util, catbus_string_hash, UnknownMessage
+from ..common import Ribbon, RibbonServer, util, catbus_string_hash
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -217,7 +217,7 @@ class Service(object):
         if not isinstance(self, Team):
             if self._state in [STATE_LISTEN, STATE_CONNECTED]:
                 # check if NOT a server
-                if (offer.flags & SERVICE_OFFER_FLAGS_SERVER) != 0:
+                if (offer.flags & SERVICE_OFFER_FLAGS_SERVER) == 0:
                     return
 
                 if host == self._best_host:
@@ -225,7 +225,7 @@ class Service(object):
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 # compare priorities
-                elif offer > self._best_offer:
+                elif (self._best_offer is None) or (offer > self._best_offer):
                     logging.debug(f"Service switched to: {host}")
 
                     self._best_offer = offer

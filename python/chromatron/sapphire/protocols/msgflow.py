@@ -29,7 +29,7 @@ import select
 import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, util, catbus_string_hash
+from ..common import Ribbon, RibbonServer, util, catbus_string_hash
 from .services import ServiceManager
 
 
@@ -169,7 +169,9 @@ def deserialize(buf):
         raise InvalidMessageException(msg_id, len(buf), e)
 
 
-class MsgFlowReceiver(Ribbon):
+class MsgFlowReceiver(RibbonServer):
+    NAME = 'msgflow_receiver'
+
     def initialize(self, 
                    name='msgflow_receiver', 
                    service=None, 
