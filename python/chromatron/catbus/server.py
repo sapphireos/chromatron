@@ -667,8 +667,12 @@ class Server(Ribbon):
     def _handle_shutdown(self, msg, host):
         pass
 
-    def _process_msg(self, msg, host):        
-        tokens = self._msg_handlers[type(msg)](msg, host)
+    def _process_msg(self, msg, host):
+        try:
+            tokens = self._msg_handlers[type(msg)](msg, host)
+
+        except KeyError:
+            return None, None
 
         # normally, you'd just try to access the tuple and
         # handle the exception. However, that will raise a TypeError, 

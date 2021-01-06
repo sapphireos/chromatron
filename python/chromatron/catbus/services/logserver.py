@@ -54,6 +54,8 @@ class LokiHandler(Ribbon):
         self.name = 'lokihandler'
         self.settings = settings
 
+        return
+
         loki_handler = logging_loki.LokiHandler(
             url=f"{LOKI_SERVER}/loki/api/v1/push", 
             tags={"application": "chromatron-logserver"},
@@ -85,6 +87,8 @@ class LokiHandler(Ribbon):
 
         if msg is None:
             return
+
+        return
 
         host    = msg[0]
         info    = msg[1]
