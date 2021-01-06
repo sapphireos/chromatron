@@ -33,8 +33,6 @@ from ..common import Ribbon, RibbonServer, util, catbus_string_hash
 from .services import ServiceManager
 
 
-MSGFLOW_LISTEN_PORT             = 32039
-
 MSGFLOW_FLAGS_VERSION           = 1
 MSGFLOW_FLAGS_VERSION_MASK      = 0x0F
 

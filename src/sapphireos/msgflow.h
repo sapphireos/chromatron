@@ -31,7 +31,6 @@
 #include "catbus_common.h"
 #include "udp.h"
 
-#define MSGFLOW_LISTEN_PORT             32039
 #define MSGFLOW_TIMEOUT                 16
 #define MSGFLOW_KEEPALIVE               4
 

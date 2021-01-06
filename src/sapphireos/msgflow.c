@@ -307,7 +307,7 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
     // if fire and forget, transmit immediately
     if( state->code == MSGFLOW_CODE_NONE ){
         
-        if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+        if( sock_i16_sendto_m( state->sock, h, &raddr ) < 0 ){
 
             return FALSE;
         }
@@ -408,8 +408,10 @@ void msgflow_v_process_timeouts( void ){
         msgflow_t *m = (msgflow_t *)list_vp_get_data( ln );
         msgflow_state_t *mstate = thread_vp_get_data( *m );
 
+        sock_addr_t raddr = services_a_get( __KV__msgflow, mstate->service );
+
         // check if address is valid (and thread isn't shutting down)
-        if( !ip_b_is_zeroes( mstate->raddr.ipaddr ) && !mstate->shutdown ){
+        if( !ip_b_is_zeroes( raddr.ipaddr ) && !mstate->shutdown ){
 
             // check if timeout is expired
             if( mstate->timeout > 0 ){
