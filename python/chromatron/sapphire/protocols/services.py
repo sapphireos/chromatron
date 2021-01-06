@@ -29,7 +29,7 @@ import select
 import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, RibbonServer, util, catbus_string_hash
+from ..common import Ribbon, RibbonServer, util, catbus_string_hash, UnknownMessage
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -40,16 +40,6 @@ SERVICE_LISTEN_TIMEOUT              = 10.0
 SERVICE_CONNECTED_TIMEOUT           = 64.0
 SERVICE_CONNECTED_PING_THRESHOLD    = 48.0
 SERVICE_CONNECTED_WARN_THRESHOLD    = 16.0
-
-
-class UnknownMessage(Exception):
-    pass
-
-class InvalidMessage(Exception):
-    pass
-
-class InvalidVersion(Exception):
-    pass
 
 class ServiceNotConnected(Exception):
     pass
@@ -151,29 +141,6 @@ class ServiceMsgQuery(StructField):
         super().__init__(_fields=fields, **kwargs)
 
         self.header.type = SERVICE_MSG_TYPE_QUERY
-
-
-messages = {
-    SERVICE_MSG_TYPE_OFFERS:    ServiceMsgOffers,
-    SERVICE_MSG_TYPE_QUERY:     ServiceMsgQuery,
-}
-
-def deserialize(buf):
-    version = int(buf[4])
-    msg_id = int(buf[5])
-
-    if version != SERVICES_VERSION:
-        raise InvalidVersion()
-
-    try:
-        return messages[msg_id]().unpack(buf)
-
-    except KeyError:
-        raise UnknownMessage(msg_id)
-
-    except (struct.error, UnicodeDecodeError) as e:
-        raise InvalidMessage(msg_id, len(buf), e)
-
 
 
 class Service(object):
@@ -337,6 +304,7 @@ class Team(Service):
 
         return flags
 
+
 class ServiceManager(RibbonServer):
     NAME = 'service_manager'
     PORT = SERVICES_PORT
@@ -344,12 +312,12 @@ class ServiceManager(RibbonServer):
     def initialize(self):
         self._services = {}
         
-        self._last_timer = time.time()
-        self._last_offers = time.time()
-
         self.register_message(ServiceMsgOffers, self._handle_offers)
         self.register_message(ServiceMsgQuery, self._handle_query)
-        
+            
+        self.start_timer(1.0, self._process_timers)
+        self.start_timer(4.0, self._process_offer_timer)
+
     def clean_up(self):
         pass
 
@@ -434,38 +402,22 @@ class ServiceManager(RibbonServer):
     def _handle_query(self, msg, host):
         pass
 
-    def loop(self):
-        now = time.time()
-
-        # process timeouts
-        elapsed = now - self._last_timer
-        self._last_timer = now
-        
+    def _process_timers(self):
         for svc in self._services.values():
-            svc._process_timer(elapsed)
+            svc._process_timer(1.0)
 
-        # process offer timer
-        elapsed = now - self._last_offers
-        
-        if elapsed >= SERVICE_RATE:
-            self._last_offers = now
+    def _process_offer_timer(self):
+        servers = [svc for svc in self._services.values() if svc.is_server]
+        offers = [svc._offer for svc in servers]
 
-            servers = [svc for svc in self._services.values() if svc.is_server]
-            offers = [svc._offer for svc in servers]
-
-            if len(offers) > 0:
-                self._send_offers(offers)
+        if len(offers) > 0:
+            self._send_offers(offers)
 
 
 def main():
     util.setup_basic_logging(console=True)
 
     s = ServiceManager()
-
-    def meow():
-        print('meow')
-
-    s.start_timer(1.0, meow)
 
     # team = s.join_team(0x1234, 0, 0, 0)
     # svc = s.listen(1234, 5678)
