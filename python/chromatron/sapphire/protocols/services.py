@@ -150,6 +150,8 @@ class Service(object):
         self._port = port
         self._priority = priority
 
+        assert self._port is not None
+
         self._reset()
 
     def __str__(self):
@@ -312,6 +314,8 @@ class ServiceManager(RibbonServer):
     PORT = SERVICES_PORT
 
     def initialize(self):
+        super().initialize()
+        
         self._services = {}
         
         self.register_message(ServiceMsgOffers, self._handle_offers)

@@ -281,11 +281,6 @@ class _Timer(threading.Thread):
 
 class RibbonServer(Ribbon):
     def __init__(self, *args, **kwargs):
-
-        auto_start = True
-        if 'auto_start' in kwargs:
-            auto_start = kwargs['auto_start']
-
         kwargs['auto_start'] = False
         super().__init__(*args, **kwargs)
         del kwargs['auto_start']
@@ -303,6 +298,9 @@ class RibbonServer(Ribbon):
         self._port = None
 
         self.initialize(**kwargs)
+
+    def initialize(self, port=None):
+        self._port = port
 
         self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -334,11 +332,7 @@ class RibbonServer(Ribbon):
 
         self._inputs = [self.__server_sock, self._timer_sock]
 
-        if auto_start:
-            self.start()
-
-    def initialize(self, port=None):
-        self._port = port
+        self.start()
 
     def _initialize(self, **kwargs):
         pass
