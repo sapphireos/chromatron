@@ -132,8 +132,10 @@ class LokiHandler(Ribbon):
 
 
 class LogServer(MsgFlowReceiver):
+    NAME = 'logserver'
+
     def initialize(self, settings={}):
-        super().initialize(name='logserver', service='logserver', port=LOGSERVER_PORT)
+        super().initialize(service='logserver', port=LOGSERVER_PORT)
         self.settings = settings
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])
@@ -146,6 +148,8 @@ class LogServer(MsgFlowReceiver):
         self._catbus_directory = Directory()
 
         self.update_directory()
+
+        self.start_timer(DIRECTORY_UPDATE_INTERVAL, self.update_directory)
 
     def update_directory(self):
         self.directory = self._catbus_directory.get_directory()
@@ -191,12 +195,6 @@ class LogServer(MsgFlowReceiver):
         
     def on_disconnect(self, host):
         self.loki.logger.info(f"Disconnected: {host[0]}:{host[1]}")
-
-    def loop(self):
-        super().loop()
-
-        if time.time() - self._last_directory_update > DIRECTORY_UPDATE_INTERVAL:
-            self.update_directory()
 
 
 def main():

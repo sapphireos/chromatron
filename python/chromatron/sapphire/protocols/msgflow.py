@@ -144,73 +144,24 @@ class MsgFlowMsgCodebook(StructField):
 
         self.header.type = MSGFLOW_TYPE_CODEBOOK
 
-messages = {
-    MSGFLOW_TYPE_RESET:     MsgFlowMsgReset,
-    MSGFLOW_TYPE_READY:     MsgFlowMsgReady,
-    MSGFLOW_TYPE_STATUS:    MsgFlowMsgStatus,
-    MSGFLOW_TYPE_DATA:      MsgFlowMsgData,
-    MSGFLOW_TYPE_STOP:      MsgFlowMsgStop,
-    MSGFLOW_TYPE_QUERY_CODEBOOK: MsgFlowMsgQueryCodebook,
-    MSGFLOW_TYPE_CODEBOOK:  MsgFlowMsgCodebook,   
-}
-
-def deserialize(buf):
-    msg_id = int(buf[0])
-
-    try:
-        return messages[msg_id]().unpack(buf)
-
-    except KeyError:
-        raise UnknownMessageException(msg_id)
-
-    except (struct.error, UnicodeDecodeError) as e:
-        raise InvalidMessageException(msg_id, len(buf), e)
-
 
 class MsgFlowReceiver(RibbonServer):
     NAME = 'msgflow_receiver'
 
     def initialize(self, 
-                   name='msgflow_receiver', 
                    service=None, 
                    port=None,
                    on_receive=None,
                    on_connect=None,
                    on_disconnect=None):
 
-        self.name = name
-
-        self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        if port is None:
-            self.__service_sock.bind(('0.0.0.0', 0))
-            
-        else:
-            self.__service_sock.bind(('0.0.0.0', port))
-
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self._port = self.__service_sock.getsockname()[1]
-
-        logging.info(f"MsgFlowReceiver on port: {self._port}")
-
-        self.__service_sock.setblocking(0)
-
-        self._inputs = [self.__service_sock]
+        super().initialize(port=port)
         
-        self._msg_handlers = {
-            MsgFlowMsgReset: self._handle_reset,
-            MsgFlowMsgData: self._handle_data,
-            MsgFlowMsgStop: self._handle_stop,
-        }
+        self.register_message(MsgFlowMsgReset, self._handle_reset)
+        self.register_message(MsgFlowMsgData, self._handle_data)
+        self.register_message(MsgFlowMsgStop, self._handle_stop)
+
+        self.start_timer(STATUS_INTERVAL, self._process_status_timer)
 
         self.service = service
         self._service_hash = catbus_string_hash(service)
@@ -254,35 +205,22 @@ class MsgFlowReceiver(RibbonServer):
         for host in self._connections:
             self._send_stop(host)
 
-    def _send_msg(self, msg, host):
-        s = self.__service_sock
-
-        try:
-            if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], msg.pack())
-
-            else:
-                s.sendto(msg.pack(), host)
-
-        except socket.error:
-            pass
-
     def _send_status(self, host):
         msg = MsgFlowMsgStatus(
                 sequence=self._connections[host]['sequence'])
 
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_ready(self, host, sequence=None, code=0):
         msg = MsgFlowMsgReady(
                 code=code)
 
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_stop(self, host):
         msg = MsgFlowMsgStop()
                 
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _handle_data(self, msg, host):
         if host not in self._connections:
@@ -349,72 +287,22 @@ class MsgFlowReceiver(RibbonServer):
 
         self._send_ready(host, code=msg.code)
 
-    def _process_msg(self, msg, host):        
-        tokens = self._msg_handlers[type(msg)](msg, host)
+    def _process_status_timer(self):
+        for host in self._connections:
+            # process timeouts
+            self._connections[host]['timeout'] -= STATUS_INTERVAL
 
-        # normally, you'd just try to access the tuple and
-        # handle the exception. However, that will raise a TypeError, 
-        # and if we handle a TypeError here, then any TypeError generated
-        # in the message handler will essentially get eaten.
-        if not isinstance(tokens, tuple):
-            return None, None
+            if self._connections[host]['timeout'] <= 0.0:
 
-        if len(tokens) < 2:
-            return None, None
+                logging.info(f"Timed out: {host}")
+                self.on_disconnect(host)
 
-        return tokens[0], tokens[1]
+                continue
 
+            self._send_status(host)
 
-    def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
-
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
-
-                    msg = deserialize(data)
-                    response = None                    
-
-                    response, host = self._process_msg(msg, host)
-                    
-                    if response:
-                        response.header.transaction_id = msg.header.transaction_id
-                        self._send_msg(response, host)
-
-                except UnknownMessageException as e:
-                    raise
-
-                except Exception as e:
-                    logging.exception(e)
-
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-
-
-        if time.time() - self._last_status > STATUS_INTERVAL:
-            self._last_status = time.time()
-
-            for host in self._connections:
-                # process timeouts
-                self._connections[host]['timeout'] -= STATUS_INTERVAL
-
-                if self._connections[host]['timeout'] <= 0.0:
-
-                    logging.info(f"Timed out: {host}")
-                    self.on_disconnect(host)
-
-                    continue
-
-                self._send_status(host)
-
-            self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
-
-
+        self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
+            
 def main():
     util.setup_basic_logging(console=True)
 

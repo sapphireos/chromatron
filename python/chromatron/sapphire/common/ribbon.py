@@ -280,7 +280,7 @@ class _Timer(threading.Thread):
             self._timer_sock.sendto('test'.encode(), ('127.0.0.1', self.dest_port))
 
 class RibbonServer(Ribbon):
-    def __init__(self, *args, port=None, **kwargs):
+    def __init__(self, *args, **kwargs):
 
         auto_start = True
         if 'auto_start' in kwargs:
@@ -290,6 +290,20 @@ class RibbonServer(Ribbon):
         super().__init__(*args, **kwargs)
         del kwargs['auto_start']
         
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('0.0.0.0', 0))
+        self._timer_port = self._timer_sock.getsockname()[1]
+
+        self._messages = {}
+        self._handlers = {}
+        self._msg_type_offset = None
+        self._protocol_version = None
+        self._protocol_version_offset = None
+        self._timers = {}
+        self._port = None
+
+        self.initialize(**kwargs)
+
         self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -301,40 +315,30 @@ class RibbonServer(Ribbon):
         except AttributeError:
             pass
 
-        if port is None:
+        if self._port is None:
             try:
                 port = self.PORT
 
             except AttributeError:
                 pass
 
-        if port is None:
+        if self._port is None:
             self.__server_sock.bind(('0.0.0.0', 0))
             
         else:
-            self.__server_sock.bind(('0.0.0.0', port))
+            self.__server_sock.bind(('0.0.0.0', self._port))
 
         self._port = self.__server_sock.getsockname()[1]
 
         self.__server_sock.setblocking(0)
 
-        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._timer_sock.bind(('0.0.0.0', 0))
-        self._timer_port = self._timer_sock.getsockname()[1]
-
         self._inputs = [self.__server_sock, self._timer_sock]
-
-        self._messages = {}
-        self._handlers = {}
-        self._msg_type_offset = None
-        self._protocol_version = None
-        self._protocol_version_offset = None
-        self._timers = {}
-
-        self.initialize(**kwargs)
 
         if auto_start:
             self.start()
+
+    def initialize(self, port=None):
+        self._port = port
 
     def _initialize(self, **kwargs):
         pass
@@ -408,6 +412,8 @@ class RibbonServer(Ribbon):
 
         return tokens[0], tokens[1]
 
+    def loop(self):
+        pass
 
     def _loop(self):
         try:
