@@ -202,7 +202,9 @@ class Service(object):
         if not self.connected:
             raise ServiceNotConnected
 
-        return self._best_host
+        host = (self._best_host[0], self._best_offer.port)
+        
+        return host
 
     def _process_offer(self, offer, host):
         # filter packet
@@ -220,16 +222,16 @@ class Service(object):
                 if (offer.flags & SERVICE_OFFER_FLAGS_SERVER) == 0:
                     return
 
-                if host == self._best_host:
+                if (host == self._best_host) and (self._state == STATE_CONNECTED):
                     # update timeout, we are connected to this server
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 # compare priorities
                 elif (self._best_offer is None) or (offer > self._best_offer):
-                    logging.debug(f"Service switched to: {host}")
-
                     self._best_offer = offer
                     self._best_host = host
+
+                    logging.debug(f"Service switched to: {(self._best_host, self._best_offer.port)}")
 
         # TEAM
         elif (self._best_offer is None) or (offer > self._best_offer):
@@ -247,7 +249,7 @@ class Service(object):
             self._uptime += elapsed
 
         elif self._best_offer is not None:
-            self._best_offer._uptime += elapsed
+            self._best_offer.uptime += elapsed
 
         if self._state != STATE_SERVER:
             self._timeout -= elapsed
@@ -427,6 +429,8 @@ def main():
         while True:
             # if team.connected:
             #     print(team.server)
+            if svc.connected:
+                print(svc.server)
 
             time.sleep(1.0)
 
