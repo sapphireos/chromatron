@@ -420,7 +420,7 @@ def main():
     s = ServiceManager()
 
     # team = s.join_team(0x1234, 0, 0, 0)
-    # svc = s.listen(1234, 5678)
+    svc = s.listen(1234, 5678)
     # svc = s.offer(1234, 5678, 1000, priority=99)
 
     try:
