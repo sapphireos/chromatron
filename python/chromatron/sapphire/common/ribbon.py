@@ -261,6 +261,24 @@ import socket
 import select
 from .broadcast import send_udp_broadcast
 
+class _Timer(threading.Thread):
+    def __init__(self, interval, port):
+        super().__init__()
+
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('0.0.0.0', 0))
+        self.interval = interval    
+        self.port = self._timer_sock.getsockname()[1]
+        self.dest_port = port
+
+        self.daemon = True
+        self.start()
+
+    def run(self):
+        while True:
+            time.sleep(self.interval)
+            self._timer_sock.sendto('test'.encode(), ('127.0.0.1', self.dest_port))
+
 class RibbonServer(Ribbon):
     def __init__(self, *args, port=None, **kwargs):
 
@@ -300,13 +318,18 @@ class RibbonServer(Ribbon):
 
         self.__server_sock.setblocking(0)
 
-        self._inputs = [self.__server_sock]
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('0.0.0.0', 0))
+        self._timer_port = self._timer_sock.getsockname()[1]
+
+        self._inputs = [self.__server_sock, self._timer_sock]
 
         self._messages = {}
         self._handlers = {}
         self._msg_type_offset = None
         self._protocol_version = None
         self._protocol_version_offset = None
+        self._timers = {}
 
         self.initialize(**kwargs)
 
@@ -315,6 +338,10 @@ class RibbonServer(Ribbon):
 
     def _initialize(self, **kwargs):
         pass
+
+    def start_timer(self, interval, handler):
+        timer = _Timer(interval, self._timer_port)
+        self._timers[timer.port] = handler
 
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
@@ -390,14 +417,17 @@ class RibbonServer(Ribbon):
                 try:
                     data, host = s.recvfrom(1024)
 
-                    msg = self._deserialize(data)
-                    response = None                    
+                    if s == self.__server_sock:
+                        msg = self._deserialize(data)
+                        response = None                    
 
-                    response, host = self._process_msg(msg, host)
-                    
-                    if response:
-                        response.header.transaction_id = msg.header.transaction_id
-                        self._send_msg(response, host)
+                        response, host = self._process_msg(msg, host)
+                        
+                        if response:
+                            self.transmit(response, host)
+
+                    elif host[1] in self._timers:
+                        self._timers[host[1]]()
 
                 except UnknownMessage as e:
                     raise
@@ -413,7 +443,6 @@ class RibbonServer(Ribbon):
             logging.exception(e)
 
         self.loop()
-
 
 def wait_for_signal():
     try:

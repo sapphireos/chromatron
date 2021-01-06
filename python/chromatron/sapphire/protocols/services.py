@@ -460,34 +460,16 @@ class ServiceManager(RibbonServer):
 def main():
     util.setup_basic_logging(console=True)
 
-    # r = RibbonServer(port=SERVICES_PORT)
-    # r.register_message(ServiceMsgOffers, None)
-    # r.register_message(ServiceMsgQuery, None)
-
-
-    # try:
-    #     while True:
-    #         # if team.connected:
-    #         #     print(team.server)
-
-    #         time.sleep(1.0)
-
-
-    # except KeyboardInterrupt:
-    #     pass
-
-    # r.stop()
-    # r.join()
-
-    # return
-
-    
-
     s = ServiceManager()
+
+    def meow():
+        print('meow')
+
+    s.start_timer(1.0, meow)
 
     # team = s.join_team(0x1234, 0, 0, 0)
     # svc = s.listen(1234, 5678)
-    svc = s.offer(1234, 5678, 1000, priority=99)
+    # svc = s.offer(1234, 5678, 1000, priority=99)
 
     try:
         while True:
