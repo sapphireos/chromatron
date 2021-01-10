@@ -84,6 +84,13 @@ class Ribbon(threading.Thread):
         if name:
             self.name = name
 
+        else:
+            try:
+                self.name = self.NAME
+                
+            except AttributeError:
+                pass
+
         self._stop_event = threading.Event()
 
         if initialize_func:
@@ -130,7 +137,7 @@ class Ribbon(threading.Thread):
                 if k in method_kwargs:
                     method_kwargs[k] = v
 
-            self.initialize(**method_kwargs)
+            self._initialize(**method_kwargs)
 
             if auto_start:
                 self.start()
@@ -142,11 +149,17 @@ class Ribbon(threading.Thread):
     def start(self):
         super(Ribbon, self).start()
 
+    def _initialize(self, **kwargs):
+        self.initialize(**kwargs)
+
     def initialize(self, **kwargs):
         pass
 
     def clean_up(self):
         pass
+
+    def _loop(self):
+        self.loop()
 
     def loop(self):
         time.sleep(1.0)
@@ -159,7 +172,7 @@ class Ribbon(threading.Thread):
 
         while not self._stop_event.is_set():
             try:
-                self.loop()
+                self._loop()
 
             except Exception as e:
                 logging.exception("Ribbon: %s unexpected exception: %s" % (self.name, e))
@@ -231,6 +244,205 @@ class Ribbon(threading.Thread):
             msgs.append(self.queue.get())
 
         return msgs
+
+
+
+class UnknownMessage(Exception):
+    pass
+
+class InvalidMessage(Exception):
+    pass
+
+class InvalidVersion(Exception):
+    pass
+
+
+import socket
+import select
+from .broadcast import send_udp_broadcast
+
+class _Timer(threading.Thread):
+    def __init__(self, interval, port):
+        super().__init__()
+
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('0.0.0.0', 0))
+        self.interval = interval    
+        self.port = self._timer_sock.getsockname()[1]
+        self.dest_port = port
+
+        self.daemon = True
+        self.start()
+
+    def run(self):
+        while True:
+            time.sleep(self.interval)
+            self._timer_sock.sendto('test'.encode(), ('127.0.0.1', self.dest_port))
+
+class RibbonServer(Ribbon):
+    def __init__(self, *args, **kwargs):
+        kwargs['auto_start'] = False
+        super().__init__(*args, **kwargs)
+        del kwargs['auto_start']
+        
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('0.0.0.0', 0))
+        self._timer_port = self._timer_sock.getsockname()[1]
+
+        self._messages = {}
+        self._handlers = {}
+        self._msg_type_offset = None
+        self._protocol_version = None
+        self._protocol_version_offset = None
+        self._timers = {}
+        self._port = None
+
+        self.initialize(**kwargs)
+
+    def initialize(self, port=None):
+        self._port = port
+
+        self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            # this option may fail on some platforms
+            self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        if self._port is None:
+            try:
+                port = self.PORT
+
+            except AttributeError:
+                pass
+
+        if self._port is None:
+            self.__server_sock.bind(('0.0.0.0', 0))
+            
+        else:
+            self.__server_sock.bind(('0.0.0.0', self._port))
+
+        self._port = self.__server_sock.getsockname()[1]
+
+        self.__server_sock.setblocking(0)
+
+        self._inputs = [self.__server_sock, self._timer_sock]
+
+        self.start()
+
+    def _initialize(self, **kwargs):
+        pass
+
+    def start_timer(self, interval, handler):
+        timer = _Timer(interval, self._timer_port)
+        self._timers[timer.port] = handler
+
+    def default_handler(self, msg, host):
+        logging.debug(f"Unhandled message: {type(msg)} from {host}")        
+
+    def register_message(self, msg, handler=None):
+        if handler is None:
+            handler = self.default_handler
+
+        header = msg().header
+
+        if self._msg_type_offset is None:
+            self._msg_type_offset = header.offset('type')
+
+        if self._protocol_version is None:
+            try:
+                self._protocol_version_offset = header.offset('version')
+                self._protocol_version = header.version
+
+            except KeyError:
+                pass
+
+        msg_type = header.type
+        self._messages[msg_type] = msg
+        self._handlers[msg] = handler
+
+    def _deserialize(self, buf):
+        msg_id = int(buf[self._msg_type_offset])
+
+        try:
+            return self._messages[msg_id]().unpack(buf)
+
+        except KeyError:
+            raise UnknownMessage(msg_id)
+
+        except (struct.error, UnicodeDecodeError) as e:
+            raise InvalidMessage(msg_id, len(buf), e)
+
+        
+    def transmit(self, msg, host):
+        s = self.__server_sock
+
+        try:
+            if host[0] == '<broadcast>':
+                send_udp_broadcast(s, host[1], msg.pack())
+
+            else:
+                s.sendto(msg.pack(), host)
+
+        except socket.error:
+            pass
+
+    def _process_msg(self, msg, host):        
+        tokens = self._handlers[type(msg)](msg, host)
+
+        # normally, you'd just try to access the tuple and
+        # handle the exception. However, that will raise a TypeError, 
+        # and if we handle a TypeError here, then any TypeError generated
+        # in the message handler will essentially get eaten.
+        if not isinstance(tokens, tuple):
+            return None, None
+
+        if len(tokens) < 2:
+            return None, None
+
+        return tokens[0], tokens[1]
+
+    def loop(self):
+        pass
+
+    def _loop(self):
+        try:
+            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+
+            for s in readable:
+                try:
+                    data, host = s.recvfrom(1024)
+
+                    if s == self.__server_sock:
+                        msg = self._deserialize(data)
+                        response = None                    
+
+                        response, host = self._process_msg(msg, host)
+                        
+                        if response:
+                            self.transmit(response, host)
+
+                    elif host[1] in self._timers:
+                        self._timers[host[1]]()
+
+                except UnknownMessage as e:
+                    raise
+
+                except Exception as e:
+                    logging.exception(e)
+
+
+        except select.error as e:
+            logging.exception(e)
+
+        except Exception as e:
+            logging.exception(e)
+
+        self.loop()
 
 def wait_for_signal():
     try:

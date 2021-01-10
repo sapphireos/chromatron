@@ -29,10 +29,9 @@ import select
 import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, util, catbus_string_hash
+from ..common import Ribbon, RibbonServer, util, catbus_string_hash
+from .services import ServiceManager
 
-
-MSGFLOW_LISTEN_PORT             = 32039
 
 MSGFLOW_FLAGS_VERSION           = 1
 MSGFLOW_FLAGS_VERSION_MASK      = 0x0F
@@ -48,18 +47,18 @@ code_book = {
     'MSGFLOW_CODE_ANY'                :0xff,
 }
 
-MSGFLOW_TYPE_SINK                   = 1
 MSGFLOW_TYPE_RESET                  = 2
 MSGFLOW_TYPE_READY                  = 3
 MSGFLOW_TYPE_STATUS                 = 4
 MSGFLOW_TYPE_DATA                   = 5
 MSGFLOW_TYPE_STOP                   = 6
+MSGFLOW_TYPE_QUERY_CODEBOOK         = 7
+MSGFLOW_TYPE_CODEBOOK               = 8
 
 
 MSGFLOW_MSG_RESET_FLAGS_RESET_SEQ   = 0x01
 
 CONNECTION_TIMEOUT                  = 32.0
-ANNOUNCE_INTERVAL                   = 4.0
 STATUS_INTERVAL                     = 4.0
 
 class UnknownMessageException(Exception):
@@ -77,16 +76,6 @@ class MsgFlowHeader(StructField):
         super(MsgFlowHeader, self).__init__(_fields=fields, **kwargs)
 
         self.flags = MSGFLOW_FLAGS_VERSION
-
-class MsgFlowMsgSink(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgFlowHeader(_name="header"),
-                  Uint32Field(_name="service"),
-                  ArrayField(_name="codebook", _field=Uint8Field, _length=8)]
-
-        super(MsgFlowMsgSink, self).__init__(_name="msg_flow_msg_sink", _fields=fields, **kwargs)
-
-        self.header.type = MSGFLOW_TYPE_SINK
 
 class MsgFlowMsgReset(StructField):
     def __init__(self, **kwargs):
@@ -138,79 +127,47 @@ class MsgFlowMsgStop(StructField):
 
         self.header.type = MSGFLOW_TYPE_STOP
 
+class MsgFlowMsgQueryCodebook(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header")]
 
-messages = {
-    MSGFLOW_TYPE_SINK:      MsgFlowMsgSink,
-    MSGFLOW_TYPE_RESET:     MsgFlowMsgReset,
-    MSGFLOW_TYPE_READY:     MsgFlowMsgReady,
-    MSGFLOW_TYPE_STATUS:    MsgFlowMsgStatus,
-    MSGFLOW_TYPE_DATA:      MsgFlowMsgData,
-    MSGFLOW_TYPE_STOP:      MsgFlowMsgStop,
-}
+        super(MsgFlowMsgQueryCodebook, self).__init__(_name="msg_flow_msg_query_codebook", _fields=fields, **kwargs)
 
-def deserialize(buf):
-    msg_id = int(buf[0])
+        self.header.type = MSGFLOW_TYPE_QUERY_CODEBOOK
 
-    try:
-        return messages[msg_id]().unpack(buf)
+class MsgFlowMsgCodebook(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgFlowHeader(_name="header"),
+                  ArrayField(_name="codebook", _field=Uint8Field, _length=8)]
 
-    except KeyError:
-        raise UnknownMessageException(msg_id)
+        super(MsgFlowMsgCodebook, self).__init__(_name="msg_flow_msg_codebook", _fields=fields, **kwargs)
 
-    except (struct.error, UnicodeDecodeError) as e:
-        raise InvalidMessageException(msg_id, len(buf), e)
+        self.header.type = MSGFLOW_TYPE_CODEBOOK
 
 
-class MsgFlowReceiver(Ribbon):
+class MsgFlowReceiver(RibbonServer):
+    NAME = 'msgflow_receiver'
+
     def initialize(self, 
-                   name='msgflow_receiver', 
                    service=None, 
                    port=None,
                    on_receive=None,
                    on_connect=None,
                    on_disconnect=None):
 
-        self.name = name
-
-        self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        if port is None:
-            self.__service_sock.bind(('0.0.0.0', 0))
-            
-        else:
-            self.__service_sock.bind(('0.0.0.0', port))
-
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self._port = self.__service_sock.getsockname()[1]
-
-        logging.info(f"MsgFlowReceiver on port: {self._port}")
-
-        self.__service_sock.setblocking(0)
-
-        self._inputs = [self.__service_sock]
+        super().initialize(port=port)
         
-        self._msg_handlers = {
-            MsgFlowMsgSink: self._handle_sink,
-            MsgFlowMsgReset: self._handle_reset,
-            MsgFlowMsgData: self._handle_data,
-            MsgFlowMsgStop: self._handle_stop,
-        }
+        self.register_message(MsgFlowMsgReset, self._handle_reset)
+        self.register_message(MsgFlowMsgData, self._handle_data)
+        self.register_message(MsgFlowMsgStop, self._handle_stop)
+
+        self.start_timer(STATUS_INTERVAL, self._process_status_timer)
 
         self.service = service
         self._service_hash = catbus_string_hash(service)
 
         self._connections = {}
 
-        self._last_announce = time.time() - 10.0
         self._last_status = time.time() - 10.0
 
         if on_receive is not None:
@@ -221,6 +178,9 @@ class MsgFlowReceiver(Ribbon):
 
         if on_disconnect is not None:
             self.on_disconnect = on_disconnect
+
+        self.services_manager = ServiceManager()
+        self.services_manager.offer("msgflow", self.service, self._port)
 
     def on_connect(self, host, device_id=None):
         pass
@@ -245,45 +205,22 @@ class MsgFlowReceiver(Ribbon):
         for host in self._connections:
             self._send_stop(host)
 
-    def _send_msg(self, msg, host):
-        s = self.__service_sock
-
-        try:
-            if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], msg.pack())
-
-            else:
-                s.sendto(msg.pack(), host)
-
-        except socket.error:
-            pass
-
-    def _send_sink(self, host=('<broadcast>', MSGFLOW_LISTEN_PORT)):
-        msg = MsgFlowMsgSink(
-                service=self._service_hash,
-                codebook=[0,0,0,0,0,0,0,0])
-
-        self._send_msg(msg, host)
-
     def _send_status(self, host):
         msg = MsgFlowMsgStatus(
                 sequence=self._connections[host]['sequence'])
 
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_ready(self, host, sequence=None, code=0):
         msg = MsgFlowMsgReady(
                 code=code)
 
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_stop(self, host):
         msg = MsgFlowMsgStop()
                 
-        self._send_msg(msg, host)
-
-    def _handle_sink(self, msg, host):
-        pass
+        self.transmit(msg, host)
 
     def _handle_data(self, msg, host):
         if host not in self._connections:
@@ -350,77 +287,22 @@ class MsgFlowReceiver(Ribbon):
 
         self._send_ready(host, code=msg.code)
 
-    def _process_msg(self, msg, host):        
-        tokens = self._msg_handlers[type(msg)](msg, host)
+    def _process_status_timer(self):
+        for host in self._connections:
+            # process timeouts
+            self._connections[host]['timeout'] -= STATUS_INTERVAL
 
-        # normally, you'd just try to access the tuple and
-        # handle the exception. However, that will raise a TypeError, 
-        # and if we handle a TypeError here, then any TypeError generated
-        # in the message handler will essentially get eaten.
-        if not isinstance(tokens, tuple):
-            return None, None
+            if self._connections[host]['timeout'] <= 0.0:
 
-        if len(tokens) < 2:
-            return None, None
+                logging.info(f"Timed out: {host}")
+                self.on_disconnect(host)
 
-        return tokens[0], tokens[1]
+                continue
 
+            self._send_status(host)
 
-    def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
-
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
-
-                    msg = deserialize(data)
-                    response = None                    
-
-                    response, host = self._process_msg(msg, host)
-                    
-                    if response:
-                        response.header.transaction_id = msg.header.transaction_id
-                        self._send_msg(response, host)
-
-                except UnknownMessageException as e:
-                    raise
-
-                except Exception as e:
-                    logging.exception(e)
-
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-
-
-        if time.time() - self._last_announce > ANNOUNCE_INTERVAL:
-            self._last_announce = time.time()
+        self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
             
-            self._send_sink()
-
-        if time.time() - self._last_status > STATUS_INTERVAL:
-            self._last_status = time.time()
-
-            for host in self._connections:
-                # process timeouts
-                self._connections[host]['timeout'] -= STATUS_INTERVAL
-
-                if self._connections[host]['timeout'] <= 0.0:
-
-                    logging.info(f"Timed out: {host}")
-                    self.on_disconnect(host)
-
-                    continue
-
-                self._send_status(host)
-
-            self._connections = {k: v for k, v in self._connections.items() if v['timeout'] > 0.0}
-
-
 def main():
     util.setup_basic_logging(console=True)
 

@@ -30,6 +30,7 @@
 #include "random.h"
 #include "list.h"
 #include "config.h"
+#include "services.h"
 
 #include "msgflow.h"
 
@@ -54,7 +55,6 @@ typedef struct{
     catbus_hash_t32 service;
     uint64_t sequence;
     socket_t sock;
-    sock_addr_t raddr;
     uint8_t code;
     uint16_t max_msg_size;
     bool shutdown;
@@ -71,12 +71,10 @@ typedef struct{
 } msgflow_state_t;
 
 
-PT_THREAD( listener_thread( pt_t *pt, void *state ) );
 PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) );
 PT_THREAD( msgflow_arq_thread( pt_t *pt, msgflow_t *m ) );
 
 static list_t msgflow_list;
-static socket_t listener_sock = -1;
 
 
 PT_THREAD( demo( pt_t *pt, void *state ) )
@@ -126,25 +124,7 @@ msgflow_t msgflow_m_listen( catbus_hash_t32 service, uint8_t code, uint16_t max_
         code = MSGFLOW_CODE_DEFAULT;
     }
 
-    // check if listener is running
-    if( listener_sock < 0 ){
-
-        // start it up
-        if( thread_t_create( listener_thread,
-                             PSTR("msgflow_listener"),
-                             0,
-                             0 ) > 0 ){
-
-            // set sock to 0.
-            // this is a bit of a trick.
-            // 0 is always invalid on memory handles, but alloc failures will always return
-            // negative.  we init to -1, then set to 0 here creating the thread.
-            // it's still an invalid socket, but if we call listen() again before the thread
-            // has a chance to init the socket, we won't accidentally create a second listener
-            // thread.
-            listener_sock = 0;
-        }
-    }
+    services_v_listen( __KV__msgflow, service );
 
     msgflow_state_t state = {0};
     state.service       = service;
@@ -207,14 +187,15 @@ bool msgflow_b_connected( msgflow_t msgflow ){
         return FALSE;
     }
 
-    return !ip_b_is_zeroes( state->raddr.ipaddr );
+    return services_b_is_available( __KV__msgflow, state->service );
 }
 
 
 static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t len ){
 
     // check if we have a remote address to send to
-    if( ip_b_is_zeroes( state->raddr.ipaddr ) ){
+    // if( ip_b_is_zeroes( state->raddr.ipaddr ) ){
+    if( !services_b_is_available( __KV__msgflow, state->service ) ){
 
         return FALSE;
     }
@@ -239,7 +220,9 @@ static bool send_msg( msgflow_state_t *state, uint8_t type, void *data, uint16_t
     ptr += sizeof(header);
     memcpy( ptr, data, len );
 
-    if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+    sock_addr_t raddr = services_a_get( __KV__msgflow, state->service );
+
+    if( sock_i16_sendto_m( state->sock, h, &raddr ) < 0 ){
 
         return FALSE;
     }
@@ -319,10 +302,12 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
     // reset keep alive timer
     state->keepalive = MSGFLOW_KEEPALIVE;
 
+    sock_addr_t raddr = services_a_get( __KV__msgflow, state->service );
+
     // if fire and forget, transmit immediately
     if( state->code == MSGFLOW_CODE_NONE ){
         
-        if( sock_i16_sendto_m( state->sock, h, &state->raddr ) < 0 ){
+        if( sock_i16_sendto_m( state->sock, h, &raddr ) < 0 ){
 
             return FALSE;
         }
@@ -423,8 +408,10 @@ void msgflow_v_process_timeouts( void ){
         msgflow_t *m = (msgflow_t *)list_vp_get_data( ln );
         msgflow_state_t *mstate = thread_vp_get_data( *m );
 
+        sock_addr_t raddr = services_a_get( __KV__msgflow, mstate->service );
+
         // check if address is valid (and thread isn't shutting down)
-        if( !ip_b_is_zeroes( mstate->raddr.ipaddr ) && !mstate->shutdown ){
+        if( !ip_b_is_zeroes( raddr.ipaddr ) && !mstate->shutdown ){
 
             // check if timeout is expired
             if( mstate->timeout > 0 ){
@@ -458,86 +445,6 @@ void msgflow_v_process_timeouts( void ){
         ln = list_ln_next( ln );
     }
 }
-
-
-PT_THREAD( listener_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    listener_sock = sock_s_create( SOS_SOCK_DGRAM );
-
-    if( listener_sock < 0 ){
-
-        THREAD_EXIT( pt );
-    }
-
-    sock_v_bind( listener_sock, MSGFLOW_LISTEN_PORT );
-
-    while(1){
-
-        THREAD_YIELD( pt );
-
-        // listen for sink
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( listener_sock ) < 0 );
-
-        if( sys_b_shutdown() ){
-
-            THREAD_EXIT( pt );
-        }
-
-        if( sock_i16_get_bytes_read( listener_sock ) <= 0 ){
-
-            continue;
-        }
-
-        // get message
-        msgflow_header_t *header = sock_vp_get_data( listener_sock );
-
-        if( !validate_header( header ) ){
-
-            continue;
-        }
-
-        if( header->type != MSGFLOW_TYPE_SINK ){
-
-            continue;
-        }
-
-        msgflow_msg_sink_t *sink = (msgflow_msg_sink_t *)( header + 1 );
-
-        // search for service
-        list_node_t ln = msgflow_list.head;
-
-        while( ln > 0 ){
-
-            msgflow_t *m = (msgflow_t *)list_vp_get_data( ln );
-            msgflow_state_t *mstate = thread_vp_get_data( *m );
-
-            if( mstate->service == sink->service ){
-
-                // check if flow hasn't been initialized
-                if( ip_b_is_zeroes( mstate->raddr.ipaddr ) ){
-
-                    // reset timeout
-                    mstate->timeout = MSGFLOW_TIMEOUT;
-
-                    // set address
-                    sock_v_get_raddr( listener_sock, &mstate->raddr );
-                
-                    log_v_debug_P( PSTR("got sink %d.%d.%d.%d:%u"), mstate->raddr.ipaddr.ip3, mstate->raddr.ipaddr.ip2, mstate->raddr.ipaddr.ip1, mstate->raddr.ipaddr.ip0, mstate->raddr.port );
-                }
-
-                // we don't break here.
-                // we might have multiple msgflows running on the same service.
-            }
-
-            ln = list_ln_next( ln );
-        }
-    }
-    
-PT_END( pt );
-}
-
 
 static void clear_tx_q( msgflow_state_t *state ){
 
@@ -585,10 +492,7 @@ PT_BEGIN( pt );
             state->sock = -1;
         }
 
-
-        memset( &state->raddr, 0, sizeof(state->raddr) );
-
-        THREAD_WAIT_WHILE( pt, ip_b_is_zeroes( state->raddr.ipaddr ) && !state->shutdown );
+        THREAD_WAIT_WHILE( pt, !services_b_is_available( __KV__msgflow, state->service ) && !state->shutdown );
 
         if( state->shutdown ){
 
@@ -790,12 +694,14 @@ PT_BEGIN( pt );
 
                 mem_handle_t h = *(mem_handle_t *)list_vp_get_data( state->tx_q.tail );
 
+                sock_addr_t raddr = services_a_get( __KV__msgflow, state->service );
+
                 // do NOT use the sendto_m function!
                 // we need to create a copy of the data!
                 if( sock_i16_sendto( state->sock, 
                                      mem2_vp_get_ptr( h ), 
                                      mem2_u16_get_size( h ), 
-                                     &state->raddr ) < 0 ){
+                                     &raddr ) < 0 ){
 
                     // transmit failed
                     TMR_WAIT( pt, 500 ); 

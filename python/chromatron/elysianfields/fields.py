@@ -591,6 +591,20 @@ class StructField(Field):
 
         return s
 
+    def offset(self, fieldname):
+        if fieldname not in self._fields:
+            raise KeyError(fieldname)
+
+        s = 0
+
+        for name, field in self._fields.items():
+            if name == fieldname:
+                break
+
+            s += field.size()
+
+        return s
+
     def unpack(self, buffer):
         for field in list(self._fields.values()):
             field.unpack(buffer)

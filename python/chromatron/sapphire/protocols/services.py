@@ -29,7 +29,7 @@ import select
 import logging
 from elysianfields import *
 from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, util, catbus_string_hash
+from ..common import Ribbon, RibbonServer, util, catbus_string_hash
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -40,16 +40,6 @@ SERVICE_LISTEN_TIMEOUT              = 10.0
 SERVICE_CONNECTED_TIMEOUT           = 64.0
 SERVICE_CONNECTED_PING_THRESHOLD    = 48.0
 SERVICE_CONNECTED_WARN_THRESHOLD    = 16.0
-
-
-class UnknownMessage(Exception):
-    pass
-
-class InvalidMessage(Exception):
-    pass
-
-class InvalidVersion(Exception):
-    pass
 
 class ServiceNotConnected(Exception):
     pass
@@ -73,13 +63,10 @@ class ServiceMsgHeader(StructField):
 
 class ServiceMsgOfferHeader(StructField):
     def __init__(self, **kwargs):
-        fields = [ServiceMsgHeader(_name="header"),
-                  Uint8Field(_name="count"),
+        fields = [Uint8Field(_name="count"),
                   ArrayField(_name="reserved", _field=Uint8Field, _length=3)]
 
         super().__init__(_fields=fields, **kwargs)
-
-        self.header.type = SERVICE_MSG_TYPE_OFFERS
 
 STATE_LISTEN    = 0
 STATE_CONNECTED = 1
@@ -137,10 +124,13 @@ class ServiceOffer(StructField):
 
 class ServiceMsgOffers(StructField):
     def __init__(self, **kwargs):
-        fields = [ServiceMsgOfferHeader(_name="offer_header"),
+        fields = [ServiceMsgHeader(_name="header"),
+                  ServiceMsgOfferHeader(_name="offer_header"),
                   ArrayField(_name="offers", _field=ServiceOffer)]
 
         super().__init__(_fields=fields, **kwargs)
+
+        self.header.type = SERVICE_MSG_TYPE_OFFERS
 
 class ServiceMsgQuery(StructField):
     def __init__(self, **kwargs):
@@ -153,35 +143,14 @@ class ServiceMsgQuery(StructField):
         self.header.type = SERVICE_MSG_TYPE_QUERY
 
 
-messages = {
-    SERVICE_MSG_TYPE_OFFERS:    ServiceMsgOffers,
-    SERVICE_MSG_TYPE_QUERY:     ServiceMsgQuery,
-}
-
-def deserialize(buf):
-    version = int(buf[4])
-    msg_id = int(buf[5])
-
-    if version != SERVICES_VERSION:
-        raise InvalidVersion()
-
-    try:
-        return messages[msg_id]().unpack(buf)
-
-    except KeyError:
-        raise UnknownMessage(msg_id)
-
-    except (struct.error, UnicodeDecodeError) as e:
-        raise InvalidMessage(msg_id, len(buf), e)
-
-
-
 class Service(object):
     def __init__(self, service_id, group, priority=0, port=0):
         self._service_id = service_id
         self._group = group
         self._port = port
         self._priority = priority
+
+        assert self._port is not None
 
         self._reset()
 
@@ -235,7 +204,9 @@ class Service(object):
         if not self.connected:
             raise ServiceNotConnected
 
-        return self._best_host
+        host = (self._best_host[0], self._best_offer.port)
+        
+        return host
 
     def _process_offer(self, offer, host):
         # filter packet
@@ -250,19 +221,19 @@ class Service(object):
         if not isinstance(self, Team):
             if self._state in [STATE_LISTEN, STATE_CONNECTED]:
                 # check if NOT a server
-                if (offer.flags & SERVICE_OFFER_FLAGS_SERVER) != 0:
+                if (offer.flags & SERVICE_OFFER_FLAGS_SERVER) == 0:
                     return
 
-                if host == self._best_host:
+                if (host == self._best_host) and (self._state == STATE_CONNECTED):
                     # update timeout, we are connected to this server
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 # compare priorities
-                elif offer > self._best_offer:
-                    logging.debug(f"Service switched to: {host}")
-
+                elif (self._best_offer is None) or (offer > self._best_offer):
                     self._best_offer = offer
                     self._best_host = host
+
+                    logging.debug(f"Service switched to: {(self._best_host, self._best_offer.port)}")
 
         # TEAM
         elif (self._best_offer is None) or (offer > self._best_offer):
@@ -280,7 +251,7 @@ class Service(object):
             self._uptime += elapsed
 
         elif self._best_offer is not None:
-            self._best_offer._uptime += elapsed
+            self._best_offer.uptime += elapsed
 
         if self._state != STATE_SERVER:
             self._timeout -= elapsed
@@ -301,7 +272,7 @@ class Service(object):
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 else:
-                    self.reset()
+                    self._reset()
 
             else:
                 if (self._best_offer is None) or (self._best_offer < self._offer):
@@ -314,7 +285,7 @@ class Service(object):
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
                 else:
-                    self.reset()
+                    self._reset()
 
         elif self._state == STATE_CONNECTED:
             logging.debug(f"CONNECTED timeout: lost server")
@@ -337,63 +308,37 @@ class Team(Service):
 
         return flags
 
-class ServiceManager(Ribbon):
-    def initialize(self, 
-                   name='service_manager'):
 
-        self.name = name
+class ServiceManager(RibbonServer):
+    NAME = 'service_manager'
+    PORT = SERVICES_PORT
 
-        self.__service_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def initialize(self):
+        super().initialize()
         
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__service_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__service_sock.bind(('0.0.0.0', SERVICES_PORT))
-
-
-        self.__send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__send_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-        self._port = self.__service_sock.getsockname()[1]
-
-        logging.info(f"ServiceManager on port: {self._port}")
-
-        self.__service_sock.setblocking(0)
-
-        self._inputs = [self.__service_sock, self.__send_sock]
-        
-        self._msg_handlers = {
-            ServiceMsgOffers: self._handle_offers,
-            ServiceMsgQuery: self._handle_query,
-        }
-
         self._services = {}
         
-        self._last_timer = time.time()
-        self._last_offers = time.time()
-        
-        
+        self.register_message(ServiceMsgOffers, self._handle_offers)
+        self.register_message(ServiceMsgQuery, self._handle_query)
+            
+        self.start_timer(1.0, self._process_timers)
+        self.start_timer(4.0, self._process_offer_timer)
+
     def clean_up(self):
         pass
 
-    def _convert_service_id(self, service_id):
-        if isinstance(service_id, str):
-            service_id = catbus_string_hash(service_id)
+    def _convert_catbus_hash(self, n):
+        if isinstance(n, str):
+            n = catbus_string_hash(n)
 
-        return service_id
+        return n
 
     def join_team(self, service_id, group, port, priority=0):
         if priority != 0:
             raise NotImplementedError("Services only available as follower")
 
-        service_id = self._convert_service_id(service_id)
+        service_id = self._convert_catbus_hash(service_id)
+        group = self._convert_catbus_hash(group)
 
         team = Team(service_id, group, priority, port)
 
@@ -408,7 +353,8 @@ class ServiceManager(Ribbon):
     def offer(self, service_id, group, port, priority=1):
         assert priority != 0
 
-        service_id = self._convert_service_id(service_id)
+        service_id = self._convert_catbus_hash(service_id)
+        group = self._convert_catbus_hash(group)
 
         service = Service(service_id, group, priority, port)
 
@@ -421,7 +367,8 @@ class ServiceManager(Ribbon):
         return service
 
     def listen(self, service_id, group):
-        service_id = self._convert_service_id(service_id)
+        service_id = self._convert_catbus_hash(service_id)
+        group = self._convert_catbus_hash(group)
 
         service = Service(service_id, group)
 
@@ -433,25 +380,12 @@ class ServiceManager(Ribbon):
 
         return service
 
-    def _send_msg(self, msg, host):
-        s = self.__send_sock
-
-        try:
-            if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], msg.pack())
-
-            else:
-                s.sendto(msg.pack(), host)
-
-        except socket.error:
-            pass
-
     def _send_query(self, service_id, group, host=('<broadcast>', SERVICES_PORT)):
         msg = ServiceMsgQuery(
                 id=service_id,
                 group=group)
         
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_offers(self, offers, host=('<broadcast>', SERVICES_PORT)):
         header = ServiceMsgOfferHeader(
@@ -461,7 +395,7 @@ class ServiceManager(Ribbon):
                 offer_header=header,
                 offers=offers)
         
-        self._send_msg(msg, host)
+        self.transmit(msg, host)
     
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
@@ -474,74 +408,16 @@ class ServiceManager(Ribbon):
     def _handle_query(self, msg, host):
         pass
 
-    def _process_msg(self, msg, host):        
-        tokens = self._msg_handlers[type(msg)](msg, host)
-
-        # normally, you'd just try to access the tuple and
-        # handle the exception. However, that will raise a TypeError, 
-        # and if we handle a TypeError here, then any TypeError generated
-        # in the message handler will essentially get eaten.
-        if not isinstance(tokens, tuple):
-            return None, None
-
-        if len(tokens) < 2:
-            return None, None
-
-        return tokens[0], tokens[1]
-
-
-    def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
-
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
-                    
-                    msg = deserialize(data)
-
-                    response, host = self._process_msg(msg, host)
-                    
-                    if response:
-                        response.header.transaction_id = msg.header.transaction_id
-                        self._send_msg(response, host)
-
-                except InvalidVersion:
-                    pass
-
-                except UnknownMessage as e:
-                    raise
-
-                except Exception as e:
-                    logging.exception(e)
-
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-
-        now = time.time()
-
-        # process timeouts
-        elapsed = now - self._last_timer
-        self._last_timer = now
-        
+    def _process_timers(self):
         for svc in self._services.values():
-            svc._process_timer(elapsed)
+            svc._process_timer(1.0)
 
-        # process offer timer
-        elapsed = now - self._last_offers
-        
-        if elapsed >= SERVICE_RATE:
-            self._last_offers = now
+    def _process_offer_timer(self):
+        servers = [svc for svc in self._services.values() if svc.is_server]
+        offers = [svc._offer for svc in servers]
 
-            servers = [svc for svc in self._services.values() if svc.is_server]
-            offers = [svc._offer for svc in servers]
-
-            if len(offers) > 0:
-                self._send_offers(offers)
+        if len(offers) > 0:
+            self._send_offers(offers)
 
 
 def main():
@@ -550,13 +426,15 @@ def main():
     s = ServiceManager()
 
     # team = s.join_team(0x1234, 0, 0, 0)
-    # svc = s.listen(1234, 5678)
-    svc = s.offer(1234, 5678, 1000, priority=99)
+    svc = s.listen(1234, 5678)
+    # svc = s.offer(1234, 5678, 1000, priority=99)
 
     try:
         while True:
             # if team.connected:
             #     print(team.server)
+            if svc.connected:
+                print(svc.server)
 
             time.sleep(1.0)
 
