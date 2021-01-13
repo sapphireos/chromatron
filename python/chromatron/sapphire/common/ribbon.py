@@ -351,11 +351,11 @@ class RibbonServer(Ribbon):
         header = msg().header
 
         if self._msg_type_offset is None:
-            self._msg_type_offset = header.offset('type')
+            self._msg_type_offset = header.offsetof('type')
 
         if self._protocol_version is None:
             try:
-                self._protocol_version_offset = header.offset('version')
+                self._protocol_version_offset = header.offsetof('version')
                 self._protocol_version = header.version
 
             except KeyError:

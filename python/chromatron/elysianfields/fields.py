@@ -591,7 +591,7 @@ class StructField(Field):
 
         return s
 
-    def offset(self, fieldname):
+    def offsetof(self, fieldname):
         if fieldname not in self._fields:
             raise KeyError(fieldname)
 
