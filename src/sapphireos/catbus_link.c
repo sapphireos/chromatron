@@ -168,7 +168,7 @@ void link_v_init( void ){
 
     if( ( cfg_u64_get_device_id() == 93172270997720 ) ||
         ( cfg_u64_get_device_id() == 110777341944024 ) ){
-        
+
         link_l_create( 
             LINK_MODE_SEND, 
             __KV__link_test_key, 
@@ -671,6 +671,68 @@ static void process_remote_timeouts( uint32_t elapsed_ms ){
     }
 }
 
+static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16_t data_len ){
+
+    list_node_t ln = remote_list.head;
+
+    while( ln >= 0 ){
+
+        remote_state_t *remote = list_vp_get_data( ln );
+        
+        if( remote->link != link ){
+
+            goto next;
+        }
+
+        if( !ip_b_addr_compare( ip, remote->ip ) ){
+
+            goto next;
+        }
+
+        // update state
+        remote->timeout = LINK_REMOTE_TIMEOUT;
+
+        memcpy( &remote->data.data, data, data_len );
+
+        trace_printf("LINK: refreshed SEND remote: %d.%d.%d.%d\n",
+            ip.ip3,
+            ip.ip2,
+            ip.ip1,
+            ip.ip0
+        );
+
+        return;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    // remote was not found, create one
+    uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
+
+    ln = list_ln_create_node2( 0, remote_len, MEM_TYPE_LINK_REMOTE );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    remote_state_t *new_remote = list_vp_get_data( ln );
+        
+    new_remote->link        = link;
+    new_remote->ip          = ip;
+    new_remote->timeout     = LINK_REMOTE_TIMEOUT;
+    // new_remote->data.meta   = meta;
+    link_state_t *link_state = link_ls_get_data( link );
+    ASSERT( kv_i8_get_meta( link_state->source_key, &new_remote->data.meta ) >= 0 );
+
+    memcpy( &new_remote->data.data, data, data_len );
+
+    list_v_insert_tail( &remote_list, ln );
+
+    trace_printf("LINK: add SEND remote\n");
+}
+
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
 {
@@ -829,63 +891,8 @@ PT_BEGIN( pt );
 
             uint16_t data_len = type_u16_size_meta( &meta );
 
-
-            list_node_t ln = remote_list.head;
-
-            while( ln >= 0 ){
-
-                remote_state_t *remote = list_vp_get_data( ln );
-                
-                if( remote->link != link ){
-
-                    goto next;
-                }
-
-                if( !ip_b_addr_compare( raddr.ipaddr, remote->ip ) ){
-
-                    goto next;
-                }
-
-                // update state
-                remote->timeout = LINK_REMOTE_TIMEOUT;
-
-                memcpy( &remote->data.data, &msg->data.data, data_len );
-
-                trace_printf("LINK: refreshed SEND remote: %d.%d.%d.%d\n",
-                    raddr.ipaddr.ip3,
-                    raddr.ipaddr.ip2,
-                    raddr.ipaddr.ip1,
-                    raddr.ipaddr.ip0
-                );
-
-                goto end;
-                
-            next:
-                ln = list_ln_next( ln );
-            }
-
-            // remote was not found, create one
-            uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
-
-            ln = list_ln_create_node2( 0, remote_len, MEM_TYPE_LINK_REMOTE );
-
-            if( ln < 0 ){
-
-                goto end;
-            }
-
-            remote_state_t *new_remote = list_vp_get_data( ln );
-                
-            new_remote->link        = link;
-            new_remote->ip          = raddr.ipaddr;
-            new_remote->timeout     = LINK_REMOTE_TIMEOUT;
-            new_remote->data.meta   = meta;
-            memcpy( &new_remote->data.data, &msg->data.data, data_len );
-
-            list_v_insert_tail( &remote_list, ln );
-
-            trace_printf("LINK: add SEND remote\n");
-            
+            // update remote data and timeout
+            update_remote( raddr.ipaddr, link, &msg->data.data, data_len );
         }
 
 
