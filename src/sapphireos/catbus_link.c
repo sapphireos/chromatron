@@ -166,7 +166,9 @@ void link_v_init( void ){
     //         LINK_FILTER_OFF );
     // }
 
-    if( cfg_u64_get_device_id() == 93172270997720 ){
+    if( ( cfg_u64_get_device_id() == 93172270997720 ) ||
+        ( cfg_u64_get_device_id() == 110777341944024 ) ){
+        
         link_l_create( 
             LINK_MODE_SEND, 
             __KV__link_test_key, 
