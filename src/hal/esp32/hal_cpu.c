@@ -100,7 +100,7 @@ void cpu_v_init( void ){
 
     trace_printf("FW_START_OFFSET: 0x%0x\n", FW_START_OFFSET);
     
-#ifndef BOOTLOADER
+    #ifndef BOOTLOADER
     DISABLE_INTERRUPTS;
 
     esp_pm_config_esp32_t pm_config = { 0 };
@@ -113,6 +113,9 @@ void cpu_v_init( void ){
     // pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );
+
+    vTaskDelay(10);
+
     trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
 
     // this loop will hang forever if light_sleep_enable is TRUE
@@ -120,6 +123,14 @@ void cpu_v_init( void ){
     //     vTaskDelay(10);
     // }
     #endif    
+
+    #ifdef CONFIG_FREERTOS_UNICORE
+    trace_printf("CPU: 1 core\n");
+    #else
+    trace_printf("CPU: 2 cores\n");
+    #endif    
+
+    vTaskDelay(10);
 }
 
 uint8_t cpu_u8_get_reset_source( void ){

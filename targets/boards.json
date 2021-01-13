@@ -63,6 +63,13 @@
 		[
 		]	
 	},
+	"esp32_single":
+	{
+		"target": "esp32_single",
+		"defines":
+		[
+		]	
+	},
 	"esp32_loader":
 	{
 		"target": "esp32_boot"
