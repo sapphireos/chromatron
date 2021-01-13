@@ -2634,7 +2634,9 @@ PT_END( pt );
 
 void catbus_v_shutdown( void ){
 
+    #ifdef ENABLE_CATBUS_LINK
     link_v_shutdown();
+    #endif
 
     // broadcast shutdown to network
     thread_t_create( THREAD_CAST(catbus_shutdown_thread),
