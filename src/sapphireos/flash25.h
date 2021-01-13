@@ -80,6 +80,7 @@ typedef struct __attribute__((packed)){
 
 #define FLASH_MFG_CYPRESS	  		    0x01 // used to be Spansion - they merged in 2015
 #define FLASH_MFG_ATMEL					0x1F
+#define FLASH_MFG_ST                    0x20 // ?? maybe?  found on ESP32
 #define FLASH_MFG_SST					0xBF
 #define FLASH_MFG_WINBOND		 	    0xEF
 #define FLASH_MFG_BERG                  0xE0 // sometimes found in ESP12

@@ -80,6 +80,7 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 
 			break;
 
+        case FLASH_MFG_ST:
         case FLASH_MFG_WINBOND:
         case FLASH_MFG_BERG:
         case FLASH_MFG_GIGADEVICE:
