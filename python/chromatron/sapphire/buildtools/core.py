@@ -1943,6 +1943,8 @@ def main():
 
         # get chip info
         esptool_cmd = f'--chip esp32 --baud 2000000 chip_id'
+        if args['port'] is not None:
+            esptool_cmd = f'--port {args["port"]} ' + esptool_cmd
 
         esptool.main(esptool_cmd.split())
 
@@ -1952,8 +1954,10 @@ def main():
         chip_info = temp_stdout.getvalue()
 
         # check if single or dual core chip
-        single_core = 'Single Core' in chip_info
-            
+        single_core = False
+        if chip_info.find('Single Core') >= 0:
+            single_core = True
+
         target = 'esp32'
         if single_core:
             target = 'esp32_single'
