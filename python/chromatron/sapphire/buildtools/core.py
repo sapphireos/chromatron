@@ -1935,8 +1935,36 @@ def main():
 
             return
 
+        # redirect stdout to buffer so we can capture esptool output
+        from io import StringIO
+        old_stdout = sys.stdout
+        temp_stdout = StringIO()
+        sys.stdout = temp_stdout
+
+        # get chip info
+        esptool_cmd = f'--chip esp32 --baud 2000000 chip_id'
+
+        esptool.main(esptool_cmd.split())
+
+        # restore stdout
+        sys.stdout = old_stdout
+
+        chip_info = temp_stdout.getvalue()
+
+        # check if single or dual core chip
+        single_core = 'Single Core' in chip_info
+            
+        target = 'esp32'
+        if single_core:
+            target = 'esp32_single'
+
+            print("ESP32 single core")
+
+        else:
+            print("ESP32 dual core")
+
         # extract firmware image and write to file
-        image = package.images['esp32']['firmware.bin']
+        image = package.images[target]['firmware.bin']
         temp_filename = '__temp_firmware.bin'
         with open(temp_filename, 'wb') as f:
             f.write(image)
