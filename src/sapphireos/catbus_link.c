@@ -134,9 +134,6 @@ void link_v_init( void ){
 		return;
 	}
 
-
-return;
-
     thread_t_create( link_server_thread,
                  PSTR("link_server"),
                  0,
@@ -154,10 +151,22 @@ return;
 
 
     catbus_query_t query = { 0 };
-    query.tags[0] = __KV__link_test2;
+    query.tags[0] = __KV__link_test;
 
     // if( cfg_u64_get_device_id() == 93172270997720 ){
 
+    //     link_l_create( 
+    //         LINK_MODE_SEND, 
+    //         __KV__link_test_key, 
+    //         __KV__kv_test_key,
+    //         &query,
+    //         __KV__my_tag,
+    //         LINK_RATE_1000ms,
+    //         LINK_AGG_ANY,
+    //         LINK_FILTER_OFF );
+    // }
+
+    if( cfg_u64_get_device_id() == 93172270997720 ){
         link_l_create( 
             LINK_MODE_SEND, 
             __KV__link_test_key, 
@@ -167,13 +176,14 @@ return;
             LINK_RATE_1000ms,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
-if( cfg_u64_get_device_id() != 93172270997720 ){
+
         thread_t_create( test_thread,
                  PSTR("test_thread"),
                  0,
                  0 );
 
     }
+
 }
 
 link_state_t link_ls_assemble(
@@ -1043,7 +1053,7 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
                 producer->ready = FALSE;
 
-                trace_printf("LINK: producer READY\n");
+                // trace_printf("LINK: producer READY\n");
 
                 // run aggregation
                 aggregate( link_state, producer );
