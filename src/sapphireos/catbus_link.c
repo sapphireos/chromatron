@@ -1049,9 +1049,45 @@ static producer_state_t *get_producer( uint64_t link_hash ){
     return 0;
 }
 
-static void aggregate( link_state_t *link_state, producer_state_t *producer ){
+static void aggregate( link_handle_t link, producer_state_t *producer ){
+
+    link_state_t *link_state = link_ls_get_data( link );
+
+    uint8_t buf[CATBUS_MAX_DATA];
+
+    // get KV meta data
+    catbus_meta_t meta;
+
+    if( kv_i8_get_meta( producer->source_key, &meta ) < 0 ){
+
+        log_v_error_P( PSTR("fatal error") );
+
+        return;
+    }
+
+    // get data from database.
+    // this will include the full array, for array types
+    if( kv_i8_internal_get( &meta, producer->source_key, 0, 0, buf, sizeof(buf) ) < 0 ){
+
+        log_v_error_P( PSTR("fatal error") );
+
+        return;
+    }
+
+    uint16_t type_size = kv_u16_get_size_meta( &meta );
+
+    uint16_t array_len = meta.count + 1;
+    void *ptr = buf;
+
+    while( array_len > 0 ){
+
+        array_len--;
+
+        
 
 
+
+    }
 }
 
 static void transmit_to_consumers( link_state_t *link_state, producer_state_t *producer ){
