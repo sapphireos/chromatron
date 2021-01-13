@@ -207,7 +207,7 @@ int8_t kvdb_i8_add(
 
     // check if this hash is already in another part of the database:
     catbus_meta_t meta;
-    if( kv_i8_get_meta( hash, &meta ) >= 0 ){
+    if( kv_i8_get_catbus_meta( hash, &meta ) >= 0 ){
 
         return KVDB_STATUS_HASH_CONFLICT;
     }

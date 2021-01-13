@@ -743,7 +743,7 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
     new_remote->timeout     = LINK_REMOTE_TIMEOUT;
     // new_remote->data.meta   = meta;
     link_state_t *link_state = link_ls_get_data( link );
-    ASSERT( kv_i8_get_meta( link_state->source_key, &new_remote->data.meta ) >= 0 );
+    ASSERT( kv_i8_get_catbus_meta( link_state->source_key, &new_remote->data.meta ) >= 0 );
 
     memcpy( &new_remote->data.data, data, data_len );
 
@@ -899,7 +899,7 @@ PT_BEGIN( pt );
 
             // get meta data from database
             catbus_meta_t meta;
-            if( kv_i8_get_meta( link_state->source_key, &meta ) < 0 ){
+            if( kv_i8_get_catbus_meta( link_state->source_key, &meta ) < 0 ){
 
                 log_v_error_P( PSTR("source key not found!") );
 
@@ -1056,9 +1056,9 @@ static void aggregate( link_handle_t link, producer_state_t *producer ){
     uint8_t buf[CATBUS_MAX_DATA];
 
     // get KV meta data
-    catbus_meta_t meta;
+    kv_meta_t meta;
 
-    if( kv_i8_get_meta( producer->source_key, &meta ) < 0 ){
+    if( kv_i8_lookup_hash( producer->source_key, &meta ) < 0 ){
 
         log_v_error_P( PSTR("fatal error") );
 
@@ -1076,14 +1076,14 @@ static void aggregate( link_handle_t link, producer_state_t *producer ){
 
     uint16_t type_size = kv_u16_get_size_meta( &meta );
 
-    uint16_t array_len = meta.count + 1;
+    uint16_t array_len = meta.array_len + 1;
     void *ptr = buf;
 
     while( array_len > 0 ){
 
         array_len--;
 
-        
+
 
 
 
@@ -1126,7 +1126,7 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
                 // trace_printf("LINK: producer READY\n");
 
                 // run aggregation
-                aggregate( link_state, producer );
+                aggregate( link, producer );
 
                 // transmit!
                 transmit_to_consumers( link_state, producer );
@@ -1156,7 +1156,7 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     // get meta data from database
     catbus_meta_t meta;
-    if( kv_i8_get_meta( producer->source_key, &meta ) < 0 ){
+    if( kv_i8_get_catbus_meta( producer->source_key, &meta ) < 0 ){
 
         log_v_error_P( PSTR("source key not found!") );
 

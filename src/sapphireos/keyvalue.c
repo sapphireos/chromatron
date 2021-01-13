@@ -372,7 +372,7 @@ int8_t kv_i8_lookup_hash_with_name(
     return kv_i8_lookup_index_with_name( index, meta );
 }
 
-int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
+int8_t kv_i8_get_catbus_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 
     kv_meta_t kv_meta;
     if( kv_i8_lookup_hash( hash, &kv_meta ) < 0 ){

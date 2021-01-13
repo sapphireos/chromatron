@@ -1326,7 +1326,7 @@ opcode_dbcall:
         #ifdef VM_ENABLE_KV
         catbus_meta_t meta;
         
-        if( kv_i8_get_meta( db_hash, &meta ) < 0 ){
+        if( kv_i8_get_catbus_meta( db_hash, &meta ) < 0 ){
 
             data[result] = 0;
         }

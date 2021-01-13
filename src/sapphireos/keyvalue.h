@@ -163,7 +163,7 @@ int8_t kv_i8_lookup_hash(
 int8_t kv_i8_lookup_hash_with_name(
     catbus_hash_t32 hash,
     kv_meta_t *meta );
-int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
+int8_t kv_i8_get_catbus_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 
 int8_t kv_i8_internal_get(
     kv_meta_t *meta,
