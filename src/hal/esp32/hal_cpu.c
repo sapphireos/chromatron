@@ -104,8 +104,14 @@ void cpu_v_init( void ){
     DISABLE_INTERRUPTS;
 
     esp_pm_config_esp32_t pm_config = { 0 };
+    #ifdef ESP32_MAX_CPU_160M
+    pm_config.max_freq_mhz = 160;
+    pm_config.min_freq_mhz = 160;
+    #else
     pm_config.max_freq_mhz = 240;
     pm_config.min_freq_mhz = 240;
+    #endif
+
     pm_config.light_sleep_enable = FALSE;
 
     // pm_config.max_freq_mhz = 240;
