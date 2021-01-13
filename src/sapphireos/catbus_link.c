@@ -1049,35 +1049,50 @@ static producer_state_t *get_producer( uint64_t link_hash ){
     return 0;
 }
 
-static void aggregate( link_handle_t link, producer_state_t *producer ){
+
+typedef struct __attribute__((packed)){
+    link_msg_data_t msg;
+    uint8_t buf[CATBUS_MAX_DATA - 1]; // subtract 1 to account for data byte in catbus_data_t
+} link_data_msg_buf_t;
+
+
+static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_msg_buf_t *msg_buf ){
 
     link_state_t *link_state = link_ls_get_data( link );
-
-    uint8_t buf[CATBUS_MAX_DATA];
 
     // get KV meta data
     kv_meta_t meta;
 
-    if( kv_i8_lookup_hash( producer->source_key, &meta ) < 0 ){
+    if( kv_i8_lookup_hash( hash, &meta ) < 0 ){
 
         log_v_error_P( PSTR("fatal error") );
 
-        return;
+        return 0;
     }
 
     // get data from database.
     // this will include the full array, for array types
-    if( kv_i8_internal_get( &meta, producer->source_key, 0, 0, buf, sizeof(buf) ) < 0 ){
+    if( kv_i8_internal_get( &meta, hash, 0, 0, &msg_buf->msg.data.data, CATBUS_MAX_DATA ) < 0 ){
 
         log_v_error_P( PSTR("fatal error") );
 
-        return;
+        return 0;
     }
 
-    uint16_t type_size = kv_u16_get_size_meta( &meta );
+    // also need the catbus version of meta data
+    kv_i8_get_catbus_meta( hash, &msg_buf->msg.data.meta );
 
+    uint16_t type_size = kv_u16_get_size_meta( &meta );
     uint16_t array_len = meta.array_len + 1;
-    void *ptr = buf;
+    uint16_t data_len = type_size * array_len;
+
+    // the ANY aggregation will just return the local data
+    if( link_state->aggregation == LINK_AGG_ANY ){
+
+        return data_len;
+    }
+
+    // void *ptr = &msg_buf->msg.data.data;
 
     while( array_len > 0 ){
 
@@ -1088,16 +1103,51 @@ static void aggregate( link_handle_t link, producer_state_t *producer ){
 
 
     }
+
+    return 0;
 }
 
-static void transmit_to_consumers( link_state_t *link_state, producer_state_t *producer ){
+static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_buf, uint16_t data_len ){
+
+    link_state_t *link_state = link_ls_get_data( link );
+
+    init_header( &msg_buf->msg.header, LINK_MSG_TYPE_CONSUMER_DATA );
+
+    msg_buf->msg.hash = link_state->dest_key;
+
+    uint16_t msg_len = ( sizeof(link_msg_data_t) - 1 ) + data_len;
 
 
+    list_node_t ln = consumer_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        consumer_state_t *consumer = list_vp_get_data( ln );
+
+        if( consumer->link == link ){
+
+            sock_addr_t raddr = {
+                .ipaddr = consumer->ip,
+                .port = LINK_PORT
+            };
+
+            if( sock_i16_sendto( sock, (uint8_t *)&msg_buf->msg, msg_len, &raddr ) < 0 ){
+
+                log_v_error_P( PSTR("socket send failed, possibly out of memory") );
+            }
+        }
+
+        ln = next_ln;
+    }
 }
 
 static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
     link_state_t *link_state = link_ls_get_data( link );
+
+    link_data_msg_buf_t msg_buf;
 
     // SEND link:
     // we are a producer
@@ -1126,10 +1176,10 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
                 // trace_printf("LINK: producer READY\n");
 
                 // run aggregation
-                aggregate( link, producer );
+                uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
 
                 // transmit!
-                transmit_to_consumers( link_state, producer );
+                transmit_to_consumers( link, &msg_buf, data_len );
             }
         }
         // // link follower
