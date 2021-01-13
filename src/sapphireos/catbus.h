@@ -40,9 +40,9 @@
 // #define CATBUS_MAX_RECEIVE_LINKS            16
 // #define CATBUS_MAX_SEND_LINKS               16
 #define CATBUS_MAX_FILE_SESSIONS            4
-#define CATBUS_LINK_TIMEOUT                 64            
+// #define CATBUS_LINK_TIMEOUT                 64            
 
-typedef int16_t catbus_link_t;
+// typedef int16_t catbus_link_t;
 
 typedef struct __attribute__((packed)){
     uint32_t meow;

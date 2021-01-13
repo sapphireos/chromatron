@@ -921,6 +921,7 @@ int8_t catbus_i8_array_get(
 }
 
 // #ifdef ENABLE_CATBUS_LINK
+#if 0
 catbus_link_t catbus_l_send( 
     catbus_hash_t32 source_hash, 
     catbus_hash_t32 dest_hash, 
@@ -1225,7 +1226,7 @@ void catbus_v_purge_links( catbus_hash_t32 tag ){
 // PT_END( pt );
 // }
 
-// #endif
+#endif
 
 int8_t catbus_i8_publish( catbus_hash_t32 hash ){
 
