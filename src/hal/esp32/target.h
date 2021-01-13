@@ -40,7 +40,7 @@
 // #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
 
-#define ENABLE_TRACE
+// #define ENABLE_TRACE
 
 // wifi
 #define WIFI_MAX_PORTS          16
