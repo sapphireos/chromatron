@@ -27,7 +27,7 @@
 
 uint16_t type_u16_size( catbus_type_t8 type ){
 
-    uint16_t size = CATBUS_TYPE_INVALID;
+    uint16_t size = CATBUS_TYPE_SIZE_INVALID;
 
     switch( type ){
         case CATBUS_TYPE_NONE:

@@ -317,20 +317,39 @@ link_handle_t link_l_create2( link_state_t *state ){
         return -1;
     }
 
+    sapphire_type_t8 type = SAPPHIRE_TYPE_INVALID;
+
     // check if we have the required keys
     if( state->mode == LINK_MODE_SEND ){
+
+        type = kv_i8_type( state->source_key );
         
-        if( kv_i16_search_hash( state->source_key ) < 0 ){
+        if( type < 0 ){
 
             return -1;
         }
     }
     else if( state->mode == LINK_MODE_RECV ){
+
+        type = kv_i8_type( state->dest_key );
         
-        if( kv_i16_search_hash( state->dest_key ) < 0 ){
+        if( type < 0 ){
 
             return -1;
         }
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    // check data type
+    // we are only implementing numeric types at this time
+    if( type_b_is_string( type ) ){
+
+        log_v_error_P( PSTR("link system does not support strings") );
+
+        return -1;
     }
 
     // sort tags from highest to lowest.
@@ -826,6 +845,12 @@ PT_BEGIN( pt );
             }
 
             // we are a producer for this link
+
+
+            // !!!! section incomplete
+            // this logic is used by receive link leaders
+
+
             
             trace_printf("LINK: %s() producer match\n", __FUNCTION__);
         }

@@ -334,9 +334,9 @@ uint16_t kv_u16_get_size_meta( kv_meta_t *meta ){
 
     uint16_t type_len = type_u16_size( meta->type );
 
-    if( type_len == CATBUS_TYPE_INVALID ){
+    if( type_len == CATBUS_TYPE_SIZE_INVALID ){
 
-        return CATBUS_TYPE_INVALID;
+        return CATBUS_TYPE_SIZE_INVALID;
     }
 
     type_len *= ( (uint16_t)meta->array_len + 1 );
