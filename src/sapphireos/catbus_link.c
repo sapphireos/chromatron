@@ -867,9 +867,36 @@ PT_BEGIN( pt );
 
             trace_printf("LINK: RX consumer DATA\n");
 
-            // link_msg_data_t *msg = (link_msg_data_t *)header;
+            link_msg_data_t *msg = (link_msg_data_t *)header;
 
-            
+            catbus_meta_t meta;
+
+            if( kv_i8_get_catbus_meta( msg->hash, &meta ) < 0 ){
+
+                log_v_error_P( PSTR("rx hash not found!") );
+
+                goto end;
+            }
+
+            if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
+
+                log_v_error_P( PSTR("rx meta does not match!") );
+
+                goto end;
+            }
+
+            // verify data lengths
+            uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
+            uint16_t array_len = meta.count + 1;
+            uint16_t type_len = type_u16_size( meta.type );
+            uint16_t data_len = array_len * type_len;
+
+            if( data_len != msg_data_len ){
+
+                log_v_error_P( PSTR("rx len does not match!") );
+            }
+
+            kv_i8_set( msg->hash, &msg->data.data, data_len );   
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
 
@@ -1114,6 +1141,7 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
     init_header( &msg_buf->msg.header, LINK_MSG_TYPE_CONSUMER_DATA );
 
     msg_buf->msg.hash = link_state->dest_key;
+    msg_buf->msg.data.meta.hash = link_state->dest_key;
 
     uint16_t msg_len = ( sizeof(link_msg_data_t) - 1 ) + data_len;
 
