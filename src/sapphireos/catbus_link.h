@@ -112,6 +112,7 @@ typedef struct __attribute__((packed)){
     link_msg_header_t header;
     catbus_hash_t32 key;
     catbus_query_t query;
+    link_rate_t16 rate;
     uint64_t hash;
 } link_msg_producer_query_t;
 #define LINK_MSG_TYPE_PRODUCER_QUERY        3

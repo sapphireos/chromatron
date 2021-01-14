@@ -169,21 +169,41 @@ void link_v_init( void ){
     if( ( cfg_u64_get_device_id() == 93172270997720 ) ||
         ( cfg_u64_get_device_id() == 110777341944024 ) ){
 
-        link_l_create( 
-            LINK_MODE_SEND, 
-            __KV__link_test_key, 
-            __KV__kv_test_key,
-            &query,
-            __KV__my_tag,
-            LINK_RATE_1000ms,
-            LINK_AGG_ANY,
-            LINK_FILTER_OFF );
+        // link_l_create( 
+        //     LINK_MODE_SEND, 
+        //     __KV__link_test_key, 
+        //     __KV__kv_test_key,
+        //     &query,
+        //     __KV__my_tag,
+        //     LINK_RATE_1000ms,
+        //     LINK_AGG_ANY,
+        //     LINK_FILTER_OFF );
 
         thread_t_create( test_thread,
                  PSTR("test_thread"),
                  0,
                  0 );
 
+    }
+    else{
+
+        query.tags[0] = __KV__link_group;
+
+        link_l_create( 
+            LINK_MODE_RECV, 
+            __KV__kv_test_key,
+            __KV__link_test_key, 
+            &query,
+            __KV__my_tag,
+            LINK_RATE_1000ms,
+            LINK_AGG_ANY,
+            LINK_FILTER_OFF );
+
+
+        // thread_t_create( test_thread,
+        //          PSTR("test_thread"),
+        //          0,
+        //          0 );
     }
 
 }
@@ -526,6 +546,7 @@ static void transmit_producer_query( link_state_t *link ){
 
     msg.key     = link->source_key;
     msg.query   = link->query;
+    msg.rate    = link->rate;
     msg.hash    = link->hash;
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
@@ -753,6 +774,142 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
 }
 
 
+static void update_producer_from_link( link_state_t *link_state ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        producer_state_t *producer = list_vp_get_data( ln );
+        
+        if( link_state->hash != producer->link_hash ){
+
+            goto next;
+        }
+
+        // update state
+        producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
+        producer->timeout = LINK_PRODUCER_TIMEOUT;
+
+        // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
+        //     producer->leader_ip.ip3,
+        //     producer->leader_ip.ip2,
+        //     producer->leader_ip.ip1,
+        //     producer->leader_ip.ip0
+        // );
+
+        return;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    // producer was not found, create one
+
+    producer_state_t new_producer = {
+        link_state->source_key,
+        link_state->hash,
+        services_a_get_ip( LINK_SERVICE, link_state->hash ),
+        0,
+        link_state->rate,
+        link_state->rate,
+        LINK_PRODUCER_TIMEOUT,
+        FALSE
+    };
+
+
+    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &producer_list, ln );
+
+    trace_printf("LINK: became SEND producer\n");
+}
+
+static void update_producer_from_query( link_msg_producer_query_t *msg, sock_addr_t *raddr ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        producer_state_t *producer = list_vp_get_data( ln );
+        
+        if( producer->link_hash != msg->hash ){
+
+            goto next;
+        }
+
+        // update state
+        producer->leader_ip = raddr->ipaddr;
+        producer->timeout = LINK_PRODUCER_TIMEOUT;
+
+        // trace_printf("LINK: refreshed RECV producer: %d.%d.%d.%d\n",
+        //     producer->leader_ip.ip3,
+        //     producer->leader_ip.ip2,
+        //     producer->leader_ip.ip1,
+        //     producer->leader_ip.ip0
+        // );
+
+        return;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    // producer was not found, create one
+
+    producer_state_t new_producer = {
+        msg->key,
+        msg->hash,
+        raddr->ipaddr,
+        0,
+        msg->rate,
+        msg->rate,
+        LINK_PRODUCER_TIMEOUT,
+        FALSE
+    };
+
+
+    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &producer_list, ln );
+
+    trace_printf("LINK: became RECV producer\n");
+}
+
+static producer_state_t *get_producer( uint64_t link_hash ){
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        producer_state_t *producer = list_vp_get_data( ln );
+        
+        if(link_hash != producer->link_hash ){
+
+            goto next;
+        }
+
+        return producer;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    return 0;
+}
+
+
+
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -846,10 +1003,7 @@ PT_BEGIN( pt );
 
             // we are a producer for this link
 
-
-            // !!!! section incomplete
-            // this logic is used by receive link leaders
-
+            update_producer_from_query( msg, &raddr );
 
             
             trace_printf("LINK: %s() producer match\n", __FUNCTION__);
@@ -997,85 +1151,6 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-
-static void update_producer_from_link( link_state_t *link_state ){
-
-    list_node_t ln = producer_list.head;
-
-    while( ln >= 0 ){
-
-        producer_state_t *producer = list_vp_get_data( ln );
-        
-        if( link_state->hash != producer->link_hash ){
-
-            goto next;
-        }
-
-        // update state
-        producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
-        producer->timeout = LINK_PRODUCER_TIMEOUT;
-
-        // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
-        //     producer->leader_ip.ip3,
-        //     producer->leader_ip.ip2,
-        //     producer->leader_ip.ip1,
-        //     producer->leader_ip.ip0
-        // );
-
-        return;
-        
-    next:
-        ln = list_ln_next( ln );
-    }
-
-    // producer was not found, create one
-
-    producer_state_t new_producer = {
-        link_state->source_key,
-        link_state->hash,
-        services_a_get_ip( LINK_SERVICE, link_state->hash ),
-        0,
-        link_state->rate,
-        link_state->rate,
-        LINK_PRODUCER_TIMEOUT
-    };
-
-
-    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
-
-    if( ln < 0 ){
-
-        return;
-    }
-
-    list_v_insert_tail( &producer_list, ln );
-
-    trace_printf("LINK: became SEND producer\n");
-}
-
-static producer_state_t *get_producer( uint64_t link_hash ){
-
-    list_node_t ln = producer_list.head;
-
-    while( ln >= 0 ){
-
-        producer_state_t *producer = list_vp_get_data( ln );
-        
-        if(link_hash != producer->link_hash ){
-
-            goto next;
-        }
-
-        return producer;
-        
-    next:
-        ln = list_ln_next( ln );
-    }
-
-    return 0;
-}
-
 
 typedef struct __attribute__((packed)){
     link_msg_data_t msg;
