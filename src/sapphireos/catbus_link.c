@@ -718,7 +718,8 @@ static void process_remote_timeouts( uint32_t elapsed_ms ){
 
 static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16_t data_len ){
 
-    // TODO need to check data len
+    // NOTE data len is checked by server routine,
+    // we can assume it is good here.
 
     list_node_t ln = remote_list.head;
 
@@ -771,7 +772,20 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
     new_remote->timeout     = LINK_REMOTE_TIMEOUT;
     // new_remote->data.meta   = meta;
     link_state_t *link_state = link_ls_get_data( link );
-    ASSERT( kv_i8_get_catbus_meta( link_state->source_key, &new_remote->data.meta ) >= 0 );
+
+    // set which key we care about
+    catbus_hash_t32 key;
+    if( link_state->mode == LINK_MODE_SEND ){
+
+        key = link_state->source_key;
+    }
+    else if( link_state->mode == LINK_MODE_RECV ){
+
+        key = link_state->dest_key;
+    }
+
+
+    ASSERT( kv_i8_get_catbus_meta( key, &new_remote->data.meta ) >= 0 );
 
     memcpy( &new_remote->data.data, data, data_len );
 
@@ -1076,6 +1090,8 @@ PT_BEGIN( pt );
             if( data_len != msg_data_len ){
 
                 log_v_error_P( PSTR("rx len does not match!") );
+
+                goto end;
             }
 
             kv_i8_set( msg->hash, &msg->data.data, data_len );   
@@ -1108,12 +1124,25 @@ PT_BEGIN( pt );
 
             // get meta data from database
             catbus_meta_t meta;
-            if( kv_i8_get_catbus_meta( link_state->source_key, &meta ) < 0 ){
+            if( kv_i8_get_catbus_meta( link_state->dest_key, &meta ) < 0 ){
 
-                log_v_error_P( PSTR("source key not found!") );
+                log_v_error_P( PSTR("dest key not found!") );
 
                 goto end;
             }
+
+            // check keys.  the producer should be sending us the 
+            // source key (they don't know the destination key)
+            if( msg->data.meta.hash != link_state->source_key ){
+
+                log_v_error_P( PSTR("producer sent wrong source key!") );
+
+                goto end;
+            }
+
+            // now change the key in the msg meta data to the 
+            // dest key, which is what we're using from here on out
+            msg->data.meta.hash = link_state->dest_key;
 
             // compare meta data, all producers need to match the leader
             if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
@@ -1123,7 +1152,18 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            uint16_t data_len = type_u16_size_meta( &meta );
+                        // verify data lengths
+            uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
+            uint16_t array_len = meta.count + 1;
+            uint16_t type_len = type_u16_size( meta.type );
+            uint16_t data_len = array_len * type_len;
+
+            if( data_len != msg_data_len ){
+
+                log_v_error_P( PSTR("rx len does not match!") );
+
+                goto end;
+            }
 
             // update remote data and timeout
             update_remote( raddr.ipaddr, link, &msg->data.data, data_len );
