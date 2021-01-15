@@ -1295,13 +1295,20 @@ class AppBuilder(HexBuilder):
             # print(image_info)
 
             # get checksum
+            
             for line in image_info.split('\n'):
                 if not line.startswith('Checksum'):
                     continue
 
-                line = line.replace('(', '')
-                line = line.replace(')', '')
-                checksum = int(line.split()[5], 16)
+                
+                if line.find('invalid') >= 0:
+                    line = line.replace('(', '')
+                    line = line.replace(')', '')
+                    checksum = int(line.split()[5], 16)
+                    
+                else:
+                    checksum = int(line.split()[1], 16)
+
                 break
 
             firmware_image[checksum_location] = checksum
