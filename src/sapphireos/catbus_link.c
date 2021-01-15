@@ -413,6 +413,11 @@ uint8_t link_u8_count( void ){
     return list_u8_count( &link_list );
 }
 
+uint8_t producer_count( void ){
+
+    return list_u8_count( &producer_list );
+}
+
 static void delete_link( link_handle_t link ){
 
     link_state_t *state = list_vp_get_data( link );
@@ -1336,9 +1341,11 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     // we will also flag the link to indicate it is ready for aggregation
     if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
 
-        producer->data_hash = data_hash;
+        // producer->data_hash = data_hash;
 
-        producer->ready = TRUE;
+        // producer->ready = TRUE;
+
+        log_v_error_P( PSTR("leader should not have a producer state") );
 
         return;
     }
@@ -1351,7 +1358,7 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
         // if the interval between the last transmission and now is too short,
         // we will skip transmission of data
 
-
+        trace_printf("no change\n");
 
         return;   
     }
@@ -1402,7 +1409,8 @@ PT_BEGIN( pt );
     
     static uint32_t prev_alarm;
 
-    THREAD_WAIT_WHILE( pt, link_u8_count() == 0 );
+    THREAD_WAIT_WHILE( pt, ( link_u8_count() == 0 ) &&
+                           ( producer_count() == 0 ) );
 
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
