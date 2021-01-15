@@ -540,11 +540,10 @@ static void transmit_consumer_query( link_state_t *link ){
         .port = LINK_PORT
     };
 
-    ASSERT( link->mode == LINK_MODE_SEND );
-
     msg.key     = link->dest_key;
     msg.query   = link->query;
     msg.hash    = link->hash;
+    msg.mode    = link->mode;
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
@@ -1022,10 +1021,21 @@ PT_BEGIN( pt );
 
             link_msg_consumer_query_t *msg = (link_msg_consumer_query_t *)header;
 
-            // check query
-            if( !catbus_b_query_self( &msg->query ) ){
+            if( msg->mode == LINK_MODE_SEND ){
 
-                goto end;
+                // check query
+                if( !catbus_b_query_self( &msg->query ) ){
+
+                    goto end;
+                }
+            }
+
+            if( msg->mode == LINK_MODE_RECV ){
+
+                if( link_l_lookup_by_hash( msg->hash ) < 0 ){
+
+                    goto end;
+                }
             }
 
             // check key
@@ -1215,6 +1225,7 @@ PT_BEGIN( pt );
                 else if( link_state->mode == LINK_MODE_RECV ){
 
                     transmit_producer_query( link_state );
+                    transmit_consumer_query( link_state );
                 }
             }   
             

@@ -99,6 +99,7 @@ typedef struct __attribute__((packed)){
     link_msg_header_t header;
     catbus_hash_t32 key;
     catbus_query_t query;
+    link_mode_t8 mode;
     uint64_t hash;
 } link_msg_consumer_query_t;
 #define LINK_MSG_TYPE_CONSUMER_QUERY        1
