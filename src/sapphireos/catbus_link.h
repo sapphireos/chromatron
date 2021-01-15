@@ -79,6 +79,7 @@ typedef struct __attribute__((packed)){
     link_filter_t16 filter;
     link_rate_t16 rate;
 
+    int16_t ticks;
 
     uint64_t hash; // must be last!
 } link_state_t;

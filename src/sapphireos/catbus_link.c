@@ -718,6 +718,8 @@ static void process_remote_timeouts( uint32_t elapsed_ms ){
 
 static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16_t data_len ){
 
+    // TODO need to check data len
+
     list_node_t ln = remote_list.head;
 
     while( ln >= 0 ){
@@ -739,12 +741,12 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
 
         memcpy( &remote->data.data, data, data_len );
 
-        trace_printf("LINK: refreshed SEND remote: %d.%d.%d.%d\n",
-            ip.ip3,
-            ip.ip2,
-            ip.ip1,
-            ip.ip0
-        );
+        // trace_printf("LINK: refreshed remote: %d.%d.%d.%d\n",
+        //     ip.ip3,
+        //     ip.ip2,
+        //     ip.ip1,
+        //     ip.ip0
+        // );
 
         return;
         
@@ -775,7 +777,7 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
 
     list_v_insert_tail( &remote_list, ln );
 
-    trace_printf("LINK: add SEND remote\n");
+    trace_printf("LINK: add remote\n");
 }
 
 
@@ -899,7 +901,7 @@ static producer_state_t *get_producer( uint64_t link_hash ){
 
         producer_state_t *producer = list_vp_get_data( ln );
         
-        if(link_hash != producer->link_hash ){
+        if( link_hash != producer->link_hash ){
 
             goto next;
         }
@@ -913,6 +915,27 @@ static producer_state_t *get_producer( uint64_t link_hash ){
     return 0;
 }
 
+static remote_state_t *get_remote( link_handle_t link ){
+
+    list_node_t ln = remote_list.head;
+
+    while( ln >= 0 ){
+
+        remote_state_t *remote = list_vp_get_data( ln );
+        
+        if( link != remote->link ){
+
+            goto next;
+        }
+
+        return remote;
+        
+    next:
+        ln = list_ln_next( ln );
+    }
+
+    return 0;
+}
 
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
@@ -1177,13 +1200,15 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
         return 0;
     }
 
-    // get data from database.
-    // this will include the full array, for array types
-    if( kv_i8_internal_get( &meta, hash, 0, 0, &msg_buf->msg.data.data, CATBUS_MAX_DATA ) < 0 ){
+    if( link_state->mode == LINK_MODE_SEND ){
+        // get data from database.
+        // this will include the full array, for array types
+        if( kv_i8_internal_get( &meta, hash, 0, 0, &msg_buf->msg.data.data, CATBUS_MAX_DATA ) < 0 ){
 
-        log_v_error_P( PSTR("fatal error") );
+            log_v_error_P( PSTR("fatal error") );
 
-        return 0;
+            return 0;
+        }
     }
 
     // also need the catbus version of meta data
@@ -1193,8 +1218,27 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     uint16_t array_len = meta.array_len + 1;
     uint16_t data_len = type_size * array_len;
 
+    if( link_state->mode == LINK_MODE_RECV ){
+        // get data from first remote.
+        // this will include the full array, for array types
+        
+        remote_state_t *remote = get_remote( link );
+
+        if( remote == 0 ){
+
+            return 0;
+        }
+
+        // load remote data
+        memcpy( &msg_buf->msg.data.data, &remote->data.data, data_len );
+    }
+
+
+
     // the ANY aggregation will just return the local data
     if( link_state->aggregation == LINK_AGG_ANY ){
+
+        kv_i8_set( hash, &msg_buf->msg.data.data, data_len );   
 
         return data_len;
     }
@@ -1255,6 +1299,13 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
     link_state_t *link_state = link_ls_get_data( link );
 
+    link_state->ticks -= elapsed_ms;
+
+    if( link_state->ticks > 0 ){
+
+        return;
+    }        
+
     link_data_msg_buf_t msg_buf;
 
     // SEND link:
@@ -1277,7 +1328,7 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
                 return;
             }
 
-            if( producer->ready ){
+            if( producer->ready ){ // we might not need this?  if we do the timing from the link instead
 
                 producer->ready = FALSE;
 
@@ -1287,7 +1338,10 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
                 uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
 
                 // transmit!
-                transmit_to_consumers( link, &msg_buf, data_len );
+                if( data_len > 0 ){
+
+                    transmit_to_consumers( link, &msg_buf, data_len );    
+                }
             }
         }
         // // link follower
@@ -1295,9 +1349,21 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
         // }
     }
+    else if( link_state->mode == LINK_MODE_RECV ){
+        
+        // link leader
+        if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
+            // run aggregation
+            uint16_t data_len = aggregate( link, link_state->dest_key, &msg_buf );
 
+            // transmit!
+            if( data_len > 0 ){
 
+                transmit_to_consumers( link, &msg_buf, data_len );    
+            }   
+        }
+    }
 }
 
 static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
@@ -1341,11 +1407,9 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     // we will also flag the link to indicate it is ready for aggregation
     if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
 
-        // producer->data_hash = data_hash;
+        producer->data_hash = data_hash;
 
-        // producer->ready = TRUE;
-
-        log_v_error_P( PSTR("leader should not have a producer state") );
+        producer->ready = TRUE;
 
         return;
     }
