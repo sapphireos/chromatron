@@ -191,8 +191,8 @@ void link_v_init( void ){
 
         link_l_create( 
             LINK_MODE_RECV, 
-            __KV__kv_test_key,
             __KV__link_test_key, 
+            __KV__kv_test_key,
             &query,
             __KV__my_tag,
             LINK_RATE_1000ms,
