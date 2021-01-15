@@ -179,15 +179,8 @@ void link_v_init( void ){
         //     LINK_AGG_ANY,
         //     LINK_FILTER_OFF );
 
-        thread_t_create( test_thread,
-                 PSTR("test_thread"),
-                 0,
-                 0 );
 
-    }
-    else{
-
-        query.tags[0] = __KV__link_group;
+        // query.tags[0] = __KV__link_group;
 
         link_l_create( 
             LINK_MODE_RECV, 
@@ -204,6 +197,27 @@ void link_v_init( void ){
         //          PSTR("test_thread"),
         //          0,
         //          0 );
+
+    }
+    else{
+
+        // query.tags[0] = __KV__link_group;
+
+        // link_l_create( 
+        //     LINK_MODE_RECV, 
+        //     __KV__link_test_key, 
+        //     __KV__kv_test_key,
+        //     &query,
+        //     __KV__my_tag,
+        //     LINK_RATE_1000ms,
+        //     LINK_AGG_ANY,
+        //     LINK_FILTER_OFF );
+
+
+        thread_t_create( test_thread,
+                 PSTR("test_thread"),
+                 0,
+                 0 );
     }
 
 }
@@ -774,7 +788,7 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
     link_state_t *link_state = link_ls_get_data( link );
 
     // set which key we care about
-    catbus_hash_t32 key;
+    catbus_hash_t32 key = 0;
     if( link_state->mode == LINK_MODE_SEND ){
 
         key = link_state->source_key;
