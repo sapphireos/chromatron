@@ -66,7 +66,9 @@ typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
 
 typedef uint16_t link_rate_t16;
+#define LINK_RATE_MIN                       20
 #define LINK_RATE_1000ms                    1000
+#define LINK_RATE_MAX                       30000
 
 
 typedef struct __attribute__((packed)){

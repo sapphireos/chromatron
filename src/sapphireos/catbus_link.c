@@ -67,7 +67,7 @@ typedef struct __attribute__((packed)){
     ip_addr4_t leader_ip;  // supplied via services (send mode) or via message (recv mode)
     uint32_t data_hash;
     link_rate_t16 rate;
-    int32_t ticks;
+    int16_t ticks;
     int32_t timeout;
 } producer_state_t;
 
@@ -113,7 +113,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 10000 );
 
-        link_test_key++;
+        // link_test_key++;
     }
 
 PT_END( pt );
@@ -191,7 +191,8 @@ void link_v_init( void ){
         //     LINK_AGG_ANY,
         //     LINK_FILTER_OFF );
 
-
+    link_test_key = 123;
+    
         thread_t_create( test_thread,
                  PSTR("test_thread"),
                  0,
@@ -406,6 +407,14 @@ link_handle_t link_l_create2( link_state_t *state ){
         }
     }
 
+    if( link_state->rate < LINK_RATE_MIN ){
+
+        link_state->rate = LINK_RATE_MIN;
+    }
+    else if( link_state->rate > LINK_RATE_MAX ){
+
+        link_state->rate = LINK_RATE_MAX;
+    }
 
     // sort tags from highest to lowest.
     // this is because the tags are an AND logic, so the order doesn't matter.
