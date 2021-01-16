@@ -112,7 +112,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 50 );
+        TMR_WAIT( pt, 1000 );
 
         link_test_key++;
     }
@@ -1257,9 +1257,16 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
         log_v_error_P( PSTR("fatal error") );
 
         return 0;
-    }
+    }    
+    // also need the catbus version of meta data
+    kv_i8_get_catbus_meta( hash, &msg_buf->msg.data.meta );
+
+    uint16_t type_size = kv_u16_get_size_meta( &meta );
+    uint16_t array_len = meta.array_len + 1;
+    uint16_t data_len = type_size * array_len;
 
     if( link_state->mode == LINK_MODE_SEND ){
+        
         // get data from database.
         // this will include the full array, for array types
         if( kv_i8_internal_get( &meta, hash, 0, 0, &msg_buf->msg.data.data, CATBUS_MAX_DATA ) < 0 ){
@@ -1269,15 +1276,8 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
             return 0;
         }
     }
+    else if( link_state->mode == LINK_MODE_RECV ){
 
-    // also need the catbus version of meta data
-    kv_i8_get_catbus_meta( hash, &msg_buf->msg.data.meta );
-
-    uint16_t type_size = kv_u16_get_size_meta( &meta );
-    uint16_t array_len = meta.array_len + 1;
-    uint16_t data_len = type_size * array_len;
-
-    if( link_state->mode == LINK_MODE_RECV ){
         // get data from first remote.
         // this will include the full array, for array types
         
@@ -1292,14 +1292,12 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
         memcpy( &msg_buf->msg.data.data, &remote->data.data, data_len );
     }
 
-
-
     // the ANY aggregation will just return the local data
     if( link_state->aggregation == LINK_AGG_ANY ){
 
         kv_i8_set( hash, &msg_buf->msg.data.data, data_len );   
 
-        return data_len;
+        goto done;
     }
 
     // void *ptr = &msg_buf->msg.data.data;
@@ -1314,7 +1312,29 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
     }
 
-    return 0;
+done:
+
+    if( data_len == 0 ){
+
+        return 0;
+    }
+
+    // check if data changed
+    uint32_t data_hash = hash_u32_data( &msg_buf->msg.data.data, data_len );
+    
+    if( data_hash == link_state->data_hash ){
+
+        // data did not change
+
+        // if the interval between the last transmission and now is too short,
+        // we will skip transmission of data
+
+        return 0;   
+    }
+
+    link_state->data_hash = data_hash;
+
+    return data_len;
 }
 
 static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_buf, uint16_t data_len ){
@@ -1503,7 +1523,7 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
         // if the interval between the last transmission and now is too short,
         // we will skip transmission of data
 
-        trace_printf("no change\n");
+        // trace_printf("no change\n");
 
         return;   
     }

@@ -78,6 +78,7 @@ typedef struct __attribute__((packed)){
     link_aggregation_t8 aggregation;
     link_filter_t16 filter;
     link_rate_t16 rate;
+    uint32_t data_hash;
 
     int16_t ticks;
 
