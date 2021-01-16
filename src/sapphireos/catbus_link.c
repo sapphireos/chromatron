@@ -407,13 +407,13 @@ link_handle_t link_l_create2( link_state_t *state ){
         }
     }
 
-    if( link_state->rate < LINK_RATE_MIN ){
+    if( state->rate < LINK_RATE_MIN ){
 
-        link_state->rate = LINK_RATE_MIN;
+        state->rate = LINK_RATE_MIN;
     }
-    else if( link_state->rate > LINK_RATE_MAX ){
+    else if( state->rate > LINK_RATE_MAX ){
 
-        link_state->rate = LINK_RATE_MAX;
+        state->rate = LINK_RATE_MAX;
     }
 
     // sort tags from highest to lowest.
