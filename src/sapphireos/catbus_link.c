@@ -175,7 +175,7 @@ void link_v_init( void ){
             __KV__kv_test_key,
             &query,
             __KV__my_tag,
-            LINK_RATE_1000ms,
+            100,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
 
@@ -363,24 +363,20 @@ link_handle_t link_l_create2( link_state_t *state ){
         return -1;
     }
 
-    sapphire_type_t8 type = SAPPHIRE_TYPE_INVALID;
+    catbus_meta_t meta;
 
     // check if we have the required keys
     if( state->mode == LINK_MODE_SEND ){
 
-        type = kv_i8_type( state->source_key );
+        if( kv_i8_get_catbus_meta( state->source_key, &meta ) < 0 ){
         
-        if( type < 0 ){
-
             return -1;
         }
     }
     else if( state->mode == LINK_MODE_RECV ){
 
-        type = kv_i8_type( state->dest_key );
+        if( kv_i8_get_catbus_meta( state->dest_key, &meta ) < 0 ){
         
-        if( type < 0 ){
-
             return -1;
         }
     }
@@ -391,12 +387,26 @@ link_handle_t link_l_create2( link_state_t *state ){
 
     // check data type
     // we are only implementing numeric types at this time
-    if( type_b_is_string( type ) ){
+    if( type_b_is_string( meta.type ) ){
 
         log_v_error_P( PSTR("link system does not support strings") );
 
         return -1;
     }
+
+    // check if array type
+    if( meta.count > 0 ){
+
+        // we are only supporting aggregations on scalar types for now.
+        // array types can only use the ANY aggregation.
+        if( state->aggregation != LINK_AGG_ANY ){
+
+            log_v_error_P( PSTR("link system only supports ANY aggregation for array types") );
+
+            return -1;
+        }
+    }
+
 
     // sort tags from highest to lowest.
     // this is because the tags are an AND logic, so the order doesn't matter.
