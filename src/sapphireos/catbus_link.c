@@ -69,7 +69,6 @@ typedef struct __attribute__((packed)){
     link_rate_t16 rate;
     int32_t ticks;
     int32_t timeout;
-    bool ready;
 } producer_state_t;
 
 // remote producer:
@@ -1561,21 +1560,14 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
                 return;
             }
 
-            if( producer->ready ){ // we might not need this?  if we do the timing from the link instead
+            // run aggregation
+            uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
 
-                producer->ready = FALSE;
+            // transmit!
+            if( data_len > 0 ){
 
-                // trace_printf("LINK: producer READY\n");
-
-                // run aggregation
-                uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
-
-                // transmit!
-                if( data_len > 0 ){
-
-                    transmit_to_consumers( link, &msg_buf, data_len );    
-                }
-            }
+                transmit_to_consumers( link, &msg_buf, data_len );    
+            }        
         }
         // // link follower
         // else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
@@ -1647,8 +1639,6 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
 
         producer->data_hash = data_hash;
-
-        producer->ready = TRUE;
 
         return;
     }
