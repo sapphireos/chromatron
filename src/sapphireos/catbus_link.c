@@ -566,7 +566,7 @@ static void transmit_producer_query( link_state_t *link ){
     // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
-static void transmit_consumer_match( uint64_t hash ){
+static void transmit_consumer_match( uint64_t hash, ip_addr4_t ip ){
 
     // this function assumes the destination is cached in the socket raddr
 
@@ -575,7 +575,11 @@ static void transmit_consumer_match( uint64_t hash ){
 
     msg.hash    = hash;
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+    sock_addr_t raddr;
+    raddr.ipaddr = ip;
+    raddr.port = LINK_PORT;    
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
     // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
@@ -1023,13 +1027,15 @@ PT_BEGIN( pt );
                     goto end;
                 }
             }
+            else if( msg->mode == LINK_MODE_RECV ){
 
-            if( msg->mode == LINK_MODE_RECV ){
-
-                if( link_l_lookup_by_hash( msg->hash ) < 0 ){
-
-                    goto end;
-                }
+                // consumers on a receive link should
+                // have the link itself, so we should
+                // not be receiving this message at all.
+                // the sender is probably confused.
+                log_v_error_P( PSTR("receive links should not be sending consumer query") );
+                
+                goto end;
             }
 
             // check key
@@ -1041,10 +1047,10 @@ PT_BEGIN( pt );
             // we are a consumer for this link
             
             // transmit response
-            transmit_consumer_match( msg->hash );
+            transmit_consumer_match( msg->hash, raddr.ipaddr );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
-\
+
             // trace_printf("LINK: RX producer query\n");
 
             link_msg_producer_query_t *msg = (link_msg_producer_query_t *)header;
@@ -1210,6 +1216,7 @@ PT_BEGIN( pt );
 
             link_state_t *link_state = list_vp_get_data( ln );
 
+            // check if we are link leader
             if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
                 if( link_state->mode == LINK_MODE_SEND ){
@@ -1219,7 +1226,17 @@ PT_BEGIN( pt );
                 else if( link_state->mode == LINK_MODE_RECV ){
 
                     transmit_producer_query( link_state );
-                    transmit_consumer_query( link_state );
+                }
+            }
+            // we are not link leader
+            else{
+
+                // receive link
+                if( link_state->mode == LINK_MODE_RECV ){
+
+                    // we need to send consumer match to the leader
+
+                    transmit_consumer_match( link_state->hash, services_a_get_ip( LINK_SERVICE, link_state->hash ) );
                 }
             }   
             
