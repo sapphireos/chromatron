@@ -43,7 +43,7 @@
 
 #ifdef ENABLE_CATBUS_LINK
 
-static uint16_t tick_rate = LINK_MIN_TICK_RATE;
+static uint16_t link_process_tick_rate = LINK_MAX_TICK_RATE;
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
@@ -112,7 +112,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 2000 );
+        TMR_WAIT( pt, 50 );
 
         link_test_key++;
     }
@@ -406,12 +406,6 @@ link_handle_t link_l_create2( link_state_t *state ){
 
     list_v_insert_tail( &link_list, ln );    
 
-    // update tick rate
-    if( state->rate < tick_rate ){
-
-        tick_rate = state->rate;
-    }
-
     if( state->mode == LINK_MODE_SEND ){
         trace_printf("SEND LINK\n");
     }
@@ -547,7 +541,7 @@ static void transmit_consumer_query( link_state_t *link ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-    trace_printf("LINK: %s()\n", __FUNCTION__);
+    // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
 static void transmit_producer_query( link_state_t *link ){
@@ -569,7 +563,7 @@ static void transmit_producer_query( link_state_t *link ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-    trace_printf("LINK: %s()\n", __FUNCTION__);
+    // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
 static void transmit_consumer_match( uint64_t hash ){
@@ -583,7 +577,7 @@ static void transmit_consumer_match( uint64_t hash ){
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
 
-    trace_printf("LINK: %s()\n", __FUNCTION__);
+    // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
 static bool is_link_leader( link_handle_t link ){
@@ -612,7 +606,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
             goto next;
         }
 
-        trace_printf("LINK: refreshed consumer timeout\n");
+        // trace_printf("LINK: refreshed consumer timeout\n");
 
         // update timeout and return
         consumer->timeout = LINK_CONSUMER_TIMEOUT;
@@ -1017,7 +1011,7 @@ PT_BEGIN( pt );
 
         if( header->msg_type == LINK_MSG_TYPE_CONSUMER_QUERY ){
 
-            trace_printf("LINK: RX consumer query\n");
+            // trace_printf("LINK: RX consumer query\n");
 
             link_msg_consumer_query_t *msg = (link_msg_consumer_query_t *)header;
 
@@ -1050,8 +1044,8 @@ PT_BEGIN( pt );
             transmit_consumer_match( msg->hash );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
-
-            trace_printf("LINK: RX producer query\n");
+\
+            // trace_printf("LINK: RX producer query\n");
 
             link_msg_producer_query_t *msg = (link_msg_producer_query_t *)header;
 
@@ -1072,11 +1066,11 @@ PT_BEGIN( pt );
             update_producer_from_query( msg, &raddr );
 
             
-            trace_printf("LINK: %s() producer match\n", __FUNCTION__);
+            // trace_printf("LINK: %s() producer match\n", __FUNCTION__);
         }
         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_MATCH ){
 
-            trace_printf("LINK: RX consumer match\n");
+            // trace_printf("LINK: RX consumer match\n");
 
             link_msg_consumer_match_t *msg = (link_msg_consumer_match_t *)header;
 
@@ -1381,6 +1375,12 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
     // update ticks for next iteration
     link_state->ticks += link_state->rate;
 
+    // update tick rate
+    if( link_state->rate < link_process_tick_rate ){
+
+        link_process_tick_rate = link_state->rate;
+    }
+
     link_data_msg_buf_t msg_buf;
 
     // SEND link:
@@ -1452,6 +1452,12 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     // update ticks for next iteration
     producer->ticks += producer->rate;
+
+    // update tick rate
+    if( producer->rate < link_process_tick_rate ){
+
+        link_process_tick_rate = producer->rate;
+    }
 
     // get meta data from database
     catbus_meta_t meta;
@@ -1556,14 +1562,18 @@ PT_BEGIN( pt );
 
     while(1){
 
-        if( tick_rate < LINK_MIN_TICK_RATE ){
+        if( link_process_tick_rate < LINK_MIN_TICK_RATE ){
 
-            tick_rate = LINK_MIN_TICK_RATE;
+            link_process_tick_rate = LINK_MIN_TICK_RATE;
+        }
+        else if( link_process_tick_rate > LINK_MAX_TICK_RATE ){
+
+            link_process_tick_rate = LINK_MAX_TICK_RATE;
         }
 
         prev_alarm = thread_u32_get_alarm();
 
-        thread_v_set_alarm( prev_alarm + tick_rate );
+        thread_v_set_alarm( prev_alarm + link_process_tick_rate );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // check if shutting down
@@ -1573,6 +1583,12 @@ PT_BEGIN( pt );
         }
 
         uint32_t elapsed_time = tmr_u32_elapsed_time_ms( prev_alarm );
+
+        // reset process tick rate.
+        // existing links and producers will update to the max rate
+        // needed.  this is here to reduce the rate if a link or producer
+        // is removed.
+        link_process_tick_rate = LINK_MIN_TICK_RATE;
 
         // update timeouts
         process_consumer_timeouts( elapsed_time );

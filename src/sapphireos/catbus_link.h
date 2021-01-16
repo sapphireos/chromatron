@@ -45,8 +45,8 @@
 #define LINK_PRODUCER_TIMEOUT               64000
 #define LINK_REMOTE_TIMEOUT                 32000
 
-#define LINK_MIN_TICK_RATE                  1000
-#define LINK_MAX_TICK_RATE                  20
+#define LINK_MIN_TICK_RATE                  20
+#define LINK_MAX_TICK_RATE                  2000
 
 typedef list_node_t link_handle_t;
 
