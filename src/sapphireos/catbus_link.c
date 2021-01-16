@@ -90,14 +90,6 @@ typedef struct __attribute__((packed)){
     int32_t timeout;
 } consumer_state_t;
 
-// // leader:
-// // state stored on link leader for transmission to consumers
-// // a leader always has a copy of the link
-// typedef struct __attribute__((packed)){
-//     link_state_t *link;
-//     uint8_t consumer_count;
-//     ip_addr4_t consumer_ips; // first entry, additional will follow up to consumer_count
-// } leader_state_t;
 
 
 static int32_t link_test_key;
@@ -840,64 +832,6 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
     trace_printf("LINK: add remote\n");
 }
 
-
-// static void update_producer_from_link( link_state_t *link_state ){
-
-//     list_node_t ln = producer_list.head;
-
-//     while( ln >= 0 ){
-
-//         producer_state_t *producer = list_vp_get_data( ln );
-        
-//         if( link_state->hash != producer->link_hash ){
-
-//             goto next;
-//         }
-
-//         // update state
-//         producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
-//         producer->timeout = LINK_PRODUCER_TIMEOUT;
-
-//         // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
-//         //     producer->leader_ip.ip3,
-//         //     producer->leader_ip.ip2,
-//         //     producer->leader_ip.ip1,
-//         //     producer->leader_ip.ip0
-//         // );
-
-//         return;
-        
-//     next:
-//         ln = list_ln_next( ln );
-//     }
-
-//     // producer was not found, create one
-
-//     producer_state_t new_producer = {
-//         link_state->source_key,
-//         link_state->hash,
-//         services_a_get_ip( LINK_SERVICE, link_state->hash ),
-//         0,
-//         link_state->rate,
-//         link_state->rate,
-//         LINK_RETRANSMIT_RATE,
-//         LINK_PRODUCER_TIMEOUT,
-//         FALSE
-//     };
-
-
-//     ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
-
-//     if( ln < 0 ){
-
-//         return;
-//     }
-
-//     list_v_insert_tail( &producer_list, ln );
-
-//     trace_printf("LINK: became SEND producer\n");
-// }
-
 static void update_producer_from_query( link_msg_producer_query_t *msg, sock_addr_t *raddr ){
 
     list_node_t ln = producer_list.head;
@@ -954,50 +888,6 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
 
     trace_printf("LINK: became RECV producer\n");
 }
-
-// static producer_state_t *get_producer( uint64_t link_hash ){
-
-//     list_node_t ln = producer_list.head;
-
-//     while( ln >= 0 ){
-
-//         producer_state_t *producer = list_vp_get_data( ln );
-        
-//         if( link_hash != producer->link_hash ){
-
-//             goto next;
-//         }
-
-//         return producer;
-        
-//     next:
-//         ln = list_ln_next( ln );
-//     }
-
-//     return 0;
-// }
-
-// static remote_state_t *get_remote( link_handle_t link ){
-
-//     list_node_t ln = remote_list.head;
-
-//     while( ln >= 0 ){
-
-//         remote_state_t *remote = list_vp_get_data( ln );
-        
-//         if( link != remote->link ){
-
-//             goto next;
-//         }
-
-//         return remote;
-        
-//     next:
-//         ln = list_ln_next( ln );
-//     }
-
-//     return 0;
-// }
 
 
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) )
@@ -1223,7 +1113,7 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-                        // verify data lengths
+            // verify data lengths
             uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
             uint16_t array_len = meta.count + 1;
             uint16_t type_len = type_u16_size( meta.type );
@@ -1340,30 +1230,7 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
             return 0;
         }
     }
-    // else if( link_state->mode == LINK_MODE_RECV ){
-
-    //     // get data from first remote.
-    //     // this will include the full array, for array types
-        
-    //     remote_state_t *remote = get_remote( link );
-
-    //     if( remote == 0 ){
-
-    //         return 0;
-    //     }
-
-    //     // load remote data
-    //     memcpy( &msg_buf->msg.data.data, &remote->data.data, data_len );
-    // }
-
-    // the ANY aggregation will just return the local data
-    // if( link_state->aggregation == LINK_AGG_ANY ){
-        
-    //     kv_i8_set( hash, &msg_buf->msg.data.data, data_len );   
-
-    //     goto done;
-    // }
-
+    
     void *ptr = &msg_buf->msg.data.data;
     list_node_t ln = remote_list.head;
     remote_state_t *remote = 0;
@@ -1507,7 +1374,6 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
 
     uint16_t msg_len = ( sizeof(link_msg_data_t) - 1 ) + data_len;
 
-
     list_node_t ln = consumer_list.head;
 
     while( ln >= 0 ){
@@ -1597,22 +1463,9 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
     // we are a producer
     if( link_state->mode == LINK_MODE_SEND ){
 
-        // update_producer_from_link( link_state );
-
         // link leader
         if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
             
-            // check local producers for matches with this link and see
-            // if it is ready for aggregation
-            // producer_state_t *producer = get_producer( link_state->hash );
-
-            // if( producer == 0 ){
-
-            //     log_v_critical_P( PSTR("send link leader should also be producer!") );
-
-            //     return;
-            // }
-
             // run aggregation
             // uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
             uint16_t data_len = aggregate( link, link_state->source_key, &msg_buf );
