@@ -880,6 +880,7 @@ static void update_producer_from_link( link_state_t *link_state ){
         0,
         link_state->rate,
         link_state->rate,
+        LINK_RETRANSMIT_RATE,
         LINK_PRODUCER_TIMEOUT,
         FALSE
     };
