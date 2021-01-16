@@ -48,6 +48,9 @@
 #define LINK_MIN_TICK_RATE                  20
 #define LINK_MAX_TICK_RATE                  2000
 
+#define LINK_RETRANSMIT_RATE                2000
+
+
 typedef list_node_t link_handle_t;
 
 typedef uint8_t link_aggregation_t8;
@@ -80,8 +83,9 @@ typedef struct __attribute__((packed)){
     link_aggregation_t8 aggregation;
     link_filter_t16 filter;
     link_rate_t16 rate;
-    uint32_t data_hash;
 
+    uint32_t data_hash;
+    int16_t retransmit_timer;
     int16_t ticks;
 
     uint64_t hash; // must be last!

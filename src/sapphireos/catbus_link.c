@@ -68,6 +68,7 @@ typedef struct __attribute__((packed)){
     uint32_t data_hash;
     link_rate_t16 rate;
     int16_t ticks;
+    int16_t retransmit_timer;
     int32_t timeout;
 } producer_state_t;
 
@@ -192,7 +193,7 @@ void link_v_init( void ){
         //     LINK_FILTER_OFF );
 
     link_test_key = 123;
-    
+
         thread_t_create( test_thread,
                  PSTR("test_thread"),
                  0,
@@ -270,7 +271,11 @@ bool link_b_compare( link_state_t *link1, link_state_t *link2 ){
 
 uint64_t link_u64_hash( link_state_t *link ){
 
-	return hash_u64_data( (uint8_t *)link, sizeof(link_state_t) - sizeof(uint64_t) );	
+	return hash_u64_data( 
+        (uint8_t *)link, 
+        sizeof(link_state_t) - 
+            ( sizeof(uint64_t) + sizeof(uint32_t) + sizeof(int16_t) + sizeof(int16_t) ) 
+        );	
 }
 
 link_handle_t link_l_lookup( link_state_t *link ){
@@ -1461,8 +1466,12 @@ done:
 
     // check if data changed
     uint32_t data_hash = hash_u32_data( &msg_buf->msg.data.data, data_len );
-    
-    if( data_hash == link_state->data_hash ){
+        
+    // check if data did not change.
+    // if no change, we skip transmission, UNLESS 
+    // the transmit timer has also expired
+    if( ( data_hash == link_state->data_hash ) &&
+        ( link_state->retransmit_timer > 0 ) ){
 
         // data did not change
 
@@ -1486,6 +1495,8 @@ done:
 static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_buf, uint16_t data_len ){
 
     link_state_t *link_state = link_ls_get_data( link );
+
+    link_state->retransmit_timer = LINK_RETRANSMIT_RATE;
 
     init_header( &msg_buf->msg.header, LINK_MSG_TYPE_CONSUMER_DATA );
 
@@ -1531,6 +1542,7 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
     link_state_t *link_state = link_ls_get_data( link );
 
+    link_state->retransmit_timer -= elapsed_ms;
     link_state->ticks -= elapsed_ms;
 
     if( link_state->ticks > 0 ){
@@ -1602,6 +1614,7 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
 static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
+    producer->retransmit_timer -= elapsed_ms;
     producer->ticks -= elapsed_ms;
 
     if( producer->ticks > 0 ){
@@ -1628,8 +1641,9 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     }
 
     uint16_t data_len = type_u16_size_meta( &meta );    
-
     if( data_len > CATBUS_MAX_DATA ){
+
+        log_v_error_P( PSTR("data len too long!") );
 
         return;
     }
@@ -1653,7 +1667,11 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     }
 
 
-    if( data_hash == producer->data_hash ){
+    // check if data did not change.
+    // if no change, we skip transmission, UNLESS 
+    // the transmit timer has also expired
+    if( ( data_hash == producer->data_hash ) &&
+        ( producer->retransmit_timer > 0 ) ){
 
         // data did not change
 
@@ -1686,6 +1704,8 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
         return;
     }
+
+    producer->retransmit_timer = LINK_RETRANSMIT_RATE;
 
     link_msg_data_t *msg = mem2_vp_get_ptr_fast( h );
     init_header( &msg->header, LINK_MSG_TYPE_PRODUCER_DATA );
