@@ -112,7 +112,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 100 );
+        TMR_WAIT( pt, 10000 );
 
         link_test_key++;
     }
@@ -175,7 +175,7 @@ void link_v_init( void ){
             __KV__kv_test_key,
             &query,
             __KV__my_tag,
-            100,
+            1000,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
 
