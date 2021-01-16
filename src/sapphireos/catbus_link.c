@@ -151,7 +151,7 @@ void link_v_init( void ){
 
 
     catbus_query_t query = { 0 };
-    query.tags[0] = __KV__link_test;
+    query.tags[0] = __KV__link_group;
 
     // if( cfg_u64_get_device_id() == 93172270997720 ){
 
@@ -169,15 +169,15 @@ void link_v_init( void ){
     if( ( cfg_u64_get_device_id() == 93172270997720 ) ||
         ( cfg_u64_get_device_id() == 110777341944024 ) ){
 
-        // link_l_create( 
-        //     LINK_MODE_SEND, 
-        //     __KV__link_test_key, 
-        //     __KV__kv_test_key,
-        //     &query,
-        //     __KV__my_tag,
-        //     LINK_RATE_1000ms,
-        //     LINK_AGG_ANY,
-        //     LINK_FILTER_OFF );
+        link_l_create( 
+            LINK_MODE_SEND, 
+            __KV__link_test_key, 
+            __KV__kv_test_key,
+            &query,
+            __KV__my_tag,
+            LINK_RATE_1000ms,
+            LINK_AGG_ANY,
+            LINK_FILTER_OFF );
 
 
         // query.tags[0] = __KV__link_group;
@@ -201,18 +201,18 @@ void link_v_init( void ){
     }
     else{
 
-        query.tags[0] = __KV__link2;
+        // query.tags[0] = __KV__link_group;
 
 
-        link_l_create( 
-            LINK_MODE_RECV, 
-            __KV__link_test_key, 
-            __KV__kv_test_key,
-            &query,
-            __KV__my_tag,
-            1000,
-            LINK_AGG_AVG,
-            LINK_FILTER_OFF );
+        // link_l_create( 
+        //     LINK_MODE_RECV, 
+        //     __KV__link_test_key, 
+        //     __KV__kv_test_key,
+        //     &query,
+        //     __KV__my_tag,
+        //     1000,
+        //     LINK_AGG_AVG,
+        //     LINK_FILTER_OFF );
 
 
         // link_l_create( 
@@ -1033,6 +1033,16 @@ PT_BEGIN( pt );
 
             if( msg->mode == LINK_MODE_SEND ){
 
+                // check if we have this link, if so, we are part of the send group,
+                // not the consumer group, even if we would otherwise match the query.
+                // this is a bit of a corner case, but it handles the scenario where
+                // a send producer also matches as a consumer and is receiving data
+                // it is trying to send.
+                if( link_l_lookup_by_hash( msg->hash ) > 0 ){
+
+                    goto end;
+                }
+
                 // check query
                 if( !catbus_b_query_self( &msg->query ) ){
 
@@ -1043,7 +1053,7 @@ PT_BEGIN( pt );
 
                 // consumers on a receive link should
                 // have the link itself, so we should
-                // not be receiving this message at all.
+                // not be receiving this message at all (receive leaders shouldn't be sending it).
                 // the sender is probably confused.
                 log_v_error_P( PSTR("receive links should not be sending consumer query") );
                 
