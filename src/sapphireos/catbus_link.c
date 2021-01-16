@@ -841,62 +841,62 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
 }
 
 
-static void update_producer_from_link( link_state_t *link_state ){
+// static void update_producer_from_link( link_state_t *link_state ){
 
-    list_node_t ln = producer_list.head;
+//     list_node_t ln = producer_list.head;
 
-    while( ln >= 0 ){
+//     while( ln >= 0 ){
 
-        producer_state_t *producer = list_vp_get_data( ln );
+//         producer_state_t *producer = list_vp_get_data( ln );
         
-        if( link_state->hash != producer->link_hash ){
+//         if( link_state->hash != producer->link_hash ){
 
-            goto next;
-        }
+//             goto next;
+//         }
 
-        // update state
-        producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
-        producer->timeout = LINK_PRODUCER_TIMEOUT;
+//         // update state
+//         producer->leader_ip = services_a_get_ip( LINK_SERVICE, link_state->hash );
+//         producer->timeout = LINK_PRODUCER_TIMEOUT;
 
-        // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
-        //     producer->leader_ip.ip3,
-        //     producer->leader_ip.ip2,
-        //     producer->leader_ip.ip1,
-        //     producer->leader_ip.ip0
-        // );
+//         // trace_printf("LINK: refreshed SEND producer: %d.%d.%d.%d\n",
+//         //     producer->leader_ip.ip3,
+//         //     producer->leader_ip.ip2,
+//         //     producer->leader_ip.ip1,
+//         //     producer->leader_ip.ip0
+//         // );
 
-        return;
+//         return;
         
-    next:
-        ln = list_ln_next( ln );
-    }
+//     next:
+//         ln = list_ln_next( ln );
+//     }
 
-    // producer was not found, create one
+//     // producer was not found, create one
 
-    producer_state_t new_producer = {
-        link_state->source_key,
-        link_state->hash,
-        services_a_get_ip( LINK_SERVICE, link_state->hash ),
-        0,
-        link_state->rate,
-        link_state->rate,
-        LINK_RETRANSMIT_RATE,
-        LINK_PRODUCER_TIMEOUT,
-        FALSE
-    };
+//     producer_state_t new_producer = {
+//         link_state->source_key,
+//         link_state->hash,
+//         services_a_get_ip( LINK_SERVICE, link_state->hash ),
+//         0,
+//         link_state->rate,
+//         link_state->rate,
+//         LINK_RETRANSMIT_RATE,
+//         LINK_PRODUCER_TIMEOUT,
+//         FALSE
+//     };
 
 
-    ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
+//     ln = list_ln_create_node2( &new_producer, sizeof(new_producer), MEM_TYPE_LINK_PRODUCER );
 
-    if( ln < 0 ){
+//     if( ln < 0 ){
 
-        return;
-    }
+//         return;
+//     }
 
-    list_v_insert_tail( &producer_list, ln );
+//     list_v_insert_tail( &producer_list, ln );
 
-    trace_printf("LINK: became SEND producer\n");
-}
+//     trace_printf("LINK: became SEND producer\n");
+// }
 
 static void update_producer_from_query( link_msg_producer_query_t *msg, sock_addr_t *raddr ){
 
@@ -937,6 +937,7 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
         0,
         msg->rate,
         msg->rate,
+        LINK_RETRANSMIT_RATE,
         LINK_PRODUCER_TIMEOUT,
         FALSE
     };
@@ -954,27 +955,27 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
     trace_printf("LINK: became RECV producer\n");
 }
 
-static producer_state_t *get_producer( uint64_t link_hash ){
+// static producer_state_t *get_producer( uint64_t link_hash ){
 
-    list_node_t ln = producer_list.head;
+//     list_node_t ln = producer_list.head;
 
-    while( ln >= 0 ){
+//     while( ln >= 0 ){
 
-        producer_state_t *producer = list_vp_get_data( ln );
+//         producer_state_t *producer = list_vp_get_data( ln );
         
-        if( link_hash != producer->link_hash ){
+//         if( link_hash != producer->link_hash ){
 
-            goto next;
-        }
+//             goto next;
+//         }
 
-        return producer;
+//         return producer;
         
-    next:
-        ln = list_ln_next( ln );
-    }
+//     next:
+//         ln = list_ln_next( ln );
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 // static remote_state_t *get_remote( link_handle_t link ){
 
@@ -1539,6 +1540,36 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
     }
 }
 
+static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t *data, uint16_t data_len, ip_addr4_t ip ){
+
+    // prepare data message
+    uint16_t msg_len = ( sizeof(link_msg_data_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
+
+    mem_handle_t h = mem2_h_alloc( msg_len );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    link_msg_data_t *msg = mem2_vp_get_ptr_fast( h );
+    init_header( &msg->header, LINK_MSG_TYPE_PRODUCER_DATA );
+
+    msg->hash = hash;
+    msg->data.meta = *meta;
+
+    memcpy( &msg->data.data, data, data_len );
+
+    sock_addr_t raddr = {
+        ip,
+        LINK_PORT
+    };
+
+    sock_i16_sendto_m( sock, h, &raddr );
+
+    trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );   
+}
+
 static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
     link_state_t *link_state = link_ls_get_data( link );
@@ -1566,24 +1597,25 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
     // we are a producer
     if( link_state->mode == LINK_MODE_SEND ){
 
-        update_producer_from_link( link_state );
+        // update_producer_from_link( link_state );
 
         // link leader
         if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
             
             // check local producers for matches with this link and see
             // if it is ready for aggregation
-            producer_state_t *producer = get_producer( link_state->hash );
+            // producer_state_t *producer = get_producer( link_state->hash );
 
-            if( producer == 0 ){
+            // if( producer == 0 ){
 
-                log_v_critical_P( PSTR("send link leader should also be producer!") );
+            //     log_v_critical_P( PSTR("send link leader should also be producer!") );
 
-                return;
-            }
+            //     return;
+            // }
 
             // run aggregation
-            uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
+            // uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
+            uint16_t data_len = aggregate( link, link_state->source_key, &msg_buf );
 
             // transmit!
             if( data_len > 0 ){
@@ -1591,10 +1623,43 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
                 transmit_to_consumers( link, &msg_buf, data_len );    
             }        
         }
-        // // link follower
-        // else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
+        // link follower
+        else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
 
-        // }
+            // get data
+            if( kv_i8_array_get( link_state->source_key, 0, 0, msg_buf.buf, sizeof(msg_buf.buf) ) < 0 ){
+
+                return;
+            }
+
+            catbus_meta_t meta;
+            if( kv_i8_get_catbus_meta( link_state->source_key, &meta ) < 0 ){
+
+                return;
+            }
+
+            uint16_t data_len = type_u16_size_meta( &meta );
+            uint32_t data_hash = hash_u32_data( msg_buf.buf, data_len );
+
+            // check if data did not change.
+            // if no change, we skip transmission, UNLESS 
+            // the transmit timer has also expired
+            if( ( data_hash == link_state->data_hash ) &&
+                ( link_state->retransmit_timer > 0 ) ){
+
+                // data did not change
+
+                // if the interval between the last transmission and now is too short,
+                // we will skip transmission of data
+
+                return;   
+            }
+
+            link_state->data_hash = data_hash;
+            link_state->retransmit_timer = LINK_RETRANSMIT_RATE;
+
+            transmit_producer_data( link_state->hash, &meta, msg_buf.buf, data_len, services_a_get_ip( LINK_SERVICE, link_state->hash ) );
+        }
     }
     else if( link_state->mode == LINK_MODE_RECV ){
         
@@ -1689,6 +1754,7 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     // trace_printf("LINK: data changed!\n");
 
     producer->data_hash = data_hash;
+    producer->retransmit_timer = LINK_RETRANSMIT_RATE;
 
     // check if leader IP is not available
     if( ip_b_is_zeroes( producer->leader_ip ) ){
@@ -1696,35 +1762,9 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
         return;
     }
 
-    // prepare data message
-    uint16_t msg_len = ( sizeof(link_msg_data_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
-
-    mem_handle_t h = mem2_h_alloc( msg_len );
-
-    if( h < 0 ){
-
-        return;
-    }
-
-    producer->retransmit_timer = LINK_RETRANSMIT_RATE;
-
-    link_msg_data_t *msg = mem2_vp_get_ptr_fast( h );
-    init_header( &msg->header, LINK_MSG_TYPE_PRODUCER_DATA );
-
-    msg->hash = producer->link_hash;
-    msg->data.meta = meta;
-
-    memcpy( &msg->data.data, buf, data_len );
-
-    sock_addr_t raddr = {
-        producer->leader_ip,
-        LINK_PORT
-    };
-
-    sock_i16_sendto_m( sock, h, &raddr );
-
-    trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+    transmit_producer_data( producer->link_hash, &meta, buf, data_len, producer->leader_ip );
 }
+
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
