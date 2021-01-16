@@ -112,7 +112,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 100 );
 
         link_test_key++;
     }
@@ -188,7 +188,7 @@ void link_v_init( void ){
             __KV__kv_test_key,
             &query,
             __KV__my_tag,
-            100,
+            1000,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
 
@@ -1571,8 +1571,6 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-    static uint32_t prev_alarm;
 
     THREAD_WAIT_WHILE( pt, ( link_u8_count() == 0 ) &&
                            ( producer_count() == 0 ) );
@@ -1591,7 +1589,7 @@ PT_BEGIN( pt );
             link_process_tick_rate = LINK_MAX_TICK_RATE;
         }
 
-        prev_alarm = thread_u32_get_alarm();
+        uint32_t prev_alarm = thread_u32_get_alarm();
 
         thread_v_set_alarm( prev_alarm + link_process_tick_rate );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
@@ -1602,7 +1600,7 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        uint32_t elapsed_time = tmr_u32_elapsed_time_ms( prev_alarm );
+        uint32_t elapsed_time = link_process_tick_rate;
 
         // reset process tick rate.
         // existing links and producers will update to the max rate
@@ -1634,11 +1632,9 @@ PT_BEGIN( pt );
 
         while( ln >= 0 ){
 
-            list_node_t next_ln = list_ln_next( ln );
-
             process_link( ln, elapsed_time );
 
-            ln = next_ln;
+            ln = list_ln_next( ln );
         }
 
     }
