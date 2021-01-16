@@ -188,7 +188,7 @@ void link_v_init( void ){
             __KV__kv_test_key,
             &query,
             __KV__my_tag,
-            LINK_RATE_1000ms,
+            100,
             LINK_AGG_ANY,
             LINK_FILTER_OFF );
 
@@ -1350,6 +1350,13 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
                 .port = LINK_PORT
             };
 
+            trace_printf("LINK: TX consumer data %d.%d.%d.%d\n",
+                consumer->ip.ip3,
+                consumer->ip.ip2,
+                consumer->ip.ip1,
+                consumer->ip.ip0
+            );
+
             if( sock_i16_sendto( sock, (uint8_t *)&msg_buf->msg, msg_len, &raddr ) < 0 ){
 
                 log_v_error_P( PSTR("socket send failed, possibly out of memory") );
@@ -1370,6 +1377,9 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
         return;
     }        
+
+    // update ticks for next iteration
+    link_state->ticks += link_state->rate;
 
     link_data_msg_buf_t msg_buf;
 
