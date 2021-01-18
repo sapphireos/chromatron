@@ -113,6 +113,47 @@ class ProducerDataMsg(StructField):
 
         self.header.type = LINK_MSG_TYPE_PRODUCER_DATA
 
+LINK_MODE_SEND  = 0
+LINK_MODE_RECV  = 1
+LINK_MODE_SYNC  = 2
+
+LINK_AGG_ANY    = 0
+LINK_AGG_MIN    = 1
+LINK_AGG_MAX    = 2
+LINK_AGG_SUM    = 3
+LINK_AGG_AVG    = 4
+
+LINK_RATE_MIN   = 20
+LINK_RATE_MAX   = 30000
+
+
+class Link(object):
+    def __init__(self,
+        mode=LINK_MODE_SEND,
+        source_key=None,
+        dest_key=None,
+        query=CatbusQuery(),
+        aggregation=LINK_AGG_ANY,
+        rate=1000,
+        tag=None):
+
+        self.mode = mode
+        self.source_key = source_key
+        self.dest_key = dest_key
+        self.query = query
+        self.aggregation = aggregation
+        self.filter = None
+        self.rate = rate
+        self.tag = tag
+
+
+    def __str__(self):
+        if self.mode == LINK_MODE_SEND:
+            return f'SEND {self.source_key} to {self.dest_key} at {self.query}'
+        elif self.mode == LINK_MODE_RECV:
+            return f'RECV {self.source_key} to {self.dest_key} at {self.query}'
+        # elif self.mode == LINK_MODE_SYNC:
+            # return f'SYNC {self.source_key} to {self.dest_key} at {self.query}'
 
 
 """
@@ -126,8 +167,10 @@ on the same machine!
 class LinkManager(RibbonServer):
     NAME = 'link_manager'
 
-    def initialize(self):
+    def initialize(self, database):
         super().initialize()
+
+        self.database = database
         
         self.register_message(ConsumerQueryMsg, self._handle_consumer_query)
         self.register_message(ConsumerMatchMsg, self._handle_consumer_match)
