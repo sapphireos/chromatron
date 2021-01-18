@@ -24,12 +24,9 @@
 
 import sys
 import time
-import socket
-import select
 import logging
 from elysianfields import *
-from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, RibbonServer, util, catbus_string_hash
+from ..common import RibbonServer, util, catbus_string_hash
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
