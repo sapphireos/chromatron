@@ -3056,14 +3056,6 @@ int8_t vm_i8_load_program(
     return VM_STATUS_OK;
 }
 
-void kv_notifier(
-    catbus_hash_t32 hash,
-    catbus_type_t8 type,
-    const void *data ){
-
-    catbus_i8_publish( hash );
-}
-
 void vm_v_init_db(
     uint8_t *stream,
     vm_state_t *state,
@@ -3097,7 +3089,6 @@ void vm_v_init_db(
 
         kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
         kvdb_v_set_tag( publish->hash, tag );
-        kvdb_v_set_notifier( publish->hash, kv_notifier );
 
         publish++;
         count--;

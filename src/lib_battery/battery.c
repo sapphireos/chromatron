@@ -158,8 +158,6 @@ PT_BEGIN( pt );
 
                 batt_ui_state = -2;
 
-                catbus_i8_publish( __KV__batt_ui_state );
-
                 TMR_WAIT( pt, 5000 );
 
                 bq25895_v_enable_ship_mode( FALSE );
@@ -180,7 +178,6 @@ PT_BEGIN( pt );
 
                     // vm_v_shutdown();
                     batt_ui_state = -1;
-                    catbus_i8_publish( __KV__batt_ui_state );
 
                     TMR_WAIT( pt, 5000 );
 

@@ -1066,12 +1066,6 @@ end:
 PT_END( pt );
 }
 
-int8_t kv_i8_publish( catbus_hash_t32 hash ){
-    
-    return catbus_i8_publish( hash );
-}
-
-
 uint8_t kv_u8_get_dynamic_count( void ){
 
     return kvdb_u16_count();

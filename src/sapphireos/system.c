@@ -743,9 +743,6 @@ PT_BEGIN( pt );
     kv_v_shutdown();
     log_v_info_P( PSTR("Shutting down...") );
     
-    // notify boot mode
-    kv_i8_publish( __KV__boot_mode );
-
     while( reboot_delay > 0 ){
 
 	   TMR_WAIT( pt, 1000 );
