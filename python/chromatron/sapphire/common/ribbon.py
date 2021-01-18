@@ -327,6 +327,7 @@ class RibbonServer(Ribbon):
             self.__server_sock.bind(('0.0.0.0', self._port))
 
         self._port = self.__server_sock.getsockname()[1]
+        self._host = self.__server_sock.getsockname()
 
         self.__server_sock.setblocking(0)
 
@@ -351,7 +352,11 @@ class RibbonServer(Ribbon):
         header = msg().header
 
         if self._msg_type_offset is None:
-            self._msg_type_offset = header.offsetof('type')
+            try:
+                self._msg_type_offset = header.offsetof('type')
+
+            except KeyError:
+                self._msg_type_offset = header.offsetof('msg_type')
 
         if self._protocol_version is None:
             try:
@@ -361,7 +366,12 @@ class RibbonServer(Ribbon):
             except KeyError:
                 pass
 
-        msg_type = header.type
+        try:
+            msg_type = header.type
+
+        except KeyError:
+            msg_type = header.msg_type
+
         self._messages[msg_type] = msg
         self._handlers[msg] = handler
 

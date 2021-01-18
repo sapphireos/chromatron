@@ -31,66 +31,36 @@ from sapphire.common.broadcast import send_udp_broadcast
 from .messages import *
 from .catbustypes import *
 
-from sapphire.common import catbus_string_hash, util, Ribbon, MsgQueueEmptyException
+from sapphire.common import catbus_string_hash, util, RibbonServer, MsgQueueEmptyException
 
 
 
-class Server(Ribbon):
-    def initialize(self, data_port=None, database=None, visible=True):
+class Server(RibbonServer):
+    def initialize(self, data_port=0, database=None, visible=True):
+        super().initialize(port=data_port)
         self._database = database
 
         self.name = '%s.%s' % (self._database[META_TAG_NAME], 'server')
 
         self.visible = visible
 
-        self.__announce_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        logging.info("Data server: %d" % (self._port))
 
-        try:
-            # this option may fail on some platforms
-            self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_ANNOUNCE_PORT))
-
-        self.__data_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__data_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__data_sock.setblocking(0)
-
-        if data_port:
-            self.__data_sock.bind(('', data_port))
-
-        else:
-            self.__data_sock.bind(('', 0))
-
-        self._data_port = self.__data_sock.getsockname()[1]
-        self._host = self.__data_sock.getsockname()
-
-        logging.info("Data server: %d" % (self._data_port))
-
-        self._inputs = [self.__announce_sock, self.__data_sock]
-        
         self._hash_lookup = {}
 
         self._database.add_item('uptime', 0, 'uint32', readonly=True)
 
-        self._msg_handlers = {
-            ErrorMsg: self._handle_error,
-            DiscoverMsg: self._handle_discover,
-            AnnounceMsg: self._handle_announce,
-            LookupHashMsg: self._handle_lookup_hash,
-            ResolvedHashMsg: self._handle_resolved_hash,
-            GetKeyMetaMsg: self._handle_get_key_meta,
-            GetKeysMsg: self._handle_get_keys,
-            SetKeysMsg: self._handle_set_keys,
-            ShutdownMsg: self._handle_shutdown,
-        }
+        self.register_message(ErrorMsg, self._handle_error)
+        self.register_message(DiscoverMsg, self._handle_discover)
+        self.register_message(AnnounceMsg, self._handle_announce)
+        self.register_message(LookupHashMsg, self._handle_lookup_hash)
+        self.register_message(ResolvedHashMsg, self._handle_resolved_hash)
+        self.register_message(GetKeyMetaMsg, self._handle_get_key_meta)
+        self.register_message(GetKeysMsg, self._handle_get_keys)
+        self.register_message(SetKeysMsg, self._handle_set_keys)
+        self.register_message(ShutdownMsg, self._handle_shutdown)
 
-        self._last_announce = time.time() - 10.0
+        self.start_timer(4.0, self._process_announce)
 
         self._origin_id = self._database['device_id']
 
@@ -130,34 +100,20 @@ class Server(Ribbon):
                 else:
                     raise
 
-    def _send_data_msg(self, msg, host):
-        msg.header.origin_id = self._origin_id
-        s = self.__data_sock
-
-        try:
-            if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], serialize(msg))
-
-            else:
-                s.sendto(serialize(msg), host)
-
-        except socket.error:
-            pass
-
     def _send_announce(self, host=('<broadcast>', CATBUS_ANNOUNCE_PORT), discovery_id=None):
         msg = AnnounceMsg(
-                data_port=self._data_port,
+                data_port=self._port,
                 query=self._database.get_query())
 
         if discovery_id:
             msg.header.transaction_id = discovery_id
 
-        self._send_data_msg(msg, host)
+        self.transmit(msg, host)
 
     def _send_shutdown(self, host=('<broadcast>', CATBUS_MAIN_PORT)):
         msg = ShutdownMsg()
 
-        self._send_data_msg(msg, host)
+        self.transmit(msg, host)
 
     def _handle_error(self, msg, host):
         if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
@@ -255,74 +211,12 @@ class Server(Ribbon):
 
     def _handle_shutdown(self, msg, host):
         pass
-
-    def _process_msg(self, msg, host):
-        try:
-            tokens = self._msg_handlers[type(msg)](msg, host)
-
-        except KeyError:
-            return None, None
-
-        # normally, you'd just try to access the tuple and
-        # handle the exception. However, that will raise a TypeError, 
-        # and if we handle a TypeError here, then any TypeError generated
-        # in the message handler will essentially get eaten.
-        if not isinstance(tokens, tuple):
-            return None, None
-
-        if len(tokens) < 2:
-            return None, None
-
-        return tokens[0], tokens[1]
-
         
-    def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+    def _process_announce(self):
+        self._last_announce = time.time()
 
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
+        self._database['uptime'] += 4
 
-                    msg = deserialize(data)
-                    response = None                    
-
-                    # filter our own messages
-                    try:
-                        if msg.header.origin_id == self._origin_id:
-                            continue
-
-                        if host[1] == self._data_port:
-                            continue
-
-                    except KeyError:
-                        pass
-
-                    response, host = self._process_msg(msg, host)
-                    
-                    if response:
-                        response.header.transaction_id = msg.header.transaction_id
-                        self._send_data_msg(response, host)
-
-                except UnknownMessageException as e:
-                    pass
-
-                except Exception as e:
-                    logging.exception(e)
-
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-
-
-        if time.time() - self._last_announce > 4.0:
-            self._last_announce = time.time()
-
-            self._database['uptime'] += 4
-
-            if self.visible:
-                self._send_announce()
+        if self.visible:
+            self._send_announce()
 

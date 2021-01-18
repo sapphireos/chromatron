@@ -87,7 +87,6 @@ class Directory(Ribbon):
             ErrorMsg: self._handle_error,
             AnnounceMsg: self._handle_announce,
             ShutdownMsg: self._handle_shutdown,
-            LinkMsg: self._handle_link,
         }
 
         self._last_ttl = time.time()
@@ -122,10 +121,7 @@ class Directory(Ribbon):
 
                 else:
                     raise
-
-    def _handle_link(self, msg, host):
-        pass
-
+                    
     def _handle_shutdown(self, msg, host):
         with self.__lock:
             try:

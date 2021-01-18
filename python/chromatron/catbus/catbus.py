@@ -68,7 +68,7 @@ class CatbusService(Database):
 
         self._server = Server(data_port=data_port, database=self, visible=visible)
 
-        self._data_port = self._server._data_port
+        self._data_port = self._server._port
         self.host = self._server._host
 
         self._callbacks = {}
