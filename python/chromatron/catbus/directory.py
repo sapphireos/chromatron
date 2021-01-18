@@ -285,7 +285,7 @@ def main():
     except IndexError:
         LOG_FILE_PATH = "catbus_directory.log"
 
-    util.setup_basic_logging(console=True, filename=LOG_FILE_PATH)
+    util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
 
     d = Directory()
     svr = DirectoryServer(directory=d)
