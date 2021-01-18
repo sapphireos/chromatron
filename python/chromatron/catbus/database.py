@@ -85,8 +85,7 @@ class Database(UserDict):
                 self._hashes[catbus_string_hash(item.key)] = item.key
 
     def _persist(self):
-        # raise NotImplementedError
-        pass
+        raise NotImplementedError
         
         # items = [CatbusData(data=v, key=k) for k, v in self._kv_items.iteritems() if v.meta.flags & CATBUS_FLAGS_PERSIST]
 
