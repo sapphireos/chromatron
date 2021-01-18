@@ -55,7 +55,7 @@ class Server(Ribbon):
             pass
 
         self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_MAIN_PORT))
+        self.__announce_sock.bind(('', CATBUS_ANNOUNCE_PORT))
 
         self.__data_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__data_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -87,8 +87,6 @@ class Server(Ribbon):
             GetKeyMetaMsg: self._handle_get_key_meta,
             GetKeysMsg: self._handle_get_keys,
             SetKeysMsg: self._handle_set_keys,
-            # LinkMsg: self._handle_link,
-            # LinkDataMsg: self._handle_link_data,
             ShutdownMsg: self._handle_shutdown,
         }
 

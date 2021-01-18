@@ -46,6 +46,8 @@ import sys
 import os
 
 from sapphire.common import catbus_string_hash
+from sapphire.common.util import setup_basic_logging
+
 from .database import *
 from .server import *
 from .client import *
@@ -136,12 +138,18 @@ def echo_name(name, host, left_align=True, nl=True):
 
 @click.group()
 @click.option('--query', '-q', default=None, multiple=True, help="Query for tag match. Type 'all' to retrieve all matches.")
+@click.option('--verbose', '-v', default=False, help="Verbose logging")
 @click.pass_context
-def cli(ctx, query):
-    """Catbus Key-Value Pub-Sub System CLI"""
+def cli(ctx, query, verbose):
+    """Catbus Key-Value System CLI"""
 
     client = Client()
     ctx.obj['CLIENT'] = client
+
+    verbose = True
+    ctx.obj['VERBOSE'] = verbose
+    if verbose:
+        setup_basic_logging()
 
     if ctx.invoked_subcommand not in ['hash', 'directory']:
         if query == None:
@@ -183,14 +191,16 @@ def discover(ctx):
         click.echo(s)
 
 @cli.command()
+@click.option('--name', '-n', default=None, help="Server name")
+@click.option('--location', '-l', default=None, help="Server location")
+@click.option('--tag', '-t', default=None, multiple=True, help="Query tags for server")
 @click.pass_context
-def server(ctx):
+def server(ctx, name, location, tag):
     """Run a test server"""
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
-    query = ctx.obj['QUERY']
-
-    kv = CatbusService()
+    
+    kv = CatbusService(name=name, location=location, tags=tag)
     
     try:
         while True:
@@ -199,6 +209,7 @@ def server(ctx):
     except KeyboardInterrupt:
         pass
 
+    kv.stop()
 
 
 @cli.command()
