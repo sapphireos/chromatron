@@ -121,7 +121,7 @@ class Directory(Ribbon):
 
                 else:
                     raise
-                    
+
     def _handle_shutdown(self, msg, host):
         with self.__lock:
             try:
@@ -173,23 +173,29 @@ class Directory(Ribbon):
 
                 return info
 
-            # check if we have this node already
-            if msg.header.origin_id not in self._directory:
-                info = update_info(msg, host)
+            try:
+                # check if we have this node already
+                if msg.header.origin_id not in self._directory:
+                    info = update_info(msg, host)
 
-                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
+                    logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
-            else:
-                info = self._directory[msg.header.origin_id]
+                else:
+                    info = self._directory[msg.header.origin_id]
 
-                # check if query tags have changed
-                if msg.query != info['hashes']:
-                    update_info(msg, host)
+                    # check if query tags have changed
+                    if msg.query != info['hashes']:
+                        update_info(msg, host)
 
-                    logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
+                        logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
-                # reset ttl
-                self._directory[msg.header.origin_id]['ttl'] = TTL
+                    # reset ttl
+                    self._directory[msg.header.origin_id]['ttl'] = TTL
+
+            except NoResponseFromHost as e:
+                logging.warn(f"No response from: {host}")
+
+                return
 
     def _process_msg(self, msg, host):
         try:
@@ -279,7 +285,7 @@ def main():
     except IndexError:
         LOG_FILE_PATH = "catbus_directory.log"
 
-    util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
+    util.setup_basic_logging(console=True, filename=LOG_FILE_PATH)
 
     d = Directory()
     svr = DirectoryServer(directory=d)

@@ -29,6 +29,7 @@ from sapphire.common.broadcast import send_udp_broadcast
 import time
 import os
 import json
+import logging
 
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
@@ -88,11 +89,7 @@ class Client(object):
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
-                        # bad transaction IDs coming in, this doesn't count
-                        # against our retries.
-                        i -= 1
-                        
-                        continue
+                        logging.warn(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id}")
 
                     elif isinstance(reply_msg, ErrorMsg):
                         self.flush()

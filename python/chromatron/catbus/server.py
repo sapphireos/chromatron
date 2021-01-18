@@ -62,8 +62,6 @@ class Server(RibbonServer):
 
         self.start_timer(4.0, self._process_announce)
 
-        self._origin_id = self._database['device_id']
-
         self.__lock = threading.Lock()
 
         self._default_callback = None
@@ -117,7 +115,7 @@ class Server(RibbonServer):
 
     def _handle_error(self, msg, host):
         if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
-            print(msg, host)
+            logging.error(msg, host)
 
     def _handle_discover(self, msg, host):
         if self.visible:
@@ -137,9 +135,10 @@ class Server(RibbonServer):
             elif requested_hash in self._database.get_tag_info():
                 resolved_hashes.append(CatbusStringField(self._database.get_tag_info()[requested_hash]))
 
-        response = ResolvedHashMsg(keys=resolved_hashes)
+        reply_msg = ResolvedHashMsg(keys=resolved_hashes)
+        reply_msg.header.transaction_id = msg.header.transaction_id
         
-        return response, host
+        return reply_msg, host
 
     def _handle_resolved_hash(self, msg, host):
         pass
@@ -165,6 +164,7 @@ class Server(RibbonServer):
             meta.append(item.meta)
 
         reply_msg = KeyMetaMsg(page=msg.page, page_count=page_count, item_count=item_count, meta=meta)
+        reply_msg.header.transaction_id = msg.header.transaction_id
 
         return reply_msg, host
 
@@ -178,6 +178,7 @@ class Server(RibbonServer):
             items.append(self._database.get_item(hashed_key))
 
         reply_msg = KeyDataMsg(data=items)
+        reply_msg.header.transaction_id = msg.header.transaction_id
 
         return reply_msg, host
 
@@ -206,6 +207,7 @@ class Server(RibbonServer):
             reply_items.append(self._database.get_item(item.meta.hash))
 
         reply_msg = KeyDataMsg(data=reply_items)
+        reply_msg.header.transaction_id = msg.header.transaction_id
 
         return reply_msg, host
 
@@ -213,8 +215,6 @@ class Server(RibbonServer):
         pass
         
     def _process_announce(self):
-        self._last_announce = time.time()
-
         self._database['uptime'] += 4
 
         if self.visible:
