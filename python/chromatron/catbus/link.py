@@ -27,6 +27,7 @@ from .data_structures import *
 from .catbustypes import *
 from .options import *
 from sapphire.common import RibbonServer, util, catbus_string_hash
+from sapphire.protocols import services
 
 
 LINK_VERSION            = 1
@@ -171,7 +172,8 @@ class LinkManager(RibbonServer):
     def initialize(self, database=None):
         super().initialize()
 
-        self.database = database
+        self._database = database
+        self._service_manager = services.ServiceManager()
         
         self.register_message(ConsumerQueryMsg, self._handle_consumer_query)
         self.register_message(ConsumerMatchMsg, self._handle_consumer_match)

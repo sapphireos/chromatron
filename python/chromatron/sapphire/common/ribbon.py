@@ -332,7 +332,7 @@ class RibbonServer(Ribbon):
         self.__server_sock.setblocking(0)
         self._inputs = [self.__server_sock, self._timer_sock]
 
-        logging.info(f"RibbonServer: server on {self._port}")
+        logging.info(f"RibbonServer {self.name}: server on {self._port}")
 
         self._listener_sock = None
         self._listener_port = listener_port
@@ -353,7 +353,7 @@ class RibbonServer(Ribbon):
 
             self._inputs.append(self._listener_sock)
 
-            logging.info(f"RibbonServer: listener on {self._listener_port}")
+            logging.info(f"RibbonServer {self.name}: listener on {self._listener_port}")
 
         self.start()
 
