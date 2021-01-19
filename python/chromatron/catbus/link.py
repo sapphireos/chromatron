@@ -81,7 +81,7 @@ class ConsumerMatchMsg(StructField):
 
         
 LINK_MSG_TYPE_PRODUCER_QUERY        = 3        
-class ProcucerQueryMsg(StructField):
+class ProducerQueryMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MsgHeader(_name="header"),
                   CatbusHash(_name="key"),
@@ -177,7 +177,7 @@ class LinkManager(RibbonServer):
         
         self.register_message(ConsumerQueryMsg, self._handle_consumer_query)
         self.register_message(ConsumerMatchMsg, self._handle_consumer_match)
-        self.register_message(ProcucerQueryMsg, self._handle_producer_query)
+        self.register_message(ProducerQueryMsg, self._handle_producer_query)
         self.register_message(ConsumerDataMsg, self._handle_consumer_data)
         self.register_message(ProducerDataMsg, self._handle_producer_data)
             
