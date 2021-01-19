@@ -299,7 +299,7 @@ class RibbonServer(Ribbon):
 
         self.initialize(**kwargs)
 
-    def initialize(self, port=None):
+    def initialize(self, port=None, listener_port=None):
         self._port = port
 
         self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -330,8 +330,26 @@ class RibbonServer(Ribbon):
         self._host = self.__server_sock.getsockname()
 
         self.__server_sock.setblocking(0)
-
         self._inputs = [self.__server_sock, self._timer_sock]
+
+        self._listener_sock = None
+        self._listener_port = listener_port
+
+        if listener_port is not None:
+            self._listener_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            try:
+                # this option may fail on some platforms
+                self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+            except AttributeError:
+                pass
+
+            self._listener_sock.bind(('0.0.0.0', self._listener_port))
+
+            self._inputs.append(self._listener_sock)
 
         self.start()
 

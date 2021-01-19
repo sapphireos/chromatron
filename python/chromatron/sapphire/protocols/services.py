@@ -28,7 +28,8 @@ import logging
 from elysianfields import *
 from ..common import RibbonServer, util, catbus_string_hash
 
-SERVICES_PORT               = 32041
+# SERVICES_PORT               = 32041
+SERVICES_PORT               = 31041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
@@ -308,10 +309,9 @@ class Team(Service):
 
 class ServiceManager(RibbonServer):
     NAME = 'service_manager'
-    PORT = SERVICES_PORT
 
     def initialize(self):
-        super().initialize()
+        super().initialize(listener_port=SERVICES_PORT)
         
         self._services = {}
         
@@ -423,8 +423,11 @@ def main():
     s = ServiceManager()
 
     # team = s.join_team(0x1234, 0, 0, 0)
-    svc = s.listen(1234, 5678)
-    # svc = s.offer(1234, 5678, 1000, priority=99)
+    if sys.argv[1] == 'listen':
+        svc = s.listen(1234, 5678)
+
+    elif sys.argv[1] == 'offer':
+        svc = s.offer(1234, 5678, 1000, priority=99)
 
     try:
         while True:
