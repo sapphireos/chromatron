@@ -170,7 +170,7 @@ class LinkManager(RibbonServer):
     NAME = 'link_manager'
 
     def initialize(self, database=None):
-        super().initialize()
+        super().initialize(listener_port=CATBUS_LINK_PORT)
 
         self._database = database
         self._service_manager = services.ServiceManager()
