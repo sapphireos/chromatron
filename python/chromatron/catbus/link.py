@@ -20,12 +20,13 @@
 # 
 # </license>
 
+import time
 
 from elysianfields import *
 from .data_structures import *
 from .catbustypes import *
 from .options import *
-from ..common import RibbonServer, util, catbus_string_hash
+from sapphire.common import RibbonServer, util, catbus_string_hash
 
 
 LINK_VERSION            = 1
@@ -59,7 +60,7 @@ class ConsumerQueryMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MsgHeader(_name="header"),
                   CatbusHash(_name="key"),
-                  CatbusQuery(_name="query")
+                  CatbusQuery(_name="query"),
                   Uint8Field(_name="mode"),
                   Uint64Field(_name="hash")]
 
@@ -83,7 +84,7 @@ class ProcucerQueryMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MsgHeader(_name="header"),
                   CatbusHash(_name="key"),
-                  CatbusQuery(_name="query")
+                  CatbusQuery(_name="query"),
                   Uint8Field(_name="rate"),
                   Uint64Field(_name="hash")]
 
@@ -167,7 +168,7 @@ on the same machine!
 class LinkManager(RibbonServer):
     NAME = 'link_manager'
 
-    def initialize(self, database):
+    def initialize(self, database=None):
         super().initialize()
 
         self.database = database
@@ -198,3 +199,24 @@ class LinkManager(RibbonServer):
 
     def _handle_producer_data(self, msg, host):
         pass
+
+
+def main():
+    util.setup_basic_logging(console=True)
+
+    s = LinkManager()
+
+    try:
+        while True:
+            time.sleep(1.0)
+
+
+    except KeyboardInterrupt:
+        pass
+
+    s.stop()
+    s.join()
+
+if __name__ == '__main__':
+    main()
+    
