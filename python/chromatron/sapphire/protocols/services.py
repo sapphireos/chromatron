@@ -28,8 +28,7 @@ import logging
 from elysianfields import *
 from ..common import RibbonServer, util, catbus_string_hash
 
-# SERVICES_PORT               = 32041
-SERVICES_PORT               = 31041
+SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
