@@ -75,6 +75,9 @@ SERVICE_UPTIME_MIN_DIFF = 5
 SERVICE_OFFER_FLAGS_TEAM    = 0x01
 SERVICE_OFFER_FLAGS_SERVER  = 0x02
 
+def make_key(service_id, group):
+    return (service_id << 64) + group
+
 class ServiceOffer(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="id"),
@@ -89,7 +92,7 @@ class ServiceOffer(StructField):
 
     @property
     def key(self):
-        return (self.id << 64) + self.group
+        return make_key(self.id, self.group)
 
     @property
     def server_valid(self):
@@ -202,11 +205,17 @@ class Service(object):
         if not self.connected:
             raise ServiceNotConnected
 
-        host = (self._best_host[0], self._best_offer.port)
+        if self.is_server:
+            host = ('127.0.0.1', self._port) # local server is on loopback
+
+        else:
+            host = (self._best_host[0], self._best_offer.port)
         
         return host
 
     def _process_offer(self, offer, host):
+        # logging.debug(f"Received OFFER from {host}")
+
         # filter packet
         if isinstance(self, Team):
             if (offer.flags & SERVICE_OFFER_FLAGS_TEAM) == 0:
@@ -340,6 +349,8 @@ class ServiceManager(RibbonServer):
         team = Team(service_id, group, priority, port)
 
         assert team.key not in self._services
+
+        logging.info(f"Added JOIN for {service_id}/{group}")
         
         self._services[team.key] = team
 
@@ -356,6 +367,8 @@ class ServiceManager(RibbonServer):
         service = Service(service_id, group, priority, port)
 
         assert service.key not in self._services
+
+        logging.info(f"Added OFFER for {service_id}/{group}")
         
         self._services[service.key] = service
 
@@ -373,6 +386,8 @@ class ServiceManager(RibbonServer):
         
         self._services[service.key] = service
 
+        logging.info(f"Added LISTEN for {service_id}/{group}")
+
         self._send_query(service_id, group)
 
         return service
@@ -382,6 +397,8 @@ class ServiceManager(RibbonServer):
                 id=service_id,
                 group=group)
         
+        logging.debug(f"Send QUERY for {service_id}/{group} to {host}")
+
         self.transmit(msg, host)
 
     def _send_offers(self, offers, host=('<broadcast>', SERVICES_PORT)):
@@ -391,6 +408,8 @@ class ServiceManager(RibbonServer):
         msg = ServiceMsgOffers(
                 offer_header=header,
                 offers=offers)
+
+        # logging.debug(f"Send OFFERS to {host}")
         
         self.transmit(msg, host)
     
@@ -403,7 +422,23 @@ class ServiceManager(RibbonServer):
                 continue
 
     def _handle_query(self, msg, host):
-        pass
+        key = make_key(msg.id, msg.group)
+
+        if key not in self._services:
+            return
+
+        # if we aren't a server, we don't need to do anything with a query
+        if not self._services[key].is_server:
+            return
+
+        logging.debug(f"QUERY for {msg.id}/{msg.group}, sending OFFER to {host}")
+
+        msg = ServiceMsgOffers(
+                offer_header=ServiceMsgOfferHeader(count=1),
+                offers=[self._services[key]._offer])
+
+        self.transmit(msg, host)
+
 
     def _process_timers(self):
         for svc in self._services.values():
@@ -433,7 +468,7 @@ def main():
         while True:
             # if team.connected:
             #     print(team.server)
-            if svc.connected:
+            if svc.connected and not svc.is_server:
                 print(svc.server)
 
             time.sleep(1.0)

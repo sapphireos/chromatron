@@ -181,7 +181,7 @@ def is_wildcard(key):
 
 logging_initalized = False
 
-def setup_basic_logging(console=True, filename=None):
+def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
     # dt_format = '%Y-%m-%dT%H:%M:%S'
     # logging.basicConfig(format='%(asctime)s >>> %(levelname)s (%(threadName)s) %(message)s',
     #                     datefmt=dt_format,
@@ -198,11 +198,11 @@ def setup_basic_logging(console=True, filename=None):
     dt_format = '%Y-%m-%dT%H:%M:%S'
 
     root = colorlog.getLogger('')
-    root.setLevel(logging.DEBUG)
+    root.setLevel(level)
 
     if console:
         handler = colorlog.StreamHandler()
-        handler.setLevel(logging.DEBUG)
+        handler.setLevel(level)
         formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(threadName)s %(white)s%(message)s', 
                                                 datefmt=dt_format,
                                                 log_colors={
@@ -225,7 +225,7 @@ def setup_basic_logging(console=True, filename=None):
                 os.makedirs(path)
 
         handler = logging.handlers.RotatingFileHandler(filename, maxBytes=32*1048576, backupCount=4)
-        handler.setLevel(logging.DEBUG)
+        handler.setLevel(level)
         formatter = logging.Formatter('%(levelname)s %(asctime)s.%(msecs)03d %(threadName)s %(message)s', datefmt=dt_format)
         handler.setFormatter(formatter)
         root.addHandler(handler)

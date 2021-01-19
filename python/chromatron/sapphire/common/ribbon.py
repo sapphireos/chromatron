@@ -332,6 +332,8 @@ class RibbonServer(Ribbon):
         self.__server_sock.setblocking(0)
         self._inputs = [self.__server_sock, self._timer_sock]
 
+        logging.info(f"RibbonServer: server on {self._port}")
+
         self._listener_sock = None
         self._listener_port = listener_port
 
@@ -350,6 +352,8 @@ class RibbonServer(Ribbon):
             self._listener_sock.bind(('0.0.0.0', self._listener_port))
 
             self._inputs.append(self._listener_sock)
+
+            logging.info(f"RibbonServer: listener on {self._listener_port}")
 
         self.start()
 
@@ -404,7 +408,6 @@ class RibbonServer(Ribbon):
 
         except (struct.error, UnicodeDecodeError) as e:
             raise InvalidMessage(msg_id, len(buf), e)
-
         
     def transmit(self, msg, host):
         s = self.__server_sock
@@ -446,6 +449,13 @@ class RibbonServer(Ribbon):
                     data, host = s.recvfrom(1024)
 
                     if (s == self.__server_sock) or (s == self._listener_sock):
+                        # filter out messages from our own ports
+                        if (s == self.__server_sock) and (host[1] == self._listener_port):
+                            continue
+
+                        elif (s == self._listener_sock) and (host[1] == self._port):
+                            continue
+
                         msg = self._deserialize(data)
                         response = None                    
 
