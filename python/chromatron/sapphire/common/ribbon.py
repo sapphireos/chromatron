@@ -445,7 +445,7 @@ class RibbonServer(Ribbon):
                 try:
                     data, host = s.recvfrom(1024)
 
-                    if s == self.__server_sock:
+                    if (s == self.__server_sock) or (s == self._listener_sock):
                         msg = self._deserialize(data)
                         response = None                    
 
