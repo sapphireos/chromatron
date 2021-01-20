@@ -26,10 +26,19 @@ import logging.handlers
 import socket
 import os
 import colorlog
-
+from functools import wraps
 
 EPOCH = datetime.utcfromtimestamp(0)
 NTP_EPOCH = datetime(1900, 1, 1)
+
+
+def synchronized(f):
+    """Synchronization decorator for methods"""
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return f(self, *args, **kwargs)
+    return wrapper
 
 
 def memoize(f):

@@ -25,6 +25,7 @@ import threading
 import logging
 import inspect
 from queue import Queue, Empty
+from .util import synchronized
 
 class MsgQueueEmptyException(Exception):
     pass
@@ -362,44 +363,45 @@ class RibbonServer(Ribbon):
     def _initialize(self, **kwargs):
         pass
 
+    @synchronized
     def start_timer(self, interval, handler):
-        with self._lock:
-            timer = _Timer(interval, self._timer_port)
-            self._timers[timer.port] = handler
+        timer = _Timer(interval, self._timer_port)
+        self._timers[timer.port] = handler
 
+    @synchronized
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
 
-    def register_message(self, msg, handler=None):
-        with self._lock:
-            if handler is None:
-                handler = self.default_handler
+    @synchronized
+    def register_message(self, msg, handler=None):    
+        if handler is None:
+            handler = self.default_handler
 
-            header = msg().header
+        header = msg().header
 
-            if self._msg_type_offset is None:
-                try:
-                    self._msg_type_offset = header.offsetof('type')
-
-                except KeyError:
-                    self._msg_type_offset = header.offsetof('msg_type')
-
-            if self._protocol_version is None:
-                try:
-                    self._protocol_version_offset = header.offsetof('version')
-                    self._protocol_version = header.version
-
-                except KeyError:
-                    pass
-
+        if self._msg_type_offset is None:
             try:
-                msg_type = header.type
+                self._msg_type_offset = header.offsetof('type')
 
             except KeyError:
-                msg_type = header.msg_type
+                self._msg_type_offset = header.offsetof('msg_type')
 
-            self._messages[msg_type] = msg
-            self._handlers[msg] = handler
+        if self._protocol_version is None:
+            try:
+                self._protocol_version_offset = header.offsetof('version')
+                self._protocol_version = header.version
+
+            except KeyError:
+                pass
+
+        try:
+            msg_type = header.type
+
+        except KeyError:
+            msg_type = header.msg_type
+
+        self._messages[msg_type] = msg
+        self._handlers[msg] = handler
 
     def _deserialize(self, buf):
         msg_id = int(buf[self._msg_type_offset])
@@ -412,21 +414,22 @@ class RibbonServer(Ribbon):
 
         except (struct.error, UnicodeDecodeError) as e:
             raise InvalidMessage(msg_id, len(buf), e)
-        
+    
+    @synchronized
     def transmit(self, msg, host):
-        with self._lock:
-            s = self.__server_sock
+        s = self.__server_sock
 
-            try:
-                if host[0] == '<broadcast>':
-                    send_udp_broadcast(s, host[1], msg.pack())
+        try:
+            if host[0] == '<broadcast>':
+                send_udp_broadcast(s, host[1], msg.pack())
 
-                else:
-                    s.sendto(msg.pack(), host)
+            else:
+                s.sendto(msg.pack(), host)
 
-            except socket.error:
-                pass
+        except socket.error:
+            pass
 
+    @synchronized
     def _process_msg(self, msg, host):        
         tokens = self._handlers[type(msg)](msg, host)
 
@@ -463,9 +466,8 @@ class RibbonServer(Ribbon):
 
                         msg = self._deserialize(data)
                         response = None                    
-
-                        with self._lock:
-                            response, host = self._process_msg(msg, host)
+    
+                        response, host = self._process_msg(msg, host)
                         
                         if response:
                             self.transmit(response, host)

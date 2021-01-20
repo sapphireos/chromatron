@@ -25,9 +25,9 @@
 import sys
 import time
 import logging
-from elysianfields import *
-from ..common import RibbonServer, util, catbus_string_hash
 import threading
+from elysianfields import *
+from ..common import RibbonServer, util, catbus_string_hash, synchronized
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -164,12 +164,11 @@ class Service(object):
         return self.key == other.key
 
     def _reset(self):
-        with self._lock:
-            self._uptime = 0
-            self._state = STATE_LISTEN
-            self._best_offer = None
-            self._best_host = None
-            self._timeout = SERVICE_LISTEN_TIMEOUT
+        self._uptime = 0
+        self._state = STATE_LISTEN
+        self._best_offer = None
+        self._best_host = None
+        self._timeout = SERVICE_LISTEN_TIMEOUT
 
     @property
     def key(self):
@@ -177,49 +176,47 @@ class Service(object):
 
     @property
     def _flags(self):
-        with self._lock:
-            flags = 0
-            if self._state == STATE_SERVER:
-                flags |= SERVICE_OFFER_FLAGS_SERVER
+        flags = 0
+        if self._state == STATE_SERVER:
+            flags |= SERVICE_OFFER_FLAGS_SERVER
 
-            return flags
+        return flags
 
     @property
     def _offer(self):
-        with self._lock:
-            offer = ServiceOffer(
-                id=self._service_id,
-                group=self._group,
-                priority=self._priority,
-                port=self._port,
-                uptime=self._uptime,
-                flags=self._flags)
-            
-            return offer
+        offer = ServiceOffer(
+            id=self._service_id,
+            group=self._group,
+            priority=self._priority,
+            port=self._port,
+            uptime=self._uptime,
+            flags=self._flags)
+        
+        return offer
 
     @property
+    @synchronized
     def connected(self):
-        with self._lock:
-            return self._state != STATE_LISTEN
+        return self._state != STATE_LISTEN
 
     @property
+    @synchronized
     def is_server(self):
-        with self._lock:
-            return self._state == STATE_SERVER
+        return self._state == STATE_SERVER
 
     @property
+    @synchronized
     def server(self):
-        with self._lock:
-            if not self.connected:
-                raise ServiceNotConnected
+        if not self.connected:
+            raise ServiceNotConnected
 
-            if self.is_server:
-                host = ('127.0.0.1', self._port) # local server is on loopback
+        if self.is_server:
+            host = ('127.0.0.1', self._port) # local server is on loopback
 
-            else:
-                host = (self._best_host[0], self._best_offer.port)
-            
-            return host
+        else:
+            host = (self._best_host[0], self._best_offer.port)
+        
+        return host
 
     def _process_offer(self, offer, host):
         # logging.debug(f"Received OFFER from {host}")
@@ -317,12 +314,12 @@ class Team(Service):
         return f'Team: {self._service_id}:{self._group}'
     
     @property
+    @synchronized
     def _flags(self):
-        with self._lock:
-            flags = super()._flags
-            flags |= SERVICE_OFFER_FLAGS_TEAM
+        flags = super()._flags
+        flags |= SERVICE_OFFER_FLAGS_TEAM
 
-            return flags
+        return flags
 
 
 class ServiceManager(RibbonServer):
@@ -348,61 +345,61 @@ class ServiceManager(RibbonServer):
 
         return n
 
+    @synchronized
     def join_team(self, service_id, group, port, priority=0):
-        with self._lock:
-            if priority != 0:
-                raise NotImplementedError("Services only available as follower")
+        if priority != 0:
+            raise NotImplementedError("Services only available as follower")
 
-            service_id = self._convert_catbus_hash(service_id)
-            group = self._convert_catbus_hash(group)
+        service_id = self._convert_catbus_hash(service_id)
+        group = self._convert_catbus_hash(group)
 
-            team = Team(service_id, group, priority, port)
+        team = Team(service_id, group, priority, port)
 
-            assert team.key not in self._services
+        assert team.key not in self._services
 
-            logging.info(f"Added JOIN for {service_id}/{group}")
-            
-            self._services[team.key] = team
+        logging.info(f"Added JOIN for {service_id}/{group}")
+        
+        self._services[team.key] = team
 
-            self._send_query(service_id, group)
+        self._send_query(service_id, group)
 
-            return team
+        return team
 
+    @synchronized
     def offer(self, service_id, group, port, priority=1):
-        with self._lock:
-            assert priority != 0
+        assert priority != 0
 
-            service_id = self._convert_catbus_hash(service_id)
-            group = self._convert_catbus_hash(group)
+        service_id = self._convert_catbus_hash(service_id)
+        group = self._convert_catbus_hash(group)
 
-            service = Service(service_id, group, priority, port)
+        service = Service(service_id, group, priority, port)
 
-            assert service.key not in self._services
+        assert service.key not in self._services
 
-            logging.info(f"Added OFFER for {service_id}/{group}")
-            
-            self._services[service.key] = service
+        logging.info(f"Added OFFER for {service_id}/{group}")
+        
+        self._services[service.key] = service
 
-            self._send_query(service_id, group)
+        self._send_query(service_id, group)
 
-            return service
-
+        return service
+    
+    @synchronized
     def listen(self, service_id, group):
-        with self._lock:
-            service_id = self._convert_catbus_hash(service_id)
-            group = self._convert_catbus_hash(group)
+        service_id = self._convert_catbus_hash(service_id)
+        group = self._convert_catbus_hash(group)
 
-            service = Service(service_id, group)
+        service = Service(service_id, group)
 
-            assert service.key not in self._services
-            
-            self._services[service.key] = service
+        assert service.key not in self._services
+        
+        self._services[service.key] = service
 
-            logging.info(f"Added LISTEN for {service_id}/{group}")
+        logging.info(f"Added LISTEN for {service_id}/{group}")
 
-            self._send_query(service_id, group)
+        self._send_query(service_id, group)
 
-            return service
+        return service
 
     def _send_query(self, service_id, group, host=('<broadcast>', SERVICES_PORT)):
         msg = ServiceMsgQuery(
@@ -450,6 +447,7 @@ class ServiceManager(RibbonServer):
                 offers=[self._services[key]._offer])
 
         self.transmit(msg, host)
+
 
     def _process_timers(self):
         for svc in self._services.values():
