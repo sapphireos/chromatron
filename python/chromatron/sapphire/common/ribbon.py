@@ -35,7 +35,7 @@ class PositionalArgumentsNotSupported(Exception):
 
 class Ribbon(threading.Thread):
 
-    __lock = threading.Lock()
+    __global_lock = threading.Lock()
     __ribbons = []
     __ribbon_id = 0
 
@@ -43,14 +43,14 @@ class Ribbon(threading.Thread):
     def shutdown(cls, timeout=10.0):
         logging.info("Ribbon: shutting down all ribbons")
 
-        with cls.__lock:
+        with cls.__global_lock:
             for r in cls.__ribbons:
                 r.stop()
 
         for i in range(int(timeout)):
             alive = False
 
-            with cls.__lock:
+            with cls.__global_lock:
                 for r in cls.__ribbons:
                     if r.is_alive():
                         alive = True
@@ -62,7 +62,7 @@ class Ribbon(threading.Thread):
             else:
                 break
 
-        with cls.__lock:
+        with cls.__global_lock:
             for r in cls.__ribbons:
                 if r.is_alive():
                     logging.error("Ribbon: %s failed to shut down" % (r.name))
@@ -110,7 +110,9 @@ class Ribbon(threading.Thread):
 
         self.daemon = True
 
-        with self.__lock:
+        self._lock = threading.RLock()
+
+        with self.__global_lock:
             self.__ribbons.append(self)
             self.ribbon_id = self.__ribbon_id
             self.__ribbon_id += 1
@@ -184,7 +186,7 @@ class Ribbon(threading.Thread):
         except Exception as e:
             logging.exception("Ribbon: %s failed to clean up with: %s" % (self.name, e))
 
-        with self.__lock:
+        with self.__global_lock:
             self.__ribbons.remove(self)
 
         logging.info("Ribbon: %s stopped" % (self.name))
@@ -361,41 +363,43 @@ class RibbonServer(Ribbon):
         pass
 
     def start_timer(self, interval, handler):
-        timer = _Timer(interval, self._timer_port)
-        self._timers[timer.port] = handler
+        with self._lock:
+            timer = _Timer(interval, self._timer_port)
+            self._timers[timer.port] = handler
 
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
 
     def register_message(self, msg, handler=None):
-        if handler is None:
-            handler = self.default_handler
+        with self._lock:
+            if handler is None:
+                handler = self.default_handler
 
-        header = msg().header
+            header = msg().header
 
-        if self._msg_type_offset is None:
+            if self._msg_type_offset is None:
+                try:
+                    self._msg_type_offset = header.offsetof('type')
+
+                except KeyError:
+                    self._msg_type_offset = header.offsetof('msg_type')
+
+            if self._protocol_version is None:
+                try:
+                    self._protocol_version_offset = header.offsetof('version')
+                    self._protocol_version = header.version
+
+                except KeyError:
+                    pass
+
             try:
-                self._msg_type_offset = header.offsetof('type')
+                msg_type = header.type
 
             except KeyError:
-                self._msg_type_offset = header.offsetof('msg_type')
+                msg_type = header.msg_type
 
-        if self._protocol_version is None:
-            try:
-                self._protocol_version_offset = header.offsetof('version')
-                self._protocol_version = header.version
-
-            except KeyError:
-                pass
-
-        try:
-            msg_type = header.type
-
-        except KeyError:
-            msg_type = header.msg_type
-
-        self._messages[msg_type] = msg
-        self._handlers[msg] = handler
+            self._messages[msg_type] = msg
+            self._handlers[msg] = handler
 
     def _deserialize(self, buf):
         msg_id = int(buf[self._msg_type_offset])
@@ -410,17 +414,18 @@ class RibbonServer(Ribbon):
             raise InvalidMessage(msg_id, len(buf), e)
         
     def transmit(self, msg, host):
-        s = self.__server_sock
+        with self._lock:
+            s = self.__server_sock
 
-        try:
-            if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], msg.pack())
+            try:
+                if host[0] == '<broadcast>':
+                    send_udp_broadcast(s, host[1], msg.pack())
 
-            else:
-                s.sendto(msg.pack(), host)
+                else:
+                    s.sendto(msg.pack(), host)
 
-        except socket.error:
-            pass
+            except socket.error:
+                pass
 
     def _process_msg(self, msg, host):        
         tokens = self._handlers[type(msg)](msg, host)
@@ -459,13 +464,15 @@ class RibbonServer(Ribbon):
                         msg = self._deserialize(data)
                         response = None                    
 
-                        response, host = self._process_msg(msg, host)
+                        with self._lock:
+                            response, host = self._process_msg(msg, host)
                         
                         if response:
                             self.transmit(response, host)
 
                     elif host[1] in self._timers:
-                        self._timers[host[1]]()
+                        with self._lock:
+                            self._timers[host[1]]()
 
                 except UnknownMessage as e:
                     raise
