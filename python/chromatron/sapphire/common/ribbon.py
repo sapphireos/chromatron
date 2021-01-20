@@ -162,7 +162,8 @@ class Ribbon(threading.Thread):
         pass
 
     def _loop(self):
-        self.loop()
+        with self._lock:
+            self.loop()
 
     def loop(self):
         time.sleep(1.0)
@@ -488,8 +489,10 @@ class RibbonServer(Ribbon):
 
         except Exception as e:
             logging.exception(e)
+        
 
-        self.loop()
+        with self._lock:            
+            self.loop()
 
 def wait_for_signal():
     try:
