@@ -29,6 +29,8 @@ from .options import *
 from sapphire.common import RibbonServer, util, catbus_string_hash
 from sapphire.protocols import services
 
+from fnvhash import fnv1a_64
+
 
 LINK_VERSION            = 1
 LINK_MAGIC              = 0x4b4e494c # 'LINK'
@@ -128,13 +130,26 @@ LINK_AGG_AVG    = 4
 LINK_RATE_MIN   = 20
 LINK_RATE_MAX   = 30000
 
+class LinkState(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="tag"),
+                  Uint32Field(_name="source_key"),
+                  Uint32Field(_name="dest_key"),
+                  CatbusQuery(_name="query"),
+                  Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
+                  Uint16Field(_name="filter"),
+                  Uint16Field(_name="rate")]
+
+        super().__init__(_name="link_state", _fields=fields, **kwargs)
+
 
 class Link(object):
     def __init__(self,
         mode=LINK_MODE_SEND,
         source_key=None,
         dest_key=None,
-        query=CatbusQuery(),
+        query=[],
         aggregation=LINK_AGG_ANY,
         rate=1000,
         tag=None):
@@ -147,7 +162,32 @@ class Link(object):
         self.filter = None
         self.rate = rate
         self.tag = tag
+        self._service = None
 
+    @property
+    def is_leader(self):
+        return self._service.is_server
+
+    @property
+    def query_tags(self):
+        query = CatbusQuery()
+        query._value = [catbus_string_hash(a) for a in self.query]
+        return query
+
+    @property
+    def hash(self):
+        data = LinkState(
+                tag=catbus_string_hash(self.tag),
+                source_key=catbus_string_hash(self.source_key),
+                dest_key=catbus_string_hash(self.dest_key),
+                query=self.query_tags,
+                mode=self.mode,
+                aggregation=self.aggregation,
+                filter=self.filter,
+                rate=self.rate
+                ).pack()
+
+        return fnv1a_64(data)
 
     def __str__(self):
         if self.mode == LINK_MODE_SEND:
@@ -184,8 +224,14 @@ class LinkManager(RibbonServer):
         # self.start_timer(1.0, self._process_timers)
         # self.start_timer(4.0, self._process_offer_timer)
 
+        self._links = {}
+
     def clean_up(self):
         pass
+
+    def add_link(self, link):
+        link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port)
+        self._links[link.hash] = link
 
     def _handle_consumer_query(self, msg, host):
         pass
@@ -207,6 +253,9 @@ def main():
     util.setup_basic_logging(console=True)
 
     s = LinkManager()
+    l = Link(mode=LINK_MODE_SEND, source_key='kv_test_key', dest_key='kv_test_key', query=['meow'])
+    print(l.hash)
+    s.add_link(l)
 
     try:
         while True:
