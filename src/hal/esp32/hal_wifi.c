@@ -41,6 +41,8 @@
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
+#include "lwip/igmp.h"
+
 
 #ifdef ENABLE_WIFI
 
@@ -304,6 +306,39 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    tcpip_adapter_ip_info_t info;
+        memset( &info, 0, sizeof(info) );
+        tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
+            
+    ip4_addr_t ipgroup;
+    ipgroup.addr = ip_u32_to_int( mcast_ip );
+
+    return igmp_joingroup( &info.ip, &ipgroup );
+}
+
+int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    tcpip_adapter_ip_info_t info;
+        memset( &info, 0, sizeof(info) );
+        tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
+            
+    ip4_addr_t ipgroup;
+    ipgroup.addr = ip_u32_to_int( mcast_ip );
+
+    return igmp_leavegroup( &info.ip, &ipgroup );
+}
 
 esp_conn_t* get_conn( uint16_t lport ){
 

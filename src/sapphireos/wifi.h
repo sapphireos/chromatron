@@ -45,5 +45,8 @@ uint32_t wifi_u32_get_received( void );
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg );
 
+int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip );
+int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip );
+
 #endif
 

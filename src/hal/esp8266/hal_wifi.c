@@ -430,6 +430,39 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+            
+    struct ip_info info;
+            memset( &info, 0, sizeof(info) );
+            wifi_get_ip_info( STATION_IF, &info );    
+            
+    ip_addr_t ipgroup;
+    ipgroup.addr = ip_u32_to_int( mcast_ip );
+
+    return espconn_igmp_join( &info.ip, &ipgroup );
+}
+
+int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    struct ip_info info;
+            memset( &info, 0, sizeof(info) );
+            wifi_get_ip_info( STATION_IF, &info );    
+            
+    ip_addr_t ipgroup;
+    ipgroup.addr = ip_u32_to_int( mcast_ip );
+
+    return espconn_igmp_leave( &info.ip, &ipgroup );
+}
 
 struct espconn* get_conn( uint8_t protocol, uint16_t lport ){
 

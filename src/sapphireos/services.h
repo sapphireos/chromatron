@@ -31,6 +31,8 @@
 #define SERVICES_MAGIC                      0x56524553 // 'SERV'
 #define SERVICES_VERSION                    2
 
+#define SERVICES_MCAST_ADDR                 239,43,96,31
+
 #define SERVICE_RATE                        4000
 #define SERVICE_UPTIME_MIN_DIFF             5
 

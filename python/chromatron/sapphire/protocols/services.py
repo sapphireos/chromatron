@@ -33,11 +33,8 @@ SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
-SERVICE_RATE                        = 4.0
-SERVICE_LISTEN_TIMEOUT              = 10.0
-SERVICE_CONNECTED_TIMEOUT           = 64.0
-SERVICE_CONNECTED_PING_THRESHOLD    = 48.0
-SERVICE_CONNECTED_WARN_THRESHOLD    = 16.0
+SERVICES_MCAST_ADDR         = "239.43.96.31"
+
 
 class ServiceNotConnected(Exception):
     pass
