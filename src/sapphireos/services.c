@@ -354,6 +354,9 @@ void services_v_init( void ){
 
     // create vfile
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
+
+
+services_v_offer(1234, 5678, 1, 0);
         
     // debug
     // if( cfg_u64_get_device_id() == 93172270997720 ){
