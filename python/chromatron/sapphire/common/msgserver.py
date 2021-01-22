@@ -21,14 +21,14 @@
 # </license>
 
 import asyncio
-
-
+import struct
+import socket
 
 class MsgServer(object):
     _server_id = 0
     _servers = []
 
-    def __init__(self, name='msg_server', port=0, listener_port=None, loop=None):
+    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, loop=None):
         self.name = name + f'.{self._server_id}'
 
         self._server_id += 1
@@ -37,11 +37,10 @@ class MsgServer(object):
         if self._loop is None:
             self._loop = asyncio.get_event_loop()
 
-
-
         self._port = port
         self._listener_port = listener_port
-
+        self._listener_mcast = listener_mcast
+        self._listener_sock = None
 
         self._servers.append(self)
 
@@ -51,8 +50,26 @@ class MsgServer(object):
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
         
+    def connection_made(self, transport):
+        sock = transport.get_extra_info('socket')
+        port = sock.getsockname()[1]
+
+        if port == self._listener_port and self._listener_mcast is not None:
+            self._listener_sock = sock
+            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
     def datagram_received(self, data, addr):
-        print("Received:", data.decode(), addr)
+        print("Received:", data, addr)
+
+    def error_received(self, exc):
+        print('Error received:', exc)
+
+    async def start(self):
+        await self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True)
+
+        if self._listener_port is not None:
+            await self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True)
 
     async def stop(self):
         await self.clean_up()
@@ -60,7 +77,13 @@ class MsgServer(object):
     async def clean_up(self):
         print("closing")
 
-        await asyncio.sleep(4.0)
+        if self._listener_port is not None and self._listener_mcast is not None:
+            sock = self._listener_sock
+            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
+
+
+        # await asyncio.sleep(4.0)
 
         print("closed")
 
@@ -71,6 +94,9 @@ def stop_all(loop=asyncio.get_event_loop()):
         loop.run_until_complete(s.stop())
 
 def run_all(loop=asyncio.get_event_loop()):
+    for s in MsgServer._servers:
+        loop.create_task(s.start())
+
     try:
         loop.run_forever()
     except KeyboardInterrupt:  # pragma: no branch
@@ -82,7 +108,7 @@ def run_all(loop=asyncio.get_event_loop()):
 
 
 if __name__ == '__main__':
-    s = MsgServer()
+    s = MsgServer(port=0, listener_port=32041, listener_mcast='239.43.96.31')
 
     print(s)
 
