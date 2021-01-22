@@ -35,6 +35,8 @@ SERVICES_PORT               = 32040
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 1
 
+SERVICES_MCAST_ADDR         = "239.43.96.31"
+
 
 class UnknownMessageException(Exception):
     pass
