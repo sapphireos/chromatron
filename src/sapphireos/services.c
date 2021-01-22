@@ -727,7 +727,7 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
     
     if( ip == 0 ){
     
-        raddr.ipaddr = ip_a_addr(255,255,255,255);    
+        raddr.ipaddr = ip_a_addr(239,255,123,123);    
     }
     else{
 
@@ -766,7 +766,7 @@ static void transmit_query( service_state_t *service ){
 
         // no server IP, broadcast
 
-        raddr.ipaddr = ip_a_addr(255,255,255,255);
+        raddr.ipaddr = ip_a_addr(239,255,123,123);    
     }
     else{
 
