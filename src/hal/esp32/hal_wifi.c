@@ -318,7 +318,7 @@ int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
         tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
             
     ip4_addr_t ipgroup;
-    ipgroup.addr = ip_u32_to_int( mcast_ip );
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
 
     return igmp_joingroup( &info.ip, &ipgroup );
 }
@@ -335,7 +335,7 @@ int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
         tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
             
     ip4_addr_t ipgroup;
-    ipgroup.addr = ip_u32_to_int( mcast_ip );
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
 
     return igmp_leavegroup( &info.ip, &ipgroup );
 }
