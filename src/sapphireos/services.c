@@ -727,7 +727,7 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
     
     if( ip == 0 ){
     
-        raddr.ipaddr = ip_a_addr(239,255,123,123);    
+        raddr.ipaddr = ip_a_addr(SERVICES_MCAST_ADDR);    
     }
     else{
 
@@ -766,7 +766,7 @@ static void transmit_query( service_state_t *service ){
 
         // no server IP, broadcast
 
-        raddr.ipaddr = ip_a_addr(239,255,123,123);    
+        raddr.ipaddr = ip_a_addr(SERVICES_MCAST_ADDR);    
     }
     else{
 
@@ -1207,6 +1207,7 @@ PT_BEGIN( pt );
 
     sock_v_bind( sock, SERVICES_PORT );
 
+    wifi_i8_igmp_join( ip_a_addr(SERVICES_MCAST_ADDR) );
 
     // start sender
     thread_t_create( service_sender_thread,
