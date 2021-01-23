@@ -168,41 +168,35 @@ class Directory(MsgServer):
         self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
 
+import asyncio
+
 class DirectoryServer(object):
     def __init__(self, directory=None):
-        self.name = '%s' % ('directory_server')
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        try:
-            # this option may fail on some platforms
-            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        self._loop = asyncio.get_event_loop()
 
-        except AttributeError:
-            pass
+        svr_coro = self._loop.create_server(lambda: self, '0.0.0.0', CATBUS_DIRECTORY_PORT)
+        self.server = self._loop.run_until_complete(svr_coro)
 
-        self.sock.bind(('localhost', CATBUS_DIRECTORY_PORT))
-        self.sock.settimeout(1.0)
-        self.sock.listen(1)
+        logging.info(f"Directory server on TCP {CATBUS_DIRECTORY_PORT}")
 
         self.directory = directory
+
+    def connection_made(self, transport):
+        logging.info(f"Connection from {transport.get_extra_info('peername')}")
+
+        data = json.dumps(self.directory.get_directory())
+        transport.write(struct.pack('<L', len(data)))
+        transport.write(data.encode('utf-8'))
+
+        transport.close()
+
+    def connection_lost(self, exc):
+        pass
+
+    def data_received(self, data):
+        pass
         
-    def loop(self):
-        try:
-            conn, addr = self.sock.accept()
-
-            data = json.dumps(self.directory.get_directory())
-
-            conn.send(struct.pack('<L', len(data)))
-            conn.send(data.encode('utf-8'))
-
-            conn.close()
-
-        except socket.timeout:
-            pass
-
-    def clean_up(self):
-        self.sock.close()
 
 def main():
     try:
@@ -213,7 +207,7 @@ def main():
     util.setup_basic_logging(console=True, filename=LOG_FILE_PATH)
 
     d = Directory()
-    # svr = DirectoryServer(directory=d)
+    svr = DirectoryServer(directory=d)
     
     run_all()
 
