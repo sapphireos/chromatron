@@ -27,7 +27,7 @@ import time
 import logging
 import threading
 from elysianfields import *
-from ..common import RibbonServer, MsgServer, run_all, util, catbus_string_hash
+from ..common import MsgServer, run_all, util, catbus_string_hash
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -454,6 +454,13 @@ class ServiceManager(MsgServer):
             self._send_offers(offers)
 
 
+import asyncio
+
+async def stuff(s):
+    while True:
+        await asyncio.sleep(1.0)
+        print(s)
+
 def main():
     util.setup_basic_logging(console=True)
 
@@ -466,24 +473,10 @@ def main():
     elif sys.argv[1] == 'offer':
         svc = s.offer(1234, 5678, 1000, priority=99)
 
+    from ..common import create_task
+    create_task(stuff('woof'))    
 
     run_all()
-
-    # try:
-    #     while True:
-    #         # if team.connected:
-    #         #     print(team.server)
-    #         if svc.connected and not svc.is_server:
-    #             print(svc.server)
-
-    #         time.sleep(1.0)
-
-
-    # except KeyboardInterrupt:
-    #     pass
-
-    # s.stop()
-    # s.join()
 
 if __name__ == '__main__':
     main()

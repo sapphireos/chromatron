@@ -223,6 +223,9 @@ def run_all(loop=asyncio.get_event_loop()):
 
         loop.close()
 
+def create_task(task, loop=asyncio.get_event_loop()):
+    loop.create_task(task)
+
 def meow():
     print('meow')
 
