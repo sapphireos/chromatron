@@ -24,6 +24,7 @@ import asyncio
 import struct
 import socket
 import logging
+from .broadcast import get_broadcast_addresses
 
 class MsgServer(object):
     _server_id = 0
@@ -42,6 +43,7 @@ class MsgServer(object):
         self._listener_port = listener_port
         self._listener_mcast = listener_mcast
         self._listener_sock = None
+        self._transport = None
 
         self._messages = {}
         self._handlers = {}
@@ -112,10 +114,22 @@ class MsgServer(object):
 
         try:
             if host[0] == '<broadcast>':
-                send_udp_broadcast(s, host[1], msg.pack())
+                data = msg.pack()
+                port = host[1]
+                    
+                # are we multicasting:
+                if self._listener_mcast:
+                    # send to multicast address
+                    self._transport.sendto(msg.pack(), (self._listener_mcast, port))
+    
+                else:
+                    # no, this is a normal broadcast.
+                    # transmit on all IP interfaces
+                    for addr in get_broadcast_addresses():
+                        self._transport.sendto(data, (addr, port))
 
             else:
-                s.sendto(msg.pack(), host)
+                self._transport.sendto(msg.pack(), host)
 
         except socket.error:
             pass
@@ -148,6 +162,7 @@ class MsgServer(object):
                 sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
         else:
+            self._transport = transport
             self._port = port
 
     def datagram_received(self, data, addr):
