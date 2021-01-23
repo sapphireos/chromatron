@@ -27,7 +27,7 @@ import time
 import logging
 import threading
 from elysianfields import *
-from ..common import RibbonServer, util, catbus_string_hash, synchronized
+from ..common import RibbonServer, MsgServer, util, catbus_string_hash, synchronized
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'

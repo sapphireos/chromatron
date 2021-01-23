@@ -23,6 +23,7 @@
 import asyncio
 import struct
 import socket
+import logging
 
 class MsgServer(object):
     _server_id = 0
@@ -42,6 +43,13 @@ class MsgServer(object):
         self._listener_mcast = listener_mcast
         self._listener_sock = None
 
+        self._messages = {}
+        self._handlers = {}
+        self._msg_type_offset = None
+        self._protocol_version = None
+        self._protocol_version_offset = None
+        self._timers = {}
+
         self._servers.append(self)
 
     def __str__(self):
@@ -50,26 +58,119 @@ class MsgServer(object):
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
         
+    def default_handler(self, msg, host):
+        logging.debug(f"Unhandled message: {type(msg)} from {host}")        
+
+    def register_message(self, msg, handler=None):    
+        if handler is None:
+            handler = self.default_handler
+
+        header = msg().header
+
+        if self._msg_type_offset is None:
+            try:
+                self._msg_type_offset = header.offsetof('type')
+
+            except KeyError:
+                self._msg_type_offset = header.offsetof('msg_type')
+
+        if self._protocol_version is None:
+            try:
+                self._protocol_version_offset = header.offsetof('version')
+                self._protocol_version = header.version
+
+            except KeyError:
+                pass
+
+        try:
+            msg_type = header.type
+
+        except KeyError:
+            msg_type = header.msg_type
+
+        self._messages[msg_type] = msg
+        self._handlers[msg] = handler
+
+    def _deserialize(self, buf):
+        try:
+            msg_id = int(buf[self._msg_type_offset])
+
+        except TypeError:
+            raise Exception("No messages defined")
+
+        try:
+            return self._messages[msg_id]().unpack(buf)
+
+        except KeyError:
+            raise UnknownMessage(msg_id)
+
+        except (struct.error, UnicodeDecodeError) as e:
+            raise InvalidMessage(msg_id, len(buf), e)
+    
+    def transmit(self, msg, host):
+        s = self.__server_sock
+
+        try:
+            if host[0] == '<broadcast>':
+                send_udp_broadcast(s, host[1], msg.pack())
+
+            else:
+                s.sendto(msg.pack(), host)
+
+        except socket.error:
+            pass
+
+    def _process_msg(self, msg, host):        
+        tokens = self._handlers[type(msg)](msg, host)
+
+        # normally, you'd just try to access the tuple and
+        # handle the exception. However, that will raise a TypeError, 
+        # and if we handle a TypeError here, then any TypeError generated
+        # in the message handler will essentially get eaten.
+        if not isinstance(tokens, tuple):
+            return None, None
+
+        if len(tokens) < 2:
+            return None, None
+
+        return tokens[0], tokens[1]
+
+
     def connection_made(self, transport):
         sock = transport.get_extra_info('socket')
         port = sock.getsockname()[1]
 
-        if port == self._listener_port and self._listener_mcast is not None:
+        if port == self._listener_port:
             self._listener_sock = sock
-            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
-            sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+            if self._listener_mcast is not None:
+                mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
+                sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+        else:
+            self._port = port
 
     def datagram_received(self, data, addr):
-        print("Received:", data, addr)
+        msg = self._deserialize(data)
+        response = None                    
+
+        response, host = self._process_msg(msg, host)
+        
+        if response:
+            self.transmit(response, host)
 
     def error_received(self, exc):
-        print('Error received:', exc)
+        logging.error('Error received:', exc)
 
     async def start(self):
         await self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True)
 
         if self._listener_port is not None:
             await self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True)
+            logging.info(f"MsgServer {self.name}: server on {self._port} listening on {self._listener_port}")
+
+        else:  
+            logging.info(f"MsgServer {self.name}: server on {self._port}")
 
     async def stop(self):
         await self.clean_up()
@@ -106,11 +207,16 @@ def run_all(loop=asyncio.get_event_loop()):
 
         loop.close()
 
+def main():
+    from . import util
+    util.setup_basic_logging(console=True)
 
-if __name__ == '__main__':
     s = MsgServer(port=0, listener_port=32041, listener_mcast='239.43.96.31')
 
     print(s)
 
-
     run_all()
+
+
+if __name__ == '__main__':
+    main()

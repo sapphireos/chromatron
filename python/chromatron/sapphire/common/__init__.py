@@ -25,3 +25,4 @@
 from .ribbon import *
 from .fnmatch2 import *
 from .string_hash import catbus_string_hash
+from .msgserver import *
