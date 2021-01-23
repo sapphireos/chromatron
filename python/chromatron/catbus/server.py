@@ -31,13 +31,13 @@ from sapphire.common.broadcast import send_udp_broadcast
 from .messages import *
 from .catbustypes import *
 
-from sapphire.common import catbus_string_hash, util, RibbonServer, MsgQueueEmptyException
+from sapphire.common import catbus_string_hash, util, MsgServer
 
 
 
-class Server(RibbonServer):
-    def initialize(self, data_port=0, database=None, visible=True):
-        super().initialize(port=data_port)
+class Server(MsgServer):
+    def __init__(self, data_port=0, database=None, visible=True):
+        super().__init__(port=data_port)
         self._database = database
 
         self.name = '%s.%s' % (self._database[META_TAG_NAME], 'server')
@@ -62,41 +62,38 @@ class Server(RibbonServer):
 
         self.start_timer(4.0, self._process_announce)
 
-        self.__lock = threading.Lock()
-
         self._default_callback = None
 
-    def clean_up(self):
+    async def clean_up(self):
         self._send_shutdown()
         time.sleep(0.1)
         self._send_shutdown()
         time.sleep(0.1)
         self._send_shutdown()
 
-    def resolve_hash(self, hashed_key, host=None):
+    async def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
+    
+        try:
+            return self._hash_lookup[hashed_key]
 
-        with self.__lock:
-            try:
-                return self._hash_lookup[hashed_key]
+        except KeyError:
+            if host:
+                c = Client(host)
 
-            except KeyError:
-                if host:
-                    c = Client()
-                    c.connect(host)
+                result = await self._loop.run_in_executor(None, c.lookup_hash(hashed_key))
+                key = result.result()[hashed_key]
 
-                    key = c.lookup_hash(hashed_key)[hashed_key]
+                if len(key) == 0:
+                    raise KeyError(hashed_key)
 
-                    if len(key) == 0:
-                        raise KeyError(hashed_key)
+                self._hash_lookup[hashed_key] = key
 
-                    self._hash_lookup[hashed_key] = key
+                return key
 
-                    return key
-
-                else:
-                    raise
+            else:
+                raise
 
     def _send_announce(self, host=('<broadcast>', CATBUS_ANNOUNCE_PORT), discovery_id=None):
         msg = AnnounceMsg(

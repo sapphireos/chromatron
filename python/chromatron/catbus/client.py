@@ -41,10 +41,8 @@ import random
 
 
 class Client(object):
-    def __init__(self):
+    def __init__(self, host=None):
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        self._connected_host = None
 
         self.read_window_size = 1
         self.write_window_size = 1
@@ -58,6 +56,10 @@ class Client(object):
             pass
         except PermissionError:
             pass
+
+        self._connected_host = host
+        if host is not None:
+            self.connect(host)
             
     @property
     def meta(self):

@@ -45,7 +45,7 @@ import time
 import sys
 import os
 
-from sapphire.common import catbus_string_hash
+from sapphire.common import catbus_string_hash, run_all
 from sapphire.common.util import setup_basic_logging
 
 from .database import *
@@ -69,7 +69,6 @@ class CatbusService(Database):
         self._server = Server(data_port=data_port, database=self, visible=visible)
 
         self._data_port = self._server._port
-        self.host = self._server._host
 
         self._callbacks = {}
 
@@ -77,7 +76,6 @@ class CatbusService(Database):
 
         self._server._default_callback = self._default_callback
 
-        # self.add_item('ip', self.host[0], 'ipv4', readonly=True) # getting source IP is not reliable
         self.add_item('process_name', sys.argv[0], 'string64', readonly=True)
         self.add_item('process_id', os.getpid(), 'uint32', readonly=True)
         self.add_item('kv_test_key', os.getpid(), 'uint32')
@@ -99,30 +97,12 @@ class CatbusService(Database):
     def _send_msg(self, msg, host):
         self._server.send_data_msg(msg, host)
 
-    def send(self, source_key, dest_key, dest_query=[]):
-        self._server.send(source_key, dest_key, dest_query)
-
-    def receive(self, dest_key, source_key, source_query=[], callback=None):
-        self._server.receive(dest_key, source_key, source_query, callback)
-
     def register(self, key, callback):
         self._callbacks[key] = callback
 
-    def stop(self):
+    async def stop(self):
         self._server.stop()
-        self._server.join()
         del self._server
-
-    # block wait until service is terminated
-    def wait(self):
-        try:
-            while True:
-                time.sleep(1.0)
-
-        except KeyboardInterrupt:
-            pass
-
-        self.stop()
 
 
 
@@ -202,14 +182,7 @@ def server(ctx, name, location, tag):
     
     kv = CatbusService(name=name, location=location, tags=tag)
     
-    try:
-        while True:
-            time.sleep(1.0)
-
-    except KeyboardInterrupt:
-        pass
-
-    kv.stop()
+    run_all()
 
 
 @cli.command()
