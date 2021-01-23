@@ -2,15 +2,15 @@
 import sys
 import time
 from catbus import CatbusService
-from sapphire.common import util, wait_for_signal, Ribbon
-
+from sapphire.common import util, synchronous_call, run_all, create_loop_task
+import logging
 import json
 import requests
 from pprint import pprint
+import asyncio
 
-
-class WeatherService(Ribbon):
-    def initialize(self, settings={}):
+class WeatherService(object):
+    def __init__(self, settings={}):
         self.name = 'weather'
         self.station = settings['station']
         
@@ -18,22 +18,28 @@ class WeatherService(Ribbon):
 
         self.kv['station'] = self.station
 
-    def loop(self):
-        result = requests.get(f"https://api.weather.gov/stations/{self.station}/observations/latest").json()
+        create_loop_task(self.loop, 60.0)
+
+    async def loop(self):
+        logging.info("Fetching weather")
+
+        result = await synchronous_call(requests.get, f"https://api.weather.gov/stations/{self.station}/observations/latest")
         
-        props = result['properties']
+        props = result.json()['properties']
         # pprint(props)
 
-        self.kv['weather_temperature']          = float(props['temperature']['value'])
-        self.kv['weather_wind_direction']       = float(props['windDirection']['value'])
-        self.kv['weather_wind_speed']           = float(props['windSpeed']['value'])
-        self.kv['weather_relative_humidity']    = float(props['relativeHumidity']['value'])
-        self.kv['weather_pressure']             = float(props['barometricPressure']['value']) / 1000.0 # convert to kPa
+        try:
+            self.kv['weather_temperature']          = float(props['temperature']['value'])
+            self.kv['weather_wind_direction']       = float(props['windDirection']['value'])
+            self.kv['weather_wind_speed']           = float(props['windSpeed']['value'])
+            self.kv['weather_relative_humidity']    = float(props['relativeHumidity']['value'])
+            self.kv['weather_pressure']             = float(props['barometricPressure']['value']) / 1000.0 # convert to kPa
 
-        self.wait(60.0)
+            logging.info("Update successful")
 
-    def clean_up(self):
-        self.kv.stop()
+        except TypeError:
+            # sometimes the weather API returns nulls for some reason.
+            logging.warn('api returned nulls')
 
 
 def main():
@@ -49,10 +55,7 @@ def main():
 
     w = WeatherService(settings=settings)
 
-    wait_for_signal()
-
-    w.stop()
-    w.join()
+    run_all()
 
     
 

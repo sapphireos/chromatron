@@ -226,3 +226,23 @@ def run_all(loop=asyncio.get_event_loop()):
 
 def create_task(task, loop=asyncio.get_event_loop()):
     loop.create_task(task)
+
+def create_loop_task(task, interval, loop=asyncio.get_event_loop(), raise_exc=True):
+    async def loop_func():
+        while True:
+            try:
+                await task()
+
+            except Exception as e:
+                logging.exception(e)
+                if raise_exc:
+                    raise
+
+            await asyncio.sleep(interval)
+
+    loop.create_task(loop_func())    
+
+async def synchronous_call(func, *args, loop=asyncio.get_event_loop()):
+    return await loop.run_in_executor(None, func, *args)
+
+

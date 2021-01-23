@@ -31,7 +31,7 @@ from sapphire.common.broadcast import send_udp_broadcast
 from .messages import *
 from .catbustypes import *
 
-from sapphire.common import catbus_string_hash, util, MsgServer
+from sapphire.common import catbus_string_hash, util, MsgServer, synchronous_call
 
 
 
@@ -82,8 +82,7 @@ class Server(MsgServer):
             if host:
                 c = Client(host)
 
-                result = await self._loop.run_in_executor(None, c.lookup_hash(hashed_key))
-                key = result.result()[hashed_key]
+                key = synchronous_call(c.lookup_hash, hashed_key)[hashed_key]
 
                 if len(key) == 0:
                     raise KeyError(hashed_key)
