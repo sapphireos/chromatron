@@ -68,7 +68,7 @@ class Client(object):
 
         return self._meta
 
-    def _exchange(self, msg, host=None, timeout=1.0, tries=5):
+    def _exchange(self, msg, host=None, timeout=0.5, tries=16):
         self.__sock.settimeout(timeout)
 
         if host == None:
@@ -91,7 +91,8 @@ class Client(object):
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
-                        logging.warn(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id}")
+                        logging.warn(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id} from {sender} type: {reply_msg.header.msg_type}")
+                        continue
 
                     elif isinstance(reply_msg, ErrorMsg):
                         self.flush()
