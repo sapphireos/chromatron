@@ -94,7 +94,7 @@ class Server(MsgServer):
             else:
                 raise
 
-    def _send_announce(self, host=('<broadcast>', CATBUS_ANNOUNCE_PORT), discovery_id=None):
+    def _send_announce(self, host=(CATBUS_ANNOUNCE_MCAST_ADDR, CATBUS_ANNOUNCE_PORT), discovery_id=None):
         msg = AnnounceMsg(
                 data_port=self._port,
                 query=self._database.get_query())

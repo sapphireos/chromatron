@@ -36,6 +36,8 @@
 #define CATBUS_VERSION                      1
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
 
+#define CATBUS_ANNOUNCE_MCAST_ADDR          239,43,96,30
+
 #define CATBUS_ANNOUNCE_INTERVAL            24
 #define CATBUS_MAX_FILE_SESSIONS            4
 

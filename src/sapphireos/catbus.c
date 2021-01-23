@@ -334,7 +334,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
 static void _catbus_v_broadcast_announce( void ){
 
     sock_addr_t raddr;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
+    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
     raddr.port = CATBUS_ANNOUNCE_PORT;
 
     _catbus_v_send_announce( &raddr, 0 );
