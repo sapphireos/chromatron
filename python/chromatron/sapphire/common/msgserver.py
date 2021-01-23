@@ -211,6 +211,9 @@ class MsgServer(object):
 
 
 def stop_all(loop=asyncio.get_event_loop()):
+    for t in asyncio.all_tasks(loop):
+        t.cancel()
+
     for s in MsgServer._servers:
         loop.run_until_complete(s.stop())
 

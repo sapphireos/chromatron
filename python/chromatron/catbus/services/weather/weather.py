@@ -11,7 +11,7 @@ import asyncio
 
 class WeatherService(object):
     def __init__(self, settings={}):
-        self.kv = CatbusService(name='weather2', visible=True, tags=[])
+        self.kv = CatbusService(name='weather', visible=True, tags=[])
         self.kv['station'] = settings['station']
 
         create_loop_task(self.loop, 60.0)
