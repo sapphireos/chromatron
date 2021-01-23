@@ -52,6 +52,17 @@ class MsgServer(object):
         self._protocol_version_offset = None
         self._timers = {}
 
+
+        self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True))
+
+        if self._listener_port is not None:
+            self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True))
+            logging.info(f"MsgServer {self.name}: server on {self._port} listening on {self._listener_port}")
+
+        else:  
+            logging.info(f"MsgServer {self.name}: server on {self._port}")
+
+
         self._servers.append(self)
 
     def __str__(self):
@@ -182,16 +193,6 @@ class MsgServer(object):
     def error_received(self, exc):
         logging.error('Error received:', exc)
 
-    async def start(self):
-        await self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True)
-
-        if self._listener_port is not None:
-            await self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True)
-            logging.info(f"MsgServer {self.name}: server on {self._port} listening on {self._listener_port}")
-
-        else:  
-            logging.info(f"MsgServer {self.name}: server on {self._port}")
-
     async def stop(self):
         await self.clean_up()
 
@@ -215,9 +216,6 @@ def stop_all(loop=asyncio.get_event_loop()):
         loop.run_until_complete(s.stop())
 
 def run_all(loop=asyncio.get_event_loop()):
-    for s in MsgServer._servers:
-        loop.create_task(s.start())
-
     try:
         loop.run_forever()
     except KeyboardInterrupt:  # pragma: no branch
