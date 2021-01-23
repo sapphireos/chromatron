@@ -24,36 +24,36 @@
 
 import sys
 import time
+import asyncio
 import logging
 from catbus import CatbusService, Client, NoResponseFromHost
-from sapphire.common import util, wait_for_signal, Ribbon
+from sapphire.common import util, run_all, create_loop_task, synchronous_call
 
-class TimeZoneService(Ribbon):
-    def initialize(self, settings={}):
-        self.name = 'timezoneservice'
-        self.settings = settings
-        
-        self.kv = CatbusService(name=self.name, visible=True, tags=[])
+class TimeZoneService(object):
+    def __init__(self):
+        self.kv = CatbusService(name='timezoneservice2', visible=True, tags=[])
 
         self.client = Client()
-        self.directory = {}
+        self.directory = None
 
-    def loop(self):
-        self.directory = self.client.get_directory()
+        create_loop_task(self.loop, 6.0)
+
+    async def loop(self):
+        self.directory = await synchronous_call(self.client.get_directory)
 
         if self.directory == None:
-            self.wait(10.0)
             return
 
         current_tz_offset = time.localtime().tm_gmtoff / 60
 
         logging.info(f"Current TZ Offset: {current_tz_offset}")
 
+        updated = False
         for device_id, device in self.directory.items():
             self.client.connect(device['host'])
             
             try:
-                tz_offset = self.client.get_key('datetime_tz_offset')
+                tz_offset = await synchronous_call(self.client.get_key, 'datetime_tz_offset')
 
             except KeyError:
                 continue
@@ -64,31 +64,19 @@ class TimeZoneService(Ribbon):
             
             if tz_offset != current_tz_offset:
                 logging.info(f"Setting datetime_tz_offset on {device_id}@{device['host']} from {tz_offset} to {current_tz_offset}")            
-                self.client.set_key('datetime_tz_offset', current_tz_offset)
+                await synchronous_call(self.client.set_key, 'datetime_tz_offset', current_tz_offset)
+                updated = True
 
-        self.wait(600.0)
-
-    def clean_up(self):
-        self.kv.stop()
-
+        if not updated:
+            logging.info("All devices up to date")
 
 def main():
     util.setup_basic_logging(console=True)
 
-    settings = {}
-    try:
-        with open('settings.json', 'r') as f:
-            settings = json.loads(f.read())
+    tz_service = TimeZoneService()
 
-    except FileNotFoundError:
-        pass
+    run_all()
 
-    tz_service = TimeZoneService(settings=settings)
-
-    wait_for_signal()
-
-    tz_service.stop()
-    tz_service.join()
 
 if __name__ == '__main__':
     main()
