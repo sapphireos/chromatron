@@ -44,7 +44,7 @@ class Server(MsgServer):
 
         self.visible = visible
 
-        logging.info("Data server: %d" % (self._port))
+        logging.info(f"Data server {self.name} on port {self._port}")
 
         self._hash_lookup = {}
 
@@ -171,7 +171,11 @@ class Server(MsgServer):
         items = []
 
         for hashed_key in msg.hashes:
-            items.append(self._database.get_item(hashed_key))
+            try:
+                items.append(self._database.get_item(hashed_key))
+
+            except KeyError:
+                logging.debug(f"Key {hashed_key} not found in database")
 
         reply_msg = KeyDataMsg(data=items)
         reply_msg.header.transaction_id = msg.header.transaction_id

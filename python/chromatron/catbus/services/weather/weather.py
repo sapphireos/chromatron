@@ -11,19 +11,15 @@ import asyncio
 
 class WeatherService(object):
     def __init__(self, settings={}):
-        self.name = 'weather'
-        self.station = settings['station']
-        
-        self.kv = CatbusService(name='weather', visible=True, tags=[])
-
-        self.kv['station'] = self.station
+        self.kv = CatbusService(name='weather2', visible=True, tags=[])
+        self.kv['station'] = settings['station']
 
         create_loop_task(self.loop, 60.0)
 
     async def loop(self):
         logging.info("Fetching weather")
 
-        result = await synchronous_call(requests.get, f"https://api.weather.gov/stations/{self.station}/observations/latest")
+        result = await synchronous_call(requests.get, f"https://api.weather.gov/stations/{self.kv['station']}/observations/latest")
         
         props = result.json()['properties']
         # pprint(props)
