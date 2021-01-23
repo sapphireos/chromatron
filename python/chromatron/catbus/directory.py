@@ -24,7 +24,6 @@
 import logging
 import time
 import os
-import threading
 import select
 from .client import Client
 from copy import copy
@@ -40,100 +39,63 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import Ribbon, MsgQueueEmptyException, util
+from sapphire.common import util, MsgServer, run_all
 
 
 TTL = 240
 
 
-class Directory(Ribbon):
-    def initialize(self):
-        self.name = '%s' % ('catbus_directory')
-
-        self.__announce_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_ANNOUNCE_PORT))
-
-        self.__main_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__main_sock.setblocking(0)
-        self.__main_sock.bind(('', CATBUS_MAIN_PORT))
-
-        self._inputs = [self.__announce_sock, self.__main_sock]
+class Directory(MsgServer):
+    def __init__(self):
+        super().__init__(name='catbus_directory', port=CATBUS_MAIN_PORT, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
 
         self._hash_lookup = {}
         self._directory = {}
 
-        self._msg_handlers = {
-            ErrorMsg: self._handle_error,
-            AnnounceMsg: self._handle_announce,
-            ShutdownMsg: self._handle_shutdown,
-        }
+        self.register_message(ErrorMsg, self._handle_error)
+        self.register_message(AnnounceMsg, self._handle_announce)
+        self.register_message(ShutdownMsg, self._handle_shutdown)
 
-        self._last_ttl = time.time()
+        self.start_timer(4.0, self._process_ttl)
 
-        self.__lock = threading.Lock()
-
-    def get_directory(self):
-        with self.__lock:
-            return copy(self._directory)
+    def get_directory(self):    
+        return copy(self._directory)
    
     def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
 
-        with self.__lock:
-            try:
+        try:
+            return self._hash_lookup[hashed_key]
+
+        except KeyError:
+            if host:
+                c = Client()
+                c.connect(host)
+
+                key = c.lookup_hash(hashed_key)
+
+                if len(key) == 0:
+                    raise KeyError(hashed_key)
+
+                self._hash_lookup[hashed_key] = key[hashed_key]
+
                 return self._hash_lookup[hashed_key]
 
-            except KeyError:
-                if host:
-                    c = Client()
-                    c.connect(host)
-
-                    key = c.lookup_hash(hashed_key)
-
-                    if len(key) == 0:
-                        raise KeyError(hashed_key)
-
-                    self._hash_lookup[hashed_key] = key[hashed_key]
-
-                    return self._hash_lookup[hashed_key]
-
-                else:
-                    raise
+            else:
+                raise
 
     def _handle_shutdown(self, msg, host):
-        with self.__lock:
-            try:
-                info = self._directory[msg.header.origin_id]
+        try:
+            info = self._directory[msg.header.origin_id]
 
-                logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
+            logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
 
-                # remove entry
-                del self._directory[msg.header.origin_id]
+            # remove entry
+            del self._directory[msg.header.origin_id]
 
-            except KeyError:
-                pass
+        except KeyError:
+            pass
 
     def _handle_error(self, msg, host):
         print(msg)
@@ -150,101 +112,63 @@ class Directory(Ribbon):
 
             return
 
-        with self.__lock:
+        def update_info(msg, host):
+            c = Client()
+            c.connect(host)
+            name = c.get_key(META_TAG_NAME)
+            location = c.get_key(META_TAG_LOC)
 
-            def update_info(msg, host):
-                c = Client()
-                c.connect(host)
-                name = c.get_key(META_TAG_NAME)
-                location = c.get_key(META_TAG_LOC)
+            info = {'host': tuple(host),
+                    'name': name,
+                    'location': location,
+                    'hashes': msg.query,
+                    'query': resolved_query,
+                    'tags': [t for t in msg.query if t != 0],
+                    'data_port': msg.data_port,
+                    'version': msg.header.version,
+                    'universe': msg.header.universe,
+                    'ttl': TTL}
 
-                info = {'host': tuple(host),
-                        'name': name,
-                        'location': location,
-                        'hashes': msg.query,
-                        'query': resolved_query,
-                        'tags': [t for t in msg.query if t != 0],
-                        'data_port': msg.data_port,
-                        'version': msg.header.version,
-                        'universe': msg.header.universe,
-                        'ttl': TTL}
+            self._directory[msg.header.origin_id] = info
 
-                self._directory[msg.header.origin_id] = info
+            return info
 
-                return info
-
-            try:
-                # check if we have this node already
-                if msg.header.origin_id not in self._directory:
-                    info = update_info(msg, host)
-
-                    logging.info(f"Added   : {info['name']:32} @ {info['host']}")
-
-                else:
-                    info = self._directory[msg.header.origin_id]
-
-                    # check if query tags have changed
-                    if msg.query != info['hashes']:
-                        update_info(msg, host)
-
-                        logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
-
-                    # reset ttl
-                    self._directory[msg.header.origin_id]['ttl'] = TTL
-
-            except NoResponseFromHost as e:
-                logging.warn(f"No response from: {host}")
-
-                return
-
-    def _process_msg(self, msg, host):
         try:
-            response = self._msg_handlers[type(msg)](msg, host)
+            # check if we have this node already
+            if msg.header.origin_id not in self._directory:
+                info = update_info(msg, host)
 
-        except KeyError:
-            raise UnknownMessageException
+                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
-        return response
+            else:
+                info = self._directory[msg.header.origin_id]
 
-    def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+                # check if query tags have changed
+                if msg.query != info['hashes']:
+                    update_info(msg, host)
 
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
+                    logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
-                    msg = deserialize(data)
+                # reset ttl
+                self._directory[msg.header.origin_id]['ttl'] = TTL
 
-                    self._process_msg(msg, host)
+        except NoResponseFromHost as e:
+            logging.warn(f"No response from: {host}")
 
-                except UnknownMessageException as e:
-                    pass
+            return
 
-                except Exception as e:
-                    logging.exception(e)
+    def _process_ttl(self):
+        for key, info in self._directory.items():
+            info['ttl'] -= 4.0
 
-        except select.error as e:
-            logging.exception(e)
+            if info['ttl'] < 0.0:
+                logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
 
-        except Exception as e:
-            logging.exception(e)
+        self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
 
-        if time.time() - self._last_ttl > 4.0:
-            self._last_ttl = time.time()
-
-            with self.__lock:
-                for key, info in self._directory.items():
-                    info['ttl'] -= 4.0
-
-                    if info['ttl'] < 0.0:
-                        logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
-
-                self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
-
-class DirectoryServer(Ribbon):
-    def initialize(self, directory=None):
+class DirectoryServer(object):
+    def __init__(self, directory=None):
         self.name = '%s' % ('directory_server')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -285,18 +209,13 @@ def main():
     except IndexError:
         LOG_FILE_PATH = "catbus_directory.log"
 
-    util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
+    util.setup_basic_logging(console=True, filename=LOG_FILE_PATH)
 
     d = Directory()
-    svr = DirectoryServer(directory=d)
+    # svr = DirectoryServer(directory=d)
     
+    run_all()
 
-    try:
-        while True:
-            time.sleep(1.0)
-
-    except KeyboardInterrupt:
-        pass
 
 if __name__ == '__main__':
     main()

@@ -26,11 +26,20 @@ import socket
 import logging
 from .broadcast import get_broadcast_addresses
 
+class UnknownMessage(Exception):
+    pass
+
+class InvalidMessage(Exception):
+    pass
+
+class InvalidVersion(Exception):
+    pass
+
 class MsgServer(object):
     _server_id = 0
     _servers = []
 
-    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, loop=None):
+    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, loop=None, ignore_unknown=True):
         self.name = name + f'.{self._server_id}'
 
         self._server_id += 1
@@ -51,6 +60,8 @@ class MsgServer(object):
         self._protocol_version = None
         self._protocol_version_offset = None
         self._timers = {}
+
+        self.ignore_unknown = ignore_unknown
 
         self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True))
 
@@ -182,7 +193,15 @@ class MsgServer(object):
             self._port = port
 
     def datagram_received(self, data, host):
-        msg = self._deserialize(data)
+        try:
+            msg = self._deserialize(data)
+
+        except UnknownMessage:
+            if self.ignore_unknown:
+                return
+
+            raise
+
         response = None                    
 
         response, host = self._process_msg(msg, host)
