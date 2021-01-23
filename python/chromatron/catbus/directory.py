@@ -149,6 +149,12 @@ class Directory(MsgServer):
 
                         logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
+                    # update data port (in case a service restarted on another port)
+                    if msg.data_port != self._directory[msg.header.origin_id]['data_port']:
+                        logging.info(f"Changed data port: {info['name']:32} @ {info['host']} to {msg.data_port}")
+                        self._directory[msg.header.origin_id]['host'] = host
+                        self._directory[msg.header.origin_id]['data_port'] = msg.data_port
+
                     # reset ttl
                     self._directory[msg.header.origin_id]['ttl'] = TTL
 

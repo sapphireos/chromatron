@@ -64,6 +64,10 @@ class Server(MsgServer):
 
         self._default_callback = None
 
+        # if server is visible, send announce immediately on startup
+        if self.visible:
+            self._send_announce()
+
     async def clean_up(self):
         self._send_shutdown()
         time.sleep(0.1)
@@ -104,10 +108,19 @@ class Server(MsgServer):
 
         self.transmit(msg, host)
 
-    def _send_shutdown(self, host=('<broadcast>', CATBUS_MAIN_PORT)):
+    def _send_shutdown(self, host=None):
         msg = ShutdownMsg()
 
-        self.transmit(msg, host)
+        if host is not None:
+            self.transmit(msg, host)
+
+        else:
+            broadcast_addr = ('<broadcast>', CATBUS_MAIN_PORT)
+            mcast_addr = (CATBUS_ANNOUNCE_MCAST_ADDR, CATBUS_ANNOUNCE_PORT)
+
+            self.transmit(msg, broadcast_addr)
+            self.transmit(msg, mcast_addr)
+
 
     def _handle_error(self, msg, host):
         if msg.error_code != CATBUS_ERROR_UNKNOWN_MSG:
