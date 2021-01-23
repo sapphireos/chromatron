@@ -649,9 +649,12 @@ class Client(object):
 
 
         # close session
-        msg = FileCloseMsg(session_id=session_id)
-        self.__sock.sendto(msg.pack(), host)
+        try:
+            self._exchange(FileCloseMsg(session_id=session_id), host, tries=1)
 
+        except (ProtocolErrorException, NoResponseFromHost):
+            pass
+        
         # f = open(filename, 'w')
         # f.write(file_data)
         # f.close()
