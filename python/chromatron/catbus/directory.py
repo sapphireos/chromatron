@@ -39,7 +39,7 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import util, MsgServer, run_all
+from sapphire.common import util, MsgServer, run_all, synchronous_call, create_task
 
 
 TTL = 240
@@ -47,7 +47,7 @@ TTL = 240
 
 class Directory(MsgServer):
     def __init__(self):
-        super().__init__(name='catbus_directory', port=CATBUS_MAIN_PORT, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
+        super().__init__(name='catbus_directory', port=0, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
 
         self._hash_lookup = {}
         self._directory = {}
@@ -61,7 +61,7 @@ class Directory(MsgServer):
     def get_directory(self):    
         return copy(self._directory)
    
-    def resolve_hash(self, hashed_key, host=None):
+    async def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
 
@@ -70,10 +70,9 @@ class Directory(MsgServer):
 
         except KeyError:
             if host:
-                c = Client()
-                c.connect(host)
+                c = Client(host)
 
-                key = c.lookup_hash(hashed_key)
+                key = await synchronous_call(c.lookup_hash, hashed_key)
 
                 if len(key) == 0:
                     raise KeyError(hashed_key)
@@ -104,58 +103,60 @@ class Directory(MsgServer):
         # update host port with advertised data port
         host = (host[0], msg.data_port)
 
-        try:
-            resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
+        async def query_device():
+            try:
+                resolved_query = [await self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
-        except NoResponseFromHost:
-            logging.warn(f"No response from: {host}")
+            except NoResponseFromHost:
+                logging.warn(f"No response from: {host}")
 
-            return
+                return
 
-        def update_info(msg, host):
-            c = Client()
-            c.connect(host)
-            name = c.get_key(META_TAG_NAME)
-            location = c.get_key(META_TAG_LOC)
+            async def update_info(msg, host):
+                c = Client(host)
 
-            info = {'host': tuple(host),
-                    'name': name,
-                    'location': location,
-                    'hashes': msg.query,
-                    'query': resolved_query,
-                    'tags': [t for t in msg.query if t != 0],
-                    'data_port': msg.data_port,
-                    'version': msg.header.version,
-                    'universe': msg.header.universe,
-                    'ttl': TTL}
+                name = await synchronous_call(c.get_key, META_TAG_NAME)
+                location = await synchronous_call(c.get_key, META_TAG_LOC)
 
-            self._directory[msg.header.origin_id] = info
+                info = {'host': tuple(host),
+                        'name': name,
+                        'location': location,
+                        'hashes': msg.query,
+                        'query': resolved_query,
+                        'tags': [t for t in msg.query if t != 0],
+                        'data_port': msg.data_port,
+                        'version': msg.header.version,
+                        'universe': msg.header.universe,
+                        'ttl': TTL}
 
-            return info
+                self._directory[msg.header.origin_id] = info
 
-        try:
-            # check if we have this node already
-            if msg.header.origin_id not in self._directory:
-                info = update_info(msg, host)
+                return info
 
-                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
+            try:
+                # check if we have this node already
+                if msg.header.origin_id not in self._directory:
+                    info = await update_info(msg, host)
 
-            else:
-                info = self._directory[msg.header.origin_id]
+                    logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
-                # check if query tags have changed
-                if msg.query != info['hashes']:
-                    update_info(msg, host)
+                else:
+                    info = self._directory[msg.header.origin_id]
 
-                    logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
+                    # check if query tags have changed
+                    if msg.query != info['hashes']:
+                        await update_info(msg, host)
 
-                # reset ttl
-                self._directory[msg.header.origin_id]['ttl'] = TTL
+                        logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
-        except NoResponseFromHost as e:
-            logging.warn(f"No response from: {host}")
+                    # reset ttl
+                    self._directory[msg.header.origin_id]['ttl'] = TTL
 
-            return
+            except NoResponseFromHost as e:
+                logging.warn(f"No response from: {host}")
+
+        # put the device query on the event loop to avoid blocking
+        create_task(query_device())
 
     def _process_ttl(self):
         for key, info in self._directory.items():

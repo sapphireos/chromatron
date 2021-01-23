@@ -161,7 +161,8 @@ class MsgServer(object):
             pass
 
     def _process_msg(self, msg, host):        
-        tokens = self._handlers[type(msg)](msg, host)
+        handler = self._handlers[type(msg)]
+        tokens = handler(msg, host)
 
         # normally, you'd just try to access the tuple and
         # handle the exception. However, that will raise a TypeError, 
