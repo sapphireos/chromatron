@@ -181,7 +181,7 @@ class MsgServer(object):
             self._transport = transport
             self._port = port
 
-    def datagram_received(self, data, addr):
+    def datagram_received(self, data, host):
         msg = self._deserialize(data)
         response = None                    
 
