@@ -59,6 +59,13 @@ class MsgServer(object):
             return f'{self.name} @ {self._port}'
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
+
+    def start_timer(self, interval, handler):
+        def _process_timer(loop, interval, handler):
+            handler()
+            loop.call_later(interval, _process_timer, loop, interval, handler)
+
+        self._loop.call_later(interval, _process_timer, self._loop, interval, handler)
         
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
@@ -222,13 +229,17 @@ def run_all(loop=asyncio.get_event_loop()):
 
         loop.close()
 
+def meow():
+    print('meow')
+
 def main():
     from . import util
     util.setup_basic_logging(console=True)
 
-    s = MsgServer(port=0, listener_port=32041, listener_mcast='239.43.96.31')
+    s = MsgServer(port=0, listener_port=32042, listener_mcast='239.43.96.31')
 
-    print(s)
+    # print(s)
+    s.start_timer(1.0, meow)
 
     run_all()
 
