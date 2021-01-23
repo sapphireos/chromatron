@@ -117,8 +117,6 @@ class MsgServer(object):
             raise InvalidMessage(msg_id, len(buf), e)
     
     def transmit(self, msg, host):
-        s = self.__server_sock
-
         try:
             if host[0] == '<broadcast>':
                 data = msg.pack()

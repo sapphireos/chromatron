@@ -27,13 +27,18 @@ import time
 import logging
 import threading
 from elysianfields import *
-from ..common import RibbonServer, MsgServer, util, catbus_string_hash, synchronized
+from ..common import RibbonServer, MsgServer, run_all, util, catbus_string_hash
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
 SERVICES_VERSION            = 2
 
 SERVICES_MCAST_ADDR         = "239.43.96.31"
+
+SERVICE_LISTEN_TIMEOUT              = 10.0
+SERVICE_CONNECTED_TIMEOUT           = 64.0
+SERVICE_CONNECTED_PING_THRESHOLD    = 48.0
+SERVICE_CONNECTED_WARN_THRESHOLD    = 16.0
 
 
 class ServiceNotConnected(Exception):
@@ -192,17 +197,14 @@ class Service(object):
         return offer
 
     @property
-    @synchronized
     def connected(self):
         return self._state != STATE_LISTEN
 
     @property
-    @synchronized
     def is_server(self):
         return self._state == STATE_SERVER
 
     @property
-    @synchronized
     def server(self):
         if not self.connected:
             raise ServiceNotConnected
@@ -311,7 +313,6 @@ class Team(Service):
         return f'Team: {self._service_id}:{self._group}'
     
     @property
-    @synchronized
     def _flags(self):
         flags = super()._flags
         flags |= SERVICE_OFFER_FLAGS_TEAM
@@ -319,11 +320,9 @@ class Team(Service):
         return flags
 
 
-class ServiceManager(RibbonServer):
-    NAME = 'service_manager'
-
-    def initialize(self):
-        super().initialize(listener_port=SERVICES_PORT)
+class ServiceManager(MsgServer):
+    def __init__(self):
+        super().__init__(name='service_manager', listener_port=SERVICES_PORT)
         
         self._services = {}
         
@@ -333,7 +332,7 @@ class ServiceManager(RibbonServer):
         self.start_timer(1.0, self._process_timers)
         self.start_timer(4.0, self._process_offer_timer)
 
-    def clean_up(self):
+    async def clean_up(self):
         pass
 
     def _convert_catbus_hash(self, n):
@@ -342,7 +341,6 @@ class ServiceManager(RibbonServer):
 
         return n
 
-    @synchronized
     def join_team(self, service_id, group, port, priority=0):
         if priority != 0:
             raise NotImplementedError("Services only available as follower")
@@ -362,7 +360,6 @@ class ServiceManager(RibbonServer):
 
         return team
 
-    @synchronized
     def offer(self, service_id, group, port, priority=1):
         assert priority != 0
 
@@ -381,7 +378,6 @@ class ServiceManager(RibbonServer):
 
         return service
     
-    @synchronized
     def listen(self, service_id, group):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
@@ -470,21 +466,24 @@ def main():
     elif sys.argv[1] == 'offer':
         svc = s.offer(1234, 5678, 1000, priority=99)
 
-    try:
-        while True:
-            # if team.connected:
-            #     print(team.server)
-            if svc.connected and not svc.is_server:
-                print(svc.server)
 
-            time.sleep(1.0)
+    run_all()
+
+    # try:
+    #     while True:
+    #         # if team.connected:
+    #         #     print(team.server)
+    #         if svc.connected and not svc.is_server:
+    #             print(svc.server)
+
+    #         time.sleep(1.0)
 
 
-    except KeyboardInterrupt:
-        pass
+    # except KeyboardInterrupt:
+    #     pass
 
-    s.stop()
-    s.join()
+    # s.stop()
+    # s.join()
 
 if __name__ == '__main__':
     main()
