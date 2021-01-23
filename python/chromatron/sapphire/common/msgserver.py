@@ -174,6 +174,7 @@ class MsgServer(object):
             self._listener_sock = sock
 
             if self._listener_mcast is not None:
+                logging.info(f'MsgServer {self.name}: joining multicast group {self._listener_mcast}')
                 mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
                 sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
@@ -194,21 +195,18 @@ class MsgServer(object):
         logging.error('Error received:', exc)
 
     async def stop(self):
+        logging.info(f"MsgServer {self.name}: shutting down")
         await self.clean_up()
 
-    async def clean_up(self):
-        print("closing")
-
+        # leave multicast group
         if self._listener_port is not None and self._listener_mcast is not None:
+            logging.info(f'MsgServer {self.name}: leaving multicast group {self._listener_mcast}')
             sock = self._listener_sock
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
             sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
 
-
-        # await asyncio.sleep(4.0)
-
-        print("closed")
-
+    async def clean_up(self):
+        pass
 
 
 def stop_all(loop=asyncio.get_event_loop()):

@@ -322,7 +322,7 @@ class Team(Service):
 
 class ServiceManager(MsgServer):
     def __init__(self):
-        super().__init__(name='service_manager', listener_port=SERVICES_PORT)
+        super().__init__(name='service_manager', listener_port=SERVICES_PORT, listener_mcast=SERVICES_MCAST_ADDR)
         
         self._services = {}
         
