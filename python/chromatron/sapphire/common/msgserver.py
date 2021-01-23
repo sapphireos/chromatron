@@ -52,7 +52,6 @@ class MsgServer(object):
         self._protocol_version_offset = None
         self._timers = {}
 
-
         self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True))
 
         if self._listener_port is not None:
@@ -205,6 +204,8 @@ class MsgServer(object):
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
             sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
 
+        logging.info(f"MsgServer {self.name}: shut down complete")
+
     async def clean_up(self):
         pass
 
@@ -225,21 +226,3 @@ def run_all(loop=asyncio.get_event_loop()):
 
 def create_task(task, loop=asyncio.get_event_loop()):
     loop.create_task(task)
-
-def meow():
-    print('meow')
-
-def main():
-    from . import util
-    util.setup_basic_logging(console=True)
-
-    s = MsgServer(port=0, listener_port=32042, listener_mcast='239.43.96.31')
-
-    # print(s)
-    s.start_timer(1.0, meow)
-
-    run_all()
-
-
-if __name__ == '__main__':
-    main()

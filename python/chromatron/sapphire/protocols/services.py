@@ -453,14 +453,6 @@ class ServiceManager(MsgServer):
         if len(offers) > 0:
             self._send_offers(offers)
 
-
-import asyncio
-
-async def stuff(s):
-    while True:
-        await asyncio.sleep(1.0)
-        print(s)
-
 def main():
     util.setup_basic_logging(console=True)
 
@@ -472,9 +464,6 @@ def main():
 
     elif sys.argv[1] == 'offer':
         svc = s.offer(1234, 5678, 1000, priority=99)
-
-    from ..common import create_task
-    create_task(stuff('woof'))    
 
     run_all()
 

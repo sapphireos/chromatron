@@ -23,13 +23,12 @@
 #
 
 import sys
-import time
 import socket
 import select
 import logging
+import asyncio
 from elysianfields import *
-from ..common.broadcast import send_udp_broadcast
-from ..common import Ribbon, RibbonServer, util, catbus_string_hash
+from ..common import MsgServer, run_all, util, catbus_string_hash
 from .services import ServiceManager
 
 
@@ -145,17 +144,15 @@ class MsgFlowMsgCodebook(StructField):
         self.header.type = MSGFLOW_TYPE_CODEBOOK
 
 
-class MsgFlowReceiver(RibbonServer):
-    NAME = 'msgflow_receiver'
-
-    def initialize(self, 
+class MsgFlowReceiver(MsgServer):
+    def __init__(self, 
                    service=None, 
                    port=None,
                    on_receive=None,
                    on_connect=None,
                    on_disconnect=None):
 
-        super().initialize(port=port)
+        super().__init__(name='msgflow_receiver', port=port)
         
         self.register_message(MsgFlowMsgReset, self._handle_reset)
         self.register_message(MsgFlowMsgData, self._handle_data)
@@ -167,8 +164,6 @@ class MsgFlowReceiver(RibbonServer):
         self._service_hash = catbus_string_hash(service)
 
         self._connections = {}
-
-        self._last_status = time.time() - 10.0
 
         if on_receive is not None:
             self.on_receive = on_receive
@@ -191,16 +186,16 @@ class MsgFlowReceiver(RibbonServer):
     def on_receive(self, host, data):
         pass
 
-    def clean_up(self):
+    async def clean_up(self):
         for host in self._connections:
             self._send_stop(host)
 
-        time.sleep(0.1)
+        await asyncio.sleep(0.1)
 
         for host in self._connections:
             self._send_stop(host)
 
-        time.sleep(0.1)
+        await asyncio.sleep(0.1)
 
         for host in self._connections:
             self._send_stop(host)
@@ -307,20 +302,11 @@ def main():
     util.setup_basic_logging(console=True)
 
     def on_receive(host, data):
-        # print(sequence)
         pass
 
     m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
 
-    try:
-        while True:
-            time.sleep(1.0)
-
-    except KeyboardInterrupt:
-        pass
-
-    m.stop()
-    m.join()
+    run_all()
 
 if __name__ == '__main__':
     main()
