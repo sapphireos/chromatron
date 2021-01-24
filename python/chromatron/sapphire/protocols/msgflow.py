@@ -152,7 +152,7 @@ class MsgFlowReceiver(MsgServer):
                    on_connect=None,
                    on_disconnect=None):
 
-        super().__init__(name='msgflow_receiver', port=port)
+        super().__init__(name=service, port=port)
         
         self.register_message(MsgFlowMsgReset, self._handle_reset)
         self.register_message(MsgFlowMsgData, self._handle_data)

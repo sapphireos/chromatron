@@ -26,10 +26,12 @@ import sys
 import time
 from datetime import datetime
 from catbus import CatbusService, Directory
-from sapphire.common.ribbon import wait_for_signal
 from sapphire.protocols.msgflow import MsgFlowReceiver
-from sapphire.protocols.zeroconf_service import ZeroconfService
-from sapphire.common import util, Ribbon
+from sapphire.common import util, run_all, synchronous_call, create_task
+
+from queue import Queue
+
+import threading
 
 import logging
 import logging_loki
@@ -48,13 +50,9 @@ LOKI_SERVER = "http://localhost:3100"
 LOGSERVER_PORT = None
 
 
-class LokiHandler(Ribbon):
-    def initialize(self, settings={}):
-        super().initialize()
-        self.name = 'lokihandler'
-        self.settings = settings
-
-        return
+class LokiHandler(threading.Thread):
+    def __init__(self):
+        super().__init__()
 
         loki_handler = logging_loki.LokiHandler(
             url=f"{LOKI_SERVER}/loki/api/v1/push", 
@@ -81,72 +79,79 @@ class LokiHandler(Ribbon):
 
         self.device_logger = logging.getLogger('chromatron')
         self.device_logger.addHandler(device_handler)
+
+        self.q = Queue()
+
+        self.start()
     
-    def loop(self):
-        msg = self.recv_msg()
+    def post_msg(self, msg):
+        create_task(synchronous_call(self.q.put, msg))
 
-        if msg is None:
-            return
+    def run(self):
+        while True:
+            msg = self.q.get()
 
-        return
+            print(msg)
 
-        host    = msg[0]
-        info    = msg[1]
-        now     = msg[2]
-        log     = msg[3]
+            if msg is None:
+                break
 
-        # get log level from log message
-        tokens      = log.split(':')
-        level       = tokens[0].strip()
-        sys_time    = tokens[1].strip()
-        source_file = tokens[2].strip()
-        source_line = tokens[3].strip()
-        log_msg     = tokens[3].strip()
+            continue
 
-        location = ''
-        # early versions of the catbus directory don't have location
-        if 'location' in info:
-            location = info['location']
+            host    = msg[0]
+            info    = msg[1]
+            now     = msg[2]
+            log     = msg[3]
 
+            # get log level from log message
+            tokens      = log.split(':')
+            level       = tokens[0].strip()
+            sys_time    = tokens[1].strip()
+            source_file = tokens[2].strip()
+            source_line = tokens[3].strip()
+            log_msg     = tokens[3].strip()
 
-        # !!! NOTE
-        # all Loki tags must be strings!
-        # if you get an error 400, check for that!
-
-        tags = {
-            'device_id':    str(info['device_id']),
-            'name':         info['name'],
-            'host':         host[0],
-            'location':     location,
-            # 'sys_time':     sys_time,
-            'level':        level,
-            'source_file':  source_file,
-            # 'source_line':  source_line,
-        }
-
-        full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
-
-        self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
+            location = ''
+            # early versions of the catbus directory don't have location
+            if 'location' in info:
+                location = info['location']
 
 
-    def clean_up(self):
-        super().clean_up()        
+            # !!! NOTE
+            # all Loki tags must be strings!
+            # if you get an error 400, check for that!
+
+            tags = {
+                'device_id':    str(info['device_id']),
+                'name':         info['name'],
+                'host':         host[0],
+                'location':     location,
+                # 'sys_time':     sys_time,
+                'level':        level,
+                'source_file':  source_file,
+                # 'source_line':  source_line,
+            }
+
+            full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
+
+            self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
+
+
+    def stop(self):
+        self.logger.info("Loki handler stopping...")
+
+        self.post_msg(None)
 
         self.logger.info("Loki handler stopped")
 
 
 class LogServer(MsgFlowReceiver):
-    NAME = 'logserver'
-
-    def initialize(self, settings={}):
-        super().initialize(service='logserver', port=LOGSERVER_PORT)
-        self.settings = settings
+    def __init__(self):
+        super().__init__(service='logserver', port=LOGSERVER_PORT)
         
         self.kv = CatbusService(name=self.name, visible=True, tags=[])
 
-        self.zeroconf = ZeroconfService("_logserver._tcp.local.", "Chromatron LogServer", port=12345)
-
-        self.loki = LokiHandler(settings=settings)
+        self.loki = LokiHandler()
 
         # run local catbus directory
         self._catbus_directory = Directory()
@@ -160,12 +165,12 @@ class LogServer(MsgFlowReceiver):
 
         self._last_directory_update = time.time()
 
-    def clean_up(self):
+    async def clean_up(self):
         self.loki.stop()
-        self.zeroconf.stop()
-        self.kv.stop()
         
-        super().clean_up()
+        await self.kv.stop()
+        
+        await super().clean_up()
 
         self.loki.join()
 
@@ -191,7 +196,6 @@ class LogServer(MsgFlowReceiver):
 
         self.loki.post_msg((host, info, now, log))
 
-
     def on_connect(self, host, device_id=None):
         self.update_directory()
 
@@ -204,20 +208,9 @@ class LogServer(MsgFlowReceiver):
 def main():
     util.setup_basic_logging(console=True)
 
-    settings = {}
-    try:
-        with open('settings.json', 'r') as f:
-            settings = json.loads(f.read())
+    logserver = LogServer()
 
-    except FileNotFoundError:
-        pass
-
-    logserver = LogServer(settings=settings)
-
-    wait_for_signal()
-
-    logserver.stop()
-    logserver.join()    
+    run_all()
 
 
 if __name__ == '__main__':

@@ -101,7 +101,7 @@ class CatbusService(Database):
         self._callbacks[key] = callback
 
     async def stop(self):
-        self._server.stop()
+        await self._server.stop()
         del self._server
 
 
