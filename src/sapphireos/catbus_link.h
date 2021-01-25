@@ -33,6 +33,8 @@
 #define LINK_VERSION                        1
 #define LINK_MAGIC                          0x4b4e494c // 'LINK'
 
+#define LINK_MCAST_ADDR                     239,43,96,32
+
 #define LINK_MAX_LINKS						16
 
 #define LINK_SERVICE                        __KV__link

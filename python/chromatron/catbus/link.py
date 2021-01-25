@@ -26,7 +26,7 @@ from elysianfields import *
 from .data_structures import *
 from .catbustypes import *
 from .options import *
-from sapphire.common import RibbonServer, util, catbus_string_hash
+from sapphire.common import MsgServer, util, catbus_string_hash, run_all
 from sapphire.protocols import services
 
 from fnvhash import fnv1a_64
@@ -36,6 +36,8 @@ LINK_VERSION            = 1
 LINK_MAGIC              = 0x4b4e494c # 'LINK'
 
 LINK_SERVICE            = "link"
+
+LINK_MCAST_ADDR         = "239.43.96.32"
 
 
 class MsgHeader(StructField):
@@ -206,11 +208,9 @@ on the same machine!
 
 """
 
-class LinkManager(RibbonServer):
-    NAME = 'link_manager'
-
-    def initialize(self, database=None):
-        super().initialize(listener_port=CATBUS_LINK_PORT)
+class LinkManager(MsgServer):
+    def _init__(self, database=None):
+        super()._init__(name='link_manager', listener_port=CATBUS_LINK_PORT, listener_mcast=LINK_MCAST_ADDR)
 
         self._database = database
         self._service_manager = services.ServiceManager()
@@ -226,8 +226,8 @@ class LinkManager(RibbonServer):
 
         self._links = {}
 
-    def clean_up(self):
-        pass
+    async def clean_up(self):
+        await super().clean_up()
 
     def add_link(self, link):
         link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port)
@@ -257,16 +257,7 @@ def main():
     print(l.hash)
     s.add_link(l)
 
-    try:
-        while True:
-            time.sleep(1.0)
-
-
-    except KeyboardInterrupt:
-        pass
-
-    s.stop()
-    s.join()
+    run_all()
 
 if __name__ == '__main__':
     main()
