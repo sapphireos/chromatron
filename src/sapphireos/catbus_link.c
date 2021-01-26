@@ -35,6 +35,7 @@
 #include "util.h"
 #include "config.h"
 #include "random.h"
+#include "wifi.h"
 
 #include "catbus_link.h"
 
