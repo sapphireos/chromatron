@@ -384,7 +384,38 @@ class Consumer(object):
         if not link_manager._links[self.link_hash].is_leader:
             self._timeout = -1.0
             return
-            
+
+
+class Remote(object):
+    def __init__(self,
+        link_hash=None,
+        ip=None,
+        data=None):
+
+        self.link_hash = link_hash
+        self.ip = ip
+        self.data = data
+        
+        self._timeout = LINK_REMOTE_TIMEOUT
+
+    def __str__(self):
+        return f'REMOTE: {self.link_hash}'    
+
+    def _refresh(self, host, data):
+        self.leader_ip = host[0]
+        self._timeout = LINK_REMOTE_TIMEOUT
+        self.data = data
+
+    @property
+    def timed_out(self):
+        return self._timeout < 0.0
+
+    def _process_timer(self, elapsed, link_manager):
+        self._timeout -= elapsed
+
+        if timed_out:
+            logging.info(f"{self} timed out")
+            return
 
 
 """
@@ -411,11 +442,13 @@ class LinkManager(MsgServer):
         self.start_timer(LINK_MIN_TICK_RATE, self._process_links)
         self.start_timer(LINK_MIN_TICK_RATE, self._process_producers)
         self.start_timer(LINK_MIN_TICK_RATE, self._process_consumers)
+        self.start_timer(LINK_MIN_TICK_RATE, self._process_remotes)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
         self._producers = {}
         self._consumers = {}
+        self._remotes = {}
 
     async def clean_up(self):
         await super().clean_up()
@@ -518,8 +551,17 @@ class LinkManager(MsgServer):
             logging.error("producer sent wrong source key!")
             return
 
-
         # UPDATE REMOTE STATE
+        if msg.hash not in self._remotes:
+            r = Remote(
+                    msg.hash,
+                    host[0]) # ADD DATA PORT!
+
+            self._remotes[msg.hash] = r
+
+            logging.debug(f"Create {r}")
+
+        self._remotes[msg.hash]._refresh(host, msg.data)
     
     def _process_discovery(self):
         for link in self._links.values():
@@ -556,6 +598,13 @@ class LinkManager(MsgServer):
 
         # prune
         self._consumers = {k: v for k, v in self._consumers.items() if not v.timed_out}
+
+    def _process_remotes(self):
+        for r in self._remotes.values():
+            r._process_timer(LINK_MIN_TICK_RATE, self)
+
+        # prune
+        self._remotes = {k: v for k, v in self._remotes.items() if not v.timed_out}
 
     def _process_links(self):
         for link in self._links.values():
