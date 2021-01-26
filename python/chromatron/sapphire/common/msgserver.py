@@ -81,12 +81,13 @@ class MsgServer(object):
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
 
-    def start_timer(self, interval, handler):
-        def _process_timer(loop, interval, handler):
+    def start_timer(self, interval, handler, repeat=True):
+        def _process_timer(loop, interval, handler, repeat):
             handler()
-            loop.call_later(interval, _process_timer, loop, interval, handler)
+            if repeat:
+                loop.call_later(interval, _process_timer, loop, interval, handler, repeat)
 
-        self._loop.call_later(interval, _process_timer, self._loop, interval, handler)
+        self._loop.call_later(interval, _process_timer, self._loop, interval, handler, repeat)
         
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
