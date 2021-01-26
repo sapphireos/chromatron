@@ -347,7 +347,44 @@ class Producer(object):
         # TRANSMIT PRODUCER DATA
 
 
+class Consumer(object):
+    def __init__(self,
+        link_hash=None,
+        ip=None):
 
+        self.link_hash = link_hash
+        self.ip = ip
+        
+        self._timeout = LINK_CONSUMER_TIMEOUT
+
+    def __str__(self):
+        return f'CONSUMER: {self.link_hash}'    
+
+    def _refresh(self, host):
+        self.leader_ip = host[0]
+        self._timeout = LINK_CONSUMER_TIMEOUT
+
+    @property
+    def timed_out(self):
+        return self._timeout < 0.0
+
+    def _process_timer(self, elapsed, link_manager):
+        self._timeout -= elapsed
+
+        if timed_out:
+            logging.info(f"{self} timed out")
+            return
+
+        # check if we have a matching link
+        if self.link_hash not in link_manager._links:
+            self._timeout = -1.0
+            return
+
+        # check if not link leader, if not, force a time out
+        if not link_manager._links[self.link_hash].is_leader:
+            self._timeout = -1.0
+            return
+            
 
 
 """
@@ -373,10 +410,12 @@ class LinkManager(MsgServer):
         
         self.start_timer(LINK_MIN_TICK_RATE, self._process_links)
         self.start_timer(LINK_MIN_TICK_RATE, self._process_producers)
+        self.start_timer(LINK_MIN_TICK_RATE, self._process_consumers)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
         self._producers = {}
+        self._consumers = {}
 
     async def clean_up(self):
         await super().clean_up()
@@ -427,13 +466,27 @@ class LinkManager(MsgServer):
 
             self._producers[msg.hash] = p
 
+            logging.debug(f"Create {p}")
+
         self._producers[msg.hash]._refresh(host)
 
 
     def _handle_consumer_match(self, msg, host):
         # UPDATE CONSUMER STATE
 
-        pass
+        if msg.hash not in self._consumers:
+            return
+
+        if msg.hash not in self._consumers:
+            c = Consumer(
+                    msg.hash,
+                    host[0]) # ADD DATA PORT!
+
+            self._consumers[msg.hash] = c
+
+            logging.debug(f"Create {c}")
+
+        self._consumers[msg.hash]._refresh(host)
 
     def _handle_consumer_data(self, msg, host):
         # check if we have this key
@@ -496,6 +549,13 @@ class LinkManager(MsgServer):
 
         # prune
         self._producers = {k: v for k, v in self._producers.items() if not v.timed_out}
+
+    def _process_consumers(self):
+        for c in self._consumers.values():
+            c._process_timer(LINK_MIN_TICK_RATE, self)
+
+        # prune
+        self._consumers = {k: v for k, v in self._consumers.items() if not v.timed_out}
 
     def _process_links(self):
         for link in self._links.values():
