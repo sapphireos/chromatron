@@ -43,6 +43,12 @@ LINK_MIN_TICK_RATE      = 20 / 1000.0
 LINK_MAX_TICK_RATE      = 2000 / 1000.0
 LINK_RETRANSMIT_RATE    = 2000 / 1000.0
 
+LINK_DISCOVER_RATE      = 4000 / 1000.0
+
+LINK_CONSUMER_TIMEOUT   = 64000 / 1000.0
+LINK_PRODUCER_TIMEOUT   = 64000 / 1000.0
+LINK_REMOTE_TIMEOUT     = 32000 / 1000.0
+
 
 
 class MsgHeader(StructField):
@@ -281,7 +287,7 @@ class LinkManager(MsgServer):
         self.register_message(ProducerDataMsg, self._handle_producer_data)
         
         self.start_timer(LINK_MIN_TICK_RATE, self._process_links, repeat=True)
-        # self.start_timer(4.0, self._process_offer_timer)
+        self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
 
@@ -293,19 +299,100 @@ class LinkManager(MsgServer):
         self._links[link.hash] = link
 
     def _handle_consumer_query(self, msg, host):
-        pass
+        if msg.mode == LINK_MODE_SEND:
+            # look up link
+            if msg.hash not in self._links:
+                return
 
-    def _handle_consumer_match(self, msg, host):
-        pass
+            # query local database
+            if not self._database.query(*msg.query):
+                return
+
+        elif msg.mode == LINK_MODE_RECV:
+            logging.warn("receive links should not be sending consumer query")
+            return
+
+        # check if we have this key
+        if msg.key not in self._database:
+            return
+
+
+        logging.debug("consumer match")
+
+        # TRANSMIT CONSUMER MATCH
 
     def _handle_producer_query(self, msg, host):
+        # query local database
+        if not self._database.query(*msg.query):
+            return
+        
+        # check if we have this key
+        if msg.key not in self._database:
+            return
+
+        # UPDATE PRODUCER STATE
+
+
+    def _handle_consumer_match(self, msg, host):
+        # UPDATE CONSUMER STATE
+
         pass
 
     def _handle_consumer_data(self, msg, host):
-        pass
+        # check if we have this key
+        if msg.hash not in self._database:
+            return
+
+
+        # UPDATE DATABASE
+        print(msg.data)
+        
 
     def _handle_producer_data(self, msg, host):
-        pass
+        # check if we have this link
+        try:
+            link = self._links[msg.hash]
+
+        except KeyError:
+            return
+
+        if not link.is_leader:
+            logging.error("link is not a leader!")
+            return
+
+        if link.dest_key not in self._database:
+            logging.error("dest key not found!")
+            return
+
+        if msg.data.meta.hash != catbus_string_hash(link.source_key):
+            logging.error("producer sent wrong source key!")
+            return
+
+
+        # UPDATE REMOTE STATE
+    
+    def _process_discovery(self):
+        for link in self._links.values():
+            if link.is_leader:
+                if link.mode == LINK_MODE_SEND:
+
+                    # TRANSMIT CONSUMER QUERY
+                    pass
+
+                elif link.mode == LINK_MODE_RECV:
+
+                    # TRANSMIT PRODUCER QUERY
+
+                    pass
+
+            else: # not link leader
+
+                if link.mode == LINK_MODE_RECV:
+
+                    # TRANSMIT CONSUMER MATCH (to leader)
+
+                    pass
+                    
 
     def _process_links(self):
         for link in self._links.values():
