@@ -153,13 +153,10 @@ class Database(UserDict):
             return 'bool'
 
         elif isinstance(value, int):
-            return 'int32'
+            return 'int64'
 
         elif isinstance(value, float):
             return 'float'
-
-        elif isinstance(value, int):
-            return 'int64'
 
         elif isinstance(value, str):
             return 'string128'
