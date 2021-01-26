@@ -39,6 +39,11 @@ LINK_SERVICE            = "link"
 
 LINK_MCAST_ADDR         = "239.43.96.32"
 
+LINK_MIN_TICK_RATE      = 20 / 1000.0
+LINK_MAX_TICK_RATE      = 2000 / 1000.0
+LINK_RETRANSMIT_RATE    = 2000 / 1000.0
+
+
 
 class MsgHeader(StructField):
     def __init__(self, **kwargs):
@@ -164,11 +169,20 @@ class Link(object):
         self.filter = None
         self.rate = rate
         self.tag = tag
+
         self._service = None
+
+        self._ticks = self.rate
+        self._retransmit_timer = 0
+        self._hashed_data = 0
 
     @property
     def is_leader(self):
         return self._service.is_server
+
+    @property
+    def is_follower(self):
+        return (not self._service.is_server) and self._service.connected
 
     @property
     def query_tags(self):
@@ -199,6 +213,51 @@ class Link(object):
         # elif self.mode == LINK_MODE_SYNC:
             # return f'SYNC {self.source_key} to {self.dest_key} at {self.query}'
 
+    def _process_timer(self, elapsed, link_manager):
+        database = link_manager._database
+
+        self._ticks -= elasped
+        self._retransmit_timer -= elasped
+
+        if self._ticks > 0 :
+            return
+
+        # update ticks for next iteration
+        self._ticks += self.rate
+
+        if self.mode == LINK_MODE_SEND:
+            if self.is_leader:
+                # AGGREGATION
+
+                # TRANSMIT TO CONSUMER
+
+                pass
+
+            elif self.is_follower:
+                if self.source_key not in database:
+                    return
+
+                data = database.get_item(self.source_key)
+                hashed_data = catbus_string_hash(data.value.pack())
+
+                # check if data did not change and the retransmit timer has not expired
+                if (hashed_data == self._hashed_data) and
+                   (self._retransmit_timer > 0):
+                    return
+
+                self._hashed_data = hashed_data
+                self._retransmit_timer = LINK_RETRANSMIT_RATE
+
+                # TRANSMIT PRODUCER DATA
+
+        elif self.mode == LINK_MODE_RECV:
+            if self.is_leader:
+                # AGGREGATION
+
+                # TRANSMIT TO CONSUMER
+
+                pass                                
+
 
 """
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -220,8 +279,8 @@ class LinkManager(MsgServer):
         self.register_message(ProducerQueryMsg, self._handle_producer_query)
         self.register_message(ConsumerDataMsg, self._handle_consumer_data)
         self.register_message(ProducerDataMsg, self._handle_producer_data)
-            
-        # self.start_timer(1.0, self._process_timers)
+        
+        self.start_timer(LINK_MIN_TICK_RATE, self._process_links, repeat=True)
         # self.start_timer(4.0, self._process_offer_timer)
 
         self._links = {}
@@ -247,6 +306,10 @@ class LinkManager(MsgServer):
 
     def _handle_producer_data(self, msg, host):
         pass
+
+    def _process_links(self):
+        for link in self._links.values():
+            link._process_timer(LINK_MIN_TICK_RATE, self)
 
 
 def main():
