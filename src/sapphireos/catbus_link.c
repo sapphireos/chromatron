@@ -1579,7 +1579,6 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
     // check if we're the link leader.
     // if so, we don't transmit a producer message (since they are coming to us).
-    // we will also flag the link to indicate it is ready for aggregation
     if( services_b_is_server( LINK_SERVICE, producer->link_hash ) ){
 
         producer->data_hash = data_hash;

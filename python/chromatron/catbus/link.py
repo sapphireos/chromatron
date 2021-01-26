@@ -220,13 +220,13 @@ class Link(object):
             # return f'SYNC {self.source_key} to {self.dest_key} at {self.query}'
 
     def _process_timer(self, elapsed, link_manager):
-        database = link_manager._database
-
         self._ticks -= elasped
         self._retransmit_timer -= elasped
 
         if self._ticks > 0 :
             return
+
+        database = link_manager._database
 
         # update ticks for next iteration
         self._ticks += self.rate
@@ -265,6 +265,91 @@ class Link(object):
                 pass                                
 
 
+class Producer(object):
+    def __init__(self,
+        source_key=None,
+        link_hash=None,
+        leader_ip=None,
+        data_hash=None,
+        rate=None):
+
+        self.source_key = source_key
+        self.link_hash = link_hash
+        self.leader_ip = leader_ip
+        self.data_hash = data_hash
+        self.rate = rate
+        
+        self._ticks = rate
+        self._retransmit_timer = LINK_RETRANSMIT_RATE
+        self._timeout = LINK_PRODUCER_TIMEOUT
+
+    def __str__(self):
+        return f'PRODUCER: {self.link_hash}'
+
+    def _refresh(self, host):
+        self.leader_ip = host[0]
+        self._timeout = LINK_PRODUCER_TIMEOUT
+
+    @property
+    def timed_out(self):
+        return self._timeout < 0.0
+
+    def _process_timer(self, elapsed, link_manager):
+        self._timeout -= elapsed
+
+        if timed_out:
+            logging.info(f"{self} timed out")
+            return
+
+        # process this producer
+        self._retransmit_timer -= elapsed
+        self._ticks -= elapsed
+
+        if self._ticks > 0:
+            return
+
+        database = link_manager._database
+
+        # timer has expired, process data
+
+        # update the timer
+        self._ticks += self.rate
+
+        if self.source_key not in database:
+            logging.warn("source key not found!")
+            return
+
+        # get data and data hash
+        data = database.get_item(self.source_key)
+        hashed_data = catbus_string_hash(data.value.pack())        
+
+        svc_manager = link_manager._service_manager
+
+        # check if we're the link leader
+        # if so, we don't transmit a producer message (since they are coming to us).
+        if svc_manager(LINK_SERVICE, self.link_hash).is_server:
+            self.data_hash = hashed_data
+
+            return
+
+        # check if data did not change and the retransmit timer has not expired
+        if (hashed_data == self._hashed_data) and
+           (self._retransmit_timer > 0):
+            return
+
+        self._hashed_data = hashed_data
+        self._retransmit_timer = LINK_RETRANSMIT_RATE
+
+        # check if leader is available
+        if self.leader_ip is None:
+            return
+
+        # TRANSMIT PRODUCER DATA
+
+
+
+
+
 """
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Need to add data port to entire link system so we can run multiple link services
@@ -286,10 +371,12 @@ class LinkManager(MsgServer):
         self.register_message(ConsumerDataMsg, self._handle_consumer_data)
         self.register_message(ProducerDataMsg, self._handle_producer_data)
         
-        self.start_timer(LINK_MIN_TICK_RATE, self._process_links, repeat=True)
+        self.start_timer(LINK_MIN_TICK_RATE, self._process_links)
+        self.start_timer(LINK_MIN_TICK_RATE, self._process_producers)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
+        self._producers = {}
 
     async def clean_up(self):
         await super().clean_up()
@@ -331,6 +418,16 @@ class LinkManager(MsgServer):
             return
 
         # UPDATE PRODUCER STATE
+        if msg.hash not in self._producers:
+            p = Producer(
+                    msg.key,
+                    msg.hash,
+                    host[0], # ADD DATA PORT!
+                    msg.rate)
+
+            self._producers[msg.hash] = p
+
+        self._producers[msg.hash]._refresh(host)
 
 
     def _handle_consumer_match(self, msg, host):
@@ -392,7 +489,13 @@ class LinkManager(MsgServer):
                     # TRANSMIT CONSUMER MATCH (to leader)
 
                     pass
-                    
+    
+    def _process_producers(self):
+        for p in self._producers.values():
+            p._process_timer(LINK_MIN_TICK_RATE, self)
+
+        # prune
+        self._producers = {k: v for k, v in self._producers.items() if not v.timed_out}
 
     def _process_links(self):
         for link in self._links.values():

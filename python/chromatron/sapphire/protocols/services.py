@@ -394,6 +394,20 @@ class ServiceManager(MsgServer):
 
         return service
 
+    def is_connected(self, service_id, group):
+        try:
+            return self._services[make_key(service_id, group)].is_connected
+
+        except KeyError:
+            return False
+
+    def is_server(self, service_id, group):
+        try:
+            return self._services[make_key(service_id, group)].is_server
+
+        except KeyError:
+            return False
+
     def _send_query(self, service_id, group, host=('<broadcast>', SERVICES_PORT)):
         msg = ServiceMsgQuery(
                 id=service_id,
