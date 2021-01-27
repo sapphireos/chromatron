@@ -559,7 +559,7 @@ static void transmit_consumer_query( link_state_t *link ){
     init_header( &msg.header, LINK_MSG_TYPE_CONSUMER_QUERY );
 
     sock_addr_t raddr = {
-        .ipaddr = ip_a_addr(255,255,255,255),
+        .ipaddr = ip_a_addr(LINK_MCAST_ADDR),
         .port = LINK_PORT
     };
 
@@ -579,7 +579,7 @@ static void transmit_producer_query( link_state_t *link ){
     init_header( &msg.header, LINK_MSG_TYPE_PRODUCER_QUERY );
 
     sock_addr_t raddr = {
-        .ipaddr = ip_a_addr(255,255,255,255),
+        .ipaddr = ip_a_addr(LINK_MCAST_ADDR),
         .port = LINK_PORT
     };
 

@@ -191,6 +191,10 @@ class Link(object):
         return (not self._service.is_server) and self._service.connected
 
     @property
+    def server(self):
+        return self._service.server
+
+    @property
     def query_tags(self):
         query = CatbusQuery()
         query._value = [catbus_string_hash(a) for a in self.query]
@@ -567,23 +571,34 @@ class LinkManager(MsgServer):
         for link in self._links.values():
             if link.is_leader:
                 if link.mode == LINK_MODE_SEND:
+                    msg = ConsumerQueryMsg(
+                            key=link.dest_key,
+                            query=link.query,
+                            mode=link.mode,
+                            hash=link.hash)
 
-                    # TRANSMIT CONSUMER QUERY
-                    pass
+                    self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
                 elif link.mode == LINK_MODE_RECV:
 
-                    # TRANSMIT PRODUCER QUERY
+                    msg = ProducerQueryMsg(
+                            key=link.source_key,
+                            query=link.query,
+                            mode=link.mode,
+                            hash=link.hash)
 
-                    pass
+                    self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
             else: # not link leader
-
                 if link.mode == LINK_MODE_RECV:
+                    msg = ConsumerMatchMsg(hash=link.hash)
 
-                    # TRANSMIT CONSUMER MATCH (to leader)
+                    try:
+                        self.transmit(msg, (link.server, CATBUS_LINK_PORT))
 
-                    pass
+                    except services.ServiceNotConnected:
+                        logging.warn(f'{link} not connected')
+
     
     def _process_producers(self):
         for p in self._producers.values():
