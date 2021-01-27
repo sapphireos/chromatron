@@ -224,8 +224,8 @@ class Link(object):
             # return f'SYNC {self.source_key} to {self.dest_key} at {self.query}'
 
     def _process_timer(self, elapsed, link_manager):
-        self._ticks -= elasped
-        self._retransmit_timer -= elasped
+        self._ticks -= elapsed
+        self._retransmit_timer -= elapsed
 
         if self._ticks > 0 :
             return
@@ -431,8 +431,8 @@ on the same machine!
 """
 
 class LinkManager(MsgServer):
-    def _init__(self, database=None):
-        super()._init__(name='link_manager', listener_port=CATBUS_LINK_PORT, listener_mcast=LINK_MCAST_ADDR)
+    def __init__(self, database=None):
+        super().__init__(name='link_manager', listener_port=CATBUS_LINK_PORT, listener_mcast=LINK_MCAST_ADDR)
 
         self._database = database
         self._service_manager = services.ServiceManager()
