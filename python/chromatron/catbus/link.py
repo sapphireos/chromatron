@@ -165,14 +165,14 @@ class Link(object):
         query=[],
         aggregation=LINK_AGG_ANY,
         rate=1000,
-        tag=None):
+        tag=''):
 
         self.mode = mode
         self.source_key = source_key
         self.dest_key = dest_key
         self.query = query
         self.aggregation = aggregation
-        self.filter = None
+        self.filter = 0
         self.rate = rate
         self.tag = tag
 
@@ -251,7 +251,7 @@ class Link(object):
                 hashed_data = catbus_string_hash(data.value.pack())
 
                 # check if data did not change and the retransmit timer has not expired
-                if (hashed_data == self._hashed_data) and
+                if (hashed_data == self._hashed_data) and \
                    (self._retransmit_timer > 0):
                     return
 
@@ -337,7 +337,7 @@ class Producer(object):
             return
 
         # check if data did not change and the retransmit timer has not expired
-        if (hashed_data == self._hashed_data) and
+        if (hashed_data == self._hashed_data) and \
            (self._retransmit_timer > 0):
             return
 
