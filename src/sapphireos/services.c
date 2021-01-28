@@ -98,7 +98,7 @@ static void _reset_state( service_state_t *service ){
     clear_tracking( service );
 }
 
-// #define reset_state(a) log_v_info_P( PSTR("Reset to LISTEN") ); _reset_state( a )
+// #define reset_state(a) log_v_debug_P( PSTR("Reset to LISTEN") ); _reset_state( a )
 #define reset_state(a) _reset_state( a )
 
 static service_state_t* get_service( uint32_t id, uint64_t group ){
@@ -356,7 +356,7 @@ void services_v_init( void ){
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
 
 
-services_v_offer(1234, 5678, 1, 0);
+// services_v_offer(1234, 5678, 1, 0);
         
     // debug
     // if( cfg_u64_get_device_id() == 93172270997720 ){
