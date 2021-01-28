@@ -469,8 +469,12 @@ class LinkManager(MsgServer):
 
     def _handle_consumer_query(self, msg, host):
         if msg.mode == LINK_MODE_SEND:
-            # look up link
-            if msg.hash not in self._links:
+            # check if we have this link, if so, we are part of the send group,
+            # not the consumer group, even if we would otherwise match the query.
+            # this is a bit of a corner case, but it handles the scenario where
+            # a send producer also matches as a consumer and is receiving data
+            # it is trying to send.
+            if msg.hash in self._links:
                 return
 
             # query local database
@@ -489,6 +493,8 @@ class LinkManager(MsgServer):
         logging.debug("consumer match")
 
         # TRANSMIT CONSUMER MATCH
+        msg = ConsumerMatchMsg(hash=msg.hash)
+        self.transmit(msg, host)
 
     def _handle_producer_query(self, msg, host):
         # query local database
@@ -635,12 +641,15 @@ class LinkManager(MsgServer):
 def main():
     util.setup_basic_logging(console=True)
 
-    s = LinkManager()
-    l = Link(mode=LINK_MODE_SEND, source_key='link_test_key', dest_key='kv_test_key', query=['link_group'], aggregation=LINK_AGG_AVG)
-    print(hex(l.hash))
+    d = Database(tags=['link_group'])
+    d.add_item('kv_test_key', os.getpid(), 'uint32')
+
+    s = LinkManager(database=d)
+    # l = Link(mode=LINK_MODE_SEND, source_key='link_test_key', dest_key='kv_test_key', query=['link_group'], aggregation=LINK_AGG_AVG)
+    # print(hex(l.hash))
     # s.add_link(l)
 
-    # run_all()
+    run_all()
 
 if __name__ == '__main__':
     main()
