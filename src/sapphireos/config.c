@@ -795,6 +795,15 @@ uint64_t cfg_u64_get_device_id( void ){
     return device_id;
 }
 
+ip_addr4_t cfg_ip_get_ipaddr( void ){
+
+    ip_addr4_t ip;
+
+    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+
+    return ip;
+}
+
 void cfg_v_set_boolean( catbus_hash_t32 parameter, bool value ){
 
     cfg_v_set( parameter, &value );
