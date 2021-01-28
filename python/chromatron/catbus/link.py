@@ -172,7 +172,7 @@ class Link(object):
         self.mode = mode
         self.source_key = source_key
         self.dest_key = dest_key
-        self.query = query
+        self.query = reversed(sorted(query))
         self.aggregation = aggregation
         self.filter = 0
         self.rate = rate
@@ -636,7 +636,7 @@ def main():
     util.setup_basic_logging(console=True)
 
     s = LinkManager()
-    l = Link(mode=LINK_MODE_RECV, source_key='kv_test_key', dest_key='kv_test_key', query=['link_group'])
+    l = Link(mode=LINK_MODE_SEND, source_key='link_test_key', dest_key='kv_test_key', query=['link_group'], aggregation=LINK_AGG_AVG)
     print(hex(l.hash))
     # s.add_link(l)
 
