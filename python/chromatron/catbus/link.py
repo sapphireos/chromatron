@@ -20,6 +20,7 @@
 # 
 # </license>
 
+import os
 import time
 import logging
 
@@ -29,6 +30,7 @@ from .catbustypes import *
 from .options import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all
 from sapphire.protocols import services
+from .database import *
 
 from fnvhash import fnv1a_64
 
@@ -435,6 +437,11 @@ class LinkManager(MsgServer):
     def __init__(self, database=None):
         super().__init__(name='link_manager', listener_port=CATBUS_LINK_PORT, listener_mcast=LINK_MCAST_ADDR)
 
+        if database is None:
+            # create default database
+            database = Database()
+            database.add_item('kv_test_key', os.getpid(), 'uint32')
+
         self._database = database
         self._service_manager = services.ServiceManager()
         
@@ -632,10 +639,10 @@ def main():
 
     s = LinkManager()
     l = Link(mode=LINK_MODE_RECV, source_key='kv_test_key', dest_key='kv_test_key', query=['link_group'])
-    print(l.hash)
-    s.add_link(l)
+    print(hex(l.hash))
+    # s.add_link(l)
 
-    run_all()
+    # run_all()
 
 if __name__ == '__main__':
     main()

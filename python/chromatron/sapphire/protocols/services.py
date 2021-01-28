@@ -352,7 +352,7 @@ class ServiceManager(MsgServer):
 
         assert team.key not in self._services
 
-        logging.info(f"Added JOIN for {service_id}/{group}")
+        logging.info(f"Added JOIN for {hex(service_id)}/{hex(group)}")
         
         self._services[team.key] = team
 
@@ -370,7 +370,7 @@ class ServiceManager(MsgServer):
 
         assert service.key not in self._services
 
-        logging.info(f"Added OFFER for {service_id}/{group}")
+        logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)}")
         
         self._services[service.key] = service
 
@@ -388,7 +388,7 @@ class ServiceManager(MsgServer):
         
         self._services[service.key] = service
 
-        logging.info(f"Added LISTEN for {service_id}/{group}")
+        logging.info(f"Added LISTEN for {hex(service_id)}/{hex(group)}")
 
         self._send_query(service_id, group)
 
@@ -413,7 +413,7 @@ class ServiceManager(MsgServer):
                 id=service_id,
                 group=group)
         
-        logging.debug(f"Send QUERY for {service_id}/{group} to {host}")
+        logging.debug(f"Send QUERY for {hex(service_id)}/{hex(group)} to {host}")
 
         self.transmit(msg, host)
 
