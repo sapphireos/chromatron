@@ -199,15 +199,15 @@ void link_v_init( void ){
         // query.tags[0] = __KV__link_group;
 
 
-        // link_l_create( 
-        //     LINK_MODE_RECV, 
-        //     __KV__link_test_key, 
-        //     __KV__kv_test_key,
-        //     &query,
-        //     __KV__my_tag,
-        //     1000,
-        //     LINK_AGG_AVG,
-        //     LINK_FILTER_OFF );
+        link_l_create( 
+            LINK_MODE_SEND, 
+            __KV__link_test_key, 
+            __KV__kv_test_key,
+            &query,
+            __KV__my_tag,
+            1000,
+            LINK_AGG_AVG,
+            LINK_FILTER_OFF );
 
 
         // link_l_create( 
@@ -221,10 +221,10 @@ void link_v_init( void ){
         //     LINK_FILTER_OFF );
 
 
-        // thread_t_create( test_thread,
-        //          PSTR("test_thread"),
-        //          0,
-                 // 0 );
+        thread_t_create( test_thread,
+                 PSTR("test_thread"),
+                 0,
+                 0 );
     }
 
 }

@@ -21,6 +21,7 @@
 # </license>
 
 import time
+import logging
 
 from elysianfields import *
 from .data_structures import *
@@ -630,7 +631,7 @@ def main():
     util.setup_basic_logging(console=True)
 
     s = LinkManager()
-    l = Link(mode=LINK_MODE_SEND, source_key='kv_test_key', dest_key='kv_test_key', query=['meow'])
+    l = Link(mode=LINK_MODE_RECV, source_key='kv_test_key', dest_key='kv_test_key', query=['link_group'])
     print(l.hash)
     s.add_link(l)
 
