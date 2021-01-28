@@ -27,6 +27,7 @@
 #include "system.h"
 #include "sockets.h"
 #include "udp.h"
+#include "config.h"
 
 #include "list.h"
 #include "memory.h"
@@ -867,6 +868,14 @@ void sock_v_recv( netmsg_t netmsg ){
     }
 
     // if we got here, we have the appropriate socket
+
+
+    // check if remote address is us.
+    // with multicasting we could receive our own messages.
+    if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
+
+        return;
+    }
 
     // check if send only
     if( dgram->raw.options & SOCK_OPTIONS_SEND_ONLY ){
