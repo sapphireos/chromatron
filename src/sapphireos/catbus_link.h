@@ -77,7 +77,6 @@ typedef uint16_t link_rate_t16;
 
 
 typedef struct __attribute__((packed)){
-    catbus_hash_t32 tag;
     catbus_hash_t32 source_key;
     catbus_hash_t32 dest_key;
     catbus_query_t query;
@@ -86,6 +85,7 @@ typedef struct __attribute__((packed)){
     link_filter_t16 filter;
     link_rate_t16 rate;
 
+    catbus_hash_t32 tag;
     uint32_t data_hash;
     int16_t retransmit_timer;
     int16_t ticks;

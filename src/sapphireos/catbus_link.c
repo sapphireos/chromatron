@@ -268,7 +268,7 @@ uint64_t link_u64_hash( link_state_t *link ){
 	return hash_u64_data( 
         (uint8_t *)link, 
         sizeof(link_state_t) - 
-            ( sizeof(uint64_t) + sizeof(uint32_t) + sizeof(int16_t) + sizeof(int16_t) ) 
+            ( sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int16_t) + sizeof(int16_t) ) 
         );	
 }
 

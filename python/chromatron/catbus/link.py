@@ -148,8 +148,7 @@ LINK_RATE_MAX   = 30000
 
 class LinkState(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="tag"),
-                  Uint32Field(_name="source_key"),
+        fields = [Uint32Field(_name="source_key"),
                   Uint32Field(_name="dest_key"),
                   CatbusQuery(_name="query"),
                   Uint8Field(_name="mode"),
@@ -206,7 +205,6 @@ class Link(object):
     @property
     def hash(self):
         data = LinkState(
-                tag=catbus_string_hash(self.tag),
                 source_key=catbus_string_hash(self.source_key),
                 dest_key=catbus_string_hash(self.dest_key),
                 query=self.query_tags,
