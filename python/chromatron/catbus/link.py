@@ -144,8 +144,8 @@ LINK_AGG_MAX    = 2
 LINK_AGG_SUM    = 3
 LINK_AGG_AVG    = 4
 
-LINK_RATE_MIN   = 20
-LINK_RATE_MAX   = 30000
+LINK_RATE_MIN   = 20 / 1000.0
+LINK_RATE_MAX   = 30000 / 1000.0
 
 class LinkState(StructField):
     def __init__(self, **kwargs):
@@ -183,7 +183,7 @@ class Link(object):
 
         self._service = None
 
-        self._ticks = self.rate
+        self._ticks = self.rate / 1000.0
         self._retransmit_timer = 0
         self._hashed_data = 0
 
@@ -237,13 +237,15 @@ class Link(object):
         database = link_manager._database
 
         # update ticks for next iteration
-        self._ticks += self.rate
+        self._ticks += self.rate / 1000.0
 
         if self.mode == LINK_MODE_SEND:
             if self.is_leader:
                 # AGGREGATION
+                print("AGGREGATION")
 
                 # TRANSMIT TO CONSUMER
+                print("TX DATA -> CONSUMERS")
 
                 pass
 
@@ -252,7 +254,7 @@ class Link(object):
                     return
 
                 data = database.get_item(self.source_key)
-                hashed_data = catbus_string_hash(data.value.pack())
+                hashed_data = catbus_string_hash(data.get_field('value').pack())
 
                 # check if data did not change and the retransmit timer has not expired
                 if (hashed_data == self._hashed_data) and \
@@ -263,6 +265,9 @@ class Link(object):
                 self._retransmit_timer = LINK_RETRANSMIT_RATE
 
                 # TRANSMIT PRODUCER DATA
+                msg = ProducerDataMsg(hash=self.hash, data=data)
+
+                link_manager.transmit(msg, self.server)
 
         elif self.mode == LINK_MODE_RECV:
             if self.is_leader:
@@ -287,7 +292,7 @@ class Producer(object):
         self.data_hash = data_hash
         self.rate = rate
         
-        self._ticks = rate
+        self._ticks = rate / 1000.0
         self._retransmit_timer = LINK_RETRANSMIT_RATE
         self._timeout = LINK_PRODUCER_TIMEOUT
 
@@ -645,10 +650,10 @@ def main():
     util.setup_basic_logging(console=True)
 
     c = CatbusService(tags=['link_group'])
-    c.add_item('link_test_key', 0, 'uint32')
+    c.add_item('link_test_key', 0, 'int32')
 
     s = LinkManager(database=c)
-    
+
     l = Link(
             mode=LINK_MODE_SEND, 
             source_key='link_test_key', 

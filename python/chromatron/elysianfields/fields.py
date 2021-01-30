@@ -549,6 +549,9 @@ class StructField(Field):
 
         return d
 
+    def get_field(self, name):
+        return self._fields[name]
+
     # deepcopy will break on structfields without this
     def __deepcopy__(self, memo):
         cls = self.__class__
