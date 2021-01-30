@@ -610,6 +610,7 @@ class LinkManager(MsgServer):
                             key=catbus_string_hash(link.source_key),
                             query=link.query_tags,
                             mode=link.mode,
+                            rate=link.rate,
                             hash=link.hash)
 
                     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))

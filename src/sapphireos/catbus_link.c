@@ -1442,7 +1442,11 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
     link_state_t *link_state = link_ls_get_data( link );
 
-    link_state->retransmit_timer -= elapsed_ms;
+    if( link_state->retransmit_timer >= 0 ){
+
+        link_state->retransmit_timer -= elapsed_ms;
+    }
+
     link_state->ticks -= elapsed_ms;
 
     if( link_state->ticks > 0 ){
@@ -1535,7 +1539,11 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
 
 static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 
-    producer->retransmit_timer -= elapsed_ms;
+    if( producer->retransmit_timer >= 0 ){
+
+        producer->retransmit_timer -= elapsed_ms;
+    }
+
     producer->ticks -= elapsed_ms;
 
     if( producer->ticks > 0 ){
