@@ -363,9 +363,7 @@ class Service(object):
 class Team(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        assert self._priority == 0
-
+        
     def __str__(self):
         return f'Team: {self._service_id}:{self._group}'
     
@@ -399,9 +397,6 @@ class ServiceManager(MsgServer):
         return n
 
     def join_team(self, service_id, group, port, priority=0):
-        if priority != 0:
-            raise NotImplementedError("Services only available as follower")
-
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 

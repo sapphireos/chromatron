@@ -53,6 +53,8 @@ LINK_CONSUMER_TIMEOUT   = 64000 / 1000.0
 LINK_PRODUCER_TIMEOUT   = 64000 / 1000.0
 LINK_REMOTE_TIMEOUT     = 32000 / 1000.0
 
+LINK_BASE_PRIORITY      = 128
+
 
 
 class MsgHeader(StructField):
@@ -472,7 +474,7 @@ class LinkManager(MsgServer):
         await super().clean_up()
 
     def add_link(self, link):
-        link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port)
+        link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port, priority=LINK_BASE_PRIORITY)
         self._links[link.hash] = link
 
     def _handle_consumer_query(self, msg, host):
@@ -609,15 +611,11 @@ class LinkManager(MsgServer):
 
                     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
-            else: # not link leader
+            elif link.is_follower: # not link leader
                 if link.mode == LINK_MODE_RECV:
                     msg = ConsumerMatchMsg(hash=link.hash)
 
-                    try:
-                        self.transmit(msg, (link.server, CATBUS_LINK_PORT))
-
-                    except services.ServiceNotConnected:
-                        logging.warn(f'{link} not connected')
+                    self.transmit(msg, (link.server, CATBUS_LINK_PORT))
 
     
     def _process_producers(self):
@@ -655,7 +653,7 @@ def main():
     s = LinkManager(database=c)
 
     l = Link(
-            mode=LINK_MODE_SEND, 
+            mode=LINK_MODE_RECV, 
             source_key='link_test_key', 
             dest_key='kv_test_key', 
             query=['link_group'], 
