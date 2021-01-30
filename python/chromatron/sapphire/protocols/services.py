@@ -314,19 +314,6 @@ class Service(object):
                 raise NotImplementedError
 
 
-
-        # elif (self._best_offer is None) or (offer > self._best_offer):
-        #     if self._best_host != host:
-        #         logging.debug(f"Tracking host: {host}")
-
-        #     if ((self._best_offer is None) or not self._best_offer.server_valid) and offer.server_valid:
-        #         logging.debug(f"Server is valid: {host}")
-
-        #     self._best_offer = offer
-        #     self._best_host = host
-
-
-
     def _process_timer(self, elapsed):
         if self._state == STATE_SERVER:
             self._uptime += elapsed
