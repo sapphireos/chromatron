@@ -990,7 +990,7 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
 
-            // trace_printf("LINK: RX producer query\n");
+            trace_printf("LINK: RX producer query\n");
 
             link_msg_producer_query_t *msg = (link_msg_producer_query_t *)header;
 
@@ -1168,7 +1168,7 @@ PT_BEGIN( pt );
                 }
             }
             // we are not link leader
-            else if( services_b_is_available( LINK_SERVICE, link_state->hash ){
+            else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
 
                 // receive link
                 if( link_state->mode == LINK_MODE_RECV ){

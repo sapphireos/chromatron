@@ -122,7 +122,7 @@ static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 
 
 
-void wifi_v_init( void ){
+void hal_wifi_v_init( void ){
 
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
@@ -306,7 +306,7 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -323,7 +323,7 @@ int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
     return igmp_joingroup( &info.ip, &ipgroup );
 }
 
-int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 

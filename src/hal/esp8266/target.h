@@ -51,6 +51,7 @@
 #define WIFI_MAX_PORTS          16
 #define WIFI_MAX_RX_NETMSGS		64
 #define WIFI_MAX_RX_SIZE        2048
+#define WIFI_MAX_IGMP           8
 
 // pixel config
 #define FADER_RATE              20

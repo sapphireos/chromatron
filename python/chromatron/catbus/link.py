@@ -510,7 +510,6 @@ class LinkManager(MsgServer):
         self.transmit(msg, host)
 
     def _handle_producer_query(self, msg, host):
-        print(msg, host)
         # query local database
         if not self._database.query(*msg.query):
             return

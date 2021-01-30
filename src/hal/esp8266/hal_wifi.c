@@ -174,7 +174,7 @@ void wifi_handle_event_cb(System_Event_t *evt)
     }
 }
 
-void wifi_v_init( void ){
+void hal_wifi_v_init( void ){
 	
 	wifi_station_disconnect();
 
@@ -430,7 +430,7 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -447,7 +447,7 @@ int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
     return espconn_igmp_join( &info.ip, &ipgroup );
 }
 
-int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
