@@ -247,15 +247,87 @@ class Service(object):
                     logging.debug(f"Service switched to: {(self._best_host, self._best_offer.port)}")
 
         # TEAM
-        elif (self._best_offer is None) or (offer > self._best_offer):
-            if self._best_host != host:
-                logging.debug(f"Tracking host: {host}")
-
+        # update tracking
+        elif (self._state != STATE_SERVER) and (self._best_host == host):
             if ((self._best_offer is None) or not self._best_offer.server_valid) and offer.server_valid:
                 logging.debug(f"Server is valid: {host}")
 
+            # are we connected?
+            if self._state == STATE_CONNECTED:
+
+                assert self._best_offer is not None
+                assert self._best_host is not None
+
+                # reset timeout
+                self._timeout = SERVICE_CONNECTED_TIMEOUT
+
+                # did the server reboot and we didn't notice?
+                # OR did the server change to invalid?
+                diff = self._best_offer.uptime - offer.uptime
+                if (diff > SERVICE_UPTIME_MIN_DIFF) or \
+                   (not offer.server_valid):
+                    # reset, maybe there is a better server available                    
+                    logging.info(f"{host} is no longer valid")
+
+                    print(self._best_offer, offer)
+
+                    self._reset()
+
+                # check if server is still better than we are
+                elif self._offer > offer:
+                    # no, we are better
+                    logging.debug("we are better server")
+                    logging.info("-> SERVER")
+                    self._state = STATE_SERVER
+
+            # update tracking
             self._best_offer = offer
             self._best_host = host
+
+        # TEAM
+        # state machine
+        else:
+            if self._state == STATE_LISTEN:
+                # check if server in packet is better than current tracking   
+                if (self._best_offer is None) or (offer > self._best_offer):
+                    logging.debug("state: LISTEN")
+                    
+                    # update tracking
+                    self._best_offer = offer
+                    self._best_host = host
+
+            elif self._state == STATE_CONNECTED:
+                assert self._best_offer is not None
+                assert self._best_host is not None
+
+                # check if packet is a better server than current tracking (and this packet is not from the current server)            
+                if (host != self._best_host) and offer > self._best_offer:
+                    logging.debug("state: CONNECTED")
+
+                    # update tracking
+                    self._best_offer = offer
+                    self._best_host = host
+
+                    if offer.server_valid:
+                        logging.debug(f"hop to better server {host}")
+                        self._timeout = SERVICE_CONNECTED_TIMEOUT
+
+            elif self._state == STATE_SERVER:
+                raise NotImplementedError
+
+
+
+        # elif (self._best_offer is None) or (offer > self._best_offer):
+        #     if self._best_host != host:
+        #         logging.debug(f"Tracking host: {host}")
+
+        #     if ((self._best_offer is None) or not self._best_offer.server_valid) and offer.server_valid:
+        #         logging.debug(f"Server is valid: {host}")
+
+        #     self._best_offer = offer
+        #     self._best_host = host
+
+
 
     def _process_timer(self, elapsed):
         if self._state == STATE_SERVER:
