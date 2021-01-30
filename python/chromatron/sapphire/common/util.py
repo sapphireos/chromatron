@@ -188,14 +188,10 @@ def is_wildcard(key):
 
         return False
 
+
 logging_initalized = False
 
 def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
-    # dt_format = '%Y-%m-%dT%H:%M:%S'
-    # logging.basicConfig(format='%(asctime)s >>> %(levelname)s (%(threadName)s) %(message)s',
-    #                     datefmt=dt_format,
-    #                     level=logging.DEBUG)
-
     global logging_initalized
 
     if logging_initalized:
@@ -212,7 +208,7 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
     if console:
         handler = colorlog.StreamHandler()
         handler.setLevel(level)
-        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(threadName)s %(white)s%(message)s', 
+        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(module)s %(white)s%(message)s', 
                                                 datefmt=dt_format,
                                                 log_colors={
                                                     'DEBUG':    'cyan',
@@ -235,7 +231,7 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
 
         handler = logging.handlers.RotatingFileHandler(filename, maxBytes=32*1048576, backupCount=4)
         handler.setLevel(level)
-        formatter = logging.Formatter('%(levelname)s %(asctime)s.%(msecs)03d %(threadName)s %(message)s', datefmt=dt_format)
+        formatter = logging.Formatter('%(levelname)s %(asctime)s.%(msecs)03d %(module)s %(message)s', datefmt=dt_format)
         handler.setFormatter(formatter)
         root.addHandler(handler)
 
