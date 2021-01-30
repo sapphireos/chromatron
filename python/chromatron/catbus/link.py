@@ -274,10 +274,10 @@ class Link(object):
         elif self.mode == LINK_MODE_RECV:
             if self.is_leader:
                 # AGGREGATION
+                print("AGGREGATION")
 
                 # TRANSMIT TO CONSUMER
-
-                pass                                
+                print("TX DATA -> CONSUMERS")
 
 
 class Producer(object):
