@@ -67,6 +67,7 @@ setup(
         "fnvhash==0.1.0",
         "zeroconf==0.24.4",
         "colorlog==4.1.0",
+        "colored-traceback==0.3.0",
         "python-logging-loki==0.3.1",
         "paho-mqtt==1.5.1",
         "ifaddr==0.1.6",

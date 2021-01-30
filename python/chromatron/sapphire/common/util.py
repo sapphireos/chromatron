@@ -199,6 +199,8 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
 
     logging_initalized = True
 
+    import colored_traceback
+    colored_traceback.add_hook()
 
     dt_format = '%Y-%m-%dT%H:%M:%S'
 
