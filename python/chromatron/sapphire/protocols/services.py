@@ -78,6 +78,12 @@ SERVICE_OFFER_FLAGS_TEAM    = 0x01
 SERVICE_OFFER_FLAGS_SERVER  = 0x02
 
 def make_key(service_id, group):
+    if isinstance(service_id, str):
+        service_id = catbus_string_hash(service_id)
+
+    if isinstance(group, str):
+        group = catbus_string_hash(group)
+
     return (service_id << 64) + group
 
 class ServiceOffer(StructField):

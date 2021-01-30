@@ -336,13 +336,13 @@ class Producer(object):
 
         # get data and data hash
         data = database.get_item(self.source_key)
-        hashed_data = catbus_string_hash(data.value.pack())        
+        hashed_data = catbus_string_hash(data.get_field('value').pack())        
 
         svc_manager = link_manager._service_manager
 
         # check if we're the link leader
         # if so, we don't transmit a producer message (since they are coming to us).
-        if svc_manager(LINK_SERVICE, self.link_hash).is_server:
+        if svc_manager.is_server(LINK_SERVICE, self.link_hash):
             self.data_hash = hashed_data
 
             return
@@ -360,6 +360,9 @@ class Producer(object):
             return
 
         # TRANSMIT PRODUCER DATA
+        msg = ProducerDataMsg(hash=self.hash, data=data)
+
+        link_manager.transmit(msg, self.server)
 
 
 class Consumer(object):
@@ -507,6 +510,7 @@ class LinkManager(MsgServer):
         self.transmit(msg, host)
 
     def _handle_producer_query(self, msg, host):
+        print(msg, host)
         # query local database
         if not self._database.query(*msg.query):
             return
