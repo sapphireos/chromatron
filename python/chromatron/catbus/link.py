@@ -107,7 +107,7 @@ class ProducerQueryMsg(StructField):
         fields = [MsgHeader(_name="header"),
                   CatbusHash(_name="key"),
                   CatbusQuery(_name="query"),
-                  Uint8Field(_name="rate"),
+                  Uint16Field(_name="rate"),
                   Uint64Field(_name="hash")]
 
         super().__init__(_name="producer_query", _fields=fields, **kwargs)
@@ -431,7 +431,7 @@ class Remote(object):
     def _process_timer(self, elapsed, link_manager):
         self._timeout -= elapsed
 
-        if timed_out:
+        if self.timed_out:
             logging.info(f"{self} timed out")
             return
 
