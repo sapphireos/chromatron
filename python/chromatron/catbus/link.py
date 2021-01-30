@@ -312,7 +312,7 @@ class Producer(object):
     def _process_timer(self, elapsed, link_manager):
         self._timeout -= elapsed
 
-        if timed_out:
+        if self.timed_out:
             logging.info(f"{self} timed out")
             return
 
@@ -521,7 +521,7 @@ class LinkManager(MsgServer):
                     msg.key,
                     msg.hash,
                     host[0], # ADD DATA PORT!
-                    msg.rate)
+                    rate=msg.rate)
 
             self._producers[msg.hash] = p
 
