@@ -311,12 +311,44 @@ class Service(object):
                         self._timeout = SERVICE_CONNECTED_TIMEOUT
 
             elif self._state == STATE_SERVER:
-                raise NotImplementedError
+                # check if this packet is better than current tracking
+                if (self._best_offer is None) or (offer > self._best_offer):
+                    # check if server is valid - we will only consider
+                    # other valid servers, not candidates
+                    if offer.is_server:
+                        # update tracking
+                        self._best_offer = offer
+                        self._best_host = host
+
+                        # now that we've updated tracking
+                        # check if the tracked server is better than us
+                        if offer > self._offer:
+
+                            logging.debug(f"found a better server: {host}")
+                            logging.info("-> CONNECTED")
+
+                            self._timeout = SERVICE_CONNECTED_TIMEOUT
+                            self._state = STATE_CONNECTED
+
+                        else:
+                            # we are the better server.
+                            # possibly the other server is missing our broadcasts (this can happen)
+
+                            # unicast our offer directly to it
+                            return 'transmit_service'
+
+                else:
+                    # received server is not as good as we are.
+                    # possibly it is missing our broadcasts (this can happen)
+
+                    # unicast our offer directly to it
+                    return 'transmit_service'
 
 
     def _process_timer(self, elapsed):
         if self._state == STATE_SERVER:
             self._uptime += elapsed
+            self._timeout = 0.0
 
         elif self._best_offer is not None:
             self._best_offer.uptime += elapsed
@@ -327,10 +359,12 @@ class Service(object):
         if self._timeout > 0.0:
             # pre-timeout
 
-            return
+            if self._state == STATE_CONNECTED:
+                if self._timeout <= SERVICE_CONNECTED_PING_THRESHOLD:
+                    return 'ping'
 
         # timeout
-        if self._state == STATE_LISTEN:
+        elif self._state == STATE_LISTEN:
             # are we follower only?
             if self._priority == 0:
                 # check if we have a server available
@@ -363,7 +397,7 @@ class Service(object):
 class Team(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def __str__(self):
         return f'Team: {self._service_id}:{self._group}'
     
@@ -484,7 +518,10 @@ class ServiceManager(MsgServer):
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
             try:
-                self._services[offer.key]._process_offer(offer, host)
+                svc = self._services[offer.key]
+                if svc._process_offer(offer, host) == 'transmit_service':
+                    # unicast offer for our server
+                    self._send_offers([svc.offer], host)
 
             except KeyError:
                 continue
@@ -510,7 +547,8 @@ class ServiceManager(MsgServer):
 
     def _process_timers(self):
         for svc in self._services.values():
-            svc._process_timer(1.0)
+            if svc._process_timer(1.0) == 'ping':
+                self._send_query(svc.service_id, svc.group, host=svc.server)
 
     def _process_offer_timer(self):
         servers = [svc for svc in self._services.values() if svc.is_server]

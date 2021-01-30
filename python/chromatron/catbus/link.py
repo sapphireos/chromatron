@@ -594,8 +594,8 @@ class LinkManager(MsgServer):
             if link.is_leader:
                 if link.mode == LINK_MODE_SEND:
                     msg = ConsumerQueryMsg(
-                            key=link.dest_key,
-                            query=link.query,
+                            key=catbus_string_hash(link.dest_key),
+                            query=link.query_tags,
                             mode=link.mode,
                             hash=link.hash)
 
@@ -604,8 +604,8 @@ class LinkManager(MsgServer):
                 elif link.mode == LINK_MODE_RECV:
 
                     msg = ProducerQueryMsg(
-                            key=link.source_key,
-                            query=link.query,
+                            key=catbus_string_hash(link.source_key),
+                            query=link.query_tags,
                             mode=link.mode,
                             hash=link.hash)
 
