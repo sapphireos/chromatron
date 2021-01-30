@@ -526,6 +526,70 @@ void link_v_handle_shutdown( ip_addr4_t ip ){
 		return;
 	}
 
+    // log_v_debug_P( PSTR("link shutdown %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
+
+    list_node_t ln = producer_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        producer_state_t *producer = list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( ip, producer->leader_ip ) ){
+
+            // remove producer
+            list_v_remove( &producer_list, ln );
+            list_v_release_node( ln );
+
+            trace_printf("LINK: producer leader shutdown\n");
+        }
+
+        ln = next_ln;
+    }   
+
+
+    ln = remote_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        remote_state_t *remote = list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( ip, remote->ip ) ){
+
+            // remove remote
+            list_v_remove( &remote_list, ln );
+            list_v_release_node( ln );
+
+            trace_printf("LINK: remote shutdown\n");
+        }
+
+        ln = next_ln;
+    }
+
+
+    ln = consumer_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        consumer_state_t *consumer = list_vp_get_data( ln );
+
+        // if timeout expires, or we are not link leader
+        if( ip_b_addr_compare( ip, consumer->ip ) ){
+
+            // remove consumer
+            list_v_remove( &consumer_list, ln );
+            list_v_release_node( ln );
+
+            trace_printf("LINK: consumer shutdown\n");
+        }
+
+        ln = next_ln;
+    }
 }
 
 void link_v_shutdown( void ){

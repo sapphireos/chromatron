@@ -424,6 +424,8 @@ class Remote(object):
         self._timeout = LINK_REMOTE_TIMEOUT
         self.data = data
 
+        print(data, host)
+
     @property
     def timed_out(self):
         return self._timeout < 0.0
@@ -474,7 +476,7 @@ class LinkManager(MsgServer):
         self._remotes = {}
 
     async def clean_up(self):
-        await super().clean_up()
+        pass
 
     def add_link(self, link):
         link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port, priority=LINK_BASE_PRIORITY)

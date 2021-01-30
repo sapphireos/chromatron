@@ -74,6 +74,10 @@ class Server(MsgServer):
         self._send_shutdown()
         time.sleep(0.1)
         self._send_shutdown()
+        time.sleep(0.1)
+        self._send_shutdown()
+        time.sleep(0.1)
+        self._send_shutdown()
 
     async def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
