@@ -105,9 +105,9 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 10000 );
+        TMR_WAIT( pt, 1000 );
 
-        // link_test_key++;
+        link_test_key++;
     }
 
 PT_END( pt );

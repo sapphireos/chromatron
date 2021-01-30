@@ -31,6 +31,7 @@ from .options import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all
 from sapphire.protocols import services
 from .database import *
+from .catbus import *
 
 from fnvhash import fnv1a_64
 
@@ -490,7 +491,7 @@ class LinkManager(MsgServer):
             return
 
 
-        logging.debug("consumer match")
+        # logging.debug("consumer match")
 
         # TRANSMIT CONSUMER MATCH
         msg = ConsumerMatchMsg(hash=msg.hash)
@@ -519,7 +520,6 @@ class LinkManager(MsgServer):
 
         self._producers[msg.hash]._refresh(host)
 
-
     def _handle_consumer_match(self, msg, host):
         # UPDATE CONSUMER STATE
 
@@ -540,13 +540,14 @@ class LinkManager(MsgServer):
     def _handle_consumer_data(self, msg, host):
         # check if we have this key
         if msg.hash not in self._database:
+            logging.error("key not found!")
             return
 
 
         # UPDATE DATABASE
-        print(msg.data)
+        # print(msg.data)
+        self._database[msg.hash] = msg.data.value
         
-
     def _handle_producer_data(self, msg, host):
         # check if we have this link
         try:
@@ -641,10 +642,10 @@ class LinkManager(MsgServer):
 def main():
     util.setup_basic_logging(console=True)
 
-    d = Database(tags=['link_group'])
-    d.add_item('kv_test_key', os.getpid(), 'uint32')
+    c = CatbusService(tags=['link_group'])
 
-    s = LinkManager(database=d)
+    s = LinkManager(database=c)
+    
     # l = Link(mode=LINK_MODE_SEND, source_key='link_test_key', dest_key='kv_test_key', query=['link_group'], aggregation=LINK_AGG_AVG)
     # print(hex(l.hash))
     # s.add_link(l)
