@@ -59,7 +59,7 @@ class MsgServer(object):
         self._msg_type_offset = None
         self._protocol_version = None
         self._protocol_version_offset = None
-        self._timers = {}
+        self._running = True
 
         self.ignore_unknown = ignore_unknown
 
@@ -82,12 +82,15 @@ class MsgServer(object):
             return f'{self.name} @ {self._port} & {self._listener_port}'
 
     def start_timer(self, interval, handler, repeat=True):
-        def _process_timer(loop, interval, handler, repeat):
+        def _process_timer(self, interval, handler, repeat):
+            if not self._running:
+                return
+
             handler()
             if repeat:
-                loop.call_later(interval, _process_timer, loop, interval, handler, repeat)
+                self._loop.call_later(interval, _process_timer, self, interval, handler, repeat)
 
-        self._loop.call_later(interval, _process_timer, self._loop, interval, handler, repeat)
+        self._loop.call_later(interval, _process_timer, self, interval, handler, repeat)
         
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
@@ -220,6 +223,8 @@ class MsgServer(object):
         logging.error('Error received:', exc)
 
     async def stop(self):
+        self._running = False
+        
         logging.info(f"MsgServer {self.name}: shutting down")
         await self.clean_up()
 
@@ -240,8 +245,7 @@ def stop_all(loop=asyncio.get_event_loop()):
     for t in asyncio.all_tasks(loop):
         t.cancel()
 
-    for s in MsgServer._servers:
-        loop.run_until_complete(s.stop())
+    loop.run_until_complete(asyncio.wait([s.stop() for s in MsgServer._servers], loop=loop))
 
 def run_all(loop=asyncio.get_event_loop()):
     try:
