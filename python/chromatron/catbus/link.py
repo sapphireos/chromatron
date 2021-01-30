@@ -478,6 +478,11 @@ class LinkManager(MsgServer):
     async def clean_up(self):
         pass
 
+    def handle_shutdown(self, host):
+        self._service_manager.handle_shutdown(host)
+
+        print('shutdown', host)
+
     def add_link(self, link):
         link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port, priority=LINK_BASE_PRIORITY)
         self._links[link.hash] = link
@@ -657,6 +662,7 @@ def main():
     c.add_item('link_test_key', 0, 'int32')
 
     s = LinkManager(database=c)
+    c.register_shutdown_handler(s.handle_shutdown)
 
     l = Link(
             mode=LINK_MODE_RECV, 
@@ -665,8 +671,8 @@ def main():
             query=['link_group'], 
             aggregation=LINK_AGG_AVG)
 
-    print(hex(l.hash))
-    s.add_link(l)
+    # print(hex(l.hash))
+    # s.add_link(l)
 
     run_all()
 

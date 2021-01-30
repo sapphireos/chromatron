@@ -37,7 +37,7 @@ from sapphire.common import catbus_string_hash, util, MsgServer, synchronous_cal
 
 class Server(MsgServer):
     def __init__(self, data_port=0, database=None, visible=True):
-        super().__init__(port=data_port)
+        super().__init__(port=data_port, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
         self._database = database
 
         self.name = '%s.%s' % (self._database[META_TAG_NAME], 'server')
@@ -67,6 +67,11 @@ class Server(MsgServer):
         # if server is visible, send announce immediately on startup
         if self.visible:
             self._send_announce()
+
+        self._shutdown_handlers = []
+
+    def register_shutdown_handler(self, handler):
+        self._shutdown_handlers.append(handler)
 
     async def clean_up(self):
         self._send_shutdown()
@@ -119,6 +124,8 @@ class Server(MsgServer):
             self.transmit(msg, host)
 
         else:
+            # send shutdowns to broadcast main port, and multicast announce port
+
             broadcast_addr = ('<broadcast>', CATBUS_MAIN_PORT)
             mcast_addr = (CATBUS_ANNOUNCE_MCAST_ADDR, CATBUS_ANNOUNCE_PORT)
 
@@ -229,7 +236,8 @@ class Server(MsgServer):
         return reply_msg, host
 
     def _handle_shutdown(self, msg, host):
-        pass
+        for handler in self._shutdown_handlers:
+            handler(host)
         
     def _process_announce(self):
         self._database['uptime'] += 4

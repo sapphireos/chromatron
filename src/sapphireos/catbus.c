@@ -340,7 +340,7 @@ static void _catbus_v_broadcast_announce( void ){
     _catbus_v_send_announce( &raddr, 0 );
 }
 
-static void _catbus_v_send_shutdown( void ){
+static void _catbus_v_transmit_shutdown( sock_addr_t *raddr ){
 
     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_shutdown_t) );
 
@@ -353,12 +353,30 @@ static void _catbus_v_send_shutdown( void ){
     _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SHUTDOWN, 0 );
 
     msg->flags = 0;
-        
+            
+    sock_i16_sendto_m( sock, h, raddr );
+}
+
+static void _catbus_v_send_shutdown( void ){
+
+    mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_shutdown_t) );
+
+    if( h < 0 ){
+
+        return;
+    }
+    
     sock_addr_t raddr;
+    
+    // broadcast shutdown to main port
     raddr.port = CATBUS_MAIN_PORT;
     raddr.ipaddr = ip_a_addr(255,255,255,255);
+    _catbus_v_transmit_shutdown( &raddr );
 
-    sock_i16_sendto_m( sock, h, &raddr );
+    // multicast shutdown to announce port
+    raddr.port = CATBUS_ANNOUNCE_PORT;
+    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
+    _catbus_v_transmit_shutdown( &raddr );
 }
 #endif
 
@@ -1449,10 +1467,6 @@ PT_BEGIN( pt );
 
             THREAD_EXIT ( pt );
         }
-
-        sock_addr_t raddr;
-        raddr.ipaddr = ip_a_addr(255,255,255,255);
-        raddr.port = CATBUS_MAIN_PORT;
 
         _catbus_v_broadcast_announce();
         TMR_WAIT( pt, 100 );

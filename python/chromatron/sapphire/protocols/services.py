@@ -430,6 +430,9 @@ class ServiceManager(MsgServer):
     async def clean_up(self):
         pass
 
+    def handle_shutdown(self, host):
+        pass
+
     def _convert_catbus_hash(self, n):
         if isinstance(n, str):
             n = catbus_string_hash(n)

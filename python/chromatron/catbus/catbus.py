@@ -100,6 +100,9 @@ class CatbusService(Database):
     def register(self, key, callback):
         self._callbacks[key] = callback
 
+    def register_shutdown_handler(self, handler):
+        self._server.register_shutdown_handler(handler)
+
     async def stop(self):
         await self._server.stop()
         del self._server
