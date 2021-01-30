@@ -24,6 +24,23 @@ import socket
 import ifaddr
 import ipaddress
 
+def get_local_addresses():
+    addrs = []    
+
+    adapters = ifaddr.get_adapters()
+
+    for adapter in adapters:
+        for ip in adapter.ips:
+            try:
+                host = ipaddress.IPv4Address(ip.ip)
+
+                addrs.append(str(host))
+
+            except ipaddress.AddressValueError:
+                pass
+
+    return addrs
+
 def get_broadcast_addresses():
     addrs = []    
 

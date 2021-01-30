@@ -24,7 +24,7 @@ import asyncio
 import struct
 import socket
 import logging
-from .broadcast import get_broadcast_addresses
+from .broadcast import get_broadcast_addresses, get_local_addresses
 
 class UnknownMessage(Exception):
     pass
@@ -195,6 +195,11 @@ class MsgServer(object):
             self._port = port
 
     def datagram_received(self, data, host):
+        # check if receiving a message we sent
+        # this can happen in multicast groups
+        if host in get_local_addresses():
+            return
+
         try:
             msg = self._deserialize(data)
 
