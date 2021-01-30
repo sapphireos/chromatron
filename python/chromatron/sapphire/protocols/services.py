@@ -269,8 +269,6 @@ class Service(object):
                     # reset, maybe there is a better server available                    
                     logging.info(f"{host} is no longer valid")
 
-                    print(self._best_offer, offer)
-
                     self._reset()
 
                 # check if server is still better than we are

@@ -1112,7 +1112,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
             // did the server reboot and we didn't notice?
             // OR did the server change to invalid?
-            if( ( service->server_uptime > pkt->uptime ) ||
+            if( ( ( (int64_t)service->server_uptime - (int64_t)pkt->uptime ) > SERVICE_UPTIME_MIN_DIFF ) ||
                 ( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) == 0 ) ){
 
                 // reset, maybe there is a better server available
