@@ -206,7 +206,7 @@ class MsgServer(object):
     def datagram_received(self, data, host):
         # check if receiving a message we sent
         # this can happen in multicast groups
-        if host[0] in get_local_addresses():
+        if (host[0] in get_local_addresses()) and (host[1] == self._port):
             return
 
         try:

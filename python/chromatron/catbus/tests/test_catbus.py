@@ -17,10 +17,9 @@ def background_async():
     t.start()
     
     yield
-    print('meow')
+
     stop_all()
     loop.stop()
-    # loop.close()
 
 
 @pytest.fixture
@@ -32,6 +31,4 @@ def client(server):
     return Client(('localhost', server._data_port))
 
 def test_getkey(client):
-    print(client._connected_host)
-    print(asyncio.get_event_loop().is_running())
-    # print(client.get_key('kv_test_key'))
+    client.get_key('kv_test_key')
