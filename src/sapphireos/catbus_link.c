@@ -455,6 +455,21 @@ uint8_t producer_count( void ){
     return list_u8_count( &producer_list );
 }
 
+uint8_t remote_count( void ){
+
+    return list_u8_count( &remote_list );
+}
+
+uint8_t consumer_count( void ){
+
+    return list_u8_count( &consumer_list );
+}
+
+uint8_t object_count( void ){
+
+    return producer_count() + remote_count() + consumer_count();
+}
+
 static void delete_link( link_handle_t link ){
 
     link_state_t *state = list_vp_get_data( link );
@@ -714,6 +729,14 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
         ln = list_ln_next( ln );
     }
 
+    // check object count
+    if( object_count() >= LINK_MAX_OBJECTS ){
+
+        log_v_warn_P( PSTR("object limit exceeded") );
+
+        return;
+    }
+
     // consumer was not found, create one
     link_handle_t link = link_l_lookup_by_hash( hash );
 
@@ -859,6 +882,14 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
         ln = list_ln_next( ln );
     }
 
+    // check object count
+    if( object_count() >= LINK_MAX_OBJECTS ){
+
+        log_v_warn_P( PSTR("object limit exceeded") );
+
+        return;
+    }
+
     // remote was not found, create one
     uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
 
@@ -926,6 +957,14 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
         
     next:
         ln = list_ln_next( ln );
+    }
+
+    // check object count
+    if( object_count() >= LINK_MAX_OBJECTS ){
+
+        log_v_warn_P( PSTR("object limit exceeded") );
+
+        return;
     }
 
     // producer was not found, create one
