@@ -281,7 +281,7 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
         case STATUS_LED_YELLOW:
             io_v_digital_write( LED_GREEN, TRUE );
-            io_v_digital_write( LED_YELLOW, TRUE );
+            io_v_digital_write( LED_RED, TRUE );
             break;
 
         case STATUS_LED_PURPLE:
