@@ -34,6 +34,7 @@
 static io_mode_t8 io_modes[IO_PIN_COUNT];
 
 static const gpio_num_t gpios[IO_PIN_COUNT] = {
+    // feather pinout - need to change this
     GPIO_NUM_13, // IO_PIN_13_A12 
     GPIO_NUM_12, // IO_PIN_12_A11 
     GPIO_NUM_27, // IO_PIN_27_A10 
@@ -55,6 +56,13 @@ static const gpio_num_t gpios[IO_PIN_COUNT] = {
     GPIO_NUM_34, // IO_PIN_34_A2  
     GPIO_NUM_25, // IO_PIN_25_A1  
     GPIO_NUM_26, // IO_PIN_26_A0  
+
+    // chromatron32 v0.0
+    GPIO_NUM_13, // IO_PIN_LED0
+    GPIO_NUM_2,  // IO_PIN_LED1
+    GPIO_NUM_15, // IO_PIN_LED2
+
+    // note that v0.1 changes connections!
 };
 #endif
 
@@ -184,10 +192,4 @@ void io_v_enable_interrupt(
 void io_v_disable_interrupt( uint8_t int_number )
 {
 
-}
-
-void hal_io_v_set_esp_led( bool state ){
-
-    io_v_set_mode( IO_PIN_LED, IO_MODE_OUTPUT );
-    io_v_digital_write( IO_PIN_LED, state );
 }
