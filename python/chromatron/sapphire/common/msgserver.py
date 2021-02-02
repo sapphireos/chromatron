@@ -63,7 +63,11 @@ class MsgServer(object):
 
         self.ignore_unknown = ignore_unknown
 
-        self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True))
+        coro = self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True)
+
+        self._loop.run_until_complete(coro)
+
+
 
         if self._listener_port is not None:
             self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True))
