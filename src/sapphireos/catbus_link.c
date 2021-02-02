@@ -977,8 +977,7 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
         msg->rate,
         msg->rate,
         LINK_RETRANSMIT_RATE,
-        LINK_PRODUCER_TIMEOUT,
-        FALSE
+        LINK_PRODUCER_TIMEOUT
     };
 
 
