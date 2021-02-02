@@ -26,6 +26,9 @@ import socket
 import logging
 from .broadcast import get_broadcast_addresses, get_local_addresses
 
+import nest_asyncio
+nest_asyncio.apply()
+
 class UnknownMessage(Exception):
     pass
 
@@ -64,13 +67,12 @@ class MsgServer(object):
         self.ignore_unknown = ignore_unknown
 
         coro = self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True)
-
         self._loop.run_until_complete(coro)
 
-
-
         if self._listener_port is not None:
-            self._loop.run_until_complete(self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True))
+            coro = self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True)
+            self._loop.run_until_complete(coro)
+
             logging.info(f"MsgServer {self.name}: server on {self._port} listening on {self._listener_port}")
 
         else:  
@@ -246,10 +248,12 @@ class MsgServer(object):
 
 
 def stop_all(loop=asyncio.get_event_loop()):
+    logging.info("Stopping all servers...")
     for t in asyncio.all_tasks(loop):
         t.cancel()
 
-    loop.run_until_complete(asyncio.wait([s.stop() for s in MsgServer._servers], loop=loop))
+    coros = asyncio.wait([s.stop() for s in MsgServer._servers])    
+    loop.run_until_complete(coros)
 
 def run_all(loop=asyncio.get_event_loop()):
     try:

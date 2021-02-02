@@ -1,2 +1,2 @@
-#1/bin/sh
+#!/bin/sh
 PYTHONPATH=. pytest -s

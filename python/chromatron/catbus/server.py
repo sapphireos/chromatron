@@ -66,7 +66,7 @@ class Server(MsgServer):
 
         # if server is visible, send announce immediately on startup
         if self.visible:
-            self._send_announce()
+            self.start_timer(0.1, self._send_announce, repeat=False)
 
         self._shutdown_handlers = []
 
