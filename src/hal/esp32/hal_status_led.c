@@ -218,12 +218,25 @@ PT_END( pt );
 
 void reset_all( void ){
 
-    hal_io_v_set_esp_led( FALSE ); 
+    io_v_set_mode( IO_PIN_LED0, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
+
+    io_v_digital_write( IO_PIN_LED0, FALSE );
+    io_v_digital_write( IO_PIN_LED1, FALSE );
+    io_v_digital_write( IO_PIN_LED2, FALSE );
 }
+
+
+// this will also change on v0.1.....
+#define LED_BLUE IO_PIN_LED0
+#define LED_GREEN IO_PIN_LED1
+#define LED_RED IO_PIN_LED2
+
 
 void status_led_v_init( void ){
 
-	enabled = TRUE;
+    enabled = TRUE;
 
     reset_all();
 
@@ -255,31 +268,36 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_BLUE, TRUE );
             break;
 
         case STATUS_LED_GREEN:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_GREEN, TRUE );
             break;
 
         case STATUS_LED_RED:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_RED, TRUE );
             break;
 
         case STATUS_LED_YELLOW:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_GREEN, TRUE );
+            io_v_digital_write( LED_YELLOW, TRUE );
             break;
 
         case STATUS_LED_PURPLE:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_BLUE, TRUE );
+            io_v_digital_write( LED_RED, TRUE );
             break;
 
         case STATUS_LED_TEAL:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_BLUE, TRUE );
+            io_v_digital_write( LED_GREEN, TRUE );
             break;
 
         case STATUS_LED_WHITE:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_RED,  TRUE );
+            io_v_digital_write( LED_GREEN, TRUE );
+            io_v_digital_write( LED_BLUE, TRUE );
             break;
 
         default:
