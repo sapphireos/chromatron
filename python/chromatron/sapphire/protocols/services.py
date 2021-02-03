@@ -224,6 +224,9 @@ class Service(object):
         
         return host
 
+    def _shutdown(self):
+        self._reset()
+
     async def wait_until_connected(self, timeout=0.0):
         while not self.connected:
             await asyncio.sleep(0.1)
@@ -261,13 +264,13 @@ class Service(object):
                     self._best_offer = offer
                     self._best_host = host
 
-                    logging.debug(f"Service switched to: {(self._best_host, self._best_offer.port)}")
+                    logging.debug(f"{self} switched to: {(self._best_host, self._best_offer.port)}")
 
         # TEAM
         # update tracking
         elif (self._state != STATE_SERVER) and (self._best_host == host):
             if ((self._best_offer is None) or not self._best_offer.server_valid) and offer.server_valid:
-                logging.debug(f"Server is valid: {host}")
+                logging.debug(f"{self} Server is valid: {host}")
 
             # are we connected?
             if self._state == STATE_CONNECTED:
@@ -284,15 +287,15 @@ class Service(object):
                 if (diff > SERVICE_UPTIME_MIN_DIFF) or \
                    (not offer.server_valid):
                     # reset, maybe there is a better server available                    
-                    logging.info(f"{host} is no longer valid")
+                    logging.info(f"{self} {host} is no longer valid")
 
                     self._reset()
 
                 # check if server is still better than we are
                 elif self._offer > offer:
                     # no, we are better
-                    logging.debug("we are better server")
-                    logging.info("-> SERVER")
+                    logging.debug("{self} we are better server")
+                    logging.info("{self} -> SERVER")
                     self._state = STATE_SERVER
 
             # update tracking
@@ -305,7 +308,7 @@ class Service(object):
             if self._state == STATE_LISTEN:
                 # check if server in packet is better than current tracking   
                 if (self._best_offer is None) or (offer > self._best_offer):
-                    logging.debug("state: LISTEN")
+                    logging.debug("{self} state: LISTEN")
                     
                     # update tracking
                     self._best_offer = offer
@@ -317,14 +320,14 @@ class Service(object):
 
                 # check if packet is a better server than current tracking (and this packet is not from the current server)            
                 if (host != self._best_host) and offer > self._best_offer:
-                    logging.debug("state: CONNECTED")
+                    logging.debug("{self} state: CONNECTED")
 
                     # update tracking
                     self._best_offer = offer
                     self._best_host = host
 
                     if offer.server_valid:
-                        logging.debug(f"hop to better server {host}")
+                        logging.debug(f"{self} hop to better server {host}")
                         self._timeout = SERVICE_CONNECTED_TIMEOUT
 
             elif self._state == STATE_SERVER:
@@ -341,8 +344,8 @@ class Service(object):
                         # check if the tracked server is better than us
                         if offer > self._offer:
 
-                            logging.debug(f"found a better server: {host}")
-                            logging.info("-> CONNECTED")
+                            logging.debug(f"{self} found a better server: {host}")
+                            logging.info("{self} -> CONNECTED")
 
                             self._timeout = SERVICE_CONNECTED_TIMEOUT
                             self._state = STATE_CONNECTED
@@ -386,7 +389,7 @@ class Service(object):
             if self._priority == 0:
                 # check if we have a server available
                 if (self._best_offer is not None) and self._best_offer.server_valid:
-                    logging.debug(f"CONNECTED to: {self._best_host}")
+                    logging.debug(f"{self} CONNECTED to: {self._best_host}")
                     self._state = STATE_CONNECTED
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
@@ -395,11 +398,11 @@ class Service(object):
 
             else:
                 if (self._best_offer is None) or (self._best_offer < self._offer):
-                    logging.debug(f"SERVER")
+                    logging.debug(f"{self} SERVER")
                     self._state = STATE_SERVER
 
                 elif (self._best_offer is not None) and self._best_offer.server_valid:
-                    logging.debug(f"CONNECTED to: {self._best_host}")
+                    logging.debug(f"{self} CONNECTED to: {self._best_host}")
                     self._state = STATE_CONNECTED
                     self._timeout = SERVICE_CONNECTED_TIMEOUT
 
@@ -407,7 +410,7 @@ class Service(object):
                     self._reset()
 
         elif self._state == STATE_CONNECTED:
-            logging.debug(f"CONNECTED timeout: lost server")
+            logging.debug(f"{self} CONNECTED timeout: lost server")
             self._reset()
 
         
@@ -439,10 +442,22 @@ class ServiceManager(MsgServer):
         self.start_timer(4.0, self._process_offer_timer)
 
     async def clean_up(self):
-        pass
+        for svc in self._services.values():
+            svc._shutdown()
 
     def handle_shutdown(self, host):
-        pass
+        for svc in self._services.values():
+            if svc.is_server:
+                continue
+
+            try:
+                # check if host that is shutting down is a server
+                if svc.server == host:
+                    logging.debug(f'{svc} server {host} shutdown')
+                    svc._reset()
+
+            except ServiceNotConnected:
+                pass
 
     def _convert_catbus_hash(self, n):
         if isinstance(n, str):
