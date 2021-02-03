@@ -39,3 +39,8 @@ def server(background_async):
 @pytest.fixture
 def client(server):
     return Client(('localhost', server._data_port))
+
+@pytest.fixture
+def service_manager(background_async):
+    return ServiceManager()
+
