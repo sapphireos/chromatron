@@ -22,6 +22,7 @@
 # </license>
 #
 
+import asyncio
 import sys
 import time
 import logging
@@ -222,6 +223,16 @@ class Service(object):
             host = (self._best_host[0], self._best_offer.port)
         
         return host
+
+    async def wait_until_connected(self, timeout=0.0):
+        while not self.connected:
+            await asyncio.sleep(0.1)
+
+            if timeout > 0.0:
+                timeout -= 0.1
+
+                if timeout < 0.0:
+                    raise ServiceNotConnected
 
     def _process_offer(self, offer, host):
         # logging.debug(f"Received OFFER from {host}")

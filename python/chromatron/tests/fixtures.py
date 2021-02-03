@@ -8,10 +8,11 @@ from sapphire.common.msgserver import run_all, stop_all
 import threading
 
 
+setup_basic_logging()
+
+
 @pytest.fixture
 def background_async():
-    # setup_basic_logging()
-
     # create a new event loop
     loop = asyncio.new_event_loop()
 
