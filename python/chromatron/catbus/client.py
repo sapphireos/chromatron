@@ -144,36 +144,38 @@ class Client(object):
 
         return elapsed
 
-    def lookup_hash(self, *args):
-        # open cache file
+    def lookup_hash(self, *args, skip_cache=False):
         cache = {}
-        try:
+        
+        if not skip_cache:
+            # open cache file
             try:
-                with open(DATA_DIR_FILE_PATH, 'r') as f:
-                    file_data = f.read()
+                try:
+                    with open(DATA_DIR_FILE_PATH, 'r') as f:
+                        file_data = f.read()
 
-            except PermissionError:
-                with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
-                    file_data = f.read()
+                except PermissionError:
+                    with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
+                        file_data = f.read()
 
-            temp = json.loads(file_data)
+                temp = json.loads(file_data)
 
-            cache = {}
-            # have to convert keys back to int because json only does string keys
-            for k, v in temp.items():
-                cache[int(k)] = v
+                cache = {}
+                # have to convert keys back to int because json only does string keys
+                for k, v in temp.items():
+                    cache[int(k)] = v
 
-        except ValueError as e:
-            # if the cache file has an error, or if it is
-            # being rewritten and has not fully synced to disk,
-            # we get an error here.
+            except ValueError as e:
+                # if the cache file has an error, or if it is
+                # being rewritten and has not fully synced to disk,
+                # we get an error here.
 
-            # just bypass and carryon with no cache
-            print(e)
-            # pass
+                # just bypass and carryon with no cache
+                print(e)
+                # pass
 
-        except IOError:
-            pass
+            except IOError:
+                pass
 
         resolved_keys = {}
 
@@ -240,30 +242,31 @@ class Client(object):
                     # can't find anything, just return hash itself
                     resolved_keys[k] = k
 
-        changed = False
-        # check if any keys were added
-        for k in resolved_keys:
-            if k not in cache:
-                cache.update(resolved_keys)
+        if not skip_cache:
+            changed = False
+            # check if any keys were added
+            for k in resolved_keys:
+                if k not in cache:
+                    cache.update(resolved_keys)
 
-                changed = True
-                break
+                    changed = True
+                    break
 
-        if changed:
-            # update cache file, if anything changed
-            try:
-                with open(DATA_DIR_FILE_PATH, 'w') as f:
-                    f.write(json.dumps(cache))
+            if changed:
+                # update cache file, if anything changed
+                try:
+                    with open(DATA_DIR_FILE_PATH, 'w') as f:
+                        f.write(json.dumps(cache))
 
-                    # ensure file is committed to disk
-                    f.flush()
+                        # ensure file is committed to disk
+                        f.flush()
 
-            except (PermissionError, FileNotFoundError):
-                with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
-                    f.write(json.dumps(cache))
+                except (PermissionError, FileNotFoundError):
+                    with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
+                        f.write(json.dumps(cache))
 
-                    # ensure file is committed to disk
-                    f.flush()
+                        # ensure file is committed to disk
+                        f.flush()
 
         return resolved_keys
 

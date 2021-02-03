@@ -9,7 +9,7 @@ import threading
 
 @pytest.fixture
 def background_async():
-    setup_basic_logging()
+    # setup_basic_logging()
 
     # create a new event loop
     loop = asyncio.new_event_loop()
@@ -33,7 +33,7 @@ def background_async():
 
 @pytest.fixture
 def server(background_async):
-    return CatbusService()
+    return CatbusService(tags=['__TEST__'])
     
 @pytest.fixture
 def client(server):
@@ -48,4 +48,17 @@ def test_setkey(client):
 
     client.set_key('kv_test_key', 456)
     assert client.get_key('kv_test_key') == 456
-    
+
+def test_resolve_hash(client):
+    h = 0x3802fc29
+    assert client.lookup_hash(h, skip_cache=True)[0x3802fc29] == 'kv_test_key'
+
+    # check second code path, server looking up a tag
+    h = 0x75dd6565
+    assert client.lookup_hash(h, skip_cache=True)[0x75dd6565] == '__TEST__'
+
+def test_ping(client):
+    assert client.ping() < 2.0
+
+
+
