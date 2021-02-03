@@ -10,16 +10,25 @@ import threading
 @pytest.fixture
 def background_async():
     setup_basic_logging()
-    loop = asyncio.get_event_loop()
 
-    t = threading.Thread(target=loop.run_forever)
-    # t = threading.Thread(target=run_all)
+    # create a new event loop
+    loop = asyncio.new_event_loop()
+
+    # set the new loop
+    asyncio.set_event_loop(loop)
+
+    # start a thread to run our async servers in the background
+    t = threading.Thread(target=run_all, args=(loop,))
     t.start()
     
+    # yield to tests
     yield
 
-    stop_all()
+    # tell the loop to stop
     loop.stop()
+
+    # wait for background thread to complete
+    t.join()
 
 
 @pytest.fixture

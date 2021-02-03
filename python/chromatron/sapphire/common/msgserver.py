@@ -262,6 +262,7 @@ def stop_all(loop=asyncio.get_event_loop()):
     loop.run_until_complete(coros)
 
 def run_all(loop=asyncio.get_event_loop()):
+    asyncio.set_event_loop(loop)
     try:
         loop.run_forever()
     except KeyboardInterrupt:  # pragma: no branch
