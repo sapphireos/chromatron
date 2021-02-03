@@ -17,7 +17,7 @@ def offer_service():
 
 @pytest.mark.asyncio
 async def test_basic_service(listen_service, offer_service):
-	for i in range(100):
+	for i in range(200):
 		await asyncio.sleep(0.1)
 
 		if offer_service.is_server and listen_service.connected:
