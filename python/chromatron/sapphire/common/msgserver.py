@@ -239,7 +239,13 @@ class MsgServer(object):
             logging.info(f'MsgServer {self.name}: leaving multicast group {self._listener_mcast}')
             sock = self._listener_sock
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
-            sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
+            try:
+                sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
+
+            except OSError:
+                # can't find an explanation for why the socket occasionally gives this error,
+                # but we're shutting down anyway.
+                pass
 
         logging.info(f"MsgServer {self.name}: shut down complete")
 

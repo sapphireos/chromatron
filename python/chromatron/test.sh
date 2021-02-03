@@ -1,2 +1,2 @@
 #!/bin/sh
-PYTHONPATH=. pytest -s
+PYTHONPATH=. pytest --full-trace -s catbus

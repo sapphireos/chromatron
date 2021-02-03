@@ -32,3 +32,11 @@ def client(server):
 
 def test_getkey(client):
     client.get_key('kv_test_key')
+
+def test_setkey(client):
+    client.set_key('kv_test_key', 123)
+    assert client.get_key('kv_test_key') == 123
+
+    client.set_key('kv_test_key', 456)
+    assert client.get_key('kv_test_key') == 456
+    
