@@ -1,2 +1,2 @@
 #!/bin/sh
-PYTHONPATH=. pytest -s catbus
+PYTHONPATH=. pytest --cov=. --cov-report=html -s catbus
