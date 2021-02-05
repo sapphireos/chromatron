@@ -54,14 +54,17 @@ async def test_network_listen(listen_service, network_offer):
 	assert not listen_service.is_server
 	assert listen_service.server[0] == network_offer._connected_host[0]
 
-def test_network_offer(offer_service, network_listen):
-	d = Device(host='10.0.0.157')
-	for i in range(300):
-		time.sleep(0.1)
+@pytest.mark.asyncio
+async def test_network_offer(offer_service, network_listen):
+	await offer_service.wait_until_connected(timeout=30.0)
+	
+	# d = Device(host='10.0.0.157')
+	# for i in range(300):
+	# 	time.sleep(0.1)
 
-		services = d.get_service_info()
-		for s in services:
-			if s.id == 1234 and s.group == 5678 and s.state == STATE_CONNECTED:
-				return
+	# 	services = d.get_service_info()
+	# 	for s in services:
+	# 		if s.id == 1234 and s.group == 5678 and s.state == STATE_CONNECTED:
+	# 			return
 
-	assert False
+	# assert False
