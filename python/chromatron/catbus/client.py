@@ -60,7 +60,10 @@ class Client(object):
         self._connected_host = host
         if host is not None:
             self.connect(host)
-            
+    
+    def __str__(self):
+        return f'Client({self._connected_host})'
+
     @property
     def meta(self):
         if len(self._meta) == 0:

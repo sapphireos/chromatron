@@ -8,7 +8,7 @@ from sapphire.common.msgserver import run_all, stop_all
 import threading
 
 
-# setup_basic_logging()
+setup_basic_logging()
 
 
 @pytest.fixture
@@ -35,16 +35,19 @@ def background_async():
 
 @pytest.fixture
 def local_server(background_async):
-    return CatbusService(tags=['__TEST__'])
+    return ('localhost', CatbusService(tags=['__TEST__'])._data_port)
 
 @pytest.fixture
-def local_server2():
-    return 'MEOW!'
-    
-@pytest.fixture(params=['local_server', 'local_server2'])
+def network_server():
+    return ('10.0.0.157', CATBUS_MAIN_PORT)
+
+servers = ['local_server', 'network_server']
+
+@pytest.fixture(params=servers)
 def client(request):
     # return Client(('localhost', server._data_port))
-    return request.getfixturevalue(request.param)
+    # return request.getfixturevalue(request.param)
+    return Client(request.getfixturevalue(request.param))
 
 @pytest.fixture
 def service_manager(background_async):
