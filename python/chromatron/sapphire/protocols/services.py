@@ -166,6 +166,13 @@ class Service(object):
 
         self._reset()
 
+        self._init_server()
+
+    def _init_server(self):
+        if self._priority > 0: # offering a service, start out as server
+            logging.debug(f"{self} SERVER")
+            self._state = STATE_SERVER
+
     def __str__(self):
         return f'Service: {self._service_id}:{self._group}'
 
@@ -265,6 +272,8 @@ class Service(object):
                     self._best_host = host
 
                     logging.debug(f"{self} switched to: {(self._best_host, self._best_offer.port)}")
+
+            # NOTE non-team servers don't process offers
 
         # TEAM
         # update tracking
@@ -418,6 +427,11 @@ class Team(Service):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._reset()
+
+    def _init_server(self):
+        pass
+
     def __str__(self):
         return f'Team: {self._service_id}:{self._group}'
     
@@ -494,8 +508,6 @@ class ServiceManager(MsgServer):
         logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)}")
         
         self._services[service.key] = service
-
-        self._send_query(service_id, group)
 
         return service
     

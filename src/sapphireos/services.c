@@ -422,6 +422,9 @@ void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t 
 
     reset_state( &service );
 
+    // offers become server automatically
+    services.state = STATE_SERVER;
+
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
     if( ln < 0 ){
@@ -1088,6 +1091,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 log_v_debug_P( PSTR("service switched to %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
             }
         }
+        // NOTE servers have no processing here - they don't track other offers.
     }
     // TEAM:
     // are we already tracking this node?
