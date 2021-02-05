@@ -423,7 +423,7 @@ void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t 
     reset_state( &service );
 
     // offers become server automatically
-    services.state = STATE_SERVER;
+    service.state = STATE_SERVER;
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
