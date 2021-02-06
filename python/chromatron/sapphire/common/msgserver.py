@@ -272,16 +272,16 @@ class MsgServer(threading.Thread):
                 # are we multicasting:
                 if self._listener_mcast:
                     # send to multicast address
-                    self._transport.sendto(msg.pack(), (self._listener_mcast, port))
+                    self._listener_sock.sendto(msg.pack(), (self._listener_mcast, port))
     
                 else:
                     # no, this is a normal broadcast.
                     # transmit on all IP interfaces
                     for addr in get_broadcast_addresses():
-                        self._transport.sendto(data, (addr, port))
+                        self.__server_sock.sendto(data, (addr, port))
 
             else:
-                self._transport.sendto(msg.pack(), host)
+                self.__server_sock.sendto(msg.pack(), host)
 
         except socket.error:
             pass

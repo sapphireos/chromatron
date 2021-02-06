@@ -3,8 +3,6 @@ import pytest
 
 from fixtures import *
 
-# def test_meow(client):
-    # print("TESTING", client)
 
 def test_getkey(client):
     client.get_key('kv_test_key')

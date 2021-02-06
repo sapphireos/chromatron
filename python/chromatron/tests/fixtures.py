@@ -1,41 +1,17 @@
 
 import pytest
 
-import asyncio
 from catbus import *
 from sapphire.common.util import setup_basic_logging
-from sapphire.common.msgserver import run_all, stop_all
-import threading
+from sapphire.common.msgserver import stop_all
+import logging
 
-
-setup_basic_logging()
-
+setup_basic_logging(level=logging.DEBUG)
 
 @pytest.fixture
-def background_async():
-    # create a new event loop
-    loop = asyncio.new_event_loop()
-
-    # set the new loop
-    asyncio.set_event_loop(loop)
-
-    # start a thread to run our async servers in the background
-    t = threading.Thread(target=run_all, args=(loop,))
-    t.start()
-    
-    # yield to tests
-    yield
-
-    # tell the loop to stop
-    loop.stop()
-
-    # wait for background thread to complete
-    t.join()
-
-
-@pytest.fixture
-def local_server(background_async):
-    return ('localhost', CatbusService(tags=['__TEST__'])._data_port)
+def local_server():
+    yield ('localhost', CatbusService(tags=['__TEST__'])._data_port)
+    stop_all()
 
 @pytest.fixture
 def network_server():
@@ -50,6 +26,6 @@ def client(request):
     return Client(request.getfixturevalue(request.param))
 
 @pytest.fixture
-def service_manager(background_async):
+def service_manager():
     return ServiceManager()
 

@@ -39,8 +39,7 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import util, MsgServer, run_all, synchronous_call, create_task
-
+from sapphire.common import util, MsgServer, run_all, synchronized
 
 TTL = 240
 
@@ -58,10 +57,12 @@ class Directory(MsgServer):
 
         self.start_timer(4.0, self._process_ttl)
 
+    @synchronized
     def get_directory(self):    
         return copy(self._directory)
-   
-    async def resolve_hash(self, hashed_key, host=None):
+
+    @synchronized
+    def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
 
@@ -72,7 +73,7 @@ class Directory(MsgServer):
             if host:
                 c = Client(host)
 
-                key = await synchronous_call(c.lookup_hash, hashed_key)
+                key = c.lookup_hash(hashed_key)
 
                 if len(key) == 0:
                     raise KeyError(hashed_key)
@@ -103,20 +104,20 @@ class Directory(MsgServer):
         # update host port with advertised data port
         host = (host[0], msg.data_port)
 
-        async def query_device():
+        def query_device():
             try:
-                resolved_query = [await self.resolve_hash(a, host=host) for a in msg.query if a != 0]
+                resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
             except NoResponseFromHost:
                 logging.warn(f"No response from: {host}")
 
                 return
 
-            async def update_info(msg, host):
+            def update_info(msg, host):
                 c = Client(host)
 
-                name = await synchronous_call(c.get_key, META_TAG_NAME)
-                location = await synchronous_call(c.get_key, META_TAG_LOC)
+                name = c.get_key(META_TAG_NAME)
+                location = c.get_key(META_TAG_LOC)
 
                 info = {'host': tuple(host),
                         'name': name,
@@ -136,7 +137,7 @@ class Directory(MsgServer):
             try:
                 # check if we have this node already
                 if msg.header.origin_id not in self._directory:
-                    info = await update_info(msg, host)
+                    info = update_info(msg, host)
 
                     logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
@@ -145,7 +146,7 @@ class Directory(MsgServer):
 
                     # check if query tags have changed
                     if msg.query != info['hashes']:
-                        await update_info(msg, host)
+                        update_info(msg, host)
 
                         logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
@@ -161,8 +162,7 @@ class Directory(MsgServer):
             except NoResponseFromHost as e:
                 logging.warn(f"No response from: {host}")
 
-        # put the device query on the event loop to avoid blocking
-        create_task(query_device())
+        query_device()
 
     def _process_ttl(self):
         for key, info in self._directory.items():
@@ -174,34 +174,33 @@ class Directory(MsgServer):
         self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
 
-import asyncio
-
 class DirectoryServer(object):
     def __init__(self, directory=None):
-
-        self._loop = asyncio.get_event_loop()
-
-        svr_coro = self._loop.create_server(lambda: self, '0.0.0.0', CATBUS_DIRECTORY_PORT)
-        self.server = self._loop.run_until_complete(svr_coro)
-
-        logging.info(f"Directory server on TCP {CATBUS_DIRECTORY_PORT}")
-
-        self.directory = directory
-
-    def connection_made(self, transport):
-        logging.info(f"Connection from {transport.get_extra_info('peername')}")
-
-        data = json.dumps(self.directory.get_directory())
-        transport.write(struct.pack('<L', len(data)))
-        transport.write(data.encode('utf-8'))
-
-        transport.close()
-
-    def connection_lost(self, exc):
         pass
 
-    def data_received(self, data):
-        pass
+        # self._loop = asyncio.get_event_loop()
+
+        # svr_coro = self._loop.create_server(lambda: self, '0.0.0.0', CATBUS_DIRECTORY_PORT)
+        # self.server = self._loop.run_until_complete(svr_coro)
+
+        # logging.info(f"Directory server on TCP {CATBUS_DIRECTORY_PORT}")
+
+        # self.directory = directory
+
+    # def connection_made(self, transport):
+    #     logging.info(f"Connection from {transport.get_extra_info('peername')}")
+
+    #     data = json.dumps(self.directory.get_directory())
+    #     transport.write(struct.pack('<L', len(data)))
+    #     transport.write(data.encode('utf-8'))
+
+    #     transport.close()
+
+    # def connection_lost(self, exc):
+    #     pass
+
+    # def data_received(self, data):
+    #     pass
         
 
 def main():
