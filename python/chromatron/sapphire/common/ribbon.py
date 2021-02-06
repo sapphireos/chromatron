@@ -69,6 +69,9 @@ class Ribbon(threading.Thread):
         
         logging.debug(f"Ribbon {self.name}: shut down complete")
 
+    def wait(self, interval):
+        self._stop_event.wait(interval)
+
     @synchronized
     def _shutdown(self):
         if self._stop_event.is_set():

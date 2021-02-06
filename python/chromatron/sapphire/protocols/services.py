@@ -241,7 +241,11 @@ class Service(object):
         self._reset()
 
     def wait_until_connected(self, timeout=0.0):
+        if self.connected:
+            return
+
         logging.debug(f"{self} waiting for connection, timeout {timeout}")
+        
         while not self.connected:
             time.sleep(0.1)
 

@@ -67,7 +67,7 @@ class TimeZoneService(Ribbon):
         if not updated:
             logging.info("All devices up to date")
 
-        time.sleep(600.0)
+        self.wait(600.0)
 
 def main():
     util.setup_basic_logging(console=True)

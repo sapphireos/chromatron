@@ -85,14 +85,14 @@ class Client(object):
                 # start = time.time()
                 # print 'send', type(msg), len(msg.pack())
                 self.__sock.sendto(msg.pack(), host)
-                logging.debug(f"Msg {type(msg)} sent to {host}")
+                # logging.debug(f"Msg {type(msg)} sent to {host}")
 
                 while True:
                     data, sender = self.__sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
 
-                    logging.debug(f"Reply {type(reply_msg)} received from {sender}")
+                    # logging.debug(f"Reply {type(reply_msg)} received from {sender}")
                     # elapsed = time.time() - start
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 

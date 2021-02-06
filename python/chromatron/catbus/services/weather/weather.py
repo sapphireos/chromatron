@@ -7,10 +7,11 @@ import logging
 import json
 import requests
 from pprint import pprint
-import asyncio
 
 class WeatherService(Ribbon):
     def __init__(self, settings={}):
+        super().__init__()
+
         self.kv = CatbusService(name='weather', visible=True, tags=[])
         self.kv['station'] = settings['station']
 
@@ -24,20 +25,28 @@ class WeatherService(Ribbon):
         props = result.json()['properties']
         # pprint(props)
 
-        try:
-            self.kv['weather_temperature']          = float(props['temperature']['value'])
-            self.kv['weather_wind_direction']       = float(props['windDirection']['value'])
-            self.kv['weather_wind_speed']           = float(props['windSpeed']['value'])
-            self.kv['weather_relative_humidity']    = float(props['relativeHumidity']['value'])
-            self.kv['weather_pressure']             = float(props['barometricPressure']['value']) / 1000.0 # convert to kPa
+        for kv, source in [('temperature', 'temperature'), 
+                           ('wind_direction', 'windDirection'),
+                           ('wind_speed', 'windSpeed'),
+                           ('relative_humidity', 'relativeHumidity'),
+                           ('pressure', 'barometricPressure')]:
 
-            logging.info("Update successful")
+            try:
+                key = 'weather_' + kv
+                if key == 'pressure':
+                    # convert to kPa
+                    self.kv[key]          = float(props[source]['value']) / 1000.0
 
-        except TypeError:
-            # sometimes the weather API returns nulls for some reason.
-            logging.warn('api returned nulls')
+                else:
+                    self.kv[key]          = float(props[source]['value'])
 
-        time.sleep(60.0)
+                logging.info("Update successful")
+
+            except TypeError:
+                # sometimes the weather API returns nulls for some reason.
+                logging.warning(f'api returned nulls for {source}')
+
+        self.wait(60.0)
 
 
 def main():
