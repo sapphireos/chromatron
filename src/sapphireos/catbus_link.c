@@ -153,16 +153,21 @@ void link_v_init( void ){
         catbus_query_t query = { 0 };
         query.tags[0] = __KV____TEST__;
 
-        thread_t_create( test_thread,
-                     PSTR("test_thread"),
-                     0,
-                     0 );
 
         if( test == 1 ){
 
-            log_v_debug_P( PSTR("link test mode enabled: no links") );
+            log_v_debug_P( PSTR("link test mode enabled: idle") );
         }
         else if( test == 2 ){
+
+            log_v_debug_P( PSTR("link test mode enabled: test thread only") );
+
+            thread_t_create( test_thread,
+                     PSTR("test_thread"),
+                     0,
+                     0 );
+        }
+        else if( test == 3 ){
 
             log_v_debug_P( PSTR("link test mode enabled: send") );
             
@@ -175,8 +180,13 @@ void link_v_init( void ){
                 1000,
                 LINK_AGG_ANY,
                 LINK_FILTER_OFF );        
+
+            thread_t_create( test_thread,
+                     PSTR("test_thread"),
+                     0,
+                     0 );
         }
-        else if( test == 3 ){
+        else if( test == 4 ){
 
             log_v_debug_P( PSTR("link test mode enabled: recv") );
             
@@ -189,6 +199,11 @@ void link_v_init( void ){
                 1000,
                 LINK_AGG_ANY,
                 LINK_FILTER_OFF );        
+
+            thread_t_create( test_thread,
+                     PSTR("test_thread"),
+                     0,
+                     0 );
         }
     }
 }

@@ -454,7 +454,7 @@ on the same machine!
 """
 
 class LinkManager(MsgServer):
-    def __init__(self, database=None):
+    def __init__(self, database=None, test_mode=False):
         super().__init__(name='link_manager', listener_port=CATBUS_LINK_PORT, listener_mcast=LINK_MCAST_ADDR)
 
         if database is None:
@@ -464,13 +464,13 @@ class LinkManager(MsgServer):
 
         self._database = database
         self._service_manager = services.ServiceManager()
-        
+
         self.register_message(ConsumerQueryMsg, self._handle_consumer_query)
         self.register_message(ConsumerMatchMsg, self._handle_consumer_match)
         self.register_message(ProducerQueryMsg, self._handle_producer_query)
         self.register_message(ConsumerDataMsg, self._handle_consumer_data)
         self.register_message(ProducerDataMsg, self._handle_producer_data)
-        
+            
         self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
@@ -478,6 +478,10 @@ class LinkManager(MsgServer):
         self._producers = {}
         self._consumers = {}
         self._remotes = {}
+
+        if test_mode:
+            database.add_item('link_test_key', os.getpid(), 'uint32')
+            self.start_timer(1.0, self._process_link_test)
 
     def clean_up(self):
         pass
@@ -676,6 +680,9 @@ class LinkManager(MsgServer):
         # prune
         self._remotes = {k: v for k, v in self._remotes.items() if not v.timed_out}
 
+    def _process_link_test(self):
+        self._database['link_test_key'] += 1
+
     def _process_links(self):
         for link in self._links.values():
             link._process_timer(LINK_MIN_TICK_RATE, self)
@@ -689,22 +696,20 @@ class LinkManager(MsgServer):
 def main():
     util.setup_basic_logging(console=True)
 
-    c = CatbusService(tags=['link_group'])
-    c.add_item('link_test_key', 0, 'int32')
-
-    lm = LinkManager(database=c)
+    c = CatbusService(tags=['__TEST__'])
+    lm = LinkManager(database=c, test_mode=True)
     c.register_shutdown_handler(lm.handle_shutdown)
 
     # l = Link(
     #         mode=LINK_MODE_RECV, 
     #         source_key='link_test_key', 
     #         dest_key='kv_test_key', 
-    #         query=['link_group'], 
+    #         query=['__TEST__'], 
     #         aggregation=LINK_AGG_AVG)
 
     # print(hex(l.hash))
     # s.add_link(l)
-    lm.send('link_test_key', 'kv_test_key', query=['link_group'])
+    lm.send('link_test_key', 'kv_test_key', query=['__TEST__'])
 
     # import yappi
     # yappi.start()
