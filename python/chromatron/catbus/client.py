@@ -41,7 +41,7 @@ import random
 
 
 class Client(object):
-    def __init__(self, host=None):
+    def __init__(self, host=None, universe=0):
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         self.read_window_size = 1
@@ -49,6 +49,7 @@ class Client(object):
 
         self.nodes = {}
         self._meta = {}
+        self.universe = universe
 
         try:
             os.makedirs(firmware_package.data_dir())
@@ -72,6 +73,8 @@ class Client(object):
         return self._meta
 
     def _exchange(self, msg, host=None, timeout=0.5, tries=16):
+        msg.header.universe = self.universe
+
         self.__sock.settimeout(timeout)
 
         if host == None:
@@ -95,12 +98,16 @@ class Client(object):
                     # logging.debug(f"Reply {type(reply_msg)} received from {sender}")
                     # elapsed = time.time() - start
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
+                    
+                    # check universe
+                    if reply_msg.header.universe != self.universe:
+                        continue
 
-                    if reply_msg.header.transaction_id != msg.header.transaction_id:
+                    elif reply_msg.header.transaction_id != msg.header.transaction_id:
                         # logging.warning(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id} from {sender} type: {reply_msg.header.msg_type}")
                         continue
 
-                    elif isinstance(reply_msg, ErrorMsg):
+                    if isinstance(reply_msg, ErrorMsg):
                         self.flush()
                         raise ProtocolErrorException(reply_msg.error_code, lookup_error_msg(reply_msg.error_code))
 
@@ -315,6 +322,8 @@ class Client(object):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
+        msg.header.universe = self.universe
+
         # try to contact directory server
         directory = self.get_directory()
 
@@ -342,6 +351,9 @@ class Client(object):
                         response = deserialize(data)
                         
                         if not isinstance(response, AnnounceMsg):
+                            continue
+
+                        elif response.header.universe != self.universe:
                             continue
 
                         if response.header.transaction_id == msg.header.transaction_id and \
@@ -612,6 +624,7 @@ class Client(object):
         while True:
             while current_window > 0:
                 msg = FileGetMsg(session_id=session_id, offset=requested_offset)
+                msg.header.universe = self.universe
                 self.__sock.sendto(msg.pack(), host)  
 
                 requested_offset += page_size
@@ -622,7 +635,10 @@ class Client(object):
                 data, sender = self.__sock.recvfrom(4096)
                 data_msg = deserialize(data)
 
-                if isinstance(data_msg, ErrorMsg):
+                if data_msg.header.universe != self.universe:
+                    continue
+
+                elif isinstance(data_msg, ErrorMsg):
                     self.flush()
                     raise ProtocolErrorException(data_msg.error_code, lookup_error_msg(data_msg.error_code))
 
