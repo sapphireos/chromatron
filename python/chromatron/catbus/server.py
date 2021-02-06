@@ -37,10 +37,8 @@ from sapphire.common import catbus_string_hash, util, MsgServer, synchronized
 
 class Server(MsgServer):
     def __init__(self, data_port=0, database=None, visible=True):
-        super().__init__(port=data_port, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
+        super().__init__(name=f"{database[META_TAG_NAME]}.{'server'}", port=data_port, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
         self._database = database
-
-        self.name = '%s.%s' % (self._database[META_TAG_NAME], 'server')
 
         self.visible = visible
 

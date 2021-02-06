@@ -40,8 +40,8 @@ class InvalidVersion(Exception):
 
 
 class _Timer(Ribbon):
-    def __init__(self, interval, port, repeat=True):
-        super().__init__(name='timer')
+    def __init__(self, name, interval, port, repeat=True):
+        super().__init__(name=name)
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._timer_sock.bind(('localhost', 0))
@@ -190,7 +190,7 @@ class MsgServer(Ribbon):
         
     @synchronized
     def start_timer(self, interval, handler, repeat=True):
-        timer = _Timer(interval, self._timer_port)
+        timer = _Timer(f'{self.name}.timer', interval, self._timer_port)
         self._timers[timer.port] = handler
     
     def default_handler(self, msg, host):
