@@ -26,19 +26,17 @@ import sys
 import time
 import logging
 from catbus import CatbusService, Client, NoResponseFromHost
-from sapphire.common import util, run_all, create_loop_task, synchronous_call
+from sapphire.common import util, run_all, Ribbon
 
-class TimeZoneService(object):
+class TimeZoneService(Ribbon):
     def __init__(self):
         self.kv = CatbusService(name='timezoneservice2', visible=True, tags=[])
 
         self.client = Client()
         self.directory = None
 
-        create_loop_task(self.loop, 6.0)
-
-    async def loop(self):
-        self.directory = await synchronous_call(self.client.get_directory)
+    def _process(self):
+        self.directory = self.client.get_directory()
 
         if self.directory == None:
             return
@@ -52,7 +50,7 @@ class TimeZoneService(object):
             self.client.connect(device['host'])
             
             try:
-                tz_offset = await synchronous_call(self.client.get_key, 'datetime_tz_offset')
+                tz_offset = self.client.get_key('datetime_tz_offset')
 
             except KeyError:
                 continue
@@ -63,11 +61,13 @@ class TimeZoneService(object):
             
             if tz_offset != current_tz_offset:
                 logging.info(f"Setting datetime_tz_offset on {device_id}@{device['host']} from {tz_offset} to {current_tz_offset}")            
-                await synchronous_call(self.client.set_key, 'datetime_tz_offset', current_tz_offset)
+                self.client.set_key('datetime_tz_offset', current_tz_offset)
                 updated = True
 
         if not updated:
             logging.info("All devices up to date")
+
+        time.sleep(600.0)
 
 def main():
     util.setup_basic_logging(console=True)

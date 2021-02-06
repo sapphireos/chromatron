@@ -153,7 +153,7 @@ class ServiceMsgQuery(StructField):
 
 
 class Service(object):
-    def __init__(self, service_id, group, priority=0, port=0):
+    def __init__(self, service_id, group, priority=0, port=0, _lock=None):
         self._service_id = service_id
         self._group = group
         self._port = port
@@ -161,7 +161,8 @@ class Service(object):
 
         assert self._port is not None
 
-        self._lock = threading.Lock()
+        self._lock = _lock
+        assert self._lock is not None
 
         self._reset()
 
@@ -173,7 +174,7 @@ class Service(object):
             self._state = STATE_SERVER
 
     def __str__(self):
-        return f'Service: {self._service_id}:{self._group}'
+        return f'Service: {hex(self._service_id)}:{hex(self._group)}'
 
     def __eq__(self, other):
         return self.key == other.key
@@ -186,10 +187,12 @@ class Service(object):
         self._timeout = SERVICE_LISTEN_TIMEOUT
 
     @property
+    @synchronized
     def key(self):
         return (self._service_id << 64) + self._group
 
     @property
+    @synchronized
     def _flags(self):
         flags = 0
         if self._state == STATE_SERVER:
@@ -198,6 +201,7 @@ class Service(object):
         return flags
 
     @property
+    @synchronized
     def _offer(self):
         offer = ServiceOffer(
             id=self._service_id,
@@ -210,14 +214,17 @@ class Service(object):
         return offer
 
     @property
+    @synchronized
     def connected(self):
         return self._state != STATE_LISTEN
 
     @property
+    @synchronized
     def is_server(self):
         return self._state == STATE_SERVER
 
     @property
+    @synchronized
     def server(self):
         if not self.connected:
             raise ServiceNotConnected
@@ -233,9 +240,10 @@ class Service(object):
     def _shutdown(self):
         self._reset()
 
-    async def wait_until_connected(self, timeout=0.0):
+    @synchronized
+    def wait_until_connected(self, timeout=0.0):
         while not self.connected:
-            await asyncio.sleep(0.1)
+            time.sleep(0.1)
 
             if timeout > 0.0:
                 timeout -= 0.1
@@ -435,6 +443,7 @@ class Team(Service):
         return f'Team: {self._service_id}:{self._group}'
     
     @property
+    @synchronized
     def _flags(self):
         flags = super()._flags
         flags |= SERVICE_OFFER_FLAGS_TEAM
@@ -484,7 +493,7 @@ class ServiceManager(MsgServer):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
-        team = Team(service_id, group, priority, port)
+        team = Team(service_id, group, priority, port, _lock=self._lock)
 
         assert team.key not in self._services
 
@@ -503,7 +512,7 @@ class ServiceManager(MsgServer):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
-        service = Service(service_id, group, priority, port)
+        service = Service(service_id, group, priority, port, _lock=self._lock)
 
         assert service.key not in self._services
 
@@ -518,7 +527,7 @@ class ServiceManager(MsgServer):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
-        service = Service(service_id, group)
+        service = Service(service_id, group, _lock=self._lock)
 
         assert service.key not in self._services
         

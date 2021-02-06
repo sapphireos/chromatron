@@ -26,7 +26,7 @@ import socket
 import logging
 from .broadcast import get_broadcast_addresses, get_local_addresses
 from .util import synchronized
-import threading
+from .ribbon import Ribbon, run_all, stop_all
 import select
 
 class UnknownMessage(Exception):
@@ -39,9 +39,9 @@ class InvalidVersion(Exception):
     pass
 
 
-class _Timer(threading.Thread):
+class _Timer(Ribbon):
     def __init__(self, interval, port, repeat=True):
-        super().__init__()
+        super().__init__(name='timer')
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._timer_sock.bind(('localhost', 0))
@@ -50,29 +50,18 @@ class _Timer(threading.Thread):
         self.dest_port = port
         self.repeat = repeat
 
-        self.daemon = True
         self.start()
 
-    def run(self):
-        while True:
-            time.sleep(self.interval)
-            self._timer_sock.sendto(''.encode(), ('localhost', self.dest_port))
+    def _process(self):
+        time.sleep(self.interval)
+        self._timer_sock.sendto(''.encode(), ('localhost', self.dest_port))
 
-            if not self.repeat:
-                return
+        if not self.repeat:
+            self.stop()
 
-class MsgServer(threading.Thread):
-    __global_lock = threading.Lock()
-    _server_id = 0
-    _servers = []
-
+class MsgServer(Ribbon):
     def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
-        super().__init__()
-
-        self._lock = threading.RLock()
-        self._stop_event = threading.Event()
-
-        self.name = name + f'.{self._server_id}'
+        super().__init__(name)
 
         self._port = port
         self._listener_port = listener_port
@@ -138,10 +127,6 @@ class MsgServer(threading.Thread):
         else:  
             logging.info(f"MsgServer {self.name}: server on {self._port}")
 
-        with self.__global_lock:
-            self._server_id += 1
-            self._servers.append(self)
-
         self.start()
 
     @property
@@ -203,10 +188,6 @@ class MsgServer(threading.Thread):
         except Exception as e:
             logging.exception(e)
         
-    def run(self):
-        while not self._stop_event.is_set():
-            self._process()
-
     @synchronized
     def start_timer(self, interval, handler, repeat=True):
         timer = _Timer(interval, self._timer_port)
@@ -309,10 +290,7 @@ class MsgServer(threading.Thread):
 
     @synchronized
     def stop(self):
-        if self._stop_event.is_set():
-            return
-      
-        self._stop_event.set()
+        super()._shutdown()
         
         logging.info(f"MsgServer {self.name}: shutting down")
         self.clean_up()
@@ -334,45 +312,4 @@ class MsgServer(threading.Thread):
 
     def clean_up(self):
         pass
-
-
-def stop_all():
-    logging.info("Stopping all servers...")
-    for s in MsgServer._servers:
-        s.stop()
-
-    for s in MsgServer._servers:
-        s.join()
-
-def run_all():
-    try:
-        while True:
-            time.sleep(1.0)
-
-    except KeyboardInterrupt:
-        pass
-
-    stop_all()
-
-# def create_task(task, loop=asyncio.get_event_loop()):
-    # loop.create_task(task)
-
-# def create_loop_task(task, interval, loop=asyncio.get_event_loop(), raise_exc=True):
-#     async def loop_func():
-#         while True:
-#             try:
-#                 await task()
-
-#             except Exception as e:
-#                 logging.exception(e)
-#                 if raise_exc:
-#                     raise
-
-#             await asyncio.sleep(interval)
-
-#     loop.create_task(loop_func())    
-
-# async def synchronous_call(func, *args, loop=asyncio.get_event_loop()):
-#     return await loop.run_in_executor(None, func, *args)
-
 

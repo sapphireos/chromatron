@@ -31,7 +31,7 @@ from sapphire.common.broadcast import send_udp_broadcast
 from .messages import *
 from .catbustypes import *
 
-from sapphire.common import catbus_string_hash, util, MsgServer
+from sapphire.common import catbus_string_hash, util, MsgServer, synchronized
 
 
 

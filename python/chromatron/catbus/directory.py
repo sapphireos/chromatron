@@ -39,7 +39,7 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import util, MsgServer, run_all, synchronized
+from sapphire.common import util, MsgServer, run_all, synchronized, Ribbon
 
 TTL = 240
 
@@ -173,35 +173,51 @@ class Directory(MsgServer):
 
         self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
-
-class DirectoryServer(object):
-    def __init__(self, directory=None):
-        pass
-
-        # self._loop = asyncio.get_event_loop()
-
-        # svr_coro = self._loop.create_server(lambda: self, '0.0.0.0', CATBUS_DIRECTORY_PORT)
-        # self.server = self._loop.run_until_complete(svr_coro)
-
-        # logging.info(f"Directory server on TCP {CATBUS_DIRECTORY_PORT}")
-
-        # self.directory = directory
-
-    # def connection_made(self, transport):
-    #     logging.info(f"Connection from {transport.get_extra_info('peername')}")
-
-    #     data = json.dumps(self.directory.get_directory())
-    #     transport.write(struct.pack('<L', len(data)))
-    #     transport.write(data.encode('utf-8'))
-
-    #     transport.close()
-
-    # def connection_lost(self, exc):
-    #     pass
-
-    # def data_received(self, data):
-    #     pass
+class DirectoryServer(Ribbon):
+    def __init__(self, directory=None, port=CATBUS_DIRECTORY_PORT):
+        super().__init__('directory_server')
         
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            # this option may fail on some platforms
+            self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        self._sock.bind(('localhost', port))
+        self._sock.settimeout(1.0)
+        self._sock.listen(1)
+
+        self._port = self._sock.getsockname()[1]    
+
+        self.directory = directory
+
+        self.start()
+
+    @property
+    @synchronized
+    def port(self):
+        return self._port
+        
+    def _process(self):
+        try:
+            conn, addr = self._sock.accept()
+
+            data = json.dumps(self.directory.get_directory())
+
+            conn.send(struct.pack('<L', len(data)))
+            conn.send(data.encode('utf-8'))
+
+            conn.close()
+
+        except socket.timeout:
+            pass
+
+    def clean_up(self):
+        self._sock.close()
 
 def main():
     try:

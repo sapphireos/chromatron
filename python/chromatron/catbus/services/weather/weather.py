@@ -2,24 +2,24 @@
 import sys
 import time
 from catbus import CatbusService
-from sapphire.common import util, synchronous_call, run_all, create_loop_task
+from sapphire.common import util, run_all, Ribbon
 import logging
 import json
 import requests
 from pprint import pprint
 import asyncio
 
-class WeatherService(object):
+class WeatherService(Ribbon):
     def __init__(self, settings={}):
         self.kv = CatbusService(name='weather', visible=True, tags=[])
         self.kv['station'] = settings['station']
 
-        create_loop_task(self.loop, 60.0)
+        self.start()
 
-    async def loop(self):
+    def _process(self):
         logging.info("Fetching weather")
 
-        result = await synchronous_call(requests.get, f"https://api.weather.gov/stations/{self.kv['station']}/observations/latest")
+        result = requests.get(f"https://api.weather.gov/stations/{self.kv['station']}/observations/latest")
         
         props = result.json()['properties']
         # pprint(props)
@@ -36,6 +36,8 @@ class WeatherService(object):
         except TypeError:
             # sometimes the weather API returns nulls for some reason.
             logging.warn('api returned nulls')
+
+        time.sleep(60.0)
 
 
 def main():

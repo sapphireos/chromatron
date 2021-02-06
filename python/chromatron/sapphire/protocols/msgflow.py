@@ -22,6 +22,7 @@
 # </license>
 #
 
+import time
 import sys
 import socket
 import select
@@ -189,12 +190,12 @@ class MsgFlowReceiver(MsgServer):
         for host in self._connections:
             self._send_stop(host)
 
-        await asyncio.sleep(0.1)
+        time.sleep(0.1)
 
         for host in self._connections:
             self._send_stop(host)
 
-        await asyncio.sleep(0.1)
+        time.sleep(0.1)
 
         for host in self._connections:
             self._send_stop(host)

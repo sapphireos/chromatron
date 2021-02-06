@@ -27,11 +27,9 @@ import time
 from datetime import datetime
 from catbus import CatbusService, Directory
 from sapphire.protocols.msgflow import MsgFlowReceiver
-from sapphire.common import util, run_all, synchronous_call, create_task
+from sapphire.common import util, run_all, Ribbon
 
 from queue import Queue
-
-import threading
 
 import logging
 import logging_loki
@@ -50,9 +48,9 @@ LOKI_SERVER = "http://localhost:3100"
 LOGSERVER_PORT = None
 
 
-class LokiHandler(threading.Thread):
+class LokiHandler(Ribbon):
     def __init__(self):
-        super().__init__()
+        super().__init__(name='loki_handler')
 
         loki_handler = logging_loki.LokiHandler(
             url=f"{LOKI_SERVER}/loki/api/v1/push", 
@@ -87,63 +85,49 @@ class LokiHandler(threading.Thread):
     def post_msg(self, msg):
         create_task(synchronous_call(self.q.put, msg))
 
-    def run(self):
-        while True:
-            msg = self.q.get()
+    def _process(self):
+        msg = self.q.get()
 
-            print(msg)
+        if msg is None:
+            return
 
-            if msg is None:
-                break
+        host    = msg[0]
+        info    = msg[1]
+        now     = msg[2]
+        log     = msg[3]
 
-            continue
+        # get log level from log message
+        tokens      = log.split(':')
+        level       = tokens[0].strip()
+        sys_time    = tokens[1].strip()
+        source_file = tokens[2].strip()
+        source_line = tokens[3].strip()
+        log_msg     = tokens[3].strip()
 
-            host    = msg[0]
-            info    = msg[1]
-            now     = msg[2]
-            log     = msg[3]
-
-            # get log level from log message
-            tokens      = log.split(':')
-            level       = tokens[0].strip()
-            sys_time    = tokens[1].strip()
-            source_file = tokens[2].strip()
-            source_line = tokens[3].strip()
-            log_msg     = tokens[3].strip()
-
-            location = ''
-            # early versions of the catbus directory don't have location
-            if 'location' in info:
-                location = info['location']
+        location = ''
+        # early versions of the catbus directory don't have location
+        if 'location' in info:
+            location = info['location']
 
 
-            # !!! NOTE
-            # all Loki tags must be strings!
-            # if you get an error 400, check for that!
+        # !!! NOTE
+        # all Loki tags must be strings!
+        # if you get an error 400, check for that!
 
-            tags = {
-                'device_id':    str(info['device_id']),
-                'name':         info['name'],
-                'host':         host[0],
-                'location':     location,
-                # 'sys_time':     sys_time,
-                'level':        level,
-                'source_file':  source_file,
-                # 'source_line':  source_line,
-            }
+        tags = {
+            'device_id':    str(info['device_id']),
+            'name':         info['name'],
+            'host':         host[0],
+            'location':     location,
+            # 'sys_time':     sys_time,
+            'level':        level,
+            'source_file':  source_file,
+            # 'source_line':  source_line,
+        }
 
-            full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
+        full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
 
-            self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
-
-
-    def stop(self):
-        self.logger.info("Loki handler stopping...")
-
-        self.post_msg(None)
-
-        self.logger.info("Loki handler stopped")
-
+        self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
 
 class LogServer(MsgFlowReceiver):
     def __init__(self):
@@ -165,13 +149,13 @@ class LogServer(MsgFlowReceiver):
 
         self._last_directory_update = time.time()
 
-    async def clean_up(self):
+    def clean_up(self):
         self.loki.stop()
         
-        await self.kv.stop()
+        self.kv.stop()
         
-        await super().clean_up()
-
+        super().clean_up()
+        
         self.loki.join()
 
     def lookup_by_host(self, host):
