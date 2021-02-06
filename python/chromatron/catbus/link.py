@@ -28,7 +28,7 @@ from elysianfields import *
 from .data_structures import *
 from .catbustypes import *
 from .options import *
-from sapphire.common import MsgServer, util, catbus_string_hash, run_all
+from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
 from sapphire.protocols import services
 from .database import *
 from .catbus import *
@@ -149,7 +149,7 @@ LINK_AGG_AVG    = 4
 LINK_RATE_MIN   = 20 / 1000.0
 LINK_RATE_MAX   = 30000 / 1000.0
 
-class LinkState(StructField):
+class _LinkState(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="source_key"),
                   Uint32Field(_name="dest_key"),
@@ -189,27 +189,34 @@ class Link(object):
         self._retransmit_timer = 0
         self._hashed_data = 0
 
+        self._lock = None
+
     @property
+    @synchronized
     def is_leader(self):
         return self._service.is_server
 
     @property
+    @synchronized
     def is_follower(self):
         return (not self._service.is_server) and self._service.connected
 
     @property
+    @synchronized
     def server(self):
         return self._service.server
 
     @property
+    @synchronized
     def query_tags(self):
         query = CatbusQuery()
         query._value = [catbus_string_hash(a) for a in self.query]
         return query
 
     @property
+    @synchronized
     def hash(self):
-        data = LinkState(
+        data = _LinkState(
                 source_key=catbus_string_hash(self.source_key),
                 dest_key=catbus_string_hash(self.dest_key),
                 query=self.query_tags,
@@ -280,7 +287,7 @@ class Link(object):
                 print("TX DATA -> CONSUMERS")
 
 
-class Producer(object):
+class _Producer(object):
     def __init__(self,
         source_key=None,
         link_hash=None,
@@ -365,7 +372,7 @@ class Producer(object):
         link_manager.transmit(msg, self.server)
 
 
-class Consumer(object):
+class _Consumer(object):
     def __init__(self,
         link_hash=None,
         ip=None):
@@ -404,7 +411,7 @@ class Consumer(object):
             return
 
 
-class Remote(object):
+class _Remote(object):
     def __init__(self,
         link_hash=None,
         ip=None,
@@ -464,10 +471,7 @@ class LinkManager(MsgServer):
         self.register_message(ConsumerDataMsg, self._handle_consumer_data)
         self.register_message(ProducerDataMsg, self._handle_producer_data)
         
-        self.start_timer(LINK_MIN_TICK_RATE, self._process_links)
-        self.start_timer(LINK_MIN_TICK_RATE, self._process_producers)
-        self.start_timer(LINK_MIN_TICK_RATE, self._process_consumers)
-        self.start_timer(LINK_MIN_TICK_RATE, self._process_remotes)
+        self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
@@ -475,7 +479,7 @@ class LinkManager(MsgServer):
         self._consumers = {}
         self._remotes = {}
 
-    async def clean_up(self):
+    def clean_up(self):
         pass
 
     def handle_shutdown(self, host):
@@ -483,9 +487,31 @@ class LinkManager(MsgServer):
 
         print('shutdown', host)
 
-    def add_link(self, link):
+    @synchronized
+    def _add_link(self, link):
         link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port, priority=LINK_BASE_PRIORITY)
         self._links[link.hash] = link
+
+    @synchronized
+    def link(self, mode, source_key, dest_key, query, aggregation=LINK_AGG_ANY, rate=1000, tag=''):
+        l = Link(
+            mode,
+            source_key,
+            dest_key,
+            query,
+            aggregation,
+            rate,
+            tag)
+
+        l._lock = self._lock
+
+        self._add_link(l)
+
+    def receive(self, *args, **kwargs):
+        self.link(LINK_MODE_RECV, *args, **kwargs)
+
+    def send(self, *args, **kwargs):
+        self.link(LINK_MODE_SEND, *args, **kwargs)
 
     def _handle_consumer_query(self, msg, host):
         if msg.mode == LINK_MODE_SEND:
@@ -527,7 +553,7 @@ class LinkManager(MsgServer):
 
         # UPDATE PRODUCER STATE
         if msg.hash not in self._producers:
-            p = Producer(
+            p = _Producer(
                     msg.key,
                     msg.hash,
                     host[0], # ADD DATA PORT!
@@ -546,7 +572,7 @@ class LinkManager(MsgServer):
             return
 
         if msg.hash not in self._consumers:
-            c = Consumer(
+            c = _Consumer(
                     msg.hash,
                     host[0]) # ADD DATA PORT!
 
@@ -589,7 +615,7 @@ class LinkManager(MsgServer):
 
         # UPDATE REMOTE STATE
         if msg.hash not in self._remotes:
-            r = Remote(
+            r = _Remote(
                     msg.hash,
                     host[0]) # ADD DATA PORT!
 
@@ -654,6 +680,11 @@ class LinkManager(MsgServer):
         for link in self._links.values():
             link._process_timer(LINK_MIN_TICK_RATE, self)
 
+    def _process_all(self):
+        self._process_producers()
+        self._process_consumers()
+        self._process_remotes()
+        self._process_links()
 
 def main():
     util.setup_basic_logging(console=True)
@@ -661,20 +692,26 @@ def main():
     c = CatbusService(tags=['link_group'])
     c.add_item('link_test_key', 0, 'int32')
 
-    s = LinkManager(database=c)
-    c.register_shutdown_handler(s.handle_shutdown)
+    lm = LinkManager(database=c)
+    c.register_shutdown_handler(lm.handle_shutdown)
 
-    l = Link(
-            mode=LINK_MODE_RECV, 
-            source_key='link_test_key', 
-            dest_key='kv_test_key', 
-            query=['link_group'], 
-            aggregation=LINK_AGG_AVG)
+    # l = Link(
+    #         mode=LINK_MODE_RECV, 
+    #         source_key='link_test_key', 
+    #         dest_key='kv_test_key', 
+    #         query=['link_group'], 
+    #         aggregation=LINK_AGG_AVG)
 
     # print(hex(l.hash))
     # s.add_link(l)
+    lm.send('link_test_key', 'kv_test_key', query=['link_group'])
+
+    # import yappi
+    # yappi.start()
 
     run_all()
+
+    # yappi.get_func_stats().print_all()
 
 if __name__ == '__main__':
     main()

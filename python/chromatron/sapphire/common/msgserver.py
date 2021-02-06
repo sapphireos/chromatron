@@ -53,7 +53,7 @@ class _Timer(Ribbon):
         self.start()
 
     def _process(self):
-        time.sleep(self.interval)
+        self.wait(self.interval)
         self._timer_sock.sendto(''.encode(), ('localhost', self.dest_port))
 
         if not self.repeat:
