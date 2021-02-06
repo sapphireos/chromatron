@@ -26,9 +26,8 @@ import sys
 import socket
 import select
 import logging
-import asyncio
 from elysianfields import *
-from ..common import MsgServer, run_all, util, catbus_string_hash
+from ..common import MsgServer, run_all, util, catbus_string_hash, synchronized
 from .services import ServiceManager
 
 
@@ -186,7 +185,7 @@ class MsgFlowReceiver(MsgServer):
     def on_receive(self, host, data):
         pass
 
-    async def clean_up(self):
+    def clean_up(self):
         for host in self._connections:
             self._send_stop(host)
 

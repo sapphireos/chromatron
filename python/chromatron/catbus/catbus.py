@@ -45,7 +45,7 @@ import time
 import sys
 import os
 
-from sapphire.common import catbus_string_hash, run_all
+from sapphire.common import catbus_string_hash, run_all, synchronized
 from sapphire.common.util import setup_basic_logging
 
 from .database import *
@@ -86,27 +86,23 @@ class CatbusService(Database):
 
     def _item_notify(self, key, value):
         try:
-            self._server._publish(key)
-
             if key in self._callbacks:
                 self._callbacks[key](key, value)
 
         except AttributeError:
             pass
 
-    def _send_msg(self, msg, host):
-        self._server.send_data_msg(msg, host)
-
+    @synchronized
     def register(self, key, callback):
         self._callbacks[key] = callback
 
+    @synchronized
     def register_shutdown_handler(self, handler):
         self._server.register_shutdown_handler(handler)
 
-    async def stop(self):
-        await self._server.stop()
-        del self._server
-
+    def stop(self):
+        self._server.stop()
+        
 
 
 def echo_name(name, host, left_align=True, nl=True):

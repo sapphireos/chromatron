@@ -22,13 +22,12 @@
 # </license>
 #
 
-import asyncio
 import sys
 import time
 import logging
 import threading
 from elysianfields import *
-from ..common import MsgServer, run_all, util, catbus_string_hash
+from ..common import MsgServer, run_all, util, catbus_string_hash, synchronized
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
@@ -455,10 +454,11 @@ class ServiceManager(MsgServer):
         self.start_timer(1.0, self._process_timers)
         self.start_timer(4.0, self._process_offer_timer)
 
-    async def clean_up(self):
+    def clean_up(self):
         for svc in self._services.values():
             svc._shutdown()
 
+    @synchronized
     def handle_shutdown(self, host):
         for svc in self._services.values():
             if svc.is_server:
@@ -479,6 +479,7 @@ class ServiceManager(MsgServer):
 
         return n
 
+    @synchronized
     def join_team(self, service_id, group, port, priority=0):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
@@ -495,6 +496,7 @@ class ServiceManager(MsgServer):
 
         return team
 
+    @synchronized
     def offer(self, service_id, group, port, priority=1):
         assert priority != 0
 
@@ -511,6 +513,7 @@ class ServiceManager(MsgServer):
 
         return service
     
+    @synchronized
     def listen(self, service_id, group):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
@@ -527,6 +530,7 @@ class ServiceManager(MsgServer):
 
         return service
 
+    @synchronized
     def is_connected(self, service_id, group):
         try:
             return self._services[make_key(service_id, group)].is_connected
@@ -534,6 +538,7 @@ class ServiceManager(MsgServer):
         except KeyError:
             return False
 
+    @synchronized
     def is_server(self, service_id, group):
         try:
             return self._services[make_key(service_id, group)].is_server

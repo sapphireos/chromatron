@@ -24,7 +24,6 @@
 
 import sys
 import time
-import asyncio
 import logging
 from catbus import CatbusService, Client, NoResponseFromHost
 from sapphire.common import util, run_all, create_loop_task, synchronous_call

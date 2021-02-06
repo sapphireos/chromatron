@@ -6,7 +6,7 @@ from sapphire.common.util import setup_basic_logging
 from sapphire.common.msgserver import stop_all
 import logging
 
-setup_basic_logging(level=logging.DEBUG)
+setup_basic_logging(level=logging.INFO)
 
 @pytest.fixture
 def local_server():

@@ -70,6 +70,7 @@ class Server(MsgServer):
 
         self._shutdown_handlers = []
 
+    @synchronized
     def register_shutdown_handler(self, handler):
         self._shutdown_handlers.append(handler)
 
@@ -84,6 +85,7 @@ class Server(MsgServer):
         time.sleep(0.1)
         self._send_shutdown()
 
+    @synchronized
     def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
