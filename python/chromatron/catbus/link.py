@@ -278,8 +278,7 @@ class Link(object):
             if self.is_leader:
                 link_manager._aggregate(self)
 
-                # TRANSMIT TO CONSUMER
-                print("TX DATA -> CONSUMERS")
+                link_manager._send_consumer_data(self, data)
 
 
 class _Producer(object):
