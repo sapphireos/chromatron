@@ -250,13 +250,9 @@ class Link(object):
 
         if self.mode == LINK_MODE_SEND:
             if self.is_leader:
-                # AGGREGATION
-                print("AGGREGATION")
+                data = link_manager._aggregate(self)
 
-                # TRANSMIT TO CONSUMER
-                print("TX DATA -> CONSUMERS")
-
-                pass
+                link_manager._send_consumer_data(self, data)
 
             elif self.is_follower:
                 if self.source_key not in database:
@@ -280,8 +276,7 @@ class Link(object):
 
         elif self.mode == LINK_MODE_RECV:
             if self.is_leader:
-                # AGGREGATION
-                print("AGGREGATION")
+                link_manager._aggregate(self)
 
                 # TRANSMIT TO CONSUMER
                 print("TX DATA -> CONSUMERS")
@@ -375,10 +370,10 @@ class _Producer(object):
 class _Consumer(object):
     def __init__(self,
         link_hash=None,
-        ip=None):
+        host=None):
 
         self.link_hash = link_hash
-        self.ip = ip
+        self.host = host
         
         self._timeout = LINK_CONSUMER_TIMEOUT
 
@@ -396,7 +391,7 @@ class _Consumer(object):
     def _process_timer(self, elapsed, link_manager):
         self._timeout -= elapsed
 
-        if timed_out:
+        if self.timed_out:
             logging.info(f"{self} timed out")
             return
 
@@ -491,6 +486,37 @@ class LinkManager(MsgServer):
 
         print('shutdown', host)
 
+    def _aggregate(self, link):
+        local_data = self._database[link.source_key]
+        assert isinstance(local_data, int) or isinstance(local_data, float)
+
+        remote_data = [r.data for r in self._remotes.values()]
+
+        if link.mode == LINK_MODE_SEND:
+            data_set = [local_data]
+            data_set.extend(remote_data)
+
+        else:
+            return None
+
+        if link.aggregation == LINK_AGG_ANY:
+            return data_set[0]
+
+        elif link.aggregation == LINK_AGG_MIN:
+            return min(data_set)
+
+        elif link.aggregation == LINK_AGG_MAX:
+            return max(data_set)
+
+        elif link.aggregation == LINK_AGG_SUM:
+            return sum(data_set)
+
+        elif link.aggregation == LINK_AGG_AVG:
+            return sum(data_set) / len(data_set)
+
+        else:
+            raise Exception('WTF')
+
     @synchronized
     def _add_link(self, link):
         link._service = self._service_manager.join_team(LINK_SERVICE, link.hash, self._port, priority=LINK_BASE_PRIORITY)
@@ -511,11 +537,23 @@ class LinkManager(MsgServer):
 
         self._add_link(l)
 
+        logging.info(f'{l}')
+
     def receive(self, *args, **kwargs):
         self.link(LINK_MODE_RECV, *args, **kwargs)
 
     def send(self, *args, **kwargs):
         self.link(LINK_MODE_SEND, *args, **kwargs)
+
+    def _send_consumer_data(self, link, data):
+        link_hash = link.hash
+        
+        consumers = [c for c in self._consumers.values() if c.link_hash == link_hash]
+
+        msg = ConsumerDataMsg(hash=link_hash, data=data)
+
+        for c in consumers:
+            self.transmit(msg, c.host)
 
     def _handle_consumer_query(self, msg, host):
         if msg.mode == LINK_MODE_SEND:
@@ -572,13 +610,13 @@ class LinkManager(MsgServer):
     def _handle_consumer_match(self, msg, host):
         # UPDATE CONSUMER STATE
 
-        if msg.hash not in self._consumers:
+        if msg.hash in self._consumers:
             return
 
         if msg.hash not in self._consumers:
             c = _Consumer(
                     msg.hash,
-                    host[0]) # ADD DATA PORT!
+                    host)
 
             self._consumers[msg.hash] = c
 
@@ -591,7 +629,6 @@ class LinkManager(MsgServer):
         if msg.hash not in self._database:
             logging.error("key not found!")
             return
-
 
         # UPDATE DATABASE
         # print(msg.data)

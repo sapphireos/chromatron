@@ -1321,11 +1321,11 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
     if( meta.type == CATBUS_TYPE_BOOL ){
 
-
+        log_v_error_P( PSTR("bool not supported") );
     }
     else if( meta.type == CATBUS_TYPE_FLOAT ){
 
-        
+        log_v_error_P( PSTR("float not supported") );
     }
     // integer types
     else{
