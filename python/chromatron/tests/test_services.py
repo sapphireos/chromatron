@@ -49,8 +49,8 @@ def network_listen():
 	return d
 
 def test_basic_service(listen_service, offer_service):
-	listen_service.wait_until_connected(timeout=30.0)
-	offer_service.wait_until_connected(timeout=30.0)
+	listen_service.wait_until_connected(timeout=60.0)
+	offer_service.wait_until_connected(timeout=60.0)
 
 	assert offer_service.is_server
 	assert offer_service.connected
@@ -58,14 +58,14 @@ def test_basic_service(listen_service, offer_service):
 	assert not listen_service.is_server
 
 def test_network_listen(listen_service, network_offer):
-	listen_service.wait_until_connected(timeout=30.0)
+	listen_service.wait_until_connected(timeout=60.0)
 
 	assert listen_service.connected
 	assert not listen_service.is_server
 	assert listen_service.server[0] == network_offer.host
 
 def test_network_offer(offer_service, network_listen):
-	offer_service.wait_until_connected(timeout=30.0)
+	offer_service.wait_until_connected(timeout=60.0)
 	
 	for i in range(300):
 		time.sleep(0.1)

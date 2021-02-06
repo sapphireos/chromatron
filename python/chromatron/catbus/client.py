@@ -97,7 +97,7 @@ class Client(object):
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
 
                     if reply_msg.header.transaction_id != msg.header.transaction_id:
-                        logging.warn(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id} from {sender} type: {reply_msg.header.msg_type}")
+                        # logging.warning(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id} from {sender} type: {reply_msg.header.msg_type}")
                         continue
 
                     elif isinstance(reply_msg, ErrorMsg):

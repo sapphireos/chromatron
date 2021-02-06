@@ -291,6 +291,8 @@ static void load_cached_service( service_state_t *service ){
         return;
     }
 
+    log_v_debug_P( PSTR("Loading cached services") );
+
     sock_addr_t raddr;
     if( get_cached_service( service->id, service->group, &raddr ) ){
 
@@ -414,6 +416,8 @@ void services_v_listen( uint32_t id, uint64_t group ){
     }
 
     list_v_insert_tail( &service_list, ln );    
+
+    delete_cached_service( id, group );
 }
 
 void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
@@ -446,8 +450,9 @@ void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t 
         return;
     }
 
-    list_v_insert_tail( &service_list, ln );    
-
+    list_v_insert_tail( &service_list, ln );   
+     
+    delete_cached_service( id, group );
 }
 
 void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
