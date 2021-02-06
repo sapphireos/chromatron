@@ -475,7 +475,7 @@ class LinkManager(MsgServer):
         self._remotes = {}
 
         if test_mode:
-            database.add_item('link_test_key', os.getpid(), 'uint32')
+            database.add_item('link_test_key', os.getpid(), 'int32')
             self.start_timer(1.0, self._process_link_test)
 
     def clean_up(self):
@@ -555,7 +555,8 @@ class LinkManager(MsgServer):
         
         consumers = [c for c in self._consumers.values() if c.link_hash == link_hash]
 
-        msg = ConsumerDataMsg(hash=link_hash, data=data)
+        data.meta.hash = catbus_string_hash(link.dest_key)
+        msg = ConsumerDataMsg(hash=data.meta.hash, data=data)
 
         print(msg)
 

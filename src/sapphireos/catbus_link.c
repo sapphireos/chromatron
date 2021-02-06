@@ -1138,7 +1138,12 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            kv_i8_set( msg->hash, &msg->data.data, data_len );   
+            if( kv_i8_set( msg->hash, &msg->data.data, data_len ) < 0 ){
+
+                log_v_error_P( PSTR("data fail") );
+
+                goto end;
+            }
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
 
