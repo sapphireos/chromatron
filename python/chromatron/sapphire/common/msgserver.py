@@ -303,7 +303,6 @@ class MsgServer(Ribbon):
                 self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
 
             except OSError as e:
-                logging.exception(e)
                 # can't find an explanation for why the socket occasionally gives this error,
                 # but we're shutting down anyway.
                 pass
