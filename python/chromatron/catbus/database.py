@@ -26,6 +26,7 @@ from collections import UserDict
 import random
 import time
 import logging
+from copy import deepcopy
 
 from sapphire.common import catbus_string_hash
 
@@ -218,7 +219,7 @@ class Database(UserDict):
 
     def get_item(self, key):
         with self._lock:
-            return self._get_item_no_lock(key)
+            return deepcopy(self._get_item_no_lock(key))
 
     def lookup_hash(self, hashed_key):
         return self._hashes[hashed_key]

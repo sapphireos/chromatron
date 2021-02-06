@@ -487,7 +487,9 @@ class LinkManager(MsgServer):
         print('shutdown', host)
 
     def _aggregate(self, link):
-        local_data = self._database[link.source_key]
+        data_item = self._database.get_item(link.source_key)
+        local_data = data_item.value
+        
         assert isinstance(local_data, int) or isinstance(local_data, float)
 
         remote_data = [r.data for r in self._remotes.values()]
@@ -500,22 +502,25 @@ class LinkManager(MsgServer):
             return None
 
         if link.aggregation == LINK_AGG_ANY:
-            return data_set[0]
+            value = data_set[0]
 
         elif link.aggregation == LINK_AGG_MIN:
-            return min(data_set)
+            value = min(data_set)
 
         elif link.aggregation == LINK_AGG_MAX:
-            return max(data_set)
+            value = max(data_set)
 
         elif link.aggregation == LINK_AGG_SUM:
-            return sum(data_set)
+            value = sum(data_set)
 
         elif link.aggregation == LINK_AGG_AVG:
-            return sum(data_set) / len(data_set)
+            value = sum(data_set) / len(data_set)
 
         else:
             raise Exception('WTF')
+
+        data_item.value = value
+        return data_item
 
     @synchronized
     def _add_link(self, link):
@@ -551,6 +556,8 @@ class LinkManager(MsgServer):
         consumers = [c for c in self._consumers.values() if c.link_hash == link_hash]
 
         msg = ConsumerDataMsg(hash=link_hash, data=data)
+
+        print(msg)
 
         for c in consumers:
             self.transmit(msg, c.host)
