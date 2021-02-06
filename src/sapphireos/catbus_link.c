@@ -96,7 +96,8 @@ typedef struct __attribute__((packed)){
 static int32_t link_test_key;
 
 KV_SECTION_META kv_meta_t link_kv[] = {
-    { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key,        0,           "link_test_key" },
+    { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key,        0,  "link_test_key" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    0,                     0,  "test_link" },
 };
 
 PT_THREAD( test_thread( pt_t *pt, void *state ) )
@@ -144,89 +145,52 @@ void link_v_init( void ){
 
     wifi_i8_igmp_join( ip_a_addr(LINK_MCAST_ADDR) );
 
-    catbus_query_t query = { 0 };
-    query.tags[0] = __KV__link_group;
+    uint8_t test = 0;
+    kv_i8_get( __KV__test_link, &test, sizeof(test) );
 
-    // if( cfg_u64_get_device_id() == 93172270997720 ){
+    if( test != 0 ){
 
-    //     link_l_create( 
-    //         LINK_MODE_SEND, 
-    //         __KV__link_test_key, 
-    //         __KV__kv_test_key,
-    //         &query,
-    //         __KV__my_tag,
-    //         LINK_RATE_1000ms,
-    //         LINK_AGG_ANY,
-    //         LINK_FILTER_OFF );
-    // }
-
-    if( ( cfg_u64_get_device_id() == 93172270997720 ) ||
-        ( cfg_u64_get_device_id() == 110777341944024 ) ){
-
-        link_l_create( 
-            LINK_MODE_SEND, 
-            __KV__link_test_key, 
-            __KV__kv_test_key,
-            &query,
-            __KV__my_tag,
-            1000,
-            LINK_AGG_ANY,
-            LINK_FILTER_OFF );
-
-
-        // query.tags[0] = __KV__link_group;
-
-        // link_l_create( 
-        //     LINK_MODE_RECV, 
-        //     __KV__link_test_key, 
-        //     __KV__kv_test_key,
-        //     &query,
-        //     __KV__my_tag,
-        //     1000,
-        //     LINK_AGG_ANY,
-        //     LINK_FILTER_OFF );
-
-    link_test_key = 123;
+        catbus_query_t query = { 0 };
+        query.tags[0] = __KV____TEST__;
 
         thread_t_create( test_thread,
-                 PSTR("test_thread"),
-                 0,
-                 0 );
+                     PSTR("test_thread"),
+                     0,
+                     0 );
 
+        if( test == 1 ){
+
+            log_v_debug_P( PSTR("link test mode enabled: no links") );
+        }
+        else if( test == 2 ){
+
+            log_v_debug_P( PSTR("link test mode enabled: send") );
+            
+            link_l_create( 
+                LINK_MODE_SEND, 
+                __KV__link_test_key, // source 
+                __KV__kv_test_key,   // dest
+                &query,
+                __KV__test,
+                1000,
+                LINK_AGG_ANY,
+                LINK_FILTER_OFF );        
+        }
+        else if( test == 3 ){
+
+            log_v_debug_P( PSTR("link test mode enabled: recv") );
+            
+            link_l_create( 
+                LINK_MODE_RECV, 
+                __KV__link_test_key, // source
+                __KV__kv_test_key,   // dest
+                &query,
+                __KV__test,
+                1000,
+                LINK_AGG_ANY,
+                LINK_FILTER_OFF );        
+        }
     }
-    else{
-
-        // query.tags[0] = __KV__link_group;
-
-
-        // link_l_create( 
-        //     LINK_MODE_SEND, 
-        //     __KV__link_test_key, 
-        //     __KV__kv_test_key,
-        //     &query,
-        //     __KV__my_tag,
-        //     1000,
-        //     LINK_AGG_AVG,
-        //     LINK_FILTER_OFF );
-
-
-        // link_l_create( 
-        //     LINK_MODE_RECV, 
-        //     __KV__link_test_key, 
-        //     __KV__kv_test_key,
-        //     &query,
-        //     __KV__my_tag,
-        //     LINK_RATE_1000ms,
-        //     LINK_AGG_ANY,
-        //     LINK_FILTER_OFF );
-
-
-        thread_t_create( test_thread,
-                 PSTR("test_thread"),
-                 0,
-                 0 );
-    }
-
 }
 
 link_state_t link_ls_assemble(

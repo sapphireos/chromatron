@@ -367,9 +367,13 @@ void services_v_init( void ){
 
     if( test == 1 ){
 
+        log_v_debug_P( PSTR("services test mode enabled: OFFER") );
+
         services_v_offer(1234, 5678, 1, 0);     
     }
     else if( test == 2 ){
+
+        log_v_debug_P( PSTR("services test mode enabled: LISTEN") );
 
         services_v_listen(1234, 5678);     
     }
