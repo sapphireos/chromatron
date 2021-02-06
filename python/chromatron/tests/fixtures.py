@@ -6,7 +6,9 @@ from sapphire.common.util import setup_basic_logging
 from sapphire.common.msgserver import stop_all
 import logging
 
-setup_basic_logging(level=logging.INFO)
+setup_basic_logging(level=logging.DEBUG)
+
+NETWORK_ADDR = '10.0.0.157'
 
 @pytest.fixture
 def local_server():
@@ -15,7 +17,7 @@ def local_server():
 
 @pytest.fixture
 def network_server():
-    return ('10.0.0.157', CATBUS_MAIN_PORT)
+    return (NETWORK_ADDR, CATBUS_MAIN_PORT)
 
 servers = ['local_server', 'network_server']
 

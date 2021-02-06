@@ -240,7 +240,6 @@ class Service(object):
     def _shutdown(self):
         self._reset()
 
-    @synchronized
     def wait_until_connected(self, timeout=0.0):
         while not self.connected:
             time.sleep(0.1)

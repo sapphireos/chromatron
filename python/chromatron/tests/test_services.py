@@ -1,6 +1,6 @@
 import time
 import pytest
-
+import logging
 from catbus import *
 from sapphire.protocols.services import ServiceManager, STATE_CONNECTED
 from sapphire.devices.device import Device
@@ -22,7 +22,32 @@ def offer_service():
 	s.stop()
 	s.join()
 
-@pytest.mark.skip
+@pytest.fixture
+def network_offer():
+	d = Device(host=NETWORK_ADDR)
+	d.scan()
+	if d.get_key('test_services') != 1:
+		logging.debug("resetting network device...")
+		d.set_key('test_services', 1)
+		d.reboot()
+		d.wait()
+		logging.debug("network device ready!")
+		
+	return d
+
+@pytest.fixture
+def network_listen():
+	d = Device(host=NETWORK_ADDR)
+	d.scan()
+	if d.get_key('test_services') != 2:
+		logging.debug("resetting network device...")
+		d.set_key('test_services', 2)
+		d.reboot()
+		d.wait()
+		logging.debug("network device ready!")
+		
+	return d
+
 def test_basic_service(listen_service, offer_service):
 	listen_service.wait_until_connected(timeout=30.0)
 	offer_service.wait_until_connected(timeout=30.0)
@@ -32,40 +57,26 @@ def test_basic_service(listen_service, offer_service):
 	assert listen_service.connected
 	assert not listen_service.is_server
 
-@pytest.fixture
-def network_offer():
-	client = Client(('10.0.0.157', CATBUS_MAIN_PORT))
-	if client.get_key('test_services') != 1:
-		client.set_key('test_services', 1)
-		client.set_key('reboot', 1)
-	return client
-
-@pytest.fixture
-def network_listen():
-	client = Client(('10.0.0.157', CATBUS_MAIN_PORT))
-	if client.get_key('test_services') != 2:
-		client.set_key('test_services', 2)
-		client.set_key('reboot', 1)
-	return client
-
-@pytest.mark.skip
 def test_network_listen(listen_service, network_offer):
 	listen_service.wait_until_connected(timeout=30.0)
 
 	assert listen_service.connected
 	assert not listen_service.is_server
-	assert listen_service.server[0] == network_offer._connected_host[0]
+	assert listen_service.server[0] == network_offer.host
 
 def test_network_offer(offer_service, network_listen):
 	offer_service.wait_until_connected(timeout=30.0)
 	
-	# d = Device(host='10.0.0.157')
-	# for i in range(300):
-	# 	time.sleep(0.1)
+	for i in range(300):
+		time.sleep(0.1)
 
-	# 	services = d.get_service_info()
-	# 	for s in services:
-	# 		if s.id == 1234 and s.group == 5678 and s.state == STATE_CONNECTED:
-	# 			return
+		s = network_listen.get_service(1234, 5678)
 
-	# assert False
+		if s is None:
+			continue
+
+		if s.state == STATE_CONNECTED:
+			return
+
+	assert False
+

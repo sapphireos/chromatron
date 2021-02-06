@@ -440,7 +440,7 @@ class Device(object):
     def set_security_key(self, key_id, key):
         raise NotImplementedError
         
-    def echo(self, data='\0' * 32):
+    def echo(self):
         try:
             return self._client.ping()
 
@@ -449,6 +449,20 @@ class Device(object):
 
     def reboot(self):    
         return self.set_key('reboot', SYS_REBOOT_NORMAL)
+
+    def wait(self, timeout=60.0):    
+        start = time.time()
+
+        while (time.time() - start) < timeout:
+            try:
+                self.echo()
+
+                return
+
+            except DeviceUnreachableException:
+                pass
+
+        raise DeviceUnreachableException
 
     def safe_mode(self):
         return self.set_key('reboot', SYS_REBOOT_SAFE)
@@ -642,6 +656,15 @@ class Device(object):
         info.unpack(data)
 
         return info
+
+    def get_service(self, service_id, group):
+        services = self.get_service_info()
+
+        for s in services:
+            if s.id == service_id and s.group == group:
+                return s
+
+        return None
 
     def get_event_log(self):
         data = self.get_file("event_log")
