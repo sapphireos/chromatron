@@ -71,7 +71,6 @@ setup(
         "python-logging-loki==0.3.1",
         "paho-mqtt==1.5.1",
         "ifaddr==0.1.6",
-        "nest-asyncio==1.5.1",
     ],
 
     entry_points='''

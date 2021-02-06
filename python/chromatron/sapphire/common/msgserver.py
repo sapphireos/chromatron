@@ -20,14 +20,14 @@
 # 
 # </license>
 
-import asyncio
+import time
 import struct
 import socket
 import logging
 from .broadcast import get_broadcast_addresses, get_local_addresses
-
-import nest_asyncio
-nest_asyncio.apply()
+from .util import synchronized
+import threading
+import select
 
 class UnknownMessage(Exception):
     pass
@@ -38,69 +38,184 @@ class InvalidMessage(Exception):
 class InvalidVersion(Exception):
     pass
 
-class MsgServer(object):
+
+class _Timer(threading.Thread):
+    def __init__(self, interval, port, repeat=True):
+        super().__init__()
+
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('localhost', 0))
+        self.interval = interval    
+        self.port = self._timer_sock.getsockname()[1]
+        self.dest_port = port
+        self.repeat = repeat
+
+        self.daemon = True
+        self.start()
+
+    def run(self):
+        while True:
+            time.sleep(self.interval)
+            self._timer_sock.sendto(''.encode(), ('localhost', self.dest_port))
+
+            if not self.repeat:
+                return
+
+class MsgServer(threading.Thread):
+    __global_lock = threading.Lock()
     _server_id = 0
     _servers = []
 
-    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, loop=None, ignore_unknown=True):
+    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
+        super().__init__()
+
+        self._lock = threading.RLock()
+        self._stop_event = threading.Event()
+
         self.name = name + f'.{self._server_id}'
-
-        self._server_id += 1
-
-        self._loop = loop
-        if self._loop is None:
-            self._loop = asyncio.get_event_loop()
 
         self._port = port
         self._listener_port = listener_port
         self._listener_mcast = listener_mcast
         self._listener_sock = None
-        self._transport = None
 
         self._messages = {}
         self._handlers = {}
         self._msg_type_offset = None
         self._protocol_version = None
         self._protocol_version_offset = None
-        self._running = True
+        self._timers = {}
 
         self.ignore_unknown = ignore_unknown
 
-        coro = self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._port), reuse_port=False, allow_broadcast=True)
-        self._loop.run_until_complete(coro)
+        self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._timer_sock.bind(('0.0.0.0', 0))
+        self._timer_port = self._timer_sock.getsockname()[1]
 
+        self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            # this option may fail on some platforms
+            self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        except AttributeError:
+            pass
+
+        if self._port is None:
+            self.__server_sock.bind(('0.0.0.0', 0))
+            
+        else:
+            self.__server_sock.bind(('0.0.0.0', self._port))
+
+        self._port = self.__server_sock.getsockname()[1]
+
+        self._inputs = [self.__server_sock, self._timer_sock]
+        
         if self._listener_port is not None:
-            coro = self._loop.create_datagram_endpoint(lambda: self, local_addr=('0.0.0.0', self._listener_port), reuse_port=True, allow_broadcast=True)
-            self._loop.run_until_complete(coro)
+            self._listener_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            try:
+                # this option may fail on some platforms
+                self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+            except AttributeError:
+                pass
+
+            self._listener_sock.bind(('0.0.0.0', self._listener_port))
 
             logging.info(f"MsgServer {self.name}: server on {self._port} listening on {self._listener_port}")
+
+            logging.info(f'MsgServer {self.name}: joining multicast group {self._listener_mcast}')
+            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
+            self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+            self._inputs.append(self._listener_sock)
 
         else:  
             logging.info(f"MsgServer {self.name}: server on {self._port}")
 
+        with self.__global_lock:
+            self._server_id += 1
+            self._servers.append(self)
 
-        self._servers.append(self)
+        self.start()
 
+    @property
+    @synchronized
+    def port(self):
+        return self._port
+
+    @property
+    @synchronized
+    def listen_port(self):
+        return self._listener_port
+    
     def __str__(self):
         if self._listener_port is None:
             return f'{self.name} @ {self._port}'
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
 
-    def start_timer(self, interval, handler, repeat=True):
-        def _process_timer(self, interval, handler, repeat):
-            if not self._running:
-                return
+    def _process(self):
+        try:
+            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
 
-            handler()
-            if repeat:
-                self._loop.call_later(interval, _process_timer, self, interval, handler, repeat)
+            with self._lock:
+                for s in readable:
+                    try:
+                        data, host = s.recvfrom(1024)
 
-        self._loop.call_later(interval, _process_timer, self, interval, handler, repeat)
+                        # process data
+                        if (s == self.__server_sock) or (s == self._listener_sock):
+                            # filter out messages from our own ports
+                            if (s == self.__server_sock) and (host[1] == self._listener_port):
+                                continue
+
+                            elif (s == self._listener_sock) and (host[1] == self._port):
+                                continue
+
+                            msg = self._deserialize(data)
+                            response = None                    
         
+                            response, host = self._process_msg(msg, host)
+                            
+                            if response:
+                                self.transmit(response, host)
+
+                        # run timers
+                        elif host[1] in self._timers:    
+                            self._timers[host[1]]()
+
+                    except UnknownMessage as e:
+                        raise
+
+                    except Exception as e:
+                        logging.exception(e)
+
+
+        except select.error as e:
+            logging.exception(e)
+
+        except Exception as e:
+            logging.exception(e)
+        
+    def run(self):
+        while not self._stop_event.is_set():
+            self._process()
+
+    @synchronized
+    def start_timer(self, interval, handler, repeat=True):
+        timer = _Timer(interval, self._timer_port)
+        self._timers[timer.port] = handler
+    
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
 
+    @synchronized
     def register_message(self, msg, handler=None):    
         if handler is None:
             handler = self.default_handler
@@ -147,6 +262,7 @@ class MsgServer(object):
         except (struct.error, UnicodeDecodeError) as e:
             raise InvalidMessage(msg_id, len(buf), e)
     
+    @synchronized
     def transmit(self, msg, host):
         try:
             if host[0] == '<broadcast>':
@@ -170,7 +286,12 @@ class MsgServer(object):
         except socket.error:
             pass
 
-    def _process_msg(self, msg, host):        
+    def _process_msg(self, msg, host):     
+        # check if receiving a message we sent
+        # this can happen in multicast groups
+        if (host[0] in get_local_addresses()) and (host[1] == self._port):
+            return
+   
         handler = self._handlers[type(msg)]
         tokens = handler(msg, host)
 
@@ -186,111 +307,72 @@ class MsgServer(object):
 
         return tokens[0], tokens[1]
 
-
-    def connection_made(self, transport):
-        sock = transport.get_extra_info('socket')
-        port = sock.getsockname()[1]
-
-        if port == self._listener_port:
-            self._listener_sock = sock
-
-            if self._listener_mcast is not None:
-                logging.info(f'MsgServer {self.name}: joining multicast group {self._listener_mcast}')
-                mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
-                sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-
-        else:
-            self._transport = transport
-            self._port = port
-
-    def datagram_received(self, data, host):
-        # check if receiving a message we sent
-        # this can happen in multicast groups
-        if (host[0] in get_local_addresses()) and (host[1] == self._port):
+    @synchronized
+    def stop(self):
+        if self._stop_event.is_set():
             return
-
-        try:
-            msg = self._deserialize(data)
-
-        except UnknownMessage:
-            if self.ignore_unknown:
-                return
-
-            raise
-
-        response = None                    
-
-        response, host = self._process_msg(msg, host)
-        
-        if response:
-            self.transmit(response, host)
-
-    def error_received(self, exc):
-        logging.error('Error received:', exc)
-
-    async def stop(self):
-        self._running = False
+      
+        self._stop_event.set()
         
         logging.info(f"MsgServer {self.name}: shutting down")
-        await self.clean_up()
+        self.clean_up()
 
         # leave multicast group
         if self._listener_port is not None and self._listener_mcast is not None:
             logging.info(f'MsgServer {self.name}: leaving multicast group {self._listener_mcast}')
-            sock = self._listener_sock
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
             try:
-                sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
+                self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
 
-            except OSError:
+            except OSError as e:
+                logging.exception(e)
                 # can't find an explanation for why the socket occasionally gives this error,
                 # but we're shutting down anyway.
                 pass
 
         logging.info(f"MsgServer {self.name}: shut down complete")
 
-    async def clean_up(self):
+    def clean_up(self):
         pass
 
 
-def stop_all(loop=asyncio.get_event_loop()):
+def stop_all():
     logging.info("Stopping all servers...")
-    for t in asyncio.all_tasks(loop):
-        t.cancel()
+    for s in MsgServer._servers:
+        s.stop()
 
-    coros = asyncio.wait([s.stop() for s in MsgServer._servers])    
-    loop.run_until_complete(coros)
+    for s in MsgServer._servers:
+        s.join()
 
-def run_all(loop=asyncio.get_event_loop()):
-    asyncio.set_event_loop(loop)
+def run_all():
     try:
-        loop.run_forever()
-    except KeyboardInterrupt:  # pragma: no branch
-        pass
-    finally:
-        stop_all(loop=loop)
-
-        loop.close()
-
-def create_task(task, loop=asyncio.get_event_loop()):
-    loop.create_task(task)
-
-def create_loop_task(task, interval, loop=asyncio.get_event_loop(), raise_exc=True):
-    async def loop_func():
         while True:
-            try:
-                await task()
+            time.sleep(1.0)
 
-            except Exception as e:
-                logging.exception(e)
-                if raise_exc:
-                    raise
+    except KeyboardInterrupt:
+        pass
 
-            await asyncio.sleep(interval)
+    stop_all()
 
-    loop.create_task(loop_func())    
+# def create_task(task, loop=asyncio.get_event_loop()):
+    # loop.create_task(task)
 
-async def synchronous_call(func, *args, loop=asyncio.get_event_loop()):
-    return await loop.run_in_executor(None, func, *args)
+# def create_loop_task(task, interval, loop=asyncio.get_event_loop(), raise_exc=True):
+#     async def loop_func():
+#         while True:
+#             try:
+#                 await task()
+
+#             except Exception as e:
+#                 logging.exception(e)
+#                 if raise_exc:
+#                     raise
+
+#             await asyncio.sleep(interval)
+
+#     loop.create_task(loop_func())    
+
+# async def synchronous_call(func, *args, loop=asyncio.get_event_loop()):
+#     return await loop.run_in_executor(None, func, *args)
 
 

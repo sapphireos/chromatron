@@ -31,7 +31,7 @@ from sapphire.common.broadcast import send_udp_broadcast
 from .messages import *
 from .catbustypes import *
 
-from sapphire.common import catbus_string_hash, util, MsgServer, synchronous_call
+from sapphire.common import catbus_string_hash, util, MsgServer
 
 
 
@@ -73,7 +73,7 @@ class Server(MsgServer):
     def register_shutdown_handler(self, handler):
         self._shutdown_handlers.append(handler)
 
-    async def clean_up(self):
+    def clean_up(self):
         self._send_shutdown()
         time.sleep(0.1)
         self._send_shutdown()
@@ -84,7 +84,7 @@ class Server(MsgServer):
         time.sleep(0.1)
         self._send_shutdown()
 
-    async def resolve_hash(self, hashed_key, host=None):
+    def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
     
