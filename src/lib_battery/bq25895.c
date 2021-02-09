@@ -535,6 +535,18 @@ PT_BEGIN( pt );
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
 
+        /*
+
+        Charger notes:
+
+        If not using USB, need to short USB data lines to enable DCP mode (1.5A and beyond).
+        Otherwise may get limited to 500 mA by DPDM.
+
+        OR turn AUTO_DPDM off.  Remember force DPDM will run even if auto is off, so bypass
+        that as well if you don't want DPDM at all.
+
+        */
+
 
         // set MINSYS to 3.0V for ADC accuracy.  VBAT must be greater than MINSYS.
 
@@ -556,10 +568,10 @@ PT_BEGIN( pt );
             // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
 
             // turn on auto dpdm
-            bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
             // turn OFF auto dpdm
-            // bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
             bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
             // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
@@ -588,7 +600,7 @@ PT_BEGIN( pt );
             bq25895_v_set_inlim_pin( FALSE );
 
             // run auto DPDM (which can override the current limits)
-            bq25895_v_force_dpdm();
+            // bq25895_v_force_dpdm();
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
