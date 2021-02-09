@@ -120,77 +120,6 @@ class NTPTimestampField(StructField):
     def copy(self):
         return NTPTimestampField()
 
-class KVLinkFileHeaderField(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="magic"),
-                  Uint8Field(_name="version"),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=11)]
-
-        super(KVLinkFileHeaderField, self).__init__(_fields=fields, **kwargs)
-
-class KVLinkField(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="tag"),
-                  Uint8Field(_name="flags"),
-                  Uint32Field(_name="source_hash"),
-                  Uint32Field(_name="dest_hash"),
-                  ArrayField(_name="query", _field=Uint32Field, _length=8),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=7),
-                  Uint32Field(_name="check_hash")]
-
-        super(KVLinkField, self).__init__(_fields=fields, **kwargs)
-
-class KVLinkArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = KVLinkField
-
-        super(KVLinkArray, self).__init__(_field=field, **kwargs)
-
-class KVLinkFile(StructField):
-    def __init__(self, **kwargs):
-        fields = [KVLinkFileHeaderField(_name="header"),
-                  KVLinkArray(_name="links")]
-
-        super(KVLinkFile, self).__init__(_fields=fields, **kwargs)
-
-class KVSendField(StructField):
-    def __init__(self, **kwargs):
-        fields = [Ipv4Field(_name="ip"),
-                  Uint16Field(_name="port"),
-                  Uint32Field(_name="source_hash"),
-                  Uint32Field(_name="dest_hash"),
-                  Uint16Field(_name="sequence"),
-                  NTPTimestampField(_name="ntp_timestamp"),
-                  Int8Field(_name="ttl"),
-                  Uint8Field(_name="flags")]
-
-        super(KVSendField, self).__init__(_fields=fields, **kwargs)
-
-class KVSendArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = KVSendField
-
-        super(KVSendArray, self).__init__(_field=field, **kwargs)
-
-class KVReceiveCacheField(StructField):
-    def __init__(self, **kwargs):
-        fields = [Ipv4Field(_name="ip"),
-                  Uint16Field(_name="port"),
-                  Uint32Field(_name="dest_hash"),
-                  Uint16Field(_name="sequence"),
-                  Int8Field(_name="ttl")]
-
-        super(KVReceiveCacheField, self).__init__(_fields=fields, **kwargs)
-
-class KVReceiveCacheArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = KVReceiveCacheField
-
-        super(KVReceiveCacheArray, self).__init__(_field=field, **kwargs)
-
-
-
-
 class KVMetaField(StructField):
     def __init__(self, **kwargs):
         fields = [Int8Field(_name="type"),
@@ -363,6 +292,78 @@ class ServiceInfoArray(ArrayField):
 
         super(ServiceInfoArray, self).__init__(_field=field, **kwargs)
 
+
+class LinkInfo(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="source_key"),
+                  Uint32Field(_name="dest_key"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8),
+                  Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
+                  Uint16Field(_name="filter"),
+                  Uint16Field(_name="rate"),
+                  Uint32Field(_name="tag"),
+                  Uint32Field(_name="data_hash"),
+                  Int16Field(_name="retransmit_timer"),
+                  Int16Field(_name="ticks"),
+                  Uint64Field(_name="hash")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class LinkInfoArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = LinkInfo
+
+        super().__init__(_field=field, **kwargs)
+
+
+class LinkProducerInfo(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="source_key"),
+                  Uint64Field(_name="link_hash"),
+                  Ipv4Field(_name="leader_ip"),
+                  Uint32Field(_name="data_hash"),
+                  Uint16Field(_name="rate"),
+                  Int16Field(_name="ticks"),
+                  Int16Field(_name="retransmit_timer"),
+                  Int32Field(_name="timeout")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class LinkProducerInfoArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = LinkProducerInfo
+
+        super().__init__(_field=field, **kwargs)
+
+class LinkConsumerInfo(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int16Field(_name="link"),
+                  Ipv4Field(_name="ip"),
+                  Int32Field(_name="timeout")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class LinkConsumerInfoArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = LinkConsumerInfo
+
+        super().__init__(_field=field, **kwargs)
+
+# this data structure needs rework to be viable
+# class LinkRemoteInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Int16Field(_name="link"),
+#                   Ipv4Field(_name="ip"),
+#                   Int32Field(_name="timeout")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class LinkRemoteInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkRemoteInfo
+
+#         super().__init__(_field=field, **kwargs)
 
 
 raw_events = """

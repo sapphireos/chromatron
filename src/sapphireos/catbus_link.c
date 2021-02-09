@@ -115,6 +115,90 @@ PT_END( pt );
 }
 
 
+static uint16_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &link_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &link_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
+static uint16_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &consumer_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &consumer_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
+static uint16_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &producer_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &producer_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
+static uint16_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &remote_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &remote_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
 
 void link_v_init( void ){
 
@@ -128,6 +212,13 @@ void link_v_init( void ){
 		return;
 	}
 
+    // create vfiles
+    fs_f_create_virtual( PSTR("link_info"), link_vfile );
+    fs_f_create_virtual( PSTR("link_consumers"), consumer_vfile );
+    fs_f_create_virtual( PSTR("link_producers"), producer_vfile );
+    fs_f_create_virtual( PSTR("link_remotes"), remote_vfile );
+
+    
     thread_t_create( link_server_thread,
                  PSTR("link_server"),
                  0,

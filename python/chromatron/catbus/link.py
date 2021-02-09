@@ -276,7 +276,7 @@ class Link(object):
 
         elif self.mode == LINK_MODE_RECV:
             if self.is_leader:
-                link_manager._aggregate(self)
+                data = link_manager._aggregate(self)
 
                 link_manager._send_consumer_data(self, data)
 
@@ -557,8 +557,6 @@ class LinkManager(MsgServer):
         data.meta.hash = catbus_string_hash(link.dest_key)
         msg = ConsumerDataMsg(hash=data.meta.hash, data=data)
 
-        print(msg)
-
         for c in consumers:
             self.transmit(msg, c.host)
 
@@ -610,7 +608,7 @@ class LinkManager(MsgServer):
 
             self._producers[msg.hash] = p
 
-            logging.debug(f"Create {p}")
+            logging.debug(f"Create {p} at {host}")
 
         self._producers[msg.hash]._refresh(host)
 
@@ -627,7 +625,7 @@ class LinkManager(MsgServer):
 
             self._consumers[msg.hash] = c
 
-            logging.debug(f"Create {c}")
+            logging.debug(f"Create {c} at {host}")
 
         self._consumers[msg.hash]._refresh(host)
 
@@ -753,7 +751,8 @@ def main():
 
     # print(hex(l.hash))
     # s.add_link(l)
-    lm.send('link_test_key', 'kv_test_key', query=['__TEST__'])
+    # lm.send('link_test_key', 'kv_test_key', query=['__TEST__'])
+    lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
 
     # import yappi
     # yappi.start()

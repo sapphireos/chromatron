@@ -673,6 +673,27 @@ class Device(object):
 
         return info
 
+    def get_link_info(self):
+        data = self.get_file("link_info")
+        info = sapphiredata.LinkInfoArray()
+        info.unpack(data)
+
+        return info
+
+    def get_link_consumer_info(self):
+        data = self.get_file("link_consumers")
+        info = sapphiredata.LinkConsumerInfoArray()
+        info.unpack(data)
+
+        return info
+
+    def get_link_producer_info(self):
+        data = self.get_file("link_producers")
+        info = sapphiredata.LinkProducerInfoArray()
+        info.unpack(data)
+
+        return info
+
 
     ##########################
     # Command Line Interface
@@ -1119,6 +1140,37 @@ class Device(object):
                  states[e.state])
 
         return s
+
+    def cli_linkinfo(self, line):
+        s = 'Links:\n'
+        try:
+            linkinfo = self.get_link_info()
+            for info in linkinfo:
+                s += str(info) + '\n'
+
+        except IOError:
+            pass
+
+        s += 'Producers:\n'
+        try:
+            linkinfo = self.get_link_producer_info()
+            for info in linkinfo:
+                s += str(info) + '\n'
+
+        except IOError:
+            pass
+
+        s += 'Consumers:\n'
+        try:
+            linkinfo = self.get_link_consumer_info()
+            for info in linkinfo:
+                s += str(info) + '\n'
+
+        except IOError:
+            pass
+        
+        return s
+    
 
     def cli_eventlog(self, line):
         events = sorted(self.get_event_log(), key=lambda evt: evt.timestamp)
